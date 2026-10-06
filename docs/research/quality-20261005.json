@@ -1794,16 +1794,28 @@
     },
     {
       "id": "Q56",
-      "status": "development complete; confirmation running",
+      "status": "48 pairs complete; no-model not adopted",
       "hypothesis": "Evaluate the clean cached-contact compiler without learned future ranking, retaining native local cost and arrival preferences. This tests whether the current learned artifact earns its complexity in the actual final architecture, independently of feature-prediction accuracy. All measures and completion remain unchanged.",
       "branch": "exp/quality-cached-no-value-20261006",
-      "interpretation": "Without model versus Q52: v3 loss +.001/+.002, strong bias \u2212.006/\u2212.009, very-strong \u2212.008/\u2212.009, inverted arrivals +.019/+.021, body drag +.099/+.730 s/min. The current model helps on this panel; no-model is not adopted."
+      "interpretation": "Without model versus Q52: v3 loss +.001/+.002, strong bias \u2212.006/\u2212.009, very-strong \u2212.008/\u2212.009, inverted arrivals +.019/+.021, body drag +.099/+.730 s/min. The current model helps on this panel; no-model is not adopted.",
+      "confirmation": "Versus Q52: perturbed v3 loss +.002, very-strong bias \u2212.026 and body dragging +.392 s/min. Authored v3 loss is approximately unchanged; older rulers sometimes improve. All ruler tradeoffs retained."
     },
     {
       "id": "Q57",
-      "status": "structural feasibility",
+      "status": "not adopted; unnecessary full qualification stopped",
       "hypothesis": "Replace per-version heap allocations with dense owned nodes and a compact stable-handle index. Swap removal updates the moved node\u2019s handle mapping; external handles and ancestry ownership remain unchanged. Test exact tracks/work, ownership, memory and process CPU before choosing it over the simpler boxed version arena.",
-      "branch": "exp/quality-dense-version-arena-20261006"
+      "branch": "exp/quality-dense-version-arena-20261006",
+      "commit": "8d22ec53",
+      "result": {
+        "longTrackUnchanged": true,
+        "physicalFrames": 5297435,
+        "peakSampledRssMiB": 1828,
+        "peakSampledExternalMiB": 486,
+        "cpuRatioVsQ52": 1.0471,
+        "normalCasesRssRatioVsQ52": 0.8075,
+        "caveat": "Long sampled JS heap differs under load. No CPU speed-up versus Q52; direct comparison to Q54 will determine whether storage complexity earns its keep."
+      },
+      "interpretation": "Direct six-case comparison versus the simpler boxed ownership implementation: CPU ratio1.0035, peak-RSS ratio1.0232, with mixed per-case results. No convincing resource advantage, so keep the simpler design. Eight native tests, six exact paired tracks/work and the long exact stress passed; the full63 parity run was stopped after the adoption decision, not reported as complete."
     },
     {
       "id": "Q58",
@@ -1818,6 +1830,21 @@
       "hypothesis": "Refit the 57-feature arrival-only continuation model on 336 disjoint native probe compiles from the coherent search. Keep hyperparameters and the physical target fixed, validate held-out catalog groups and independent export predictions, then compare complete production panels against Q52 and the no-model ablation. Prediction improvements alone do not justify adoption.",
       "branch": "exp/quality-current-value-20261006",
       "collectorCommit": "bdd2f633"
+    },
+    {
+      "id": "Q60",
+      "status": "resumed exact frozen plan with three workers after freeing render memory",
+      "hypothesis": "Check whether doubled allowance on the clean cached-contact architecture improves full rides rather than merely spending more work. Compare all24 paired development cases against its standard allowance with every unchanged ruler. Standard production allowance remains fixed; no tuning on final reserved seeds.",
+      "branch": "exp/quality-coherent-candidate-20261006",
+      "commit": "9c4ae57b",
+      "run": "q60-cached-six-million"
+    },
+    {
+      "id": "Q61",
+      "status": "predeclared continuation-target experiment",
+      "hypothesis": "A continuation can legitimately lower an already-counted boundary estimate. Test learning the signed two-interval correction with asinh(100*cost), rather than clipping negative labels to zero. Same physical labels, held-out groups, features and model capacity; complete ride panels decide whether it helps. No impact ruler or authored target changes.",
+      "diagnostic": "On 271 partial collection records, 218/24025 finite labels are negative (0.91%), mean \u2212.0127, minimum \u2212.0816, spanning 164 contexts. This is a feasibility observation, not a completed training result.",
+      "branch": "exp/quality-current-model-training-20261006"
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1848,7 +1875,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T01:57:18.766581+00:00",
+  "updated": "2026-10-06T02:05:26.313272+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [
@@ -1867,5 +1894,15 @@
       "Amour 202 7.90s: worst regression .827 to .419, lower normal approach speed and weaker travel response.",
       "Tiki 303 45.33s: quieter .299 to .144 with upright entry; later guide contact still bends the rider, so this is not proof of complete calmness."
     ]
+  },
+  "q52PhysicalReview": {
+    "scope": "Four selected pairs inspected frame by frame; all1890 matched beats independently decomposed. Owner visual judgment remains open.",
+    "findings": [
+      "Amour101 8.20s: .305\u2192.669 for request .945; greater body travel change (4.86), but the first contact is gentle and the larger response develops after it. This is stronger motion, not proof of a perfectly crisp onset.",
+      "Luna101 8.60s: .664\u2192.941 for request1; steep upright sled catch, normal approach7.09, travel impulse7.09 versus spin.42.",
+      "Amour202 7.90s: worst regression .827\u2192.419 for request1; flatter catch and backward tilt give weaker travel impulse2.81.",
+      "Tiki404 43.58s: quiet .326\u2192.154 for request.03; smoother sled catch and upright entry, still overshoots."
+    ],
+    "nextCheck": "Compare onset, force peak and strongest whole-body response window relative to the music; strength alone does not establish tighter synchronization."
   }
 }

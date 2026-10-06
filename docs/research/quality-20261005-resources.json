@@ -229,5 +229,468 @@
   ],
   "cpuRatio": 1.0801691234105066,
   "rssRatio": 0.9677611957901441,
-  "interpretation": "Q54 memory improvement is strongest on the long stress case. Six normal paired tracks show about 8% higher process CPU, mixed peak RSS. Concurrent-load timing and GC vary; no speed improvement claimed."
+  "interpretation": "Q54 memory improvement is strongest on the long stress case. Six normal paired tracks show about 8% higher process CPU, mixed peak RSS. Concurrent-load timing and GC vary; no speed improvement claimed.",
+  "denseArenaVersusQ52": {
+    "plan": {
+      "sources": {
+        "baseline": "/tmp/line-quality-cached-contacts-20261006",
+        "candidate": "/tmp/line-quality-dense-arena-20261006"
+      },
+      "cases": [
+        "luna_bala_44s~101",
+        "amor_na_praia_46s~101",
+        "tiki_tiki_48s~101",
+        "amour_de_ma_vie_44s~101",
+        "luna_bala_44s~101~p1",
+        "amour_de_ma_vie_44s~101~p1"
+      ],
+      "hypothesis": "Measure structural ancestry reclamation on exact saved tracks and work; CPU time excludes time waiting for other processes. Two case pairs run concurrently, each compile isolated."
+    },
+    "cases": [
+      {
+        "case": "luna_bala_44s~101",
+        "baseline": {
+          "id": "luna_bala_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+          "physicalFrames": 3020404,
+          "wallMs": 94183.899968,
+          "cpuMs": 115490.017,
+          "maxRssKiB": 852904
+        },
+        "candidate": {
+          "id": "luna_bala_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+          "physicalFrames": 3020404,
+          "wallMs": 96241.778309,
+          "cpuMs": 116119.647,
+          "maxRssKiB": 729936
+        }
+      },
+      {
+        "case": "amor_na_praia_46s~101",
+        "baseline": {
+          "id": "amor_na_praia_46s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+          "physicalFrames": 3149419,
+          "wallMs": 104862.723838,
+          "cpuMs": 122619.542,
+          "maxRssKiB": 952584
+        },
+        "candidate": {
+          "id": "amor_na_praia_46s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+          "physicalFrames": 3149419,
+          "wallMs": 106218.505175,
+          "cpuMs": 128434.792,
+          "maxRssKiB": 693992
+        }
+      },
+      {
+        "case": "tiki_tiki_48s~101",
+        "baseline": {
+          "id": "tiki_tiki_48s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+          "physicalFrames": 3283167,
+          "wallMs": 129365.993745,
+          "cpuMs": 148216.415,
+          "maxRssKiB": 1031524
+        },
+        "candidate": {
+          "id": "tiki_tiki_48s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+          "physicalFrames": 3283167,
+          "wallMs": 134179.06073700002,
+          "cpuMs": 162170.608,
+          "maxRssKiB": 822652
+        }
+      },
+      {
+        "case": "amour_de_ma_vie_44s~101",
+        "baseline": {
+          "id": "amour_de_ma_vie_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+          "physicalFrames": 3055916,
+          "wallMs": 135478.013772,
+          "cpuMs": 166222.916,
+          "maxRssKiB": 995524
+        },
+        "candidate": {
+          "id": "amour_de_ma_vie_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+          "physicalFrames": 3055916,
+          "wallMs": 140575.030102,
+          "cpuMs": 178930.612,
+          "maxRssKiB": 923696
+        }
+      },
+      {
+        "case": "luna_bala_44s~101~p1",
+        "baseline": {
+          "id": "luna_bala_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+          "physicalFrames": 3019006,
+          "wallMs": 95127.808816,
+          "cpuMs": 118622.516,
+          "maxRssKiB": 771568
+        },
+        "candidate": {
+          "id": "luna_bala_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+          "physicalFrames": 3019006,
+          "wallMs": 95494.412856,
+          "cpuMs": 116544.109,
+          "maxRssKiB": 606292
+        }
+      },
+      {
+        "case": "amour_de_ma_vie_44s~101~p1",
+        "baseline": {
+          "id": "amour_de_ma_vie_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "c2af5bbc7f75e0b6938a19c5e8180fb29db2407a",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "e6beb6998ae8ea642633fbf8dca4b41808124d155e2a7ffa120d1de50e425e35"
+          },
+          "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+          "physicalFrames": 3047750,
+          "wallMs": 104878.80313,
+          "cpuMs": 124019.138,
+          "maxRssKiB": 911292
+        },
+        "candidate": {
+          "id": "amour_de_ma_vie_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+          "physicalFrames": 3047750,
+          "wallMs": 106407.845356,
+          "cpuMs": 130442.067,
+          "maxRssKiB": 677060
+        }
+      }
+    ],
+    "cpuRatio": 1.0470972539633217,
+    "rssRatio": 0.8074901602713568,
+    "interpretation": "+4.7% CPU, \u221219.3% summed peak RSS versus Q52 across six exact pairs. Direct comparison against boxed ownership is in progress; different study loads prevent treating cross-study differences as controlled."
+  },
+  "denseVersusBoxed": {
+    "plan": {
+      "sources": {
+        "baseline": "/tmp/line-quality-coherent-candidate-20261006",
+        "candidate": "/tmp/line-quality-dense-arena-20261006"
+      },
+      "cases": [
+        "luna_bala_44s~101",
+        "amor_na_praia_46s~101",
+        "tiki_tiki_48s~101",
+        "amour_de_ma_vie_44s~101",
+        "luna_bala_44s~101~p1",
+        "amour_de_ma_vie_44s~101~p1"
+      ],
+      "hypothesis": "Measure structural ancestry reclamation on exact saved tracks and work; CPU time excludes time waiting for other processes. Two case pairs run concurrently, each compile isolated."
+    },
+    "cases": [
+      {
+        "case": "luna_bala_44s~101",
+        "baseline": {
+          "id": "luna_bala_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+          "physicalFrames": 3020404,
+          "wallMs": 88803.84401900001,
+          "cpuMs": 113353.261,
+          "maxRssKiB": 867584
+        },
+        "candidate": {
+          "id": "luna_bala_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "7901ca0770ec8c70c42608245aba7f4563cd45ba61055736a4276b7c86a86833",
+          "physicalFrames": 3020404,
+          "wallMs": 87071.420237,
+          "cpuMs": 107136.245,
+          "maxRssKiB": 728456
+        }
+      },
+      {
+        "case": "amor_na_praia_46s~101",
+        "baseline": {
+          "id": "amor_na_praia_46s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+          "physicalFrames": 3149419,
+          "wallMs": 96265.606386,
+          "cpuMs": 118900.068,
+          "maxRssKiB": 709676
+        },
+        "candidate": {
+          "id": "amor_na_praia_46s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "4365e308919395678ed774e67a19cd7f9a4e43bc64a30ca12e7a6eab519b71f6",
+          "physicalFrames": 3149419,
+          "wallMs": 94473.259225,
+          "cpuMs": 116493.526,
+          "maxRssKiB": 693776
+        }
+      },
+      {
+        "case": "tiki_tiki_48s~101",
+        "baseline": {
+          "id": "tiki_tiki_48s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+          "physicalFrames": 3283167,
+          "wallMs": 97048.380928,
+          "cpuMs": 120760.105,
+          "maxRssKiB": 817488
+        },
+        "candidate": {
+          "id": "tiki_tiki_48s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "af4b61c686e2d7c0ce07c2853f740cf9b307e5ea94e76b16b13e188da4141b33",
+          "physicalFrames": 3283167,
+          "wallMs": 94331.017064,
+          "cpuMs": 118660.627,
+          "maxRssKiB": 816600
+        }
+      },
+      {
+        "case": "amour_de_ma_vie_44s~101",
+        "baseline": {
+          "id": "amour_de_ma_vie_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+          "physicalFrames": 3055916,
+          "wallMs": 95373.10531500001,
+          "cpuMs": 115655.781,
+          "maxRssKiB": 818908
+        },
+        "candidate": {
+          "id": "amour_de_ma_vie_44s~101",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "13cfff5136c690a57dbb1a473841da9e8e3f3dd9977869a4bf71e58e182f6a61",
+          "physicalFrames": 3055916,
+          "wallMs": 97021.27881500001,
+          "cpuMs": 128841.024,
+          "maxRssKiB": 931928
+        }
+      },
+      {
+        "case": "luna_bala_44s~101~p1",
+        "baseline": {
+          "id": "luna_bala_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+          "physicalFrames": 3019006,
+          "wallMs": 84353.375379,
+          "cpuMs": 105615.931,
+          "maxRssKiB": 630960
+        },
+        "candidate": {
+          "id": "luna_bala_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "69426409773b9df3ee7fa7168b5425c7dad9ad5710db5e1b49bca099d149a8d9",
+          "physicalFrames": 3019006,
+          "wallMs": 83065.03512300001,
+          "cpuMs": 107639.829,
+          "maxRssKiB": 896004
+        }
+      },
+      {
+        "case": "amour_de_ma_vie_44s~101~p1",
+        "baseline": {
+          "id": "amour_de_ma_vie_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "9c4ae57b861debf67af60f10ae606b980941abe9",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "c3ddd37e52b4b76508193a7ee74689d52b638dd5b2c450b074221679bea0f1aa"
+          },
+          "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+          "physicalFrames": 3047750,
+          "wallMs": 96860.811316,
+          "cpuMs": 120382.201,
+          "maxRssKiB": 784940
+        },
+        "candidate": {
+          "id": "amour_de_ma_vie_44s~101~p1",
+          "identity": {
+            "protocol": "line.compiler-identity.v3",
+            "head": "8d22ec5350c2e29ac71b2ffe097c9256159ba4e5",
+            "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "untracked": 0,
+            "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+            "candidateFingerprint": "a8f019539a64b737703a83517ca9f456e154264546798365e182c040049c6b27"
+          },
+          "hash": "406e4410089f2ffd22cde86f14e900f815ea5a7fcd5282b9843606074fb94a57",
+          "physicalFrames": 3047750,
+          "wallMs": 94574.436441,
+          "cpuMs": 118297.126,
+          "maxRssKiB": 670344
+        }
+      }
+    ],
+    "cpuRatio": 1.0034563737742521,
+    "rssRatio": 1.02323160147539
+  }
 }

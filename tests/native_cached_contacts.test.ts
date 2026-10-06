@@ -1,4 +1,6 @@
 import {it,expect} from 'vitest';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,getPhysicsFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 const core:any=await import('../vendor/lr-core/line-rider-engine/index.js');
@@ -31,4 +33,11 @@ it('rejects an incomplete observation after a budget interruption',()=>{
  resetFrameCount();setPhysicsFrameLimit(2);
  try{expect(()=>getRiderMetered(engine,60)).toThrow();expect(()=>engine.getCachedContactPositions(1,60)).toThrow('already be simulated');}
  finally{setPhysicsFrameLimit(null);dispose();}
+});
+
+it('binds the packaged native sources and WASM to their recorded manifest',()=>{
+ const root=new URL('../scripts/lib/native_motion/',import.meta.url);
+ const manifest=JSON.parse(readFileSync(new URL('manifest.json',root),'utf8'));
+ for(const [name,expected]of Object.entries(manifest.generated))
+  expect(createHash('sha256').update(readFileSync(new URL(name,root))).digest('hex'),name).toBe(expected);
 });

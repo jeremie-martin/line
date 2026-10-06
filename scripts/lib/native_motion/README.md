@@ -1,20 +1,24 @@
 # Compiler simulation backend
 
-This is an isolated copy of the accepted Rust physics engine with two compiler
-facilities: copying an already computed prefix cache, and observing state before
-each collision sweep. Observation evicts the requested frame; the compiler then
-uses the ordinary metered reader to charge its replay. Neither facility changes
-the stepping equations or permits supplying a rider state.
+This isolated copy of the accepted Rust physics engine provides the compiler
+with shared prefix caches, metered collision observation, and cached resolved
+collision positions. Reading cached contacts does not step or replay physics.
+Live descendants and the current cache retain the ancestry they need; released
+branch payloads are reclaimed once neither needs them. These facilities do not
+change the stepping equations or permit supplying a rider state.
 
-The benchmark engine remains in `engine-rs`. Every native compiler output is
+The benchmark engine remains in `engine-rs`. Every completed compiler output is
 cold-replayed with that engine and must match the full raw trajectory exactly.
-The packaged backend passes the 360-prefix cache/trace audit, and a completed
-native track also matches the untouched published JavaScript engine exactly.
-`manifest.json` records the accepted-source provenance and packaged hashes.
+The independent judge is unchanged. Native callers retain ownership of their
+engines across compilation: pruning and cleanup occur inside a synchronous
+`withEngineScope`, including independent continuation-label collection.
 
-To rebuild `engine.wasm`, run Cargo with this directory's manifest for the
-`wasm32-unknown-unknown` release target, then copy `lr_engine.wasm` from that
-target directory to `engine.wasm` and update the manifest's generated hashes.
-After any backend change, `npm run parity` must stay byte-identical (the audit
-script used when this backend was accepted is at tag archive/pre-rework-2026-10-03).
-Source and WASM bytes are included in the compiler identity.
+`manifest.json` keeps the original accepted-source provenance and the current
+packaged source/WASM hashes. A test checks every packaged hash. Source and WASM
+bytes also enter the compiler identity independently of this manifest.
+
+To rebuild `engine.wasm`, use a separate Cargo target directory with this
+manifest and the `wasm32-unknown-unknown` release target, copy `lr_engine.wasm`
+to `engine.wasm`, and update the generated hashes. Do not overwrite a shared
+judge build. Structural backend changes require exact track and work parity,
+independent judging, and the native ownership/cache tests.

@@ -6,7 +6,7 @@ import { extractRawTrajectory, resetFrameCount, setPhysicsFrameLimit } from '../
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 
 const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-const options={budget:65000,samples:100,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,qualityRetries:2};
+const options={budget:65000,samples:100,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,};
 const chains=(lines:TrackLine[])=>{const result:TrackLine[][]=[[]];for(const l of lines){const p=result.at(-1)!.at(-1);if(p&&(p.x2!==l.x1||p.y2!==l.y1))result.push([]);result.at(-1)!.push(l);}return result;};
 
 it('expresses single, partial and paired guidance as substantial connected normal curves',()=>{
@@ -39,22 +39,22 @@ it('requires an already metered complete trajectory before inspecting collisions
   expect(()=>trimUnusedArcGuides([],{getLastFrameIndex:()=>0},20)).toThrow('metered full replay');
 });
 
-it('charges lookahead, carries a complete physical contract and reproduces selected geometry',()=>{
-  const config={...options,guidance:'clearance' as const,guidanceSamples:24,lookaheadWidth:3,lookaheadSamples:24};
+it('charges every retained prefix, carries a complete physical contract and reproduces selected geometry',()=>{
+  const config={...options,guidance:'clearance' as const,guidanceSamples:24,};
   const a=compileArcMotion(spec,17,config),b=compileArcMotion(spec,17,config);
-  expect(a.lookaheadStats.probes).toBeGreaterThan(0);expect(a.lookaheadStats.physicsFrames).toBeGreaterThan(0);
+  expect(a.planningDecisions.some(d=>d.beamWidth>1)).toBe(true);
+  expect(a.planningDecisions.every(d=>d.physicsFrames>0&&d.offered>=d.beamWidth)).toBe(true);
   expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(a.failure).toBeNull();
   expect(a.report.contacts.every(c=>c.status==='hit')).toBe(true);expect(a.report.off_beat_landings).toHaveLength(0);
   expect(a.report.terminus.reason).toBe('endOfSpec');expect(a.track).toEqual(b.track);expect(a.stats).toEqual(b.stats);
 });
 
-it('evaluates a deeper continuation tree with joint guide refinement inside the same meter',()=>{
-  // Planning deepens the continuation tree when the allowance affords it.
-  const budget=100000;
-  const result=compileArcMotion(spec,18,{...options,budget,guidance:'clearance',guidanceSamples:24,lookaheadWidth:3,lookaheadSamples:20});
-  expect(result.lookaheadStats.maxDepth).toBe(2);
-  expect(result.lookaheadStats.continuationNodes).toBeGreaterThan(result.lookaheadStats.probes);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(budget);
-  expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
-  expect(result.report.off_beat_landings).toHaveLength(0);
+it('bounds retained prefixes by available work and reserves the complete replay',()=>{
+ const budget=100000;
+ const result=compileArcMotion(spec,18,{...options,budget,guidance:'clearance',guidanceSamples:24});
+ expect(result.planningDecisions.every(d=>d.beamWidth>=1&&d.beamWidth<=8&&d.localScale>0&&d.localScale<=1)).toBe(true);
+ expect(result.planningDecisions.reduce((sum,d)=>sum+d.physicsFrames,0)).toBeLessThanOrEqual(result.stats.sim_frames);
+ expect(result.stats.sim_frames).toBeLessThanOrEqual(budget);
+ expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
+ expect(result.report.off_beat_landings).toHaveLength(0);
 });

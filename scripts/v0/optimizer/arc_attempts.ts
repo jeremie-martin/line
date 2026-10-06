@@ -9,11 +9,10 @@ import {validRide} from './ride_validity.ts';
 type Outcome = {
   track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?: number;
   impactEvaluation?: {valid: boolean};
-  lookaheadStats: unknown; planningDecisions: unknown;
+  planningDecisions: unknown;
   constructionFrames: number; samples: number; searchBudgetExhausted: boolean;
   stats: {sim_frames: number; viable_candidate_samples: number; gap_commits: number};
-  initialProposalWork: unknown; observedReceiverWork: unknown; coupledIntervalWork: unknown;
-  transitionRevisionWork: unknown; constructionImprovement: unknown;
+  initialProposalWork: unknown; observedReceiverWork: unknown;
 };
 
 export function arcAttemptTelemetry(result: Outcome, options: ArcMotionOptions) {
@@ -25,13 +24,11 @@ export function arcAttemptTelemetry(result: Outcome, options: ArcMotionOptions) 
     selectionLoss: result.selectionLoss ?? result.trajectoryLoss ?? Infinity, failure: result.failure,
     trackHash: createHash('sha256').update(JSON.stringify(result.track)).digest('hex'), gapCommits: result.stats.gap_commits,
     exhausted: result.searchBudgetExhausted, samples: result.samples, viableCandidates: result.stats.viable_candidate_samples,
-    lookahead: result.lookaheadStats, planning: result.planningDecisions,
+    planning: result.planningDecisions,
     commits: result.rows.map((row, index) => ({index, frame: row.frame, spent: row.spent})),
   };
   const work = {
     name: record.name, initialProposalWork: result.initialProposalWork, observedReceiverWork: result.observedReceiverWork,
-    coupledIntervalWork: result.coupledIntervalWork, transitionRevisionWork: result.transitionRevisionWork,
-    constructionImprovement: result.constructionImprovement,
   };
   return {attempts: [record], attemptWork: [work]};
 }

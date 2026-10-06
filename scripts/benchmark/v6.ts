@@ -52,8 +52,7 @@ if(command==='worker'){
      schema:'line.v6-construction-evidence.v1',id,seed,planSha256:row.planSha256,trackHash:row.trackHash,
      rows:r.result.rows.map(({lookahead,...r}:any)=>r),failure:r.result.failure,
      initializationRecovery:r.result.initializationRecovery,initialProposalWork:r.result.initialProposalWork,
-     constructionImprovement:r.result.constructionImprovement,lookahead:r.result.lookaheadStats,
-     observedReceiverWork:r.result.observedReceiverWork,coupledIntervalWork:r.result.coupledIntervalWork,
+     observedReceiverWork:r.result.observedReceiverWork,planning:r.result.planningDecisions,
      attempts:r.result.attempts,attemptWork:r.result.attemptWork,completionFirst:r.result.completionFirstStats,
      refinement:r.result.refinementStats});
    writeGalleryJson(join(out,'cells'),id+'-'+seed+'.json',row);

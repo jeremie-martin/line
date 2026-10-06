@@ -8,8 +8,7 @@
  * - constructionStyle(): the geometry style of each section.
  *
  * IntervalOverrides are set only inside the compiler, per interval search
- * (allowance scaling, lookahead continuations, transition revision, coupled
- * pairs, refinement). IntervalOptions is what one interval search sees. */
+ * (allowance scaling and complete-track refinement). IntervalOptions is what one interval search sees. */
 import type { ArcMotionControl, ArcGeometryStyle, ArcSectionStyle } from './arc_geometry.ts';
 import type { ArcControlExample } from './arc_memory.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
@@ -42,21 +41,12 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
    * for a passive arrival, see IntervalOptions) and the heading-band prior. */
   arrivalWeight?: number;
   headingWeight?: number;
-  /** Retries of a committed interval that misses its speed target by over 0.3. */
-  qualityRetries?: number;
   /** Clearance, shape and core controls searched jointly after the core
    * curve, and their allowance; absent when the allowance has none. */
   guidance?: 'clearance';
   guidanceSamples?: number;
-  /** Lookahead: candidates probed and samples per continuation. */
-  lookaheadWidth?: number;
-  lookaheadSamples?: number;
-  /** Multiple of the construction rate kept in reserve when planning. */
-  reserveFactor?: number;
   /** Finite-difference response evaluations within the guidance allowance. */
   responseSamples?: number;
-  /** Reduce local work if observed construction cost outgrows remaining capacity. */
-  budgetAdaptiveLocal?: boolean;
   /** Replace the preceding truncated span once its contact boundary is measured. */
   completeBoundary?: boolean;
   /** Remembered controls, remembered responses and learned proposals per interval. */
@@ -66,23 +56,17 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   /** Learned future value of an arrival, used to rank candidates and guide search. */
   futureValueModel?: any;
   valueWeight?: number;
-  /** Blend learned arrival value into local geometry optimization as well as ranking. */
-  valueGuidanceWeight?: number;
-  /** Weight of the learned value at an unresolved continuation leaf. */
-  continuationValueWeight?: number;
 
   // --- repertoireSearchOptions(): intentional repertoire plans --------------------
   /** Generic samples to keep searching an interval with no valid curve yet. */
   initialRecoverySamples?: number;
   /** Geometry style by support index (startup is zero), applied to every
-   * proposal, lookahead and rebuilt continuation of that section. */
+   * proposal and rebuilt continuation of that section. */
   sectionStyles?: Record<number, SectionStyle>;
   /** Physical construction requirements by support index. */
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
-  /** Revisit the preceding choice when the current interval misses its targets. */
-  transitionRevision?: {errorThreshold?: number; width?: number; samples?: number; guidanceSamples?: number; responseSamples?: number};
   /** Complete-track refinement with the whole authored objective: attempts,
    * samples and width; refineTailSections spends the remaining work on the
    * ending without reconstructing a long suffix. */
@@ -104,8 +88,6 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEn
   impactPreparationFrames?: number;
   /** Proposals offering the same curve from the opposite contact side. */
   opposingEntryProposals?: number;
-  /** Native joint adjustment of neighboring supports, within the shared budget. */
-  coupledIntervalSamples?: number;
 };
 
 /** Set only by the compiler for one interval search. */
@@ -145,7 +127,7 @@ export const EVALUATION_IDENTITY = {
   channel: 'key', radius: 'key', faces: 'key', profile: 'key', profileStrength: 'key', profileStart: 'key',
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
-  completeBoundary: 'key', valueGuidanceWeight: 'key',
+  completeBoundary: 'key',
   constructionRequests: 'keySection', motionQuality: 'key', impactContract: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
@@ -153,15 +135,15 @@ export const EVALUATION_IDENTITY = {
 
   arrivalReference: 'noReuse',
 
-  budget: 'search', samples: 'search', qualityRetries: 'search', guidance: 'search',
-  guidanceSamples: 'search', lookaheadWidth: 'search', lookaheadSamples: 'search',
-  reserveFactor: 'search', responseSamples: 'search', budgetAdaptiveLocal: 'search', memorySamples: 'search',
-  memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search', continuationValueWeight: 'search',
+  budget: 'search', samples: 'search', guidance: 'search',
+  guidanceSamples: 'search',
+  responseSamples: 'search', memorySamples: 'search',
+  memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  transitionRevision: 'search', refineTailSections: 'search', refineAttempts: 'search',
+  refineTailSections: 'search', refineAttempts: 'search',
   refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search',
   constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
-  coupledIntervalSamples: 'search', warmStart: 'search', warmIncoming: 'search', directControls: 'search', localOnly: 'search',
+  warmStart: 'search', warmIncoming: 'search', directControls: 'search', localOnly: 'search',
   completeGuidanceBudget: 'search', controlPolicy: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 
@@ -175,25 +157,12 @@ export function evaluationContext(options: IntervalOptions, i: number) {
     role === 'keyPresence' ? !!options[field] : role === 'keySection' ? (options[field] as any)?.[i] : options[field])]);
 }
 
-/** Transition revision settings with their defaults, or undefined when off. */
-export function transitionRevisionSettings(options: ArcMotionOptions) {
-  const revision = options.transitionRevision
-    ? {errorThreshold: .12, width: 3, samples: 48, guidanceSamples: 96, responseSamples: 88, ...options.transitionRevision} : undefined;
-  if (revision && (!Number.isFinite(revision.errorThreshold) || revision.errorThreshold < 0 ||
-    ![revision.width, revision.samples, revision.guidanceSamples, revision.responseSamples].every(v => Number.isSafeInteger(v) && v >= 0) ||
-    revision.width > 12)) throw new Error('invalid transition revision');
-  return revision;
-}
-
 /** Rejects out-of-range allowances and inconsistent impact settings before any work. */
 export function validateArcOptions(seed: number, options: ArcMotionOptions) {
   if (options.refineTailSections !== undefined && (!Number.isSafeInteger(options.refineTailSections) || options.refineTailSections < 1))
     throw new Error('invalid refinement tail window');
-  transitionRevisionSettings(options);
   if (options.initialRecoverySamples !== undefined && (!Number.isSafeInteger(options.initialRecoverySamples) ||
     options.initialRecoverySamples < 0 || options.initialRecoverySamples > 320)) throw new Error('invalid initialization recovery allowance');
-  if (options.coupledIntervalSamples !== undefined && (!Number.isSafeInteger(options.coupledIntervalSamples) ||
-    options.coupledIntervalSamples < 0 || options.coupledIntervalSamples > 512)) throw new Error('invalid coupled interval allowance');
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0) throw new Error('invalid arc compiler input');
   if (!validProfileControls(options)) throw new Error('invalid profile controls');
   if (options.impactContract !== undefined) impactAccount(options.impactContract);

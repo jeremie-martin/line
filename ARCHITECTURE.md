@@ -36,9 +36,12 @@ spec (beats, impacts, air/speed/amplitude targets)
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`);
    - refines the best with coordinate, guide and joint-response steps
      (`arc_local_search.ts`);
-   - looks ahead to the next landing (`arc_lookahead.ts`) and may revisit the
-     previous or next section (`arc_neighbor_revision.ts`);
-   - backtracks when a later section becomes infeasible;
+   - retains up to eight distinct, physically replayed prefixes, ranked by
+     accumulated local loss, the existing arrival preference and predicted
+     future cost; the remaining allowance can reduce that width;
+   - keeps all distinct untried measured alternatives at four recent boundaries,
+     reopening at most eight at a time after a physical dead end; recovery
+     shares the allowance and preserves the longest prefix on interruption;
    - finishes with terminal selection and ending refinement
      (`arc_complete_refinement.ts`, `arc_refinement.ts`), then a cold replay
      checked against an independent engine (`arc_finalize.ts`).
@@ -46,6 +49,22 @@ spec (beats, impacts, air/speed/amplitude targets)
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
    classifies every option by whether it can change a measurement.
+
+   Scattered sections use resolved collision positions from the carrier's
+   original simulation. Reading those cached records advances no physics;
+   the resulting fragments then undergo ordinary physical evaluation. There
+   is no second observer engine or contact-window replay.
+
+   Native engine versions share a physical cache within a lineage. Live
+   descendants and the current cache retain the ancestry they need; released
+   branches are reclaimed immediately when neither needs them. Handle slots
+   remain reserved until lineage death. The independent judge is unchanged.
+   Native compiler engines have a synchronous ownership scope. Search pruning
+   and final replay release only this compilation's handles; caller-owned replay
+   engines survive both success and failure. Independent continuation-label
+   collection uses the same boundary. The frozen judge uses its private
+   replay instance.
+
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:
    - layout fulfillment, i.e. whether each requested construction actually
@@ -98,9 +117,12 @@ log):
 - **Preparation:** 2 frames.
 - **Steep arrival before strong asks (≥ 0.6):** the catch before a strong
   beat gets a steep, ask-driven arrival heading and speed.
-- **Upright arrival:** that steep arrival must not come head-down or
-  backward.
-- **Wider lookahead:** ×1.3 for the interval leading into a strong ask.
+- **Upright arrival:** steep and unguided passive catches share a soft
+  preference against head-down or backward arrivals. This does not forbid
+  inverted geometry or guided upper contacts.
+- **Future ranking:** a single geometry-aware model predicts the next two
+  intervals. It ranks alternatives; it does not supply local response gradients.
+  Its training groups exclude the four production evaluation songs.
 - **Construction policies:** v3's own, rebuilt under v3 on songs disjoint
   from the evaluation panel (`repertoire_policy_model_v3.json`; trainer in
   `tools/research`). v1/v2 and landing keep the V6-era policies.
@@ -191,23 +213,29 @@ Known limits of the strike account:
 - **Compiler leftovers after the split.**
   - Options that were constant in every production plan are gone (branch
     `rework/constant-options`). What remains varies with the allowance, the
-    section or the interval: `guidance`, `budgetAdaptiveLocal`,
-    `completeBoundary`, `futureValueModel`, `lookaheadWidth`,
+    section or the interval: `guidance`, `completeBoundary`, `futureValueModel`,
     `initialRecoverySamples` and the sample counts.
   - Numeric settings that production never varies (weights, `channel`,
-    `radius`, `qualityRetries`, the refinement and memory allowances) are
+    `radius`, the refinement and memory allowances) are
     still options, because tests set other values.
   - `arc_geometry.ts` still accepts the `flow` and `wave` arguments and rail
     contours, which no production caller uses; the gallery catalog lists the
     wave and contour recipes (contours archived). Faceted arcs (`subdivisions`)
     are live.
 - **Budget rules are saturating caps tuned to V4.**
-  - The caps are in `connected_arcs.ts` and `repertoire_search.ts`. Every
-    width saturates by about 0.52M frames on 45 s songs, and the default
-    allowance (`production_budget.ts`, 1,700 frames per ride frame) runs them
-    saturated.
-  - Lookahead uses about 74% of the physics frames.
+  - Local sample caps are in `connected_arcs.ts` and `repertoire_search.ts`.
+    The default allowance (`production_budget.ts`, 1,700 frames per ride
+    frame) saturates many of them. Prefix width and local sampling now adapt
+    to observed physical work and the remaining timeline; a larger allowance
+    does not automatically imply a better allocation.
+  - Persistent-prefix expansion now shares the construction allowance. The
+    previous two-interval lookahead and neighbor-response paths are removed.
   - Results are not monotone in budget.
+  - The October 5 campaign improves impact loss, but does not eliminate allocation
+    failures: the 336-case catalog exchanges one completion for another. A long
+    supported 93-second case takes about twice the original CPU cost, while six
+    production inputs cost 6.9% more. Physical frames alone are not a CPU model;
+    see `docs/research/quality-20261005-decision.json`.
 - **Duplication.**
   - There are two physics engine copies: `engine-rs` (judge) and
     `scripts/lib/native_motion` (compiler facilities).
@@ -217,9 +245,8 @@ Known limits of the strike account:
   outputs, these files can now be cleaned safely, provided `npm run parity:judge`
   stays green.
 - **Comparison objectives.** Besides the product's v3, the `landing` compile
-  mode (the V6 sentinel) and `line.strike.v1`/`v2` (with the evening search
-  profile, so `--mode=strike` reproduces the evening product) remain for
-  comparison. They go, with the landing-specific validity rules in
+  mode (the V6 sentinel) and `line.strike.v1`/`v2` remain comparison measurement accounts. They share
+  the current search; reproducing old compilers requires their recorded revisions. They go, with the landing-specific validity rules in
   `arc_evaluate.ts`, once the owner is satisfied.
 - **Geometry families are not modular.** A new profile touches about 10 files.
 
@@ -230,3 +257,9 @@ inputs; compilation also checks them against current inputs. Failed jobs remain
 visible and the batch exits unsuccessfully.
 Concurrent jobs settle before the batch releases its directory lock or stops a
 shared rendering server, including when a worker fails.
+
+Future-model collection uses frozen physical prefixes and an independent native
+probe allowance. Its declared plan binds compiler, collector, inputs, work and
+search settings. Resume and training reject missing, stale or undeclared records;
+a complete compile with no observations is an error. Budget interruptions are
+not labelled as physical dead ends. Raw collections remain local.

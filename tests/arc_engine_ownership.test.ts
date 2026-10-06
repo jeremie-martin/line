@@ -16,22 +16,25 @@ it('retains an empty prefix engine across collection of temporary wrappers',()=>
   expect(result).toEqual({same:true,frame:0});
 });
 
-it('preserves caller-owned judge engines across successful and failed compilations',()=>{
+it.each(['_lr_engine_wasm', 'native_motion/engine'])('preserves caller-owned %s engines across successful and failed compilations',(backend)=>{
   const script=`
     import assert from 'node:assert/strict';
-    import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from './scripts/lib/_lr_engine_wasm.ts';
+    import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from './scripts/lib/${backend}.ts';
     import {compileHandoff} from './scripts/v0/optimizer/handoff.ts';
     import {compileArcMotion} from './scripts/v0/optimizer/arc_motion.ts';
+    const spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+    const reference=compileHandoff(spec,17,{budget:30000,creative:{}});
     const caller=new Engine().setStart({x:125,y:-80},{x:2,y:.3});
     const sibling=caller.addLine({id:1,type:0,x1:0,y1:250,x2:500,y2:250});
     const frames=[0,15,40,80];
     const capture=engine=>frames.map(f=>engine.getRider(f).ballisticState());
     const before=[capture(caller),capture(sibling)];
-    const spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
     try{
       for(let i=0;i<2;i++){
         const result=compileHandoff(spec,17,{budget:30000,creative:{}});
         assert.ok(result.stats.sim_frames<=30000);
+        assert.deepEqual(result.track,reference.track);
+        assert.equal(result.stats.sim_frames,reference.stats.sim_frames);
         assert.deepEqual([capture(caller),capture(sibling)],before);
         assert.throws(()=>compileArcMotion(spec,17,{budget:30000,futureValueModel:{featureSchema:'invalid'}}),/future-value feature mismatch/);
         // Exercise allocation after cleanup: stale handles must not alias it.
@@ -43,4 +46,25 @@ it('preserves caller-owned judge engines across successful and failed compilatio
     }finally{dispose();}`;
   expect(execFileSync(process.execPath,['--expose-gc','--import','tsx','--input-type=module','-e',script],
     {encoding:'utf8',env:{...process.env,LR_ENGINE:'wasm'}}).trim()).toBe('owned engines preserved');
+});
+
+
+it('restores nested ownership after failure and releases only local handles',async()=>{
+  const {LineRiderEngine: Engine,withEngineScope,disposeAllWasmEnginesForStudy: dispose}=await import('../scripts/lib/native_motion/engine.ts');
+  const caller=new Engine(), before=caller.getRider(0).ballisticState();
+  try {
+    withEngineScope(()=>{
+      const outer=new Engine(), saved=outer.getRider(0).ballisticState();
+      expect(()=>withEngineScope(()=>{
+        new Engine();
+        Engine.retainOnly([]);
+        expect(outer.getRider(0).ballisticState()).toEqual(saved);
+        throw new Error('inner failure');
+      })).toThrow('inner failure');
+      expect(dispose()).toBe(1);
+      expect(caller.getRider(0).ballisticState()).toEqual(before);
+    });
+    expect(caller.getRider(0).ballisticState()).toEqual(before);
+    expect(dispose()).toBe(1);
+  }finally{dispose();}
 });

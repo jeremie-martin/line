@@ -20,7 +20,7 @@ export function refineCommittedTrack(ctx: ArcCompileContext, seq: ArcSequence) {
   const {options, contacts, end, start, budget, lineage} = ctx;
   setPhysicsFrameLimit(budget - 2 * (end + 1));
   const requests = Object.values(options.constructionRequests ?? {});
-  const refined = refineArcTrack({engine: seq.engine, lines: seq.lines, rows: seq.rows, alternatives: seq.steps.map(s => s.choices),
+  const refined = refineArcTrack({engine: seq.engine, lines: seq.lines, rows: seq.rows,
     contacts, end, start, budget, options,
     search: (engine, i, overrides, protectedEngines) => searchInterval(ctx, engine, i, overrides, protectedEngines),
     report: ctx.reportFor,
@@ -49,3 +49,4 @@ function constructionValidator(requests: ConstructionRequest[]) {
       request.context || request.railLayout === 'transfer' ? (frame: number) => candidate.getAllContactLineIdsAtFrame(frame) : undefined).fulfilled;
   });
 }
+

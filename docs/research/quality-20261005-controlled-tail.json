@@ -1,0 +1,88 @@
+{
+  "schema": "line.quality-controlled-tail.v1",
+  "at": "2026-10-06T05:08:53.956Z",
+  "id": "stretch_supported_speed_change",
+  "seed": 101,
+  "roots": {
+    "baseline": "/tmp/line-quality-catalog-baseline-20261006",
+    "q62": "/tmp/line-quality-final-candidate-20261006",
+    "final": "/tmp/line-quality-native-scope-20261006"
+  },
+  "identities": {
+    "baseline": {
+      "protocol": "line.compiler-identity.v3",
+      "head": "4e510f583febf63aa6c4f6a6ecb1ea74388ae7a9",
+      "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked": 0,
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "060c75ccbd2ffc1b756207612ab67cdeccc03a22b4ecb05bae8a9fb85ca095e1"
+    },
+    "q62": {
+      "protocol": "line.compiler-identity.v3",
+      "head": "954d03535e0ff84e69bd38ba8c28416254975663",
+      "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked": 0,
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "0e30558ccd52c421ba07e681a91fb92dea9fad26de6f9f7c966cc5eb9f15d555"
+    },
+    "final": {
+      "protocol": "line.compiler-identity.v3",
+      "head": "06b64b2dba5b559da2ced7bf660e0742d386215c",
+      "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked": 0,
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "802c5355eed5ef49cbebaf96c7c3566f5188d4baee9c471249ca3a21c798f08a"
+    }
+  },
+  "inputSha256": "a771d2d09cb7f7cc1b6a8ea26f7d24cda3a9fae81e5d34fdb8b22d2f91d710a0",
+  "expected": {
+    "baseline": {
+      "trackHash": "82990697375dca98c0bc2ca602e6e873531ec214ebba174f11b2c1ab012fac60",
+      "physicalFrames": 3493375,
+      "sourcePlanSha256": "e40de345f4fb4f283311b9534fd9cd7094ce0e2348db644ad2d30066594c2561"
+    },
+    "q62": {
+      "trackHash": "b56f308b54a22405889759f9e035185f7e069acbb35f51717511b0763bf13943",
+      "physicalFrames": 6311525,
+      "sourcePlanSha256": "e40de345f4fb4f283311b9534fd9cd7094ce0e2348db644ad2d30066594c2561"
+    },
+    "final": {
+      "trackHash": "6684c273433dc863adca84a5af1e548fcf99b2c83e3983b04628fc5b75bc48ba",
+      "physicalFrames": 6334101,
+      "sourcePlanSha256": "4d7645d13a34fa0b193330c8ffc2df1fd71492cbecb154f206c182862e172ea8"
+    }
+  },
+  "concurrentWorkers": 3,
+  "studySha256": "d9485ca5ba4592c30824c8a8640e65dd9f42c4ee7099c9990b795b58073fd057",
+  "records": {
+    "baseline": {
+      "label": "baseline",
+      "cpuMs": 462736.981,
+      "compileMs": 426833.710462,
+      "maxRssKiB": 2131484,
+      "trackHash": "82990697375dca98c0bc2ca602e6e873531ec214ebba174f11b2c1ab012fac60",
+      "physicalFrames": 3493375,
+      "exactTrackAndWork": true
+    },
+    "q62": {
+      "label": "q62",
+      "cpuMs": 781385.942,
+      "compileMs": 728442.527783,
+      "maxRssKiB": 2355412,
+      "trackHash": "b56f308b54a22405889759f9e035185f7e069acbb35f51717511b0763bf13943",
+      "physicalFrames": 6311525,
+      "exactTrackAndWork": true
+    },
+    "final": {
+      "label": "final",
+      "cpuMs": 955134.616,
+      "compileMs": 903114.3886320001,
+      "maxRssKiB": 2680520,
+      "trackHash": "6684c273433dc863adca84a5af1e548fcf99b2c83e3983b04628fc5b75bc48ba",
+      "physicalFrames": 6334101,
+      "exactTrackAndWork": true
+    }
+  },
+  "finished": "2026-10-06T05:23:58.268Z",
+  "interpretation": "Synchronized three-process diagnostic of one predeclared costly case; exact saved tracks and work, not a universal performance estimate."
+}

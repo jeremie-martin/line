@@ -16,6 +16,13 @@ for the plan and its current phase.
 The October 5 evening compiler campaign has its own review at
 `generated/report/quality-20261005/`, with complete paired scorecards, strength
 curves, physical examples and a ledger in `docs/research/quality-20261005.json`.
+The selected compiler keeps multiple physically tested continuations and uses
+cached native contacts for scattered geometry. On a fresh 48-case panel, v3 impact
+loss falls 24.5% on authored inputs and 13.5% on perturbations; the 336-case catalog
+keeps 318 completions, with one recovery and one regression. Six matched production
+cases cost 6.9% more CPU; long supported rides can cost substantially more.
+Body-contact and individual-impact regressions remain visible in the review.
+See `docs/research/quality-20261005-decision.json` for the decision and limits.
 The earlier report, blind study and unanswered questions below are preserved.
 
 The overnight report of 2026-10-05 (the impact measure settled with the owner,

@@ -1,0 +1,199 @@
+{
+  "schema": "line.quality-campaign-decision.v1",
+  "at": "2026-10-06T05:34:09.670820+00:00",
+  "status": "adopted; final main-checkout bridge pending",
+  "implementationSource": "06b64b2d",
+  "behaviorSource": "b77ab150",
+  "profile": "line.strike-search.v7",
+  "changes": [
+    "One persistent search keeps distinct physically tested prefixes and reopens measured alternatives at recent boundaries. Superseded lookahead, neighbor-response and learned-gradient paths are removed.",
+    "Scattered construction keeps eligible incumbents and uses cached contacts from the original simulation. Authored objective spans and whole-track selection are consistent.",
+    "The existing soft upright-arrival preference also covers unguided passive catches; guided upper contacts and seeded geometric variety remain allowed.",
+    "Native version ancestry is reclaimed safely; compilation and continuation collection preserve caller-owned engines. Packaged sources and WASM have checked manifest hashes."
+  ],
+  "fixed": [
+    "Authored production inputs and music timing",
+    "Seeded construction plans",
+    "Normal type-0 lines",
+    "Physics equations and independent judge",
+    "Impact contracts, matching and strength scale",
+    "Frozen benchmark specifications and scoring"
+  ],
+  "musicalConfirmation": {
+    "cases": 48,
+    "songs": 4,
+    "baselineCompiler": "56fefb44",
+    "candidateCompiler": "b77ab150",
+    "completeAndFulfilledBoth": 48,
+    "v3ImpactLoss": {
+      "authored": {
+        "baseline": [
+          0.03006522470679223,
+          0.013446464277387993,
+          0.0556211935441242
+        ],
+        "candidate": [
+          0.02270065846948241,
+          0.009488478657038262,
+          0.044818050602516986
+        ],
+        "paired": [
+          -0.007364566237309819,
+          -0.010942480972277922,
+          -0.003957985620349732
+        ],
+        "perSong": {
+          "luna_bala_44s": -0.004236661681691135,
+          "amor_na_praia_46s": -0.0036793095590083305,
+          "tiki_tiki_48s": -0.008364539639399626,
+          "amour_de_ma_vie_44s": -0.013177754069140185
+        }
+      },
+      "perturbed": {
+        "baseline": [
+          0.02658780782800331,
+          0.012400009285047935,
+          0.04916279738489699
+        ],
+        "candidate": [
+          0.02299804700456385,
+          0.008399167545404741,
+          0.04807936913449545
+        ],
+        "paired": [
+          -0.003589760823439458,
+          -0.005791256852434967,
+          -0.001083428250401531
+        ],
+        "perSong": {
+          "luna_bala_44s": -0.00299938981108599,
+          "amor_na_praia_46s": -0.005002293668200399,
+          "tiki_tiki_48s": -0.006580220036669535,
+          "amour_de_ma_vie_44s": 0.0002228602221980916
+        }
+      }
+    },
+    "interpretation": "Fresh seeds and perturbations, not new music. Four-song paired intervals; no further behavior tuning on these outcomes."
+  },
+  "catalog": {
+    "cases": 336,
+    "sourceGroups": 15,
+    "completion": {
+      "baseline": 318,
+      "candidate": 318,
+      "recovered": [
+        "stretch_pickup_answers~101"
+      ],
+      "regressed": [
+        "stretch_interleaved_recovery~101"
+      ]
+    },
+    "v3ImpactLoss": {
+      "all": {
+        "finitePairs": 336,
+        "finiteGroups": 15,
+        "baseline": [
+          0.040928542712936646,
+          0.023472620144314293,
+          0.06467856516404998
+        ],
+        "candidate": [
+          0.03493649046763077,
+          0.017127552456411364,
+          0.05923980986714769
+        ],
+        "paired": [
+          -0.005992052245305877,
+          -0.007493671091227971,
+          -0.004254467261942703
+        ],
+        "perGroup": {
+          "regular_exceptions": -0.00499645400203899,
+          "subdivision_pickup": -0.011429290030680814,
+          "irregular_microtimed": -0.005231382351240384,
+          "cadence_transition": -0.004568057639804716,
+          "spacious_amplitude": -0.0047137855535379775,
+          "dense_musical": -0.0069349096824343325,
+          "high_air_energy": -0.00428354077641811,
+          "sparse_transition": -0.00878483475995312,
+          "rapid_pickup_frontier": -0.007454778328292129,
+          "dense_recovery_frontier": 0.003486562090731607,
+          "low_air_frontier": -0.00984486017481803,
+          "legacy_transition_regression": -0.005867229540644389,
+          "legacy_amplitude_regression": -0.0055782001513368555,
+          "believer": -0.00699397860638497,
+          "shelter": -0.006686044172734936
+        }
+      },
+      "completeBoth": {
+        "finitePairs": 317,
+        "finiteGroups": 15,
+        "baseline": [
+          0.023597530397147633,
+          0.020053802492247755,
+          0.027425372721844223
+        ],
+        "candidate": [
+          0.017358403064258905,
+          0.014434299727505146,
+          0.020583942404328103
+        ],
+        "paired": [
+          -0.006239127332888729,
+          -0.007065291622649102,
+          -0.005536423039458951
+        ],
+        "perGroup": {
+          "regular_exceptions": -0.00499645400203899,
+          "subdivision_pickup": -0.0052964748102791994,
+          "irregular_microtimed": -0.005231382351240384,
+          "cadence_transition": -0.004568057639804716,
+          "spacious_amplitude": -0.0047137855535379775,
+          "dense_musical": -0.0069349096824343325,
+          "high_air_energy": -0.00428354077641811,
+          "sparse_transition": -0.00878483475995312,
+          "rapid_pickup_frontier": -0.007678784644184432,
+          "dense_recovery_frontier": -0.006128373127520503,
+          "low_air_frontier": -0.00984486017481803,
+          "legacy_transition_regression": -0.005867229540644389,
+          "legacy_amplitude_regression": -0.0055782001513368555,
+          "believer": -0.00699397860638497,
+          "shelter": -0.006686044172734936
+        }
+      }
+    },
+    "interpretation": "Training-domain robustness. One recovery and one regression; all cases and317 common completions reported separately."
+  },
+  "resources": {
+    "sixCaseProductionRatios": {
+      "cpuMs": 1.0687476047402518,
+      "maxRssKiB": 0.9787659170167096,
+      "physicalFrames": 1.0995980099375424
+    },
+    "controlledLongCaseCpuMinutes": {
+      "original": 7.712283016666667,
+      "q62": 13.023099033333335,
+      "final": 15.918910266666668
+    },
+    "interpretation": "Quality gain costs work. Typical sample+6.9% CPU; the93-second supported case costs2.06x original and1.22x Q62. No speedup claim."
+  },
+  "remainingLimits": [
+    "Overall sustained body contact rises: quiet contribution improves on the fresh musical panel, but individual quiet upper-body catches remain.",
+    "Some strongest perturbed hits weaken, chiefly Tiki; the worst inspected Amour catch is less clean than baseline.",
+    "The interleaved-recovery catalog case now fails after79/110 supports and56 backtracks at the fixed allowance; baseline proves it feasible. A different pickup case recovers, leaving318/336 completion on both.",
+    "Long supported rides remain costly; physical-frame budgets do not fully capture CPU cost.",
+    "Only four evaluation songs; visual alignment and new-music generalization remain open."
+  ],
+  "qualification": {
+    "exactStructuralCompilerTrackAndWorkCells": 63,
+    "judgeTracks": 33,
+    "testsPassed": 279,
+    "typecheck": "pass",
+    "unreachableFiles": 0,
+    "updatedReferencesWithBehavior": true,
+    "mainIntegrationBridge": "pending"
+  },
+  "review": "http://localhost:8767/generated/report/quality-20261005/",
+  "previousReview": "Preserved unchanged, including clips, scorecards, ledger and unanswered questions.",
+  "archive": "Large raw studies and movies remain local; code and compact evidence are committed."
+}

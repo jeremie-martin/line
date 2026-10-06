@@ -7,7 +7,7 @@ import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
 import type { IntervalResult } from './arc_interval.ts';
 
 export type ArcRefinementInput = {
-  engine: Engine; lines: TrackLine[]; rows: any[]; alternatives?: any[][];
+  engine: Engine; lines: TrackLine[]; rows: any[];
   contacts: Array<{frame: number; gap: number}>; end: number;
   start: {position: {x: number; y: number}; velocity: {x: number; y: number}};
   budget: number; options: ArcMotionOptions;
@@ -161,11 +161,10 @@ function completeRevision(input: ArcRefinementInput, operations: EngineOperation
   const proposedRows = sourceRows.slice();
   proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
     incoming: searchResult.incoming, span: searchResult.span, features: searchResult.inputFeatures,
-    ...candidate.meta, lookahead: null, spent: getPhysicsFrameCount()};
+    ...candidate.meta, spent: getPhysicsFrameCount()};
   for (let j = i + 1; j < contacts.length; j++) {
-    const planned = j === i + 1 ? input.alternatives?.[i]?.find(a => JSON.stringify(a.c) === JSON.stringify(candidate.c))?.futureControl : undefined;
-    const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: planned ?? sourceRows[j].control,
-      ...(!planned && options.constructionRequests ? {warmIncoming: sourceRows[j].incoming} : {})}, [incumbent, base]);
+    const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: sourceRows[j].control,
+      ...(options.constructionRequests ? {warmIncoming: sourceRows[j].incoming} : {})}, [incumbent, base]);
     if (!next?.best) return null;
     proposed.push(...next.best.lines);
     child = operations.detach(next.best.child);
@@ -173,7 +172,7 @@ function completeRevision(input: ArcRefinementInput, operations: EngineOperation
       incoming: next.incoming, span: next.span, features: next.inputFeatures,
       achieved: next.best.achieved, impact: next.best.actualImpact,
       release: next.best.release, lines: next.best.lines.length, railGuides: next.best.railGuides,
-      failures: next.failures, lookahead: null, spent: getPhysicsFrameCount()};
+      failures: next.failures, spent: getPhysicsFrameCount()};
     Engine.retainOnly([incumbent, base, child]);
   }
   return {child, proposed, proposedRows};

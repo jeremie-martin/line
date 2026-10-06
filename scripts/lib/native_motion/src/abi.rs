@@ -84,7 +84,7 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
         }
     };
     write(0, &s);
-    let mut ev: Vec<(u8, i32, i32)> = Vec::new();
+    let mut ev: Vec<crate::kernel::Collision> = Vec::new();
     let mut hist = IntMap::default();
     let mut tc: Vec<i64> = Vec::new();
     let mut hs = Vec::new();
@@ -109,9 +109,8 @@ pub extern "C" fn create_engine() -> u32 {
     engine::create()
 }
 
-// A version is an immutable node whose ancestors the cache walk needs, so freeing
-// one handle only marks it; the whole lineage (its shared cache + version slots) is
-// reclaimed once its LAST live handle is freed (no JS wrapper can reference it then).
+// Release the external ownership of a version. Descendants and the current cache
+// retain any ancestry they need. Slots become reusable only at lineage death.
 #[no_mangle]
 pub extern "C" fn free_engine(h: u32) {
     engine::free(h);
@@ -185,3 +184,15 @@ pub extern "C" fn prepare_collision_trace(h: u32, frame: i32) { engine::prepare_
 pub extern "C" fn collision_trace_ptr() -> u32 { crate::kernel::collision_trace_ptr() }
 #[no_mangle]
 pub extern "C" fn collision_trace_count() -> u32 { crate::kernel::collision_trace_count() }
+
+// A read buffer only: records are owned by the normal per-lineage frame cache.
+static mut CONTACT_POSITIONS: Vec<f64> = Vec::new();
+#[no_mangle]
+pub extern "C" fn get_contact_positions(h: u32, start: i32, end: i32) -> i32 {
+    let out = unsafe { &mut *&raw mut CONTACT_POSITIONS };
+    if engine::contact_positions(h, start, end, out) { (out.len() / 3) as i32 } else { -1 }
+}
+#[no_mangle]
+pub extern "C" fn contact_positions_ptr() -> u32 {
+    unsafe { (&* &raw const CONTACT_POSITIONS).as_ptr() as u32 }
+}

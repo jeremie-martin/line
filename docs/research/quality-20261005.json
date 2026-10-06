@@ -1861,13 +1861,14 @@
     },
     {
       "id": "Q63",
-      "status": "48/48 fresh musical confirmation complete and fulfilled; 336 paired catalog still running",
+      "status": "48/48 fresh musical cases and full336 paired catalog complete",
       "hypothesis": "Freeze Q62 plus the lean ownership implementation and research cleanup. Run the untouched48 musical confirmation cases against the adopted Q31 baseline, and the full336 paired disjoint catalog cases against the campaign original. Same authored inputs, allowance, normal lines and all existing rulers. Do not tune on the final musical outcomes. Catalog is a training-domain robustness test, not unseen-music validation.",
       "candidateCommit": "954d0353",
       "branch": "exp/quality-final-candidate-20261006",
       "musicalBaselineCommit": "56fefb44",
       "catalogBaselineCommit": "4e510f58",
-      "interpretation": "Against the adopted Q31 baseline on untouched seeds, v3 impact loss falls16.6% authored and26.7% perturbed. Strong and very strong delivery improve; air/speed errors fall. Body contact rises+.219/+.486s per minute, and older R1 extra-hit counts rise. Strong two-frame response-window starts are closer to requested times (13.54\u219211.73ms authored;15.63\u219211.91ms perturbed), but this does not prove perceptual alignment. Every ruler and four-song interval is retained. Six exact production replays cost9.4% more CPU; shorter concurrent wall times are not a speed claim."
+      "interpretation": "Against the adopted Q31 baseline on untouched seeds, v3 impact loss falls16.6% authored and26.7% perturbed. Strong and very strong delivery improve; air/speed errors fall. Body contact rises+.219/+.486s per minute, and older R1 extra-hit counts rise. Strong two-frame response-window starts are closer to requested times (13.54\u219211.73ms authored;15.63\u219211.91ms perturbed), but this does not prove perceptual alignment. Every ruler and four-song interval is retained. Six exact production replays cost9.4% more CPU; shorter concurrent wall times are not a speed claim.",
+      "catalogResult": "Original and Q62 both complete318/336: one recovered pickup and one regressed interleaved recovery. V3 loss improves13.2% across all cases and26.1% on317 common completions. All39 ruler/resource rows and source-group intervals are saved in quality-20261005-catalog.json."
     },
     {
       "id": "Q64",
@@ -1878,10 +1879,10 @@
     },
     {
       "id": "Q65",
-      "status": "48 development/earlier confirmation rides complete; selected for independent confirmation, not adopted",
+      "status": "adopted with coherent search and qualified ownership implementation",
       "hypothesis": "The existing arrival prior treats strong catches and unguided passive catches alike for kinetic preparation, but applies its already-existing posture preference only to strong catches. Extend that same soft preference to passive catches as well, without changing its formula/weight, impact ruler, geometry permissions, authored requests or budget. Test full development panel and inspect quiet Amour404; this is not a ban on inverted geometry or an optimization of the new drag diagnostic. Frozen Q63 confirmation remains independent; any new selected behavior will need a new untouched confirmation.",
       "branch": "exp/quality-passive-arrival-20261006",
-      "interpretation": "Quiet Amour404 becomes an upright slide; sustained body-contact frames in the first128 frames fall44\u219210. Authored quiet drag contribution falls on both panels (-.128 and-.241s per minute); perturbed confirmation is mixed (+.110, interval spans zero). Impact loss improves slightly, but confirmation perturbed strong bias worsens-.008 and air error+.005. Strong guided upper-contact geometry remains allowed. New untouched48 and full336 catalog tests are required before adoption."
+      "interpretation": "Quiet Amour404 becomes an upright slide; sustained body-contact frames in the first128 frames fall44\u219210. Authored quiet drag contribution falls on both panels (-.128 and-.241s per minute); perturbed confirmation is mixed (+.110, interval spans zero). Impact loss improves slightly, but confirmation perturbed strong bias worsens-.008 and air error+.005. Strong guided upper-contact geometry remains allowed. The independent48 and full336 catalog tests are now reported under Q67; matched timing is Q69."
     },
     {
       "id": "Q66",
@@ -1892,18 +1893,19 @@
     },
     {
       "id": "Q67",
-      "status": "48/48 fresh cases complete and fulfilled on all three compilers; catalog audit running",
+      "status": "adopted:48/48 fresh musical cases;318/336 catalog completion, unchanged in aggregate",
       "hypothesis": "If the passive-catch preference is selected from development and earlier confirmation, assess it once on new seeds3001,3011,3019,3023,3037,3041,3049,3061 and perturbations13-16. Compare the frozen variant both to adopted Q31 and frozen Q62 on identical48 inputs. Collect baselines ahead, keep outcomes unseen until the candidate is frozen, and do not tune on this panel. Four songs remain four uncertainty units.",
       "baselineCommit": "56fefb44",
       "counterfactualCommit": "954d0353",
       "branch": "exp/quality-review-20261006",
       "candidateCommit": "b77ab150",
       "catalog": "Additional336 candidate compiles reuse the explicitly pinned original catalog baseline without relabeling it. Same inputs and evaluator.",
-      "interpretation": "Against Q31, fresh v3 loss improves by about.007 authored/.004 perturbed, strong RMS falls.016/.006, and inverted/backward strong arrivals fall.038/.023. Very-strong perturbed bias worsens.010 (four-song interval crosses zero). Total body contact rises.332/.107s/min, while quiet-band contribution falls.145/.159s/min. Compared with Q62, the passive-catch change reduces quiet contact by.095/.087s/min and leaves aggregate v3 loss nearly unchanged; authored R1 quiet error rises.022. All37 measures and per-song intervals remain visible. New physical clips include largest gains, random hits, worst regression and quiet improvement; additional quiet and strong body-contact counterexamples are selected from the complete panel before viewing."
+      "interpretation": "Against Q31, fresh v3 loss improves by about.007 authored/.004 perturbed, strong RMS falls.016/.006, and inverted/backward strong arrivals fall.038/.023. Very-strong perturbed bias worsens.010 (four-song interval crosses zero). Total body contact rises.332/.107s/min, while quiet-band contribution falls.145/.159s/min. Compared with Q62, the passive-catch change reduces quiet contact by.095/.087s/min and leaves aggregate v3 loss nearly unchanged; authored R1 quiet error rises.022. All37 measures and per-song intervals remain visible. New physical clips include largest gains, random hits, worst regression and quiet improvement; additional quiet and strong body-contact counterexamples are selected from the complete panel before viewing.",
+      "catalogResult": "Against the original, v3 loss improves14.6% across all336 and26.4% on317 common completions. Both complete318/336, with one recovery and one regression. Strong and very strong delivery, air error and arrival posture improve. Body contact rises+.394s/min overall; original/evolved allocation leaves633 vs636 unconstructed supports out of31,000. The complete case list, every ruler, source-group intervals, CPU/RSS distributions and the explicit failure diagnosis remain visible."
     },
     {
       "id": "Q68",
-      "status": "Qualified:63 exact track/work references,33 judge tracks,278 tests, typecheck and zero unreachable files",
+      "status": "Qualified:63 exact track/work references,33 judge tracks,279 tests under normal settings, typecheck and zero unreachable files",
       "branch": "exp/quality-native-scope-20261006",
       "hypothesis": "Extend the existing retained-judge-engine regression test to the native search backend. It reproduces caller corruption after compile. Make pruning and final cleanup respect one synchronous compilation ownership scope, including exception cleanup. No physics, search preference, impact ruler or budget changes; require63 exact outputs/work against the selected behavior.",
       "reproduction": "Existing judge case passes; identical native-backend case fails with changed frame-zero point coordinates. Scoped implementation passes both plus cached-contact tests.",
@@ -1914,11 +1916,19 @@
     },
     {
       "id": "Q69",
-      "status": "predeclared controlled resource replay; no behavior change",
+      "status": "complete: all three tracks and physics-work counts exact",
       "hypothesis": "The full catalog has different concurrent loads across execution phases. The final variant took about25 CPU minutes on stretch_supported_speed_change while Q62 used about12 on seed202 at similar physics work. Process CPU includes memory stalls and CPU-frequency effects; do not attribute the gap to compiler behavior without a matched execution. Recompile seed101 on original, Q62 and the qualified final implementation with synchronized start, three workers total after the catalog finishes. Require each exact saved track and work count, then compare process CPU and peak RSS. One costly case is a diagnostic, not a general speed claim.",
       "branch": "exp/quality-review-20261006",
       "case": "stretch_supported_speed_change~101",
-      "constraints": "No changes to compilers, budgets, cases, impact rulers or candidate selection during this check."
+      "constraints": "No changes to compilers, budgets, cases, impact rulers or candidate selection during this check.",
+      "interpretation": "Matched seed101 replay: original7.71, Q62 13.02, final15.92 CPU minutes. Final is2.06x original and1.22x Q62 on this long supported case, versus2.46x original in the catalog. Execution load explained part, not all, of the cost. Final uses6.334M physical frames vs3.493M original; final and Q62 have similar6.3M frames and130k candidate evaluations. No universal speed claim; this tail is a real limit."
+    },
+    {
+      "id": "Q70",
+      "status": "complete: all12 compiled tracks/work exact; final candidate selected",
+      "hypothesis": "The earlier six-case production timing study measured Q62, before the final passive-catch preference. Measure the actually selected final implementation against the preceding Q31 default on six matched fresh-panel inputs: all four songs at3001, plus Luna and Amour perturbation13. Freeze inputs and compiler identities; synchronize each pair, two pairs concurrently after Q69 has finished, and require exact saved tracks/work. This is a limited process-CPU/RSS sample, not a general wall-time claim.",
+      "branch": "exp/quality-review-20261006",
+      "interpretation": "Six matched fresh musical inputs: summed process CPU+6.9%, summed peak RSS-2.1%, physics work+10.0%. Individual CPU ratios range1.024\u20131.111. Two synchronized pairs concurrently; limited sample, not universal wall-time evidence. The expensive supported case in Q69 remains a real separate tail."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1949,7 +1959,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T05:08:01.674154+00:00",
+  "updated": "2026-10-06T05:34:09.670820+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [
@@ -1978,5 +1988,12 @@
       "Tiki404 43.58s: quiet .326\u2192.154 for request.03; smoother sled catch and upright entry, still overshoots."
     ],
     "nextCheck": "Compare onset, force peak and strongest whole-body response window relative to the music; strength alone does not establish tighter synchronization."
+  },
+  "selection": {
+    "implementationSource": "06b64b2d",
+    "behaviorEvidence": "Q67 / b77ab150",
+    "profile": "line.strike-search.v7",
+    "status": "selected and integrated; final main-checkout bridge pending",
+    "decision": "docs/research/quality-20261005-decision.json"
   }
 }

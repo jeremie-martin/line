@@ -1,0 +1,238 @@
+{
+  "schema": "line.quality-final-resources.v1",
+  "at": "2026-10-06T05:27:13.912Z",
+  "roots": {
+    "baseline": "/tmp/line-quality-final-baseline-20261006",
+    "candidate": "/tmp/line-quality-native-scope-20261006"
+  },
+  "ids": [
+    "luna_bala_44s~3001",
+    "amor_na_praia_46s~3001",
+    "tiki_tiki_48s~3001",
+    "amour_de_ma_vie_44s~3001",
+    "luna_bala_44s~3001~p13",
+    "amour_de_ma_vie_44s~3001~p13"
+  ],
+  "identities": {
+    "baseline": {
+      "protocol": "line.compiler-identity.v3",
+      "head": "140b96989c239b447cb9fdfba055361a0eae9975",
+      "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked": 0,
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "84dc50bc17a8cdb90a618c716e7553392c0c9138eaea1c5f8446fdb4ad5f4cc7"
+    },
+    "candidate": {
+      "protocol": "line.compiler-identity.v3",
+      "head": "06b64b2dba5b559da2ced7bf660e0742d386215c",
+      "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "untracked": 0,
+      "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+      "candidateFingerprint": "802c5355eed5ef49cbebaf96c7c3566f5188d4baee9c471249ca3a21c798f08a"
+    }
+  },
+  "sourcePlans": {
+    "baseline": {
+      "schema": "line.eval.v2",
+      "identity": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "56fefb4426d95a92fa2d66b0753fb8a2f6c602b8",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "f83277c7fc0d44ac6eea7eaf0dc9780d8bb7c157a2e91495af7a0bda9cf3431b"
+      },
+      "evaluator": "ac51983a94d84e8bfcc85b0b4e71c7176b314b46673c4bb4b41211dfbf30bfc2",
+      "jolt": -15,
+      "mode": "strike3",
+      "budget": "standard",
+      "panelName": "quality-20261006-passive-confirmation",
+      "planSha256": "a06ae46c1c034b909cdc2c8e9aad4ed0c2f504d0333e9a525830cc337a2d053d",
+      "panelSha256": "9006034d052ab7cfaf6d6781215006b482e4bd2046e2d6f51b3ad65ddd0956e3",
+      "declaredCases": 48
+    },
+    "candidate": {
+      "schema": "line.eval.v2",
+      "identity": {
+        "protocol": "line.compiler-identity.v3",
+        "head": "b77ab1506ed3e3c52e6eccc917c9f27da70963a4",
+        "dirtySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "untracked": 0,
+        "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+        "candidateFingerprint": "d98e41e4dc069217fe3e7ecc683c80ad420c209d120e2e60b0000e1e251006ec"
+      },
+      "evaluator": "ac51983a94d84e8bfcc85b0b4e71c7176b314b46673c4bb4b41211dfbf30bfc2",
+      "jolt": -15,
+      "mode": "strike3",
+      "budget": "standard",
+      "panelName": "quality-20261006-passive-confirmation",
+      "planSha256": "c37a33c0b0c20d76636a4eb82551ee89fff4f54730fd49c7933c617d505da6d0",
+      "panelSha256": "9006034d052ab7cfaf6d6781215006b482e4bd2046e2d6f51b3ad65ddd0956e3",
+      "declaredCases": 48
+    }
+  },
+  "concurrentPairs": 2,
+  "studySha256": "a2019f64ad0ca6f9391ec76cb04b185f629a2d5ef97cb0eea5e918ad000a0636",
+  "finished": "2026-10-06T05:31:22.959Z",
+  "cases": [
+    {
+      "id": "luna_bala_44s~3001",
+      "baseline": {
+        "id": "luna_bala_44s~3001",
+        "label": "baseline",
+        "trackHash": "9b1ed3ca5ea00b2904b6d6c2374c13360e269d3826dbd9f008399b5df89025e9",
+        "physicalFrames": 2599683,
+        "cpuMs": 82624.703,
+        "wallMs": 69945.598706,
+        "maxRssKiB": 856196,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "luna_bala_44s~3001",
+        "label": "candidate",
+        "trackHash": "fa7f9a54c7bc29d50d2fc27f97f6a8aa21b61599bb8b3b7ca264faf7cc999739",
+        "physicalFrames": 3022212,
+        "cpuMs": 90536.992,
+        "wallMs": 71805.90551099999,
+        "maxRssKiB": 773368,
+        "exactTrackAndWork": true
+      }
+    },
+    {
+      "id": "amor_na_praia_46s~3001",
+      "baseline": {
+        "id": "amor_na_praia_46s~3001",
+        "label": "baseline",
+        "trackHash": "2a43ab2185ef5d121fb7acf0b40766edf545245707111e989d8aef4b70ed4ec6",
+        "physicalFrames": 2560544,
+        "cpuMs": 84918.628,
+        "wallMs": 71706.892074,
+        "maxRssKiB": 877492,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "amor_na_praia_46s~3001",
+        "label": "candidate",
+        "trackHash": "901ba9aff472417c850ae28d65637e333f281a530cd5ffcaa7976bd080782b24",
+        "physicalFrames": 3154365,
+        "cpuMs": 94420.619,
+        "wallMs": 74434.928415,
+        "maxRssKiB": 846000,
+        "exactTrackAndWork": true
+      }
+    },
+    {
+      "id": "tiki_tiki_48s~3001",
+      "baseline": {
+        "id": "tiki_tiki_48s~3001",
+        "label": "baseline",
+        "trackHash": "75afab3bbb467e8356ad1ce9f33e50f61b063b71e53cb9e045f7e23bc4f1d6de",
+        "physicalFrames": 2962761,
+        "cpuMs": 99270.531,
+        "wallMs": 84612.423737,
+        "maxRssKiB": 859268,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "tiki_tiki_48s~3001",
+        "label": "candidate",
+        "trackHash": "3574bdee4134bc6294c77eb7db712423006e51abfc003d6ebc49561d936e5a48",
+        "physicalFrames": 3290379,
+        "cpuMs": 108493.935,
+        "wallMs": 86061.10597,
+        "maxRssKiB": 920392,
+        "exactTrackAndWork": true
+      }
+    },
+    {
+      "id": "amour_de_ma_vie_44s~3001",
+      "baseline": {
+        "id": "amour_de_ma_vie_44s~3001",
+        "label": "baseline",
+        "trackHash": "05fb55de16d99aa64bc053b368cf99d07f9b3fae957d0bef0af38325bf1dd7d1",
+        "physicalFrames": 3056436,
+        "cpuMs": 98512.866,
+        "wallMs": 84658.83300700001,
+        "maxRssKiB": 841820,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "amour_de_ma_vie_44s~3001",
+        "label": "candidate",
+        "trackHash": "5712d08b362d698de469ba6c654200f67bd80177e54ef62dc504b3a7a95e96ac",
+        "physicalFrames": 3059578,
+        "cpuMs": 101187.165,
+        "wallMs": 80521.093133,
+        "maxRssKiB": 883736,
+        "exactTrackAndWork": true
+      }
+    },
+    {
+      "id": "luna_bala_44s~3001~p13",
+      "baseline": {
+        "id": "luna_bala_44s~3001~p13",
+        "label": "baseline",
+        "trackHash": "cbcab45aff0ee19c8a6e7b20d9fbd7c14bbf00be95127c3ecaeace713b19fa25",
+        "physicalFrames": 2674688,
+        "cpuMs": 83783.525,
+        "wallMs": 71136.789181,
+        "maxRssKiB": 865404,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "luna_bala_44s~3001~p13",
+        "label": "candidate",
+        "trackHash": "a51b1d45c47931e8bdcae458078da09831650c5d1b869f88957bb8b1de76f56a",
+        "physicalFrames": 3017878,
+        "cpuMs": 89760.952,
+        "wallMs": 70623.371159,
+        "maxRssKiB": 731512,
+        "exactTrackAndWork": true
+      }
+    },
+    {
+      "id": "amour_de_ma_vie_44s~3001~p13",
+      "baseline": {
+        "id": "amour_de_ma_vie_44s~3001~p13",
+        "label": "baseline",
+        "trackHash": "0f59a50eeb83b590fc24c1416d115584a85f7a6011b611b4e5eedf4d868a9f70",
+        "physicalFrames": 3060734,
+        "cpuMs": 97469.299,
+        "wallMs": 83861.769542,
+        "maxRssKiB": 848712,
+        "exactTrackAndWork": true
+      },
+      "candidate": {
+        "id": "amour_de_ma_vie_44s~3001~p13",
+        "label": "candidate",
+        "trackHash": "0acad965a58d6c7799091e7fcb9342c21beeb4ab69a20d7b665320fdba0b5a52",
+        "physicalFrames": 3055119,
+        "cpuMs": 99755.924,
+        "wallMs": 79151.581517,
+        "maxRssKiB": 884552,
+        "exactTrackAndWork": true
+      }
+    }
+  ],
+  "totals": {
+    "baseline": {
+      "cpuMs": 546579.552,
+      "wallMs": 465922.306247,
+      "maxRssKiB": 5148892,
+      "physicalFrames": 16914846
+    },
+    "candidate": {
+      "cpuMs": 584155.5869999999,
+      "wallMs": 462597.985705,
+      "maxRssKiB": 5039560,
+      "physicalFrames": 18599531
+    }
+  },
+  "ratios": {
+    "cpuMs": 1.0687476047402518,
+    "maxRssKiB": 0.9787659170167096,
+    "physicalFrames": 1.0995980099375424
+  },
+  "interpretation": "Six fixed musical inputs; every compiler reproduces its own saved track and work. Process CPU and peak RSS, with two synchronized pairs running concurrently. Summed peak RSS is a comparison across cases, not simultaneous machine memory. No universal speed claim.",
+  "fullPlanArchiveSource": "/tmp/line-quality-review-20261006/generated/final-resources/plan.json"
+}

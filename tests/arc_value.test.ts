@@ -20,3 +20,9 @@ it('describes physical arrival independently of absolute track position', () => 
   expect(describe(translated)).toEqual(describe(state));
   expect(describe(state).every(Number.isFinite)).toBe(true);
 });
+
+it('the geometry ablation does not use masked features at runtime', () => {
+  const features=fixtures.cases[0].features;
+  const changed=features.map((x,i)=>i<57?x:100+i);
+  expect(arcFutureValue(changed,model)).toBe(arcFutureValue(features,model));
+});

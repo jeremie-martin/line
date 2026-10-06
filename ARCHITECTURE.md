@@ -252,3 +252,8 @@ probe allowance. Its declared plan binds compiler, collector, inputs, work and
 search settings. Resume and training reject missing, stale or undeclared records;
 a complete compile with no observations is an error. Budget interruptions are
 not labelled as physical dead ends. Raw collections remain local.
+
+Native compiler engines have a synchronous ownership scope. Search pruning and
+final replay release only handles created within that compilation; a caller's
+retained replay engines survive successful compiles, failed compiles and cleanup.
+The frozen judge still uses its private replay instance.

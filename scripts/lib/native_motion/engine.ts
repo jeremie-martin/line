@@ -70,24 +70,40 @@ const NO_COLLISION_UPDATES: any[] = (() => {
 // their handles when the JS wrapper is GC'd, or a real compile leaks/OOMs.
 type EngineRegistration = { handle: number };
 const LIVE_ENGINES = new Set<EngineRegistration>();
+let protectedEngines = new Set<EngineRegistration>();
+
+/** Synchronous engine ownership boundary. Cleanup inside the callback may
+ * discard its temporary engines, but cannot invalidate a caller's live engines.
+ * The callback returns data, not engine wrappers from this scope. */
+export function withEngineScope<T>(run: () => T): T {
+  const previous = protectedEngines;
+  protectedEngines = new Set(LIVE_ENGINES);
+  try { return run(); } finally {
+    disposeAllWasmEnginesForStudy();
+    protectedEngines = previous;
+  }
+}
+
 const FINALIZER = new FinalizationRegistry<EngineRegistration>((registration) => {
   LIVE_ENGINES.delete(registration);
   ex.free_engine(registration.handle);
 });
 
 /**
- * Release every engine handle in this isolate after a self-contained study
- * compile. Production code must not call this while it still owns an engine.
+ * Release disposable engine handles after a self-contained replay or study.
+ * Within withEngineScope, engines owned by its caller are protected.
  * Repeated calls and later FinalizationRegistry callbacks are safe because the
  * Rust ABI treats freeing an invalid/already-freed handle as a no-op.
  */
 export function disposeAllWasmEnginesForStudy(): number {
-  const count = LIVE_ENGINES.size;
+  let count = 0;
   for (const registration of LIVE_ENGINES) {
+    if (protectedEngines.has(registration)) continue;
+    count++;
     FINALIZER.unregister(registration);
     ex.free_engine(registration.handle);
+    LIVE_ENGINES.delete(registration);
   }
-  LIVE_ENGINES.clear();
   return count;
 }
 
@@ -182,7 +198,7 @@ export class LineRiderEngine {
   detach(): LineRiderEngine { return new LineRiderEngine(ex.detach_engine(this.h)); }
   static retainOnly(engines: readonly LineRiderEngine[]): void {
     const keep = new Set(engines.map(e => e.h));
-    for (const registration of LIVE_ENGINES) if (!keep.has(registration.handle)) {
+    for (const registration of LIVE_ENGINES) if (!keep.has(registration.handle) && !protectedEngines.has(registration)) {
       FINALIZER.unregister(registration); ex.free_engine(registration.handle);
       LIVE_ENGINES.delete(registration);
     }

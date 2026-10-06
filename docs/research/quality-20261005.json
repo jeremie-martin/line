@@ -1148,38 +1148,32 @@
     },
     {
       "id": "Q31",
-      "status": "complete; invariant verified",
+      "status": "adopted foundation",
       "hypothesis": "Terminal candidate selection, refinement and final choice must evaluate the same whole-track objective, including support motion and engagement preferences.",
       "commit": "ab1dc3f0",
-      "interpretation": "Whole-objective consolidation changes development quality by less than displayed rounding; two native counterfactual tests validate exact consistency. Important foundation, not claimed as a quality breakthrough.",
+      "interpretation": "One complete-ride objective now drives terminal choice, refinement and final selection. Native regression tests fail on the old implementation. 48 paired rides show negligible quality change; 63 parity cells qualified with six deliberate hash changes, 33 judge references, 276 tests, typecheck and reachability pass.",
       "result": {
         "authored": {
           "complete": 0,
           "fulfilled": 0,
-          "impact loss (v3)": -0.0,
+          "impact loss (v3)": -3.182747365087363e-07,
           "v3 strong bias (req>=0.6)": 0,
           "v3 very strong bias (req>=0.8)": 0,
-          "v3 quiet bias (req<0.15)": -5.4e-05,
+          "v3 quiet bias (req<0.15)": -5.352182539682636e-05,
           "strong arrivals inverted/backward": 0,
           "body drag s/min": 0,
-          "air rms": -1e-05,
-          "speed rms": -0.0,
-          "burst excess (100 ms)": 0,
-          "physics frames (M)": 0.001508
+          "physics frames (M)": 0.0015081875000000078
         },
         "perturbed": {
           "complete": 0,
           "fulfilled": 0,
-          "impact loss (v3)": 3e-06,
+          "impact loss (v3)": 2.8276735711554e-06,
           "v3 strong bias (req>=0.6)": 0,
           "v3 very strong bias (req>=0.8)": 0,
-          "v3 quiet bias (req<0.15)": 5.2e-05,
+          "v3 quiet bias (req<0.15)": 5.178571428571428e-05,
           "strong arrivals inverted/backward": 0,
           "body drag s/min": 0,
-          "air rms": -3.2e-05,
-          "speed rms": 2.6e-05,
-          "burst excess (100 ms)": 0,
-          "physics frames (M)": 0.000728
+          "physics frames (M)": 0.0007282500000000414
         }
       }
     },
@@ -1514,57 +1508,213 @@
     },
     {
       "id": "Q42",
-      "status": "development complete; confirmation running",
-      "interpretation": "Additive future ranking preserves existing arrival priors instead of weakening them. Impact loss improves by .005/.008; body drag changes +.324/-.156 s/min. Strongest authored delivery remains near baseline. Every ruler retained.",
+      "status": "development, confirmation and 48-case recheck complete; candidate",
+      "interpretation": "Completes all 96 tracks across three panels. Impact loss improves under v2 and v3; some independent older-ruler and body-drag measures regress. Separate clips retain strong improvements, worst regression and quiet example. Clean implementation under qualification.",
       "commit": "1c9e2e8f",
       "result": {
         "authored": {
           "complete": 0,
           "fulfilled": 0,
-          "impact loss (v3)": -0.004538,
-          "v3 strong bias (req>=0.6)": 0.009663,
-          "v3 very strong bias (req>=0.8)": 0.002508,
-          "v3 quiet bias (req<0.15)": -0.009041,
-          "strong arrivals inverted/backward": -0.001459,
-          "body drag s/min": 0.323658,
-          "air rms": -0.004924,
-          "speed rms": -0.01078,
-          "burst excess (100 ms)": 0.000911,
-          "physics frames (M)": 0.382728
+          "impact loss (v3)": -0.004537773973174675,
+          "v3 strong bias (req>=0.6)": 0.009662815736519195,
+          "v3 very strong bias (req>=0.8)": 0.0025081845238095254,
+          "v3 quiet bias (req<0.15)": -0.009041468253968255,
+          "strong arrivals inverted/backward": -0.0014594718717059144,
+          "body drag s/min": 0.3236583452276386,
+          "physics frames (M)": 0.3827283125
         },
         "perturbed": {
           "complete": 0,
           "fulfilled": 0,
-          "impact loss (v3)": -0.007762,
-          "v3 strong bias (req>=0.6)": 0.019628,
-          "v3 very strong bias (req>=0.8)": 0.028591,
-          "v3 quiet bias (req<0.15)": -0.016137,
-          "strong arrivals inverted/backward": 0.002949,
-          "body drag s/min": -0.156485,
-          "air rms": -0.006734,
-          "speed rms": -0.009442,
-          "burst excess (100 ms)": 0,
-          "physics frames (M)": 0.448287
+          "impact loss (v3)": -0.0077617801447780275,
+          "v3 strong bias (req>=0.6)": 0.019628420819669472,
+          "v3 very strong bias (req>=0.8)": 0.0285913387625652,
+          "v3 quiet bias (req<0.15)": -0.01613730158730159,
+          "strong arrivals inverted/backward": 0.002948646060059101,
+          "body drag s/min": -0.15648502689942917,
+          "physics frames (M)": 0.4482868750000001
         }
       }
     },
     {
       "id": "Q43",
-      "status": "running",
-      "interpretation": "Complete-ride response probes share final loss, require realized constructions, and retain the best verified repair even if a later probe exhausts the allowance. Native objective/span/incumbent tests pass.",
-      "commit": "2437340d"
+      "status": "complete standard and 6M; not adopted",
+      "interpretation": "Full-objective response makes small gains; telemetry shows repeated tiny improvements near the tail. No broad quality gain justifies this additional path.",
+      "commit": "2437340d",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004949371778490254,
+          "v3 strong bias (req>=0.6)": 0.011245056696652447,
+          "v3 very strong bias (req>=0.8)": 0.019040625000000005,
+          "v3 quiet bias (req<0.15)": -0.014124107142857143,
+          "strong arrivals inverted/backward": 0.01163563829787234,
+          "body drag s/min": 0.667041794759186,
+          "physics frames (M)": 0.3900418750000001
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009473802678495685,
+          "v3 strong bias (req>=0.6)": 0.02527351600437606,
+          "v3 very strong bias (req>=0.8)": 0.03396216487260121,
+          "v3 quiet bias (req<0.15)": -0.01588402777777778,
+          "strong arrivals inverted/backward": -0.0036816283555413994,
+          "body drag s/min": 0.0737892969550577,
+          "physics frames (M)": 0.45682599999999995
+        }
+      }
     },
     {
       "id": "Q44",
-      "status": "running",
-      "interpretation": "Four persistent prefixes with additive future ranking test whether deeper local fitting is a better use of the same allowance.",
-      "commit": "55275c93"
+      "status": "complete width ablation; not adopted",
+      "interpretation": "Four prefixes save roughly 0.9M frames but lose much of the quality gain and increase body dragging.",
+      "commit": "55275c93",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.001128930780849053,
+          "v3 strong bias (req>=0.6)": 0.002186748708590486,
+          "v3 very strong bias (req>=0.8)": -0.003427566964285714,
+          "v3 quiet bias (req<0.15)": -0.0026265376984126957,
+          "strong arrivals inverted/backward": 0.0001912488614616249,
+          "body drag s/min": 0.4173385805518957,
+          "physics frames (M)": -0.9568800625
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.005470737437663464,
+          "v3 strong bias (req>=0.6)": 0.01798180728892687,
+          "v3 very strong bias (req>=0.8)": 0.01859079499946247,
+          "v3 quiet bias (req<0.15)": 0.005006845238095248,
+          "strong arrivals inverted/backward": -0.03319322786714091,
+          "body drag s/min": 0.6037463630873956,
+          "physics frames (M)": -0.887011
+        }
+      }
     },
     {
       "id": "Q45",
-      "status": "running",
-      "interpretation": "Two-prefix counterpart to Q44; full panels and all rulers decide, not individual successes.",
-      "commit": "3ccc96b3"
+      "status": "complete width ablation; rejected",
+      "interpretation": "Two prefixes save roughly 1.8M frames but worsen authored impact loss and strong impact delivery.",
+      "commit": "3ccc96b3",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": 0.007738727888103366,
+          "v3 strong bias (req>=0.6)": -0.021166753192384827,
+          "v3 very strong bias (req>=0.8)": -0.023768824404761905,
+          "v3 quiet bias (req<0.15)": 0.007213888888888891,
+          "strong arrivals inverted/backward": 0.007592707725686449,
+          "body drag s/min": 0.38644741115868825,
+          "physics frames (M)": -1.80344525
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": 0.0026532257105403895,
+          "v3 strong bias (req>=0.6)": -0.0017069556070941948,
+          "v3 very strong bias (req>=0.8)": 0.010537481353813914,
+          "v3 quiet bias (req<0.15)": 0.004616071428571431,
+          "strong arrivals inverted/backward": 0.011841103240559758,
+          "body drag s/min": 0.7396502388010541,
+          "physics frames (M)": -1.746527375
+        }
+      }
+    },
+    {
+      "id": "Q46",
+      "status": "complete standard and 6M; under analysis",
+      "interpretation": "Visit high-regret supports without resetting the sweep after every tiny improvement. Tests tail starvation observed in Q43.",
+      "commit": "8137b60e",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004941125665708356,
+          "v3 strong bias (req>=0.6)": 0.011205566557162311,
+          "v3 very strong bias (req>=0.8)": 0.019006845238095246,
+          "v3 quiet bias (req<0.15)": -0.01409796626984127,
+          "strong arrivals inverted/backward": 0.01163563829787234,
+          "body drag s/min": 0.667041794759186,
+          "physics frames (M)": 0.3902288125000001
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009479889625452254,
+          "v3 strong bias (req>=0.6)": 0.025285108596968652,
+          "v3 very strong bias (req>=0.8)": 0.033972384998387374,
+          "v3 quiet bias (req<0.15)": -0.015934920634920635,
+          "strong arrivals inverted/backward": -0.0036816283555413994,
+          "body drag s/min": 0.0737892969550577,
+          "physics frames (M)": 0.45412250000000004
+        }
+      }
+    },
+    {
+      "id": "Q47",
+      "status": "complete ablation; not adopted",
+      "interpretation": "Restore sequential planning with consistent accounting and additive future ranking. Quality gains are weaker and perturbed body dragging rises; supports retaining multiple physical prefixes.",
+      "commit": "aa7d465e",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.0009307081179980318,
+          "v3 strong bias (req>=0.6)": 0.002825269459411762,
+          "v3 very strong bias (req>=0.8)": 0.0017257440476190545,
+          "v3 quiet bias (req<0.15)": 0.003934771825396827,
+          "strong arrivals inverted/backward": 0.024086642770153408,
+          "body drag s/min": 0.12611909401990912,
+          "physics frames (M)": 0.17097143750000005
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.003258842564001137,
+          "v3 strong bias (req>=0.6)": 0.009438960099180233,
+          "v3 very strong bias (req>=0.8)": 0.010871392886900002,
+          "v3 quiet bias (req<0.15)": -0.005542162698412694,
+          "strong arrivals inverted/backward": -0.007169670607170607,
+          "body drag s/min": 0.5461110196164543,
+          "physics frames (M)": 0.263314125
+        }
+      }
+    },
+    {
+      "id": "Q48",
+      "status": "development complete; confirmation running",
+      "interpretation": "Predict the existing arrival preference one frame forward instead of assessing stale boundary pose and heading. First panel reduces inverted/backward strong arrivals while improving impact error; quiet and drag tradeoffs still require confirmation.",
+      "commit": "0a480cb3",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.0042446131274954104,
+          "v3 strong bias (req>=0.6)": 0.006465261803061009,
+          "v3 very strong bias (req>=0.8)": 0.007548288690476193,
+          "v3 quiet bias (req<0.15)": -0.010505555555555556,
+          "strong arrivals inverted/backward": -0.022196860960158833,
+          "body drag s/min": 0.4881234217171718,
+          "physics frames (M)": 0.38257393749999996
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.008740972312599692,
+          "v3 strong bias (req>=0.6)": 0.02482792782911533,
+          "v3 very strong bias (req>=0.8)": 0.034910222981508365,
+          "v3 quiet bias (req<0.15)": -0.007883829365079364,
+          "strong arrivals inverted/backward": -0.071163504872744,
+          "body drag s/min": 0.16352554073342113,
+          "physics frames (M)": 0.45352587499999997
+        }
+      }
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1595,7 +1745,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T00:10:00Z",
+  "updated": "2026-10-06T00:35:00Z",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [
@@ -1606,5 +1756,13 @@
       "Tiki 101, 46.20 s: numerical quiet improvement .264\u2192.110 becomes inverted head contact. This is not an acceptable example of improved smoothness."
     ],
     "guard": "Do not promote on impact-error averages alone; preserve the quiet counterexample in review."
+  },
+  "q42PhysicalReview": {
+    "scope": "Three selected pairs inspected frame by frame; all 1890 matched hits decomposed. Owner visual review remains open.",
+    "findings": [
+      "Amour 101 8.88s: inverted baseline becomes an upright sled catch, .368 to .726; travel impulse 5.47 vs spin .39 in candidate.",
+      "Amour 202 7.90s: worst regression .827 to .419, lower normal approach speed and weaker travel response.",
+      "Tiki 303 45.33s: quieter .299 to .144 with upright entry; later guide contact still bends the rider, so this is not proof of complete calmness."
+    ]
   }
 }

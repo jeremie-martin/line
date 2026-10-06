@@ -39,8 +39,9 @@ spec (beats, impacts, air/speed/amplitude targets)
    - retains up to eight distinct, physically replayed prefixes, ranked by
      accumulated local loss, the existing arrival preference and predicted
      future cost; the remaining allowance can reduce that width;
-   - keeps untried alternatives at four recent boundaries for recovery from
-     physical dead ends, preserving the longest completed prefix on interruption;
+   - keeps all distinct untried measured alternatives at four recent boundaries,
+     reopening at most eight at a time after a physical dead end; recovery
+     shares the allowance and preserves the longest prefix on interruption;
    - finishes with terminal selection and ending refinement
      (`arc_complete_refinement.ts`, `arc_refinement.ts`), then a cold replay
      checked against an independent engine (`arc_finalize.ts`).

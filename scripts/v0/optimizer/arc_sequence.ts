@@ -114,8 +114,8 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
     if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
       finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};
-    // A bounded beam stack keeps the next distinct alternatives at each of
-    // four recent boundaries. Only a physical dead end reopens one; its cold
+    // Keep all distinct measured alternatives at four recent boundaries,
+    // reopening at most eight at a time. Only a physical dead end reopens one; its cold
     // prefix and all renewed search remain charged to the ordinary meter.
     frontier[i] = choose(offered.filter(p => !chosen.includes(p)), offered.length).map(p =>
       ({...p, interval: {...p.interval, best: null, candidates: [p.candidate]}}));

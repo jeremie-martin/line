@@ -7,7 +7,7 @@
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync, readdirSync} from 'node:fs';
 import {join} from 'node:path';
-import {PANELS, resolveCase, digest, evaluatorIdentity} from './inputs.ts';
+import {resolveCase, digest, evaluatorIdentity} from './inputs.ts';
 import {readJson, readTrack, saveCell, atomicWrite, loadRun, runDir, type RunPlan} from './records.ts';
 import {measureCell} from './measure.ts';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
@@ -24,7 +24,8 @@ const inputs = await Promise.all(old.panel.map((c: any) => resolveCase(c, jolt))
 const plan: RunPlan = {schema: 'line.eval.v2', identity: old.identity, evaluator: evaluatorIdentity(), jolt,
   mode: old.mode, budget: old.budget, panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
   remeasuredFrom: {runSha256: digest(old), cellsSha256: digest(ids.map((id: string) => readJson(join(source, 'cells', id + '.json'))))}};
-assert.ok(PANELS[plan.panelName], 'unknown panel');
+// The saved case list defines this panel. Its name is a provenance label;
+// independently declared confirmation panels need not be CLI presets.
 // Preflight every input before producing any output. A declared offset alone is
 // insufficient: it must reproduce the actual saved times and requested strengths.
 for (const {planned: c} of inputs) {

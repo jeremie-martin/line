@@ -1,7 +1,7 @@
 /** Independent native continuation labels from frozen production prefixes.
  * Collection never relies on a production search hook. Its own hard meter is
  * reported separately, and interrupted probes are not labelled as failures. */
-import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy} from '../../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Engine,withEngineScope} from '../../scripts/lib/native_motion/engine.ts';
 import {resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount,getRiderMetered,PhysicsFrameLimitExceeded} from '../../scripts/lib/detector.ts';
 import {createArcCompileContext} from '../../scripts/v0/optimizer/arc_compile_context.ts';
 import {normalizeCompilerTimeline} from '../../scripts/v0/optimizer/compiler_input.ts';
@@ -13,6 +13,7 @@ import type {Spec,TrackLine} from '../../scripts/v0/types.ts';
 
 export const VALUE_COLLECTION = Object.freeze({anchors:24,width:4,samples:24,depth:2});
 export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptions,lines:TrackLine[],committedRows:any[],budget:number){
+ return withEngineScope(()=>{
  const ctx=createArcCompileContext(normalizeCompilerTimeline(spec),seed,options),rows:any[]=[];
  const {contacts,lineage}=ctx,eligible=Math.min(committedRows.length,contacts.length-1);
  const anchors=[...new Set(Array.from({length:Math.min(VALUE_COLLECTION.anchors,eligible)},(_,i)=>
@@ -52,7 +53,8 @@ export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptio
   }
   Engine.retainOnly([]);
  }}catch(error){if(!(error instanceof PhysicsFrameLimitExceeded))throw error;interrupted=true;}
- finally{disposeAllWasmEnginesForStudy();setPhysicsFrameLimit(null);}
+ finally{setPhysicsFrameLimit(null);}
  if(eligible>0&&!rows.length)throw new Error('no complete continuation probes collected');
  return {probes:rows,physicalFrames:getPhysicsFrameCount(),interrupted,anchors:anchors.length};
+ });
 }

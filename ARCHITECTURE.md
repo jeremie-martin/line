@@ -61,7 +61,8 @@ spec (beats, impacts, air/speed/amplitude targets)
    remain reserved until lineage death. The independent judge is unchanged.
    Native compiler engines have a synchronous ownership scope. Search pruning
    and final replay release only this compilation's handles; caller-owned replay
-   engines survive both success and failure. The frozen judge uses its private
+   engines survive both success and failure. Independent continuation-label
+   collection uses the same boundary. The frozen judge uses its private
    replay instance.
 
 4. **Validate.** The finished track is replayed on a separate engine instance.

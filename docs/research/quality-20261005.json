@@ -1148,10 +1148,40 @@
     },
     {
       "id": "Q31",
-      "status": "confirmed discrepancy; complete paired trial running",
+      "status": "complete; invariant verified",
       "hypothesis": "Terminal candidate selection, refinement and final choice must evaluate the same whole-track objective, including support motion and engagement preferences.",
       "commit": "ab1dc3f0",
-      "interpretation": "All 24 frozen rides differ between old refinement and final objectives (\u22120.000402 to +0.000536); terminal selection also omits earlier support preferences. Shared objective removes duplicate implementations. Two native tests fail old code and pass corrected code; typecheck passes."
+      "interpretation": "Whole-objective consolidation changes development quality by less than displayed rounding; two native counterfactual tests validate exact consistency. Important foundation, not claimed as a quality breakthrough.",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.0,
+          "v3 strong bias (req>=0.6)": 0,
+          "v3 very strong bias (req>=0.8)": 0,
+          "v3 quiet bias (req<0.15)": -5.4e-05,
+          "strong arrivals inverted/backward": 0,
+          "body drag s/min": 0,
+          "air rms": -1e-05,
+          "speed rms": -0.0,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.001508
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": 3e-06,
+          "v3 strong bias (req>=0.6)": 0,
+          "v3 very strong bias (req>=0.8)": 0,
+          "v3 quiet bias (req<0.15)": 5.2e-05,
+          "strong arrivals inverted/backward": 0,
+          "body drag s/min": 0,
+          "air rms": -3.2e-05,
+          "speed rms": 2.6e-05,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.000728
+        }
+      }
     },
     {
       "id": "Q32",
@@ -1192,8 +1222,349 @@
     },
     {
       "id": "Q33",
+      "status": "complete development; guard tradeoffs",
+      "hypothesis": "Combine physical-prefix beam and bounded recovery with consistent authored-span accounting and eligible scattered retention. Test interactions explicitly against both baseline and Q32.",
+      "interpretation": "Coherent beam plus span accounting and eligible fragments: all 24 complete; impact loss \u22120.005/\u22120.010, strong bias +0.011/+0.025, speed error \u22120.012/\u22120.010. Authored body dragging +0.685 s/min; not accepted solely on musical averages.",
+      "commit": "c43d1b0b",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004953,
+          "v3 strong bias (req>=0.6)": 0.011211,
+          "v3 very strong bias (req>=0.8)": 0.019015,
+          "v3 quiet bias (req<0.15)": -0.013894,
+          "strong arrivals inverted/backward": 0.011636,
+          "body drag s/min": 0.685292,
+          "air rms": -0.006284,
+          "speed rms": -0.011654,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.380413
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009517,
+          "v3 strong bias (req>=0.6)": 0.025281,
+          "v3 very strong bias (req>=0.8)": 0.033974,
+          "v3 quiet bias (req<0.15)": -0.016778,
+          "strong arrivals inverted/backward": -0.003682,
+          "body drag s/min": 0.073789,
+          "air rms": -0.006201,
+          "speed rms": -0.009839,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.453377
+        }
+      }
+    },
+    {
+      "id": "Q34",
+      "status": "complete development, confirmation and 6M; not promoted",
+      "interpretation": "Coherent shared-objective beam improves musical loss on both 24-case panels, with body dragging +0.33/+0.53 s/min in confirmation. Higher first-pass budget offers only a small gain.",
+      "commit": "e46a0457",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004937,
+          "v3 strong bias (req>=0.6)": 0.011211,
+          "v3 very strong bias (req>=0.8)": 0.019015,
+          "v3 quiet bias (req<0.15)": -0.013991,
+          "strong arrivals inverted/backward": 0.011636,
+          "body drag s/min": 0.664911,
+          "air rms": -0.006332,
+          "speed rms": -0.011601,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.380552
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009516,
+          "v3 strong bias (req>=0.6)": 0.025281,
+          "v3 very strong bias (req>=0.8)": 0.033974,
+          "v3 quiet bias (req<0.15)": -0.016764,
+          "strong arrivals inverted/backward": -0.003682,
+          "body drag s/min": 0.073789,
+          "air rms": -0.006201,
+          "speed rms": -0.009839,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.453215
+        }
+      }
+    },
+    {
+      "id": "Q35",
+      "status": "complete standard and 6M; not promoted",
+      "hypothesis": "Complete-incumbent suffix refinement with the same beam search and complete objective. Standard and 6M panels compare against unrefined coherent beam; repaired rides must never replace a better complete incumbent.",
+      "commit": "41f23ff2",
+      "interpretation": "Complete-incumbent suffix repair spends about 3.2M more physics frames at 6M allowance for a small additional musical gain; body dragging worsens. Investigating actual accepted work.",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004933,
+          "v3 strong bias (req>=0.6)": 0.011191,
+          "v3 very strong bias (req>=0.8)": 0.018988,
+          "v3 quiet bias (req<0.15)": -0.01418,
+          "strong arrivals inverted/backward": 0.011636,
+          "body drag s/min": 0.665004,
+          "air rms": -0.006301,
+          "speed rms": -0.011638,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.369611
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009455,
+          "v3 strong bias (req>=0.6)": 0.025301,
+          "v3 very strong bias (req>=0.8)": 0.034001,
+          "v3 quiet bias (req<0.15)": -0.016134,
+          "strong arrivals inverted/backward": -0.003682,
+          "body drag s/min": 0.073789,
+          "air rms": -0.005896,
+          "speed rms": -0.010306,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.444841
+        }
+      }
+    },
+    {
+      "id": "Q36",
+      "status": "complete ablation",
+      "hypothesis": "Ablate future prediction from coherent beam, retaining physical local costs and priors.",
+      "commit": "6eeb3a7f",
+      "interpretation": "Removing future prediction loses some strongest-hit delivery; no general improvement in guards.",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004263,
+          "v3 strong bias (req>=0.6)": 0.006138,
+          "v3 very strong bias (req>=0.8)": 0.002542,
+          "v3 quiet bias (req<0.15)": -0.00677,
+          "strong arrivals inverted/backward": 0.00617,
+          "body drag s/min": 0.581766,
+          "air rms": -0.006794,
+          "speed rms": -0.011027,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.384329
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.007068,
+          "v3 strong bias (req>=0.6)": 0.018066,
+          "v3 very strong bias (req>=0.8)": 0.016833,
+          "v3 quiet bias (req<0.15)": -0.010738,
+          "strong arrivals inverted/backward": 0.017257,
+          "body drag s/min": 0.522131,
+          "air rms": -0.003215,
+          "speed rms": -0.008176,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.454277
+        }
+      }
+    },
+    {
+      "id": "Q37",
+      "status": "complete ablation",
+      "hypothesis": "Test inherited rank-only predictor in coherent beam; disclose evaluation-song overlap of old model.",
+      "commit": "ae4dc6a1",
+      "interpretation": "Inherited predictor has evaluation-song overlap and weaker very-strong delivery than the disjoint geometry-aware predictor; perturbed body dragging is worse.",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.005569,
+          "v3 strong bias (req>=0.6)": 0.010593,
+          "v3 very strong bias (req>=0.8)": 0.003637,
+          "v3 quiet bias (req<0.15)": -0.011258,
+          "strong arrivals inverted/backward": -0.021393,
+          "body drag s/min": 0.636541,
+          "air rms": -0.005565,
+          "speed rms": -0.010682,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.382462
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.007304,
+          "v3 strong bias (req>=0.6)": 0.021157,
+          "v3 very strong bias (req>=0.8)": 0.017274,
+          "v3 quiet bias (req<0.15)": -0.012284,
+          "strong arrivals inverted/backward": -0.000792,
+          "body drag s/min": 0.925575,
+          "air rms": -0.007684,
+          "speed rms": -0.00784,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.446448
+        }
+      }
+    },
+    {
+      "id": "Q38",
+      "status": "complete; not promoted",
+      "interpretation": "Adding angular velocity and circular pose to arrival diversity is physically motivated but mixed, not a clear improvement.",
+      "commit": "b10ef3b6",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.005091,
+          "v3 strong bias (req>=0.6)": 0.012933,
+          "v3 very strong bias (req>=0.8)": 0.011438,
+          "v3 quiet bias (req<0.15)": -0.013224,
+          "strong arrivals inverted/backward": -0.002545,
+          "body drag s/min": 0.620904,
+          "air rms": -0.004673,
+          "speed rms": -0.013092,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.384404
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009633,
+          "v3 strong bias (req>=0.6)": 0.025569,
+          "v3 very strong bias (req>=0.8)": 0.027152,
+          "v3 quiet bias (req<0.15)": -0.011289,
+          "strong arrivals inverted/backward": -0.027662,
+          "body drag s/min": 0.231379,
+          "air rms": -0.006496,
+          "speed rms": -0.008035,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.447451
+        }
+      }
+    },
+    {
+      "id": "Q39",
+      "status": "complete; invariant improvement",
+      "interpretation": "Beam nodes now own prefix arrays, interrupted search preserves the deepest prefix, and width respects the minimum affordable local search. Native budget tests pass; dev24 nearly unchanged.",
+      "commit": "2a2cb455",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004937,
+          "v3 strong bias (req>=0.6)": 0.011211,
+          "v3 very strong bias (req>=0.8)": 0.019015,
+          "v3 quiet bias (req<0.15)": -0.013991,
+          "strong arrivals inverted/backward": 0.011636,
+          "body drag s/min": 0.664911,
+          "air rms": -0.006332,
+          "speed rms": -0.011601,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.380552
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009516,
+          "v3 strong bias (req>=0.6)": 0.025281,
+          "v3 very strong bias (req>=0.8)": 0.033974,
+          "v3 quiet bias (req<0.15)": -0.016764,
+          "strong arrivals inverted/backward": -0.003682,
+          "body drag s/min": 0.073789,
+          "air rms": -0.006201,
+          "speed rms": -0.009839,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.453215
+        }
+      }
+    },
+    {
+      "id": "Q40",
+      "status": "complete standard and 6M; little gain",
+      "interpretation": "Locally fitted two-support patches usually fail to improve the complete track after continuation. Q43 tests full-ride response instead of trusting the local surrogate.",
+      "commit": "7cce2614",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004927,
+          "v3 strong bias (req>=0.6)": 0.011199,
+          "v3 very strong bias (req>=0.8)": 0.018998,
+          "v3 quiet bias (req<0.15)": -0.013876,
+          "strong arrivals inverted/backward": 0.011636,
+          "body drag s/min": 0.665004,
+          "air rms": -0.006219,
+          "speed rms": -0.011596,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.385495
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.009453,
+          "v3 strong bias (req>=0.6)": 0.025301,
+          "v3 very strong bias (req>=0.8)": 0.034001,
+          "v3 quiet bias (req<0.15)": -0.01582,
+          "strong arrivals inverted/backward": -0.003682,
+          "body drag s/min": 0.073789,
+          "air rms": -0.005896,
+          "speed rms": -0.010059,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.454888
+        }
+      }
+    },
+    {
+      "id": "Q42",
+      "status": "development complete; confirmation running",
+      "interpretation": "Additive future ranking preserves existing arrival priors instead of weakening them. Impact loss improves by .005/.008; body drag changes +.324/-.156 s/min. Strongest authored delivery remains near baseline. Every ruler retained.",
+      "commit": "1c9e2e8f",
+      "result": {
+        "authored": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.004538,
+          "v3 strong bias (req>=0.6)": 0.009663,
+          "v3 very strong bias (req>=0.8)": 0.002508,
+          "v3 quiet bias (req<0.15)": -0.009041,
+          "strong arrivals inverted/backward": -0.001459,
+          "body drag s/min": 0.323658,
+          "air rms": -0.004924,
+          "speed rms": -0.01078,
+          "burst excess (100 ms)": 0.000911,
+          "physics frames (M)": 0.382728
+        },
+        "perturbed": {
+          "complete": 0,
+          "fulfilled": 0,
+          "impact loss (v3)": -0.007762,
+          "v3 strong bias (req>=0.6)": 0.019628,
+          "v3 very strong bias (req>=0.8)": 0.028591,
+          "v3 quiet bias (req<0.15)": -0.016137,
+          "strong arrivals inverted/backward": 0.002949,
+          "body drag s/min": -0.156485,
+          "air rms": -0.006734,
+          "speed rms": -0.009442,
+          "burst excess (100 ms)": 0,
+          "physics frames (M)": 0.448287
+        }
+      }
+    },
+    {
+      "id": "Q43",
       "status": "running",
-      "hypothesis": "Combine physical-prefix beam and bounded recovery with consistent authored-span accounting and eligible scattered retention. Test interactions explicitly against both baseline and Q32."
+      "interpretation": "Complete-ride response probes share final loss, require realized constructions, and retain the best verified repair even if a later probe exhausts the allowance. Native objective/span/incumbent tests pass.",
+      "commit": "2437340d"
+    },
+    {
+      "id": "Q44",
+      "status": "running",
+      "interpretation": "Four persistent prefixes with additive future ranking test whether deeper local fitting is a better use of the same allowance.",
+      "commit": "55275c93"
+    },
+    {
+      "id": "Q45",
+      "status": "running",
+      "interpretation": "Two-prefix counterpart to Q44; full panels and all rulers decide, not individual successes.",
+      "commit": "3ccc96b3"
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1224,7 +1595,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-05T23:32:08.774082+00:00",
+  "updated": "2026-10-06T00:10:00Z",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

@@ -109,9 +109,8 @@ pub extern "C" fn create_engine() -> u32 {
     engine::create()
 }
 
-// A version is an immutable node whose ancestors the cache walk needs, so freeing
-// one handle only marks it; the whole lineage (its shared cache + version slots) is
-// reclaimed once its LAST live handle is freed (no JS wrapper can reference it then).
+// Release the external ownership of a version. Descendants and the current cache
+// retain any ancestry they need. Slots become reusable only at lineage death.
 #[no_mangle]
 pub extern "C" fn free_engine(h: u32) {
     engine::free(h);

@@ -6,6 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {loadRun} from '../../tools/eval/records.ts';
+import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 const main='/home/wyss/line',out='/tmp/line-quality-review-20261006/generated/quality-integration';
 const at=(file:string)=>import(pathToFileURL(join(main,file)).href);
 const {compilerIdentity}=await at('scripts/lib/compiler_identity.ts');
@@ -23,12 +24,17 @@ if(process.argv[2]==='worker'){
   phraseBoundaries:music.phases.map((p:any)=>p.t0??p.t??p.start).filter(Number.isFinite)});
  const hash=digest(cp.track);assert.equal(hash,cell.trackHash);assert.equal(cp.repertoire.physicalFrames,cell.physicalFrames);
  assert.equal(cp.repertoire.valid,cell.complete);assert.equal(cp.repertoire.qualified,cell.fulfilled);
- assert.ok(cp.track.lines.every((l:any)=>l.type===0));assert.deepEqual(compilerIdentity(main),plan.compiler);
+ assert.ok(cp.track.lines.every((l:any)=>l.type===0));
+ const {measureCell}=await at('tools/eval/measure.ts');
+ const measured=JSON.parse(JSON.stringify(measureCell({c:cell.case,mode:'strike3',track:cp.track,spec,music,
+  physicalFrames:cp.repertoire.physicalFrames,compileMs:0,complete:cp.repertoire.valid,fulfilled:cp.repertoire.qualified,motion:cp.repertoire.motion.full})));
+ for(const [key,value]of Object.entries(measured))if(key!=='compileMs')assert.deepEqual(value,cell[key],cell.case.id+'/'+key);
+ assert.deepEqual(compilerIdentity(main),plan.compiler);
  writeFileSync(out+'/'+cell.case.id+'.json',JSON.stringify({id:cell.case.id,trackHash:hash,physicalFrames:cell.physicalFrames,
-  complete:cp.repertoire.valid,fulfilled:cp.repertoire.qualified,input:cell.case.input,exactTrackAndWork:true})+'\n');
+  complete:cp.repertoire.valid,fulfilled:cp.repertoire.qualified,input:cell.case.input,exactTrackAndWork:true,allNonTimingMeasurementsExact:true})+'\n');
  console.log(cell.case.id,'exact track and work');
 }else{
- mkdirSync(out,{recursive:true});const plan={schema:'line.quality-integration-bridge.v1',compiler:compilerIdentity(main),sourcePlan:source.run,
+ mkdirSync(out,{recursive:true});const release=lockArtifacts(out);try{const plan={schema:'line.quality-integration-bridge.v1',compiler:compilerIdentity(main),evaluator:(await at('tools/eval/inputs.ts')).evaluatorIdentity(main),sourcePlan:source.run,
   cases:cases.map(c=>c.case.id),studySha256:createHash('sha256').update(readFileSync(import.meta.filename)).digest('hex')};
  assert.ok(!existsSync(out+'/plan.json'),'fresh integration output is required');writeFileSync(out+'/plan.json',JSON.stringify(plan)+'\n');
  const outcomes=await Promise.allSettled(cases.map(c=>new Promise<void>((ok,fail)=>{
@@ -39,5 +45,6 @@ if(process.argv[2]==='worker'){
  assert.deepEqual(compilerIdentity(main),plan.compiler);
  const records=cases.map(c=>JSON.parse(readFileSync(out+'/'+c.case.id+'.json','utf8')));
  writeFileSync(main+'/docs/research/quality-20261005-integration.json',JSON.stringify({...plan,at:new Date().toISOString(),records},null,2)+'\n');
- console.log('All four integrated musical review tracks and work counts match exactly');
+ console.log('All four integrated review tracks, work counts and non-timing measurements match exactly');
+ }finally{release()}
 }

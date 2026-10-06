@@ -1909,7 +1909,8 @@
       "reproduction": "Existing judge case passes; identical native-backend case fails with changed frame-zero point coordinates. Scoped implementation passes both plus cached-contact tests.",
       "interpretation": "Both caller backends now preserve snapshots across successful and failed compilations. New checks also show unrelated retained engines cannot change the compiled track or physical work. Nested cleanup releases only its own handles. Initial full run had one30s load timeout (also reproduced on unmodified parent) and one missing audio symlink in the isolated checkout; focused reruns pass after correcting those execution conditions.",
       "candidateCommit": "c64710d1",
-      "researchCollector": "The same retained-engine failure was reproduced in collectFutureProbes. It now uses the shared ownership scope. Six ownership/collection tests pass, then a strengthened collection test verifies identical labels and work with/without a retained engine. Production compiler paths are byte-identical to the63-cell-qualified c64710d1; typecheck and reachability pass."
+      "researchCollector": "The same retained-engine failure was reproduced in collectFutureProbes. It now uses the shared ownership scope. Six ownership/collection tests pass, then a strengthened collection test verifies identical labels and work with/without a retained engine. Production compiler paths are byte-identical to the63-cell-qualified c64710d1; typecheck and reachability pass.",
+      "packagedProvenance": "Final packaging audit found only the ownership wrapper manifest hash stale. Corrected it, documented the current backend, and added a passing packaged-source/WASM identity check. Simulation and search code unchanged."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1940,7 +1941,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T04:09:08.836567+00:00",
+  "updated": "2026-10-06T04:35:07.430647+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

@@ -53,5 +53,12 @@
     "compilerTreeUnchangedFrom": "c64710d1",
     "typecheck": "pass",
     "unreachableFiles": 0
+  },
+  "packagedProvenance": {
+    "issue": "Ownership wrapper hash was stale in the native manifest; all other source/WASM hashes matched.",
+    "fix": "Update the wrapper hash and assert every packaged source/WASM hash in the existing native test file. Backend documentation describes current cache and ownership behavior.",
+    "testsPassed": 3,
+    "uniqueTotalTests": 279,
+    "simulationCodeUnchanged": true
   }
 }

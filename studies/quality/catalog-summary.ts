@@ -20,6 +20,9 @@ const cases = plan.work.map((w: any) => {
     assert.equal(c.planSha256, digest(plan)); assert.equal(c.inputSha256, w.inputSha256);
     const cp = JSON.parse(gunzipSync(readFileSync(join(dir, label, id + '.checkpoint.json.gz'))).toString());
     assert.equal(c.trackHash, digest(cp.track));
+    assert.equal(c.requested,cp.repertoire.plan.requests.length);assert.equal(c.constructed,cp.repertoire.result.rows.length);
+    assert.equal(c.complete,cp.repertoire.valid);assert.equal(c.fulfilled,cp.repertoire.qualified);
+    assert.deepEqual(c.failure,cp.repertoire.result.failure);assert.equal(c.layoutFulfilled,cp.repertoire.realization.fulfilled);
     assert.equal(c.physicalFrames, cp.work.physicalFrames); assert.equal(cp.budget, cp.work.allowance);
     assert.ok(cp.work.physicalFrames <= cp.work.allowance, 'physical allowance exceeded: '+id);
     assert.equal(cp.work.stages.reduce((n:any,s:any)=>n+s.physicalFrames,0), cp.work.physicalFrames);

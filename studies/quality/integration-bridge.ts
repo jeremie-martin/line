@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {loadRun} from '../../tools/eval/records.ts';
-const main='/home/wyss/line',out=main+'/generated/quality-integration-20261006';
+const main='/home/wyss/line',out='/tmp/line-quality-review-20261006/generated/quality-integration';
 const at=(file:string)=>import(pathToFileURL(join(main,file)).href);
 const {compilerIdentity}=await at('scripts/lib/compiler_identity.ts');
 const source=loadRun('/tmp/line-quality-passive-final-20261006/generated/eval/quality-passive-final');

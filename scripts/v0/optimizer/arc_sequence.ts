@@ -91,8 +91,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
         seq.failure = {frame, reason: work.searchBudgetExhausted ? 'budget' : 'no_arc'};
         return;
       }
-      const retained = frontier[previous];
-      frontier[previous] = [];
+      const retained = frontier[previous].splice(0, 8);
       frontier.length = previous + 1;
       beam = materialize(retained, previous, true, []);
       Object.assign(seq, beam[0].seq);
@@ -118,7 +117,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     // A bounded beam stack keeps the next distinct alternatives at each of
     // four recent boundaries. Only a physical dead end reopens one; its cold
     // prefix and all renewed search remain charged to the ordinary meter.
-    frontier[i] = choose(offered.filter(p => !chosen.includes(p)), 8).map(p =>
+    frontier[i] = choose(offered.filter(p => !chosen.includes(p)), offered.length).map(p =>
       ({...p, interval: {...p.interval, best: null, candidates: [p.candidate]}}));
     for (let j = 0; j < i - 3; j++) frontier[j] = [];
     beam = materialize(chosen, i, false, protectedEngines);

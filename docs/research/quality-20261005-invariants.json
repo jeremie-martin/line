@@ -603,5 +603,12 @@
       ],
       "caveat": "Exploratory timings under different concurrent load. A six-case paired process-CPU study is running; no speed claim yet."
     }
+  },
+  "customPanelRemeasurement": {
+    "change": "Saved case lists define remeasurement panels; preset names are only CLI conveniences.",
+    "actualSavedTrackCheck": "tiki_tiki_48s~101; all 37 measurements, track and compiler identity preserved",
+    "tests": 7,
+    "typecheck": "pass",
+    "limits": "Measurement code identity changes explicitly; final comparisons must remeasure both sides."
   }
 }

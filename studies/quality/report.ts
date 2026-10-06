@@ -6,6 +6,8 @@ const baseline=loadRun(root+'/generated/eval/quality-20261005-baseline');
 const curves:any={};
 const runs:any={Baseline:baseline,Q16:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q16-scatter-alternatives'),
  Q25c:loadRun('/tmp/line-quality-value-20261005/generated/eval/q25c-beam-geometry-value'),
+ Q34:loadRun('/tmp/line-quality-steeper-20261006/generated/eval/q34-beam-complete-objective'),
+ Q42:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q42-additive-future'),
  Q27:loadRun('/tmp/line-quality-steeper-20261006/generated/eval/q27-scatter-contract'),
  Q30:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q30-authored-spans'),
  'Q4-blind':loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q4-value-blind'),

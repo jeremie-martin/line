@@ -844,12 +844,61 @@
       "files": 343,
       "bytes": 55803139,
       "manifestSha256": "d0286dde4dfb6045e61e579e57f4bf96cf0550c7e9120bdec4400ea7643f6e1d"
+    },
+    {
+      "source": "/tmp/line-quality-current-value-20261006/generated/value-current",
+      "archive": "archives/quality-20261005/research/line-quality-current-value-20261006/generated/value-current",
+      "files": 337,
+      "bytes": 31365075,
+      "manifestSha256": "82788f2218060e348c7e5205e3efd0210c8b9324572e2cb4195933b5023c9311"
+    },
+    {
+      "source": "/tmp/line-quality-review-20261006/generated/controlled-tail",
+      "archive": "archives/quality-20261005/research/line-quality-review-20261006/generated/controlled-tail",
+      "files": 8,
+      "bytes": 2886,
+      "manifestSha256": "801473cc6217f8f2065dc8f27f1b42983538ad5902da8a3376a1e52177a082d6"
+    },
+    {
+      "source": "/tmp/line-quality-review-20261006/generated/final-resources",
+      "archive": "archives/quality-20261005/research/line-quality-review-20261006/generated/final-resources",
+      "files": 31,
+      "bytes": 635030,
+      "manifestSha256": "483143918149c234385edda819bd14c10a0e5c0276ca38058ce069baa1797645"
+    },
+    {
+      "source": "/tmp/line-quality-review-20261006/generated/quality-integration",
+      "archive": "archives/quality-20261005/research/line-quality-review-20261006/generated/quality-integration",
+      "files": 5,
+      "bytes": 318313,
+      "manifestSha256": "b1100f69a5aebf5b472b705686f2c6cc0e3144d610f50238689fda667599f4e8"
+    },
+    {
+      "source": "/tmp/line-quality-catalog-panel-20261006",
+      "archive": "archives/quality-20261005/research/line-quality-catalog-panel-20261006",
+      "files": 1347,
+      "bytes": 513446584,
+      "manifestSha256": "361c63a4928049b95abad873739317654799fd4097a5f49f91b7bd9664e97b03"
+    },
+    {
+      "source": "/tmp/line-quality-passive-catalog-20261006",
+      "archive": "archives/quality-20261005/research/line-quality-passive-catalog-20261006",
+      "files": 676,
+      "bytes": 252438904,
+      "manifestSha256": "31411b74b635374f9e43b415aa4c9161784b6be05bd08e46c40bd85d55dc7315"
     }
   ],
   "validation": {
     "archive": "archives/quality-20261005/validation",
-    "files": 18,
-    "bytes": 1833704,
-    "manifestSha256": "f09b2ff5a2596e615ed2b1aab57ebbb22c5bc1bd86469e56d0bd79c860d577a2"
+    "files": 31,
+    "bytes": 1882355,
+    "manifestSha256": "ce29e088ecf895677959a48a16f62f41e9ddd218b636b9df028d54fc767ae092"
+  },
+  "review": {
+    "archive": "generated/report/quality-20261005",
+    "files": 531,
+    "bytes": 5302220333,
+    "manifestSha256": "a3b90464eaf0ea708b768e913b6cadc5f636250c2ee405cb67cfe93c6adc0b99",
+    "note": "Separate campaign dashboard, full native musical rides, paired clips and physical frame inspections. Kept locally in place; previous dashboards and unanswered questions are untouched."
   }
 }

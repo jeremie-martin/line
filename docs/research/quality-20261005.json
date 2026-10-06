@@ -1959,7 +1959,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T05:34:09.670820+00:00",
+  "updated": "2026-10-06T05:41:00.676892+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [
@@ -1993,7 +1993,24 @@
     "implementationSource": "06b64b2d",
     "behaviorEvidence": "Q67 / b77ab150",
     "profile": "line.strike-search.v7",
-    "status": "selected and integrated; final main-checkout bridge pending",
-    "decision": "docs/research/quality-20261005-decision.json"
-  }
+    "status": "adopted and validated on the integrated checkout",
+    "decision": "docs/research/quality-20261005-decision.json",
+    "adoptionCommit": "abdad07e",
+    "integration": "docs/research/quality-20261005-integration.json"
+  },
+  "status": "complete",
+  "completion": {
+    "review": "http://localhost:8767/generated/report/quality-20261005/",
+    "previousReviewAndQuestionsPreserved": true,
+    "validation": "279 tests,63 exact structural track/work references,33 judge checks,typecheck,zero unreachable files;four integrated review tracks and all saved physical measurements exact",
+    "remainingLimits": "See decision JSON and the visible physical counterexamples; no universal visual or new-music claim.",
+    "archiveVerification": {
+      "files": 9136,
+      "bytes": 6828945412,
+      "runs": 107,
+      "datasets": 19,
+      "allRecordedBytesAndSourceLinksVerified": true
+    }
+  },
+  "completed": "2026-10-06T05:41:00.676892+00:00"
 }

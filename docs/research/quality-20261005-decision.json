@@ -1,7 +1,7 @@
 {
   "schema": "line.quality-campaign-decision.v1",
   "at": "2026-10-06T05:34:09.670820+00:00",
-  "status": "adopted; final main-checkout bridge pending",
+  "status": "adopted; declared validation complete",
   "implementationSource": "06b64b2d",
   "behaviorSource": "b77ab150",
   "profile": "line.strike-search.v7",
@@ -191,9 +191,19 @@
     "typecheck": "pass",
     "unreachableFiles": 0,
     "updatedReferencesWithBehavior": true,
-    "mainIntegrationBridge": "pending"
+    "mainIntegrationBridge": {
+      "compilerCommit": "abdad07e",
+      "cases": 4,
+      "allTrackHashesAndWorkExact": true,
+      "everySavedMeasurementExceptCompilationTimeExact": true,
+      "evidence": "docs/research/quality-20261005-integration.json"
+    },
+    "mainTypecheck": "pass",
+    "mainUnreachableFiles": 0
   },
   "review": "http://localhost:8767/generated/report/quality-20261005/",
   "previousReview": "Preserved unchanged, including clips, scorecards, ledger and unanswered questions.",
-  "archive": "Large raw studies and movies remain local; code and compact evidence are committed."
+  "archive": "Large raw studies and movies remain local; code and compact evidence are committed.",
+  "adoptionCommit": "abdad07e",
+  "archiveVerification": "docs/research/quality-20261005-archive-verification.json"
 }

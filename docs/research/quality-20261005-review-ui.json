@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-06T05:10:43.901Z",
+  "at": "2026-10-06T05:38:24.184Z",
   "viewport": {
     "width": 390,
     "height": 844
@@ -84,17 +84,17 @@
   ],
   "fullPlaying": {
     "paused": false,
-    "time": 0.717565
+    "time": 0.787534
   },
   "pair": [
     {
       "id": "before",
-      "time": 0.748708,
+      "time": 0.750352,
       "paused": false
     },
     {
       "id": "after",
-      "time": 0.748739,
+      "time": 0.750681,
       "paused": false
     }
   ],

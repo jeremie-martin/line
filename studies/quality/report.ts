@@ -4,7 +4,8 @@ import {loadRun,assertPairedRuns} from '../../tools/eval/records.ts';
 const root='/home/wyss/line',dir=root+'/generated/report/quality-20261005';
 const baseline=loadRun(root+'/generated/eval/quality-20261005-baseline');
 const curves:any={};
-const runs:any={Baseline:baseline,Q48:loadRun('/tmp/line-quality-20261005/generated/eval/q48-predicted-arrival'),Q16:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q16-scatter-alternatives'),
+const cachedBaseline=loadRun('/tmp/line-quality-cached-contacts-20261006/generated/eval/q52-baseline-remeasured');
+const runs:any={Baseline:baseline,Q52:loadRun('/tmp/line-quality-cached-contacts-20261006/generated/eval/q52-cached-contacts'),Q48:loadRun('/tmp/line-quality-20261005/generated/eval/q48-predicted-arrival'),Q16:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q16-scatter-alternatives'),
  Q25c:loadRun('/tmp/line-quality-value-20261005/generated/eval/q25c-beam-geometry-value'),
  Q34:loadRun('/tmp/line-quality-steeper-20261006/generated/eval/q34-beam-complete-objective'),
  Q42:loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q42-additive-future'),
@@ -13,7 +14,7 @@ const runs:any={Baseline:baseline,Q48:loadRun('/tmp/line-quality-20261005/genera
  'Q4-blind':loadRun('/tmp/line-quality-continuation-20261005/generated/eval/q4-value-blind'),
  'Q4-geometry':loadRun('/tmp/line-quality-incidence-20261005/generated/eval/q4-value-geometry')};
 for(const [key,run] of Object.entries(runs) as any){
- assertPairedRuns(run,baseline);
+ assertPairedRuns(run,key==='Q52'?cachedBaseline:baseline);
  curves[key]=[false,true].map(perturbed=>Array.from({length:10},(_,i)=>{
   const rows=[...run.cells.values()].filter((c:any)=>!!c.case.perturbation===perturbed).flatMap((c:any)=>c.impact3.perBeat)
    .filter((b:any)=>b.requested!=null&&Math.min(9,Math.floor(b.requested*10))===i);

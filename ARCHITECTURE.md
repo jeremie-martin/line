@@ -111,8 +111,9 @@ log):
 - **Preparation:** 2 frames.
 - **Steep arrival before strong asks (≥ 0.6):** the catch before a strong
   beat gets a steep, ask-driven arrival heading and speed.
-- **Upright arrival:** that steep arrival must not come head-down or
-  backward.
+- **Upright arrival:** steep and unguided passive catches share a soft
+  preference against head-down or backward arrivals. This does not forbid
+  inverted geometry or guided upper contacts.
 - **Future ranking:** a single geometry-aware model predicts the next two
   intervals. It ranks alternatives; it does not supply local response gradients.
   Its training groups exclude the four production evaluation songs.

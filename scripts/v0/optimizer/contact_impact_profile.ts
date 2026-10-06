@@ -7,7 +7,7 @@
  *  - steepArrivalFrom .6: the catch before an ask ≥ 0.6 gets a steep, ask-driven
  *    arrival at the ordinary arrival weight (weight 1 was worse; thresholds 0.4 and
  *    0.75 were worse);
- *  - uprightArrival 1: that steep arrival must not come head-down or backward (judged
+ *  - uprightArrival 1: steep and unguided passive catches prefer an upright arrival (judged
  *    by the same geometric test as the eval guard row; perceptual confirmation pending);
  *  - constructionModel 'v3': learned construction policies rebuilt under line.strike.v3
  *    on songs disjoint from the evaluation panel (the V6-era ones were trained partly
@@ -24,7 +24,7 @@ export const STRIKE_SEARCH_PROFILE = Object.freeze({
 } as const);
 export const STRIKE_V3_SEARCH_PROFILE = Object.freeze({
   ...STRIKE_SEARCH_PROFILE,
-  id: 'line.strike-search.v6',
+  id: 'line.strike-search.v7',
   constructionModel: 'v3' as const,
   impactSearch: Object.freeze({...STRIKE_SEARCH_PROFILE.impactSearch, steepArrivalFrom: .6, uprightArrival: 1}),
 } as const);

@@ -41,7 +41,8 @@ if(process.argv[2]==='worker'){
   const cases=ids.map(id=>({id,...Object.fromEntries(Object.keys(roots).map(k=>[k,JSON.parse(readFileSync(out+'/'+id+'.'+k+'.json','utf8'))]))}));
   const totals=Object.fromEntries(Object.keys(roots).map(k=>[k,Object.fromEntries(['cpuMs','wallMs','maxRssKiB','physicalFrames'].map(key=>[key,cases.reduce((s,c:any)=>s+c[k][key],0)]))]));
   const ratios=Object.fromEntries(['cpuMs','maxRssKiB','physicalFrames'].map(k=>[k,totals.candidate[k]/totals.baseline[k]]));
-  writeFileSync(main+'/docs/research/quality-20261005-final-resources.json',JSON.stringify({...plan,finished:new Date().toISOString(),cases,totals,ratios,
+  const compactPlan={...plan,sourcePlans:Object.fromEntries(Object.entries(plan.sourcePlans).map(([k,p]:any)=>[k,{schema:p.schema,identity:p.identity,evaluator:p.evaluator,jolt:p.jolt,mode:p.mode,budget:p.budget,panelName:p.panelName,planSha256:hash(p),panelSha256:hash(p.panel),declaredCases:p.panel.length}])),fullPlanArchiveSource:out+'/plan.json'};
+  writeFileSync(main+'/docs/research/quality-20261005-final-resources.json',JSON.stringify({...compactPlan,finished:new Date().toISOString(),cases,totals,ratios,
    interpretation:'Six fixed musical inputs; every compiler reproduces its own saved track and work. Process CPU and peak RSS, with two synchronized pairs running concurrently. Summed peak RSS is a comparison across cases, not simultaneous machine memory. No universal speed claim.'},null,2)+'\n');console.log(ratios);
  }finally{release()}
 }

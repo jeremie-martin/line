@@ -44,7 +44,9 @@ if(process.argv[2]==='worker'){
  for(const result of outcomes)assert.equal(result.status,'fulfilled',JSON.stringify(result));
  assert.deepEqual(compilerIdentity(main),plan.compiler);
  const records=cases.map(c=>JSON.parse(readFileSync(out+'/'+c.case.id+'.json','utf8')));
- writeFileSync(main+'/docs/research/quality-20261005-integration.json',JSON.stringify({...plan,at:new Date().toISOString(),records},null,2)+'\n');
+ const {panel,...sourceIdentity}=plan.sourcePlan;
+ const compactPlan={...plan,sourcePlan:{...sourceIdentity,planSha256:digest(plan.sourcePlan),panelSha256:digest(panel),declaredCases:panel.length},fullPlanArchiveSource:out+'/plan.json'};
+ writeFileSync(main+'/docs/research/quality-20261005-integration.json',JSON.stringify({...compactPlan,at:new Date().toISOString(),records},null,2)+'\n');
  console.log('All four integrated review tracks, work counts and measurements (except compilation time) match exactly');
  }finally{release()}
 }

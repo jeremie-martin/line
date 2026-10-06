@@ -24,6 +24,7 @@ from sklearn.model_selection import GroupKFold
 
 p = argparse.ArgumentParser(); p.add_argument('--inputs', required=True); p.add_argument('--out', required=True)
 p.add_argument('--features', choices=['base', 'geometry'], default='geometry')
+p.add_argument('--target', choices=['nonnegative', 'signed'], default='nonnegative')
 args = p.parse_args()
 out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
 EVAL_SONGS = ('luna', 'amor', 'tiki', 'amour')
@@ -39,7 +40,10 @@ def export(model, link):
     return {'link': link, 'initial': float(model._baseline_prediction[0, 0]), 'trees': trees}
 
 rows, records, plans, omitted = [], [], [], 0
-feature_count = 73 if args.features == 'geometry' else 57
+feature_count = 73
+signed = args.target == 'signed'
+def encode(cost): return np.arcsinh(100 * cost) if signed else np.log1p(100 * cost)
+def decode(value): return np.sinh(value) / 100 if signed else np.maximum(0, np.expm1(value) / 100)
 for root in args.inputs.split(','):
     plan_bytes = (Path(root) / 'plan.json').read_bytes(); plan = json.loads(plan_bytes)
     assert plan['schema'] == 'line.value-collection.v2', 'collector must provide a verified plan'
@@ -66,7 +70,9 @@ for root in args.inputs.split(','):
             assert len(f) == 57 and len(g) == 16 and np.isfinite(f + g).all()
             assert probe['pureFuture'] is None or np.isfinite(probe['pureFuture'])
             assert probe['depth'] == min(2, probe['contacts'] - probe['index'] - 1), 'shortened probe target'
-            if args.features == 'geometry': f = f + g
+            # Keep one runtime feature contract. Constant-zero geometry columns
+            # cannot be split by a tree in the base-feature ablation.
+            f = f + (g if args.features == 'geometry' else [0] * 16)
             # A budget-shortened horizon is a different target; keep full two-interval or terminal labels.
             if probe['pureFuture'] is not None and probe['depth'] < 2 and f[52] > 0: omitted += 1; continue
             rows.append({'group': d['group'], 'context': f"{len(plans)}:{path.name}:{context}", 'features': f, 'future': probe['pureFuture'],
@@ -74,7 +80,7 @@ for root in args.inputs.split(','):
 assert rows and len({r['group'] for r in rows}) >= 5, 'need observations from at least five disjoint groups'
 X = np.asarray([r['features'] for r in rows]); groups = np.asarray([r['group'] for r in rows]); old = np.asarray([r['old'] for r in rows])
 finite = np.asarray([r['future'] for r in rows if r['future'] is not None])
-def costs(indices, penalty): return np.asarray([max(0, rows[i]['future']) if rows[i]['future'] is not None else penalty for i in indices])
+def costs(indices, penalty): return np.asarray([(rows[i]['future'] if signed else max(0, rows[i]['future'])) if rows[i]['future'] is not None else penalty for i in indices])
 def model(): return HistGradientBoostingRegressor(max_iter=180, max_leaf_nodes=31, min_samples_leaf=40, learning_rate=.06,
     l2_regularization=1, early_stopping=False, random_state=260910)
 print(json.dumps({'rows': len(rows), 'invalid': int(sum(r['future'] is None for r in rows)), 'omitted': omitted, 'files': len(records),
@@ -82,8 +88,8 @@ print(json.dumps({'rows': len(rows), 'invalid': int(sum(r['future'] is None for 
 held = np.zeros(len(rows)); truth = np.zeros(len(rows)); folds = []
 for fold, (train, test) in enumerate(GroupKFold(5).split(X, groups=groups)):
     tf = [rows[i]['future'] for i in train if rows[i]['future'] is not None]; penalty = max(1, float(np.quantile(tf, .99)) * 2)
-    fitted = model().fit(X[train], np.log1p(100 * costs(train, penalty)))
-    held[test] = np.maximum(0, np.expm1(fitted.predict(X[test])) / 100); truth[test] = costs(test, penalty)
+    fitted = model().fit(X[train], encode(costs(train, penalty)))
+    held[test] = decode(fitted.predict(X[test])); truth[test] = costs(test, penalty)
     folds.append({'fold': fold, 'heldGroups': sorted(set(groups[test].tolist())), 'train': len(train), 'test': len(test)}); print(json.dumps(folds[-1]), flush=True)
 contexts = {}
 for i, r in enumerate(rows): contexts.setdefault(r['context'], []).append(i)
@@ -103,19 +109,21 @@ validation = {'heldOutNew': ranking(held), 'oldModel': ranking(old), 'localOnly'
         'spearmanNewHeld': spearman(held[valid], truth[valid]), 'spearmanOld': spearman(old[valid], truth[valid]),
         'maeNewHeld': float(np.abs(held[valid] - truth[valid]).mean()), 'maeOld': float(np.abs(old[valid] - truth[valid]).mean())}}
 print(json.dumps(validation), flush=True)
-penalty = max(1, float(np.quantile(finite, .99)) * 2); fitted = model().fit(X, np.log1p(100 * costs(range(len(rows)), penalty)))
+penalty = max(1, float(np.quantile(finite, .99)) * 2); fitted = model().fit(X, encode(costs(range(len(rows)), penalty)))
 trainer = Path(__file__).read_bytes()
 artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.arc-future-value-features.v2' if feature_count == 73 else 'line.arc-future-value-features.v1', 'featureCount': feature_count,
-    'target': 'log1p(100 * nonnegative two-interval search value under line.strike.v3, leaf = heuristic arrival prior)', 'invalidCost': penalty,
-    'model': export(fitted, 'expm1_div_100'),
-    'provenance': {'trainer': 'tools/research/train_value_v3.py', 'trainerSha256': hashlib.sha256(trainer).hexdigest(),
+    'target': ('asinh(100 * signed' if signed else 'log1p(100 * nonnegative') + ' two-interval search value under line.strike.v3, leaf = heuristic arrival prior)', 'invalidCost': penalty,
+    'model': export(fitted, 'sinh_div_100' if signed else 'expm1_div_100'),
+    'provenance': {'trainer': 'tools/research/train_value_v3.py', 'featureAblation': args.features, 'targetTransform': args.target, 'trainerSha256': hashlib.sha256(trainer).hexdigest(),
         'collector': 'tools/research/value_collect.ts', 'catalog': 'benchmark/v4 (excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie)',
         'evalPanelDisjoint': True, 'impactContract': 'line.strike.v3', 'rows': len(rows), 'omittedShorterNonterminalHorizons': omitted,
         'collectionPlans': plans, 'records': records, 'note': 'Native continuation probes from saved compiler prefixes, with a separate meter. Prefixes and probe proposals use the recorded compiler policy; labels exclude learned leaf values. Interrupted probes are omitted, physical dead ends retained.'}}
+if args.features == 'base':
+    assert all(f < 57 for t in artifact['model']['trees'] for f, leaf in zip(t['feature'], t['leaf']) if not leaf), 'masked geometry feature used'
 body = json.dumps(artifact, separators=(',', ':'), allow_nan=False) + '\n'
 (out / 'arc_value_model.json').write_text(body)
 idx = np.linspace(0, len(X) - 1, 32, dtype=int)
-fixture = {'cases': [{'features': X[i].tolist(), 'prediction': float(v)} for i, v in zip(idx, np.maximum(0, np.expm1(fitted.predict(X[idx])) / 100))]}
+fixture = {'cases': [{'features': X[i].tolist(), 'prediction': float(v)} for i, v in zip(idx, decode(fitted.predict(X[idx])))]}
 (out / 'arc_value_predictions.json').write_text(json.dumps(fixture, indent=1) + '\n')
 (out / 'validation.json').write_text(json.dumps({'folds': folds, 'validation': validation, 'rows': len(rows), 'penalty': penalty}, indent=1) + '\n')
 print(json.dumps({'out': str(out), 'bytes': len(body), 'sha256': hashlib.sha256(body.encode()).hexdigest()}), flush=True)

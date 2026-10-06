@@ -1,0 +1,10 @@
+{
+  "schema": "line.quality-archive-verification.v1",
+  "at": "2026-10-06T04:12:33.811Z",
+  "indexSha256": "897bae00c75b2c3d11050c629b4af5459ec5cd81ee872fe8a52b1a71fe6d6ace",
+  "runs": 107,
+  "datasets": 13,
+  "files": 6188,
+  "bytes": 728469636,
+  "allRecordedBytesAndSourceLinksVerified": true
+}

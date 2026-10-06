@@ -752,5 +752,104 @@
       "bytes": 10501937,
       "manifestSha256": "1672a7ce0f65ab4cdaa31ab968959141e20f2d548011026e2061ba255edfc57d"
     }
-  ]
+  ],
+  "datasets": [
+    {
+      "source": "/tmp/line-quality-20261005/generated/quality-beam",
+      "archive": "archives/quality-20261005/research/line-quality-20261005/generated/quality-beam",
+      "files": 1,
+      "bytes": 119946,
+      "manifestSha256": "6f1a091489421beb51d632acda2828f4f9dc5db1307e194a9ea5d793f0e62bb8"
+    },
+    {
+      "source": "/tmp/line-quality-20261005/generated/quality-capacity",
+      "archive": "archives/quality-20261005/research/line-quality-20261005/generated/quality-capacity",
+      "files": 4,
+      "bytes": 18410497,
+      "manifestSha256": "c0ad566ddd7195f36d03819b1f78eac37dbc4fd28510836b58fa5474c9ae6f47"
+    },
+    {
+      "source": "/tmp/line-quality-20261005/generated/quality-inspection",
+      "archive": "archives/quality-20261005/research/line-quality-20261005/generated/quality-inspection",
+      "files": 11,
+      "bytes": 4929115,
+      "manifestSha256": "e5216819d6f5f825ddd76e183e67b06db21d76670f11e3fe9d24977daf322415"
+    },
+    {
+      "source": "/tmp/line-quality-20261005/generated/quality-profile",
+      "archive": "archives/quality-20261005/research/line-quality-20261005/generated/quality-profile",
+      "files": 3,
+      "bytes": 7152216,
+      "manifestSha256": "679028a88f01d643a179df5dac80dea038e907c716b0eef67ad3e1969150ecc9"
+    },
+    {
+      "source": "/tmp/line-quality-20261005/generated/quality-repair",
+      "archive": "archives/quality-20261005/research/line-quality-20261005/generated/quality-repair",
+      "files": 16,
+      "bytes": 2448046,
+      "manifestSha256": "bf8de6a0a32b2ed12558288a2159b034ca5dbf302ca4ea70afc26b0363ac9589"
+    },
+    {
+      "source": "/tmp/line-quality-continuation-20261005/generated/quality-spans",
+      "archive": "archives/quality-20261005/research/line-quality-continuation-20261005/generated/quality-spans",
+      "files": 1,
+      "bytes": 600202,
+      "manifestSha256": "06c570f85dbe723ea070b842aba09c701dd2a603282951f5ed973d3ff5b84c4d"
+    },
+    {
+      "source": "/tmp/line-quality-incidence-20261005/generated/quality-capacity",
+      "archive": "archives/quality-20261005/research/line-quality-incidence-20261005/generated/quality-capacity",
+      "files": 4,
+      "bytes": 18329856,
+      "manifestSha256": "d558c5c2e7574717b9dcc12587a3ad82abc940fab7178b75695a872f320dc6b0"
+    },
+    {
+      "source": "/tmp/line-quality-incidence-20261005/generated/quality-objective",
+      "archive": "archives/quality-20261005/research/line-quality-incidence-20261005/generated/quality-objective",
+      "files": 1,
+      "bytes": 3769,
+      "manifestSha256": "db2d8a9f8824da48486235c09e57639babad495b50e7cb1aa068e0249c7f7534"
+    },
+    {
+      "source": "/tmp/line-quality-lean-20261006/generated/quality-collection-smoke",
+      "archive": "archives/quality-20261005/research/line-quality-lean-20261006/generated/quality-collection-smoke",
+      "files": 2,
+      "bytes": 66191,
+      "manifestSha256": "f2c9b24ce9b15eae6df381e1f3b35f8fe3a9a9ffc460754ebf97d240d8902231"
+    },
+    {
+      "source": "/tmp/line-quality-model-training-20261006/generated/value-current",
+      "archive": "archives/quality-20261005/research/line-quality-model-training-20261006/generated/value-current",
+      "files": 9,
+      "bytes": 2170525,
+      "manifestSha256": "3b67a0019f812c3d2e17026c5a937e12e00742094d23e9de4a68489d01fefe56"
+    },
+    {
+      "source": "/tmp/line-quality-steeper-20261006/generated/quality-capacity",
+      "archive": "archives/quality-20261005/research/line-quality-steeper-20261006/generated/quality-capacity",
+      "files": 2,
+      "bytes": 4993,
+      "manifestSha256": "ea04cfb9ee8d419438f74e9dd41eff8a0a512e24fe10c0c59927bd57951b5259"
+    },
+    {
+      "source": "/tmp/line-quality-steeper-20261006/generated/quality-fixtures",
+      "archive": "archives/quality-20261005/research/line-quality-steeper-20261006/generated/quality-fixtures",
+      "files": 2,
+      "bytes": 234580,
+      "manifestSha256": "f5bcfece4dcc66a1fb49bdb90625e4adcc4cd65d7957040ae489b3e6fe15f2ff"
+    },
+    {
+      "source": "/tmp/line-quality-value-20261005/generated/quality-value",
+      "archive": "archives/quality-20261005/research/line-quality-value-20261005/generated/quality-value",
+      "files": 343,
+      "bytes": 55803139,
+      "manifestSha256": "d0286dde4dfb6045e61e579e57f4bf96cf0550c7e9120bdec4400ea7643f6e1d"
+    }
+  ],
+  "validation": {
+    "archive": "archives/quality-20261005/validation",
+    "files": 18,
+    "bytes": 1833704,
+    "manifestSha256": "f09b2ff5a2596e615ed2b1aab57ebbb22c5bc1bd86469e56d0bd79c860d577a2"
+  }
 }

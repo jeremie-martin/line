@@ -353,5 +353,113 @@
       "after": "/generated/report/quality-20261005/q67/analysis/passage-8-after.png"
     },
     "visualObservation": "The candidate has a gentler, nearly level lower catch. A later upper guide remains visible. This is the selected largest quiet strength improvement, not a random quiet-passage sample."
-  }
+  },
+  "bodyContactExamples": [
+    {
+      "id": "amour_de_ma_vie_44s~3041",
+      "delta": 23,
+      "band": "quiet",
+      "label": "Largest added quiet body-contact count",
+      "side": "after",
+      "frame": 100,
+      "range": {
+        "start": 100,
+        "end": 118,
+        "seconds": 0.475,
+        "points": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "band": "quiet"
+      },
+      "title": "Largest added quiet body-contact count \u00b7 amour_de_ma_vie_44s~3041 \u00b7 2.500 s \u00b7 +23 frames across this requested band",
+      "before": {
+        "src": "/generated/report/quality-20261005/q67/drag/1-before.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/before~amour_de_ma_vie_44s~3041.mp4",
+        "trackHash": "a094064fb9a715be251fbfb1907df0da438e21cd01bef424fdcb20542001fa8e"
+      },
+      "after": {
+        "src": "/generated/report/quality-20261005/q67/drag/1-after.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/after~amour_de_ma_vie_44s~3041.mp4",
+        "trackHash": "25c681a44121027b3f929a0a2f1477a4194b80719f4e8e39bd0bf727f726050f"
+      },
+      "visualObservation": "The baseline is an upright lower slide. The candidate remains upright but contacts the upper sloping rail with its body. Quiet smoothing is not solved for every seed.",
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/drag-1-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/drag-1-after.png"
+      }
+    },
+    {
+      "id": "tiki_tiki_48s~3023",
+      "delta": 60,
+      "band": "strong",
+      "label": "Largest added strong-context body-contact count",
+      "side": "after",
+      "frame": 845,
+      "range": {
+        "start": 845,
+        "end": 861,
+        "seconds": 0.425,
+        "points": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "band": "strong"
+      },
+      "title": "Largest added strong-context body-contact count \u00b7 tiki_tiki_48s~3023 \u00b7 21.125 s \u00b7 +60 frames across this requested band",
+      "before": {
+        "src": "/generated/report/quality-20261005/q67/drag/2-before.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/before~tiki_tiki_48s~3023.mp4",
+        "trackHash": "604889038d66ba4b10d23338d9884b2b9104f9bad116e01f0733dbcd125e4a96"
+      },
+      "after": {
+        "src": "/generated/report/quality-20261005/q67/drag/2-after.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/after~tiki_tiki_48s~3023.mp4",
+        "trackHash": "4e6ca1f77a89e20f82df5cd440fb4fd3209df0a0200b4d0ebe5fe8960f593ae1"
+      },
+      "visualObservation": "Both rides use scattered geometry. The candidate stays upright and interacts with a later upper set of fragments; increased body-contact duration is not an inverted slide in this example. Its subjective suitability remains open.",
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/drag-2-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/drag-2-after.png"
+      }
+    },
+    {
+      "id": "luna_bala_44s~3037",
+      "delta": -31,
+      "band": "quiet",
+      "label": "Largest reduction in quiet body-contact count",
+      "side": "before",
+      "frame": 198,
+      "range": {
+        "start": 198,
+        "end": 209,
+        "seconds": 0.3,
+        "points": [
+          4,
+          5
+        ],
+        "band": "quiet"
+      },
+      "title": "Largest reduction in quiet body-contact count \u00b7 luna_bala_44s~3037 \u00b7 4.950 s \u00b7 -31 frames across this requested band",
+      "before": {
+        "src": "/generated/report/quality-20261005/q67/drag/3-before.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/before~luna_bala_44s~3037.mp4",
+        "trackHash": "fd6e1d975709f89b0c4539f491b32e2063991e5da3d77bf66b950558cfb66618"
+      },
+      "after": {
+        "src": "/generated/report/quality-20261005/q67/drag/3-after.mp4",
+        "rideSrc": "/generated/report/quality-20261005/q67/rides/after~luna_bala_44s~3037.mp4",
+        "trackHash": "8accb59542d78109d1c2ea787cdbaa1966c5c3faab6b821b3dd9d5f69dba1faf"
+      },
+      "visualObservation": "The baseline is inverted in the paired folded rails. The candidate leaves the folded support upright and continues in free flight. This is the largest measured quiet-contact reduction, not a random example.",
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/drag-3-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/drag-3-after.png"
+      }
+    }
+  ]
 }

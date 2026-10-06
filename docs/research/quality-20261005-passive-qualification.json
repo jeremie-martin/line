@@ -45,5 +45,13 @@
       "candidateMean": 785.7684800000001
     }
   },
-  "interpretation": "Compatibility full-budget subsets, not a canonical benchmark headline. Behavior changes references intentionally; native ownership scope preserves every output and work count. Old rulers and the frozen judge remain unchanged. Musical and catalog decisions are separate."
+  "interpretation": "Compatibility full-budget subsets, not a canonical benchmark headline. Behavior changes references intentionally; native ownership scope preserves every output and work count. Old rulers and the frozen judge remain unchanged. Musical and catalog decisions are separate.",
+  "researchCollectorScope": {
+    "reproducedBefore": true,
+    "focusedOwnershipTests": 6,
+    "labelsAndWorkIndependentOfCaller": true,
+    "compilerTreeUnchangedFrom": "c64710d1",
+    "typecheck": "pass",
+    "unreachableFiles": 0
+  }
 }

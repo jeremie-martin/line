@@ -185,3 +185,12 @@ pub extern "C" fn prepare_collision_trace(h: u32, frame: i32) { engine::prepare_
 pub extern "C" fn collision_trace_ptr() -> u32 { crate::kernel::collision_trace_ptr() }
 #[no_mangle]
 pub extern "C" fn collision_trace_count() -> u32 { crate::kernel::collision_trace_count() }
+
+#[no_mangle]
+pub extern "C" fn prepare_contact_trace(h: u32, from: i32, to: i32) { engine::prepare_contact_trace(h, from, to); }
+#[no_mangle]
+pub extern "C" fn end_contact_trace() { crate::kernel::end_contact_trace(); }
+#[no_mangle]
+pub extern "C" fn contact_trace_ptr() -> u32 { crate::kernel::contact_trace_ptr() }
+#[no_mangle]
+pub extern "C" fn contact_trace_count() -> u32 { crate::kernel::contact_trace_count() }

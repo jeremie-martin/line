@@ -1,8 +1,8 @@
 # Compiler simulation backend
 
-This is an isolated copy of the accepted Rust physics engine with two compiler
-facilities: copying an already computed prefix cache, and observing state before
-each collision sweep. Observation evicts the requested frame; the compiler then
+This is an isolated copy of the accepted Rust physics engine with compiler
+facilities for copying an already computed prefix cache, observing state before
+each collision sweep, and observing resolved collision positions. Observation evicts the requested frame or window; the compiler then
 uses the ordinary metered reader to charge its replay. Neither facility changes
 the stepping equations or permits supplying a rider state.
 

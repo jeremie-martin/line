@@ -865,3 +865,13 @@ pub(crate) fn prepare_collision_trace(h: u32, frame: i32) {
     if cache.frames.len() > frame as usize { cache.set_frames_length(frame as usize); }
     crate::kernel::set_trace_target(frame);
 }
+
+/// Evict only the requested observation window; stepping remains metered.
+pub(crate) fn prepare_contact_trace(h: u32, from: i32, to: i32) {
+    assert!(from > 0 && to >= from);
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    if cache.frames.len() > from as usize { cache.set_frames_length(from as usize); }
+    crate::kernel::begin_contact_trace(from, to);
+}

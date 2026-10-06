@@ -167,6 +167,19 @@ function bindingState(sc: Float64Array, i: number): any {
 
 export class LineRiderEngine {
   private h: number;
+  /** One synchronous observation window, followed by metered replay and endContactTrace.
+   * No other engine may be replayed until this observation ends. */
+  prepareContactTrace(from: number, to: number): void {
+    if (!Number.isSafeInteger(from) || !Number.isSafeInteger(to) || from < 1 || to < from)
+      throw new Error('invalid contact trace window');
+    ex.prepare_contact_trace(this.h, from, to);
+  }
+  endContactTrace(): Array<{line: number; x: number; y: number}> {
+    ex.end_contact_trace();
+    const count = ex.contact_trace_count();
+    const data = new Float64Array(ex.memory.buffer, ex.contact_trace_ptr(), 3 * count);
+    return Array.from({length: count}, (_, i) => ({line: data[3*i], x: data[3*i+1], y: data[3*i+2]}));
+  }
   prepareCollisionTrace(frame: number): void {
     if (!Number.isSafeInteger(frame) || frame < 1) throw new Error("invalid trace frame");
     ex.prepare_collision_trace(this.h, frame);

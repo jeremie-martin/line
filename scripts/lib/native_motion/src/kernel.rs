@@ -398,6 +398,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 prevxi = fvx;
                 prevyi = fvy;
                 events.push((it, l.id, I as i32));
+                trace_contact(frame_index, l.id, posx, posy);
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
                     let pcell = line_cache.point_cell::<I>(pxi, pyi);
@@ -686,4 +687,22 @@ unsafe fn trace_collision_state(s: &State, frame: i32, iteration: usize) {
         COLLISION_TRACE[k + 4] = s.vx[i]; COLLISION_TRACE[k + 5] = s.vy[i];
     }
     TRACE_COUNT = (iteration + 1) as u32;
+}
+
+// Optional compiler observation. This records resolved collision positions;
+// no part of the integrator reads the trace.
+static mut CONTACT_TRACE_FROM: i32 = -1;
+static mut CONTACT_TRACE_TO: i32 = -1;
+static mut CONTACT_TRACE: Vec<[f64; 3]> = Vec::new();
+pub(crate) fn begin_contact_trace(from: i32, to: i32) { unsafe {
+    assert!(CONTACT_TRACE_FROM == -1, "contact observation already active");
+    (&mut *&raw mut CONTACT_TRACE).clear(); CONTACT_TRACE_FROM = from; CONTACT_TRACE_TO = to;
+} }
+pub(crate) fn end_contact_trace() { unsafe { CONTACT_TRACE_FROM = -1; CONTACT_TRACE_TO = -1; } }
+pub(crate) fn contact_trace_ptr() -> u32 { unsafe { (&*&raw const CONTACT_TRACE).as_ptr() as u32 } }
+pub(crate) fn contact_trace_count() -> u32 { unsafe { (&*&raw const CONTACT_TRACE).len() as u32 } }
+unsafe fn trace_contact(frame: i32, line: i32, x: f64, y: f64) {
+    if CONTACT_TRACE_FROM >= 0 && frame >= CONTACT_TRACE_FROM && frame <= CONTACT_TRACE_TO {
+        (&mut *&raw mut CONTACT_TRACE).push([line as f64, x, y]);
+    }
 }

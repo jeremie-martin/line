@@ -403,7 +403,9 @@ struct Holder {
 // handle is freed (live == 0) — at which point NO JS wrapper can reference any of
 // its handles, so reusing the slots is safe. This bounds memory across a process
 // that runs many compiles on one module instance (e.g. a multi-spec perf run).
-static mut VERSIONS: Vec<Option<Version>> = Vec::new();
+// Keep vacant slots pointer-sized; a reclaimed lineage releases its large nodes
+// without leaving inline Version storage reserved throughout the arena.
+static mut VERSIONS: Vec<Option<Box<Version>>> = Vec::new();
 static mut HOLDERS: Vec<Option<Holder>> = Vec::new();
 static mut FREE_VERSIONS: Vec<u32> = Vec::new();
 static mut FREE_HOLDERS: Vec<u32> = Vec::new();
@@ -417,7 +419,7 @@ static mut RECONCILE_UNDO: Vec<i32> = Vec::new();
 static mut RECONCILE_REDO: Vec<Line> = Vec::new();
 
 #[allow(static_mut_refs)]
-fn versions() -> &'static mut Vec<Option<Version>> {
+fn versions() -> &'static mut Vec<Option<Box<Version>>> {
     unsafe { &mut VERSIONS }
 }
 #[allow(static_mut_refs)]
@@ -448,10 +450,10 @@ fn ver(id: i32) -> &'static Version {
 
 fn alloc_version(v: Version) -> u32 {
     if let Some(id) = free_versions().pop() {
-        versions()[id as usize] = Some(v);
+        versions()[id as usize] = Some(Box::new(v));
         id
     } else {
-        versions().push(Some(v));
+        versions().push(Some(Box::new(v)));
         (versions().len() - 1) as u32
     }
 }

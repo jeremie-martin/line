@@ -65,6 +65,14 @@ const paths:any={Q1:['/tmp/line-quality-20261005','q1-response-blocks'],Q2:['/tm
  'Q55-confirm':['/tmp/line-quality-cached-arrivals-20261006','q55-cached-arrivals-confirm','q55-confirm-baseline-remeasured'],
  Q56:['/tmp/line-quality-cached-no-value-20261006','q56-cached-no-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-baseline-remeasured'],
  'Q56-confirm':['/tmp/line-quality-cached-no-value-20261006','q56-cached-no-value-confirm','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-confirm-baseline-remeasured'],
+ Q60:['/tmp/line-quality-coherent-candidate-20261006','q60-cached-six-million','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-baseline-remeasured'],
+ 'Q60-v-standard':['/tmp/line-quality-coherent-candidate-20261006','q60-cached-six-million','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-q52-remeasured'],
+ Q58:['/tmp/line-quality-current-model-geometry-20261006','q58-current-geometry-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-baseline-remeasured'],
+ 'Q58-v-Q52':['/tmp/line-quality-current-model-geometry-20261006','q58-current-geometry-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-q52-remeasured'],
+ Q59:['/tmp/line-quality-current-model-base-20261006','q59-current-base-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-baseline-remeasured'],
+ 'Q59-v-Q52':['/tmp/line-quality-current-model-base-20261006','q59-current-base-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-q52-remeasured'],
+ Q61:['/tmp/line-quality-current-model-signed-20261006','q61-current-signed-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-baseline-remeasured'],
+ 'Q61-v-Q52':['/tmp/line-quality-current-model-signed-20261006','q61-current-signed-value','/tmp/line-quality-cached-arrivals-20261006/generated/eval/q55-q52-remeasured'],
  Q44:['/tmp/line-quality-value-20261005','q44-four-prefixes'],
  Q45:['/tmp/line-quality-incidence-20261005','q45-two-prefixes'],
  Q32:['/tmp/line-quality-value-20261005','q32-beam-stack'],
@@ -84,6 +92,7 @@ for(const [id,[root,name,baseName]] of Object.entries(paths) as any){
   }));
  }
  evidence.runs[id]={name,compiler:run.run.identity,evaluator:run.run.evaluator,planSha256:digest(run.run),baselinePlanSha256:digest(base.run),
+  baseline:{compiler:base.run.identity,evaluator:base.run.evaluator,panelName:base.run.panelName,source:base.dir},
   cases:run.run.panel.map(c=>({id:c.id,trackSha256:run.cells.get(c.id).trackHash,baselineTrackSha256:base.cells.get(c.id).trackHash,
     complete:run.cells.get(c.id).complete,fulfilled:run.cells.get(c.id).fulfilled})),subsets};
 }

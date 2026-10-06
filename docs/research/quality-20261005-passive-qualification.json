@@ -60,5 +60,18 @@
     "testsPassed": 3,
     "uniqueTotalTests": 279,
     "simulationCodeUnchanged": true
+  },
+  "finalPackagedCommit": "06b64b2d",
+  "finalChecks": {
+    "at": "2026-10-06T04:50:51.076076+00:00",
+    "testFiles": 63,
+    "testsPassed": 279,
+    "testsFailed": 0,
+    "normalTestSettings": true,
+    "seconds": 174.01,
+    "typecheck": "pass",
+    "unreachableFiles": 0,
+    "exactSimulationAndSearchSourcesSince": "6c2e6448",
+    "note": "Later package changes update the manifest hash, documentation and its new consistency test; simulation/search implementation is unchanged."
   }
 }

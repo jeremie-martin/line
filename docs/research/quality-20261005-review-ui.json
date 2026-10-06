@@ -1,56 +1,100 @@
 {
-  "at": "2026-10-06T04:14:26.773Z",
+  "at": "2026-10-06T05:10:43.901Z",
   "viewport": {
     "width": 390,
     "height": 844
   },
-  "initial": {
-    "trial": "Q67",
-    "clipTrial": "Q67",
-    "curve": "Q67",
-    "metrics": 37,
-    "clips": 8,
-    "fullSongs": 4,
-    "freshDiagnosticPairs": 3,
-    "overflow": false,
-    "error": ""
-  },
-  "chartFollows": "Q52",
-  "full": [
+  "defaultTrial": "Q67",
+  "metrics": 37,
+  "clips": 8,
+  "fullSongs": 4,
+  "freshDiagnosticPairs": 3,
+  "catalogChecks": [
     {
-      "selection": "0",
-      "before": "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~luna_bala_44s~3001.mp4",
-      "after": "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~luna_bala_44s~3001.mp4"
+      "comparison": "baseline",
+      "subset": "all",
+      "cases": 336,
+      "rows": 39,
+      "impact": [
+        "impact loss (v3)",
+        "0.0409",
+        "0.0349",
+        "-0.0060 [-0.0075, -0.0043]",
+        "336 / 15"
+      ]
     },
     {
-      "selection": "1",
-      "before": "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~amor_na_praia_46s~3001.mp4",
-      "after": "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~amor_na_praia_46s~3001.mp4"
+      "comparison": "baseline",
+      "subset": "completeBoth",
+      "cases": 317,
+      "rows": 39,
+      "impact": [
+        "impact loss (v3)",
+        "0.0236",
+        "0.0174",
+        "-0.0062 [-0.0071, -0.0055]",
+        "317 / 15"
+      ]
     },
     {
-      "selection": "2",
-      "before": "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~tiki_tiki_48s~3001.mp4",
-      "after": "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~tiki_tiki_48s~3001.mp4"
+      "comparison": "q62",
+      "subset": "all",
+      "cases": 336,
+      "rows": 39,
+      "impact": [
+        "impact loss (v3)",
+        "0.0355",
+        "0.0349",
+        "-0.0006 [-0.0019, 0.0003]",
+        "336 / 15"
+      ]
     },
     {
-      "selection": "3",
-      "before": "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~amour_de_ma_vie_44s~3001.mp4",
-      "after": "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~amour_de_ma_vie_44s~3001.mp4"
+      "comparison": "q62",
+      "subset": "completeBoth",
+      "cases": 318,
+      "rows": 39,
+      "impact": [
+        "impact loss (v3)",
+        "0.0175",
+        "0.0174",
+        "-0.0001 [-0.0004, 0.0003]",
+        "318 / 15"
+      ]
     }
   ],
-  "playing": {
-    "time": 0.676578,
-    "paused": false
+  "overflow": false,
+  "full": [
+    [
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~luna_bala_44s~3001.mp4",
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~luna_bala_44s~3001.mp4"
+    ],
+    [
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~amor_na_praia_46s~3001.mp4",
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~amor_na_praia_46s~3001.mp4"
+    ],
+    [
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~tiki_tiki_48s~3001.mp4",
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~tiki_tiki_48s~3001.mp4"
+    ],
+    [
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/before~amour_de_ma_vie_44s~3001.mp4",
+      "http://localhost:8767/generated/report/quality-20261005/q67/rides/after~amour_de_ma_vie_44s~3001.mp4"
+    ]
+  ],
+  "fullPlaying": {
+    "paused": false,
+    "time": 0.717565
   },
   "pair": [
     {
       "id": "before",
-      "time": 0.735053,
+      "time": 0.748708,
       "paused": false
     },
     {
       "id": "after",
-      "time": 0.735056,
+      "time": 0.748739,
       "paused": false
     }
   ],

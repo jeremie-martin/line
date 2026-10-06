@@ -1,0 +1,877 @@
+{
+  "schema": "line.quality-catalog-analysis.v1",
+  "at": "2026-10-06T05:11:50.041Z",
+  "completion": {
+    "baseline": 318,
+    "candidate": 318,
+    "recovered": [
+      "stretch_pickup_answers~101"
+    ],
+    "regressed": [
+      "stretch_interleaved_recovery~101"
+    ]
+  },
+  "supportCounts": {
+    "baseline": {
+      "requested": 31000,
+      "constructed": 30364,
+      "missing": 636
+    },
+    "q62": {
+      "requested": 31000,
+      "constructed": 30344,
+      "missing": 656
+    },
+    "passive": {
+      "requested": 31000,
+      "constructed": 30367,
+      "missing": 633
+    }
+  },
+  "transitions": [
+    {
+      "id": "stretch_pickup_answers~101",
+      "baseline": {
+        "requested": 102,
+        "constructed": 76,
+        "complete": false,
+        "failure": {
+          "reason": "budget"
+        },
+        "budget": 4345200,
+        "physicalFrames": 4344266,
+        "backtracks": 433,
+        "finalRequests": [
+          {
+            "section": 74,
+            "frame": 1631,
+            "next": 1656,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5967227722772276,
+              "speed": 0.7079996939481227,
+              "nextImpact": 0.2433227722772277,
+              "nextSpeed": 0.6988069837541673,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 75,
+            "frame": 1656,
+            "next": 1681,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2433227722772277,
+              "speed": 0.6988069837541673,
+              "nextImpact": 0.7449227722772276,
+              "nextSpeed": 0.6904183503533808,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 76,
+            "frame": 1681,
+            "next": 1688,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.7449227722772276,
+              "speed": 0.6904183503533808,
+              "nextImpact": 0.6537227722772276,
+              "nextSpeed": 0.6836938909194915,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 77,
+            "frame": 1688,
+            "next": 1705,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.6537227722772276,
+              "speed": 0.6836938909194915,
+              "nextImpact": 0.2889227722772277,
+              "nextSpeed": 0.6732209973554277,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [],
+        "lastPlanningDecisions": [
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 850.7906373486894,
+            "constructionReserveRate": 595.5534461440825,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 2532.8766493309554,
+            "constructionReserveRate": 1773.0136545316686,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5561.245442267682,
+            "constructionReserveRate": 3892.871809587377,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5481.7122957298125,
+            "constructionReserveRate": 3837.1986070108683,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5559.285323774771,
+            "constructionReserveRate": 3891.4997266423397,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5728.7131797499715,
+            "constructionReserveRate": 4010.09922582498,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5562.550443387121,
+            "constructionReserveRate": 3893.7853103709845,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          },
+          {
+            "index": 75,
+            "frame": 1654,
+            "observedConstructionRate": 5823.739544440893,
+            "constructionReserveRate": 4076.6176811086248,
+            "localAllowance": 0,
+            "width": 3,
+            "probeSamples": 32,
+            "depth": 1
+          }
+        ],
+        "trackHash": "2f240f22823dd2917e54c654337b939f5ad6c3d62f2499d9e31061b11af58eb6"
+      },
+      "q62": {
+        "requested": 102,
+        "constructed": 102,
+        "complete": true,
+        "failure": null,
+        "budget": 4345200,
+        "physicalFrames": 4320520,
+        "backtracks": 20,
+        "finalRequests": [
+          {
+            "section": 100,
+            "frame": 2203,
+            "next": 2215,
+            "construction": "arcs",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5967227722772276,
+              "speed": 0.5816530356326496,
+              "nextImpact": 0.2433227722772277,
+              "nextSpeed": 0.5506250708052639,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 101,
+            "frame": 2215,
+            "next": 2556,
+            "construction": "arcs",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2433227722772277,
+              "speed": 0.5506250708052639,
+              "nextImpact": null,
+              "nextSpeed": 0.5506250708052639,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [],
+        "lastPlanningDecisions": [
+          {
+            "index": 94,
+            "frame": 2064,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6259878833357421,
+            "physicsFrames": 31611
+          },
+          {
+            "index": 95,
+            "frame": 2089,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6242898698268082,
+            "physicsFrames": 31575
+          },
+          {
+            "index": 96,
+            "frame": 2114,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6234401250702672,
+            "physicsFrames": 16462
+          },
+          {
+            "index": 97,
+            "frame": 2127,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6216649534403265,
+            "physicsFrames": 14652
+          },
+          {
+            "index": 98,
+            "frame": 2139,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6252756514962693,
+            "physicsFrames": 32213
+          },
+          {
+            "index": 99,
+            "frame": 2164,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6228896452985905,
+            "physicsFrames": 45855
+          },
+          {
+            "index": 100,
+            "frame": 2201,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6298845559998203,
+            "physicsFrames": 15578
+          },
+          {
+            "index": 101,
+            "frame": 2213,
+            "beamWidth": 1,
+            "offered": 1022,
+            "localScale": 0.6273776141616926,
+            "physicsFrames": 449699
+          }
+        ],
+        "trackHash": "728962e8a7f0c6173607b67522e0d9548cfcc35b31a46b8238ce6d3eee469562"
+      },
+      "passive": {
+        "requested": 102,
+        "constructed": 102,
+        "complete": true,
+        "failure": null,
+        "budget": 4345200,
+        "physicalFrames": 4306480,
+        "backtracks": 42,
+        "finalRequests": [
+          {
+            "section": 100,
+            "frame": 2203,
+            "next": 2215,
+            "construction": "arcs",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5967227722772276,
+              "speed": 0.5816530356326496,
+              "nextImpact": 0.2433227722772277,
+              "nextSpeed": 0.5506250708052639,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 101,
+            "frame": 2215,
+            "next": 2556,
+            "construction": "arcs",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2433227722772277,
+              "speed": 0.5506250708052639,
+              "nextImpact": null,
+              "nextSpeed": 0.5506250708052639,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [],
+        "lastPlanningDecisions": [
+          {
+            "index": 94,
+            "frame": 2064,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.20517469638180014,
+            "physicsFrames": 11828
+          },
+          {
+            "index": 95,
+            "frame": 2089,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.21909706054508596,
+            "physicsFrames": 12053
+          },
+          {
+            "index": 96,
+            "frame": 2114,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.2340693197726925,
+            "physicsFrames": 6471
+          },
+          {
+            "index": 97,
+            "frame": 2127,
+            "beamWidth": 8,
+            "offered": 45,
+            "localScale": 0.24741495054451937,
+            "physicsFrames": 8986
+          },
+          {
+            "index": 98,
+            "frame": 2139,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.2397620211191338,
+            "physicsFrames": 16097
+          },
+          {
+            "index": 99,
+            "frame": 2164,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.24163325320147305,
+            "physicsFrames": 18105
+          },
+          {
+            "index": 100,
+            "frame": 2201,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.2628538957893079,
+            "physicsFrames": 6671
+          },
+          {
+            "index": 101,
+            "frame": 2213,
+            "beamWidth": 1,
+            "offered": 314,
+            "localScale": 0.27484327352411214,
+            "physicsFrames": 161077
+          }
+        ],
+        "trackHash": "0d0184822740b93326345781faf385631786016a2422f01fb59ed05a8da448b5"
+      }
+    },
+    {
+      "id": "stretch_interleaved_recovery~101",
+      "baseline": {
+        "requested": 110,
+        "constructed": 110,
+        "complete": true,
+        "failure": null,
+        "budget": 4013700,
+        "physicalFrames": 3184975,
+        "backtracks": 6,
+        "finalRequests": [
+          {
+            "section": 77,
+            "frame": 1556,
+            "next": 1570,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.35457614678899074,
+              "speed": 0.7160979765988813,
+              "nextImpact": 0.2849761467889908,
+              "nextSpeed": 0.7148019636218166,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 78,
+            "frame": 1570,
+            "next": 1599,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2849761467889908,
+              "speed": 0.7148019636218166,
+              "nextImpact": 0.5285761467889908,
+              "nextSpeed": 0.7121053692856717,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 79,
+            "frame": 1599,
+            "next": 1607,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5285761467889908,
+              "speed": 0.7121053692856717,
+              "nextImpact": 0.8417761467889908,
+              "nextSpeed": 0.7099486725437603,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 80,
+            "frame": 1607,
+            "next": 1615,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.8417761467889908,
+              "speed": 0.7099486725437603,
+              "nextImpact": 0.35457614678899074,
+              "nextSpeed": 0.7037369838472728,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [],
+        "lastPlanningDecisions": [
+          {
+            "index": 101,
+            "frame": 2019,
+            "observedConstructionRate": 218.21029754302396,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 42757.896774193556,
+            "width": 7,
+            "probeSamples": 54,
+            "depth": 2
+          },
+          {
+            "index": 102,
+            "frame": 2030,
+            "observedConstructionRate": 211.4773289435101,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 85450.40000000001,
+            "width": 7,
+            "probeSamples": 62,
+            "depth": 2
+          },
+          {
+            "index": 103,
+            "frame": 2052,
+            "observedConstructionRate": 213.24393212032533,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 116171.96623376624,
+            "width": 5,
+            "probeSamples": 48,
+            "depth": 2
+          },
+          {
+            "index": 104,
+            "frame": 2081,
+            "observedConstructionRate": 219.72014569626026,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 103506.85591397849,
+            "width": 5,
+            "probeSamples": 48,
+            "depth": 2
+          },
+          {
+            "index": 105,
+            "frame": 2105,
+            "observedConstructionRate": 213.53444989034153,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 109768.4705882353,
+            "width": 7,
+            "probeSamples": 62,
+            "depth": 2
+          },
+          {
+            "index": 106,
+            "frame": 2129,
+            "observedConstructionRate": 208.33589324560657,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 116887.66753246755,
+            "width": 5,
+            "probeSamples": 48,
+            "depth": 2
+          },
+          {
+            "index": 107,
+            "frame": 2153,
+            "observedConstructionRate": 215.58871459648526,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 53829.44927536232,
+            "width": 3,
+            "probeSamples": 33,
+            "depth": 2
+          },
+          {
+            "index": 108,
+            "frame": 2163,
+            "observedConstructionRate": 210.85097167718823,
+            "constructionReserveRate": 179.2,
+            "localAllowance": 52783.73604060914,
+            "width": 5,
+            "probeSamples": 40,
+            "depth": 1
+          }
+        ],
+        "trackHash": "c2fcb88cc6a91f37132f49471b7efc8e48c3b3c3f0c7e008510e7aaf45da2872"
+      },
+      "q62": {
+        "requested": 110,
+        "constructed": 79,
+        "complete": false,
+        "failure": {
+          "frame": 1596,
+          "reason": "budget"
+        },
+        "budget": 4013700,
+        "physicalFrames": 4012310,
+        "backtracks": 55,
+        "finalRequests": [
+          {
+            "section": 77,
+            "frame": 1556,
+            "next": 1570,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.35457614678899074,
+              "speed": 0.7160979765988813,
+              "nextImpact": 0.2849761467889908,
+              "nextSpeed": 0.7148019636218166,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 78,
+            "frame": 1570,
+            "next": 1599,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2849761467889908,
+              "speed": 0.7148019636218166,
+              "nextImpact": 0.5285761467889908,
+              "nextSpeed": 0.7121053692856717,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 79,
+            "frame": 1599,
+            "next": 1607,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5285761467889908,
+              "speed": 0.7121053692856717,
+              "nextImpact": 0.8417761467889908,
+              "nextSpeed": 0.7099486725437603,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 80,
+            "frame": 1607,
+            "next": 1615,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.8417761467889908,
+              "speed": 0.7099486725437603,
+              "nextImpact": 0.35457614678899074,
+              "nextSpeed": 0.7037369838472728,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [
+          {
+            "phase": "planning",
+            "index": 79,
+            "frame": 1596,
+            "viable": 0,
+            "retained": false
+          }
+        ],
+        "lastPlanningDecisions": [
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.6082834524356765,
+            "physicsFrames": 42597
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.4644099702684323,
+            "physicsFrames": 39007
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.3162708812666603,
+            "physicsFrames": 37026
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 24,
+            "localScale": 0.47275793501291163,
+            "physicsFrames": 18525
+          },
+          {
+            "index": 77,
+            "frame": 1554,
+            "beamWidth": 3,
+            "offered": 39,
+            "localScale": 0.12991510860191552,
+            "physicsFrames": 25442
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 4,
+            "offered": 24,
+            "localScale": 0.18342459707617892,
+            "physicsFrames": 4718
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 2,
+            "offered": 52,
+            "localScale": 0.05872921924322017,
+            "physicsFrames": 20301
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 1,
+            "offered": 56,
+            "localScale": 0.05,
+            "physicsFrames": 20079
+          }
+        ],
+        "trackHash": "d50810bad68872c20ff2e11fce46e8123ccad5941fc108e42eb42d8054d986c2"
+      },
+      "passive": {
+        "requested": 110,
+        "constructed": 79,
+        "complete": false,
+        "failure": {
+          "frame": 1596,
+          "reason": "budget"
+        },
+        "budget": 4013700,
+        "physicalFrames": 4013693,
+        "backtracks": 56,
+        "finalRequests": [
+          {
+            "section": 77,
+            "frame": 1556,
+            "next": 1570,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.35457614678899074,
+              "speed": 0.7160979765988813,
+              "nextImpact": 0.2849761467889908,
+              "nextSpeed": 0.7148019636218166,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 78,
+            "frame": 1570,
+            "next": 1599,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.2849761467889908,
+              "speed": 0.7148019636218166,
+              "nextImpact": 0.5285761467889908,
+              "nextSpeed": 0.7121053692856717,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 79,
+            "frame": 1599,
+            "next": 1607,
+            "construction": "terraces",
+            "guidance": "required",
+            "context": {
+              "impact": 0.5285761467889908,
+              "speed": 0.7121053692856717,
+              "nextImpact": 0.8417761467889908,
+              "nextSpeed": 0.7099486725437603,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          },
+          {
+            "section": 80,
+            "frame": 1607,
+            "next": 1615,
+            "construction": "fold",
+            "guidance": "required",
+            "context": {
+              "impact": 0.8417761467889908,
+              "speed": 0.7099486725437603,
+              "nextImpact": 0.35457614678899074,
+              "nextSpeed": 0.7037369838472728,
+              "quiet": 0
+            },
+            "railLayout": "paired"
+          }
+        ],
+        "budgetInterruptions": [
+          {
+            "phase": "local",
+            "index": 79,
+            "frame": 1596,
+            "viable": 0,
+            "retained": false
+          },
+          {
+            "phase": "planning",
+            "index": 79,
+            "frame": 1596,
+            "viable": 0,
+            "retained": false
+          }
+        ],
+        "lastPlanningDecisions": [
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 56,
+            "localScale": 0.6079770801126682,
+            "physicsFrames": 43046
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 64,
+            "localScale": 0.46952340343658167,
+            "physicsFrames": 39463
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 56,
+            "localScale": 0.3235366060091126,
+            "physicsFrames": 37977
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 8,
+            "offered": 63,
+            "localScale": 0.1918969671982875,
+            "physicsFrames": 25822
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 4,
+            "offered": 16,
+            "localScale": 0.3640793980845138,
+            "physicsFrames": 8464
+          },
+          {
+            "index": 77,
+            "frame": 1554,
+            "beamWidth": 1,
+            "offered": 39,
+            "localScale": 0.06922711022952807,
+            "physicsFrames": 21036
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 1,
+            "offered": 8,
+            "localScale": 0.23013317137223976,
+            "physicsFrames": 1812
+          },
+          {
+            "index": 78,
+            "frame": 1568,
+            "beamWidth": 1,
+            "offered": 53,
+            "localScale": 0.05,
+            "physicsFrames": 20080
+          }
+        ],
+        "trackHash": "36afd9699c263733a24bc9ad82cb13259a18713f010a9caaffaabde369eb05c3"
+      }
+    }
+  ],
+  "interpretation": "Completion is unchanged in aggregate, not identical case by case. The recovered pickup case reaches102/102 requests; the original exhausted its allowance at76. The new interleaved-recovery failure reaches79/110 and exhausts nearly all4,013,700 frames after56 backtracks. Its next authored terrace spans eight frames. The original completes this identical plan, so it is feasible; this is a limitation of the bounded search/allocation, not a proof of geometric infeasibility or an evidence-integrity failure. Across all31,000 support requests, constructed totals are30,364 original and30,367 final. These counts do not excuse the individual regression."
+}

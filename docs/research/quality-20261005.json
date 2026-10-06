@@ -1911,6 +1911,14 @@
       "candidateCommit": "c64710d1",
       "researchCollector": "The same retained-engine failure was reproduced in collectFutureProbes. It now uses the shared ownership scope. Six ownership/collection tests pass, then a strengthened collection test verifies identical labels and work with/without a retained engine. Production compiler paths are byte-identical to the63-cell-qualified c64710d1; typecheck and reachability pass.",
       "packagedProvenance": "Final packaging audit found only the ownership wrapper manifest hash stale. Corrected it, documented the current backend, and added a passing packaged-source/WASM identity check. Simulation and search code unchanged."
+    },
+    {
+      "id": "Q69",
+      "status": "predeclared controlled resource replay; no behavior change",
+      "hypothesis": "The full catalog has different concurrent loads across execution phases. The final variant took about25 CPU minutes on stretch_supported_speed_change while Q62 used about12 on seed202 at similar physics work. Process CPU includes memory stalls and CPU-frequency effects; do not attribute the gap to compiler behavior without a matched execution. Recompile seed101 on original, Q62 and the qualified final implementation with synchronized start, three workers total after the catalog finishes. Require each exact saved track and work count, then compare process CPU and peak RSS. One costly case is a diagnostic, not a general speed claim.",
+      "branch": "exp/quality-review-20261006",
+      "case": "stretch_supported_speed_change~101",
+      "constraints": "No changes to compilers, budgets, cases, impact rulers or candidate selection during this check."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",
@@ -1941,7 +1949,7 @@
   },
   "evidence": "docs/research/quality-20261005-evidence.json",
   "review": "generated/report/quality-20261005/index.html",
-  "updated": "2026-10-06T04:35:07.430647+00:00",
+  "updated": "2026-10-06T05:08:01.674154+00:00",
   "beamPhysicalReview": {
     "scope": "Five of eight clip pairs inspected frame by frame, with independent physical decomposition for all 1890 matched beats on the 24-case development panel. Owner visual approval remains open.",
     "findings": [

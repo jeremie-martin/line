@@ -8,6 +8,9 @@
 //! to use center-cell history and line lookup indexes equivalent to lr-core's
 //! 3×3 neighborhood queries.
 
+// Resolved positions belong to the collision that produced them, before later constraints.
+pub(crate) type Collision = (u8, i32, i32, f64, f64);
+
 use crate::frame::{
     add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode,
 };
@@ -315,7 +318,7 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
 unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: bool>(
     s: &mut State,
     grid: &FlatIntMap<Vec<GridLine>>,
-    events: &mut Vec<(u8, i32, i32)>,
+    events: &mut Vec<Collision>,
     frame_index: i32,
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,
@@ -397,7 +400,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 pyi = posy;
                 prevxi = fvx;
                 prevyi = fvy;
-                events.push((it, l.id, I as i32));
+                events.push((it, l.id, I as i32, posx, posy));
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
                     let pcell = line_cache.point_cell::<I>(pxi, pyi);
@@ -431,7 +434,7 @@ pub(crate) fn step_state<const TRACK: bool>(
     grid: &FlatIntMap<Vec<GridLine>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
-    events: &mut Vec<(u8, i32, i32)>,
+    events: &mut Vec<Collision>,
     frame_index: i32,
     hist: &mut HistGrid,
     touched_cells: &mut Vec<i64>,

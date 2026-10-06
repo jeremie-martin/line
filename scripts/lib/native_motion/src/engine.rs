@@ -33,7 +33,7 @@ use crate::{
 const BODY: [usize; 6] = [BUTT, SHOULDER, RHAND, LHAND, LFOOT, RFOOT];
 const SLED_POINT_MASK: u32 = (1u32 << PEG) | (1u32 << TAIL) | (1u32 << NOSE) | (1u32 << STRING);
 const CANDIDATE_WINDOW_STRIDE: usize = 9;
-type Event = (u8, i32, i32);
+type Event = crate::kernel::Collision;
 
 #[derive(Clone, Copy)]
 struct FrameSummary {
@@ -209,7 +209,7 @@ impl Cache {
     fn index_of_collision_with_line(&self, id: i32) -> Option<i32> {
         let mut best = index_of_collision_with_line(&self.coll, id);
         for f in self.history_len..self.frames.len() {
-            for &(_, line_id, _) in self.events_at(f) {
+            for &(_, line_id, _, _, _) in self.events_at(f) {
                 if line_id == id {
                     let frame = f as i32;
                     best = Some(best.map_or(frame, |b| b.min(frame)));
@@ -342,7 +342,7 @@ impl Cache {
         let n_body = BODY.len() as f64;
         let contact_offset = candidate_contacts.len();
         let mut sled_mask = 0u32;
-        for &(_, line_id, point_idx) in events {
+        for &(_, line_id, point_idx, _, _) in events {
             let bit = 1u32 << (point_idx as u32);
             if (SLED_POINT_MASK & bit) == 0 {
                 continue;
@@ -734,7 +734,7 @@ pub(crate) fn events_into(h: u32, f: i32, out: &mut [f64], cap: usize) -> usize 
     cache.compute_to(f);
     let ev = cache.events_at(f);
     let n = ev.len().min(cap);
-    for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
+    for (k, &(it, id, pt, _, _)) in ev.iter().take(n).enumerate() {
         out[k * 3] = it as f64;
         out[k * 3 + 1] = id as f64;
         out[k * 3 + 2] = pt as f64;
@@ -769,7 +769,7 @@ pub(crate) fn raw_frame_into(
 
     let ev = cache.events_at(f);
     let n = ev.len().min(cap);
-    for (k, &(it, id, pt)) in ev.iter().take(n).enumerate() {
+    for (k, &(it, id, pt, _, _)) in ev.iter().take(n).enumerate() {
         events[k * 3] = it as f64;
         events[k * 3 + 1] = id as f64;
         events[k * 3 + 2] = pt as f64;
@@ -864,4 +864,21 @@ pub(crate) fn prepare_collision_trace(h: u32, frame: i32) {
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     if cache.frames.len() > frame as usize { cache.set_frames_length(frame as usize); }
     crate::kernel::set_trace_target(frame);
+}
+
+/// Read only already-computed collision positions. A missing window is an error,
+/// never an implicit unmetered simulation. Branch invalidation applies normally.
+pub(crate) fn contact_positions(h: u32, start: i32, end: i32, out: &mut Vec<f64>) -> bool {
+    out.clear();
+    if !valid(h) || start < 0 || end < start { return false; }
+    update_computed(h);
+    let holder = ver(h as i32).holder;
+    let cache = &holders()[holder as usize].as_ref().unwrap().cache;
+    if end > cache.last_frame_index() { return false; }
+    for f in start as usize..=end as usize {
+        for &(_, id, _, x, y) in cache.events_at(f) {
+            out.extend_from_slice(&[id as f64, x, y]);
+        }
+    }
+    true
 }

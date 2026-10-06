@@ -213,6 +213,16 @@ export class LineRiderEngine {
     }
     return new LineRiderEngine(h);
   }
+  /** Collision positions from an already evaluated window. Never advances physics.
+   * Copy across the ABI so another engine read cannot overwrite this observation. */
+  getCachedContactPositions(startFrame: number, endFrame: number): Float64Array {
+    if (!Number.isSafeInteger(startFrame) || !Number.isSafeInteger(endFrame) || startFrame < 0 || endFrame < startFrame)
+      throw new Error('invalid cached contact window');
+    const count = ex.get_contact_positions(this.h, startFrame, endFrame);
+    if (count < 0) throw new Error('contact window must already be simulated');
+    return new Float64Array(ex.memory.buffer, ex.contact_positions_ptr(), count * 3).slice();
+  }
+
   getLastFrameIndex(): number {
     return ex.get_last_frame_index(this.h);
   }

@@ -31,7 +31,7 @@ export function createSearchWork() {
     terminalSelectionStats: null as any,
     budgetInterruptions: [] as BudgetInterruption[],
     planningDecisions: [] as any[],
-    fragmentStats: {intervals: 0, probes: 0, observationFrames: 0, replayFrames: 0},
+    fragmentStats: {intervals: 0, probes: 0, replayFrames: 0},
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold']
@@ -65,7 +65,7 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const start = fixed ?? {position: {x: 0, y: 0}, velocity: {x: speed * Math.cos(pitch), y: speed * Math.sin(pitch)}};
 
   const hasFragments = Object.values(options.constructionRequests ?? {}).some(r => r.construction === 'scattered');
-  const lineage = createArcLineage(start, hasFragments);
+  const lineage = createArcLineage(start);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
   const constructionMemories = new Map<string, ArcControlMemory>();

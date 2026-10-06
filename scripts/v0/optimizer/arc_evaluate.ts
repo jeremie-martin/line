@@ -312,7 +312,9 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
     achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,
     localResiduals: residuals.slice(0, priorStart), arrivalResiduals: residuals.slice(priorStart)};
   const {child: _child, ...measurement} = result;
-  s.candidates.push({lines: added, c, cost, localCost, measurement,
+  const contactPositions = !fragments && options.constructionRequests?.[i]?.construction === 'scattered'
+    ? child.getCachedContactPositions(s.frame, s.horizon) : undefined;
+  s.candidates.push({lines: added, c, cost, localCost, measurement, contactPositions,
     searchCost: cost, residuals, heading, endSpeed, pose, valueFeatures, predictedFuture, terminalLoss,
     meta: {achieved, impact: actualImpact, release: result.release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}});
   // Interrupted evaluations never reach this cache insertion.

@@ -26,13 +26,22 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
   const exact=searchInterval(ctx,engine,f.section,{directControls:[f.carriers[0]]},[engine]);
   expect(exact?.candidates.every(c=>key(c.c)===key(f.carriers[0]))).toBe(true);
   // A budget ceiling cannot discard a complete cached realization.
-  // Reopening the native collision trace needs two metered frames.
+  // Reopening the native impact trace needs two metered frames. Contact
+  // footprints themselves are cached; no observation replay is needed.
   setPhysicsFrameLimit(getPhysicsFrameCount()+2);
   let atLimit;
   try {atLimit=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);}
   catch(e){if(!(e instanceof PhysicsFrameLimitExceeded))throw e;throw Error('discarded validated offered incumbent at the work ceiling',{cause:e});}
   expect(atLimit?.best).toBeTruthy();
   expect(atLimit?.best.actualImpact).toBeCloseTo(f.impact,12);
+  expect(ctx.work.budgetInterruptions).toHaveLength(0);
+  // If another fragment still needs validation at the ceiling, preserve the
+  // verified offered incumbent while interrupting only that fresh replay.
+  for(const k of ctx.lineage.memoContexts.values())for(const entry of k.keys())
+    if(entry.endsWith('|fragments')&&entry!==incumbent+'|fragments')k.delete(entry);
+  setPhysicsFrameLimit(getPhysicsFrameCount()+2);
+  const interrupted=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);
+  expect(interrupted?.best?.actualImpact).toBeCloseTo(f.impact,12);
   expect(ctx.work.budgetInterruptions.at(-1)).toMatchObject({phase:'fragments',retained:true});
  }finally{setPhysicsFrameLimit(null);Engine.retainOnly([])}
 },30_000);

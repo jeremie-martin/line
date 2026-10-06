@@ -1,9 +1,9 @@
 /** Ranking, arrival diversity and restoration of measured interval
- * candidates, shared by lookahead planning and interval commitment. */
+ * candidates, shared by prefix expansion and interval commitment. */
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import type { ArcMotionOptions } from './arc_options.ts';
 
-/** Candidate cost with its learned future value blended in by `valueWeight`. */
+/** Native candidate cost plus a weighted future estimate; arrival priors stay intact. */
 export function valueRank(options: ArcMotionOptions, c: any) {
   return c.predictedFuture === undefined ? c.cost : c.cost + (options.valueWeight ?? .5) * c.predictedFuture;
 }

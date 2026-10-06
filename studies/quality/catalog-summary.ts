@@ -20,6 +20,9 @@ const cases = plan.work.map((w: any) => {
     assert.equal(c.planSha256, digest(plan)); assert.equal(c.inputSha256, w.inputSha256);
     const cp = JSON.parse(gunzipSync(readFileSync(join(dir, label, id + '.checkpoint.json.gz'))).toString());
     assert.equal(c.trackHash, digest(cp.track));
+    assert.equal(c.physicalFrames, cp.work.physicalFrames); assert.equal(cp.budget, cp.work.allowance);
+    assert.ok(cp.work.physicalFrames <= cp.work.allowance, 'physical allowance exceeded: '+id);
+    assert.equal(cp.work.stages.reduce((n:any,s:any)=>n+s.physicalFrames,0), cp.work.physicalFrames);
     if (arrangement === undefined) arrangement = cp.repertoire.plan; else assert.deepEqual(cp.repertoire.plan, arrangement, 'construction plan changed: '+id);
     assert.ok(cp.track.lines.every((l: any) => l.type === 0));
     return [label, {trackHash: c.trackHash, failure: c.failure, requested: c.requested, constructed: c.constructed,
@@ -48,7 +51,7 @@ for (const [name, filter] of Object.entries({all: (_c: any) => true,
       candidate.set(group, mean(pairs.map((c: any) => c.candidate[metric])));
       perGroup.set(group, mean(pairs.map((c: any) => c.candidate[metric] - c.baseline[metric])));
     }
-    values[metric] = {finitePairs: n, baseline: bootstrap(baseline), candidate: bootstrap(candidate), paired: bootstrap(perGroup), perGroup: Object.fromEntries(perGroup)};
+    values[metric] = {finitePairs: n, finiteGroups: [...perGroup.values()].filter(Number.isFinite).length, baseline: bootstrap(baseline), candidate: bootstrap(candidate), paired: bootstrap(perGroup), perGroup: Object.fromEntries(perGroup)};
   }
   subsets[name] = {cases: rows.length, metrics: values};
 }

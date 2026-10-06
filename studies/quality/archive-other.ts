@@ -19,7 +19,7 @@ for(const wt of readdirSync('/tmp').filter(n=>n.startsWith('line-quality-'))){
 }
 if(includeCatalog){
  for(const name of ['catalog','passive-catalog']){
-  const source=`/tmp/line-quality-${name}-20261006`;
+  const source=name==='catalog'?'/tmp/line-quality-catalog-panel-20261006':'/tmp/line-quality-passive-catalog-20261006';
   assert.ok(existsSync(join(main,`docs/research/quality-20261005-${name}.json`)),'complete audited catalog evidence is required');
   sources.push(source);
  }

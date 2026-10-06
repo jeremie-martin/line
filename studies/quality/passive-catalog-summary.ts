@@ -20,6 +20,9 @@ const cases=plans.original.work.map((w:any)=>{
   const c=read(join(dir,id+'.json'));assert.equal(c.planSha256,digest(plan));assert.equal(c.inputSha256,w.inputSha256);
   const cp=JSON.parse(gunzipSync(readFileSync(join(dir,id+'.checkpoint.json.gz'))).toString());
   assert.equal(c.trackHash,digest(cp.track));
+  assert.equal(c.physicalFrames,cp.work.physicalFrames);assert.equal(cp.budget,cp.work.allowance);
+  assert.ok(cp.work.physicalFrames<=cp.work.allowance,'physical allowance exceeded: '+id);
+  assert.equal(cp.work.stages.reduce((n:any,s:any)=>n+s.physicalFrames,0),cp.work.physicalFrames);
   if(arrangement===undefined)arrangement=cp.repertoire.plan;else assert.deepEqual(cp.repertoire.plan,arrangement,'construction plan changed: '+id);
   values.constructionPlanSha256=digest(arrangement);assert.ok(cp.track.lines.every((l:any)=>l.type===0));
   if(values.group)assert.equal(values.group,c.group);values.group=c.group;
@@ -41,7 +44,7 @@ for(const baseline of ['baseline','q62']){
     finitePairs+=pairs.length;a.set(group,mean(pairs.map((c:any)=>c[baseline][key])));b.set(group,mean(pairs.map((c:any)=>c.passive[key])));
     d.set(group,mean(pairs.map((c:any)=>c.passive[key]-c[baseline][key])));
    }
-   metrics[key]={finitePairs,baseline:bootstrap(a),candidate:bootstrap(b),paired:bootstrap(d),perGroup:Object.fromEntries(d)};
+   metrics[key]={finitePairs,finiteGroups:[...d.values()].filter(Number.isFinite).length,baseline:bootstrap(a),candidate:bootstrap(b),paired:bootstrap(d),perGroup:Object.fromEntries(d)};
   }
   summaries[completeBoth?'completeBoth':'all']={cases:rows.length,metrics};
  }

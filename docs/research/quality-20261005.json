@@ -1892,20 +1892,22 @@
     },
     {
       "id": "Q67",
-      "status": "three frozen48-case compilers running; no tuning on outcomes",
+      "status": "48/48 fresh cases complete and fulfilled on all three compilers; catalog audit running",
       "hypothesis": "If the passive-catch preference is selected from development and earlier confirmation, assess it once on new seeds3001,3011,3019,3023,3037,3041,3049,3061 and perturbations13-16. Compare the frozen variant both to adopted Q31 and frozen Q62 on identical48 inputs. Collect baselines ahead, keep outcomes unseen until the candidate is frozen, and do not tune on this panel. Four songs remain four uncertainty units.",
       "baselineCommit": "56fefb44",
       "counterfactualCommit": "954d0353",
       "branch": "exp/quality-review-20261006",
       "candidateCommit": "b77ab150",
-      "catalog": "Additional336 candidate compiles reuse the explicitly pinned original catalog baseline without relabeling it. Same inputs and evaluator."
+      "catalog": "Additional336 candidate compiles reuse the explicitly pinned original catalog baseline without relabeling it. Same inputs and evaluator.",
+      "interpretation": "Against Q31, fresh v3 loss improves by about.007 authored/.004 perturbed, strong RMS falls.016/.006, and inverted/backward strong arrivals fall.038/.023. Very-strong perturbed bias worsens.010 (four-song interval crosses zero). Total body contact rises.332/.107s/min, while quiet-band contribution falls.145/.159s/min. Compared with Q62, the passive-catch change reduces quiet contact by.095/.087s/min and leaves aggregate v3 loss nearly unchanged; authored R1 quiet error rises.022. All37 measures and per-song intervals remain visible. New physical clips include largest gains, random hits, worst regression and quiet improvement; additional quiet and strong body-contact counterexamples are selected from the complete panel before viewing."
     },
     {
       "id": "Q68",
-      "status": "structural ownership fix under qualification",
+      "status": "278 tests pass across full run and corrected focused reruns; typecheck and reach pass; exact63-cell parity running",
       "branch": "exp/quality-native-scope-20261006",
       "hypothesis": "Extend the existing retained-judge-engine regression test to the native search backend. It reproduces caller corruption after compile. Make pruning and final cleanup respect one synchronous compilation ownership scope, including exception cleanup. No physics, search preference, impact ruler or budget changes; require63 exact outputs/work against the selected behavior.",
-      "reproduction": "Existing judge case passes; identical native-backend case fails with changed frame-zero point coordinates. Scoped implementation passes both plus cached-contact tests."
+      "reproduction": "Existing judge case passes; identical native-backend case fails with changed frame-zero point coordinates. Scoped implementation passes both plus cached-contact tests.",
+      "interpretation": "Both caller backends now preserve snapshots across successful and failed compilations. New checks also show unrelated retained engines cannot change the compiled track or physical work. Nested cleanup releases only its own handles. Initial full run had one30s load timeout (also reproduced on unmodified parent) and one missing audio symlink in the isolated checkout; focused reruns pass after correcting those execution conditions."
     }
   ],
   "unchangedPriorReview": "motion-gallery/night.html",

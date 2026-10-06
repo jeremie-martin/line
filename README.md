@@ -1,16 +1,22 @@
 # line
 
 Line Rider tracks composed automatically from music. A spec describes a song:
-beat times, the requested impact of each landing, and per-gap targets for air
+beat times, the requested impact at each beat, and per-gap targets for air
 time, speed and amplitude. The compiler draws normal (type-0) Line Rider lines,
 arranged as a seeded variety of constructions (arcs, guided arcs, folds, ripples,
 serpentines, terraces, scattered segments). The native Line Rider physics engine
-then judges whether the rider lands on the beats with the intended feel.
+then measures whether the physical contacts match the requested beats and strengths.
+Upper contacts can count as impacts too; visual review remains essential.
 
 The repository is being rebuilt on clean foundations; see [REWORK.md](REWORK.md)
 for the plan and its current phase.
 
 ## Latest results
+
+The October 5 evening compiler campaign has its own review at
+`generated/report/quality-20261005/`, with complete paired scorecards, strength
+curves, physical examples and a ledger in `docs/research/quality-20261005.json`.
+The earlier report, blind study and unanswered questions below are preserved.
 
 The overnight report of 2026-10-05 (the impact measure settled with the owner,
 compiler changes, evening → tonight on four panels) is
@@ -35,7 +41,7 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
-| `npm run eval -- --name=DIR [--mode=strike\|landing]` | song-level behavioural evaluation (~90 s); `npm run eval:report -- --name=DIR [--against=DIR]` |
+| `npm run eval -- --name=DIR [--mode=strike3\|strike2\|strike\|landing]` | song-level behavioural evaluation; `npm run eval:report -- --name=DIR [--against=DIR]` |
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:study` / `labels:analyze` | build a blind labelling study / compare measures with the owner's labels |
@@ -44,9 +50,9 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 
 | command | what it guards |
 |---|---|
-| `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets; ~2.5 min) |
+| `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets) |
 | `npm run parity:judge [-- --all]` | the V6 judge reproduces every stored score (this *is* the V6 freeze) |
-| `npm test` | unit and integration tests (~2.5 min) |
+| `npm test` | unit and integration tests |
 | `npm run typecheck` | TypeScript; the error count may only go down |
 | `npm run reach` | no tracked code is unreachable from `tools/deps/entries.json` |
 

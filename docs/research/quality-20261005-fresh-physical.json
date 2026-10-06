@@ -1,0 +1,357 @@
+{
+  "schema": "line.quality-physical-examples.v1",
+  "selection": "Three largest authored strong-hit improvements, at most one per song, plus the worst authored strong-hit regression in the complete fresh48-case panel. These match the report clip selection.",
+  "interpretation": [
+    "First-contact normal speed alone does not determine the whole-body response; the small first touch can precede the stronger two-frame window.",
+    "In Tiki3041, approach speed decreases12.449\u219211.826 while translational impulse grows2.693\u21925.476 and spin falls1.671\u2192.458. This is consistent with a better aligned catch, not simply greater speed.",
+    "Amour3011 and Luna3023 also show larger translational responses with less spin. The Amour3061 counterexample loses strength.828\u2192.476 against request1; it is retained, not averaged away.",
+    "The guard named headDown also includes a sled pointing against travel. It observes the first contact; the detailed approach pose here is one frame earlier. Static frames do not establish subjective musical quality."
+  ],
+  "passages": [
+    {
+      "id": "amour_de_ma_vie_44s~3011",
+      "song": "amour_de_ma_vie_44s",
+      "beat": 61,
+      "frame": 1143,
+      "gain": 0.417,
+      "requested": 0.9,
+      "before": {
+        "strength": 0.4812,
+        "onset": 1143,
+        "offset": 0,
+        "peakFrame": 1145,
+        "contactStart": 1142,
+        "headDown": true
+      },
+      "after": {
+        "strength": 0.9018,
+        "onset": 1143,
+        "offset": 0,
+        "peakFrame": 1144,
+        "contactStart": 1142,
+        "headDown": false
+      },
+      "physical": {
+        "before": {
+          "id": "amour_de_ma_vie_44s~3011",
+          "song": "amour_de_ma_vie_44s",
+          "perturbation": null,
+          "seed": 3011,
+          "target": 61,
+          "requested": 0.9,
+          "frame": 1143,
+          "strength": 0.481187887723019,
+          "error": -0.418812112276981,
+          "onset": 1143,
+          "contactStart": 1142,
+          "length": 6,
+          "speed": 10.548602406905857,
+          "heading": 30.761254924236958,
+          "pose": -65.38026136423191,
+          "normalSpeed": 0.4318282040077299,
+          "points": [
+            1
+          ],
+          "totalImpulse": 3.6329685523087933,
+          "travel": 3.5520816280245007,
+          "spin": 0.762349401465931,
+          "strongestWindow": 1145,
+          "savedStrength": 0.4812
+        },
+        "after": {
+          "id": "amour_de_ma_vie_44s~3011",
+          "song": "amour_de_ma_vie_44s",
+          "perturbation": null,
+          "seed": 3011,
+          "target": 61,
+          "requested": 0.9,
+          "frame": 1143,
+          "strength": 0.9017599190689572,
+          "error": 0.0017599190689572275,
+          "onset": 1143,
+          "contactStart": 1142,
+          "length": 4,
+          "speed": 13.337540656231006,
+          "heading": 48.1213769875767,
+          "pose": 35.29508730596639,
+          "normalSpeed": 6.72273053864777,
+          "points": [
+            1,
+            2
+          ],
+          "totalImpulse": 6.808287388970627,
+          "travel": 6.794300612455551,
+          "spin": 0.4361838584847001,
+          "strongestWindow": 1143,
+          "savedStrength": 0.9018
+        }
+      },
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/line-q67-1-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/line-q67-1-after.png"
+      }
+    },
+    {
+      "id": "luna_bala_44s~3023",
+      "song": "luna_bala_44s",
+      "beat": 42,
+      "frame": 998,
+      "gain": 0.3133,
+      "requested": 0.849,
+      "before": {
+        "strength": 0.5196,
+        "onset": 997,
+        "offset": -1,
+        "peakFrame": 997,
+        "contactStart": 996,
+        "headDown": false
+      },
+      "after": {
+        "strength": 0.8329,
+        "onset": 998,
+        "offset": 0,
+        "peakFrame": 998,
+        "contactStart": 996,
+        "headDown": false
+      },
+      "physical": {
+        "before": {
+          "id": "luna_bala_44s~3023",
+          "song": "luna_bala_44s",
+          "perturbation": null,
+          "seed": 3023,
+          "target": 42,
+          "requested": 0.849,
+          "frame": 998,
+          "strength": 0.5195973445359077,
+          "error": -0.3294026554640923,
+          "onset": 997,
+          "contactStart": 996,
+          "length": 6,
+          "speed": 11.568927356235958,
+          "heading": 22.428591196706936,
+          "pose": -32.913410872679,
+          "normalSpeed": 4.929493976540309,
+          "points": [
+            3
+          ],
+          "totalImpulse": 3.922959951246103,
+          "travel": 3.510274794094188,
+          "spin": 1.751452439841811,
+          "strongestWindow": 997,
+          "savedStrength": 0.5196
+        },
+        "after": {
+          "id": "luna_bala_44s~3023",
+          "song": "luna_bala_44s",
+          "perturbation": null,
+          "seed": 3023,
+          "target": 42,
+          "requested": 0.849,
+          "frame": 998,
+          "strength": 0.8328961734406753,
+          "error": -0.01610382655932463,
+          "onset": 998,
+          "contactStart": 996,
+          "length": 6,
+          "speed": 13.197017596787866,
+          "heading": 55.80972842334796,
+          "pose": 58.64454986491538,
+          "normalSpeed": 2.0891627097471788,
+          "points": [
+            2
+          ],
+          "totalImpulse": 6.288366109477098,
+          "travel": 6.280120266892645,
+          "spin": 0.321928191037063,
+          "strongestWindow": 998,
+          "savedStrength": 0.8329
+        }
+      },
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/line-q67-2-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/line-q67-2-after.png"
+      }
+    },
+    {
+      "id": "tiki_tiki_48s~3041",
+      "song": "tiki_tiki_48s",
+      "beat": 52,
+      "frame": 1323,
+      "gain": 0.3081,
+      "requested": 0.78,
+      "before": {
+        "strength": 0.4197,
+        "onset": 1322,
+        "offset": -1,
+        "peakFrame": 1323,
+        "contactStart": 1322,
+        "headDown": false
+      },
+      "after": {
+        "strength": 0.7278,
+        "onset": 1323,
+        "offset": 0,
+        "peakFrame": 1324,
+        "contactStart": 1322,
+        "headDown": false
+      },
+      "physical": {
+        "before": {
+          "id": "tiki_tiki_48s~3041",
+          "song": "tiki_tiki_48s",
+          "perturbation": null,
+          "seed": 3041,
+          "target": 52,
+          "requested": 0.78,
+          "frame": 1323,
+          "strength": 0.4197281465435073,
+          "error": -0.3602718534564927,
+          "onset": 1322,
+          "contactStart": 1322,
+          "length": 4,
+          "speed": 12.449024005940526,
+          "heading": 24.537499227261772,
+          "pose": -40.49446054234219,
+          "normalSpeed": 3.60381875022735,
+          "points": [
+            1
+          ],
+          "totalImpulse": 3.16894750640348,
+          "travel": 2.692720711389881,
+          "spin": 1.6707733146039918,
+          "strongestWindow": 1323,
+          "savedStrength": 0.4197
+        },
+        "after": {
+          "id": "tiki_tiki_48s~3041",
+          "song": "tiki_tiki_48s",
+          "perturbation": null,
+          "seed": 3041,
+          "target": 52,
+          "requested": 0.78,
+          "frame": 1323,
+          "strength": 0.7278343267657617,
+          "error": -0.052165673234238374,
+          "onset": 1323,
+          "contactStart": 1322,
+          "length": 4,
+          "speed": 11.825644552787383,
+          "heading": 41.37940006540401,
+          "pose": 8.801034352325075,
+          "normalSpeed": 2.886987436428761,
+          "points": [
+            1
+          ],
+          "totalImpulse": 5.4951491670815,
+          "travel": 5.4759965785575,
+          "spin": 0.45839485174144456,
+          "strongestWindow": 1323,
+          "savedStrength": 0.7278
+        }
+      },
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/line-q67-3-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/line-q67-3-after.png"
+      }
+    },
+    {
+      "id": "amour_de_ma_vie_44s~3061",
+      "song": "amour_de_ma_vie_44s",
+      "beat": 32,
+      "frame": 583,
+      "gain": -0.35229999999999995,
+      "requested": 1,
+      "before": {
+        "strength": 0.8281,
+        "onset": 583,
+        "offset": 0,
+        "peakFrame": 583,
+        "contactStart": 581,
+        "headDown": false
+      },
+      "after": {
+        "strength": 0.4758,
+        "onset": 583,
+        "offset": 0,
+        "peakFrame": 583,
+        "contactStart": 582,
+        "headDown": false
+      },
+      "physical": {
+        "before": {
+          "id": "amour_de_ma_vie_44s~3061",
+          "song": "amour_de_ma_vie_44s",
+          "perturbation": null,
+          "seed": 3061,
+          "target": 32,
+          "requested": 1,
+          "frame": 583,
+          "strength": 0.8280800519519464,
+          "error": -0.17191994804805355,
+          "onset": 583,
+          "contactStart": 581,
+          "length": 5,
+          "speed": 12.353208527269524,
+          "heading": 62.27203535721889,
+          "pose": 29.78509654032123,
+          "normalSpeed": 2.246216679815168,
+          "points": [
+            1
+          ],
+          "totalImpulse": 6.252004392237196,
+          "travel": 6.180066941906165,
+          "spin": 0.9456910246543371,
+          "strongestWindow": 583,
+          "savedStrength": 0.8281
+        },
+        "after": {
+          "id": "amour_de_ma_vie_44s~3061",
+          "song": "amour_de_ma_vie_44s",
+          "perturbation": null,
+          "seed": 3061,
+          "target": 32,
+          "requested": 1,
+          "frame": 583,
+          "strength": 0.4757589752411053,
+          "error": -0.5242410247588947,
+          "onset": 583,
+          "contactStart": 582,
+          "length": 6,
+          "speed": 11.466195322171762,
+          "heading": 5.373667986320586,
+          "pose": 58.998304212940646,
+          "normalSpeed": 5.531847764897644,
+          "points": [
+            0,
+            5,
+            6
+          ],
+          "totalImpulse": 3.5919802630703446,
+          "travel": 3.3759032920723375,
+          "spin": 1.2270285949651112,
+          "strongestWindow": 583,
+          "savedStrength": 0.4758
+        }
+      },
+      "frameStrips": {
+        "before": "/generated/report/quality-20261005/q67/analysis/passage-7-before.png",
+        "after": "/generated/report/quality-20261005/q67/analysis/passage-7-after.png"
+      },
+      "visualObservation": "The baseline lands on a lower curve and leaves it upright. The candidate meets an upper sloping rail with its shoulder/hand region, then remains tilted along it. This is a real weak maximum-request catch, not an onset-timing error; both measured onsets match the beat."
+    }
+  ],
+  "quietExample": {
+    "id": "tiki_tiki_48s~3061",
+    "beat": 70,
+    "frame": 1709,
+    "requested": 0.03,
+    "before": 0.2068,
+    "after": 0.0452,
+    "frameStrips": {
+      "before": "/generated/report/quality-20261005/q67/analysis/passage-8-before.png",
+      "after": "/generated/report/quality-20261005/q67/analysis/passage-8-after.png"
+    },
+    "visualObservation": "The candidate has a gentler, nearly level lower catch. A later upper guide remains visible. This is the selected largest quiet strength improvement, not a random quiet-passage sample."
+  }
+}

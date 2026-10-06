@@ -1,0 +1,49 @@
+{
+  "schema": "line.quality-passive-qualification.v1",
+  "behaviorCommit": "b77ab150",
+  "structuralCommit": "f5382a6d",
+  "referenceCommit": "c64710d1",
+  "baselineCommit": "68f0523a85558668274a342fafeebfdac10c54a0",
+  "compiledCells": 63,
+  "nativeScopeExactTrackAndWorkCells": 63,
+  "judgeTracks": 33,
+  "tests": {
+    "uniquePassed": 278,
+    "fullRunPassed": 276,
+    "focusedRerunPassed": 10,
+    "initialFailures": "One30s timeout under concurrent load (also fails on unmodified parent), one missing isolated-worktree audio link. Corrected environment and reran both files,10/10 pass. Strengthened retained-engine independence test separately passes4/4."
+  },
+  "typecheck": "pass",
+  "unreachableFiles": 0,
+  "baselineChangedTrackHashes": 63,
+  "q62ChangedTrackHashes": 4,
+  "compatibilityCellScores": {
+    "landing": {
+      "cells": 18,
+      "metric": "score",
+      "baselineMean": 869.5627000000001,
+      "candidateMean": 883.51865,
+      "baselineValid": 18,
+      "candidateValid": 18
+    },
+    "strike": {
+      "cells": 5,
+      "metric": "quality",
+      "baselineMean": 784.54374,
+      "candidateMean": 817.49134
+    },
+    "strike2": {
+      "cells": 5,
+      "metric": "quality",
+      "baselineMean": 690.92616,
+      "candidateMean": 766.86496
+    },
+    "strike3": {
+      "cells": 5,
+      "metric": "quality",
+      "baselineMean": 755.0971,
+      "candidateMean": 785.7684800000001
+    }
+  },
+  "interpretation": "Compatibility full-budget subsets, not a canonical benchmark headline. Behavior changes references intentionally; native ownership scope preserves every output and work count. Old rulers and the frozen judge remain unchanged. Musical and catalog decisions are separate."
+}

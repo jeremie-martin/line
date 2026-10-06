@@ -54,6 +54,7 @@ const paths:any={Q1:['/tmp/line-quality-20261005','q1-response-blocks'],Q2:['/tm
  'Q42-recheck48':['/tmp/line-quality-continuation-20261005','q42-additive-recheck48','/tmp/line-quality-review-20261006/generated/eval/quality-fresh-baseline'],
  'Q46-high':['/tmp/line-quality-incidence-20261005','q46-regret-sweep-high'],
  'Q48-confirm':['/tmp/line-quality-20261005','q48-predicted-arrival-confirm','/home/wyss/line/generated/eval/c-c'],
+ Q49:['/tmp/line-quality-incidence-20261005','q49-native-arrival'],
  Q44:['/tmp/line-quality-value-20261005','q44-four-prefixes'],
  Q45:['/tmp/line-quality-incidence-20261005','q45-two-prefixes'],
  Q32:['/tmp/line-quality-value-20261005','q32-beam-stack'],

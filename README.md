@@ -11,6 +11,35 @@ Upper contacts can count as impacts too; visual review remains essential.
 The repository is being rebuilt on clean foundations; see [REWORK.md](REWORK.md)
 for the plan and its current phase.
 
+## Returning to the project
+
+The latest completed compiler campaign ended on **October 6, 2026**, on
+`rework/foundations`. Codex integrated the selected compiler in `abdad07e`;
+`c22e8df4` records the final verification and archive closure. This followed
+Claude Code's October 3–5 foundations rework and overnight compiler campaign.
+
+Start the review server with `npm run serve`, then open:
+
+- **Latest compiler review:** http://127.0.0.1:8767/generated/report/quality-20261005/
+  — full-song comparisons, scorecards and counterexamples for the October 5–6 campaign.
+- **Earlier overnight review:** http://127.0.0.1:8767/motion-gallery/night.html
+  — the preceding campaign, its blind study and unanswered questions.
+- **Production library:** http://127.0.0.1:8767/motion-gallery/production.html
+  — saved October 5 rides and controls to generate a ride with the current compiler.
+  The saved collection predates the latest compiler adoption.
+
+For other devices on the same network, use `HOST=0.0.0.0 npm run serve`
+and replace `127.0.0.1` in these links with this machine's LAN address.
+
+**Still open:** visual acceptance of body contact and individual hit regressions,
+the trade between impact and air, the authored impact scale and difficult song
+requests, and generalization to new music. The next major direction has not been
+chosen. Start with the latest review's full-song pairs and counterexamples.
+
+`REWORK.md` holds the latest campaign log; `PROGRESS.md` describes the earlier
+October 4–5 overnight campaign. The two reports use different baselines, so their
+percentage improvements should not be compared directly.
+
 ## Latest results
 
 The October 5 evening compiler campaign has its own review at

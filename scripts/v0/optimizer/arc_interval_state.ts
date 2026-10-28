@@ -4,7 +4,7 @@
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getRiderMetered, extractRawTrajectory, detect } from '../../lib/detector.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { CALIB, impactToRawPx, type Gap, type TrackLine } from '../types.ts';
+import { CALIB, impactToRawPx, type AxisValues, type Gap, type TrackLine } from '../types.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
@@ -156,9 +156,15 @@ function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: 
  * its raw excess as search pressure. */
 export function objectiveAxes(det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
   const axes = measureGapAxes(det, g, [], rangeEnd);
-  if (g.targets.amplitude !== undefined && axes.amplitude === 1)
-    axes.amplitude = measureAmplitudePeakPx(det, g, rangeEnd)! / CALIB.AMPLITUDE_CAP;
-  return axes;
+  return uncappedObjectiveAxes(det, g, rangeEnd, axes);
+}
+
+/** Reuse measured span axes without rescanning air and speed. The measurement
+ * must cover the same start and range end; keep the reported axes capped. */
+export function uncappedObjectiveAxes(det: ReturnType<typeof detect>, g: Gap, rangeEnd: number, measured: AxisValues) {
+  if (g.targets.amplitude !== undefined && measured.amplitude === 1)
+    return {...measured, amplitude: measureAmplitudePeakPx(det, g, rangeEnd)! / CALIB.AMPLITUDE_CAP};
+  return measured;
 }
 
 /** Frees every engine except the caller's, this interval's prefix and the

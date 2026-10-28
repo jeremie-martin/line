@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## October 28 follow-up: reuse candidate span measurements
+
+Structural compiler work while the next behavioral direction is being considered.
+Candidate scoring previously measured air, speed and amplitude twice on the same
+trajectory window. It now reuses the reported axes and separately recovers raw
+amplitude only when a targeted amplitude reaches the reporting cap. The reported
+values remain capped; search residual arithmetic and physics accounting are
+unchanged. The regression check covers capped and uncapped spans, untargeted
+amplitude, immutable reported measurements and exclusion of survival grace.
+
+An isolated span-scoring microbenchmark (20,000 measurements, five warmed pairs)
+went from a median 80.5 ms to 56.5 ms with identical sums. This measures only that
+scoring operation, not end-to-end compilation speed.
+
+Validation: all 63 compiler parity cells preserve tracks, physics-work counts
+and scores exactly; 33 judge tracks and all 280 tests pass. Typecheck and
+reachability pass with zero unreachable files. No reference updates.
+
 Branch `rework/foundations`, from `7e2a3dfb`. Everything before the rework is
 preserved at tag `archive/pre-rework-2026-10-03` (code, docs, evidence, tests,
 models). Deleting something from this branch never loses it.

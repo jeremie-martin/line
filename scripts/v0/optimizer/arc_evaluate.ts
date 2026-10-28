@@ -21,7 +21,7 @@ import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
 import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactAccount as impactAccountFor } from './impact_accounts.ts';
-import { objectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
+import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -184,7 +184,7 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   const {contacts, duration, gaps} = ctx;
   const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
   const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
-  const measuredObjective = objectiveAxes(det, s.outgoing, s.objectiveEnd);
+  const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
     ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);

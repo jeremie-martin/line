@@ -49,6 +49,9 @@ spec (beats, impacts, air/speed/amplitude targets)
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
    classifies every option by whether it can change a measurement.
+   Candidate scoring reuses the reported span axes for its residuals; only a
+   targeted, capped amplitude needs a separate raw-peak read to preserve
+   search pressure above the reporting cap. Reported axes remain capped.
 
    Scattered sections use resolved collision positions from the carrier's
    original simulation. Reading those cached records advances no physics;

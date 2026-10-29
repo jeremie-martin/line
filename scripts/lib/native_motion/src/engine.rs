@@ -196,31 +196,39 @@ impl Cache {
         self.lines_cells.insert(id, cells);
     }
 
-    /// _removeLine: unregister the line, truncate to its FIRST collision frame.
-    fn remove_line(&mut self, id: i32) {
-        if let Some(cells) = self.lines_cells.remove(&id) {
-            remove_line(&mut self.cell_lines, id, &cells);
-            if let Some(idx) = self.index_of_collision_with_line(id) {
-                self.set_frames_length(idx as usize);
+    /// _removeLine for each id in order: unregister the line, truncate to its
+    /// FIRST collision frame. Removing lines never changes recorded collisions,
+    /// and successive truncations (with their reverse-patch rollbacks) compose,
+    /// so the lines leave the grid in the same order and the cache truncates
+    /// once, to the earliest collision with any of them.
+    fn remove_lines(&mut self, ids: &[i32], removed: &mut Vec<i32>) {
+        removed.clear();
+        let mut first: Option<i32> = None;
+        for &id in ids {
+            if let Some(cells) = self.lines_cells.remove(&id) {
+                remove_line(&mut self.cell_lines, id, &cells);
+                if let Some(f) = index_of_collision_with_line(&self.coll, id) {
+                    first = Some(first.map_or(f, |b| b.min(f)));
+                }
+                removed.push(id);
             }
         }
-    }
-
-    fn index_of_collision_with_line(&self, id: i32) -> Option<i32> {
-        let mut best = index_of_collision_with_line(&self.coll, id);
-        for f in self.history_len..self.frames.len() {
-            for &(_, line_id, _, _, _) in self.events_at(f) {
-                if line_id == id {
-                    let frame = f as i32;
-                    best = Some(best.map_or(frame, |b| b.min(frame)));
-                    break;
+        // Tracked collisions precede history_len, so they precede every frame
+        // the event scan could find.
+        if first.is_none() && !removed.is_empty() {
+            removed.sort_unstable();
+            'scan: for f in self.history_len..self.frames.len() {
+                for &(_, line_id, _, _, _) in self.events_at(f) {
+                    if removed.binary_search(&line_id).is_ok() {
+                        first = Some(f as i32);
+                        break 'scan;
+                    }
                 }
             }
-            if best == Some(f as i32) {
-                break;
-            }
         }
-        best
+        if let Some(idx) = first {
+            self.set_frames_length(idx as usize);
+        }
     }
 
     /// setInitialStates: reset the frame cache to a single frame with a new start
@@ -410,13 +418,15 @@ static mut HOLDERS: Vec<Option<Holder>> = Vec::new();
 static mut FREE_VERSIONS: Vec<u32> = Vec::new();
 static mut FREE_HOLDERS: Vec<u32> = Vec::new();
 static mut GEN: u32 = 0;
-// Reusable scratch for update_computed's patch-walk (undo ids + redo lines). Hoisted
-// out of the per-call hot path: drained (not dropped) each reconcile so the backing
-// allocations amortize to zero after warmup. Single-threaded WASM + no re-entrancy
-// (the redo loop's cache.add_line never calls update_computed), so the statics are
-// safe and the walk produces the identical id/line sequence as the old locals.
+// Reusable scratch for update_computed's patch-walk (undo ids + redo lines, and the
+// registered ids the undo removes). Hoisted out of the per-call hot path: drained
+// (not dropped) each reconcile so the backing allocations amortize to zero after
+// warmup. Single-threaded WASM + no re-entrancy (the redo loop's cache.add_line
+// never calls update_computed), so the statics are safe and the walk produces the
+// identical id/line sequence as the old locals.
 static mut RECONCILE_UNDO: Vec<i32> = Vec::new();
 static mut RECONCILE_REDO: Vec<Line> = Vec::new();
+static mut RECONCILE_REMOVED: Vec<i32> = Vec::new();
 
 #[allow(static_mut_refs)]
 fn versions() -> &'static mut Vec<Option<Box<Version>>> {
@@ -650,9 +660,8 @@ fn update_computed(target: u32) {
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     // linesList reconcile (Immo runs this before initialStateMap). Drain the redo
     // scratch (moves the Lines out, keeps the buffer's capacity for reuse).
-    for &id in undo_ids.iter() {
-        cache.remove_line(id);
-    }
+    #[allow(static_mut_refs)]
+    cache.remove_lines(undo_ids, unsafe { &mut RECONCILE_REMOVED });
     for l in redo_lines.drain(..) {
         cache.add_line(l);
     }

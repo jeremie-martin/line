@@ -6,9 +6,9 @@ import {measureGapAxes} from '../core/measure.ts';
 import type {ImpactEvaluation as MusicalImpactEvaluation, ImpactObservation} from './impact_accounts.ts';
 import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';
 import {validRide} from './ride_validity.ts';
-import {motionSamples} from './motion_quality.ts';
+import {motionSamples, MOTION_BANDS} from './motion_quality.ts';
 import {motionResiduals, intervalMotionSummary} from './motion_objective.ts';
-import {engagementGainResiduals} from './impact_search.ts';
+import {engagementGains, engagementGainResidualsOver} from './impact_search.ts';
 import type {ArcCompileContext} from './arc_compile_context.ts';
 
 /** Compiler objective over the whole authored timeline. Span axes represent
@@ -59,14 +59,19 @@ export function arcSelectionObjective(ctx: ArcCompileContext, raw: any,
   if (!Number.isFinite(whole.loss)) return whole;
   const {options, contacts, duration, gaps} = ctx;
   const observed = options.motionQuality ? motionSamples(raw.frames, 1, duration) : undefined;
+  const gains = physical ? engagementGains(physical as any, options.impactSearch) : undefined;
+  // Samples are contiguous from frame 1. Each support reads only its own
+  // frames and the longest burst band before them.
+  const reach = Math.max(...MOTION_BANDS.map(b => b.frames)) - 1;
   for (const [i, contact] of contacts.entries()) {
     const next = contacts[i + 1]?.frame ?? duration + 1;
-    let extra = physical ? engagementGainResiduals(physical as any, contact.frame, next - 1, options.impactSearch)
+    let extra = gains ? engagementGainResidualsOver(gains, contact.frame, next - 1, options.impactSearch)
       .reduce((sum, value) => sum + value * value, 0) / contacts.length : 0;
-    if (observed?.some(s => s.frame >= contact.frame && s.frame < next)) {
+    const local = observed?.slice(Math.max(0, contact.frame - reach - 1), Math.max(0, next - 1));
+    if (local?.some(s => s.frame >= contact.frame && s.frame < next)) {
       const request = options.constructionRequests?.[i];
       const impact = contact.gap >= 0 ? gaps[contact.gap].targets.impact : request?.context?.nextImpact ?? undefined;
-      extra += motionResiduals(intervalMotionSummary(observed, contact.frame, next - 1), impact, options.motionQuality!)
+      extra += motionResiduals(intervalMotionSummary(local, contact.frame, next - 1), impact, options.motionQuality!)
         .reduce((sum, value) => sum + value * value, 0) / contacts.length;
     }
     whole.loss += extra;

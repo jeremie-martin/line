@@ -51,10 +51,18 @@ export function impactSearchResiduals(events: readonly ContactImpactEvent[], acc
  * uses the same measured per-engagement strongest positive interval exposed
  * in independent review; its weight is not an impact-definition parameter. */
 export function engagementGainResiduals(observed: readonly ContactImpactFrame[], from: number, to: number, options: ImpactSearchOptions = {}) {
+  return engagementGainResidualsOver(engagementGains(observed, options), from, to, options);
+}
+/** The engagements those residuals read (none while the preference is off),
+ * extracted once for callers that score several windows of one trajectory. */
+export function engagementGains(observed: readonly ContactImpactFrame[], options: ImpactSearchOptions = {}) {
+  return Math.sqrt(options.engagementGainWeight ?? 0) ? contactSpeedGains(observed) : [];
+}
+export function engagementGainResidualsOver(gains: ReturnType<typeof contactSpeedGains>, from: number, to: number, options: ImpactSearchOptions = {}) {
   const weight = Math.sqrt(options.engagementGainWeight ?? 0);
   if (!weight) return [];
   let worst = 0;
-  for (const e of contactSpeedGains(observed)) {
+  for (const e of gains) {
     if (e.end < from || e.start > to) continue;
     const limit = Math.max(.75, .1 * e.strongest.speedBefore);
     worst = Math.max(worst, Math.max(0, e.strongest.gain - limit) / limit);

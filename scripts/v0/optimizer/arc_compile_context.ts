@@ -99,6 +99,8 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
     ...[i+1,i+2].flatMap(index=>{
       if(index>=contacts.length)return Array(8).fill(0);
       const style={...options,...options.sectionStyles?.[index]};
+      // The six families arc_value_model.json was trained on (73 features); any
+      // other family encodes as none of them until the model is retrained.
       return [style.guides===false?0:1,style.railLayout==='transfer'?1:0,
         ...['arcs','fold','serpentine','scallops','terraces','scattered'].map(name=>
           options.constructionRequests?.[index]?.construction===name?1:0)];

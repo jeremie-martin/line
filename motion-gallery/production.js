@@ -1,8 +1,8 @@
 import {prepareView} from './replay.js';
 import {createContactImpactReview} from './contact-impact-review.js';
 const $=id=>document.getElementById(id),audio=$('audio');
-const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
-let catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
+// Geometry-family labels by id, from the compiler's catalog.
+let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
 const audioCache=new Map();
 const impactReview=createContactImpactReview({seek:t=>{pause();$('movie').pause();seek(t);}});
 const scoreName=r=>r.impactContract?'Impact quality ('+r.impactContract+')':'Landing score (previous objective)';
@@ -150,4 +150,4 @@ async function loadLibrary(){try{
  const initial=interactionReview?.initial.manifest??params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
  if(initial){const at=Math.max(0,Number(params.get('t'))||interactionReview?.initial.range[0]||0);$('comparison').checked=!interactionReview&&params.get('compare')==='previous';await openResult(initial,undefined,interactionReview?Math.round(at*40)/40:at);}
  }catch(e){$('library').textContent=e.message;}}
-try{catalog=await api('catalog');$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const [key,name]of Object.entries(names)){const label=el('label'),input=el('input');input.type='checkbox';input.value=key;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}
+try{catalog=await api('catalog');names=Object.fromEntries(catalog.constructions.map(c=>[c.id,c.label]));$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const {id,label:name}of catalog.constructions){const label=el('label'),input=el('input');input.type='checkbox';input.value=id;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

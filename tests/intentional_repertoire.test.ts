@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_repertoire.ts';
-import {planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
+import {constructions,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import {inspectLayout} from '../scripts/v0/optimizer/repertoire_layout.ts';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {normalizeArcControl} from '../scripts/v0/optimizer/arc_motion_control.ts';
@@ -23,7 +23,7 @@ describe('intentional arrangement',()=>{
   const quiet=all(spec),energetic=all(lively);
   expect(quiet.filter(r=>r.guidance==='forbidden').length).toBeGreaterThan(energetic.filter(r=>r.guidance==='forbidden').length*2);
   expect(quiet.some(r=>r.guidance==='required')).toBe(true);
-  expect(new Set(energetic.map(r=>r.construction)).size).toBe(6);
+  expect(new Set(energetic.map(r=>r.construction)).size).toBe(constructions.length);
   expect(energetic.some(r=>r.railLayout==='transfer')).toBe(true);
   expect(energetic.every(r=>r.railLayout!=='transfer'||r.guidance==='required'&&r.construction!=='scattered')).toBe(true);
  });

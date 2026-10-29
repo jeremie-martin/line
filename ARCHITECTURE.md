@@ -18,8 +18,8 @@ spec (beats, impacts, air/speed/amplitude targets)
    intentional construction plan (`line.repertoire-policy.v2`, as in the V6
    fixed panel). Nothing else is supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
-   `repertoire_policy.ts`) chooses a construction for each support section:
-   open arc, guided shape (arcs, folds, ripples, serpentines, terraces), or
+   `repertoire_policy.ts`) chooses a construction for each support section
+   from the geometry families (below): an open arc, a guided shape, or
    scattered segments. It also chooses paired versus later-receiver rail
    layouts, grouped into short repeated phrases. It is seeded and reproducible,
    and it uses the requested impact and speed (for example, calm passages
@@ -79,6 +79,50 @@ spec (beats, impacts, air/speed/amplitude targets)
 5. **Review.** `scripts/produce/automatic.ts` writes a manifest of track, report
    and evidence that `motion-gallery/production.html` plays with the real rider
    and the music. `render_repertoire.ts` renders vertical video when wanted.
+
+## Geometry families
+
+A geometry family is one row of `GEOMETRY_FAMILIES`
+(`scripts/v0/optimizer/geometry_families.ts`), the wardrobe of support shapes:
+
+- **`label`**: its name on the review page, which receives the list from the
+  catalog API.
+- **`style`**: the profile settings its sections are built with
+  (`constructionStyle`). The learned construction archives key on the
+  resulting style, so changing a value leaves the family without its archived
+  demonstrations.
+- **`heading`**: for a shaped family, its tangent schedule. The family's id is
+  then its motion profile (`motion_profiles.ts` dispatches on it).
+
+Everything else is shared machinery. Plain `arcs` and `scattered` fragments
+are rows without a heading, and the planner, search and layout checks treat
+them by name. Row order is the default repertoire and the planner's draw
+order, so adding or reordering a row changes seeded plans. Adding a family is
+therefore a behavioural change, even though it touches only this module:
+
+- The automatic parity cells pin the six-family repertoire explicitly, so
+  parity does not detect it. `npm run eval` uses the default repertoire.
+- `tests/benchmark_v6.test.ts` reproduces the frozen V6 automatic plans from
+  the default preferences. It fails until it plans from their stored
+  preferences, as the V6 runner does. That is the deliberate acknowledgement.
+- The review page checks its default form against the saved collection
+  (`check_production_ui.mjs`), so the collection needs regenerating.
+
+What the table deliberately does not hold:
+
+- The fold's own search controls (`foldBend`, `foldTiming`, `foldBias`), its
+  compact proposals and its receiving-fold geometry (`arc_motion_control.ts`,
+  `arc_proposals.ts`, `observed_receiver.ts`).
+- The realization checks, shared with the frozen judge: a fold needs its
+  corners, and every other shaped family needs two turn reversals
+  (`repertoire_realization.ts`, `repertoire_layout.ts`).
+- The future-value model's construction features: a one-hot over the six
+  families it was trained on (`arc_compile_context.ts`). A new family encodes
+  as none of them until the model is retrained.
+- Numeric shape controls. `rippleCycles` and `foldAngle` are accepted only by
+  ripples and folds (`validProfileControls`). A new control is a new
+  section-style field: the style type, `SECTION_STYLE_KEYS`,
+  `EVALUATION_IDENTITY` and the construction memory key.
 
 ## Measurement
 
@@ -242,12 +286,12 @@ Known limits of the strike account:
   and `motion_quality.ts`, and line-to-section attribution relies on the line-ID
   numbering convention `floor((id − 1000) / 10000)`. Since V6 is frozen by its
   outputs, these files can now be cleaned safely, provided `npm run parity:judge`
-  stays green.
+  stays green. Their realization checks (with `repertoire_realization.ts`) are
+  the one per-family rule outside the geometry-family table.
 - **Comparison objectives.** Besides the product's v3, the `landing` compile
   mode (the V6 sentinel) and `line.strike.v1`/`v2` remain comparison measurement accounts. They share
   the current search; reproducing old compilers requires their recorded revisions. They go, with the landing-specific validity rules in
   `arc_evaluate.ts`, once the owner is satisfied.
-- **Geometry families are not modular.** A new profile touches about 10 files.
 
 Production collections declare their timing offset and resolved song identities.
 Every saved member must agree with the collection's compiler, request and input

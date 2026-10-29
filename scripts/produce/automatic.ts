@@ -34,7 +34,8 @@ const {compileHandoff}:typeof import('../v0/optimizer/handoff.ts')=await import(
 const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
  'scripts/gallery/artifacts.ts','scripts/gallery/contact_impact_grade.ts','scripts/lib/contact_impact.ts','scripts/v0/optimizer/impact_search.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
  'scripts/produce/jolt.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
- 'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/arc_motion_control.ts'];
+ 'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/geometry_families.ts',
+ 'scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
 const {spec,musicCase:c}=await loadMusicCase({song,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
 const methodDetails={production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};

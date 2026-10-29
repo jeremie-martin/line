@@ -1,5 +1,6 @@
 /** The songs and settings the production page offers. */
-import {creativePreferences,type CreativePreferences} from '../v0/optimizer/repertoire_policy.ts';
+import {constructions,creativePreferences,type CreativePreferences} from '../v0/optimizer/repertoire_policy.ts';
+import {GEOMETRY_FAMILIES} from '../v0/optimizer/geometry_families.ts';
 import {productionBudget} from '../v0/optimizer/production_budget.ts';
 export const repertoireSongs=[
  {id:'luna_bala_44s',title:'Luna Bala',duration:44},
@@ -7,7 +8,8 @@ export const repertoireSongs=[
  {id:'tiki_tiki_48s',title:'Tiki Tiki',duration:48},
  {id:'amour_de_ma_vie_44s',title:'L’amour de ma vie',duration:44.544},
 ];
-export const repertoireCatalog={songs:repertoireSongs};
+/** Every geometry family is offered under its label, in the planner's order. */
+export const repertoireCatalog={songs:repertoireSongs,constructions:constructions.map(id=>({id,label:GEOMETRY_FAMILIES[id].label}))};
 
 /** Automatic production uses broad preferences, never manually placed passages. */
 /** `budget` is optional on input and defaults to the length-scaled production allowance. */

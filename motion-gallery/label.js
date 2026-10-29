@@ -2,13 +2,14 @@
  * No source, compiler or measurement is shown. Answers are stored server-side
  * (POST /api/labels/<study>) so a session can resume on any device. */
 import {prepareView} from './replay.js';
+import {sha256Hex} from './sha256.js';
 
 const $ = id => document.getElementById(id), audio = $('audio'), canvas = $('canvas');
 const study = new URLSearchParams(location.search).get('study') ?? 'impact-2026-10';
 const state = {manifest: null, index: 0, answers: {}, labeled: new Set(), view: null, trace: null, clip: null,
   t: 0, playing: false, slow: false, last: 0, shownAt: 0, token: 0};
 const status = (text, error = false) => {$('status').textContent = text; $('status').classList.toggle('error', error);};
-const sha256 = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+const sha256 = sha256Hex;
 async function fetchChecked(url, digest) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`Cannot load ${url} (${response.status})`);

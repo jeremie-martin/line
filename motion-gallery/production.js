@@ -1,4 +1,5 @@
 import {prepareView} from './replay.js';
+import {sha256Hex} from './sha256.js';
 import {createContactImpactReview} from './contact-impact-review.js';
 const $=id=>document.getElementById(id),audio=$('audio');
 const names={arcs:'Arcs',fold:'Folds',serpentine:'S sweeps',scallops:'Ripples',terraces:'Terraces',scattered:'Scattered'};
@@ -14,12 +15,12 @@ const fmt=(v,n=2)=>Number.isFinite(v)?v.toFixed(n):'—';
 function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 async function api(path,body){const r=await fetch('/api/repertoire/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error??r.statusText);return d;}
-async function checked(url,signal,digest){const r=await fetch(url,{signal});if(!r.ok)throw new Error(`Artifact unavailable (${r.status})`);const bytes=await r.arrayBuffer();if(!digest){const sum=await fetch(url+'.sha256',{signal});if(!sum.ok)throw new Error('Missing artifact identity');digest=(await sum.text()).trim();}const actual=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');if(actual!==digest)throw new Error('Artifact checksum mismatch');return JSON.parse(new TextDecoder().decode(bytes));}
+async function checked(url,signal,digest){const r=await fetch(url,{signal});if(!r.ok)throw new Error(`Artifact unavailable (${r.status})`);const bytes=await r.arrayBuffer();if(!digest){const sum=await fetch(url+'.sha256',{signal});if(!sum.ok)throw new Error('Missing artifact identity');digest=(await sum.text()).trim();}const actual=await sha256Hex(bytes);if(actual!==digest)throw new Error('Artifact checksum mismatch');return JSON.parse(new TextDecoder().decode(bytes));}
 async function verifiedAudio(c,signal){
  let blob=audioCache.get(c.audioSha256);
  if(!blob){
   const response=await fetch('/'+c.audioPath,{signal});if(!response.ok)throw new Error('Music unavailable');
-  const bytes=await response.arrayBuffer(),digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
+  const bytes=await response.arrayBuffer(),digest=await sha256Hex(bytes);
   signal.throwIfAborted();if(digest!==c.audioSha256)throw new Error('Music does not match the saved recording');
   blob=new Blob([bytes],{type:'audio/mpeg'});
  }

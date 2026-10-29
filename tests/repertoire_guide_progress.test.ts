@@ -19,16 +19,20 @@ function reference(guide: TrackLine[], shaped: TrackLine[], totalLength: number)
   return out;
 }
 
-/** A wandering polyline, with zero-length steps, repeated segments and a parallel rail. */
+/** A wandering polyline that may loop back on itself or jump far away, with
+ * zero-length steps, repeated segments and a parallel or distant rail. */
 function rails(seed: number) {
   const rng = makeRng(seed), origin = (rng() - .5) * 2e5, shaped: TrackLine[] = [], guide: TrackLine[] = [];
   let x = origin, y = origin / 3, heading = rng() * 6;
-  for (let k = 0; k < 20 + Math.floor(rng() * 200); k++) {
-    const step = rng() < .05 ? 0 : 1 + rng() * 15; heading += (rng() - .5) * .8;
+  const turn = rng() < .3 ? .5 : .1, count = 20 + Math.floor(rng() * (rng() < .5 ? 1200 : 300)), jumps = rng() < .2;
+  for (let k = 0; k < count; k++) {
+    const step = rng() < .05 ? 0 : 1 + rng() * 15; heading += (rng() - .5) * turn * 2;
+    if (jumps && rng() < .01) {x += (rng() - .5) * 4e4; y += (rng() - .5) * 4e4;}
     const line = {id: 1000 + k, type: 0, x1: x, y1: y, x2: x + step * Math.cos(heading), y2: y + step * Math.sin(heading)} as TrackLine;
     shaped.push(line); if (rng() < .05) shaped.push({...line, id: 5000 + k});
     x = line.x2; y = line.y2;
-    const offset = rng() < .1 ? 0 : (rng() < .5 ? 1 : -1) * rng() * 60, nx = -Math.sin(heading) * offset, ny = Math.cos(heading) * offset;
+    const offset = rng() < .1 ? 0 : (rng() < .5 ? 1 : -1) * rng() * (rng() < .1 ? 200 : 60);
+    const nx = -Math.sin(heading) * offset, ny = Math.cos(heading) * offset;
     if (rng() < .7) guide.push({id: 9000 + k, type: 0, x1: line.x1 + nx, y1: line.y1 + ny, x2: line.x2 + nx, y2: line.y2 + ny} as TrackLine);
   }
   return {shaped, guide, totalLength: shaped.reduce((s, l) => s + length(l), 0)};
@@ -39,4 +43,14 @@ it('finds the same nearest shaped location as scanning every segment', () => {
     const {shaped, guide, totalLength} = rails(seed);
     expect(guideProgress(guide, shaped, totalLength)).toEqual(reference(guide, shaped, totalLength));
   }
+});
+
+it('handles empty rails and unindexable geometry like the full scan', () => {
+  const {shaped, guide, totalLength} = rails(7);
+  expect(guideProgress([], shaped, totalLength)).toEqual([]);
+  expect(guideProgress(guide, [], 0)).toEqual(reference(guide, [], 0));
+  const broken = [...shaped, {...shaped[0], id: 77, x2: NaN}];
+  expect(guideProgress(guide, broken, totalLength)).toEqual(reference(guide, broken, totalLength));
+  const strayGuide = [...guide, {...guide[0], id: 78, y1: Infinity}];
+  expect(guideProgress(strayGuide, shaped, totalLength)).toEqual(reference(strayGuide, shaped, totalLength));
 });

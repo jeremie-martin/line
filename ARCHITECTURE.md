@@ -238,10 +238,14 @@ Known limits of the strike account:
     previous two-interval lookahead and neighbor-response paths are removed.
   - Results are not monotone in budget.
   - The October 5 campaign improves impact loss, but does not eliminate allocation
-    failures: the 336-case catalog exchanges one completion for another. A long
-    supported 93-second case takes about twice the original CPU cost, while six
-    production inputs cost 6.9% more. Physical frames alone are not a CPU model;
-    see `docs/research/quality-20261005-decision.json`.
+    failures: the 336-case catalog exchanges one completion for another.
+  - Physical frames alone are not a CPU model. Candidates in long supported
+    sections carry up to about 2,000 main and 2,000 guide segments, so their
+    construction inspection and the engine's line registration grow with the
+    section. After the October 29 structural fixes (REWORK.md), CPU per physical
+    frame no longer grows with ride length. In the 93-second case, engine line
+    registration and removal take about a quarter of the CPU, physics stepping
+    16%, guide attribution 15% and garbage collection 11%.
 - **Duplication.**
   - There are two physics engine copies: `engine-rs` (judge) and
     `scripts/lib/native_motion` (compiler facilities).

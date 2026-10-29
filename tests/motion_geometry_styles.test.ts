@@ -2,7 +2,7 @@ import {expect,it} from 'vitest';
 import {motionArc,arcMainSteps} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {MOTION_PROFILES,foldTime} from '../scripts/v0/optimizer/motion_profiles.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
-import {galleryArcOptions} from '../scripts/gallery/methods.ts';
+import {constructionStyle} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],v={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
@@ -128,14 +128,10 @@ it('builds a distinct normal geometry for every profile without changing ordinar
 });
 it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget',method=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:25000,samples:24,channel:12,radius:24,...galleryArcOptions(method)};
+  const options={budget:25000,samples:24,channel:12,radius:24,
+    ...constructionStyle({section:0,frame:1,next:2,construction:method,guidance:'required'})};
   const result=compileArcMotion(spec,17,options);
   expect(result.track.lines.length).toBeGreaterThan(0);
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
-});
-
-it('offers paired guides in the gallery',async()=>{
-  const {galleryActiveMethods}=await import('../scripts/gallery/methods.ts');
-  expect(galleryActiveMethods).toContain('paired');
 });

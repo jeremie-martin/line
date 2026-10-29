@@ -47,7 +47,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const fragmentSections:number[]=production?.fragmentSections??composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
     const railGuides=production?.railGuides??composition?.railGuides;
     const groups=arcRailGroups(result.track.lines.filter((l:any)=>!fragmentSections.includes(Math.floor((l.id-1000)/10000))));
-    const inspection=inspectRailContacts({method,railLayout,railGuides,track:result.track},collisionIds!);
+    const inspection=inspectRailContacts({railLayout,railGuides,track:result.track},collisionIds!);
     const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
       guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
     const valid=validRide({report:result.report,impactEvaluation});

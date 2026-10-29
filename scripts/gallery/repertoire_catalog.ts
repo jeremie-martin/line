@@ -7,6 +7,7 @@ export const repertoireSongs=[
  {id:'amor_na_praia_46s',title:'Amor na Praia',duration:46},
  {id:'tiki_tiki_48s',title:'Tiki Tiki',duration:48},
  {id:'amour_de_ma_vie_44s',title:'L’amour de ma vie',duration:44.544},
+ {id:'trouble_50s',title:'Trouble',duration:50.3},
 ];
 const phrase=(title:string,start:number,end:number,recipe:any,controls?:any)=>({title,start,end,recipe,...(controls?{controls}:{})});
 const ripple={profileStart:0,profileStrength:1,rippleCycles:1};

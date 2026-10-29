@@ -52,6 +52,9 @@ spec (beats, impacts, air/speed/amplitude targets)
    Candidate scoring reuses the reported span axes for its residuals; only a
    targeted, capped amplitude needs a separate raw-peak read to preserve
    search pressure above the reporting cap. Reported axes remain capped.
+   A candidate that leaves its interval's prefix unchanged reuses the prefix
+   frames and resumes the prefix's detector state, so it reads and scans only
+   its own frames; the detection is identical to scanning the whole ride.
 
    Scattered sections use resolved collision positions from the carrier's
    original simulation. Reading those cached records advances no physics;

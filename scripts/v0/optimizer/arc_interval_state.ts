@@ -2,7 +2,7 @@
  * interval, the physical boundary it starts from (read once, on the meter),
  * and the measured candidates that proposals and local search accumulate. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { getRiderMetered, extractRawTrajectory, detect } from '../../lib/detector.ts';
+import { getRiderMetered, extractRawTrajectory, detect, detectPrefix } from '../../lib/detector.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { CALIB, impactToRawPx, type AxisValues, type Gap, type TrackLine } from '../types.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
@@ -64,7 +64,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   getRiderMetered(engine, frame);
   const trace = engine.readCollisionTrace()[0];
   const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
-  const prefixRaw = extractRawTrajectory(engine, frame - 1);
+  const prefixRaw = extractRawTrajectory(engine, frame - 1), prefixDetection = detectPrefix(prefixRaw);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
   const prefixImpactFrames = account ? account.observe(engine, prefixRaw.frames, beforeState) : undefined;
   const impactPrefix = account ? account.prefix(prefixImpactFrames!) as any : undefined;
@@ -114,7 +114,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     ctx, options, i, engine, protectedEngines, controlMemory,
     frame, gap, next, horizon, outgoing, targets, objectiveEnd,
     beforeState, before, velocity, trace, points,
-    prefixRaw, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
+    prefixRaw, prefixDetection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, controlContext,
     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,

@@ -1,5 +1,47 @@
 # Foundations rework (started 2026-10-03)
 
+## October 29 follow-up: geometry-family registry
+
+Structural. A geometry family is now one row of `geometry_families.ts`: its
+review-page label, its fixed profile settings and, for a shaped family, its
+tangent schedule. The planner's family list and default repertoire, the
+section styles, the motion profiles and the review page's choices all read
+that table.
+
+Before, a new family had to touch at least four files: the profile schedule,
+the planner's list and section style, the review-page labels, and a test that
+counted six families. Two gallery recipe modules and the documentation needed
+edits to stay consistent. Extending the value model's six-family features
+was an undocumented trap: it breaks the model's 73-feature contract.
+
+A toy family added only as a table row plans, builds, compiles valid and
+passes its realization check (`tests/geometry_families.test.ts`). Adding a
+real row is still a behavioural change: ARCHITECTURE.md lists what it changes
+and which check fails on purpose. Parity cannot see it, because the automatic
+cells pin the six-family repertoire.
+
+Dead code removed:
+
+- `motionArc`'s `flow` and `wave` arguments;
+- rail contours and their gallery recipes;
+- the retired composition documents (`repertoire_plan.ts`, presets and
+  request validation) and the gallery recipe table they used.
+
+Validation, at each of the three commits:
+
+- compile parity 63/63 identical, judge parity 33/33;
+- all tests pass;
+- typecheck 0 errors, reachability 0 unreachable.
+
+An equivalence digest also matches the previous commit over a grid of inputs.
+It covers plans (including the default repertoire, which parity does not
+reach), section styles with key order, profile headings (bit-exact), profile
+validation and built geometry.
+
+Looking a heading up in the table costs about 20–30 ns more per shaped step
+than the old `switch`. One V6-budget automatic compile makes 1.09M such calls
+in 79 s, so the cost is at most about 0.04%.
+
 ## October 28 follow-up: reuse candidate span measurements
 
 Structural compiler work while the next behavioral direction is being considered.
@@ -120,7 +162,7 @@ harness.
   actually exists.
 - **Gate:** parity, judge parity, live tests and typecheck ceiling.
 
-### Phase 2 — Restructure (done; geometry registry and judge/compiler file separation remain)
+### Phase 2 — Restructure (done; judge/compiler file separation remains)
 
 - **Separate the contract.** Measurement (detector, impact rulers, scoring,
   layout checks) moves out of the compiler into `contract/`. It has an
@@ -132,7 +174,8 @@ harness.
   - Dead options are removed, and the memo key is derived from declared
     option sets.
   - There is one validity predicate.
-- **Geometry-family registry**, so a new family touches one module.
+- **Geometry-family registry**, so a new family touches one module (done:
+  `geometry_families.ts`).
 - **Replace the legacy-schema telemetry shim** with native telemetry.
 - **Gate:** parity (identical tracks), judge parity.
 
@@ -195,7 +238,9 @@ Only on validated measures:
   docs/research/compiler-budget-20261004.md);
 - lookahead value per frame;
 - learned models retrained on disjoint data, or removed;
-- extensibility proven by adding a geometry family through the registry.
+- extensibility proven by adding a geometry family through the registry
+  (shown with a toy family in `tests/geometry_families.test.ts`; a production
+  family remains).
 
 ## Log
 

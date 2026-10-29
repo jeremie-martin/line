@@ -3,11 +3,14 @@ import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
 import type {Spec} from '../types.ts';
 import type {ArcSectionStyle} from './arc_geometry.ts';
+import type {MotionProfile} from './motion_profiles.ts';
+import {GEOMETRY_FAMILIES,type Construction,type GeometryFamily} from './geometry_families.ts';
 import {repertoireMusicHash,repertoireContexts,type RepertoireContext,type ContextSpec} from './repertoire_context.ts';
 
 export const REPERTOIRE_POLICY='line.repertoire-policy.v1';
-export const constructions=['arcs','fold','serpentine','scallops','terraces','scattered'] as const;
-export type Construction=typeof constructions[number];
+/** Every geometry family, in table order: the default repertoire and the draw order. */
+export const constructions=Object.keys(GEOMETRY_FAMILIES) as Construction[];
+export type {Construction};
 export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
 export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance;
@@ -31,13 +34,9 @@ export function creativePreferences(input:CreativePreferences={}):Required<Creat
 }
 export function constructionStyle(r:ConstructionRequest):ArcSectionStyle{
   const base={guides:r.guidance!=='forbidden',...(r.railLayout?{railLayout:r.railLayout}:{}),...(r.context?{independentGuide:true}:{})};
-  switch(r.construction){
-    case 'fold':return {...base,profile:'fold',profileStart:0,profileStrength:1,faces:3,foldAngle:30};
-    case 'serpentine':return {...base,profile:'serpentine',profileStart:0,profileStrength:.8};
-    case 'scallops':return {...base,profile:'scallops',profileStart:0,profileStrength:1,rippleCycles:1};
-    case 'terraces':return {...base,profile:'terraces',profileStart:0,profileStrength:.8};
-    default:return base;
-  }
+  const family=(GEOMETRY_FAMILIES as Readonly<Record<string,GeometryFamily|undefined>>)[r.construction];
+  // A shaped family's id is its profile; its row fixes the profile's settings.
+  return {...base,...(family?.heading?{profile:r.construction as MotionProfile}:{}),...family?.style};
 }
 export function planRepertoire(spec:Pick<Spec,'duration'|'contacts'>,seed:number,input:CreativePreferences={},phraseBoundaries:number[]=[]):ProductionPlan{
   if(!Number.isSafeInteger(seed)||seed<0||seed>2147483647)throw new Error('seed must be a non-negative 31-bit integer');

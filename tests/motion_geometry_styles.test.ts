@@ -1,27 +1,25 @@
 import {expect,it} from 'vitest';
 import {motionArc,arcMainSteps} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {MOTION_PROFILES,foldTime} from '../scripts/v0/optimizer/motion_profiles.ts';
-import {RAIL_CONTOURS,railContours} from '../scripts/v0/optimizer/rail_contours.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
-import {galleryArcOptions} from '../scripts/gallery/methods.ts';
-import {makeSolidLine} from '../scripts/v0/arc.ts';
+import {constructionStyle} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],v={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
 
 it('can anchor a full fold on its actual first face without adding an approach corner',()=>{
  const style={profile:'fold' as const,faces:3,profileStart:0,profileStrength:1};
- const build=(alignedFoldEntry=false)=>motionArc(points,v,control,1000,false,12,false,24,4,{...style,alignedFoldEntry});
+ const build=(alignedFoldEntry=false)=>motionArc(points,v,control,1000,12,24,4,{...style,alignedFoldEntry});
  const lines=build(true),angle=(l:any)=>Math.atan2(l.y2-l.y1,l.x2-l.x1);
  expect(angle(lines[0])).toBeCloseTo(angle(lines[1]),12);
- expect(build()).toEqual(motionArc(points,v,control,1000,false,12,false,24,4,style));
+ expect(build()).toEqual(motionArc(points,v,control,1000,12,24,4,style));
  expect(lines).not.toEqual(build());
 });
 
 it('can keep a fold entry compact before a long runout without changing its face headings',()=>{
   const style={profile:'fold' as const,faces:3,profileStart:0,foldAngle:40};
   const c={...control,support:180,turnFraction:.1,bias:-2};
-  const build=(foldTiming?:number)=>motionArc(points,v,{...c,foldTiming},1000,false,0,false,0,4,style);
+  const build=(foldTiming?:number)=>motionArc(points,v,{...c,foldTiming},1000,0,0,4,style);
   const original=build(),compact=build(1);
   expect(build(0)).toEqual(original);
   expect(compact).toHaveLength(original.length);
@@ -43,15 +41,15 @@ it('moves fold corners without losing the selected headings or total support tim
     for(let i=1;i<=3;i++)expect(foldTime(i/3,first,bias)-foldTime((i-1)/3,first,bias)).toBeGreaterThanOrEqual(.2-1e-12);
   }
   const style={profile:'fold' as const,faces:3,profileStart:0,foldAngle:40};
-  const build=(c:any,s:any=style)=>motionArc(points,v,c,1000,false,0,false,0,4,s);
+  const build=(c:any,s:any=style)=>motionArc(points,v,c,1000,0,0,4,s);
   const a=build(control),b=build({...control,bias:-1,turnFraction:.6});
   expect(a).not.toEqual(b);
   for(let i=1;i<a.length;i++)expect(Math.atan2(a[i].y2-a[i].y1,a[i].x2-a[i].x1)).toBeCloseTo(Math.atan2(b[i].y2-b[i].y1,b[i].x2-b[i].x1),12);
   expect(build(control,{...style,profileStrength:0})).toEqual(build(control,{faces:3}));
-  expect(motionArc(points,v,control,1000,false,12,false,24,4,{...style,profileStrength:0}))
-    .toEqual(motionArc(points,v,control,1000,false,12,false,24,4,{faces:3}));
+  expect(motionArc(points,v,control,1000,12,24,4,{...style,profileStrength:0}))
+    .toEqual(motionArc(points,v,control,1000,12,24,4,{faces:3}));
   for(const bias of [-2,2])for(const turnFraction of [.1,.85]){
-    const lines=motionArc(points,v,{...control,bias,turnFraction},1000,false,12,false,24,4,style);
+    const lines=motionArc(points,v,{...control,bias,turnFraction},1000,12,24,4,style);
     const angles=lines.slice(1,4).map(l=>Math.atan2(l.y2-l.y1,l.x2-l.x1)*180/Math.PI);
     expect(angles[1]-(angles[0]+angles[2])/2).toBeCloseTo(40,10);
   }
@@ -61,7 +59,7 @@ it('moves fold corners without losing the selected headings or total support tim
 
 it('keeps a deliberate face count across support lengths and verifies physical continuity',()=>{
   for(const support of [5,20,35])for(const faces of [2,3,4]){
-    const lines=motionArc(points,v,{...control,support},1000,false,0,false,24,4,{faces});
+    const lines=motionArc(points,v,{...control,support},1000,0,24,4,{faces});
     expect(lines.length).toBe(faces+1);
     expect(lines.every(l=>l.type===0)).toBe(true);
     for(let i=1;i<lines.length;i++)expect([lines[i].x1,lines[i].y1]).toEqual([lines[i-1].x2,lines[i-1].y2]);
@@ -80,7 +78,7 @@ it('searches fixed faces without bypassing real geometry',()=>{
 });
 
 it('varies physical profile strength while preserving default and zero-strength geometry',()=>{
-  const build=(style?:Parameters<typeof motionArc>[9])=>motionArc(points,v,control,1000,false,12,false,24,4,style);
+  const build=(style?:Parameters<typeof motionArc>[7])=>motionArc(points,v,control,1000,12,24,4,style);
   for(const profile of MOTION_PROFILES){
     expect(build({profile,profileStrength:0})).toEqual(build());
     expect(build({profile,profileStrength:1})).toEqual(build({profile}));
@@ -91,7 +89,7 @@ it('varies physical profile strength while preserving default and zero-strength 
 });
 
 it('places ripple waves independently of the entry turn while retaining the inherited default',()=>{
-  const build=(style:any)=>motionArc(points,v,control,1000,false,12,false,24,4,style);
+  const build=(style:any)=>motionArc(points,v,control,1000,12,24,4,style);
   const inherited=build({profile:'scallops'});
   expect(build({profile:'scallops',rippleCycles:2})).toEqual(inherited);
   expect(build({profile:'scallops',profileStart:0,rippleCycles:1})).not.toEqual(inherited);
@@ -104,7 +102,7 @@ it('places ripple waves independently of the entry turn while retaining the inhe
 
 it('permits short folded entry faces before a long runout without weakening either corner',()=>{
  const c={...control,support:160,entry:15,turn:0,exit:0,foldBend:-35,foldTiming:1,turnFraction:5/160};
- const build=(foldBias?:number)=>motionArc(points,v,{...c,...(foldBias===undefined?{}:{foldBias})},1000,false,0,false,24,4,
+ const build=(foldBias?:number)=>motionArc(points,v,{...c,...(foldBias===undefined?{}:{foldBias})},1000,0,24,4,
   {profile:'fold',profileStart:0,profileStrength:1,faces:3,guides:false}).slice(1);
  const original=build(),compact=build(-5);
  const length=(l:any)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
@@ -116,49 +114,24 @@ it('permits short folded entry faces before a long runout without weakening eith
  expect(build(c.bias)).toEqual(original);
 });
 
-it('builds six distinct normal geometries without changing ordinary arcs or the input',()=>{
+it('builds a distinct normal geometry for every profile without changing ordinary arcs or the input',()=>{
   const original=structuredClone({points,v,control});
-  const base=motionArc(points,v,control,1000,false,12,false,24);
-  expect(motionArc(points,v,control,1000,false,12,false,24,4,{})).toEqual(base);
-  const shapes=[...MOTION_PROFILES.map(profile=>motionArc(points,v,control,1000,false,12,false,24,4,{profile})),
-    ...RAIL_CONTOURS.map(contour=>motionArc(points,v,control,1000,false,12,false,24,4,{contour}))];
-  expect(new Set([base,...shapes].map(lines=>JSON.stringify(lines)))).toHaveLength(1+MOTION_PROFILES.length+RAIL_CONTOURS.length);
+  const base=motionArc(points,v,control,1000,12,24);
+  expect(motionArc(points,v,control,1000,12,24,4,{})).toEqual(base);
+  const shapes=MOTION_PROFILES.map(profile=>motionArc(points,v,control,1000,12,24,4,{profile}));
+  expect(new Set([base,...shapes].map(lines=>JSON.stringify(lines)))).toHaveLength(1+MOTION_PROFILES.length);
   for(const lines of shapes){
     expect(new Set(lines.map(l=>l.id)).size).toBe(lines.length);
     expect(lines.every(l=>l.type===0&&!l.leftExtended&&!l.rightExtended&&Number.isFinite(Math.hypot(l.x2-l.x1,l.y2-l.y1))&&Math.hypot(l.x2-l.x1,l.y2-l.y1)>0)).toBe(true);
   }
   expect({points,v,control}).toEqual(original);
 });
-it('keeps ribbon rungs unique and their collision normals facing upstream',()=>{
-  const input=[makeSolidLine(1000,0,0,84,0)];
-  const out=railContours(input,'ribbon',1001);
-  const rungs=out.filter(l=>l.x1===l.x2);
-  expect(rungs).toHaveLength(4);
-  expect(new Set(rungs.map(l=>l.x1)).size).toBe(4);
-  for(const l of rungs)expect(-(l.y2-l.y1)*(l.flipped?-1:1)).toBeLessThan(0);
-  expect(out[0]).toEqual(input[0]);
-  expect(()=>railContours([{...input[0],type:1}],'teeth',1001)).toThrow('normal lines');
-  expect(()=>railContours([makeSolidLine(0,0,0,0,0)],'teeth',1)).toThrow('nondegenerate');
-});
 it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget',method=>{
   const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
-  const options={budget:25000,samples:24,channel:12,radius:24,...galleryArcOptions(method)};
+  const options={budget:25000,samples:24,channel:12,radius:24,
+    ...constructionStyle({section:0,frame:1,next:2,construction:method,guidance:'required'})};
   const result=compileArcMotion(spec,17,options);
   expect(result.track.lines.length).toBeGreaterThan(0);
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
-});
-
-it.each(RAIL_CONTOURS)('repeats the complete %s structure across the rail',kind=>{
-  const out=railContours([makeSolidLine(0,0,0,84,0)],kind,1);
-  for(const x of [14,42,70]){
-    const depth=kind==='ribbon'?12:kind==='teeth'?20:14;
-    expect(out.some(l=>Math.abs(l.x2-x)<1e-9&&Math.abs(l.y2-depth)<1e-9)).toBe(true);
-  }
-});
-
-it('offers paired guides independently of archived contour experiments',async()=>{
-  const {galleryActiveMethods}=await import('../scripts/gallery/methods.ts');
-  expect(galleryActiveMethods).toContain('paired');
-  for(const method of RAIL_CONTOURS)expect(galleryActiveMethods).not.toContain(method);
 });

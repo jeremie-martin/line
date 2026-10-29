@@ -1,10 +1,9 @@
 /** Contact inspection reads actual collision IDs, never geometric proximity. */
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
-import {galleryMethodDetails} from './methods.ts';
 import type {TrackLine} from '../v0/types.ts';
-type RecordInput={method:string;railLayout?:string;railGuides?:Record<number,number[]>;track:{lines:TrackLine[]}};
+type RecordInput={railLayout?:string;railGuides?:Record<number,number[]>;track:{lines:TrackLine[]}};
 export function inspectRailContacts(record:RecordInput,contacts:number[][]){
-  const layout=record.railLayout??galleryMethodDetails[record.method]?.railLayout;
+  const layout=record.railLayout;
   const groups=layout==='connected'?arcRailGroups(record.track.lines):null;
   const guideIds=new Set<number>(),guideGroups=new Map<number,number>();
   for(const [group,chains]of groups??[])for(const line of chains[1]??[]){guideIds.add(line.id);guideGroups.set(line.id,group);}

@@ -28,7 +28,7 @@ it('keeps accepted reflow controls synchronized with the geometry used by later 
     const row=r.rows[i],velocity=getRiderMetered(engine,row.frame).velocity;
     engine.prepareCollisionTrace(row.frame);getRiderMetered(engine,row.frame);
     const trace=engine.readCollisionTrace()[0],points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
-    const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,false,12,false,24)).get(i)!;
+    const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,12,24)).get(i)!;
     const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
     expect(actual[0]).toEqual(rebuilt[0]);
     // Guide pruning keeps only a contiguous, unchanged part of the rebuilt guide.

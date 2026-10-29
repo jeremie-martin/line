@@ -1,7 +1,11 @@
 /** Tangent schedules for concrete research geometry. The ordinary arc has no
- * profile. These shapes are constructed before simulation, never drawn over it. */
-export const MOTION_PROFILES = ['serpentine', 'terraces', 'scallops', 'fold'] as const;
-export type MotionProfile = typeof MOTION_PROFILES[number];
+ * profile. These shapes are constructed before simulation, never drawn over it.
+ * Each schedule is its family's row in geometry_families.ts. */
+import {GEOMETRY_FAMILIES,type Construction,type GeometryFamily} from './geometry_families.ts';
+const families:Readonly<Record<string,GeometryFamily|undefined>>=GEOMETRY_FAMILIES;
+/** A shaped family's id names its profile. */
+export type MotionProfile = Exclude<Construction, 'arcs' | 'scattered'>;
+export const MOTION_PROFILES = Object.keys(families).filter(id=>families[id]!.heading) as MotionProfile[];
 export type MotionProfileControls={profile?:MotionProfile;profileStrength?:number;profileStart?:number;rippleCycles?:number;foldAngle?:number};
 export function validProfileControls(s:MotionProfileControls):boolean {
   return (s.profile===undefined||MOTION_PROFILES.includes(s.profile))&&
@@ -10,9 +14,6 @@ export function validProfileControls(s:MotionProfileControls):boolean {
     (s.rippleCycles===undefined||s.profile==='scallops'&&Number.isInteger(s.rippleCycles)&&s.rippleCycles>=1&&s.rippleCycles<=3)&&
     (s.foldAngle===undefined||s.profile==='fold'&&Number.isFinite(s.foldAngle)&&Math.abs(s.foldAngle)<=75);
 }
-const rad = (degrees: number) => degrees * Math.PI / 180;
-const smooth = (x: number) => {x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
-
 /** Allocate the fold's three faces using the existing entry-duration and easing
  * controls. The corner headings stay deliberate while search can move them. */
 export function foldTime(phase:number,first=1/3,bias=0,minimum=.2):number {
@@ -32,21 +33,7 @@ export function foldTime(phase:number,first=1/3,bias=0,minimum=.2):number {
 export function profileHeading(profile: MotionProfile, base: number, phase: number, strength=1, rippleCycles=2,
   endpoints?:{start:number;exit:number;foldAngle?:number}): number {
   if(phase>=1)return base;
-  const w=Math.max(0,Math.min(1,phase));
-  const amount=24*strength;
-  switch(profile) {
-    case 'fold': {
-      if(!endpoints)throw new Error('fold requires its entry and exit headings');
-      const target=w<1/3?endpoints.start:w<2/3?(endpoints.start+endpoints.exit)/2+rad(endpoints.foldAngle??50):endpoints.exit;
-      return strength===1?target:base+strength*(target-base);
-    }
-    case 'serpentine': return base+rad(amount*1.6)*Math.sin(2*Math.PI*w)*Math.sin(Math.PI*w);
-    case 'scallops': return base+rad(amount)*Math.sin(2*rippleCycles*Math.PI*w);
-    case 'terraces': {
-      const p=(w*2)%1;
-      const step=smooth((p-.35)/.12)-smooth((p-.65)/.12);
-      return base+rad(amount*1.5)*(step-.3)*Math.sin(Math.PI*w);
-    }
-    default: throw new Error(`unknown motion profile: ${profile}`);
-  }
+  const heading=families[profile]?.heading;
+  if(!heading)throw new Error(`unknown motion profile: ${profile}`);
+  return heading(base,Math.max(0,Math.min(1,phase)),strength,rippleCycles,endpoints);
 }

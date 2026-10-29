@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_repertoire.ts';
-import {planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
+import {constructions,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import {inspectLayout} from '../scripts/v0/optimizer/repertoire_layout.ts';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {normalizeArcControl} from '../scripts/v0/optimizer/arc_motion_control.ts';
@@ -23,7 +23,7 @@ describe('intentional arrangement',()=>{
   const quiet=all(spec),energetic=all(lively);
   expect(quiet.filter(r=>r.guidance==='forbidden').length).toBeGreaterThan(energetic.filter(r=>r.guidance==='forbidden').length*2);
   expect(quiet.some(r=>r.guidance==='required')).toBe(true);
-  expect(new Set(energetic.map(r=>r.construction)).size).toBe(6);
+  expect(new Set(energetic.map(r=>r.construction)).size).toBe(constructions.length);
   expect(energetic.some(r=>r.railLayout==='transfer')).toBe(true);
   expect(energetic.every(r=>r.railLayout!=='transfer'||r.guidance==='required'&&r.construction!=='scattered')).toBe(true);
  });
@@ -31,9 +31,9 @@ describe('intentional arrangement',()=>{
 describe('independent guide geometry and deliberate transfer',()=>{
  const points=[{x:0,y:0},{x:8,y:0}],v={x:6,y:2},c={entry:0,turn:5,exit:30,support:18,bias:0,offset:0};
  it('leaves ordinary geometry unchanged and keeps the full guide when shortening support',()=>{
-  const old=motionArc(points,v,c,1000,false,12),zero=motionArc(points,v,{...c,guideTilt:0},1000,false,12,false,0,4,{independentGuide:true});
+  const old=motionArc(points,v,c,1000,12),zero=motionArc(points,v,{...c,guideTilt:0},1000,12,0,4,{independentGuide:true});
   expect(zero).toEqual(old);
-  const shortened=motionArc(points,v,{...c,mainEnd:.5},1000,false,12,false,0,4,{railLayout:'transfer'});
+  const shortened=motionArc(points,v,{...c,mainEnd:.5},1000,12,0,4,{railLayout:'transfer'});
   const split=old.findIndex((l,i)=>i>0&&(old[i-1].x2!==l.x1||old[i-1].y2!==l.y1));
   expect(shortened.filter(l=>l.id>=old[split].id)).toEqual(old.slice(split));
   expect(shortened.length).toBeLessThan(old.length);
@@ -41,11 +41,11 @@ describe('independent guide geometry and deliberate transfer',()=>{
  });
  it('searches a folded face angle while preserving the declared default',()=>{
   const style={profile:'fold' as const,profileStart:0,faces:3,foldAngle:30,independentGuide:true};
-  const implicit=motionArc(points,v,c,1000,false,12,false,0,4,style);
+  const implicit=motionArc(points,v,c,1000,12,0,4,style);
   const normalized=normalizeArcControl(c,{...style,span:30});
   expect(normalized.foldBend).toBe(30);
-  expect(motionArc(points,v,normalized,1000,false,12,false,0,4,style)).toEqual(implicit);
-  const other=motionArc(points,v,{...normalized,foldBend:-30},1000,false,12,false,0,4,style);
+  expect(motionArc(points,v,normalized,1000,12,0,4,style)).toEqual(implicit);
+  const other=motionArc(points,v,{...normalized,foldBend:-30},1000,12,0,4,style);
   expect(other).not.toEqual(implicit);
   expect(other.every(l=>l.type===0)).toBe(true);
   expect(normalizeArcControl({...c,foldBend:-30},{span:30})).toEqual(c);

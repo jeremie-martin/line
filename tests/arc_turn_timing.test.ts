@@ -6,8 +6,8 @@ it('materializes the inherited turn without changing a long physical curve',()=>
   for(const support of [2,12,50,80,172]){
     const c={entry:12,turn:-20,exit:25,support,bias:.2,offset:.1};
     const implicit=Math.min(5,support*.5)/support;
-    const original=motionArc(points,velocity,c,1000,false,12,false,24);
-    const explicit=motionArc(points,velocity,{...c,turnFraction:normalizeArcTurnFraction(implicit,support)},1000,false,12,false,24);
+    const original=motionArc(points,velocity,c,1000,12,24);
+    const explicit=motionArc(points,velocity,{...c,turnFraction:normalizeArcTurnFraction(implicit,support)},1000,12,24);
     expect(explicit).toEqual(original);
   }
 });

@@ -1,15 +1,14 @@
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
-import {railContours, type RailContour} from './rail_contours.ts';
 import {profileHeading,foldTime,validProfileControls,type MotionProfileControls} from './motion_profiles.ts';
 import { makeSolidLine } from '../arc.ts';
 import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
-export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;contour?:RailContour;faces?:number;
+export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;faces?:number;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean};
-export type ArcSectionStyle=Omit<ArcGeometryStyle,'contour'>&{subdivisions?:number};
+export type ArcSectionStyle=ArcGeometryStyle&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
@@ -33,8 +32,8 @@ export function arcMainSteps(support:number,subdivisions=4,faces?:number):number
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, flow=false, channel=0, wave=false, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{
-  const {profile,contour}=style??{};
+export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{
+  const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);
   const alignedFold=style?.alignedFoldEntry&&profile==='fold'&&style.profileStart===0&&(style.profileStrength??1)===1;
@@ -50,7 +49,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   let v=Math.max(2,velocity.x*t.x+velocity.y*t.y),previousAngle=entry;
   const uniformDt=c.support/steps;
   for(let k=0;k<steps;k++){
-    const first=c.turnFraction===undefined?Math.min(wave?6:5,c.support*.5):c.support*c.turnFraction;
+    const first=c.turnFraction===undefined?Math.min(5,c.support*.5):c.support*c.turnFraction;
       const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
     let dt=uniformDt,time=(k+.5)*dt;
     if(profile==='fold'&&(style?.profileStrength??1)>0){
@@ -63,7 +62,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     }
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
     const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
-    let a=rad(time<first?c.entry+c.turn*(wave?Math.sin(Math.PI*u):easing(u)):lerp(c.entry+(wave?0:c.turn),c.exit,easing(w)));
+    let a=rad(time<first?c.entry+c.turn*easing(u):lerp(c.entry+c.turn,c.exit,easing(w)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
@@ -74,11 +73,6 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     // Their full corner geometry must pass physical evaluation instead.
     const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
     if(radius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
-    if(flow){
-      // A passive supporting surface cannot turn downward faster than free
-      // fall without releasing. Limit the opposite turn to a finite load.
-      a=clamp(a,previousAngle-3/Math.max(2,v)*dt,previousAngle+Math.max(0,.7*.175*Math.cos(previousAngle)/Math.max(2,v))*dt);
-    }
     previousAngle=a;
     v=Math.max(1,v+.175*Math.sin(a)*dt);
     const xx=x+Math.cos(a)*v*dt, yy=y+Math.sin(a)*v*dt;
@@ -127,6 +121,5 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     }
     return orient(retained,lines.slice(mainCount));
   }
-  const oriented=side===1?lines:orient(lines.slice(0,mainCount),lines.slice(mainCount));
-  return contour?railContours(oriented,contour,id):oriented;
+  return side===1?lines:orient(lines.slice(0,mainCount),lines.slice(mainCount));
 }

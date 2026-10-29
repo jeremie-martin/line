@@ -132,7 +132,7 @@ export function arcReferencedControl(reference: ArcControlReference, incoming: n
 /** A neighborhood in authored control space, not a physical-equivalence claim.
  * Keep distinct expressive shapes available to the real-engine evaluator.
  * Conservatively distinguish omitted optional fields: their defaults can depend
- * on channel/wave settings and explicit guide endpoints have a length floor. */
+ * on the channel setting and explicit guide endpoints have a length floor. */
 export function arcControlsSimilar(a: ArcMotionControl, b: ArcMotionControl): boolean {
   return ARC_CONTROL_KEYS.every(key => {
     const x = a[key], y = b[key];

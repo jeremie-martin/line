@@ -8,7 +8,7 @@ import {join,resolve,relative} from 'node:path';
 import {resolveJoltMs} from '../produce/jolt.ts';
 import {compilerIdentity} from '../lib/compiler_identity.ts';
 import {loadSelect} from '../produce/config.ts';
-import {repertoireCatalog,validateGalleryRequest,isAutomatic,requestSong,type GalleryRequest} from './repertoire_catalog.ts';
+import {repertoireCatalog,validateAutomaticProductionRequest,type AutomaticProductionRequest} from './repertoire_catalog.ts';
 const hash=(data:string|Buffer)=>createHash('sha256').update(data).digest('hex');
 const json=(res:ServerResponse,data:unknown,status=200)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
 async function body(req:IncomingMessage){let text='';for await(const chunk of req){text+=chunk;if(Buffer.byteLength(text)>65536)throw new Error('request exceeds 64 KiB');}return JSON.parse(text);}
@@ -21,7 +21,7 @@ function completeArtifacts(directory:string){
  }catch{return false;}
 }
 const save=(path:string,value:unknown)=>{writeFileSync(path+'.tmp',JSON.stringify(value)+'\n');renameSync(path+'.tmp',path);};
-type Job={id:string;created:string;updated:string;status:'queued'|'compiling'|'complete'|'error'|'cancelled';request:GalleryRequest;identity:string;
+type Job={id:string;created:string;updated:string;status:'queued'|'compiling'|'complete'|'error'|'cancelled';request:AutomaticProductionRequest;identity:string;
  manifest?:string;valid?:boolean;qualified?:boolean;error?:string;render?:'queued'|'rendering'|'complete'|'error';renderError?:string};
 export function createRepertoireApi(root=process.cwd()){
  const storage=join(root,'generated/repertoire-jobs'),jobs=new Map<string,Job>(),queue:Array<{id:string;render:boolean}>=[];
@@ -34,14 +34,14 @@ export function createRepertoireApi(root=process.cwd()){
    if(['queued','rendering'].includes(job.render??'')){job.render='error';job.renderError='Rendering interrupted when the server stopped.';persist(job);}jobs.set(id,job);
   }catch{/* A partial job record is never treated as a completed output. */}
  }};
- function identity(request:GalleryRequest){
+ function identity(request:AutomaticProductionRequest){
   // Includes untracked compiler sources and engine bytes, plus the authored inputs,
   // jolt environment and all of the shared artifact harness. Never cache by title.
   const compiler=compilerIdentity(root).candidateFingerprint;
   const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
    'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/jolt.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
-   ...readdirSync(join(root,'productions',requestSong(request))).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${requestSong(request)}/${p}`)];
-  const cfg=loadSelect(join(root,'productions',requestSong(request)));
+   ...readdirSync(join(root,'productions',request.song)).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${request.song}/${p}`)];
+  const cfg=loadSelect(join(root,'productions',request.song));
   return hash(JSON.stringify({request,compiler,jolt:resolveJoltMs(),spec:hash(readFileSync(cfg.spec)),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
  }
  function pump(){
@@ -62,7 +62,7 @@ export function createRepertoireApi(root=process.cwd()){
    if(job.status!=='cancelled'){
     try{if(error)throw new Error(error);
      if(item.render){const m=read(join(dir,'output/manifest.json'));for(const c of m.cells.filter((c:any)=>c.valid))if(!existsSync(join(dir,'output',c.id+'.video.json')))throw new Error('missing completed video');job.render='complete';}
-     else{if(identity(job.request)!==job.identity)throw new Error('Inputs changed during compilation; start a new request');const m=read(join(dir,'output/manifest.json'));job.status='complete';const cell=m.cells.find((c:any)=>c.method===(isAutomatic(job.request)?'production':'composition'));job.valid=cell?.valid===true;job.qualified=cell?.production?.qualified;job.manifest='/'+relative(root,join(dir,'output/manifest.json'));}
+     else{if(identity(job.request)!==job.identity)throw new Error('Inputs changed during compilation; start a new request');const m=read(join(dir,'output/manifest.json'));job.status='complete';const cell=m.cells.find((c:any)=>c.method==='production');job.valid=cell?.valid===true;job.qualified=cell?.production?.qualified;job.manifest='/'+relative(root,join(dir,'output/manifest.json'));}
     }catch(e){if(item.render){job.render='error';job.renderError=String(e);}else{job.status='error';job.error=String(e);}}
    }
    persist(job);active.delete(item.render);pump();
@@ -79,9 +79,9 @@ export function createRepertoireApi(root=process.cwd()){
    const action=url.pathname.slice('/api/repertoire/'.length);
    if(req.method==='GET'&&action==='catalog'){json(res,repertoireCatalog);return true;}
    if(req.method==='GET'&&action==='jobs'){json(res,{jobs:[...jobs.values()].sort((a,b)=>b.created.localeCompare(a.created))});return true;}
-   if(req.method==='POST'&&action==='validate'){json(res,{request:validateGalleryRequest(await body(req))});return true;}
+   if(req.method==='POST'&&action==='validate'){json(res,{request:validateAutomaticProductionRequest(await body(req))});return true;}
    if(req.method==='POST'&&action==='compile'){
-    const request=validateGalleryRequest(await body(req));if(!isAutomatic(request))throw new Error('only automatic arrangements are supported');const key=identity(request);
+    const request=validateAutomaticProductionRequest(await body(req)),key=identity(request);
     const existing=[...jobs.values()].find(j=>j.identity===key&&['queued','compiling','complete'].includes(j.status)&&
      (j.status!=='complete'||completeArtifacts(directory(j.id))));
     if(existing){json(res,{job:existing,reused:true});return true;}

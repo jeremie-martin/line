@@ -31,7 +31,7 @@ it('lets explicit search timing represent the inherited long arc exactly', () =>
   const points = [{x: 0, y: 0}, {x: 1, y: 0}], velocity = {x: 6, y: 1};
   const explicit = normalizeArcControl({...long, turnFraction: arcControlValue(long, 'turnFraction')},
     {span: 220});
-  expect(motionArc(points, velocity, explicit, 1000, false, 12)).toEqual(motionArc(points, velocity, long, 1000, false, 12));
+  expect(motionArc(points, velocity, explicit, 1000, 12)).toEqual(motionArc(points, velocity, long, 1000, 12));
   expect(arcControlValue(control, 'clearance')).toBe(12);
   expect(arcControlValue(control, 'clearance', 0)).toBe(0);
   expect(arcControlValue({...control, bias: -.4}, 'foldBias')).toBe(-.4);

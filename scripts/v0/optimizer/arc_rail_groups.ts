@@ -1,7 +1,7 @@
 import type {TrackLine} from '../types.ts';
 
 /** Emitter contract: one main chain and at most one opposing guide per support.
- * Shared with gallery inspection; fragments and contoured experiments do not use it. */
+ * Shared with gallery inspection; fragments do not use it. */
 export function arcRailGroups(lines:TrackLine[]):Map<number,TrackLine[][]> {
   const groups = new Map<number, TrackLine[][]>();
   for (const line of lines) {

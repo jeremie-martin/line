@@ -25,7 +25,7 @@ export type SectionStyle = Omit<ArcSectionStyle, 'subdivisions' | 'alignedFoldEn
 
 /** Compile configuration. Section style fields at this level are defaults
  * for sections without a style; production sets them per section. */
-export type ArcMotionOptions = Omit<ArcGeometryStyle, 'contour' | 'alignedFoldEntry'> & {
+export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   // --- connectedArcOptions(): base allocation ---------------------------------
   /** Total physics-frame allowance, including two cold replays. */
   budget: number;

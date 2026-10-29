@@ -116,7 +116,7 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
-    const main = motionArc(s.points, s.velocity, c, 1000 + i * 10000, false, options.channel, false, options.radius, undefined, {...options, guides: false});
+    const main = motionArc(s.points, s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
     const supportEngine = add(engine, main), id = Math.max(...main.map(l => l.id)) + 1;
     const receiver = observedReceiver(supportEngine, main, s.frame, Math.min(s.horizon, ctx.duration), c, id, options, i === ctx.contacts.length - 1);
     if (!receiver) return {reason: 'receiver_no_window'};
@@ -127,7 +127,7 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   }
   const receivers = c.contactSide === -1 ? Object.values(s.trace) : s.points;
   const added = fragments?.lines ??
-    motionArc(receivers, s.velocity, c, 1000 + i * 10000, false, options.channel, false, options.radius, undefined, options);
+    motionArc(receivers, s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
   return {added, child: add(engine, added)};
 }
 

@@ -20,7 +20,7 @@ export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>
       const free=engine.getRider(row.frame);engine.prepareCollisionTrace(row.frame);engine.getRider(row.frame);
       const trace=engine.readCollisionTrace()[0],points=row.control.contactSide===-1?Object.values(trace):['PEG','TAIL','NOSE','STRING'].map(key=>trace[key]);
       const style={...options,...options.sectionStyles?.[i]};
-      const expected=arcRailGroups(motionArc(points,free.velocity,row.control,1000+i*10000,false,style.channel,false,style.radius,style.subdivisions,style)).get(i)![0];
+      const expected=arcRailGroups(motionArc(points,free.velocity,row.control,1000+i*10000,style.channel,style.radius,style.subdivisions,style)).get(i)![0];
       assert.deepEqual(groups.get(i)![0],expected,`main construction differs at support ${i}`);checked++;
     }finally{dispose();}
   }

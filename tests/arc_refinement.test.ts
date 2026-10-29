@@ -35,8 +35,8 @@ it('reconstructs a continuation with the original curve controls and preserves t
 it('expresses additional curvature and guide separation as connected normal curves', () => {
   const control = {entry: 5, turn: 50, exit: 15, support: 18, bias: 0, offset: .1};
   const points = [{x: 0, y: 0}, {x: 10, y: 0}], velocity = {x: 8, y: 1};
-  const ordinary = motionArc(points, velocity, control, 1000, false, 12, false, 24);
-  const expressive = motionArc(points, velocity, {...control, turnFraction: .6, bend: -25, guideFlare: 8}, 1000, false, 12, false, 24);
+  const ordinary = motionArc(points, velocity, control, 1000, 12, 24);
+  const expressive = motionArc(points, velocity, {...control, turnFraction: .6, bend: -25, guideFlare: 8}, 1000, 12, 24);
   expect(expressive).not.toEqual(ordinary);
   const chains: TrackLine[][] = [[]];
   for (const line of expressive) {

@@ -7,8 +7,8 @@ it('removes a geometrically inactive full-fold coordinate without changing its l
  const normalized=normalizeArcControl(control,{span:30,...style});
  expect(normalized.bend).toBeUndefined();
  const points=[{x:0,y:0},{x:5,y:1},{x:10,y:-1}];
- expect(motionArc(points,{x:8,y:2},normalized,1000,false,12,false,24,4,style))
- .toEqual(motionArc(points,{x:8,y:2},control,1000,false,12,false,24,4,style));
+ expect(motionArc(points,{x:8,y:2},normalized,1000,12,24,4,style))
+ .toEqual(motionArc(points,{x:8,y:2},control,1000,12,24,4,style));
  expect(arcResponseKeys(true,style)).not.toContain('bend');
  for(const active of [{...style,profileStrength:.8},{...style,profileStart:.8},{profile:'serpentine'}]){
   expect(arcResponseKeys(true,active)).toContain('bend');

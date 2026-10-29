@@ -42,7 +42,7 @@ it('counts a body-only contact with an opposing receiver as a strike, without ch
   const start={position:{x:0,y:0},velocity:{x:6,y:-3}},base=createArcEngine(start,[]);
   base.prepareCollisionTrace(10);const free=base.getRider(10),trace=base.readCollisionTrace()[0];
   const lines=motionArc(Object.values(trace),free.velocity,
-    {entry:0,turn:15,exit:35,support:8,bias:0,offset:.2,contactSide:-1},1000,false,0,false,24,4,{guides:false});
+    {entry:0,turn:15,exit:35,support:8,bias:0,offset:.2,contactSide:-1},1000,0,24,4,{guides:false});
   const engine=createArcEngine(start,lines),raw=extractRawTrajectory(engine,25);
   expect(engine.getRider(9).ballisticState()).toEqual(base.getRider(9).ballisticState());
   expect(raw.frames.every(f=>!f.riderEjected&&!f.sledBroken)).toBe(true);

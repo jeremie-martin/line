@@ -221,10 +221,6 @@ Known limits of the strike account:
   - Numeric settings that production never varies (weights, `channel`,
     `radius`, the refinement and memory allowances) are
     still options, because tests set other values.
-  - `arc_geometry.ts` still accepts the `flow` and `wave` arguments and rail
-    contours, which no production caller uses; the gallery catalog lists the
-    wave and contour recipes (contours archived). Faceted arcs (`subdivisions`)
-    are live.
 - **Budget rules are saturating caps tuned to V4.**
   - Local sample caps are in `connected_arcs.ts` and `repertoire_search.ts`.
     The default allowance (`production_budget.ts`, 1,700 frames per ride

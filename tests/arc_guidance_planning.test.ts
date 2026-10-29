@@ -12,9 +12,9 @@ const chains=(lines:TrackLine[])=>{const result:TrackLine[][]=[[]];for(const l o
 it('expresses single, partial and paired guidance as substantial connected normal curves',()=>{
   const control={entry:5,turn:55,exit:20,support:18,bias:0,offset:.1};
   const points=[{x:0,y:0},{x:10,y:0}],velocity={x:8,y:1};
-  const single=motionArc(points,velocity,{...control,guideEnd:0},1000,false,12,false,24);
-  const paired=motionArc(points,velocity,control,1000,false,12,false,24);
-  const partial=motionArc(points,velocity,{...control,clearance:16,guideStart:.2,guideEnd:.8},1000,false,12,false,24);
+  const single=motionArc(points,velocity,{...control,guideEnd:0},1000,12,24);
+  const paired=motionArc(points,velocity,control,1000,12,24);
+  const partial=motionArc(points,velocity,{...control,clearance:16,guideStart:.2,guideEnd:.8},1000,12,24);
   expect(chains(single)).toHaveLength(1);expect(chains(paired)).toHaveLength(2);expect(chains(partial)).toHaveLength(2);
   expect(chains(partial)[0]).toEqual(single);
   expect(chains(partial)[1].length).toBeLessThan(chains(paired)[1].length);

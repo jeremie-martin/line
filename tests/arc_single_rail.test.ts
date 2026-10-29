@@ -6,10 +6,10 @@ import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],velocity={x:9,y:2};
 const control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};
 it('enforces no guides even when proposals explicitly request full close guidance',()=>{
-  const expected=motionArc(points,velocity,control,1000,false,0,false,24);
+  const expected=motionArc(points,velocity,control,1000,0,24);
   for(const profile of [undefined,'serpentine','terraces','scallops'] as const){
-    const forced=motionArc(points,velocity,{...control,clearance:6,guideStart:0,guideEnd:1,guideFlare:-10},1000,false,12,false,24,4,{guides:false,profile});
-    expect(forced).toEqual(motionArc(points,velocity,control,1000,false,0,false,24,4,{profile}));
+    const forced=motionArc(points,velocity,{...control,clearance:6,guideStart:0,guideEnd:1,guideFlare:-10},1000,12,24,4,{guides:false,profile});
+    expect(forced).toEqual(motionArc(points,velocity,control,1000,0,24,4,{profile}));
     if(!profile)expect(forced).toEqual(expected);
   }
 });

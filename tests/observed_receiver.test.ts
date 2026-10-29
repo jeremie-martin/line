@@ -11,7 +11,7 @@ it.each([{support:4,horizon:80,flight:2},{support:2,horizon:9,flight:1}])('obser
   base.prepareCollisionTrace(1);const free=getRiderMetered(base,1),trace=base.readCollisionTrace()[0];
   const points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
   const control={entry:0,turn:0,exit:0,support,bias:0,offset:0,receiverFlight:flight,receiverEntry:8,receiverDuration:.5};
-  const main=motionArc(points,free.velocity,control,1000,false,0,false,24,4,{guides:false});
+  const main=motionArc(points,free.velocity,control,1000,0,24,4,{guides:false});
   const source=base.addLine(main),receiver=observedReceiver(source,main,1,horizon,control,2000,{radius:24},false);
   expect(receiver).not.toBeNull();
   const {guide,frame}=receiver!;

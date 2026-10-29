@@ -73,7 +73,8 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 |---|---|
 | `npm run produce -- --song=luna_bala_44s --seed=101 --out=DIR` | compile one automatic arrangement of a production song (optimizing the strike impact account) |
 | `npm run produce -- … --impact-contract=landing` | same with the previous landing objective (kept temporarily for comparison) |
-| `npm run serve` | review server on http://127.0.0.1:8767/ (native playback with music) |
+| `npm run serve` | review server on http://127.0.0.1:8767/ (native playback with music); `HOST=0.0.0.0` to reach it from other machines |
+| `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
@@ -81,6 +82,7 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:study` / `labels:analyze` | build a blind labelling study / compare measures with the owner's labels |
+| `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 
 ## Checks
 
@@ -102,7 +104,7 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `scripts/produce/` | production CLI, music artifacts, video rendering |
 | `scripts/gallery/`, `motion-gallery/` | review server API and the native production player |
 | `benchmark/v6/` | frozen V6 judge (+ the V3–V5 modules it is built from) |
-| `productions/` | the four production songs: spec, audio, render settings |
+| `productions/` | production songs: spec, measured events and analysis, render settings (the four evaluation songs, plus new music held out from compiler tuning) |
 | `beats/` | music analysis inputs and extraction scripts |
 | `labels/` | the owner's felt-impact labels and blind labelling studies (perceptual ground truth) |
 | `engine-rs/` | the Rust physics engine (judge); `vendor/lr-core` is the JS reference |

@@ -625,3 +625,20 @@ accumulate in production.
 05:34 UTC: Adopted the qualified coherent search and passive-catch preference, with all63 refreshed references in the same commit. Fresh musical v3 loss improves24.5%/13.5%; catalog improves14.6% overall with unchanged318/336 completion and explicit case tradeoff. Final six-case matched timing is+6.9% CPU/-2.1% peak RSS; controlled long-case timing confirms a2.06x CPU cost. All279 tests/type/reach and33 judge checks pass. Previous review is preserved. Final main-checkout replay will bind the four full musical videos to the integrated code and all saved physical measurements.
 
 05:41 UTC: Campaign complete. Integrated commit abdad07e reproduces all four full musical review tracks, work counts and every saved physical measurement exactly. Main typecheck/reach pass; final mobile scorecards, catalog controls and movie playback pass. Preserved107 complete evaluation runs,19 research datasets and the separate review:9,136 files/6.83GB, all bytes and source aliases verified. Large artifacts stay local; code, compact evidence and research scripts are committed/pushed. Previous report, blind study and unanswered questions remain untouched. Decision and limits: `docs/research/quality-20261005-decision.json`.
+
+2026-10-29/30: **Music authoring brought back** (no compiler change). A first
+draft of a new song, Trouble, was mostly wrong by the owner's ear. The single-mix
+analyzer had detected every flagged event; the draft was authored grid-first
+(half-time, out of phase with a 3-3-2 kick), read a near-zero sub-band as
+"beatless", and used onset strength as loudness. New workflow
+(docs/music-authoring.md):
+- Demucs stems and ADTOF drum transcription (`tools/music`);
+- an event list per instrument and close-up sheets;
+- a coverage report relative to the spec's own choices;
+- the spec dashboard restored read-only (`spec-dashboard/`,
+  `scripts/gallery/spec_api.ts`), with an events lane and clicks at landings.
+
+Trouble was re-authored event by event (draft v1). It is new music: keep it out
+of compiler tuning. The review pages now verify artifacts over plain HTTP on a
+LAN/VPN (`motion-gallery/sha256.js`); `crypto.subtle` exists only on localhost
+or HTTPS.

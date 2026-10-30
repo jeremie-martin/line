@@ -446,6 +446,13 @@ export class LineRiderEngine {
       },
     };
   }
+  /** Whether the rider is mounted and the sled intact at `frame`, simulating up
+   * to it if needed. Allocates nothing; callers meter through detector.ts. */
+  isBoundAtFrame(frame: number): boolean {
+    ex.get_rider(this.h, frame);
+    const sc = scratch();
+    return sc[4] === -1 && sc[5] === -1;
+  }
   getSledPointPositionsAtFrame(frame: number, out: number[] = []): number[] {
     ex.get_rider(this.h, frame);
     const sc = scratch();

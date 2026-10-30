@@ -659,6 +659,25 @@ export function getRiderMetered(engine: any, frame: number): any {
   return rider;
 }
 
+/** Whether the rider is still mounted and the sled intact at `frame` on a native
+ *  engine. An unbinding is permanent, so the replay stops at the first frame
+ *  where the rider or sled has come apart. Only the frames simulated are
+ *  charged, each checked against the limit before it is simulated. */
+// deno-lint-ignore no-explicit-any
+export function boundThroughMetered(engine: any, frame: number): boolean {
+  const before = engine.getLastFrameIndex() as number;
+  if (frame <= before) return engine.isBoundAtFrame(frame);
+  for (let f = before + 1; f <= frame; f++) {
+    if (_physicsFrameLimit !== null && _physicsFrames + 1 > _physicsFrameLimit) {
+      throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + 1);
+    }
+    const bound = engine.isBoundAtFrame(f);
+    chargePhysicsFrames(1);
+    if (!bound) return false;
+  }
+  return true;
+}
+
 // deno-lint-ignore no-explicit-any
 export function getSledPointPositionsMetered(engine: any, frame: number, out: number[] = []): number[] {
   const before = engineLastFrameIndex(engine);

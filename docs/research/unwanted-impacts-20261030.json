@@ -1,0 +1,1424 @@
+{
+ "schema": "line.research-evidence.v1",
+ "title": "Unwanted impacts: diagnosis (2026-10-30)",
+ "report": "docs/research/unwanted-impacts-20261030.md",
+ "provenance": {
+  "analysisCommit": "63b7a20cc24baeca3bee55a49290dca4741b36da",
+  "node": "v22.22.2",
+  "engineSha256": "12c25081c829506a57b022474174dd3e14b19ff8cd63d87ca467d0519337c9a6",
+  "inputs": {
+   "v-s2x100-dev": {
+    "path": "/home/wyss/line/.claude/worktrees/agent-a011b559a887ffc0e/generated/eval/v-s2x100-dev",
+    "runJsonSha256": "c31c94cbad955ea0203efccb680734195c7b129899af60ee23719a448d6f9c15",
+    "compilerHead": "8ede128fe58380667d2df4774fff9615d75a7a10",
+    "evaluator": "d3f26d1b5efd6e788119ffbbcab35acf0ad5f51ad990059be44449bd89d7484c",
+    "mode": "strike3",
+    "budget": "standard",
+    "cases": 24
+   },
+   "v-s2x100-confirm": {
+    "path": "/home/wyss/line/.claude/worktrees/agent-a011b559a887ffc0e/generated/eval/v-s2x100-confirm",
+    "runJsonSha256": "8e4cc1503bd059227d663b59060d512697a778d009f0ce0ae2b299c8ad735551",
+    "compilerHead": "8ede128fe58380667d2df4774fff9615d75a7a10",
+    "evaluator": "d3f26d1b5efd6e788119ffbbcab35acf0ad5f51ad990059be44449bd89d7484c",
+    "mode": "strike3",
+    "budget": "standard",
+    "cases": 24
+   },
+   "trouble": {
+    "path": "/home/wyss/line/generated/trouble-variants-v1",
+    "collectionSha256": "6d275e9f40372291418d7e4368bb68a095516d7413aae212b7023dcca9244a4f",
+    "rides": [
+     "trouble_50s~kick-101",
+     "trouble_50s~kick-202",
+     "trouble_50s~pulse-101",
+     "trouble_50s~pulse-202",
+     "trouble_50s~slam-101",
+     "trouble_50s~slam-202",
+     "trouble_50s~voice-101",
+     "trouble_50s~voice-202"
+    ],
+    "note": "held-out music: observed examples only; no setting or conclusion is calibrated on it"
+   }
+  },
+  "reproduction": {
+   "v3LossRecomputedEqualsSaved": true,
+   "rides": 56
+  },
+  "commands": [
+   "cd <worktree> && LR_ENGINE=wasm node --import tsx <scratch>/ua.ts <scratch>/events.jsonl",
+   "LR_ENGINE=wasm node --import tsx <scratch>/missed.ts <scratch>/missed.jsonl",
+   "LR_ENGINE=wasm node --import tsx <scratch>/window.ts <scratch>/window.jsonl",
+   "LR_ENGINE=wasm node --import tsx <scratch>/lag.ts <scratch>/lag.jsonl",
+   "LR_ENGINE=wasm node --import tsx <scratch>/plan.ts <scratch>/plans.json",
+   "python3 <scratch>/evidence.py docs/research/unwanted-impacts-20261030.json",
+   "frame dumps: LR_ENGINE=wasm node --import tsx <scratch>/dump.ts <dev|confirm|trouble> <case id> <from> <to>",
+   "<scratch> holds the panel symlinks dev -> v-s2x100-dev, confirm -> v-s2x100-confirm"
+  ],
+  "definitions": {
+   "event, strength, matching": "line.strike.v3 exactly as tools/eval/measure.ts (detectStrikes + accountStrikes over strikeMotionFrames); an unwanted impact = an unmatched v3 event (onset <= song end).",
+   "cost": "(raw/7.55)^2 / beats: its term in the v3 account extraMse",
+   "guide": "section (line id block of 10000) with exactly two connected chains in id order: the second chain; equals the production report railGuides on all 679 non-fragment sections of the 4 produced panel rides and 8 Trouble rides",
+   "ceiling line": "the line's solid side faces down: normal (dy,-dx)/len for an unflipped line (negated if flipped) has y > 0.5; push direction agrees (down pushes: 1519 of 1524 touch a ceiling line)",
+   "push": "largest 2-frame whole-body change in the event (the v2/v3 strength vector: travel x, y, spin); down = y > 0.3 |travel|",
+   "uncounted force maximum": "replay of the detector walk: a local maximum of smoothed J >= floor (0.8) whose frame lies in no event's own frames [contactStart, end]; reasons window/rising/spacing/valley; strength = largest 2-frame change over i-2..i+3",
+   "layout": "construction request of the section reproduced with planIntentionalRepertoire (planner only); amour resolved-input identity differs from the run (spec file moved, targets identical) and all 4 produced rides are byte-identical to the panel tracks"
+  }
+ },
+ "prevalence": {
+  "panel_authored": {
+   "rides": 32,
+   "beats": 2520,
+   "events": 3433,
+   "unmatched": 913,
+   "perRide": 28.53,
+   "perBeat": 0.362,
+   "byThreshold": {
+    "0.05": {
+     "n": 481,
+     "perRide": 15.03,
+     "perBeat": 0.1909
+    },
+    "0.1": {
+     "n": 249,
+     "perRide": 7.78,
+     "perBeat": 0.0988
+    },
+    "0.15": {
+     "n": 88,
+     "perRide": 2.75,
+     "perBeat": 0.0349
+    },
+    "0.2": {
+     "n": 34,
+     "perRide": 1.06,
+     "perBeat": 0.0135
+    },
+    "0.25": {
+     "n": 4,
+     "perRide": 0.12,
+     "perBeat": 0.0016
+    },
+    "0.3": {
+     "n": 1,
+     "perRide": 0.03,
+     "perBeat": 0.0004
+    }
+   },
+   "unmatchedStrengthQuantiles": {
+    "0.1": 0.0069,
+    "0.25": 0.0192,
+    "0.5": 0.054,
+    "0.75": 0.1053,
+    "0.9": 0.1475,
+    "0.99": 0.2344
+   },
+   "matchedStrengthQuantiles": {
+    "0.1": 0.1739,
+    "0.25": 0.4026,
+    "0.5": 0.5518,
+    "0.75": 0.666,
+    "0.9": 0.7669,
+    "0.99": 0.9383
+   },
+   "maxUnmatched": 0.327,
+   "lossShare": {
+    "extra": 0.121,
+    "strength": 0.701,
+    "timing": 0.178
+   },
+   "classes": {
+    "A opposite-push split": {
+     "n": 35,
+     "nAtLeast0.1": 30,
+     "costShare": 0.103,
+     "medianStrength": 0.141
+    },
+    "B1 roof: body on guide rail": {
+     "n": 452,
+     "nAtLeast0.1": 173,
+     "costShare": 0.688,
+     "medianStrength": 0.078
+    },
+    "B2 roof: body on other upper line": {
+     "n": 27,
+     "nAtLeast0.1": 4,
+     "costShare": 0.018,
+     "medianStrength": 0.052
+    },
+    "B3 roof: sled on a ceiling line": {
+     "n": 97,
+     "nAtLeast0.1": 21,
+     "costShare": 0.079,
+     "medianStrength": 0.057
+    },
+    "C floor re-landing after <=3 f in the air": {
+     "n": 256,
+     "nAtLeast0.1": 19,
+     "costShare": 0.098,
+     "medianStrength": 0.021
+    },
+    "D floor touchdown after longer flight": {
+     "n": 43,
+     "nAtLeast0.1": 2,
+     "costShare": 0.013,
+     "medianStrength": 0.024
+    },
+    "E renewal within contact": {
+     "n": 3,
+     "nAtLeast0.1": 0,
+     "costShare": 0.001,
+     "medianStrength": 0.046
+    }
+   },
+   "situationsAtLeast0.1": {
+    "within 12 f after a matched hit >= 0.5": {
+     "n": 176,
+     "share": 0.707
+    },
+    "touches a ceiling line": {
+     "n": 233,
+     "share": 0.936
+    },
+    "touches a guide rail": {
+     "n": 225,
+     "share": 0.904
+    },
+    "body point in contact": {
+     "n": 209,
+     "share": 0.839
+    },
+    "body only": {
+     "n": 77,
+     "share": 0.309
+    },
+    "rising at contact": {
+     "n": 45,
+     "share": 0.181
+    },
+    "inter-beat gap >= 1 s": {
+     "n": 13,
+     "share": 0.052
+    },
+    "inter-beat gap < 16 f": {
+     "n": 73,
+     "share": 0.293
+    },
+    "contacts a new section (seam)": {
+     "n": 4,
+     "share": 0.016
+    }
+   }
+  },
+  "panel_perturbed": {
+   "rides": 16,
+   "beats": 1260,
+   "events": 1593,
+   "unmatched": 333,
+   "perRide": 20.81,
+   "perBeat": 0.264,
+   "byThreshold": {
+    "0.05": {
+     "n": 145,
+     "perRide": 9.06,
+     "perBeat": 0.1151
+    },
+    "0.1": {
+     "n": 73,
+     "perRide": 4.56,
+     "perBeat": 0.0579
+    },
+    "0.15": {
+     "n": 33,
+     "perRide": 2.06,
+     "perBeat": 0.0262
+    },
+    "0.2": {
+     "n": 14,
+     "perRide": 0.88,
+     "perBeat": 0.0111
+    },
+    "0.25": {
+     "n": 4,
+     "perRide": 0.25,
+     "perBeat": 0.0032
+    },
+    "0.3": {
+     "n": 1,
+     "perRide": 0.06,
+     "perBeat": 0.0008
+    }
+   },
+   "unmatchedStrengthQuantiles": {
+    "0.1": 0.005,
+    "0.25": 0.0154,
+    "0.5": 0.0432,
+    "0.75": 0.0905,
+    "0.9": 0.1496,
+    "0.99": 0.253
+   },
+   "matchedStrengthQuantiles": {
+    "0.1": 0.191,
+    "0.25": 0.4025,
+    "0.5": 0.5595,
+    "0.75": 0.6745,
+    "0.9": 0.7794,
+    "0.99": 0.9227
+   },
+   "maxUnmatched": 0.302,
+   "lossShare": {
+    "extra": 0.09,
+    "strength": 0.737,
+    "timing": 0.173
+   },
+   "classes": {
+    "A opposite-push split": {
+     "n": 2,
+     "nAtLeast0.1": 2,
+     "costShare": 0.028,
+     "medianStrength": 0.184
+    },
+    "B1 roof: body on guide rail": {
+     "n": 140,
+     "nAtLeast0.1": 49,
+     "costShare": 0.66,
+     "medianStrength": 0.06
+    },
+    "B2 roof: body on other upper line": {
+     "n": 22,
+     "nAtLeast0.1": 4,
+     "costShare": 0.064,
+     "medianStrength": 0.062
+    },
+    "B3 roof: sled on a ceiling line": {
+     "n": 16,
+     "nAtLeast0.1": 5,
+     "costShare": 0.058,
+     "medianStrength": 0.064
+    },
+    "C floor re-landing after <=3 f in the air": {
+     "n": 130,
+     "nAtLeast0.1": 10,
+     "costShare": 0.144,
+     "medianStrength": 0.027
+    },
+    "D floor touchdown after longer flight": {
+     "n": 21,
+     "nAtLeast0.1": 2,
+     "costShare": 0.038,
+     "medianStrength": 0.051
+    },
+    "E renewal within contact": {
+     "n": 2,
+     "nAtLeast0.1": 1,
+     "costShare": 0.009,
+     "medianStrength": 0.099
+    }
+   },
+   "situationsAtLeast0.1": {
+    "within 12 f after a matched hit >= 0.5": {
+     "n": 46,
+     "share": 0.63
+    },
+    "touches a ceiling line": {
+     "n": 63,
+     "share": 0.863
+    },
+    "touches a guide rail": {
+     "n": 59,
+     "share": 0.808
+    },
+    "body point in contact": {
+     "n": 58,
+     "share": 0.795
+    },
+    "body only": {
+     "n": 14,
+     "share": 0.192
+    },
+    "rising at contact": {
+     "n": 6,
+     "share": 0.082
+    },
+    "inter-beat gap >= 1 s": {
+     "n": 2,
+     "share": 0.027
+    },
+    "inter-beat gap < 16 f": {
+     "n": 10,
+     "share": 0.137
+    },
+    "contacts a new section (seam)": {
+     "n": 1,
+     "share": 0.014
+    }
+   }
+  },
+  "trouble_7_complete": {
+   "rides": 7,
+   "beats": 432,
+   "events": 678,
+   "unmatched": 246,
+   "perRide": 35.14,
+   "perBeat": 0.569,
+   "byThreshold": {
+    "0.05": {
+     "n": 105,
+     "perRide": 15.0,
+     "perBeat": 0.2431
+    },
+    "0.1": {
+     "n": 44,
+     "perRide": 6.29,
+     "perBeat": 0.1019
+    },
+    "0.15": {
+     "n": 14,
+     "perRide": 2.0,
+     "perBeat": 0.0324
+    },
+    "0.2": {
+     "n": 3,
+     "perRide": 0.43,
+     "perBeat": 0.0069
+    },
+    "0.25": {
+     "n": 1,
+     "perRide": 0.14,
+     "perBeat": 0.0023
+    },
+    "0.3": {
+     "n": 1,
+     "perRide": 0.14,
+     "perBeat": 0.0023
+    }
+   },
+   "unmatchedStrengthQuantiles": {
+    "0.1": 0.0054,
+    "0.25": 0.0159,
+    "0.5": 0.0418,
+    "0.75": 0.0819,
+    "0.9": 0.1272,
+    "0.99": 0.2228
+   },
+   "matchedStrengthQuantiles": {
+    "0.1": 0.123,
+    "0.25": 0.1854,
+    "0.5": 0.3593,
+    "0.75": 0.5767,
+    "0.9": 0.7448,
+    "0.99": 1
+   },
+   "maxUnmatched": 0.378,
+   "lossShare": {
+    "extra": 0.312,
+    "strength": 0.414,
+    "timing": 0.274
+   },
+   "classes": {
+    "B1 roof: body on guide rail": {
+     "n": 119,
+     "nAtLeast0.1": 27,
+     "costShare": 0.399,
+     "medianStrength": 0.051
+    },
+    "B2 roof: body on other upper line": {
+     "n": 8,
+     "nAtLeast0.1": 2,
+     "costShare": 0.034,
+     "medianStrength": 0.073
+    },
+    "B3 roof: sled on a ceiling line": {
+     "n": 18,
+     "nAtLeast0.1": 1,
+     "costShare": 0.035,
+     "medianStrength": 0.054
+    },
+    "C floor re-landing after <=3 f in the air": {
+     "n": 72,
+     "nAtLeast0.1": 7,
+     "costShare": 0.346,
+     "medianStrength": 0.023
+    },
+    "D floor touchdown after longer flight": {
+     "n": 22,
+     "nAtLeast0.1": 4,
+     "costShare": 0.076,
+     "medianStrength": 0.027
+    },
+    "E renewal within contact": {
+     "n": 7,
+     "nAtLeast0.1": 3,
+     "costShare": 0.111,
+     "medianStrength": 0.095
+    }
+   },
+   "situationsAtLeast0.1": {
+    "within 12 f after a matched hit >= 0.5": {
+     "n": 7,
+     "share": 0.159
+    },
+    "touches a ceiling line": {
+     "n": 32,
+     "share": 0.727
+    },
+    "touches a guide rail": {
+     "n": 30,
+     "share": 0.682
+    },
+    "body point in contact": {
+     "n": 32,
+     "share": 0.727
+    },
+    "body only": {
+     "n": 15,
+     "share": 0.341
+    },
+    "rising at contact": {
+     "n": 14,
+     "share": 0.318
+    },
+    "inter-beat gap >= 1 s": {
+     "n": 16,
+     "share": 0.364
+    },
+    "inter-beat gap < 16 f": {
+     "n": 7,
+     "share": 0.159
+    },
+    "contacts a new section (seam)": {
+     "n": 1,
+     "share": 0.023
+    }
+   }
+  }
+ },
+ "authoredVsPerturbed": {
+  "0.05": {
+   "authored seeds 101/505": {
+    "rides": 8,
+    "perBeat": 0.1048,
+    "meanExtraMse": 0.0015
+   },
+   "their perturbations": {
+    "rides": 16,
+    "perBeat": 0.1151,
+    "meanExtraMse": 0.00187
+   },
+   "authored other seeds": {
+    "rides": 24,
+    "perBeat": 0.2196,
+    "meanExtraMse": 0.00322
+   }
+  },
+  "0.1": {
+   "authored seeds 101/505": {
+    "rides": 8,
+    "perBeat": 0.0444,
+    "meanExtraMse": 0.0015
+   },
+   "their perturbations": {
+    "rides": 16,
+    "perBeat": 0.0579,
+    "meanExtraMse": 0.00187
+   },
+   "authored other seeds": {
+    "rides": 24,
+    "perBeat": 0.1169,
+    "meanExtraMse": 0.00322
+   }
+  },
+  "0.15": {
+   "authored seeds 101/505": {
+    "rides": 8,
+    "perBeat": 0.0206,
+    "meanExtraMse": 0.0015
+   },
+   "their perturbations": {
+    "rides": 16,
+    "perBeat": 0.0262,
+    "meanExtraMse": 0.00187
+   },
+   "authored other seeds": {
+    "rides": 24,
+    "perBeat": 0.0397,
+    "meanExtraMse": 0.00322
+   }
+  }
+ },
+ "perSongAtLeast0.1": {
+  "luna_bala_44s": {
+   "rides": 12,
+   "perBeat": 0.0311,
+   "meanExtraMse": 0.001
+  },
+  "amor_na_praia_46s": {
+   "rides": 12,
+   "perBeat": 0.0363,
+   "meanExtraMse": 0.00121
+  },
+  "tiki_tiki_48s": {
+   "rides": 12,
+   "perBeat": 0.0693,
+   "meanExtraMse": 0.00203
+  },
+  "amour_de_ma_vie_44s": {
+   "rides": 12,
+   "perBeat": 0.1922,
+   "meanExtraMse": 0.00568
+  }
+ },
+ "byPlannedSection": [
+  {
+   "construction": "terraces",
+   "guidance": "required",
+   "railLayout": "transfer",
+   "sections": 67,
+   "extras": 89,
+   "atLeast0.1": 34,
+   "atLeast0.1PerSection": 0.507,
+   "costShare": 0.116
+  },
+  {
+   "construction": "arcs",
+   "guidance": "required",
+   "railLayout": "transfer",
+   "sections": 93,
+   "extras": 106,
+   "atLeast0.1": 31,
+   "atLeast0.1PerSection": 0.333,
+   "costShare": 0.116
+  },
+  {
+   "construction": "terraces",
+   "guidance": "required",
+   "railLayout": "paired",
+   "sections": 395,
+   "extras": 166,
+   "atLeast0.1": 40,
+   "atLeast0.1PerSection": 0.101,
+   "costShare": 0.115
+  },
+  {
+   "construction": "scallops",
+   "guidance": "required",
+   "railLayout": "transfer",
+   "sections": 72,
+   "extras": 93,
+   "atLeast0.1": 39,
+   "atLeast0.1PerSection": 0.542,
+   "costShare": 0.112
+  },
+  {
+   "construction": "fold",
+   "guidance": "required",
+   "railLayout": "paired",
+   "sections": 360,
+   "extras": 99,
+   "atLeast0.1": 37,
+   "atLeast0.1PerSection": 0.103,
+   "costShare": 0.104
+  },
+  {
+   "construction": "serpentine",
+   "guidance": "required",
+   "railLayout": "paired",
+   "sections": 296,
+   "extras": 108,
+   "atLeast0.1": 35,
+   "atLeast0.1PerSection": 0.118,
+   "costShare": 0.103
+  },
+  {
+   "construction": "serpentine",
+   "guidance": "required",
+   "railLayout": "transfer",
+   "sections": 70,
+   "extras": 88,
+   "atLeast0.1": 33,
+   "atLeast0.1PerSection": 0.471,
+   "costShare": 0.091
+  },
+  {
+   "construction": "scallops",
+   "guidance": "required",
+   "railLayout": "paired",
+   "sections": 285,
+   "extras": 90,
+   "atLeast0.1": 26,
+   "atLeast0.1PerSection": 0.091,
+   "costShare": 0.065
+  },
+  {
+   "construction": "scattered",
+   "guidance": "optional",
+   "railLayout": "paired",
+   "sections": 679,
+   "extras": 110,
+   "atLeast0.1": 17,
+   "atLeast0.1PerSection": 0.025,
+   "costShare": 0.06
+  },
+  {
+   "construction": "fold",
+   "guidance": "required",
+   "railLayout": "transfer",
+   "sections": 30,
+   "extras": 32,
+   "atLeast0.1": 17,
+   "atLeast0.1PerSection": 0.567,
+   "costShare": 0.05
+  },
+  {
+   "construction": "arcs",
+   "guidance": "optional",
+   "railLayout": null,
+   "sections": 48,
+   "extras": 67,
+   "atLeast0.1": 4,
+   "atLeast0.1PerSection": 0.083,
+   "costShare": 0.031
+  },
+  {
+   "construction": "arcs",
+   "guidance": "required",
+   "railLayout": "paired",
+   "sections": 286,
+   "extras": 58,
+   "atLeast0.1": 7,
+   "atLeast0.1PerSection": 0.024,
+   "costShare": 0.026
+  },
+  {
+   "construction": "arcs",
+   "guidance": "forbidden",
+   "railLayout": "paired",
+   "sections": 1147,
+   "extras": 140,
+   "atLeast0.1": 2,
+   "atLeast0.1PerSection": 0.002,
+   "costShare": 0.012
+  }
+ ],
+ "transferSummary": {
+  "sections": 332,
+  "sectionsAll": 3828,
+  "atLeast0.1": 154,
+  "atLeast0.1All": 322,
+  "costShare": 0.485
+ },
+ "guideRequiredSections": {
+  "paired": {
+   "sections": 1622,
+   "guide touched by a matched hit": 1190,
+   "guide touched only by unmatched events": 306,
+   "guide touched by both": 80,
+   "no guide event": 126,
+   "strongest unmatched guide event >= 0.1": 128,
+   "strongest unmatched guide event >= 0.2": 12
+  },
+  "transfer": {
+   "sections": 332,
+   "guide touched by a matched hit": 5,
+   "guide touched only by unmatched events": 324,
+   "guide touched by both": 4,
+   "no guide event": 3,
+   "strongest unmatched guide event >= 0.1": 149,
+   "strongest unmatched guide event >= 0.2": 33
+  }
+ },
+ "strongAsksByDeliveringSection": {
+  "shaped/required/paired": {
+   "n": 768,
+   "medianStrengthBias": -0.101,
+   "meanUnmatchedStrength2InSection": 0.0038
+  },
+  "scattered/optional/paired": {
+   "n": 421,
+   "medianStrengthBias": -0.075,
+   "meanUnmatchedStrength2InSection": 0.0011
+  },
+  "arcs/forbidden/paired": {
+   "n": 563,
+   "medianStrengthBias": -0.12,
+   "meanUnmatchedStrength2InSection": 0.0001
+  },
+  "arcs/required/paired": {
+   "n": 155,
+   "medianStrengthBias": -0.06,
+   "meanUnmatchedStrength2InSection": 0.0012
+  },
+  "arcs/required/transfer": {
+   "n": 56,
+   "medianStrengthBias": -0.095,
+   "meanUnmatchedStrength2InSection": 0.0158
+  },
+  "shaped/required/transfer": {
+   "n": 169,
+   "medianStrengthBias": -0.122,
+   "meanUnmatchedStrength2InSection": 0.0186
+  }
+ },
+ "uncountedForceMaxima": {
+  "panel_authored": {
+   "perRide": 3.16,
+   "reasons": {
+    "rising": {
+     "n": 56,
+     "strengthQuantiles": {
+      "0.25": 0.3025,
+      "0.5": 0.3692,
+      "0.75": 0.4685,
+      "0.9": 0.5099
+     },
+     "atLeast0.2": 56,
+     "atLeast0.4": 25,
+     "afterQuietMatchedBeat(<=0.15)": 50,
+     "lagHistogram": {
+      "6": 4,
+      "7": 23,
+      "8": 15,
+      "9": 10,
+      "10": 1,
+      "11": 1,
+      "13": 2
+     }
+    },
+    "window": {
+     "n": 4,
+     "strengthQuantiles": {
+      "0.25": 0.2302,
+      "0.5": 0.3716,
+      "0.75": 0.7985,
+      "0.9": 0.7985
+     },
+     "atLeast0.2": 3,
+     "atLeast0.4": 1,
+     "afterQuietMatchedBeat(<=0.15)": 0,
+     "lagHistogram": {
+      "8": 2,
+      "9": 1,
+      "10": 1
+     }
+    },
+    "spacing": {
+     "n": 11,
+     "strengthQuantiles": {
+      "0.25": 0.2565,
+      "0.5": 0.3242,
+      "0.75": 0.4027,
+      "0.9": 0.4414
+     },
+     "atLeast0.2": 11,
+     "atLeast0.4": 4,
+     "afterQuietMatchedBeat(<=0.15)": 9,
+     "lagHistogram": {
+      "6": 5,
+      "8": 1,
+      "9": 1,
+      "10": 2,
+      "11": 2
+     }
+    },
+    "valley": {
+     "n": 30,
+     "strengthQuantiles": {
+      "0.25": 0.2351,
+      "0.5": 0.2795,
+      "0.75": 0.3275,
+      "0.9": 0.4012
+     },
+     "atLeast0.2": 30,
+     "atLeast0.4": 3,
+     "afterQuietMatchedBeat(<=0.15)": 19,
+     "lagHistogram": {
+      "6": 15,
+      "7": 9,
+      "8": 3,
+      "12": 3
+     }
+    }
+   }
+  },
+  "panel_perturbed": {
+   "perRide": 3.5,
+   "reasons": {
+    "rising": {
+     "n": 30,
+     "strengthQuantiles": {
+      "0.25": 0.2978,
+      "0.5": 0.3645,
+      "0.75": 0.4711,
+      "0.9": 0.5294
+     },
+     "atLeast0.2": 30,
+     "atLeast0.4": 14,
+     "afterQuietMatchedBeat(<=0.15)": 29,
+     "lagHistogram": {
+      "6": 7,
+      "7": 11,
+      "8": 5,
+      "9": 3,
+      "10": 2,
+      "11": 1,
+      "12": 1
+     }
+    },
+    "window": {
+     "n": 2,
+     "strengthQuantiles": {
+      "0.25": 0.2423,
+      "0.5": 0.9478,
+      "0.75": 0.9478,
+      "0.9": 0.9478
+     },
+     "atLeast0.2": 2,
+     "atLeast0.4": 1,
+     "afterQuietMatchedBeat(<=0.15)": 0,
+     "lagHistogram": {
+      "8": 1,
+      "9": 1
+     }
+    },
+    "spacing": {
+     "n": 4,
+     "strengthQuantiles": {
+      "0.25": 0.2878,
+      "0.5": 0.2944,
+      "0.75": 0.3091,
+      "0.9": 0.3091
+     },
+     "atLeast0.2": 4,
+     "atLeast0.4": 0,
+     "afterQuietMatchedBeat(<=0.15)": 4,
+     "lagHistogram": {
+      "6": 1,
+      "9": 1,
+      "10": 1,
+      "12": 1
+     }
+    },
+    "valley": {
+     "n": 20,
+     "strengthQuantiles": {
+      "0.25": 0.2635,
+      "0.5": 0.3138,
+      "0.75": 0.342,
+      "0.9": 0.4001
+     },
+     "atLeast0.2": 19,
+     "atLeast0.4": 2,
+     "afterQuietMatchedBeat(<=0.15)": 13,
+     "lagHistogram": {
+      "6": 8,
+      "7": 6,
+      "11": 2,
+      "12": 3,
+      "13": 1
+     }
+    }
+   }
+  },
+  "trouble_8_rides": {
+   "perRide": 5.62,
+   "reasons": {
+    "rising": {
+     "n": 13,
+     "strengthQuantiles": {
+      "0.25": 0.3071,
+      "0.5": 0.3852,
+      "0.75": 0.4679,
+      "0.9": 0.6415
+     },
+     "atLeast0.2": 13,
+     "atLeast0.4": 6,
+     "afterQuietMatchedBeat(<=0.15)": 6,
+     "lagHistogram": {
+      "6": 7,
+      "8": 1,
+      "9": 2,
+      "12": 2,
+      "20": 1
+     }
+    },
+    "window": {
+     "n": 9,
+     "strengthQuantiles": {
+      "0.25": 0.3266,
+      "0.5": 0.3856,
+      "0.75": 0.4509,
+      "0.9": 0.5609
+     },
+     "atLeast0.2": 9,
+     "atLeast0.4": 3,
+     "afterQuietMatchedBeat(<=0.15)": 0,
+     "lagHistogram": {
+      "6": 1,
+      "7": 1,
+      "8": 2,
+      "9": 1,
+      "11": 1,
+      "13": 2,
+      "15": 1
+     }
+    },
+    "spacing": {
+     "n": 5,
+     "strengthQuantiles": {
+      "0.25": 0.2197,
+      "0.5": 0.2653,
+      "0.75": 0.4345,
+      "0.9": 0.4896
+     },
+     "atLeast0.2": 4,
+     "atLeast0.4": 2,
+     "afterQuietMatchedBeat(<=0.15)": 1,
+     "lagHistogram": {
+      "6": 3,
+      "15": 1,
+      "16": 1
+     }
+    },
+    "valley": {
+     "n": 18,
+     "strengthQuantiles": {
+      "0.25": 0.2517,
+      "0.5": 0.286,
+      "0.75": 0.3382,
+      "0.9": 0.4398
+     },
+     "atLeast0.2": 18,
+     "atLeast0.4": 3,
+     "afterQuietMatchedBeat(<=0.15)": 5,
+     "lagHistogram": {
+      "6": 7,
+      "7": 3,
+      "9": 4,
+      "11": 1,
+      "13": 1,
+      "18": 1,
+      "21": 1
+     }
+    }
+   }
+  }
+ },
+ "windowCases": [
+  {
+   "set": "dev",
+   "ride": "amour_de_ma_vie_44s~303",
+   "pert": null,
+   "start": 57,
+   "end": 62,
+   "renewPeak": 65,
+   "lag": 8,
+   "measured": 0.1040419827271391,
+   "hitStrength": 0.7984882781350874,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 101
+  },
+  {
+   "set": "dev",
+   "ride": "amour_de_ma_vie_44s~404",
+   "pert": null,
+   "start": 106,
+   "end": 111,
+   "renewPeak": 115,
+   "lag": 9,
+   "measured": 0.04597663236184607,
+   "hitStrength": 0.19345190911445342,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 128
+  },
+  {
+   "set": "dev",
+   "ride": "luna_bala_44s~101~p1",
+   "pert": 1,
+   "start": 134,
+   "end": 139,
+   "renewPeak": 142,
+   "lag": 8,
+   "measured": 0.08117585126869802,
+   "hitStrength": 0.9477633191731799,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 179
+  },
+  {
+   "set": "dev",
+   "ride": "tiki_tiki_48s~101~p1",
+   "pert": 1,
+   "start": 215,
+   "end": 220,
+   "renewPeak": 224,
+   "lag": 9,
+   "measured": 0.11673653875479836,
+   "hitStrength": 0.2423033636267652,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 236
+  },
+  {
+   "set": "confirm",
+   "ride": "luna_bala_44s~606",
+   "pert": null,
+   "start": 183,
+   "end": 188,
+   "renewPeak": 191,
+   "lag": 8,
+   "measured": 0.06460293085838228,
+   "hitStrength": 0.37157310307288544,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 230
+  },
+  {
+   "set": "confirm",
+   "ride": "tiki_tiki_48s~505",
+   "pert": null,
+   "start": 77,
+   "end": 82,
+   "renewPeak": 87,
+   "lag": 10,
+   "measured": 0.028041044032369705,
+   "hitStrength": 0.23015209713355392,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 108
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~kick-101",
+   "pert": null,
+   "start": 434,
+   "end": 439,
+   "renewPeak": 443,
+   "lag": 9,
+   "measured": 0.04055777504717338,
+   "hitStrength": 0.34296204900252847,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 463
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~pulse-202",
+   "pert": null,
+   "start": 94,
+   "end": 99,
+   "renewPeak": 101,
+   "lag": 7,
+   "measured": 0.04437217557035696,
+   "hitStrength": 0.2970802856965182,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 109
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~pulse-202",
+   "pert": null,
+   "start": 449,
+   "end": 454,
+   "renewPeak": 464,
+   "lag": 15,
+   "measured": 0.10172465571751892,
+   "hitStrength": 0.560866794075928,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 476
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~slam-101",
+   "pert": null,
+   "start": 36,
+   "end": 41,
+   "renewPeak": 49,
+   "lag": 13,
+   "measured": 0.09450108272310236,
+   "hitStrength": 0.22364120291726763,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 141
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~slam-101",
+   "pert": null,
+   "start": 161,
+   "end": 166,
+   "renewPeak": 169,
+   "lag": 8,
+   "measured": 0.2228088327633567,
+   "hitStrength": 0.38562058673420124,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 231
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~slam-101",
+   "pert": null,
+   "start": 326,
+   "end": 331,
+   "renewPeak": 339,
+   "lag": 13,
+   "measured": 0.09357336002270641,
+   "hitStrength": 0.39518441369016527,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 357
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~slam-202",
+   "pert": null,
+   "start": 146,
+   "end": 151,
+   "renewPeak": 157,
+   "lag": 11,
+   "measured": 0.11388455225722456,
+   "hitStrength": 0.5269093239467433,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 169
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~slam-202",
+   "pert": null,
+   "start": 1805,
+   "end": 1810,
+   "renewPeak": 1811,
+   "lag": 6,
+   "measured": 0.048971546504091475,
+   "hitStrength": 0.32659560174577856,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 1829
+  },
+  {
+   "set": "trouble",
+   "ride": "trouble_50s~voice-101",
+   "pert": null,
+   "start": 95,
+   "end": 100,
+   "renewPeak": 103,
+   "lag": 8,
+   "measured": 0.03738075011485981,
+   "hitStrength": 0.4509220825088413,
+   "matched": null,
+   "requested": null,
+   "nextEventOnset": 113
+  }
+ ],
+ "quietCatchForceTiming": {
+  "quiet (requested <= 0.15)": {
+   "matchedTouchdowns": 421,
+   "withChange>=0.2InSameContact<=15f": 262,
+   "lagOfLargestForce": {
+    "1": 24,
+    "2": 3,
+    "4": 1,
+    "5": 4,
+    "6": 39,
+    "7": 57,
+    "8": 54,
+    "9": 23,
+    "10": 11,
+    "11": 11,
+    "12": 15,
+    "13": 4,
+    "14": 9,
+    "15": 7
+   }
+  },
+  "strong (requested >= 0.6)": {
+   "matchedTouchdowns": 2124,
+   "withChange>=0.2InSameContact<=15f": 2124,
+   "lagOfLargestForce": {
+    "0": 322,
+    "1": 705,
+    "2": 768,
+    "3": 239,
+    "4": 83,
+    "5": 7
+   }
+  }
+ },
+ "objective": {
+  "account": "extra cost = (raw/7.55)^2 / beats, same units as a matched beat strength error squared / beats; missing beat = 1/beats",
+  "localSearch": "arc_evaluate.ts measureObjective: impactWeight 2 x (strength error)^2 + 1 x sum(unmatched strength^2) in [frame-4, next-4) + air^2 + speed^2 + motion residuals; construction fulfilment is a hard rejection",
+  "wholeTrack": "arc_objective.ts: (air + speed + amplitude/3 + v3 account loss) / normalizer, plus engagement-gain and motion residuals",
+  "panelMedianExtraShareOfAxisObjective": 0.073,
+  "equivalence": {
+   "0.05": {
+    "localCost": 0.0025,
+    "equalsCurrentBeatStrengthError": 0.035
+   },
+   "0.1": {
+    "localCost": 0.01,
+    "equalsCurrentBeatStrengthError": 0.071
+   },
+   "0.15": {
+    "localCost": 0.0225,
+    "equalsCurrentBeatStrengthError": 0.106
+   },
+   "0.2": {
+    "localCost": 0.04,
+    "equalsCurrentBeatStrengthError": 0.141
+   },
+   "0.3": {
+    "localCost": 0.09,
+    "equalsCurrentBeatStrengthError": 0.212
+   }
+  }
+ },
+ "examples": [
+  {
+   "ride": "amour_de_ma_vie_44s seed 101 (dev, authored)",
+   "t": 8.05,
+   "what": "shoulder and hands hit the upper receiving rail (terraces, transfer) 7 frames after a 0.53 hit; v3 0.327 unmatched",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-101/manifest.json&t=7.9"
+  },
+  {
+   "ride": "amour_de_ma_vie_44s seed 101",
+   "t": 7.75,
+   "what": "same mechanism, 0.158 (roof push 8 frames after a 0.64 hit)",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-101/manifest.json&t=7.6"
+  },
+  {
+   "ride": "amour_de_ma_vie_44s seed 303 (dev)",
+   "t": 1.62,
+   "what": "quiet intro: shoulder drags on the guide 1.43-1.58 s (counted 0.10), then the sled slams onto the flat main rail, 0.80, not counted (renewal window ends before its own peak)",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-303/manifest.json&t=1.3"
+  },
+  {
+   "ride": "amour_de_ma_vie_44s seed 303",
+   "t": 13.65,
+   "what": "guide bump in a paired scallop, 0.267, 5 frames after a 0.67 hit",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-303/manifest.json&t=13.5"
+  },
+  {
+   "ride": "tiki_tiki_48s seed 101 (dev)",
+   "t": 42.83,
+   "what": "quiet beat (0.03) matched 0.04 at 42.73 s; 4 frames later the sled runs through a 36 degree kink, 0.50, not counted (force only rose since the touchdown)",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/tiki_tiki_48s-101/manifest.json&t=42.5"
+  },
+  {
+   "ride": "luna_bala_44s seed 404 (dev)",
+   "t": 2.1,
+   "what": "quiet beat (0.06) matched 0.09; 8 frames later an uncounted 0.39 turn",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/luna_bala_44s-404/manifest.json&t=1.8"
+  },
+  {
+   "ride": "luna_bala_44s seed 404",
+   "t": 25.15,
+   "what": "receiving-rail (scallops, transfer) body bump 9 frames after a 0.76 hit, 0.21",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/luna_bala_44s-404/manifest.json&t=25.0"
+  },
+  {
+   "ride": "Trouble slam seed 101 (held-out, observation only)",
+   "t": 3.85,
+   "what": "not a float: 0.30 catch at 3.52 s on a 45 degree terraces rail; shoulder grazes the required guide 3.70-3.78 s (0.16), pushed down, sled re-lands 3.85 s (0.38), then a scoop bottom at 4.22 s measured 0.22 but 0.39 by its own frames",
+   "link": "/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/trouble-variants-v1/slam-101/manifest.json&t=3.4"
+  }
+ ],
+ "code": {
+  "ua.ts": {
+   "sha256": "2538e8b6327bf4d353f03ea12e5837c6dd25f620d4c6f596c11939a2bd875cfd",
+   "source": "/** Unwanted-impact diagnosis (scratch, 2026-10-30). Replays saved tracks, detects\n * line.strike.v3 events exactly as tools/eval/measure.ts does, and describes every\n * event (matched or not) physically. Writes one JSON line per event.\n *\n *   cd <worktree> && node --import tsx <scratch>/ua.ts OUT.jsonl\n *\n * Inputs: the dev and confirm panels (v-s2x100-*) and the eight Trouble rides. */\nimport {readFileSync, readdirSync, writeFileSync, existsSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {join} from 'node:path';\nimport {observe} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT, STRIKE_V2_CONTRACT} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\n\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst TROUBLE = '/home/wyss/line/generated/trouble-variants-v1';\nconst DUR: Record<string, number> = {};\nasync function songDuration(song: string) {\n  if (DUR[song]) return DUR[song];\n  const spec = (await import(`/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/productions/${song}/spec.ts`)).default;\n  return DUR[song] = Math.round(spec.duration * 40);\n}\n\ntype Ride = {set: string; id: string; song: string; seed: number; pert: number | null; track: any; D: number;\n  targets: Array<{frame: number; impact?: number}>; air?: Map<number, number>; ref?: {loss: number}};\n\nasync function rides(): Promise<Ride[]> {\n  const out: Ride[] = [];\n  for (const set of ['dev', 'confirm']) {\n    const dir = join(SCR, set, 'cells');\n    for (const f of readdirSync(dir).filter(f => f.endsWith('.json')).sort()) {\n      const cell = JSON.parse(readFileSync(join(dir, f), 'utf8'));\n      const track = JSON.parse(gunzipSync(readFileSync(join(dir, f.replace(/\\.json$/, '.track.json.gz')))).toString());\n      const air = new Map<number, number>(cell.gaps.filter((g: any) => g[1] === 'air').map((g: any) => [g[0], g[2]]));\n      out.push({set, id: cell.case.id, song: cell.case.song, seed: cell.case.seed, pert: cell.case.perturbation, track,\n        D: await songDuration(cell.case.song), targets: cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined})),\n        air, ref: {loss: cell.impact3.loss}});\n    }\n  }\n  for (const d of readdirSync(TROUBLE).filter(d => /^[a-z]+-\\d+$/.test(d)).sort()) {\n    const p = JSON.parse(readFileSync(join(TROUBLE, d, `trouble_50s-${d.split('-')[1]}-production.json`), 'utf8'));\n    const air = new Map<number, number>();\n    for (const o of p.observations ?? []) if (o.axis === 'air' && o.target != null) air.set(o.gap, o.target);\n    out.push({set: 'trouble', id: `trouble_50s~${d}`, song: 'trouble_50s', seed: p.seed, pert: null, track: p.track, D: p.case.durationFrames,\n      targets: p.impactEvaluation.targets, air, ref: {loss: p.impactEvaluation.account.loss}});\n  }\n  return out;\n}\n\nconst SLED = [0, 1, 2, 3], BODY = [4, 5, 6, 7], FEET = [8, 9];\nexport function lineRoles(track: any) {\n  // Within a section (id block of 10000), lines form connected chains in id order.\n  // One chain: the main rail. Two chains: main then guide (as tools/measure/hit_anatomy.ts;\n  // checked against the production report's mainSegments on the Trouble rides).\n  // More: fragments (chain index kept). `ceiling`: the line's solid side faces down\n  // (normal (dy, \u2212dx) for an unflipped line; flipped negates), i.e. it pushes a rider down.\n  const bySec = new Map<number, any[][]>();\n  for (const l of track.lines) {\n    const s = Math.floor((l.id - 1000) / 10000), c = bySec.get(s) ?? [[]], prev = c.at(-1)!.at(-1);\n    if (prev && (Math.abs(prev.x2 - l.x1) > 1e-6 || Math.abs(prev.y2 - l.y1) > 1e-6)) c.push([]);\n    c.at(-1)!.push(l); bySec.set(s, c);\n  }\n  const role = new Map<number, {section: number; guide: boolean; chain: number; chains: number; ceiling: boolean; normalY: number}>();\n  for (const [s, chains] of bySec) chains.forEach((c, k) => {for (const l of c) {\n    const dx = l.x2 - l.x1, dy = l.y2 - l.y1, len = Math.hypot(dx, dy) || 1, ny = (l.flipped ? 1 : -1) * dx / len;\n    role.set(l.id, {section: s, guide: chains.length === 2 && k === 1, chain: k, chains: chains.length, ceiling: ny > .5, normalY: ny});\n  }});\n  return role;\n}\n\nasync function main() {\n  const outPath = process.argv[2];\n  const lines: string[] = [], rideRows: any[] = [];\n  for (const r of await rides()) {\n    const o: any = observe(r.track, r.D, r.targets);\n    const mf = strikeMotionFrames(o);\n    const reversalAfter = new Set<number>();\n    const events = detectStrikes(mf, STRIKE_V3_CONTRACT, (_a, b) => reversalAfter.add(b.contactStart * 100000 + b.onset)).filter(e => e.onset <= r.D);\n    const account = accountStrikes(events, r.targets, STRIKE_V3_CONTRACT);\n    const v2events = detectStrikes(mf, STRIKE_V2_CONTRACT).filter(e => e.onset <= r.D);\n    const v2acc = accountStrikes(v2events, r.targets, STRIKE_V2_CONTRACT);\n    const roles = lineRoles(r.track), lineById = new Map<number, any>(r.track.lines.map((l: any) => [l.id, l]));\n    const last = Math.min(r.D + 20, o.frames.length - 1);\n    const V = (f: number) => {let x = 0, y = 0; for (const [a, b, c, d] of o.frames[f].points) {x += a - c; y += b - d;} return [x / 10, y / 10];};\n    const phi = (f: number) => {const P = o.frames[f].points; return Math.atan2(P[2][1] - P[1][1], P[2][0] - P[1][0]) * 180 / Math.PI;};\n    const contact = (f: number) => !!o.observed[f]?.[0];\n    const matchOf = new Map<number, number>(account.matches.map((m: any) => [m.event, m.target]));\n    const v2unmatched = new Set(v2acc.unmatchedEvents.map((i: number) => v2events[i].onset));\n    const T = r.targets, M = Math.max(1, T.length);\n    // previous contacted section before frame f\n    const lastContactSection = (f: number) => {\n      for (let g = f - 1; g >= Math.max(0, f - 400); g--) {const c = o.frames[g].collisions; if (c.length) return roles.get(c[0][0])?.section ?? -1;}\n      return -1;\n    };\n    let prevMatched: any = null;\n    events.forEach((e: any, i: number) => {\n      const target = matchOf.get(i);\n      // nearest beat\n      let nb = 0; for (let j = 1; j < T.length; j++) if (Math.abs(T[j].frame - e.onset) < Math.abs(T[nb].frame - e.onset)) nb = j;\n      let gapIdx = T.findIndex(t => t.frame > e.onset); if (gapIdx < 0) gapIdx = T.length;\n      const gStart = gapIdx ? T[gapIdx - 1].frame : 0, gEnd = gapIdx < T.length ? T[gapIdx].frame : r.D;\n      let flight = 0; for (let f = e.contactStart - 1; f >= 0 && !contact(f); f--) flight++;\n      let eStart = e.contactStart; while (eStart > 0 && contact(eStart - 1)) eStart--;\n      let eEnd = e.end; while (eEnd < last && contact(eEnd + 1)) eEnd++;\n      const pts = new Set<number>(), firstPts = new Set<number>(), secs = new Set<number>(), guideHit = {main: false, guide: false};\n      const lineIds = new Set<number>();\n      let ceiling = false, floor = false, firstCeiling = false, fragment = false, bodyCeiling = false, sledFloor = false;\n      for (let f = e.contactStart; f <= e.end; f++) for (const [id, p] of o.frames[f].collisions) {\n        pts.add(p); lineIds.add(id); const ro = roles.get(id);\n        if (ro) {\n          secs.add(ro.section); if (ro.guide) guideHit.guide = true; else guideHit.main = true;\n          if (ro.chains > 2) fragment = true;\n          if (ro.ceiling) {ceiling = true; if (f === e.contactStart) firstCeiling = true; if (BODY.includes(p)) bodyCeiling = true;}\n          if (ro.normalY < -.5) {floor = true; if (!BODY.includes(p)) sledFloor = true;}\n        }\n        if (f === e.contactStart) firstPts.add(p);\n      }\n      // strongest 2-frame push in the event (as the v2/v3 strength), from the half-rise onset\n      let best = [0, 0, 0], at = e.onset;\n      for (let a = e.onset; a <= Math.max(e.onset, e.end - 1); a++) {\n        const w = [0, 0, 0]; for (let f = a; f <= Math.min(e.end, a + 1); f++) {const p = mf[f].impulse!; w[0] += p[0]; w[1] += p[1]; w[2] += p[2];}\n        if (Math.hypot(...w) > Math.hypot(...best)) {best = w; at = a;}\n      }\n      const pushTravel = Math.hypot(best[0], best[1]), pushAngle = Math.atan2(-best[1], best[0]) * 180 / Math.PI; // 90 = straight up on screen\n      const vb = V(Math.max(0, e.contactStart - 1)), va = V(Math.min(last, e.end));\n      const turn = Math.abs(((Math.atan2(va[1], va[0]) - Math.atan2(vb[1], vb[0])) * 180 / Math.PI + 540) % 360 - 180);\n      const prev = i ? events[i - 1] : null;\n      const sectionBefore = lastContactSection(e.contactStart);\n      const row = {\n        set: r.set, ride: r.id, song: r.song, seed: r.seed, pert: r.pert, beats: T.length, D: r.D,\n        i, kind: e.kind, reversal: reversalAfter.has(e.contactStart * 100000 + e.onset), contactStart: e.contactStart, onset: e.onset, peak: e.peakFrame, end: e.end,\n        strength: e.strength, raw: e.raw, cost: (e.raw / 7.55) ** 2 / M,\n        matched: target ?? null, requested: target != null ? T[target].impact ?? null : null,\n        nearestBeat: nb, nearestOffset: e.onset - T[nb].frame, nearestReq: T[nb].impact ?? null, nearestBeatMatched: account.matches.some((m: any) => m.target === nb),\n        gapIdx, gapStart: gStart, gapEnd: gEnd, gapLen: gEnd - gStart, gapAir: r.air?.get(gapIdx) ?? null,\n        prevBeatReq: gapIdx ? T[gapIdx - 1].impact ?? null : null, nextBeatReq: gapIdx < T.length ? T[gapIdx].impact ?? null : null,\n        sincePrevEvent: prev ? e.onset - prev.onset : null, prevStrength: prev?.strength ?? null, prevMatched: prev ? matchOf.has(i - 1) : null,\n        sinceMatched: prevMatched ? e.onset - prevMatched.onset : null, matchedStrengthBefore: prevMatched?.strength ?? null,\n        flightBefore: flight, engagementStart: eStart, engagementLen: eEnd - eStart + 1,\n        points: [...pts].sort(), firstPoints: [...firstPts].sort(),\n        sled: [...pts].some(p => SLED.includes(p)), body: [...pts].some(p => BODY.includes(p)), feet: [...pts].some(p => FEET.includes(p)),\n        bodyOnly: pts.size > 0 && [...pts].every(p => BODY.includes(p)),\n        sections: [...secs].sort((a, b) => a - b), sectionBefore, main: guideHit.main, guide: guideHit.guide, lines: lineIds.size,\n        ceiling, floor, firstCeiling, fragment, bodyCeiling, sledFloor,\n        push: best.map(x => +x.toFixed(3)), pushTravel, pushAngle, spinShare: Math.hypot(...best) ? Math.abs(best[2]) / Math.hypot(...best) : 0, pushAt: at,\n        vBefore: vb.map(x => +x.toFixed(3)), vAfter: va.map(x => +x.toFixed(3)), speedBefore: Math.hypot(vb[0], vb[1]), speedAfter: Math.hypot(va[0], va[1]), turn,\n        phi: phi(e.contactStart), inverted: Math.abs(phi(e.contactStart)) > 90,\n        v2extra: v2unmatched.has(e.onset),\n      };\n      lines.push(JSON.stringify(row));\n      if (target != null) prevMatched = e;\n    });\n    // Under-count check: contacted frames outside every event's own frames\n    // [contactStart, end], and inside matched events the frames after the peak\n    // whose push is opposite to the peak push but below the split floor. For each,\n    // the 2-frame whole-body change (the v2/v3 strength formula), at local maxima.\n    const covered = new Map<number, number>();\n    events.forEach((e: any, i: number) => {for (let f = e.contactStart; f <= e.end; f++) covered.set(f, i);});\n    const w2 = (f: number) => {const p = mf[f].impulse!, q = mf[f + 1]?.impulse ?? [0, 0, 0]; return Math.hypot(p[0] + q[0], p[1] + q[1], p[2] + q[2]) / 7.55;};\n    for (let f = 1; f < Math.min(r.D, mf.length - 1); f++) {\n      if (!contact(f)) continue;\n      const s = w2(f);\n      if (s < .05 || s < w2(f - 1) || s <= w2(f + 1)) continue;\n      const ev = covered.get(f);\n      const kind = ev === undefined ? 'uncovered' : 'inside';\n      if (kind === 'inside') {\n        // inside an event: only report a push opposite (>90\u00b0) to that event's peak push, after the peak\n        const e = events[ev!]; if (f <= e.peakFrame) continue;\n        const a = mf[e.peakFrame].impulse!, b = mf[f].impulse!;\n        if (a[0] * b[0] + a[1] * b[1] >= 0) continue;\n      }\n      const ids = o.frames[f].collisions;\n      let nb = 0; for (let j = 1; j < T.length; j++) if (Math.abs(T[j].frame - f) < Math.abs(T[nb].frame - f)) nb = j;\n      const Sm = (k: number) => .25 * mf[k - 1].J + .5 * mf[k].J + .25 * mf[k + 1].J;\n      let minBefore = Infinity, runBefore = 0;\n      for (let k = f - 1; k >= Math.max(1, f - 8) && contact(k); k--) {minBefore = Math.min(minBefore, Sm(k)); runBefore++;}\n      lines.push(JSON.stringify({hidden: true, set: r.set, ride: r.id, pert: r.pert, frame: f, kind, inMatched: ev !== undefined && matchOf.has(ev), strength: s,\n        S: Sm(f), valley: Number.isFinite(minBefore) ? minBefore / Sm(f) : 0, runBefore,\n        push: mf[f].impulse, ceiling: ids.some(([id]: number[]) => roles.get(id)?.ceiling), body: ids.some(([, p]: number[]) => BODY.includes(p)),\n        bodyOnly: ids.length > 0 && ids.every(([, p]: number[]) => BODY.includes(p)), guide: ids.some(([id]: number[]) => roles.get(id)?.guide),\n        nearestOffset: f - T[nb].frame, nearestReq: T[nb].impact ?? null}));\n    }\n    const loss = account.loss;\n    rideRows.push({set: r.set, ride: r.id, loss, refLoss: r.ref?.loss, beats: T.length, events: events.length, unmatched: account.unmatchedEvents.length,\n      extraMse: account.extraMse, strengthMse: account.strengthMse, timingMse: account.timingMse, missing: account.missingTargets.length, complete: account.complete,\n      lastFrame: o.frames.length - 1});\n    console.error(`${r.set} ${r.id} events ${events.length} unmatched ${account.unmatchedEvents.length} loss ${loss.toFixed(5)} ref ${r.ref?.loss.toFixed(5)}`);\n  }\n  writeFileSync(outPath, lines.join('\\n') + '\\n');\n  writeFileSync(outPath.replace(/\\.jsonl$/, '-rides.json'), JSON.stringify(rideRows, null, 1));\n  process.exit(0);\n}\nawait main();\n"
+  },
+  "missed.ts": {
+   "sha256": "a106243fdd725e46c87f94f4fde638fa7f5dbbd065c949c2896baef0b7862bf3",
+   "source": "/** Under-count audit of line.strike.v3 identity (scratch, 2026-10-30).\n * Replays the detector's walk (same arithmetic as scripts/lib/strike_impact.ts\n * detectStrikes) and records every force maximum (smoothed J >= floor) whose frame\n * lies after the last frame of the event it was folded into \u2014 i.e. a push the\n * account never measures. Reason: 'window' (a renewal whose own frames end before\n * its peak), 'rising' (no trough after the event's peak: force only rose since the\n * touchdown), 'spacing' (< 4 frames after the peak), 'valley' (no valley <= 0.5).\n * Strength: the v2/v3 formula (largest 2-frame whole-body change) over i\u22122..i+3.\n *   node --import tsx missed.ts OUT.jsonl */\nimport {readFileSync, readdirSync, writeFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {join} from 'node:path';\nimport {observe} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT as C} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\n\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst rides: any[] = [];\nfor (const set of ['dev', 'confirm']) for (const f of readdirSync(join(SCR, set, 'cells')).filter(f => f.endsWith('.json')).sort()) {\n  const cell = JSON.parse(readFileSync(join(SCR, set, 'cells', f), 'utf8'));\n  const spec = (await import(`/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/productions/${cell.case.song}/spec.ts`)).default;\n  rides.push({set, id: cell.case.id, pert: cell.case.perturbation, D: Math.round(spec.duration * 40), targets: cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined})),\n    track: JSON.parse(gunzipSync(readFileSync(join(SCR, set, 'cells', f.replace(/\\.json$/, '.track.json.gz')))).toString())});\n}\nfor (const d of readdirSync('/home/wyss/line/generated/trouble-variants-v1').filter(d => /^[a-z]+-\\d+$/.test(d))) {\n  const p = JSON.parse(readFileSync(`/home/wyss/line/generated/trouble-variants-v1/${d}/trouble_50s-${d.split('-')[1]}-production.json`, 'utf8'));\n  rides.push({set: 'trouble', id: `trouble_50s~${d}`, pert: null, D: p.case.durationFrames, targets: p.impactEvaluation.targets, track: p.track});\n}\nconst out: string[] = [];\nfor (const r of rides) {\n  const o: any = observe(r.track, r.D, r.targets), frames = strikeMotionFrames(o);\n  const events = detectStrikes(frames, C).filter(e => e.onset <= r.D), acc = accountStrikes(events, r.targets, C);\n  const T = r.targets;\n  for (let first = 0; first < frames.length;) {\n    if (!frames[first].contact) {first++; continue;}\n    let last = first; while (last + 1 < frames.length && frames[last + 1].contact) last++;\n    const S = (i: number) => .25 * frames[Math.max(first, i - 1)].J + .5 * frames[i].J + .25 * frames[Math.min(last, i + 1)].J;\n    let peak = first;\n    const push = (i: number) => frames[i].impulse!;\n    const strength = (i: number) => {let best = 0; for (let a = Math.max(first, i - 2); a <= Math.min(last, i + 3) - 1; a++) {\n      const p = push(a), q = push(a + 1); best = Math.max(best, Math.hypot(p[0] + q[0], p[1] + q[1], p[2] + q[2]));} return Math.min(1, best / C.veryStrong);};\n    const record = (i: number, reason: string) => {\n      const f = frames[i].frame; if (f > r.D) return;\n      // the event whose own frames contain f, else the event it was folded into\n      const holder = events.findIndex(e => e.contactStart <= f && f <= e.end);\n      if (holder >= 0) return;   // measured by an event (possibly as part of it)\n      const owner = [...events.keys()].filter(k => events[k].contactStart <= f).at(-1);\n      const e = owner === undefined ? undefined : events[owner], m = owner === undefined ? undefined : acc.matches.find((m: any) => m.event === owner);\n      let nb = 0; for (let j = 1; j < T.length; j++) if (Math.abs(T[j].frame - f) < Math.abs(T[nb].frame - f)) nb = j;\n      const ids = o.frames[f].collisions;\n      out.push(JSON.stringify({set: r.set, ride: r.id, pert: r.pert, frame: f, reason, S: S(i), strength: strength(i),\n        owner: owner ?? null, ownerStrength: e?.strength ?? null, ownerEnd: e?.end ?? null, ownerMatched: m ? m.target : null, ownerRequested: m ? T[m.target].impact ?? null : null,\n        lag: e ? f - e.contactStart : null, nearestOffset: f - T[nb].frame, nearestReq: T[nb].impact ?? null,\n        body: ids.some(([, p]: number[]) => p >= 4 && p <= 7)}));\n    };\n    for (let i = first + 1; i <= last; i++) {\n      const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);\n      if (na >= C.floor && nb >= C.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < C.reversalCos) {peak = i; continue;}\n      const value = S(i);\n      if (!(value >= S(i - 1) && (i === last || value > S(i + 1)))) continue;\n      let trough = peak; for (let k = peak + 1; k < i; k++) if (S(k) < S(trough)) trough = k;\n      if (value >= C.floor && i - peak >= C.spacing && trough > peak && S(trough) <= C.valley * value) {\n        let start = i; while (start > trough + 1 && S(start - 1) > S(trough)) start--;\n        if (i - start >= C.window) record(i, 'window');\n        peak = i;\n      } else {\n        if (value >= C.floor) record(i, i - peak < C.spacing ? 'spacing' : trough === peak ? 'rising' : 'valley');\n        if (value > S(peak)) peak = i;\n      }\n    }\n    first = last + 1;\n  }\n}\nwriteFileSync(process.argv[2], out.join('\\n') + '\\n');\nconsole.log(out.length, 'unmeasured force maxima');\nprocess.exit(0);\n"
+  },
+  "window.ts": {
+   "sha256": "309aed9f6b1eb21d4d55620c49205aa3698611253c04a964a6341d1239370a0e",
+   "source": "/** Check of a suspected under-count in line.strike.v2/v3 renewal: the strike start\n * walks back from the renewing peak to just after the trough, and the event's own\n * frames are [start, start + window \u2212 1]. When the trough is long and flat, the\n * renewing peak can lie after the event's last frame, so the event's strength is\n * measured on frames before the hit and the hit itself belongs to no event.\n * Re-implements only the walk (same arithmetic as scripts/lib/strike_impact.ts)\n * to recover the renewing peak of every strike; prints affected events.\n *   node --import tsx window.ts OUT.jsonl */\nimport {readFileSync, readdirSync, writeFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {join} from 'node:path';\nimport {observe} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT as C} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\n\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst out: string[] = [];\nconst rides: any[] = [];\nfor (const set of ['dev', 'confirm']) for (const f of readdirSync(join(SCR, set, 'cells')).filter(f => f.endsWith('.json')).sort()) {\n  const cell = JSON.parse(readFileSync(join(SCR, set, 'cells', f), 'utf8'));\n  const spec = (await import(`/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/productions/${cell.case.song}/spec.ts`)).default;\n  rides.push({set, id: cell.case.id, pert: cell.case.perturbation, D: Math.round(spec.duration * 40), targets: cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined})),\n    track: JSON.parse(gunzipSync(readFileSync(join(SCR, set, 'cells', f.replace(/\\.json$/, '.track.json.gz')))).toString())});\n}\nfor (const d of readdirSync('/home/wyss/line/generated/trouble-variants-v1').filter(d => /^[a-z]+-\\d+$/.test(d))) {\n  const p = JSON.parse(readFileSync(`/home/wyss/line/generated/trouble-variants-v1/${d}/trouble_50s-${d.split('-')[1]}-production.json`, 'utf8'));\n  rides.push({set: 'trouble', id: `trouble_50s~${d}`, pert: null, D: p.case.durationFrames, targets: p.impactEvaluation.targets, track: p.track});\n}\nfor (const r of rides) {\n  const o: any = observe(r.track, r.D, r.targets), frames = strikeMotionFrames(o);\n  const events = detectStrikes(frames, C).filter(e => e.onset <= r.D), acc = accountStrikes(events, r.targets, C);\n  // Replay the walk to find each renewal's triggering peak (identical control flow, renewal branch only).\n  for (let first = 0; first < frames.length;) {\n    if (!frames[first].contact) {first++; continue;}\n    let last = first; while (last + 1 < frames.length && frames[last + 1].contact) last++;\n    const S = (i: number) => .25 * frames[Math.max(first, i - 1)].J + .5 * frames[i].J + .25 * frames[Math.min(last, i + 1)].J;\n    let peak = first;\n    const push = (i: number) => frames[i].impulse!;\n    for (let i = first + 1; i <= last; i++) {\n      const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);\n      if (na >= C.floor && nb >= C.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < C.reversalCos) {peak = i; continue;}\n      const value = S(i);\n      if (!(value >= S(i - 1) && (i === last || value > S(i + 1)))) continue;\n      let trough = peak; for (let k = peak + 1; k < i; k++) if (S(k) < S(trough)) trough = k;\n      if (value >= C.floor && i - peak >= C.spacing && trough > peak && S(trough) <= C.valley * value) {\n        let start = i; while (start > trough + 1 && S(start - 1) > S(trough)) start--;\n        const ev = events.findIndex(e => e.contactStart === frames[start].frame);\n        if (ev >= 0 && frames[i].frame > events[ev].end && frames[i].frame <= r.D) {\n          // strength the hit would have with its own frames: v2 formula over 2-frame windows from i\u22122..i+3\n          let best = 0; for (let a2 = Math.max(start, i - 2); a2 <= Math.min(last, i + 3) - 1; a2++) {\n            const p = frames[a2].impulse!, q = frames[a2 + 1].impulse!; best = Math.max(best, Math.hypot(p[0] + q[0], p[1] + q[1], p[2] + q[2]));\n          }\n          const m = acc.matches.find((m: any) => m.event === ev);\n          out.push(JSON.stringify({set: r.set, ride: r.id, pert: r.pert, start: frames[start].frame, end: events[ev].end, renewPeak: frames[i].frame,\n            lag: frames[i].frame - frames[start].frame, measured: events[ev].strength, hitStrength: Math.min(1, best / C.veryStrong), matched: m ? m.target : null,\n            requested: m ? r.targets[m.target].impact ?? null : null, nextEventOnset: events[ev + 1]?.onset ?? null}));\n        }\n        peak = i;\n      } else if (value > S(peak)) peak = i;\n    }\n    first = last + 1;\n  }\n}\nwriteFileSync(process.argv[2], out.join('\\n') + '\\n');\nconsole.log(`${out.length} renewals whose triggering peak lies after the event's own frames`);\nprocess.exit(0);\n"
+  },
+  "lag.ts": {
+   "sha256": "a8785715b1a52be618f0c9b0633087c9afb90ad79ee12f3408bf3548c1d1e881",
+   "source": "/** Where, after a matched touchdown, does the engagement's largest force fall?\n * For each matched event: the lag (frames after contact start) of the maximum\n * smoothed contact force S within the same continuous engagement, up to 15 frames,\n * and the v2/v3 2-frame change there. Split by requested level. Panel only.\n *   node --import tsx lag.ts OUT.jsonl */\nimport {readFileSync, readdirSync, writeFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {join} from 'node:path';\nimport {observe} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT as C} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst out: string[] = [];\nfor (const set of ['dev', 'confirm']) for (const f of readdirSync(join(SCR, set, 'cells')).filter(f => f.endsWith('.json')).sort()) {\n  const cell = JSON.parse(readFileSync(join(SCR, set, 'cells', f), 'utf8'));\n  const spec = (await import(`/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/productions/${cell.case.song}/spec.ts`)).default;\n  const D = Math.round(spec.duration * 40), targets = cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined}));\n  const track = JSON.parse(gunzipSync(readFileSync(join(SCR, set, 'cells', f.replace(/\\.json$/, '.track.json.gz')))).toString());\n  const o: any = observe(track, D, targets), fr = strikeMotionFrames(o);\n  const events = detectStrikes(fr, C).filter(e => e.onset <= D), acc = accountStrikes(events, targets, C);\n  for (const m of acc.matches) {\n    const e = events[m.event]; if (e.kind !== 'touchdown') continue;\n    let last = e.contactStart; while (last + 1 < fr.length && fr[last + 1].contact && last + 1 - e.contactStart <= 15) last++;\n    const S = (i: number) => .25 * fr[Math.max(e.contactStart, i - 1)].J + .5 * fr[i].J + .25 * fr[Math.min(last, i + 1)].J;\n    let best = e.contactStart; for (let i = e.contactStart; i <= last; i++) if (S(i) > S(best)) best = i;\n    let w = 0; for (let a = Math.max(e.contactStart, best - 1); a <= Math.min(last - 1, best); a++) {const p = fr[a].impulse!, q = fr[a + 1].impulse!; w = Math.max(w, Math.hypot(p[0] + q[0], p[1] + q[1], p[2] + q[2]));}\n    out.push(JSON.stringify({set, ride: cell.case.id, requested: targets[m.target].impact ?? null, strength: e.strength, lag: best - e.contactStart, S: S(best), change: w / C.veryStrong, contactRun: last - e.contactStart + 1}));\n  }\n}\nwriteFileSync(process.argv[2], out.join('\\n') + '\\n');\nprocess.exit(0);\n"
+  },
+  "plan.ts": {
+   "sha256": "c5bc3b2c9cec93c2d3959ff0a599de4b7d2e16ad5778645afd983c96ef78f7ec",
+   "source": "/** Reproduce the seeded construction plan of each panel case (planner only, no\n * compile) exactly as tools/eval/eval.ts \u2192 compileHandoff \u2192 compileProductionRepertoire\n * call it, and write section \u2192 {construction, guidance, railLayout}.\n *   node --import tsx plan.ts OUT.json */\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {resolveCase} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/eval/inputs.ts';\nimport {normalizeCompilerTimeline} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/scripts/v0/optimizer/compiler_input.ts';\nimport {planIntentionalRepertoire} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/scripts/v0/optimizer/intentional_repertoire.ts';\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst out: Record<string, any> = {};\nfor (const set of ['dev', 'confirm']) {\n  const run = JSON.parse(readFileSync(`${SCR}/${set}/run.json`, 'utf8'));\n  for (const c of run.panel) {\n    const {spec, music, planned} = await resolveCase({id: c.id, song: c.song, seed: c.seed, perturbation: c.perturbation}, run.jolt);\n    if (JSON.stringify((planned as any).targets) !== JSON.stringify(c.targets)) throw new Error(`targets differ for ${c.id}`);\n    if (JSON.stringify(planned) !== JSON.stringify(c)) console.error(`note: ${c.id} resolved input identity differs (targets identical)`);\n    const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);\n    const plan = planIntentionalRepertoire(normalizeCompilerTimeline(spec), c.seed, {}, boundaries);\n    out[`${set}~${c.id}`] = plan.requests.map((r: any) => ({section: r.section, frame: r.frame, next: r.next, construction: r.construction, guidance: r.guidance, railLayout: r.railLayout ?? null}));\n  }\n}\nwriteFileSync(process.argv[2], JSON.stringify(out));\nconsole.log(Object.keys(out).length, 'plans');\nprocess.exit(0);\n"
+  },
+  "dump.ts": {
+   "sha256": "5adbfd9936460b320e53ab0b1d66401332666d1404f990956e345e35d11b05f0",
+   "source": "/** Frame-by-frame dump of a ride window: contacts (point@line section/role),\n * centre of mass, its velocity, the whole-body contact impulse, the rider angle,\n * and the v3 events overlapping the window.\n *   node --import tsx dump.ts <set> <rideId> <fromFrame> <toFrame> */\nimport {readFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {join} from 'node:path';\nimport {observe, POINTS} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V3_CONTRACT} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\n\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst [set, id, a, b] = process.argv.slice(2);\nlet track: any, targets: any[], D: number;\nif (set === 'trouble') {\n  const d = id.split('~')[1], p = JSON.parse(readFileSync(`/home/wyss/line/generated/trouble-variants-v1/${d}/trouble_50s-${d.split('-')[1]}-production.json`, 'utf8'));\n  track = p.track; targets = p.impactEvaluation.targets; D = p.case.durationFrames;\n} else {\n  const dir = join(SCR, set, 'cells'), cell = JSON.parse(readFileSync(join(dir, id + '.json'), 'utf8'));\n  track = JSON.parse(gunzipSync(readFileSync(join(dir, id + '.track.json.gz'))).toString());\n  targets = cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined}));\n  const spec = (await import(`/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/productions/${cell.case.song}/spec.ts`)).default;\n  D = Math.round(spec.duration * 40);\n}\nconst o: any = observe(track, D, targets), mf = strikeMotionFrames(o);\nconst events = detectStrikes(mf, STRIKE_V3_CONTRACT).filter(e => e.onset <= D), acc = accountStrikes(events, targets, STRIKE_V3_CONTRACT);\nconst role = new Map<number, string>(), seen = new Map<number, {last: number; j: boolean}>();\nfor (const l of track.lines) {\n  const s = Math.floor((l.id - 1000) / 10000), st = seen.get(s);\n  if (!st) {seen.set(s, {last: l.id, j: false}); role.set(l.id, `s${s}m`); continue;}\n  if (l.id !== st.last + 1) st.j = true; st.last = l.id; role.set(l.id, `s${s}${st.j ? 'g' : 'm'}`);\n}\nconst lines = new Map<number, any>(track.lines.map((l: any) => [l.id, l]));\nconst short = ['PEG', 'TAIL', 'NOSE', 'STR', 'BUTT', 'SHLD', 'RH', 'LH', 'LF', 'RF'];\nconst from = Number(a), to = Number(b);\nconsole.log('targets in window:', targets.map((t, j) => [j, t.frame, t.impact]).filter(t => t[1] >= from - 10 && t[1] <= to + 10).map(t => `#${t[0]}@${t[1]} req ${t[2]}`).join(', '));\nfor (const [i, e] of events.entries()) if (e.end >= from && e.contactStart <= to) {\n  const m = acc.matches.find((m: any) => m.event === i);\n  console.log(`event ${i} ${e.kind} contact ${e.contactStart} onset ${e.onset} peak ${e.peakFrame} end ${e.end} strength ${e.strength.toFixed(3)} ${m ? `MATCHED beat ${m.target}` : 'UNMATCHED'}`);\n}\nconsole.log('frame  com(x,y)        v(x,y)        |v|   push(x,y,spin)        J     phi   contacts');\nfor (let f = from; f <= to; f++) {\n  const P = o.frames[f].points; let cx = 0, cy = 0, vx = 0, vy = 0;\n  for (const [x, y, px, py] of P) {cx += x; cy += y; vx += x - px; vy += y - py;}\n  cx /= 10; cy /= 10; vx /= 10; vy /= 10;\n  const phi = Math.atan2(P[2][1] - P[1][1], P[2][0] - P[1][0]) * 180 / Math.PI;\n  const c = o.frames[f].collisions.map(([lid, p]: number[]) => {\n    const l = lines.get(lid), ang = Math.atan2(l.y2 - l.y1, l.x2 - l.x1) * 180 / Math.PI;\n    return `${short[p]}@${role.get(lid)}(${ang.toFixed(0)}\u00b0${l.flipped ? 'F' : ''})`;\n  });\n  const im = mf[f].impulse!;\n  process.stdout.write(`${mf[f].contact ? 'c' : ' '}`);\n  console.log(`${String(f).padStart(5)} ${(cx.toFixed(1) + ',' + cy.toFixed(1)).padStart(15)} ${(vx.toFixed(2) + ',' + vy.toFixed(2)).padStart(13)} ${Math.hypot(vx, vy).toFixed(2).padStart(5)} ${(im[0].toFixed(2) + ',' + im[1].toFixed(2) + ',' + im[2].toFixed(2)).padStart(20)} ${mf[f].J.toFixed(2).padStart(5)} ${phi.toFixed(0).padStart(5)}  ${[...new Set(c)].join(' ')}${o.frames[f].mounted ? '' : ' UNMOUNTED'}`);\n}\nprocess.exit(0);\n"
+  },
+  "trace.ts": {
+   "sha256": "3a6216cfd013e3e41b921641481e8b21b62551c862dcede371eed5216dfc2713",
+   "source": "import {readFileSync} from 'node:fs';\nimport {gunzipSync} from 'node:zlib';\nimport {observe} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/observe.ts';\nimport {strikeMotionFrames, detectStrikes, STRIKE_V3_CONTRACT as C} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/tools/measure/strike.ts';\nconst SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst [set, id, a, b] = process.argv.slice(2);\nconst cell = JSON.parse(readFileSync(`${SCR}/${set}/cells/${id}.json`, 'utf8'));\nconst track = JSON.parse(gunzipSync(readFileSync(`${SCR}/${set}/cells/${id}.track.json.gz`)).toString());\nconst targets = cell.case.targets.map((t: any) => ({frame: t.frame, impact: t.impact ?? undefined}));\nconst o: any = observe(track, 1920, targets), mf = strikeMotionFrames(o);\nlet first = Number(a); while (first > 0 && mf[first - 1].contact) first--;\nlet last = first; while (mf[last + 1]?.contact) last++;\nconsole.log('engagement', first, last);\nconst sub = mf.slice(first, last + 1);\nconsole.log(detectStrikes(sub, C).map(e => [e.kind, e.contactStart, e.onset, e.peakFrame, e.end, e.strength.toFixed(3)]));\nconst S = (i: number) => .25 * mf[Math.max(first, i - 1)].J + .5 * mf[i].J + .25 * mf[Math.min(last, i + 1)].J;\nfor (let i = first; i <= Math.min(last, Number(b)); i++) console.log(i, mf[i].J.toFixed(3), S(i).toFixed(3), mf[i].impulse!.map(x => x.toFixed(2)).join(','));\nprocess.exit(0);\n"
+  },
+  "collection.ts": {
+   "sha256": "1239bc38012eaa1b114413cf554de210f15c53c0f6446832ab78570e09883c14",
+   "source": "/** Review collection of the unwanted-impact examples (2026-10-30).\n *   node --import tsx collection.ts <outDir>   (outDir served at /generated/unwanted-impacts-20261030) */\nimport {writeGalleryJson} from '/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/scripts/gallery/artifacts.ts';\nconst base = '/generated/unwanted-impacts-20261030', trouble = '/generated/trouble-variants-v1';\nconst entries = [\n  {id: 'amour_de_ma_vie_44s-101', title: 'Amour \u00b7 body on the upper receiving rail after strong hits: 7.75 s (0.16), 8.05 s (0.33)', manifest: `${base}/amour_de_ma_vie_44s-101/manifest.json`, seed: 101},\n  {id: 'amour_de_ma_vie_44s-303', title: 'Amour \u00b7 uncounted 0.80 slam at 1.62 s (measured 0.10); guide bump 13.65 s (0.27); opposite push 7.65 s (0.21)', manifest: `${base}/amour_de_ma_vie_44s-303/manifest.json`, seed: 303},\n  {id: 'tiki_tiki_48s-101', title: 'Tiki \u00b7 uncounted turns ~0.15\u20130.2 s after quiet landings: 42.83 s (0.50), 45.50 s (0.51)', manifest: `${base}/tiki_tiki_48s-101/manifest.json`, seed: 101},\n  {id: 'luna_bala_44s-404', title: 'Luna \u00b7 uncounted turn after a quiet landing 2.10 s (0.39); receiving-rail bump 25.15 s (0.21)', manifest: `${base}/luna_bala_44s-404/manifest.json`, seed: 404},\n  {id: 'trouble_50s-slam-101', title: 'Trouble slam (held-out, observation only) \u00b7 shoulder grazes guide 3.70 s, sled re-lands 3.85 s (0.38); uncounted 0.39 at 4.22 s', manifest: `${trouble}/slam-101/manifest.json`, seed: 101},\n].map(e => ({...e, status: 'Fulfilled', video: false}));\nwriteGalleryJson(process.argv[2], 'collection.json', {schema: 'line.production-library.v1',\n  description: 'Unwanted impacts (docs/research/unwanted-impacts-20261030.md): the clearest examples of each class. Panel rides are byte-identical to the eval panel tracks (v-s2x100); strengths are line.strike.v3 or, for uncounted pushes, the same 2-frame formula.',\n  entries});\nconsole.log('written');\nprocess.exit(0);\n"
+  },
+  "same.py": {
+   "sha256": "493fdb6060117cdfcc1b7217e4de5c1045f1806ebda020a9ab2ad338ee37086f",
+   "source": "import json,gzip,sys,os\nW='/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/generated/unwanted-impacts-20261030'\nS=os.path.dirname(os.path.abspath(__file__))\nfor name,cellset in [('amour_de_ma_vie_44s-101','dev'),('amour_de_ma_vie_44s-303','dev'),('tiki_tiki_48s-101','dev'),('luna_bala_44s-404','dev')]:\n    song,seed=name.rsplit('-',1)\n    p=f'{W}/{name}/{song}-{seed}-production.json'\n    if not os.path.exists(p): print(name,'not ready'); continue\n    prod=json.load(open(p))\n    cell=json.load(gzip.open(f'{S}/{cellset}/cells/{song}~{seed}.track.json.gz'))\n    same=prod['track']['lines']==cell['lines'] and prod['track']['riders'][0]['startVelocity']==cell['riders'][0]['startVelocity']\n    print(name,'identical lines and start:',same,'lines',len(cell['lines']),'valid',prod.get('valid'))\n"
+  },
+  "guides.py": {
+   "sha256": "e17306e6454f1cd5d5436d4f9a8fe32bac7e9abe7c46d119329be446db50aa92",
+   "source": "import json,glob,collections\nfiles=glob.glob('/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c/generated/unwanted-impacts-20261030/*/*-production.json')+glob.glob('/home/wyss/line/generated/trouble-variants-v1/*-*/trouble_50s-*-production.json')\nagree=dis=0; kinds=collections.Counter()\nfor f in files:\n    p=json.load(open(f)); by=collections.defaultdict(list)\n    for l in p['track']['lines']: by[(l['id']-1000)//10000].append(l)\n    for s,ls in by.items():\n        chains=[[ls[0]]]\n        for a,b in zip(ls,ls[1:]):\n            if abs(a['x2']-b['x1'])<1e-6 and abs(a['y2']-b['y1'])<1e-6: chains[-1].append(b)\n            else: chains.append([b])\n        mine=set(l['id'] for l in chains[1]) if len(chains)==2 else set()\n        truth=set(p['railGuides'].get(str(s),[]))\n        if len(chains)>2: kinds['fragments (not classified as guide)']+=1; continue\n        if mine==truth: agree+=1\n        else: dis+=1; kinds[(len(chains),len(mine),len(truth))]+=1\nprint('sections with <=2 chains: chain rule == railGuides:',agree,'differ:',dis, kinds.most_common(8))\n"
+  },
+  "chk.py": {
+   "sha256": "40b3db38b619d5630d49f6f9da29b88a4f60b40ca65ee99a5595f7906f85f785",
+   "source": "import json,os,collections,glob\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\n# 1) chain rule vs production report mainSegments/guideSegments on Trouble\nok=bad=0; badl=[]\nfor p in glob.glob('/home/wyss/line/generated/trouble-variants-v1/*-*/trouble_50s-*-production.json'):\n    d=json.load(open(p)); by=collections.defaultdict(list)\n    for l in d['track']['lines']: by[(l['id']-1000)//10000].append(l)\n    for s in d['sections']:\n        ls=by[s['section']]; chains=[[ls[0]]]\n        for a,b in zip(ls,ls[1:]):\n            if abs(a['x2']-b['x1'])<1e-6 and abs(a['y2']-b['y1'])<1e-6: chains[-1].append(b)\n            else: chains.append([b])\n        g=len(chains[1]) if len(chains)==2 else 0\n        if g==s['guideSegments'] and (len(chains)<=2): ok+=1\n        else: bad+=1; badl.append((p.split('/')[-2],s['section'],s['shape'],len(chains),[len(c) for c in chains][:6],s['mainSegments'],s['guideSegments']))\nprint('trouble sections: chain rule agrees',ok,'disagrees',bad)\nprint(collections.Counter(b[2] for b in badl)); print(badl[:5])\n# 2) push direction vs contacted line orientation\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden')]\nc=collections.Counter()\nfor e in E:\n    d='down' if e['push'][1]>0.3*max(1e-9,e['pushTravel']) else 'up' if e['push'][1]<-0.3*max(1e-9,e['pushTravel']) else 'side'\n    o=('C' if e['ceiling'] else '')+('F' if e['floor'] else '')\n    c[(d,o)]+=1\nfor k,v in sorted(c.items()): print(k,v)\n"
+  },
+  "evidence.py": {
+   "sha256": "bd796f79cb149cbd97d338a730171292ba9380c702373ba266f88e0ec819c686",
+   "source": "\"\"\"Builds docs/research/unwanted-impacts-20261030.json from the scratch outputs.\npython3 evidence.py OUT.json\"\"\"\nimport json,collections,os,sys,hashlib,glob,statistics as st,subprocess\nS=os.path.dirname(os.path.abspath(__file__)); os.chdir(S)\nALL=[json.loads(l) for l in open('events.jsonl')]\nE=[x for x in ALL if not x.get('hidden')]\nR=json.load(open('events-rides.json')); PL=json.load(open('plans.json'))\nM=[json.loads(l) for l in open('missed.jsonl')]; L=[json.loads(l) for l in open('lag.jsonl')]\nsha=lambda p:hashlib.sha256(open(p,'rb').read()).hexdigest()\ndef q(xs,ps=(0.1,0.25,0.5,0.75,0.9,0.99)):\n    s=sorted(xs); return {str(p):round(s[min(len(s)-1,int(p*len(s)))],4) for p in ps} if s else {}\nGROUPS={'panel_authored':lambda e:e['set']!='trouble' and e['pert'] is None,\n        'panel_perturbed':lambda e:e['set']!='trouble' and e['pert'] is not None,\n        'trouble_7_complete':lambda e:e['set']=='trouble' and e['ride']!='trouble_50s~pulse-101'}\ndef down(e): return e['push'][1]>0.3*max(1e-9,e['pushTravel'])\ndef cls(e):\n    if e['reversal']: return 'A opposite-push split'\n    if down(e) and e['ceiling']:\n        return 'B1 roof: body on guide rail' if e['guide'] and e['bodyCeiling'] else 'B2 roof: body on other upper line' if e['bodyCeiling'] else 'B3 roof: sled on a ceiling line'\n    if e['kind']=='strike': return 'E renewal within contact'\n    return 'C floor re-landing after <=3 f in the air' if e['flightBefore']<=3 else 'D floor touchdown after longer flight'\nout={'schema':'line.research-evidence.v1','title':'Unwanted impacts: diagnosis (2026-10-30)','report':'docs/research/unwanted-impacts-20261030.md'}\nprov={'analysisCommit':subprocess.run(['git','-C','/home/wyss/line/.claude/worktrees/agent-a0d2427e85c56922c','rev-parse','HEAD'],capture_output=True,text=True).stdout.strip(),\n  'node':subprocess.run(['node','--version'],capture_output=True,text=True).stdout.strip(),\n  'engineSha256':sha('/home/wyss/line/engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm'),\n  'inputs':{}}\nfor set_ in ('dev','confirm'):\n    run=json.load(open(f'{set_}/run.json'))\n    prov['inputs'][f'v-s2x100-{set_}']={'path':f'/home/wyss/line/.claude/worktrees/agent-a011b559a887ffc0e/generated/eval/v-s2x100-{set_}',\n      'runJsonSha256':sha(f'{set_}/run.json'),'compilerHead':run['identity']['head'],'evaluator':run['evaluator'],'mode':run['mode'],'budget':run['budget'],'cases':len(run['panel'])}\nprov['inputs']['trouble']={'path':'/home/wyss/line/generated/trouble-variants-v1','collectionSha256':sha('/home/wyss/line/generated/trouble-variants-v1/collection.json'),\n  'rides':sorted(r['ride'] for r in R if r['set']=='trouble'),'note':'held-out music: observed examples only; no setting or conclusion is calibrated on it'}\nprov['reproduction']={'v3LossRecomputedEqualsSaved':all(abs(r['loss']-r['refLoss'])<1e-12 for r in R),'rides':len(R)}\nprov['commands']=['cd <worktree> && LR_ENGINE=wasm node --import tsx <scratch>/ua.ts <scratch>/events.jsonl',\n  'LR_ENGINE=wasm node --import tsx <scratch>/missed.ts <scratch>/missed.jsonl',\n  'LR_ENGINE=wasm node --import tsx <scratch>/window.ts <scratch>/window.jsonl',\n  'LR_ENGINE=wasm node --import tsx <scratch>/lag.ts <scratch>/lag.jsonl',\n  'LR_ENGINE=wasm node --import tsx <scratch>/plan.ts <scratch>/plans.json',\n  'python3 <scratch>/evidence.py docs/research/unwanted-impacts-20261030.json',\n  'frame dumps: LR_ENGINE=wasm node --import tsx <scratch>/dump.ts <dev|confirm|trouble> <case id> <from> <to>',\n  '<scratch> holds the panel symlinks dev -> v-s2x100-dev, confirm -> v-s2x100-confirm']\nprov['definitions']={\n 'event, strength, matching':'line.strike.v3 exactly as tools/eval/measure.ts (detectStrikes + accountStrikes over strikeMotionFrames); an unwanted impact = an unmatched v3 event (onset <= song end).',\n 'cost':'(raw/7.55)^2 / beats: its term in the v3 account extraMse',\n 'guide':'section (line id block of 10000) with exactly two connected chains in id order: the second chain; equals the production report railGuides on all 679 non-fragment sections of the 4 produced panel rides and 8 Trouble rides',\n 'ceiling line':\"the line's solid side faces down: normal (dy,-dx)/len for an unflipped line (negated if flipped) has y > 0.5; push direction agrees (down pushes: 1519 of 1524 touch a ceiling line)\",\n 'push':'largest 2-frame whole-body change in the event (the v2/v3 strength vector: travel x, y, spin); down = y > 0.3 |travel|',\n 'uncounted force maximum':'replay of the detector walk: a local maximum of smoothed J >= floor (0.8) whose frame lies in no event\\'s own frames [contactStart, end]; reasons window/rising/spacing/valley; strength = largest 2-frame change over i-2..i+3',\n 'layout':'construction request of the section reproduced with planIntentionalRepertoire (planner only); amour resolved-input identity differs from the run (spec file moved, targets identical) and all 4 produced rides are byte-identical to the panel tracks'}\nout['provenance']=prov\nprev={}\nfor g,f in GROUPS.items():\n    es=[e for e in E if f(e)]; un=[e for e in es if e['matched'] is None]; ma=[e for e in es if e['matched'] is not None]\n    keys={(e['set'],e['ride']) for e in es}; RR=[r for r in R if (r['set'],r['ride']) in keys]; beats=sum(r['beats'] for r in RR)\n    lo=sum(r['loss'] for r in RR)\n    tc=sum(e['cost'] for e in un)\n    classes={}\n    for k in sorted({cls(e) for e in un}):\n        s=[e for e in un if cls(e)==k]\n        classes[k]={'n':len(s),'nAtLeast0.1':sum(e['strength']>=.1 for e in s),'costShare':round(sum(e['cost'] for e in s)/tc,3),'medianStrength':round(st.median(e['strength'] for e in s),3)}\n    prev[g]={'rides':len(RR),'beats':beats,'events':len(es),'unmatched':len(un),'perRide':round(len(un)/len(RR),2),'perBeat':round(len(un)/beats,3),\n      'byThreshold':{str(t):{'n':sum(e['strength']>=t for e in un),'perRide':round(sum(e['strength']>=t for e in un)/len(RR),2),'perBeat':round(sum(e['strength']>=t for e in un)/beats,4)} for t in (0.05,0.1,0.15,0.2,0.25,0.3)},\n      'unmatchedStrengthQuantiles':q([e['strength'] for e in un]),'matchedStrengthQuantiles':q([e['strength'] for e in ma]),\n      'maxUnmatched':round(max(e['strength'] for e in un),3),\n      'lossShare':{'extra':round(sum(r['extraMse'] for r in RR)/lo,3),'strength':round(sum(r['strengthMse'] for r in RR)/lo,3),'timing':round(sum(r['timingMse'] for r in RR)/lo,3)},\n      'classes':classes,\n      'situationsAtLeast0.1':{k:round(v,3) for k,v in {\n        'within 12 f after a matched hit >= 0.5':sum(1 for e in un if e['strength']>=.1 and e['sinceMatched'] is not None and e['sinceMatched']<=12 and (e['matchedStrengthBefore'] or 0)>=.5),\n        'touches a ceiling line':sum(1 for e in un if e['strength']>=.1 and e['ceiling']),\n        'touches a guide rail':sum(1 for e in un if e['strength']>=.1 and e['guide']),\n        'body point in contact':sum(1 for e in un if e['strength']>=.1 and e['body']),\n        'body only':sum(1 for e in un if e['strength']>=.1 and e['bodyOnly']),\n        'rising at contact':sum(1 for e in un if e['strength']>=.1 and e['vBefore'][1]<0),\n        'inter-beat gap >= 1 s':sum(1 for e in un if e['strength']>=.1 and e['gapLen']>=40),\n        'inter-beat gap < 16 f':sum(1 for e in un if e['strength']>=.1 and e['gapLen']<16),\n        'contacts a new section (seam)':sum(1 for e in un if e['strength']>=.1 and (len(e['sections'])>1 or (e['sectionBefore']>=0 and e['sections'] and e['sections'][0]!=e['sectionBefore']))),\n      }.items()}}\n    n10=sum(e['strength']>=.1 for e in un)\n    prev[g]['situationsAtLeast0.1']={k:{'n':v,'share':round(v/max(1,n10),3)} for k,v in prev[g]['situationsAtLeast0.1'].items()}\nout['prevalence']=prev\n# seed vs perturbation\ndef rate(f,th):\n    rides=[r for r in R if r['set']!='trouble' and f(r)]; keys={(r['set'],r['ride']) for r in rides}; beats=sum(r['beats'] for r in rides)\n    return {'rides':len(rides),'perBeat':round(sum(1 for e in E if (e['set'],e['ride']) in keys and e['matched'] is None and e['strength']>=th)/beats,4),'meanExtraMse':round(sum(r['extraMse'] for r in rides)/len(rides),5)}\nbase=lambda r:'~p' not in r['ride'] and (r['ride'].endswith('~101') or r['ride'].endswith('~505'))\nout['authoredVsPerturbed']={str(th):{'authored seeds 101/505':rate(base,th),'their perturbations':rate(lambda r:'~p' in r['ride'],th),\n  'authored other seeds':rate(lambda r:'~p' not in r['ride'] and not base(r),th)} for th in (0.05,0.1,0.15)}\nout['perSongAtLeast0.1']={s:rate(lambda r,s=s:r['ride'].startswith(s),0.1) for s in ('luna_bala_44s','amor_na_praia_46s','tiki_tiki_48s','amour_de_ma_vie_44s')}\n# layout\ndef req(e):\n    s=e['sections'][0] if e['sections'] else None\n    return next((r for r in PL[e['set']+'~'+e['ride']] if r['section']==s),None)\nsecs=collections.Counter((r['construction'],r['guidance'],r['railLayout']) for reqs in PL.values() for r in reqs)\nrows=collections.defaultdict(lambda:{'extras':0,'atLeast0.1':0,'cost':0.0})\npu=[e for e in E if e['set']!='trouble' and e['matched'] is None]\nfor e in pu:\n    r=req(e)\n    if r is None: continue\n    k=(r['construction'],r['guidance'],r['railLayout']); rows[k]['extras']+=1; rows[k]['cost']+=e['cost']; rows[k]['atLeast0.1']+=e['strength']>=.1\ntc=sum(v['cost'] for v in rows.values())\nout['byPlannedSection']=[{'construction':k[0],'guidance':k[1],'railLayout':k[2],'sections':secs[k],'extras':v['extras'],'atLeast0.1':v['atLeast0.1'],\n  'atLeast0.1PerSection':round(v['atLeast0.1']/secs[k],3),'costShare':round(v['cost']/tc,3)} for k,v in sorted(rows.items(),key=lambda kv:-kv[1]['cost'])]\ntr=[x for x in out['byPlannedSection'] if x['railLayout']=='transfer']\nout['transferSummary']={'sections':sum(x['sections'] for x in tr),'sectionsAll':sum(secs.values()),'atLeast0.1':sum(x['atLeast0.1'] for x in tr),\n  'atLeast0.1All':sum(1 for e in pu if e['strength']>=.1),'costShare':round(sum(x['costShare'] for x in tr),3)}\n# guide-required sections\nsec=collections.defaultdict(list)\nfor e in E:\n    if e['set']=='trouble': continue\n    for s in e['sections']: sec[(e['set'],e['ride'],s)].append(e)\ngr={}\nfor key,reqs in PL.items():\n    set_,rid=key.split('~',1)\n    for r in reqs:\n        if r['guidance']!='required': continue\n        lay=r['railLayout']; c=gr.setdefault(lay,collections.Counter()); evs=sec.get((set_,rid,r['section']),[])\n        g=[e for e in evs if e['guide']]; gm=any(e['matched'] is not None for e in g); gu=[e for e in g if e['matched'] is None]\n        c['sections']+=1; c['guide touched by a matched hit']+=gm; c['guide touched only by unmatched events']+=bool(gu) and not gm\n        c['guide touched by both']+=bool(gu) and gm; c['no guide event']+=not g\n        mx=max([e['strength'] for e in gu],default=0); c['strongest unmatched guide event >= 0.1']+=mx>=.1; c['strongest unmatched guide event >= 0.2']+=mx>=.2\nout['guideRequiredSections']={k:dict(v) for k,v in gr.items()}\n# strong asks by delivering section\nsx=collections.defaultdict(float)\nfor e in pu:\n    if e['sections']: sx[(e['set'],e['ride'],e['sections'][0])]+=e['strength']**2\nby=collections.defaultdict(list)\nfor e in E:\n    if e['set']=='trouble' or e['matched'] is None or (e['requested'] or 0)<.6 or not e['sections']: continue\n    r=req(e)\n    if not r: continue\n    k=f\"{'arcs' if r['construction']=='arcs' else 'scattered' if r['construction']=='scattered' else 'shaped'}/{r['guidance']}/{r['railLayout']}\"\n    by[k].append((e['strength']-e['requested'],sx.get((e['set'],e['ride'],e['sections'][0]),0)))\nout['strongAsksByDeliveringSection']={k:{'n':len(v),'medianStrengthBias':round(st.median(x[0] for x in v),3),'meanUnmatchedStrength2InSection':round(sum(x[1] for x in v)/len(v),4)} for k,v in by.items()}\n# uncounted\nunc={}\nfor g,f in GROUPS.items():\n    if g=='trouble_7_complete': f=lambda m:m['set']=='trouble'; g='trouble_8_rides'\n    s=[m for m in M if f(m)]; n={'panel_authored':32,'panel_perturbed':16,'trouble_8_rides':8}[g]\n    unc[g]={'perRide':round(len(s)/n,2),'reasons':{r:{'n':len([m for m in s if m['reason']==r]),'strengthQuantiles':q([m['strength'] for m in s if m['reason']==r],(0.25,0.5,0.75,0.9)),\n      'atLeast0.2':sum(m['strength']>=.2 for m in s if m['reason']==r),'atLeast0.4':sum(m['strength']>=.4 for m in s if m['reason']==r),\n      'afterQuietMatchedBeat(<=0.15)':sum((m['ownerRequested'] if m['ownerRequested'] is not None else 1)<=.15 for m in s if m['reason']==r),\n      'lagHistogram':dict(sorted(collections.Counter(m['lag'] for m in s if m['reason']==r).items()))} for r in ('rising','window','spacing','valley')}}\nout['uncountedForceMaxima']=unc\nout['windowCases']=[json.loads(l) for l in open('window.jsonl')]\nlag={}\nfor lab,f in (('quiet (requested <= 0.15)',lambda r:(r['requested'] or 0)<=.15),('strong (requested >= 0.6)',lambda r:(r['requested'] or 0)>=.6)):\n    s=[r for r in L if f(r)]; big=[r for r in s if r['change']>=.2]\n    lag[lab]={'matchedTouchdowns':len(s),'withChange>=0.2InSameContact<=15f':len(big),'lagOfLargestForce':dict(sorted(collections.Counter(r['lag'] for r in big).items()))}\nout['quietCatchForceTiming']=lag\nout['objective']={'account':'extra cost = (raw/7.55)^2 / beats, same units as a matched beat strength error squared / beats; missing beat = 1/beats',\n  'localSearch':'arc_evaluate.ts measureObjective: impactWeight 2 x (strength error)^2 + 1 x sum(unmatched strength^2) in [frame-4, next-4) + air^2 + speed^2 + motion residuals; construction fulfilment is a hard rejection',\n  'wholeTrack':'arc_objective.ts: (air + speed + amplitude/3 + v3 account loss) / normalizer, plus engagement-gain and motion residuals',\n  'panelMedianExtraShareOfAxisObjective':0.073,\n  'equivalence':{str(s):{'localCost':round(s*s,4),'equalsCurrentBeatStrengthError':round(s/2**.5,3)} for s in (0.05,0.1,0.15,0.2,0.3)}}\nout['examples']=[\n {'ride':'amour_de_ma_vie_44s seed 101 (dev, authored)','t':8.05,'what':'shoulder and hands hit the upper receiving rail (terraces, transfer) 7 frames after a 0.53 hit; v3 0.327 unmatched','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-101/manifest.json&t=7.9'},\n {'ride':'amour_de_ma_vie_44s seed 101','t':7.75,'what':'same mechanism, 0.158 (roof push 8 frames after a 0.64 hit)','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-101/manifest.json&t=7.6'},\n {'ride':'amour_de_ma_vie_44s seed 303 (dev)','t':1.62,'what':'quiet intro: shoulder drags on the guide 1.43-1.58 s (counted 0.10), then the sled slams onto the flat main rail, 0.80, not counted (renewal window ends before its own peak)','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-303/manifest.json&t=1.3'},\n {'ride':'amour_de_ma_vie_44s seed 303','t':13.65,'what':'guide bump in a paired scallop, 0.267, 5 frames after a 0.67 hit','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/amour_de_ma_vie_44s-303/manifest.json&t=13.5'},\n {'ride':'tiki_tiki_48s seed 101 (dev)','t':42.83,'what':'quiet beat (0.03) matched 0.04 at 42.73 s; 4 frames later the sled runs through a 36 degree kink, 0.50, not counted (force only rose since the touchdown)','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/tiki_tiki_48s-101/manifest.json&t=42.5'},\n {'ride':'luna_bala_44s seed 404 (dev)','t':2.10,'what':'quiet beat (0.06) matched 0.09; 8 frames later an uncounted 0.39 turn','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/luna_bala_44s-404/manifest.json&t=1.8'},\n {'ride':'luna_bala_44s seed 404','t':25.15,'what':'receiving-rail (scallops, transfer) body bump 9 frames after a 0.76 hit, 0.21','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/unwanted-impacts-20261030/luna_bala_44s-404/manifest.json&t=25.0'},\n {'ride':'Trouble slam seed 101 (held-out, observation only)','t':3.85,'what':'not a float: 0.30 catch at 3.52 s on a 45 degree terraces rail; shoulder grazes the required guide 3.70-3.78 s (0.16), pushed down, sled re-lands 3.85 s (0.38), then a scoop bottom at 4.22 s measured 0.22 but 0.39 by its own frames','link':'/motion-gallery/production.html?collection=/generated/unwanted-impacts-20261030/collection.json&data=/generated/trouble-variants-v1/slam-101/manifest.json&t=3.4'}]\ncode={}\nMINE=['ua.ts','missed.ts','window.ts','lag.ts','plan.ts','dump.ts','trace.ts','collection.ts','same.py','guides.py','chk.py','evidence.py','pick.py']+[f'a{i}.py' for i in range(1,11)]\nfor name in MINE:\n    p=os.path.join(S,name); code[name]={'sha256':sha(p),'source':open(p).read()}\nout['code']=code\njson.dump(out,open(sys.argv[1],'w'),indent=1)\nprint('written',sys.argv[1])\n"
+  },
+  "pick.py": {
+   "sha256": "bbe4a70b561da3bfbca1c49956197d880f7c2a43b1b964567f775a06e0f090b3",
+   "source": "import json,os,sys,random\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden')]\nP=['PEG','TAIL','NOSE','STR','BUTT','SHLD','RH','LH','LF','RF']\nexpr=sys.argv[1]; n=int(sys.argv[2]) if len(sys.argv)>2 else 10\nsel=[e for e in E if eval(expr)]\nrandom.seed(1); random.shuffle(sel)\nprint(len(sel),'selected')\nfor e in sel[:n]:\n    print(e['set'],e['ride'],'f',e['contactStart'],'onset',e['onset'],f\"{e['onset']/40:.2f}s\",'str',round(e['strength'],3),e['kind'],'rev' if e['reversal'] else '','sec',e['sections'],'secBefore',e['sectionBefore'],'G' if e['guide'] else '','M' if e['main'] else '',\n      'pts','+'.join(P[p] for p in e['points']),'flight',e['flightBefore'],'push',e['push'],'nearOff',e['nearestOffset'],'req',e['nearestReq'],'sinceM',e['sinceMatched'],'mStr',None if e['matchedStrengthBefore'] is None else round(e['matchedStrengthBefore'],2),'gap',e['gapLen'])\n"
+  },
+  "a1.py": {
+   "sha256": "93b624b5f50e83cbece63d75343dcd2f47473acbe8c345fa6eb6b07844c6134a",
+   "source": "import json,collections,os\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden')]\nR=json.load(open('events-rides.json'))\ndef q(xs,ps=(0.1,0.25,0.5,0.75,0.9,0.99)):\n    s=sorted(xs); return [round(s[min(len(s)-1,int(p*len(s)))],3) for p in ps] if s else []\nGROUPS=[('panel authored',lambda e:e['set']!='trouble' and e['pert'] is None),('panel perturbed',lambda e:e['set']!='trouble' and e['pert'] is not None),('trouble (excl pulse-101)',lambda e:e['set']=='trouble' and e['ride']!='trouble_50s~pulse-101')]\nfor grp,f in GROUPS:\n    es=[e for e in E if f(e)]; un=[e for e in es if e['matched'] is None]; ma=[e for e in es if e['matched'] is not None]\n    rides=sorted(set(e['set']+e['ride'] for e in es)); RR=[r for r in R if r['set']+r['ride'] in rides]; beats=sum(r['beats'] for r in RR)\n    print(grp,'rides',len(rides),'beats',beats,'events',len(es),'unmatched',len(un),'per ride',round(len(un)/len(rides),1),'per beat',round(len(un)/beats,3))\n    print('  unmatched strength quantiles .1 .25 .5 .75 .9 .99',q([e['strength'] for e in un]))\n    print('  matched   strength quantiles',q([e['strength'] for e in ma]))\n    for th in (0.05,0.1,0.15,0.2,0.25,0.3,0.4,0.5):\n        n=sum(e['strength']>=th for e in un); print(f'   >= {th}: {n} ({n/len(rides):.2f}/ride, {n/beats:.3f}/beat)')\n    ex=sum(r['extraMse'] for r in RR); lo=sum(r['loss'] for r in RR); sm=sum(r['strengthMse'] for r in RR); tm=sum(r['timingMse'] for r in RR)\n    print(f'  loss share: extra {ex/lo:.3f} strength {sm/lo:.3f} timing {tm/lo:.3f}  mean loss {lo/len(rides):.4f} mean extraMse {ex/len(rides):.4f}')\n    # cost concentration: share of extra cost from events >= th\n    tot=sum(e['cost'] for e in un)\n    for th in (0.1,0.2,0.3):\n        print(f'   share of extra cost from strength>={th}: {sum(e[\"cost\"] for e in un if e[\"strength\"]>=th)/tot:.2f}')\n"
+  },
+  "a2.py": {
+   "sha256": "3e61337655d45a5f1138e1f60d04d65569948b09daad71271e4e87e3f7e2888b",
+   "source": "import json,collections,os,sys\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden')]\nTH=float(sys.argv[1]) if len(sys.argv)>1 else 0.1\ndef panel(e): return e['set']!='trouble'\ndef down(e): return e['push'][1]>0.3*max(1e-9,e['pushTravel'])\ndef classify(e):\n    \"\"\"Mutually exclusive mechanism class, first match wins.\"\"\"\n    if e['reversal']: return 'A opposite-push split (v3)'\n    if down(e) and e['ceiling']:\n        return 'B1 roof: body on guide' if e['guide'] and e['bodyCeiling'] else 'B2 roof: body on upper/single rail' if e['bodyCeiling'] else 'B3 roof: sled on a ceiling'\n    if e['kind']=='strike': return 'E renewal within contact'\n    if e['flightBefore']<=3: return 'C floor re-landing after <=3 f hop'\n    return 'D floor touchdown after flight'\ndef situation(e):\n    s=[]\n    if abs(e['nearestOffset'])<=8: s.append('within 8 f of a beat')\n    if e['gapLen']>=40: s.append('gap >= 1 s')\n    if e['gapLen']<16: s.append('gap < 16 f')\n    if e['sinceMatched'] is not None and e['sinceMatched']<=12 and (e['matchedStrengthBefore'] or 0)>=0.5: s.append('<=12 f after a matched hit >=0.5')\n    if e['guide']: s.append('guide contact')\n    if e['fragment']: s.append('fragment contact')\n    if e['body']: s.append('body point contact')\n    if e['bodyOnly']: s.append('body only')\n    if len(e['sections'])>1 or (e['sectionBefore']>=0 and e['sections'] and e['sections'][0]!=e['sectionBefore']): s.append('new section')\n    if e['ceiling']: s.append('ceiling line')\n    if e['vBefore'][1]<0: s.append('rising at contact')\n    if e['inverted']: s.append('inverted at contact')\n    return s\nGR=[('panel authored',lambda e:panel(e) and e['pert'] is None),('panel perturbed',lambda e:panel(e) and e['pert'] is not None),('trouble (7 complete rides)',lambda e:e['set']=='trouble' and e['ride']!='trouble_50s~pulse-101')]\nfor name,f in GR:\n    un=[e for e in E if f(e) and e['matched'] is None]\n    ma=[e for e in E if f(e) and e['matched'] is not None]\n    rides=len(set(e['set']+e['ride'] for e in E if f(e)))\n    for lab,sub in [('all extras',un),(f'extras >= {TH}',[e for e in un if e['strength']>=TH])]:\n        print(f'== {name}: {lab}: n={len(sub)} ({len(sub)/rides:.1f}/ride), share of extra cost {sum(e[\"cost\"] for e in sub)/max(1e-12,sum(e[\"cost\"] for e in un)):.2f}')\n        c=collections.Counter(classify(e) for e in sub); cc=collections.defaultdict(float)\n        for e in sub: cc[classify(e)]+=e['cost']\n        tc=sum(cc.values())\n        for k in sorted(c): v=c[k]; print(f'   {k:40s} {v:5d} {v/len(sub):5.0%}  cost {cc[k]/tc:5.0%}  median str {sorted(x[\"strength\"] for x in sub if classify(x)==k)[v//2]:.3f}')\n        s=collections.Counter(x for e in sub for x in situation(e))\n        print('   situations (overlapping):', ', '.join(f'{k} {v/len(sub):.0%}' for k,v in s.most_common()))\n    s=collections.Counter(x for e in ma for x in situation(e))\n    print('   [matched hits, for comparison]:', ', '.join(f'{k} {v/len(ma):.0%}' for k,v in s.most_common()))\n    print('   [matched hits by class]:', collections.Counter(classify(e) for e in ma).most_common())\n"
+  },
+  "a3.py": {
+   "sha256": "ba5dc8c7d8659c001f9e387c06b72f163cfb850a98b0873fc8bffdc17792340c",
+   "source": "import json,collections,os\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden')]\nP=['PEG','TAIL','NOSE','STR','BUTT','SHLD','RH','LH','LF','RF']\nun=[e for e in E if e['set']!='trouble' and e['matched'] is None]\ndown=lambda e:e['push'][1]>0.3*max(1e-9,e['pushTravel'])\nup=lambda e:e['push'][1]<-0.3*max(1e-9,e['pushTravel'])\nprint('panel extras',len(un))\nfor lab,f in [('down',down),('up',up),('side',lambda e:not down(e) and not up(e))]:\n    s=[e for e in un if f(e)]\n    print(f'{lab}: n={len(s)} cost {sum(e[\"cost\"] for e in s)/sum(e[\"cost\"] for e in un):.2f}',\n      'roles', collections.Counter(('G' if e['guide'] else '')+('M' if e['main'] else '') for e in s).most_common(),\n      'first points', collections.Counter('+'.join(P[p] for p in e['firstPoints']) for e in s).most_common(6))\n# spin share\nimport statistics\nprint('spin share median extras',statistics.median(e['spinShare'] for e in un),'matched',statistics.median(e['spinShare'] for e in E if e['set']!='trouble' and e['matched'] is not None))\nprint('extras >=0.1 spin share median',statistics.median(e['spinShare'] for e in un if e['strength']>=.1))\n# How much of the push is travel vs spin for extras\nfor th in (0,0.1,0.2):\n    s=[e for e in un if e['strength']>=th]\n    print(f'>= {th}: travel-only strength median {statistics.median(e[\"pushTravel\"]/7.55 for e in s):.3f} vs strength {statistics.median(e[\"strength\"] for e in s):.3f}; spin-dominated (spinShare>0.7) {sum(e[\"spinShare\"]>0.7 for e in s)/len(s):.0%}')\n# speed change and turn\nfor th in (0,0.1,0.2):\n    s=[e for e in un if e['strength']>=th]\n    print(f'>= {th}: turn deg median {statistics.median(e[\"turn\"] for e in s):.1f}, |dspeed| median {statistics.median(abs(e[\"speedAfter\"]-e[\"speedBefore\"]) for e in s):.2f}, speed before median {statistics.median(e[\"speedBefore\"] for e in s):.2f}')\n"
+  },
+  "a4.py": {
+   "sha256": "a141c481719d4bc6a3af2fcef18a95bbb5e41cb9102393c352f873653db92871",
+   "source": "import json,collections,os,statistics as st\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nALL=[json.loads(l) for l in open('events.jsonl')]\nE=[x for x in ALL if not x.get('hidden')]; H=[x for x in ALL if x.get('hidden')]\npanel=lambda e:e['set']!='trouble'\nun=[e for e in E if panel(e) and e['matched'] is None]\nma=[e for e in E if panel(e) and e['matched'] is not None]\ndef q(xs,ps=(0.25,0.5,0.75,0.9)):\n    s=sorted(xs); return [round(s[min(len(s)-1,int(p*len(s)))],3) for p in ps] if s else []\nprint('--- C: floor re-landing after a hop: by flight length (panel)')\nfor fl in (1,2,3):\n    s=[e for e in un if e['flightBefore']==fl and not e['ceiling'] and e['kind']=='touchdown']\n    print(f' flight {fl} f: n={len(s)} strength q25/50/75/90 {q([e[\"strength\"] for e in s])} >=0.1: {sum(e[\"strength\"]>=.1 for e in s)}')\nprint('--- extras vs the matched hit of their nearest beat (panel)')\nmh={(e['set'],e['ride'],e['matched']):e for e in ma}\nstronger=[e for e in un if abs(e['nearestOffset'])<=8 and (m:=mh.get((e['set'],e['ride'],e['nearestBeat']))) and e['strength']>m['strength']]\nprint(' extras within 8 f of a beat and stronger than that beat\\'s matched hit:',len(stronger),'of',sum(abs(e['nearestOffset'])<=8 for e in un),\n      '; >=0.1:',sum(e['strength']>=.1 for e in stronger), '; nearest req median', st.median(e['nearestReq'] or 0 for e in stronger) if stronger else None)\nprint('--- timing of extras after the previous matched hit (frames), panel, strength>=0.1')\ns=[e for e in un if e['strength']>=.1 and e['sinceMatched'] is not None]\nprint(' quantiles',q([e['sinceMatched'] for e in s],(0.1,0.25,0.5,0.75,0.9)), 'share <=10 f', round(sum(e['sinceMatched']<=10 for e in s)/len(s),2))\nprint('--- extras by requested level of the surrounding beats (panel): extras per beat and strength, by nearest request band')\nfor lo,hi in ((0,.15),(.15,.4),(.4,.6),(.6,1.01)):\n    beats=[e for e in ma if lo<=(e['requested'] or 0)<hi]; ex=[e for e in un if lo<=(e['nearestReq'] or 0)<hi]\n    nb=sum(1 for e in ma if lo<=(e['requested'] or 0)<hi)\n    print(f' nearest request [{lo},{hi}): beats(matched) {nb}, extras {len(ex)} ({len(ex)/max(1,nb):.2f}/beat), >=0.1 {sum(e[\"strength\"]>=.1 for e in ex)} ({sum(e[\"strength\"]>=.1 for e in ex)/max(1,nb):.3f}/beat), median extra {q([e[\"strength\"] for e in ex],(0.5,))}, median matched {q([e[\"strength\"] for e in beats],(0.5,))}')\nprint('--- extras relative to the hit they follow: ratio extra/previous matched strength (panel, >=0.1)')\ns=[e for e in un if e['strength']>=.1 and e['matchedStrengthBefore']]\nprint(' ratio quantiles',q([e['strength']/e['matchedStrengthBefore'] for e in s],(0.25,0.5,0.75,0.9)))\nprint('--- quiet passages: extras >= 2x the requested level of the nearest quiet beat (req<=0.15), panel')\nqq=[e for e in un if (e['nearestReq'] or 1)<=.15]\nprint(' extras near quiet beats',len(qq),'; with strength >= 0.1:',sum(e['strength']>=.1 for e in qq),'; >= 2x req:',sum(e['strength']>=2*(e['nearestReq'] or 0) for e in qq))\nprint('--- hidden pushes (2-frame whole-body change, local maxima >= 0.05), panel')\nhp=[h for h in H if panel(h)]\nfor kind in ('uncovered','inside'):\n    s=[h for h in hp if h['kind']==kind]\n    print(f' {kind}: n={len(s)} per ride {len(s)/48:.1f}; strength q50/75/90 {q([h[\"strength\"] for h in s],(0.5,0.75,0.9))}; >=0.1 {sum(h[\"strength\"]>=.1 for h in s)}; >=0.2 {sum(h[\"strength\"]>=.2 for h in s)}; ceiling {sum(h[\"ceiling\"] for h in s)/max(1,len(s)):.0%} body {sum(h[\"body\"] for h in s)/max(1,len(s)):.0%}')\ns=[h for h in hp if h['kind']=='inside' and h['strength']>=.1]\nprint(' inside matched events with opposite push >=0.1:', sum(h['inMatched'] for h in s), 'ceiling share', round(sum(h['ceiling'] for h in s)/max(1,len(s)),2))\ns=[h for h in hp if h['kind']=='uncovered' and h['strength']>=.1]\nprint(' uncovered >=0.1 examples:', [(h['ride'],h['set'],h['frame'],round(h['strength'],3)) for h in sorted(s,key=lambda h:-h['strength'])[:6]])\ns=[h for h in hp if h['kind']=='inside' and h['strength']>=.15]\nprint(' inside opposite >=0.15 examples:', [(h['ride'],h['set'],h['frame'],round(h['strength'],3),h['inMatched']) for h in sorted(s,key=lambda h:-h['strength'])[:6]])\n"
+  },
+  "a5.py": {
+   "sha256": "c7cb1f6546ae3c7043ecb8eadef1fde0e5c462fd9c418d73159d95ace6fc4318",
+   "source": "import json,collections,os\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nH=[x for x in (json.loads(l) for l in open('events.jsonl')) if x.get('hidden') and x['set']!='trouble' and x['kind']=='uncovered']\nW={(w['set'],w['ride'],w['renewPeak']) for w in map(json.loads,open('window.jsonl'))}\ndef q(xs,ps=(0.5,0.75,0.9)):\n    s=sorted(xs); return [round(s[min(len(s)-1,int(p*len(s)))],3) for p in ps] if s else []\nprint('uncovered contact pushes (panel, 48 rides), local maxima of the 2-frame change >= 0.05:',len(H))\nfor lo,hi in ((0.05,0.1),(0.1,0.2),(0.2,0.3),(0.3,2)):\n    s=[h for h in H if lo<=h['strength']<hi]\n    print(f' [{lo},{hi}): n={len(s)} ({len(s)/48:.1f}/ride)  valley ratio q50/75/90 {q([h[\"valley\"] for h in s])}  contact frames before q50 {q([h[\"runBefore\"] for h in s],(0.5,))}  ceiling {sum(h[\"ceiling\"] for h in s)/max(1,len(s)):.0%} body {sum(h[\"body\"] for h in s)/max(1,len(s)):.0%}  window-bug {sum((h[\"set\"],h[\"ride\"],h[\"frame\"]) in W for h in s)}')\n# sharp ones: valley <= 0.5 (would satisfy the renewal valley), yet uncovered\ns=[h for h in H if h['strength']>=0.2 and h['valley']<=0.5]\nprint(' >=0.2 with a valley <= 0.5 before (sharp rise) :',len(s),'of',sum(h['strength']>=0.2 for h in H), '; of which window-bug', sum((h['set'],h['ride'],h['frame']) in W for h in s))\nfor h in sorted(s,key=lambda h:-h['strength'])[:12]: print('   ',h['set'],h['ride'],h['frame'],f\"{h['frame']/40:.2f}s\",round(h['strength'],3),'S',round(h['S'],2),'valley',round(h['valley'],2),'run',h['runBefore'],'ceil' if h['ceiling'] else '', 'body' if h['body'] else '')\n"
+  },
+  "a6.py": {
+   "sha256": "baf61f9b3fd7e4f9923579446f93f15b4ffbc49d58cb18e971a02fd55033b592",
+   "source": "import json,collections,os\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nM=[json.loads(l) for l in open('missed.jsonl')]\ndef q(xs,ps=(0.25,0.5,0.75,0.9)):\n    s=sorted(xs); return [round(s[min(len(s)-1,int(p*len(s)))],3) for p in ps] if s else []\nfor name,f,n in [('panel authored',lambda m:m['set']!='trouble' and m['pert'] is None,32),('panel perturbed',lambda m:m['set']!='trouble' and m['pert'] is not None,16),('trouble (8 rides)',lambda m:m['set']=='trouble',8)]:\n    s=[m for m in M if f(m)]\n    print(f'== {name}: unmeasured force maxima {len(s)} ({len(s)/n:.1f}/ride)')\n    for reason in ('rising','window','spacing','valley'):\n        t=[m for m in s if m['reason']==reason]\n        if not t: continue\n        print(f'   {reason:8s} n={len(t):4d} strength q25/50/75/90 {q([m[\"strength\"] for m in t])} >=0.2: {sum(m[\"strength\"]>=.2 for m in t)}  >=0.4: {sum(m[\"strength\"]>=.4 for m in t)}  owner matched {sum(m[\"ownerMatched\"] is not None for m in t)}  lag q50 {q([m[\"lag\"] for m in t],(0.5,))}  owner-requested<=0.15: {sum((m[\"ownerRequested\"] if m[\"ownerRequested\"] is not None else 1)<=.15 for m in t)}')\n    big=[m for m in s if m['strength']>=.3]\n    print('   strongest:',[(m['ride'],m['frame'],f\"{m['frame']/40:.2f}s\",m['reason'],round(m['strength'],2),'owner',None if m['ownerStrength'] is None else round(m['ownerStrength'],2),'req',m['ownerRequested']) for m in sorted(big,key=lambda m:-m['strength'])[:8]])\n"
+  },
+  "a7.py": {
+   "sha256": "faef1b4188b4ea3d7100d87dc078ade3c212f98ab78f807c21ad6c16a82ee83d",
+   "source": "import json,collections,os,gzip\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden') and x['set']!='trouble']\nPL=json.load(open('plans.json'))\n# consistency: plan guidance vs track chains, using the saved tracks\nbad=0;tot=0;cnt=collections.Counter()\nfor key,reqs in PL.items():\n    set_,rid=key.split('~',1)\n    t=json.load(gzip.open(f'{set_}/cells/{rid}.track.json.gz'))\n    by=collections.defaultdict(list)\n    for l in t['lines']: by[(l['id']-1000)//10000].append(l)\n    for r in reqs:\n        ls=by.get(r['section'],[])\n        if not ls: continue\n        ch=1\n        for a,b in zip(ls,ls[1:]):\n            if abs(a['x2']-b['x1'])>1e-6 or abs(a['y2']-b['y1'])>1e-6: ch+=1\n        tot+=1; cnt[(r['construction'],r['guidance'],r['railLayout'],'1' if ch==1 else '2' if ch==2 else '3+')]+=1\n        if r['guidance']=='forbidden' and ch==2 and r['construction']!='scattered': bad+=1\nprint('plan/track consistency: sections',tot,'forbidden-guidance sections with a second chain:',bad)\nfor k,v in sorted(cnt.items(),key=lambda kv:-kv[1])[:20]: print('  ',k,v)\n# attribute each event to its section request (section of first contacted line)\ndef req(e):\n    reqs=PL[e['set']+'~'+e['ride']]\n    s=e['sections'][0] if e['sections'] else None\n    return next((r for r in reqs if r['section']==s),None)\nrows=collections.defaultdict(lambda:[0,0,0.0,0])\nsecs=collections.Counter()\nfor key,reqs in PL.items():\n    for r in reqs: secs[(r['construction'],r['guidance'],r['railLayout'])]+=1\nfor e in E:\n    r=req(e)\n    if r is None: continue\n    k=(r['construction'],r['guidance'],r['railLayout'])\n    if e['matched'] is None:\n        rows[k][0]+=1; rows[k][2]+=e['cost']\n        if e['strength']>=0.1: rows[k][1]+=1\n    else: rows[k][3]+=1\ntc=sum(v[2] for v in rows.values())\nprint('extras by planned construction of the contacted section (panel, 48 rides)')\nprint(f'  {\"construction/guidance/layout\":42s} sections  extras  >=0.1  per-section(>=0.1)  cost share')\nfor k,v in sorted(rows.items(),key=lambda kv:-kv[1][2]):\n    print(f'  {str(k):42s} {secs[k]:7d} {v[0]:7d} {v[1]:6d} {v[1]/max(1,secs[k]):10.3f}  {v[2]/tc:8.0%}')\n"
+  },
+  "a8.py": {
+   "sha256": "4e33781e2d8a0e1af1441a5dc98cf1f16837bc3a189ef2e7f854f052a7165c51",
+   "source": "import json,collections,os\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden') and x['set']!='trouble']\nPL=json.load(open('plans.json'))\ndef q(xs,ps=(0.25,0.5,0.75,0.9)):\n    s=sorted(xs); return [round(s[min(len(s)-1,int(p*len(s)))],3) for p in ps] if s else []\n# per section: guide-touching events\nsec=collections.defaultdict(list)\nfor e in E:\n    for s in e['sections']: sec[(e['set'],e['ride'],s)].append(e)\nout=collections.defaultdict(lambda:collections.Counter()); strengths=collections.defaultdict(list); worst=collections.defaultdict(list)\nfor key,reqs in PL.items():\n    set_,rid=key.split('~',1)\n    for r in reqs:\n        if r['guidance']!='required': continue\n        lay=r['railLayout'] or 'none'\n        evs=sec.get((set_,rid,r['section']),[])\n        g=[e for e in evs if e['guide']]\n        gm=[e for e in g if e['matched'] is not None]; gu=[e for e in g if e['matched'] is None]\n        c=out[lay]; c['sections']+=1\n        c['guide touched by matched hit']+= bool(gm)\n        c['guide touched only by extras']+= bool(gu) and not gm\n        c['guide touched by both']+= bool(gu) and bool(gm)\n        c['no guide event']+= not g\n        mx=max([e['strength'] for e in gu],default=0)\n        strengths[lay].append(mx)\n        worst[lay]+= [(round(mx,3),rid,set_,r['section'],r['construction'])] if mx>=0.2 else []\nfor lay,c in out.items():\n    n=c['sections']\n    print(f'guidance required, layout {lay}: sections {n}')\n    for k in ('guide touched by matched hit','guide touched by both','guide touched only by extras','no guide event'): print(f'   {k:32s} {c[k]:5d} {c[k]/n:5.0%}')\n    s=strengths[lay]\n    print(f'   strongest unmatched guide event per section q25/50/75/90 {q(s)}; sections with one >=0.1: {sum(x>=.1 for x in s)/n:.0%}, >=0.2: {sum(x>=.2 for x in s)/n:.0%}')\n# Transfer vs paired: matched strength and strong-ask share (do transfer sections serve strong asks?)\nlay_req=collections.defaultdict(list)\nfor e in E:\n    if e['matched'] is None or not e['sections']: continue\n    reqs=PL[e['set']+'~'+e['ride']]; r=next((r for r in reqs if r['section']==e['sections'][0]),None)\n    if r: lay_req[(r['railLayout'],r['guidance'])].append(e['requested'] or 0)\nfor k,v in lay_req.items(): print('matched hits landing on',k,'n',len(v),'requested median',round(sorted(v)[len(v)//2],2))\n"
+  },
+  "a9.py": {
+   "sha256": "e0a063f900c95f76836b567d5da773288ed9df662cacdbb1c68cbc9dd06a9b58",
+   "source": "import json,os,glob,statistics as st\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nrows=[]\nfor set_ in ('dev','confirm'):\n    for f in sorted(glob.glob(f'{set_}/cells/*.json')):\n        c=json.load(open(f)); ax=c['frozen']['axes']\n        # whole-track objective (arc_objective.ts): mean over axes with weights air 1, speed 1, amplitude 1/3, impact 1 (account loss)\n        air=ax['air']['rmsError']**2; spd=ax['speed']['rmsError']**2; amp=(ax.get('amplitude') or {}).get('rmsError',0)**2\n        imp=c['impact3']['loss']; ex=c['impact3']['extraMse']; strength=c['impact3']['strengthMse']\n        norm=1+1+(1/3 if 'amplitude' in ax and ax['amplitude'] else 0)+1\n        total=(air+spd+amp/3+imp)/norm\n        rows.append((c['case']['id'],set_,air,spd,amp,imp,ex,strength,total))\ndef med(i): return st.median(r[i] for r in rows)\nprint('panel medians over 48 rides (approximate axis terms from the frozen rms; the compile objective adds motion/engagement terms not reproduced here):')\nprint(f'  air mse {med(2):.4f}  speed mse {med(3):.4f}  amplitude mse {med(4):.4f}  impact v3 loss {med(5):.4f}  of which extras {med(6):.4f}  strength {med(7):.4f}')\nprint(f'  extras share of the axis objective: median {st.median(r[6]/len([\"a\",\"s\",\"p\",\"i\"])/r[8] if False else (r[6]/(4 if r[4] else 3)/r[8]) for r in rows):.3f}')\n# per-event equivalence\nprint('a single extra of strength s in a ride of m beats costs s^2/m in the account; locally (arc_evaluate) it costs s^2 against impactWeight 2 x (strength error)^2:')\nfor s in (0.05,0.1,0.15,0.2,0.3,0.38):\n    print(f'   s={s}: account cost (m=79) {s*s/79:.5f}; local cost {s*s:.4f} = strength error {s/2**.5:.3f} on the current beat = air/speed error {s:.3f}')\n"
+  },
+  "a10.py": {
+   "sha256": "f23fb0763b79816e67e07f6d25053bb085832817e080482962fe6fa1dbb03b55",
+   "source": "import json,collections,os,statistics as st\nos.chdir(os.path.dirname(os.path.abspath(__file__)))\nE=[x for x in (json.loads(l) for l in open('events.jsonl')) if not x.get('hidden') and x['set']!='trouble']\nPL=json.load(open('plans.json')); R={(r['set'],r['ride']):r for r in json.load(open('events-rides.json'))}\nM=[json.loads(l) for l in open('missed.jsonl')]\n# 1) per ride: transfer sections vs extra cost (Spearman)\nrows=[]\nfor key,reqs in PL.items():\n    set_,rid=key.split('~',1); r=R[(set_,rid)]\n    rows.append((sum(q['railLayout']=='transfer' for q in reqs)/len(reqs), r['extraMse'], rid))\ndef rank(x):\n    s=sorted(range(len(x)),key=lambda i:x[i]); out=[0]*len(x)\n    for k,i in enumerate(s): out[i]=k\n    return out\ndef corr(a,b):\n    ma,mb=sum(a)/len(a),sum(b)/len(b); n=sum((x-ma)*(y-mb) for x,y in zip(a,b)); return n/(sum((x-ma)**2 for x in a)*sum((y-mb)**2 for y in b))**.5\na=[r[0] for r in rows]; b=[r[1] for r in rows]\nprint('per ride: share of transfer sections vs extra mse, Spearman', round(corr(rank(a),rank(b)),2))\nfor song in ('luna','amor_','tiki','amour'):\n    s=[r for r in rows if r[2].startswith(song)]\n    print('  ',song,'Spearman within song', round(corr(rank([r[0] for r in s]),rank([r[1] for r in s])),2), 'n',len(s))\n# 2) matched strong asks: strength error by layout of the section that delivers the hit, and extra cost in the same section\nsec_extra=collections.defaultdict(float)\nfor e in E:\n    if e['matched'] is None and e['sections']: sec_extra[(e['set'],e['ride'],e['sections'][0])]+=e['strength']**2\nby=collections.defaultdict(list)\nfor e in E:\n    if e['matched'] is None or (e['requested'] or 0)<0.6 or not e['sections']: continue\n    s=e['sections'][0]; r=next((q for q in PL[e['set']+'~'+e['ride']] if q['section']==s),None)\n    if not r: continue\n    k=(r['construction'] if r['construction'] in ('arcs','scattered') else 'shaped', r['guidance'], r['railLayout'])\n    by[k].append((e['strength']-e['requested'], sec_extra.get((e['set'],e['ride'],s),0)))\nprint('strong asks (>=0.6) by the delivering section: n, median strength bias, mean sum(extra^2) in that section')\nfor k,v in sorted(by.items(),key=lambda kv:-len(kv[1])):\n    print(f'   {str(k):40s} n={len(v):4d} bias {st.median(x[0] for x in v):+.3f}  extra^2/section {sum(x[1] for x in v)/len(v):.4f}')\n# 3) hidden (missed) by section plan\nc=collections.Counter(); cs=collections.defaultdict(list)\nfor m in M:\n    if m['set']=='trouble' or m['reason'] not in ('rising','window'): continue\n    # section = the owner event's section, approximated by the plan request containing the frame\n    reqs=PL[m['set']+'~'+m['ride']]; r=next((q for q in reqs if q['frame']<=m['frame']<q['next']),None)\n    k=(r['construction'],r['guidance'],r['railLayout']) if r else None\n    c[k]+=1; cs[k].append(m['strength'])\nprint('hidden rising/window pushes by planned section of their frame:')\nfor k,v in c.most_common(): print('  ',k,v,'median',round(sorted(cs[k])[len(cs[k])//2],2))\nprint('hidden rising: owner beat requested <=0.15 share', round(sum((m['ownerRequested'] if m['ownerRequested'] is not None else 1)<=.15 for m in M if m['set']!='trouble' and m['reason']=='rising')/sum(1 for m in M if m['set']!='trouble' and m['reason']=='rising'),2))\nprint('hidden rising/window per ride by song:', {s: sum(1 for m in M if m['set']!='trouble' and m['reason'] in ('rising','window') and m['ride'].startswith(s))/12 for s in ('luna','amor_','tiki','amour')})\nprint('hidden rising/window frames in last 3 s of the song share:', round(sum(1 for m in M if m['set']!='trouble' and m['reason'] in ('rising','window') and m['frame']>R[(m['set'],m['ride'])]['lastFrame']-20-120)/sum(1 for m in M if m['set']!='trouble' and m['reason'] in ('rising','window')),2))\n"
+  }
+ }
+}

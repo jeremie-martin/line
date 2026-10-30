@@ -1,5 +1,37 @@
 # Foundations rework (started 2026-10-03)
 
+## October 30 follow-up: unwanted impacts (diagnosis)
+
+TODO item 3. Report only, with no compiler, measure or ruler change
+(docs/research/unwanted-impacts-20261030.md, evidence in the JSON beside it).
+It covers the 48 dev and confirm panel rides, with Trouble as held-out
+examples only.
+
+- **Counted extras are real but mostly weak.** On authored rides there are
+  7.8 per ride of strength 0.1 or more (median 0.05, max 0.33). They are 12%
+  of the v3 loss.
+  - The cost is carried by the shoulder or hands hitting an upper guide or
+    receiving rail. That is 69% of the extra cost, and 71% of these come
+    within 12 frames after a strong hit.
+  - Long floats and seams are minor on the panel.
+  - The Trouble slam "float" at 3.85 s is a guide-required terraces section.
+    The shoulder grazes the guide, then the sled re-lands (0.38).
+- **The account misses bigger pushes.** About 3 force maxima per ride lie in
+  no event's frames (median about 0.3–0.37, up to 0.95). That is 155 of 0.2
+  or more, against 48 counted. Two of the causes are detector defects:
+  - a renewal whose 6-frame window ends before its own peak (6 panel cases,
+    9 on Trouble);
+  - a gentle touchdown followed by a hard turn with no valley, which can never
+    form an event (86 cases, mostly after quiet beats).
+- **The search exploits that window.** 55% of quiet catches meet an uncounted
+  turn of 0.2 or more in the same contact. Its timing is 6–9 frames after
+  contact (173 cases) and almost never 2–5 (8 cases).
+- **Transfer layouts force extras.** They are 9% of sections but carry 48% of
+  the extra cost. 324 of 332 touch their receiver only through unmatched
+  events, because fulfilment requires a separated second contact.
+- **Next.** U1–U5 are hypotheses. The measure fix (U1) comes first and needs
+  owner pairs before it may become an objective.
+
 ## October 30 follow-up: cheaper candidate geometry
 
 Structural (TODO item 1). After the crashed-candidate stop, physics stepping is

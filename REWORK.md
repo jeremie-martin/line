@@ -91,6 +91,9 @@ Review before merging (2026-10-30):
 - Independent CPU check, fresh seed 777, concurrent pairs against 458fe8af:
   luna 0.905, amor 0.920, tiki 0.897, amour 0.915, with identical charged and
   simulated frames.
+- Owner ruling: the three noted opportunities (lazy collision grid, coarser
+  facets, charging geometry to the allowance) are not taken. Keep the code
+  lean; this was groundwork, not the focus.
 
 ## October 30 follow-up: stopping crashed candidates early
 

@@ -134,13 +134,13 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
 /** Replays the candidate to the interval horizon and checks the prefix, the
  * rider, the authored contact timing, the release and any requested
  * construction. Returns the measured trajectory or the rejection. A candidate
- * that crashes on its own lines stops there but is charged the full horizon. */
+ * whose rider or sled comes apart stops there and is charged only that far. */
 function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine[], child: Engine, fragments: Fragments | undefined,
   prefixReusable: boolean) {
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, frames} = ctx;
   if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== s.before) return {reason: 'prefix'} as Rejection;
-  if (!boundThroughMetered(child, horizon, added, frame)) return {reason: 'binding'} as Rejection;
+  if (!boundThroughMetered(child, horizon)) return {reason: 'binding'} as Rejection;
   const state = getRiderMetered(child, horizon).ballisticState();
   // A reusable prefix keeps its frames and its detector state; only the
   // candidate's own frames are read and scanned.

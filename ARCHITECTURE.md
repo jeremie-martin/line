@@ -55,11 +55,8 @@ spec (beats, impacts, air/speed/amplitude targets)
    A candidate that leaves its interval's prefix unchanged reuses the prefix
    frames and resumes the prefix's detector state, so it reads and scans only
    its own frames; the detection is identical to scanning the whole ride.
-   A candidate whose rider or sled comes apart (an unbinding is permanent)
-   stops replaying as soon as its own lines have also been hit. It is still
-   charged to the interval horizon: reading another version truncates the
-   shared cache to that hit, so the allowance and every later read are
-   unchanged.
+   A candidate whose rider or sled comes apart stops replaying at that frame,
+   since an unbinding is permanent, and is charged only the frames simulated.
 
    Scattered sections use resolved collision positions from the carrier's
    original simulation. Reading those cached records advances no physics;

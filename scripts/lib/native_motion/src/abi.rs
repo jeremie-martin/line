@@ -25,6 +25,11 @@ const SCRATCH_LEN: usize = NENT * 6 + NENT;
 static mut SCRATCH: [f64; SCRATCH_LEN] = [0.0; SCRATCH_LEN];
 const EVENTS_LEN: usize = 49152; // 16384 collision records × 3
 static mut EVENTS: [f64; EVENTS_LEN] = [0.0; EVENTS_LEN];
+// add_lines batch input: per line (id, type, flags) in ADD_IDS and (x1, y1, x2, y2)
+// in ADD_COORDS, the arguments add_line takes, for up to ADD_LINES_CAP lines.
+const ADD_LINES_CAP: usize = 4096;
+static mut ADD_IDS: [i32; ADD_LINES_CAP * 3] = [0; ADD_LINES_CAP * 3];
+static mut ADD_COORDS: [f64; ADD_LINES_CAP * 4] = [0.0; ADD_LINES_CAP * 4];
 
 #[no_mangle]
 pub extern "C" fn lines_in_ptr() -> u32 {
@@ -41,6 +46,18 @@ pub extern "C" fn scratch_ptr() -> u32 {
 #[no_mangle]
 pub extern "C" fn events_ptr() -> u32 {
     &raw const EVENTS as u32
+}
+#[no_mangle]
+pub extern "C" fn add_ids_ptr() -> u32 {
+    &raw const ADD_IDS as u32
+}
+#[no_mangle]
+pub extern "C" fn add_coords_ptr() -> u32 {
+    &raw const ADD_COORDS as u32
+}
+#[no_mangle]
+pub extern "C" fn add_lines_cap() -> u32 {
+    ADD_LINES_CAP as u32
 }
 
 // ── batch sim() — Phase-0b regression harness (wasm:check). Pure forward sim of a
@@ -133,6 +150,29 @@ pub extern "C" fn add_line(
     flags: i32,
 ) -> u32 {
     engine::add_line(h, id, ty, x1, y1, x2, y2, flags)
+}
+
+/// addLine for the first `n` lines of the ADD_IDS/ADD_COORDS buffers as one
+/// version: the same cache operations, in order, as `n` add_line calls.
+#[no_mangle]
+pub extern "C" fn add_lines(h: u32, n: u32) -> u32 {
+    let n = (n as usize).min(ADD_LINES_CAP);
+    let ids = unsafe { &*&raw const ADD_IDS };
+    let coords = unsafe { &*&raw const ADD_COORDS };
+    let lines = (0..n)
+        .map(|k| {
+            build_line(
+                ids[k * 3],
+                coords[k * 4],
+                coords[k * 4 + 1],
+                coords[k * 4 + 2],
+                coords[k * 4 + 3],
+                ids[k * 3 + 1] as i64,
+                ids[k * 3 + 2] as i64,
+            )
+        })
+        .collect();
+    engine::add_lines(h, lines)
 }
 
 #[no_mangle]

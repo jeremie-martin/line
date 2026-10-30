@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## October 29–30 follow-up: music authoring
+
+Structural for the compiler (no compiler change). A first
+draft of a new song, Trouble, was mostly wrong by the owner's ear. The single-mix
+analyzer had detected every flagged event; the draft was authored grid-first
+(half-time, out of phase with a 3-3-2 kick), read a near-zero sub-band as
+"beatless", and used onset strength as loudness. New workflow
+(docs/music-authoring.md):
+- Demucs stems and ADTOF drum transcription (`tools/music`);
+- an event list per instrument and close-up sheets;
+- a coverage report relative to the spec's own choices;
+- the spec dashboard restored read-only (`spec-dashboard/`,
+  `scripts/gallery/spec_api.ts`), with an events lane and clicks at landings.
+
+Trouble was re-authored event by event (draft v1). It is new music: keep it out
+of compiler tuning. The review pages now verify artifacts over plain HTTP on a
+LAN/VPN (`motion-gallery/sha256.js`); `crypto.subtle` exists only on localhost
+or HTTPS.
+
 ## October 29 follow-up: long-ride compiler CPU
 
 This was structural work to prepare for longer songs. The 93-second catalog case
@@ -121,25 +140,6 @@ scoring operation, not end-to-end compilation speed.
 Validation: all 63 compiler parity cells preserve tracks, physics-work counts
 and scores exactly; 33 judge tracks and all 280 tests pass. Typecheck and
 reachability pass with zero unreachable files. No reference updates.
-
-## October 29–30 follow-up: music authoring
-
-Structural for the compiler (no compiler change). A first
-draft of a new song, Trouble, was mostly wrong by the owner's ear. The single-mix
-analyzer had detected every flagged event; the draft was authored grid-first
-(half-time, out of phase with a 3-3-2 kick), read a near-zero sub-band as
-"beatless", and used onset strength as loudness. New workflow
-(docs/music-authoring.md):
-- Demucs stems and ADTOF drum transcription (`tools/music`);
-- an event list per instrument and close-up sheets;
-- a coverage report relative to the spec's own choices;
-- the spec dashboard restored read-only (`spec-dashboard/`,
-  `scripts/gallery/spec_api.ts`), with an events lane and clicks at landings.
-
-Trouble was re-authored event by event (draft v1). It is new music: keep it out
-of compiler tuning. The review pages now verify artifacts over plain HTTP on a
-LAN/VPN (`motion-gallery/sha256.js`); `crypto.subtle` exists only on localhost
-or HTTPS.
 
 Branch `rework/foundations`, from `7e2a3dfb`. Everything before the rework is
 preserved at tag `archive/pre-rework-2026-10-03` (code, docs, evidence, tests,

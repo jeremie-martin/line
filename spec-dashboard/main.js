@@ -342,6 +342,11 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.viewStart = clamp(Number(restore?.viewStart ?? 0), 0, view.spec.duration);
   state.viewEnd = clamp(Number(restore?.viewEnd ?? view.spec.duration), state.viewStart + 1e-6, view.spec.duration);
   state.analysis = await loadAnalysis(view.music);
+  // A beat grid is only a tempo hypothesis; where measured events exist, notes snap to them.
+  if (state.analysis?.onsets.some((event) => event.source) && state.snapMode === "beat") {
+    state.snapMode = "event";
+    refs.snapMode.value = "event";
+  }
 
   if (view.music?.audioUrl) {
     refs.audio.src = view.music.audioUrl;
@@ -426,6 +431,7 @@ function isEditableElement(element) {
 }
 
 function snapCandidates(mode = state.snapMode) {
+  if (mode === "event") return (state.analysis?.onsets || []).filter((event) => event.source).map((event) => event.t);
   if (mode === "beat") {
     const beats = state.analysis ? [...state.analysis.beats, ...state.analysis.downbeats] : [];
     return beats.length ? beats : (state.data?.contacts || []).map((contact) => contact.t);
@@ -1761,7 +1767,7 @@ function anchorFor(scope, t) {
       };
     }
   }
-  const momentT = round(t, 1);
+  const momentT = round(t, 2);
   return {
     id: `moment:${Math.round(momentT * 1000)}`,
     t: momentT,

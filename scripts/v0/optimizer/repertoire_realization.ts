@@ -16,6 +16,7 @@ const GUIDE_REACH=40,CELL=32,INDEXED_PAIRS=50_000;
  * guide/segment pairs, where building the grid costs more than it saves) and
  * geometry the grid cannot index visit every segment, still skipping boxes. */
 export function guideProgress(guide:readonly TrackLine[],shaped:readonly TrackLine[],totalLength:number){
+  if(!guide.length)return [];
   let offset=0;
   const segments=shaped.map(m=>{const len=length(m),s={m,dx:m.x2-m.x1,dy:m.y2-m.y1,len,offset,
     minX:Math.min(m.x1,m.x2),maxX:Math.max(m.x1,m.x2),minY:Math.min(m.y1,m.y2),maxY:Math.max(m.y1,m.y2)};offset+=len;return s;});
@@ -65,7 +66,8 @@ export function inspectConstruction(request:ConstructionRequest,lines:TrackLine[
   // Contact on an opposing rail can be the mechanism that carries the rider
   // through a bend. Attribute it to the nearest main-rail location; requiring
   // lower-rail contact throughout would reject the behavior we intend to build.
-  for(const [id,progress] of guideProgress(guide,shaped,totalLength))progresses.set(id,progress);
+  // Only contacted guide lines are visited, so only theirs are attributed.
+  for(const [id,progress] of guideProgress(guide.filter(l=>touched.has(l.id)),shaped,totalLength))progresses.set(id,progress);
   const visits=collisions.flatMap((ids,frame)=>ids.filter(id=>progresses.has(id)).map(id=>({frame,progress:progresses.get(id)!})));
   const firstAt=(lo:number,hi:number,after=-1)=>visits.find(v=>v.frame>=after&&v.progress>=lo&&v.progress<=hi)?.frame??null;
   const early=firstAt(0,.35),middle=firstAt(.35,.65,early??Infinity),late=firstAt(.65,1,middle??Infinity);

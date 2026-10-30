@@ -1,7 +1,7 @@
 /** Coverage of a spec's landings against the song's measured events
  * (productions/<song>/events.json, built by tools/music/events.py).
  *
- *   node --import tsx tools/music/coverage.ts --song=trouble_50s [--contacts-out=FILE.json]
+ *   node --import tsx tools/music/coverage.ts --song=trouble_50s [--variant=NAME] [--contacts-out=FILE.json]
  *
  * Each flag asks the author for a decision, not a fix. The bar is the spec's own
  * choices, so no loudness threshold is assumed:
@@ -26,7 +26,8 @@ const MATCH_S = 0.060, NEIGHBOUR_S = 0.35, CONTEXT_S = 2;
 const song = arg('song');
 if (!song) throw new Error('--song required');
 const dir = resolve('productions', song);
-const spec = (await import(pathToFileURL(join(dir, 'spec.ts')).href)).default as Spec;
+const variant = arg('variant');
+const spec = (await import(pathToFileURL(join(dir, variant ? `variants/${variant}.ts` : 'spec.ts')).href)).default as Spec;
 const events = (JSON.parse(readFileSync(join(dir, 'events.json'), 'utf8')).events as Event[]).sort((a, b) => a.t - b.t);
 
 const describe = (e: Event) => Object.entries(e.sources).sort((a, b) => b[1].rise - a[1].rise)

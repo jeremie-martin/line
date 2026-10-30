@@ -1,7 +1,7 @@
 /** Shared faithful music artifacts for fixed studies and editable compositions. */
 import assert from 'node:assert/strict';
 import {mkdirSync,readFileSync} from 'node:fs';
-import {join,relative} from 'node:path';
+import {join,relative,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {sha,type Case} from '../../benchmark/v3/model.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
@@ -20,7 +20,9 @@ import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
 export async function loadMusicCase(definition:any,jolt:number){
-  const cfg=loadSelect(join('productions',definition.song)),module=await import(pathToFileURL(cfg.spec).href);
+  const cfg=loadSelect(join('productions',definition.song));
+  if(definition.variant)cfg.spec=resolve('productions',definition.song,'variants',`${definition.variant}.ts`);
+  const module=await import(pathToFileURL(cfg.spec).href);
   const spec=normalizeCompilerTimeline(applyJolt(module.default,jolt));
   const durationFrames=Math.round(spec.duration*40),contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
   const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);

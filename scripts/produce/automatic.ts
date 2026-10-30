@@ -1,5 +1,6 @@
 /** Automatic production enters through compileHandoff.
  * npm run produce:automatic -- --song=luna_bala_44s --seed=101 --out=DIR
+ * --variant=NAME compiles productions/<song>/variants/NAME.ts instead of spec.ts.
  * --budget defaults to the length-scaled production allowance.
  * A gallery job instead supplies --request=FILE. No manual windows or seed selection. */
 import assert from 'node:assert/strict';
@@ -21,11 +22,11 @@ if(requestedContract!=='landing'&&!IMPACT_ACCOUNT_IDS.includes(requestedContract
 const impactContract=requestedContract==='landing'?undefined:requestedContract as ImpactAccountId;
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
- {mode:'production',song:arg('song','luna_bala_44s'),seed:Number(arg('seed','101')),...(arg('budget')?{budget:Number(arg('budget'))}:{}),
+ {mode:'production',song:arg('song','luna_bala_44s'),...(arg('variant')?{variant:arg('variant')}:{}),seed:Number(arg('seed','101')),...(arg('budget')?{budget:Number(arg('budget'))}:{}),
  creative:arg('creative')?JSON.parse(arg('creative')!):{}});
 const out=resolve(arg('out')!);mkdirSync(out,{recursive:true});
 if(existsSync(join(out,'manifest.json')))throw new Error('completed output already exists; choose a fresh directory');
-const {song,seed,budget,creative}=request,title=repertoireSongs.find(s=>s.id===song)!.title;
+const {song,variant,seed,budget,creative}=request,songTitle=repertoireSongs.find(s=>s.id===song)!.title,title=variant?`${songTitle} · ${variant}`:songTitle;
 const compilerRoot=resolve(arg('compiler-root','.')!);
 const compiler=galleryCompilerIdentity(compilerRoot),judge=judgeIdentity(),jolt=resolveJoltMs();
 const enginePath='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
@@ -37,7 +38,7 @@ const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts'
  'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/geometry_families.ts',
  'scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
-const {spec,musicCase:c}=await loadMusicCase({song,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
+const {spec,musicCase:c}=await loadMusicCase({song,variant,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
 const methodDetails={production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};
 const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,impactContract,
  cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request};
@@ -50,7 +51,7 @@ const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.req
 const alternative=saveMusicCell({out,planSha256,c,method:'production',seed,budget,allowance:budget,result,reference:null,referenceTrace:null,
  compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,work:checkpoint.work});
 assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during generation');assert.deepEqual(judgeIdentity(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
-const current=await loadMusicCase({song,title,moments:[]},jolt);for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');
+const current=await loadMusicCase({song,variant,title,moments:[]},jolt);for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');
 const cells=[alternative.cell],accounting={actualCompilationFrames:repertoire.physicalFrames,productionFrames:repertoire.physicalFrames,productionAllowance:budget,
  validation:'Independent judging and rendering are separate. The production allowance includes all construction, failed proposals, observation and compiler replay.'};
 writeGalleryJson(out,'manifest.json',{schema:'line.motion-gallery.v1',planSha256,plan,cells,sets:[accounting],

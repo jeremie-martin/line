@@ -8,7 +8,7 @@
  * Specs are edited in their source files; the dashboard does not write them. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {existsSync, readdirSync, readFileSync, statSync, writeFileSync} from 'node:fs';
-import {dirname, join, relative, resolve, sep} from 'node:path';
+import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {specZoomLaneToRenderPlan} from '../v0/core/camera.ts';
 import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
@@ -25,11 +25,20 @@ const reply = (res: ServerResponse, data: unknown, status = 200) => {
 
 export function createSpecApi(root = process.cwd()) {
   const url = (abs: string) => '/' + relative(root, abs).split(sep).join('/');
+  // Each production's spec.ts, then its variants (productions/<song>/variants/*.ts).
   const specs = () => readdirSync(join(root, 'productions'), {withFileTypes: true})
     .filter(d => d.isDirectory() && existsSync(join(root, 'productions', d.name, 'spec.ts')))
-    .map(d => ({path: `productions/${d.name}/spec.ts`, name: d.name, label: d.name, group: 'production'}));
+    .flatMap(d => {
+      const dir = join(root, 'productions', d.name, 'variants');
+      const variants = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.ts')).sort() : [];
+      return [{path: `productions/${d.name}/spec.ts`, name: d.name, label: d.name, group: 'production'},
+        ...variants.map(f => ({path: `productions/${d.name}/variants/${f}`, name: `${d.name}:${f.slice(0, -3)}`,
+          label: `${d.name} · ${f.slice(0, -3)}`, group: 'production'}))];
+    });
+  /** A production's folder, for a spec.ts or a variant. */
+  const songDir = (specPath: string) => specPath.split('/').slice(0, 2).join('/');
   const resolveSpec = (raw: string) => specs().find(s => s.path === raw);
-  const notesFile = (specPath: string) => join(root, dirname(specPath), 'notes.json');
+  const notesFile = (specPath: string) => join(root, songDir(specPath), 'notes.json');
   const readNotes = (specPath: string): Note[] => {
     const file = notesFile(specPath);
     if (!existsSync(file)) return [];
@@ -111,7 +120,7 @@ export function createSpecApi(root = process.cwd()) {
         minImpact: impacts.length ? Math.min(...impacts) : null, maxImpact: impacts.length ? Math.max(...impacts) : null,
         shortestGap: durations.length ? Math.min(...durations) : null, longestGap: durations.length ? Math.max(...durations) : null, axisRanges},
       contacts, gaps, axes, keyframes, camera, calibration: null,
-      overlayMeta: mod.overlayMeta ?? null, benchmark: null, music: music(spec.music, dirname(entry.path)),
+      overlayMeta: mod.overlayMeta ?? null, benchmark: null, music: music(spec.music, songDir(entry.path)),
     };
   }
 

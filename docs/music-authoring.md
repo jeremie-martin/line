@@ -49,8 +49,8 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    Then:
    - `~/.venvs/line-audio/bin/python scripts/analyze_audio.py --audio productions/<song>/audio.mp3 --out productions/<song>/audio.json`
      gives a tempo hypothesis and energy layers;
-   - `beats/extract_spectrogram.py` gives the dashboard spectrogram (see
-     `productions/trouble_50s` for the call).
+   - `~/.venvs/line-stems/bin/python tools/music/spectrogram.py --song=<song>`
+     gives the dashboard spectrogram.
 2. **Separate the instruments.**
    - `~/.venvs/line-stems/bin/python tools/music/stems.py --song=<song>` gives
      drums, bass, vocals and other, each with a loudness envelope and onsets.

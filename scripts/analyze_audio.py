@@ -43,11 +43,11 @@ Output layers (all interpretation-neutral):
                     breakdown) emerges from the data, not from labels.
 
 Usage:
-    /tmp/mm310/bin/python scripts/analyze_audio.py --audio beats/luna_bala_44s.mp3 \
-      --out beats/luna_bala_44s.audio.json
+    ~/.venvs/line-audio/bin/python scripts/analyze_audio.py --audio productions/<song>/audio.mp3 \
+      --out productions/<song>/audio.json
     # add --window 0:9 to print a finer console table for a region
 
-Dependencies: the madmom + librosa stack in /tmp/mm310 (see docs).
+Dependencies: the madmom + librosa stack in ~/.venvs/line-audio (see docs/music-authoring.md).
 """
 from __future__ import annotations
 

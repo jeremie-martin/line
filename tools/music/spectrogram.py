@@ -2,9 +2,7 @@
 Render a mel-spectrogram of the mix as a PNG, plus a small JSON sidecar with
 timing metadata, so the dashboard can use it as a synchronized backdrop.
 
-Standalone from extract.py — that script's JSON already carries a heavy
-envelope; we keep the image separate so it can be loaded lazily and cached
-by the browser.
+Kept apart from the analysis JSON so the browser can load and cache it lazily.
 
   - log-mel spectrogram (128 bands, 0–11025 Hz)
   - magnitudes in dB, clipped to a fixed dynamic range
@@ -77,6 +75,9 @@ def main(audio_path: Path, png_path: Path, json_path: Path) -> None:
 
 
 if __name__ == "__main__":
-    here = Path(__file__).parent
-    audio = Path(sys.argv[1]) if len(sys.argv) > 1 else here / "audio.mp3"
-    main(audio, here / "spectrogram.png", here / "spectrogram.json")
+    # Usage: spectrogram.py --song=<song>  (reads and writes productions/<song>/)
+    song = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--song=")), None)
+    if not song:
+        sys.exit("usage: spectrogram.py --song=<song>")
+    out = Path(__file__).resolve().parents[2] / "productions" / song
+    main(out / "audio.mp3", out / "spectrogram.png", out / "spectrogram.json")

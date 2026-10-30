@@ -23,8 +23,6 @@ __pycache__/
 *.aac
 *.wav
 *.zip
-beats/adtof_repo/
-beats/stems/htdemucs/
 /archives/
 
 # Local scratch and session metadata

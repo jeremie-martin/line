@@ -105,7 +105,6 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `scripts/gallery/`, `motion-gallery/` | review server API and the native production player |
 | `benchmark/v6/` | frozen V6 judge (+ the V3–V5 modules it is built from) |
 | `productions/` | production songs: spec, measured events and analysis, render settings (the four evaluation songs, plus new music held out from compiler tuning) |
-| `beats/` | music analysis inputs and extraction scripts |
 | `labels/` | the owner's felt-impact labels and blind labelling studies (perceptual ground truth) |
 | `engine-rs/` | the Rust physics engine (judge); `vendor/lr-core` is the JS reference |
 | `tools/` | parity harness, reachability guard, measurement instruments, behavioural evaluation |

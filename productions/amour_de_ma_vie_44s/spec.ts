@@ -2,7 +2,7 @@
  * L'amour de ma vie — short cut (1:21.5–2:06, 44.5s).  v2 — salience-driven.
  *
  * Beats come from the rich analysis (reused: scripts/analyze_rhythm.py →
- * beats/amour_de_ma_vie_short.rhythm.json). Contacts are the SALIENT onsets the
+ * productions/amour_de_ma_vie_44s/audio.json). Contacts are the SALIENT onsets the
  * groove actually lands on — not a metronomic grid. This reproduces the hand
  * annotations (a contact-score ≥ 0.55 recovers every marked hit at the start,
  * with none extra), and the per-onset `impact` score matches the felt intensity
@@ -74,14 +74,14 @@ const contacts = beats(
 const spec: Spec = {
   duration: 44.544,
   music: {
-    audio: "beats/amour_de_ma_vie_short.mp3",
+    audio: "productions/amour_de_ma_vie_44s/audio.mp3",
     title: "L'amour de ma vie",
     artist: "cut 1:21.5–2:06",
     tempo: "~90 BPM · 4/4 (syncopated)",
-    beats: "beats/amour_de_ma_vie_short.rhythm.json",
+    beats: "productions/amour_de_ma_vie_44s/audio.json",
     spectrogram: {
-      image: "beats/amour_de_ma_vie_short.spectrogram.png",
-      metadata: "beats/amour_de_ma_vie_short.spectrogram.json",
+      image: "productions/amour_de_ma_vie_44s/spectrogram.png",
+      metadata: "productions/amour_de_ma_vie_44s/spectrogram.json",
     },
   },
   contacts,

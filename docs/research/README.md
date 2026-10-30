@@ -17,6 +17,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [compiler-budget-20261004.md](compiler-budget-20261004.md) | how the compile budget is spent; ablations A1/A2; rejected R1/K1/P1; the length-scaled default allowance |
 | [general-impact-results-20261003.md](general-impact-results-20261003.md) | `line.contact-impact.v1` delivery: results, tradeoffs, limitations |
 | [scorecard-blind-spots-20261005.md](scorecard-blind-spots-20261005.md) | rider behaviours no scorecard row measures (pose at strong hits, body contact, pass-throughs, spin), by era; proposed guard rows |
+| [unwanted-impacts-20261030.md](unwanted-impacts-20261030.md) | unrequested hits: what v3 counts (body on guide or receiver rails after strong hits), what it misses (two detector defects; turns just after quiet catches), why the search keeps them, fix hypotheses U1–U5 |
 
 The October 3 independent audit corrects several claims in these documents:
 

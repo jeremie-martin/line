@@ -1,5 +1,93 @@
 # Foundations rework (started 2026-10-03)
 
+## October 30 follow-up: stopping crashed candidates early
+
+The owner ruled to take the first behavioural observation of the long-ride CPU
+follow-up. A candidate whose rider or sled came unbound was simulated to the
+interval horizon before being rejected.
+
+**Step 1, structural (f763b5e3).** An unbinding is permanent in the kernel. The
+replay now steps frame by frame and stops at the first unbound frame. It is
+still charged, and checked against the limit, as the full read was.
+
+The stop waits until one of the candidate's own lines has been hit. The engine
+shares one frame cache per lineage, and reading another version truncates it
+to the first collision of the lines it removes. Stopping before such a hit
+could leave a sibling to re-simulate frames that the full read would have
+cached. The new native test shows this: the sibling's charge goes from 80 to
+149 frames.
+
+- Every gate passes: parity 63/63 identical, judge parity 33/33, tests,
+  typecheck 0, reachability 0, engine trace identical.
+- The 48 dev and confirm panel cases are also identical to the base, in track
+  and frame count.
+- Five instrumented rides: every crash had already hit the candidate's own
+  lines, so all frames after the crash are skipped. That is 18.2% (luna),
+  18.4% (amor), 17.0% (tiki), 25.3% (amour) and 13.0% (long case) of physical
+  frames.
+- Paired process CPU, six concurrent pairs per case, every pair identical:
+  median ratios 0.997 (luna), 0.988 (amor), 0.989 (tiki), 0.972 (amour) and
+  0.980 (long case). The saving is only 0.3–2.8%, far below the frame share.
+  Physics stepping is a small part of a candidate's cost (16% of the long
+  case's CPU). A crashed candidate still builds and registers its geometry
+  and replays up to its crash, and the new loop reads every frame once.
+
+**Step 2, behavioural (the commit after this record).** It charges only the
+frames simulated and stops at the first unbound frame. It was evaluated as
+14dd3f72, kept as branch `bstop-step2-evaluated`. The hypothesis and decision
+rule were written before any step-2 run (in the evidence file):
+
+- freed allowance buys more search;
+- completion and v3 loss equal or better;
+- no other ruler worse with its song interval excluding zero.
+
+Results:
+
+- Work, five rides: 9–14% more fresh candidate evaluations. The search now
+  ends at 84–98% of its allowance (step 1: 99.7% or more), so the allowance
+  stops binding and frames fall 2–16%.
+- Panels, paired against step 1 (48 cases, song bootstrap):
+  - completion 48/48 in both arms;
+  - v3 impact loss, authored: −0.0004 on dev (−1.7%) and −0.0011 on
+    confirm (−4.5%), with intervals that only just exclude zero;
+  - v3 impact loss, perturbed: +0.0004 and −0.0001, null;
+  - strong and very strong bias, speed, contested beats and body drag show
+    no change outside their intervals; air improves on confirm perturbed
+    (−0.004);
+  - quiet bias (−0.007) and inverted strong arrivals (−1.9 pp) improve on
+    dev authored only;
+  - worse, with intervals excluding zero: R1 strong extra hits on dev
+    authored (+0.010/beat) and R1 strong strength rms on confirm authored
+    (+0.006). Each is one of four panel cells, with the opposite sign
+    elsewhere.
+- Catalog, the Oct 5 audit's 336 training-catalog compiles (equal group
+  weight, 15 groups; quality on the 317 complete in both):
+  - completion 318/336 in both; one case recovered and one lost, all
+    failures budget, as on Oct 5;
+  - v3 impact loss −0.0006 (−3.4%), lower in 14 of 15 groups;
+  - air (−0.0013) and speed (−0.0018) rms also improve, with intervals
+    excluding zero;
+  - quiet bias, body drag and R1 extra hits lean worse, but their intervals
+    include zero.
+- Paired CPU against step 1, three pairs per case: median ratios 1.09
+  (luna), 1.09 (amor), 1.07 (tiki), 1.11 (amour) and 1.17 (long case).
+  Catalog: +6.6%. The extra evaluations cost more than the frames saved.
+- Parity references are refreshed in that commit. The V6 sentinel cells are
+  neutral (mean 883.5 → 883.8, 18/18 valid). Three scenario tests now use the
+  nearest allowance that reproduces them under the new accounting.
+
+Decision, by the rule stated in advance: step 2 does not qualify. Two R1
+cells are worse with intervals excluding zero, and it costs 7–17% more CPU.
+Recommend merging step 1 alone; its saving is small but free.
+
+Step 2's v3 gain is small but consistent (two authored panels and 14 of 15
+catalog groups). The owner may still prefer it, at the CPU cost, if that
+search is worth buying. The catalog evidence came after the rule and is
+training-catalog data, so it does not change the rule.
+
+Evidence: `docs/research/binding-stop-20261030.json`. Branch
+`worktree-agent-a011b559a887ffc0e`.
+
 ## October 29–30 follow-up: music authoring
 
 Structural for the compiler (no compiler change). A first
@@ -71,7 +159,8 @@ Behavioural observations, not implemented:
   simulated to the interval horizon. Frames after the rider or sled first came
   unbound are 18.2% of luna's physical frames and 13.0% of the long case's.
   Stopping at that frame would reject the same candidates, but it would change
-  the allowance accounting and therefore the tracks.
+  the allowance accounting and therefore the tracks. (October 30, above: the
+  stop can keep the accounting unchanged, and it saves only 0.3–2.8% of CPU.)
 - **Facet density.** Long supported sections build rails from facets with
   median lengths of 1.1–3.7 px (three captured inspections). Their line
   registration remains about a quarter of the long case's CPU. Coarser facets

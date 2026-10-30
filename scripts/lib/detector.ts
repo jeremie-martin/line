@@ -196,29 +196,87 @@ export type Detection = {
 
 // ────────── Detector (pure function) ──────────
 
+/** Detector state after the frames before `next`. */
+type DetectorState = {
+  P: DetectorParams;
+  next: number;
+  position: Vec2[];
+  velocity: Vec2[];
+  speed: number[];
+  sledContacts: string[][];
+  contactLineIds: number[][];
+  airborne: boolean[];
+  events: DetEvent[];
+  stallRun: number;
+  airborneRun: number;
+  airborneFrom: number; // frame at which the current airborne run began
+  terminus: Terminus | null;
+};
+
+/** Running summary of the measurements before `next`. */
+type SummaryState = {
+  next: number;
+  contactFrames: number;
+  airborneFrames: number;
+  speedSlidingSum: number;
+  speedAirborneSum: number;
+  vxSlidingSum: number;
+  vxAirborneSum: number;
+  longestContactRun: number;
+  longestAirborneRun: number;
+  slideSegments: SlideSegment[];
+  curRun: number;
+  curRunIsAir: boolean;
+  runStart: number;
+};
+
+/** Detection of a trajectory's leading frames, stopped before any landing
+ * check could look past them. `detectFrom` resumes it on a trajectory that
+ * begins with the same frame objects; the result equals `detect`. */
+export type DetectionPrefix = { readonly state: DetectorState; readonly summary: SummaryState; readonly last: RawFrame | undefined };
+
 export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {}): Detection {
+  if (raw.frames.length === 0) throw new Error("detect: empty trajectory");
+  const state = scanFrames(startDetector({ ...DEFAULT_PARAMS, ...params }), raw.frames, raw.frames.length);
+  return finishDetection(raw, state, startSummary());
+}
+
+/** Scans `raw` up to the last frame whose landing check stays inside it. */
+export function detectPrefix(raw: RawTrajectory, params: Partial<DetectorParams> = {}): DetectionPrefix {
   const P: DetectorParams = { ...DEFAULT_PARAMS, ...params };
-  const frames = raw.frames;
-  if (frames.length === 0) {
-    throw new Error("detect: empty trajectory");
-  }
+  const state = scanFrames(startDetector(P), raw.frames, Math.max(0, raw.frames.length - P.persistenceFrames + 1));
+  const summary = scanSummary(startSummary(), state, state.airborne.length);
+  return { state, summary, last: state.next > 0 ? raw.frames[state.next - 1] : undefined };
+}
 
-  // Walk forward; stop at first terminus condition or duration.
-  // Build measurements only up to the terminus frame inclusive.
-  const position: Vec2[] = [];
-  const velocity: Vec2[] = [];
-  const speed: number[] = [];
-  const sledContacts: string[][] = [];
-  const contactLineIds: number[][] = [];
-  const airborne: boolean[] = [];
-  const events: DetEvent[] = [];
+/** `detect(raw)` for a trajectory that extends the frames of `prefix`. */
+export function detectFrom(prefix: DetectionPrefix, raw: RawTrajectory): Detection {
+  const p = prefix.state;
+  if (raw.frames.length === 0) throw new Error("detect: empty trajectory");
+  if (raw.frames.length < p.next || (p.next > 0 && raw.frames[p.next - 1] !== prefix.last))
+    throw new Error("detectFrom: trajectory does not extend the detected prefix");
+  const state: DetectorState = {
+    ...p, P: { ...p.P },
+    position: p.position.slice(), velocity: p.velocity.slice(), speed: p.speed.slice(),
+    sledContacts: p.sledContacts.slice(), contactLineIds: p.contactLineIds.slice(), airborne: p.airborne.slice(),
+    events: p.events.map((e) => ({ ...e })),
+  };
+  const summary = { ...prefix.summary, slideSegments: prefix.summary.slideSegments.map((s) => ({ ...s })) };
+  return finishDetection(raw, scanFrames(state, raw.frames, raw.frames.length), summary);
+}
 
-  let stallRun = 0;
-  let airborneRun = 0;
-  let airborneFrom = -1; // frame at which the current airborne run began
-  let terminus: Terminus | null = null;
+function startDetector(P: DetectorParams): DetectorState {
+  return { P, next: 0, position: [], velocity: [], speed: [], sledContacts: [], contactLineIds: [], airborne: [], events: [],
+    stallRun: 0, airborneRun: 0, airborneFrom: -1, terminus: null };
+}
 
-  for (let i = 0; i < frames.length; i++) {
+// Walk forward from state.next to `until`; stop at the first terminus condition.
+// Build measurements only up to the terminus frame inclusive.
+function scanFrames(state: DetectorState, frames: RawFrame[], until: number): DetectorState {
+  const { P, position, velocity, speed, sledContacts, contactLineIds, airborne, events } = state;
+  let { stallRun, airborneRun, airborneFrom, terminus } = state;
+  let i = state.next;
+  for (; terminus === null && i < until; i++) {
     const fr = frames[i];
 
     // Record per-frame measurements.
@@ -302,7 +360,13 @@ export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {})
       }
     }
   }
+  Object.assign(state, { next: i, stallRun, airborneRun, airborneFrom, terminus });
+  return state;
+}
 
+function finishDetection(raw: RawTrajectory, state: DetectorState, summary: SummaryState): Detection {
+  const frames = raw.frames;
+  let terminus = state.terminus;
   if (terminus === null) {
     // Reached the end of the supplied trajectory without a terminus condition.
     // Did we reach spec duration?
@@ -313,35 +377,29 @@ export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {})
     };
   }
 
+  const { position, velocity, speed, sledContacts, contactLineIds, airborne } = state;
   const measurements: Measurements = { position, velocity, speed, sledContacts, contactLineIds, airborne };
-  const summary = computeSummary(measurements, raw.duration);
 
   return {
     measurements,
-    events,
+    events: state.events,
     terminus,
-    params: P,
-    summary,
+    params: state.P,
+    summary: finishSummary(scanSummary(summary, measurements, airborne.length), airborne.length, raw.duration),
   };
 }
 
-function computeSummary(m: Measurements, specDuration: number): Summary {
-  const N = m.airborne.length;
-  let contactFrames = 0;
-  let airborneFrames = 0;
-  let speedSlidingSum = 0;
-  let speedAirborneSum = 0;
-  let vxSlidingSum = 0;
-  let vxAirborneSum = 0;
-  let longestContactRun = 0;
-  let longestAirborneRun = 0;
-  const slideSegments: SlideSegment[] = [];
+function startSummary(): SummaryState {
+  return { next: 0, contactFrames: 0, airborneFrames: 0, speedSlidingSum: 0, speedAirborneSum: 0, vxSlidingSum: 0, vxAirborneSum: 0,
+    longestContactRun: 0, longestAirborneRun: 0, slideSegments: [], curRun: 0, curRunIsAir: false, runStart: 0 };
+}
 
-  let curRun = 0;
-  let curRunIsAir = false;
-  let runStart = 0;
-
-  for (let i = 0; i < N; i++) {
+function scanSummary(s: SummaryState, m: Pick<Measurements, "velocity" | "speed" | "airborne">, until: number): SummaryState {
+  let { contactFrames, airborneFrames, speedSlidingSum, speedAirborneSum, vxSlidingSum, vxAirborneSum,
+    longestContactRun, longestAirborneRun, curRun, curRunIsAir, runStart } = s;
+  const slideSegments = s.slideSegments;
+  let i = s.next;
+  for (; i < until; i++) {
     const isAir = m.airborne[i];
     if (isAir) {
       airborneFrames++;
@@ -372,6 +430,14 @@ function computeSummary(m: Measurements, specDuration: number): Summary {
       curRunIsAir = isAir;
     }
   }
+  Object.assign(s, { next: i, contactFrames, airborneFrames, speedSlidingSum, speedAirborneSum, vxSlidingSum,
+    vxAirborneSum, longestContactRun, longestAirborneRun, curRun, curRunIsAir, runStart });
+  return s;
+}
+
+function finishSummary(s: SummaryState, N: number, specDuration: number): Summary {
+  let { longestContactRun, longestAirborneRun } = s;
+  const { contactFrames, airborneFrames, curRun, curRunIsAir, runStart, slideSegments } = s;
   // Close final run.
   if (N > 0) {
     if (curRunIsAir) {
@@ -392,10 +458,10 @@ function computeSummary(m: Measurements, specDuration: number): Summary {
     contactFractionSpec: specFrames > 0 ? contactFrames / specFrames : 0,
     longestContactRun,
     longestAirborneRun,
-    meanSpeedSliding: contactFrames > 0 ? speedSlidingSum / contactFrames : 0,
-    meanSpeedAirborne: airborneFrames > 0 ? speedAirborneSum / airborneFrames : 0,
-    meanVxSliding: contactFrames > 0 ? vxSlidingSum / contactFrames : 0,
-    meanVxAirborne: airborneFrames > 0 ? vxAirborneSum / airborneFrames : 0,
+    meanSpeedSliding: contactFrames > 0 ? s.speedSlidingSum / contactFrames : 0,
+    meanSpeedAirborne: airborneFrames > 0 ? s.speedAirborneSum / airborneFrames : 0,
+    meanVxSliding: contactFrames > 0 ? s.vxSlidingSum / contactFrames : 0,
+    meanVxAirborne: airborneFrames > 0 ? s.vxAirborneSum / airborneFrames : 0,
     slideSegments,
   };
 }

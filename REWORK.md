@@ -1,5 +1,67 @@
 # Foundations rework (started 2026-10-03)
 
+## October 29 follow-up: long-ride compiler CPU
+
+This was structural work to prepare for longer songs. The 93-second catalog case
+(`stretch_supported_speed_change`, seed 101) cost 164 µs of CPU per physical
+frame, against 29.5 µs for luna_bala_44s (seed 3001). Its first 40 contacts
+(45 s) took 593 s of CPU, against 89 s for luna with about the same number of
+physical frames (3.1M vs 3.0M).
+
+Profiles and work counters located the cost outside the search and outside
+physics stepping. Stepping was 3% of the long case.
+
+- **Construction inspection, 59% of the long case.** Each guide segment was
+  attributed to its nearest main-rail segment by scanning every segment.
+  Long supported sections produce candidates with up to about 2,000 segments
+  on each rail, which made 5.6 billion pairs in the first 40 contacts.
+- **Prefix rescans, quadratic in ride length.** Every candidate re-detected
+  the whole ride from frame 0. On luna this scanned 89M frames for 3M physical
+  frames.
+- **Whole-ride terminal objective.** It recomputed whole-ride gains and motion
+  filters once per contact.
+- **Line undo.** Undoing each candidate scanned the cached events once per
+  removed line.
+
+Five commits fix these with identical tracks, frame counts and scores:
+
+1. Resumable prefix detection.
+2. Single-pass terminal objective.
+3. Bounding-box skipping.
+4. A cell grid for guide attribution.
+5. One-scan line undo in the compiler engine (`engine.wasm` rebuilt).
+
+Every commit passes 63/63 parity cells, judge parity, tests, typecheck and
+reachability. Paired process CPU, with both arms running concurrently:
+
+- **Long case:** 1,045 → 269 s and 1,038 → 266 s (0.257 and 0.256), with peak
+  RSS about 6–16% lower.
+- **Four production songs at seed 3001, two pairs each:** medians 0.842, 0.850,
+  0.806 and 0.840.
+- **Per-frame cost:** 37–45 µs at every truncation of the long case, from
+  6.8 s to 92.7 s. Before, it rose from 40 to 191 µs.
+
+Rejected because measured effects were within noise:
+
+- set membership for main-rail contacts;
+- 16 px grid cells, whose gain appeared only in an offline microbenchmark.
+
+Behavioural observations, not implemented:
+
+- **Simulation after a crash.** Candidates rejected for a broken binding are
+  simulated to the interval horizon. Frames after the rider or sled first came
+  unbound are 18.2% of luna's physical frames and 13.0% of the long case's.
+  Stopping at that frame would reject the same candidates, but it would change
+  the allowance accounting and therefore the tracks.
+- **Facet density.** Long supported sections build rails from facets with
+  median lengths of 1.1–3.7 px (three captured inspections). Their line
+  registration remains about a quarter of the long case's CPU. Coarser facets
+  would change geometry.
+
+Evidence: `docs/research/speed-20261029.json`, with 65 paired records (hashes,
+frames, CPU, peak RSS), both length-scaling batches, counts and profile shares.
+Branch `worktree-agent-a9af6a2373848b41e`.
+
 ## October 29 follow-up: geometry-family registry
 
 Structural. A geometry family is now one row of `geometry_families.ts`: its
@@ -59,6 +121,25 @@ scoring operation, not end-to-end compilation speed.
 Validation: all 63 compiler parity cells preserve tracks, physics-work counts
 and scores exactly; 33 judge tracks and all 280 tests pass. Typecheck and
 reachability pass with zero unreachable files. No reference updates.
+
+## October 29–30 follow-up: music authoring
+
+Structural for the compiler (no compiler change). A first
+draft of a new song, Trouble, was mostly wrong by the owner's ear. The single-mix
+analyzer had detected every flagged event; the draft was authored grid-first
+(half-time, out of phase with a 3-3-2 kick), read a near-zero sub-band as
+"beatless", and used onset strength as loudness. New workflow
+(docs/music-authoring.md):
+- Demucs stems and ADTOF drum transcription (`tools/music`);
+- an event list per instrument and close-up sheets;
+- a coverage report relative to the spec's own choices;
+- the spec dashboard restored read-only (`spec-dashboard/`,
+  `scripts/gallery/spec_api.ts`), with an events lane and clicks at landings.
+
+Trouble was re-authored event by event (draft v1). It is new music: keep it out
+of compiler tuning. The review pages now verify artifacts over plain HTTP on a
+LAN/VPN (`motion-gallery/sha256.js`); `crypto.subtle` exists only on localhost
+or HTTPS.
 
 Branch `rework/foundations`, from `7e2a3dfb`. Everything before the rework is
 preserved at tag `archive/pre-rework-2026-10-03` (code, docs, evidence, tests,
@@ -670,20 +751,3 @@ accumulate in production.
 05:34 UTC: Adopted the qualified coherent search and passive-catch preference, with all63 refreshed references in the same commit. Fresh musical v3 loss improves24.5%/13.5%; catalog improves14.6% overall with unchanged318/336 completion and explicit case tradeoff. Final six-case matched timing is+6.9% CPU/-2.1% peak RSS; controlled long-case timing confirms a2.06x CPU cost. All279 tests/type/reach and33 judge checks pass. Previous review is preserved. Final main-checkout replay will bind the four full musical videos to the integrated code and all saved physical measurements.
 
 05:41 UTC: Campaign complete. Integrated commit abdad07e reproduces all four full musical review tracks, work counts and every saved physical measurement exactly. Main typecheck/reach pass; final mobile scorecards, catalog controls and movie playback pass. Preserved107 complete evaluation runs,19 research datasets and the separate review:9,136 files/6.83GB, all bytes and source aliases verified. Large artifacts stay local; code, compact evidence and research scripts are committed/pushed. Previous report, blind study and unanswered questions remain untouched. Decision and limits: `docs/research/quality-20261005-decision.json`.
-
-2026-10-29/30: **Music authoring brought back** (no compiler change). A first
-draft of a new song, Trouble, was mostly wrong by the owner's ear. The single-mix
-analyzer had detected every flagged event; the draft was authored grid-first
-(half-time, out of phase with a 3-3-2 kick), read a near-zero sub-band as
-"beatless", and used onset strength as loudness. New workflow
-(docs/music-authoring.md):
-- Demucs stems and ADTOF drum transcription (`tools/music`);
-- an event list per instrument and close-up sheets;
-- a coverage report relative to the spec's own choices;
-- the spec dashboard restored read-only (`spec-dashboard/`,
-  `scripts/gallery/spec_api.ts`), with an events lane and clicks at landings.
-
-Trouble was re-authored event by event (draft v1). It is new music: keep it out
-of compiler tuning. The review pages now verify artifacts over plain HTTP on a
-LAN/VPN (`motion-gallery/sha256.js`); `crypto.subtle` exists only on localhost
-or HTTPS.

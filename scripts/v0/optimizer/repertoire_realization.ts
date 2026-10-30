@@ -3,6 +3,56 @@ import type {TrackLine} from '../types.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
 export type SectionRealization=ReturnType<typeof inspectConstruction>;
 const length=(l:TrackLine)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
+const GUIDE_REACH=40,CELL=32,INDEXED_PAIRS=50_000;
+/** Progress along `shaped` of each guide midpoint's nearest shaped segment
+ * (the lowest index on ties, as a forward scan keeps the first), for guides
+ * within GUIDE_REACH px. Each segment's direction, length and preceding length
+ * are computed once, in order. Segments are bucketed by the CELL-sized cells
+ * their bounding boxes cover (v/CELL is exact), and each guide visits rings of
+ * cells until the ring is farther than the nearest distance so far (at most
+ * GUIDE_REACH) by a margin far above the rounding of any distance; a segment
+ * whose own box is that far is skipped too. Unvisited and skipped segments
+ * therefore cannot be nearer or tie. Small inspections (at most INDEXED_PAIRS
+ * guide/segment pairs, where building the grid costs more than it saves) and
+ * geometry the grid cannot index visit every segment, still skipping boxes. */
+export function guideProgress(guide:readonly TrackLine[],shaped:readonly TrackLine[],totalLength:number){
+  let offset=0;
+  const segments=shaped.map(m=>{const len=length(m),s={m,dx:m.x2-m.x1,dy:m.y2-m.y1,len,offset,
+    minX:Math.min(m.x1,m.x2),maxX:Math.max(m.x1,m.x2),minY:Math.min(m.y1,m.y2),maxY:Math.max(m.y1,m.y2)};offset+=len;return s;});
+  const cell=(v:number)=>Math.floor(v/CELL);
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  for(const s of segments){minX=Math.min(minX,s.minX);minY=Math.min(minY,s.minY);maxX=Math.max(maxX,s.maxX);maxY=Math.max(maxY,s.maxY);}
+  const x0=cell(minX),y0=cell(minY),width=cell(maxX)-x0+1,height=cell(maxY)-y0+1;
+  const indexed=guide.length*segments.length>INDEXED_PAIRS&&width*height<=4*segments.length+1024&&
+    guide.every(l=>Number.isFinite(l.x1+l.x2+l.y1+l.y2));
+  const cells:number[][]=[];
+  if(indexed)segments.forEach((s,i)=>{
+    for(let cx=cell(s.minX);cx<=cell(s.maxX);cx++)for(let cy=cell(s.minY);cy<=cell(s.maxY);cy++)(cells[(cx-x0)*height+cy-y0]??=[]).push(i);
+  });
+  const progresses:Array<[number,number]>=[];
+  let x=0,y=0,closest=Infinity,progress=0,best=-1;
+  const visit=(i:number)=>{
+    const {m,dx,dy,len,offset,minX,maxX,minY,maxY}=segments[i];
+    const bx=Math.max(minX-x,0,x-maxX),by=Math.max(minY-y,0,y-maxY),reach=closest*(1+1e-9)+1e-6;
+    if(bx*bx+by*by>reach*reach)return;
+    const t=Math.max(0,Math.min(1,((x-m.x1)*dx+(y-m.y1)*dy)/Math.max(1e-12,len*len)));
+    const d=Math.hypot(x-m.x1-t*dx,y-m.y1-t*dy);
+    if(d<closest||d===closest&&i<best){closest=d;best=i;progress=(offset+t*len)/Math.max(1e-12,totalLength);}
+  };
+  for(const l of guide){
+    x=(l.x1+l.x2)/2;y=(l.y1+l.y2)/2;closest=Infinity;progress=0;best=-1;
+    if(!indexed)for(let i=0;i<segments.length;i++)visit(i);
+    else{
+      // A cell r rings away is at least (r-1)*CELL from the midpoint.
+      const px=cell(x)-x0,py=cell(y)-y0;
+      for(let r=0;(r-1)*CELL<=Math.min(closest,GUIDE_REACH)*(1+1e-9)+1e-6;r++)
+        for(let cx=Math.max(0,px-r);cx<=Math.min(width-1,px+r);cx++)for(let cy=Math.max(0,py-r);cy<=Math.min(height-1,py+r);cy++)
+          if(Math.max(Math.abs(cx-px),Math.abs(cy-py))===r)for(const i of cells[cx*height+cy]??[])visit(i);
+    }
+    if(closest<=GUIDE_REACH)progresses.push([l.id,progress]);
+  }
+  return progresses;
+}
 export function inspectConstruction(request:ConstructionRequest,lines:TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[]){
   const main=lines.filter(l=>!guideIds.has(l.id)),guide=lines.filter(l=>guideIds.has(l.id));
   const touched=new Set(collisions.flat()),mainFrames=collisions.flatMap((ids,f)=>ids.some(id=>main.some(l=>l.id===id))?[f]:[]);
@@ -15,15 +65,7 @@ export function inspectConstruction(request:ConstructionRequest,lines:TrackLine[
   // Contact on an opposing rail can be the mechanism that carries the rider
   // through a bend. Attribute it to the nearest main-rail location; requiring
   // lower-rail contact throughout would reject the behavior we intend to build.
-  for(const l of guide){
-    const x=(l.x1+l.x2)/2,y=(l.y1+l.y2)/2;let closest=Infinity,progress=0,offset=0;
-    for(const m of shaped){
-      const dx=m.x2-m.x1,dy=m.y2-m.y1,len=length(m),t=Math.max(0,Math.min(1,((x-m.x1)*dx+(y-m.y1)*dy)/Math.max(1e-12,len*len)));
-      const d=Math.hypot(x-m.x1-t*dx,y-m.y1-t*dy);
-      if(d<closest){closest=d;progress=(offset+t*len)/Math.max(1e-12,totalLength);}offset+=len;
-    }
-    if(closest<=40)progresses.set(l.id,progress);
-  }
+  for(const [id,progress] of guideProgress(guide,shaped,totalLength))progresses.set(id,progress);
   const visits=collisions.flatMap((ids,frame)=>ids.filter(id=>progresses.has(id)).map(id=>({frame,progress:progresses.get(id)!})));
   const firstAt=(lo:number,hi:number,after=-1)=>visits.find(v=>v.frame>=after&&v.progress>=lo&&v.progress<=hi)?.frame??null;
   const early=firstAt(0,.35),middle=firstAt(.35,.65,early??Infinity),late=firstAt(.65,1,middle??Infinity);

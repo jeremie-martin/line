@@ -3,7 +3,7 @@
  * physical prefix; only a replay that meets every physical, musical and
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
-import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect } from '../../lib/detector.ts';
+import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, detectFrom } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
@@ -141,10 +141,12 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
   if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== s.before) return {reason: 'prefix'} as Rejection;
   const state = getRiderMetered(child, horizon).ballisticState();
   if (!state.riderMounted || !state.sledIntact) return {reason: 'binding'} as Rejection;
+  // A reusable prefix keeps its frames and its detector state; only the
+  // candidate's own frames are read and scanned.
   const raw = prefixReusable
-    ? {duration: horizon, frames: [...s.prefixRaw.frames, ...extractRawTrajectoryWindow(child, frame, horizon).frames]}
+    ? {duration: horizon, frames: s.prefixRaw.frames.concat(extractRawTrajectoryWindow(child, frame, horizon).frames)}
     : extractRawTrajectory(child, horizon);
-  const det = detect(raw);
+  const det = prefixReusable ? detectFrom(s.prefixDetection, raw) : detect(raw);
   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;
   if (!options.impactContract && i > 0 && !findAuthoredContactNearFrame(det, frame, 1, frame - contacts[i - 1].frame))
     return {reason: 'missed'} as Rejection;
@@ -300,7 +302,8 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
     ? impactAccountFor(options.impactContract!).evaluate(terminalPhysical, impactTargets, duration, true) : undefined;
   const terminalLoss = i === contacts.length - 1
     ? arcSelectionObjective(ctx, raw, terminalPhysical, arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts)).loss : undefined;
-  const release = raw.frames.slice().reverse().find(f => f.sledContacts.length)?.frame;
+  let release: number | undefined;
+  for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames[k].sledContacts.length) release = raw.frames[k].frame;
   const finalState = state.points;
   const heading = deg(Math.atan2(finalVelocity.y, finalVelocity.x)), endSpeed = Math.hypot(finalVelocity.x, finalVelocity.y);
   const pose = deg(Math.atan2(finalState.NOSE.y - finalState.TAIL.y, finalState.NOSE.x - finalState.TAIL.x));

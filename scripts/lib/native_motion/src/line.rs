@@ -104,17 +104,21 @@ fn center_group(dx: i64, dy: i64) -> u8 {
     ((dx + 1) * 3 + (dy + 1)) as u8
 }
 
+/// Entries precede (group, id) in a bucket's order: ascending 3×3 group, then
+/// descending line id. Every bucket is kept in this order with at most one entry
+/// per (group, id), so an entry's place is found by binary search.
+#[inline]
+fn bucket_position(bucket: &[GridLine], group: u8, id: i32) -> (usize, bool) {
+    let pos = bucket.partition_point(|e| e.group < group || (e.group == group && e.line.id > id));
+    let found = pos < bucket.len() && bucket[pos].group == group && bucket[pos].line.id == id;
+    (pos, found)
+}
+
 #[inline]
 fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Rc<Line>) {
-    let id = l.id;
-    let mut pos = bucket.len();
-    for (idx, e) in bucket.iter().enumerate() {
-        if e.group == group && e.line.id == id {
-            return;
-        }
-        if pos == bucket.len() && (e.group > group || (e.group == group && e.line.id < id)) {
-            pos = idx;
-        }
+    let (pos, found) = bucket_position(bucket, group, l.id);
+    if found {
+        return;
     }
     bucket.insert(
         pos,
@@ -150,7 +154,10 @@ pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: 
                 let center = hash_int_pair(cx - dx, cy - dy);
                 let group = center_group(dx, dy);
                 if let Some(bucket) = grid.get_mut(&center) {
-                    bucket.retain(|e| !(e.line.id == id && e.group == group));
+                    let (pos, found) = bucket_position(bucket, group, id);
+                    if found {
+                        bucket.remove(pos);
+                    }
                     if bucket.is_empty() {
                         grid.remove(&center);
                     }
@@ -226,5 +233,78 @@ mod tests {
         );
         remove_line(&mut grid, 20, &[cell]);
         assert!(grid.get(&key).is_none());
+    }
+
+    /// The linear scans the binary searches replaced.
+    fn reference_insert(bucket: &mut Vec<(u8, i32)>, group: u8, id: i32) {
+        let mut pos = bucket.len();
+        for (idx, &(g, i)) in bucket.iter().enumerate() {
+            if g == group && i == id {
+                return;
+            }
+            if pos == bucket.len() && (g > group || (g == group && i < id)) {
+                pos = idx;
+            }
+        }
+        bucket.insert(pos, (group, id));
+    }
+
+    #[test]
+    fn bucket_search_matches_linear_scan_under_churn() {
+        let mut grid = FlatIntMap::default();
+        let mut reference: std::collections::HashMap<i64, Vec<(u8, i32)>> = Default::default();
+        let mut live: Vec<(i32, Vec<(i64, i64)>)> = Vec::new();
+        let mut seed = 0x2545F4914F6CDD1Du64;
+        let mut next = |n: u64| {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            seed % n
+        };
+        for step in 0..4000 {
+            if live.is_empty() || next(3) > 0 {
+                let id = next(400) as i32;
+                let cells: Vec<(i64, i64)> = (0..1 + next(3)).map(|_| (next(5) as i64 - 2, next(5) as i64 - 2)).collect();
+                push_line(&mut grid, test_line(id), &cells);
+                for &(cx, cy) in &cells {
+                    for dx in -1..=1 {
+                        for dy in -1..=1 {
+                            let bucket = reference.entry(hash_int_pair(cx - dx, cy - dy)).or_default();
+                            reference_insert(bucket, center_group(dx, dy), id);
+                        }
+                    }
+                }
+                live.push((id, cells));
+            } else {
+                let (id, cells) = live.remove(next(live.len() as u64) as usize);
+                remove_line(&mut grid, id, &cells);
+                for &(cx, cy) in &cells {
+                    for dx in -1..=1 {
+                        for dy in -1..=1 {
+                            let key = hash_int_pair(cx - dx, cy - dy);
+                            let group = center_group(dx, dy);
+                            if let Some(bucket) = reference.get_mut(&key) {
+                                bucket.retain(|&(g, i)| !(i == id && g == group));
+                                if bucket.is_empty() {
+                                    reference.remove(&key);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if step % 50 == 0 {
+                for (key, expected) in &reference {
+                    let got: Vec<(u8, i32)> = grid.get(key).unwrap().iter().map(|e| (e.group, e.line.id)).collect();
+                    assert_eq!(&got, expected);
+                }
+                for x in -4..=4 {
+                    for y in -4..=4 {
+                        let key = hash_int_pair(x, y);
+                        assert_eq!(grid.get(&key).is_some(), reference.contains_key(&key));
+                    }
+                }
+            }
+        }
     }
 }

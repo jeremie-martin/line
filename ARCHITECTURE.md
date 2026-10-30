@@ -285,9 +285,11 @@ Known limits of the strike account:
     sections carry up to about 2,000 main and 2,000 guide segments, so their
     construction inspection and the engine's line registration grow with the
     section. After the October 29 structural fixes (REWORK.md), CPU per physical
-    frame no longer grows with ride length. In the 93-second case, engine line
-    registration and removal take about a quarter of the CPU, physics stepping
-    16%, guide attribution 15% and garbage collection 11%.
+    frame no longer grows with ride length. After the October 30 geometry
+    fixes, engine line registration and removal remain the largest part of a
+    candidate: about 19% of a song compile's main thread and 31% of the
+    93-second case's, against 14% and 19% for physics stepping. Construction
+    inspection attributes only contacted guide lines.
 - **Duplication.**
   - There are two physics engine copies: `engine-rs` (judge) and
     `scripts/lib/native_motion` (compiler facilities).

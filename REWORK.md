@@ -1,5 +1,80 @@
 # Foundations rework (started 2026-10-03)
 
+## October 30 follow-up: cheaper candidate geometry
+
+Structural (TODO item 1). After the crashed-candidate stop, physics stepping is
+a minor part of a candidate. Profiles of the four songs (seed 3001) and the
+93-second long case attributed each candidate's main-thread CPU to its parts
+(innermost enclosing function):
+
+| part | songs, before | songs, after | long, before | long, after |
+|---|---|---|---|---|
+| line registration and undo (native addLine) | 19–21% | 18–21% | 29% | 31% |
+| construction inspection | 7–9% | 5–6% | 20% | 8% |
+| geometry construction (motionArc) | 10–11% | 7–8% | 8% | 6% |
+| physics stepping | 12–13% | 14% | 14% | 19% |
+| objective, impact checks, detection | 25–30% | 29–33% | 11% | 16% |
+| garbage collection | 7–8% | 8–9% | 11% | 13% |
+
+Shares are of a smaller total afterwards; in seconds, physics is unchanged and
+the other parts shrank. Registration in the long case went from 90 to 71 s of
+sampled main-thread time, inspection from 63 to 17 s, motionArc from 26 to 13 s.
+
+Four commits, each with identical tracks, frame counts and scores:
+
+1. **Contacted guides only.** Construction inspection attributed every guide
+   line (up to about 2,000) to its nearest main-rail segment, but only
+   contacted lines are ever read. The long case spent 19% of its main thread
+   there. The report fields, shared with the judge, are unchanged.
+2. **motionArc helpers at module scope.** Two arrows defined inside the step
+   loop cost a closure and, under tsx, an `Object.defineProperty` (`__name`)
+   per step: about 3% of a song compile.
+3. **Binary search in grid buckets.** Pays only in the long case.
+4. **One native version per addLine batch.** Lines crossed the ABI one at a
+   time and each became its own version node. A batch is now one version with
+   the same `_addLine` sequence; reconciliation undoes and redoes its lines in
+   the same order.
+
+Paired process CPU, three pairs per case, every pair identical (medians):
+
+| change | luna | amor | tiki | amour | long |
+|---|---|---|---|---|---|
+| 1. contacted guides | 0.978 | 0.974 | 0.974 | 0.967 | 0.867 |
+| 2. motionArc helpers | 0.956 | 0.974 | 0.979 | 0.972 | 0.963 |
+| 3. bucket search | 1.006 | 0.990 | 1.003 | 0.989 | 0.974 |
+| 4. batch versions | 0.973 | 0.949 | 0.963 | 0.962 | 0.926 |
+| all four, against 458fe8af | 0.917 | 0.906 | 0.925 | 0.889 | 0.731 |
+
+The long case went from 287 to 210 s of process CPU (median of the combined
+pairs). Peak RSS rose with change 4: songs by up to 60 MiB in most pairs, the
+long case by about 140–250 MiB of 2.1 GiB. The cause is not established.
+
+Gates at the series head: parity 63/63 identical, judge parity 33/33, 284
+tests, 9 native tests (one new: bucket search against the old scans under
+random churn), typecheck 0, reach 0, engine trace identical.
+
+Dropped: storing each grid entry's line id beside it (pairs 0.99–1.02). The
+profile with separated native functions had suggested pointer-chasing in the
+bucket search; the timing did not confirm it.
+
+What remains: registration is still the largest part. Most of it is the nine
+center-cell buckets each line enters and leaves, the history lookup per cell,
+and small allocations. Lazily materializing a center bucket only when the
+rider reaches it could avoid registering lines the rider never approaches,
+but invalidation must then reproduce the same truncations; it is a larger
+engine change and was not attempted.
+
+Behavioural opportunities noticed, not taken:
+
+- Facet density, as on October 29: long sections are built from 1–4 px
+  facets, so registration and undo scale with facet count. Coarser facets
+  would change geometry.
+- If CPU should be the budget, registration could be charged per line, as the
+  binding-stop ruling noted; a crashed candidate still pays it in full.
+
+Evidence: `docs/research/geometry-cpu-20261030.json` (all pairs with hashes,
+frames, CPU and peak RSS; both profile breakdowns).
+
 ## October 30 follow-up: stopping crashed candidates early
 
 The owner ruled to take the first behavioural observation of the long-ride CPU

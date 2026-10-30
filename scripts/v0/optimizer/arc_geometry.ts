@@ -6,6 +6,12 @@ import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
+// Per-step helpers live at module scope: a closure created inside the step
+// loop is a fresh function (and, under tsx, a name definition) every step.
+const easing=(z:number,bias:number)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
+const foldStation=(station:number,onset:number,amount:number,c:ArcMotionControl)=>station<=onset?station:lerp(station,
+  onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.foldBias??c.bias,
+    lerp(.2,Math.min(.2,2/c.support),c.foldTiming??0)),amount);
 export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;faces?:number;
   railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean};
 export type ArcSectionStyle=ArcGeometryStyle&{subdivisions?:number};
@@ -54,15 +60,11 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     let dt=uniformDt,time=(k+.5)*dt;
     if(profile==='fold'&&(style?.profileStrength??1)>0){
       const onset=profileFirst/c.support,amount=Math.min(1,style?.profileStrength??1);
-      const at=(station:number)=>station<=onset?station:lerp(station,
-        onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.foldBias??c.bias,
-          lerp(.2,Math.min(.2,2/c.support),c.foldTiming??0)),amount);
-      const from=at(k/steps),to=at((k+1)/steps);
+      const from=foldStation(k/steps,onset,amount,c),to=foldStation((k+1)/steps,onset,amount,c);
       dt=c.support*(to-from);time=c.support*(from+to)/2;
     }
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
-    const easing=(z:number,bias=c.bias)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
-    let a=rad(time<first?c.entry+c.turn*easing(u):lerp(c.entry+c.turn,c.exit,easing(w)));
+    let a=rad(time<first?c.entry+c.turn*easing(u,c.bias):lerp(c.entry+c.turn,c.exit,easing(w,c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):

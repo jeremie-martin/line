@@ -32,6 +32,9 @@ const OUT_LEN = (2400 + 1) * 60;
 const OUT_PTR = ex.out_ptr();
 const EVENTS_LEN = 49152;
 const EVENTS_PTR = ex.events_ptr();
+const ADD_LINES_CAP: number = ex.add_lines_cap();
+const ADD_IDS_PTR = ex.add_ids_ptr();
+const ADD_COORDS_PTR = ex.add_coords_ptr();
 const RIDER_POINT_IDS = [
   "PEG",
   "TAIL",
@@ -142,6 +145,19 @@ function events(): Float64Array {
   return eventsView as Float64Array;
 }
 
+let addBuffer: ArrayBuffer | undefined;
+let addIdsView: Int32Array | undefined;
+let addCoordsView: Float64Array | undefined;
+function addViews(): [Int32Array, Float64Array] {
+  const buffer = ex.memory.buffer;
+  if (buffer !== addBuffer) {
+    addBuffer = buffer;
+    addIdsView = new Int32Array(buffer, ADD_IDS_PTR, ADD_LINES_CAP * 3);
+    addCoordsView = new Float64Array(buffer, ADD_COORDS_PTR, ADD_LINES_CAP * 4);
+  }
+  return [addIdsView as Int32Array, addCoordsView as Float64Array];
+}
+
 // deno-lint-ignore no-explicit-any
 export function createLineFromJson(data: any): any {
   if (data.extended) {
@@ -217,13 +233,25 @@ export class LineRiderEngine {
   addLine(line: any): LineRiderEngine {
     // The compiler adds an arc as a batch (array). lr-core's addLine([l1..ln])
     // runs _addLine per line against the same (progressively-truncated) frame
-    // cache with no recompute in between; adding them one at a time through the
-    // ABI with no read in between is the same sequence of _addLine truncations.
+    // cache with no recompute in between. The batch crosses the ABI in chunks of
+    // at most ADD_LINES_CAP lines, each one native version applying its lines in
+    // order: the same sequence of _addLine truncations.
     const lines = Array.isArray(line) ? line : [line];
     let h = this.h;
-    for (const l of lines) {
-      const flags = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
-      const next = ex.add_line(h, l.id ?? 0, l.type ?? 0, l.x1, l.y1, l.x2, l.y2, flags);
+    for (let from = 0; from < lines.length; from += ADD_LINES_CAP) {
+      const n = Math.min(ADD_LINES_CAP, lines.length - from);
+      const [ids, coords] = addViews();
+      for (let k = 0; k < n; k++) {
+        const l = lines[from + k];
+        ids[k * 3] = l.id ?? 0;
+        ids[k * 3 + 1] = l.type ?? 0;
+        ids[k * 3 + 2] = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
+        coords[k * 4] = l.x1;
+        coords[k * 4 + 1] = l.y1;
+        coords[k * 4 + 2] = l.x2;
+        coords[k * 4 + 3] = l.y2;
+      }
+      const next = ex.add_lines(h, n);
       if (h !== this.h) ex.free_engine(h); // free unwrapped transient handles
       h = next;
     }

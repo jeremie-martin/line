@@ -386,7 +386,9 @@ impl Cache {
 enum Patch {
     Root,
     SetStart,
-    AddLine(Line),
+    /// One addLine batch, in insertion order. A batch is one version: lr-core's
+    /// addLine([l1..ln]) applies its lines with no read in between.
+    AddLines(Vec<Line>),
 }
 
 struct Version {
@@ -522,7 +524,7 @@ pub(crate) fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
 }
 
 /// addLine: sync the cache to `h`, add the line to the shared cache, create a new
-/// version (AddLine patch) that becomes the cache's current.
+/// version (AddLines patch) that becomes the cache's current.
 pub(crate) fn add_line(
     h: u32,
     id: i32,
@@ -533,23 +535,32 @@ pub(crate) fn add_line(
     y2: f64,
     flags: i32,
 ) -> u32 {
+    add_lines(h, vec![build_line(id, x1, y1, x2, y2, ty as i64, flags as i64)])
+}
+
+/// addLine([l1..ln]): sync the cache to `h`, add each line to the shared cache in
+/// order, and create one version (AddLines patch) that becomes the cache's current.
+/// The cache sees the same _addLine sequence as n single-line versions would.
+pub(crate) fn add_lines(h: u32, lines: Vec<Line>) -> u32 {
     update_computed(h);
-    let l = build_line(id, x1, y1, x2, y2, ty as i64, flags as i64);
     let (holder, parent_depth, start, start_gen) = {
         let p = ver(h as i32);
         (p.holder, p.depth, p.start, p.start_gen)
     };
+    let hh = holders()[holder as usize].as_mut().unwrap();
+    for l in lines.iter() {
+        hh.cache.add_line(l.clone());
+    }
     let vid = alloc_version(Version {
         holder,
         parent: h as i32,
         depth: parent_depth + 1,
-        patch: Patch::AddLine(l.clone()),
+        patch: Patch::AddLines(lines),
         start,
         start_gen,
         freed: false, children: 0,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
-    hh.cache.add_line(l);
     hh.current = vid as i32;
     hh.live += 1;
     hh.version_ids.push(vid);
@@ -619,8 +630,9 @@ fn update_computed(target: u32) {
     }
 
     // Walk to the LCA, collecting line ops (Immy.List.compareTo over a shared root).
-    // Only AddLine patches exist in the tree (Root/SetStart carry no line), so undo
-    // is purely removes and redo purely adds. Scratch buffers are reused across calls
+    // Only AddLines patches carry lines (Root/SetStart carry none), so undo is
+    // purely removes and redo purely adds. A batch's lines are collected most
+    // recent first, like single-line versions. Scratch buffers are reused across calls
     // (cleared here, drained below) to avoid a per-reconcile Vec allocation.
     #[allow(static_mut_refs)]
     let undo_ids: &mut Vec<i32> = unsafe { &mut RECONCILE_UNDO }; // current-side AddLines to remove, most-recent-first
@@ -631,24 +643,24 @@ fn update_computed(target: u32) {
     let mut a = current;
     let mut b = target;
     while ver(a).depth > ver(b).depth {
-        if let Patch::AddLine(l) = &ver(a).patch {
-            undo_ids.push(l.id);
+        if let Patch::AddLines(ls) = &ver(a).patch {
+            undo_ids.extend(ls.iter().rev().map(|l| l.id));
         }
         a = ver(a).parent;
     }
     while ver(b).depth > ver(a).depth {
-        if let Patch::AddLine(l) = &ver(b).patch {
-            redo_lines.push(l.clone());
+        if let Patch::AddLines(ls) = &ver(b).patch {
+            redo_lines.extend(ls.iter().rev().cloned());
         }
         b = ver(b).parent;
     }
     while a != b {
-        if let Patch::AddLine(l) = &ver(a).patch {
-            undo_ids.push(l.id);
+        if let Patch::AddLines(ls) = &ver(a).patch {
+            undo_ids.extend(ls.iter().rev().map(|l| l.id));
         }
         a = ver(a).parent;
-        if let Patch::AddLine(l) = &ver(b).patch {
-            redo_lines.push(l.clone());
+        if let Patch::AddLines(ls) = &ver(b).patch {
+            redo_lines.extend(ls.iter().rev().cloned());
         }
         b = ver(b).parent;
     }

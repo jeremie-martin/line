@@ -32,6 +32,19 @@ examples only.
 - **Next.** U1–U5 are hypotheses. The measure fix (U1) comes first and needs
   owner pairs before it may become an objective.
 
+Independent check before merging (2026-10-30). Simulating the four review
+rides and taking the raw whole-body impulse over every 2-frame window,
+independent of where the detector places events:
+- requested strong hits (≥ 0.7) match v3 (medians 0.67–0.77 both ways), so
+  the check is calibrated;
+- amour 303 at 1.625 s: a raw 0.80 push with no requested beat within 0.3 s;
+- tiki 101, quiet beat at 42.73 (asked 0.03, v3 0.04): raw 0.50 five frames
+  later. Luna 404: quiet beats are followed 4–7 frames later by raw pushes of
+  0.20–0.39 (1.5, 2.1, 3.4 s). On these two rides the raw peak after a
+  quiet beat falls 4–6 frames after it in 17 of 23 cases;
+- Trouble slam 101, 3.85 s: inside a terraces section with guide lines (frames
+  141–231), as the report says.
+
 ## October 30 follow-up: cheaper candidate geometry
 
 Structural (TODO item 1). After the crashed-candidate stop, physics stepping is

@@ -1,4 +1,4 @@
-When launching general purpose agents, only launch Opus 5 (xhigh reasoning effort) agents — never Fable 5 or Sonnet 5 (Jérémie, 2026-08-03; prefer the `opus-xhigh` agent type if defined in .claude/agents/). Use subagents sparingly and purposefully, and tell them not to spawn further subagents (Jérémie, 2026-10-03).
+When launching general purpose agents, only launch Opus 5.5 agents at medium reasoning effort — never Fable 5 or Sonnet 5 (Jérémie, 2026-10-30, replacing the 2026-08-03 Opus 5 xhigh rule). Use subagents sparingly and purposefully, and tell them not to spawn further subagents (Jérémie, 2026-10-03).
 
 Read `REWORK.md` (plan and current phase), `ARCHITECTURE.md` (how it works) and `WORKING.md` (rules) before changing anything.
 

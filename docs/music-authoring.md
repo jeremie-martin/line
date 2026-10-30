@@ -66,10 +66,17 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - which instrument leads;
    - the pattern (Trouble: 3-3-2 kicks, stop-and-go phrases);
    - the breaks, drops and re-entries.
-5. **Author the spec.**
-   - List the landings by hand, section by section, as measured event times.
-     The spec looks each one up in `events.json` and fails on a time that is
-     not an event.
+5. **Write the song's layers, then the variants.**
+   - In `productions/<song>/music.ts`, list the song's layers by hand, section by
+     section, as measured event times: for example the kicks, the cycle starts,
+     the pickups, the voice syllables. It looks each one up in `events.json` and
+     fails on a time that is not an event.
+   - Each `variants/<name>.ts` is a whole spec chosen from those layers:
+     landings, strengths, air, speed and camera. Make as many as the song
+     suggests distinct readings (Trouble: kick, voice, slam, pulse); there is
+     no fixed set. `spec.ts` re-exports the one currently preferred.
+   - Variants are drafts to compare and merge with the owner, not a version
+     history: edit, delete or combine them freely.
    - Derive strength from the leading instrument's measured loudness; pin only
      structural moments (the drop).
    - Write down every event deliberately not landed on, with its reason.
@@ -80,7 +87,8 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - landings beaten by a neighbour within 0.35 s;
    - landings on no event.
 
-   Every flag gets a decision: land it, or keep its reason in the spec. Then
+   Add `--variant=<name>` for a variant. Every flag gets a decision: land it,
+   or keep its reason in the spec. Then
    rerun `events.py --contacts=…` and check the landings on the sheets.
 7. **Listen.** Open the spec dashboard,
    `http://<host>:8767/spec-dashboard/?spec=productions/<song>/spec.ts`
@@ -88,9 +96,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - the **events** lane shows each event in its instrument's colour (drums red,
      bass blue, vocals orange, other green);
    - **Clicks** plays a click at every landing;
-   - notes are saved to `productions/<song>/notes.json`.
+   - the spec menu lists each variant;
+   - notes snap to measured events and are saved, per song, to
+     `productions/<song>/notes.json`.
 8. **Compile and review rides.** Run
-   `npm run produce -- --song=<song> --seed=<n> --out=DIR` (add the song to
+   `npm run produce -- --song=<song> [--variant=<name>] --seed=<n> --out=DIR` (add the song to
    `scripts/gallery/repertoire_catalog.ts`). Do not edit tracked files while it
    runs: its compiler identity check rejects the result.
 
@@ -104,8 +114,8 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
   break) reaches 0.97–0.98.
 - **Quiet.** Gentle touches read about 0.05–0.15; requests below about 0.05
   sit at the floor of any touchdown.
-- **The last landing** needs a little ride after it; a hit 0.2 s before the
-  clip ends is better left out.
+- **The last landing.** Untested: whether a hit 0.23 s before the clip ends
+  (Trouble's 50.07) can be landed.
 
 ## New music is held out
 

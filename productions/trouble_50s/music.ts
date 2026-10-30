@@ -52,8 +52,9 @@ export const drumPeak = (t: number) => event(t).sources.drums?.peak ?? 0;
 
 export const OPENING_CRASH = 0.37;
 
-/** Intro: every vocal syllable on the 0.45 s pulse (chord entries where they lead). */
-export const INTRO_VOICE = [0.13, 0.85, 1.30, 1.73, 2.18, 3.10, 3.51, 3.95, 5.31, 5.77, 6.21, 6.66, 7.11, 7.55,
+/** Intro: every vocal syllable on the 0.45 s pulse (chord entries where they lead). The first
+ *  syllable, 0.13, is too soon after the start for any ride to reach it (compile: no_arc). */
+export const INTRO_VOICE = [0.85, 1.30, 1.73, 2.18, 3.10, 3.51, 3.95, 5.31, 5.77, 6.21, 6.66, 7.11, 7.55,
   8.01, 8.46, 8.85, 9.36, 9.82, 10.70, 11.12, 12.45, 12.93, 13.40, 13.83, 14.29];
 /** Intro: the starts of vocal phrases and chord entries only. */
 export const INTRO_PHRASES = [2.12, 3.51, 5.77, 7.55, 8.01, 8.85, 9.36, 10.70, 12.45, 12.93, 13.40, 13.83, 14.29];

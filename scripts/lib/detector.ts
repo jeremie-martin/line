@@ -659,6 +659,39 @@ export function getRiderMetered(engine: any, frame: number): any {
   return rider;
 }
 
+/** Whether the rider is still mounted and the sled intact at `frame` on a native
+ *  engine, limited and charged exactly as `getRiderMetered(engine, frame)`.
+ *
+ *  An unbinding is permanent, so the replay may stop once the rider or sled has
+ *  come apart. It stops there only once one of `ownLines` (the lines this engine
+ *  added to the version its caller searches from) has a collision at or after
+ *  `firstFrame`. Reading any version without those lines truncates the shared
+ *  frame cache to their first collision, so the frames left unsimulated could
+ *  never have been reused and later charges are unchanged. Until then it keeps
+ *  stepping, as the full read would. The engine must not be read again. */
+// deno-lint-ignore no-explicit-any
+export function boundThroughMetered(engine: any, frame: number, ownLines: readonly {id: number}[], firstFrame: number): boolean {
+  const before = engine.getLastFrameIndex() as number;
+  if (_physicsFrameLimit !== null && frame > before && _physicsFrames + (frame - before) > _physicsFrameLimit) {
+    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (frame - before));
+  }
+  if (frame <= before) return engine.isBoundAtFrame(frame);
+  let bound = true, ownHit = false, own: Set<number> | undefined;
+  const hitsOwn = (f: number) => engine.getAllContactLineIdsAtFrame(f).some((id: number) => own!.has(id));
+  for (let f = before + 1; f <= frame; f++) {
+    const boundHere = engine.isBoundAtFrame(f);
+    if (bound && !boundHere) {
+      bound = false;
+      own = new Set(ownLines.map(l => l.id));
+      for (let g = Math.max(0, firstFrame); g < f && !ownHit; g++) ownHit = hitsOwn(g);
+    }
+    if (!bound && !ownHit) ownHit = hitsOwn(f);
+    if (!bound && ownHit) break;
+  }
+  chargePhysicsFrames(frame - before);
+  return bound;
+}
+
 // deno-lint-ignore no-explicit-any
 export function getSledPointPositionsMetered(engine: any, frame: number, out: number[] = []): number[] {
   const before = engineLastFrameIndex(engine);

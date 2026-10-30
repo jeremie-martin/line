@@ -3,7 +3,7 @@
  * physical prefix; only a replay that meets every physical, musical and
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
-import { getRiderMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, detectFrom } from '../../lib/detector.ts';
+import { getRiderMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, detectFrom } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
@@ -133,14 +133,15 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
 
 /** Replays the candidate to the interval horizon and checks the prefix, the
  * rider, the authored contact timing, the release and any requested
- * construction. Returns the measured trajectory or the rejection. */
+ * construction. Returns the measured trajectory or the rejection. A candidate
+ * that crashes on its own lines stops there but is charged the full horizon. */
 function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine[], child: Engine, fragments: Fragments | undefined,
   prefixReusable: boolean) {
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, frames} = ctx;
   if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== s.before) return {reason: 'prefix'} as Rejection;
+  if (!boundThroughMetered(child, horizon, added, frame)) return {reason: 'binding'} as Rejection;
   const state = getRiderMetered(child, horizon).ballisticState();
-  if (!state.riderMounted || !state.sledIntact) return {reason: 'binding'} as Rejection;
   // A reusable prefix keeps its frames and its detector state; only the
   // candidate's own frames are read and scanned.
   const raw = prefixReusable

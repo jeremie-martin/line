@@ -108,14 +108,18 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
 
 - **Spacing.**
   - Landings 0.33 s apart are feasible, but strength there caps near 0.55–0.75.
-  - Two events 0.2 s apart cannot both be landings. Land the accent and keep
-    the other as a stated decision.
+  - Landings 0.21 s apart are feasible (Trouble pulse: light pickups at
+    0.06–0.21 before kicks at 0.38–0.50), but a groove full of them can run
+    out of budget (one of two seeds failed).
+  - The first landing must come later than 0.13 s after the start (compile:
+    `no_arc`).
 - **Room makes a slam.** A float into a big hit (Trouble's drop after a 1.8 s
   break) reaches 0.97–0.98.
 - **Quiet.** Gentle touches read about 0.05–0.15; requests below about 0.05
   sit at the floor of any touchdown.
-- **The last landing.** Untested: whether a hit 0.23 s before the clip ends
-  (Trouble's 50.07) can be landed.
+- **The last landing** can be 0.23 s before the clip ends (Trouble's 50.07
+  landed at 0.53–0.76 on every variant).
+- **Long floats** can pick up unrequested knocks (slam, 3.85 s: 0.38).
 
 ## New music is held out
 

@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## October 30: spec variants, old toolchain removed
+
+- Owner rulings: remove the May–June `beats/` consensus toolchain entirely
+  (done; Amour's files moved into its production folder; parity and judge
+  parity pass); generate several whole-spec variants of a song from one
+  measured reading, with no fixed set and no versioning machinery; take the
+  stop-after-crash opportunity (agent, two steps).
+- `productions/<song>/music.ts` holds the measured layers; `variants/*.ts` are
+  whole specs; `spec.ts` re-exports the preferred one. `produce --variant`,
+  `coverage --variant`, and the dashboard lists variants. Dashboard notes now
+  snap to measured events (they snapped to madmom's wrong grid) at 10 ms.
+- Trouble rides (`generated/trouble-variants-v1`): kick, voice, slam, pulse.
+  All complete except pulse seed 101 (budget, in the groove). 50.07 lands;
+  0.21 s pickups land; a landing at 0.13 s cannot. v3 loss: kick
+  0.010/0.013, voice 0.007/0.009, slam 0.018/0.008, pulse 0.022.
+
 ## October 29–30 follow-up: music authoring
 
 Structural for the compiler (no compiler change). A first

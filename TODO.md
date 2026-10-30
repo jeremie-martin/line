@@ -2,11 +2,8 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
-1. **Cheaper candidate geometry** (agent, 2026-10-30; done, awaiting review:
-   songs −8 to −11% CPU, long case −27%). Building and
-   registering a candidate's track geometry is now most of a compile's CPU
-   (physics is about 16% of a candidate). Structural only: identical tracks,
-   proved by parity.
+1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
+   to −11% CPU, long case −27%, identical tracks).
 2. **Owner review of the Trouble spec variants** (kick, voice, slam, pulse):
    pick and mix, then the next round.
 3. **Diagnosis of unwanted impacts** (agent, no compiler changes). How often

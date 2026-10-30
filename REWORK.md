@@ -75,6 +75,23 @@ Behavioural opportunities noticed, not taken:
 Evidence: `docs/research/geometry-cpu-20261030.json` (all pairs with hashes,
 frames, CPU and peak RSS; both profile breakdowns).
 
+
+Review before merging (2026-10-30):
+- Changes 1–3 checked by reading: change 1 attributes only the guides a
+  report reads, and each guide's attribution is independent of the others;
+  change 2 is the same arithmetic; change 3 keeps every bucket in the order
+  the binary search assumes, and every write goes through the two functions.
+- Change 4: the old loop never exposed versions inside a batch, undo and redo
+  keep the per-line order, and Rust makes every match on the patch type
+  handle the batch.
+- Memory: the native engine's memory is lower after change 4 (luna 158 → 153
+  MiB, amour 180 → 168 MiB), and the live JS heap after forced GC is the same
+  (about 40 MiB). The higher peak RSS is garbage-collection timing, not
+  retained memory.
+- Independent CPU check, fresh seed 777, concurrent pairs against 458fe8af:
+  luna 0.905, amor 0.920, tiki 0.897, amour 0.915, with identical charged and
+  simulated frames.
+
 ## October 30 follow-up: stopping crashed candidates early
 
 The owner ruled to take the first behavioural observation of the long-ride CPU

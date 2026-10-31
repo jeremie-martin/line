@@ -33,8 +33,8 @@ function pause(){if(playing)seconds=music.pause();playing=false;$('play').textCo
 async function start(){try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').value);playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}}
 function draw(){
  $('time').textContent=fmt(seconds,interactionReview?3:2)+' s';$('seek').value=seconds;
- ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production'),at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
- if(a&&b)entry.view.draw(canvas,{x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t,w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},at,$('inspect').checked);
+ ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production');
+ entry.view.draw(canvas,{w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},seconds*40,$('inspect').checked);
  });
  interactionReview?.draw(seconds);
  impactReview.draw(seconds);

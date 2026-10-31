@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: review-page camera no longer lurches in spins
+
+Review page only (docs/research/camera-20261031.md). The page centred on PEG,
+a sled point that circles the body in a spin (camera speed +17% / −14% against
+the body centre). It now uses the videos' follower (mirror module 560) on the
+ten-point body centre: +3–5% / −2% in the same spins, with no spin-induced part.
+- **Videos and clips** have a third of the artifact: their follower tracks a
+  six-point body mean (+3–5% / −4–5%). The video path is not changed; the
+  one-function fix is described in the report.
+
 ## October 31: impact visibility study built (unanswered)
 
 Pre-registration only; no tool, measure or compiler change used by the product.

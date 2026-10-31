@@ -17,7 +17,7 @@ import { beats } from "../../../scripts/v0/core/beats.ts";
 import * as m from "../music.ts";
 
 const voiceLed = (t: number) => t < m.GROOVE_T || (t >= m.STOP_T && t < m.BUILD_END_T - 0.03);
-function impactFor(t: number): number {
+export function impactFor(t: number): number {
   if (Math.abs(t - m.DROP_T) < 0.03) return 1.0; // the drop: pinned
   if (Math.abs(t - m.OPENING_CRASH) < 0.03) return 0.5; // a real hit, kept medium at the very start
   if (voiceLed(t)) {
@@ -28,11 +28,11 @@ function impactFor(t: number): number {
   return Number(m.clamp(m.drumStrength(t), 0.2, 0.9).toFixed(3));
 }
 
-const times = m.landings([m.OPENING_CRASH, 0.85, 1.30, 1.73], m.INTRO_PHRASES, m.GROOVE_KICKS,
+export const times = m.landings([m.OPENING_CRASH, 0.85, 1.30, 1.73], m.INTRO_PHRASES, m.GROOVE_KICKS,
   m.DROP_KICKS, m.DROP_SNARES, m.BREAK2_VOICE, m.OUTRO_KICKS);
 const contacts: Contact[] = beats(times.map((t) => ({ t, impact: impactFor(t) })));
 
-const speed: Curve = keyframes([
+export const speed: Curve = keyframes([
   { t: 0.0, v: 0.36, ease: "smooth" },
   { t: 12.0, v: 0.42, ease: "smooth" },
   { t: m.GROOVE_T, v: 0.56, ease: "easeIn" },
@@ -44,7 +44,7 @@ const speed: Curve = keyframes([
   { t: m.BUILD_END_T, v: 0.66, ease: "easeIn" },
   { t: m.DURATION, v: 0.64 },
 ]);
-const air: Curve = keyframes([
+export const air: Curve = keyframes([
   { t: 0.0, v: 0.60, ease: "smooth" },
   { t: m.GROOVE_T, v: 0.64, ease: "smooth" },
   { t: m.DROP_T, v: 0.70, ease: "smooth" },

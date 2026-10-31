@@ -129,7 +129,8 @@ try {
   for (const [v, text] of state.manifest.choices ?? SLAM) {
     const b = document.createElement('button'); b.className = 'choice'; b.dataset.v = v; b.textContent = text; $('choices').appendChild(b);
   }
-  $('instructions').textContent = `The light comes on while the hit you are judging happens (at ${state.manifest.hitAt} s of a ${state.manifest.length} s loop); it is the green mark on each timeline; grey ticks are the song's beats (taller = stronger requested hit). Drag a timeline to scrub both clips.`;
+  const ticks = state.manifest.clips.some(c => c.left.beats.length || c.right.beats.length);
+  $('instructions').textContent = `The light comes on at the moment you are judging (at ${state.manifest.hitAt} s of a ${state.manifest.length} s loop); it is the green mark on each timeline${ticks ? "; grey ticks are the song's beats (taller = stronger requested hit)" : ''}. Drag a timeline to scrub both clips.`;
   state.index = Math.max(0, state.manifest.clips.findIndex(c => !state.labeled.has(c.id)));
   show(); requestAnimationFrame(tick);
 } catch (error) {status(`Cannot load study ${study}: ${error.message}`, true);}

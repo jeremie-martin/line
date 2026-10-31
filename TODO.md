@@ -28,7 +28,7 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
 10. ~~**New benchmark**~~ (2026-10-31): built and baselined (`bench-base-20261031`, `pairs8-base-20261031`).
-9. **Compiler work.** Short re-landings fixed (2026-10-31, shaped `minFrames`; held-out completion 5/16 → 15/16). Next on the list:
+9. **Compiler work.** Short re-landings fixed: a 9-frame rule on 2026-10-31, replaced overnight by a section fallback with no threshold (held-out 16/16). Next on the list:
    - Short re-landings at speed: Trouble about half, Circus 1/24 and 0/24.
    - Geometry hygiene (G1–G4).
    - Unwanted impacts (U2, U3; guide touches on beats).

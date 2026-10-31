@@ -7,6 +7,7 @@ import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
+import { constructionStyle } from './repertoire_policy.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
@@ -82,6 +83,19 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       work.searchBudgetExhausted = true;
       work.budgetInterruptions.push({phase: 'planning', index: i, frame, viable: offered.length, retained: !!offered.length});
       Engine.retainOnly(protectedEngines);
+    }
+    // A shaped section that offers nothing is asked for plain arcs, with the same
+    // guidance and rail layout, before any earlier boundary is reopened: whether a
+    // shape fits is discovered by the search, not predicted from the section's
+    // length. The request is updated where every later stage reads it.
+    const request = options.constructionRequests?.[i];
+    if (!offered.length && !work.searchBudgetExhausted && request && request.construction !== 'arcs') {
+      const simpler = {...request, construction: 'arcs' as const};
+      work.sectionFallbacks.push([i, request.construction, simpler.construction]);
+      options.constructionRequests![i] = simpler;
+      if (options.sectionStyles) options.sectionStyles[i] = constructionStyle(simpler);
+      i--;
+      continue;
     }
     if (!offered.length) {
       let previous = i - 1;

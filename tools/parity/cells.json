@@ -216,12 +216,12 @@
    "id": "canonical-bridge_frontier_pickup_progression-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "3e36f388fbf5d558b97ea58b82c2bac9a3fc2cf0724f7ce10d65a1f21514e808",
-   "physicalFrames": 2987034,
-   "score": 714.7222154545454,
-   "musicalScore": 721.2793,
+   "trackHash": "87ab1049856aca840e6e8f1d70a6b8c0723f76eca80aad7d60110c578bddf69b",
+   "physicalFrames": 2973254,
+   "score": 685.2732,
+   "musicalScore": 685.2732,
    "valid": true,
-   "fulfilled": 109
+   "fulfilled": 110
   },
   {
    "mode": "strike",
@@ -369,8 +369,8 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "efa366c394fca32e51420515ae8c99eec814862cf031c39948468220ed4e1072",
-   "physicalFrames": 149997
+   "trackHash": "ef482fbfb7cec23fbd5c685e2ac8422b09de67b7226399cfe056143913a2f56c",
+   "physicalFrames": 149981
   },
   {
    "mode": "landing",
@@ -423,7 +423,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "3903421c1d650bfe79bde90f31102c78dfbb21f92b8ee267870b5d0dea25917a",
+   "trackHash": "c8fc1958f8c59ec01bad4bfeac16abade581b2baea5b44a011661ead1f6207a7",
    "physicalFrames": 149997
   },
   {
@@ -527,8 +527,8 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "147e2daec06ca05ae68c62929ed49bdd00ffa167a450129a070f9a663ccb448e",
-   "physicalFrames": 149997
+   "trackHash": "ec75c6e90798ab9bace68747bbbc10ff8c186d5220c1a825aef755802b6ee556",
+   "physicalFrames": 148134
   },
   {
    "mode": "strike2",
@@ -631,7 +631,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "5c015ddcab7efd1ac9141bc52e3ae1b9e37220c508ee8f81f02c92a0ccda7fea",
+   "trackHash": "ec23731b06d0f1615a72b043f3fa84042acfaf2c94e2b13a495a86945ebb49b7",
    "physicalFrames": 149997
   },
   {

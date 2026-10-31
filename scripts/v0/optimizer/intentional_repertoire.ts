@@ -3,7 +3,6 @@ import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
 import {planRepertoire,creativePreferences,validateProductionPlan,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
 import {repertoireContexts,repertoireMusicHash,type ContextSpec} from './repertoire_context.ts';
-import {GEOMETRY_FAMILIES,type GeometryFamily} from './geometry_families.ts';
 export const INTENTIONAL_REPERTOIRE_POLICY='line.repertoire-policy.v2';
 export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:CreativePreferences={},boundaries:number[]=[]):ProductionPlan{
   // V1 supplies validated timeline and boundary semantics, never a selected physical ride.
@@ -41,22 +40,18 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
     previous=construction+':'+guidance;first+=count;
   }
-  return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),
-    ...fitShapesToSections(phrases,requests)});
+  return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }
 
-/** A section shorter than its shaped family can realize (the family's
- * `minFrames`) gets plain arcs with the same guidance and rail layout. Its
- * phrase is split around it, since a phrase has one construction. The draws
- * above are unchanged, so plans differ only at such sections. */
-export function fitShapesToSections(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
-  const minFrames=(c:Construction)=>(GEOMETRY_FAMILIES as Readonly<Record<string,GeometryFamily>>)[c].minFrames??0;
-  const fitted=requests.map(r=>r.next-r.frame<minFrames(r.construction)?{...r,construction:'arcs' as Construction}:r);
+/** Splits each phrase where its sections' requests no longer agree (a phrase
+ * has one construction, guidance and rail layout): the plan of a realized ride
+ * after the search simplified a section's request (arc_sequence.ts). */
+export function splitPhrases(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
   const split:ProductionPlan['phrases']=[];
   for(const p of phrases)for(let i=p.first;i<p.first+p.count;i++){
-    const last=split.at(-1);
-    if(last&&i>p.first&&fitted[i].construction===last.construction)last.count++;
-    else split.push({...p,first:i,count:1,construction:fitted[i].construction});
+    const last=split.at(-1),r=requests[i];
+    if(last&&i>p.first&&r.construction===last.construction&&r.guidance===last.guidance&&r.railLayout===last.railLayout)last.count++;
+    else split.push({...p,first:i,count:1,construction:r.construction,guidance:r.guidance,railLayout:r.railLayout});
   }
-  return {phrases:split,requests:fitted};
+  return split;
 }

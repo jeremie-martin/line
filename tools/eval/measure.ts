@@ -8,7 +8,7 @@ import {arrivalPose} from '../measure/arrival.ts';
 import {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../measure/strike.ts';
 // The account's own scale: an unmatched event costs (raw / veryStrong)².
 import {CONTACT_IMPACT_CONTRACT} from '../../scripts/lib/contact_impact.ts';
-import {GEOMETRY_FAMILIES, type GeometryFamily} from '../../scripts/v0/optimizer/geometry_families.ts';
+const SHORT_SECTION_FRAMES = 9;
 /** Compact geometry facts of one compile, for the report only: per section, the
  * planned family, guidance, rail layout and length in frames, and what the
  * realization check found (fulfilled, its reasons, guide contact frames, turn
@@ -17,10 +17,10 @@ import {GEOMETRY_FAMILIES, type GeometryFamily} from '../../scripts/v0/optimizer
  * plan is the fitted one: whether short-shape fitting changed a section is not
  * recoverable from it, so it is not recorded. Compiler output, like `motion`:
  * remeasurement carries it over unchanged. */
-export function geometryFacts({plan, realization}: {plan: any; realization: any}) {
+export function geometryFacts({plan, realization, sectionFallbacks}: {plan: any; realization: any; sectionFallbacks?: any[]}) {
   if (realization.sections.length !== plan.requests.length) throw new Error('realization does not cover the plan');
-  const minFrames = Object.values(GEOMETRY_FAMILIES as Record<string, GeometryFamily>).flatMap(f => f.minFrames ?? []);
-  return {shapedMinFrames: Math.min(...minFrames), sections: plan.requests.map((r: any, i: number) => {
+  // "Short" is a reporting band (a 0.2 s pair is 8–9 frames), not a compiler rule.
+  return {shapedMinFrames: SHORT_SECTION_FRAMES, fallbacks: sectionFallbacks ?? [], sections: plan.requests.map((r: any, i: number) => {
     const s = realization.sections[i];
     if (s.section !== r.section) throw new Error('realization sections out of order');
     return {family: r.construction, guidance: r.guidance, rail: r.railLayout ?? null, frames: r.next - r.frame,

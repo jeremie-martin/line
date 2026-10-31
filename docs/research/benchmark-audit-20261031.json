@@ -1,0 +1,1199 @@
+{
+ "schema": "line.benchmark-audit.v1",
+ "date": "2026-10-31",
+ "head": "75793369",
+ "note": "Read-only audit. Scratch scripts (not committed) are described under commands. Held-out songs appear only as binned categories.",
+ "commands": {
+  "features": "node --import tsx scratch/features.ts (loadMusicCase with jolt -15 ms, tools/eval/inputs.ts perturb, benchmark/v4 loadCases, benchmark/v6 loadCatalog)",
+  "gaps": "node --import tsx scratch/gaps.ts (gap histograms at 25 ms resolution, CV, isolated pairs)",
+  "runs": "python3 scratch/runs.py q52-cached-contacts quality-20261005-baseline v3-conf c-c (generated/eval/<run>/cells/*.json)",
+  "timing": "node --import tsx scratch/time_compile.ts <song> 101, four songs concurrently, LR_ENGINE=wasm, productionBudget, line.strike.v3, creative {} (as the eval worker)",
+  "bootstrapNull": "python3 scratch/boot_null.py: percentile bootstrap as tools/eval/summary.ts (mean over n songs), 2000 null trials of i.i.d. symmetric per-song differences, 1000 draws each",
+  "definitions": {
+   "audiblePair": "consecutive landings <=0.35 s apart, both asks >=0.25; at speed: speed ask >=0.5 at the first",
+   "closeRun4": ">=4 consecutive landings each <=0.40 s apart",
+   "float12": "gap >=1.2 s (high-air: air ask >=0.7)",
+   "drop": "gap >=1.0 s ending in an ask >=0.8",
+   "intenseWindow": "4 s window (1 s steps) with >=2.5 landings/s, mean ask >=0.5, speed ask >=0.6 mid-window",
+   "note": "Thresholds are the auditor's, not owner-validated."
+  }
+ },
+ "panels": {
+  "definition": "tools/eval/inputs.ts PANELS",
+  "dev": [
+   "luna_bala_44s~101",
+   "luna_bala_44s~202",
+   "luna_bala_44s~303",
+   "luna_bala_44s~404",
+   "amor_na_praia_46s~101",
+   "amor_na_praia_46s~202",
+   "amor_na_praia_46s~303",
+   "amor_na_praia_46s~404",
+   "tiki_tiki_48s~101",
+   "tiki_tiki_48s~202",
+   "tiki_tiki_48s~303",
+   "tiki_tiki_48s~404",
+   "amour_de_ma_vie_44s~101",
+   "amour_de_ma_vie_44s~202",
+   "amour_de_ma_vie_44s~303",
+   "amour_de_ma_vie_44s~404",
+   "luna_bala_44s~101~p1",
+   "luna_bala_44s~101~p2",
+   "amor_na_praia_46s~101~p1",
+   "amor_na_praia_46s~101~p2",
+   "tiki_tiki_48s~101~p1",
+   "tiki_tiki_48s~101~p2",
+   "amour_de_ma_vie_44s~101~p1",
+   "amour_de_ma_vie_44s~101~p2"
+  ],
+  "confirm": [
+   "luna_bala_44s~505",
+   "luna_bala_44s~606",
+   "luna_bala_44s~707",
+   "luna_bala_44s~808",
+   "amor_na_praia_46s~505",
+   "amor_na_praia_46s~606",
+   "amor_na_praia_46s~707",
+   "amor_na_praia_46s~808",
+   "tiki_tiki_48s~505",
+   "tiki_tiki_48s~606",
+   "tiki_tiki_48s~707",
+   "tiki_tiki_48s~808",
+   "amour_de_ma_vie_44s~505",
+   "amour_de_ma_vie_44s~606",
+   "amour_de_ma_vie_44s~707",
+   "amour_de_ma_vie_44s~808",
+   "luna_bala_44s~505~p3",
+   "luna_bala_44s~505~p4",
+   "amor_na_praia_46s~505~p3",
+   "amor_na_praia_46s~505~p4",
+   "tiki_tiki_48s~505~p3",
+   "tiki_tiki_48s~505~p4",
+   "amour_de_ma_vie_44s~505~p3",
+   "amour_de_ma_vie_44s~505~p4"
+  ]
+ },
+ "panelSpecs": {
+  "luna_bala_44s": {
+   "id": "luna_bala_44s",
+   "duration": 44,
+   "landings": 75,
+   "density": 1.7,
+   "firstLanding": 0.4,
+   "gaps": {
+    "lt025": 0,
+    "lt035": 0,
+    "035_06": 68,
+    "06_12": 4,
+    "ge12": 2,
+    "median": 0.55,
+    "p10": 0.525,
+    "max": 1.27
+   },
+   "impact": {
+    "n": 75,
+    "lt01": 8,
+    "01_03": 3,
+    "03_06": 37,
+    "06_08": 15,
+    "ge08": 12,
+    "mean": 0.475
+   },
+   "air": {
+    "mean": 0.725,
+    "p10": 0.644,
+    "p90": 0.823
+   },
+   "speed": {
+    "mean": 0.699,
+    "p10": 0.4,
+    "p90": 0.864,
+    "ge06Frac": 0.778
+   },
+   "patterns": {
+    "audiblePairs": 0,
+    "audiblePairsAtSpeed": 0,
+    "closeRuns4": 0,
+    "longestCloseRun": 1,
+    "floats12": 2,
+    "floats12HighAir": 0,
+    "dropsAfter1s": 0,
+    "intenseDenseSeconds": 0,
+    "long70": false
+   }
+  },
+  "amor_na_praia_46s": {
+   "id": "amor_na_praia_46s",
+   "duration": 46,
+   "landings": 78,
+   "density": 1.7,
+   "firstLanding": 0.33,
+   "gaps": {
+    "lt025": 0,
+    "lt035": 1,
+    "035_06": 72,
+    "06_12": 3,
+    "ge12": 1,
+    "median": 0.55,
+    "p10": 0.55,
+    "max": 1.45
+   },
+   "impact": {
+    "n": 78,
+    "lt01": 8,
+    "01_03": 1,
+    "03_06": 41,
+    "06_08": 22,
+    "ge08": 6,
+    "mean": 0.536
+   },
+   "air": {
+    "mean": 0.708,
+    "p10": 0.597,
+    "p90": 0.809
+   },
+   "speed": {
+    "mean": 0.692,
+    "p10": 0.448,
+    "p90": 0.82,
+    "ge06Frac": 0.752
+   },
+   "patterns": {
+    "audiblePairs": 1,
+    "audiblePairsAtSpeed": 1,
+    "closeRuns4": 0,
+    "longestCloseRun": 2,
+    "floats12": 1,
+    "floats12HighAir": 0,
+    "dropsAfter1s": 2,
+    "intenseDenseSeconds": 0,
+    "long70": false
+   }
+  },
+  "tiki_tiki_48s": {
+   "id": "tiki_tiki_48s",
+   "duration": 48,
+   "landings": 77,
+   "density": 1.6,
+   "firstLanding": 0.95,
+   "gaps": {
+    "lt025": 0,
+    "lt035": 0,
+    "035_06": 44,
+    "06_12": 32,
+    "ge12": 0,
+    "median": 0.45,
+    "p10": 0.425,
+    "max": 0.98
+   },
+   "impact": {
+    "n": 77,
+    "lt01": 14,
+    "01_03": 0,
+    "03_06": 16,
+    "06_08": 45,
+    "ge08": 2,
+    "mean": 0.56
+   },
+   "air": {
+    "mean": 0.695,
+    "p10": 0.479,
+    "p90": 0.776
+   },
+   "speed": {
+    "mean": 0.66,
+    "p10": 0.387,
+    "p90": 0.85,
+    "ge06Frac": 0.703
+   },
+   "patterns": {
+    "audiblePairs": 0,
+    "audiblePairsAtSpeed": 0,
+    "closeRuns4": 0,
+    "longestCloseRun": 2,
+    "floats12": 0,
+    "floats12HighAir": 0,
+    "dropsAfter1s": 0,
+    "intenseDenseSeconds": 0,
+    "long70": false
+   }
+  },
+  "amour_de_ma_vie_44s": {
+   "id": "amour_de_ma_vie_44s",
+   "duration": 44.55,
+   "landings": 85,
+   "density": 1.91,
+   "firstLanding": 0.55,
+   "gaps": {
+    "lt025": 0,
+    "lt035": 34,
+    "035_06": 9,
+    "06_12": 40,
+    "ge12": 1,
+    "median": 0.375,
+    "p10": 0.3,
+    "max": 1.3
+   },
+   "impact": {
+    "n": 85,
+    "lt01": 0,
+    "01_03": 3,
+    "03_06": 5,
+    "06_08": 21,
+    "ge08": 56,
+    "mean": 0.799
+   },
+   "air": {
+    "mean": 0.581,
+    "p10": 0.47,
+    "p90": 0.699
+   },
+   "speed": {
+    "mean": 0.836,
+    "p10": 0.733,
+    "p90": 0.897,
+    "ge06Frac": 0.98
+   },
+   "patterns": {
+    "audiblePairs": 34,
+    "audiblePairsAtSpeed": 34,
+    "closeRuns4": 8,
+    "longestCloseRun": 7,
+    "floats12": 1,
+    "floats12HighAir": 0,
+    "dropsAfter1s": 2,
+    "intenseDenseSeconds": 12,
+    "long70": false
+   }
+  }
+ },
+ "panelGapShapes": {
+  "luna_bala_44s": {
+   "min": 0.42,
+   "cv": 0.223,
+   "top3share": 0.905,
+   "isolatedPairs": 0,
+   "hist": [
+    [
+     "0.550",
+     62
+    ],
+    [
+     "0.425",
+     3
+    ],
+    [
+     "0.525",
+     2
+    ],
+    [
+     "0.500",
+     1
+    ],
+    [
+     "0.575",
+     1
+    ],
+    [
+     "0.750",
+     1
+    ]
+   ],
+   "perturbedMin": 0.395
+  },
+  "amor_na_praia_46s": {
+   "min": 0.32,
+   "cv": 0.227,
+   "top3share": 0.922,
+   "isolatedPairs": 0,
+   "hist": [
+    [
+     "0.550",
+     69
+    ],
+    [
+     "0.575",
+     1
+    ],
+    [
+     "0.875",
+     1
+    ],
+    [
+     "0.800",
+     1
+    ],
+    [
+     "0.525",
+     1
+    ],
+    [
+     "0.450",
+     1
+    ]
+   ],
+   "perturbedMin": 0.27
+  },
+  "tiki_tiki_48s": {
+   "min": 0.397,
+   "cv": 0.35,
+   "top3share": 0.868,
+   "isolatedPairs": 0,
+   "hist": [
+    [
+     "0.425",
+     28
+    ],
+    [
+     "0.875",
+     26
+    ],
+    [
+     "0.450",
+     12
+    ],
+    [
+     "0.800",
+     2
+    ],
+    [
+     "0.850",
+     2
+    ],
+    [
+     "0.400",
+     2
+    ]
+   ],
+   "perturbedMin": 0.347
+  },
+  "amour_de_ma_vie_44s": {
+   "min": 0.2943,
+   "cv": 0.404,
+   "top3share": 0.643,
+   "isolatedPairs": 1,
+   "hist": [
+    [
+     "0.650",
+     19
+    ],
+    [
+     "0.325",
+     18
+    ],
+    [
+     "0.675",
+     17
+    ],
+    [
+     "0.350",
+     10
+    ],
+    [
+     "0.300",
+     9
+    ],
+    [
+     "0.375",
+     6
+    ]
+   ],
+   "perturbedMin": 0.2443
+  }
+ },
+ "panelAskTotals": {
+  "lt01": 30,
+  "01_03": 7,
+  "03_06": 99,
+  "06_08": 103,
+  "ge08": 76,
+  "n": 315
+ },
+ "panelAsks020to035": {
+  "luna_bala_44s": 25,
+  "amor_na_praia_46s": 0,
+  "tiki_tiki_48s": 0,
+  "amour_de_ma_vie_44s": 0,
+  "total": [
+   25,
+   315
+  ]
+ },
+ "perturbations": {
+  "luna_bala_44s~p1": {
+   "landings": 75,
+   "shiftedByOneFrame": 52,
+   "meanAbsImpactChange": 0.0239,
+   "maxAbsImpactChange": 0.0497
+  },
+  "luna_bala_44s~p2": {
+   "landings": 75,
+   "shiftedByOneFrame": 45,
+   "meanAbsImpactChange": 0.0238,
+   "maxAbsImpactChange": 0.0496
+  },
+  "luna_bala_44s~p3": {
+   "landings": 75,
+   "shiftedByOneFrame": 57,
+   "meanAbsImpactChange": 0.0236,
+   "maxAbsImpactChange": 0.0484
+  },
+  "luna_bala_44s~p4": {
+   "landings": 75,
+   "shiftedByOneFrame": 50,
+   "meanAbsImpactChange": 0.0231,
+   "maxAbsImpactChange": 0.0498
+  },
+  "amor_na_praia_46s~p1": {
+   "landings": 78,
+   "shiftedByOneFrame": 55,
+   "meanAbsImpactChange": 0.0235,
+   "maxAbsImpactChange": 0.0497
+  },
+  "amor_na_praia_46s~p2": {
+   "landings": 78,
+   "shiftedByOneFrame": 46,
+   "meanAbsImpactChange": 0.0238,
+   "maxAbsImpactChange": 0.0496
+  },
+  "amor_na_praia_46s~p3": {
+   "landings": 78,
+   "shiftedByOneFrame": 59,
+   "meanAbsImpactChange": 0.0242,
+   "maxAbsImpactChange": 0.0484
+  },
+  "amor_na_praia_46s~p4": {
+   "landings": 78,
+   "shiftedByOneFrame": 53,
+   "meanAbsImpactChange": 0.0229,
+   "maxAbsImpactChange": 0.0498
+  },
+  "tiki_tiki_48s~p1": {
+   "landings": 77,
+   "shiftedByOneFrame": 54,
+   "meanAbsImpactChange": 0.0226,
+   "maxAbsImpactChange": 0.0497
+  },
+  "tiki_tiki_48s~p2": {
+   "landings": 77,
+   "shiftedByOneFrame": 46,
+   "meanAbsImpactChange": 0.023,
+   "maxAbsImpactChange": 0.0496
+  },
+  "tiki_tiki_48s~p3": {
+   "landings": 77,
+   "shiftedByOneFrame": 59,
+   "meanAbsImpactChange": 0.0242,
+   "maxAbsImpactChange": 0.0484
+  },
+  "tiki_tiki_48s~p4": {
+   "landings": 77,
+   "shiftedByOneFrame": 52,
+   "meanAbsImpactChange": 0.0224,
+   "maxAbsImpactChange": 0.0498
+  },
+  "amour_de_ma_vie_44s~p1": {
+   "landings": 85,
+   "shiftedByOneFrame": 59,
+   "meanAbsImpactChange": 0.0222,
+   "maxAbsImpactChange": 0.0497
+  },
+  "amour_de_ma_vie_44s~p2": {
+   "landings": 85,
+   "shiftedByOneFrame": 51,
+   "meanAbsImpactChange": 0.023,
+   "maxAbsImpactChange": 0.0496
+  },
+  "amour_de_ma_vie_44s~p3": {
+   "landings": 85,
+   "shiftedByOneFrame": 65,
+   "meanAbsImpactChange": 0.0225,
+   "maxAbsImpactChange": 0.0484
+  },
+  "amour_de_ma_vie_44s~p4": {
+   "landings": 85,
+   "shiftedByOneFrame": 58,
+   "meanAbsImpactChange": 0.0215,
+   "maxAbsImpactChange": 0.0498
+  }
+ },
+ "heldOutCategories": {
+  "trouble_50s": {
+   "duration": "40-55 s",
+   "gapsUnder025": "some",
+   "gapsUnder035": "some",
+   "audiblePairsAtSpeed": "some",
+   "closeRuns4": "some",
+   "floats12": "some",
+   "drops": true,
+   "intenseWindows": false,
+   "density": "<1.5/s",
+   "meanAsk": "0.4-0.6",
+   "cvBand": "0.3-0.6",
+   "top3shareBand": "0.4-0.7",
+   "isolatedPairs": "few"
+  },
+  "valhalla_40s": {
+   "duration": "40-55 s",
+   "gapsUnder025": "none",
+   "gapsUnder035": "many",
+   "audiblePairsAtSpeed": "many",
+   "closeRuns4": "some",
+   "floats12": "some",
+   "drops": true,
+   "intenseWindows": false,
+   "density": "<1.5/s",
+   "meanAsk": "<0.4",
+   "cvBand": ">=0.6",
+   "top3shareBand": "0.4-0.7",
+   "isolatedPairs": "several"
+  },
+  "circus_minimus_77s": {
+   "duration": ">=70 s",
+   "gapsUnder025": "many",
+   "gapsUnder035": "many",
+   "audiblePairsAtSpeed": "many",
+   "closeRuns4": "some",
+   "floats12": "some",
+   "drops": true,
+   "intenseWindows": false,
+   "density": "1.5-2.2/s",
+   "meanAsk": "0.4-0.6",
+   "cvBand": "0.3-0.6",
+   "top3shareBand": "0.4-0.7",
+   "isolatedPairs": "none"
+  },
+  "circus_minimus_77s:pairs4": {
+   "duration": ">=70 s",
+   "gapsUnder025": "many",
+   "gapsUnder035": "many",
+   "audiblePairsAtSpeed": "many",
+   "closeRuns4": "many",
+   "floats12": "some",
+   "drops": true,
+   "intenseWindows": true,
+   "density": "1.5-2.2/s",
+   "meanAsk": ">=0.6",
+   "cvBand": "0.3-0.6",
+   "top3shareBand": "0.4-0.7",
+   "isolatedPairs": "none"
+  }
+ },
+ "v4TrainingCatalog": {
+  "specs": 176,
+  "durationMinMedianMax": [
+   42.02,
+   60.0,
+   96.72
+  ],
+  "atLeast70s": 9,
+  "specsWithGapUnder025": 31,
+  "specsWithGapUnder035": 71,
+  "gapsUnder025": 212,
+  "gapsUnder035": 1711,
+  "landings": 15962,
+  "specsWithAudiblePairsAtSpeed": 68,
+  "specsWithCloseRuns4": 25,
+  "specsWithFloats12": 95,
+  "specsWithDrops": 82,
+  "specsWithIntenseWindows": 23,
+  "groups": {
+   "regular_exceptions": 14,
+   "subdivision_pickup": 14,
+   "irregular_microtimed": 14,
+   "cadence_transition": 14,
+   "spacious_amplitude": 18,
+   "dense_musical": 10,
+   "high_air_energy": 10,
+   "sparse_transition": 10,
+   "rapid_pickup_frontier": 10,
+   "dense_recovery_frontier": 10,
+   "low_air_frontier": 14,
+   "legacy_transition_regression": 10,
+   "legacy_amplitude_regression": 10,
+   "believer": 8,
+   "amor_na_praia": 2,
+   "luna_bala": 2,
+   "tiki_tiki": 2,
+   "shelter": 2,
+   "amour_de_ma_vie": 2
+  }
+ },
+ "v6Music": {
+  "specs": 33,
+  "durationMinMedianMax": [
+   44,
+   62.5,
+   81
+  ],
+  "atLeast70s": 1,
+  "specsWithGapUnder025": 4,
+  "specsWithGapUnder035": 16,
+  "gapsUnder025": 25,
+  "gapsUnder035": 362,
+  "landings": 2970,
+  "specsWithAudiblePairsAtSpeed": 15,
+  "specsWithCloseRuns4": 3,
+  "specsWithFloats12": 19,
+  "specsWithDrops": 18,
+  "specsWithIntenseWindows": 3,
+  "groups": {
+   "regular_exceptions": 2,
+   "subdivision_pickup": 2,
+   "irregular_microtimed": 2,
+   "cadence_transition": 2,
+   "spacious_amplitude": 2,
+   "dense_musical": 2,
+   "high_air_energy": 2,
+   "sparse_transition": 2,
+   "rapid_pickup_frontier": 2,
+   "dense_recovery_frontier": 2,
+   "low_air_frontier": 2,
+   "legacy_transition_regression": 2,
+   "legacy_amplitude_regression": 2,
+   "believer": 2,
+   "amor_na_praia": 1,
+   "luna_bala": 1,
+   "tiki_tiki": 1,
+   "shelter": 1,
+   "amour_de_ma_vie": 1
+  }
+ },
+ "v6Cases": {
+  "total": 189,
+  "bySplitPanel": {
+   "canonical/fixed": 96,
+   "canonical/automatic": 19,
+   "confirmation/fixed": 60,
+   "confirmation/automatic": 14
+  },
+  "sources": 33
+ },
+ "storedPanelRuns": {
+  "q52-cached-contacts": {
+   "panel": "dev",
+   "head": "c2af5bbc",
+   "cells": 24,
+   "complete": 24,
+   "fulfilled": 24,
+   "compileS": {
+    "median": 123.2,
+    "max": 158.5
+   },
+   "physM": 3.1,
+   "songs": {
+    "amor_na_praia_46s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      102,
+      122,
+      120,
+      109,
+      111,
+      109
+     ],
+     "v3loss": [
+      0.0104,
+      0.0107,
+      0.008,
+      0.0116,
+      0.0094,
+      0.0113
+     ]
+    },
+    "amour_de_ma_vie_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      142,
+      126,
+      131,
+      159,
+      141,
+      142
+     ],
+     "v3loss": [
+      0.0539,
+      0.0518,
+      0.0586,
+      0.0619,
+      0.0638,
+      0.0612
+     ]
+    },
+    "luna_bala_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      96,
+      128,
+      125,
+      103,
+      101,
+      90
+     ],
+     "v3loss": [
+      0.0056,
+      0.007,
+      0.0063,
+      0.0085,
+      0.0074,
+      0.0066
+     ]
+    },
+    "tiki_tiki_48s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      117,
+      125,
+      127,
+      119,
+      124,
+      133
+     ],
+     "v3loss": [
+      0.0148,
+      0.0159,
+      0.014,
+      0.0155,
+      0.0196,
+      0.0154
+     ]
+    }
+   }
+  },
+  "quality-20261005-baseline": {
+   "panel": "dev",
+   "head": "4e510f58",
+   "cells": 24,
+   "complete": 24,
+   "fulfilled": 24,
+   "compileS": {
+    "median": 74.8,
+    "max": 95.0
+   },
+   "physM": 2.71,
+   "songs": {
+    "amor_na_praia_46s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      71,
+      68,
+      70,
+      71,
+      72,
+      71
+     ],
+     "v3loss": [
+      0.0137,
+      0.015,
+      0.0133,
+      0.0156,
+      0.0135,
+      0.0148
+     ]
+    },
+    "amour_de_ma_vie_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      89,
+      85,
+      87,
+      95,
+      83,
+      93
+     ],
+     "v3loss": [
+      0.0705,
+      0.0738,
+      0.0673,
+      0.0683,
+      0.0657,
+      0.0683
+     ]
+    },
+    "luna_bala_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      68,
+      66,
+      64,
+      67,
+      69,
+      69
+     ],
+     "v3loss": [
+      0.0113,
+      0.0122,
+      0.0148,
+      0.0103,
+      0.0092,
+      0.0138
+     ]
+    },
+    "tiki_tiki_48s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      84,
+      78,
+      79,
+      80,
+      82,
+      80
+     ],
+     "v3loss": [
+      0.0211,
+      0.0248,
+      0.0254,
+      0.0237,
+      0.0197,
+      0.0212
+     ]
+    }
+   }
+  },
+  "v3-conf": {
+   "panel": "confirm",
+   "head": "8adc736f",
+   "cells": 24,
+   "complete": 24,
+   "fulfilled": 24,
+   "compileS": {
+    "median": 107.0,
+    "max": 138.3
+   },
+   "physM": 2.31,
+   "songs": {
+    "amor_na_praia_46s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      101,
+      103,
+      101,
+      104,
+      101,
+      103
+     ],
+     "v3loss": [
+      0.0182,
+      0.0192,
+      0.0203,
+      0.0233,
+      0.0267,
+      0.0303
+     ]
+    },
+    "amour_de_ma_vie_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      121,
+      123,
+      121,
+      125,
+      133,
+      138
+     ],
+     "v3loss": [
+      0.0938,
+      0.0841,
+      0.0871,
+      0.0891,
+      0.1004,
+      0.1172
+     ]
+    },
+    "luna_bala_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      99,
+      98,
+      104,
+      102,
+      102,
+      109
+     ],
+     "v3loss": [
+      0.018,
+      0.0168,
+      0.0209,
+      0.0205,
+      0.0193,
+      0.0296
+     ]
+    },
+    "tiki_tiki_48s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      111,
+      107,
+      107,
+      110,
+      113,
+      112
+     ],
+     "v3loss": [
+      0.0265,
+      0.0297,
+      0.0248,
+      0.0273,
+      0.0288,
+      0.031
+     ]
+    }
+   }
+  },
+  "c-c": {
+   "panel": "confirm",
+   "head": "fb51fed0",
+   "cells": 24,
+   "complete": 24,
+   "fulfilled": 24,
+   "compileS": {
+    "median": 87.6,
+    "max": 103.1
+   },
+   "physM": 2.6,
+   "songs": {
+    "amor_na_praia_46s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      80,
+      79,
+      83,
+      78,
+      84,
+      77
+     ],
+     "v3loss": [
+      0.0135,
+      0.0106,
+      0.015,
+      0.0196,
+      0.0185,
+      0.0194
+     ]
+    },
+    "amour_de_ma_vie_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      102,
+      102,
+      101,
+      103,
+      98,
+      101
+     ],
+     "v3loss": [
+      0.0619,
+      0.0649,
+      0.0673,
+      0.0622,
+      0.0807,
+      0.0819
+     ]
+    },
+    "luna_bala_44s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      81,
+      77,
+      81,
+      86,
+      82,
+      86
+     ],
+     "v3loss": [
+      0.008,
+      0.009,
+      0.0107,
+      0.017,
+      0.0121,
+      0.0166
+     ]
+    },
+    "tiki_tiki_48s": {
+     "authoredSeeds": 4,
+     "distinctAuthoredTracks": 4,
+     "distinctAllTracks": 6,
+     "complete": 6,
+     "n": 6,
+     "compileS": [
+      89,
+      90,
+      92,
+      90,
+      95,
+      90
+     ],
+     "v3loss": [
+      0.0202,
+      0.0248,
+      0.0199,
+      0.0176,
+      0.026,
+      0.0225
+     ]
+    }
+   }
+  }
+ },
+ "storedRunsCompletion": {
+  "runs": 42,
+  "cells": 962,
+  "incomplete": 5,
+  "incompleteCells": [
+   "a2-nopolicy:amour_de_ma_vie_44s~101",
+   "a2-nopolicy:amour_de_ma_vie_44s~303",
+   "b15-final:amour_de_ma_vie_44s~101~p1",
+   "b15-off:tiki_tiki_48s~303",
+   "b15-off:amour_de_ma_vie_44s~101~p2"
+  ],
+  "note": "All generated/eval runs on disk (Oct 5-6). a2 = ablation without construction policy; b15 = 1.5M-frame budget arms."
+ },
+ "amourShareOfV3Loss": {
+  "q52-cached-contacts": 0.639,
+  "quality-20261005-baseline": 0.586,
+  "note": "amour per-song mean v3 loss / sum of the four per-song means"
+ },
+ "timingAtHead": [
+  {
+   "song": "amor_na_praia_46s",
+   "seed": 101,
+   "duration": 46,
+   "budget": 3163700,
+   "wallS": 59.4,
+   "cpuS": 79.6,
+   "physicalFrames": 2921639,
+   "valid": true,
+   "qualified": true
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "seed": 101,
+   "duration": 44.544,
+   "budget": 3065100,
+   "wallS": 59.6,
+   "cpuS": 79.3,
+   "physicalFrames": 2622591,
+   "valid": true,
+   "qualified": true
+  },
+  {
+   "song": "luna_bala_44s",
+   "seed": 101,
+   "duration": 44,
+   "budget": 3027700,
+   "wallS": 53.3,
+   "cpuS": 72.5,
+   "physicalFrames": 2716392,
+   "valid": true,
+   "qualified": true
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "seed": 101,
+   "duration": 48,
+   "budget": 3299700,
+   "wallS": 58.1,
+   "cpuS": 79.2,
+   "physicalFrames": 2902164,
+   "valid": true,
+   "qualified": true
+  }
+ ],
+ "bootstrapNullFalsePositive": {
+  "n=4 normal": 0.188,
+  "n=4 laplace": 0.208,
+  "n=8 normal": 0.106,
+  "n=8 laplace": 0.121,
+  "n=12 normal": 0.085,
+  "n=12 laplace": 0.101
+ },
+ "evalSummaryMetrics": 37,
+ "evalReportSlices": [
+  "authored",
+  "perturbed"
+ ],
+ "parity": {
+  "cells": 63,
+  "byMode": {
+   "landing": 30,
+   "strike": 11,
+   "strike2": 11,
+   "strike3": 11
+  },
+  "distinctCaseIds": 18,
+  "storedTrackCells": 33,
+  "reducedBudgetCells": "landing 12, strike/strike2/strike3 6 each (150k and 750k)",
+  "inputs": "benchmark/v6 catalog copies with stored V6 preferences, not productions/*/spec.ts with creative {}"
+ },
+ "v6": {
+  "policy": "benchmark/v6/policy.ts",
+  "budget": 3000000,
+  "canonicalRuns": 460,
+  "confirmationRuns": 296,
+  "sources": 33,
+  "compileMode": "landing (no impactContract; scripts/benchmark/v6.ts worker)"
+ },
+ "deadFields": {
+  "productions/*/select.json floors and budget": "loaded by scripts/produce/config.ts, read nowhere in scripts/ or tools/ (grep)"
+ }
+}

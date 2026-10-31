@@ -87,7 +87,9 @@ spec (beats, impacts, air/speed/amplitude targets)
    ride at the position heard when it reaches the screen
    (`shared/playback.js`, also used by the spec dashboard's cursor and
    landing clicks and by the grading page, and which keeps the two clips of a
-   pair study on the same frame). `render_repertoire.ts` renders vertical video when wanted.
+   pair study on the same frame). The camera is the videos' own follower
+   centred on the mean of the ten traced points
+   (`scripts/gallery/native/camera.js`). `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families
 

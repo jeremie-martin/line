@@ -1,11 +1,13 @@
 import {inspectRailContacts} from '../contacts.ts';
 export {selectGuideAlternative} from '../../v0/optimizer/arc_guide_choice.ts';
+import {bodyCentre,createCamera} from './camera.js';
 // These are the mirror's actual Canvas drawing and sprite-mapping functions.
 // Keep them unmodified; the surrounding gallery owns only loading and cameras.
 const {render:drawLines}=require('native:805');
 const {render:drawSprites,setupSprites}=require('native:806');
 const {SpriteSheet}=require('native:206');
 const EntityGenerator=require('native:823');
+const followStep=require('native:560');
 let sheetPromise;
 export function loadRider(){
   return sheetPromise??=(async()=>{
@@ -37,6 +39,7 @@ export function createView(record,native,sheet){
   const lines=track.lines.map(l=>({...l,p1:{x:l.x1,y:l.y1},p2:{x:l.x2,y:l.y2}}));
   const generator=new EntityGenerator(0),overlay=document.createElement('canvas');
   const byId=new Map(lines.map(line=>[line.id,line]));
+  const follow=createCamera(followStep,record.trace.frames.map(bodyCentre));
   const highlight=(context,camera,ids,color)=>{
     const scale=camera.z*camera.r;
     context.setTransform(scale,0,0,scale,camera.w*camera.r/2-camera.x*scale,camera.h*camera.r/2-camera.y*scale);
@@ -44,11 +47,13 @@ export function createView(record,native,sheet){
     for(const id of ids){const l=byId.get(id);context.moveTo(l.x1,l.y1);context.lineTo(l.x2,l.y2);}
     context.stroke();context.setTransform(1,0,0,1,0,0);
   };
-  return {inspection,draw(canvas,camera,at,inspect=false){
+  // view: {w,h} canvas size in CSS pixels, z zoom, r pixel ratio; the view places the camera.
+  return {inspection,draw(canvas,view,at,inspect=false){
     const frame=Math.max(0,Math.min(at,frames.length-1));
-    const entity=generator.makeRider({getRawRiders:()=>[riderAt(frames,frame)]},undefined,frame,1);
-    const width=Math.round(camera.w*camera.r),height=Math.round(camera.h*camera.r);
+    const width=Math.round(view.w*view.r),height=Math.round(view.h*view.r);
     if(width<=0||height<=0)return; // Detached or hidden comparison panel.
+    const camera={...view,...follow(view,frame)};
+    const entity=generator.makeRider({getRawRiders:()=>[riderAt(frames,frame)]},undefined,frame,1);
     if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
     if(overlay.width!==width||overlay.height!==height){overlay.width=width;overlay.height=height;}
     const context=canvas.getContext('2d');

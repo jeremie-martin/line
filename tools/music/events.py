@@ -14,6 +14,7 @@ Writes productions/<song>/events.json (tracked beside the spec, which reads it)
 and generated/stems/<song>/sheets/<t0>-<t1>.png: the mix spectrogram, one
 loudness lane per stem with its onsets, drum classes, and, given --contacts
 (a JSON list of {t, impact}), the spec's landings, sized by requested impact.
+tools/music/sung.py redraws the sheets with its sung notes on the vocals lane.
 """
 from __future__ import annotations
 
@@ -65,7 +66,10 @@ def build_events(stems: dict, drums: dict) -> list[dict]:
     return events
 
 
-def render_sheets(song: str, root: Path, stems: dict, drums: dict, contacts: list[dict] | None) -> int:
+def render_sheets(song: str, root: Path, stems: dict, drums: dict, contacts: list[dict] | None,
+                  sung: dict | None = None) -> int:
+    """sung: tools/music/sung.py's output; its notes are drawn on the vocals lane as
+    triangles (height and opacity by salience), its unpitched attacks as grey crosses."""
     out = root / "generated" / "stems" / song / "sheets"
     out.mkdir(parents=True, exist_ok=True)
     y, sr = librosa.load(root / "productions" / song / "audio.mp3", sr=22050, mono=True)
@@ -90,6 +94,13 @@ def render_sheets(song: str, root: Path, stems: dict, drums: dict, contacts: lis
             for o in stems["stems"][s]["onsets"]:
                 if t0 <= o["t"] <= t1:
                     ax[k].axvline(o["t"], color="k", lw=0.5, alpha=0.25 + 0.75 * min(1, o["rise"] / top))
+        for note in (sung or {}).get("notes", []):
+            if t0 <= note["t"] <= t1:
+                ax[3].plot(note["t"], top * (0.3 + 0.75 * note["salience"]), "v", color="#7a3a00",
+                           alpha=0.35 + 0.65 * note["salience"], ms=7)
+        for note in (sung or {}).get("unpitched", []):
+            if t0 <= note["t"] <= t1:
+                ax[3].plot(note["t"], top * 0.3, "x", color="#777777", ms=6)
         for h in drums["hits"]:
             if t0 <= h["t"] <= t1:
                 ax[1].plot(h["t"], top * 1.02, DRUM_MARK.get(h["class"], "o"), color="k", ms=6)
@@ -103,7 +114,8 @@ def render_sheets(song: str, root: Path, stems: dict, drums: dict, contacts: lis
         ax[5].xaxis.set_major_locator(MultipleLocator(0.5))
         ax[5].xaxis.set_minor_locator(MultipleLocator(0.1))
         ax[5].set_xlim(t0, t1)
-        ax[5].set_xlabel("time (s) — drum marks: v kick, s snare, ^ hat, D tom, * cymbal; purple: spec landings")
+        ax[5].set_xlabel("time (s) — drum marks: v kick, s snare, ^ hat, D tom, * cymbal; purple: spec landings"
+                         + ("; vocals lane: sung notes (higher = more salient), x unpitched" if sung else ""))
         fig.tight_layout()
         fig.savefig(out / f"{t0:05.1f}-{t1:05.1f}.png", dpi=80)
         plt.close(fig)

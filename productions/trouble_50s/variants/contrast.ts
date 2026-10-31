@@ -23,7 +23,7 @@ const CLUSTERS = [[34.40, 34.74, 35.07], [41.56, 41.90, 42.24]];
 const CYCLE_STARTS = [...m.GROOVE_CYCLES, ...m.DROP_CYCLES, 48.74];
 const near = (layer: number[], t: number) => layer.some((x) => Math.abs(x - t) < 0.03);
 
-function impactFor(t: number): number {
+export function impactFor(t: number): number {
   if (near([m.DROP_T], t)) return 1.0;
   if (near([m.OPENING_CRASH], t)) return 0.5;
   if (near([46.95], t)) return 0.85; // the second re-entry, after the float
@@ -41,11 +41,11 @@ function impactFor(t: number): number {
   return Number(m.clamp(m.drumStrength(t), 0.3, 0.9).toFixed(3)); // drop kicks, snares, boom-TAK
 }
 
-const times = m.landings([m.OPENING_CRASH, 0.85, 1.30, 1.73], m.INTRO_PHRASES, m.GROOVE_KICKS,
+export const times = m.landings([m.OPENING_CRASH, 0.85, 1.30, 1.73], m.INTRO_PHRASES, m.GROOVE_KICKS,
   m.DROP_KICKS, m.DROP_SNARES, BOOM_TAK, VOCAL_BREAK, m.OUTRO_KICKS);
 const contacts: Contact[] = beats(times.map((t) => ({ t, impact: impactFor(t) })));
 
-const speed: Curve = keyframes([
+export const speed: Curve = keyframes([
   { t: 0.0, v: 0.36, ease: "smooth" },
   { t: 12.0, v: 0.42, ease: "smooth" },
   { t: m.GROOVE_T, v: 0.56, ease: "easeIn" },
@@ -57,7 +57,7 @@ const speed: Curve = keyframes([
   { t: m.BUILD_END_T, v: 0.70, ease: "easeIn" },
   { t: m.DURATION, v: 0.66 },
 ]);
-const air: Curve = keyframes([
+export const air: Curve = keyframes([
   { t: 0.0, v: 0.60, ease: "smooth" },
   { t: m.GROOVE_T, v: 0.58, ease: "smooth" },
   { t: 27.25, v: 0.62, ease: "smooth" },

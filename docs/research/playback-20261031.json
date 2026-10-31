@@ -1,0 +1,1703 @@
+{
+ "schema": "line.playback-measure.v1",
+ "date": "2026-10-31",
+ "method": "Playwright headless Chromium 1223 / Firefox 150 (playwright firefox-1522); ride /generated/trouble-variants-v2/kick-101 from 14 s; study night-pairs-2026-10-05 pair 1; 10 s per condition; insecure host name (like plain HTTP over the VPN); cpu = CDP CPU throttling; net=vpn = 40 ms latency, 20 Mbit/s; dpr = device scale factor",
+ "before": [
+  {
+   "args": "production --secs=10",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 557,
+   "loadBytes": 3802841,
+   "loadRequests": 18,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 599,
+   "callbackMs": {
+    "median": 1.7,
+    "p95": 1.9,
+    "max": 3
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 1,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 3,
+    "stepErrMs": {
+     "median": 0.07,
+     "p95": 0.4,
+     "max": 16.7
+    }
+   },
+   "shownClock": {
+    "repeats": 3,
+    "stepErrMs": {
+     "median": 0.07,
+     "p95": 0.4,
+     "max": 16.7
+    }
+   }
+  },
+  {
+   "args": "production --secs=10 --cpu=4 --net=vpn",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "vpn",
+   "secure": false,
+   "openMs": 3136,
+   "loadBytes": 3802841,
+   "loadRequests": 18,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 600,
+   "callbackMs": {
+    "median": 4.1,
+    "p95": 5,
+    "max": 6.5
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 33.3
+   },
+   "missedFrames": 2,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 1,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 4,
+    "stepErrMs": {
+     "median": 0.29,
+     "p95": 1.48,
+     "max": 33.3
+    }
+   },
+   "shownClock": {
+    "repeats": 4,
+    "stepErrMs": {
+     "median": 0.29,
+     "p95": 1.48,
+     "max": 33.3
+    }
+   }
+  },
+  {
+   "args": "production --secs=10 --cpu=4 --dpr=2",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "none",
+   "secure": false,
+   "openMs": 1542,
+   "loadBytes": 3802841,
+   "loadRequests": 18,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 357,
+   "callbackMs": {
+    "median": 7.5,
+    "p95": 8.5,
+    "max": 10.2
+   },
+   "frameGapMs": {
+    "median": 33.3,
+    "p95": 33.4,
+    "max": 50.1
+   },
+   "missedFrames": 5,
+   "longtasks": {
+    "count": 1,
+    "totalMs": 54
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 1,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 2,
+    "stepErrMs": {
+     "median": 6.02,
+     "p95": 11.53,
+     "max": 49.9
+    }
+   },
+   "shownClock": {
+    "repeats": 2,
+    "stepErrMs": {
+     "median": 6.02,
+     "p95": 11.53,
+     "max": 49.9
+    }
+   }
+  },
+  {
+   "args": "production --secs=10 --browser=firefox",
+   "page": "production",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 1326,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 602,
+   "callbackMs": {
+    "median": 7,
+    "p95": 8,
+    "max": 16
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.16
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 1,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 354,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 24,
+     "max": 44.88
+    }
+   },
+   "shownClock": {
+    "repeats": 354,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 24,
+     "max": 44.88
+    }
+   }
+  },
+  {
+   "args": "pairs --secs=10",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 106,
+   "loadBytes": 387051,
+   "loadRequests": 8,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.2,
+    "max": 1.4
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 10,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 594
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 594
+    }
+   ],
+   "leftClock": {
+    "repeats": 10,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 0.41,
+     "max": 16.7
+    }
+   },
+   "rightClock": {
+    "repeats": 10,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 0.39,
+     "max": 16.7
+    }
+   },
+   "driftMs": {
+    "median": 0.01,
+    "p95": 0.15,
+    "max": 0.19
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 585,
+     "same": 585,
+     "one": 0,
+     "more": 0
+    },
+    "hit": {
+     "n": 80,
+     "same": 80,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 0.01,
+    "p95": 0.15,
+    "max": 0.19
+   }
+  },
+  {
+   "args": "pairs --secs=10 --sound=A",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 99,
+   "loadBytes": 387051,
+   "loadRequests": 8,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.3,
+    "max": 1.3
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 118
+   },
+   "waiting": 118,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 583
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 6672
+    }
+   ],
+   "leftClock": {
+    "repeats": 20,
+    "stepErrMs": {
+     "median": 0.1,
+     "p95": 6.83,
+     "max": 16.7
+    }
+   },
+   "rightClock": {
+    "repeats": 166,
+    "stepErrMs": {
+     "median": 12.99,
+     "p95": 33.99,
+     "max": 39.63
+    }
+   },
+   "driftMs": {
+    "median": 32.36,
+    "p95": 50.34,
+    "max": 56.33
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 203,
+     "same": 4,
+     "one": 3,
+     "more": 196
+    },
+    "hit": {
+     "n": 32,
+     "same": 0,
+     "one": 0,
+     "more": 32
+    }
+   },
+   "hitDriftMs": {
+    "n": 76,
+    "median": 33.6,
+    "p95": 50.56,
+    "max": 55.11
+   }
+  },
+  {
+   "args": "pairs --secs=10 --sound=B",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 98,
+   "loadBytes": 387051,
+   "loadRequests": 8,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.3,
+    "max": 1.6
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 178
+   },
+   "waiting": 180,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 601
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 9770
+    }
+   ],
+   "leftClock": {
+    "repeats": 10,
+    "stepErrMs": {
+     "median": 0.14,
+     "p95": 0.92,
+     "max": 16.7
+    }
+   },
+   "rightClock": {
+    "repeats": 276,
+    "stepErrMs": {
+     "median": 16.7,
+     "p95": 34.27,
+     "max": 39.74
+    }
+   },
+   "driftMs": {
+    "median": 33.06,
+    "p95": 50.56,
+    "max": 56.44
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 13,
+     "same": 2,
+     "one": 0,
+     "more": 11
+    },
+    "hit": {
+     "n": 2,
+     "same": 0,
+     "one": 0,
+     "more": 2
+    }
+   },
+   "hitDriftMs": {
+    "n": 76,
+    "median": 33.24,
+    "p95": 54.99,
+    "max": 56.44
+   }
+  },
+  {
+   "args": "pairs --secs=10 --cpu=4 --net=vpn --sound=B",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "vpn",
+   "secure": false,
+   "openMs": 396,
+   "loadBytes": 28388,
+   "loadRequests": 6,
+   "playBytes": 358663,
+   "playRequests": 2,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 1,
+    "max": 1.8
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 178
+   },
+   "waiting": 180,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 2,
+     "totalVideoFrames": 605
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 9904
+    }
+   ],
+   "leftClock": {
+    "repeats": 10,
+    "stepErrMs": {
+     "median": 0.34,
+     "p95": 1.33,
+     "max": 16.8
+    }
+   },
+   "rightClock": {
+    "repeats": 290,
+    "stepErrMs": {
+     "median": 16.7,
+     "p95": 34.1,
+     "max": 39.68
+    }
+   },
+   "driftMs": {
+    "median": 33.07,
+    "p95": 50.8,
+    "max": 56.28
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 20,
+     "same": 2,
+     "one": 2,
+     "more": 16
+    },
+    "hit": {
+     "n": 2,
+     "same": 0,
+     "one": 0,
+     "more": 2
+    }
+   },
+   "hitDriftMs": {
+    "n": 81,
+    "median": 33.34,
+    "p95": 53.68,
+    "max": 56.28
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 668,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 33
+   },
+   "waiting": 22,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 594
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 523
+    }
+   ],
+   "leftClock": {
+    "repeats": 344,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 27.11,
+     "max": 36.83
+    }
+   },
+   "rightClock": {
+    "repeats": 345,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 27.11,
+     "max": 55.78
+    }
+   },
+   "driftMs": {
+    "median": 2.22,
+    "p95": 32.77,
+    "max": 72.84
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 222,
+     "same": 221,
+     "one": 0,
+     "more": 1
+    },
+    "hit": {
+     "n": 26,
+     "same": 26,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 77,
+    "median": 1.71,
+    "p95": 40.1,
+    "max": 40.13
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox --sound=A",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 630,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 4,
+    "right": 129
+   },
+   "waiting": 71,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 2,
+     "totalVideoFrames": 534
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 272
+    }
+   ],
+   "leftClock": {
+    "repeats": 363,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 25.96,
+     "max": 29.75
+    }
+   },
+   "rightClock": {
+    "repeats": 335,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 26.09,
+     "max": 62.52
+    }
+   },
+   "driftMs": {
+    "median": 32.46,
+    "p95": 40.52,
+    "max": 79.58
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 92,
+     "same": 3,
+     "one": 4,
+     "more": 85
+    },
+    "hit": {
+     "n": 16,
+     "same": 0,
+     "one": 0,
+     "more": 16
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 33.27,
+    "p95": 40.44,
+    "max": 40.52
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox --sound=B",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 687,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 234
+   },
+   "waiting": 117,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 607
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 24
+    }
+   ],
+   "leftClock": {
+    "repeats": 342,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 24.07,
+     "max": 37.01
+    }
+   },
+   "rightClock": {
+    "repeats": 352,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 24.06,
+     "max": 72.3
+    }
+   },
+   "driftMs": {
+    "median": 0,
+    "p95": 40.16,
+    "max": 89.38
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 20,
+     "same": 6,
+     "one": 6,
+     "more": 8
+    },
+    "hit": {
+     "n": 0,
+     "same": 0,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 89,
+    "median": 0,
+    "p95": 40.14,
+    "max": 41.54
+   }
+  }
+ ],
+ "after": [
+  {
+   "args": "production --secs=10",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 778,
+   "loadBytes": 3808509,
+   "loadRequests": 19,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 599,
+   "callbackMs": {
+    "median": 1.7,
+    "p95": 2,
+    "max": 2.5
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 0,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": null,
+     "p95": null,
+     "max": null
+    }
+   },
+   "shownClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": 0,
+     "p95": 0.09,
+     "max": 7.72
+    }
+   },
+   "drawnMinusHeardMs": {
+    "n": 599,
+    "median": 0.04,
+    "maxAbs": 7.7
+   }
+  },
+  {
+   "args": "production --secs=10 --cpu=4 --net=vpn",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "vpn",
+   "secure": false,
+   "openMs": 3342,
+   "loadBytes": 3808509,
+   "loadRequests": 19,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 599,
+   "callbackMs": {
+    "median": 4,
+    "p95": 4.7,
+    "max": 6.1
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 33.4
+   },
+   "missedFrames": 2,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 0,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": null,
+     "p95": null,
+     "max": null
+    }
+   },
+   "shownClock": {
+    "repeats": 1,
+    "stepErrMs": {
+     "median": 0,
+     "p95": 0.18,
+     "max": 16.6
+    }
+   },
+   "drawnMinusHeardMs": {
+    "n": 599,
+    "median": 0.03,
+    "maxAbs": 13.41
+   }
+  },
+  {
+   "args": "production --secs=10 --cpu=4 --dpr=2",
+   "page": "production",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "none",
+   "secure": false,
+   "openMs": 1592,
+   "loadBytes": 3808509,
+   "loadRequests": 19,
+   "playBytes": 418,
+   "playRequests": 2,
+   "frames": 357,
+   "callbackMs": {
+    "median": 7.6,
+    "p95": 8.7,
+    "max": 9.8
+   },
+   "frameGapMs": {
+    "median": 33.3,
+    "p95": 33.4,
+    "max": 66.7
+   },
+   "missedFrames": 4,
+   "longtasks": {
+    "count": 3,
+    "totalMs": 187
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 0,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": null,
+     "p95": null,
+     "max": null
+    }
+   },
+   "shownClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": 0,
+     "p95": 0.32,
+     "max": 16.51
+    }
+   },
+   "drawnMinusHeardMs": {
+    "n": 357,
+    "median": 1.34,
+    "maxAbs": 33.2
+   }
+  },
+  {
+   "args": "production --secs=10 --browser=firefox",
+   "page": "production",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 1591,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 602,
+   "callbackMs": {
+    "median": 7,
+    "p95": 9,
+    "max": 15
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.1,
+    "max": 17.12
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 0,
+    "right": 0
+   },
+   "waiting": 0,
+   "quality": [
+    {
+     "id": "movie",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 0
+    }
+   ],
+   "audioClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": null,
+     "p95": null,
+     "max": null
+    }
+   },
+   "shownClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": 0,
+     "p95": 0,
+     "max": 1.33
+    }
+   },
+   "drawnMinusHeardMs": {
+    "n": 601,
+    "median": 11.73,
+    "maxAbs": 19.77
+   }
+  },
+  {
+   "args": "pairs --secs=10",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 95,
+   "loadBytes": 393823,
+   "loadRequests": 9,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.2,
+    "max": 1.3
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 10,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 594
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 594
+    }
+   ],
+   "leftClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 0.31,
+     "max": 16.69
+    }
+   },
+   "rightClock": {
+    "repeats": 0,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 0.31,
+     "max": 16.69
+    }
+   },
+   "driftMs": {
+    "median": 0.01,
+    "p95": 0.18,
+    "max": 0.23
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 586,
+     "same": 586,
+     "one": 0,
+     "more": 0
+    },
+    "hit": {
+     "n": 80,
+     "same": 80,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 0.01,
+    "p95": 0.18,
+    "max": 0.19
+   }
+  },
+  {
+   "args": "pairs --secs=10 --sound=A",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 92,
+   "loadBytes": 393823,
+   "loadRequests": 9,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.2,
+    "max": 1
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 10,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 580
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 580
+    }
+   ],
+   "leftClock": {
+    "repeats": 14,
+    "stepErrMs": {
+     "median": 0.08,
+     "p95": 7.59,
+     "max": 16.79
+    }
+   },
+   "rightClock": {
+    "repeats": 19,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 16.69,
+     "max": 57.33
+    }
+   },
+   "driftMs": {
+    "median": 8.96,
+    "p95": 16.67,
+    "max": 57.29
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 552,
+     "same": 551,
+     "one": 1,
+     "more": 0
+    },
+    "hit": {
+     "n": 79,
+     "same": 79,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 76,
+    "median": 9.41,
+    "p95": 15.35,
+    "max": 15.42
+   }
+  },
+  {
+   "args": "pairs --secs=10 --sound=B",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 103,
+   "loadBytes": 393823,
+   "loadRequests": 9,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.2,
+    "max": 1.7
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.8,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 10,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 578
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 578
+    }
+   ],
+   "leftClock": {
+    "repeats": 16,
+    "stepErrMs": {
+     "median": 0.05,
+     "p95": 16.6,
+     "max": 49.8
+    }
+   },
+   "rightClock": {
+    "repeats": 13,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 6.95,
+     "max": 16.8
+    }
+   },
+   "driftMs": {
+    "median": 17.55,
+    "p95": 24.7,
+    "max": 62.35
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 547,
+     "same": 463,
+     "one": 84,
+     "more": 0
+    },
+    "hit": {
+     "n": 80,
+     "same": 64,
+     "one": 16,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 20.3,
+    "p95": 24.5,
+    "max": 24.52
+   }
+  },
+  {
+   "args": "pairs --secs=10 --cpu=4 --net=vpn --sound=B",
+   "page": "pairs",
+   "browser": "chromium",
+   "cpu": 4,
+   "net": "vpn",
+   "secure": false,
+   "openMs": 437,
+   "loadBytes": 35160,
+   "loadRequests": 7,
+   "playBytes": 358663,
+   "playRequests": 2,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0.1,
+    "p95": 0.6,
+    "max": 3.9
+   },
+   "frameGapMs": {
+    "median": 16.7,
+    "p95": 16.7,
+    "max": 16.8
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 10,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 584
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 584
+    }
+   ],
+   "leftClock": {
+    "repeats": 22,
+    "stepErrMs": {
+     "median": 0.25,
+     "p95": 16.6,
+     "max": 50.96
+    }
+   },
+   "rightClock": {
+    "repeats": 15,
+    "stepErrMs": {
+     "median": 0.25,
+     "p95": 7.32,
+     "max": 16.79
+    }
+   },
+   "driftMs": {
+    "median": 9.46,
+    "p95": 50.35,
+    "max": 61.09
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 549,
+     "same": 435,
+     "one": 114,
+     "more": 0
+    },
+    "hit": {
+     "n": 80,
+     "same": 64,
+     "one": 16,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 9.27,
+    "p95": 49.7,
+    "max": 49.78
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 723,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 5,
+    "right": 5
+   },
+   "waiting": 14,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 593
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 0,
+     "totalVideoFrames": 593
+    }
+   ],
+   "leftClock": {
+    "repeats": 344,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 26.35,
+     "max": 32.06
+    }
+   },
+   "rightClock": {
+    "repeats": 344,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 26.34,
+     "max": 32.06
+    }
+   },
+   "driftMs": {
+    "median": 1.81,
+    "p95": 3.25,
+    "max": 36.86
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 248,
+     "same": 248,
+     "one": 0,
+     "more": 0
+    },
+    "hit": {
+     "n": 31,
+     "same": 31,
+     "one": 0,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 1.81,
+    "p95": 3.25,
+    "max": 3.25
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox --sound=A",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 755,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 4,
+    "right": 4
+   },
+   "waiting": 12,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 3,
+     "totalVideoFrames": 536
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 2,
+     "totalVideoFrames": 538
+    }
+   ],
+   "leftClock": {
+    "repeats": 367,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 26.15,
+     "max": 35.79
+    }
+   },
+   "rightClock": {
+    "repeats": 296,
+    "stepErrMs": {
+     "median": 17.04,
+     "p95": 24.89,
+     "max": 27.97
+    }
+   },
+   "driftMs": {
+    "median": 19.84,
+    "p95": 41.25,
+    "max": 64.36
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 118,
+     "same": 8,
+     "one": 102,
+     "more": 8
+    },
+    "hit": {
+     "n": 17,
+     "same": 0,
+     "one": 15,
+     "more": 2
+    }
+   },
+   "hitDriftMs": {
+    "n": 75,
+    "median": 18.79,
+    "p95": 44.55,
+    "max": 60.48
+   }
+  },
+  {
+   "args": "pairs --secs=10 --browser=firefox --sound=B",
+   "page": "pairs",
+   "browser": "firefox",
+   "cpu": 1,
+   "net": "none",
+   "secure": false,
+   "openMs": 706,
+   "loadBytes": 0,
+   "loadRequests": 0,
+   "playBytes": 0,
+   "playRequests": 0,
+   "frames": 595,
+   "callbackMs": {
+    "median": 0,
+    "p95": 1,
+    "max": 2
+   },
+   "frameGapMs": {
+    "median": 17.06,
+    "p95": 17.08,
+    "max": 17.1
+   },
+   "missedFrames": 0,
+   "longtasks": {
+    "count": 0,
+    "totalMs": 0
+   },
+   "seeks": {
+    "left": 4,
+    "right": 4
+   },
+   "waiting": 11,
+   "quality": [
+    {
+     "id": "left",
+     "droppedVideoFrames": 4,
+     "totalVideoFrames": 540
+    },
+    {
+     "id": "right",
+     "droppedVideoFrames": 2,
+     "totalVideoFrames": 531
+    }
+   ],
+   "leftClock": {
+    "repeats": 299,
+    "stepErrMs": {
+     "median": 17.06,
+     "p95": 25.25,
+     "max": 27.85
+    }
+   },
+   "rightClock": {
+    "repeats": 365,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 26.3,
+     "max": 37.82
+    }
+   },
+   "driftMs": {
+    "median": 23.11,
+    "p95": 38.78,
+    "max": 63.5
+   },
+   "presentedFrameGap": {
+    "all": {
+     "n": 124,
+     "same": 15,
+     "one": 107,
+     "more": 2
+    },
+    "hit": {
+     "n": 17,
+     "same": 3,
+     "one": 14,
+     "more": 0
+    }
+   },
+   "hitDriftMs": {
+    "n": 78,
+    "median": 23.11,
+    "p95": 55.06,
+    "max": 63.5
+   }
+  }
+ ]
+}

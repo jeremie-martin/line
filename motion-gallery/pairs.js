@@ -1,13 +1,15 @@
 /** Blind pair study: two clips side by side on one clock (both judged hits are
  * at the same moment), a light that is on while the judged hit happens, and a
  * timeline of each clip's specification beats that can be dragged to scrub.
- * Sides are assigned by the study key, which the page never sees. Answers are
+ * The sounding clip (A when muted) leads and the other shows its frame
+ * (playback.js). Sides are assigned by the study key, which the page never sees. Answers are
  * stored server-side (POST /api/labels/<study>) so a session can resume. */
+import {lastFrame, shownGap, follow} from './playback.js';
 const $ = id => document.getElementById(id);
 const study = new URLSearchParams(location.search).get('study') ?? 'slam-2026-10';
-const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0, playing: true};
+const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0, playing: true, rate: 1};
 const status = (text, error = false) => {$('status').textContent = text; $('status').classList.toggle('error', error);};
-const sides = ['left', 'right'], video = s => $(s), master = () => $('left');
+const sides = ['left', 'right'], video = s => $(s), frames = {left: lastFrame($('left')), right: lastFrame($('right'))};
 const LIT = [-0.05, 0.12];
 // The first study (slam-2026-10) predates per-study choices.
 const SLAM = [['left', 'A slams more'], ['right', 'B slams more'], ['same', 'About the same'], ['neither', 'Neither feels like a slam']];   // seconds around the judged hit during which the light is on
@@ -42,11 +44,18 @@ function draw() {
   }
 }
 function tick() {
-  const m = state.manifest;
+  const m = state.manifest, lead = state.sound === 'right' ? 'right' : 'left', other = lead === 'left' ? 'right' : 'left';
   if (m && state.playing) {
-    const t = master().currentTime;
-    if (t >= m.length - 0.03 || master().ended) seek(0, true);
-    else if (Math.abs(video('right').currentTime - t) > 0.04) video('right').currentTime = t;
+    const leader = video(lead), follower = video(other);
+    if (leader.currentTime >= m.length - 0.03 || leader.ended) seek(0, true);
+    else {
+      const mode = follower.playbackRate === 0 ? 'wait' : follower.playbackRate > state.rate ? 'catch' : 'play';
+      const next = follow(shownGap({frame: frames[lead](), time: leader.currentTime, paused: leader.paused},
+        {frame: frames[other](), time: follower.currentTime, paused: follower.paused}, performance.now()), mode);
+      leader.playbackRate = state.rate;
+      if (next === 'seek') {if (!follower.seeking) follower.currentTime = leader.currentTime;}
+      else follower.playbackRate = next === 'wait' ? 0 : next === 'catch' ? state.rate * 1.05 : state.rate;
+    }
   }
   draw(); requestAnimationFrame(tick);
 }
@@ -71,7 +80,8 @@ for (const side of sides) {
 function show() {
   const clip = state.manifest.clips[state.index];
   state.choice = null; state.shownAt = performance.now(); $('note').value = '';
-  for (const side of sides) {video(side).src = clip[side].src; video(side).muted = side !== state.sound; video(side).playbackRate = $('slow').getAttribute('aria-pressed') === 'true' ? .5 : 1;}
+  state.rate = $('slow').getAttribute('aria-pressed') === 'true' ? .5 : 1;
+  for (const side of sides) {video(side).src = clip[side].src; video(side).muted = side !== state.sound; video(side).playbackRate = state.rate;}
   setPlaying(true);
   for (const b of $('choices').children) b.classList.remove('on');
   $('progress').textContent = `Pair ${state.index + 1} of ${state.manifest.clips.length} · ${state.labeled.size} answered`;
@@ -96,7 +106,8 @@ $('choices').onclick = e => {
 $('play').onclick = () => setPlaying(!state.playing);
 $('slow').onclick = e => {
   const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', String(on));
-  for (const side of sides) video(side).playbackRate = on ? .5 : 1;
+  state.rate = on ? .5 : 1;
+  for (const side of sides) video(side).playbackRate = state.rate;
 };
 // The two clips are different song moments, so only one soundtrack plays: off → A → B.
 const SOUND = ['off', 'left', 'right'];

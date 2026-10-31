@@ -38,7 +38,7 @@ try{
   await page.locator('#seek').evaluate(e=>{e.value='12';e.dispatchEvent(new Event('input'));});
   assert.equal(await page.locator('#time').textContent(),'12.00 s');
   await page.locator('#play').click();
-  await page.waitForFunction(()=>document.getElementById('audio').currentTime>12.1);
+  await page.waitForFunction(()=>+document.getElementById('seek').value>12.1);
   await page.locator('#play').click();
   await page.waitForFunction(()=>!document.getElementById('movie').hidden&&document.getElementById('movie').readyState>=1);
   const media=await page.locator('#movie').evaluate(e=>({w:e.videoWidth,h:e.videoHeight,d:e.duration,src:e.currentSrc}));
@@ -50,20 +50,20 @@ try{
  // A finished video and the native inspection player must not play over each other.
  await page.locator('#movie').evaluate(e=>e.play());
  await page.waitForFunction(()=>document.getElementById('movie').currentTime>.1);
- assert.equal(await page.locator('#audio').evaluate(e=>e.paused),true);
+ assert.equal(await page.locator('#play').textContent(),'Play');
  await page.locator('#timeline button').nth(2).click();
  assert.equal(await page.locator('#movie').evaluate(e=>e.paused),true);
  await page.locator('#play').click();
- await page.waitForFunction(()=>!document.getElementById('audio').paused);
+ await page.waitForFunction(()=>document.getElementById('play').textContent==='Pause');
  await page.locator('#movie').evaluate(e=>e.play());
- assert.equal(await page.locator('#audio').evaluate(e=>e.paused),true);
+ assert.equal(await page.locator('#play').textContent(),'Play');
  checks.push({mutuallyExclusiveMediaPlayback:true,phraseSeekPausesVideo:true});
  await page.evaluate(()=>{const buttons=document.querySelectorAll('#library button');buttons[1].click();buttons[6].click();buttons[11].click();});
  await page.waitForFunction(()=>!document.getElementById('play').disabled);
  await page.waitForFunction(()=>!document.getElementById('movie').hidden&&document.getElementById('movie').readyState>=1);
  assert.match(await page.locator('#result-title').textContent(),/seed 303$/);
- assert.match(await page.locator('#audio').getAttribute('data-source'),/amour_de_ma_vie/);
- assert.match(await page.locator('#audio').getAttribute('src'),/^blob:/);
+ assert.match(await page.locator('#play').getAttribute('data-source'),/amour_de_ma_vie/);
+ assert.match(await page.locator('#play').getAttribute('data-sha256'),/^[0-9a-f]{64}$/);
  assert.match(await page.locator('#movie').getAttribute('src'),/amour_de_ma_vie_44s-303/);
  assert.equal(await page.locator('#movie').evaluate(e=>e.paused),true);
  checks.push({rapidSwitchUsesFinalSongSeedAndVideo:true});

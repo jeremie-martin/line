@@ -21,6 +21,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [u1-measure-study-20261031.md](u1-measure-study-20261031.md) | U1 measure candidate (`line.strike.v4-candidate`, measurement only): definition, remeasured panel, and why the owner study was not built (worse than v3 on his existing labels). Code kept on branch `worktree-agent-a1f12a7790eda8a3d` (a804bc08), not merged |
 | [measure-step-back-20261031.md](measure-step-back-20261031.md) | the impact measure, a step back: what the compiler needs from it, what is validated (ordering of clear differences only), a pattern in the pairs v3 gets wrong (post hoc), and the proposed next owner studies |
 | [playback-20261031.md](playback-20261031.md) | review-page and spec-dashboard playback: why rides lagged and pair clips stuttered (stale `currentTime`, seek storms), the timing chain from beat to screen (felt-jolt +15 ms by design), the one-module design (`shared/playback.js`), before/after measurements and what is unverified |
+| [impact-visibility-study-20261031.md](impact-visibility-study-20261031.md) | the next owner study, built and pre-registered (`impact-visibility-2026-11`, 55 pairs from unexamined held-out rides): are unrequested extras and late pushes seen as impacts (block A), and at what v3 ratio does a strength difference between clean hits become visible (block R); decision and void rules fixed before any answer |
 
 The October 3 independent audit corrects several claims in these documents:
 

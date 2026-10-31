@@ -1,0 +1,2659 @@
+{
+ "schema": "line.research.impact-visibility-study.v1",
+ "report": "docs/research/impact-visibility-study-20261031.md",
+ "status": "built and verified; unanswered. Pre-registration: rules and every pair's measured values fixed before any answer exists.",
+ "study": "impact-visibility-2026-11",
+ "baseCommit": "133f1360 (rework/foundations head when built)",
+ "environment": "LR_ENGINE=wasm; node_modules, engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm and productions/*/audio.mp3 symlinked from the main checkout",
+ "commands": [
+  "LR_ENGINE=wasm node --import tsx tools/measure/visibility/observe_heldout.ts --rides=<U1 worktree>/generated/u1-heldout --out=generated/visibility/observations.json.gz",
+  "node --import tsx tools/measure/visibility/select.ts --observations=generated/visibility/observations.json.gz --study=impact-visibility-2026-11 --seed=20261031",
+  "node --import tsx tools/measure/visibility/build.ts --study=impact-visibility-2026-11 --jobs=8",
+  "node --import tsx <scratch>/verify.ts --study=impact-visibility-2026-11 --port=8791 --out=<scratch>/verify.json  (script embedded below)",
+  "npm test; npm run typecheck; npm run reach"
+ ],
+ "seeds": {
+  "selection": 20261031,
+  "rng": "LCG seed*1103515245+12345 mod 2^31 (as tools/measure/select_pairs.ts)"
+ },
+ "inputs": {
+  "heldOutRides": "generated/u1-heldout in worktree-agent-a1f12a7790eda8a3d (branch head a804bc08), compiled by `npm run produce` at 475ad6bf with jolt -15 ms; 4 songs x seeds 9101-9124; read in place, not modified",
+  "productionSha256": {
+   "amor_na_praia_46s~9101": "2eca231192da652e9e9bee5f7cb3740d8a830b5e8538c38271ca66c7a0ed46f7",
+   "amor_na_praia_46s~9102": "14eb3743781c6879842ea7ef2612c3f037263969249d0c4c10765deb1e3d1804",
+   "amor_na_praia_46s~9103": "d988984d77aa928b23451fed78cf34fe2880615e21434a1afd25c49a4f68d033",
+   "amor_na_praia_46s~9104": "30c0a7b84d392a6e96b211b81964eb99cc83b68235c8f77de1a9b67dffda03fe",
+   "amor_na_praia_46s~9105": "e0b40bff47cdd8dd6334c3e660cccbfa805e6fbf9ca021e7115f62b956459f99",
+   "amor_na_praia_46s~9106": "de24e35fcb45715cf23a64444b11ba4fcb74270fba3de88a00931db51f2a94e8",
+   "amor_na_praia_46s~9107": "9110caf3ca7e827f463e8bfc9461c24900f2840a14770d3e1726e22547c0efc4",
+   "amor_na_praia_46s~9108": "1c5dacb44ee76e1f8af81904b1d7daf6158bdd039de66f7c494084a599acf1c5",
+   "amor_na_praia_46s~9109": "441f01ba4f16f9e4ecb68978cd6d6f69cef966e3713b02d891ae416efea8c0ca",
+   "amor_na_praia_46s~9110": "0805fc82cfbdbcbfc5a3022b50d6c6fb8a357b1cb31115360f7bda5e01df02f6",
+   "amor_na_praia_46s~9111": "b650622b14f8df330ee746ea365f051e25e8f38c05d8fc9383113d01ad99d400",
+   "amor_na_praia_46s~9112": "ff079e6ae556ce1b6d9bf8d2154187002d1f9d89fafc34bd418ff46615c8f9f5",
+   "amor_na_praia_46s~9113": "8174164aa1a283b4f1ed2936a829349ac6d5769d18e9f412577eb76631dbf1c5",
+   "amor_na_praia_46s~9114": "c3dd9de17f0f5daaf185a42b6550b84af1c747ab4558a67d380922a85e308bfd",
+   "amor_na_praia_46s~9115": "a14b57c299afe93177de8fc9d067173a9b175c819e844fe2b033f95d653ffbd8",
+   "amor_na_praia_46s~9116": "63bd4445b603ca34e5ced2e8aa7fc832913f46b35d9a0c6468e5cbf2373b7a83",
+   "amor_na_praia_46s~9117": "765588f9124399cd3845654eb9f13318ec3814dddf61483ec2400a24a5272ee0",
+   "amor_na_praia_46s~9118": "1ce76db486843540c87a954a5ccac32c4d5847e649220cc931214d3f3c2d235c",
+   "amor_na_praia_46s~9119": "49f5e7491def43a899c946c712489d47d8d748bea8a823fdc2cffabe7be83a5f",
+   "amor_na_praia_46s~9120": "282d8d3815d7be6ce486361a9079168e4cdabb5ec5399d8af392564e307ed911",
+   "amor_na_praia_46s~9121": "6992a599f2665ed9972d327d671e261db1d208388ffbbd0f80c57bac147a4b20",
+   "amor_na_praia_46s~9122": "453193a54acd6148756991acfdf52ce55eac261344394dde288b81c7df4169dd",
+   "amor_na_praia_46s~9123": "6c95cce414ca0173dcd5eb2f3aec530a113460005f063a9b7cbbbef37f9f35c3",
+   "amor_na_praia_46s~9124": "a3616ab1aa03e751963410073ab8ebfbf7f230ea41dbcd392413da4c6db88ea9",
+   "amour_de_ma_vie_44s~9101": "a5c1473762e5298f509bc9cef060c02c07aae762922bb6894fa0fc3fbd0c7c3b",
+   "amour_de_ma_vie_44s~9102": "4163b5b3513b79a15bcd366c30a0acf72e512ca140c8ea0eed53af6eec2ce9e9",
+   "amour_de_ma_vie_44s~9103": "e0a5d5d1cd8115a5b7d083983d98d0cdb5827b4209a5974c22db24e8dc4edee8",
+   "amour_de_ma_vie_44s~9104": "0e6ae48844e53ad84b4c30b1f344f364d4aa2fa228119b7bd101925bb5db0fee",
+   "amour_de_ma_vie_44s~9105": "6a6cd24beb67bfdb5fc4dbd25637b03f23575143a0ca327dbdc6b82b25f413fe",
+   "amour_de_ma_vie_44s~9106": "8bb6df48611e8e3b7c8d24bd60d3ad11562682cbf03432da9ecb5afbe60fa271",
+   "amour_de_ma_vie_44s~9107": "e5753516f24552e8703bf904d6ab37730725fe28dc7b6244cd705fac73407fb3",
+   "amour_de_ma_vie_44s~9108": "99e698181c7f695d0b6612a95db9bcb5158baa8d2493cb7bf82ba331f63ba3ed",
+   "amour_de_ma_vie_44s~9109": "f6f05f085587aa79650f9f4681f1ab4cb0fb642c427e037862444bca90aff90f",
+   "amour_de_ma_vie_44s~9110": "fc63246fb66468cb558c12d8a768791847d7dacebaba1579e6efbe529c7fa25b",
+   "amour_de_ma_vie_44s~9111": "306ee4715f2b717d7a72da2bdc5d00b7d791d9343c98e2221dd0feaa646700ba",
+   "amour_de_ma_vie_44s~9112": "bacaa1a0aa8e94104a68d573cc326e651ae1a369f08323a6187ed39b90a47564",
+   "amour_de_ma_vie_44s~9113": "74d85924e51a026cbdb843f7f00410397fd2be1dd9b7c43a1b300f5b0d8fd48a",
+   "amour_de_ma_vie_44s~9114": "0755d16d7ac69cb889898da71d1d028fd365dc5962e50074307359a8aa0d3426",
+   "amour_de_ma_vie_44s~9115": "e59981160ab224e2b9c5ee88a878543adabb83e80cb77ef53e7a826f367729ba",
+   "amour_de_ma_vie_44s~9116": "2c14c5fbc1d49e293a1829502c98343eb7d8606e0a3580ef1b4c82630a22875b",
+   "amour_de_ma_vie_44s~9117": "6d071ee09b553db5addd185f29c3d956b15d7ee5c14b77d019b7de6c09b970e0",
+   "amour_de_ma_vie_44s~9118": "39d363cebe61dc3eefbce726402cc8058e7336e25b1336b047c76f15a46e43eb",
+   "amour_de_ma_vie_44s~9119": "eed21e2908c81f139768c65ddb751e6e603b5722d4afad20b52978737f7f88a0",
+   "amour_de_ma_vie_44s~9120": "93f6e10e5ee4b462c0dd2059ece680d438d637e8f9746775e18b4e1182dd2591",
+   "amour_de_ma_vie_44s~9121": "28b41552949fee0856a9539be4a2c15298fe0214fee3dd9f2537bacefe02ea26",
+   "amour_de_ma_vie_44s~9122": "36af3c65acc099d027c936774083a128dde648e7d8d459d10ef57f0f8acd2442",
+   "amour_de_ma_vie_44s~9123": "99d7e2eaa82aea0a2732beb0100dd77a3c6e3b31857041d6d057d10ae079212e",
+   "amour_de_ma_vie_44s~9124": "719d2d78de70d947b07ffab97bb07f4abe18d8a282eba6cf8c41f38cffcb9cbb",
+   "luna_bala_44s~9101": "f71c69399260d80b97b2ab877259b7ff819f1181ad6c914716c0d3bc0df8d7aa",
+   "luna_bala_44s~9102": "ab072b735e6bde36f4abd21cfeace1ebd79cdf51b8311cafbf3ff1f97d6c286d",
+   "luna_bala_44s~9103": "815bd98846d5dca2b785b535206fa7d6cf40218539e0caca8d37903cd7adabfb",
+   "luna_bala_44s~9104": "c9aa946a6568c0327a1273405a84fea59234b38b1bf70c3632002ed976bc83b9",
+   "luna_bala_44s~9105": "58253424306bd7ece8720a58e4540062c5b4befc18dad2da4c27ed9f18f5acc2",
+   "luna_bala_44s~9106": "4534a94692f243ea93e32d9c33238f04e53db6a5ac828aaab35c8389884509de",
+   "luna_bala_44s~9107": "51cd087289e23436d7d27282c70168cd211852e063dfd5262431af7294cac35a",
+   "luna_bala_44s~9108": "e5929b2541ed433a5e42dcd3caab89349ec4899aa61801c808f754f62f4b55de",
+   "luna_bala_44s~9109": "99bb0f5e43840daef09dcb68f2bf33c5f785d5e780b2502daf7727cc51557c33",
+   "luna_bala_44s~9110": "e03eb60bbf33583d4e37f023513e5ae7e690b0088718d6b5dbada4cbe2972bbf",
+   "luna_bala_44s~9111": "ae3cebcfd4852afb30d7b9a09febf60c3c6518a7b5c53fc13a5f85a03293df51",
+   "luna_bala_44s~9112": "89c7e344b77d9512279b081a087741d57cbf76d4f1afcbf82b730074e86f5a05",
+   "luna_bala_44s~9113": "66271555504ffd1b158bea3e8603e253d14f80802a29e11c74bf813c3a53cad1",
+   "luna_bala_44s~9114": "ddba0f5417b70580260503a53d08fd5d8e0916635f9a10cf87ac4b7882c72f2e",
+   "luna_bala_44s~9115": "09289e1f788e3b3e52780974dbfd8ca39b69d6eca488bb60db0deed113051393",
+   "luna_bala_44s~9116": "c5412a3e18316b45e1183a129975e502a179b3d9690fe4d333f9b634d6b8a31d",
+   "luna_bala_44s~9117": "d8b9f4d51952071ea53c6f1bfd7b8b194e08b66c969c81b231a8942747f53130",
+   "luna_bala_44s~9118": "736ad504e93829cd9132474a954b447a1dd0e35096151e2f1a76974cac422442",
+   "luna_bala_44s~9119": "edc279401ba4d3120a57e8792813b7a52dadb612ff417bb3c0a0316db3700634",
+   "luna_bala_44s~9120": "5ee3377f0a90200220e42994e1c77d1edfeb0eceaa35dd4aebd16065a9b542c2",
+   "luna_bala_44s~9121": "c69bfbaa6238f9b22d83b70b9bf0bbac34ecc14bb35284f1b96a15ea39bf8911",
+   "luna_bala_44s~9122": "d23afc51909867a7afcd5c2d54f55fdd6a4741de100e5d6dd0c6b22c61dc1fff",
+   "luna_bala_44s~9123": "cf54d5bd5fb6ca528ffb43daa86db57d55953ebfa2cae676fc4a872b12d11a92",
+   "luna_bala_44s~9124": "58490d9485b37461ea96d04ee16fe91e28d94691f2bc03fc06b8531395d8db30",
+   "tiki_tiki_48s~9101": "fda6c3c5293eb90a9e366f1339490dbc0755c66c5258fe3975f55c840ef86ffa",
+   "tiki_tiki_48s~9102": "b14c1ac70b3443f4e2e3236652fc6499ac28e5b76593384fde6b9bc92e337e48",
+   "tiki_tiki_48s~9103": "2220e6f7dec81116262ad7aa4004e4930b4eddabd31b3806b933c2856e54bf73",
+   "tiki_tiki_48s~9104": "9e650c18f660e3c29d2a86c360e72d6cae017bf1ecd86ff37727beb4ecf3d20b",
+   "tiki_tiki_48s~9105": "4a782c87fe79fd530cc203208f0e158d015f8c23135cb7b09ac9857fd2cb8372",
+   "tiki_tiki_48s~9106": "d9b6345f577e23d41f1e5dfc6c9d7c017657b455c6770217717353f8b0fb7fc9",
+   "tiki_tiki_48s~9107": "19d928899d46f81a9990c7bdb9b6b225b447cd843a0f1b1e349261bcabe78382",
+   "tiki_tiki_48s~9108": "43132635b7e993034d851004c6f8e1eb99d32643005b55a15c1f1f29d6d07ab8",
+   "tiki_tiki_48s~9109": "dc257e17818c028448e20427796c4a1ea09c8dd4574d0391dc5d52173e771d88",
+   "tiki_tiki_48s~9110": "aafb57146d66d13fc30e197fd357f2c6f79919b7ea9f37929ce41b93058bb628",
+   "tiki_tiki_48s~9111": "c1b3ec2715620d7b9007d92c383b97bfe3a8037ff6be5b46fda460cd41509c52",
+   "tiki_tiki_48s~9112": "5d3b0aac46e4f92c1aa01a3e32437c4f584636cb3d3078bd091a00f35ec8cd34",
+   "tiki_tiki_48s~9113": "0c530b5e453bfebaee034fd645f5c8cc015a7567025d18c463ab5351a1aca650",
+   "tiki_tiki_48s~9114": "13a1152955c447cde639450d25445adba5fa84a84b125914b48fbb8681a07c43",
+   "tiki_tiki_48s~9115": "dfe9a437feff0b1c915eab0f71e5ea99ca695acf36b1f9b5d7a28f14d7fe744b",
+   "tiki_tiki_48s~9116": "8926d45847aae03b6bb32143bda69c583bb5cd6cc22a7d38f6b7c6a7d5f5bc22",
+   "tiki_tiki_48s~9117": "3216b6630e65ac0b092396af9b6b9ebd7a6e76008b28f58f5b2023f342a101ea",
+   "tiki_tiki_48s~9118": "a7622b8a582bbb3f056aba33aed42aceb60b8700521bf3b61837bc3ec0cf0ff4",
+   "tiki_tiki_48s~9119": "5134124c741debc20197aec81c806620526b8913bd1212e958de91179094e3cd",
+   "tiki_tiki_48s~9120": "9cc52e693171acda6f37d27bdbf7fceae57fc6b92d1f1b35ade40905b5262e9e",
+   "tiki_tiki_48s~9121": "90e82c3907dae0c0a7713009671942f06e33584cfe3147ca8f6bcea79df7b240",
+   "tiki_tiki_48s~9122": "21ab7f6da3a2366bf7d44b2a1986187a8958f10bfca7a210f2064e5a1409ffbd",
+   "tiki_tiki_48s~9123": "75301e7a56c9a22005ea7671f02437b81a9d7a6db028c1b99c0a08e7345399e6",
+   "tiki_tiki_48s~9124": "36e7f295bd9158e88dd57917eab53fd88bcd35e2846015e6ef84715f1534abbf"
+  },
+  "specAndAudio": "all 96 plans record specSha256/audioSha256 equal to the current productions/<song>/spec.ts and audio.mp3",
+  "observationsSha256": "3ee667415de64d81de78a681e6e0a6329e2073b92064f04b7ea1fcadcaf7d81e"
+ },
+ "checks": {
+  "replayEqualsSavedEvaluation": "all 96 rides: replayed line.strike.v3 events (onset, strength to 3 decimals) equal impactEvaluation.events saved at compile time (asserted in observe_heldout.ts)",
+  "beats": "matching uses the compiled beats (case.contacts, jolt applied: 0 or +1 frame vs round(t*40)); timeline ticks show the specification beats as in pair_study.ts",
+  "exclusions": "no held-out ride string (<song>~<seed>, <song>-<seed>, \"seed\": <seed>) appears in any labels/studies/*.key.json or in the unwanted-impacts, U1 or step-back JSON (asserted in select.ts); Trouble excluded; all 96 compiles valid",
+  "noPeeking": "pairs chosen from measured values only; no clip viewed before or during selection"
+ },
+ "tools": {
+  "tools/measure/visibility/build.ts": "fcd328e43dd2a9c36a12e970f8f46b267f2b234d9f512b9d69a7027a25364b39",
+  "tools/measure/visibility/observe_heldout.ts": "fac3701ef257da6aab679badca2b6ad3f3305816d20605f455add1531efe0030",
+  "tools/measure/visibility/select.ts": "10b125ada4a87525e04aeb1bb9478938c0889d067a347162c17d6b1f3dc18190"
+ },
+ "outputs": {
+  "labels/studies/impact-visibility-2026-11.key.json": "1044c659a4000ec56a56ff9eef83758f413269ea244e1becb4fca4a6e8f6fd49",
+  "labels/studies/impact-visibility-2026-11.manifest.json": "17ca9f02e656ff93bd463f622551e644da81d3daf4399d04ef4a8259760012eb",
+  "generated/label-studies/impact-visibility-2026-11/manifest.json": "17ca9f02e656ff93bd463f622551e644da81d3daf4399d04ef4a8259760012eb",
+  "sourceTracks": {
+   "labels/studies/sources/heldout~amor_na_praia_46s~9101.track.json.gz": "3c2cf158539fe4450db5cc3f36b8d2bebaabae862925ff1569e69e1fb5fc1c74",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9102.track.json.gz": "4250c64333f97bbaeceb7fc8aa311371d66509ee8a3f27541aac866b5f6cfdbc",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9104.track.json.gz": "6bca9a9c242743bf8a26986ded7c9a0d29633236f4f8ed5d65dfc047828b0461",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9105.track.json.gz": "689008dcf8818eb32316dc0379a20f2eb00b065bf3936e4df20a7b3f6cc62471",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9106.track.json.gz": "4a81bf85803ae675d268cd009d99e78b18fbb6bdb8ef88904d98d6bed77e02ce",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9109.track.json.gz": "30f7d2e7e6daf285ce2a1a31a8ded12c89f54b93c0e745e3a1ef36bd21e1983c",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9110.track.json.gz": "25b615a0aaf7464f299ccc66ed255e067b4f125992b733c3310b0437102fa487",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9111.track.json.gz": "18963c8d5f7d7b680ce3e98a6366fbfc0070a0abd945530a1fd605ae65658aad",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9112.track.json.gz": "588dd1bdfd5610953ad9f1c5b239bfcb747f4b64f8c075b735fd3dc17a5f4765",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9113.track.json.gz": "48f245159f01882c3af15e83c7b7f18f63bd2022af475acea38c6ea700fc8a1b",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9115.track.json.gz": "5f007e374bc9e2ec0d40e7977bfcd2bb661d1bb05469147724277f567c22c5d0",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9116.track.json.gz": "2e68e72c5a84f1c3b7f9864dd66d14acb9cfd9935ce0f7bd086f256171f7c18a",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9117.track.json.gz": "0187afc43e5cf97f5e41e733ff54d678341684b872181b149cb0685ac61b4b30",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9118.track.json.gz": "e0a9851a818edf02adc4ec5ec98e90a2c28fcc23b9d904ae667d103bee280482",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9119.track.json.gz": "beba2999f65f160a1e955f12e8dd3453e001483d0fbb28bee6ca0adc9944e262",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9120.track.json.gz": "a2b2b4c0c52920d75c9ecdd75fa3e3763ed0b9dee8ba21b0b045118eee70b9d8",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9123.track.json.gz": "623f024620c72f1723ed86973d5655dd50de21a8dc9a6039edf166dcce1b85dc",
+   "labels/studies/sources/heldout~amor_na_praia_46s~9124.track.json.gz": "58fa62f73c31d363eff9b0a11a0afe2e131e16c77fe6fd90a5737f217a588d7f",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9101.track.json.gz": "2e32ac17febb9e127f2b753e3afc25f564440835abe5f9d2f3279efad2a3fa43",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9104.track.json.gz": "cfd4a340ccfc2df747d9857e30097bf46b4bcab1a3d3dd539bc6be7ed9c43882",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9105.track.json.gz": "bc08297b43b58264c8fea230d79aaff6cdd1ba95def7d0c838212c2360dd1473",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9106.track.json.gz": "7f6c3129448116970461f44fd29e52c0e9691f84035b6bd40c3d8d802813871f",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9108.track.json.gz": "ec9c911a39f4d0967d010813e9465d9bf4c3515e8edf2e1efa77dbce033dc455",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9109.track.json.gz": "52484770c553601f665fd436c7405c18e86db14fd1b58e59532ca2e6f4d625e9",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9110.track.json.gz": "4718797cd0a804c3b2d9e18a54bf56f4f421cb3da691270a760aff6d5e1c0827",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9111.track.json.gz": "48d06c5944e191b56533fda3541a0e8f6fa95bac7fb7408211142740f9d3f318",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9112.track.json.gz": "08edfce9d9a30426eca09d7385530957eaa9eb2ace89657f059131d6f1524f96",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9113.track.json.gz": "f1b2b3c4f6f5b6b7e6be414e54694b842cc15016f109aec1666f9b78a79c3f46",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9116.track.json.gz": "ca66acf57fb687594ee6900768501fd2d095e3afd6a945e177cdcbbd8932ec23",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9117.track.json.gz": "b3da0c19024218c2ccb4720d0fabda62cea75e6827aa2e8d50d1642bdc607402",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9118.track.json.gz": "c421ac5d38404f1ac45271fdff4a94c10c64ec0c71421aee34076037fbe6edd2",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9119.track.json.gz": "d6e8339d69ccf3d3e8aed5063e38f4773c61c0d3ffaa0d3b69100d700be7cd54",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9120.track.json.gz": "2f26355778b00c3f2778f66342a87d86380f86c76494275aa8a312d5ef2fe2e6",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9121.track.json.gz": "1f32055ff6c3a24bef0eb8d1f9b81f39b89d6a14780d58362ee8d33c5822214f",
+   "labels/studies/sources/heldout~amour_de_ma_vie_44s~9122.track.json.gz": "398ffc38289b1fb4602c90bf1835449b8c49015dbc3884f08818c32743340b32",
+   "labels/studies/sources/heldout~luna_bala_44s~9101.track.json.gz": "48a772a4919cad51c692e210dc4c702ee7688e880956e4839455c5408b3972d3",
+   "labels/studies/sources/heldout~luna_bala_44s~9102.track.json.gz": "6ed60f7f09329702be1c2ba1be2792f3d70ff374475a683bd77dd499c37edcdb",
+   "labels/studies/sources/heldout~luna_bala_44s~9103.track.json.gz": "53c4824b84655052071acfb18cb576f9cdc10b1cc120456075054d7952a5f887",
+   "labels/studies/sources/heldout~luna_bala_44s~9104.track.json.gz": "ce3345b064945ac56dc05178668ff929b5f9bc58a6bf99f9d3d59d91fb2201e9",
+   "labels/studies/sources/heldout~luna_bala_44s~9105.track.json.gz": "da7227aacacc40381dba6611472679052f0111d402867ab5fd8a317d6daf2032",
+   "labels/studies/sources/heldout~luna_bala_44s~9106.track.json.gz": "5fe4d06f6101e48f0c1631b1821f76d52a3864061421721b0202875ba8b2c991",
+   "labels/studies/sources/heldout~luna_bala_44s~9108.track.json.gz": "af6b98f8a59bd752996f3d9ef63b5b3ab96a47aeee0cf6d84980d7b393e128f3",
+   "labels/studies/sources/heldout~luna_bala_44s~9109.track.json.gz": "952ac325a23ae9e6f5a6513ad83a18da48d2de6823869ee29b2104e6140fb003",
+   "labels/studies/sources/heldout~luna_bala_44s~9110.track.json.gz": "99bb7fe48626047485d88bfc610046b206652a5b2681fc5b02b5454d925f8f98",
+   "labels/studies/sources/heldout~luna_bala_44s~9112.track.json.gz": "3ad79373f44d1e553bb5e56f6fc4dcacae887e6346115ce1df071095eb7edffd",
+   "labels/studies/sources/heldout~luna_bala_44s~9113.track.json.gz": "3b0691b4e19b464eadbb3a4758a145a8c7677d000fc9bb7f0176221248b6cab1",
+   "labels/studies/sources/heldout~luna_bala_44s~9114.track.json.gz": "fb3ae3214abdc348b6ef434231d5fca65f6d305e2387a06fe737039aa036a2ef",
+   "labels/studies/sources/heldout~luna_bala_44s~9115.track.json.gz": "c7a9e2b011c61de4ecc2184f018c1d23a960766dd32e8b5f859c80f84a08a5f5",
+   "labels/studies/sources/heldout~luna_bala_44s~9116.track.json.gz": "b358673b5b44cfc37f967fdbf050b52962b1e183e628b43e39cf8a5c5d704cc7",
+   "labels/studies/sources/heldout~luna_bala_44s~9117.track.json.gz": "1d60a23b7460aa5f7db0b0bbde74d0246b7b1912e0f48807bcf5627757094f1a",
+   "labels/studies/sources/heldout~luna_bala_44s~9119.track.json.gz": "79b635b290fbe276451eda53b9f080fef7f467360748ae22b9f18751da8381b8",
+   "labels/studies/sources/heldout~luna_bala_44s~9120.track.json.gz": "74dc9ee2c9585beff98063e08d0bfeb20cc16f9b72029fa52f343e1b21f46079",
+   "labels/studies/sources/heldout~luna_bala_44s~9121.track.json.gz": "f70fe76af6f670630388e1269be513bbc7c14b481c2770d8d1446faa29b08bae",
+   "labels/studies/sources/heldout~luna_bala_44s~9122.track.json.gz": "83d1f30f6b4672cc1f8474eaa42d0f24d1684b6711cacca9d9260f760e740088",
+   "labels/studies/sources/heldout~luna_bala_44s~9123.track.json.gz": "0b888fbf75a1b2e71a5df7323d612c5970c95a7dfa0cc0ce99a128f7f593b14c",
+   "labels/studies/sources/heldout~luna_bala_44s~9124.track.json.gz": "5b77fede618f2c56ef8dde538c004158882088bf1d366110e672499582b738d8",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9101.track.json.gz": "dffa6145c698914bc6e0f5dd345712ac288eba36fda40cba63750304c42f9ff0",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9102.track.json.gz": "f0a88cb902286e43356003eb6e359cd36e0a7127f2d251638e68861c6abea083",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9103.track.json.gz": "738791713380effcb979862f1748b5a81e8307dbae5d446da85a3f71bd9618e8",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9104.track.json.gz": "aec7e6f6902f9ed249586bb61f05b582a26145d063dda05f5a9b811ac3fec6cb",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9105.track.json.gz": "2e592c4faec58d6d0c46bd674d53fa26eebaf93c998de4590f7c044c9ae8ba97",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9106.track.json.gz": "a0275e19219812596fbeadf53125279056e91d5fec418a9f5413cdc2482d8f57",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9107.track.json.gz": "34634ace031ecc18da96ba3d1dfbb0a88c78bf71d405802690a83fde483a67f9",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9108.track.json.gz": "67ac47454ed2b2c8a7a1ee158318b16e71162c83959f4dafcce77093caa7275c",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9109.track.json.gz": "289637c771a1e50080bc1f451ab02889f5fb1a44a0f8efb4641b6844ec034f1c",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9110.track.json.gz": "8b0c076ac1c8bbc1df5a8006c27b37a709646f7437bd12f75397f0a1e4af3387",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9111.track.json.gz": "f34e1b99e7950b8dda5d45b35c4e5195497cfef27260295cb3e1a4487ba2c33d",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9113.track.json.gz": "5b29e7b9b9767d60976eb06b59da2d9a17f0c38e564cb8631323b8ea25e1c412",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9114.track.json.gz": "8cfce236fe3b08aad10133546f4d541650ff168d0f98b57f6f0e3bf3a53ea5d9",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9115.track.json.gz": "a3683c97c7b2d7c03495685f7d144d1be8303df4b6860b9681806bf21373d6b2",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9117.track.json.gz": "b57854f2fb70a5561e2e07afa89025ee6fce69c0d37d03ec24d22a6b2d97a671",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9118.track.json.gz": "bf0290b1483208c750f4a5d4fb26b8c5e3d6a6cd8053c8351fcc3076cfacc8bf",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9120.track.json.gz": "fd3b9140a106a7549027dc5ae801a953093a538ff8420df00f0af34ebcb5ff33",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9121.track.json.gz": "69bae59e09d0157baedbe9ae3092e53a1c867825623b28ec68ac6765ea701819",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9122.track.json.gz": "e5e3bc1ea91ff4ec5be658ca6c27093ac8efe37d1bdd9b8285920dd576b985c5",
+   "labels/studies/sources/heldout~tiki_tiki_48s~9123.track.json.gz": "fa0d26532f9adc56dbbdf706da23876370c5d89d8c5f364932c2c78739ff5d13"
+  }
+ },
+ "counts": {
+  "study": "impact-visibility-2026-11",
+  "seed": 20261031,
+  "poolSizes": {
+   "D1": 385,
+   "D2": 349,
+   "D3": 40,
+   "D4": 88,
+   "D5": 23,
+   "anchor": 2957,
+   "blank": 138,
+   "clean": 4123
+  },
+  "pairs": 55,
+  "byGroup": {
+   "R base 0.5 \u00d7 2": 3,
+   "R base 0.25 \u00d7 3": 3,
+   "D3": 6,
+   "D1": 6,
+   "R base 0.5 \u00d7 1.5": 3,
+   "D2": 6,
+   "anchor": 4,
+   "R base 0.25 \u00d7 1.25": 3,
+   "R base 0.25 \u00d7 2": 3,
+   "R base 0.25 \u00d7 1.5": 3,
+   "D4": 6,
+   "D5": 6,
+   "R base 0.5 \u00d7 1.25": 3
+  },
+  "rides": 76,
+  "songsBySide": {
+   "amor_na_praia_46s": 25,
+   "tiki_tiki_48s": 32,
+   "amour_de_ma_vie_44s": 27,
+   "luna_bala_44s": 26
+  }
+ },
+ "rulesAsCode": "// ---- rules (frames are 1/40 s; the light is on from \u22122 to +4.8 frames, motion-gallery/pairs.js)\nconst CLIP = {first: 48, beforeEnd: 40, apart: 72};    // judged frame range; distinct clips in one ride\nconst ISO = [-4, 8];                                    // window around a lit moment that must hold nothing else\nconst BLANK = {onset: [-4, 8], frames: [-3, 6], contact: [-2, 5], change: [-3, 6], maxChange: .05, beat: 4};\nconst EXTRA = {D1: [.05, .10], D2: [.10, .20], D3: [.20, .35], beat: 4, otherEvent: .05};\nconst PUSH = {min: .3, quiet: .15, lag: 4, launchWithin: 2};\nconst CLEAN = {window: [-8, 8], otherEvent: .1, outsidePush: .1, maxPitch: 90};\nconst ANCHOR = .5;\nconst N = {D1: 6, D2: 6, D3: 6, D4: 6, D5: 6, anchor: 4, R: 3};\nconst BASES: Array<[string, number, number]> = [['0.25', .20, .30], ['0.5', .43, .53]];\nconst RATIOS = [1.25, 1.5, 2, 3], RATIO_TOL = 1.05;     // accepted ratio: target \u00f7 1.05 \u2026 target \u00d7 1.05\nconst CELLS = BASES.flatMap(([base, lo, hi]) => RATIOS.filter(r => lo * r / RATIO_TOL < 1).map(r => ({base, lo, hi, ratio: r})));\n\n",
+ "preRegistration": {
+  "counting": {
+   "blockA": "seen only when he picks the event side; same, neither and blank count as not seen; blank picks also count toward the void rule",
+   "blockR": "seen only when he picks the larger v3 side; same and neither not seen; smaller = reversal (not seen, reported separately); neither reported separately",
+   "answers": "last answer per pair; skipped pairs excluded; a verdict stands only if it holds for any answers to the skipped pairs"
+  },
+  "void": {
+   "anchors": "all 4 anchors seen, else the whole study is void (discuss before reading)",
+   "blanks": "blank picked in at most 2 of 34 block A pairs, else block A void; block R still read with the count reported"
+  },
+  "blockA": "per group of 6: visible >= 5 seen; not visible <= 1 seen; else unresolved. Descriptive: D1-D3 split by an event >= 0.3 starting in the 12 frames before the light",
+  "blockR": "per ratio pooled over bases (6 pairs; 3 at 3x): visible >= 5 of 6 (3 of 3); not visible <= 2 of 6 (<= 1 of 3); else unresolved. Threshold = smallest visible ratio with no larger ratio not visible, else inconsistent. >= 2 reversals at 2x or 3x = v3 misorders clean hits. Descriptive: per base cells, logistic fit on log ratio",
+  "operatingCharacteristics": {
+   "6, >=5 visible": {
+    "p=0.5": 0.109,
+    "p=0.8": 0.655,
+    "p=0.9": 0.886
+   },
+   "6, <=1 not visible": {
+    "p=0.1": 0.886,
+    "p=0.5": 0.109
+   },
+   "6, <=2 not visible": {
+    "p=0.5": 0.344,
+    "p=0.8": 0.017
+   },
+   "3, 3 visible": {
+    "p=0.8": 0.512
+   },
+   "3, <=1 not visible": {
+    "p=0.5": 0.5
+   },
+   "blanks >2/34 void": {
+    "q=0.01": 0.005,
+    "q=0.03": 0.081,
+    "q=0.05": 0.241
+   }
+  }
+ },
+ "ownerPace": {
+  "impact-pairs-2026-10": "24 answers, 7.3 min (19 s/answer)",
+  "impact-pairs-2026-10c": "26 answers, 7.9 min (18 s)",
+  "night-pairs-2026-10-05": "22 answers, 8.4 min (23 s), median viewMs 23.5 s",
+  "expected": "55 pairs x 19-23 s = 17-21 min"
+ },
+ "pairs": [
+  {
+   "pair": 1,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 2",
+   "ratio": 2,
+   "base": "0.5",
+   "measuredRatio": 1.907,
+   "largerSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9120",
+    "frame": 365,
+    "role": "larger",
+    "v3": 0.9948,
+    "matchedAsk": 1,
+    "kind": "touchdown",
+    "pitchAtContact": 1,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9102",
+    "frame": 784,
+    "role": "smaller",
+    "v3": 0.5217,
+    "matchedAsk": 0.74,
+    "kind": "touchdown",
+    "pitchAtContact": 68,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 2,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 2",
+   "ratio": 2,
+   "base": "0.5",
+   "measuredRatio": 2.07,
+   "largerSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9108",
+    "frame": 1276,
+    "role": "smaller",
+    "v3": 0.4365,
+    "matchedAsk": 0.6,
+    "kind": "touchdown",
+    "pitchAtContact": 6,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "luna_bala_44s~9116",
+    "frame": 1216,
+    "role": "larger",
+    "v3": 0.9034,
+    "matchedAsk": 0.944,
+    "kind": "touchdown",
+    "pitchAtContact": 5,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 3,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 3",
+   "ratio": 3,
+   "base": "0.25",
+   "measuredRatio": 3.065,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9103",
+    "frame": 1281,
+    "role": "smaller",
+    "v3": 0.2745,
+    "matchedAsk": 0.335,
+    "kind": "touchdown",
+    "pitchAtContact": 36,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9105",
+    "frame": 1408,
+    "role": "larger",
+    "v3": 0.8415,
+    "matchedAsk": 0.9,
+    "kind": "touchdown",
+    "pitchAtContact": 11,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 4,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9106",
+    "frame": 396,
+    "role": "event",
+    "v3": 0.2295,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 164,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -12,
+     "v3": 0.412
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9109",
+    "frame": 288,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.012,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.612
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 5,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9104",
+    "frame": 308,
+    "role": "event",
+    "v3": 0.0771,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 53,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.301
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9112",
+    "frame": 1577,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.033,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.747
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 6,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9123",
+    "frame": 667,
+    "role": "event",
+    "v3": 0.0565,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 40,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -6,
+     "v3": 0.66
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9108",
+    "frame": 287,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.033,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.6
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 7,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 3",
+   "ratio": 3,
+   "base": "0.25",
+   "measuredRatio": 2.862,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9120",
+    "frame": 301,
+    "role": "smaller",
+    "v3": 0.2634,
+    "matchedAsk": 0.234,
+    "kind": "touchdown",
+    "pitchAtContact": 18,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 4,
+     "v3": 0.052
+    }
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9101",
+    "frame": 1196,
+    "role": "larger",
+    "v3": 0.7537,
+    "matchedAsk": 0.9,
+    "kind": "touchdown",
+    "pitchAtContact": 14,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 8,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.5",
+   "measuredRatio": 1.444,
+   "largerSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9119",
+    "frame": 1390,
+    "role": "larger",
+    "v3": 0.7004,
+    "matchedAsk": 0.843,
+    "kind": "touchdown",
+    "pitchAtContact": -2,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 6,
+     "v3": 0.045
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9120",
+    "frame": 1235,
+    "role": "smaller",
+    "v3": 0.4849,
+    "matchedAsk": 0.6061866666666668,
+    "kind": "touchdown",
+    "pitchAtContact": 6,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 9,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9101",
+    "frame": 530,
+    "role": "event",
+    "v3": 0.103,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 15,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.642
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9117",
+    "frame": 255,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.037,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.072
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 10,
+   "block": "A",
+   "group": "anchor",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9104",
+    "frame": 1606,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.044,
+    "strongestBefore12": {
+     "dt": -11,
+     "v3": 0.386
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9106",
+    "frame": 223,
+    "role": "event",
+    "v3": 0.6379,
+    "matchedAsk": 0.928,
+    "kind": "touchdown",
+    "pitchAtContact": 54,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 11,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.25",
+   "measuredRatio": 1.285,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9117",
+    "frame": 1629,
+    "role": "smaller",
+    "v3": 0.2535,
+    "matchedAsk": 0.335,
+    "kind": "touchdown",
+    "pitchAtContact": 22,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 5,
+     "v3": 0.024
+    }
+   },
+   "right": {
+    "ride": "luna_bala_44s~9115",
+    "frame": 802,
+    "role": "larger",
+    "v3": 0.3257,
+    "matchedAsk": 0.347,
+    "kind": "touchdown",
+    "pitchAtContact": 5,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 12,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9120",
+    "frame": 1797,
+    "role": "event",
+    "v3": 0.2404,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 6,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.007
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9106",
+    "frame": 322,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.026,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 13,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 3",
+   "ratio": 3,
+   "base": "0.25",
+   "measuredRatio": 2.879,
+   "largerSide": "left",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9122",
+    "frame": 209,
+    "role": "larger",
+    "v3": 0.8437,
+    "matchedAsk": 1,
+    "kind": "touchdown",
+    "pitchAtContact": 48,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "luna_bala_44s~9113",
+    "frame": 1587,
+    "role": "smaller",
+    "v3": 0.2931,
+    "matchedAsk": 0.33,
+    "kind": "touchdown",
+    "pitchAtContact": -18,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 8,
+     "v3": 0.074
+    }
+   }
+  },
+  {
+   "pair": 14,
+   "block": "A",
+   "group": "anchor",
+   "eventSide": "right",
+   "left": {
+    "ride": "amor_na_praia_46s~9110",
+    "frame": 320,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.03,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9109",
+    "frame": 178,
+    "role": "event",
+    "v3": 0.645,
+    "matchedAsk": 0.8,
+    "kind": "touchdown",
+    "pitchAtContact": 54,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 15,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 2",
+   "ratio": 2,
+   "base": "0.25",
+   "measuredRatio": 2.059,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9123",
+    "frame": 1063,
+    "role": "smaller",
+    "v3": 0.2496,
+    "matchedAsk": 0.322,
+    "kind": "touchdown",
+    "pitchAtContact": 53,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -11,
+     "v3": 0.083
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9102",
+    "frame": 960,
+    "role": "larger",
+    "v3": 0.5141,
+    "matchedAsk": 0.612,
+    "kind": "touchdown",
+    "pitchAtContact": -82,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -12,
+     "v3": 0.061
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 16,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.25",
+   "measuredRatio": 1.514,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9112",
+    "frame": 1107,
+    "role": "smaller",
+    "v3": 0.299,
+    "matchedAsk": 0.332,
+    "kind": "touchdown",
+    "pitchAtContact": -17,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9105",
+    "frame": 1009,
+    "role": "larger",
+    "v3": 0.4528,
+    "matchedAsk": 0.52,
+    "kind": "touchdown",
+    "pitchAtContact": 0,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 17,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9108",
+    "frame": 1017,
+    "role": "event",
+    "v3": 0.0547,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 12,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.431
+    },
+    "strongestAfter8": {
+     "dt": 8,
+     "v3": 0.004
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9105",
+    "frame": 1786,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.044,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.035
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 18,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9108",
+    "frame": 1854,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.4222,
+    "contactEndsAfterWindow": 2,
+    "strongestBefore12": {
+     "dt": -6,
+     "v3": 0.132
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1322,
+     "contactStart": 1847,
+     "onset": 1848,
+     "matchedAsk": 0.03,
+     "lagFrames": 8
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9110",
+    "frame": 255,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.031,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.078
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 19,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9124",
+    "frame": 1076,
+    "role": "event",
+    "v3": 0.1014,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 7,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.882
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9104",
+    "frame": 317,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.048,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.675
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 20,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9107",
+    "frame": 1714,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.4237,
+    "contactEndsAfterWindow": 3,
+    "strongestBefore12": {
+     "dt": -5,
+     "v3": 0.133
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1328,
+     "contactStart": 1708,
+     "onset": 1709,
+     "matchedAsk": 0.03,
+     "lagFrames": 6
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9103",
+    "frame": 287,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.027,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.671
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 21,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "right",
+   "left": {
+    "ride": "amor_na_praia_46s~9116",
+    "frame": 160,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.041,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9111",
+    "frame": 1797,
+    "role": "event",
+    "v3": 0.0662,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 97,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 22,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9113",
+    "frame": 985,
+    "role": "event",
+    "v3": 0.2044,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": -5,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.71
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9115",
+    "frame": 327,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.041,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 23,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "right",
+   "left": {
+    "ride": "tiki_tiki_48s~9105",
+    "frame": 323,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.019,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.499
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9123",
+    "frame": 1783,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.4162,
+    "contactEndsAfterWindow": 3,
+    "strongestBefore12": {
+     "dt": -5,
+     "v3": 0.121
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1213,
+     "contactStart": 1777,
+     "onset": 1778,
+     "matchedAsk": 0.03,
+     "lagFrames": 7
+    }
+   }
+  },
+  {
+   "pair": 24,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.5",
+   "measuredRatio": 1.487,
+   "largerSide": "right",
+   "left": {
+    "ride": "tiki_tiki_48s~9111",
+    "frame": 1079,
+    "role": "smaller",
+    "v3": 0.4977,
+    "matchedAsk": 0.49488,
+    "kind": "touchdown",
+    "pitchAtContact": 0,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9104",
+    "frame": 523,
+    "role": "larger",
+    "v3": 0.7403,
+    "matchedAsk": 0.76,
+    "kind": "touchdown",
+    "pitchAtContact": 2,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 25,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9120",
+    "frame": 1283,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.043,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.587
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9118",
+    "frame": 1741,
+    "role": "event",
+    "v3": 0.0771,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": -26,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -5,
+     "v3": 0.008
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 26,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9109",
+    "frame": 194,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.318,
+    "contactEndsAfterWindow": 2,
+    "strongestBefore12": null,
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1186,
+     "contactStart": 179,
+     "onset": 180,
+     "matchedAsk": 0.06,
+     "lagFrames": 16
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9107",
+    "frame": 288,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.014,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.609
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 27,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 2",
+   "ratio": 2,
+   "base": "0.25",
+   "measuredRatio": 2.021,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9101",
+    "frame": 1456,
+    "role": "smaller",
+    "v3": 0.2699,
+    "matchedAsk": 0.343,
+    "kind": "touchdown",
+    "pitchAtContact": -75,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9123",
+    "frame": 1200,
+    "role": "larger",
+    "v3": 0.5456,
+    "matchedAsk": 0.5976533333333334,
+    "kind": "touchdown",
+    "pitchAtContact": 69,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 8,
+     "v3": 0.07
+    }
+   }
+  },
+  {
+   "pair": 28,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9118",
+    "frame": 1525,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.042,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.829
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9113",
+    "frame": 1496,
+    "role": "event",
+    "v3": 0.1065,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": -5,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.45
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 29,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.5",
+   "measuredRatio": 1.196,
+   "largerSide": "left",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9109",
+    "frame": 1168,
+    "role": "larger",
+    "v3": 0.6081,
+    "matchedAsk": 0.6,
+    "kind": "touchdown",
+    "pitchAtContact": -3,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9105",
+    "frame": 629,
+    "role": "smaller",
+    "v3": 0.5083,
+    "matchedAsk": 0.482,
+    "kind": "touchdown",
+    "pitchAtContact": -17,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 30,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9124",
+    "frame": 137,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.3312,
+    "contactEndsAfterWindow": 5,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.076
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.076,
+     "contactStart": 129,
+     "onset": 129,
+     "matchedAsk": 0.06,
+     "lagFrames": 10
+    }
+   },
+   "right": {
+    "ride": "luna_bala_44s~9121",
+    "frame": 1071,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.046,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.3
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 31,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9111",
+    "frame": 400,
+    "role": "event",
+    "v3": 0.203,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 30,
+    "bodyFirst": true,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9115",
+    "frame": 287,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.015,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.63
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 32,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "left",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9108",
+    "frame": 376,
+    "role": "event",
+    "v3": 0.2214,
+    "matchedAsk": null,
+    "kind": "strike",
+    "pitchAtContact": -8,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.736
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9117",
+    "frame": 1684,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.022,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.954
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 33,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9109",
+    "frame": 1780,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.4769,
+    "contactEndsAfterWindow": 3,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.101
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1008,
+     "contactStart": 1771,
+     "onset": 1773,
+     "matchedAsk": 0.1,
+     "lagFrames": 9
+    }
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9118",
+    "frame": 1036,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.044,
+    "strongestBefore12": {
+     "dt": -11,
+     "v3": 0.419
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 34,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "right",
+   "left": {
+    "ride": "amor_na_praia_46s~9106",
+    "frame": 1032,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.04,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.611
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9120",
+    "frame": 106,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.3087,
+    "contactEndsAfterWindow": 2,
+    "strongestBefore12": {
+     "dt": -5,
+     "v3": 0.138
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1378,
+     "contactStart": 99,
+     "onset": 101,
+     "matchedAsk": 0.04,
+     "lagFrames": 7
+    }
+   }
+  },
+  {
+   "pair": 35,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9114",
+    "frame": 85,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.3112,
+    "contactEndsAfterWindow": 0,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.075
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.0748,
+     "contactStart": 76,
+     "onset": 77,
+     "matchedAsk": 0.06,
+     "lagFrames": 9
+    }
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9116",
+    "frame": 1711,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.014,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.437
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 36,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.25",
+   "measuredRatio": 1.568,
+   "largerSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9102",
+    "frame": 1412,
+    "role": "larger",
+    "v3": 0.3744,
+    "matchedAsk": 0.338,
+    "kind": "touchdown",
+    "pitchAtContact": 35,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 8,
+     "v3": 0.009
+    }
+   },
+   "right": {
+    "ride": "luna_bala_44s~9110",
+    "frame": 497,
+    "role": "smaller",
+    "v3": 0.2387,
+    "matchedAsk": 0.377,
+    "kind": "touchdown",
+    "pitchAtContact": -41,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 37,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9120",
+    "frame": 283,
+    "role": "event",
+    "v3": 0.179,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 69,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -6,
+     "v3": 0.481
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9101",
+    "frame": 159,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.049,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 38,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.5",
+   "measuredRatio": 1.192,
+   "largerSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9104",
+    "frame": 671,
+    "role": "larger",
+    "v3": 0.5716,
+    "matchedAsk": 0.663,
+    "kind": "touchdown",
+    "pitchAtContact": 79,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 4,
+     "v3": 0.082
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9118",
+    "frame": 384,
+    "role": "smaller",
+    "v3": 0.4794,
+    "matchedAsk": 0.5032,
+    "kind": "touchdown",
+    "pitchAtContact": 15,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 39,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "right",
+   "left": {
+    "ride": "tiki_tiki_48s~9113",
+    "frame": 256,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.033,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.101
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9114",
+    "frame": 429,
+    "role": "event",
+    "v3": 0.1116,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 10,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -11,
+     "v3": 0.815
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 40,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.25",
+   "measuredRatio": 1.203,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9108",
+    "frame": 322,
+    "role": "smaller",
+    "v3": 0.2656,
+    "matchedAsk": 0.3,
+    "kind": "touchdown",
+    "pitchAtContact": -65,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.019
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "luna_bala_44s~9106",
+    "frame": 911,
+    "role": "larger",
+    "v3": 0.3195,
+    "matchedAsk": 0.352,
+    "kind": "touchdown",
+    "pitchAtContact": -10,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 41,
+   "block": "A",
+   "group": "anchor",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9110",
+    "frame": 452,
+    "role": "event",
+    "v3": 0.6137,
+    "matchedAsk": 0.76,
+    "kind": "touchdown",
+    "pitchAtContact": 18,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9120",
+    "frame": 256,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.045,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.111
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 42,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9110",
+    "frame": 1712,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.036,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.388
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "luna_bala_44s~9110",
+    "frame": 193,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.5273,
+    "contactEndsAfterWindow": 3,
+    "strongestBefore12": {
+     "dt": -3,
+     "v3": 0.06
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.0605,
+     "contactStart": 186,
+     "onset": 190,
+     "matchedAsk": null,
+     "lagFrames": 8
+    }
+   }
+  },
+  {
+   "pair": 43,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.25",
+   "measuredRatio": 1.292,
+   "largerSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9121",
+    "frame": 1609,
+    "role": "larger",
+    "v3": 0.3189,
+    "matchedAsk": 0.341,
+    "kind": "touchdown",
+    "pitchAtContact": 23,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "luna_bala_44s~9122",
+    "frame": 279,
+    "role": "smaller",
+    "v3": 0.2468,
+    "matchedAsk": 0.173,
+    "kind": "touchdown",
+    "pitchAtContact": 24,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 44,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "left",
+   "left": {
+    "ride": "tiki_tiki_48s~9111",
+    "frame": 1784,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.3928,
+    "contactEndsAfterWindow": 1,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.099
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.0992,
+     "contactStart": 1777,
+     "onset": 1777,
+     "matchedAsk": 0.03,
+     "lagFrames": 7
+    }
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9121",
+    "frame": 255,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.035,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.089
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 45,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.5",
+   "measuredRatio": 1.54,
+   "largerSide": "right",
+   "left": {
+    "ride": "amor_na_praia_46s~9113",
+    "frame": 739,
+    "role": "smaller",
+    "v3": 0.5275,
+    "matchedAsk": 0.512,
+    "kind": "touchdown",
+    "pitchAtContact": 72,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9117",
+    "frame": 955,
+    "role": "larger",
+    "v3": 0.8124,
+    "matchedAsk": 0.93,
+    "kind": "touchdown",
+    "pitchAtContact": 5,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 46,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 2",
+   "ratio": 2,
+   "base": "0.5",
+   "measuredRatio": 1.939,
+   "largerSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9111",
+    "frame": 1435,
+    "role": "smaller",
+    "v3": 0.5002,
+    "matchedAsk": 0.6,
+    "kind": "touchdown",
+    "pitchAtContact": 33,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9119",
+    "frame": 364,
+    "role": "larger",
+    "v3": 0.97,
+    "matchedAsk": 1,
+    "kind": "touchdown",
+    "pitchAtContact": 19,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 47,
+   "block": "R",
+   "group": "R base 0.5 \u00d7 1.25",
+   "ratio": 1.25,
+   "base": "0.5",
+   "measuredRatio": 1.275,
+   "largerSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9110",
+    "frame": 761,
+    "role": "larger",
+    "v3": 0.5529,
+    "matchedAsk": 0.58,
+    "kind": "touchdown",
+    "pitchAtContact": 35,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 4,
+     "v3": 0.039
+    }
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9120",
+    "frame": 1383,
+    "role": "smaller",
+    "v3": 0.4336,
+    "matchedAsk": 0.6,
+    "kind": "touchdown",
+    "pitchAtContact": -8,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": {
+     "dt": 6,
+     "v3": 0.027
+    }
+   }
+  },
+  {
+   "pair": 48,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 1.5",
+   "ratio": 1.5,
+   "base": "0.25",
+   "measuredRatio": 1.541,
+   "largerSide": "right",
+   "left": {
+    "ride": "luna_bala_44s~9124",
+    "frame": 1608,
+    "role": "smaller",
+    "v3": 0.2926,
+    "matchedAsk": 0.341,
+    "kind": "touchdown",
+    "pitchAtContact": -5,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9117",
+    "frame": 1245,
+    "role": "larger",
+    "v3": 0.451,
+    "matchedAsk": 0.474,
+    "kind": "touchdown",
+    "pitchAtContact": 51,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 49,
+   "block": "A",
+   "group": "D1",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9115",
+    "frame": 1255,
+    "role": "event",
+    "v3": 0.0572,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": -3,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -10,
+     "v3": 0.462
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9101",
+    "frame": 256,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.047,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.125
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 50,
+   "block": "R",
+   "group": "R base 0.25 \u00d7 2",
+   "ratio": 2,
+   "base": "0.25",
+   "measuredRatio": 1.938,
+   "largerSide": "left",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9116",
+    "frame": 448,
+    "role": "larger",
+    "v3": 0.5289,
+    "matchedAsk": 0.857,
+    "kind": "touchdown",
+    "pitchAtContact": -71,
+    "bodyFirst": false,
+    "strongestBefore12": {
+     "dt": -12,
+     "v3": 0.664
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "tiki_tiki_48s~9122",
+    "frame": 1812,
+    "role": "smaller",
+    "v3": 0.2728,
+    "matchedAsk": 0.03,
+    "kind": "touchdown",
+    "pitchAtContact": -19,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 51,
+   "block": "A",
+   "group": "D3",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9113",
+    "frame": 1576,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.039,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.755
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9119",
+    "frame": 574,
+    "role": "event",
+    "v3": 0.2309,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 5,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -6,
+     "v3": 0.723
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 52,
+   "block": "A",
+   "group": "D4",
+   "eventSide": "left",
+   "left": {
+    "ride": "amor_na_praia_46s~9123",
+    "frame": 1781,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.7306,
+    "contactEndsAfterWindow": 1,
+    "strongestBefore12": {
+     "dt": -8,
+     "v3": 0.1
+    },
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1003,
+     "contactStart": 1772,
+     "onset": 1773,
+     "matchedAsk": 0.1,
+     "lagFrames": 9
+    }
+   },
+   "right": {
+    "ride": "amor_na_praia_46s~9112",
+    "frame": 315,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.039,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.742
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 53,
+   "block": "A",
+   "group": "D5",
+   "eventSide": "left",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9118",
+    "frame": 67,
+    "role": "event",
+    "v3": 0,
+    "pushStrength": 0.3849,
+    "contactEndsAfterWindow": 10,
+    "strongestBefore12": null,
+    "strongestAfter8": null,
+    "touchdown": {
+     "v3": 0.1025,
+     "contactStart": 49,
+     "onset": 49,
+     "matchedAsk": 0.1,
+     "lagFrames": 18
+    }
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9118",
+    "frame": 687,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.041,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 54,
+   "block": "A",
+   "group": "D2",
+   "eventSide": "right",
+   "left": {
+    "ride": "amour_de_ma_vie_44s~9108",
+    "frame": 1497,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.029,
+    "strongestBefore12": {
+     "dt": -9,
+     "v3": 0.464
+    },
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9106",
+    "frame": 935,
+    "role": "event",
+    "v3": 0.156,
+    "matchedAsk": null,
+    "kind": "touchdown",
+    "pitchAtContact": 7,
+    "bodyFirst": true,
+    "strongestBefore12": {
+     "dt": -6,
+     "v3": 0.669
+    },
+    "strongestAfter8": null
+   }
+  },
+  {
+   "pair": 55,
+   "block": "A",
+   "group": "anchor",
+   "eventSide": "left",
+   "left": {
+    "ride": "luna_bala_44s~9105",
+    "frame": 1674,
+    "role": "event",
+    "v3": 0.6479,
+    "matchedAsk": 0.761,
+    "kind": "touchdown",
+    "pitchAtContact": 8,
+    "bodyFirst": false,
+    "strongestBefore12": null,
+    "strongestAfter8": null
+   },
+   "right": {
+    "ride": "amour_de_ma_vie_44s~9121",
+    "frame": 1523,
+    "role": "blank",
+    "v3": 0,
+    "maxChangeWindow": 0.028,
+    "strongestBefore12": {
+     "dt": -7,
+     "v3": 0.863
+    },
+    "strongestAfter8": null
+   }
+  }
+ ],
+ "verification": {
+  "study": "impact-visibility-2026-11",
+  "manifestMatchesKey": true,
+  "labelsApi": {
+   "validPosts": 220,
+   "allValidOk": true,
+   "wrongAnswer": 400,
+   "unknownClip": 400,
+   "missingAnswer": 400,
+   "labeledAfter": 55,
+   "rowsWritten": 220
+  },
+  "clips": {
+   "count": 110,
+   "allExist": true,
+   "durations": [
+    1.8,
+    1.8
+   ],
+   "sizes": [
+    "960x540"
+   ],
+   "codecs": [
+    "h264"
+   ],
+   "fps": [
+    "60/1"
+   ],
+   "allAudio": true
+  },
+  "timing": [
+   {
+    "pair": 1,
+    "side": "left",
+    "frame": 365,
+    "rideSeconds": 46,
+    "trackFrames": 1860,
+    "madByPhysicsFrameOffset": {
+     "0": 3.27,
+     "1": 3.26,
+     "2": 3.28,
+     "-2": 3.08,
+     "-1": 3.07
+    },
+    "bestOffset": -1
+   },
+   {
+    "pair": 1,
+    "side": "right",
+    "frame": 784,
+    "rideSeconds": 48,
+    "trackFrames": 1940,
+    "madByPhysicsFrameOffset": {
+     "0": 0.06,
+     "1": 6.52,
+     "2": 7.28,
+     "-2": 7.61,
+     "-1": 5.15
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 2,
+    "side": "left",
+    "frame": 1276,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 0.06,
+     "1": 6.99,
+     "2": 7.48,
+     "-2": 6,
+     "-1": 5.42
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 2,
+    "side": "right",
+    "frame": 1216,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 0.05,
+     "1": 5.25,
+     "2": 5.45,
+     "-2": 4.83,
+     "-1": 4.11
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 3,
+    "side": "left",
+    "frame": 1281,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 2.23,
+     "1": 3.14,
+     "2": 3.54,
+     "-2": 3.59,
+     "-1": 2.6
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 3,
+    "side": "right",
+    "frame": 1408,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 0.05,
+     "1": 3.09,
+     "2": 3.35,
+     "-2": 2.38,
+     "-1": 2.52
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 7,
+    "side": "left",
+    "frame": 301,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 4.1,
+     "1": 5.67,
+     "2": 6.59,
+     "-2": 6.2,
+     "-1": 4.62
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 7,
+    "side": "right",
+    "frame": 1196,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 0.06,
+     "1": 5.97,
+     "2": 6.41,
+     "-2": 5.84,
+     "-1": 5.37
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 8,
+    "side": "left",
+    "frame": 1390,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 0.07,
+     "1": 7.63,
+     "2": 8.14,
+     "-2": 7.7,
+     "-1": 7.12
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 8,
+    "side": "right",
+    "frame": 1235,
+    "rideSeconds": 48,
+    "trackFrames": 1940,
+    "madByPhysicsFrameOffset": {
+     "0": 3.83,
+     "1": 5.46,
+     "2": 6.19,
+     "-2": 5.71,
+     "-1": 4.29
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 10,
+    "side": "left",
+    "frame": 1606,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 0.06,
+     "1": 2.46,
+     "2": 3.31,
+     "-2": 4.57,
+     "-1": 1.52
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 10,
+    "side": "right",
+    "frame": 223,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 3.1,
+     "1": 4.25,
+     "2": 5.41,
+     "-2": 4.87,
+     "-1": 3.73
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 11,
+    "side": "left",
+    "frame": 1629,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 4.7,
+     "1": 7.21,
+     "2": 8.58,
+     "-2": 5.47,
+     "-1": 3.71
+    },
+    "bestOffset": -1
+   },
+   {
+    "pair": 11,
+    "side": "right",
+    "frame": 802,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 0.05,
+     "1": 2.98,
+     "2": 3.43,
+     "-2": 3.54,
+     "-1": 2.1
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 13,
+    "side": "left",
+    "frame": 209,
+    "rideSeconds": 44.5,
+    "trackFrames": 1802,
+    "madByPhysicsFrameOffset": {
+     "0": 3.42,
+     "1": 4.73,
+     "2": 6.12,
+     "-2": 5.48,
+     "-1": 4.43
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 13,
+    "side": "right",
+    "frame": 1587,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 6.18,
+     "1": 7.64,
+     "2": 8.53,
+     "-2": 6.12,
+     "-1": 5.75
+    },
+    "bestOffset": -1
+   },
+   {
+    "pair": 14,
+    "side": "left",
+    "frame": 320,
+    "rideSeconds": 46,
+    "trackFrames": 1860,
+    "madByPhysicsFrameOffset": {
+     "0": 0.11,
+     "1": 8.71,
+     "2": 11.52,
+     "-2": 11.89,
+     "-1": 4.92
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 14,
+    "side": "right",
+    "frame": 178,
+    "rideSeconds": 46,
+    "trackFrames": 1860,
+    "madByPhysicsFrameOffset": {
+     "0": 0.05,
+     "1": 7.04,
+     "2": 7.29,
+     "-2": 5.33,
+     "-1": 5.8
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 15,
+    "side": "left",
+    "frame": 1063,
+    "rideSeconds": 44,
+    "trackFrames": 1780,
+    "madByPhysicsFrameOffset": {
+     "0": 3.81,
+     "1": 4.9,
+     "2": 5.15,
+     "-2": 5,
+     "-1": 3.87
+    },
+    "bestOffset": 0
+   },
+   {
+    "pair": 15,
+    "side": "right",
+    "frame": 960,
+    "rideSeconds": 46,
+    "trackFrames": 1860,
+    "madByPhysicsFrameOffset": {
+     "0": 0.07,
+     "1": 6.42,
+     "2": 6.68,
+     "-2": 8.05,
+     "-1": 5.71
+    },
+    "bestOffset": 0
+   }
+  ],
+  "timingAllBestAtZero": false,
+  "page": {
+   "ui": {
+    "progress": "Pair 1 of 55 \u00b7 0 answered",
+    "prompt": "Which one is the bigger impact? Judge only the moment marked by the light. Some lights mark ordinary riding with no hit at all: if neither lit moment looks like an impact, choose \"Neither looks like an impact\".",
+    "choices": [
+     "A is the bigger impact",
+     "B is the bigger impact",
+     "About the same",
+     "Neither looks like an impact"
+    ],
+    "status": "",
+    "t": [
+     0.640542,
+     0.640444
+    ],
+    "ledSeen": true
+   },
+   "consoleErrorsOrWarnings": [],
+   "failedRequests": [],
+   "nonGetRequests": [],
+   "clipsNotDecoding": []
+  },
+  "oddFrameTiming": [
+   {
+    "pair": 1,
+    "side": "left",
+    "frame": 365,
+    "madByHalfVideoFrames": {
+     "-3": 3.07,
+     "-1": 0.05,
+     "1": 3.27,
+     "3": 3.26
+    }
+   },
+   {
+    "pair": 3,
+    "side": "left",
+    "frame": 1281,
+    "madByHalfVideoFrames": {
+     "-3": 2.6,
+     "-1": 0.03,
+     "1": 2.23,
+     "3": 3.14
+    }
+   },
+   {
+    "pair": 5,
+    "side": "right",
+    "frame": 1577,
+    "madByHalfVideoFrames": {
+     "-3": 3.33,
+     "-1": 0.07,
+     "1": 3.14,
+     "3": 3.77
+    }
+   },
+   {
+    "pair": 6,
+    "side": "left",
+    "frame": 667,
+    "madByHalfVideoFrames": {
+     "-3": 6.83,
+     "-1": 0.09,
+     "1": 6.3,
+     "3": 8.97
+    }
+   },
+   {
+    "pair": 6,
+    "side": "right",
+    "frame": 287,
+    "madByHalfVideoFrames": {
+     "-3": 3.55,
+     "-1": 0.08,
+     "1": 3.61,
+     "3": 4.03
+    }
+   },
+   {
+    "pair": 7,
+    "side": "left",
+    "frame": 301,
+    "madByHalfVideoFrames": {
+     "-3": 4.62,
+     "-1": 0.06,
+     "1": 4.1,
+     "3": 5.67
+    }
+   },
+   {
+    "pair": 8,
+    "side": "right",
+    "frame": 1235,
+    "madByHalfVideoFrames": {
+     "-3": 4.29,
+     "-1": 0.05,
+     "1": 3.83,
+     "3": 5.46
+    }
+   },
+   {
+    "pair": 9,
+    "side": "right",
+    "frame": 255,
+    "madByHalfVideoFrames": {
+     "-3": 3.05,
+     "-1": 0.06,
+     "1": 3.03,
+     "3": 5.62
+    }
+   },
+   {
+    "pair": 10,
+    "side": "right",
+    "frame": 223,
+    "madByHalfVideoFrames": {
+     "-3": 3.73,
+     "-1": 0.05,
+     "1": 3.1,
+     "3": 4.25
+    }
+   },
+   {
+    "pair": 11,
+    "side": "left",
+    "frame": 1629,
+    "madByHalfVideoFrames": {
+     "-3": 3.71,
+     "-1": 0.07,
+     "1": 4.7,
+     "3": 7.21
+    }
+   }
+  ]
+ },
+ "gates": {
+  "npm test": "68 files, 293 tests passed",
+  "npm run typecheck": "0 errors (tsc --noEmit -p .)",
+  "npm run reach": "entries 71, unreachable 0 files",
+  "parity": "not run: no product, compiler, judge or top-level tools/measure file changed",
+  "timingOddFrames": "see oddFrameTiming",
+  "anchorVisualCheck": "pair 14 right (amor_na_praia_46s 9109, contact frame 178): sled meets the rail at clip 1.00-1.03 s; viewed after the key was frozen"
+ },
+ "scratchScripts": {
+  "verify.ts": "/** Scratch verification of the built impact-visibility study (2026-10-31). Run from the worktree root:\n *   node --import tsx <this> --study=impact-visibility-2026-11 --port=8791 --out=FILE.json\n * 1. manifest \u2194 key consistency; 2. labels API validation on a throwaway copy (never the\n * worktree's labels/); 3. every clip probed with ffprobe; 4. page loads in headless Chromium\n * against `npm run serve` on --port, no console/page errors, every clip decodes;\n * 5. clip timing: the clip frame at 1.0 s equals the ride render frame at frame/40 s. */\nimport {readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, readdirSync, rmSync} from 'node:fs';\nimport {execFileSync, spawn} from 'node:child_process';\nimport {createServer} from 'node:http';\nimport {join} from 'node:path';\nimport {gunzipSync} from 'node:zlib';\nimport assert from 'node:assert/strict';\n\nconst arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);\nconst study = arg('study')!, port = Number(arg('port')), ROOT = process.cwd(), SCR = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad';\nconst dir = `generated/label-studies/${study}`, manifest = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'));\nconst key = JSON.parse(readFileSync(`labels/studies/${study}.key.json`, 'utf8'));\nconst report: any = {study};\n\n// 1. manifest \u2194 key\nassert.equal(manifest.clips.length, key.length);\nfor (const [i, p] of key.entries()) {\n  const c = manifest.clips[i];\n  assert.equal(c.id, `pair${p.pair}`);\n  for (const s of ['left', 'right']) assert.equal(c[s].src, `/${dir}/clips/pair${p.pair}-${s}.mp4`);\n}\nassert.deepEqual(manifest.questions, [{id: 'bigger', options: ['left', 'right', 'same', 'neither']}]);\nassert.equal(manifest.hitAt, 1); assert.equal(manifest.length, 1.8);\nreport.manifestMatchesKey = true;\n\n// 2. labels API on a throwaway root\nconst tmp = join(SCR, 'api-root');\nrmSync(tmp, {recursive: true, force: true}); mkdirSync(join(tmp, dir), {recursive: true});\ncopyFileSync(join(dir, 'manifest.json'), join(tmp, dir, 'manifest.json'));\nconst {createLabelsApi} = await import(join(ROOT, 'scripts/gallery/labels_api.ts'));\nconst handle = createLabelsApi(tmp);\nconst server = createServer((req, res) => {handle(req, res, new URL(req.url!, 'http://x')).then((ok: boolean) => {if (!ok) {res.writeHead(404); res.end();}});});\nawait new Promise<void>(r => server.listen(port + 1, '127.0.0.1', () => r()));\nconst api = `http://127.0.0.1:${port + 1}/api/labels/${study}`;\nconst post = (body: any) => fetch(api, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)}).then(r => r.status);\nconst statuses: Record<string, number[]> = {valid: [], wrongAnswer: [], unknownClip: [], missing: []};\nfor (const c of manifest.clips) for (const v of ['left', 'right', 'same', 'neither'])\n  statuses.valid.push(await post({clip: c.id, skipped: false, answers: {bigger: v}, note: '', viewMs: 1, at: 'test'}));\nstatuses.wrongAnswer.push(await post({clip: 'pair1', skipped: false, answers: {bigger: 'maybe'}}));\nstatuses.unknownClip.push(await post({clip: 'pair999', skipped: false, answers: {bigger: 'left'}}));\nstatuses.missing.push(await post({clip: 'pair1', skipped: false, answers: {}}));\nconst got = await (await fetch(api)).json();\nserver.close();\nreport.labelsApi = {validPosts: statuses.valid.length, allValidOk: statuses.valid.every(s => s === 200), wrongAnswer: statuses.wrongAnswer[0],\n  unknownClip: statuses.unknownClip[0], missingAnswer: statuses.missing[0], labeledAfter: got.labeled.length,\n  rowsWritten: readFileSync(join(tmp, 'labels/studies', study + '.jsonl'), 'utf8').trim().split('\\n').length};\nassert.ok(report.labelsApi.allValidOk && report.labelsApi.labeledAfter === manifest.clips.length);\nassert.ok(!existsSync(`labels/studies/${study}.jsonl`), 'the worktree must hold no answers');\n\n// 3. clips\nconst probe = (f: string) => JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,codec_name,width,height,r_frame_rate:format=duration', '-of', 'json', f]).toString());\nconst clips: any[] = [];\nfor (const c of manifest.clips) for (const s of ['left', 'right']) {\n  const f = c[s].src.slice(1), p = probe(f), v = p.streams.find((x: any) => x.codec_type === 'video'), a = p.streams.find((x: any) => x.codec_type === 'audio');\n  clips.push({f, duration: +p.format.duration, w: v.width, h: v.height, codec: v.codec_name, fps: v.r_frame_rate, audio: !!a});\n}\nreport.clips = {count: clips.length, allExist: clips.length === 2 * key.length, durations: [Math.min(...clips.map(c => c.duration)), Math.max(...clips.map(c => c.duration))],\n  sizes: [...new Set(clips.map(c => `${c.w}x${c.h}`))], codecs: [...new Set(clips.map(c => c.codec))], fps: [...new Set(clips.map(c => c.fps))], allAudio: clips.every(c => c.audio)};\n\n// 5. timing: ride render duration vs track; clip frame at 1.0 s vs ride frame at frame/40\nconst gray = (file: string, t: number) => execFileSync('ffmpeg', ['-v', 'error', '-ss', t.toFixed(4), '-i', file, '-frames:v', '1', '-vf', 'scale=320:180,format=gray', '-f', 'rawvideo', '-'], {maxBuffer: 1 << 24});\nconst mad = (a: Buffer, b: Buffer) => {let s = 0; for (let i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length;};\nconst timing: any[] = [];\nconst sample = key.filter((p: any) => p.group === 'anchor' || p.block === 'R').slice(0, 10);\nfor (const p of sample) for (const s of ['left', 'right']) {\n  const h = p[s], ride = join(dir, 'rides', `heldout~${h.song}~${h.seed}.mp4`), clip = join(dir, 'clips', `pair${p.pair}-${s}.mp4`);\n  const rideDur = +probe(ride).format.duration, track = JSON.parse(gunzipSync(readFileSync(h.source)).toString());\n  const ref = gray(clip, 1.0), offsets: Record<string, number> = {};\n  for (const df of [-2, -1, 0, 1, 2]) offsets[df] = +mad(ref, gray(ride, (h.frame + df) / 40)).toFixed(2);\n  const best = Object.entries(offsets).sort((a, b) => a[1] - b[1])[0][0];\n  timing.push({pair: p.pair, side: s, frame: h.frame, rideSeconds: rideDur, trackFrames: track.duration, madByPhysicsFrameOffset: offsets, bestOffset: Number(best)});\n}\nreport.timing = timing;\nreport.timingAllBestAtZero = timing.every(t => t.bestOffset === 0);\n\n// 4. page in headless Chromium\nconst serve = spawn(process.execPath, ['--import', 'tsx', 'scripts/serve.ts'], {env: {...process.env, PORT: String(port)}, stdio: ['ignore', 'pipe', 'pipe']});\nawait new Promise<void>((done, fail) => {serve.stdout.on('data', d => String(d).includes('review server') && done()); serve.once('exit', () => fail(new Error('serve exited')));});\nconst {chromium} = await import(join(ROOT, 'node_modules/playwright/index.mjs'));\nconst browser = await chromium.launch();\ntry {\n  const page = await browser.newPage({viewport: {width: 1440, height: 900}});\n  const errors: string[] = [], failed: string[] = [], posts: string[] = [];\n  page.on('console', m => {if (m.type() === 'error' || m.type() === 'warning') errors.push(`${m.type()}: ${m.text()}`);});\n  page.on('pageerror', e => errors.push('pageerror: ' + e.message));\n  page.on('requestfailed', r => failed.push(r.url()));\n  page.on('request', r => {if (r.method() !== 'GET') posts.push(r.url());});\n  await page.goto(`http://127.0.0.1:${port}/motion-gallery/pairs.html?study=${study}`);\n  await page.waitForFunction(() => (document.getElementById('progress')?.textContent ?? '').includes('Pair'), null, {timeout: 20000});\n  await page.waitForFunction(() => ['left', 'right'].every(id => (document.getElementById(id) as HTMLVideoElement).readyState >= 2), null, {timeout: 20000});\n  await page.waitForTimeout(2500);\n  const ui = await page.evaluate(() => ({progress: document.getElementById('progress')!.textContent, prompt: document.getElementById('prompt')!.textContent,\n    choices: [...document.querySelectorAll('#choices button')].map(b => b.textContent), status: document.getElementById('status')!.textContent,\n    t: ['left', 'right'].map(id => (document.getElementById(id) as HTMLVideoElement).currentTime),\n    ledSeen: !!document.querySelector('.led')}));\n  await page.screenshot({path: join(SCR, 'page.png')});\n  // every clip decodes in this browser\n  const decode = await page.evaluate(async (srcs: string[]) => {\n    const bad: string[] = [];\n    for (const src of srcs) {\n      const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = src;\n      const ok = await new Promise<boolean>(r => {v.onloadeddata = () => r(true); v.onerror = () => r(false); setTimeout(() => r(false), 10000);});\n      if (!ok || Math.abs(v.duration - 1.8) > .06) bad.push(`${src} ${v.duration}`);\n      v.removeAttribute('src'); v.load();\n    }\n    return bad;\n  }, manifest.clips.flatMap((c: any) => [c.left.src, c.right.src]));\n  report.page = {ui, consoleErrorsOrWarnings: errors, failedRequests: failed, nonGetRequests: posts, clipsNotDecoding: decode};\n} finally {await browser.close(); serve.kill();}\nassert.ok(!existsSync(`labels/studies/${study}.jsonl`), 'the page check must not write answers');\nwriteFileSync(arg('out')!, JSON.stringify(report, null, 1));\nconsole.log(JSON.stringify(report, null, 1));\nprocess.exit(0);\n",
+  "evidence.py": "\"\"\"Builds docs/research/impact-visibility-study-20261031.json. Run from the worktree root:\npython3 evidence.py VERIFY.json GATES.json\"\"\"\nimport json, hashlib, gzip, glob, sys, re, collections\nS = '/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad'\nH = '/home/wyss/line/.claude/worktrees/agent-a1f12a7790eda8a3d/generated/u1-heldout'\nsha = lambda p: hashlib.sha256(open(p, 'rb').read()).hexdigest()\nstudy = 'impact-visibility-2026-11'\nkey = json.load(open(f'labels/studies/{study}.key.json'))\nobs = json.load(gzip.open('generated/visibility/observations.json.gz'))\nverify = json.load(open(sys.argv[1])); gates = json.load(open(sys.argv[2]))\nsel = open('generated/visibility/select.log').read()\nsummary = json.loads(sel[:sel.index('\\n}') + 2])\n\ndef side(h):\n    d = {k: h[k] for k in ('ride', 'frame', 'role') if k in h}\n    for k in ('v3', 'matchedAsk', 'pushStrength', 'maxChangeWindow', 'kind', 'pitchAtContact', 'bodyFirst', 'contactEndsAfterWindow', 'strongestBefore12', 'strongestAfter8'):\n        if k in h: d[k] = h[k]\n    if 'touchdown' in h: d['touchdown'] = h['touchdown']\n    return d\n\nsrc = open('tools/measure/visibility/select.ts').read()\nrules = src[src.index('// ---- rules'):src.index('// ---- sources')]\nout = {\n  'schema': 'line.research.impact-visibility-study.v1',\n  'report': 'docs/research/impact-visibility-study-20261031.md',\n  'status': 'built and verified; unanswered. Pre-registration: rules and every pair\\'s measured values fixed before any answer exists.',\n  'study': study,\n  'baseCommit': '133f1360 (rework/foundations head when built)',\n  'environment': 'LR_ENGINE=wasm; node_modules, engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm and productions/*/audio.mp3 symlinked from the main checkout',\n  'commands': [\n    'LR_ENGINE=wasm node --import tsx tools/measure/visibility/observe_heldout.ts --rides=<U1 worktree>/generated/u1-heldout --out=generated/visibility/observations.json.gz',\n    f'node --import tsx tools/measure/visibility/select.ts --observations=generated/visibility/observations.json.gz --study={study} --seed=20261031',\n    f'node --import tsx tools/measure/visibility/build.ts --study={study} --jobs=8',\n    f'node --import tsx <scratch>/verify.ts --study={study} --port=8791 --out=<scratch>/verify.json  (script embedded below)',\n    'npm test; npm run typecheck; npm run reach',\n  ],\n  'seeds': {'selection': 20261031, 'rng': 'LCG seed*1103515245+12345 mod 2^31 (as tools/measure/select_pairs.ts)'},\n  'inputs': {\n    'heldOutRides': 'generated/u1-heldout in worktree-agent-a1f12a7790eda8a3d (branch head a804bc08), compiled by `npm run produce` at 475ad6bf with jolt -15 ms; 4 songs x seeds 9101-9124; read in place, not modified',\n    'productionSha256': {r['ride']: r['productionSha256'] for r in obs['rides']},\n    'specAndAudio': 'all 96 plans record specSha256/audioSha256 equal to the current productions/<song>/spec.ts and audio.mp3',\n    'observationsSha256': sha('generated/visibility/observations.json.gz'),\n  },\n  'checks': {\n    'replayEqualsSavedEvaluation': 'all 96 rides: replayed line.strike.v3 events (onset, strength to 3 decimals) equal impactEvaluation.events saved at compile time (asserted in observe_heldout.ts)',\n    'beats': 'matching uses the compiled beats (case.contacts, jolt applied: 0 or +1 frame vs round(t*40)); timeline ticks show the specification beats as in pair_study.ts',\n    'exclusions': 'no held-out ride string (<song>~<seed>, <song>-<seed>, \"seed\": <seed>) appears in any labels/studies/*.key.json or in the unwanted-impacts, U1 or step-back JSON (asserted in select.ts); Trouble excluded; all 96 compiles valid',\n    'noPeeking': 'pairs chosen from measured values only; no clip viewed before or during selection',\n  },\n  'tools': {p: sha(p) for p in sorted(glob.glob('tools/measure/visibility/*.ts'))},\n  'outputs': {\n    f'labels/studies/{study}.key.json': sha(f'labels/studies/{study}.key.json'),\n    f'labels/studies/{study}.manifest.json': sha(f'labels/studies/{study}.manifest.json'),\n    f'generated/label-studies/{study}/manifest.json': sha(f'generated/label-studies/{study}/manifest.json'),\n    'sourceTracks': {p: sha(p) for p in sorted(glob.glob('labels/studies/sources/heldout~*.track.json.gz'))},\n  },\n  'counts': {**summary, 'songsBySide': collections.Counter(h['song'] for p in key for h in (p['left'], p['right']))},\n  'rulesAsCode': rules,\n  'preRegistration': {\n    'counting': {'blockA': 'seen only when he picks the event side; same, neither and blank count as not seen; blank picks also count toward the void rule',\n                 'blockR': 'seen only when he picks the larger v3 side; same and neither not seen; smaller = reversal (not seen, reported separately); neither reported separately',\n                 'answers': 'last answer per pair; skipped pairs excluded; a verdict stands only if it holds for any answers to the skipped pairs'},\n    'void': {'anchors': 'all 4 anchors seen, else the whole study is void (discuss before reading)',\n             'blanks': 'blank picked in at most 2 of 34 block A pairs, else block A void; block R still read with the count reported'},\n    'blockA': 'per group of 6: visible >= 5 seen; not visible <= 1 seen; else unresolved. Descriptive: D1-D3 split by an event >= 0.3 starting in the 12 frames before the light',\n    'blockR': 'per ratio pooled over bases (6 pairs; 3 at 3x): visible >= 5 of 6 (3 of 3); not visible <= 2 of 6 (<= 1 of 3); else unresolved. Threshold = smallest visible ratio with no larger ratio not visible, else inconsistent. >= 2 reversals at 2x or 3x = v3 misorders clean hits. Descriptive: per base cells, logistic fit on log ratio',\n    'operatingCharacteristics': {'6, >=5 visible': {'p=0.5': 0.109, 'p=0.8': 0.655, 'p=0.9': 0.886}, '6, <=1 not visible': {'p=0.1': 0.886, 'p=0.5': 0.109},\n                                 '6, <=2 not visible': {'p=0.5': 0.344, 'p=0.8': 0.017}, '3, 3 visible': {'p=0.8': 0.512}, '3, <=1 not visible': {'p=0.5': 0.5},\n                                 'blanks >2/34 void': {'q=0.01': 0.005, 'q=0.03': 0.081, 'q=0.05': 0.241}},\n  },\n  'ownerPace': {'impact-pairs-2026-10': '24 answers, 7.3 min (19 s/answer)', 'impact-pairs-2026-10c': '26 answers, 7.9 min (18 s)',\n                'night-pairs-2026-10-05': '22 answers, 8.4 min (23 s), median viewMs 23.5 s', 'expected': '55 pairs x 19-23 s = 17-21 min'},\n  'pairs': [{'pair': p['pair'], 'block': p['block'], 'group': p['group'], **({'ratio': p['ratio'], 'base': p['base'], 'measuredRatio': p['measuredRatio'], 'largerSide': p['largerSide']} if p['block'] == 'R' else {'eventSide': p['eventSide']}),\n             'left': side(p['left']), 'right': side(p['right'])} for p in key],\n  'verification': {**verify, 'oddFrameTiming': json.load(open(f'{S}/odd.json'))},\n  'gates': gates,\n  'scratchScripts': {'verify.ts': open(f'{S}/verify.ts').read(), 'evidence.py': open(f'{S}/evidence.py').read(), 'pools.py': open(f'{S}/pools.py').read(),\n                     'blanks4.py': open(f'{S}/blanks4.py').read(), 'odd.py': open(f'{S}/odd.py').read()},\n}\njson.dump(out, open('docs/research/impact-visibility-study-20261031.json', 'w'), indent=1, default=dict)\nprint('ok', len(out['pairs']))\n",
+  "pools.py": "import json,gzip,collections\nd=json.load(gzip.open('generated/visibility/observations.json.gz'))\nR=d['rides']; print('rides',len(R),'valid',sum(r['valid'] for r in R))\ndef ctx(r):\n    ev=r['events']; ch=r['change']; ct=r['contact']; ie=r['inEvent']; T=[t['frame'] for t in r['targets']]\n    return ev,ch,ct,ie,T\nstrata=collections.Counter(); pushes=collections.Counter(); blanks=collections.Counter(); hits=[]\nfor r in R:\n    ev,ch,ct,ie,T=ctx(r); D=r['D']\n    okclip=lambda j: 48<=j<=D-40\n    def others(j,lo,hi,excl,th):\n        return [e for e in ev if e is not excl and j+lo<=e['onset']<=j+hi and e['strength']>=th]\n    def outpush(j,lo,hi):\n        return max([ch[a] for a in range(max(0,j+lo),min(len(ch)-1,j+hi)+1) if ct[a]=='1' and a+1<len(ct) and ct[a+1]=='1' and ie[a]=='0' and ie[a+1]=='0'] or [0])\n    nearbeat=lambda j,w: any(abs(t-j)<=w for t in T)\n    for e in ev:\n        j=e['onset']\n        if not okclip(j): continue\n        if e['matched'] is None:\n            s=e['strength']\n            g='D1' if .05<=s<.10 else 'D2' if .10<=s<.20 else 'D3' if .20<=s<=.35 else None\n            if not g: continue\n            iso = not others(j,-4,8,e,.05) and outpush(j,-4,8)<.1 and not nearbeat(j,4)\n            strata[(g,'all')]+=1; strata[(g,'iso')]+=iso\n            strata[(g,'iso_nobeatonly')]+= (not nearbeat(j,4))\n        else:\n            clean = not others(j,-8,8,e,.1) and outpush(j,-8,8)<.1\n            up = abs(e['pitchAtContact'])<=90 and not e['bodyFirst']\n            hits.append((e['strength'],clean,up,r['ride']))\n    for p in r['pushes']:\n        if p['owner'] is None: continue\n        o=ev[p['owner']]; a=p['window']\n        lag=p['frame']-o['contactStart']\n        quiet= o['kind']=='touchdown' and o['strength']<=.15\n        if p['strength']>=.3 and quiet and okclip(a):\n            launch = p['engagementEnd']-(a+1)<=2\n            iso = not [e for e in ev if e is not o and a-4<=e['onset']<=a+8] and o['onset']<=a-3\n            pushes[('D4' if launch else 'D5','all')]+=1; pushes[('D4' if launch else 'D5','iso')]+=iso\n            pushes[('D4' if launch else 'D5','lag%d'%lag)]+=1\n            pushes[('D4' if launch else 'D5','reason_'+p['reason'])]+=1\n    # blanks\n    nb=0\n    for b in range(48,D-40):\n        if all(ct[k]=='1' for k in range(b-2,b+6)) and not any(e['contactStart']<=b+8 and e['end']>=b-8 for e in ev) and max(ch[b-8:b+9])<.05 and not nearbeat(b,4):\n            nb+=1\n    blanks[nb>0]+=1\n    blanks['frames']+=nb\nprint(sorted(strata.items())); print(sorted(pushes.items())); print(dict(blanks))\nimport statistics\nfor lab,f in [('clean&up',lambda h:h[1] and h[2]),('clean',lambda h:h[1]),('all',lambda h:True)]:\n    xs=[h[0] for h in hits if f(h)]\n    bins=collections.Counter(min(10,int(x*10)) for x in xs)\n    print(lab,len(xs),sorted(bins.items()))\n",
+  "blanks4.py": "import json,gzip,collections\nd=json.load(gzip.open('generated/visibility/observations.json.gz'))\nR=d['rides']\ndef moments(onlo,onhi,flo,fhi,clo,chi,th):\n    out=collections.Counter()\n    for r in R:\n        ev=r['events']; ch=r['change']; ct=r['contact']; T=[t['frame'] for t in r['targets']]; D=r['D']; last=-999\n        for b in range(48,D-40):\n            if all(ct[k]=='1' for k in range(b-2,b+6)) and not any(onlo<=e['onset']-b<=onhi for e in ev) and not any(e['contactStart']<=b+fhi and e['end']>=b+flo for e in ev) and max(ch[b+clo:b+chi+1])<th and not any(abs(t-b)<=4 for t in T):\n                if b-last>=72: out[r['song']]+=1; last=b\n    return sum(out.values()),dict(out)\nfor a in [(-4,8,-2,5,-3,6,.05),(-4,8,-3,6,-3,6,.05),(-4,8,-2,5,-4,8,.05),(-6,8,-3,6,-3,6,.05),(-8,8,-3,6,-3,6,.05)]:\n    print(a,moments(*a))\n",
+  "odd.py": "\"\"\"Odd physics frames sit between two 60 fps video frames: compare the clip frame at\n1.0 s with the ride at frame/40 \u00b1 1/120 and \u00b1 3/120 s. Run from the worktree root.\"\"\"\nimport json, subprocess\nk = json.load(open('labels/studies/impact-visibility-2026-11.key.json'))\nD = 'generated/label-studies/impact-visibility-2026-11'\ndef g(f, t): return subprocess.run(['ffmpeg', '-v', 'error', '-ss', '%.5f' % t, '-i', f, '-frames:v', '1', '-vf', 'scale=320:180,format=gray', '-f', 'rawvideo', '-'], capture_output=True).stdout\ndef mad(a, b): return sum(abs(x - y) for x, y in zip(a, b)) / len(a)\nout = []\nfor p in k:\n    for s in ('left', 'right'):\n        h = p[s]\n        if h['frame'] % 2 == 0 or len(out) >= 10: continue\n        ride = f\"{D}/rides/heldout~{h['song']}~{h['seed']}.mp4\"; clip = f\"{D}/clips/pair{p['pair']}-{s}.mp4\"\n        ref = g(clip, 1.0)\n        out.append({'pair': p['pair'], 'side': s, 'frame': h['frame'], 'madByHalfVideoFrames': {d: round(mad(ref, g(ride, h['frame'] / 40 + d / 120)), 2) for d in (-3, -1, 1, 3)}})\nfor o in out: print(o)\njson.dump(out, open('/tmp/claude-1000/-home-wyss-line/897a8423-a8a8-40b1-ab25-a90f46eae018/scratchpad/odd.json', 'w'))\n"
+ }
+}

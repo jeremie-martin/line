@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: the impact measure (U1 stopped, step back)
+
+Reports only; no tool, measure or compiler change merged.
+- **U1 candidate stopped** (docs/research/u1-measure-study-20261031.md). v3
+  with both detector fixes gets 45 of 63 decisive owner pairs against v3's 47;
+  on the 4 pairs it re-ranks, his answers side with v3 (2 decisive, 1 same,
+  1 neither). Its values there equal the old "strength" candidate he had
+  already ruled against. The candidate code stays on branch
+  `worktree-agent-a1f12a7790eda8a3d` (a804bc08); 96 held-out rides (seeds
+  9101–9124) are compiled, unexamined, in that worktree.
+- **Step back** (docs/research/measure-step-back-20261031.md). Validated:
+  ordering of clearly different hits only. Not validated: scale, timing,
+  extras, and what counts as the hit of a quiet beat (two October clips: v3
+  matched a near-invisible touch; he saw one "late" hit 200–275 ms later).
+  The October labels are now spent as test data.
+- **Next, owner:** answer the never-answered night study (22 pairs), then a
+  new short study on whether extras and late pushes are visible. No measure
+  change before fresh answers.
+
 ## October 30 follow-up: unwanted impacts (diagnosis)
 
 TODO item 3. Report only, with no compiler, measure or ruler change

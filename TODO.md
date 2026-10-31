@@ -27,6 +27,7 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
+10. ~~**New benchmark**~~ (2026-10-31): built and baselined (`bench-base-20261031`, `pairs8-base-20261031`).
 9. **Compiler step back, then planned work with the owner.**
    - Short re-landings at speed: Trouble about half, Circus 1/24 and 0/24.
    - Geometry hygiene (G1–G4).

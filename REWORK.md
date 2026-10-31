@@ -1,5 +1,31 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: the new benchmark and its first baseline
+
+**What was built:**
+- **Tooling:** stratified panels, docs/research/benchmark-audit-20261031.md.
+- **Panel songs:** each now has a measured `music.ts`, plus the full 108.5 s
+  Amour for P6.
+- **Bench specs:** 11 dev specs, all variants: P1 Amour/Tiki, P2 Tiki/Amour,
+  P3 Tiki/Amor, P4 Amour/Luna, P5 Amor/Luna, P6 Amour 108 s.
+- **Sealed siblings:** P1 Luna, P2 Luna, P3 Luna, P4 Amour 44 s (Amor has no
+  dense section, so this sibling shares a recording with its dev spec), P5
+  Tiki, P6 Amour 108 s.
+
+**Baseline at edd318fa:**
+- **`bench-base-20261031`:** 41 cells in 249 s.
+  - Completion: G 8/8, P1 5/6, P2 5/6, P3 6/6, P4 5/6, P5 6/6, P6 3/3.
+- **`pairs8-base-20261031`:** 32 cells in 179 s.
+  - P1: Amour 5/8, Tiki 8/8.
+  - P2: Amour 6/8, Tiki 8/8.
+- **The three failures, recompiled with `produce`:** each stops at an 8-frame
+  section with a guide-required family.
+  - Amour pairs 202: fold, budget, 193 backtracks.
+  - Amour words 101: scallops, no_arc.
+  - Luna intense 303: scallops, budget, 98 backtracks.
+
+  This is the step-back's finding, on panel material.
+
 ## October 31: what comes next (owner decision)
 
 The spec work is closed out for now:

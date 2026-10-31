@@ -1,0 +1,1953 @@
+{
+ "study": "impact-visibility-2026-11",
+ "kind": "pairs",
+ "hitAt": 1,
+ "length": 1.8,
+ "prompt": "Which one is the bigger impact? Judge only the moment marked by the light. Some lights mark ordinary riding with no hit at all: if neither lit moment looks like an impact, choose \"Neither looks like an impact\".",
+ "choices": [
+  [
+   "left",
+   "A is the bigger impact"
+  ],
+  [
+   "right",
+   "B is the bigger impact"
+  ],
+  [
+   "same",
+   "About the same"
+  ],
+  [
+   "neither",
+   "Neither looks like an impact"
+  ]
+ ],
+ "questions": [
+  {
+   "id": "bigger",
+   "options": [
+    "left",
+    "right",
+    "same",
+    "neither"
+   ]
+  }
+ ],
+ "clips": [
+  {
+   "id": "pair1",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair1-left.mp4",
+    "beats": [
+     {
+      "t": 0.975,
+      "impact": 1
+     },
+     {
+      "t": 1.525,
+      "impact": 0.541
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair1-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.63626
+     },
+     {
+      "t": 0.525,
+      "impact": 0.76
+     },
+     {
+      "t": 0.975,
+      "impact": 0.74
+     },
+     {
+      "t": 1.4,
+      "impact": 0.75954
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair2",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair2-left.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.9
+     },
+     {
+      "t": 0.975,
+      "impact": 0.6
+     },
+     {
+      "t": 1.65,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair2-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.368
+     },
+     {
+      "t": 0.975,
+      "impact": 0.944
+     },
+     {
+      "t": 1.525,
+      "impact": 0.327
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair3",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair3-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.34
+     },
+     {
+      "t": 1,
+      "impact": 0.335
+     },
+     {
+      "t": 1.525,
+      "impact": 0.88
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair3-right.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.6
+     },
+     {
+      "t": 1.025,
+      "impact": 0.9
+     },
+     {
+      "t": 1.7,
+      "impact": 0.6
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair4",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair4-left.mp4",
+    "beats": [
+     {
+      "t": 0.725,
+      "impact": 0.5032
+     },
+     {
+      "t": 1.525,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair4-right.mp4",
+    "beats": [
+     {
+      "t": 0.775,
+      "impact": 0.60784
+     },
+     {
+      "t": 1.625,
+      "impact": 0.5545599999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair5",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair5-left.mp4",
+    "beats": [
+     {
+      "t": 0.275,
+      "impact": 0.173
+     },
+     {
+      "t": 0.8,
+      "impact": 0.234
+     },
+     {
+      "t": 1.35,
+      "impact": 0.3
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair5-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.6
+     },
+     {
+      "t": 0.8,
+      "impact": 0.9
+     },
+     {
+      "t": 1.45,
+      "impact": 0.6
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair6",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair6-left.mp4",
+    "beats": [
+     {
+      "t": 0.4,
+      "impact": 0.67398
+     },
+     {
+      "t": 0.85,
+      "impact": 0.76
+     },
+     {
+      "t": 1.25,
+      "impact": 0.7411399999999999
+     },
+     {
+      "t": 1.725,
+      "impact": 0.7425200000000001
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair6-right.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 0.60784
+     },
+     {
+      "t": 1.65,
+      "impact": 0.5545599999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair7",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair7-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.173
+     },
+     {
+      "t": 0.975,
+      "impact": 0.234
+     },
+     {
+      "t": 1.525,
+      "impact": 0.3
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair7-right.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.6
+     },
+     {
+      "t": 1,
+      "impact": 0.9
+     },
+     {
+      "t": 1.65,
+      "impact": 0.6
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair8",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair8-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.759
+     },
+     {
+      "t": 1,
+      "impact": 0.843
+     },
+     {
+      "t": 1.55,
+      "impact": 0.338
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair8-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.5976533333333334
+     },
+     {
+      "t": 0.575,
+      "impact": 0.64812
+     },
+     {
+      "t": 1,
+      "impact": 0.6061866666666668
+     },
+     {
+      "t": 1.425,
+      "impact": 0.76744
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair9",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair9-left.mp4",
+    "beats": [
+     {
+      "t": 0.375,
+      "impact": 0.65742
+     },
+     {
+      "t": 0.8,
+      "impact": 0.76
+     },
+     {
+      "t": 1.225,
+      "impact": 0.63442
+     },
+     {
+      "t": 1.65,
+      "impact": 0.7176800000000001
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair9-right.mp4",
+    "beats": [
+     {
+      "t": 0.775,
+      "impact": 0.02
+     },
+     {
+      "t": 1.6,
+      "impact": 0.60784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair10",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair10-left.mp4",
+    "beats": [
+     {
+      "t": 0.075,
+      "impact": 0.9
+     },
+     {
+      "t": 0.725,
+      "impact": 0.6
+     },
+     {
+      "t": 1.4,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair10-right.mp4",
+    "beats": [
+     {
+      "t": 0.625,
+      "impact": 1
+     },
+     {
+      "t": 0.95,
+      "impact": 0.928
+     },
+     {
+      "t": 1.3,
+      "impact": 0.842
+     },
+     {
+      "t": 1.6,
+      "impact": 0.935
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair11",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair11-left.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.341
+     },
+     {
+      "t": 1.025,
+      "impact": 0.335
+     },
+     {
+      "t": 1.575,
+      "impact": 0.887
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair11-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.749
+     },
+     {
+      "t": 0.975,
+      "impact": 0.347
+     },
+     {
+      "t": 1.525,
+      "impact": 0.346
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair12",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair12-left.mp4",
+    "beats": [
+     {
+      "t": 0.375,
+      "impact": 0.1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair12-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 0.781
+     },
+     {
+      "t": 0.6,
+      "impact": 0.784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair13",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair13-left.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.786
+     },
+     {
+      "t": 0.975,
+      "impact": 1
+     },
+     {
+      "t": 1.3,
+      "impact": 0.928
+     },
+     {
+      "t": 1.65,
+      "impact": 0.842
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair13-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.709
+     },
+     {
+      "t": 0.975,
+      "impact": 0.33
+     },
+     {
+      "t": 1.525,
+      "impact": 0.341
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair14",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair14-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.781
+     },
+     {
+      "t": 0.65,
+      "impact": 0.784
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair14-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.04
+     },
+     {
+      "t": 1,
+      "impact": 0.8
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair15",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair15-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.818
+     },
+     {
+      "t": 1,
+      "impact": 0.322
+     },
+     {
+      "t": 1.55,
+      "impact": 0.336
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair15-right.mp4",
+    "beats": [
+     {
+      "t": 0.4,
+      "impact": 0.624
+     },
+     {
+      "t": 0.95,
+      "impact": 0.612
+     },
+     {
+      "t": 1.5,
+      "impact": 0.45
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair16",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair16-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.336
+     },
+     {
+      "t": 0.975,
+      "impact": 0.332
+     },
+     {
+      "t": 1.525,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair16-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.71078
+     },
+     {
+      "t": 1,
+      "impact": 0.52
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair17",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair17-left.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 0.52
+     },
+     {
+      "t": 1.675,
+      "impact": 0.50164
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair17-right.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 0.03
+     },
+     {
+      "t": 1.65,
+      "impact": 0.03
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair18",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair18-left.mp4",
+    "beats": [
+     {
+      "t": 0.825,
+      "impact": 0.03
+     },
+     {
+      "t": 1.7,
+      "impact": 0.03
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair18-right.mp4",
+    "beats": [
+     {
+      "t": 0.775,
+      "impact": 0.02
+     },
+     {
+      "t": 1.6,
+      "impact": 0.60784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair19",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair19-left.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 1
+     },
+     {
+      "t": 1.35,
+      "impact": 0.51
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair19-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.781
+     },
+     {
+      "t": 0.725,
+      "impact": 0.784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair20",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair20-left.mp4",
+    "beats": [
+     {
+      "t": 0.85,
+      "impact": 0.03
+     },
+     {
+      "t": 1.725,
+      "impact": 0.03
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair20-right.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 0.60784
+     },
+     {
+      "t": 1.65,
+      "impact": 0.5545599999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair21",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair21-left.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.04
+     },
+     {
+      "t": 0.6,
+      "impact": 0.04
+     },
+     {
+      "t": 1.45,
+      "impact": 0.8
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair21-right.mp4",
+    "beats": [
+     {
+      "t": 0.375,
+      "impact": 0.1
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair22",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair22-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.877
+     },
+     {
+      "t": 0.775,
+      "impact": 0.763
+     },
+     {
+      "t": 1.3,
+      "impact": 0.849
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair22-right.mp4",
+    "beats": [
+     {
+      "t": 0.175,
+      "impact": 0.781
+     },
+     {
+      "t": 0.475,
+      "impact": 0.784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair23",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair23-left.mp4",
+    "beats": [
+     {
+      "t": 0.75,
+      "impact": 0.5545599999999999
+     },
+     {
+      "t": 1.625,
+      "impact": 0.53296
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair23-right.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.03
+     },
+     {
+      "t": 0.875,
+      "impact": 0.03
+     },
+     {
+      "t": 1.725,
+      "impact": 0.03
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair24",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair24-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.50164
+     },
+     {
+      "t": 0.975,
+      "impact": 0.49488
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair24-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.76
+     },
+     {
+      "t": 0.55,
+      "impact": 0.65742
+     },
+     {
+      "t": 0.975,
+      "impact": 0.76
+     },
+     {
+      "t": 1.4,
+      "impact": 0.63442
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair25",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair25-left.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.9
+     },
+     {
+      "t": 0.8,
+      "impact": 0.6
+     },
+     {
+      "t": 1.475,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair25-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.6
+     },
+     {
+      "t": 0.675,
+      "impact": 0.9
+     },
+     {
+      "t": 1.35,
+      "impact": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair26",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair26-left.mp4",
+    "beats": [
+     {
+      "t": 0.625,
+      "impact": 0.06
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair26-right.mp4",
+    "beats": [
+     {
+      "t": 0.775,
+      "impact": 0.60784
+     },
+     {
+      "t": 1.625,
+      "impact": 0.5545599999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair27",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair27-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.348
+     },
+     {
+      "t": 0.975,
+      "impact": 0.343
+     },
+     {
+      "t": 1.55,
+      "impact": 0.777
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair27-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.5693333333333334
+     },
+     {
+      "t": 0.575,
+      "impact": 0.78
+     },
+     {
+      "t": 1,
+      "impact": 0.5976533333333334
+     },
+     {
+      "t": 1.45,
+      "impact": 0.64812
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair28",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair28-left.mp4",
+    "beats": [
+     {
+      "t": 0.075,
+      "impact": 0.6
+     },
+     {
+      "t": 0.75,
+      "impact": 0.9
+     },
+     {
+      "t": 1.425,
+      "impact": 0.6
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair28-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.9
+     },
+     {
+      "t": 0.8,
+      "impact": 0.6
+     },
+     {
+      "t": 1.475,
+      "impact": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair29",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair29-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.9
+     },
+     {
+      "t": 1.025,
+      "impact": 0.6
+     },
+     {
+      "t": 1.7,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair29-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.585
+     },
+     {
+      "t": 0.975,
+      "impact": 0.482
+     },
+     {
+      "t": 1.525,
+      "impact": 0.612
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair30",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair30-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.06
+     },
+     {
+      "t": 0.775,
+      "impact": 0.06
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair30-right.mp4",
+    "beats": [
+     {
+      "t": 0.25,
+      "impact": 0.818
+     },
+     {
+      "t": 0.8,
+      "impact": 0.322
+     },
+     {
+      "t": 1.35,
+      "impact": 0.336
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair31",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair31-left.mp4",
+    "beats": [
+     {
+      "t": 0.625,
+      "impact": 0.5032
+     },
+     {
+      "t": 1.425,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair31-right.mp4",
+    "beats": [
+     {
+      "t": 0.8,
+      "impact": 0.60784
+     },
+     {
+      "t": 1.65,
+      "impact": 0.5545599999999999
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair32",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair32-left.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.829
+     },
+     {
+      "t": 0.45,
+      "impact": 0.877
+     },
+     {
+      "t": 0.8,
+      "impact": 0.999
+     },
+     {
+      "t": 1.475,
+      "impact": 0.832
+     },
+     {
+      "t": 1.8,
+      "impact": 0.502
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair32-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.6
+     },
+     {
+      "t": 0.8,
+      "impact": 0.9
+     },
+     {
+      "t": 1.45,
+      "impact": 0.6
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair33",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair33-left.mp4",
+    "beats": [
+     {
+      "t": 0.25,
+      "impact": 0.05
+     },
+     {
+      "t": 0.8,
+      "impact": 0.1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair33-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.599
+     },
+     {
+      "t": 0.7,
+      "impact": 0.606
+     },
+     {
+      "t": 1.8,
+      "impact": 1
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair34",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair34-left.mp4",
+    "beats": [
+     {
+      "t": 0.25,
+      "impact": 0.599
+     },
+     {
+      "t": 0.8,
+      "impact": 0.606
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair34-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 0.04
+     },
+     {
+      "t": 0.85,
+      "impact": 0.04
+     },
+     {
+      "t": 1.4,
+      "impact": 0.04
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair35",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair35-left.mp4",
+    "beats": [
+     {
+      "t": 0.2,
+      "impact": 0.06
+     },
+     {
+      "t": 0.775,
+      "impact": 0.06
+     },
+     {
+      "t": 1.525,
+      "impact": 0.06
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair35-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.9
+     },
+     {
+      "t": 0.775,
+      "impact": 0.6
+     },
+     {
+      "t": 1.425,
+      "impact": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair36",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair36-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.843
+     },
+     {
+      "t": 1,
+      "impact": 0.338
+     },
+     {
+      "t": 1.55,
+      "impact": 0.348
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair36-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.341
+     },
+     {
+      "t": 0.975,
+      "impact": 0.377
+     },
+     {
+      "t": 1.525,
+      "impact": 0.844
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair37",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair37-left.mp4",
+    "beats": [
+     {
+      "t": 0.275,
+      "impact": 0.8
+     },
+     {
+      "t": 0.825,
+      "impact": 0.792
+     },
+     {
+      "t": 1.275,
+      "impact": 0.781
+     },
+     {
+      "t": 1.575,
+      "impact": 0.784
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair37-right.mp4",
+    "beats": [
+     {
+      "t": 0.075,
+      "impact": 0.04
+     },
+     {
+      "t": 0.625,
+      "impact": 0.04
+     },
+     {
+      "t": 1.475,
+      "impact": 0.8
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair38",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair38-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.659
+     },
+     {
+      "t": 0.975,
+      "impact": 0.663
+     },
+     {
+      "t": 1.525,
+      "impact": 0.682
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair38-right.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.53296
+     },
+     {
+      "t": 1.025,
+      "impact": 0.5032
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair39",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair39-left.mp4",
+    "beats": [
+     {
+      "t": 0.75,
+      "impact": 0.02
+     },
+     {
+      "t": 1.575,
+      "impact": 0.60784
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair39-right.mp4",
+    "beats": [
+     {
+      "t": 0.7,
+      "impact": 1
+     },
+     {
+      "t": 1.575,
+      "impact": 0.76
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair40",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair40-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.234
+     },
+     {
+      "t": 1,
+      "impact": 0.3
+     },
+     {
+      "t": 1.525,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair40-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.345
+     },
+     {
+      "t": 0.975,
+      "impact": 0.352
+     },
+     {
+      "t": 1.525,
+      "impact": 0.354
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair41",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair41-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.76
+     },
+     {
+      "t": 1.45,
+      "impact": 0.63764
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair41-right.mp4",
+    "beats": [
+     {
+      "t": 0.75,
+      "impact": 0.02
+     },
+     {
+      "t": 1.575,
+      "impact": 0.60784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair42",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair42-left.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 0.9
+     },
+     {
+      "t": 0.75,
+      "impact": 0.6
+     },
+     {
+      "t": 1.4,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair42-right.mp4",
+    "beats": [
+     {
+      "t": 0.65,
+      "impact": 0.06
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair43",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair43-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.33
+     },
+     {
+      "t": 0.975,
+      "impact": 0.341
+     },
+     {
+      "t": 1.525,
+      "impact": 0.335
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair43-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.11
+     },
+     {
+      "t": 1,
+      "impact": 0.173
+     },
+     {
+      "t": 1.525,
+      "impact": 0.234
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair44",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair44-left.mp4",
+    "beats": [
+     {
+      "t": 0.85,
+      "impact": 0.03
+     },
+     {
+      "t": 1.7,
+      "impact": 0.03
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair44-right.mp4",
+    "beats": [
+     {
+      "t": 0.775,
+      "impact": 0.02
+     },
+     {
+      "t": 1.6,
+      "impact": 0.60784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair45",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair45-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.484
+     },
+     {
+      "t": 0.975,
+      "impact": 0.512
+     },
+     {
+      "t": 1.525,
+      "impact": 0.58
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair45-right.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.796
+     },
+     {
+      "t": 1,
+      "impact": 0.93
+     },
+     {
+      "t": 1.325,
+      "impact": 0.835
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair46",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair46-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.9
+     },
+     {
+      "t": 1.025,
+      "impact": 0.6
+     },
+     {
+      "t": 1.675,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair46-right.mp4",
+    "beats": [
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.55,
+      "impact": 0.541
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair47",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair47-left.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.512
+     },
+     {
+      "t": 0.975,
+      "impact": 0.58
+     },
+     {
+      "t": 1.525,
+      "impact": 0.571
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair47-right.mp4",
+    "beats": [
+     {
+      "t": 0.3,
+      "impact": 0.9
+     },
+     {
+      "t": 0.975,
+      "impact": 0.6
+     },
+     {
+      "t": 1.65,
+      "impact": 0.9
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair48",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair48-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.33
+     },
+     {
+      "t": 1,
+      "impact": 0.341
+     },
+     {
+      "t": 1.55,
+      "impact": 0.335
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair48-right.mp4",
+    "beats": [
+     {
+      "t": 0.425,
+      "impact": 0.614
+     },
+     {
+      "t": 0.975,
+      "impact": 0.474
+     },
+     {
+      "t": 1.525,
+      "impact": 0.523
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair49",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair49-left.mp4",
+    "beats": [
+     {
+      "t": 0.175,
+      "impact": 0.614
+     },
+     {
+      "t": 0.725,
+      "impact": 0.474
+     },
+     {
+      "t": 1.275,
+      "impact": 0.523
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair49-right.mp4",
+    "beats": [
+     {
+      "t": 0.75,
+      "impact": 0.02
+     },
+     {
+      "t": 1.575,
+      "impact": 0.60784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair50",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair50-left.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.502
+     },
+     {
+      "t": 0.35,
+      "impact": 1
+     },
+     {
+      "t": 0.7,
+      "impact": 0.945
+     },
+     {
+      "t": 1.025,
+      "impact": 0.857
+     },
+     {
+      "t": 1.325,
+      "impact": 0.935
+     },
+     {
+      "t": 1.7,
+      "impact": 0.529
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair50-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.03
+     },
+     {
+      "t": 1,
+      "impact": 0.03
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair51",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair51-left.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.6
+     },
+     {
+      "t": 0.825,
+      "impact": 0.9
+     },
+     {
+      "t": 1.475,
+      "impact": 0.6
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair51-right.mp4",
+    "beats": [
+     {
+      "t": 0.175,
+      "impact": 0.94
+     },
+     {
+      "t": 0.55,
+      "impact": 0.844
+     },
+     {
+      "t": 0.875,
+      "impact": 0.935
+     },
+     {
+      "t": 1.2,
+      "impact": 1
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair52",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair52-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.05
+     },
+     {
+      "t": 0.775,
+      "impact": 0.1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair52-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.792
+     },
+     {
+      "t": 0.475,
+      "impact": 0.781
+     },
+     {
+      "t": 0.775,
+      "impact": 0.784
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair53",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair53-left.mp4",
+    "beats": [
+     {
+      "t": 0.525,
+      "impact": 0.1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair53-right.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.942
+     },
+     {
+      "t": 0.375,
+      "impact": 0.869
+     },
+     {
+      "t": 0.675,
+      "impact": 0.925
+     },
+     {
+      "t": 1.725,
+      "impact": 0.825
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair54",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair54-left.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.9
+     },
+     {
+      "t": 0.775,
+      "impact": 0.6
+     },
+     {
+      "t": 1.45,
+      "impact": 0.9
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair54-right.mp4",
+    "beats": [
+     {
+      "t": 0.175,
+      "impact": 0.594
+     },
+     {
+      "t": 0.85,
+      "impact": 0.796
+     },
+     {
+      "t": 1.5,
+      "impact": 0.93
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair55",
+   "left": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair55-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.887
+     },
+     {
+      "t": 0.975,
+      "impact": 0.761
+     },
+     {
+      "t": 1.525,
+      "impact": 0.542
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/impact-visibility-2026-11/clips/pair55-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.6
+     },
+     {
+      "t": 0.8,
+      "impact": 0.9
+     },
+     {
+      "t": 1.475,
+      "impact": 0.6
+     }
+    ]
+   }
+  }
+ ]
+}

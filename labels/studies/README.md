@@ -67,3 +67,14 @@ To reconstruct them on a checkout without those runs, extract into
 --study=<fresh-id>`. Rendering verifies the authoring and audio against the saved
 inputs. Existing study IDs are immutable; use a new ID for any new selection or
 rendering revision. Large videos and the complete historical archive stay local.
+
+`impact-visibility-2026-11` (built 2026-10-31, docs/research/impact-visibility-study-20261031.md)
+asks the same "bigger impact" question on 55 pairs from 76 held-out rides (seeds 9101–9124)
+that no earlier study or report used. Block A (34) sets a lit unrequested extra, a late push
+after a quiet touchdown or an anchor against a lit blank of plain riding; block R (21) sets two
+clean requested hits at a controlled v3 ratio. The key holds every pair's measured values and
+the pre-registered rules are in the report. The source tracks are
+`sources/heldout~<song>~<seed>.track.json.gz`. Rebuild with
+`node --import tsx tools/measure/visibility/build.ts --study=<fresh-id>` after copying the key
+to that id. Answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-visibility-2026-11`.

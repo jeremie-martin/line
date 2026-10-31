@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: impact visibility study built (unanswered)
+
+Pre-registration only; no tool, measure or compiler change used by the product.
+- **Study `impact-visibility-2026-11`** (docs/research/impact-visibility-study-20261031.md):
+  55 pairs, about 17–21 minutes, from 76 of the 96 unexamined held-out rides
+  (seeds 9101–9124), chosen from measured values only (seed 20261031).
+  - Block A (34): unrequested extras (0.05–0.10, 0.10–0.20, 0.20–0.35), launch
+    pushes and in-contact pushes after quiet touchdowns, 4 anchors, each against
+    a lit blank.
+  - Block R (21): clean, upright requested hits at v3 ratios 1.25, 1.5, 2 (and 3
+    at base 0.25), bases about 0.25 and 0.5. Information, not a case for
+    flattening requested strengths.
+- **Rules fixed before answers:** 5 of 6 seen = visible, 1 of 6 = not visible
+  (block A), 2 of 6 = not visible (block R); void if an anchor is missed, block A
+  void if blanks are picked more than twice.
+- **Changed from the step-back plan:** blanks with nothing within ±8 frames
+  exist in 4 of 96 rides, so the blank window is the lit span ±1 frame (0.05
+  ceiling kept), and blanks come from the same song rather than the same ride.
+- **Next, owner:** answer it. No measure or compiler change before.
+
 ## October 31: the impact measure (U1 stopped, step back)
 
 Reports only; no tool, measure or compiler change merged.

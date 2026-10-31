@@ -61,6 +61,14 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    `productions/<song>/events.json`: every onset in any instrument, with each
    instrument's loudness and rise. It also draws 5-second sheets in
    `generated/stems/<song>/sheets/`.
+   If a voice leads anywhere, then run
+   `~/.venvs/line-stems/bin/python tools/music/sung.py --song=<song>`. It writes
+   `productions/<song>/sung.json`: the sung notes with a salience, and the
+   unpitched attacks (breaths, consonants) that `events.json` lists as vocal
+   onsets. It redraws the sheets with the notes on the vocals lane. A note
+   names its `events.json` event, by which music.ts references it. Prefer
+   notes to raw vocal onsets; `docs/research/sung-notes-20261031.md` says
+   where it is unverified.
 4. **Read the whole song before writing anything.** Go through every sheet and
    write the structure down in the spec's header. For each section, record:
    - which instrument leads;

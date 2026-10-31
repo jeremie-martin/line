@@ -10,10 +10,11 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {tsImport} from 'tsx/esm/api';
+import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
 import {specZoomLaneToRenderPlan} from '../v0/core/camera.ts';
 import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
 
+type SpecEntry = {path: string; name: string; label: string; group: string};
 type Note = {id: string; t: number; scope: string; index: number | null; t0: number | null; t1: number | null;
   axis: string | null; title: string; text: string; tags: string[]; createdAt: string; updatedAt: string};
 
@@ -78,11 +79,9 @@ export function createSpecApi(root = process.cwd()) {
       renderKeyframes: plan.zoomKeyframes.map(([frame, log2], i) => ({i, frame, t: round(frame / FPS), zoom: round(2 ** log2), log2Zoom: round(log2)}))}};
   }
 
-  async function view(entry: {path: string; name: string; label: string; group: string}, requested: number) {
+  async function computeView(entry: SpecEntry, requested: number) {
     const abs = join(root, entry.path);
-    // A fresh module graph per view, so edits to a spec's imports (a song's music.ts,
-    // another variant) show without restarting the server.
-    const mod = await tsImport(pathToFileURL(abs).href, import.meta.url);
+    const mod = await import(pathToFileURL(abs).href);
     const spec = mod.default as Spec, duration = spec.duration, samples = Math.max(80, Math.min(3000, Math.trunc(requested)));
     const contacts = spec.contacts.map((c, i) => ({i, t: round(c.t), frame: Math.round(c.t * FPS),
       impact: Number.isFinite(c.impact) ? round(c.impact!) : null, edit: READ_ONLY})).sort((a, b) => a.t - b.t);
@@ -140,7 +139,19 @@ export function createSpecApi(root = process.cwd()) {
       tags: [...new Set<string>(tags)], createdAt: previous?.createdAt ?? now, updatedAt: now};
   }
 
-  return async function handle(req: IncomingMessage, res: ServerResponse, u: URL): Promise<boolean> {
+  /** Each view loads its spec in a short-lived worker thread: a fresh module graph, so edits
+   * to a spec's imports (a song's music.ts, another variant) show without a restart, and a
+   * spec that hangs or throws cannot take the server down. */
+  function view(entry: SpecEntry, requested: number): Promise<unknown> {
+    return new Promise((done, fail) => {
+      const worker = new Worker(new URL(import.meta.url), {workerData: {specView: {root, entry, requested}}});
+      const timer = setTimeout(() => {worker.terminate(); fail(new Error('spec view timed out after 30 s'));}, 30_000);
+      worker.once('message', (m: {view?: unknown; error?: string}) => {clearTimeout(timer); worker.terminate(); m.error ? fail(new Error(m.error)) : done(m.view);});
+      worker.once('error', (e) => {clearTimeout(timer); fail(e);});
+    });
+  }
+
+  const handle = async function handle(req: IncomingMessage, res: ServerResponse, u: URL): Promise<boolean> {
     if (u.pathname === '/api/specs') {reply(res, {specs: specs()}); return true;}
     if (u.pathname === '/api/spec-edits') {reply(res, {edits: []}); return true;}
     if (u.pathname === '/api/spec-history') {reply(res, {history: null}); return true;}
@@ -171,4 +182,12 @@ export function createSpecApi(root = process.cwd()) {
     const next = [...notes.filter(x => x.id !== n.id), ...(empty ? [] : [n])];
     writeNotes(entry.path, next); reply(res, {...base, count: next.length, note: empty ? null : n}); return true;
   };
+  return Object.assign(handle, {computeView});
+}
+
+// Worker side of view(): load the spec fresh and send its view back.
+if (!isMainThread && workerData?.specView) {
+  const {root, entry, requested} = workerData.specView;
+  createSpecApi(root).computeView(entry, requested)
+    .then(view => parentPort!.postMessage({view}), (e: unknown) => parentPort!.postMessage({error: String(e)}));
 }

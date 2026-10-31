@@ -59,6 +59,32 @@ quality, and every ruler.
 A shorter section gets guided plain arcs. See REWORK.md for the full results:
 bench 38/41 → 41/41, held out 5/16 → 15/16, no ride lost.
 
+**Why 9 frames: not a cliff, a curve** (2026-10-31, diagnostics reverted after use).
+The probe was Luna, every section a fold, seed 101, with the 9-frame rule
+bypassed and each searched interval's rejection counts logged. Pairs 0.200 s
+and 0.225 s apart both come out as 9-frame sections in the search's own frame
+count, once the jolt shifts contacts.
+
+| sections (search frames) | probe | intervals | with a viable candidate |
+|---|---|---|---|
+| 9 | 0.200 s pairs | 1,376 | 0 |
+| 9 | 0.225 s pairs | 232 | 39% |
+| 12 | 0.225 s pairs | 16 | 88% |
+| 13 | 0.225 s pairs | 170 | 94% |
+
+- **The curve:** feasibility rises smoothly with room. Backtracking hides the
+  failed attempts, so the rides looked like a cliff, while a 9-frame fold
+  still fails 61% of its attempts and spends allowance on them.
+- **What rejects candidates:** about 42% fail the binary fulfilment checks in
+  repertoire_realization.ts. "Bypassed-shape" means the rider must touch the
+  shape's early, middle and late thirds in order; "unused-or-missing-guide"
+  means the guide must be touched. About 32% lose the rail ("binding") and 11%
+  release too late: the physical cost of forcing the shape into too little
+  room.
+- **So it is mostly requirement strictness:** an all-or-nothing check on a
+  continuous capability. This is the case for graded fulfilment
+  (docs/research/graded-fulfilment-design-20261031.md).
+
 ## 2. Other open threads (evidence in the reports named)
 
 | thread | state | evidence | next step |

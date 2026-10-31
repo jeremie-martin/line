@@ -62,7 +62,7 @@ What was tried and left out:
 ## Which labels informed the design
 
 - **Valhalla (design set).** All seven labels informed the design. The
-  previous agent built the rise and flatness rules with them in view. I
+  previous draft of the rise and flatness rules was written with them in view. I
   changed only the timing rule, and checked that against events.json on all
   three songs, not against labels.
 - **The outcome is not knife-edge.** Any flatness threshold from 0.008 to 0.13

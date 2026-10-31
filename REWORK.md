@@ -22,6 +22,44 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1 (overnight): the 9-frame rule replaced by a section fallback (adopted)
+
+**Hypothesis** (stated before the run): completion equals the 9-frame rule on
+every stratum with no threshold; geometry and quality stay within noise; on
+specs without short sections the tracks are identical.
+
+**Change:** a shaped section that offers no viable candidate is asked for plain
+arcs, keeping its guidance and rail layout, before backtracking. `minFrames`
+and `fitShapesToSections` are deleted, and the plan is rewritten to the
+realized requests. The planner again reproduces V6's frozen plans exactly.
+
+**Results against the rule** (headline, completion):
+
+| panel | headline | completion | lost |
+|---|---|---|---|
+| bench | +0.4 | 41/41 = 41/41 | 0 |
+| bench-pairs8 | +3.6 | 32/32 = 32/32 | 0 |
+| bench-confirm | +2.2 | 41/41 = 41/41 | 0 |
+| sealed | −4.1 | 18/18 = 18/18 | 0 |
+| held out | +44.0 | 16/16 vs 15/16 | 0 |
+
+- **Held out:** X finishes the one Circus ride the rule still failed (seed
+  303); it was not targeted.
+- **Sealed:** the −4.1 comes from rides where the search now *keeps* a shape
+  squeezed into a 7–8-frame section where it was feasible (serpentine 8, fold 8,
+  scallops 7), at a cost of 10–28 points on those rides. The rule always
+  replaced such shapes. Whether a 0.2 s shape is worth it is a question for
+  the owner's eye.
+- **Other rulers:** within noise. On bench P1, inverted strong arrivals are
+  +0.08 (6 cells) and body drag is lower.
+
+**Gates:**
+- tests, typecheck and reach pass, and judge parity passes;
+- parity: 5 of 63 cells differ. The V6 case the rule had changed returns to
+  its original track (its fold was feasible). Four cells differ at the 150k
+  allowance, where dead ends are frequent. References are refreshed in this
+  commit.
+
 ## October 31: quick re-landings fixed by fitting shapes to section length (adopted)
 
 **Hypothesis** (stated before the runs): quick-pair and voice-word completion

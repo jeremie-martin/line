@@ -55,7 +55,7 @@ Each would be a behavioural change: a hypothesis, paired comparisons on panel
 specs (the new benchmark's short-pair specs), completion reported apart from
 quality, and every ruler.
 
-**Adopted (2026-10-31):** each shaped family has a measured `minFrames` (9).
+**Adopted (2026-10-31), then replaced (2026-11-01):** each shaped family had a measured `minFrames` (9). It was replaced by a section fallback with no threshold (REWORK.md, November 1).
 A shorter section gets guided plain arcs. See REWORK.md for the full results:
 bench 38/41 → 41/41, held out 5/16 → 15/16, no ride lost.
 

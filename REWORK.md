@@ -1,5 +1,48 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: quick re-landings fixed by fitting shapes to section length (adopted)
+
+**Hypothesis** (stated before the runs): quick-pair and voice-word completion
+rises, with no completion loss elsewhere; quality on both-complete cells stays
+within noise under every ruler; the shaped share drops only in sections under 9
+frames.
+
+**Change:** each shaped family (fold, serpentine, scallops, terraces) has a
+measured `minFrames: 9`. A shorter section gets plain arcs with the same
+guidance and rail layout, and its phrase is split around it. The plan's draws
+are unchanged.
+- **Probe on Luna:** 8-frame quick pairs failed for every shaped family; 9
+  frames passed 150 of 150 for each; guided arcs passed every 8-frame section.
+- **Why guided arcs:** the guide requirement itself was never the problem, so
+  the guided shapes the owner likes are kept.
+
+**Results:** completion, baseline → candidate; no ride lost anywhere.
+
+| panel | before | after |
+|---|---|---|
+| bench | 38/41 | 41/41 |
+| bench-pairs8 | 27/32 | 32/32 |
+| bench-confirm | 40/41 | 41/41 |
+| sealed | 18/18 | 18/18 |
+| held out, at the decision point | 5/16 | 15/16 |
+
+Held out, in detail: Trouble 1/4 → 4/4, Circus pairs3 0/4 → 3/4, Circus pairs4
+0/4 → 4/4, Valhalla 4/4 → 4/4. The one failure left is Circus pairs3 seed 303
+at 69.7 s.
+
+**Quality** on cells complete in both arms:
+- identical tracks where no section is under 9 frames (G, P3, P5, P6);
+- within noise on P1 and P2, mostly slight gains: v3 window loss −0.002/−0.001,
+  strong extra hits −0.025 on P1.
+
+**Gates:**
+- parity: 1 of 63 cells differs, the V6 automatic case whose 8-frame fold
+  became arcs (references refreshed in their own commit);
+- judge parity passes;
+- the V6 test now states the one intended difference from V6's frozen plans
+  (7 of 756 plans);
+- tests, typecheck and reach pass.
+
 ## October 31: the new benchmark and its first baseline
 
 **What was built:**

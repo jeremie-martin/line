@@ -55,6 +55,10 @@ Each would be a behavioural change: a hypothesis, paired comparisons on panel
 specs (the new benchmark's short-pair specs), completion reported apart from
 quality, and every ruler.
 
+**Adopted (2026-10-31):** each shaped family has a measured `minFrames` (9).
+A shorter section gets guided plain arcs. See REWORK.md for the full results:
+bench 38/41 → 41/41, held out 5/16 → 15/16, no ride lost.
+
 ## 2. Other open threads (evidence in the reports named)
 
 | thread | state | evidence | next step |

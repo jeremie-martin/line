@@ -104,6 +104,12 @@ A geometry family is one row of `GEOMETRY_FAMILIES`
   demonstrations.
 - **`heading`**: for a shaped family, its tangent schedule. The family's id is
   then its motion profile (`motion_profiles.ts` dispatches on it).
+- **`minFrames`**: the shortest section, in frames between two landings, the
+  family can realize; it was measured at 9 for every shaped family.
+  - The intentional planner gives a shorter section plain arcs with the same
+    guidance and rail layout, splitting its phrase (`fitShapesToSections`).
+  - Without this, a 0.2 s quick pair drawn as a fold spent the whole allowance
+    backtracking (docs/research/compiler-stepback-20261031.md).
 
 Everything else is shared machinery. Plain `arcs` and `scattered` fragments
 are rows without a heading, and the planner, search and layout checks treat

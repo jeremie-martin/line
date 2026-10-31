@@ -14,7 +14,6 @@
     "motion-gallery/replay.js",
     "motion-gallery/contact-impact-review.js",
     "scripts/v0/bench/sim_trace.ts",
-    "motion-gallery/label.js",
     "motion-gallery/pairs.js",
     "motion-gallery/night.js",
     "spec-dashboard/main.js",

@@ -7,11 +7,10 @@ Owner judgments are ground truth for choosing an impact definition. Each study h
   design/holdout split and the candidate measures at that beat.
 - `<id>.jsonl` — the answers, appended by the review server as they are given.
 
-Label at `http://127.0.0.1:8767/motion-gallery/label.html?study=<id>` (`npm run serve`).
-Analyse with `npm run labels:analyze -- --study=<id> --split=design`; read the
-`holdout` split only once, for the final decision. The playable clip records live in
-`generated/label-studies/<id>/` and are rebuilt by `npm run measure && npm run labels:study`
-from the same rides (their hashes are pinned in the manifest).
+The first study, `impact-2026-10`, graded single clips (soft/medium/hard). That
+method was retired for blind pairs, and its page and generator were removed on
+2026-10-31 (last in commit 133f1360); its answers stay here. Analyse them with
+`npm run labels:analyze -- --study=impact-2026-10 --split=design`.
 
 ## Pair studies
 

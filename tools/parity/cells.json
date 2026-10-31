@@ -216,12 +216,12 @@
    "id": "canonical-bridge_frontier_pickup_progression-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "87ab1049856aca840e6e8f1d70a6b8c0723f76eca80aad7d60110c578bddf69b",
-   "physicalFrames": 2973254,
-   "score": 685.2732,
-   "musicalScore": 685.2732,
+   "trackHash": "3e36f388fbf5d558b97ea58b82c2bac9a3fc2cf0724f7ce10d65a1f21514e808",
+   "physicalFrames": 2987034,
+   "score": 714.7222154545454,
+   "musicalScore": 721.2793,
    "valid": true,
-   "fulfilled": 110
+   "fulfilled": 109
   },
   {
    "mode": "strike",

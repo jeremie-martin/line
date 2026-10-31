@@ -8,7 +8,9 @@ import {digest, type resolveCase} from './inputs.ts';
 
 export type PlannedCase = Awaited<ReturnType<typeof resolveCase>>['planned'];
 export type RunPlan = {schema: 'line.eval.v2'; identity: any; evaluator: string; jolt: number; mode: string; budget: string;
-  panelName: string; panel: PlannedCase[]; remeasuredFrom?: {runSha256: string; cellsSha256: string}};
+  panelName: string; panel: PlannedCase[]; remeasuredFrom?: {runSha256: string; cellsSha256: string};
+  /** Creative preferences passed to the planner (absent = the defaults). An arm, not an input: paired runs may differ. */
+  creative?: Record<string, unknown>};
 export type Run = {dir: string; run: RunPlan; cells: Map<string, any>};
 export const runDir = (name: string) => resolve('generated/eval', name);
 export function atomicWrite(path: string, bytes: string | Buffer) {

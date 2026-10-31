@@ -2,7 +2,7 @@
  * reports require the full panel. A failed worker is a failed run, resumable
  * after its cause is addressed; an incomplete ride is still a recorded result.
  *
- * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|N] [--panel=NAME] [--sealed|--heldout] [--jobs=24]
+ * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|N] [--panel=NAME] [--sealed|--heldout] [--jobs=24] [--creative=JSON]
  * node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  * Panels are listed in USAGE below (PANEL_HELP in inputs.ts). */
 import assert from 'node:assert/strict';
@@ -20,7 +20,7 @@ import {measureCell, geometryFacts} from './measure.ts';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 export const USAGE = `usage:
-  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|N] [--jobs=24] [--sealed|--heldout]
+  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|N] [--jobs=24] [--sealed|--heldout] [--creative=JSON]
   npm run eval:report -- --name=DIR [--against=DIR]
 panels:
 ${Object.entries(PANEL_HELP).map(([k, v]) => `  ${k.padEnd(14)}${v}`).join('\n')}
@@ -41,12 +41,12 @@ export function validateRunOptions(mode: string, budget: string, jobs: number, p
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
   assert.ok(budget === 'standard' || (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard or a positive integer');
 }
-async function planFor(mode: string, budget: string, panelName: string): Promise<RunPlan> {
+async function planFor(mode: string, budget: string, panelName: string, creative?: Record<string, unknown>): Promise<RunPlan> {
   const identity = compilerIdentity('.'), evaluator = evaluatorIdentity(), jolt = resolveJoltMs();
   const cases = await panelCases(panelName);
   assert.ok(cases.length > 0, `panel ${panelName} declares no cases (no matching variant files found)`);
   const panel = await Promise.all(cases.map(async c => (await resolveCase(c, jolt)).planned));
-  return {schema: 'line.eval.v2', identity, evaluator, jolt, mode, budget, panelName, panel};
+  return {schema: 'line.eval.v2', identity, evaluator, jolt, mode, budget, panelName, panel, ...(creative ? {creative} : {})};
 }
 async function worker(dir: string, id: string) {
   const plan = readPlan(dir), c = plan.panel.find(c => c.id === id);
@@ -58,7 +58,7 @@ async function worker(dir: string, id: string) {
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
   const budget = plan.budget === 'standard' ? productionBudget(spec.duration) : Number(plan.budget), began = performance.now();
-  const cp = compileHandoff(spec, c.seed, {budget, creative: {}, impactContract: CONTRACTS[plan.mode as keyof typeof CONTRACTS],
+  const cp = compileHandoff(spec, c.seed, {budget, creative: plan.creative ?? {}, impactContract: CONTRACTS[plan.mode as keyof typeof CONTRACTS],
     phraseBoundaries: music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite)});
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const cell = measureCell({c, mode: plan.mode, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
@@ -75,7 +75,8 @@ async function main() {
   if (command === 'run') {
     const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = Number(arg('jobs', '24'));
     validateRunOptions(mode, budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
-    const dir = runDir(arg('name')!), plan = await planFor(mode, budget, panelName);
+    const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
+    const dir = runDir(arg('name')!), plan = await planFor(mode, budget, panelName, creative);
     mkdirSync(join(dir, 'cells'), {recursive: true});
     const release = lockArtifacts(dir);
     try {
@@ -95,7 +96,7 @@ async function main() {
           } catch (e) {failures.push(`${c.id}: ${e}`); console.error(`FAILED ${c.id}: ${e}`);}
         }
       }));
-      assert.deepEqual(await planFor(mode, budget, panelName), plan, 'inputs changed during run');
+      assert.deepEqual(await planFor(mode, budget, panelName, creative), plan, 'inputs changed during run');
       if (failures.length) throw new Error(`${failures.length} workers failed; run is incomplete and cannot be reported. Resume the same plan after addressing the failures.\n${failures.join('\n')}`);
       assert.deepEqual(readPlan(dir), plan, 'saved run plan changed');
       const result = loadRun(dir);
@@ -115,7 +116,7 @@ async function main() {
 }
 const num = (x: number, signed = false) => !Number.isFinite(x) ? '—' : (signed && x > 0 ? '+' : '') + x.toFixed(3);
 const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
-const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)})`;
+const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)}${r.run.creative ? `, creative ${JSON.stringify(r.run.creative)}` : ''})`;
 /** The stratified report (bench, sealed, held-out panels): completion, then
  * quality on both-complete cells, then per-spec detail with seed sign counts. */
 export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string): string[] {

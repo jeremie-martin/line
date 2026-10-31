@@ -312,3 +312,26 @@ frame. A slow-rising hit can therefore lose its strongest 2-frame window
 All scratch scripts are embedded in the JSON (`scratchScripts`). **None is
 worth keeping as a tool.** The pair re-scorer duplicates the U1 retro, and
 the rest are one-off tables.
+
+## Result: the night study, answered 2026-10-31
+
+The owner answered `night-pairs-2026-10-05`, the original 22-pair study, not
+its `-contact` sibling that Study B named. Both draw their 16 random strong
+beats the same way; the `-contact` version differs in how its posture block
+was sampled. Hits were re-measured under v3 from the study's own ride tracks,
+and they equal the key's values.
+
+- **Random strong beats (16 pairs).** 10 answered "same", 6 decisive. v3 is
+  right on 3 of the 6 decisive (50%). The rule (at most 60%) says ordering does
+  not hold, but on 6 decisive pairs that is weak evidence.
+  - The stronger signal is the "same" answers. Five of them are pairs v3 rates
+    about 1.5–1.9× apart (0.41 vs 0.76, 0.37 vs 0.65, 0.40 vs 0.70, 0.39 vs
+    0.61, 0.53 vs 0.85).
+  - His "perhaps slightly bigger" notes side with v3 in 3 of 4.
+- **Head-down vs upright (6 pairs).** All 6 decisive, v3 right on all 6
+  (p = 0.016).
+- **Reading.** Among the strong hits the compiler actually produces, he sees
+  little of the strength differences that v3 reports. Strength error is about
+  70% of the impact loss, so most of it is spent on differences he does not
+  see in isolation. This is not yet evidence about context: a hit within a
+  ride, next to its neighbours.

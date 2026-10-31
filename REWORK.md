@@ -15,9 +15,13 @@ Reports only; no tool, measure or compiler change merged.
   extras, and what counts as the hit of a quiet beat (two October clips: v3
   matched a near-invisible touch; he saw one "late" hit 200–275 ms later).
   The October labels are now spent as test data.
-- **Next, owner:** answer the never-answered night study (22 pairs), then a
-  new short study on whether extras and late pushes are visible. No measure
-  change before fresh answers.
+- **Night study answered** (result in the step-back report). On 16 random
+  strong beats he answered "same" 10 times, including pairs v3 rates 1.5–1.9×
+  apart; v3 got 3 of 6 decisive. On 6 head-down vs upright pairs v3 got 6 of 6.
+  Strength differences among ordinary strong hits are mostly not visible to
+  him in isolation.
+- **Next, owner:** the visibility study (extras, late pushes), now with a
+  strength-resolution block. No measure or compiler change before fresh answers.
 
 ## October 30 follow-up: unwanted impacts (diagnosis)
 

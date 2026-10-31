@@ -1,19 +1,87 @@
 /** Resolve authoring once, before workers or cache lookup. */
+import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {readdirSync, readFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {buildSync} from 'esbuild';
 import {makeRng} from '../../scripts/lib/rng.ts';
 import {loadMusicCase} from '../../scripts/produce/music_artifacts.ts';
 
 export const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];
 export const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-export type EvalCase = {id: string; song: string; seed: number; perturbation: number | null};
+/** Where a stratified case's pattern happens: authored (music) seconds. An
+ * empty list means the whole ride (the G stratum and the held-out specs). */
+export type BenchMeta = {stratum: string; pattern: string; windows: Array<[number, number]>};
+/** Legacy cases (dev, confirm) have no `variant` or `bench`; stratified cases
+ * always have both (`variant: null` is the song's spec.ts). */
+export type EvalCase = {id: string; song: string; seed: number; perturbation: number | null; variant?: string | null; bench?: BenchMeta};
 const panel = (seeds: number[], ps: number[]): EvalCase[] => [
   ...SONGS.flatMap(song => seeds.map(seed => ({id: `${song}~${seed}`, song, seed, perturbation: null}))),
   ...SONGS.flatMap(song => ps.map(p => ({id: `${song}~${seeds[0]}~p${p}`, song, seed: seeds[0], perturbation: p}))),
 ];
-export const PANELS: Record<string, EvalCase[]> = {dev: panel([101, 202, 303, 404], [1, 2]), confirm: panel([505, 606, 707, 808], [3, 4])};
+const LEGACY: Record<string, EvalCase[]> = {dev: panel([101, 202, 303, 404], [1, 2]), confirm: panel([505, 606, 707, 808], [3, 4])};
+
+export const STRATA = ['G', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+/** Held-out songs: run only at decision points, never used for compiler decisions. */
+export const HELDOUT: Array<{song: string; variant: string | null}> = [
+  {song: 'trouble_50s', variant: null}, {song: 'valhalla_40s', variant: null},
+  {song: 'circus_minimus_77s', variant: null}, {song: 'circus_minimus_77s', variant: 'pairs4'}];
+export const PANEL_HELP: Record<string, string> = {
+  dev: 'the 4 panel specs x seeds 101-404, plus 2 perturbations',
+  confirm: 'the 4 panel specs x seeds 505-808, plus 2 perturbations',
+  bench: 'stratified: G (4 panel specs) x 101, 202; every bench-* variant x 101, 202, 303',
+  'bench-confirm': 'the bench specs at fresh seeds: G x 505, 606; bench-* x 505, 606, 707',
+  'bench-pairs8': 'the P1 and P2 bench-* variants x 8 seeds (101-808), for completion claims',
+  sealed: 'every sealed-* variant x 101, 202, 303; only with --sealed, to confirm an adopted candidate',
+  heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 x 101-404; only with --heldout. '
+    + 'These songs are held out from compiler decisions: run them only at decision points, never to tune',
+};
+export const PANEL_NAMES = Object.keys(PANEL_HELP);
+
+/** Validated `bench` export of a bench-* or sealed-* variant module. */
+export function benchMeta(module: any, where: string): BenchMeta {
+  const b = module.bench, duration = module.default?.duration;
+  assert.ok(b && typeof b === 'object', `${where}: missing \`export const bench = {stratum, pattern, windows}\``);
+  assert.ok(STRATA.includes(b.stratum), `${where}: bench.stratum must be one of ${STRATA.join(', ')}`);
+  assert.ok(typeof b.pattern === 'string' && b.pattern.length > 0, `${where}: bench.pattern must be a non-empty string`);
+  assert.ok(Array.isArray(b.windows) && b.windows.length > 0, `${where}: bench.windows must list at least one [t0, t1]`);
+  b.windows.forEach((w: any, i: number) => {
+    assert.ok(Array.isArray(w) && w.length === 2 && w.every(Number.isFinite) && w[0] >= 0 && w[0] < w[1] && w[1] <= duration,
+      `${where}: window ${i} must be [t0, t1] seconds with 0 <= t0 < t1 <= duration`);
+    assert.ok(i === 0 || w[0] >= b.windows[i - 1][1], `${where}: windows must be sorted and disjoint`);
+  });
+  return {stratum: b.stratum, pattern: b.pattern, windows: b.windows.map((w: number[]) => [w[0], w[1]])};
+}
+const variantPath = (root: string, song: string, variant: string) => resolve(root, 'productions', song, 'variants', `${variant}.ts`);
+const importBench = async (root: string, song: string, variant: string) =>
+  benchMeta(await import(pathToFileURL(variantPath(root, song, variant)).href), `${song}/variants/${variant}.ts`);
+/** Every `productions/<song>/variants/<prefix>-*.ts`, sorted, with its bench metadata. */
+export async function discoverVariants(prefix: 'bench' | 'sealed', root = '.') {
+  const songs = readdirSync(join(root, 'productions')).filter(s => existsSync(join(root, 'productions', s, 'variants'))).sort();
+  const found = songs.flatMap(song => readdirSync(join(root, 'productions', song, 'variants'))
+    .filter(f => f.startsWith(prefix + '-') && f.endsWith('.ts')).sort().map(f => ({song, variant: f.slice(0, -3)})));
+  return Promise.all(found.map(async v => ({...v, bench: await importBench(root, v.song, v.variant)})));
+}
+const stratified = (song: string, variant: string | null, seed: number, bench: BenchMeta): EvalCase =>
+  ({id: `${song}~${variant ?? 'spec'}~${seed}`, song, seed, perturbation: null, variant, bench});
+const GROOVE: BenchMeta = {stratum: 'G', pattern: 'groove', windows: []};
+
+/** The declared cases of a panel. Stratified panels are discovered from the
+ * variant files, so adding a spec needs no change here. */
+export async function panelCases(name: string, root = '.'): Promise<EvalCase[]> {
+  assert.ok(PANEL_NAMES.includes(name), `unknown evaluation panel ${name}`);
+  if (LEGACY[name]) return LEGACY[name];
+  if (name === 'heldout') return HELDOUT.flatMap(h => [101, 202, 303, 404].map(seed =>
+    stratified(h.song, h.variant, seed, {stratum: 'H', pattern: h.variant ?? 'preferred', windows: []})));
+  if (name === 'sealed') return (await discoverVariants('sealed', root)).flatMap(v => [101, 202, 303].map(seed => stratified(v.song, v.variant, seed, v.bench)));
+  const bench = await discoverVariants('bench', root);
+  if (name === 'bench-pairs8') return bench.filter(v => v.bench.stratum === 'P1' || v.bench.stratum === 'P2')
+    .flatMap(v => [101, 202, 303, 404, 505, 606, 707, 808].map(seed => stratified(v.song, v.variant, seed, v.bench)));
+  const [g, p] = name === 'bench' ? [[101, 202], [101, 202, 303]] : [[505, 606], [505, 606, 707]];
+  return [...SONGS.flatMap(song => g.map(seed => stratified(song, null, seed, GROOVE))),
+    ...bench.flatMap(v => p.map(seed => stratified(v.song, v.variant, seed, v.bench)))];
+}
 
 export function perturb(spec: any, p: number) {
   const rng = makeRng(1000 + p), contacts = spec.contacts.map((c: any, i: number) => {
@@ -25,7 +93,8 @@ export function perturb(spec: any, p: number) {
 }
 
 export async function resolveCase(c: EvalCase, jolt: number) {
-  const definition = {song: c.song, title: c.song, moments: []};
+  const definition = {song: c.song, title: c.song, moments: [], ...(c.variant ? {variant: c.variant} : {})};
+  if (c.variant && /^(bench|sealed)-/.test(c.variant)) assert.deepEqual(await importBench('.', c.song, c.variant), c.bench, `${c.id}: bench metadata changed`);
   const loaded = await loadMusicCase(definition, jolt), authored = await loadMusicCase(definition, 0);
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};

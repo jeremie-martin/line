@@ -78,7 +78,7 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
-| `npm run eval -- --name=DIR [--mode=strike3\|strike2\|strike\|landing]` | song-level behavioural evaluation; `npm run eval:report -- --name=DIR [--against=DIR]` |
+| `npm run eval -- --name=DIR [--panel=dev\|confirm\|bench\|bench-confirm\|bench-pairs8] [--mode=strike3\|strike2\|strike\|landing]` | behavioural evaluation (`sealed` and `heldout` need `--sealed` / `--heldout`; `npm run eval` with no `--name` lists the panels); `npm run eval:report -- --name=DIR [--against=DIR]` |
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:study` / `labels:analyze` | build a blind labelling study / compare measures with the owner's labels |

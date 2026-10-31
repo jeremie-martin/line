@@ -5,8 +5,8 @@ import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {panelCases, SONGS} from '../tools/eval/inputs.ts';
-import {stratify, windowImpact, failurePoint} from '../tools/eval/summary.ts';
-import {validateRunOptions, stratifiedReport} from '../tools/eval/eval.ts';
+import {stratify, windowImpact, failurePoint, geometryOfCell, geometryStrata} from '../tools/eval/summary.ts';
+import {validateRunOptions, stratifiedReport, geometryReport} from '../tools/eval/eval.ts';
 import type {Run} from '../tools/eval/records.ts';
 
 const dirs: string[] = [];
@@ -148,4 +148,77 @@ it('restricts the windowed impact account to the pattern windows, in authored ti
   const whole = windowImpact(cell({...c, bench: {...c.bench, windows: []}}, {strengths: [.7, .7, .7, .7]}));
   expect(whole['window v3 loss']).toBe(0);
   expect(failurePoint(cell(c, {strengths: [.7, .7, .7, .7], complete: false}))).toEqual({kind: 'invalid', time: NaN, reached: 1});
+});
+
+// ---- geometry facts (section 4) ----
+const sec = (family: string, guidance: string, frames: number, o: {rail?: string | null; guideFrames?: number; reasons?: string[]; reversals?: number} = {}) =>
+  ({family, guidance, rail: o.rail === undefined ? (guidance === 'required' ? 'paired' : null) : o.rail, frames,
+    fulfilled: !(o.reasons ?? []).length, reasons: o.reasons ?? [], guideFrames: o.guideFrames ?? 3, reversals: o.reversals ?? 0});
+const withGeometry = (x: any, sections: any[]) => ({...x, geometry: {shapedMinFrames: 9, sections}});
+
+it('computes one ride\'s geometry shares and realized facts', () => {
+  const c = planned('luna_bala_44s', null, 101, 'G', [], [1, 2, 3]);
+  const g = geometryOfCell(withGeometry(cell(c), [
+    sec('arcs', 'optional', 10), sec('fold', 'required', 20, {reversals: 2}),
+    sec('arcs', 'required', 8, {rail: 'transfer', guideFrames: 0, reasons: ['unused-or-missing-guide']}),
+    sec('serpentine', 'required', 6, {reasons: ['missing-shaped-reversals'], reversals: 1}), sec('scattered', 'optional', 16)]))!;
+  // 60 frames over 5 sections.
+  expect(g.time['arcs/optional']).toBeCloseTo(10 / 60);
+  expect(g.time['fold/required']).toBeCloseTo(20 / 60);
+  expect(g.sections['arcs/required']).toBeCloseTo(1 / 5);
+  expect(Object.values(g.time).reduce((n, x) => n + x, 0)).toBeCloseTo(1);
+  expect(g.plan['transfer, share of guided time']).toBeCloseTo(8 / 34);
+  expect(g.plan['transfer, share of guided sections']).toBeCloseTo(1 / 3);
+  expect(g.plan['distinct families per ride']).toBe(4);
+  // Short = under 9 frames: the 8-frame guided arcs and the 6-frame (unfitted) serpentine.
+  expect(g.plan['short sections per ride']).toBe(2);
+  expect(g.plan['short, planned shaped per ride']).toBe(1);
+  expect(g.plan['short, planned guided arcs per ride']).toBe(1);
+  expect(g.plan['short guided arcs, share of sections']).toBeCloseTo(1 / 5);
+  expect(g.realized['sections fulfilled, share']).toBeCloseTo(3 / 5);
+  expect(g.realized['guided, guide never touched per ride']).toBe(1);
+  expect(g.realized['guided, guide never touched, share']).toBeCloseTo(1 / 3);
+  expect(g.realized['shaped, turns realized, share']).toBeCloseTo(1 / 2);
+  expect(g.realized['shaped, turn reversals per section']).toBeCloseTo(3 / 2);
+  expect(geometryOfCell(cell(c))).toBeNull();
+});
+
+it('weighs geometry like the stratified report and says when a run predates it', () => {
+  const T = [1, 2, 3];
+  const g = [101, 202].map(s => planned('luna_bala_44s', null, s, 'G', [], T));
+  const p = [planned('tiki_tiki_48s', 'bench-pairs', 101, 'P1', [[1, 2]], T), planned('amour_de_ma_vie_44s', 'bench-pairs', 101, 'P1', [[1, 2]], T)];
+  const panel = [...g, ...p];
+  const arcs = (n: number, untouched = 0) => [sec('arcs', 'forbidden', n), sec('arcs', 'required', n, {guideFrames: untouched ? 0 : 3})];
+  // G: seeds 101 (all forbidden) and 202 (half the time guided) average per spec: guided time 1/4.
+  // P1: tiki is fold (one 6-frame section, fitted to guided arcs in B), amour half guided arcs; specs weigh equally.
+  const A = run(panel, [withGeometry(cell(g[0]), [sec('arcs', 'forbidden', 40)]), withGeometry(cell(g[1]), arcs(20)),
+    withGeometry(cell(p[0]), [sec('fold', 'required', 30), sec('fold', 'required', 6)]),
+    withGeometry(cell(p[1], {complete: false}), arcs(10, 1))]);
+  const B = run(panel, [withGeometry(cell(g[0]), [sec('arcs', 'forbidden', 40)]), withGeometry(cell(g[1]), arcs(20)),
+    withGeometry(cell(p[0]), [sec('fold', 'required', 30), sec('arcs', 'required', 6)]), withGeometry(cell(p[1]), arcs(10, 1))]);
+  const r = geometryStrata(A, B);
+  expect(r.strata).toEqual(['G', 'P1']);
+  expect(r.groups.find(x => x.group === 'time')!.rows).toEqual(['arcs/forbidden', 'arcs/required', 'fold/required']);
+  const guided = r.values.time['arcs/required'];
+  expect(guided.strata[0]).toMatchObject({a: .25, b: .25, diff: 0});
+  // P1: tiki has none in A (0, not missing); amour 1/2.
+  expect(guided.strata[1].a).toBeCloseTo(.25);
+  expect(guided.strata[1].b).toBeCloseTo((6 / 36 + .5) / 2);
+  expect(guided.overall.diff).toBeCloseTo((.25 - (6 / 36 + .5) / 2) / 2);
+  expect(r.values.plan['short, planned shaped per ride'].strata[1]).toMatchObject({a: .5, b: 0, diff: .5});
+  // Realized facts only on cells complete in both arms: amour (incomplete in A) drops out.
+  expect(r.realizedCells).toEqual([2, 1]);
+  expect(r.values.realized['guided, guide never touched per ride'].strata[1]).toMatchObject({a: 0, b: 0});
+  const text = geometryReport(A, B).join('\n');
+  expect(text).toMatch(/^4\. Geometry/);
+  expect(text).toMatch(/arcs\/required\s+25→25\s+25→33\s+25\.0\s+29\.2\s+-4\.2/);
+  expect(text).not.toMatch(/better|worse/i);
+  expect(stratifiedReport(A, B, 'cand', 'ref').join('\n')).toContain('4. Geometry');
+  // A run compiled before geometry facts: not recorded, the other arm still shown.
+  const old = run(panel, panel.map(c => cell(c)));
+  const half = geometryReport(A, old).join('\n');
+  expect(half).toContain('not recorded for B');
+  expect(half).toMatch(/arcs\/required\s+25→—/);
+  expect(geometryReport(old).join('\n')).toMatch(/not recorded: this run predates geometry facts/);
+  expect(geometryStrata(old).values.time).toEqual({});
 });

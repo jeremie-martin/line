@@ -1,7 +1,9 @@
 /** Explicit evidence migration / remeasurement, never an implicit cache shim.
  * Reads an immutable source run and writes a fresh directory. Compiler identity,
- * tracks, work and construction fulfillment remain historical; observations
- * carry the current evaluator identity. --jolt-ms is mandatory for old evidence.
+ * tracks, work, construction fulfillment and geometry facts remain historical;
+ * observations carry the current evaluator identity. Cells compiled before
+ * geometry facts existed stay without them: the plan and the guide rails are
+ * not in a saved track. --jolt-ms is mandatory for old evidence.
  *
  * node --import tsx tools/eval/remeasure.ts --from=OLD --name=NEW --jolt-ms=-15 */
 import assert from 'node:assert/strict';
@@ -37,7 +39,9 @@ mkdirSync(join(out, 'cells'), {recursive: true}); atomicWrite(join(out, 'run.jso
 for (const {spec, music, planned: c} of inputs) {
   const prior = readJson(join(source, 'cells', c.id + '.json')), track = readTrack(source, c.id);
   const cell = measureCell({c, mode: plan.mode, spec, music, track, physicalFrames: prior.physicalFrames,
-    compileMs: prior.compileMs, complete: prior.complete, fulfilled: prior.fulfilled, motion: prior.motion});
+    compileMs: prior.compileMs, complete: prior.complete, fulfilled: prior.fulfilled, motion: prior.motion,
+    // Geometry facts are compiler output: carried over when recorded, never reconstructed.
+    geometry: prior.geometry});
   // Frozen V6 observations also pin the saved non-impact requests. Replaying
   // current authoring must not silently reinterpret an old track's axes.
   assert.deepEqual(JSON.parse(JSON.stringify(cell.frozen)), prior.frozen, `${c.id}: frozen observations changed`);

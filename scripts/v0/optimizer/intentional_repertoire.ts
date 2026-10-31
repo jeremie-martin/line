@@ -33,12 +33,14 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     const total=choices.reduce((n,c)=>n+c.weight,0);if(!(total>0))throw new Error('creative preferences leave no eligible construction');
     let draw=rng()*total,selected=choices.at(-1)!;
     for(const c of choices){draw-=c.weight;if(draw<0){selected=c;break;}}
-    const {construction,guidance}=selected;
-    // Transfer coverage is a pilot preference. Full paired rails remain predominant.
-    const railLayout=guidance==='required'&&rng()<.2*(1-.5*quiet)?'transfer' as const:'paired' as const;
+    const {construction,guidance:drawn}=selected;
+    // Experiment: a guide is offered, never required (no transfer layout, which needs the
+    // receiving contact). The draws are kept exactly as before.
+    if(drawn==='required')rng();
+    const guidance:Guidance=drawn==='required'?'optional':drawn,railLayout='paired' as const;
     phrases.push({first,count,construction,guidance,railLayout,choices});
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
-    previous=construction+':'+guidance;first+=count;
+    previous=construction+':'+drawn;first+=count;
   }
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }

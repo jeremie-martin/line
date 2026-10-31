@@ -182,8 +182,9 @@ Observations from one song, not rules. Variants live in
   - Landings 0.21 s apart are feasible (Trouble pulse: light pickups at
     0.06–0.21 before kicks at 0.38–0.50), but a groove full of them can run
     out of budget (one of two seeds failed).
-  - The first landing must come later than 0.13 s after the start (compile:
-    `no_arc`).
+  - The first landing must come at about 0.2 s or later. Landings at 0.13 s
+    and at 0.17 s (0.19 s once the −15 ms jolt is applied) both failed with
+    `no_arc`.
 - **Room makes a slam.** A float into a big hit (Trouble's drop after a 1.8 s
   break) reaches 0.97–0.98.
 - **Quiet.** Gentle touches read about 0.05–0.15; requests below about 0.05

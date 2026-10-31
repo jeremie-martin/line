@@ -1,12 +1,14 @@
 /**
- * Luna Bala, bench-words (stratum P2: voice-led close words).
+ * Luna Bala, sealed-words (stratum P2: voice-led close words).
+ * SEALED: frozen for confirmation; do not compile it during development (swapped from
+ * bench to sealed on 2026-10-31: Tiki's runs make the better development case).
  *
  * Lands: every landable sung word of the voice-only intro (WORDS, 15 notes from
  * sung.json, 0.441–8.069), as clear light hits (0.21–0.35 by how sharply each
  * word enters). The voice is the only sound there, so it leads. The words come
  * 0.17–0.58 s apart: close at 4.493–5.387 (0.17, 0.41, 0.31), otherwise a word
  * every half second. This is a legato voice: 3 of its 14 word gaps are ≤ 0.45 s,
- * so it tests word-following more than fast words (Tiki's sealed-words has the
+ * so it tests word-following more than fast words (Tiki's bench-words has the
  * fast runs). 3.216 → 4.493 rides
  * across the one-second stop; air stays moderate on the other words so the rider
  * stays near the line between them (long low rides, not floats).

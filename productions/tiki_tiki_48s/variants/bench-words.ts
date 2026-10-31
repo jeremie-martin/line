@@ -1,6 +1,6 @@
 /**
- * Tiki Tiki, sealed-words (stratum P2: voice-led close words, long rides on held
- * notes). SEALED: frozen for confirmation; do not compile it during development.
+ * Tiki Tiki, bench-words (stratum P2: voice-led close words, long rides on held
+ * notes). A bench spec (swapped with Luna's, whose legato voice has few close words).
  *
  * The voice leads wherever the drums are absent, and there it is followed word by
  * word (sung.json notes, clear light hits 0.19–0.37 by how sharply each enters):

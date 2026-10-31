@@ -17,8 +17,11 @@ import pairs2, { intense, times as pairs2Times } from "./pairs2.ts";
 const near = (layer: number[], t: number, r = 0.03) => layer.some((x) => Math.abs(x - t) < r);
 const GHOSTS = [16.48, 19.68, 22.87, 26.08, 29.28, 32.48, 35.68];
 const HOOK_START = 38.0;
-const HOOK_WORDS = m.sungNotes(0.2).filter((t) => t >= HOOK_START && t < m.BREAK_T + 0.05);
-const HOOK_BOOMS = m.HOOK_BASS.filter((t) => !near(HOOK_WORDS, t, 0.12)); // a boom on a word shares its landing
+const SUNG = m.sungNotes(0.2).filter((t) => t >= HOOK_START && t < m.BREAK_T + 0.05);
+// A boom on a word (within 0.12 s) shares its landing; a word within 0.25 s of a boom gives way
+// to it (too close to ride both, and the bass is the stronger sound).
+const HOOK_BOOMS = m.HOOK_BASS.filter((t) => !near(SUNG, t, 0.12));
+const HOOK_WORDS = SUNG.filter((t) => !near(HOOK_BOOMS, t, 0.25));
 
 function impact(t: number): number {
   if (near(GHOSTS, t)) return 0.15;

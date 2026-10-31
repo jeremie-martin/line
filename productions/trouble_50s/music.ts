@@ -19,17 +19,14 @@
  *   43.4–46.95  vocal break; 46.2–46.9 a drum swell with no distinct hit.
  *   46.95–50.07 3-3-2 kicks again; 50.07 is one of the loudest, 0.23 s before the end.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import type { Spec } from "../../scripts/v0/types.ts";
+import { clamp, measuredSong } from "../../scripts/v0/core/measured.ts";
 
-type Source = { t: number; peak: number; rise: number; classes?: string[] };
-export type MusicEvent = { t: number; sources: Record<string, Source>; mix: { peak: number; rise: number } };
-
-const events = (JSON.parse(readFileSync(resolve(import.meta.dirname, "events.json"), "utf8")) as { events: MusicEvent[] }).events;
-const audio = JSON.parse(readFileSync(resolve(import.meta.dirname, "audio.json"), "utf8")) as {
-  tempo: { librosa_bpm: number | null };
-};
+const song = measuredSong(import.meta.dirname);
+const audio = song.audio;
+export type { MusicEvent } from "../../scripts/v0/core/measured.ts";
+export { clamp };
+export const { event, rise, drumPeak, drumStrength, voiceStrength, landings } = song;
 
 export const DURATION = 50.3;
 export const GROOVE_T = 14.71;
@@ -37,16 +34,6 @@ export const BREAK_T = 27.6;
 export const DROP_T = 29.02;
 export const STOP_T = 43.4;
 export const BUILD_END_T = 46.95;
-
-/** The measured event at an authored time (within 30 ms). */
-export function event(t: number): MusicEvent {
-  const e = events.reduce((best, x) => (Math.abs(x.t - t) < Math.abs(best.t - t) ? x : best));
-  if (Math.abs(e.t - t) > 0.03) throw new Error(`no measured event at ${t}`);
-  return e;
-}
-export const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
-export const rise = (t: number, source: string) => event(t).sources[source]?.rise ?? 0;
-export const drumPeak = (t: number) => event(t).sources.drums?.peak ?? 0;
 
 // ─────────── The layers, as measured event times ───────────
 
@@ -83,22 +70,6 @@ export const DROP_VOICE = [31.72, 33.77, 35.61, 38.93, 40.94, 42.53];
 export const BREAK2_VOICE = [43.77, 44.23, 44.91, 45.62, 46.02];
 export const OUTRO_KICKS = [46.95, 47.61, 48.29, 48.74, 49.41, 50.07];
 export const OUTRO_VOICE = [47.86, 48.53, 49.03];
-
-// ─────────── Strength from measured loudness ───────────
-
-/** A drum hit's measured loudness carries to strength. */
-export const drumStrength = (t: number, scale = 0.9) => clamp(scale * drumPeak(t), 0.2, 1);
-/** A syllable or chord entry: gentle, by how sharply it enters. */
-export const voiceStrength = (t: number, base = 0.04, gain = 0.4) =>
-  clamp(base + gain * Math.max(rise(t, "vocals"), rise(t, "other")), 0.04, 0.5);
-
-/** Merge layers into authored contact times: measured event times, sorted, without duplicates. */
-export function landings(...layers: number[][]): number[] {
-  const times = [...new Set(layers.flat().map((t) => Number(event(t).t.toFixed(3))))].sort((a, b) => a - b);
-  for (let i = 1; i < times.length; i++)
-    if (times[i] - times[i - 1] < 0.15) throw new Error(`landings ${times[i - 1]} and ${times[i]} are too close`);
-  return times;
-}
 
 // ─────────── Shared presentation ───────────
 

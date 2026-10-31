@@ -8,6 +8,7 @@ export const repertoireSongs=[
  {id:'tiki_tiki_48s',title:'Tiki Tiki',duration:48},
  {id:'amour_de_ma_vie_44s',title:'L’amour de ma vie',duration:44.544},
  {id:'trouble_50s',title:'Trouble',duration:50.3},
+ {id:'valhalla_40s',title:'Valhalla',duration:40.07},
 ];
 /** Every geometry family is offered under its label, in the planner's order. */
 export const repertoireCatalog={songs:repertoireSongs,constructions:constructions.map(id=>({id,label:GEOMETRY_FAMILIES[id].label}))};

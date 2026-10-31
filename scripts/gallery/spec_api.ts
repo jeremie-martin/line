@@ -7,9 +7,10 @@
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
  * Specs are edited in their source files; the dashboard does not write them. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
-import {existsSync, readdirSync, readFileSync, statSync, writeFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {tsImport} from 'tsx/esm/api';
 import {specZoomLaneToRenderPlan} from '../v0/core/camera.ts';
 import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
 
@@ -79,7 +80,9 @@ export function createSpecApi(root = process.cwd()) {
 
   async function view(entry: {path: string; name: string; label: string; group: string}, requested: number) {
     const abs = join(root, entry.path);
-    const mod = await import(`${pathToFileURL(abs).href}?mtime=${Math.trunc(statSync(abs).mtimeMs)}`);
+    // A fresh module graph per view, so edits to a spec's imports (a song's music.ts,
+    // another variant) show without restarting the server.
+    const mod = await tsImport(pathToFileURL(abs).href, import.meta.url);
     const spec = mod.default as Spec, duration = spec.duration, samples = Math.max(80, Math.min(3000, Math.trunc(requested)));
     const contacts = spec.contacts.map((c, i) => ({i, t: round(c.t), frame: Math.round(c.t * FPS),
       impact: Number.isFinite(c.impact) ? round(c.impact!) : null, edit: READ_ONLY})).sort((a, b) => a.t - b.t);

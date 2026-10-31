@@ -22,10 +22,10 @@ describe('intentional arrangement',()=>{
   const all=(s:typeof spec)=>Array.from({length:40},(_,i)=>planIntentionalRepertoire(s,i).requests.slice(1)).flat();
   const quiet=all(spec),energetic=all(lively);
   expect(quiet.filter(r=>r.guidance==='forbidden').length).toBeGreaterThan(energetic.filter(r=>r.guidance==='forbidden').length*2);
-  expect(quiet.some(r=>r.guidance==='required')).toBe(true);
+  // Guided families are offered a guide; none is required, and no transfer is drawn.
+  expect(quiet.some(r=>r.guidance==='optional'&&r.construction!=='scattered')).toBe(true);
+  expect([...quiet,...energetic].every(r=>r.guidance!=='required'&&r.railLayout!=='transfer')).toBe(true);
   expect(new Set(energetic.map(r=>r.construction)).size).toBe(constructions.length);
-  expect(energetic.some(r=>r.railLayout==='transfer')).toBe(true);
-  expect(energetic.every(r=>r.railLayout!=='transfer'||r.guidance==='required'&&r.construction!=='scattered')).toBe(true);
  });
 });
 describe('independent guide geometry and deliberate transfer',()=>{

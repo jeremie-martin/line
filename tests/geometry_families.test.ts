@@ -26,7 +26,7 @@ it('is planned and built like every shaped family',()=>{
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['arcs',toy]});
  expect(validateProductionPlan(spec,plan)).toEqual(plan);
  const request=plan.requests.find(r=>r.construction===toy)!;
- expect(request.guidance).toBe('required');
+ expect(request.guidance).toBe('optional');
  const style=constructionStyle(request);
  expect(style).toMatchObject({guides:true,profile:'zigzag',profileStart:0,profileStrength:1});
  const points=[{x:0,y:0},{x:12,y:1}],v={x:9,y:2},control={entry:12,turn:-20,exit:25,support:20,bias:.2,offset:.1};

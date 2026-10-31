@@ -26,16 +26,17 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     if(repertoire.includes('arcs'))choices.push({construction:'arcs',guidance:'forbidden',weight:(1-scatter)*(1-guided)});
     for(const construction of connected){
       const fraction=construction==='arcs'?1-variation+variation/connected.length:variation/connected.length;
-      choices.push({construction,guidance:'required',weight:(1-scatter)*guided*fraction});
+      // A guide is offered, never required: the search uses it where it helps the
+      // catch (most shaped sections do) instead of buying a forced touch, the main
+      // source of unwanted impacts (REWORK.md, November 1).
+      choices.push({construction,guidance:'optional',weight:(1-scatter)*guided*fraction});
     }
     choices.push({construction:'scattered',guidance:'optional',weight:scatter});
     for(const c of choices)if(c.construction+':'+c.guidance===previous)c.weight*=.25;
     const total=choices.reduce((n,c)=>n+c.weight,0);if(!(total>0))throw new Error('creative preferences leave no eligible construction');
     let draw=rng()*total,selected=choices.at(-1)!;
     for(const c of choices){draw-=c.weight;if(draw<0){selected=c;break;}}
-    const {construction,guidance}=selected;
-    // Transfer coverage is a pilot preference. Full paired rails remain predominant.
-    const railLayout=guidance==='required'&&rng()<.2*(1-.5*quiet)?'transfer' as const:'paired' as const;
+    const {construction,guidance}=selected,railLayout='paired' as const;
     phrases.push({first,count,construction,guidance,railLayout,choices});
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
     previous=construction+':'+guidance;first+=count;

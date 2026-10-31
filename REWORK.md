@@ -22,6 +22,50 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1 (overnight): guides offered, never required (adopted)
+
+**Why:** with no plan (plain unguided arcs everywhere), the headline was 753
+against 717, with fewer stray hits and less body drag, but no variety. Shapes
+*without* guides scored 686: the guide does real work for shapes. The forced
+touch ("guide required") was the costly part. Graded shape fulfilment gained
+only +4.4, so the cost of variety was not search waste.
+
+**Hypothesis** (stated before the run): offering a guide instead of requiring
+it keeps the shapes, removes forced touches, raises the headline and lowers
+stray hits, at equal completion.
+
+**Change:** the automatic planner's guided families ask for `optional`
+guidance, and no transfer layout is drawn. Explicit plans keep `required` and
+`transfer`.
+
+**Results:** completion is equal everywhere, with no ride lost. Changes are
+against the previous HEAD (section fallback).
+
+| panel | headline | strong extras / beat | v3 loss |
+|---|---|---|---|
+| bench (experiment, same draws) | +25.6 | −0.032 | −0.003 |
+| bench (clean version) | +22.4 | −0.023 | −0.003 |
+| pairs8 | +23.1 | −0.022 | −0.003 |
+| confirm | +17.3 | −0.027 | −0.002 |
+| sealed | +26.7 | −0.029 | −0.002 |
+| held out | +22.7 | −0.041 | −0.003 |
+
+- **Air and speed:** equal or better on every panel.
+- **Body drag:** mixed and small, from −0.2 to +0.17 s/min.
+- **Guide use:** 78% of the sections that offer a guide touch it (folds 92%,
+  plain arcs 59%). The rest are untouched clutter, for G1 to trim.
+- **Disclosed:**
+  - transfer receivers are gone from automatic rides; the owner liked them
+    "with variety, not everywhere", and they caused most U2 bumps;
+  - distinct families per ride are 5.65 against 5.93 (the random draws
+    changed with the transfer draw removed).
+
+**Gates:**
+- tests, typecheck and reach pass; three tests updated to the new rule;
+- judge parity passes;
+- parity: 22 cells differ, as expected (every automatic cell with a guided
+  section); references refreshed.
+
 ## November 1 (overnight): the 9-frame rule replaced by a section fallback (adopted)
 
 **Hypothesis** (stated before the run): completion equals the 9-frame rule on

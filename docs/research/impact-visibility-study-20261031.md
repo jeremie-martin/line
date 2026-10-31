@@ -318,3 +318,12 @@ of the time and not visible 2% of the time. At 0.5, the figures are 11% and 34%.
 
 These files are in a subfolder because `evaluatorIdentity` hashes only
 top-level `tools/measure` files, so saved runs keep their identity.
+
+## Amendment before any answer (2026-10-31, main session)
+
+The beat timeline drew each requested beat with its strength as tick height,
+and only requested moments have a tick. That would cue Block R (the larger hit
+usually has the taller tick) and the Block A anchors (a tick at the light,
+where blanks and extras have none). The manifest's per-clip `beats` lists are
+now empty, so the timeline shows only the judged moment and the playhead.
+Pairs, clips, sides and every pre-registered rule are unchanged.

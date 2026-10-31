@@ -203,6 +203,7 @@ export function geometryOfCell(cell: any) {
       'short sections per ride': short.length,
       'short, planned shaped per ride': short.filter(s => shaped.includes(s)).length,
       'short, planned guided arcs per ride': shortGuidedArcs,
+      'shapes simplified at a dead end per ride': g.fallbacks ? g.fallbacks.length : NaN,
       'short guided arcs, share of sections': share(shortGuidedArcs, all.length)},
     realized: {'sections fulfilled, share': share(all.filter(s => s.fulfilled).length, all.length),
       'guided, guide never touched per ride': untouched,

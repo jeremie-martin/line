@@ -171,8 +171,8 @@ export function geometryReport(a: Run, b?: Run): string[] {
   if (missing.length === (paired ? 2 : 1)) return [...out, `not recorded: ${paired ? 'both runs predate' : 'this run predates'} geometry facts. They are compiler output`
     + ' (plan and realization), so remeasure cannot recover them; recompile to see them.'];
   if (missing.length) out.push(`not recorded for ${missing[0]}: that run predates geometry facts (compiler output; remeasure cannot recover them).`);
-  out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames, the shortest section a shaped family accepts. Whether short-shape fitting changed a`,
-    'section is not recorded (the plan keeps only the fitted family); short guided arcs include every fitted section.',
+  out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames (a reporting band: a 0.2 s pair is 8–9 frames). Families are the realized ones: a shaped`,
+    'section the search simplified at a dead end shows as arcs, and is counted in "shapes simplified at a dead end".',
     `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 10 : 8)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
   for (const {group, rows} of g.groups) {
     const percent = (row: string) => group === 'time' || group === 'sections' || row.includes('share');

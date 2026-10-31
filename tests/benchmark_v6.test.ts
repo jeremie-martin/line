@@ -5,7 +5,7 @@ import {policy} from '../benchmark/v6/policy.ts';
 import {policy as v5Policy} from '../benchmark/v5/policy.ts';
 import {caseSpec} from '../benchmark/v4/model.ts';
 import {validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
-import {planIntentionalRepertoire,fitShapesToSections} from '../scripts/v0/optimizer/intentional_repertoire.ts';
+import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_repertoire.ts';
 import {requestScore,summarize} from '../benchmark/v6/evaluator.ts';
 it('preserves music and balanced layout coverage with disjoint reserved inputs and seeds',()=>{
  const catalog=loadCatalog(),v5=loadV5(),known=new Set(v5.music.map(c=>c.id));
@@ -20,9 +20,7 @@ it('preserves music and balanced layout coverage with disjoint reserved inputs a
   const spec=caseSpec(music);
   for(const [seed,plan]of Object.entries(c.plans)){
    expect(validateProductionPlan(spec,plan)).toEqual(plan);
-   // V6 keeps its frozen plans. The planner has since changed in one way only:
-   // a section shorter than its shaped family's minFrames gets plain arcs.
-   if(c.panel==='automatic')expect(planIntentionalRepertoire(spec,Number(seed))).toEqual({...plan,...fitShapesToSections(plan.phrases,plan.requests)});
+   if(c.panel==='automatic')expect(planIntentionalRepertoire(spec,Number(seed))).toEqual(plan);
    else expect(c.scoredSections[Number(seed)]).toHaveLength(3);
   }
  }

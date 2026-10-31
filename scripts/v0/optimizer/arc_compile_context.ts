@@ -31,6 +31,8 @@ export function createSearchWork() {
     terminalSelectionStats: null as any,
     budgetInterruptions: [] as BudgetInterruption[],
     planningDecisions: [] as any[],
+    /** Sections whose request the search simplified at a dead end: [index, from, to]. */
+    sectionFallbacks: [] as Array<[number, string, string]>,
     fragmentStats: {intervals: 0, probes: 0, replayFrames: 0},
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},

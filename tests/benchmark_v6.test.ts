@@ -20,7 +20,11 @@ it('preserves music and balanced layout coverage with disjoint reserved inputs a
   const spec=caseSpec(music);
   for(const [seed,plan]of Object.entries(c.plans)){
    expect(validateProductionPlan(spec,plan)).toEqual(plan);
-   if(c.panel==='automatic')expect(planIntentionalRepertoire(spec,Number(seed))).toEqual(plan);
+   // V6's automatic plans are frozen data. Since 2026-11-01 the planner offers guides
+   // instead of requiring them (and draws no transfer layout), so it no longer
+   // reproduces them; it still plans the same timeline and requests a valid plan.
+   if(c.panel==='automatic'){const now=planIntentionalRepertoire(spec,Number(seed));
+     expect(now.timelineSha256).toBe(plan.timelineSha256);expect(now.requests.every(r=>r.guidance!=='required'&&r.railLayout!=='transfer')).toBe(true);}
    else expect(c.scoredSections[Number(seed)]).toHaveLength(3);
   }
  }

@@ -26,21 +26,20 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     if(repertoire.includes('arcs'))choices.push({construction:'arcs',guidance:'forbidden',weight:(1-scatter)*(1-guided)});
     for(const construction of connected){
       const fraction=construction==='arcs'?1-variation+variation/connected.length:variation/connected.length;
-      choices.push({construction,guidance:'required',weight:(1-scatter)*guided*fraction});
+      // A guide is offered, never required: the search uses it where it helps the
+      // catch (most shaped sections do) instead of buying a forced touch, the main
+      // source of unwanted impacts (REWORK.md, November 1).
+      choices.push({construction,guidance:'optional',weight:(1-scatter)*guided*fraction});
     }
     choices.push({construction:'scattered',guidance:'optional',weight:scatter});
     for(const c of choices)if(c.construction+':'+c.guidance===previous)c.weight*=.25;
     const total=choices.reduce((n,c)=>n+c.weight,0);if(!(total>0))throw new Error('creative preferences leave no eligible construction');
     let draw=rng()*total,selected=choices.at(-1)!;
     for(const c of choices){draw-=c.weight;if(draw<0){selected=c;break;}}
-    const {construction,guidance:drawn}=selected;
-    // Experiment: a guide is offered, never required (no transfer layout, which needs the
-    // receiving contact). The draws are kept exactly as before.
-    if(drawn==='required')rng();
-    const guidance:Guidance=drawn==='required'?'optional':drawn,railLayout='paired' as const;
+    const {construction,guidance}=selected,railLayout='paired' as const;
     phrases.push({first,count,construction,guidance,railLayout,choices});
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
-    previous=construction+':'+drawn;first+=count;
+    previous=construction+':'+guidance;first+=count;
   }
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }

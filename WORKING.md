@@ -41,6 +41,15 @@ that must not change what the compiler produces.
 - Read a bench report completion first. Quality there covers only cells
   complete in both arms; judge it by per-spec seed signs across strata, not by
   one number.
+- Section 4 of a bench report, Geometry, shows how the rides use the geometry
+  families: shares of ride time and of sections by family × guidance, the
+  transfer share of guided sections, distinct families per ride, sections
+  shorter than the shaped `minFrames`, and on complete cells the realization
+  facts (fulfilled, guide never touched, shaped turns realized). A/B shows
+  A→B per stratum, then A, B and A − B over strata. It is descriptive: variety
+  is part of taste, not a number to maximize, and nothing in it is a target.
+  Runs compiled before these facts were recorded say "not recorded"; the facts
+  are compiler output, so remeasuring cannot recover them.
 
 ## Measures before objectives
 

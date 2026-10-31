@@ -165,14 +165,14 @@ export function geometryReport(a: Run, b?: Run): string[] {
   if (missing.length) out.push(`not recorded for ${missing[0]}: that run predates geometry facts (compiler output; remeasure cannot recover them).`);
   out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames, the shortest section a shaped family accepts. Whether short-shape fitting changed a`,
     'section is not recorded (the plan keeps only the fitted family); short guided arcs include every fitted section.',
-    `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 13 : 9)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
+    `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 10 : 8)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
   for (const {group, rows} of g.groups) {
     const percent = (row: string) => group === 'time' || group === 'sections' || row.includes('share');
     out.push(GEOMETRY_TITLES[group]);
     for (const row of rows) {
       const v = g.values[group][row], scale = percent(row) ? 100 : 1, digits = percent(row) ? 0 : 1;
       const f = (x: number, d = digits, signed = false) => !Number.isFinite(x) ? '—' : (signed && x * scale > 0 ? '+' : '') + (x * scale).toFixed(d);
-      out.push(`  ${pad(row, 38)}${v.strata.map(s => pad(paired ? `${f(s.a)}→${f(s.b)}` : f(s.a), paired ? 13 : 9)).join('')}${
+      out.push(`  ${pad(row, 38)}${v.strata.map(s => pad(paired ? `${f(s.a)}→${f(s.b)}` : f(s.a), paired ? 10 : 8)).join('')}${
         paired ? `${pad(f(v.overall.a, digits + 1), 10)}${pad(f(v.overall.b, digits + 1), 9)}${f(v.overall.diff, digits + 1, true)}` : f(v.overall.a, digits + 1)}`);
     }
   }

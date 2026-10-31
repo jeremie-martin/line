@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: geometry use in the bench report (tooling)
+
+Report-only; no compiler, spec or ruler change, parity identical. Every new
+cell records compact geometry facts from the plan and the realization, and
+the stratified report gains section 4, Geometry: shares of ride time and of
+sections by family × guidance, transfer vs paired, distinct families per
+ride, short sections (under the shaped `minFrames`) by planned family, and
+on complete cells fulfilled sections, guides never touched and shaped turns
+realized. It is descriptive: variety is part of the owner's taste, not a
+target. The evaluator identity changes; old runs load and say "not recorded"
+(the facts are compiler output; remeasure cannot recover them).
+- **Not recorded:** whether short-shape fitting changed a section. The plan
+  keeps only the fitted family, and a guided-arcs draw looks the same. It
+  needs a compiler-side field (the drawn family on the request); until then
+  the report shows short shaped and short guided-arcs sections.
+- **First look,** on recompiles of the minFrames pair (both arms reproduce
+  `bench-minframes-20261031` and `bench-base-rm-20261031` track for track):
+  the rule moves 0.19 sections per ride (mean over strata; all in P1, P2 and
+  P4) from short shaped to short guided arcs; family shares move by at most
+  0.3 points; every complete ride realizes every section, touches every guide
+  and realizes its shaped turns.
+
 ## October 31: quick re-landings fixed by fitting shapes to section length (adopted)
 
 **Hypothesis** (stated before the runs): quick-pair and voice-word completion

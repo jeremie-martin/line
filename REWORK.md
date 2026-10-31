@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: geometry hygiene (diagnosis)
+
+TODO item 7. Report only; no compiler, measure or ruler change
+(docs/research/geometry-hygiene-20261031.md, evidence in the JSON beside it;
+tools in `tools/measure/geometry_hygiene/`, outside the evaluation
+fingerprint). 24 fresh rides at a7d680f1 (four songs, seeds 7101–7106), all
+valid; Trouble as held-out examples only.
+- **Pass-throughs.** 22 crossings per ride, mostly 1–2 px contact dips. A line
+  drawn through the rider 3 px or more deep: 2.8 per ride, 1–8 frames.
+  - The visible kind is the rider flying through the next section's lead-in
+    from behind just before the beat, in 40 of 119 fold sections. The fold
+    proposal rotates the lead-in by the turn (`arc_proposals.ts` 60–62).
+  - A second kind: falling into a channel through a guide's leading end, in
+    36 of 745 paired guided sections.
+  - The crossed segments are never touched (154 of 156). Removing them leaves
+    the ride byte-identical (179 of 179 replays).
+- **Untouched geometry.** 62% of the drawn length is never touched, about
+  6,000 px per ride. Removing it never changes a ride (24 of 24).
+  - The judge's role inference and the shape checks read it: removing chain
+    ends only fails 12 sections per ride.
+  - 28% of guide chains are touched only by the body.
+  - `contactSummary` counts sub-pixel fragments as guides, so the Trouble
+    "681 of 1,137" is 150 of 606 for real guide rails.
+- **Next, owner.** Watch the collection
+  (`/generated/geometry-hygiene-20261031/collection.json`) and discuss G1–G7.
+  No geometry change before that.
+
 ## October 31: impact visibility study built (unanswered)
 
 Pre-registration only; no tool, measure or compiler change used by the product.

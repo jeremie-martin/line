@@ -19,9 +19,12 @@ spec (beats, impacts, air/speed/amplitude targets)
    fixed panel). Nothing else is supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
    `repertoire_policy.ts`) chooses a construction for each support section
-   from the geometry families (below): an open arc, a guided shape, or
-   scattered segments. It also chooses paired versus later-receiver rail
-   layouts, grouped into short repeated phrases. It is seeded and reproducible,
+   from the geometry families (below): an open arc, a shape or arc offered a
+   guide rail, or scattered segments, grouped into short repeated phrases.
+   Since 2026-11-01 a guide is offered, never required: the search uses it
+   where it helps the catch (78% of such sections on the bench) instead of
+   buying a forced touch. Automatic plans use paired rails only; explicit
+   plans (the V6 panel) may still require guides and later-receiver layouts. It is seeded and reproducible,
    and it uses the requested impact and speed (for example, calm passages
    favour open arcs). An explicit plan bypasses this step (V6 fixed panel).
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)

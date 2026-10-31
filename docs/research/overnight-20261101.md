@@ -38,3 +38,27 @@ Rules for the night:
 - **Decision:** adopted. It replaces a flagged gate with a general mechanism
   at equal or better completion. Disclosed: the sealed cost, and P1 inverted
   arrivals +0.08 (6 cells).
+
+### 01:30–04:40: do we need the plan? (data), and guides offered (adopted)
+- **New eval option `--creative=JSON`** passes planner preferences as an arm,
+  recorded in the run.
+- **No plan, plain unguided arcs everywhere:** bench headline 753 vs 717 for
+  the current version. Fewer stray hits (−0.09/beat), body drag −0.84 s/min,
+  air better, completion equal, and **zero variety**.
+- **No plan, guided arcs everywhere:** 750, but stray hits +0.05 and body drag
+  +1.07. The guides cause the unwanted contacts.
+- **The plan without guides** (same family draws): 686 (−31). The guide holds
+  the rider on shaped paths, and without it speed and impact suffer.
+- **Per-section analysis** (current vs the same sections as plain arcs): shapes
+  cost little at 12–39 frames, and cost air at 40+ frames (long floats) and
+  everything under 12 frames. Shaped sections produce stray contacts at every
+  length; plain arcs almost none.
+- **Graded shape fulfilment** (shape-only shortfalls priced at a 0.3 or 0.6
+  strength miss): +4.4 / +0.6. Small, so the cost of variety is not waste.
+- **Guides optional** (offered, never required; same draws): +25.6 on bench,
+  with fewer stray hits and better impact, air and speed. Confirmed on pairs8
+  (+23.1), confirm (+17.3), sealed (+26.7) and held out (+22.7), with no ride
+  lost. Shapes are kept (100% of turns realized). 78% of offered guides are
+  used.
+- **Adopted** in a clean version (no transfer draw): bench +22.4. Disclosed:
+  transfer receivers are gone, and 5.65 vs 5.93 distinct families per ride.

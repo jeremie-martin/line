@@ -6,7 +6,27 @@ import {arrivalPose} from '../measure/arrival.ts';
 import {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../measure/strike.ts';
 // The account's own scale: an unmatched event costs (raw / veryStrong)².
 import {CONTACT_IMPACT_CONTRACT} from '../../scripts/lib/contact_impact.ts';
-export function measureCell({c, mode, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion}: any) {
+import {GEOMETRY_FAMILIES, type GeometryFamily} from '../../scripts/v0/optimizer/geometry_families.ts';
+/** Compact geometry facts of one compile, for the report only: per section, the
+ * planned family, guidance, rail layout and length in frames, and what the
+ * realization check found (fulfilled, its reasons, guide contact frames, turn
+ * reversals, and for transfer layouts the engaged corners). `shapedMinFrames` is
+ * the shortest section any shaped family accepts in the compiler's table. The
+ * plan is the fitted one: whether short-shape fitting changed a section is not
+ * recoverable from it, so it is not recorded. Compiler output, like `motion`:
+ * remeasurement carries it over unchanged. */
+export function geometryFacts({plan, realization}: {plan: any; realization: any}) {
+  if (realization.sections.length !== plan.requests.length) throw new Error('realization does not cover the plan');
+  const minFrames = Object.values(GEOMETRY_FAMILIES as Record<string, GeometryFamily>).flatMap(f => f.minFrames ?? []);
+  return {shapedMinFrames: Math.min(...minFrames), sections: plan.requests.map((r: any, i: number) => {
+    const s = realization.sections[i];
+    if (s.section !== r.section) throw new Error('realization sections out of order');
+    return {family: r.construction, guidance: r.guidance, rail: r.railLayout ?? null, frames: r.next - r.frame,
+      fulfilled: s.fulfilled, reasons: s.reasons, guideFrames: s.guideContactFrames, reversals: s.turnReversals,
+      ...(s.transfer ? {engagedTurns: s.transfer.engagedTurns} : {})};
+  })};
+}
+export function measureCell({c, mode, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion, geometry}: any) {
   const frozen = replayGalleryTrack(track, music, false).grade;
   const targets = music.contacts, observation = observe(track, music.durationFrames, targets);
   const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
@@ -59,5 +79,7 @@ export function measureCell({c, mode, track, spec, music, physicalFrames, compil
         cost: (impacts3[i].raw / CONTACT_IMPACT_CONTRACT.veryStrong) ** 2}))},
     // Where the replayed ride ended (frame, reason): the failure time of an incomplete ride.
     terminus: observation.terminus,
-    motion, guards, beats};
+    motion, guards, beats,
+    // Absent on cells compiled before geometry facts were recorded.
+    ...(geometry ? {geometry} : {})};
 }

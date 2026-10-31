@@ -14,8 +14,8 @@ import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
 import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
-import {summarize, bootstrap, songValues, stratify, type Run} from './summary.ts';
-import {measureCell} from './measure.ts';
+import {summarize, bootstrap, songValues, stratify, geometryStrata, type Run} from './summary.ts';
+import {measureCell, geometryFacts} from './measure.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
@@ -62,7 +62,7 @@ async function worker(dir: string, id: string) {
     phraseBoundaries: music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite)});
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const cell = measureCell({c, mode: plan.mode, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
-    compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full});
+    compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full, geometry: geometryFacts(r)});
   assert.deepEqual(compilerIdentity('.'), plan.identity, 'compiler changed during worker');
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed during worker');
   assert.deepEqual((await resolveCase(c, plan.jolt)).planned, c, 'authoring changed during worker');
@@ -150,6 +150,31 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
       const m = q.metrics[k], value = paired ? m?.diff : m?.a;
       return pad(!Number.isFinite(value) ? '—' : paired ? `${num(m.diff, true)} +${m.up}−${m.down}=${m.same}` : num(m.a), 22);
     }).join('')}`.trimEnd());
+  }
+  return [...out, '', ...geometryReport(a, b)];
+}
+const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
+/** Section 4 of the stratified report: how rides use the geometry families.
+ * Single run: values. Paired: A→B per stratum, then A, B and A − B over strata. */
+export function geometryReport(a: Run, b?: Run): string[] {
+  const g = geometryStrata(a, b), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
+  const out = [`4. Geometry: planned sections on every cell; realized facts on cells complete in ${paired ? 'both arms' : 'this run'} (${
+    g.strata.map((s, i) => `${s} ${g.realizedCells[i]}`).join(', ')}). Descriptive only: no target, no verdict.`];
+  if (missing.length === (paired ? 2 : 1)) return [...out, `not recorded: ${paired ? 'both runs predate' : 'this run predates'} geometry facts. They are compiler output`
+    + ' (plan and realization), so remeasure cannot recover them; recompile to see them.'];
+  if (missing.length) out.push(`not recorded for ${missing[0]}: that run predates geometry facts (compiler output; remeasure cannot recover them).`);
+  out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames, the shortest section a shaped family accepts. Whether short-shape fitting changed a`,
+    'section is not recorded (the plan keeps only the fitted family); short guided arcs include every fitted section.',
+    `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 10 : 8)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
+  for (const {group, rows} of g.groups) {
+    const percent = (row: string) => group === 'time' || group === 'sections' || row.includes('share');
+    out.push(GEOMETRY_TITLES[group]);
+    for (const row of rows) {
+      const v = g.values[group][row], scale = percent(row) ? 100 : 1, digits = percent(row) ? 0 : 1;
+      const f = (x: number, d = digits, signed = false) => !Number.isFinite(x) ? '—' : (signed && x * scale > 0 ? '+' : '') + (x * scale).toFixed(d);
+      out.push(`  ${pad(row, 38)}${v.strata.map(s => pad(paired ? `${f(s.a)}→${f(s.b)}` : f(s.a), paired ? 10 : 8)).join('')}${
+        paired ? `${pad(f(v.overall.a, digits + 1), 10)}${pad(f(v.overall.b, digits + 1), 9)}${f(v.overall.diff, digits + 1, true)}` : f(v.overall.a, digits + 1)}`);
+    }
   }
   return out;
 }

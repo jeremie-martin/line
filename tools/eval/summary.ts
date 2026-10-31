@@ -5,6 +5,7 @@
  * both-complete cells, per-spec sign counts, strata weighted equally. */
 import assert from 'node:assert/strict';
 import {makeRng} from '../../scripts/lib/rng.ts';
+import {GEOMETRY_FAMILIES} from '../../scripts/v0/optimizer/geometry_families.ts';
 
 import {SONGS} from './inputs.ts';
 import {assertPairedRuns, type Run} from './records.ts';
@@ -160,4 +161,77 @@ export function stratify(a: Run, b?: Run) {
     overall: Object.fromEntries(metricNames.map(k => [k, Object.fromEntries((['a', 'b', 'diff'] as const).map(f => [f, mean(stratumValue.map(s => s[k][f]))]))])),
     completionRate: {a: mean(rows.map(r => r.completion.a / r.completion.total)), b: mean(rows.map(r => r.completion.b / r.completion.total))},
     failures: {a: failures(a), b: b ? failures(b) : []}};
+}
+
+/** Realization reasons meaning a shaped section's turns were not realized: a
+ * fold's corners, or another shape's turn reversals (paired and transfer). */
+const SHAPE_MISSES = new Set(['missing-fold-corners', 'missing-shaped-reversals', 'missing-engaged-transfer-corners', 'missing-engaged-transfer-reversals']);
+const GUIDANCE_ORDER = ['forbidden', 'optional', 'required'];
+const share = (n: number, d: number) => d ? n / d : NaN;
+/** One ride's geometry numbers, or null when the cell predates geometry facts.
+ * `time` and `sections` are shares by family/guidance (of ride time in frames,
+ * and of sections); `plan` holds the other planned facts; `realized` comes from
+ * the compiler's realization check. */
+export function geometryOfCell(cell: any) {
+  const g = cell.geometry;
+  if (!g) return null;
+  const all = g.sections as any[], frames = all.reduce((n, s) => n + s.frames, 0), key = (s: any) => `${s.family}/${s.guidance}`;
+  const time: Record<string, number> = {}, sections: Record<string, number> = {};
+  for (const s of all) {time[key(s)] = (time[key(s)] ?? 0) + s.frames / frames; sections[key(s)] = (sections[key(s)] ?? 0) + 1 / all.length;}
+  const guided = all.filter(s => s.guidance === 'required'), transfer = guided.filter(s => s.rail === 'transfer');
+  const shaped = all.filter(s => s.family !== 'arcs' && s.family !== 'scattered');
+  const short = all.filter(s => s.frames < g.shapedMinFrames), shortGuidedArcs = short.filter(s => s.family === 'arcs' && s.guidance === 'required').length;
+  const untouched = guided.filter(s => s.guideFrames === 0).length;
+  return {time, sections,
+    plan: {'transfer, share of guided time': share(transfer.reduce((n, s) => n + s.frames, 0), guided.reduce((n, s) => n + s.frames, 0)),
+      'transfer, share of guided sections': share(transfer.length, guided.length),
+      'distinct families per ride': new Set(all.map(s => s.family)).size,
+      'short sections per ride': short.length,
+      'short, planned shaped per ride': short.filter(s => shaped.includes(s)).length,
+      'short, planned guided arcs per ride': shortGuidedArcs,
+      'short guided arcs, share of sections': share(shortGuidedArcs, all.length)},
+    realized: {'sections fulfilled, share': share(all.filter(s => s.fulfilled).length, all.length),
+      'guided, guide never touched per ride': untouched,
+      'guided, guide never touched, share': share(untouched, guided.length),
+      'shaped, turns realized, share': share(shaped.filter(s => !s.reasons.some((r: string) => SHAPE_MISSES.has(r))).length, shaped.length),
+      'shaped, turn reversals per section': share(shaped.reduce((n, s) => n + s.reversals, 0), shaped.length)}};
+}
+export type GeometryValue = {strata: Array<{a: number; b: number; diff: number}>; overall: {a: number; b: number; diff: number}};
+/** Geometry use by stratum, with the stratified report's weights (seeds
+ * averaged per spec, specs equal within a stratum, strata equal across).
+ * Planned facts use every cell, since the plan does not depend on completion;
+ * realized facts use cells complete in both arms (in this run, unpaired). A run
+ * with any cell lacking geometry facts is not recorded and gives no values.
+ * Descriptive only: no direction is better. */
+export function geometryStrata(a: Run, b?: Run) {
+  if (b) assertPairedRuns(a, b);
+  const cases = a.run.panel as any[], runs = b ? [a, b] : [a];
+  const recorded = runs.map(r => [...r.cells.values()].every(c => !!c.geometry));
+  const facts = runs.map((r, i) => new Map(recorded[i] ? cases.map(c => [c.id, geometryOfCell(r.cells.get(c.id))!]) : []));
+  const families = Object.keys(GEOMETRY_FAMILIES), rank = (k: string) => {
+    const [f, g] = k.split('/'), i = families.indexOf(f);
+    return (i < 0 ? families.length : i) * 10 + GUIDANCE_ORDER.indexOf(g);
+  };
+  const shares = (group: string) => group === 'time' || group === 'sections';
+  const groups = (['time', 'sections', 'plan', 'realized'] as const).map(group => {
+    const rows = [...new Set(facts.flatMap(m => [...m.values()].flatMap(x => Object.keys(x[group]))))];
+    return {group, rows: shares(group) ? rows.sort((x, y) => rank(x) - rank(y) || x.localeCompare(y)) : rows};
+  });
+  const complete = (id: string) => runs.every(r => r.cells.get(id).complete);
+  const strata = [...new Set(cases.map(c => c.bench.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  // One arm's value of a row over a stratum: seed mean per spec, then spec mean.
+  // A family absent from a ride has share 0 there.
+  const level = (arm: number, group: string, row: string, stratum: string) => {
+    if (!recorded[arm]) return NaN;
+    const own = cases.filter(c => c.bench.stratum === stratum && (group !== 'realized' || complete(c.id)));
+    return mean([...new Set(own.map(specKey))].map(spec => mean(own.filter(c => specKey(c) === spec)
+      .map(c => (facts[arm].get(c.id) as any)[group][row] ?? (shares(group) ? 0 : NaN)))));
+  };
+  const values: Record<string, Record<string, GeometryValue>> = Object.fromEntries(groups.map(({group, rows}) => [group, Object.fromEntries(rows.map(row => {
+    const per = strata.map(s => {const va = level(0, group, row, s), vb = b ? level(1, group, row, s) : NaN; return {a: va, b: vb, diff: va - vb};});
+    return [row, {strata: per, overall: {a: mean(per.map(p => p.a)), b: mean(per.map(p => p.b)), diff: mean(per.map(p => p.diff))}}];
+  }))]));
+  return {recorded: {a: recorded[0], b: b ? recorded[1] : undefined}, strata, groups, values,
+    shapedMinFrames: [...new Set(runs.flatMap((r, i) => recorded[i] ? [...r.cells.values()].map(c => c.geometry.shapedMinFrames) : []))],
+    realizedCells: strata.map(s => cases.filter(c => c.bench.stratum === s && complete(c.id)).length)};
 }

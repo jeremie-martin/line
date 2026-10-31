@@ -259,6 +259,14 @@ Known limits of the strike account:
       restricted to the windows. Per spec it gives seed sign counts, not a
       bootstrap. Specs weigh equally within a stratum and strata weigh
       equally across; there is no headline number and no interval.
+    - Section 4, Geometry (`geometryStrata`), is descriptive. Each cell keeps
+      compact geometry facts from the compile (`geometryFacts`: per section
+      the planned family, guidance, rail layout, length in frames, and the
+      realization's fulfilled, reasons, guide contact frames and turn
+      reversals). The plan holds only the fitted family, so whether
+      short-shape fitting changed a section is not recorded; the report
+      counts short sections by planned family instead. Remeasurement carries
+      the facts over and cannot reconstruct them for older cells.
   - Every run is scored under every account (v1, v2, v3).
   - Guard rows from the blind-spot audit: head-down/backward strong
     arrivals, body drag, off-beat kicks.

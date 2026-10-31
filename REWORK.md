@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## October 31: what comes next (owner decision)
+
+The spec work is closed out for now:
+- Trouble prefers `contrast-clusters`.
+- Valhalla prefers `words3` (production ready).
+- Circus Minimus prefers `pairs3`; `pairs4` is the intended spec the compiler
+  cannot yet realize.
+
+Next, agreed with the owner:
+1. **Compiler step back (Claude):** one map of every open compiler thread, with
+   evidence, plus an investigation of why quick re-landings at speed fail. The
+   result is a ranked proposal, with no code before the owner chooses.
+2. **Benchmark audit (agent, read-only):** what the current benchmark contains,
+   rewards and misses; what to keep, change, add or remove.
+3. **Held out:** Trouble, Valhalla and Circus Minimus stay held out from all
+   compiler decisions; they are the test of whether compiler changes help real
+   authored specs. The benchmark gets new dev specs on the four panel songs that
+   stress the same kinds of patterns (short audible pairs, voice-led stretches,
+   intense sections), with weight set through how many specs stress each pattern.
+   Use the categories only, never the held-out specs' exact parameters.
+
 ## October 31: geometry hygiene (diagnosis)
 
 TODO item 7. Report only; no compiler, measure or ruler change

@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 // @ts-ignore: browser module of the review pages, plain JavaScript
-import {heard, outputClock, follow, displayTime, lastFrame, shownGap} from '../motion-gallery/playback.js';
+import {heard, outputClock, follow, displayTime, lastFrame, shownGap} from '../shared/playback.js';
 
 describe('music position from the audio output clock', () => {
   const run = {from: 12, startedAt: 3, rate: 1};
@@ -8,6 +8,11 @@ describe('music position from the audio output clock', () => {
     expect(heard(run, 2.98)).toBe(12);
     expect(heard(run, 3.5)).toBeCloseTo(12.5, 12);
     expect(heard({...run, rate: 0.5}, 4)).toBeCloseTo(12.5, 12);
+  });
+  it('runs through silence before the music on the same clock', () => {
+    // A spec cursor 1 s before the music starts: the music begins 1 s after play.
+    expect(heard({from: -1, startedAt: 3, rate: 1}, 3.5)).toBeCloseTo(-0.5, 12);
+    expect(heard({from: -1, startedAt: 3, rate: 1}, 4.25)).toBeCloseTo(0.25, 12);
   });
   it('reads through output timestamps that lag by up to an audio block', () => {
     // True: context time = performance time / 1000 − 1.18 (output latency included).

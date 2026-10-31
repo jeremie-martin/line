@@ -1699,5 +1699,207 @@
     "max": 63.5
    }
   }
- ]
+ ],
+ "spec_dashboard": {
+  "method": "productions/trouble_50s/spec.ts from 14 s, 10 s; base spec-dashboard-before = the page before this change",
+  "runs": [
+   {
+    "browser": "chromium",
+    "base": "spec-dashboard-before",
+    "cpu": 1,
+    "frames": 596,
+    "errors": [],
+    "callbackMs": {
+     "median": 0.3,
+     "p95": 0.4
+    },
+    "cursor": {
+     "repeats": 1,
+     "stepErrMs": {
+      "median": 0.1,
+      "p95": 1.2,
+      "max": 16.8
+     }
+    },
+    "drawnMinusHeardMs": {
+     "n": 596,
+     "median": -16.37,
+     "p05": -16.47,
+     "p95": -15.37
+    },
+    "clickMinusLandingMs": {
+     "n": 17,
+     "median": 44.25,
+     "min": 32.07,
+     "max": 60.26
+    }
+   },
+   {
+    "browser": "chromium",
+    "base": "spec-dashboard",
+    "cpu": 1,
+    "frames": 596,
+    "errors": [],
+    "callbackMs": {
+     "median": 0.3,
+     "p95": 0.4
+    },
+    "cursor": {
+     "repeats": 0,
+     "stepErrMs": {
+      "median": 0,
+      "p95": 0.21,
+      "max": 8.84
+     }
+    },
+    "drawnMinusHeardMs": {
+     "n": 596,
+     "median": 1.32,
+     "p05": -0.17,
+     "p95": 11.05
+    },
+    "clickMinusLandingMs": {
+     "n": 17,
+     "median": 0,
+     "min": 0,
+     "max": 0
+    }
+   },
+   {
+    "browser": "firefox",
+    "base": "spec-dashboard-before",
+    "cpu": 1,
+    "frames": 597,
+    "errors": [],
+    "callbackMs": {
+     "median": 0,
+     "p95": 1
+    },
+    "cursor": {
+     "repeats": 349,
+     "stepErrMs": {
+      "median": 17.08,
+      "p95": 24.48,
+      "max": 28.59
+     }
+    },
+    "drawnMinusHeardMs": {
+     "n": 597,
+     "median": -16.55,
+     "p05": -17.23,
+     "p95": -15.87
+    },
+    "clickMinusLandingMs": {
+     "n": 17,
+     "median": 0,
+     "min": -1,
+     "max": 0
+    }
+   },
+   {
+    "browser": "firefox",
+    "base": "spec-dashboard",
+    "cpu": 1,
+    "frames": 597,
+    "errors": [],
+    "callbackMs": {
+     "median": 1,
+     "p95": 1
+    },
+    "cursor": {
+     "repeats": 0,
+     "stepErrMs": {
+      "median": 0,
+      "p95": 0,
+      "max": 0.67
+     }
+    },
+    "drawnMinusHeardMs": {
+     "n": 597,
+     "median": 5.39,
+     "p05": 0.41,
+     "p95": 10.08
+    },
+    "clickMinusLandingMs": {
+     "n": 17,
+     "median": 0,
+     "min": 0,
+     "max": 0
+    }
+   }
+  ]
+ },
+ "grading_page": {
+  "method": "label.html?study=impact-2026-10, first unanswered clip, 6 s looping; base motion-gallery-before = the page before this change",
+  "runs": [
+   {
+    "browser": "chromium",
+    "base": "motion-gallery-before",
+    "frames": 357,
+    "repeats": 12,
+    "stepErrMs": {
+     "median": 0.06,
+     "p95": 9.29
+    },
+    "drawnMinusHeardMs": {
+     "median": -16.57,
+     "p05": -16.67,
+     "p95": -16.47
+    },
+    "musicStarts": 0,
+    "held": true
+   },
+   {
+    "browser": "chromium",
+    "base": "motion-gallery",
+    "frames": 356,
+    "repeats": 4,
+    "stepErrMs": {
+     "median": 0.05,
+     "p95": 0.19
+    },
+    "drawnMinusHeardMs": {
+     "median": -0.07,
+     "p05": -0.17,
+     "p95": 12.2
+    },
+    "musicStarts": 5,
+    "held": true
+   },
+   {
+    "browser": "firefox",
+    "base": "motion-gallery-before",
+    "frames": 357,
+    "repeats": 215,
+    "stepErrMs": {
+     "median": 17.08,
+     "p95": 24.36
+    },
+    "drawnMinusHeardMs": {
+     "median": -16.61,
+     "p05": -17.27,
+     "p95": -15.91
+    },
+    "musicStarts": 0,
+    "held": true
+   },
+   {
+    "browser": "firefox",
+    "base": "motion-gallery",
+    "frames": 357,
+    "repeats": 2,
+    "stepErrMs": {
+     "median": 0,
+     "p95": 0.33
+    },
+    "drawnMinusHeardMs": {
+     "median": 13.06,
+     "p05": 8.06,
+     "p95": 18.06
+    },
+    "musicStarts": 4,
+    "held": true
+   }
+  ]
+ }
 }

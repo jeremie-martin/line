@@ -95,7 +95,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    (`HOST=0.0.0.0 npm run serve`):
    - the **events** lane shows each event in its instrument's colour (drums red,
      bass blue, vocals orange, other green);
-   - **Clicks** plays a click at every landing;
+   - **Clicks** plays a click at every landing, scheduled on the music's own
+     clock, so a click sounds exactly where its landing falls in the music;
+   - the cursor sits at the position you hear (output latency included), so a
+     note placed when you pause takes the time you heard;
    - the spec menu lists each variant;
    - notes snap to measured events and are saved, per song, to
      `productions/<song>/notes.json`.

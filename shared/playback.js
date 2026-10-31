@@ -1,9 +1,9 @@
-/** Playback for the review pages (docs/research/playback-20261031.md).
+/** Playback for the review pages and the spec dashboard
+ * (docs/research/playback-20261031.md).
  *
- * A production ride plays its music through Web Audio, whose output timestamp
- * says which sample the speakers play at a given performance.now(), so each
- * animation frame draws the ride at the music position heard when that frame
- * reaches the screen. Pair clips are videos with their own sound: the sounding
+ * Music plays through Web Audio, whose output timestamp says which sample the
+ * speakers play at a given performance.now(), so each animation frame draws the
+ * ride or cursor at the music position heard when that frame reaches the screen. Pair clips are videos with their own sound: the sounding
  * clip keeps the browser's audio–video sync and leads, and the other shows the
  * same frame (compared from requestVideoFrameCallback) by waiting or catching
  * up through its playback rate, never by seeking while playing, which stalls a
@@ -38,36 +38,50 @@ export function outputClock() {
   };
 }
 
-/** Decoded music on the audio hardware clock. */
+/** Decoded music on the audio hardware clock. Playback runs on the audio
+ * context's clock, so a position before or after the music, or with no music
+ * loaded, plays as silence on the same clock. */
 export function createMusic() {
-  let context, buffer, source, clock, loads = 0, run = {from: 0, startedAt: 0, rate: 1};
-  const stop = () => {if (source) {source.onended = null; source.stop(); source = undefined;}};
+  let context, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0;
+  const stopSource = () => {source?.stop(); source = undefined;};
   const music = {
+    get duration() {return buffer?.duration;},
+    get playing() {return !!run;},
+    get context() {return context;},
     async load(bytes) {
-      const n = ++loads; stop(); buffer = undefined;
+      const n = ++loads; buffer = undefined;
       context ??= new AudioContext();
       const decoded = await context.decodeAudioData(bytes);
       if (n === loads) buffer = decoded;
     },
-    clear() {loads++; stop(); buffer = undefined;},
-    /** Plays from position `from` (s); the first call must come from a user gesture. */
-    async play(from, rate, onended) {
-      stop();
-      const resumed = context.resume();
-      source = context.createBufferSource(); source.buffer = buffer; source.playbackRate.value = rate;
-      source.connect(context.destination); source.onended = onended;
-      await resumed;
-      run = {from, startedAt: context.currentTime, rate}; clock = outputClock(); source.start(0, from);
+    clear() {loads++; music.pause(); buffer = undefined;},
+    /** Plays from position `from` (s) at `rate`; the first call must come from a user
+     * gesture. A later play or pause cancels it while the audio is still resuming. */
+    async play(from, rate = 1) {
+      const n = ++plays; stopSource(); run = undefined;
+      context ??= new AudioContext();
+      await context.resume();
+      if (n !== plays) return;
+      run = {from, startedAt: context.currentTime, rate}; clock = outputClock();
+      if (buffer && from < buffer.duration) {
+        source = context.createBufferSource(); source.buffer = buffer; source.playbackRate.value = rate;
+        source.connect(context.destination);
+        source.start(music.when(Math.max(0, from)), Math.max(0, from));
+      }
     },
     /** Stops and returns the position heard now. */
-    pause() {const at = music.position(performance.now()); stop(); run = {from: at, startedAt: 0, rate: 1}; return at;},
+    pause() {plays++; stopped = music.position(performance.now()); stopSource(); run = undefined; return stopped;},
     /** Position heard at performance time `ms`. */
     position(ms) {
-      if (!source) return run.from;
+      if (!run) return stopped;
       clock.read(context.getOutputTimestamp());
       const contextTime = clock.at(ms);
-      return contextTime === undefined ? run.from : Math.min(buffer.duration, heard(run, contextTime));
+      return contextTime === undefined ? run.from : heard(run, contextTime);
     },
+    /** Position being rendered now: heard after the output latency. */
+    rendered() {return run ? heard(run, context.currentTime) : stopped;},
+    /** Audio context time at which position `at` plays, to schedule sounds with the music. */
+    when(at) {return run.startedAt + (at - run.from) / run.rate;},
   };
   return music;
 }

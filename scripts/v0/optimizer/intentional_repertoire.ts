@@ -49,7 +49,7 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
  * `minFrames`) gets plain arcs with the same guidance and rail layout. Its
  * phrase is split around it, since a phrase has one construction. The draws
  * above are unchanged, so plans differ only at such sections. */
-function fitShapesToSections(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
+export function fitShapesToSections(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
   const minFrames=(c:Construction)=>(GEOMETRY_FAMILIES as Readonly<Record<string,GeometryFamily>>)[c].minFrames??0;
   const fitted=requests.map(r=>r.next-r.frame<minFrames(r.construction)?{...r,construction:'arcs' as Construction}:r);
   const split:ProductionPlan['phrases']=[];

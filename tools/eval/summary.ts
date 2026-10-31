@@ -13,12 +13,26 @@ export {SONGS} from './inputs.ts';
 export {loadRun, type Run} from './records.ts';
 export const median = (xs: number[]) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : NaN;};
 export const mean = (xs: number[]) => {const s = xs.filter(Number.isFinite); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : NaN;};
+/** A cell's headline score: the production grade (contact_impact_grade.ts),
+ * 0 when the ride is invalid or incomplete, as the headline always counted
+ * failures; NaN only for cells measured before the grade was recorded. */
+export const headlineScore = (cell: any) => cell.score ? (cell.complete && cell.score.valid ? cell.score.score : 0) : NaN;
+/** The headline of a stratified run: the mean score over every cell (failures
+ * at 0) per stratum, the mean of strata (equal weights), and the plain mean over
+ * all cells, the closest to the historical headline. */
+export function headline(r: Run, strata: string[]) {
+  const cases = r.run.panel as any[], score = (c: any) => headlineScore(r.cells.get(c.id));
+  const perStratum = Object.fromEntries(strata.map(s => [s, mean(cases.filter(c => c.bench.stratum === s).map(score))]));
+  return {perStratum, strata: mean(Object.values(perStratum)), cells: mean(cases.map(score)),
+    recorded: cases.filter(c => Number.isFinite(score(c))).length};
+}
 /** Song-level summary of one cell: the numbers a decision would be based on. */
 export function summarize(cell: any) {
   const b = cell.beats.filter((r: any) => r.requested != null), strong = b.filter((r: any) => r.requested >= .6), quiet = b.filter((r: any) => r.requested <= .15);
   const strengthErr = (rows: any[]) => Math.sqrt(mean(rows.map((r: any) => ((r.r1?.strength ?? 0) - r.requested) ** 2)));
   return {
     complete: cell.complete ? 1 : 0, fulfilled: cell.fulfilled ? 1 : 0,
+    score: headlineScore(cell),
     frozenScore: cell.frozen.valid ? cell.frozen.score : NaN,
     'strength rms (R1)': strengthErr(b), 'strong strength rms': strengthErr(strong), 'quiet strength rms': strengthErr(quiet),
     'R1 bend peak lag ms (median)': median(b.map((r: any) => (r.r1?.peak ?? NaN) * 25)),

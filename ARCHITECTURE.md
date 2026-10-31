@@ -258,7 +258,15 @@ Known limits of the strike account:
       arms only, under every ruler plus the v3 loss parts and the v3 account
       restricted to the windows. Per spec it gives seed sign counts, not a
       bootstrap. Specs weigh equally within a stratum and strata weigh
-      equally across; there is no headline number and no interval.
+      equally across; there is no interval.
+    - Section 0, the headline score, comes first. It is the production grade
+      the ride page shows (`contact_impact_grade.ts`: 1000·exp(−rms/0.25) over
+      air, speed and the v3 impact account), with an invalid or incomplete
+      ride counting 0, as the headline always counted failures. It is given
+      per stratum, as the mean of strata, and as the plain mean over cells.
+      Every eval cell records it (`measureCell` → `score`); older runs get it
+      through `tools/eval/remeasure.ts`. The legacy dev/confirm report shows
+      it as the `score` row.
     - Section 4, Geometry (`geometryStrata`), is descriptive. Each cell keeps
       compact geometry facts from the compile (`geometryFacts`: per section
       the planned family, guidance, rail layout, length in frames, and the

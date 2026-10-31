@@ -38,7 +38,9 @@ that must not change what the compiler produces.
 - `--panel=sealed --sealed` only to confirm an adopted candidate.
   `--panel=heldout --heldout` only at decision points; the held-out songs
   never inform a compiler decision, and their results are not tuned on.
-- Read a bench report completion first. Quality there covers only cells
+- A bench report opens with the headline score (section 0): the production
+  grade, failures at 0, per stratum and overall, as the headline has been
+  formed for months. Then read completion first. Quality there covers only cells
   complete in both arms; judge it by per-spec seed signs across strata, not by
   one number.
 - Section 4 of a bench report, Geometry, shows how the rides use the geometry

@@ -14,7 +14,7 @@ import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
 import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
-import {summarize, bootstrap, songValues, stratify, geometryStrata, type Run} from './summary.ts';
+import {summarize, bootstrap, songValues, stratify, geometryStrata, headline, type Run} from './summary.ts';
 import {measureCell, geometryFacts} from './measure.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
@@ -122,9 +122,17 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
   const r = stratify(a, b), out: string[] = [], paired = !!b, A = 'A', B = 'B';
   out.push(`${a.run.panelName} — A = ${nameA}${b ? `, B = ${nameB}; differences are A − B, paired by case` : ''}`,
     `compiler A ${who(a)}${b ? `, B ${who(b)}` : ''}; evaluator ${a.run.evaluator.slice(0, 12)}; ${a.run.panel.length} cases`,
-    'Strata weigh equally and there is no headline number. Within a stratum each spec weighs equally; seeds are averaged.',
-    'No intervals: per spec, seed signs (+ A higher, − A lower, = identical) over cells complete in both arms.', '',
-    '1. Completion (every cell)', `${pad('stratum', 9)}${pad('cells', 7)}${pad(A, 8)}${paired ? pad(B, 8) + pad('recovered', 11) + 'lost' : ''}`);
+    'Strata weigh equally. Within a stratum each spec weighs equally; seeds are averaged.',
+    'No intervals: per spec, seed signs (+ A higher, − A lower, = identical) over cells complete in both arms.', '');
+  const strataNames = r.strata.map(s => s.stratum), ha = headline(a, strataNames), hb = b ? headline(b, strataNames) : undefined;
+  const fmt = (x: number) => Number.isFinite(x) ? x.toFixed(2) : 'not recorded';
+  out.push(`0. Headline score (production grade, 1000·exp(−rms/0.25); invalid or incomplete rides count 0)`,
+    `${pad('', 9)}${strataNames.map(s => pad(s, 10)).join('')}${pad('strata', 10)}all cells`,
+    `${pad(A, 9)}${strataNames.map(s => pad(fmt(ha.perStratum[s]), 10)).join('')}${pad(fmt(ha.strata), 10)}${fmt(ha.cells)}`,
+    ...(hb ? [`${pad(B, 9)}${strataNames.map(s => pad(fmt(hb.perStratum[s]), 10)).join('')}${pad(fmt(hb.strata), 10)}${fmt(hb.cells)}`,
+      `${pad('A − B', 9)}${strataNames.map(s => pad(fmt(ha.perStratum[s] - hb.perStratum[s]), 10)).join('')}${pad(fmt(ha.strata - hb.strata), 10)}${fmt(ha.cells - hb.cells)}`] : []),
+    ...(ha.recorded < a.run.panel.length || (hb && hb.recorded < a.run.panel.length) ? ['(cells measured before the score was recorded show "not recorded": remeasure them)'] : []),
+    '', '1. Completion (every cell)', `${pad('stratum', 9)}${pad('cells', 7)}${pad(A, 8)}${paired ? pad(B, 8) + pad('recovered', 11) + 'lost' : ''}`);
   for (const s of r.strata) {
     const c = s.completion;
     out.push(`${pad(s.stratum, 9)}${pad(String(c.total), 7)}${pad(`${c.a}/${c.total}`, 8)}${paired ? pad(`${c.b}/${c.total}`, 8) + pad(String(c.recovered.length), 11) + c.lost.length : ''}`);

@@ -1,5 +1,7 @@
 /** Cold measurement of a saved track. Shared by compilation and remeasurement. */
 import {replayGalleryTrack} from '../../scripts/gallery/artifacts.ts';
+import {contactImpactGrade} from '../../scripts/gallery/contact_impact_grade.ts';
+import {DEFAULT_IMPACT_ACCOUNT} from '../../scripts/v0/optimizer/impact_accounts.ts';
 import {observe} from '../measure/observe.ts';
 import {beatRows} from '../measure/measures.ts';
 import {arrivalPose} from '../measure/arrival.ts';
@@ -27,7 +29,11 @@ export function geometryFacts({plan, realization}: {plan: any; realization: any}
   })};
 }
 export function measureCell({c, mode, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion, geometry}: any) {
-  const frozen = replayGalleryTrack(track, music, false).grade;
+  const {grade: frozen, impactEvaluation} = replayGalleryTrack(track, music, false, DEFAULT_IMPACT_ACCOUNT);
+  // The production grade, as the ride page shows it and as the headline has
+  // always been formed: 1000·exp(−rms/0.25) over air, speed and the impact
+  // account, 0 for an invalid or incomplete ride.
+  const grade = impactEvaluation ? contactImpactGrade(frozen, impactEvaluation).score : undefined;
   const targets = music.contacts, observation = observe(track, music.durationFrames, targets);
   const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
   const strike = accountStrikes(strikes, targets);
@@ -66,6 +72,7 @@ export function measureCell({c, mode, track, spec, music, physicalFrames, compil
   return {case: c, mode,
     physicalFrames, compileMs, complete, fulfilled,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
+    ...(grade ? {score: {contract: DEFAULT_IMPACT_ACCOUNT, valid: grade.valid, score: grade.score, rms: grade.weightedAxisRms}} : {}),
     // Per gap and axis (air, speed, amplitude): [gap, axis, target, achieved], signed errors recoverable.
     gaps: frozen.observations.filter((o: any) => o.axis !== 'impact').map((o: any) => [o.gap, o.axis, +o.target.toFixed(4), o.achieved === null ? null : +o.achieved.toFixed(4)]),
     contact: {loss: observation.contactAccount.loss, strengthMse: observation.contactAccount.strengthMse, timingMse: observation.contactAccount.timingMse, extraMse: observation.contactAccount.extraMse},

@@ -26,7 +26,7 @@ const song = measuredSong(import.meta.dirname);
 const audio = song.audio;
 export type { MusicEvent } from "../../scripts/v0/core/measured.ts";
 export { clamp };
-export const { event, rise, drumPeak, drumStrength, voiceStrength, landings } = song;
+export const { event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } = song;
 
 export const DURATION = 50.3;
 export const GROOVE_T = 14.71;

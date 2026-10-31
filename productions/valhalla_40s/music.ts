@@ -27,7 +27,7 @@ import { clamp, measuredSong } from "../../scripts/v0/core/measured.ts";
 const song = measuredSong(import.meta.dirname);
 export type { MusicEvent } from "../../scripts/v0/core/measured.ts";
 export { clamp };
-export const { event, rise, drumPeak, drumStrength, voiceStrength, landings } = song;
+export const { event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } = song;
 
 export const DURATION = 40.07;
 export const PHRASES_T = 9.97;
@@ -60,6 +60,14 @@ export const WORD_RUNS = [
  *  not heard (it measures like 18.08, so loudness alone cannot tell them apart). */
 export const WORDS = [10.91, 11.26, 11.92, 12.56, 12.89, 13.20, 13.85, 14.50, 15.17, 16.14, 16.39, 17.09,
   17.75, 18.08, 18.40, 19.03, 20.36, 20.68, 21.00, 21.30, 21.63, 21.97, 22.28, 23.91, 24.24, 24.89, 26.64, 29.37];
+
+/** Phrases: every heard word, from the sung-note detector (tools/music/sung.py, salience ≥ 0.2),
+ *  plus four attacks it classes as unpitched that the owner heard as words in words2 (13.85, and
+ *  the male voice's rapid words 21.00, 21.30, 23.91). 14.04 is left out: 0.19 s after the
+ *  stronger 13.85. */
+const HEARD_UNPITCHED = [13.85, 21.00, 21.30, 23.91];
+export const SUNG_WORDS = [...song.sungNotes(0.2).filter((t) => t > PHRASES_T - 0.05 && t < DROP_T && Math.abs(t - 14.04) > 0.03), ...HEARD_UNPITCHED]
+  .sort((a, b) => a - b);
 
 /** Groove: every kick (loud, 0.99–1.13). */
 export const KICKS = [30.06, 31.67, 32.65, 34.27, 35.24, 36.86, 37.84, 39.45];

@@ -4,11 +4,14 @@
  * an instrument's loudness, derive a strength, and merge layers into landing times.
  * See docs/music-authoring.md.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 type Source = { t: number; peak: number; rise: number; classes?: string[] };
 export type MusicEvent = { t: number; sources: Record<string, Source>; mix: { peak: number; rise: number } };
+
+/** A sung note from tools/music/sung.py (productions/<song>/sung.json). */
+export type SungNote = { t: number; salience: number; pitch?: string; event: { t: number; stems: string[] } | null };
 
 export const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
@@ -41,5 +44,13 @@ export function measuredSong(dir: string) {
     return times;
   }
 
-  return { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings };
+  /** Sung notes at least `minSalience`, as their events.json times (notes with no event are left out). */
+  function sungNotes(minSalience = 0): number[] {
+    const path = resolve(dir, "sung.json");
+    if (!existsSync(path)) throw new Error(`no sung.json in ${dir}: run tools/music/sung.py`);
+    const notes = (JSON.parse(readFileSync(path, "utf8")) as { notes: SungNote[] }).notes;
+    return notes.filter((n) => n.salience >= minSalience && n.event).map((n) => Number(n.event!.t.toFixed(2)));
+  }
+
+  return { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes };
 }

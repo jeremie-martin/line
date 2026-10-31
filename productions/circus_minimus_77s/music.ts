@@ -75,7 +75,7 @@ const song = measuredSong(import.meta.dirname);
 const audio = song.audio;
 export type { MusicEvent } from "../../scripts/v0/core/measured.ts";
 export { clamp };
-export const { event, rise, drumPeak, drumStrength, voiceStrength, landings } = song;
+export const { event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } = song;
 
 export const DURATION = 77.09;
 /** One beat, measured on the kicks (0.08 → 76.88 is exactly 192 beats); a bar is eight beats. */

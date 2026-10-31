@@ -107,6 +107,38 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    `scripts/gallery/repertoire_catalog.ts`). Do not edit tracked files while it
    runs: its compiler identity check rejects the result.
 
+## What read well on Trouble (owner reviews, October 2026)
+
+Observations from one song, not rules. Variants live in
+`productions/trouble_50s/variants/`; the preferred one is `contrast-clusters`.
+
+- **Follow the loudest layer at each moment.** The voice where it is alone,
+  the drums once they play. Syllables landed under the drums looked off the
+  music (the `voice` variant).
+- **Follow a voice by its phrases, not its syllables.** Close hits where words
+  come fast, long low rides on held notes. A landing on every syllable became a
+  grid.
+- **Land only on sounds you can hear.** A landing is a visual statement:
+  - A soft landing on a faint sound (Trouble's groove pickups, about a seventh
+    of a kick) still reads as noise.
+  - Density also caps the air, so a dense spec becomes long rails (`pulse`).
+- **Short audible pairs are the strongest moments:**
+  - The three-kick clusters, plus the snare right after them.
+  - "boom-TAK": a heavy kick, then a snare 0.22 s later.
+  - "ta-BOOM": a bass entry just before a heavy kick.
+  - Seen as an upper hit then a bottom hit, they read as two beats. They are
+    also the hardest thing for the compiler: most failed compiles stop at one
+    (about half of the seeds finish).
+- **Big floats belong in calm moments.** A long air into the drop felt wrong
+  because the music before it is busy; three small hits gaining speed worked.
+  A float over a quiet drum swell worked.
+- **Speed up where the music is intense** (the drop).
+- **Score does not predict taste.** The variant with the best impact score was
+  the least liked. Clean and on the beat is not enough either: `slam` was both,
+  and too empty.
+- **There is no single right spec.** Several readings of one song can be very
+  good.
+
 ## What the rider can do (current compiler, October 2026)
 
 - **Spacing.**

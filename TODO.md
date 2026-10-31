@@ -18,4 +18,12 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 4. ~~**Dashboard playback**~~ (done 2026-10-31: one shared player,
    shared/playback.js).
 
-2 or 3 comes next after 1, depending on the owner's availability.
+5. **Owner: answer `impact-visibility-2026-11`** (55 pairs, about 20 min).
+6. **Dashboard camera** (agent, 2026-10-31): the viewer follows the sled's peg,
+   so spins make the world lurch; check whether videos are affected.
+7. **Geometry hygiene diagnosis** (agent, report only): pass-throughs
+   (rider crossing a line from its non-colliding side) and untouched geometry.
+8. **Next song**: test the authoring workflow from the Trouble lessons.
+9. **Compiler robustness, later and planned with the owner**: about half
+   of Trouble's preferred-spec seeds fail at short intervals at speed. Treat
+   this as a general capability gap, not a pattern to hard-code.

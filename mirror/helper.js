@@ -84,6 +84,22 @@
     });
   }
 
+  // The exporter's camera follows the app's rider position, which leaves out the
+  // sled points; in a spin that point circles the body and the world lurches
+  // (docs/research/camera-20261031.md). Follow the mean of all body points
+  // instead, with the app's own follower otherwise unchanged.
+  function followBodyCentre(exporter) {
+    const follower = exporter && exporter.cameraFollower;
+    if (!follower) return;
+    follower._getRiderPosition = function (track, frame) {
+      const points = track.getFrame(frame).snapshot.entities[0].entities[0].points;
+      let x = 0, y = 0;
+      for (const p of points) { x += p.pos.x; y += p.pos.y; }
+      return { x: x / points.length, y: y / points.length };
+    };
+    follower._frames = [];
+  }
+
   function getWebGLInfo(canvas) {
     const c = canvas || document.createElement("canvas");
     const gl = c.getContext("webgl") || c.getContext("experimental-webgl");
@@ -434,7 +450,8 @@
       if (cfg.zoom !== undefined && cfg.zoom !== null) this.setPlaybackZoom(cfg.zoom);
 
       this.openVideoExporter();
-      await this.waitForVideoExporterReady();
+      const exporter = await this.waitForVideoExporterReady();
+      followBodyCentre(exporter);
 
       let expectedResolution = null;
       if (resolution === "720p") {

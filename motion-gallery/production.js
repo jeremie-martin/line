@@ -1,9 +1,10 @@
 import {prepareView} from './replay.js';
 import {sha256Hex} from './sha256.js';
 import {createContactImpactReview} from './contact-impact-review.js';
-const $=id=>document.getElementById(id),audio=$('audio');
+import {createMusic,displayTime} from './playback.js';
+const $=id=>document.getElementById(id),music=createMusic(),onScreen=displayTime();
 // Geometry-family labels by id, from the compiler's catalog.
-let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,audioObjectUrl,libraryEntries=[],interactionReview;
+let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,libraryEntries=[],interactionReview;
 const audioCache=new Map();
 const impactReview=createContactImpactReview({seek:t=>{pause();$('movie').pause();seek(t);}});
 const scoreName=r=>r.impactContract?'Impact quality ('+r.impactContract+')':'Landing score (previous objective)';
@@ -28,7 +29,8 @@ async function verifiedAudio(c,signal){
  while(audioCache.size>4)audioCache.delete(audioCache.keys().next().value);
  return blob;
 }
-function pause(){playing=false;audio.pause();$('play').textContent='Play';}
+function pause(){if(playing)seconds=music.pause();playing=false;$('play').textContent='Play';}
+async function start(){try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').value,()=>{pause();seek(+$('seek').max);});playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}}
 function draw(){
  $('time').textContent=fmt(seconds,interactionReview?3:2)+' s';$('seek').value=seconds;
  ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production'),at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
@@ -38,7 +40,7 @@ function draw(){
  impactReview.draw(seconds);
 }
 function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
-function seek(t){seconds=Math.max(+$('seek').min,Math.min(+$('seek').max,t));if(audio.readyState>=1)audio.currentTime=seconds;draw();passageLink();}
+function seek(t){seconds=Math.max(+$('seek').min,Math.min(+$('seek').max,t));draw();passageLink();}
 async function comparisonChanged(){
  if($('comparison').disabled)return;
  const token=opening,signal=controller?.signal;
@@ -64,10 +66,11 @@ async function comparisonChanged(){
  draw();passageLink();
 }
 $('comparison').onchange=comparisonChanged;
-function tick(){if(playing){seconds=audio.currentTime;if(seconds>=+$('seek').max)pause();draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
-$('play').onclick=async()=>{if(playing)return pause();try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();audio.currentTime=seconds;await audio.play();playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}};
-$('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>audio.playbackRate=+$('rate').value;
-audio.onended=pause;audio.onerror=()=>{pause();if(audio.getAttribute('src'))status('Music unavailable; you can still scrub the saved ride.',true);};window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
+// Each frame shows the ride at the music position heard when the frame is on screen.
+function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max)pause();draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+$('play').onclick=()=>playing?pause():start();
+$('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>{if(playing){pause();start();}};
+window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;$('movie-link').hidden=true;$('movie-link').removeAttribute('href');}
 async function loadMovie(m,url,signal,token){
   const c=m.cells.find(c=>c.method==='production'),recordUrl=new URL(c.id+'.video.json',url);
@@ -82,7 +85,7 @@ async function openResult(path,job,initialTime=0){
  impactReview.clear();
  const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];manifestUrl=undefined;seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('review-moments').replaceChildren();$('motion-summary').textContent='';$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
  previousUrl=undefined;$('comparison-control').hidden=true;$('comparison').disabled=true;$('comparison-ride').hidden=true;$('rides').classList.remove('comparing');
- for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}audio.removeAttribute('src');audio.load();if(audioObjectUrl){URL.revokeObjectURL(audioObjectUrl);audioObjectUrl=undefined;}delete audio.dataset.source;delete audio.dataset.sha256;
+ for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}music.clear();delete $('play').dataset.source;delete $('play').dataset.sha256;
  try{
   const url=new URL(path,location.href),m=await checked(url.href,signal),cells=[m.cells.find(c=>c.method==='production')];if(!cells[0])throw new Error('Missing automatic arrangement');
   const data=await Promise.all(cells.map(c=>checked(new URL(c.path,url).href,signal,c.sha256)));data.forEach(r=>{if(r.planSha256!==m.planSha256)throw new Error('Mismatched plan identity');});
@@ -117,7 +120,8 @@ async function openResult(path,job,initialTime=0){
   let audioFailure;
   try{
    const c=m.plan.cases[0],blob=await verifiedAudio(c,signal);if(token!==opening)return;
-   audioObjectUrl=URL.createObjectURL(blob);audio.src=audioObjectUrl;audio.dataset.source=c.audioPath;audio.dataset.sha256=c.audioSha256;audio.load();audio.onloadedmetadata=()=>{if(token===opening)audio.currentTime=seconds;};audio.playbackRate=+$('rate').value;$('play').disabled=false;
+   await music.load(await blob.arrayBuffer());if(token!==opening)return;
+   $('play').dataset.source=c.audioPath;$('play').dataset.sha256=c.audioSha256;$('play').disabled=false;
   }catch(e){if(signal.aborted||token!==opening)return;audioFailure=e.message+'; the saved ride can still be scrubbed.';status(audioFailure,true);}
   await loadMovie(m,url,signal,token);
   if(token===opening&&$('comparison').checked)await comparisonChanged();

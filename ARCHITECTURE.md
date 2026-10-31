@@ -83,7 +83,10 @@ spec (beats, impacts, air/speed/amplitude targets)
      `scripts/lib/strike_impact.ts`).
 5. **Review.** `scripts/produce/automatic.ts` writes a manifest of track, report
    and evidence that `motion-gallery/production.html` plays with the real rider
-   and the music. `render_repertoire.ts` renders vertical video when wanted.
+   and the music. The music plays through Web Audio and each frame draws the
+   ride at the position heard when it reaches the screen
+   (`motion-gallery/playback.js`, which also keeps the two clips of a pair
+   study on the same frame). `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families
 

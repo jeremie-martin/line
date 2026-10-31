@@ -16,7 +16,8 @@
  *   are closer than 0.45 s in the whole intro (0.174–0.441 and 4.493–5.387):
  *   this voice is legato, not fast. The first word's note is
  *   detected at 0.081, but its loudness arrives at the vocal onset 0.174
- *   (vocals 0.36, rise 0.31); 0.081 is also before the 0.13 s first-landing floor.
+ *   (vocals 0.36, rise 0.31). Neither can be landed: as the first contact, 0.174
+ *   made every compile fail at once (FIRST_WORD below).
  * - 3.50–4.49 STOP. The voice stops dead: mix 0.03–0.07 for a full second.
  * - 4.49–8.61 VOICE, PHRASE 2. Re-enters on 4.493 (salience 1.0) with the only
  *   close words of the intro (4.493, 4.667, 5.074, 5.387: 0.17–0.41 s), then
@@ -70,16 +71,23 @@ export const LAST_KICK = 42.957;
 // ─────────── Voice (0–8.6 s) ───────────
 
 /**
- * Every sung word of the intro, sung.json notes (salience 0.32–1.0), at the note's
- * vocal attack: 0.174 for the first (see header), and 0.441 for the A♯4 whose note
- * sung.py attaches to 0.453, an "other"-stem event with no loudness 12 ms later.
+ * The first sung word (G4, salience 1.0), at its vocal attack (see header). The
+ * compiler cannot land it: with it as the first contact (0.189 s after the -15 ms
+ * jolt, frame 8) every Luna variant failed at once with `no_arc` (6 of 6 compiles,
+ * October 31), so no variant lands it; the ride starts on the second word.
+ */
+export const FIRST_WORD = 0.174;
+/**
+ * The landable sung words of the intro, sung.json notes (salience 0.32–1.0), at the
+ * note's vocal attack: 0.441 for the A♯4 whose note sung.py attaches to 0.453, an
+ * "other"-stem event with no loudness 12 ms later.
  */
 export const WORDS = [
-  0.174, 0.441, 1.033, 1.579, 2.078, 2.659, 3.216, // phrase 1
+  0.441, 1.033, 1.579, 2.078, 2.659, 3.216, // phrase 1
   4.493, 4.667, 5.074, 5.387, 5.944, 6.444, 6.989, 7.523, 8.069, // phrase 2
 ];
 /** The voice by phrases and half-phrases: a sub-phrase start every 1–1.4 s. */
-export const PHRASES = [0.174, 1.579, 2.659, 4.493, 5.387, 6.444, 7.523];
+export const PHRASES = [0.441, 1.579, 2.659, 4.493, 5.387, 6.444, 7.523];
 
 // ─────────── Drums (8.6–43 s) ───────────
 

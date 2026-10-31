@@ -4,7 +4,7 @@
  *
  * The voice-only intro (mix 0.17–0.35, half the body's level) is Luna's one calm
  * stretch. It is landed sparsely and softly, a float between phrase starts:
- * 0.174, 1.579, 2.659, then over the one-second stop to the re-entry 4.493, then
+ * 0.441, 1.579, 2.659, then over the one-second stop to the re-entry 4.493, then
  * 5.944 and 6.989 (gaps 1.05–1.83 s; asks 0.10–0.16, light touches). From 6.989
  * a 1.63 s float, the highest air of the song, carries over the last two words
  * into the drop 8.615 (kick + snare, mix rise 0.85), pinned 1.0.
@@ -28,7 +28,7 @@ import {
   kf, kickStrength, landings, music, overlayMeta, voiceStrength, zoom,
 } from "../music.ts";
 
-const SOFT = [0.174, 1.579, 2.659, VOICE_REENTRY, 5.944, 6.989];
+const SOFT = [0.441, 1.579, 2.659, VOICE_REENTRY, 5.944, 6.989];
 const FLOAT_FROM = 6.989;
 
 const times = landings(SOFT, KICKS);
@@ -65,5 +65,5 @@ export { overlayMeta };
 export const bench = {
   stratum: "P3" as const,
   pattern: "soft opening, float into the drop",
-  windows: [[0.12, 8.66]] as Array<[number, number]>,
+  windows: [[0.39, 8.66]] as Array<[number, number]>,
 };

@@ -54,6 +54,13 @@ export const WORD_RUNS = [
   23.59, 23.91, 24.24,
 ];
 
+/** Phrases: every heard word. The vocal onsets with a clear attack (rise ≥ 0.12), at least
+ *  0.2 s apart, corrected by the owner's ear (2026-10-31): 11.92 is a sung "ho" that the stem
+ *  separation put in "other"; 17.75 and 18.08 open the "oh-oh-oh" ending on 18.40; 13.53 is
+ *  not heard (it measures like 18.08, so loudness alone cannot tell them apart). */
+export const WORDS = [10.91, 11.26, 11.92, 12.56, 12.89, 13.20, 13.85, 14.50, 15.17, 16.14, 16.39, 17.09,
+  17.75, 18.08, 18.40, 19.03, 20.36, 20.68, 21.00, 21.30, 21.63, 21.97, 22.28, 23.91, 24.24, 24.89, 26.64, 29.37];
+
 /** Groove: every kick (loud, 0.99–1.13). */
 export const KICKS = [30.06, 31.67, 32.65, 34.27, 35.24, 36.86, 37.84, 39.45];
 /** Groove: every snare, on 2 and 4 (about 0.4, a third of a kick). */

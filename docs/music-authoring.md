@@ -8,6 +8,12 @@ proved insufficient on `productions/trouble_50s`.
 
 ## Principles
 
+- **Tools report; the author concludes.** Analysis tools measure and report
+  (onsets, loudness, drum classes, sung notes with pitch and salience). They
+  don't decide what to follow: no "this is the lead voice" or "land here". The
+  author (Claude, with the owner) reads everything and makes the artistic
+  choices.
+
 - **Tools measure; the author decides.** No script chooses landings. A spec is
   a list of deliberate, visible decisions, each traceable to measured evidence.
 - **Events first, never a grid first.** Know what each landing follows: a kick,
@@ -146,6 +152,28 @@ Observations from one song, not rules. Variants live in
   and too empty.
 - **There is no single right spec.** Several readings of one song can be very
   good.
+
+## What read well on Valhalla and Circus Minimus (October 2026)
+
+- **Valhalla (40 s): `words3` was "basically production ready".**
+  - It follows the voice by its heard words: close hits on fast words and
+    "oh-oh-oh"s, with long rides on held notes.
+  - Its words come from `sung.py`, with the owner's corrections.
+  - Where two voices sing, following the more interesting one, even switching
+    between them, read well.
+- **When the voice is most of the song, commit to it.** Words should be clear
+  hits (0.2–0.35), not touches.
+- **After a soft opening, make everything a little bigger,** so the contrast
+  shows.
+- **"Calm" means quiet, not few instruments.** Circus Minimus' intro is an 808
+  alone, and strong: soft floats there missed the music.
+- **Don't let a layer's name decide its role.** Circus' voice-led 38–49 s is
+  the song's most intense part. Read what the music does there.
+- **Short audible pairs are what the compiler cannot yet do reliably.**
+  - Circus `pairs3` finished 1 seed in 24.
+  - `pairs4`, the intended spec (voice-only 38–49 s, bigger hits), finished 0
+    in 24, failing at its 0.2 s pickups and 0.2 s word gaps.
+  - Keep such specs as targets rather than simplifying them silently.
 
 ## What the rider can do (current compiler, October 2026)
 

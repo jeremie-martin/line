@@ -23,9 +23,13 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    so spins make the world lurch; check whether videos are affected.
 7. **Geometry hygiene diagnosis** (agent, report only): pass-throughs
    (rider crossing a line from its non-colliding side) and untouched geometry.
-8. **New songs** (2026-10-31): Valhalla (40 s; phrases, words, kicks) and
-   Circus Minimus (77 s; groove, pulse808, pairs) round 1 await the owner's
-   review: `/generated/valhalla-variants-v1/`, `/generated/circus-variants-v1/`.
-9. **Compiler robustness, later and planned with the owner**: about half
-   of Trouble's preferred-spec seeds fail at short intervals at speed. Treat
-   this as a general capability gap, not a pattern to hard-code.
+8. ~~**New songs**~~ (2026-10-31).
+   - Valhalla: `words3`, production ready.
+   - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
+   - `pairs4` is the intended spec (0 in 24): a target for item 9.
+9. **Compiler step back, then planned work with the owner.**
+   - Short re-landings at speed: Trouble about half, Circus 1/24 and 0/24.
+   - Geometry hygiene (G1–G4).
+   - Unwanted impacts (U2, U3; guide touches on beats).
+   - The measure (visibility study).
+   - Benchmark fitness.

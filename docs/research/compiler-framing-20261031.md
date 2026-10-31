@@ -108,8 +108,13 @@ Each comparison reports:
 - **completion:** per stratum;
 - **quality:** under every ruler, on cells complete in both arms;
 - **geometry:** section 4 of the report (family shares, guided and transfer,
-  realized shape);
-- **cost:** physics frames and compile seconds.
+  realized shape).
+
+Compilers are compared at a **fixed allowance**, as in past work. Physics frames
+are then about constant: the search spends the allowance by design, and compile
+seconds follow. They are an accounting check, not a quality signal. A version
+that spends markedly fewer frames has stopped early or failed; one that spends
+more has broken the accounting.
 
 Rough first versions are fine. What the data favours is then refined,
 simplified and generalized, or dropped.
@@ -131,7 +136,19 @@ simplified and generalized, or dropped.
 
 A and D can follow, depending on what B and C show.
 
-## 7. Questions for the owner
+## 7. The owner's answers so far (2026-10-31): guidance, not decisions
+
+- **The plan:** it is not clear a plan is needed; the concept is recent. It
+  can be kept and improved, and its size and shape could depend on context.
+  Nothing about it is to be taken for granted.
+- **Guide rails:** the intuition is "something the search may use when it
+  helps". They are not the owner's preference; doing without them is fine.
+- **Shape against a clean landing:** too early to choose, and possibly not a
+  choice at all. The aim is a better compiler (better logic, less waste,
+  better heuristics, prediction, learning) that need not trade one for the
+  other.
+
+## 8. Questions for the owner (open)
 
 - Variety: should it come from a deliberate plan (today), or from candidates
   chosen with a taste prior (B)? Or a mix?

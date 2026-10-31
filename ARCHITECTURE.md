@@ -226,7 +226,33 @@ Known limits of the strike account:
 - **`npm run eval`** (`tools/eval`) is the behavioural evaluation.
   - Panels: `--panel=dev`, the one decisions were made on, and
     `--panel=confirm`, with fresh seeds and perturbations, for checking that
-    an adopted change generalizes.
+    an adopted change generalizes. Both are unchanged.
+  - Stratified panels (`docs/research/benchmark-audit-20261031.md`). A bench
+    spec is a variant `productions/<song>/variants/bench-<pattern>.ts`; a
+    sealed sibling is `sealed-<pattern>.ts`. Each exports
+    `bench = {stratum, pattern, windows}`: stratum `G` or `P1`–`P6`, and the
+    `[t0, t1]` windows (authored seconds) where its pattern happens.
+    `inputs.ts` discovers them by globbing, so adding a spec needs no code.
+    - `bench`: the four `spec.ts` as stratum G (no windows: the whole ride)
+      × 101, 202, plus every `bench-*` × 101, 202, 303. `bench-confirm`: the
+      same at 505, 606 (G) and 505, 606, 707. `bench-pairs8`: the P1 and P2
+      specs × 8 seeds, for completion claims.
+    - `sealed` (every `sealed-*` × 3 seeds) runs only with `--sealed`, to
+      confirm an adopted candidate.
+    - `heldout`: the held-out songs' preferred specs (Trouble, Valhalla,
+      Circus Minimus `spec.ts`) plus Circus `pairs4` as a target, × 4 seeds,
+      stratum H. It runs only with `--heldout`, at decision points; these
+      songs never inform compiler decisions.
+    - Case ids are `song~variant~seed` (`spec` for `spec.ts`); each planned
+      case records its stratum, pattern and windows.
+    - Their report (`summary.ts` `stratify`) gives completion first, per
+      stratum: complete/total per arm, recovered and lost cells, and for
+      failed rides the failure time (crash or first missed beat) and the
+      share of beats before it. Quality follows on cells complete in both
+      arms only, under every ruler plus the v3 loss parts and the v3 account
+      restricted to the windows. Per spec it gives seed sign counts, not a
+      bootstrap. Specs weigh equally within a stratum and strata weigh
+      equally across; there is no headline number and no interval.
   - Every run is scored under every account (v1, v2, v3).
   - Guard rows from the blind-spot audit: head-down/backward strong
     arrivals, body drag, off-beat kicks.
@@ -245,8 +271,9 @@ Known limits of the strike account:
   - `tools/eval/summary.ts` holds the shared summaries.
   - It compiles the production songs × 4 arrangement seeds, plus perturbed
     authorings, and pairs runs by case.
-  - Intervals come from resampling songs, and completion is reported
-    separately from quality.
+  - On dev and confirm, intervals come from resampling songs, and completion
+    is reported separately from quality. With 4 songs such an interval
+    excludes zero about 1 time in 5 under no change (the audit).
   - It reports every ruler, including measures the compiler does not
     optimize: the renewal-fixed strength, peak timing and contested beats
     from the 10-point external impulse. R1 bend peaks are labeled R1, not v3.
@@ -257,7 +284,7 @@ Known limits of the strike account:
     posture. The blind selector consumes that same first-contact observation;
     clip centering remains at onset. Existing study IDs cannot be overwritten.
     Review render reuse checks track, authoring, rendering inputs and movie bytes.
-  - Held-out new music is still missing; it needs new songs.
+  - Held-out new music: Trouble, Valhalla and Circus Minimus (`--panel=heldout`).
 - **`tools/report`** builds the overnight results page
   (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
   cuts before/after clips, `scale_clips.ts` shows the strength scale

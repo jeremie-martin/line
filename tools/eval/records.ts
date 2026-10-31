@@ -24,7 +24,8 @@ export function readPlan(dir: string): RunPlan {
   assert.ok(Array.isArray(p.panel) && p.panel.length > 0, 'empty evaluation panel');
   assert.equal(new Set(p.panel.map((c: PlannedCase) => c.id)).size, p.panel.length, 'duplicate declared cases');
   for (const c of p.panel) {
-    assert.match(c.id, /^[a-z0-9_]+~\d+(~p\d+)?$/);
+    // song~seed[~pN] (legacy panels) or song~variant~seed (stratified; spec.ts is `spec`).
+    assert.match(c.id, /^[a-z0-9_]+(~[A-Za-z0-9_-]+)?~\d+(~p\d+)?$/);
     assert.equal(c.input.jolt, p.jolt); assert.ok(c.targets.length > 0);
   }
   return p;

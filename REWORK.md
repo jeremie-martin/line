@@ -21,6 +21,27 @@ Next, agreed with the owner:
    intense sections), with weight set through how many specs stress each pattern.
    Use the categories only, never the held-out specs' exact parameters.
 
+## October 31: stratified benchmark tooling
+
+Tooling only (`tools/eval`); no compiler, spec or ruler change, parity
+identical. It implements the evaluation side of the benchmark audit; the bench
+specs themselves are written separately.
+- **Panels.** `bench` (G: the four `spec.ts` × 2 seeds; every
+  `productions/*/variants/bench-*.ts` × 3), `bench-confirm` (fresh seeds),
+  `bench-pairs8` (P1 and P2 × 8 seeds), `sealed` (only with `--sealed`) and
+  `heldout` (Trouble, Valhalla, Circus `spec.ts` and Circus `pairs4` × 4
+  seeds; only with `--heldout`, at decision points). `dev` and `confirm` are
+  unchanged. Specs are discovered from file names; each declares
+  `bench = {stratum, pattern, windows}`.
+- **Report.** Completion first per stratum (recovered and lost cells, failure
+  time and beats reached), then quality on both-complete cells under every
+  ruler, plus v3 loss parts and the v3 account inside each spec's windows.
+  Per-spec seed sign counts; strata weigh equally; no intervals and no
+  headline number.
+- **Cells** now also store the replay terminus, the v3 timing part, per-beat
+  timing error and the unrequested v3 events. The evaluator identity changes;
+  old runs still load and report.
+
 ## October 31: geometry hygiene (diagnosis)
 
 TODO item 7. Report only; no compiler, measure or ruler change

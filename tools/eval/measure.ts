@@ -4,6 +4,8 @@ import {observe} from '../measure/observe.ts';
 import {beatRows} from '../measure/measures.ts';
 import {arrivalPose} from '../measure/arrival.ts';
 import {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../measure/strike.ts';
+// The account's own scale: an unmatched event costs (raw / veryStrong)².
+import {CONTACT_IMPACT_CONTRACT} from '../../scripts/lib/contact_impact.ts';
 export function measureCell({c, mode, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion}: any) {
   const frozen = replayGalleryTrack(track, music, false).grade;
   const targets = music.contacts, observation = observe(track, music.durationFrames, targets);
@@ -25,7 +27,7 @@ export function measureCell({c, mode, track, spec, music, physicalFrames, compil
   const perBeat = targets.map((t: any, j: number) => {
     const m = impact3.matches.find((m: any) => m.target === j), e = m ? impacts3[m.event] : undefined;
     return {requested: t.impact ?? null, hit: e ? {strength: +e.strength.toFixed(4), onset: e.onset,
-      offset: e.onset - t.frame, peakFrame: e.peakFrame, ...arrivalPose(observation.frames, e.contactStart)} : null};
+      offset: e.onset - t.frame, timingError: m!.timingError, peakFrame: e.peakFrame, ...arrivalPose(observation.frames, e.contactStart)} : null};
   });
   const strongPose = perBeat.filter((b: any) => b.requested >= .6 && b.hit).map((b: any) => b.hit.headDown);
   const last = Math.min(music.durationFrames, observation.frames.length - 1);
@@ -50,7 +52,12 @@ export function measureCell({c, mode, track, spec, music, physicalFrames, compil
     strike: {loss: strike.loss, strengthMse: strike.strengthMse, timingMse: strike.timingMse, extraMse: strike.extraMse, missing: strike.missingTargets.length},
     impact: {loss: impact.loss, strengthMse: impact.strengthMse, timingMse: impact.timingMse, extraMse: impact.extraMse, missing: impact.missingTargets.length,
       strongExtras: strongExtras(impact, impacts), beats: targets.length},
-    impact3: {loss: impact3.loss, strengthMse: impact3.strengthMse, extraMse: impact3.extraMse, strongExtras: strongExtras(impact3, impacts3),
-      reversals, beats: targets.length, perBeat},
+    impact3: {loss: impact3.loss, strengthMse: impact3.strengthMse, timingMse: impact3.timingMse, extraMse: impact3.extraMse, strongExtras: strongExtras(impact3, impacts3),
+      reversals, beats: targets.length, perBeat,
+      // Unrequested events with their loss cost, so the report can count them inside pattern windows.
+      extras: impact3.unmatchedEvents.map((i: number) => ({onset: impacts3[i].onset, strength: +impacts3[i].strength.toFixed(4),
+        cost: (impacts3[i].raw / CONTACT_IMPACT_CONTRACT.veryStrong) ** 2}))},
+    // Where the replayed ride ended (frame, reason): the failure time of an incomplete ride.
+    terminus: observation.terminus,
     motion, guards, beats};
 }

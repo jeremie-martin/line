@@ -18,12 +18,29 @@ that must not change what the compiler produces.
 1. State the hypothesis and the measure **before** running it.
 2. Compare paired, song by song, against the current default.
 3. Require the complete declared panel and identical resolved inputs before
-   paired comparisons. Report completion separately from quality, with an interval over songs,
-   not a point estimate over seeds that reproduce the same track.
+   paired comparisons. Report completion separately from quality, with an interval over songs
+   (dev, confirm) or per-spec seed sign counts (stratified panels), not a point
+   estimate over seeds that reproduce the same track.
 4. Report the result under **every** ruler, not only the one optimized, so
    self-grading is visible. Disclose any ruler the change makes worse.
 5. If accepted, update the parity references in the same commit with
    `npm run parity -- --update` and say why they changed.
+
+## Panels
+
+- `npm run eval -- --panel=bench` is the stratified dev panel; `bench-confirm`
+  re-runs it at fresh seeds; `bench-pairs8` re-runs the P1 and P2 specs at
+  8 seeds before any completion claim. `dev` and `confirm` stay runnable for
+  history. `npm run eval -- --name=X` with no `--panel` still runs `dev`.
+- Bench specs are variants named `bench-<pattern>.ts` with a `bench` export
+  (see ARCHITECTURE.md). Adding one changes the panel: compare only runs with
+  identical resolved inputs (the report refuses otherwise).
+- `--panel=sealed --sealed` only to confirm an adopted candidate.
+  `--panel=heldout --heldout` only at decision points; the held-out songs
+  never inform a compiler decision, and their results are not tuned on.
+- Read a bench report completion first. Quality there covers only cells
+  complete in both arms; judge it by per-spec seed signs across strata, not by
+  one number.
 
 ## Measures before objectives
 

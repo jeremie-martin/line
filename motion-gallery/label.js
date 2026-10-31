@@ -3,8 +3,9 @@
  * (POST /api/labels/<study>) so a session can resume on any device. */
 import {prepareView} from './replay.js';
 import {sha256Hex} from './sha256.js';
+import {createMusic, displayTime} from '../shared/playback.js';
 
-const $ = id => document.getElementById(id), audio = $('audio'), canvas = $('canvas');
+const $ = id => document.getElementById(id), canvas = $('canvas'), music = createMusic(), onScreen = displayTime();
 const study = new URLSearchParams(location.search).get('study') ?? 'impact-2026-10';
 const state = {manifest: null, index: 0, answers: {}, labeled: new Set(), view: null, trace: null, clip: null,
   t: 0, playing: false, slow: false, last: 0, shownAt: 0, token: 0};
@@ -17,11 +18,11 @@ async function fetchChecked(url, digest) {
   if (digest && await sha256(bytes) !== digest) throw new Error(`${url} does not match the study manifest`);
   return bytes;
 }
-const audioUrls = new Map();
+const audioBytes = new Map();
+let loadedAudio;
 async function audioFor(clip) {
-  if (!audioUrls.has(clip.audio)) audioUrls.set(clip.audio,
-    fetchChecked(clip.audio, clip.audioSha256).then(bytes => URL.createObjectURL(new Blob([bytes], {type: 'audio/mpeg'}))));
-  return audioUrls.get(clip.audio);
+  if (!audioBytes.has(clip.audio)) audioBytes.set(clip.audio, fetchChecked(clip.audio, clip.audioSha256));
+  return audioBytes.get(clip.audio);
 }
 
 function renderQuestions() {
@@ -77,12 +78,14 @@ const scrub = event => {
 };
 timeline.addEventListener('pointerdown', e => {timeline.setPointerCapture(e.pointerId); scrub(e);});
 timeline.addEventListener('pointermove', e => {if (timeline.hasPointerCapture(e.pointerId)) scrub(e);});
+// At full speed the ride is drawn at the music position heard when the frame is on
+// screen (shared/playback.js); slow ×¼ is silent and runs on the frame clock.
 function tick(now) {
   if (state.playing && state.clip) {
-    if (state.slow) state.t += (now - state.last) / 1000 / 4; else state.t = audio.currentTime;
+    if (state.slow) state.t += (now - state.last) / 1000 / 4; else if (music.playing) state.t = music.position(onScreen(now));
     if (state.t >= state.clip.end) {
       state.t = state.clip.start;
-      if (!state.slow) audio.currentTime = state.t;
+      if (!state.slow) music.play(state.t);
     }
     draw();
   }
@@ -92,9 +95,9 @@ requestAnimationFrame(tick);
 
 async function play() {
   state.playing = true; $('play').textContent = 'Pause';
-  if (state.slow) audio.pause(); else {audio.currentTime = state.t; await audio.play();}
+  if (state.slow) music.pause(); else await music.play(state.t);
 }
-function pause() {state.playing = false; $('play').textContent = 'Play'; audio.pause();}
+function pause() {state.playing = false; $('play').textContent = 'Play'; if (music.playing) state.t = music.pause();}
 $('play').onclick = () => state.playing ? pause() : play().catch(e => status(e.message, true));
 $('slow').onclick = () => {
   state.slow = !state.slow; $('slow').setAttribute('aria-pressed', String(state.slow));
@@ -111,15 +114,17 @@ async function open(index) {
   $('back').disabled = state.index === 0;
   pause(); state.view = null; status('Loading…');
   try {
-    const [recordBytes, audioUrl] = await Promise.all([fetchChecked(clip.record, clip.recordSha256), audioFor(clip)]);
+    const [recordBytes, audio] = await Promise.all([fetchChecked(clip.record, clip.recordSha256), audioFor(clip)]);
     if (token !== state.token) return;
     const record = JSON.parse(new TextDecoder().decode(recordBytes));
     const {view} = await prepareView(record, clip.recordSha256);
     if (token !== state.token) return;
     state.view = view; state.trace = record.trace.frames; state.t = clip.start;
-    if (audio.src !== audioUrl) {audio.src = audioUrl; await new Promise(r => audio.addEventListener('loadedmetadata', r, {once: true}));}
+    if (loadedAudio !== clip.audio) {loadedAudio = undefined; await music.load(audio.slice(0)); if (token !== state.token) return; loadedAudio = clip.audio;}
     state.shownAt = performance.now(); draw(); status('');
-    await play().catch(() => status('Press Play to start the clip (the browser blocked autoplay).'));
+    // Sound may only start after the visitor has interacted with the page.
+    if (navigator.userActivation?.hasBeenActive === false) status('Press Play to start the clip (the browser blocked autoplay).');
+    else await play().catch(() => status('Press Play to start the clip (the browser blocked autoplay).'));
   } catch (e) {if (token === state.token) status(String(e.message ?? e), true);}
 }
 

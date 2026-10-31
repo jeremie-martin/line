@@ -2,9 +2,9 @@
  * at the same moment), a light that is on while the judged hit happens, and a
  * timeline of each clip's specification beats that can be dragged to scrub.
  * The sounding clip (A when muted) leads and the other shows its frame
- * (playback.js). Sides are assigned by the study key, which the page never sees. Answers are
+ * (shared/playback.js). Sides are assigned by the study key, which the page never sees. Answers are
  * stored server-side (POST /api/labels/<study>) so a session can resume. */
-import {lastFrame, shownGap, follow} from './playback.js';
+import {lastFrame, shownGap, follow} from '../shared/playback.js';
 const $ = id => document.getElementById(id);
 const study = new URLSearchParams(location.search).get('study') ?? 'slam-2026-10';
 const state = {manifest: null, index: 0, choice: null, labeled: new Set(), shownAt: 0, playing: true, rate: 1};

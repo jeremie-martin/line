@@ -85,8 +85,9 @@ spec (beats, impacts, air/speed/amplitude targets)
    and evidence that `motion-gallery/production.html` plays with the real rider
    and the music. The music plays through Web Audio and each frame draws the
    ride at the position heard when it reaches the screen
-   (`motion-gallery/playback.js`, which also keeps the two clips of a pair
-   study on the same frame). `render_repertoire.ts` renders vertical video when wanted.
+   (`shared/playback.js`, also used by the spec dashboard's cursor and
+   landing clicks and by the grading page, and which keeps the two clips of a
+   pair study on the same frame). `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families
 

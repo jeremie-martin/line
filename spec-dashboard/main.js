@@ -1,3 +1,5 @@
+import { createMusic, displayTime } from "../shared/playback.js";
+
 const NS = "http://www.w3.org/2000/svg";
 
 const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"];
@@ -18,7 +20,6 @@ const refs = {
   specSelect: document.getElementById("spec-select"),
   reload: document.getElementById("reload-spec"),
   subtitle: document.getElementById("spec-subtitle"),
-  audio: document.getElementById("audio"),
   play: document.getElementById("play"),
   back: document.getElementById("back"),
   forward: document.getElementById("forward"),
@@ -103,11 +104,11 @@ const state = {
   pendingNoteSave: null,
   calibrationJob: null,
   calibrationPoll: null,
-  simulatedPlaying: false,
-  lastTickMs: performance.now(),
   followPlayhead: true,
   followSuspended: false,
 };
+
+const music = createMusic(), onScreen = displayTime();
 
 init().catch((error) => showFatal(error));
 
@@ -131,18 +132,6 @@ function wireEvents() {
   refs.scrub.addEventListener("input", () => {
     if (!state.data) return;
     seekTo(Number(refs.scrub.value) * state.data.spec.duration);
-  });
-  refs.audio.addEventListener("loadedmetadata", updatePlaybackUi);
-  refs.audio.addEventListener("timeupdate", updatePlaybackUi);
-  refs.audio.addEventListener("play", updatePlaybackUi);
-  refs.audio.addEventListener("pause", updatePlaybackUi);
-  refs.audio.addEventListener("ended", () => {
-    if (state.data && state.cursorT < state.data.spec.duration) state.simulatedPlaying = true;
-    updatePlaybackUi();
-  });
-  refs.audio.addEventListener("error", () => {
-    refs.musicMeta.textContent = "Audio failed to load";
-    updatePlaybackUi();
   });
   refs.zoomOut.addEventListener("click", () => zoomAround(specTime(), 2, { manual: true }));
   refs.zoomIn.addEventListener("click", () => zoomAround(specTime(), 0.5, { manual: true }));
@@ -348,13 +337,8 @@ async function loadSpec(specPath, pushUrl, restore = null) {
     refs.snapMode.value = "event";
   }
 
-  if (view.music?.audioUrl) {
-    refs.audio.src = view.music.audioUrl;
-    refs.audio.load();
-  } else {
-    refs.audio.removeAttribute("src");
-    refs.audio.load();
-  }
+  music.clear();
+  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
 
   if (pushUrl) {
     const params = new URLSearchParams(location.search);
@@ -364,6 +348,17 @@ async function loadSpec(specPath, pushUrl, restore = null) {
 
   renderAll();
   seekTo(state.cursorT, { select: true, reveal: false, resumeFollow: false });
+}
+
+async function loadMusic(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await music.load(await res.arrayBuffer());
+    updatePlaybackUi();
+  } catch {
+    refs.musicMeta.textContent = "Audio failed to load";
+  }
 }
 
 async function readJsonOk(res) {
@@ -1233,9 +1228,8 @@ function pathFromPoints(points, xFor, yFor) {
   return d;
 }
 
-function updatePlaybackUi() {
+function updatePlaybackUi(t = specTime()) {
   if (!state.data) return;
-  const t = specTime();
   state.cursorT = t;
   refs.timeNow.textContent = formatTime(t);
   refs.scrub.value = String(clamp(t / state.data.spec.duration, 0, 1));
@@ -1248,13 +1242,12 @@ function updatePlaybackUi() {
       ph.setAttribute("x2", x);
     }
   }
-  renderInspector();
+  renderInspector(t);
 }
 
-function renderInspector() {
+function renderInspector(t = specTime()) {
   const { data } = state;
   if (!data) return;
-  const t = specTime();
   const contactHit = nearestContact(t);
   const gap = currentGap(t);
   const phase = currentPhase(t);
@@ -1968,7 +1961,7 @@ function renderAgentContext() {
   // animation frame during playback; rebuilding the context and JSON.stringify-ing it
   // 60×/sec pins a core on dense specs and nobody reads it mid-scrub. Throttle to ~7Hz
   // while playing; paused/discrete updates always render immediately.
-  if (state.simulatedPlaying || (hasAudio() && !refs.audio.paused)) {
+  if (isPlaying()) {
     const now = performance.now();
     if (now - lastAgentContextMs < 140) return;
     lastAgentContextMs = now;
@@ -1990,9 +1983,9 @@ function renderAgentContext() {
       time: formatTime(t),
       music: state.data.music ? {
         offset: musicOffset(state.data.music),
-        audioTime: hasAudio() ? round(refs.audio.currentTime, 3) : null,
-        specFromAudio: hasAudio() ? round(audioToSpecTime(refs.audio.currentTime, musicOffset(state.data.music)), 3) : null,
-        clock: state.simulatedPlaying ? "spec" : hasAudio() && !refs.audio.paused ? "audio" : "paused",
+        audioTime: hasAudio() ? round(specToAudioTime(t, musicOffset(state.data.music)), 3) : null,
+        specFromAudio: hasAudio() ? round(t, 3) : null,
+        clock: isPlaying() ? "audio" : "paused",
       } : null,
       phase: currentPhase(t)?.name ?? null,
       contact: nearestContact(t)?.index ?? null,
@@ -2039,43 +2032,31 @@ function renderAgentContext() {
   refs.agentJson.textContent = JSON.stringify(ctx, null, 2);
 }
 
+// The music and the cursor share one clock, the audio hardware's (shared/playback.js):
+// the cursor sits at the position heard, also where the spec runs past the music.
 function togglePlayback() {
   if (!state.data) return;
-  if (isPlaying()) {
-    pausePlayback();
-    return;
-  }
-  // Audio may only start from a user gesture, so the click clock starts here.
-  clicks.ctx ??= new AudioContext();
-  clicks.ctx.resume();
+  if (isPlaying()) pausePlayback();
+  else startPlayback(state.cursorT);
+}
+
+function startPlayback(t) {
   clicks.until = -Infinity;
-  if (hasAudio()) {
-    const audioT = specToAudioTime(state.cursorT, musicOffset(state.data.music));
-    if (audioTimeInRange(audioT, state.data.music)) {
-      refs.audio.currentTime = audioT;
-      refs.audio.play().catch((error) => toast(String(error)));
-    } else {
-      state.simulatedPlaying = true;
-      updatePlaybackUi();
-    }
-  } else {
-    state.simulatedPlaying = true;
-    updatePlaybackUi();
-  }
+  music.play(specToAudioTime(t, musicOffset(state.data.music))).then(() => updatePlaybackUi(), (error) => toast(String(error)));
 }
 
 function pausePlayback() {
-  state.simulatedPlaying = false;
-  refs.audio.pause();
-  updatePlaybackUi();
+  if (isPlaying()) state.cursorT = specTime();
+  music.pause();
+  updatePlaybackUi(state.cursorT);
 }
 
 function isPlaying() {
-  return state.simulatedPlaying || (hasAudio() ? !refs.audio.paused : false);
+  return music.playing;
 }
 
 function hasAudio() {
-  return Boolean(state.data?.music?.audioUrl && refs.audio.src);
+  return Boolean(music.duration);
 }
 
 function musicOffset(music = state.data?.music) {
@@ -2091,92 +2072,58 @@ function specToAudioTime(specTimeValue, offset = musicOffset()) {
   return specTimeValue - offset;
 }
 
-function audioDurationForMusic(music = state.data?.music) {
-  if (Number.isFinite(refs.audio.duration) && refs.audio.duration > 0) return refs.audio.duration;
-  const metaDuration = Number(music?.spectrogram?.meta?.duration);
+function audioDurationForMusic(spec = state.data?.music) {
+  if (music.duration) return music.duration;
+  const metaDuration = Number(spec?.spectrogram?.meta?.duration);
   return Number.isFinite(metaDuration) && metaDuration > 0 ? metaDuration : null;
 }
 
-function audioTimeInRange(audioTime, music = state.data?.music) {
-  if (!Number.isFinite(audioTime) || audioTime < 0) return false;
-  const duration = audioDurationForMusic(music);
-  return duration === null || audioTime <= duration;
-}
-
-function specTime() {
+/** Spec time heard at performance time `ms` (now by default); the cursor when paused. */
+function specTime(ms = performance.now()) {
   if (!state.data) return 0;
-  const duration = state.data.spec.duration;
-  if (hasAudio() && !refs.audio.paused && !refs.audio.ended) {
-    return clamp(audioToSpecTime(refs.audio.currentTime, musicOffset(state.data.music)), 0, duration);
-  }
-  return clamp(state.cursorT, 0, duration);
+  const t = isPlaying() ? audioToSpecTime(music.position(ms), musicOffset(state.data.music)) : state.cursorT;
+  return clamp(t, 0, state.data.spec.duration);
 }
 
 function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
-  const wasPlaying = isPlaying();
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
-  if (hasAudio()) {
-    const audioT = specToAudioTime(next, musicOffset(state.data.music));
-    if (audioTimeInRange(audioT, state.data.music)) {
-      state.simulatedPlaying = false;
-      refs.audio.currentTime = audioT;
-      if (wasPlaying && refs.audio.paused) refs.audio.play().catch((error) => toast(String(error)));
-    } else {
-      refs.audio.pause();
-      state.simulatedPlaying = wasPlaying;
-      refs.audio.currentTime = clamp(
-        audioT,
-        0,
-        audioDurationForMusic(state.data.music) || Number.POSITIVE_INFINITY,
-      );
-    }
-  }
+  if (isPlaying()) startPlayback(next);
   if (opts.resumeFollow !== false) resumeFollow();
   if (opts.reveal !== false) revealTime(next, { manual: false });
-  updatePlaybackUi();
+  updatePlaybackUi(next);
   if (opts.select) selectAnchorAtCursor();
 }
 
-function tick(now) {
-  const dt = Math.max(0, (now - state.lastTickMs) / 1000);
-  state.lastTickMs = now;
-  if (state.data && state.simulatedPlaying) {
-    state.cursorT += dt;
-    if (state.cursorT >= state.data.spec.duration) {
+// Each frame shows the cursor at the spec time heard when the frame is on screen.
+function tick(ts) {
+  if (state.data && isPlaying()) {
+    const t = specTime(onScreen(ts));
+    if (t >= state.data.spec.duration) {
       state.cursorT = state.data.spec.duration;
-      state.simulatedPlaying = false;
+      music.pause();
     }
-    if (state.simulatedPlaying && hasAudio()) {
-      const audioT = specToAudioTime(state.cursorT, musicOffset(state.data.music));
-      if (audioTimeInRange(audioT, state.data.music)) {
-        state.simulatedPlaying = false;
-        refs.audio.currentTime = audioT;
-        refs.audio.play().catch((error) => toast(String(error)));
-      }
-    }
-    followTime(state.cursorT);
-    updatePlaybackUi();
-  } else if (state.data && hasAudio() && !refs.audio.paused) {
     scheduleClicks();
-    followTime(specTime());
-    updatePlaybackUi();
+    followTime(t);
+    updatePlaybackUi(t);
   }
   requestAnimationFrame(tick);
 }
 
-// A click at every landing while the music plays, scheduled slightly ahead on the
-// Web Audio clock and louder for stronger requested impact, so a landing that misses
-// the music, or music with no landing, is audible rather than only visible.
-const clicks = { ctx: null, until: -Infinity };
+// A click at every landing while the music plays, louder for stronger requested
+// impact, so a landing that misses the music, or music with no landing, is audible
+// rather than only visible. Clicks are scheduled on the music's own clock, slightly
+// ahead of the sound being rendered, so each lands on its spec time in the music.
+const clicks = { until: -Infinity };
 function scheduleClicks() {
-  if (!clicks.ctx || !refs.toggleClicks.checked) return;
-  const ctx = clicks.ctx, now = specTime(), rate = refs.audio.playbackRate || 1, horizon = now + 0.15 * rate;
+  if (!isPlaying() || !refs.toggleClicks.checked) return;
+  const ctx = music.context, offset = musicOffset(state.data.music);
+  const now = audioToSpecTime(music.rendered(), offset), horizon = now + 0.15;
   if (!(clicks.until >= now - 0.05 && clicks.until <= horizon)) clicks.until = now; // after a seek
   for (const contact of state.data.contacts) {
     if (contact.t <= clicks.until || contact.t > horizon) continue;
-    const at = ctx.currentTime + (contact.t - now) / rate;
+    const at = music.when(specToAudioTime(contact.t, offset));
     const osc = ctx.createOscillator(), gain = ctx.createGain();
     osc.frequency.value = 1800;
     gain.gain.setValueAtTime(0.15 + 0.6 * Math.sqrt(contact.impact ?? 0.5), at);

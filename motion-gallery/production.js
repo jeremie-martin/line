@@ -1,7 +1,7 @@
 import {prepareView} from './replay.js';
 import {sha256Hex} from './sha256.js';
 import {createContactImpactReview} from './contact-impact-review.js';
-import {createMusic,displayTime} from './playback.js';
+import {createMusic,displayTime} from '../shared/playback.js';
 const $=id=>document.getElementById(id),music=createMusic(),onScreen=displayTime();
 // Geometry-family labels by id, from the compiler's catalog.
 let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,libraryEntries=[],interactionReview;
@@ -30,7 +30,7 @@ async function verifiedAudio(c,signal){
  return blob;
 }
 function pause(){if(playing)seconds=music.pause();playing=false;$('play').textContent='Play';}
-async function start(){try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').value,()=>{pause();seek(+$('seek').max);});playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}}
+async function start(){try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').value);playing=true;$('play').textContent='Pause';}catch(e){status(e.message,true);}}
 function draw(){
  $('time').textContent=fmt(seconds,interactionReview?3:2)+' s';$('seek').value=seconds;
  ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production'),at=Math.max(0,Math.min(seconds*40,r.trace.frames.length-1)),f=Math.floor(at),a=r.trace.frames[f],b=r.trace.frames[Math.min(f+1,r.trace.frames.length-1)],t=at-f;
@@ -67,7 +67,7 @@ async function comparisonChanged(){
 }
 $('comparison').onchange=comparisonChanged;
 // Each frame shows the ride at the music position heard when the frame is on screen.
-function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max)pause();draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max){pause();seek(+$('seek').max);}draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 $('play').onclick=()=>playing?pause():start();
 $('seek').oninput=()=>{pause();$('movie').pause();seek(+$('seek').value);};$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>{if(playing){pause();start();}};
 window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});

@@ -20,7 +20,7 @@ Links to documents that are no longer in the tree resolve at tag
 | [unwanted-impacts-20261030.md](unwanted-impacts-20261030.md) | unrequested hits: what v3 counts (body on guide or receiver rails after strong hits), what it misses (two detector defects; turns just after quiet catches), why the search keeps them, fix hypotheses U1–U5 |
 | [u1-measure-study-20261031.md](u1-measure-study-20261031.md) | U1 measure candidate (`line.strike.v4-candidate`, measurement only): definition, remeasured panel, and why the owner study was not built (worse than v3 on his existing labels). Code kept on branch `worktree-agent-a1f12a7790eda8a3d` (a804bc08), not merged |
 | [measure-step-back-20261031.md](measure-step-back-20261031.md) | the impact measure, a step back: what the compiler needs from it, what is validated (ordering of clear differences only), a pattern in the pairs v3 gets wrong (post hoc), and the proposed next owner studies |
-| [playback-20261031.md](playback-20261031.md) | review-page playback: why rides lagged and pair clips stuttered (stale `currentTime`, seek storms), the timing chain from beat to screen (felt-jolt +15 ms by design), the one-module design (`motion-gallery/playback.js`), before/after measurements and what is unverified |
+| [playback-20261031.md](playback-20261031.md) | review-page and spec-dashboard playback: why rides lagged and pair clips stuttered (stale `currentTime`, seek storms), the timing chain from beat to screen (felt-jolt +15 ms by design), the one-module design (`shared/playback.js`), before/after measurements and what is unverified |
 
 The October 3 independent audit corrects several claims in these documents:
 

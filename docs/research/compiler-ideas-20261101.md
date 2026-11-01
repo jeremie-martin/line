@@ -911,3 +911,33 @@ since that is where it failed.
   - Ideas that help long gaps are amplified on V7 in a way new music does
     not reward. This is worth the owner's view on V7's composition. The
     held-out check did its job here.
+
+## Next iterations (2026-11-02, autonomous)
+`main` is unchanged by the review and simplify passes (8-seed checks). Two
+lines are running:
+
+### H2. Construction policies, second round
+- **Change.** Collect demonstrations from the compiler now running H's
+  policies (worktree frozen at 4198dcb6, both catalogs) and retrain.
+- **Hypothesis.** A second round moves proposals closer still to what the
+  current compiler keeps: a further gain, smaller than H's (October's second
+  round gave about half the first). Watch body drag, which rose with each
+  round.
+
+### K. Flush catches on a surface above
+- **Basis** (studies agent). Hits from above build their push over about 4
+  frames: one or two points touch, then the back follows. On asks 0.6–0.8
+  they fall short 28% of the time (floor hits: 4%) and are late 23% (floor:
+  2%). Opposing-side proposals are mirror images of floor proposals, so a
+  line laid flush with the rider's top edge is rarely proposed.
+- **Change.** In `proposeOpposingEntries`, eight extra proposals per interval
+  whose entry is aligned with the rider's top edge: the two receivers nearest
+  a surface above, along the travel. That makes the line meet both at once.
+  Other controls come from the generic proposals, mirrored as today. The
+  allowance is shared, and the frames are charged as usual.
+- **Hypothesis:**
+  - more timely, stronger candidates from above;
+  - late hits from above fall and their strength rises on mid and strong
+    asks;
+  - headline up a little;
+  - physics frames about the same (the allowance binds the search).

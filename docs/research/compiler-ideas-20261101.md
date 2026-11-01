@@ -740,3 +740,25 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
   - Strong extra hits +0.007 per beat.
   - Next: rebuild on top of D, compare at 8 seeds, and look at the dense
     specs' losses.
+
+### Retraining the learned models on today's compiler
+- **Collection.** `value_collect.ts`, run from a worktree frozen at fc9a428a
+  (the compiler of `main` with A), into `generated/value-v4/collect-3`. That
+  gives 168 records from training cases disjoint from the evaluation and
+  held-out songs.
+- **Value model** (`generated/value-v4/model-1`), validated on held-out
+  training groups:
+  - mean regret 0.072, against 0.074 for the October model and 0.096 for
+    measured cost only;
+  - best chosen 45% against 47%; rank correlation 0.70 against 0.71;
+  - level: mean prediction 0.156 against a label mean of 0.172. The October
+    model predicts 0.122, about 30% low.
+  - So the October model still generalizes; the new one mainly corrects the
+    level.
+
+### G. Retrained value model
+- **Change:** `arc_value_model.json` replaced by the retrained one.
+- **Hypothesis.** Roughly neutral on ranking order (same regret). Because
+  its level is about 30% higher, the future term weighs a little more
+  against measured cost. A small effect either way; adopted only if not
+  negative, so the artifact matches the compiler it serves.

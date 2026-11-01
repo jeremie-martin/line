@@ -2,7 +2,7 @@
  * reports require the full panel. A failed worker is a failed run, resumable
  * after its cause is addressed; an incomplete ride is still a recorded result.
  *
- * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|N] [--panel=NAME] [--sealed|--heldout] [--jobs=24] [--creative=JSON]
+ * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=24] [--creative=JSON]
  * node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  * Panels are listed in USAGE below (PANEL_HELP in inputs.ts). */
 import assert from 'node:assert/strict';
@@ -20,7 +20,7 @@ import {measureCell, geometryFacts} from './measure.ts';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 export const USAGE = `usage:
-  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|N] [--jobs=24] [--sealed|--heldout] [--creative=JSON]
+  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|standard*F|N] [--jobs=24] [--sealed|--heldout] [--creative=JSON]
   npm run eval:report -- --name=DIR [--against=DIR]
 panels:
 ${Object.entries(PANEL_HELP).map(([k, v]) => `  ${k.padEnd(14)}${v}`).join('\n')}
@@ -39,7 +39,8 @@ export function validateRunOptions(mode: string, budget: string, jobs: number, p
     ? 'the heldout panel runs only with --heldout: these songs are held out from compiler decisions and run only at decision points'
     : '--heldout applies only to --panel=heldout');
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
-  assert.ok(budget === 'standard' || (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard or a positive integer');
+  assert.ok(budget === 'standard' || /^standard\*(0|[1-9]\d*)(\.\d+)?$/.test(budget) && Number(budget.slice(9)) > 0 ||
+    (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard, standard*FACTOR or a positive integer');
 }
 async function planFor(mode: string, budget: string, panelName: string, creative?: Record<string, unknown>): Promise<RunPlan> {
   const identity = compilerIdentity('.'), evaluator = evaluatorIdentity(), jolt = resolveJoltMs();
@@ -57,7 +58,9 @@ async function worker(dir: string, id: string) {
   assert.deepEqual(planned, c, 'resolved authoring changed');
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
-  const budget = plan.budget === 'standard' ? productionBudget(spec.duration) : Number(plan.budget), began = performance.now();
+  // standard*F scales the production allowance for this ride's length (a budget study).
+  const budget = plan.budget === 'standard' ? productionBudget(spec.duration)
+    : plan.budget.startsWith('standard*') ? Math.round(productionBudget(spec.duration) * Number(plan.budget.slice(9))) : Number(plan.budget), began = performance.now();
   const cp = compileHandoff(spec, c.seed, {budget, creative: plan.creative ?? {}, impactContract: CONTRACTS[plan.mode as keyof typeof CONTRACTS],
     phraseBoundaries: music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite)});
   const compileMs = performance.now() - began, r = cp.repertoire!;

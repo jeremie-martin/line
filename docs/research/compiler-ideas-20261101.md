@@ -607,3 +607,16 @@ hits from above are late.
   adds less than before, perhaps nothing. If something remains, it shows as
   strength error² falling further on mid and strong asks, with body drag
   rising again.
+
+### C. Without the learned future estimate (ablation)
+- **Basis.** Ranking adds 0.45 × a learned prediction of the next intervals
+  (`arc_value_model.json`, 73 features). In October it was found no better
+  than a constant: old, retrained, constant and none landed within about
+  0.01. Removing it then was "slightly worse" on an older compiler.
+- **Change:** `futureValueModel` off (`connected_arcs.ts`). Ranking is then
+  measured cost + ½ arrival priors.
+- **Hypothesis.** In today's compiler it adds little beyond noise.
+  - Removing it is neutral to slightly positive. If so, it is a
+    simplification: the model, its features and its training artifact can
+    go.
+  - If clearly negative, it carries real information and stays.

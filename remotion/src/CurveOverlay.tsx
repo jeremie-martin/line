@@ -487,8 +487,8 @@ function useSpectrum(file: string | null, label: string): Spectrum | null {
   return data;
 }
 const SPECTRUM_RAMP = ["#38d6c8", "#6ad36a", "#f0b429", "#ff5a4f"];
-// Full-width frequency-bar visualizer, faded into white at the L/R edges so it never
-// touches the cropped phone edges. `baseY` is the baseline (bars rise upward from it);
+// Frequency bars with optional transparent edge falloff. No background is painted:
+// empty space between/around bars must leave the ride visible. `baseY` is the baseline;
 // `sym` also mirrors them downward. The svg is sized to hold both halves either way.
 const SpectrumViz: React.FC<{
   spec: Spectrum; t: number; left: number; width: number; baseY: number; maxBar: number;
@@ -504,10 +504,14 @@ const SpectrumViz: React.FC<{
     <svg width={width} height={svgH} style={{ position: "absolute", left, top: baseY - maxBar, opacity: enter }}>
       <defs>
         <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0" stopColor="#fff" stopOpacity="1" /><stop offset="0.07" stopColor="#fff" stopOpacity="0" />
-          <stop offset="0.93" stopColor="#fff" stopOpacity="0" /><stop offset="1" stopColor="#fff" stopOpacity="1" />
+          <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset="0.07" stopColor="#fff" stopOpacity="1" />
+          <stop offset="0.93" stopColor="#fff" stopOpacity="1" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
+        <mask id={`${id}-mask`} maskUnits="userSpaceOnUse" x={0} y={0} width={width} height={svgH} style={{ maskType: "alpha" }}>
+          <rect width={width} height={svgH} fill={`url(#${id})`} />
+        </mask>
       </defs>
+      <g mask={fade ? `url(#${id}-mask)` : undefined}>
       {row.map((v, b) => {
         const x = b * (bw + gap);
         const h = Math.max(2, v * maxBar);
@@ -519,7 +523,7 @@ const SpectrumViz: React.FC<{
           </g>
         );
       })}
-      {fade && <rect x={0} y={0} width={width} height={svgH} fill={`url(#${id})`} />}
+      </g>
     </svg>
   );
 };
@@ -677,10 +681,11 @@ export const CurveOverlayVertical: React.FC = () => {
       <BottomFade />
       {/* look layers below the HUD so the data panel/spectrum stay crisp on top */}
       <TintLayer fx={fx} phaseColor={activePhase?.color} enter={enter} />
-      <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />
+      {fx.vignette?.style !== "soft-base" && <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />}
       <BottomCurvePanelVertical data={data} width={width} height={height} t={t} enter={enter} variant={variant} spectrum={spectrum} />
       {/* full-frame impact flash sits on top of everything for the punch */}
       <FlashLayer fx={fx} t={t} contacts={data.contacts} />
+      {fx.vignette?.style === "soft-base" && <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />}
     </AbsoluteFill>
   );
 };

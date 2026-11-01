@@ -8,6 +8,7 @@ import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
+import { BUDGET_PER_RIDE_FRAME } from './production_budget.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
@@ -54,11 +55,15 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     }
     return nodes;
   };
+  // Per-section effort may exceed nominal in proportion to an allowance above
+  // the standard one (a law in the allowance, no ceiling); at or below the
+  // standard allowance the cap is 1, as before.
+  const effortCap = Math.max(1, budget / (BUDGET_PER_RIDE_FRAME * (end + 1)));
   for (let i = 0; i < contacts.length; i++) {
     const frame = contacts[i].frame, remaining = Math.max(1, end - frame);
     const rate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
     const nominal = (options.samples ?? 80) + (options.guidanceSamples ?? 0);
-    const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, 1);
+    const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, effortCap);
     const protectedEngines = beam.map(b => b.seq.engine);
     const offered: Offer[] = [];
     const began = getPhysicsFrameCount();

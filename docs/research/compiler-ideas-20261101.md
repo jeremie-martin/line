@@ -896,3 +896,18 @@ since that is where it failed.
   which F′ keeps. Speed stays per gap, as in `main`, so no runaway over dense
   runs. V7 gain somewhat below F's +6.3; held out non-negative, with no
   collapsed ride.
+- **F′ (air and amplitude only): not adopted; the gap-weighting line is
+  closed for now.**
+  - V7, 4 seeds: +4.5 [−0.2, +9.2], 0.97. Air rms −0.005 (P6 −0.022);
+    speed flat; groove −1.2; explicit requests −3.8.
+  - **Held out: −5.8 [−11.9, +0.4], 0.03; all 5 specs down**, with no
+    collapsed ride (Trouble −14.4).
+- **On the benchmark.**
+  - Three versions of gap-length weighting (F on A, F on H, F′) gained on V7
+    and lost on held-out music.
+  - V7 weighs categories equally, so its single long-ride spec (Amour
+    bench-long, P6) is 1/8 of the headline, and two more categories (P3
+    floats, P7 ride-outs) also favour long gaps.
+  - Ideas that help long gaps are amplified on V7 in a way new music does
+    not reward. This is worth the owner's view on V7's composition. The
+    held-out check did its job here.

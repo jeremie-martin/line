@@ -584,3 +584,12 @@ historical grades. Select complete, currently qualified candidates using impact
 and axis fidelity as diagnostics, then exercise native playback. This is a
 candidate production pass, not a paired compiler experiment or proof of musical
 superiority. No compiler, judge or benchmark changes belong to this pass.
+
+
+The initial 66-run pass at `a9830c77` saved 60 complete, currently qualified
+tracks. Amor's 0.139 s and Passo Super Slowed's 0.209 s first contacts failed
+with `no_arc` on all three seeds. These entrance sounds are now explicitly
+recorded as audible pickups, with the requested ride starting on the next
+gesture. Their original failed runs remain untouched. The dense in-song voice
+pairs were retained and compiled successfully in the other songs. Fresh runs
+for the two entrance revisions use new directories and their own identities.

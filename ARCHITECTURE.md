@@ -182,8 +182,9 @@ and each physical-support motion/engagement cost are included exactly once. Its 
 log):
 
 - **Preparation:** 2 frames.
-- **Steep arrival before strong asks (≥ 0.6):** the catch before a strong
-  beat gets a steep, ask-driven arrival heading and speed.
+- **Steep arrival before strong asks:** the catch before a strong beat gets a
+  steep, ask-driven arrival heading and speed, phased in smoothly from ask 0.4
+  (none) to 0.8 (all) rather than switched on at 0.6.
 - **Upright arrival:** steep and unguided passive catches share a soft
   preference against head-down or backward arrivals. This does not forbid
   inverted geometry or guided upper contacts.

@@ -22,6 +22,30 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1: the steep-arrival threshold becomes a smooth step (adopted, first V7 decision)
+
+**Why:** a hard switch at ask 0.6 turned four preferences on at once; on V7,
+removing the mechanism cost −6.1 (Amour), so it is needed, but its cliff was
+worth questioning.
+
+**Change:**
+- Structural, byte-identical: the switch becomes a weight.
+- Behavioural: the weight rises smoothly from ask 0.4 to 0.8, centred on the
+  old threshold.
+
+**Results** (`npm run compare`, against `main`, every ride finished):
+
+| panel | headline |
+|---|---|
+| V7 | +0.2 |
+| V7 confirmation seeds | +3.8 |
+| held-out songs | +4.7 |
+
+- Body drag is lower.
+- Disclosed: the long ride (P6), one spec, is −7.8 and −4.3.
+- A linear law (weight = ask) was −0.9 and is not adopted.
+- Details: `docs/research/v7-rejudge-20261101.md`.
+
 ## November 1 (overnight): studies and ablations (nothing adopted)
 
 Full log: `docs/research/overnight-20261101.md`. Each hypothesis was stated

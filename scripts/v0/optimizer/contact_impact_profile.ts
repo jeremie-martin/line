@@ -4,9 +4,10 @@
  * line.strike.v1 and v2 retain their impact-specific preferences. All accounts
  * share the physical-prefix search. line.strike.v3, the product
  * account, adds what was selected under it on the song-level evaluation (REWORK.md log):
- *  - steepArrivalFrom .6: the catch before an ask ≥ 0.6 gets a steep, ask-driven
- *    arrival at the ordinary arrival weight (weight 1 was worse; thresholds 0.4 and
- *    0.75 were worse);
+ *  - steepArrivalFrom .6: the catch before a strong ask gets a steep, ask-driven
+ *    arrival at the ordinary arrival weight, phased in smoothly from ask 0.4 (none)
+ *    to 0.8 (all). It was a hard threshold at 0.6 until 2026-11-01 (V7: +0.2 and
+ *    +3.8 on two seed sets, held out +4.7; docs/research/v7-rejudge-20261101.md);
  *  - uprightArrival 1: steep and unguided passive catches prefer an upright arrival (judged
  *    by the same geometric test as the eval guard row; perceptual confirmation pending);
  *  - constructionModel 'v3': learned construction policies rebuilt under line.strike.v3

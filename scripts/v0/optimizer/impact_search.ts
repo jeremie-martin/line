@@ -6,9 +6,9 @@ import {CONTACT_IMPACT_CONTRACT, observeContactImpacts, detectContactImpacts, ac
 import {effectiveBodyVelocity} from './motion_quality.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
-/** steepArrivalFrom: from this requested impact on, the arrival into the next catch
- * gets the steep, ask-driven heading and speed prior (as unguided catches do), at the
- * ordinary arrival weight (weight 1 was worse);
+/** steepArrivalFrom: the centre of the smooth step over which the arrival into the
+ * next catch takes on the steep, ask-driven heading and speed prior (as unguided
+ * catches do): none 0.2 below it, all of it 0.2 above (arc_evaluate.ts steepArrival);
  * uprightArrival weighs a penalty on arriving head-down or backward at such a catch. */
 export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number;
   steepArrivalFrom?: number; uprightArrival?: number};

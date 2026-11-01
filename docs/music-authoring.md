@@ -121,6 +121,33 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    `scripts/gallery/repertoire_catalog.ts`). Do not edit tracked files while it
    runs: its compiler identity check rejects the result.
 
+## What to carry forward from the library (owner review, November 2026)
+
+The [second listening pass](#second-listening-pass-quieter-articulation-and-clearer-leads)
+offers examples of musical judgment, not a checklist or a formula for future songs.
+
+- **Choose a coherent foreground.** Capturing more events is not automatically
+  better. [Petrunko](../productions/petrunko_selection/spec.ts) reads clearly
+  without constant changes of lead; the owner praised it and it was preserved.
+- **Density and strength are separate choices.** The feedback on
+  [Amor Na Praia](../productions/amor_na_praia_selection/spec.ts) called for more
+  distinct opening beats, expressed gently rather than as heavier impacts.
+- **Space can carry the music.** The owner particularly valued the long central
+  ride in [LUA NA PRAÇA](../productions/lua_na_praca_selection/spec.ts).
+  More activity would not necessarily improve it.
+- **Changes of lead can be expressive.** The voice-to-instrument alternation in
+  [LOS VOLTAJE](../productions/los_voltaje_selection/spec.ts) was praised.
+  Switching leads is an artistic option, not a requirement to demonstrate variety.
+
+Feedback on one passage can suggest questions to ask elsewhere, but does not
+justify blanket edits. Keep successful choices as readily as revising weak ones.
+The owner's broad praise of the second batch supports this approach; it does not
+settle every passage or establish a single correct interpretation.
+
+Be candid about the evidence: in this pass the agent used analysis and visual
+checks; the owner supplied the listening judgment. Do not describe inferred
+musical details as independently heard or perceptually verified.
+
 ## What read well on Trouble (owner reviews, October 2026)
 
 Observations from one song, not rules. Variants live in

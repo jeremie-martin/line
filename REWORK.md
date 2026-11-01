@@ -22,6 +22,33 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1 (overnight): studies and ablations (nothing adopted)
+
+Full log: `docs/research/overnight-20261101.md`. Each hypothesis was stated
+before its run. Bench headline against the adopted HEAD, every ride complete
+in every arm.
+
+| arm | bench | other panels | verdict |
+|---|---|---|---|
+| A1: no future-value model | −10.2 | — | kept: the model earns its place |
+| R0: no ending refinement | −0.18 | confirm −0.21, pairs8 −0.32, held out −0.07, sealed −3.8 (one ride: 532 → 466) | proposed for deletion, owner's call (`exp/no-tail-refinement`: −330 lines, ~5% faster) |
+| G0: no passive-arrival gate | −1.4 | — | kept (P2 −7, P6 −14, more drag) |
+| S1: steep arrival law at every catch | −12.5 | — | kept the 0.6 threshold (lower in every stratum) |
+| uncapped per-section effort | 1×: −2.4, 2×: +7.8 | — | not adopted; design question (scale-free law) |
+
+Studies (report only):
+- **Stray hits:** about half are the body brushing a guide, half the
+  shape's own steps. The rate is 0.4 per minute in plain arcs and 2.6–7.9 in
+  shaped sections. The search already pays for them.
+- **Headline loss:** impact strength 35%, air 24%, speed 19%, one-frame
+  timing 16%, extras 7%. Strong asks undershoot (−0.07 even with ≥ 1 s of
+  room; −0.22 for asks ≥ 0.8 after 10–19 frames).
+- **Allowance:** ¼× 644, ½× 707, ¾× 727, 1× 739, 2× 739.
+- **Compile time:** physics is 44% of CPU. The engine fork (`add_lines`)
+  takes 24%, the largest single speed lever.
+- **The sealed long ride's overnight drop** is one seed with a runaway
+  ending (last-gap speed 1.29 against 0.32). Bad endings are 1 in 148 rides.
+
 ## November 1 (overnight): guides offered, never required (adopted)
 
 **Why:** with no plan (plain unguided arcs everywhere), the headline was 753

@@ -222,3 +222,24 @@ Rules for the night:
 - **Reading:** the threshold is a measured optimum, as on October 5, and not
   an accident. Kept. A smooth blend around 0.6 would only be a tuned ramp, so
   I did not try one.
+
+### 02:25–02:35: two descriptive checks
+- **The sealed long ride's overnight −22.9** comes from one seed.
+  `sealed-long` seed 101 went 676 → 532 because its ending runs away: in
+  the last gap (a 4.15 s tail) speed is 1.29 against a target of 0.32. The
+  other seeds went +70 and +5. Across all 148 current rides, only 2 endings
+  miss speed by more than 0.25. Not systemic, so not targeted.
+- **Strong asks undershoot even with room.** Bias for asks ≥ 0.6 by the gap
+  before the beat:
+  - 10–19 frames: −0.084; asks ≥ 0.8 there: −0.22 (the dense energy cap);
+  - 20–39 frames: −0.059;
+  - 40+ frames: −0.064; asks ≥ 0.8: −0.072.
+
+  So capability goes unused where there is room. The levers are either
+  knobs (search weights) or the documented turn frontier, so this is left
+  for discussion with the owner. It is also where his "bigger impacts" wish
+  and the headline agree.
+
+### 02:40: health check of `rework/foundations`
+`npm test` 303/303, typecheck 0 errors, `npm run reach` 0 unreachable files,
+`npm run parity` PASS, `npm run parity:judge` PASS (33 tracks).

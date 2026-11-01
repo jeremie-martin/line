@@ -686,3 +686,16 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
    meeting the roof on the rebound).
 3. **More search effort before strong asks** (the October L9, lost when the
    beam replaced lookahead).
+
+### E. The search chooses where the guide starts and ends
+- **Change.** `guideStart`/`guideEnd` join the guidance search: the broad
+  sweep draws them again (the sweep removed in bc24bca5: start in [0, 0.7),
+  end up to 1), and they join the coordinate keys.
+- **Hypothesis:**
+  - fewer extras in guided sections (the body meeting the roof on the
+    rebound, 5–12 frames after the catch);
+  - shorter guides where a full roof isn't needed;
+  - headline +1 to +4;
+  - more partial upper rails, toward upper receivers.
+- **Risk.** Shapes lose the guide's holding job, and the fixed guidance
+  samples spread over two more keys.

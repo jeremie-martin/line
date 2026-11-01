@@ -210,3 +210,35 @@ The trade-off curve, quality against variety, is for the owner to read.
   gets about a seventh of the gap's search effort (often the 12-sample
   floor), where the plan spends it all on one. Screening every geometry
   cheaply and then spending the effort on the few best would test it.
+
+## Priority 1: how the catch is built (2026-11-01, agreed with the owner)
+**Characterisation** (`main`'s V7 rides; catch controls from the saved
+compile outputs; 12,592 catches):
+- **Early hits rise as the catch's `offset` nears or passes zero:** 7.6%
+  below −0.5, 28–40% from −0.5 up. Steep incidence (|entry − incoming|
+  ≥ 20°) gives 29–38% early, against 5–8% when shallow. The offset sits at
+  its lower bound (−2) for 20% of catches.
+- **Sub-frame crossing time of the catch line** (1,786 catches): its median
+  is −0.36 to −0.47 (0 = middle of the target frame; −0.5 to +0.5 = on time)
+  in every offset and incidence group.
+  - The construction places crossings near the start of the beat frame; the
+    early hits are the tail tipping over.
+  - Offset and incidence only change how often that happens.
+
+**Mechanism:** the catch is anchored at the rider points' positions at the beat
+frame's first collision pass, i.e. aimed at the frame boundary rather than its
+middle.
+
+**Experiment `exp/catch-midframe`** (hypothesis stated before the run):
+- **Change:** place the catch where each point will be half a frame later
+  (position + 0.5 × its velocity). It is a law of motion, not a fitted number;
+  the search's offset control works on top.
+- **Expected:**
+  - early hits fall (15.6% → under 8%) without late hits taking their place
+    (under 8%);
+  - the timing loss falls;
+  - strong-ask strength improves, since the early hits are also the weak ones;
+  - the V7 headline rises with directional support above 0.9;
+  - no ride lost.
+- **Risk:** the learned construction memories were recorded with the old
+  placement, so their offsets mean something slightly different now.

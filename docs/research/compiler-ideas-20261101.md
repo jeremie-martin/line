@@ -942,3 +942,22 @@ all 22 specs unchanged, compute unchanged. Two lines are running:
     asks;
   - headline up a little;
   - physics frames about the same (the allowance binds the search).
+- **Result K (4 seeds): null.**
+  - −0.7 [−3.9, +2.4], 0.25; 10 of 22 specs up; very strong bias +0.002;
+    explicit requests −3.0.
+  - Opposing-side viability fell from 27.3% to 25.5%: the flush proposals
+    were often not viable.
+  - **Likely execution.** Hits from above first touch with the sled's top
+    points (PEG, STRING), and the back follows one or two frames later. The
+    two highest points are then both on the sled, so the "flush" line was
+    flush with the sled alone.
+
+### K′. Flush along the rider's upper outline (sled and back together)
+- **Change.** In place of K's single edge, the proposals cycle over the
+  edges of the rider's convex outline whose outward normal points above the
+  travel direction. A line along such an edge touches both of its points at
+  once, for instance a sled point and the shoulder. Eight proposals per
+  interval, as in K.
+- **Hypothesis.** Same as K: timelier and stronger hits from above on mid
+  and strong asks, and a small headline gain. If K′ is also null, the slow
+  build of these hits is not about which points meet the line first.

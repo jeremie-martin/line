@@ -242,3 +242,20 @@ middle.
   - no ride lost.
 - **Risk:** the learned construction memories were recorded with the old
   placement, so their offsets mean something slightly different now.
+
+## Geometry capability map (`tools/research/geometry_map.py`, `main`'s V7 rides; report only)
+Per realized geometry and gap length: the catch the gap builds at its start
+(strength error, share of hits a frame early), and airtime against its ask.
+- **Early catches concentrate in shaped geometry with the rail touched:**
+  - fold with rail: 43–60% early at every length;
+  - S-sweep with rail: 26–28%;
+  - ripples with rail: 17–29%;
+  - plain arcs and scattered fragments: 4–15%.
+  - Gaps under 12 frames are 20–60% early for every geometry.
+- **Catch strength error** is similar across geometries (about −0.02 to
+  −0.07 on gaps of 12–40 frames).
+- **High-air asks (≥ 0.75) fall short with every geometry,** worst on gaps of
+  40+ frames (−0.06 to −0.11, plain arcs −0.075). The float shortfall is
+  about launching, not about which geometry is chosen.
+- **Reading:** the mid-frame placement addresses the general bias. The
+  fold's aligned entry is a candidate second cause, to look at after.

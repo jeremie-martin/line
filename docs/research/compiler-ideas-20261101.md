@@ -838,3 +838,19 @@ missing pairs. Run at most two comparisons at a time.
   - **Physics frames +0.26M per ride (+9%).** The allowance was not
     binding, so the extra effort adds work rather than moving it.
   - Extending to 8 seeds.
+- **J, 8 seeds: parked.**
+  - +2.1 [−0.2, +4.5], 0.96; 12 of 22 specs up; explicit requests +5.5.
+  - Physics frames +0.27M per ride (+9%).
+  - A small, not-established gain for real extra work. To re-test on top of
+    H if H is adopted.
+- **H, retrained construction policies (4 seeds):** **+15.9 [+7.9, +24.0],
+  > 0.99.**
+  - 21 of 22 specs up, every category up (+7 to +27); explicit requests
+    +13.4.
+  - Strong bias +0.008, very strong +0.015; air rms −0.004, speed rms
+    −0.004; head-down or backward strong arrivals −1.6 points.
+  - Physics frames unchanged.
+  - Costs: body drag +0.69 s/min (about +35%; reported, not a veto); strong
+    extra hits +0.017 per beat.
+  - The October policies were the stale part, not the value model.
+  - 8 seeds and held out running.

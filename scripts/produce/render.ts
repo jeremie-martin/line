@@ -144,6 +144,7 @@ export type RenderInput = {
   specPath: string;
   trackPath: string;
   reportPath: string;
+  impactPath?: string;
   workPath: string;
   audioPath: string;
   spectrumBase: string;     // basename of the once-computed spectrum in remotion/public/
@@ -232,7 +233,8 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
       })(),
       stage(name, "[3/5] overlay data", async () => {
         await run(process.execPath, ["scripts/make_overlay_data.ts",
-          `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`], log);
+          `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`,
+          ...(inp.impactPath ? [`--impact-account=${inp.impactPath}`] : [])], log);
         durationS = JSON.parse(readFileSync(overlay, "utf8")).durationS as number;
         copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase), join(renderPublic, inp.spectrumBase));
       }, () => `${durationS.toFixed(1)}s data`),

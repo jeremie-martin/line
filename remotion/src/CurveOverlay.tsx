@@ -22,12 +22,12 @@ type Phase = { name: string; t0: number; t1: number; color: string };
 type Bundle = {
   schema: "line-overlay/v2";
   impactMetric: {
-    id: "contact-redirection-impulse";
-    version: 1;
-    rawUnit: "px/frame";
-    windowFrames: number;
-    soft: number;
-    veryStrong: number;
+    id: string;
+    version?: number;
+    rawUnit: string;
+    windowFrames?: number;
+    soft?: number;
+    veryStrong?: number;
   };
   title: string; artist: string; tempo: string;
   durationS: number; fps: number;
@@ -35,7 +35,7 @@ type Bundle = {
   contactsHit: number; contactsTotal: number; offBeat: number; reachedEnd: boolean;
   axes: AxisData[];
   contacts: {
-    t: number; landed: boolean;
+    t: number; actualTime?: number | null; landed: boolean;
     impactTarget?: number | null; impactError?: number | null;
     impactMeasured: number | null;
     impactRawPxPerFrame: number | null;

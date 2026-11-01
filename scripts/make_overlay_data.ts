@@ -27,6 +27,10 @@ import {
   type DriftReport,
 } from "./v0/types.ts";
 import { contactRedirArcPxAtLanding } from "./v0/core/substrate.ts";
+import {overlayImpactContacts} from './produce/overlay_impact.ts';
+import type {ImpactEvaluation} from './v0/optimizer/impact_accounts.ts';
+import type {contactImpactGrade} from './gallery/contact_impact_grade.ts';
+import {createHash} from 'node:crypto';
 import { scoreDriftReport } from "./v0/score.ts";
 import { LineRiderEngine, createLineFromJson } from "./lib/_lr_engine.ts";
 import { detect, extractRawTrajectory } from "./lib/detector.ts";
@@ -54,12 +58,18 @@ const track = JSON.parse(readFileSync(resolve(trackPath), "utf8")) as {
   riders?: { startVelocity?: { x: number; y: number } }[];
 };
 
+const impactPath = arg("impact-account", "");
+const savedImpact = impactPath ? (() => {
+  const bytes = readFileSync(impactPath);
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  if (digest !== readFileSync(impactPath + '.sha256', 'utf8').trim()) throw new Error('Impact account checksum mismatch');
+  return JSON.parse(bytes.toString()) as {evaluation: ImpactEvaluation; grade: ReturnType<typeof contactImpactGrade>};
+})() : undefined;
 const durationS = track.duration / FPS;
 const r3 = (x: number) => Math.round(x * 1000) / 1000;
 
-// Per-landing production impact. The overlay deliberately carries exactly one
-// measured ruler: the same raw function and normalization used by scoring.
-// Candidate/retired metrics belong in the separate analysis dashboard.
+// Older standalone runs have only the historical landing report. Current
+// production supplies its saved impact account explicitly and never replays this ruler.
 type BeatImpact = { rawPxPerFrame: number; measured: number };
 function impactByFrame(): Map<number, BeatImpact> {
   const out = new Map<number, BeatImpact>();
@@ -87,7 +97,7 @@ function impactByFrame(): Map<number, BeatImpact> {
   }
   return out;
 }
-const impactFrames = impactByFrame();
+const impactFrames = savedImpact ? new Map<number, BeatImpact>() : impactByFrame();
 /** Current measured impact for a beat at time t (nearest landing within ±1 frame). */
 function beatImpact(tSec: number): BeatImpact | undefined {
   const f = secToFrame(tSec);
@@ -150,7 +160,7 @@ const axesOut = AXES.filter((a) => spec.axes[a]).map((axis) => {
 });
 
 // Contacts with landed status, for the tick row (lit = landed).
-const contacts = report.contacts.map((c) => {
+const contacts = savedImpact ? overlayImpactContacts(savedImpact.evaluation) : report.contacts.map((c) => {
   const imp = beatImpact(c.t_target);
   const score = impactScore(c.t_target);
   const landed = c.status !== "missing";
@@ -181,17 +191,17 @@ const score = scoreDriftReport(report, { totalFrames: track.duration });
 
 const bundle = {
   schema: "line-overlay/v2",
-  impactMetric: IMPACT_METRIC,
+  impactMetric: savedImpact ? {id: savedImpact.evaluation.contract, rawUnit: 'normalized contract strength'} : IMPACT_METRIC,
   title: meta.title ?? "TRACK",
   artist: meta.artist ?? "",
   tempo: meta.tempo ?? "",
   durationS: r3(durationS),
   fps: FPS,
-  score: Math.round(score.score * 10) / 10,
-  axisRms: r3(score.axis_error_rms),
+  score: savedImpact?.grade.score.score ?? Math.round(score.score * 10) / 10,
+  axisRms: savedImpact ? savedImpact.grade.score.weightedAxisRms : r3(score.axis_error_rms),
   contactsHit: contacts.filter((c) => c.landed).length,
   contactsTotal: contacts.length,
-  offBeat: report.off_beat_landings.length,
+  offBeat: savedImpact?.evaluation.account.unmatchedEvents.length ?? report.off_beat_landings.length,
   reachedEnd: report.terminus.reason === "endOfSpec",
   axes: axesOut,
   contacts,

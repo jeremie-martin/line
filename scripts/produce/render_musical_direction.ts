@@ -21,7 +21,7 @@ if(savedSet)assert.equal(savedSet.planSha256,manifest.planSha256);
 const ids=arg('ids')!.split(',');
 assert.ok(ids.length&&ids.every(id=>manifest.cells.some((c:any)=>c.id===id)));
 const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/export.ts','scripts/lib/export.ts',
-  'scripts/make_overlay_data.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
+  'scripts/make_overlay_data.ts','scripts/produce/overlay_impact.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
 const pipeline=galleryHarnessIdentity(paths),mirror=await ensureMirror();
 const probe=(p:string)=>JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-of','json',p],{encoding:'utf8'}));
 function check(p:string){
@@ -40,7 +40,10 @@ try{
     const trackPath=join(root,cell.trackPath),reportPath=join(root,cell.reportPath);
     assert.equal(sha(JSON.stringify(read(trackPath))),cell.trackHash);assert.deepEqual(read(trackPath),record.track);
     assert.ok(record.track.lines.every((l:any)=>l.type===0));
-    const identity={planSha256:manifest.planSha256,cellSha256:cell.sha256,trackSha256:hash(trackPath),
+    const impactFile=join(root,id,'contact-impacts.json');
+    const impactPath=existsSync(impactFile)?impactFile:undefined;
+    if(impactPath){const saved=read(impactPath);assert.deepEqual(saved.evaluation,record.impactEvaluation);assert.deepEqual(saved.grade.score,record.score);}
+    const identity={...(impactPath?{impactSha256:hash(impactPath)}:{}),planSha256:manifest.planSha256,cellSha256:cell.sha256,trackSha256:hash(trackPath),
       reportSha256:hash(reportPath),specSha256:c.specSha256,audioSha256:c.audioSha256,jolt:manifest.plan.jolt,render:c.render,pipeline};
     const savedPath=join(root,id+'.video.json');
     if(existsSync(savedPath)){
@@ -50,9 +53,9 @@ try{
     }
     const work=join(root,'render-work',id);mkdirSync(work,{recursive:true});
     const spectrumBase=await ensureSpectrum(resolve(c.audioPath),c.id,join(work,'spectrum.log'));
-    const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,
+    const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,impactPath,
       workPath:join(root,id,'work.json'),audioPath:resolve(c.audioPath),spectrumBase,
-      seed:cell.seed,song:id,project:'musical-direction-review',metrics:cell.metrics,render:c.render,budget:cell.allowance??cell.budget,
+      seed:cell.seed,song:id,project:'musical-direction-review',metrics:{...cell.metrics,...(impactPath?{score:cell.score.score}:{})},render:c.render,budget:cell.allowance??cell.budget,
       jolt:manifest.plan.jolt,outDir:join(root,'videos'),workDir:work,gitSha:manifest.plan.compiler.head,host:hostname()});
     const full=join(folder,'video.mp4'),fullProbe=check(full),excerpt=join(folder,'excerpt.mp4');
     execFileSync('ffmpeg',['-v','error','-y','-ss',String(c.excerpt[0]),'-i',full,'-t',String(c.excerpt[1]-c.excerpt[0]),
@@ -62,6 +65,7 @@ try{
     // The production path imports this exact track. Its camera and compositor
     // alter images only. Verify preserved physical artifacts after rendering too.
     assert.equal(hash(trackPath),identity.trackSha256);assert.equal(hash(reportPath),identity.reportSha256);
+    if(impactPath)assert.equal(hash(impactPath),identity.impactSha256);
     assert.deepEqual(galleryHarnessIdentity(paths),pipeline);
     writeGalleryJson(root,id+'.video.json',{schema:'line.musical-direction-video.v1',id,identity,
       full:{path:relative(root,full),sha256:hash(full),probe:fullProbe},

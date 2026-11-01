@@ -7,6 +7,7 @@
  */
 export type ImpactContact = {
   t: number;
+  actualTime?: number | null;
   impactMeasured: number | null;
 };
 
@@ -22,8 +23,9 @@ export function traumaAt(
   let trauma = 0;
   for (const contact of contacts) {
     const strength = impactStrength(contact);
-    if (contact.t > t || strength < config.minImpact) continue;
-    trauma += strength * config.gain * Math.exp(-(t - contact.t) * config.decayPerSec);
+    const onset = contact.actualTime ?? contact.t;
+    if (onset > t || strength < config.minImpact) continue;
+    trauma += strength * config.gain * Math.exp(-(t - onset) * config.decayPerSec);
   }
   return Math.pow(Math.min(1, trauma), config.power);
 }

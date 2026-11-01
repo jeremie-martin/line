@@ -30,6 +30,7 @@ for(const cell of manifest.cells){
   if(!source)continue;
   const {record:original,cell:sourceCell,sourceRoot}=source;
   const trackSha256=hash(join(root,cell.trackPath)),reportSha256=hash(join(root,cell.reportPath));
+  if(original.identity.impactSha256)assert.equal(hash(join(root,cell.id,'contact-impacts.json')),original.identity.impactSha256);
   assert.equal(trackSha256,original.identity.trackSha256);assert.equal(reportSha256,original.identity.reportSha256);
   const {seed:_sourceSeed,...sourceMetrics}=sourceCell.metrics,{seed:_targetSeed,...targetMetrics}=cell.metrics;
   assert.deepEqual(sourceMetrics,targetMetrics);

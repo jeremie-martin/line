@@ -1,5 +1,7 @@
-/** Whether high floats and the catches between them can all be had at once
- * (report only). For every gap asked air >= 0.75 and at least 40 frames long:
+/** How hard the asks around high floats pull against each other, under a
+ * simple model (report only; a model, not a bound: it ignores asymmetric floats,
+ * redirection spread past the catch, rails and geometry the catalog lacks).
+ * For every gap asked air >= 0.75 and at least 40 frames long:
  * the float the asks imply (a symmetric parabola airborne ask x length frames,
  * whose mean speed is the asked speed), and the turn its closing catch makes to
  * relaunch into the next float, as speed x turn (px/frame; the impact ruler's

@@ -111,8 +111,10 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const reportFor = (trajectory: any, geometry: TrackLine[]) => buildDriftReport(detect(trajectory), spec, gaps, frames, duration, [],
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));
 
-  // Span errors weigh by gap length relative to the mean, as in the whole-ride
-  // objective and the headline: a long float counts for its duration.
+  // Air and amplitude errors weigh by gap length relative to the mean, as in the
+  // whole-ride objective and the headline: a long float counts for its duration.
+  // Speed keeps weight 1: it is a state that carries into the next gap, so a
+  // cheap error on a short gap compounds over a dense run.
   const meanGapFrames = gaps.reduce((sum, g) => sum + (g.endFrame - g.startFrame), 0) / Math.max(1, gaps.length);
   const spanWeight = (g: {startFrame: number; endFrame: number} | undefined) => g ? (g.endFrame - g.startFrame) / meanGapFrames : 1;
   return {options, budget, spec, duration, end, frames, impactTargets, gaps, planned, start, contacts, hasFragments,

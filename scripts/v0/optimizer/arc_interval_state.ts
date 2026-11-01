@@ -117,7 +117,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.
   const responseAxisWeights = ['air', 'speed', 'amplitude']
-    .map(key => (key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1) * spanWeight).concat(options.impactWeight ?? 2);
+    .map(key => (key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1) * (key === 'speed' ? 1 : spanWeight)).concat(options.impactWeight ?? 2);
 
   return {
     ctx, options, i, engine, protectedEngines, controlMemory,

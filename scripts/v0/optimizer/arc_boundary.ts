@@ -5,7 +5,7 @@ export function arcSpanLoss(achieved: AxisValues, targets: AxisValues, amplitude
   return (['air', 'speed', 'amplitude'] as const).reduce((sum, key) => {
     const target = targets[key], value = achieved[key];
     return sum + (target === undefined || value === undefined ? 0 :
-      (value - target) ** 2 * (key === 'amplitude' ? amplitudeWeight : 1) * spanWeight);
+      (value - target) ** 2 * (key === 'amplitude' ? amplitudeWeight : 1) * (key === 'speed' ? 1 : spanWeight));
   }, 0);
 }
 
@@ -20,7 +20,7 @@ export function arcBoundaryCorrection(achieved: AxisValues, targets: AxisValues,
   for (const key of ['air', 'speed', 'amplitude'] as const) {
     const target = targets[key], value = achieved[key];
     if (target === undefined || value === undefined) continue;
-    const residual = (value - target) * Math.sqrt((key === 'amplitude' ? amplitudeWeight : 1) * spanWeight);
+    const residual = (value - target) * Math.sqrt((key === 'amplitude' ? amplitudeWeight : 1) * (key === 'speed' ? 1 : spanWeight));
     residuals.push(residual); cost += residual * residual;
   }
   return {cost: cost - priorLoss, residuals};

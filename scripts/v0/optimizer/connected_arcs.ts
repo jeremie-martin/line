@@ -52,7 +52,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     memorySamples: Math.round(4 * memoryAllowance / 96),
     memoryResponseSamples: Math.round(4 * memoryAllowance / 96),
     policySamples: Math.round(32 * proposalGuidanceSamples / 160),
-    futureValueModel: guidanceSamples ? futureValueModel : undefined,
+    futureValueModel: undefined as typeof futureValueModel | undefined,
     // Predicted future loss ranks physical alternatives. Native residuals
     // alone guide local geometry fitting.
     valueWeight: .45,

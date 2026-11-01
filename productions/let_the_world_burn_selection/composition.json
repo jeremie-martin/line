@@ -7,49 +7,57 @@
       "t": 0,
       "name": "VOCAL PICKUP",
       "air": 0.63,
-      "speed": 0.42
+      "speed": 0.42,
+      "ease": "hold"
     },
     {
       "t": 3.204,
       "name": "VOCAL RISE",
       "air": 0.45,
-      "speed": 0.55
+      "speed": 0.55,
+      "ease": "hold"
     },
     {
       "t": 4.481,
       "name": "LAST CHORUS",
       "air": 0.57,
-      "speed": 0.77
+      "speed": 0.77,
+      "ease": "hold"
     },
     {
       "t": 24.462,
       "name": "HELD VOCAL",
       "air": 0.68,
-      "speed": 0.72
+      "speed": 0.72,
+      "ease": "hold"
     },
     {
       "t": 34.145,
       "name": "UPPER VOCAL",
       "air": 0.65,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 44.942,
       "name": "VOICE ALONE",
       "air": 0.64,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
       "t": 53.986,
       "name": "LAST WORDS",
       "air": 0.76,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 57.411,
       "name": "RELEASE",
       "air": 0.9,
-      "speed": 0.28
+      "speed": 0.28,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -97,7 +105,6 @@
       "source": "drums",
       "impact": 0.78,
       "times": [
-        4.481,
         5.457,
         6.745,
         7.07,
@@ -174,10 +181,23 @@
       "impact": 0.28,
       "times": [
         55.368,
-        56.401,
-        57.411
+        56.401
       ],
       "reason": "The final low vocal gestures taper in impact."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        4.481
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

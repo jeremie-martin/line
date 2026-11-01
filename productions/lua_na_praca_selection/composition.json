@@ -7,61 +7,71 @@
       "t": 0,
       "name": "PERCUSSION",
       "air": 0.53,
-      "speed": 0.64
+      "speed": 0.64,
+      "ease": "hold"
     },
     {
       "t": 5.56,
       "name": "VOICE PICKUP",
       "air": 0.45,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
-      "t": 7.837,
+      "t": 7.767,
       "name": "BASS BODY",
       "air": 0.6,
-      "speed": 0.72
+      "speed": 0.72,
+      "ease": "hold"
     },
     {
       "t": 13.1,
       "name": "PHRASE GAP",
       "air": 0.75,
-      "speed": 0.43
+      "speed": 0.43,
+      "ease": "hold"
     },
     {
       "t": 15.093,
       "name": "SECOND ANSWER",
       "air": 0.63,
-      "speed": 0.74
+      "speed": 0.74,
+      "ease": "hold"
     },
     {
       "t": 20.55,
       "name": "VOICE RELEASE",
       "air": 0.6,
-      "speed": 0.45
+      "speed": 0.45,
+      "ease": "hold"
     },
     {
       "t": 22,
       "name": "QUIET",
       "air": 0.85,
-      "speed": 0.3
+      "speed": 0.3,
+      "ease": "hold"
     },
     {
       "t": 29.652,
       "name": "DRUM RETURN",
       "air": 0.5,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 36.92,
       "name": "BASS RETURNS",
       "air": 0.67,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 49.644,
       "name": "ENDING",
       "air": 0.86,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -96,8 +106,7 @@
         20.55,
         20.805,
         21.037,
-        21.328,
-        21.757
+        21.328
       ],
       "reason": "Two exposed vocal pickups; leave the ensuing near-silence open."
     },
@@ -105,7 +114,7 @@
       "source": "drums",
       "impact": 0.75,
       "times": [
-        7.837,
+        7.767,
         8.29,
         8.731,
         9.195,
@@ -130,7 +139,7 @@
         19.644,
         20.097
       ],
-      "reason": "Bass-and-drum body, preserving its internal gap; use 7.837 rather than the near-duplicate 7.767."
+      "reason": "Bass-and-drum body, preserving its internal gap; use the first attack at 7.767; 7.837 is its later re-detection. Reviewed onset uses the first measured attack rather than its later re-detection."
     },
     {
       "source": "drums",
@@ -158,7 +167,6 @@
       "source": "drums",
       "impact": 0.82,
       "times": [
-        36.92,
         37.373,
         37.825,
         38.278,
@@ -188,6 +196,36 @@
         49.644
       ],
       "reason": "The bass completes the return. Keep the staggered phrase turn and final release."
+    },
+    {
+      "source": "other",
+      "impact": 0.48,
+      "times": [
+        21.931
+      ],
+      "reason": "Upper instrumental stab closes the pickup before the quiet break; chosen in place of the weaker preceding vocal estimate."
+    },
+    {
+      "source": "bass",
+      "impact": 0.55,
+      "times": [
+        51.026
+      ],
+      "reason": "Distinct closing bass attack after the last percussion phrase; leave the remaining decay open."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        36.92
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

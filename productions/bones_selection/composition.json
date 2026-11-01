@@ -7,43 +7,50 @@
       "t": 0,
       "name": "STRIPPED VOICE",
       "air": 0.5,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 8.673,
       "name": "BRIDGE",
       "air": 0.7,
-      "speed": 0.45
+      "speed": 0.45,
+      "ease": "hold"
     },
     {
       "t": 15.29,
       "name": "PICKUP",
       "air": 0.35,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "smooth"
     },
     {
       "t": 17.357,
       "name": "FINAL CHORUS",
       "air": 0.58,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 33.123,
       "name": "SECOND PHRASE",
       "air": 0.63,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 49.993,
       "name": "RELEASE",
       "air": 0.78,
-      "speed": 0.48
+      "speed": 0.48,
+      "ease": "hold"
     },
     {
       "t": 53,
       "name": "TAIL",
       "air": 0.88,
-      "speed": 0.3
+      "speed": 0.3,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -86,7 +93,6 @@
       "source": "drums",
       "impact": 0.8,
       "times": [
-        17.357,
         18.146,
         19.458,
         20.259,
@@ -167,6 +173,20 @@
         50.527
       ],
       "reason": "Last softer percussion gesture, then the natural tail."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        17.357
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

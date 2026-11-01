@@ -7,17 +7,17 @@ import type {Spec} from '../../scripts/v0/types.ts';
 import {keyframes} from '../../scripts/v0/core/curves.ts';
 
 type Composition = {
-  phases: {t: number; name: string; air: number; speed: number}[];
+  phases: {t: number; name: string; air: number; speed: number; ease: 'hold' | 'smooth'}[];
   groups: {source: string; impact: number; times: number[]; reason: string}[];
 };
 const composition = JSON.parse(readFileSync(new URL('./composition.json', import.meta.url), 'utf8')) as Composition;
 export const evidence = composition.groups.flatMap(g => g.times.map(t => ({t, impact: g.impact, source: g.source, reason: g.reason})))
   .sort((a, b) => a.t - b.t);
-const duration = 60.0;
+const duration = 54.0;
 export const overlayMeta = {title: "Bones", artist: '', tempo: 'Tempo grid is an analysis hypothesis',
   phases: composition.phases.map((p, i, all) => ({name: p.name, t0: p.t, t1: all[i + 1]?.t ?? duration,
     color: ['#3a5f8a', '#d4843a', '#5f7892', '#c4483f'][i % 4]}))};
-const lane = (axis: 'air' | 'speed') => keyframes(composition.phases.map(p => ({t: p.t, v: p[axis], ease: 'smooth' as const})));
+const lane = (axis: 'air' | 'speed') => keyframes(composition.phases.map(p => ({t: p.t, v: p[axis], ease: p.ease})));
 const spec: Spec = {
   duration, preroll: 2,
   music: {audio: 'productions/bones_selection/audio.mp3', title: "Bones",

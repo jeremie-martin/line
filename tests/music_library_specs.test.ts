@@ -37,6 +37,12 @@ for (const entry of library) it(`${entry.id}: explicit, sourced gestures and a v
     expect(phase.t).toBeGreaterThanOrEqual(0);
     expect(phase.t).toBeLessThan(spec.duration);
     if (i) expect(phase.t).toBeGreaterThan(composition.phases[i - 1].t);
+    expect(['hold', 'smooth']).toContain(phase.ease);
+    const end = composition.phases[i + 1]?.t ?? spec.duration;
+    if (phase.ease === 'hold') for (const axis of ['air', 'speed']) {
+      // A loud phrase must not drift toward the next quiet section's target.
+      expect(spec.axes[axis](phase.t + .9 * (end - phase.t))).toBe(phase[axis]);
+    }
   }
   for (let t = 0; t <= spec.duration; t += .1) for (const axis of ['air', 'speed']) {
     expect(spec.axes[axis](t)).toBeGreaterThanOrEqual(0);

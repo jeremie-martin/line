@@ -7,7 +7,7 @@ import type {Spec} from '../../scripts/v0/types.ts';
 import {keyframes} from '../../scripts/v0/core/curves.ts';
 
 type Composition = {
-  phases: {t: number; name: string; air: number; speed: number}[];
+  phases: {t: number; name: string; air: number; speed: number; ease: 'hold' | 'smooth'}[];
   groups: {source: string; impact: number; times: number[]; reason: string}[];
 };
 const composition = JSON.parse(readFileSync(new URL('./composition.json', import.meta.url), 'utf8')) as Composition;
@@ -17,7 +17,7 @@ const duration = 60.0;
 export const overlayMeta = {title: "PASSO BEM SOLTO (Super Slowed)", artist: '', tempo: 'Tempo grid is an analysis hypothesis',
   phases: composition.phases.map((p, i, all) => ({name: p.name, t0: p.t, t1: all[i + 1]?.t ?? duration,
     color: ['#3a5f8a', '#d4843a', '#5f7892', '#c4483f'][i % 4]}))};
-const lane = (axis: 'air' | 'speed') => keyframes(composition.phases.map(p => ({t: p.t, v: p[axis], ease: 'smooth' as const})));
+const lane = (axis: 'air' | 'speed') => keyframes(composition.phases.map(p => ({t: p.t, v: p[axis], ease: p.ease})));
 const spec: Spec = {
   duration, preroll: 2,
   music: {audio: 'productions/passo_bem_solto_super_slowed_selection/audio.mp3', title: "PASSO BEM SOLTO (Super Slowed)",

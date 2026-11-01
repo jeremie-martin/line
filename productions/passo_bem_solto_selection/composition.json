@@ -7,43 +7,50 @@
       "t": 0,
       "name": "GROOVE",
       "air": 0.55,
-      "speed": 0.69
+      "speed": 0.69,
+      "ease": "hold"
     },
     {
       "t": 9.114,
       "name": "VOCAL RESPONSE",
       "air": 0.3,
-      "speed": 0.57
+      "speed": 0.57,
+      "ease": "hold"
     },
     {
       "t": 18.541,
       "name": "DRUM ANSWERS",
       "air": 0.55,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 24.079,
       "name": "RETURN",
       "air": 0.58,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 36.8,
-      "name": "BREATH",
-      "air": 0.8,
-      "speed": 0.45
+      "name": "VOCAL CALL",
+      "air": 0.4,
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 38.847,
       "name": "LAST RETURN",
       "air": 0.64,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 54.544,
       "name": "DECAY",
       "air": 0.8,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -133,7 +140,6 @@
       "source": "drums",
       "impact": 0.79,
       "times": [
-        24.079,
         24.543,
         25.008,
         25.472,
@@ -163,7 +169,6 @@
         35.619,
         36.084,
         36.548,
-        38.847,
         39.323,
         39.776,
         40.24,
@@ -208,10 +213,47 @@
         54.091,
         54.544,
         55.008,
-        55.472,
-        55.937
+        55.472
       ],
       "reason": "The ending starts to decay; do not request the earlier full strength."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.6,
+      "times": [
+        37.198
+      ],
+      "reason": "Foreground vocal shout in the percussion interruption, carrying the call into the final drum return."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.6,
+      "times": [
+        37.756
+      ],
+      "reason": "Foreground vocal shout in the percussion interruption, carrying the call into the final drum return."
+    },
+    {
+      "source": "drums",
+      "impact": 0.88,
+      "times": [
+        24.079
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        38.847
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

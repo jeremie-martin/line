@@ -7,43 +7,50 @@
       "t": 0,
       "name": "GROOVE TAIL",
       "air": 0.55,
-      "speed": 0.58
+      "speed": 0.58,
+      "ease": "hold"
     },
     {
       "t": 7,
       "name": "VOICE IN SPACE",
       "air": 0.7,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 15.6,
       "name": "VOICE BUILDS",
       "air": 0.42,
-      "speed": 0.52
+      "speed": 0.52,
+      "ease": "smooth"
     },
     {
       "t": 20,
       "name": "RAPID PICKUP",
       "air": 0.25,
-      "speed": 0.68
+      "speed": 0.68,
+      "ease": "hold"
     },
     {
       "t": 23.917,
       "name": "FULL RETURN",
       "air": 0.58,
-      "speed": 0.78
+      "speed": 0.78,
+      "ease": "hold"
     },
     {
       "t": 40.472,
       "name": "SECOND WAVE",
       "air": 0.64,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 56.506,
       "name": "RELEASE",
       "air": 0.8,
-      "speed": 0.55
+      "speed": 0.55,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -112,7 +119,6 @@
       "source": "drums",
       "impact": 0.78,
       "times": [
-        23.917,
         24.451,
         24.961,
         25.484,
@@ -182,6 +188,20 @@
         56.506
       ],
       "reason": "Drums lead the return; retain the four distinct short answers, leave the softer subdivisions as texture."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        23.917
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

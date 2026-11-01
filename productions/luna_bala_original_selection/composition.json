@@ -7,37 +7,43 @@
       "t": 0,
       "name": "VOICE PICKUP",
       "air": 0.4,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
       "t": 5.584,
       "name": "BODY",
       "air": 0.59,
-      "speed": 0.76
+      "speed": 0.76,
+      "ease": "hold"
     },
     {
       "t": 19.423,
-      "name": "DENSER BODY",
+      "name": "SECOND PHRASE",
       "air": 0.5,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 35.1,
       "name": "VOICE BREAK",
       "air": 0.8,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 42.353,
       "name": "FINAL RETURN",
       "air": 0.65,
-      "speed": 0.85
+      "speed": 0.85,
+      "ease": "hold"
     },
     {
       "t": 57.272,
       "name": "ENDING",
       "air": 0.85,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -66,7 +72,6 @@
       "source": "drums",
       "impact": 0.76,
       "times": [
-        5.584,
         6.049,
         6.513,
         6.978,
@@ -139,8 +144,6 @@
       "source": "drums",
       "impact": 0.83,
       "times": [
-        42.353,
-        42.516,
         42.98,
         43.433,
         43.897,
@@ -177,6 +180,28 @@
         57.272
       ],
       "reason": "The last return has an explicit close pickup and two answering double hits."
+    },
+    {
+      "source": "drums",
+      "impact": 0.86,
+      "times": [
+        5.584
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        42.353
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

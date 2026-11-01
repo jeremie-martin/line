@@ -7,37 +7,43 @@
       "t": 0,
       "name": "VOICE IN SPACE",
       "air": 0.7,
-      "speed": 0.38
+      "speed": 0.38,
+      "ease": "hold"
     },
     {
       "t": 5.677,
       "name": "PHRASE",
       "air": 0.56,
-      "speed": 0.46
+      "speed": 0.46,
+      "ease": "hold"
     },
     {
       "t": 11.32,
       "name": "QUICKENING",
       "air": 0.35,
-      "speed": 0.59
+      "speed": 0.59,
+      "ease": "smooth"
     },
     {
       "t": 16.289,
       "name": "BROAD RETURN",
       "air": 0.72,
-      "speed": 0.76
+      "speed": 0.76,
+      "ease": "hold"
     },
     {
       "t": 37.512,
       "name": "LAST WAVE",
       "air": 0.76,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 58.073,
       "name": "RELEASE",
       "air": 0.87,
-      "speed": 0.42
+      "speed": 0.42,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -83,7 +89,6 @@
       "source": "drums",
       "impact": 0.82,
       "times": [
-        16.289,
         16.962,
         17.624,
         18.286,
@@ -153,6 +158,20 @@
         58.073
       ],
       "reason": "Broad weighted drum arcs with four short responses. Exclude the detector's trailing echoes near several drum peaks."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        16.289
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

@@ -115,7 +115,7 @@ export function createSpecApi(root = process.cwd()) {
     const camera = zoom(spec, samples);
     return {
       spec: {name: entry.name, label: entry.label, path: entry.path, group: entry.group, duration, frameRate: FPS,
-        jitter: spec.jitter ?? null, preroll: spec.preroll ?? null, start: spec.start ?? null},
+        preroll: spec.preroll ?? null, start: spec.start ?? null},
       summary: {contacts: contacts.length, gaps: gaps.length, activeAxes: Object.keys(axes), keyframes: keyframes.length,
         zoomKeyframes: camera?.zoom.keyframes.length ?? 0, zoomMin: camera?.zoom.min ?? null, zoomMax: camera?.zoom.max ?? null,
         zoomSmoothingFrames: camera?.zoom.smoothingFrames ?? null, impactTargets: impacts.length,

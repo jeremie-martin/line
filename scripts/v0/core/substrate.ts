@@ -538,27 +538,17 @@ export function impactFeasibilityBound(
   return normImpact(v * maxTurn); // impulse ≈ v·Δθ (single-bend), felt-anchored normalization
 }
 
-// ─────────── Cross-gap target sampling ───────────
+// ─────────── Gap targets ───────────
 
-export function sampleGapTargets(
-  section: AxisValues,
-  sigma: number,
-  rng: () => number,
-): AxisValues {
+/** A gap's targeted axes, clamped to each axis's valid range. Targets are
+ * read exactly as authored: there is no randomness in a specification. */
+export function clampGapTargets(section: AxisValues): AxisValues {
   const out: AxisValues = {};
   for (const name of TARGET_AXES) {
     const value = section[name];
-    if (value !== undefined) out[name] = clamp(gauss(rng, value, sigma), 0, AXIS_VALUE_MAX[name]);
+    if (value !== undefined) out[name] = clamp(value, 0, AXIS_VALUE_MAX[name]);
   }
   return out;
-}
-
-/** Box-Muller Gaussian; mean μ, stdev σ. */
-export function gauss(rng: () => number, mu: number, sigma: number): number {
-  const u1 = Math.max(rng(), 1e-12);
-  const u2 = rng();
-  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return mu + z * sigma;
 }
 
 export function clamp(x: number, lo: number, hi: number): number {
@@ -588,9 +578,6 @@ export function validateSpec(spec: Spec): void {
   validateStartSpec(spec.start);
   validatePreroll(spec.preroll);
   validateCameraSpec(spec.camera, spec.duration);
-  if (spec.jitter !== undefined && (!Number.isFinite(spec.jitter) || spec.jitter < 0)) {
-    throw new Error(`Spec.jitter must be ≥0 (got ${spec.jitter})`);
-  }
 }
 
 /**

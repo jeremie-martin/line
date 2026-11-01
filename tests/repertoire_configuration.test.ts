@@ -11,7 +11,7 @@ import {repertoireSearchOptions} from '../scripts/v0/optimizer/repertoire_search
 import type {Spec} from '../scripts/v0/types.ts';
 
 it('loads only the chosen construction archive and resolves the complete search profile once',()=>{
- const spec:Spec={duration:2,preroll:0,jitter:0,contacts:[{t:1,impact:.8}],axes:{air:()=>.5,speed:()=>.5}};
+ const spec:Spec={duration:2,preroll:0,contacts:[{t:1,impact:.8}],axes:{air:()=>.5,speed:()=>.5}};
  const plan=planIntentionalRepertoire(spec,101);
  reads.length=0;
  const current=repertoireSearchOptions(spec,plan,200000,'line.strike.v3');

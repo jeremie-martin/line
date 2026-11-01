@@ -371,7 +371,6 @@ const spec: Spec = {
     },
   },
   contacts,
-  jitter: 0,
   axes: {
     air: keyframes([
       { t: 0.0, v: 0.42, ease: "smooth" },

@@ -33,7 +33,7 @@ export async function loadMusicCase(definition:any,jolt:number){
   const hash=(p:string)=>sha(readFileSync(p));
   const musicCase={...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
     source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),audioSha256:hash(cfg.audio),
-    analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render,jitter:spec.jitter??0};
+    analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render};
   return {spec,cfg,musicCase};
 }
 /** Keep the established cell/manifest contract shared by both native and production renderers. */
@@ -93,7 +93,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,
       failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('work.json',work??{schema:'line.compile-work.v1',allowance,physicalFrames,exhausted:false,stages:[]});
-    const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
+    const cell={id,caseId:c.id,method,railLayout,railGuides,seed,budget,allowance,score:grade.score,
       ...(impactEvaluation?{impactContract:impactEvaluation.contract,impactEvaluation,historicalGrade}:{}),
       compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,

@@ -48,7 +48,6 @@ const spec: Spec = {
     zoom: { smoothingFrames: 8, keyframes: zoom },
   },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
-  jitter: 0,
   axes: {
     air: keyframes(kf([
       [0.0, 0.5], [3.0, 0.5], [3.4, 0.78], [4.3, 0.78], [4.6, 0.48], [7.8, 0.55],

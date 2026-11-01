@@ -3,7 +3,7 @@ import {planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/rep
 import {inspectConstruction} from '../scripts/v0/optimizer/repertoire_realization.ts';
 const spec={duration:18,contacts:Array.from({length:24},(_,i)=>({t:.5+i*.7}))};
 describe('automatic production policy',()=>{
-  it('is repeatable, covers endings, and varies actual zero-jitter plans',()=>{
+  it('is repeatable, covers endings, and varies actual plans',()=>{
     const plans=Array.from({length:20},(_,s)=>planRepertoire(spec,s));
     expect(plans[3]).toEqual(planRepertoire(spec,3));
     expect(new Set(plans.map(p=>JSON.stringify(p.requests))).size).toBe(20);

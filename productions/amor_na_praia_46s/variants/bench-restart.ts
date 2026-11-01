@@ -69,7 +69,6 @@ const spec: Spec = {
   music,
   camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
-  jitter: 0,
   axes: {
     air: keyframes([
       { t: 0, v: 0.8, ease: "smooth" },

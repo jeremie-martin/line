@@ -2,9 +2,8 @@
  * Every search stage receives this context explicitly instead of closing
  * over compile-local variables. */
 import { detect } from '../../lib/detector.ts';
-import { sliceTimeline, effectiveAxes, resolveStartState, buildDriftReport, sampleGapTargets } from '../core/substrate.ts';
+import { sliceTimeline, effectiveAxes, resolveStartState, buildDriftReport, clampGapTargets } from '../core/substrate.ts';
 import { authoredSpeedToPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
-import { makeRng } from '../../lib/rng.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { ArcControlMemory, arcConstructionMemoryKey } from './arc_memory.ts';
 import { createArcLineage } from './arc_lineage.ts';
@@ -45,7 +44,8 @@ export function createSearchWork() {
 export type ArcSearchWork = ReturnType<typeof createSearchWork>;
 
 /** Timeline, start state, engine lineage, memory and accounting for a
- * normalized spec. Draws the per-gap target jitter from the seeded stream. */
+ * normalized spec. Targets are read exactly as authored; the search is
+ * deterministic, and a seed reaches the compiler only through the plan. */
 export function createArcCompileContext(spec: Spec, seed: number, options: ArcMotionOptions) {
   const budget = options.budget, duration = Math.round(spec.duration * 40), end = duration + 20;
   const frames = spec.contacts.map(c => Math.round(c.t * 40));
@@ -55,12 +55,11 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
     g.targets = effectiveAxes(g, spec);
     if (g.endsWithContact && spec.contacts[g.index].impact !== undefined) g.targets.impact = spec.contacts[g.index].impact;
   }
-  const rng = makeRng(seed);
   const preparation = options.impactPreparationFrames ?? 0;
   const planned = scheduleNativeContacts(gaps.map(g => ({...g,
     startFrame: g.startFrame ? g.startFrame - preparation : 0,
     endFrame: g.endsWithContact ? g.endFrame - preparation : g.endFrame,
-    targets: {...g.targets, ...sampleGapTargets(g.targets, 0, rng)}})));
+    targets: {...g.targets, ...clampGapTargets(g.targets)}})));
   const fixed = spec.start || (spec.preroll ?? PREROLL.DEFAULT_S) <= 0 ? resolveStartState(spec) : null;
   const speed = authoredSpeedToPx(gaps[0].targets.speed ?? .55);
   const pitch = rad(8.59436692696);

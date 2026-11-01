@@ -13,7 +13,7 @@ import {compileHandoff} from '../scripts/v0/optimizer/handoff.ts';
 import {repertoireCatalog} from '../scripts/gallery/repertoire_catalog.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const toy='zigzag' as any;
-const spec:Spec={duration:3,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:3,preroll:5,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 
 it('joins the planner, the profiles and the review page from its row alone',()=>{
  expect(constructions.at(-1)).toBe(toy);

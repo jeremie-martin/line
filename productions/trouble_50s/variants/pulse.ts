@@ -50,7 +50,6 @@ const spec: Spec = {
   music: m.music,
   camera: { beatPunch: { threshold: 0.70, amp: 0.10, floor: 0.5, decay: 5, attack: 1, dir: "in" }, zoom: m.zoom },
   contacts,
-  jitter: 0,
   axes: { air, speed },
 };
 export default spec;

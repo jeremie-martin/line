@@ -5,7 +5,7 @@ import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
 import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
-const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3};
 
 it('keeps completed intervals after every remaining backtracking alternative fails',()=>{
@@ -17,7 +17,7 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
 });
 it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  const r=compileArcMotion({...spec,jitter:.025},17,{...options,budget:200000,samples:20,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
+  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:20,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
   expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
   expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);

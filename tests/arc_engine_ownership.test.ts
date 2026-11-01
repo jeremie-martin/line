@@ -22,7 +22,7 @@ it.each(['_lr_engine_wasm', 'native_motion/engine'])('preserves caller-owned %s 
     import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from './scripts/lib/${backend}.ts';
     import {compileHandoff} from './scripts/v0/optimizer/handoff.ts';
     import {compileArcMotion} from './scripts/v0/optimizer/arc_motion.ts';
-    const spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+    const spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
     const reference=compileHandoff(spec,17,{budget:30000,creative:{}});
     const caller=new Engine().setStart({x:125,y:-80},{x:2,y:.3});
     const sibling=caller.addLine({id:1,type:0,x1:0,y1:250,x2:500,y2:250});

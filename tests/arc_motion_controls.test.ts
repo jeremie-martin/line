@@ -23,7 +23,7 @@ it('keeps guide topology and expressive shape alternatives in both proposal sour
 });
 
 it('reuses a measured trajectory without forcing a demonstration or losing field absence', () => {
-  const spec: Spec = {duration: 4, preroll: 5, jitter: 0,
+  const spec: Spec = {duration: 4, preroll: 5,
     contacts: [.6, 1.2, 1.8, 2.4, 3, 3.6].map(t => ({t, impact: .4})),
     axes: {air: () => .5, speed: () => .5}};
   const options = {budget: 100000, samples: 80, channel: 12, radius: 24,

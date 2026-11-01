@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy } from '../scr
 import { extractRawTrajectory, resetFrameCount, setPhysicsFrameLimit } from '../scripts/lib/detector.ts';
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 
-const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={budget:65000,samples:100,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,};
 const chains=(lines:TrackLine[])=>{const result:TrackLine[][]=[[]];for(const l of lines){const p=result.at(-1)!.at(-1);if(p&&(p.x2!==l.x1||p.y2!==l.y1))result.push([]);result.at(-1)!.push(l);}return result;};
 

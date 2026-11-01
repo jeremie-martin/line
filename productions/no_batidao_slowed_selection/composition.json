@@ -7,31 +7,36 @@
       "t": 0,
       "name": "DRUM BUILD",
       "air": 0.55,
-      "speed": 0.56
+      "speed": 0.56,
+      "ease": "smooth"
     },
     {
       "t": 6.409,
       "name": "BASS ARRIVES",
       "air": 0.65,
-      "speed": 0.74
+      "speed": 0.74,
+      "ease": "hold"
     },
     {
       "t": 23.626,
       "name": "VOICE",
       "air": 0.4,
-      "speed": 0.57
+      "speed": 0.57,
+      "ease": "hold"
     },
     {
       "t": 32.496,
       "name": "RETURN",
       "air": 0.69,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 58.584,
       "name": "ENDING",
       "air": 0.86,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -56,7 +61,6 @@
       "source": "drums",
       "impact": 0.78,
       "times": [
-        6.409,
         6.966,
         7.523,
         8.081,
@@ -129,7 +133,6 @@
       "source": "drums",
       "impact": 0.82,
       "times": [
-        32.496,
         33.054,
         33.611,
         34.168,
@@ -177,6 +180,28 @@
         58.584
       ],
       "reason": "The last instrumental body preserves the phrase gaps and ends with the recording."
+    },
+    {
+      "source": "drums",
+      "impact": 0.88,
+      "times": [
+        6.409
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        32.496
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

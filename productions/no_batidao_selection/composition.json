@@ -7,37 +7,43 @@
       "t": 0,
       "name": "VOICE PICKUP",
       "air": 0.4,
-      "speed": 0.46
+      "speed": 0.46,
+      "ease": "hold"
     },
     {
       "t": 7.628,
       "name": "DRUM BUILD",
       "air": 0.48,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "smooth"
     },
     {
       "t": 15.244,
       "name": "BASS ARRIVES",
       "air": 0.61,
-      "speed": 0.77
+      "speed": 0.77,
+      "ease": "hold"
     },
     {
       "t": 29.547,
       "name": "VOICE AND ANSWERS",
       "air": 0.36,
-      "speed": 0.61
+      "speed": 0.61,
+      "ease": "hold"
     },
     {
       "t": 36.931,
       "name": "LAST BODY",
       "air": 0.64,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 58.63,
       "name": "RELEASE",
       "air": 0.83,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -91,7 +97,6 @@
       "source": "drums",
       "impact": 0.8,
       "times": [
-        15.244,
         15.697,
         16.161,
         16.625,
@@ -164,7 +169,6 @@
       "source": "drums",
       "impact": 0.83,
       "times": [
-        36.931,
         37.396,
         37.86,
         38.313,
@@ -212,6 +216,28 @@
         58.63
       ],
       "reason": "Instrumental finish: retain the actual missing strokes rather than filling a grid."
+    },
+    {
+      "source": "drums",
+      "impact": 0.88,
+      "times": [
+        15.244
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        36.931
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

@@ -7,49 +7,57 @@
       "t": 0,
       "name": "BASS TAIL",
       "air": 0.62,
-      "speed": 0.58
+      "speed": 0.58,
+      "ease": "hold"
     },
     {
       "t": 3.38,
       "name": "DISSOLVE",
       "air": 0.83,
-      "speed": 0.3
+      "speed": 0.3,
+      "ease": "hold"
     },
     {
       "t": 7.895,
       "name": "UPPER PICKUP",
       "air": 0.65,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 12.841,
       "name": "PERCUSSION BUILD",
       "air": 0.4,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "smooth"
     },
     {
       "t": 16.962,
       "name": "VOICE ENTERS",
       "air": 0.32,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 21.49,
       "name": "BASS RETURN",
       "air": 0.65,
-      "speed": 0.76
+      "speed": 0.76,
+      "ease": "hold"
     },
     {
       "t": 40.171,
       "name": "BASS ANSWERS",
       "air": 0.68,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 57.133,
       "name": "RELEASE",
       "air": 0.85,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -58,12 +66,12 @@
       "impact": 0.69,
       "times": [
         0.557,
-        1.184,
-        1.753,
+        1.115,
+        1.683,
         2.252,
         2.81
       ],
-      "reason": "Opening low pulse; adjacent detector echoes are not separate gestures."
+      "reason": "Opening low pulse; adjacent detector echoes are not separate gestures. Reviewed onset uses the first measured attack rather than its later re-detection. Reviewed onset uses the first measured attack rather than its later re-detection."
     },
     {
       "source": "other",
@@ -121,7 +129,6 @@
       "source": "bass",
       "impact": 0.78,
       "times": [
-        21.49,
         22.047,
         22.616,
         23.185,
@@ -186,6 +193,20 @@
         57.133
       ],
       "reason": "Follow the bass attacks, not their trailing spectral changes. Leave the missing 30-second pulse unfilled."
+    },
+    {
+      "source": "bass",
+      "impact": 0.9,
+      "times": [
+        21.49
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

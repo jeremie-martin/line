@@ -7,43 +7,50 @@
       "t": 0,
       "name": "QUIET RELEASE",
       "air": 0.7,
-      "speed": 0.35
+      "speed": 0.35,
+      "ease": "hold"
     },
     {
       "t": 4.992,
       "name": "BASS AND VOICE",
       "air": 0.65,
-      "speed": 0.42
+      "speed": 0.42,
+      "ease": "hold"
     },
     {
       "t": 9.88,
       "name": "ISOLATED ANSWERS",
       "air": 0.48,
-      "speed": 0.52
+      "speed": 0.52,
+      "ease": "hold"
     },
     {
       "t": 17.206,
       "name": "RUN UP",
       "air": 0.3,
-      "speed": 0.68
+      "speed": 0.68,
+      "ease": "smooth"
     },
     {
       "t": 19.644,
       "name": "RETURN",
       "air": 0.61,
-      "speed": 0.78
+      "speed": 0.78,
+      "ease": "hold"
     },
     {
       "t": 39.776,
       "name": "LAST PHRASES",
       "air": 0.67,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 58.073,
       "name": "RELEASE",
       "air": 0.85,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -115,7 +122,6 @@
       "source": "drums",
       "impact": 0.8,
       "times": [
-        19.644,
         20.259,
         20.863,
         21.478,
@@ -181,6 +187,20 @@
         58.073
       ],
       "reason": "The measured percussion carries the full return; vocal and bass decoration remains texture."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        19.644
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

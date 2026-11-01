@@ -452,11 +452,12 @@ Musical intentions and limitations:
   treated as verified syllables. The exact vocal choices need listening review.
 - Petrunko's selected passage is treated as instrumental; stem labels are not
   used to invent lyrics or singer identities.
-- Raw coverage reports flag unselected material in every song. Strong percussion
-  omissions were checked: clipped entrance attacks are explicitly omitted, and
-  Lua na Praça uses the later of two nearby detections for the same entry. Other
-  flags largely concern competing layers, subdivisions and sustained texture;
-  they remain listening questions, not a requirement to maximize coverage.
+- Raw coverage reports flag unselected material in every song. The review checked selected strong percussion
+  omissions and documented the clipped Montagem Coma entrance. Lua na Praça
+  now uses the first attack at 7.767 s, correcting the earlier choice of its
+  later re-detection. Coverage remains incomplete: competing layers,
+  subdivisions and sustained texture need listening decisions; the reports
+  are not a requirement to maximize coverage.
 
 All drafts are available in the existing spec dashboard's selector. Keep Clicks
 enabled to audition the authored rhythm; slow playback or add unsnapped marks
@@ -487,7 +488,7 @@ and controls work, not that the interpretation is perceptually correct.
 | NO BATIDÃO (Slowed) | 48–107.5 | 59.5 |
 | LUA NA PRAÇA | 29–81 | 52 |
 | Chris Grey — LET THE WORLD BURN | 104–163 | 59 |
-| Bones | 105–165 | 60 |
+| Bones | 105–159 | 54 |
 | Petrunko | 76–136 | 60 |
 
 The checked-in manifest is `productions/music-library.json`. Local study material
@@ -499,7 +500,7 @@ length, and encode with `libmp3lame -q:a 2`; never rescale the timing. The stems
 were separated from the full recording before cropping, avoiding crop-edge
 separation differences. Regenerate descriptive evidence if any input changes.
 
-The dedicated spec tests check all recordings, source-time provenance, distinct
+The dedicated spec tests check all recordings, membership in the recorded source candidates, distinct
 physics frames, excerpt bounds, phase/axis validity and audio identity when the
 local file is present. They do not certify musical quality.
 
@@ -527,3 +528,59 @@ selections or evidence of perceptual superiority. Plans, input/compiler
 identities, measurements and tracks remain in
 `generated/music-library-authoring/rides/*-verified/`; the existing production
 dashboard opens `generated/music-library-authoring/collection.json`.
+
+
+### Independent review and production pass
+
+Two independent Opus 5.5 reviews examined all 22 compositions, source records,
+curve semantics and selected evidence. These were structural/evidence reviews,
+not auditory listening or owner approval. Full reports and the one-off study
+scripts are retained locally in `generated/music-library-review/`.
+
+Accepted revisions:
+
+- Section curves now hold their targets, except for explicitly authored builds.
+  Previously every section smoothly approached the next section for its entire
+  length, slowing loud bodies early and accelerating quiet breaks early. Tests
+  now check the held value near each section's end.
+- Return entrances have distinct authored accents; body strengths remain coarse
+  artistic weights, not claims about measured loudness. No automatic detector
+  threshold selects contacts or sets their strength.
+- Passo's three versions now acknowledge the foreground vocal calls inside the
+  percussion interruption. Lua gains the upper-instrument closing stab and
+  final bass attack. Luna's original return loses a duplicate drum detection.
+- Funk Estranho's two opening bass attacks and Lua's first body attack use the
+  earlier measured onset rather than a later re-detection. Petrunko's bass
+  omissions are correctly described as a percussion-led choice, not coincident
+  bass/drum onsets. Several misleading phase labels were corrected.
+- Bones ends at original 159 s (54 s excerpt), removing six seconds of mostly
+  silent tail; its audio, stems and evidence were regenerated. Passo's final
+  contact only 63 ms before the cut and Burn's near-silent last estimate were
+  removed. All other excerpt boundaries remain unchanged.
+
+Not adopted automatically: deleting fast vocal pairs to satisfy historical
+compiler limits; treating every low-rise spectral event as inaudible; replacing
+vocal timestamps with their linked merged-event timestamp; filling every
+coverage flag; or imposing per-song loudness normalization as an artistic law.
+The onset and sung detectors measure different acoustic features; their native
+estimated times are retained, with no claim of word-boundary accuracy. Dense
+voice requests remain intentional and can expose compiler limitations.
+
+Alignment was checked independently at 8 kHz by cross-correlating each decoded
+excerpt with its original-source cut and with the sum of its four cropped stems,
+searching ±100 ms. All 22 peak at zero lag (0.125 ms sample resolution).
+This tests the audio/stem timebase, not the accuracy of detected articulations.
+
+Remaining musical uncertainty is explicit: vocal syllable identity, low-rise
+spectral changes, some competing bass/upper-instrument gestures, the balance of
+constant body weights, and crop entrances need owner listening. A per-flag
+coverage adjudication and inspection of every detailed detector sheet have not
+been completed. Raw evidence and independent review notes are retained rather
+than presenting these drafts as perceptually certified.
+
+Production plan: three seeds (101, 202, 303), each with the standard
+length-scaled physics allowance. Preserve all outcomes and both current and
+historical grades. Select complete, currently qualified candidates using impact
+and axis fidelity as diagnostics, then exercise native playback. This is a
+candidate production pass, not a paired compiler experiment or proof of musical
+superiority. No compiler, judge or benchmark changes belong to this pass.

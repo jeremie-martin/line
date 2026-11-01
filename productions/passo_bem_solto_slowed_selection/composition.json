@@ -7,43 +7,50 @@
       "t": 0,
       "name": "GROOVE",
       "air": 0.55,
-      "speed": 0.65
+      "speed": 0.65,
+      "ease": "hold"
     },
     {
       "t": 6.5,
       "name": "VOICE FORWARD",
       "air": 0.34,
-      "speed": 0.54
+      "speed": 0.54,
+      "ease": "hold"
     },
     {
       "t": 17.1,
       "name": "DRUM ANSWERS",
       "air": 0.45,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 23.313,
       "name": "RETURN",
       "air": 0.62,
-      "speed": 0.78
+      "speed": 0.78,
+      "ease": "hold"
     },
     {
       "t": 37.6,
-      "name": "INTERRUPTION",
-      "air": 0.78,
-      "speed": 0.45
+      "name": "VOCAL CALL",
+      "air": 0.4,
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 39.892,
       "name": "LAST RETURN",
       "air": 0.65,
-      "speed": 0.8
+      "speed": 0.8,
+      "ease": "hold"
     },
     {
       "t": 56.99,
       "name": "DECAY",
       "air": 0.78,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -129,7 +136,6 @@
       "source": "drums",
       "impact": 0.78,
       "times": [
-        23.313,
         23.835,
         24.346,
         24.869,
@@ -159,7 +165,6 @@
         36.27,
         36.78,
         37.303,
-        39.892,
         40.414,
         40.925,
         41.448,
@@ -198,6 +203,44 @@
         57.504
       ],
       "reason": "Percussion leads again. Keep its short paired answers, but do not fill the later interruption with invented beats."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.6,
+      "times": [
+        38.034
+      ],
+      "reason": "Foreground vocal shout in the percussion interruption, carrying the call into the final drum return."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.6,
+      "times": [
+        38.65
+      ],
+      "reason": "Foreground vocal shout in the percussion interruption, carrying the call into the final drum return."
+    },
+    {
+      "source": "drums",
+      "impact": 0.88,
+      "times": [
+        23.313
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        39.892
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

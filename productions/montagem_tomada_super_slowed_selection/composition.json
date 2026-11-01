@@ -7,43 +7,50 @@
       "t": 0,
       "name": "SPARSE DRUMS",
       "air": 0.72,
-      "speed": 0.52
+      "speed": 0.52,
+      "ease": "hold"
     },
     {
       "t": 4.354,
       "name": "BODY",
       "air": 0.64,
-      "speed": 0.68
+      "speed": 0.68,
+      "ease": "hold"
     },
     {
       "t": 17.334,
       "name": "VOICE",
       "air": 0.5,
-      "speed": 0.42
+      "speed": 0.42,
+      "ease": "hold"
     },
     {
       "t": 26.378,
       "name": "VOICE RETURNS",
       "air": 0.45,
-      "speed": 0.51
+      "speed": 0.51,
+      "ease": "hold"
     },
     {
       "t": 35.677,
       "name": "SWELL",
       "air": 0.78,
-      "speed": 0.63
+      "speed": 0.63,
+      "ease": "hold"
     },
     {
       "t": 37.013,
       "name": "DRUM RETURN",
       "air": 0.7,
-      "speed": 0.78
+      "speed": 0.78,
+      "ease": "hold"
     },
     {
       "t": 56.726,
       "name": "TAIL",
       "air": 0.88,
-      "speed": 0.38
+      "speed": 0.38,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -125,7 +132,6 @@
       "source": "drums",
       "impact": 0.83,
       "times": [
-        37.013,
         37.628,
         38.243,
         38.859,
@@ -158,6 +164,20 @@
         56.726
       ],
       "reason": "Broad drum-led arcs, keeping the phrase holes and the final decay."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        37.013
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

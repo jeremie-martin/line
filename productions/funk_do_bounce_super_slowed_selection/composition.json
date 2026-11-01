@@ -7,49 +7,57 @@
       "t": 0,
       "name": "VOICE",
       "air": 0.55,
-      "speed": 0.42
+      "speed": 0.42,
+      "ease": "hold"
     },
     {
       "t": 8.45,
       "name": "ROLL",
       "air": 0.35,
-      "speed": 0.55
+      "speed": 0.55,
+      "ease": "smooth"
     },
     {
       "t": 10.728,
       "name": "BASS RESTART",
       "air": 0.65,
-      "speed": 0.65
+      "speed": 0.65,
+      "ease": "hold"
     },
     {
       "t": 18.8,
       "name": "SUSPENSION",
       "air": 0.8,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
       "t": 20.48,
       "name": "DRUMS ARRIVE",
       "air": 0.62,
-      "speed": 0.82
+      "speed": 0.82,
+      "ease": "hold"
     },
     {
       "t": 39.695,
       "name": "UPPER FIGURE",
       "air": 0.6,
-      "speed": 0.71
+      "speed": 0.71,
+      "ease": "hold"
     },
     {
       "t": 50.283,
       "name": "DECAY",
       "air": 0.75,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
       "t": 57.562,
       "name": "TAIL",
       "air": 0.88,
-      "speed": 0.3
+      "speed": 0.3,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -111,7 +119,6 @@
       "source": "drums",
       "impact": 0.84,
       "times": [
-        20.48,
         21.095,
         21.699,
         22.314,
@@ -181,7 +188,7 @@
         53.743,
         54.346
       ],
-      "reason": "Smaller instrumental replies, then less density through the decay."
+      "reason": "Smaller instrumental replies, then a deliberately sparse reading of the continuing upper figure."
     },
     {
       "source": "other",
@@ -193,6 +200,20 @@
         57.562
       ],
       "reason": "The last figure releases; no hard ending invented."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        20.48
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

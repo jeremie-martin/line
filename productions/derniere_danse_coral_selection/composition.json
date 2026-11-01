@@ -7,55 +7,64 @@
       "t": 0,
       "name": "EXPOSED VOICE",
       "air": 0.65,
-      "speed": 0.4
+      "speed": 0.4,
+      "ease": "hold"
     },
     {
       "t": 12.26,
       "name": "DRUM ANSWERS",
       "air": 0.58,
-      "speed": 0.52
+      "speed": 0.52,
+      "ease": "hold"
     },
     {
       "t": 19.006,
       "name": "FIRST BURST",
       "air": 0.5,
-      "speed": 0.73
+      "speed": 0.73,
+      "ease": "hold"
     },
     {
       "t": 25.3,
       "name": "VOICE FOREGROUND",
       "air": 0.68,
-      "speed": 0.48
+      "speed": 0.48,
+      "ease": "hold"
     },
     {
       "t": 28.282,
       "name": "HELD LINE",
       "air": 0.8,
-      "speed": 0.5
+      "speed": 0.5,
+      "ease": "hold"
     },
     {
       "t": 34.54,
       "name": "VOICE CONTINUES",
       "air": 0.6,
-      "speed": 0.46
+      "speed": 0.46,
+      "ease": "hold"
     },
     {
       "t": 41.123,
       "name": "ANSWERS RETURN",
       "air": 0.5,
-      "speed": 0.6
+      "speed": 0.6,
+      "ease": "hold"
     },
     {
       "t": 47.88,
       "name": "FINAL BURST",
       "air": 0.6,
-      "speed": 0.78
+      "speed": 0.78,
+      "ease": "hold"
     },
     {
       "t": 54.799,
       "name": "DECAY",
       "air": 0.83,
-      "speed": 0.35
+      "speed": 0.35,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -107,7 +116,6 @@
       "source": "drums",
       "impact": 0.75,
       "times": [
-        19.006,
         19.47,
         19.923,
         20.376,
@@ -166,7 +174,6 @@
       "source": "drums",
       "impact": 0.81,
       "times": [
-        47.88,
         48.344,
         48.797,
         49.238,
@@ -190,6 +197,28 @@
         54.799
       ],
       "reason": "One final vocal gesture, then release."
+    },
+    {
+      "source": "drums",
+      "impact": 0.85,
+      "times": [
+        19.006
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.9,
+      "times": [
+        47.88
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

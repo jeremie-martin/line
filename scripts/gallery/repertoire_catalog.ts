@@ -23,7 +23,7 @@ export const repertoireSongs=[
  {"id":"no_batidao_slowed_selection","title":"NO BATIDÃO (Slowed)","duration":59.5},
  {"id":"lua_na_praca_selection","title":"LUA NA PRAÇA","duration":52.0},
  {"id":"let_the_world_burn_selection","title":"Chris Grey — LET THE WORLD BURN","duration":59.0},
- {"id":"bones_selection","title":"Bones","duration":60.0},
+ {"id":"bones_selection","title":"Bones","duration":54.0},
  {"id":"petrunko_selection","title":"Petrunko","duration":60.0},
  {id:'luna_bala_44s',title:'Luna Bala',duration:44},
  {id:'amor_na_praia_46s',title:'Amor na Praia',duration:46},

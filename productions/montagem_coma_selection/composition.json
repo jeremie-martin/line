@@ -1,49 +1,56 @@
 {
   "intent": "Alternate compact percussion bursts with vocal foreground passages over the continuing bass. Bass continuity should not erase the drum breaks.",
   "reviewStatus": "listening draft; not owner-approved",
-  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list. The strong drum at 0.070 s belongs to the cropped entrance; the first requested landing is the following complete gesture.",
   "phases": [
     {
       "t": 0,
       "name": "DRUM BURSTS",
       "air": 0.58,
-      "speed": 0.68
+      "speed": 0.68,
+      "ease": "hold"
     },
     {
       "t": 9.567,
-      "name": "BASS UNDER VOICE",
+      "name": "BASS AND UPPER FIGURE",
       "air": 0.65,
-      "speed": 0.48
+      "speed": 0.48,
+      "ease": "hold"
     },
     {
       "t": 15.081,
       "name": "VOICE ANSWERS",
       "air": 0.4,
-      "speed": 0.57
+      "speed": 0.57,
+      "ease": "hold"
     },
     {
       "t": 19.075,
       "name": "RETURN",
       "air": 0.6,
-      "speed": 0.76
+      "speed": 0.76,
+      "ease": "hold"
     },
     {
       "t": 33.576,
       "name": "VOICE FOREGROUND",
       "air": 0.35,
-      "speed": 0.58
+      "speed": 0.58,
+      "ease": "hold"
     },
     {
       "t": 43.073,
       "name": "LAST RETURN",
       "air": 0.65,
-      "speed": 0.83
+      "speed": 0.83,
+      "ease": "hold"
     },
     {
       "t": 58.572,
       "name": "ENDING",
       "air": 0.84,
-      "speed": 0.45
+      "speed": 0.45,
+      "ease": "hold"
     }
   ],
   "groups": [
@@ -67,7 +74,6 @@
         8.069,
         8.58,
         9.067,
-        19.075,
         19.574,
         20.074,
         20.573,
@@ -166,7 +172,6 @@
       "source": "drums",
       "impact": 0.82,
       "times": [
-        43.073,
         43.584,
         44.071,
         44.571,
@@ -200,6 +205,28 @@
         58.572
       ],
       "reason": "The last return is strongest; the gap before 51.084 remains open."
+    },
+    {
+      "source": "drums",
+      "impact": 0.86,
+      "times": [
+        19.075
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "drums",
+      "impact": 0.92,
+      "times": [
+        43.073
+      ],
+      "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
     }
+  ],
+  "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
+  "reviewNotes": [
+    "Independent structure and evidence reviews completed; owner listening remains pending.",
+    "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
+    "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
   ]
 }

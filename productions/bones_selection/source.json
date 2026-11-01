@@ -2,9 +2,9 @@
   "file": "bones.aac",
   "sha256": "19d9881b14ee76972fd8a12b233efb42751d77170d8c1481120bc6e6740841c8",
   "sourceStartSeconds": 105,
-  "sourceEndSeconds": 165,
-  "decodedExcerptSeconds": 60.0,
-  "audioSha256": "5cd54466b171a1122c0788f96367db63becb76917f235498384087ec6a1e40da",
+  "sourceEndSeconds": 159,
+  "decodedExcerptSeconds": 54.0,
+  "audioSha256": "f3173fda0b2705164037af64ef5d0bbae553554b2edc62e8414ea10068c67161",
   "title": "Bones",
   "intent": "Begin with the stripped vocal bridge, follow its build into the final chorus, combine vocal phrase accents with the drums, and retain the natural ending.",
   "reviewStatus": "draft; owner listening review pending",
@@ -16,10 +16,10 @@
     "seed": 0,
     "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
     "stemSha256": {
-      "drums": "8d094ad4d1f55a9eb5da79c3fdb93788b8e286703338a5e638d679e0498a3c2e",
-      "bass": "2b7263df86ee723b1a1234523601d9e70cfc1d12f99a0cd1903b7788285704a6",
-      "vocals": "5a5db44e01d64396cfd299466d99c79836dc48e30305d44ca891490048d46d18",
-      "other": "bb65575e4857031a1081fd18723f21f5e912c9fa395b3e0197daf7ba59f665f6"
+      "drums": "906fb6f2e27b53468cad08352557ac4e4900a2cf0434bb81d5f34931f5effd15",
+      "bass": "0d23dddedf019231608afca20209ae3f5327a6807a186ff38214d0fc9faa3d92",
+      "vocals": "841924c49874ca7f6302fd5067166a2b830fa21aea6a9bc3a9b068e1cbc12021",
+      "other": "7ae5777c1242b795e523e5e7c437f5b2bc38d6f440f723bd418dd6bad3db547e"
     }
   },
   "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",

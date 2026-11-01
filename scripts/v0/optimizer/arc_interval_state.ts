@@ -102,7 +102,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const priorGap = authoredPrior ? {...authoredPrior, targets: planned.find(g => g.index === authoredPrior.index)?.targets ?? authoredPrior.targets} : undefined;
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
-  const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
+  const priorWeight = ctx.spanWeight(priorGap), spanWeight = ctx.spanWeight(outgoing);
+  const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1, priorWeight) : 0;
   const controlContext = {...options, observedReceiver: true, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};
 
   // These describe the immutable incoming prefix already measured above.
@@ -115,9 +116,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // Calm landing emphasis changes impact units between adjacent intervals.
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.
-  const responseAxisWeights = options.motionQuality?.calmImpactMultiplier !== undefined
-    ? ['air', 'speed', 'amplitude'].map(key => key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1).concat(options.impactWeight ?? 2)
-    : undefined;
+  const responseAxisWeights = ['air', 'speed', 'amplitude']
+    .map(key => (key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1) * spanWeight).concat(options.impactWeight ?? 2);
 
   return {
     ctx, options, i, engine, protectedEngines, controlMemory,
@@ -125,7 +125,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     beforeState, before, velocity, trace, points,
     prefixRaw, prefixDetection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
-    memo, priorGap, priorAxes, priorLoss, controlContext,
+    memo, priorGap, priorAxes, priorLoss, priorWeight, spanWeight, controlContext,
     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
     best: null as any,

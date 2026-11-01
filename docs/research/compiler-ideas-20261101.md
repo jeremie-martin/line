@@ -599,3 +599,11 @@ hits from above are late.
   measured quality count for more against the prediction) more evenly, and
   it confirms on held-out music. The slot stays parked; trying it on top of
   this is possible later.
+
+### B. The parked beam slot, on top of A
+- **Change:** the beam-slot code of `exp/beam-measured-slot` applied to the
+  new `main`.
+- **Hypothesis:** A already lets measured quality weigh more, so the slot
+  adds less than before, perhaps nothing. If something remains, it shows as
+  strength error² falling further on mid and strong asks, with body drag
+  rising again.

@@ -191,9 +191,9 @@ export const VignetteLayer: React.FC<{ fx: FXConfig; t: number; contacts: Impact
 // seam — worsened by overscan/shake. This melts that edge into white. Screen-space,
 // so it stays put under the shake; placed BELOW tint/vignette so the bottom still
 // grades/darkens uniformly with no visible seam.
-export const BottomFade: React.FC<{ startPct?: number; endPct?: number }> = ({ startPct = 80, endPct = 85 }) => (
+export const BottomFade: React.FC<{ startPct?: number; endPct?: number; color?: string }> = ({ startPct = 80, endPct = 85, color = "255,255,255" }) => (
   <AbsoluteFill
-    style={{ background: `linear-gradient(to bottom, rgba(255,255,255,0) ${startPct}%, rgba(255,255,255,1) ${endPct}%)`, pointerEvents: "none" }}
+    style={{ background: `linear-gradient(to bottom, rgba(${color},0) ${startPct}%, rgba(${color},1) ${endPct}%)`, pointerEvents: "none" }}
   />
 );
 

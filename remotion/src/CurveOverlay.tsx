@@ -12,6 +12,9 @@ import {
   continueRender,
   getInputProps,
 } from "remotion";
+import {ribbonPaths} from './study/spectrum';
+import {studyFrame, type StudyFrame} from './study/looks';
+import {StudyRide, StudyRipples} from './study/Layers';
 import { RideFX, TintLayer, VignetteLayer, FlashLayer, BottomFade, type FXConfig } from "./fx";
 
 // ── Data bundle (written by scripts/make_overlay_data.ts) ────────────────────
@@ -492,17 +495,26 @@ const SPECTRUM_RAMP = ["#38d6c8", "#6ad36a", "#f0b429", "#ff5a4f"];
 // `sym` also mirrors them downward. The svg is sized to hold both halves either way.
 const SpectrumViz: React.FC<{
   spec: Spectrum; t: number; left: number; width: number; baseY: number; maxBar: number;
-  sym: boolean; fade: boolean; enter: number; id: string;
-}> = ({ spec, t, left, width, baseY, maxBar, sym, fade, enter, id }) => {
+  sym: boolean; fade: boolean; enter: number; id: string; look?: StudyFrame | null;
+}> = ({ spec, t, left, width, baseY, maxBar, sym, fade, enter, id, look }) => {
   const fi = Math.max(0, Math.min(spec.frames.length - 1, Math.floor(t * spec.fps)));
   const row = spec.frames[fi] ?? [];
   const n = row.length || 1;
   const gap = 3;
   const bw = (width - gap * (n - 1)) / n;
+  const palette = look?.palette ?? SPECTRUM_RAMP;
+  const stops = look?.palette ? palette.map((_, i) => i / (palette.length - 1)) : [0, .4, .7, 1];
+  const ribbon = ribbonPaths(row, width, maxBar);
   const svgH = sym ? maxBar * 2 : maxBar;   // local baseline is always at y = maxBar
   return (
-    <svg width={width} height={svgH} style={{ position: "absolute", left, top: baseY - maxBar, opacity: enter }}>
+    <svg width={width} height={svgH} style={{ position: "absolute", left, top: baseY - maxBar, opacity: enter,
+      mixBlendMode: look && !['motion-only', 'ink-only'].includes(look.id) ? (look.dark ? 'screen' : 'multiply') : undefined,
+      filter: look?.glow ? `drop-shadow(0 0 ${2 + look.glow * 5}px ${look.dark ? '#49bbc366' : '#43b8c544'})` : undefined }}>
+
       <defs>
+        <linearGradient id={`${id}-palette`} x1="0" x2="1" y1="0" y2="0">
+          {palette.map((color, i) => <stop key={color} offset={stops[i]} stopColor={color} />)}
+        </linearGradient>
         <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset="0.07" stopColor="#fff" stopOpacity="1" />
           <stop offset="0.93" stopColor="#fff" stopOpacity="1" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
@@ -512,14 +524,18 @@ const SpectrumViz: React.FC<{
         </mask>
       </defs>
       <g mask={fade ? `url(#${id}-mask)` : undefined}>
-      {row.map((v, b) => {
+      {look?.ribbon ? <>
+        <path d={ribbon.fill} fill={`url(#${id}-palette)`} opacity={.38} />
+        <path d={ribbon.crest} fill="none" stroke={`url(#${id}-palette)`} strokeWidth={3} strokeLinejoin="round" />
+        {sym && <path d={ribbon.fill} transform={`translate(0 ${2 * maxBar}) scale(1 -1)`} fill={`url(#${id}-palette)`} opacity={look.reflection * .5} />}
+      </> : row.map((v, b) => {
         const x = b * (bw + gap);
         const h = Math.max(2, v * maxBar);
-        const col = interpolateColors(b / Math.max(1, n - 1), [0, 0.4, 0.7, 1], SPECTRUM_RAMP);
+        const col = interpolateColors(b / Math.max(1, n - 1), stops, palette);
         return (
           <g key={b}>
             <rect x={x} y={maxBar - h} width={bw} height={h} rx={bw / 3} fill={col} opacity={0.95} />
-            {sym && <rect x={x} y={maxBar} width={bw} height={h} rx={bw / 3} fill={col} opacity={0.42} />}
+            {sym && <rect x={x} y={maxBar} width={bw} height={h} rx={bw / 3} fill={col} opacity={look?.reflection ?? 0.42} />}
           </g>
         );
       })}
@@ -631,8 +647,8 @@ const VerticalDataPanel: React.FC<{
 // Composes the lower-third: the music spectrum (hero) and/or the data panel, each
 // independently toggleable so we can explore spectrum-only / panel-only / both.
 const BottomCurvePanelVertical: React.FC<{
-  data: Bundle; width: number; height: number; t: number; enter: number; variant: VertVariant; spectrum?: Spectrum | null;
-}> = ({ data, width, height, t, enter, variant, spectrum }) => {
+  data: Bundle; width: number; height: number; t: number; enter: number; variant: VertVariant; spectrum?: Spectrum | null; look?: StudyFrame | null;
+}> = ({ data, width, height, t, enter, variant, spectrum, look }) => {
   const panelLeft = Math.round(width * variant.sideMarginPct);
   const panelW = width - 2 * panelLeft;
   return (
@@ -642,7 +658,7 @@ const BottomCurvePanelVertical: React.FC<{
       )}
       {variant.showSpectrum && spectrum && (
         <SpectrumViz
-          spec={spectrum} t={t} id="specfade-main"
+          spec={spectrum} t={t} id="specfade-main" look={look}
           left={variant.specFullWidth ? 0 : panelLeft}
           width={variant.specFullWidth ? width : panelW}
           baseY={Math.round(height * variant.specCenterPct)}
@@ -660,29 +676,32 @@ export const CurveOverlayVertical: React.FC = () => {
   const t = frame / fps;
 
   const { dataFile, videoFile } = overlayInputs();
-  const props = getInputProps() as Partial<VertVariant> & { spectrumFile?: string; fx?: FXConfig };
+  const props = getInputProps() as Partial<VertVariant> & { spectrumFile?: string; fx?: FXConfig; studyLook?: string };
   const variant: VertVariant = { ...DEFAULT_VARIANT, ...props };
-  const fx: FXConfig = props.fx ?? {};
+  const baseFx: FXConfig = props.fx ?? {};
   const data = useBundle(dataFile, "overlay-data-vertical");
   const spectrum = useSpectrum(props.spectrumFile ?? null, "spectrum-vertical");
   if (!data) return <AbsoluteFill style={{ backgroundColor: "#fff" }} />;
 
+  const look = studyFrame(props.studyLook, t, data);
+  const fx = look?.fx ?? baseFx;
   const enter = spring({ frame, fps, config: { damping: 20, mass: 0.7 } });
   const shift = Math.round(height * variant.riderShiftPct);
   const activePhase = activePhaseAt(data.phases, t);
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#fff" }}>
+    <AbsoluteFill style={{ backgroundColor: look?.background ?? "#fff", isolation: "isolate" }}>
       {/* ride shifted up; revealed area below is white (matches the ride background).
           RideFX applies overscan + impact shake + chromatic aberration + grade
           (all no-ops when the matching fx.* key is absent). */}
-      <RideFX videoFile={videoFile} shiftPx={shift} t={t} contacts={data.contacts} fx={fx} />
+      <StudyRide look={look}><RideFX videoFile={videoFile} shiftPx={shift} t={t} contacts={data.contacts} fx={fx} /></StudyRide>
       {/* melt the up-shifted video's bottom edge into white (kills the ~87% seam) */}
-      <BottomFade />
+      <BottomFade color={look?.dark ? "16,25,35" : undefined} />
       {/* look layers below the HUD so the data panel/spectrum stay crisp on top */}
       <TintLayer fx={fx} phaseColor={activePhase?.color} enter={enter} />
       {fx.vignette?.style !== "soft-base" && <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />}
-      <BottomCurvePanelVertical data={data} width={width} height={height} t={t} enter={enter} variant={variant} spectrum={spectrum} />
+      <StudyRipples look={look} width={width} height={height} center={variant.specCenterPct} />
+      <BottomCurvePanelVertical data={data} width={width} height={height} t={t} enter={enter} variant={variant} spectrum={spectrum} look={look} />
       {/* full-frame impact flash sits on top of everything for the punch */}
       <FlashLayer fx={fx} t={t} contacts={data.contacts} />
       {fx.vignette?.style === "soft-base" && <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />}

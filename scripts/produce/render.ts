@@ -1,25 +1,13 @@
-/**
- * Render + bundle ONE qualifying track — the single source of truth for turning a
- * compiled track into a production-ready bundle. A direct port of
- * render_vert_shorts.sh's `render_one` + bundle-commit, parameterised by select.json.
- *
- * Pipeline (each step a spawned child — Playwright/Remotion need real processes, so
- * this orchestrates rather than running them in-process; safe to call from the main
- * loop with a small render-lane cap):
- *   1. ride render   — scripts/export.ts (mirror + Playwright) → <name>.vert.mp4
- *   2. mux song      — ffmpeg → remotion/public/<name>.source.mp4
- *   3. overlay data  — scripts/make_overlay_data.ts → remotion/public/<name>.overlay.json
- *   4. overlay render— remotion CurveOverlayVertical → remotion/out/<name>.mp4
- *   5. bundle        — stage in .staging-…, write upload.json (sidecar last), atomic mv
- *                      into <inbox>/<project>/<Y>/<M>/<D>/<project>-s<seed>-<stamp>/
- *
- * One-time-per-run setup (ensureMirror / ensureSpectrum) is exported so produce.ts
- * runs it once at launch, not per bundle.
+/** Shared ride → audio → optional presentation renderer.
+ * Plain review clips and finished videos use the same camera and native exporter.
+ * renderBundle adds publication metadata; it does not own a separate render path.
  */
 import { spawn } from "node:child_process";
 import {createHash,randomUUID} from "node:crypto";
-import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync, statSync } from "node:fs";
+import { appendFileSync, openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync, statSync } from "node:fs";
 import { resolve, join, dirname, basename, relative } from "node:path";
+import { exportVideo } from "../lib/export.ts";
+import { resolveVideoOptions } from "../lib/video_options.ts";
 import type { RenderConfig } from "./config.ts";
 import { LOCKED_FX } from "../fx_recipe.ts";
 
@@ -170,6 +158,7 @@ export type RenderInput = {
   gitSha: string;
   host: string;
   keepIntermediates?: boolean;
+  style?: "plain" | "finished";
 };
 
 function utcStamp(d: Date): { day: string; stamp: string; iso: string } {
@@ -193,34 +182,38 @@ export function renderResourceArgs(env: NodeJS.ProcessEnv = process.env): string
   return [`--concurrency=${concurrency}`, `--offthreadvideo-cache-size-in-bytes=${cacheBytes}`];
 }
 
-/** Render one track and commit a production-ready bundle. Returns the bundle dir. */
-export async function renderBundle(inp: RenderInput): Promise<string> {
+/** Render the ride and optional presentation layers through one shared path. */
+export type VideoInput = Pick<RenderInput, 'trackPath' | 'render' | 'jolt' | 'workDir' | 'keepIntermediates' | 'style'> & {
+  name: string; audioPath?: string; qp?: number; specPath?: string; reportPath?: string; impactPath?: string; spectrumBase?: string;
+};
+export async function renderVideo(inp: VideoInput): Promise<string> {
   // Remotion's default frame cache can claim half the machine's available RAM
   // per process. A collection needs a per-render bound, independently of workers.
   // These controls change execution resources, not the locked visual recipe.
   const resources = renderResourceArgs();
-  const name = `${inp.song}-s${inp.seed}`;
+  const name = inp.name, qp = inp.qp ?? RIDE_QP;
+  const finished = (inp.style ?? "finished") === "finished";
+  if (finished && (!inp.audioPath || !inp.specPath || !inp.reportPath || !inp.spectrumBase)) throw new Error("Finished video requires audio, spec, report and spectrum");
+  const steps = finished ? 3 : inp.audioPath ? 2 : 1;
   const gen = resolve(inp.workDir);
   mkdirSync(gen, { recursive: true });
   mkdirSync(join(ROOT, "remotion", "public"), { recursive: true });
   const log = join(gen, `${name}.render.log`);
   try { rmSync(log, { force: true }); } catch { /* fresh log */ }
 
-  const ride = join(gen, `${name}.vert.mp4`);
+  const ride = join(gen, `${name}.ride.mp4`);
   const renderPublic = join(gen, `${name}.remotion-public`);
   const source = join(renderPublic, `${name}.source.mp4`);
   const overlay = join(renderPublic, `${name}.overlay.json`);
-  const outMp4 = join(gen, `${name}.overlay.mp4`);
+  const outMp4 = join(gen, `${name}.mp4`);
   rmSync(renderPublic, { recursive: true, force: true });
   mkdirSync(renderPublic, { recursive: true });
 
-  const beatPunch = inp.render.beatPunchPct > 0 ? `p${inp.render.beatPunchPct} jolt ${inp.jolt}ms` : "off";
   console.log(`\nrender ${name}`);
-  console.log(`  mode     ride=Playwright/Chromium + overlay=Remotion`);
+  console.log(`  mode     ${finished ? "finished · ride + presentation" : inp.audioPath ? "plain · ride + audio" : "plain · silent ride"}`);
   console.log(`  browser  ${displaySummary()}`);
-  console.log(`  ride     ${inp.render.res} QP${RIDE_QP} zoom action x${inp.render.zoomMult} beat-punch ${beatPunch}`);
-  console.log(`  overlay  CurveOverlayVertical ${OUTPUT_FPS}fps CRF${FINAL_CRF} isolated public dir`);
-  console.log(`  metrics  score ${inp.metrics.score.toFixed(0)}  stand ${inp.metrics.standTimePct.toFixed(1)}%  rot ${inp.metrics.rotations.toFixed(1)}`);
+  console.log(`  picture  ${inp.render.res} · ${OUTPUT_FPS}fps`);
+  if (finished) console.log(`  finish   ${OUTPUT_FPS}fps CRF${FINAL_CRF}`);
   console.log(`  log      ${relative(ROOT, log)}`);
 
   try {
@@ -228,39 +221,65 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
     const bp = inp.render.beatPunchPct > 0
       ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic", `--jolt-ms=${inp.jolt}`]
       : [];
-    await stage(name, "[1/5] ride render", () => run(TSX[0], [...TSX.slice(1), "scripts/export.ts",
-      `--track=${inp.trackPath}`, `--spec=${inp.specPath}`, "--zoom=action",
-      `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${RIDE_QP}`, `--out=${ride}`], log),
-      () => fileSizeLabel(ride));
+    const mirror = await ensureMirror();
+    try {
+      await stage(name, `[1/${steps}] ride`, async () => {
+        const logLine = (message: unknown) => appendFileSync(log, String(message) + "\n");
+        const options = await resolveVideoOptions([
+          `--track=${inp.trackPath}`, ...(inp.specPath ? [`--spec=${inp.specPath}`, "--zoom=action"] : []),
+          `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${qp}`, `--out=${ride}`,
+        ], {log: logLine, warn: logLine, error: logLine});
+        await exportVideo({...options, log: logLine});
+      }, () => fileSizeLabel(ride));
+    } finally {mirror?.kill();}
 
     // 2. mux song.
-    await stage(name, "[2/5] mux audio", () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath, "-map", "0:v:0", "-map", "1:a:0",
+    if (inp.audioPath) await stage(name, `[2/${steps}] audio`, () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath!, "-map", "0:v:0", "-map", "1:a:0",
       "-c:v", "copy", "-c:a", "aac", "-shortest", source], log),
       () => fileSizeLabel(source));
+    else copyFileSync(ride, source);
+
+    if (!finished) {copyFileSync(source, outMp4); return outMp4;}
 
     // 3. overlay data bundle.
     let durationS = 0;
-    await stage(name, "[3/5] overlay data", async () => {
+    await stage(name, "presentation data", async () => {
       await run(TSX[0], [...TSX.slice(1), "scripts/make_overlay_data.ts",
         `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`,
         ...(inp.impactPath ? [`--impact-account=${inp.impactPath}`] : [])], log);
       durationS = JSON.parse(readFileSync(overlay, "utf8")).durationS as number;
-      copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase), join(renderPublic, inp.spectrumBase));
+      copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase!), join(renderPublic, inp.spectrumBase!));
     }, () => `${durationS.toFixed(1)}s data`);
 
     // 4. overlay render (CurveOverlayVertical, locked look + post-FX at 60fps) — runs from remotion/.
     const props = JSON.stringify({
       dataFile: `${name}.overlay.json`, videoFile: `${name}.source.mp4`, durationS,
       spectrumFile: inp.spectrumBase, fps: OUTPUT_FPS, fx: LOCKED_FX,
+      width: Number(inp.render.res.split("x")[0]), height: Number(inp.render.res.split("x")[1]),
     });
-    await stage(name, "[4/5] Remotion overlay", () => run("npx", ["remotion", "render", "src/index.ts", "CurveOverlayVertical", outMp4,
+    await stage(name, "[3/3] presentation", () => run("npx", ["remotion", "render", "src/index.ts", "CurveOverlayVertical", outMp4,
       `--crf=${FINAL_CRF}`, "--jpeg-quality=100", `--props=${props}`, `--public-dir=${renderPublic}`,
       ...resources], log, join(ROOT, "remotion")),
       () => fileSizeLabel(outMp4));
 
+    return outMp4;
+  } finally {
+    // 6. delete big intermediates unless asked to keep, even after failed renders.
+    if (!inp.keepIntermediates) {
+      for (const f of [ride, source, overlay]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
+      try { rmSync(renderPublic, { recursive: true, force: true }); } catch { /* best-effort */ }
+    }
+  }
+}
+
+/** Render one track and commit a production-ready bundle. Returns the bundle dir. */
+export async function renderBundle(inp: RenderInput): Promise<string> {
+  const name = `${inp.song}-s${inp.seed}`;
+  const outMp4 = await renderVideo({...inp, name});
+  try {
     // 5. bundle: stage → upload.json (sidecar last) → atomic mv into this run dir.
     let final = "";
-    await stage(name, "[5/5] bundle commit", async () => {
+    await stage(name, "bundle", async () => {
       const { iso } = utcStamp(new Date());
       final = join(inp.outDir, inp.song, name); // <run>/<song>/<song>-s<seed>
       const tmp = join(inp.outDir, `.staging-${name}`);
@@ -289,10 +308,6 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
     }, () => `${fileSizeLabel(join(final, "video.mp4"))} -> ${relative(ROOT, final)}`);
     return final;
   } finally {
-    // 6. delete big intermediates unless asked to keep, even after failed renders.
-    if (!inp.keepIntermediates) {
-      for (const f of [ride, source, overlay, outMp4]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
-      try { rmSync(renderPublic, { recursive: true, force: true }); } catch { /* best-effort */ }
-    }
+    if (!inp.keepIntermediates) rmSync(outMp4, {force: true});
   }
 }

@@ -143,7 +143,7 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
     });
 
     await page.goto(`${origin}/?forceMillions`, { waitUntil: "networkidle", timeout: 60_000 });
-    await page.waitForTimeout(2000);
+    await page.waitForFunction(() => typeof (window as any).__lr?.exportVideo === "function");
 
     log("[node] launching exportVideo in page...");
     const blobUrl = await page.evaluate(
@@ -181,26 +181,11 @@ export async function exportVideo(opts: ExportOptions): Promise<void> {
     );
     log(`[node] page-side render complete (blob: ${String(blobUrl).slice(0, 60)}...)`);
 
-    const downloadPromise = page.waitForEvent("download", { timeout: 600_000 });
-    await page.evaluate((url) => {
-      // deno-lint-ignore no-explicit-any
+    // Register before triggering the download; Playwright owns and clears the timeout.
+    const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+    const [download] = await Promise.all([downloadPromise, page.evaluate((url) => {
       (window as any).__lr.triggerDownload(url, "lr-render.mp4");
-    }, blobUrl);
-
-    const download = await Promise.race([
-      downloadPromise,
-      new Promise<never>((_, rej) =>
-        setTimeout(
-          () =>
-            rej(
-              new Error(
-                "render completed in-page but download event never fired (CSP, headless flag, or blob revoked too early)",
-              ),
-            ),
-          15_000,
-        ),
-      ),
-    ]);
+    }, blobUrl)]);
     const tmpPath = `${opts.outPath}.tmp-${process.pid}-${Date.now()}`;
     try {
       await download.saveAs(tmpPath);

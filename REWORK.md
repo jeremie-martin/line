@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 1: shared video command (tooling)
+
+`npm run video` accepts a fresh song/seed, a saved study, or a raw track with
+optional audio. Plain/finished presentation and horizontal/vertical format are
+independent. It prints progress and stage timings, preserves source artifacts,
+and decodes the finished output before publishing the requested MP4. There is no
+resume protocol. Gallery bundles and review clips now call the same rendering
+function; the spec-camera resolver is shared with the legacy exporter.
+
+Removed a fixed two-second startup sleep and an uncleared 15-second download
+timeout. A four-second test took 32.85s for the old ride export alone versus
+16.14s for the new plain command including audio and verification; all 243
+decoded picture frames match exactly. Single-video jobs use up to 16 workers
+instead of a collection lane's four. Two repeated four-second compositor tests
+took 12.7s at four workers versus 7.6–7.8s at sixteen, with identical decoded
+frames. These are excerpt timings, not a claim of that speedup for every movie.
+
+A fresh Petrunko seed 404 produced a verified 60.5s vertical video in 414.9s:
+105s compilation, 213s ride export, 96s presentation. Compilation overlapped
+the test/parity jobs. Phone-sized Chromium playback passed. Horizontal plain and
+finished samples also rendered. Evidence is in `generated/video-workflow-audit/`.
+Ride capture/encoding remains the main render cost; native physics replay on
+three full tracks was only 104–144ms. Direct canvas/WebGL composition and GPU
+configuration experiments did not establish a worthwhile replacement; they stay
+out of the production code. The existing effects, camera and native exporter stay.
+
+Validation: full tests, focused command/export tests, both TypeScript projects,
+reachability (zero unreachable), and judge parity passed. Compile parity still
+has the pre-existing saved-reference mismatches: all 63 actual track hashes and
+physics-frame counts match the untouched baseline exactly. Goldens unchanged.
+
 ## October 31: geometry use in the bench report (tooling)
 
 Report-only; no compiler, spec or ruler change, parity identical. Every new

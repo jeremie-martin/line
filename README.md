@@ -77,12 +77,28 @@ npm run verify:engine   # engine traces must be byte-identical to the reference
 | `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
+| `npm run video -- --song=petrunko_selection --seed=404` | compile a fresh ride and make a finished vertical video |
+| `npm run video -- --study=DIR --style=plain --format=horizontal` | make one review video from a saved production (`--id=CELL` for a study with several rides) |
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
 | `npm run eval -- --name=DIR [--panel=dev\|confirm\|bench\|bench-confirm\|bench-pairs8] [--mode=strike3\|strike2\|strike\|landing]` | behavioural evaluation (`sealed` and `heldout` need `--sealed` / `--heldout`; `npm run eval` with no `--name` lists the panels); `npm run eval:report -- --name=DIR [--against=DIR]` |
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:study` / `labels:analyze` | build a blind labelling study / compare measures with the owner's labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
+
+`video` also accepts `--track=FILE [--audio=FILE --spec=FILE]` for plain review
+media. Presentation (`plain` or `finished`) and format (`horizontal` or `vertical`)
+are independent. Use `--out=FILE.mp4`, `--workers=N`, or `--zoom-mult=N` when
+needed; `--help` lists the interface. Without a seed, a fresh seed is printed and
+recorded. Progress shows stage timings; detailed logs and compilation artifacts
+live in the adjacent `.assets` directory. Existing outputs are never overwritten.
+
+The same rendering implementation serves this command, gallery productions and
+review clips. Plain media skips spectrum analysis and presentation rendering.
+Finished media keeps the existing camera, measured-impact effects and visual recipe.
+Install `remotion/` dependencies for finished media; rendering requires local
+Chromium, ffmpeg/ffprobe and, for uncached spectrum analysis, the music Python
+environment (`LR_SPECTRUM_PYTHON` can select it).
 
 ## Checks
 

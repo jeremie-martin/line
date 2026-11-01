@@ -13,6 +13,8 @@
  *  - constructionModel 'v3': learned construction policies rebuilt under line.strike.v3
  *    on songs disjoint from the evaluation panel (the V6-era ones were trained partly
  *    on evaluation songs); better on all four panels, body drag +30% (REWORK.md log).
+ *    Retrained on 2026-11-01 from demonstrations of the compiler of that day
+ *    (V7 +15.5 at 8 seeds, held out +10.5; REWORK.md).
  * Preparation 2 was selected on the song-level evaluation (docs/research/
  * strike-definition-20261004.md); the rest is inherited from October 2. */
 import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../../lib/strike_impact.ts';

@@ -854,3 +854,10 @@ missing pairs. Run at most two comparisons at a time.
     extra hits +0.017 per beat.
   - The October policies were the stale part, not the value model.
   - 8 seeds and held out running.
+- **H, 8 seeds and held out: adopted.**
+  - V7, 8 seeds: **+15.5 [+12.4, +18.6]**, every block positive; 21 of 22
+    specs up; explicit requests +12.3.
+  - Held out: **+10.5 [+9.2, +11.8]**, 4 of 5 specs up.
+  - Body drag +0.66 s/min; strong extra hits +0.018 per beat.
+  - Other parked ideas (B, F, J) are to be re-tested on top of it: they were
+    measured on the previous policies.

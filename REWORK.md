@@ -22,6 +22,42 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1: construction policies retrained on today's compiler (adopted)
+
+**Why:** the owner suggested recalibrating the compiler's learned parts,
+which were all fitted on October compilers, before judging any of them.
+- Removing the learned future estimate cost −2.7 (it carries information).
+- Retraining it did not help (−4.8; −2.1 at a level-matched weight). The
+  October value model stays.
+- The construction policies were the stale part.
+
+**Data:** `tools/research/value_collect.ts`, run from a worktree frozen at
+fc9a428a, at the standard allowance. It covers the benchmark/v4 training
+cases without the four evaluation songs (168 records) and V6 transfer-layout
+plans on non-evaluation music (30 records); no held-out song appears.
+`train_construction_v3.py` gives 17,077 demonstrations. The artifact
+replaces `repertoire_policy_model_v3.json(.gz)`; provenance is in its
+pointer.
+
+**Results** (no ride lost; physics frames unchanged):
+
+| panel | change | interval / support |
+|---|---|---|
+| V7, 8 seeds | **+15.5** | [+12.4, +18.6], every block positive; 21 of 22 specs up, every category up |
+| held out | **+10.5** | [+9.2, +11.8], > 0.99; 4 of 5 specs up |
+| explicit requests | +12.3 | |
+
+- Strong-ask bias +0.007, very strong +0.007.
+- Air rms −0.003, speed rms −0.005.
+- Head-down or backward strong arrivals −1.1 points.
+- **Costs:**
+  - body drag +0.66 s/min (about a third more; reported, per the owner an
+    eye-only proxy for roof and control-rail use);
+  - strong extra hits +0.018 per beat.
+- No test needed re-deriving.
+
+Parity references were refreshed.
+
 ## November 1: the heading prior keeps full weight in ranking (adopted)
 
 **Found** (studies agent, `docs/research/compiler-ideas-20261101.md`): the

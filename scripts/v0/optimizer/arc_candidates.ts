@@ -3,9 +3,12 @@
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import type { ArcMotionOptions } from './arc_options.ts';
 
-/** Native candidate cost plus a weighted future estimate; arrival priors stay intact. */
+/** Native candidate cost plus a weighted future estimate. The arrival priors
+ * count half: what they charge for the next catch measured about twice its
+ * real cost (docs/research/compiler-ideas-20261101.md). */
 export function valueRank(options: ArcMotionOptions, c: any) {
-  return c.predictedFuture === undefined ? c.cost : c.cost + (options.valueWeight ?? .5) * c.predictedFuture;
+  const cost = c.localCost + .5 * (c.cost - c.localCost);
+  return c.predictedFuture === undefined ? cost : cost + (options.valueWeight ?? .5) * c.predictedFuture;
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */

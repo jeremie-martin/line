@@ -16,15 +16,29 @@ beforeAll(async () => {
 }, 20000);
 afterAll(async () => {await browser?.close(); if (dir) rmSync(dir, {recursive: true, force: true});});
 
-async function open(): Promise<Page> {
+const flatCollection = {videos: [
+  {label: 'A', src: '/a.mp4'}, {label: 'B', src: '/b.mp4'}, {label: 'Short', src: '/short.mp4'}, {label: 'Missing', src: '/missing.mp4'},
+]};
+const groupedCollection = {
+  groups: [
+    {id: 'picks', label: 'Start here', description: 'Three coherent styles.', variants: ['a', 'b']},
+    {id: 'focused', label: 'Focused', description: 'Compare the small details.', variants: ['a', 'short']},
+  ],
+  passages: ['first', 'second'].map(id => ({id, label: id, description: `${id} musical passage`, videos: [
+    {id: 'a', label: 'Approved', src: `/${id}/a.mp4`},
+    {id: 'b', label: 'Kinetic', src: `/${id}/b.mp4`, recommended: true, recipe: 'Impact kick; measured contacts.'},
+    {id: 'short', label: 'Short', src: `/${id}/short.mp4`},
+  ]})),
+};
+async function open(collection: object = flatCollection, requests: string[] = []): Promise<Page> {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
   await page.route('http://comparison.test/**', async route => {
     const path = new URL(route.request().url()).pathname;
-    if (path === '/collection.json') return route.fulfill({json: {videos: [
-      {label: 'A', src: '/a.mp4'}, {label: 'B', src: '/b.mp4'}, {label: 'Short', src: '/short.mp4'}, {label: 'Missing', src: '/missing.mp4'},
-    ]}});
-    if (['/a.mp4', '/b.mp4', '/short.mp4'].includes(path)) {
-      const bytes = readFileSync(join(dir, path.slice(1))), range = /^bytes=(\d+)-(\d*)$/.exec(route.request().headers().range ?? '');
+    if (path === '/collection.json') return route.fulfill({json: collection});
+    const media = /^\/(?:first\/|second\/)?(a|b|short)\.mp4$/.exec(path);
+    if (media) {
+      requests.push(path);
+      const bytes = readFileSync(join(dir, `${media[1]}.mp4`)), range = /^bytes=(\d+)-(\d*)$/.exec(route.request().headers().range ?? '');
       if (!range) return route.fulfill({body: bytes, contentType: 'video/mp4'});
       const start = Number(range[1]), end = range[2] ? Math.min(Number(range[2]), bytes.length - 1) : bytes.length - 1;
       return route.fulfill({status: 206, body: bytes.subarray(start, end + 1), contentType: 'video/mp4', headers: {'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${start}-${end}/${bytes.length}`}});
@@ -84,4 +98,50 @@ describe('rendered video comparison', () => {
       expect(await page.locator('video.active').count()).toBe(1);
     } finally {await page.close();}
   }, 20000);
+
+  test('groups show only their variants and preserve the moment; passages preserve style but reset time', async () => {
+    const requests: string[] = [], page = await open(groupedCollection, requests);
+    try {
+      expect(await page.locator('#versions button').count()).toBe(2);
+      expect(requests.every(path => path.startsWith('/first/'))).toBe(true);
+      await seek(page, .3);
+      await select(page, 1);
+      expect(await page.locator('#recipe').getAttribute('open')).toBeNull();
+      expect(await page.locator('#recipe-text').textContent()).toContain('measured contacts');
+      await page.locator('#passages button').nth(1).click();
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/b.mp4'));
+      const next = await page.locator('video.active').evaluate((v: HTMLVideoElement) => ({time: v.currentTime, paused: v.paused}));
+      expect(next).toEqual({time: 0, paused: true});
+      expect(await page.locator('#stage video').count()).toBe(3);
+      expect(await page.locator('#stage video').evaluateAll(videos => videos.every(v => (v as HTMLVideoElement).currentSrc.includes('/second/')))).toBe(true);
+      await seek(page, .25);
+      await page.locator('#groups button').nth(1).click();
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/a.mp4'));
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.currentTime)).toBeCloseTo(.25, 2);
+      expect(await page.locator('#versions button').allTextContents()).toEqual(['Approved', 'Short']);
+      await page.locator('#groups button').nth(0).click();
+      expect(await page.locator('#versions button').first().getAttribute('aria-pressed')).toBe('true');
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.currentTime)).toBeCloseTo(.25, 2);
+    } finally {await page.close();}
+  }, 20000);
+
+  test('rapid passage changes cancel old switches and keep playing and mute settings', async () => {
+    const page = await open(groupedCollection);
+    try {
+      const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+      await select(page, 1); await page.locator('#sound').click();
+      await page.locator('video.active').evaluate((v: HTMLVideoElement) => {v.playbackRate = 1.5;});
+      await page.locator('#play').click();
+      await page.evaluate(() => {
+        const passages = document.querySelectorAll<HTMLButtonElement>('#passages button');
+        passages[1].click(); passages[0].click(); passages[1].click();
+      });
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/b.mp4'));
+      const state = await page.locator('video.active').evaluate((v: HTMLVideoElement) => ({time: v.currentTime, paused: v.paused, muted: v.muted, rate: v.playbackRate}));
+      expect(state.paused).toBe(false); expect(state.muted).toBe(true); expect(state.rate).toBe(1.5); expect(state.time).toBeLessThan(1);
+      expect(await page.locator('video.active').count()).toBe(1); expect(await page.locator('#stage video').count()).toBe(3); expect(errors).toEqual([]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    } finally {await page.close();}
+  }, 20000);
+
 });

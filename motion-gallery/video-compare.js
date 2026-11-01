@@ -1,6 +1,10 @@
 const $ = id => document.getElementById(id);
 const stage = $('stage'), status = $('status');
 let videos = [], entries = [], active = -1, wanted = -1, playing = false, muted = false, pending = null;
+let groups = [], passages = [], groupIndex = 0, passageIndex = -1, styleId = null, collectionUrl;
+let savedRate = 1, savedVolume = 1;
+const frameHold = $('transition-frame');
+const visibleIndexes = () => groups.length ? groups[groupIndex].variants.map(id => entries.findIndex(e => e.id === id)).filter(i => i >= 0) : entries.map((_, i) => i);
 const abortError = () => new DOMException('Superseded', 'AbortError');
 
 function waitFor(video, ready, events, signal) {
@@ -38,12 +42,30 @@ function controls() {
   $('play').textContent = playing ? 'Pause' : 'Play';
   $('sound').textContent = muted ? 'Sound off' : 'Sound on';
   $('sound').setAttribute('aria-pressed', String(!muted));
-  [...$('versions').children].forEach((b, i) => {b.setAttribute('aria-pressed', String(i === active)); b.classList.toggle('pending', i === wanted && wanted !== active);});
+  [...$('versions').children].forEach(b => {const i = Number(b.dataset.index); b.setAttribute('aria-pressed', String(i === active)); b.classList.toggle('pending', i === wanted && wanted !== active);});
+  [...$('groups').children].forEach((b, i) => {b.setAttribute('aria-pressed', String(i === groupIndex)); b.disabled = !entries.some(e => groups[i].variants.includes(e.id));});
+  [...$('passages').children].forEach((b, i) => b.setAttribute('aria-pressed', String(i === passageIndex)));
+}
+function versionButtons() {
+  $('versions').replaceChildren();
+  for (const index of visibleIndexes()) {
+    const entry = entries[index], button = document.createElement('button');
+    button.dataset.index = String(index); button.textContent = entry.label;
+    if (entry.recommended) {const pick = document.createElement('span'); pick.className = 'pick'; pick.textContent = 'pick'; button.append(pick);}
+    button.onclick = () => select(index); $('versions').append(button);
+  }
+  controls();
+}
+function describe(entry) {
+  $('description').textContent = entry?.description ?? '';
+  $('recipe').hidden = !entry?.recipe;
+  $('recipe-text').textContent = entry?.recipe ?? '';
 }
 async function select(index) {
+  if (!entries[index]) return;
   pending?.abort();
   for (let i = 0; i < videos.length; i++) if (i !== active) {videos[i].pause(); videos[i].muted = true;}
-  wanted = index; controls();
+  wanted = index; styleId = entries[index].id; controls();
   if (index === active) {status.textContent = ''; return;}
   const controller = new AbortController(); pending = controller;
   const signal = controller.signal, next = videos[index];
@@ -51,9 +73,10 @@ async function select(index) {
   try {
     if (next.error || next.networkState === HTMLMediaElement.NETWORK_EMPTY) next.load();
     await waitFor(next, () => next.readyState >= 2, ['loadeddata', 'canplay'], signal);
+    if (signal.aborted) throw abortError();
     const previous = active >= 0 ? videos[active] : null;
-    next.playbackRate = previous?.playbackRate ?? 1;
-    next.volume = previous?.volume ?? 1;
+    next.playbackRate = previous?.playbackRate ?? savedRate;
+    next.volume = previous?.volume ?? savedVolume;
     // Keep the outgoing video visible and audible while preparing the next one.
     // Only a decoded frame at the matching time is allowed to replace it.
     let shorter = false;
@@ -78,7 +101,7 @@ async function select(index) {
           next.playbackRate = previous.playbackRate * (clockDifference(previous, next) > 0 ? 1.5 : .75);
           await painted(next, signal);
         }
-        next.playbackRate = previous?.playbackRate ?? 1;
+        next.playbackRate = previous?.playbackRate ?? savedRate;
       }
       if (!previous || !playing || shorter || Math.abs(clockDifference(previous, next)) < .05) break;
       if (attempt === 3) throw new Error('Could not align the videos yet. Try again.');
@@ -86,18 +109,56 @@ async function select(index) {
     if (signal.aborted) throw abortError();
     if (!playing || shorter) next.pause();
     if (previous) {previous.muted = true; previous.pause(); previous.classList.remove('active');}
-    next.muted = muted; next.classList.add('active'); active = index;
+    next.muted = muted; next.classList.add('active'); active = index; frameHold.hidden = true;
     if (shorter) playing = false;
     stage.style.aspectRatio = `${next.videoWidth} / ${next.videoHeight}`;
-    $('description').textContent = entries[index].description ?? '';
+    describe(entries[index]);
     $('play').disabled = false; $('seek').disabled = false;
     status.textContent = shorter ? 'This version ends earlier; showing its final moment.' : '';
     controls();
   } catch (error) {
     if (signal.aborted) return;
-    next.pause(); next.muted = true; wanted = active; controls();
+    next.pause(); next.muted = true; wanted = active; styleId = entries[active]?.id ?? styleId; controls();
     status.textContent = error.message;
   }
+}
+async function changeGroup(index) {
+  if (index === groupIndex) return;
+  const available = groups[index].variants.map(id => entries.findIndex(e => e.id === id)).filter(i => i >= 0);
+  if (!available.length) return;
+  groupIndex = index; $('intent').textContent = groups[index].description ?? '';
+  versionButtons();
+  const preserved = available.find(i => entries[i].id === (entries[active]?.id ?? styleId));
+  await select(preserved ?? available[0]);
+}
+async function changePassage(index) {
+  if (index === passageIndex) return;
+  pending?.abort();
+  const previous = videos[active];
+  if (previous) {
+    savedRate = previous.playbackRate; savedVolume = previous.volume;
+    // Keep a still picture during passage loading, without retaining its media
+    // elements or sound. Different music deliberately starts a fresh clock.
+    if (previous.readyState >= 2) {
+      frameHold.width = previous.videoWidth; frameHold.height = previous.videoHeight;
+      frameHold.getContext('2d').drawImage(previous, 0, 0); frameHold.hidden = false;
+    }
+  }
+  for (const video of videos) {video.pause(); video.muted = true; video.removeAttribute('src'); video.load(); video.remove();}
+  passageIndex = index; entries = passages[index].videos; active = -1; wanted = -1;
+  $('play').disabled = true; $('seek').disabled = true; $('seek').value = '0'; $('time').textContent = '0:00'; describe(null);
+  $('passage-description').textContent = passages[index].description ?? '';
+  if (groups.length && !entries.some(e => groups[groupIndex].variants.includes(e.id)))
+    groupIndex = groups.findIndex(g => entries.some(e => g.variants.includes(e.id)));
+  if (groups.length) $('intent').textContent = groups[groupIndex].description ?? '';
+  videos = entries.map(entry => {
+    const video = document.createElement('video'); video.src = new URL(entry.src, collectionUrl).href;
+    video.preload = 'auto'; video.playsInline = true; video.loop = true; video.muted = true;
+    video.setAttribute('aria-hidden', 'true'); stage.append(video); return video;
+  });
+  versionButtons();
+  const available = visibleIndexes(), preserved = available.find(i => entries[i].id === styleId);
+  await select(preserved ?? available[0]);
 }
 async function togglePlay() {
   if (active < 0) return;
@@ -118,7 +179,10 @@ $('seek').oninput = () => {
 document.addEventListener('keydown', event => {
   if (event.target.closest('input,textarea,select,[contenteditable]') || event.altKey || event.ctrlKey || event.metaKey) return;
   if (event.code === 'Space') {event.preventDefault(); togglePlay();}
-  if (videos.length && (event.code === 'ArrowLeft' || event.code === 'ArrowRight')) {event.preventDefault(); select((Math.max(0, wanted) + (event.code === 'ArrowRight' ? 1 : -1) + videos.length) % videos.length);}
+  if (videos.length && (event.code === 'ArrowLeft' || event.code === 'ArrowRight')) {
+    event.preventDefault(); const visible = visibleIndexes(), position = Math.max(0, visible.indexOf(wanted));
+    select(visible[(position + (event.code === 'ArrowRight' ? 1 : -1) + visible.length) % visible.length]);
+  }
 });
 function tick() {
   if (active >= 0) {const v = videos[active]; $('seek').max = String(v.duration || 1); $('seek').value = String(v.currentTime); $('time').textContent = `${formatTime(v.currentTime)} / ${formatTime(v.duration || 0)}`;}
@@ -129,13 +193,30 @@ try {
   if (!path) throw new Error('Open this page with ?collection=/path/to/comparison.json');
   const url = new URL(path, location.href), response = await fetch(url);
   if (!response.ok) throw new Error(`Could not load comparison (${response.status}).`);
-  const data = await response.json(); entries = data.videos;
-  if (!Array.isArray(entries) || !entries.length || entries.some(e => typeof e.src !== 'string' || typeof e.label !== 'string')) throw new Error('Comparison needs a videos list with label and src for each version.');
+  const data = await response.json(); collectionUrl = url;
+  const validVideos = list => Array.isArray(list) && list.length && list.every(e => e && typeof e.src === 'string' && typeof e.label === 'string');
+  if (data.passages !== undefined) {
+    passages = data.passages; groups = data.groups;
+    if (!Array.isArray(passages) || !passages.length || passages.some(p => typeof p.id !== 'string' || typeof p.label !== 'string' || !validVideos(p.videos) || p.videos.some(v => typeof v.id !== 'string') || new Set(p.videos.map(v => v.id)).size !== p.videos.length))
+      throw new Error('Each passage needs an id, label and videos with unique style ids.');
+    if (!Array.isArray(groups) || !groups.length || groups.some(g => typeof g.id !== 'string' || typeof g.label !== 'string' || !Array.isArray(g.variants) || g.variants.length < 1 || g.variants.length > 5 || g.variants.some(id => typeof id !== 'string') || new Set(g.variants).size !== g.variants.length))
+      throw new Error('Each comparison group needs one to five distinct style ids.');
+    if (passages.some(p => !p.videos.some(v => groups.some(g => g.variants.includes(v.id)))))
+      throw new Error('Every passage needs a video available in a comparison group.');
+    $('study-controls').hidden = false;
+    groups.forEach((group, index) => {const b = document.createElement('button'); b.textContent = group.label; b.onclick = () => changeGroup(index); $('groups').append(b);});
+    passages.forEach((passage, index) => {const b = document.createElement('button'); b.textContent = passage.label; b.onclick = () => changePassage(index); $('passages').append(b);});
+  } else {
+    if (!validVideos(data.videos)) throw new Error('Comparison needs a videos list with label and src for each version.');
+    passages = [{id: 'default', label: '', videos: data.videos.map((entry, i) => ({...entry, id: entry.id ?? String(i)}))}];
+  }
   $('title').textContent = data.title ?? 'Video comparison';
   if (data.description) $('intro').textContent = data.description;
-  videos = entries.map((entry, index) => {
-    const video = document.createElement('video'); video.src = new URL(entry.src, url).href; video.preload = 'auto'; video.playsInline = true; video.loop = true; video.muted = true; video.setAttribute('aria-hidden', 'true'); stage.append(video);
-    const button = document.createElement('button'); button.textContent = entry.label; button.onclick = () => select(index); button.setAttribute('aria-pressed', 'false'); $('versions').append(button); return video;
-  });
-  await select(0); tick();
+  for (const link of data.links ?? []) {
+    const target = new URL(link.href, url);
+    if (!['http:', 'https:'].includes(target.protocol)) continue;
+    const a = document.createElement('a'); a.href = target.href; a.textContent = link.label; $('related').append(a);
+  }
+  $('related').hidden = !$('related').children.length;
+  await changePassage(0); tick();
 } catch (error) {status.textContent = error.message;}

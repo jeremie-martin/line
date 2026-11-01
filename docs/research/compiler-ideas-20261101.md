@@ -467,3 +467,90 @@ Scratch replays are summarized here.
     used today, often boring, and thinks a better use of upper receivers could
     replace some of it.
   - Branch kept: `exp/beam-measured-slot`.
+
+## What a stronger catch costs the next one (same-state test; report only)
+`tools/research/catch_price.ts`. 16 rides (8 specs × seeds 101, 202) and 506
+strong catches.
+
+**Method.** From the prefix of the beam's first kept candidate (K), the tool
+commits each of two alternatives from the same measured pool, then runs the
+next interval's own search from each:
+- S, the candidate closest to the ask;
+- M, the one with the lowest measured local cost.
+
+The probes are isolated: the physics meter is refunded, and the search memos,
+control memory and work counters are restored. **All 16 compiled tracks are
+identical to the saved rides.**
+
+| X against kept | this catch: strength | this catch: local cost | next interval: charged by ranking | next interval: measured | two steps measured | X better over two steps |
+|---|---|---|---|---|---|---|
+| S, closest to ask | +0.054 | +0.063 | +0.093 | +0.042 (median +0.012) | +0.104 | 18% |
+| M, lowest measured | +0.017 | −0.006 | +0.053 | +0.024 (median +0.007) | +0.018 | 35% |
+
+- **The coupling is real.** A catch closer to its strong ask costs the next
+  catch about 0.06 of strength (0.566 → 0.502 for the best-cost candidate;
+  next asks average 0.65). It also costs this catch's own interval (+0.063
+  local, mostly other terms).
+- **The ranking's price is about twice the measured next-step price,** with
+  a correlation of only 0.33–0.45. But the measurement covers one interval;
+  the priors may also stand for consequences further on, which this does not
+  measure.
+- **Even at the measured price, the kept choice wins over two steps** in
+  82% (against S) and 65% (against M) of probes. This is consistent with the
+  beam slot's small, unconfirmed gain: there is a little room in ranking, not
+  a lot.
+- **Reading (today's compiler and geometry):** the stronger options in the
+  pool are mostly paid for by the next catch. More strength at close strong
+  beats likely needs options where a hard hit doesn't spoil the next arrival
+  (geometry, not ranking). Possible ranking refinements (a better-calibrated
+  future estimate; the parked beam slot) look small.
+
+## Hits from a surface above, in today's rides (report only)
+`tools/research/upper_hits.ts` on `main`'s V7 rides (12,592 matched hits).
+"From above" means the hit's scored push points down. The clip the owner
+loved (`ripple-receiver`: Luna seed 202, about 15.8 s) is of this kind. A
+floor catch, then about 5 frames later the shoulder and hands meet the line
+above while the rider travels almost level (vertical speed about +1
+px/frame). The rider's centre of mass is not rising.
+
+- **They are common: 15% of matched hits.**
+  - About half are on arcs entered from the opposing side.
+  - The touching points are shoulder, hands and sled together, all on the
+    arc's own lines.
+  - They are used mostly on soft and mid asks (17–22% of those bands, against
+    8–10% of strong asks).
+- **On strong asks they deliver much less than floor hits:**
+
+  | | asks 0.6–0.8: mean error | short by > 0.15 | late | asks 0.8+: short by > 0.15 |
+  |---|---|---|---|---|
+  | floor | −0.05 | 6% | 3% | 33% |
+  | from above | −0.12 | 33% | 25% | 90% |
+
+  - Their pushes build more slowly (onset 1.15 frames after contact, peak
+    0.9 frames after onset, against 0.9 and 0.6 for floor hits).
+  - The gap they open has a slightly larger air error (0.048 against 0.039).
+  - At close strong spacing (< 15 frames) they fall short 73% of the time
+    (floor: 19%).
+- **No beat is hit by a rising rider.** Only 0.14% of matched hits arrive
+  with the centre of mass rising, and none steeper than 15°.
+  - At every boundary of 8 rides, 0.67% of the 750k viable candidates arrive
+    rising, at a median of −3°: barely rising.
+  - Those candidates measure far worse locally (0.159 against 0.019) and
+    carry heavy arrival priors (0.27 against 0.017). The steep-arrival prior
+    aims at 20–70° downward; the heading prior charges outside −15° to +45°.
+  - So rising into a surface above is essentially outside today's catalog,
+    by generation first and priors second. This is a different pattern from
+    the loved clip.
+- **Reading, within today's compiler:**
+  - Hits from above are already a large part of the rides, but they don't
+    yet answer strong asks on time or at strength.
+  - The owner's note on the loved clip ("especially appealing if
+    intentionally aligned to the beat and requested impact; the current
+    example is not") fits this exactly.
+  - Making these hits deliver (timing and strength) is a candidate lever
+    that matches the owner's taste. It also bears on the close-spacing
+    coupling found above: a push from above turns the rider downward, which
+    a floor catch cannot do.
+  - Not yet known: why they are late and weak. Candidates include catch
+    construction placing the line by sled points while the body touches
+    first, and slower-building body contacts.

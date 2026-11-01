@@ -27,8 +27,8 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
  * may reopen untried alternatives at a recent boundary. */
 /** Study-only observer of each boundary's measured offers and the ones kept.
  * Report tools set it in-process; the compiler never reads anything back. */
-export const sequenceObserver: {offers?: (i: number, offered: ReadonlyArray<{interval: IntervalResult; candidate: any; rank: number}>,
-  chosen: ReadonlyArray<{candidate: any}>) => void} = {};
+export const sequenceObserver: {offers?: (i: number, offered: ReadonlyArray<{parent: {seq: ArcSequence}; interval: IntervalResult; candidate: any; rank: number}>,
+  chosen: ReadonlyArray<{parent: {seq: ArcSequence}; candidate: any}>, ctx: ArcCompileContext, protectedEngines: readonly Engine[]) => void} = {};
 
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
@@ -131,7 +131,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const minimumScale = Math.max(.05, 12 / Math.max(12, options.samples ?? 80));
     const width = clamp(Math.floor(remainingRate / Math.max(1, observedRate * minimumScale * 1.1)), 1, 8);
     const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
-    sequenceObserver.offers?.(i, offered, chosen);
+    sequenceObserver.offers?.(i, offered, chosen, ctx, protectedEngines);
     if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
       finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};
     // Keep all distinct measured alternatives at four recent boundaries,

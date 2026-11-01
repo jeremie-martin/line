@@ -8,6 +8,7 @@ import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
+import { steepArrival } from './arc_evaluate.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
@@ -64,6 +65,9 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const rate = (budget - getPhysicsFrameCount() - 2 * (end + 1)) / remaining;
     const nominal = (options.samples ?? 80) + (options.guidanceSamples ?? 0);
     const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, 1);
+    // A strong catch gets more local search, phased in with the steep arrival
+    // (ask 0.4 none, 0.8 all): its strength is decided here.
+    const effort = 1 + .3 * (i > 0 ? steepArrival(ctx.gaps[contacts[i].gap]?.targets.impact ?? 0, options.impactSearch) : 0);
     const protectedEngines = beam.map(b => b.seq.engine);
     const offered: Offer[] = [];
     const began = getPhysicsFrameCount();
@@ -71,9 +75,9 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     try {
       for (const parent of beam) {
         const interval = searchInterval(ctx, parent.seq.engine, i, {
-          samples: Math.max(12, Math.floor((options.samples ?? 80) * localScale)),
-          guidanceSamples: Math.floor((options.guidanceSamples ?? 0) * localScale),
-          responseSamples: Math.floor((options.responseSamples ?? 0) * localScale),
+          samples: Math.max(12, Math.floor((options.samples ?? 80) * localScale * effort)),
+          guidanceSamples: Math.floor((options.guidanceSamples ?? 0) * localScale * effort),
+          responseSamples: Math.floor((options.responseSamples ?? 0) * localScale * effort),
         }, protectedEngines);
         searched++;
         if (!interval?.best) continue;
@@ -119,7 +123,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       i = previous;
       continue;
     }
-    const measuredRate = (getPhysicsFrameCount() - began) / Math.max(1, searched * localScale * ((contacts[i + 1]?.frame ?? end + 1) - frame));
+    const measuredRate = (getPhysicsFrameCount() - began) / Math.max(1, searched * localScale * effort * ((contacts[i + 1]?.frame ?? end + 1) - frame));
     observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
     work.observedConstructionRate = observedRate;
     const firstComplete = i === contacts.length - 1 ? offered[0] : undefined;

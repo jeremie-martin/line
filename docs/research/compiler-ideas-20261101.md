@@ -42,3 +42,33 @@ comes from `main` on V7 at 8 seeds (224 rides).
   - the V7 headline up, with directional support above 0.9 at 4 or 8 seeds;
   - strong-ask strength not worse (early hits are also the weak ones);
   - no ride lost.
+
+## Seed-variance diagnostic (`tools/research/seed_variance.ts`, 120 rides)
+One automatic spec per category. In design A the plan is held at seed 101
+and the search seed varies; in design B the search is held at 101 and the
+plan seed varies.
+
+| | variance | sd |
+|---|---|---|
+| search seed varies | 8 | 2.8 |
+| plan seed varies | 253 | 15.9 |
+
+- **The search barely uses its seed.** With the plan fixed, 7 of 8 specs give
+  identical rides (sd 0.0).
+- **The 108 s ride is the exception** (sd 7.8 over search seeds). Its
+  "plan 101, search 101" ride also differs from `main`'s (639 against 645);
+  this is unexplained, and noted.
+- **So the seed-to-seed spread is the plan's draw.** That includes the +23 by
+  which a spec's best seed beats its mean.
+- **Plan composition explains little of it.** Within each spec, the score's
+  correlation is −0.23 with the shape share of ride time, −0.21 with shapes
+  on long gaps, −0.16 with distinct families, +0.14 with the scattered share
+  and 0.01 with the plain-arcs share.
+  - A different plan acts mostly like a restart: early geometry sends the
+    ride down a different path.
+- **Consequence for idea 2:** keeping the best of several plans is a general
+  mechanism, worth about +10 for two plans.
+  - It should cost little variety, because composition barely predicts the
+    score; the drift toward fewer shapes must still be measured.
+  - It costs compute. A cheaper form would stop a plan early once its partial
+    ride is clearly behind.

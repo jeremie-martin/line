@@ -263,7 +263,10 @@ async function run() {
   const announced = new Set<number>(coverage(s, cells).done);
   let stopping = false, finished = 0;
   const children = new Set<ReturnType<typeof spawn>>(), failures: string[] = [], began = performance.now();
-  process.on('SIGINT', () => {if (!stopping) {stopping = true; console.log('\nstopping: finished rides are kept; writing a partial report…');} for (const ch of children) ch.kill('SIGINT');});
+  // Ctrl-C, or a termination signal from whoever started the run: stop
+  // scheduling, stop the workers, keep finished rides, release the locks, report.
+  const stop = () => {if (!stopping) {stopping = true; console.log('\nstopping: finished rides are kept; writing a partial report…');} for (const ch of children) ch.kill('SIGINT');};
+  process.on('SIGINT', stop); process.on('SIGTERM', stop);
   console.log(`${queue.length} rides to compile (${rs.length < rounds(s.cases).length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
   try {
     await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {

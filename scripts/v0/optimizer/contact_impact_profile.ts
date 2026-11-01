@@ -26,7 +26,7 @@ export const STRIKE_V3_SEARCH_PROFILE = Object.freeze({
   ...STRIKE_SEARCH_PROFILE,
   id: 'line.strike-search.v7',
   constructionModel: 'v3' as const,
-  impactSearch: Object.freeze({...STRIKE_SEARCH_PROFILE.impactSearch, steepArrivalFrom: .6, uprightArrival: 1}),
+  impactSearch: Object.freeze({...STRIKE_SEARCH_PROFILE.impactSearch, uprightArrival: 1}),
 } as const);
 
 export function impactSearchProfile(contract: string) {

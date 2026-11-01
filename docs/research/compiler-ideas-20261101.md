@@ -620,3 +620,11 @@ hits from above are late.
     simplification: the model, its features and its training artifact can
     go.
   - If clearly negative, it carries real information and stays.
+- **Result B (4 seeds; parked again):**
+  - +3.4, 95% interval [−4.9, +11.7], support 0.86;
+  - 17 of 22 specs up; explicit requests −2.8;
+  - body drag +0.17 s/min; strength bias and air/speed flat.
+
+  About the same as the slot alone, so possibly additive on top of A, but
+  not established. To re-test after the learned models are retrained, since
+  that changes the compiler underneath.

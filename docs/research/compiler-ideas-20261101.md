@@ -874,3 +874,25 @@ since that is where it failed.
 - Note: a comment edit in `scripts/v0/` changes the compiler's content key,
   so `main` had to be compiled again. Keep adoption commits to the code
   that changes.
+- **F on H (`exp/gap-weighted-on-h`): not adopted.**
+  - V7, 4 seeds: **+6.3 [+4.3, +8.3], > 0.99**; groove −0.2 (it was −8.0
+    on the old policies); P6 +23.6; explicit requests −1.7; air rms −0.004.
+  - **Held out: −9.9 [−46.9, +27.1]**, driven by one ride: Circus
+    voice-drums seed 202, −218 (complete, valid). The other 19 rides come to
+    about +1.
+  - The collapse is a speed runaway. Over a dense run (gaps 93–105, 6–10
+    frames each, mean gap 19), speed asked 0.79 came out 2.1–2.5; main gave
+    0.65–0.93.
+  - **Mechanism.** Weighting by length makes each very short gap's speed
+    error cheap (weight about 0.4), but speed is a state that carries into
+    the next gap. Each interval accepts a little more speed and it compounds
+    over the run. Air is local to its gap; speed is not.
+
+### F′. Gap-length weighting for air and amplitude only
+- **Change.** F, but speed residuals keep weight 1 in the interval search,
+  the prior-gap correction and the response weights. Air and amplitude are
+  weighted by gap length.
+- **Hypothesis.** Most of F's gain was air on long gaps (P6 air rms −0.022),
+  which F′ keeps. Speed stays per gap, as in `main`, so no runaway over dense
+  runs. V7 gain somewhat below F's +6.3; held out non-negative, with no
+  collapsed ride.

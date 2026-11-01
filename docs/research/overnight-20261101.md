@@ -243,3 +243,20 @@ Rules for the night:
 ### 02:40: health check of `rework/foundations`
 `npm test` 303/303, typecheck 0 errors, `npm run reach` 0 unreachable files,
 `npm run parity` PASS, `npm run parity:judge` PASS (33 tracks).
+- `exp/no-tail-refinement` is ready to merge: 295/295 tests (two refinement
+  test files deleted), typecheck clean, reach 0 unreachable (262 live files,
+  −251 lines). Parity references need `npm run parity -- --update` in the
+  adopting commit.
+
+## Morning summary
+- **Adopted** (both delete machinery; both raise the headline on every
+  panel; no ride lost): the section fallback, and guides offered, never
+  required. Bench 716 → 739; held out 660 → 733 (16/16).
+- **Your call:** R0 (delete the ending refinement); squeezed short shapes;
+  how much variety against no plan (753); stray hits after the visibility
+  study; whether extra allowance should buy quality.
+- **Rejected after measurement:** no value model, no passive-arrival gate,
+  the steep arrival law everywhere, uncapped effort at 1×.
+- **Rides:** `/generated/overnight-compare/collection.json` (before
+  tonight against now) and `/generated/morning-compare/collection.json` (plan
+  against no plan).

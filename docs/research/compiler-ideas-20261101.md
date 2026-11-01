@@ -282,3 +282,31 @@ Per realized geometry and gap length: the catch the gap builds at its start
   proposals and accepted repairs on V7 rides. Small synthetic tests whose
   budgets had been tuned to the old frame use were re-derived; see
   REWORK.md.
+
+## High floats: what the shortfall is (report only; no compiler change)
+Priority 2 was "high floats fall short of their air ask". On `main`'s V7
+rides (`tools/research/float_contacts.ts`, `float_feasibility.ts`):
+- **The extra contact is the launch ride.** The floats that fall short ride
+  their catch line about 44 frames (the floats on target ride about 18),
+  against about 14 allowed. What looked like mid-float touches is the rider
+  still on that line: Line Rider's points touch it on alternate frames. Nothing
+  comes from the next catch.
+- **Two specs carry most of it:** Amour bench-long 62% of the squared air
+  shortfall, Tiki bench-calm 20%, everything else ≤ 7%.
+- **Those two ask for three things physics doesn't give together:** long
+  high floats (air 0.84–0.95 over 2–4 s), a moderate mean speed (0.3–0.5),
+  and soft catches between them (0.1–0.4). A float that high falls about as
+  fast as it rose, so its closing catch has to turn the rider 70–100° to
+  relaunch. At about 11 px/frame that is a speed × turn of 11–12 px/frame,
+  against 7.55 for "very strong" and 2–3 for what is asked. Done softly, the
+  turn is spread over a long ride, and the air goes.
+- **The compiler's trade is deliberate.** It keeps the catches soft and the
+  speed on target (0.42 for 0.44) and gives the air up. Each gap's air is
+  measured by the search's own simulation when it chooses.
+- **Reading:** this isn't a launching weakness to fix with a mechanism.
+  Better trades would mean reweighting the axes, which is fitting the cost to
+  the scorer. Two other readings are possible:
+  - it is the spec author's choice: a feasibility report could tell authors
+    when asks conflict, and leave the choice to them;
+  - the benchmark keeps the two specs as a test of how a compiler trades
+    asks it can't all meet. The loss is a floor every compiler shares.

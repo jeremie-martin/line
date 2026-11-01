@@ -189,7 +189,7 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
   const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
-    ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));
+    ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt((key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1) * s.spanWeight));
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);
   let actualImpact: number | undefined;
   if (impact !== undefined) {
@@ -209,7 +209,7 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   if (options.completeBoundary && s.priorGap) {
     const priorGap = s.priorGap;
     const actual = objectiveAxes(det, priorGap, priorGap.endFrame);
-    const correction = arcBoundaryCorrection(actual, priorGap.targets, s.priorLoss, options.amplitudeWeight ?? 1, cost);
+    const correction = arcBoundaryCorrection(actual, priorGap.targets, s.priorLoss, options.amplitudeWeight ?? 1, cost, s.priorWeight);
     residuals.push(...correction.residuals);
     cost = correction.cost;
   }

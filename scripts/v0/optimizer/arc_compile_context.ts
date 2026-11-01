@@ -111,8 +111,12 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const reportFor = (trajectory: any, geometry: TrackLine[]) => buildDriftReport(detect(trajectory), spec, gaps, frames, duration, [],
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));
 
+  // Span errors weigh by gap length relative to the mean, as in the whole-ride
+  // objective and the headline: a long float counts for its duration.
+  const meanGapFrames = gaps.reduce((sum, g) => sum + (g.endFrame - g.startFrame), 0) / Math.max(1, gaps.length);
+  const spanWeight = (g: {startFrame: number; endFrame: number} | undefined) => g ? (g.endFrame - g.startFrame) / meanGapFrames : 1;
   return {options, budget, spec, duration, end, frames, impactTargets, gaps, planned, start, contacts, hasFragments,
-    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor};
+    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor, spanWeight};
 }
 
 export type ArcCompileContext = ReturnType<typeof createArcCompileContext>;

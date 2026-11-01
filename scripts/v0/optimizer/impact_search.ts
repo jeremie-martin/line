@@ -39,9 +39,15 @@ export function evaluateMusicalImpacts(observed: readonly ContactImpactFrame[], 
  * response-memory layout remains stable. Targets/extra-event membership have
  * already been decided by the common one-to-one account. */
 export function impactSearchResiduals(events: readonly ContactImpactEvent[], account: ReturnType<typeof accountContactImpacts>,
-  currentTarget: number | undefined, from: number, to: number, options: ImpactSearchOptions = {}) {
+  currentTarget: number | undefined, from: number, to: number, options: ImpactSearchOptions = {}, subframeOffset?: number) {
   const match = currentTarget === undefined ? undefined : account.matches.find(m => m.target === currentTarget);
-  const timing = match ? Math.sqrt(options.timingWeight ?? 1) * match.timingError : 0;
+  // The account's own timing error, max(0, |offset| − quantization) / matchFrames,
+  // with the continuous offset when it is measured: zero inside the target frame,
+  // equal on average to the frame-integer error one frame off, and with a slope
+  // the local search can follow (subframe_contact.ts).
+  const c = CONTACT_IMPACT_CONTRACT, error = match === undefined ? 0 : subframeOffset === undefined ? match.timingError
+    : Math.max(0, Math.abs(subframeOffset) - c.quantizationFrames) / c.matchFrames;
+  const timing = match ? Math.sqrt(options.timingWeight ?? 1) * error : 0;
   const extra = Math.sqrt((options.extraWeight ?? 1) * account.unmatchedEvents.reduce((sum, i) => {
     const e = events[i]; return sum + (e.onset >= from && e.onset < to ? (e.raw / CONTACT_IMPACT_CONTRACT.veryStrong) ** 2 : 0);
   }, 0));

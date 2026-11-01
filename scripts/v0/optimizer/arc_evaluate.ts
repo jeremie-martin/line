@@ -15,6 +15,7 @@ import { arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
+import { subframeCrossing } from './subframe_contact.ts';
 import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';
 import { constructionDeficit } from './repertoire_feasibility.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
@@ -163,6 +164,10 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
   const impactAccount = impactEvents ? ruler!.account(impactEvents, s.localImpactTargets) : undefined;
   const impactMatch = impactAccount?.matches.find(m => m.target === s.currentImpactTarget);
   if (options.impactContract && i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
+  // The matched hit's offset from its beat, continuous: the sub-frame crossing
+  // time against the target frame (0 at the middle of the target frame).
+  const crossing = impactMatch ? subframeCrossing(child, added, impactEvents![impactMatch.event].onset) : undefined;
+  const subframeOffset = crossing === undefined ? undefined : crossing - s.localImpactTargets[s.currentImpactTarget].frame + .5;
   const request = options.constructionRequests?.[i];
   if (request && (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
     const guideIds = fragments?.guideIds ?? (arcRailGroups(added).get(i)![1] ?? []).map(l => l.id);
@@ -173,7 +178,7 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
       return {reason: 'construction:' + fulfillment.reasons.join(','), near: {c, deficit: constructionDeficit(fulfillment)}} as Rejection;
     }
   }
-  return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request};
+  return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request, subframeOffset};
 }
 
 type Trace = Exclude<ReturnType<typeof traceCandidate>, Rejection>;
@@ -185,7 +190,7 @@ type Trace = Exclude<ReturnType<typeof traceCandidate>, Rejection>;
 function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) {
   const {ctx, options, i, frame, next, horizon, targets, impact, gap} = s;
   const {contacts, duration, gaps} = ctx;
-  const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
+  const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request, subframeOffset} = traced;
   const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
   const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
@@ -201,7 +206,7 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   if (impactEvents && impactAccount) {
     const extra = impactSearchResiduals(impactEvents, impactAccount, s.currentImpactTarget < 0 ? undefined : s.currentImpactTarget,
       frame - impactAccountFor(options.impactContract!).matchFrames, i < contacts.length - 1 ? next - impactAccountFor(options.impactContract!).matchFrames : duration + 1,
-      options.impactSearch);
+      options.impactSearch, subframeOffset);
     extra.push(...engagementGainResiduals([...s.impactPrefix!.pending, ...observedImpacts!] as any, frame, Math.min(duration, horizon), options.impactSearch));
     residuals.push(...extra);
     cost += extra.reduce((sum, r) => sum + r * r, 0);

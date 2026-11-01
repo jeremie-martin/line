@@ -861,3 +861,8 @@ missing pairs. Run at most two comparisons at a time.
   - Body drag +0.66 s/min; strong extra hits +0.018 per beat.
   - Other parked ideas (B, F, J) are to be re-tested on top of it: they were
     measured on the previous policies.
+
+### Re-tests on top of H
+B (beam slot) and F (gap-length weighting) are rebuilt on the new `main`.
+The hypotheses are unchanged. F needs the held-out panel at any decision,
+since that is where it failed.

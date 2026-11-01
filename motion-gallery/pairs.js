@@ -49,12 +49,15 @@ function tick() {
     const leader = video(lead), follower = video(other);
     if (leader.currentTime >= m.length - 0.03 || leader.ended) seek(0, true);
     else {
-      const mode = follower.playbackRate === 0 ? 'wait' : follower.playbackRate > state.rate ? 'catch' : 'play';
+      const mode = follower.playbackRate < state.rate ? 'slow' : follower.playbackRate > state.rate ? 'catch' : 'play';
       const next = follow(shownGap({frame: frames[lead](), time: leader.currentTime, paused: leader.paused},
         {frame: frames[other](), time: follower.currentTime, paused: follower.paused}, performance.now()), mode);
-      leader.playbackRate = state.rate;
+      if (leader.playbackRate !== state.rate) leader.playbackRate = state.rate;
       if (next === 'seek') {if (!follower.seeking) follower.currentTime = leader.currentTime;}
-      else follower.playbackRate = next === 'wait' ? 0 : next === 'catch' ? state.rate * 1.05 : state.rate;
+      else {
+        const rate = state.rate * (next === 'slow' ? 0.95 : next === 'catch' ? 1.05 : 1);
+        if (follower.playbackRate !== rate) follower.playbackRate = rate;
+      }
     }
   }
   draw(); requestAnimationFrame(tick);

@@ -92,7 +92,13 @@ spec (beats, impacts, air/speed/amplitude targets)
    landing clicks and by the grading page, and which keeps the two clips of a
    pair study on the same frame). The camera is the videos' own follower
    centred on the mean of the ten traced points
-   (`scripts/gallery/native/camera.js`). `render_repertoire.ts` renders vertical video when wanted.
+   (`scripts/gallery/native/camera.js`). Production viewports are responsive
+   16:9 canvases. Native replay is prepared in a worker before playback;
+   drawing interpolates the saved poses and uses the native renderer's cached
+   sprite atlas rather than rasterizing SVG body parts on every refresh.
+   Pair studies play their saved videos with the sounding clip as leader;
+   small drift adjusts the muted follower by at most 5%, without freezing it.
+   `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families
 

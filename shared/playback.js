@@ -5,9 +5,9 @@
  * speakers play at a given performance.now(), so each animation frame draws the
  * ride or cursor at the music position heard when that frame reaches the screen. Pair clips are videos with their own sound: the sounding
  * clip keeps the browser's audio–video sync and leads, and the other shows the
- * same frame (compared from requestVideoFrameCallback) by waiting or catching
- * up through its playback rate, never by seeking while playing, which stalls a
- * video. */
+ * same frame (compared from requestVideoFrameCallback) by slowing or catching
+ * up through its playback rate. Small drift never freezes or seeks a clip;
+ * only a large discontinuity requires a seek. */
 
 /** Music position (s) heard at audio context time `contextTime` from a source
  * started at context time `startedAt` at position `from` and `rate`. Until its
@@ -117,16 +117,15 @@ export function shownGap(leader, follower, now) {
 }
 
 /** What a muted follower does to show the leader's frame: 'play' at the base
- * rate, 'wait' (rate 0: held, and resumed on the next frame, unlike pause and
- * play), 'catch' up 5 % faster, or 'seek'. `gap` is leader − follower as shown
+ * rate, 'slow' by 5%, 'catch' up 5% faster, or 'seek'. `gap` is leader − follower as shown
  * (s) and `mode` what the follower is doing now. Shown frames can differ by one
  * for a refresh (a late frame under load), so it acts only on a gap of more
- * than a frame and a half (25 ms) and then keeps going until level: ahead (the
- * leader's sound starting after a loop or an unmute), it waits for the leader;
+ * than a frame and a half (25 ms), releasing within half a frame (8 ms): ahead (the
+ * leader's sound starting after a loop or an unmute), it slows for the leader;
  * behind, it catches up. More than 0.25 s apart (a clip still loading), it seeks. */
 export function follow(gap, mode) {
   if (Math.abs(gap) > 0.25) return 'seek';
-  if (mode === 'wait' ? gap < 0 : gap < -0.025) return 'wait';
-  if (mode === 'catch' ? gap > 0 : gap > 0.025) return 'catch';
+  if (mode === 'slow' ? gap < -0.008 : gap < -0.025) return 'slow';
+  if (mode === 'catch' ? gap > 0.008 : gap > 0.025) return 'catch';
   return 'play';
 }

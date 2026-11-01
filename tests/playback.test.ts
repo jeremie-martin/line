@@ -71,25 +71,28 @@ describe('follower', () => {
     expect(follow(-1 / 60, 'play')).toBe('play');
     expect(follow(-0.3, 'play')).toBe('seek');
   });
-  it('waits when ahead until the leader reaches it, and catches up when behind until level', () => {
-    expect(follow(-2 / 60, 'play')).toBe('wait');
-    expect(follow(-0.005, 'wait')).toBe('wait');
-    expect(follow(0, 'wait')).toBe('play');
+  it('corrects drift in either direction without freezing, then releases within half a frame', () => {
+    expect(follow(-2 / 60, 'play')).toBe('slow');
+    expect(follow(-0.015, 'slow')).toBe('slow');
+    expect(follow(-0.005, 'slow')).toBe('play');
     expect(follow(2 / 60, 'play')).toBe('catch');
-    expect(follow(0.005, 'catch')).toBe('catch');
+    expect(follow(0.015, 'catch')).toBe('catch');
+    expect(follow(0.005, 'catch')).toBe('play');
     expect(follow(0, 'catch')).toBe('play');
   });
-  it('absorbs a 50 ms start of the leader\'s sound without a seek', () => {
+  it.each([1, 0.5])('absorbs audio startup latency without seeking or stopping at %sx speed', rate => {
     // The leader holds its first frame while its sound starts; the follower started at once.
-    let leader = 0, follower = 0, mode = 'play', seeks = 0, worst = 0;
-    for (let f = 0; f < 90; f++) {
+    let leader = 0, follower = 0, mode = 'play', seeks = 0, worstAfterSettling = 0;
+    for (let f = 0; f < 120; f++) {
       mode = follow(leader - follower, mode);
       if (mode === 'seek') seeks++;
-      if (f >= 3) leader += 1 / 60;
-      if (mode !== 'wait') follower += (mode === 'catch' ? 1.05 : 1) / 60;
-      if (f > 10) worst = Math.max(worst, Math.abs(leader - follower));
+      if (f >= 3) leader += rate / 60;
+      const advance = rate * (mode === 'slow' ? 0.95 : mode === 'catch' ? 1.05 : 1) / 60;
+      expect(advance).toBeGreaterThan(0);
+      follower += advance;
+      if (f > 65) worstAfterSettling = Math.max(worstAfterSettling, Math.abs(leader - follower));
     }
     expect(seeks).toBe(0);
-    expect(worst).toBeLessThan(0.5 / 60);
+    expect(worstAfterSettling).toBeLessThan(1.5 / 60);
   });
 });

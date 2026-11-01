@@ -19,7 +19,10 @@ export function loadRider(){
     image.width=Number(dom.documentElement.getAttribute('width'));image.height=Number(dom.documentElement.getAttribute('height'));
     const blob=URL.createObjectURL(new Blob([text],{type:'image/svg+xml'}));
     try {image.src=blob;await image.decode();}finally{URL.revokeObjectURL(blob);}
-    return setupSprites({spriteSvg:new SpriteSheet(url,dom,image),hq:true});
+    // The native renderer's mipmapped atlas rasterizes the SVG once, up to
+    // 16x its size. Drawing the SVG afresh for every body part on every frame
+    // is expensive, especially on high-density displays and paired views.
+    return setupSprites({spriteSvg:new SpriteSheet(url,dom,image),hq:false});
   })().catch(error=>{sheetPromise=undefined;throw error;});
 }
 // Same interpolation of points and state counters as mirror module 506.

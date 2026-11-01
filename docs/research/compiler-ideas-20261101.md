@@ -668,3 +668,21 @@ Full report kept in the session scratchpad. Summary:
 - **Hypothesis.** The long-float specs recover their extras (Amour
   bench-long back near main), while A's strong-ask gains remain. The headline
   is at least A's.
+
+### History agent (read-only; ideas from the last three months)
+Full report kept in the session scratchpad. Top three, for testing in turn:
+1. **Air and speed weighted by gap length in the interval search** (the old
+   `timeObjective`, deleted as dead code on 2026-10-03).
+   - Today the whole-ride objective and the headline weigh span errors by
+     gap length, but the interval search and beam ranking weigh every gap
+     equally. Long gaps (9% of gaps) hold 44% of the scorer's air loss but
+     18% of the search's.
+   - Earlier results: +3.4 on a pilot, −10 on the full suite (V2 bridge
+     specs −54), and rejected without numbers on Oct 4, all on older rulers
+     and compilers.
+2. **Search where the guide starts and ends** (`guideStart`/`guideEnd`):
+   these controls exist but nothing proposes them. 77% of the extras cost
+   sits in guided sections, half of it 5–12 frames after the catch (the body
+   meeting the roof on the rebound).
+3. **More search effort before strong asks** (the October L9, lost when the
+   beam replaced lookahead).

@@ -323,3 +323,94 @@ could make some of it stop applying.
     authors.
   - The commit that first recorded this (30227d21) stated it more firmly
     ("asks physics can't meet together") than the evidence supports.
+
+## Impact strength: what the search chooses from (report only)
+How today's compiler behaves on `main`'s V7 rides. Tools:
+`tools/research/strong_catch_pool.ts`, which compiles with an observe-only hook
+(`sequenceObserver`, arc_sequence.ts); all 16 rides scored exactly as saved.
+Scratch replays are summarized here.
+- **Where the strength loss is.**
+  - 78% of the squared strength error comes from asks ≥ 0.6, almost all
+    undershoot. Asks 0.8–1.0 average −0.135; asks 0.6–0.8 average −0.060.
+  - The search's own measure of a catch's strength equals the scored one.
+- **What the hits are made of.** In the scored 2-frame window, a strong hit's
+  impulse is about 66% turning, 27% slowing and 7% spin. Arrival speed is
+  about 11.8 px/frame either way.
+  - Hits that fall short turn less (3.3 against 4.0 px/frame) and arrive
+    less steeply (about 29° against 33°).
+- **Spacing.** A strong catch soon after another strong catch falls short
+  (by > 0.15) more often:
+  - 40% under 15 frames;
+  - 24% at 15–20 frames;
+  - 10% at 20–30 frames;
+  - 5% at 30+ frames.
+
+  After a soft beat, short gaps are fine (13%).
+- **Two explanations checked and set aside:**
+  - **Gravity refilling the heading between catches.** The rotation between
+    catches is close to ballistic, and the same whether the next hit falls
+    short or not.
+  - **A momentum budget.** Between close strong hits the rider is in free
+    flight, yet the two scored windows carry about 4× gravity's impulse; the
+    rest of each contact gives it back. Neither limits the 2-frame peak in a
+    simple way.
+- **Earlier work, much of which this matches.** The October history
+  (producing-impact-brief-20261004.md, REWORK.md 2026-10-04/05) describes a
+  close-beat ceiling near 0.6. It also records levers already tried:
+  - steep arrival: adopted;
+  - a pressing roof: negative;
+  - sharper turns: crash;
+  - pose matching: null.
+- **What the search had to choose from** (16 rides, 8 specs × 2 seeds, 515
+  strong catches):
+  - Pools are large: a median of 167 viable candidates per strong catch.
+  - 73% of pools hold a candidate within 0.05 of the ask or above. On
+    average: kept 0.66, closest to the ask 0.72, strongest 0.78, ask 0.76.
+  - **Where the kept catch falls short by > 0.15** (ask 0.86), the pool's
+    best is 0.72. Only 18% of those pools reach the ask: there, the options
+    themselves stop short.
+  - **The kept candidate is the best by measured local cost only 10% of the
+    time.** The best-measured candidate is offered to the beam in only 34%.
+    Where it is not kept:
+    - measured local cost: 0.019, against the kept 0.028;
+    - strength error: 0.079, against the kept 0.102;
+    - but it scores worse on the arrival priors (0.081 against 0.029) and on
+      the learned future estimate (+0.014).
+
+    The priors are about half of the kept candidate's rank.
+  - So at strong catches, selection is led by predictions about the next
+    catch. Candidates that measure better now are mostly dropped before the
+    next interval's search can measure whether their arrival really costs.
+- **Caution:**
+  - The priors were validated: the steep arrival is a measured gain.
+  - The learned future estimate was found no better than a constant
+    (REWORK.md, 2026-10-05).
+  - A similar idea, in an earlier compiler (arc-state-control), was
+    falsified three times: candidates that won locally were committed 6× less
+    often, and making their consequences visible through rollouts did not
+    help. This compiler is different, but that history lowers the odds.
+
+### Hypothesis: the beam keeps the best-measured candidate alive one step
+- **Change.** At each boundary with beam width ≥ 2, one slot goes to the
+  candidate with the lowest accumulated measured cost (parent's local cost +
+  its own, no priors, no prediction), if it isn't already kept and its arrival
+  is distinct. The other slots are chosen as today. Whether its arrival costs
+  the next catch is then measured by the next interval's real search: paths
+  already accumulate measured local cost only, and priors enter only for the
+  newest interval.
+- **General, not impact-specific.** It applies at every boundary and to
+  every cost term. There is no threshold beyond "the beam has room for two".
+- **Expected if the priors over-predict the next catch's cost:**
+  - strength closer to strong asks (strong-ask bias up);
+  - other axes unchanged or better;
+  - V7 headline up.
+- **Expected if they're right:**
+  - the extra branch loses downstream;
+  - roughly neutral quality, with a compute cost: the allowance is shared,
+    so sampling elsewhere may fall. Physics frames are reported.
+- **Comparison:**
+  - V7, 4 seeds against `main`; then 8 seeds if promising; the held-out panel
+    only at a decision point;
+  - completion reported separately;
+  - every ruler: strength by ask band, timing, extras, air, speed, body
+    drag, geometry and diversity lines.

@@ -2067,6 +2067,21 @@ tests and one missing-audio failure, reproduced on untouched HEAD
 Evidence, including rejected trials and raw samples:
 `docs/research/engine-performance-20261103.json`.
 
+## November 2: curated post-processing study (opt-in)
+
+Four experimental directions—Elastic print, Electric paper, Suspension and
+Graphite—share the existing Remotion render path. Fast accents use measured
+contact onset/strength; slow breathing uses existing authored asks. The approved
+static soft-base treatment remains the default. Independent review caught and
+fixed overlapping-kick discontinuities and an ink-mask alpha bug before delivery.
+
+The comparison player now groups looks and focused effects across musical
+passages, preserving style while changing passage and preserving time while
+changing style. The study contains three contrasting 14-second passages and two
+full-length picks with references. Details, rationale and deferred ideas are in
+`docs/research/postprocessing-style-study-20261102.md`; artifacts are under
+`generated/style-lab/`. No compiler, specification or native-camera change.
+
 ## November 1: native frames to FFmpeg (tooling)
 
 The shared exporter now draws with the vendored physics, WebGL renderer, sprites

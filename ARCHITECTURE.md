@@ -260,6 +260,12 @@ and validation are in [music authoring](docs/music-authoring.md).
    Use a common time origin across exports. The outgoing video remains visible
    until the selected one has a decoded frame at the matching time. Shorter
    versions stop at their end; failed loads leave the current version in place.
+   Grouped studies add `groups: [{id, label, variants: [styleId]}]` and
+   `passages: [{id, label, videos: [{id: styleId, label, src}]}]`. A passage change
+   keeps the selected style when available and resets playback time. Group changes
+   preserve time. Optional `recipe` details stay collapsed; `links` connect related
+   review collections. The November style study is documented in
+   `docs/research/postprocessing-style-study-20261102.md`.
    Final Remotion exports explicitly use BT.709 limited range so subtle shading
    is preserved in browser playback as well as decoded frames.
 

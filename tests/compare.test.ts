@@ -1,7 +1,7 @@
 /** compare's bookkeeping: rounds take every spec's k-th seed with categories
  * interleaved, and coverage counts rounds that complete out of order. */
 import {expect, it} from 'vitest';
-import {rounds, coverage} from '../tools/eval/compare.ts';
+import {rounds, coverage, comparableBlocks} from '../tools/eval/compare.ts';
 
 const c = (song: string, variant: string, seed: number, stratum: string) =>
   ({id: `${song}~${variant}~${seed}`, song, variant, seed, perturbation: null, bench: {stratum, pattern: '', windows: []}}) as any;
@@ -20,4 +20,9 @@ it('counts complete rounds even when a later round completes first', () => {
   expect(cov.done).toEqual([0, 2]);
   expect(cov.inComplete.sort()).toEqual([...ids].sort());
   expect(cov.outstanding).toEqual({candidate: 3, reference: 3});
+});
+it('uses as seed blocks only complete rounds that cover every spec', () => {
+  // Spec a has two seeds, b and d three: round 3 is complete but covers fewer specs (other weights).
+  expect(comparableBlocks(cases, [0, 1, 2])).toEqual([0, 1]);
+  expect(comparableBlocks(cases.filter(c => c.song !== 'a'), [0, 1, 2])).toEqual([0, 1, 2]);
 });

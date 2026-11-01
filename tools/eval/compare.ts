@@ -81,7 +81,7 @@ async function select(): Promise<Selection> {
   // more seeds extends it; anything else needs another --name.
   // This checkout is edited all the time: pin it as "this checkout", a commit by its arm.
   const config = {panel, only: arg('only') ?? null, reference: reference.commit, referenceArm: ref.key,
-    candidate: candidateRef === '.' ? {ref: '.'} : {ref: candidateRef, arm: candidate.key}};
+    candidate: candidateRef === '.' ? {ref: '.', settings: candidateSettings} : {ref: candidateRef, arm: candidate.key}};
   const configPath = resolve('generated/eval/compare', name, 'comparison.json');
   if (existsSync(configPath)) {
     const saved = readJson(configPath);
@@ -174,8 +174,17 @@ function requestedRealized(c: PlannedCase, cell: any): [number, number] {
 /** Seed-block uncertainty (uncertainty.ts): one headline difference per
  * complete block, a block being one seed of every spec in the selection. */
 function blockUncertainty(s: Selection, cells: Record<Side, Map<string, any>>) {
-  const cov = coverage(s, cells), rs = rounds(s.cases);
-  return seedBlocks(cov.done.map(k => evidence(s, cells, rs[k].map(c => c.id)).delta));
+  const cov = coverage(s, cells), rs = rounds(s.cases), blocks = comparableBlocks(s.cases, cov.done);
+  const u = seedBlocks(blocks.map(k => evidence(s, cells, rs[k].map(c => c.id)).delta));
+  return 'unavailable' in u && blocks.length < cov.done.length
+    ? {...u, unavailable: `${u.unavailable} covering every spec; ${cov.done.length - blocks.length} complete round(s) cover fewer specs and are left out`} : u;
+}
+/** The complete rounds that are comparable seed blocks: those covering every
+ * spec of the selection (a panel with unequal seed counts per spec, such as
+ * bench, has later rounds with fewer specs and other weights). */
+export function comparableBlocks(cases: PlannedCase[], done: number[]) {
+  const specs = new Set(cases.map(specKey)).size, rs = rounds(cases);
+  return done.filter(k => new Set(rs[k].map(specKey)).size === specs);
 }
 function uncertaintyLines(u: ReturnType<typeof seedBlocks>) {
   if ('unavailable' in u) return [`  uncertainty: not estimable yet (${u.unavailable})`];
@@ -338,8 +347,13 @@ async function rides() {
   for (const id of ids) for (const side of ['reference', 'candidate'] as const) {
     const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], cell = cells[side].get(id), gallery = readArmGallery(arm, id);
     assert.ok(gallery, `${side} ${id} was saved before rides kept their compile outputs; compile it again to show it`);
-    const label = `${side}-${id.replace(/~/g, '-')}`, out = join(outRoot, label);
-    if (!existsSync(join(out, 'manifest.json'))) {
+    // An export is the saved ride itself: its folder is named by the arm and the
+    // saved track, and a reused export must still show that track.
+    const label = `${side}-${id.replace(/~/g, '-')}-${arm.key.slice(0, 8)}-${cell.trackHash.slice(0, 12)}`, out = join(outRoot, label);
+    if (existsSync(join(out, 'manifest.json'))) {
+      const shown = readJson(join(out, 'manifest.json')).cells[0];
+      assert.equal(shown.trackHash, cell.trackHash, `${out} does not show the saved ride; remove it and export again`);
+    } else {
       mkdirSync(out, {recursive: true});
       const {musicCase} = await loadMusicCase({song: c.song, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`, moments: [], ...(c.variant ? {variant: c.variant} : {})}, arm.jolt);
       for (const key of ['specSha256', 'audioSha256', 'analysisSha256'] as const) assert.equal(musicCase[key], c.input[key], `${id}: ${key} changed since the ride was compared`);

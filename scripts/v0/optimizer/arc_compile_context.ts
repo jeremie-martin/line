@@ -60,7 +60,7 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
   const planned = scheduleNativeContacts(gaps.map(g => ({...g,
     startFrame: g.startFrame ? g.startFrame - preparation : 0,
     endFrame: g.endsWithContact ? g.endFrame - preparation : g.endFrame,
-    targets: {...g.targets, ...sampleGapTargets(g.targets, spec.jitter ?? CALIB.SIGMA, rng)}})));
+    targets: {...g.targets, ...sampleGapTargets(g.targets, 0, rng)}})));
   const fixed = spec.start || (spec.preroll ?? PREROLL.DEFAULT_S) <= 0 ? resolveStartState(spec) : null;
   const speed = authoredSpeedToPx(gaps[0].targets.speed ?? .55);
   const pitch = rad(8.59436692696);

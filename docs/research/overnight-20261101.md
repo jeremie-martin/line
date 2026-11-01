@@ -172,3 +172,31 @@ Rules for the night:
   - Result: bench −1.4, mixed by stratum (P2 −7.4, P6 −14.1, P5 +5.1); body
     drag +0.2 s/min; +3.4 s per ride.
   - The gate earns a little and keeps rides cleaner. Kept.
+
+### 02:05–02:15: allowance against compute (study)
+- **Bench headline by allowance** (every ride complete at every allowance;
+  compile seconds measured with 44 rides in parallel on 48 cores):
+
+  | allowance | headline | physics frames per ride | compile s per ride |
+  |---|---|---|---|
+  | ¼× | 644 | 0.86M | 63 |
+  | ½× | 707 | 1.73M | 93 |
+  | ¾× | 727 | 2.59M | 89 |
+  | 1× (today) | 739 | 3.14M | 105 |
+  | 2× | 739 | 3.22M | 134 |
+  | 2×, effort uncapped | 747 | 6.91M | 253 |
+
+- **Compile time is not mostly physics.** Profile of one isolated compile
+  (Luna, seed 101: 52.8 s, 2.71M frames, about 19.5 µs per frame):
+  - WASM physics 44%, garbage collection 8%;
+  - JavaScript search and measurement about 45%, spread thinly (candidate
+    tracing and recording, motion-quality summaries, the detector, arc
+    geometry, strike observation, policy proposals, fulfilment checks), with
+    no single hot spot.
+  - So a quarter of the allowance still costs 60% of the time.
+- **Comparison.** The speed campaign's record (July/August memory) was about
+  9.5 µs per frame for the whole compile. That is a likely reason the owner
+  remembers the older compiler as faster.
+- **Not pursued tonight,** following the groundwork rule (careful
+  structural work only on request). Bit-identical speed work is possible
+  here, if the owner wants it.

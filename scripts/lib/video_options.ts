@@ -22,7 +22,6 @@ export async function resolveVideoOptions(argv: string[], log: Pick<Console, "lo
   };
   const has = (name: string) => argv.includes(`--${name}`);
 
-  const origin = arg("origin") ?? "http://127.0.0.1:8765";
   const trackPath = arg("track");
   const zoomArg = arg("zoom");
   const zoomMode: "static" | "spec" =
@@ -265,13 +264,12 @@ export async function resolveVideoOptions(argv: string[], log: Pick<Console, "lo
     `track=${trackPath} (${trackJson.lines?.length} lines, duration=${trackJson.duration})\n` +
       `resolution=${resLabel}${hq ? " HQ" : ""}${qp !== null ? ` QP=${qp}` : ""} ` +
       `zoom=${zoomMode === "spec" && zoomPlan ? "spec" : effectiveZoom}${zoomMult !== 1 ? ` (mult ${zoomMult})` : ""}\n` +
-      `origin=${origin}\nout=${outPath}`,
+      `out=${outPath}`,
   );
 
   return {
       trackJson,
       outPath,
-      origin,
       zoom: effectiveZoom,
       autoZoom: zoomPlan?.autoZoom,
       zoomKeyframes: zoomPlan?.zoomKeyframes,

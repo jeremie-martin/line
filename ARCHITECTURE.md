@@ -237,11 +237,15 @@ and validation are in [music authoring](docs/music-authoring.md).
    and measured-impact effects. Plain review clips call this same function.
    Format and presentation are independent. `renderBundle` adds publication
    metadata, and `render_repertoire.ts` retains collection rendering and verified
-   media reuse. The browser's native drawing/export code remains authoritative:
-   physics replay is small compared with capture and encoding. The exporter waits
-   for readiness and uses one download timeout, cleared on success. Single-video
-   jobs use up to 16 workers, bounded by CPU count and RAM; collection lanes retain
-   their smaller per-render default.
+   media reuse. The exporter bundles the vendored physics, WebGL drawing, artwork
+   and camera directly (`scripts/gallery/native/video.js`). It sends one lossless
+   PNG frame at a time to native FFmpeg, with backpressure and frame-order checks;
+   encoding happens outside the browser. Each export owns an isolated, short-lived
+   loopback server and browser. There is no editor, shared mirror server, browser
+   video encoder or animation-clock pacing. The native camera and the original
+   repeated first frame/terminal-frame timing are preserved. Presentation keeps
+   its existing effects. Single-video jobs use up to 16 presentation workers,
+   bounded by CPU count and RAM; collection lanes retain their smaller default.
 
 ## Geometry families
 
@@ -493,8 +497,8 @@ Every saved member must agree with the collection's compiler, request and input
 identity before it can be indexed or reused. Render and index phases use saved
 inputs; compilation also checks them against current inputs. Failed jobs remain
 visible and the batch exits unsuccessfully.
-Concurrent jobs settle before the batch releases its directory lock or stops a
-shared rendering server, including when a worker fails.
+Concurrent jobs settle before the batch releases its directory lock, including
+when a worker fails. Every renderer closes its own browser, server and encoder.
 Within one render, overlay-data generation overlaps ride rendering and audio
 muxing. Composition waits for both branches; failures also wait for both before
 removing their temporary files. Worker and Remotion resource limits still apply.

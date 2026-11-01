@@ -2067,6 +2067,37 @@ tests and one missing-audio failure, reproduced on untouched HEAD
 Evidence, including rejected trials and raw samples:
 `docs/research/engine-performance-20261103.json`.
 
+## November 1: native frames to FFmpeg (tooling)
+
+The shared exporter now draws with the vendored physics, WebGL renderer, sprites
+and camera directly, without starting the editor. Lossless PNG frames stream over
+an isolated loopback connection to native FFmpeg. Transfer is sequential and
+bounded, with frame-order and dimension checks; FFmpeg fails on decode errors,
+and output frame count, dimensions and FPS are checked before atomic publication.
+No intermediate images are written to disk. Each render owns and closes its
+browser, server and encoder; the shared mirror-server lifecycle has been removed.
+The public `video` command and presentation recipe are unchanged.
+
+On the same Petrunko seed 404 and settings, ride export fell from 213s to 76s.
+Finished rendering from the saved track fell from about 310s to **173.2s**; the
+presentation pass remains about 95s. This is a render comparison, excluding
+compilation. A separate full ride exported in 78s. Short authored-camera and
+beat-punch tests fell from 9.6–9.9s to 4.8s.
+
+Validation compared every frame of a full 3,600-frame ride and two 243-frame
+camera tests (mean PSNR 61–63 dB). All 3,630 finished-video frames were compared
+too (mean 52.8 dB, minimum 48.5 dB); worst-difference frames were visually checked.
+The encoders differ, so pixels/bytes are not identical, but motion, framing and
+timing are preserved. Decoded audio is byte-identical. The native exporter keeps
+the legacy repeated first pose and first frame beyond the track duration.
+
+Raw RGBA transfer was slower; lossless PNG transport made the useful difference.
+Explicit NVIDIA rendering worked but was unnecessary for the adopted speedup;
+the tested default remains software-compatible. Experiments and comparisons are
+under `generated/video-workflow-audit/`. Tests, both typechecks, judge parity and
+reachability pass; all 63 compiler outputs/frame counts still match the pre-work
+baseline. The pre-existing saved-golden mismatches remain, unchanged.
+
 ## November 1: shared video command (tooling)
 
 `npm run video` accepts a fresh song/seed, a saved study, or a raw track with

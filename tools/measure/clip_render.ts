@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {ensureMirror, renderVideo} from '../../scripts/produce/render.ts';
+import {renderVideo} from '../../scripts/produce/render.ts';
 
 export const CLIP_BEFORE = 1.0, CLIP_LENGTH = 1.8;
 
@@ -14,7 +14,7 @@ const sha = (x: string | Buffer) => createHash('sha256').update(x).digest('hex')
 export function reviewRenderInput(song: string, track: any) {
   const files = [`productions/${song}/spec.ts`, `productions/${song}/audio.mp3`,
     'tools/measure/clip_render.ts', 'scripts/produce/render.ts', 'scripts/lib/video_options.ts', 'scripts/lib/export.ts', 'scripts/v0/core/camera.ts',
-    'scripts/v0/types.ts', 'scripts/produce/jolt.ts', 'package-lock.json',
+    'scripts/gallery/build_renderer.mjs', 'scripts/gallery/native/video.js', 'scripts/gallery/native/sprites.js', 'scripts/v0/types.ts', 'scripts/produce/jolt.ts', 'package-lock.json',
     'mirror/index.html', 'mirror/helper.js', 'mirror/manifest.json', 'mirror/_v2153.0/main.js'];
   return {trackHash: sha(JSON.stringify(track)), files: Object.fromEntries(files.map(p => [p, sha(readFileSync(p))])),
     ffmpeg: sha(execFileSync('ffmpeg', ['-version']))};
@@ -36,25 +36,22 @@ export async function renderRides(tracks: Map<string, {song: string; track: any}
   assert.ok(Number.isSafeInteger(jobs) && jobs > 0 && jobs <= 12, 'invalid render jobs');
   const inputs = new Map([...tracks].map(([id, {song, track}]) => [id, reviewRenderInput(song, track)]));
   for (const id of tracks.keys()) if (existsSync(join(dir, id + '.mp4'))) verifyCachedRide(join(dir, id + '.mp4'), inputs.get(id));
-  const mirror = await ensureMirror();
-  try {
-    const queue = [...tracks.keys()].filter(id => !existsSync(join(dir, id + '.mp4')));
-    const results = await Promise.allSettled(Array.from({length: jobs}, async () => {
-      while (queue.length) {
-        const id = queue.shift()!, {song, track} = tracks.get(id)!, trackPath = join(dir, id + '.track.json');
-        writeFileSync(trackPath, JSON.stringify(track));
-        const movie = await renderVideo({name: id, trackPath, audioPath: `productions/${song}/audio.mp3`,
-          specPath: `productions/${song}/spec.ts`, style: 'plain', qp: 28, jolt: 0,
-          render: {res: '1280x720', zoomMult: 3.5, beatPunchPct: 0}, workDir: join(dir, 'render-work', id)});
-        renameSync(movie, join(dir, id + '.mp4'));
-        assert.deepEqual(reviewRenderInput(song, track), inputs.get(id), 'render inputs changed during rendering');
-        writeFileSync(join(dir, id + '.mp4.render.json'), JSON.stringify({input: inputs.get(id), movieSha256: sha(readFileSync(join(dir, id + '.mp4')))}));
-        console.log(`rendered ${id}`);
-      }
-    }));
-    const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
-    if (failures.length) throw new AggregateError(failures.map(r => r.reason), 'Review renders failed');
-  } finally {mirror?.kill();}
+  const queue = [...tracks.keys()].filter(id => !existsSync(join(dir, id + '.mp4')));
+  const results = await Promise.allSettled(Array.from({length: jobs}, async () => {
+    while (queue.length) {
+      const id = queue.shift()!, {song, track} = tracks.get(id)!, trackPath = join(dir, id + '.track.json');
+      writeFileSync(trackPath, JSON.stringify(track));
+      const movie = await renderVideo({name: id, trackPath, audioPath: `productions/${song}/audio.mp3`,
+        specPath: `productions/${song}/spec.ts`, style: 'plain', qp: 28, jolt: 0,
+        render: {res: '1280x720', zoomMult: 3.5, beatPunchPct: 0}, workDir: join(dir, 'render-work', id)});
+      renameSync(movie, join(dir, id + '.mp4'));
+      assert.deepEqual(reviewRenderInput(song, track), inputs.get(id), 'render inputs changed during rendering');
+      writeFileSync(join(dir, id + '.mp4.render.json'), JSON.stringify({input: inputs.get(id), movieSha256: sha(readFileSync(join(dir, id + '.mp4')))}));
+      console.log(`rendered ${id}`);
+    }
+  }));
+  const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (failures.length) throw new AggregateError(failures.map(r => r.reason), 'Review renders failed');
 }
 
 /** Cuts a CLIP_LENGTH clip whose hit at `frame` lands CLIP_BEFORE seconds in. */

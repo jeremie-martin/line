@@ -8,7 +8,7 @@ import {execFileSync} from 'node:child_process';
 import {hostname} from 'node:os';
 import {sha} from '../lib/case.ts';
 import {writeGalleryJson,galleryHarnessIdentity} from '../gallery/artifacts.ts';
-import {ensureMirror,ensureSpectrum,renderBundle} from './render.ts';
+import {ensureSpectrum,renderBundle} from './render.ts';
 
 const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3);
 assert.ok(arg('study')&&arg('ids'),'--study and --ids required');
@@ -22,8 +22,8 @@ if(savedSet)assert.equal(savedSet.planSha256,manifest.planSha256);
 const ids=arg('ids')!.split(',');
 assert.ok(ids.length&&ids.every(id=>manifest.cells.some((c:any)=>c.id===id)));
 const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/produce/video_input.ts','scripts/lib/video_options.ts','scripts/export.ts','scripts/lib/export.ts',
-  'scripts/make_overlay_data.ts','scripts/produce/overlay_impact.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
-const pipeline=galleryHarnessIdentity(paths),mirror=await ensureMirror();
+  'scripts/gallery/build_renderer.mjs','scripts/gallery/native/video.js','scripts/gallery/native/sprites.js','scripts/make_overlay_data.ts','scripts/produce/overlay_impact.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
+const pipeline=galleryHarnessIdentity(paths);
 const probe=(p:string)=>JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-of','json',p],{encoding:'utf8'}));
 function check(p:string){
   const info=probe(p),v=info.streams.find((s:any)=>s.codec_type==='video');
@@ -31,37 +31,35 @@ function check(p:string){
   assert.ok(info.streams.some((s:any)=>s.codec_type==='audio'));
   execFileSync('ffmpeg',['-v','error','-i',p,'-f','null','-'],{stdio:['ignore','ignore','pipe']});return info;
 }
-try{
-  for(const id of ids){
-    const {cell,c,trackPath,reportPath,impactPath}=verifiedVideoCell(root,manifest,id);
-    const identity={...(impactPath?{impactSha256:hash(impactPath)}:{}),planSha256:manifest.planSha256,cellSha256:cell.sha256,trackSha256:hash(trackPath),
-      reportSha256:hash(reportPath),specSha256:c.specSha256,audioSha256:c.audioSha256,jolt:manifest.plan.jolt,render:c.render,pipeline};
-    const savedPath=join(root,id+'.video.json');
-    if(existsSync(savedPath)){
-      const saved=read(savedPath);assert.deepEqual(saved.identity,identity,'stale production render');
-      assert.equal(hash(join(root,saved.full.path)),saved.full.sha256);assert.equal(hash(join(root,saved.excerpt.path)),saved.excerpt.sha256);
-      console.log(`already verified ${id}`);continue;
-    }
-    const work=join(root,'render-work',id);mkdirSync(work,{recursive:true});
-    const spectrumBase=await ensureSpectrum(resolve(c.audioPath),c.id,join(work,'spectrum.log'));
-    const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,impactPath,
-      workPath:join(root,id,'work.json'),audioPath:resolve(c.audioPath),spectrumBase,
-      seed:cell.seed,song:id,project:'musical-direction-review',metrics:{...cell.metrics,...(impactPath?{score:cell.score.score}:{})},render:c.render,budget:cell.allowance??cell.budget,
-      jolt:manifest.plan.jolt,outDir:join(root,'videos'),workDir:work,gitSha:manifest.plan.compiler.head,host:hostname()});
-    const full=join(folder,'video.mp4'),fullProbe=check(full),excerpt=join(folder,'excerpt.mp4');
-    execFileSync('ffmpeg',['-v','error','-y','-ss',String(c.excerpt[0]),'-i',full,'-t',String(c.excerpt[1]-c.excerpt[0]),
-      '-map','0:v:0','-map','0:a:0','-c:v','libx264','-crf','16','-preset','fast','-pix_fmt','yuv420p','-c:a','aac','-movflags','+faststart',excerpt],{stdio:['ignore','ignore','pipe']});
-    const excerptProbe=check(excerpt);
-    assert.ok(Math.abs(Number(excerptProbe.format.duration)-(c.excerpt[1]-c.excerpt[0]))<.1);
-    // The production path imports this exact track. Its camera and compositor
-    // alter images only. Verify preserved physical artifacts after rendering too.
-    assert.equal(hash(trackPath),identity.trackSha256);assert.equal(hash(reportPath),identity.reportSha256);
-    if(impactPath)assert.equal(hash(impactPath),identity.impactSha256);
-    assert.deepEqual(galleryHarnessIdentity(paths),pipeline);
-    writeGalleryJson(root,id+'.video.json',{schema:'line.musical-direction-video.v1',id,identity,
-      full:{path:relative(root,full),sha256:hash(full),probe:fullProbe},
-      excerpt:{path:relative(root,excerpt),sha256:hash(excerpt),probe:excerptProbe,start:c.excerpt[0],end:c.excerpt[1]},
-      normalLinesOnly:true,geometryUnchangedByProductionPipeline:true,decodedWithoutErrors:true,visualApproval:null});
-    console.log(`complete ${id}`);
+for(const id of ids){
+  const {cell,c,trackPath,reportPath,impactPath}=verifiedVideoCell(root,manifest,id);
+  const identity={...(impactPath?{impactSha256:hash(impactPath)}:{}),planSha256:manifest.planSha256,cellSha256:cell.sha256,trackSha256:hash(trackPath),
+    reportSha256:hash(reportPath),specSha256:c.specSha256,audioSha256:c.audioSha256,jolt:manifest.plan.jolt,render:c.render,pipeline};
+  const savedPath=join(root,id+'.video.json');
+  if(existsSync(savedPath)){
+    const saved=read(savedPath);assert.deepEqual(saved.identity,identity,'stale production render');
+    assert.equal(hash(join(root,saved.full.path)),saved.full.sha256);assert.equal(hash(join(root,saved.excerpt.path)),saved.excerpt.sha256);
+    console.log(`already verified ${id}`);continue;
   }
-}finally{mirror?.kill();}
+  const work=join(root,'render-work',id);mkdirSync(work,{recursive:true});
+  const spectrumBase=await ensureSpectrum(resolve(c.audioPath),c.id,join(work,'spectrum.log'));
+  const folder=await renderBundle({specPath:resolve(c.source),trackPath,reportPath,impactPath,
+    workPath:join(root,id,'work.json'),audioPath:resolve(c.audioPath),spectrumBase,
+    seed:cell.seed,song:id,project:'musical-direction-review',metrics:{...cell.metrics,...(impactPath?{score:cell.score.score}:{})},render:c.render,budget:cell.allowance??cell.budget,
+    jolt:manifest.plan.jolt,outDir:join(root,'videos'),workDir:work,gitSha:manifest.plan.compiler.head,host:hostname()});
+  const full=join(folder,'video.mp4'),fullProbe=check(full),excerpt=join(folder,'excerpt.mp4');
+  execFileSync('ffmpeg',['-v','error','-y','-ss',String(c.excerpt[0]),'-i',full,'-t',String(c.excerpt[1]-c.excerpt[0]),
+    '-map','0:v:0','-map','0:a:0','-c:v','libx264','-crf','16','-preset','fast','-pix_fmt','yuv420p','-c:a','aac','-movflags','+faststart',excerpt],{stdio:['ignore','ignore','pipe']});
+  const excerptProbe=check(excerpt);
+  assert.ok(Math.abs(Number(excerptProbe.format.duration)-(c.excerpt[1]-c.excerpt[0]))<.1);
+  // The production path imports this exact track. Its camera and compositor
+  // alter images only. Verify preserved physical artifacts after rendering too.
+  assert.equal(hash(trackPath),identity.trackSha256);assert.equal(hash(reportPath),identity.reportSha256);
+  if(impactPath)assert.equal(hash(impactPath),identity.impactSha256);
+  assert.deepEqual(galleryHarnessIdentity(paths),pipeline);
+  writeGalleryJson(root,id+'.video.json',{schema:'line.musical-direction-video.v1',id,identity,
+    full:{path:relative(root,full),sha256:hash(full),probe:fullProbe},
+    excerpt:{path:relative(root,excerpt),sha256:hash(excerpt),probe:excerptProbe,start:c.excerpt[0],end:c.excerpt[1]},
+    normalLinesOnly:true,geometryUnchangedByProductionPipeline:true,decodedWithoutErrors:true,visualApproval:null});
+  console.log(`complete ${id}`);
+}

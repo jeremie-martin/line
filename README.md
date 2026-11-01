@@ -100,7 +100,8 @@ Chromium installation instead of Playwright's default browser.
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 
 `video` also accepts `--track=FILE [--audio=FILE --spec=FILE]` for plain review
-media. Presentation (`plain` or `finished`) and format (`horizontal` or `vertical`)
+media, using the project's single-rider, normal-line track format.
+Presentation (`plain` or `finished`) and format (`horizontal` or `vertical`)
 are independent. Use `--out=FILE.mp4`, `--workers=N`, or `--zoom-mult=N` when
 needed; `--help` lists the interface. Without a seed, a fresh seed is printed and
 recorded. Progress shows stage timings; detailed logs and compilation artifacts
@@ -109,6 +110,9 @@ live in the adjacent `.assets` directory. Existing outputs are never overwritten
 The same rendering implementation serves this command, gallery productions and
 review clips. Plain media skips spectrum analysis and presentation rendering.
 Finished media keeps the existing camera, measured-impact effects and visual recipe.
+The native drawing code streams lossless frames to FFmpeg; no editor or separately
+started mirror server is needed. Frame transfer is bounded and the output is
+published only after encoding completes.
 Install `remotion/` dependencies for finished media; rendering requires local
 Chromium, ffmpeg/ffprobe and, for uncached spectrum analysis, the music Python
 environment (`LR_SPECTRUM_PYTHON` can select it).

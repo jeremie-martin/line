@@ -143,10 +143,13 @@ export function importRun(runDirPath: string) {
   assert.equal(id.engineSha256, sha(readFileSync(ENGINE_PATH)), 'the run used other native physics');
   if (id.dirtySha256 !== EMPTY) {
     const PATHS = ['scripts', 'benchmark', 'engine-rs/src', 'productions', 'package.json', 'package-lock.json', 'tsconfig.json'];
+    // The recorded digest covers the run's untracked files (no tracked diff
+    // allowed). Find the subset of today's untracked files that reproduces it
+    // exactly: files added since then do not prevent the proof.
     const untracked = git('.', 'ls-files', '--others', '--exclude-standard', '-z', '--', ...PATHS).toString().split('\0').filter(Boolean).sort();
-    const h = createHash('sha256');
-    for (const path of untracked) h.update(path + '\0').update(readFileSync(path));
-    assert.ok(untracked.length === id.untracked && h.digest('hex') === id.dirtySha256,
+    const digestOf = (paths: string[]) => {const h = createHash('sha256'); for (const p of paths) h.update(p + '\0').update(readFileSync(p)); return h.digest('hex');};
+    const subsets = (from: string[], k: number): string[][] => k === 0 ? [[]] : from.flatMap((p, i) => subsets(from.slice(i + 1), k - 1).map(r => [p, ...r]));
+    assert.ok(id.untracked <= 3 && untracked.length <= 40 && subsets(untracked, id.untracked).some(xs => digestOf(xs) === id.dirtySha256),
       'the run was compiled with uncommitted changes that cannot be identified; recompile it instead');
   }
   const content = commitContent(id.head, id.engineSha256), settings = {mode: plan.mode, budget: plan.budget, ...(plan.creative ? {creative: plan.creative} : {})};

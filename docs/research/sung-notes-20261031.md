@@ -218,3 +218,68 @@ Needs `generated/stems/<song>/` from `stems.py` (and `drums.json` for the
 sheets). It takes about 10 s. It redraws the 5-second sheets with the notes
 on the vocals lane: triangles, higher and darker when more salient; crosses
 for unpitched attacks.
+
+## November 1: external-reference experiments
+
+### Optional word hypotheses and external references
+
+An exploratory November 1 run compared faster-whisper 1.2.1 with cached
+`medium` and `large-v3` weights on five existing songs, both original mix and
+Demucs vocal stem (20 runs). Fixed settings: beam size 5, temperature 0, word
+timestamps enabled, VAD disabled, previous-text conditioning disabled, automatic
+language detection, no lyric prompt. Crops: Circus 35–52 s, Trouble 0–20 s,
+Valhalla/Luna Bala/Tiki Tiki 10–25 s. Results retain model revision, input hash,
+settings and original-audio timestamps. These songs are exploratory material,
+not a representative accuracy benchmark.
+
+Circus, Trouble and Valhalla produced broadly similar phrase hypotheses across
+runs. Circus matching normalized text tokens differed between models by a
+median 220 ms in word-start time, for both mix and vocals. Token matching was
+order-preserving; repeated words can be paired ambiguously. This is model
+**disagreement**, not measured error. Luna Bala and Tiki Tiki produced conflicting
+language hypotheses and suspicious generic subtitle/closing phrases. Even two
+models agreeing on a phrase does not verify it. Word probabilities are not
+calibrated timing confidence, and zero-duration words must remain visible as
+limitations rather than silently repaired.
+
+WhisperX 3.8.6 with the English `WAV2VEC2_ASR_BASE_960H` aligner was then tried on
+Circus, freezing the unverified large-v3 mix transcript for both audio inputs,
+without reading listener marks. Interpolation was disabled; word and character
+outputs were retained. Aligning the whole 17-second crop produced a median
+mix/stem word-start disagreement of 360 ms (maximum 761 ms). Using the same five
+ASR phrase windows for both inputs reduced this to 181 ms (maximum 664 ms).
+Both conditions timestamped all 55 words: output completeness does not imply
+correctness. Shared transcripts/windows constrain agreement and cannot validate
+the words themselves. Character timings are model alignment estimates, not
+verified phoneme or syllable boundaries.
+
+Use recognition to propose **what may have been sung**; review the wording by
+listening before using forced alignment to investigate **where it may occur**.
+Keep each run separately identifiable, expose disagreements and missing evidence,
+and retain the original audio and listener notes. Word boundaries need not be
+the articulations we choose to follow: one word can contain several syllables.
+Do not average these sources into a confidence score or create impacts from them.
+The current experiment does not add ASR hypotheses to the dashboard or spec.
+
+Artifacts and reproducible scripts are local under
+`generated/circus-voice-review/asr-experiment/`: `manifest.json`, individual runs,
+`comparison.json`, `circus-marks.tsv`, `run.py`, `compare.py`, and `alignment/`.
+The TSV uses nearest timestamps only; it is not a verified word-to-mark mapping.
+Scripts use isolated temporary Python environments and do not alter runtime
+project dependencies. Model capabilities and limitations:
+[faster-whisper](https://github.com/SYSTRAN/faster-whisper),
+[WhisperX](https://github.com/m-bain/whisperX).
+
+The accompanying osu investigation found no matching map in official logged-in
+searches by exact title or artist. This does not establish that none exists.
+The [publisher listing](https://music.apple.com/us/song/1558985237) identifies
+JVZEL & Neon Haze's Circus Minimus; its official preview matched our audio with
+0.9884 normalized waveform correlation after mono 8 kHz decoding, without time
+stretching. This identifies shared recording material, not the clip's offset
+within the full song. Search and waveform-check artifacts live under
+`generated/circus-voice-review/osu-reference/`.
+
+If a matching map becomes available, verify the audio edit, rate and offset
+before comparing its hit times. Preserve mapper and difficulty separately: maps
+express gameplay and artistic interpretations, not verified vocal events. See
+[osu file format](https://osu.ppy.sh/wiki/en/Client/File_formats/osu_(file_format)).

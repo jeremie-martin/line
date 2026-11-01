@@ -13,6 +13,13 @@ spec (beats, impacts, air/speed/amplitude targets)
   → review:    native player with music; optional vertical video render
 ```
 
+Authoring evidence is separate from compilation. `tools/music/vocal_evidence.py`
+reads the separated vocal audio and existing detector outputs to write descriptive
+`vocal-evidence.json` files (RMS, spectral changes, band changes and acoustic
+landmarks). The spec dashboard verifies source hashes and exposes these values
+without changing candidate times or producing contacts. Definitions, limitations
+and validation are in [music authoring](docs/music-authoring.md).
+
 1. **Entry.** `compileHandoff` (`scripts/v0/optimizer/handoff.ts`) accepts a
    spec and either creative preferences (automatic arrangement) or an explicit
    intentional construction plan (`line.repertoire-policy.v2`, as in the V6
@@ -89,10 +96,34 @@ spec (beats, impacts, air/speed/amplitude targets)
    and the music. The music plays through Web Audio and each frame draws the
    ride at the position heard when it reaches the screen
    (`shared/playback.js`, also used by the spec dashboard's cursor and
-   landing clicks and by the grading page, and which keeps the two clips of a
-   pair study on the same frame). The camera is the videos' own follower
+   landing clicks and by the grading page). The camera is the videos' own follower
    centred on the mean of the ten traced points
-   (`scripts/gallery/native/camera.js`). `render_repertoire.ts` renders vertical video when wanted.
+   (`scripts/gallery/native/camera.js`). Production viewports are responsive
+   16:9 or 9:16 canvases, selected with Format (default horizontal, zoom 2.0).
+   Portrait previews fit within 72% of viewport height. Native replay is prepared in a worker before playback;
+   drawing interpolates the saved poses and uses the native renderer's cached
+   sprite atlas rather than rasterizing SVG body parts on every refresh.
+   Pair studies play one combined video, so both sides share every frame and
+   the browser's native audio/video clock. `scripts/gallery/pair_media.ts`
+   caches derived wide/stacked previews with either original soundtrack;
+   it requires ffmpeg/ffprobe. Sources and study manifests are unchanged.
+   Soundtrack switches reload the shared picture at the current position;
+   playback has no follower, drift corrections, or JS loop seeks.
+   One-click native radio groups select speed and format. The watch area keeps
+   musical impacts visible beside the rider on desktop and immediately below it
+   on smaller screens: a whole-ride overview plus a fixed eight-second window
+   around playback, both seeking on the same player. The detail window rebuilds
+   only at window boundaries or resize; cursors update during playback. Existing
+   target/response values are unchanged. Explanations and the event table stay
+   in a separate collapsed measurements section.
+   The review page preserves collection-authored titles and descriptions when
+   opening rides, highlights the selected entry, and offers search and Previous/
+   Next navigation. Generation controls are collapsed below the collection.
+   Space toggles playback; arrows seek 5 s (Shift: 1 s), without intercepting
+   editable fields or native controls. Scrubbing and musical-impact jumps retain
+   the prior playback state; seeking to the end stops. Pending audio starts are
+   cancellable so rapid input cannot override a newer pause.
+   `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families
 

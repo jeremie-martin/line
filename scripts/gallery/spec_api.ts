@@ -11,6 +11,7 @@ import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
+import {createHash} from 'node:crypto';
 import {specZoomLaneToRenderPlan} from '../v0/core/camera.ts';
 import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
 
@@ -24,6 +25,19 @@ const round = (x: number, digits = 4) => Math.round(x * 10 ** digits) / 10 ** di
 const reply = (res: ServerResponse, data: unknown, status = 200) => {
   res.writeHead(status, {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}); res.end(JSON.stringify(data));
 };
+
+/** Refuse stale derived measurements rather than silently displaying them. */
+export function validVocalEvidence(root: string, evidencePath: string, audioPath: string): boolean {
+  try {
+    const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+    if (evidence.schema !== 'line.vocal-evidence.v1' || !Array.isArray(evidence.inputs) || !evidence.inputs.length) return false;
+    if (!evidence.inputs.some((input: {path: string}) => resolve(root, input.path) === resolve(root, audioPath))) return false;
+    return evidence.inputs.every((input: {path: string; sha256: string}) => {
+      const path = resolve(root, input.path);
+      return path.startsWith(resolve(root) + sep) && createHash('sha256').update(readFileSync(path)).digest('hex') === input.sha256;
+    });
+  } catch { return false; }
+}
 
 export function createSpecApi(root = process.cwd()) {
   const url = (abs: string) => '/' + relative(root, abs).split(sep).join('/');
@@ -58,9 +72,16 @@ export function createSpecApi(root = process.cwd()) {
   function music(m: SpecMusic | undefined, specDir: string) {
     if (!m?.audio) return null;
     const events = existsSync(join(root, specDir, 'events.json')) ? asset(join(specDir, 'events.json')) : null;
+    const evidencePath = join(root, specDir, 'vocal-evidence.json');
+    let vocalEvidenceUrl: string | null = null, vocalEvidenceError: string | null = null;
+    if (existsSync(evidencePath)) {
+      if (validVocalEvidence(root, evidencePath, m.audio)) vocalEvidenceUrl = url(evidencePath);
+      else vocalEvidenceError = 'Vocal evidence is stale or its source files are missing. Regenerate it before using it.';
+    }
     const beats = asset(m.beats), image = asset(m.spectrogram?.image), meta = asset(m.spectrogram?.metadata);
     return {title: m.title ?? null, artist: m.artist ?? null, tempo: m.tempo ?? null, offset: Number.isFinite(m.offset) ? m.offset : 0,
       audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beats: m.beats ?? null, beatsUrl: beats?.url ?? null, eventsUrl: events?.url ?? null,
+      vocalEvidenceUrl, vocalEvidenceError,
       spectrogram: image || meta ? {image: image?.ref ?? null, imageUrl: image?.url ?? null, metadata: meta?.ref ?? null,
         metadataUrl: meta?.url ?? null, meta: meta && existsSync(meta.abs) ? JSON.parse(readFileSync(meta.abs, 'utf8')) : null} : null};
   }

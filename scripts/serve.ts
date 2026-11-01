@@ -58,6 +58,6 @@ const server = createServer(async (req, res) => {
   }
 });
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => {
-  api.close(); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 1000).unref();
+  api.close(); labels.close(); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 1000).unref();
 });
 server.listen(PORT, HOST, () => console.log(`review server: http://${HOST}:${PORT}/  (root ${ROOT})`));

@@ -628,3 +628,13 @@ hits from above are late.
   About the same as the slot alone, so possibly additive on top of A, but
   not established. To re-test after the learned models are retrained, since
   that changes the compiler underneath.
+- **Result C (4 seeds): the learned estimate stays.**
+  - −2.7, 95% interval [−9.5, +4.1], support 0.15; 13 of 22 specs down;
+    explicit requests −5.0.
+  - Without it: strong-ask bias −0.005, strong arrivals head-down or
+    backward +3.3 points, body drag +0.30 s/min.
+  - Even trained on an October compiler, it carries information.
+  - Next (owner's suggestion): retrain the learned artifacts on today's
+    compiler before judging any of them. Collection from the current
+    compiler started (`generated/value-v4/collect-1`, 176 training cases
+    disjoint from the evaluation and held-out songs).

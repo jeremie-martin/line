@@ -53,8 +53,7 @@ if(command==='worker'){
      rows:r.result.rows.map(({lookahead,...r}:any)=>r),failure:r.result.failure,
      initializationRecovery:r.result.initializationRecovery,initialProposalWork:r.result.initialProposalWork,
      observedReceiverWork:r.result.observedReceiverWork,planning:r.result.planningDecisions,
-     attempts:r.result.attempts,attemptWork:r.result.attemptWork,completionFirst:r.result.completionFirstStats,
-     refinement:r.result.refinementStats});
+     attempts:r.result.attempts,attemptWork:r.result.attemptWork,completionFirst:r.result.completionFirstStats});
    writeGalleryJson(join(out,'cells'),id+'-'+seed+'.json',row);
  }catch(e){
    writeGalleryJson(join(out,'cells'),id+'-'+seed+'.json',{id,seed,sourceId:c.sourceId,panel:c.panel,family:c.family,split:c.split,

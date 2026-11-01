@@ -91,7 +91,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     save('track.json',result.track);save('report.json',result.report);
     if(impactEvaluation)save('contact-impacts.json',{evaluation:impactEvaluation,grade,historicalGrade});
     save('construction.json',{rows:result.rows,stats:result.stats,attempts:result.attempts,
-      failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
+      failure:result.failure,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('work.json',work??{schema:'line.compile-work.v1',allowance,physicalFrames,exhausted:false,stages:[]});
     const cell={id,caseId:c.id,method,railLayout,railGuides,seed,jitter:c.jitter,budget,allowance,score:grade.score,
       ...(impactEvaluation?{impactContract:impactEvaluation.contract,impactEvaluation,historicalGrade}:{}),

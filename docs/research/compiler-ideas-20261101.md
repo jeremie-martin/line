@@ -576,3 +576,26 @@ hits from above are late.
 - **Risk.** The priors may also stand for consequences beyond the next
   interval (not measured). Then the next catches lose more than expected,
   and air or speed could suffer.
+
+### Result A (adopted): ranking counts the arrival priors at half weight
+| | change | 95% interval | support |
+|---|---|---|---|
+| V7, 4 seeds | +8.1 | [−1.8, +18.0] | 0.96 |
+| V7, 8 seeds | **+7.2** | [+3.4, +10.9] | > 0.99 |
+| held out (5 specs × 4 seeds) | +8.1 | [−1.7, +18.0] | 0.96, all 5 specs up |
+
+- **The hypothesis held.** Strength error² fell on mid and strong asks:
+  - 0.4–0.6: −21%;
+  - 0.6–0.8: −11% (short by > 0.15: 8.4% → 7.2%);
+  - 0.8+: −3%.
+
+  The next catches did not visibly pay: air and speed were slightly better,
+  and strong extras and contested beats fewer.
+- **Head-down or backward strong arrivals:** −1.3 points.
+- **Body drag:** +0.22 s/min.
+- **Amour bench-long:** −8.8. It is the long-float spec, where the priors'
+  steering for the next arrival may matter more.
+- **Compared with the parked beam slot:** this does the same job (letting
+  measured quality count for more against the prediction) more evenly, and
+  it confirms on held-out music. The slot stays parked; trying it on top of
+  this is possible later.

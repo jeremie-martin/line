@@ -22,6 +22,51 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1: ranking counts the arrival priors at half weight (adopted)
+
+**Found** (`docs/research/compiler-ideas-20261101.md`):
+- **At strong catches, the search usually had a catch nearer the ask** (73%
+  of pools) but kept a weaker one. About half of the kept candidate's rank
+  came from the arrival priors, which steer toward a good next arrival.
+- **Same-state probes measured the real cost** to the next interval of
+  keeping the alternative. It was about 0.45 of what ranking charged (0.042
+  against 0.093; 0.024 against 0.053). All 16 probed compiles were identical
+  to the saved rides.
+
+**Change:** in `valueRank` (`arc_candidates.ts`; prefix choice and beam
+ranking), the arrival-prior part of a candidate's cost counts ½. Local search
+keeps the priors in full, so proposals are steered as before. It calibrates
+an estimate to what it was measured to estimate.
+
+**Results** (no ride lost; compute and variety unchanged):
+
+| panel | change | interval / support |
+|---|---|---|
+| V7, 8 seeds | **+7.2** | [+3.4, +10.9], every block positive |
+| held out | +8.1 | [−1.7, +18.0], 0.96; all 5 specs up |
+| explicit requests | +10.6 | |
+
+- 19 of 22 V7 specs improve. Amour bench-long (P6) is −8.8.
+- **Strength error² by ask:**
+  - under 0.4: −4%;
+  - 0.4–0.6: −21%;
+  - 0.6–0.8: −11%;
+  - 0.8+: −3%.
+- **Other rulers:**
+  - head-down or backward strong arrivals −1.3 points;
+  - strong extras and contested beats fewer;
+  - air and speed rms slightly better.
+- Body drag +0.22 s/min (reported; per the owner, an eye-only proxy for
+  roof and control-rail use).
+
+**Tests re-derived:**
+- Two budget scenarios get new allowances: 2100 (was 3500) and 2400 (was
+  2600).
+- The repair-sync test uses 0.8 asks: the coarse first search now gets the
+  0.4 asks right, so nothing would exercise repairs.
+
+Parity references were refreshed.
+
 ## November 1: catches placed mid-frame (adopted)
 
 **Found** (`docs/research/compiler-ideas-20261101.md`): the catch line was

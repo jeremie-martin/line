@@ -18,9 +18,10 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
 });
 it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  // A coarse first search (12 samples) leaves repairs to accept: with mid-frame catches (2026-11-01)
-  // the 20-sample search already gets this spec right, and nothing would exercise the synchronization.
-  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
+  // Strong asks leave repairs to accept: since ranking counts the arrival priors at half weight
+  // (2026-11-01) the coarse first search gets the 0.4 asks right, and nothing would exercise the synchronization.
+  const strong={...spec,contacts:spec.contacts.map(c=>({...c,impact:.8}))};
+  const r=compileArcMotion(strong,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
   expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
   expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);

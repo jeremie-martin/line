@@ -248,11 +248,30 @@ Rules for the night:
   −251 lines). Parity references need `npm run parity -- --update` in the
   adopting commit.
 
+### 02:30–02:50: an effort law instead of the effort ceiling (branch, for the owner)
+- **Idea:** the owner's rule says budget knobs are laws without ceilings, but
+  the per-section effort cap of 1 is a ceiling. Here the cap becomes
+  max(1, B / B_standard): it grows with an allowance above standard and is
+  unchanged at or below it (`exp/effort-law`, 6 lines in `arc_sequence.ts`).
+- **Structural at today's allowance:** `npm run parity` PASS, tracks
+  identical at the standard and the 150k allowances.
+- **Above standard** (bench, every ride complete):
+
+  | allowance | capped (HEAD) | effort law | fully uncapped |
+  |---|---|---|---|
+  | 1× | 739.1 (105 s) | identical | 736.8 |
+  | 1.5× | — | 743.0 (145 s, 4.63M frames) | — |
+  | 2× | 738.7 (134 s, 3.22M) | 744.8 (181 s, 6.07M) | 746.9 (253 s, 6.91M) |
+
+- **Reading:** extra allowance now buys quality (+6 at 2×), without the 1×
+  cost of fully uncapping. It changes no production ride.
+- **Left for the owner** (a budget-design choice): ready to merge.
+
 ## Morning summary
 - **Adopted** (both delete machinery; both raise the headline on every
   panel; no ride lost): the section fallback, and guides offered, never
   required. Bench 716 → 739; held out 660 → 733 (16/16).
-- **Your call:** R0 (delete the ending refinement); squeezed short shapes;
+- **Your call:** R0 (delete the ending refinement); the effort law (`exp/effort-law`, identical at 1×, +6 at 2×); squeezed short shapes;
   how much variety against no plan (753); stray hits after the visibility
   study; whether extra allowance should buy quality.
 - **Rejected after measurement:** no value model, no passive-arrival gate,

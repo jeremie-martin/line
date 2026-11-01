@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-08-MXZI - MONTAGEM TOMADA [EXTENDED].webm",
+  "sha256": "8f01ffb879fa30c460501def6a04d3f6f45c5f2c0ad38658912e47ebcc272e7b",
+  "sourceStartSeconds": 181,
+  "sourceEndSeconds": 240,
+  "decodedExcerptSeconds": 59.0,
+  "audioSha256": "c80e17de51f6c81a6d914a32a8073abea0c04b765694284c287a3a5ca92fe04d",
+  "title": "MXZI — MONTAGEM TOMADA (Extended)",
+  "intent": "Use the final two returns and intervening build, ending at the recording's own release. The build follows voice and sustained bass rather than an imaginary drum grid.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "cf045aa4450fb0a3cac3685a84734d4908cc683531ae7d3e0234c703b464fba0",
+      "bass": "c4244f249053a00eeffeecc10b4fb582268debbbbc811f659081caa9df86ec49",
+      "vocals": "a292849407fc2e3948197ba2fa85c3e5af8262e869b4ac2b3005ac7053c76a20",
+      "other": "d84fc07988377a1f4b2645d7a11e07c08159342c9151d3770a1210c4654e581f"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

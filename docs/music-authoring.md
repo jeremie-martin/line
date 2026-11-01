@@ -422,3 +422,83 @@ reachability, the five-song browser checks, listening controls and judge parity
 track hashes and physical-frame counts as this branch in every cell, using the
 rebuilt WASM engine. These are pre-existing reference mismatches; no reference
 fixtures were changed. The accepted spec still matches its pre-generation hash.
+
+## Music-library listening drafts (November 2026)
+
+The 22 recordings supplied in `~/prog/double-pendulum/music/tracks/` now have
+separate `_selection` productions, including the alternate-speed recordings.
+These are **first listening drafts**, not owner-approved successors to the Circus
+specification. No benchmark or held-out panel was changed. Original files remain
+untouched; excerpts retain their original speed and are single contiguous cuts.
+
+For each recording, the author inspected the full separated-stem envelopes,
+chose a passage with an arrangement change, then read the source onsets and
+vocal-attack estimates. `composition.json` records explicit selected times,
+source, impact and the reason for each group, plus air/speed phases. The small
+`spec.ts` adapter only reads these decisions; it does not select events.
+`source.json` records the source hash, original-recording excerpt boundaries,
+excerpt/stem hashes and separation settings. The tempo grid is only a librosa
+hypothesis; it does not generate contacts. Drum classes were not measured.
+
+Musical intentions and limitations:
+
+- Passo Bem Solto and Los Voltaje alternate exposed vocal articulation with
+  stronger percussion. Slower versions were read independently, not made by
+  scaling another spec's timestamps.
+- Funk Estranho follows the measured bass pulse; Funk do Bounce changes lead
+  from voice to bass, then to drums and an upper instrumental figure.
+- Dernière danse, Bones and Let the World Burn use amplitude-attack evidence
+  alongside raw vocal events. A sustained note's many spectral changes are not
+  treated as verified syllables. The exact vocal choices need listening review.
+- Petrunko's selected passage is treated as instrumental; stem labels are not
+  used to invent lyrics or singer identities.
+- Raw coverage reports flag unselected material in every song. Strong percussion
+  omissions were checked: clipped entrance attacks are explicitly omitted, and
+  Lua na Praça uses the later of two nearby detections for the same entry. Other
+  flags largely concern competing layers, subdivisions and sustained texture;
+  they remain listening questions, not a requirement to maximize coverage.
+
+All drafts are available in the existing spec dashboard's selector. Keep Clicks
+enabled to audition the authored rhythm; slow playback or add unsnapped marks
+where a phrase needs correction. Start with the three contrasting readings
+`let_the_world_burn_selection`, `funk_do_bounce_super_slowed_selection` and
+`derniere_danse_coral_selection`. Browser playback checks establish that audio
+and controls work, not that the interpretation is perceptually correct.
+
+| Recording | Original recording excerpt (s) | Length (s) |
+| --- | ---: | ---: |
+| LOS VOLTAJE | 34–91.4 | 57.4 |
+| LUNA BALA (Slowed) | 40–96 | 56 |
+| MONTAGEM TOMADA (Slowed) | 22–80 | 58 |
+| Amor Na Praia | 49–109 | 60 |
+| LOS VOLTAJE (Slowed) | 39–97 | 58 |
+| FUNK ESTRANHO (Super Slowed) | 33–92 | 59 |
+| PASSO BEM SOLTO (Slowed) | 43–101 | 58 |
+| MXZI — MONTAGEM TOMADA (Extended) | 181–240 | 59 |
+| LUNA BALA | 46–104 | 58 |
+| MONTAGEM TOMADA (Super Slowed) | 32–92 | 60 |
+| PASSO BEM SOLTO | 35–91 | 56 |
+| LOS VOLTAJE (Ultra Slowed) | 58–118 | 60 |
+| PASSO BEM SOLTO (Super Slowed) | 47–107 | 60 |
+| FUNK DO BOUNCE (Super Slowed) | 60–120 | 60 |
+| Dernière danse × Montagem Coral | 78–138 | 60 |
+| ANDROMEDA — MONTAGEM COMA | 14–73 | 59 |
+| NO BATIDÃO | 30–89.5 | 59.5 |
+| NO BATIDÃO (Slowed) | 48–107.5 | 59.5 |
+| LUA NA PRAÇA | 29–81 | 52 |
+| Chris Grey — LET THE WORLD BURN | 104–163 | 59 |
+| Bones | 105–165 | 60 |
+| Petrunko | 76–136 | 60 |
+
+The checked-in manifest is `productions/music-library.json`. Local study material
+(full-recording overview plots, extraction/analysis scripts, coverage reports and
+browser screenshots) lives in `generated/music-library-authoring/`. Audio and
+full stem WAVs remain untracked. To reconstruct an excerpt, decode the exact
+source file identified by its hash, trim at the recorded start for the recorded
+length, and encode with `libmp3lame -q:a 2`; never rescale the timing. The stems
+were separated from the full recording before cropping, avoiding crop-edge
+separation differences. Regenerate descriptive evidence if any input changes.
+
+The dedicated spec tests check all recordings, source-time provenance, distinct
+physics frames, excerpt bounds, phase/axis validity and audio identity when the
+local file is present. They do not certify musical quality.

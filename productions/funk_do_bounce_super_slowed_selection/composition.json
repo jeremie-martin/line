@@ -1,0 +1,198 @@
+{
+  "intent": "Voice-led break, bass-led restart, then actual drums entering much later. Shift the visual lead with the arrangement; finish with the instrumental decay.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "VOICE",
+      "air": 0.55,
+      "speed": 0.42
+    },
+    {
+      "t": 8.45,
+      "name": "ROLL",
+      "air": 0.35,
+      "speed": 0.55
+    },
+    {
+      "t": 10.728,
+      "name": "BASS RESTART",
+      "air": 0.65,
+      "speed": 0.65
+    },
+    {
+      "t": 18.8,
+      "name": "SUSPENSION",
+      "air": 0.8,
+      "speed": 0.5
+    },
+    {
+      "t": 20.48,
+      "name": "DRUMS ARRIVE",
+      "air": 0.62,
+      "speed": 0.82
+    },
+    {
+      "t": 39.695,
+      "name": "UPPER FIGURE",
+      "air": 0.6,
+      "speed": 0.71
+    },
+    {
+      "t": 50.283,
+      "name": "DECAY",
+      "air": 0.75,
+      "speed": 0.5
+    },
+    {
+      "t": 57.562,
+      "name": "TAIL",
+      "air": 0.88,
+      "speed": 0.3
+    }
+  ],
+  "groups": [
+    {
+      "source": "vocals",
+      "impact": 0.44,
+      "times": [
+        0.569,
+        0.975,
+        1.579,
+        2.38,
+        4.04,
+        4.284,
+        4.609,
+        5.248,
+        5.851,
+        6.467,
+        6.745,
+        7.349,
+        8.301
+      ],
+      "reason": "Exposed voice leads, including the close turn near four seconds."
+    },
+    {
+      "source": "drums",
+      "impact": 0.4,
+      "times": [
+        8.603,
+        9.067,
+        9.52,
+        9.973,
+        10.426
+      ],
+      "reason": "A few articulated roll accents rather than demanding every rapid stroke."
+    },
+    {
+      "source": "bass",
+      "impact": 0.71,
+      "times": [
+        10.728,
+        11.355,
+        11.958,
+        12.562,
+        13.177,
+        13.34,
+        13.793,
+        14.396,
+        15.0,
+        15.615,
+        16.231,
+        16.823,
+        17.438,
+        18.054,
+        18.669
+      ],
+      "reason": "Low-frequency restart, including one short answer; this is not labelled as percussion."
+    },
+    {
+      "source": "drums",
+      "impact": 0.84,
+      "times": [
+        20.48,
+        21.095,
+        21.699,
+        22.314,
+        22.918,
+        23.533,
+        24.137,
+        24.752,
+        25.356,
+        25.972,
+        26.575,
+        27.191,
+        27.794,
+        28.41,
+        29.013,
+        29.629,
+        30.232,
+        30.848,
+        31.451,
+        32.067,
+        32.67,
+        33.286,
+        33.89,
+        34.505,
+        35.109,
+        35.724,
+        36.328,
+        36.943,
+        37.547,
+        38.162,
+        38.766,
+        39.381
+      ],
+      "reason": "The first sustained full drum passage is the strongest section."
+    },
+    {
+      "source": "other",
+      "impact": 0.68,
+      "times": [
+        40.008,
+        41.227,
+        42.434,
+        44.884,
+        46.103,
+        47.311,
+        48.541
+      ],
+      "reason": "Broad accents of the returning upper figure."
+    },
+    {
+      "source": "other",
+      "impact": 0.43,
+      "times": [
+        40.519,
+        41.738,
+        42.934,
+        43.665,
+        44.199,
+        45.395,
+        46.614,
+        47.821,
+        49.075,
+        49.447,
+        50.283,
+        51.304,
+        51.908,
+        52.686,
+        53.743,
+        54.346
+      ],
+      "reason": "Smaller instrumental replies, then less density through the decay."
+    },
+    {
+      "source": "other",
+      "impact": 0.28,
+      "times": [
+        55.159,
+        56.181,
+        56.784,
+        57.562
+      ],
+      "reason": "The last figure releases; no hard ending invented."
+    }
+  ]
+}

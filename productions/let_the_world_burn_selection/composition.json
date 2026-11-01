@@ -1,0 +1,183 @@
+{
+  "intent": "Vocal pickup into the last large chorus, voice-plus-drum articulation through it, then voice alone as the rhythm falls away. Leave held vowels room to travel.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "VOCAL PICKUP",
+      "air": 0.63,
+      "speed": 0.42
+    },
+    {
+      "t": 3.204,
+      "name": "VOCAL RISE",
+      "air": 0.45,
+      "speed": 0.55
+    },
+    {
+      "t": 4.481,
+      "name": "LAST CHORUS",
+      "air": 0.57,
+      "speed": 0.77
+    },
+    {
+      "t": 24.462,
+      "name": "HELD VOCAL",
+      "air": 0.68,
+      "speed": 0.72
+    },
+    {
+      "t": 34.145,
+      "name": "UPPER VOCAL",
+      "air": 0.65,
+      "speed": 0.8
+    },
+    {
+      "t": 44.942,
+      "name": "VOICE ALONE",
+      "air": 0.64,
+      "speed": 0.5
+    },
+    {
+      "t": 53.986,
+      "name": "LAST WORDS",
+      "air": 0.76,
+      "speed": 0.4
+    },
+    {
+      "t": 57.411,
+      "name": "RELEASE",
+      "air": 0.9,
+      "speed": 0.28
+    }
+  ],
+  "groups": [
+    {
+      "source": "vocals",
+      "impact": 0.35,
+      "times": [
+        0.348,
+        1.022
+      ],
+      "reason": "The pickup is still quiet."
+    },
+    {
+      "source": "sung",
+      "impact": 0.5,
+      "times": [
+        3.204,
+        3.646,
+        5.968,
+        6.165,
+        8.858,
+        9.242,
+        10.356,
+        13.595,
+        14.187,
+        15.081,
+        16.544,
+        19.145,
+        19.4,
+        21.908,
+        23.034,
+        24.462,
+        25.321,
+        29.466,
+        30.848,
+        31.985,
+        34.145,
+        34.865,
+        40.31,
+        42.028
+      ],
+      "reason": "Selected amplitude attacks supplement the drum rhythm; close coincidences are carried by the drum instead. Held vowels are not filled with spectral-change contacts."
+    },
+    {
+      "source": "drums",
+      "impact": 0.78,
+      "times": [
+        4.481,
+        5.457,
+        6.745,
+        7.07,
+        7.396,
+        8.034,
+        9.648,
+        10.612,
+        11.9,
+        12.225,
+        12.55,
+        13.201,
+        14.814,
+        15.778,
+        17.067,
+        17.392,
+        17.717,
+        18.355,
+        19.969,
+        20.933,
+        22.233,
+        22.547,
+        22.872,
+        23.522,
+        25.136,
+        26.099,
+        27.388,
+        27.713,
+        28.038,
+        28.677,
+        30.29,
+        31.254,
+        32.554,
+        32.868,
+        33.205,
+        33.843,
+        35.457,
+        36.42,
+        37.709,
+        38.034,
+        38.359,
+        38.998,
+        40.612,
+        41.587,
+        42.876,
+        43.189,
+        43.514,
+        44.164
+      ],
+      "reason": "Strong drum line with its short three-stroke answers; quieter extra strokes stay texture."
+    },
+    {
+      "source": "sung",
+      "impact": 0.47,
+      "times": [
+        44.524,
+        44.942,
+        45.906,
+        47.264,
+        47.496,
+        48.344,
+        48.739,
+        50.55,
+        51.722,
+        52.373,
+        53.29,
+        53.522,
+        53.986,
+        54.404
+      ],
+      "reason": "Voice becomes the sole lead as the drums fall away; no invented continuation of the beat."
+    },
+    {
+      "source": "sung",
+      "impact": 0.28,
+      "times": [
+        55.368,
+        56.401,
+        57.411
+      ],
+      "reason": "The final low vocal gestures taper in impact."
+    }
+  ]
+}

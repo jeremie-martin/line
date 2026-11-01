@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-06-FUNK ESTRANHO (SUPER SLOWED).webm",
+  "sha256": "077251286d4906cdf1cfeec4bebbac2fe4d0b462061093554a64aebcfb257ef0",
+  "sourceStartSeconds": 33,
+  "sourceEndSeconds": 92,
+  "decodedExcerptSeconds": 59.0,
+  "audioSha256": "26ba2748a892c60cac75fd8642f88693a97e9837a2354dbe6399583920f5c019",
+  "title": "FUNK ESTRANHO (Super Slowed)",
+  "intent": "Bass is the main pulse here, despite the genre label. Let the sparse vocal pickup bridge the break; give the low-frequency return weight without fabricating drum hits.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "3e577d22fd84e80fe810018930720098885a2eb801bc711b6f431b98875a62c8",
+      "bass": "8322b96e047966a227e73fb42e04b4b595e5364adbfb10229c5c75419cbeb99e",
+      "vocals": "f1c635bc23c5be54ee6d3a0ccd00766d29454f9c16622d0ec5b285ba2d77ab1c",
+      "other": "bea1abc87da7ef427cc0f1a4ec2a71ace8f0983f6d113b85ae1453c88d6f9e3a"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

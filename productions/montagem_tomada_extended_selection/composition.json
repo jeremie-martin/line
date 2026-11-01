@@ -1,0 +1,205 @@
+{
+  "intent": "Use the final two returns and intervening build, ending at the recording's own release. The build follows voice and sustained bass rather than an imaginary drum grid.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "EXPOSED BUILD",
+      "air": 0.62,
+      "speed": 0.4
+    },
+    {
+      "t": 3.05,
+      "name": "VOICE",
+      "air": 0.42,
+      "speed": 0.52
+    },
+    {
+      "t": 9.172,
+      "name": "SWELL",
+      "air": 0.7,
+      "speed": 0.65
+    },
+    {
+      "t": 11.018,
+      "name": "FIRST RETURN",
+      "air": 0.58,
+      "speed": 0.76
+    },
+    {
+      "t": 25.6,
+      "name": "VOICE AGAIN",
+      "air": 0.55,
+      "speed": 0.45
+    },
+    {
+      "t": 35.039,
+      "name": "PICKUP",
+      "air": 0.38,
+      "speed": 0.62
+    },
+    {
+      "t": 39.242,
+      "name": "LAST SWELL",
+      "air": 0.72,
+      "speed": 0.68
+    },
+    {
+      "t": 40.554,
+      "name": "FINAL RETURN",
+      "air": 0.64,
+      "speed": 0.83
+    },
+    {
+      "t": 55.322,
+      "name": "ENDING",
+      "air": 0.85,
+      "speed": 0.38
+    }
+  ],
+  "groups": [
+    {
+      "source": "vocals",
+      "impact": 0.43,
+      "times": [
+        3.053,
+        3.437,
+        3.692,
+        4.098,
+        4.563,
+        5.503,
+        5.956,
+        6.409,
+        7.361,
+        7.79,
+        8.255,
+        9.648,
+        10.136,
+        10.449,
+        10.728
+      ],
+      "reason": "Voice carries the first build; omit detector echoes within a single syllabic gesture."
+    },
+    {
+      "source": "bass",
+      "impact": 0.66,
+      "times": [
+        9.172,
+        39.242
+      ],
+      "reason": "One contact at each swell entry; the sustained rise is movement, not a machine-gun landing sequence."
+    },
+    {
+      "source": "drums",
+      "impact": 0.75,
+      "times": [
+        11.018,
+        11.482,
+        11.947,
+        12.399,
+        12.864,
+        13.328,
+        13.793,
+        14.257,
+        14.71,
+        15.174,
+        15.639,
+        16.091,
+        16.556,
+        17.02,
+        17.485,
+        18.402,
+        18.866,
+        19.331,
+        19.795,
+        20.248,
+        20.712,
+        21.177,
+        21.641,
+        22.094,
+        22.558,
+        23.023,
+        23.475,
+        23.94,
+        24.404,
+        24.869
+      ],
+      "reason": "First drum return, including its missing stroke."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.45,
+      "times": [
+        25.6,
+        25.832,
+        26.262,
+        26.738,
+        27.191,
+        27.458,
+        27.876,
+        28.897,
+        29.28,
+        29.559,
+        32.601,
+        32.972,
+        33.216,
+        33.634,
+        34.099,
+        35.039,
+        35.48,
+        35.944,
+        36.235,
+        36.455,
+        36.885,
+        37.326,
+        37.79,
+        38.081,
+        38.708,
+        38.998,
+        39.671,
+        39.973,
+        40.263
+      ],
+      "reason": "Second build follows the actual vocal attacks; leave the intervening breath open."
+    },
+    {
+      "source": "drums",
+      "impact": 0.83,
+      "times": [
+        40.554,
+        41.018,
+        41.482,
+        41.935,
+        42.4,
+        42.864,
+        43.328,
+        43.793,
+        44.246,
+        44.71,
+        45.174,
+        45.639,
+        46.092,
+        46.556,
+        47.02,
+        47.938,
+        48.402,
+        48.866,
+        49.331,
+        49.784,
+        50.248,
+        50.712,
+        51.177,
+        51.63,
+        52.094,
+        52.558,
+        53.023,
+        53.476,
+        53.94,
+        54.404,
+        55.322
+      ],
+      "reason": "The final return is firmer; let the recording finish without filling its decay."
+    }
+  ]
+}

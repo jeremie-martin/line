@@ -1,0 +1,163 @@
+{
+  "intent": "Sparse percussion opens into the last part of the groove, then a long exposed vocal passage and bass swell precede the final drum return.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "SPARSE DRUMS",
+      "air": 0.72,
+      "speed": 0.52
+    },
+    {
+      "t": 4.354,
+      "name": "BODY",
+      "air": 0.64,
+      "speed": 0.68
+    },
+    {
+      "t": 17.334,
+      "name": "VOICE",
+      "air": 0.5,
+      "speed": 0.42
+    },
+    {
+      "t": 26.378,
+      "name": "VOICE RETURNS",
+      "air": 0.45,
+      "speed": 0.51
+    },
+    {
+      "t": 35.677,
+      "name": "SWELL",
+      "air": 0.78,
+      "speed": 0.63
+    },
+    {
+      "t": 37.013,
+      "name": "DRUM RETURN",
+      "air": 0.7,
+      "speed": 0.78
+    },
+    {
+      "t": 56.726,
+      "name": "TAIL",
+      "air": 0.88,
+      "speed": 0.38
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.76,
+      "times": [
+        1.892,
+        2.508,
+        4.354,
+        4.981,
+        5.596,
+        6.211,
+        7.442,
+        8.057,
+        8.673,
+        9.288,
+        9.903,
+        10.519,
+        11.134,
+        11.749,
+        12.365,
+        12.98,
+        13.607,
+        14.222,
+        14.838,
+        15.453,
+        16.068
+      ],
+      "reason": "Sparse opening answers into the full body; omit the clipped attack at 0.058."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.42,
+      "times": [
+        17.334,
+        17.74,
+        18.123,
+        18.553,
+        18.889,
+        19.168,
+        19.528,
+        20.074,
+        21.455,
+        21.943,
+        22.28,
+        26.378,
+        26.877,
+        27.202,
+        27.527,
+        27.771,
+        28.398,
+        29.629,
+        30.244,
+        30.616,
+        30.871,
+        32.113,
+        32.461,
+        32.705,
+        33.321,
+        34.54,
+        34.923,
+        35.167,
+        35.979,
+        36.235,
+        36.606
+      ],
+      "reason": "The drumless passage follows voiced gestures, consolidating close estimates and preserving the long breath."
+    },
+    {
+      "source": "bass",
+      "impact": 0.69,
+      "times": [
+        35.677
+      ],
+      "reason": "One sustained swell entry before the percussion return."
+    },
+    {
+      "source": "drums",
+      "impact": 0.83,
+      "times": [
+        37.013,
+        37.628,
+        38.243,
+        38.859,
+        39.474,
+        40.089,
+        40.705,
+        41.332,
+        41.935,
+        42.562,
+        43.178,
+        43.793,
+        44.408,
+        45.023,
+        45.639,
+        46.869,
+        47.485,
+        48.1,
+        48.715,
+        49.331,
+        49.946,
+        50.561,
+        51.188,
+        51.792,
+        52.419,
+        53.034,
+        53.65,
+        54.265,
+        54.88,
+        55.496,
+        56.726
+      ],
+      "reason": "Broad drum-led arcs, keeping the phrase holes and the final decay."
+    }
+  ]
+}

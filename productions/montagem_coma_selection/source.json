@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-16-ANDROMEDA - MONTAGEM COMA.webm",
+  "sha256": "288770b8785ba3cac8720a959c1ae8cb6d5673130b56355181c23ba6710bc3fd",
+  "sourceStartSeconds": 14,
+  "sourceEndSeconds": 73,
+  "decodedExcerptSeconds": 59.0,
+  "audioSha256": "c20755194395558d18dcd899ecfb954a0996c93c12002a0866feaf90e5f354da",
+  "title": "ANDROMEDA — MONTAGEM COMA",
+  "intent": "Alternate compact percussion bursts with vocal foreground passages over the continuing bass. Bass continuity should not erase the drum breaks.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "a6aee4b4c53c83426a87021f44e3041207f647b63aad24a1adaf5c46e63be7b1",
+      "bass": "8b0617d39e1d7029de8c22dbf9462d8f7fd99ea64fb3e9d43b62e873cf951abf",
+      "vocals": "3211478f8277fdb83e350a603a77062adee9cbf4f7d607074d2bdfc6053aafe3",
+      "other": "5d80f69c987074ea16235a40b5a3d3663d5565aa6befd1be91cfc2b6284794c6"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

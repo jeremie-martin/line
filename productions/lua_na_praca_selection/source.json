@@ -1,0 +1,33 @@
+{
+  "file": "20260101-120514-LUA NA PRACA.mp3",
+  "sha256": "205346ecbcf2b7f284bdd9cffa7e2918866d85c2dbf21e4303847b5ab5a01a68",
+  "sourceStartSeconds": 29,
+  "sourceEndSeconds": 81,
+  "decodedExcerptSeconds": 52.0,
+  "audioSha256": "39ecfddc21ed0d558f6c60cf09745d64081c748120f4eb5b540414cd420bf151",
+  "title": "LUA NA PRAÇA",
+  "intent": "Percussion opening and bass-led answer, a genuine quiet break, then a staged drum-first and bass-second return. Avoid filling the quiet section with tiny hits.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "48ad8691ebfe9a44d5176de819f81ecfe7bea08811bfe690be8f5a69f61c3c0a",
+      "bass": "08000d652629bec9082a14c93ef468e639c57b0908342d696b58fbda36eab2ea",
+      "vocals": "244fb51d03b992267034e8ff5bed13b4ad19d1628a8fc373952003594437d954",
+      "other": "31d958fa2945a4dc187808f669308cb141630aa25996eae5b3196f0854e65185"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

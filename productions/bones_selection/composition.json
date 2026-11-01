@@ -1,0 +1,172 @@
+{
+  "intent": "Begin with the stripped vocal bridge, follow its build into the final chorus, combine vocal phrase accents with the drums, and retain the natural ending.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "STRIPPED VOICE",
+      "air": 0.5,
+      "speed": 0.4
+    },
+    {
+      "t": 8.673,
+      "name": "BRIDGE",
+      "air": 0.7,
+      "speed": 0.45
+    },
+    {
+      "t": 15.29,
+      "name": "PICKUP",
+      "air": 0.35,
+      "speed": 0.6
+    },
+    {
+      "t": 17.357,
+      "name": "FINAL CHORUS",
+      "air": 0.58,
+      "speed": 0.8
+    },
+    {
+      "t": 33.123,
+      "name": "SECOND PHRASE",
+      "air": 0.63,
+      "speed": 0.82
+    },
+    {
+      "t": 49.993,
+      "name": "RELEASE",
+      "air": 0.78,
+      "speed": 0.48
+    },
+    {
+      "t": 53,
+      "name": "TAIL",
+      "air": 0.88,
+      "speed": 0.3
+    }
+  ],
+  "groups": [
+    {
+      "source": "sung",
+      "impact": 0.4,
+      "times": [
+        0.406,
+        0.964,
+        2.113,
+        2.508,
+        2.81,
+        3.553,
+        4.354,
+        4.598,
+        4.911,
+        5.677,
+        6.2,
+        6.699,
+        8.673,
+        9.985,
+        12.051,
+        12.504,
+        14.269,
+        15.29
+      ],
+      "reason": "Exposed bridge articulation, with real space between phrases. Detector output is an estimate, not a lyric transcript."
+    },
+    {
+      "source": "drums",
+      "impact": 0.59,
+      "times": [
+        16.556,
+        16.823,
+        17.113
+      ],
+      "reason": "Three strokes bring the chorus in."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        17.357,
+        18.146,
+        19.458,
+        20.259,
+        21.56,
+        22.361,
+        23.673,
+        23.928,
+        24.462,
+        24.985,
+        25.774,
+        26.575,
+        27.887,
+        28.677,
+        29.989,
+        30.778,
+        32.09,
+        32.357,
+        32.879,
+        33.402,
+        34.191,
+        34.992,
+        36.304,
+        37.094,
+        38.406,
+        39.207,
+        40.507,
+        40.774,
+        41.308,
+        42.62,
+        43.421,
+        44.722,
+        45.523,
+        46.823,
+        47.624,
+        48.924,
+        49.191,
+        49.726
+      ],
+      "reason": "Strong syncopated drum line; secondary soft strokes stay underneath the selected vocal articulation."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.49,
+      "times": [
+        18.413,
+        20.526,
+        21.862,
+        23.406,
+        24.718,
+        31.033,
+        31.835,
+        33.1,
+        37.581,
+        38.15,
+        41.529,
+        46.022,
+        46.579,
+        48.669,
+        49.981
+      ],
+      "reason": "Distinct vocal accents between drum hits, not a second competing grid."
+    },
+    {
+      "source": "sung",
+      "impact": 0.46,
+      "times": [
+        29.454,
+        35.736,
+        42.098,
+        44.164
+      ],
+      "reason": "Additional vocal turns supported by amplitude-attack evidence."
+    },
+    {
+      "source": "drums",
+      "impact": 0.45,
+      "times": [
+        50.527
+      ],
+      "reason": "Last softer percussion gesture, then the natural tail."
+    }
+  ]
+}

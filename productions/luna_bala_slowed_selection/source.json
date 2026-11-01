@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-02-LUNA BALA (Slowed).webm",
+  "sha256": "fe784724c9e52eb5fbeaa1f4588b0e3fea8b995f7a72e4f9b22bbf8f0c2d4a95",
+  "sourceStartSeconds": 40,
+  "sourceEndSeconds": 96,
+  "decodedExcerptSeconds": 56.0,
+  "audioSha256": "bc6ef05d7530f4094352a980bf00e62d7f47481d7e8c66883cab441d6b82b3f7",
+  "title": "LUNA BALA (Slowed)",
+  "intent": "A brief groove fragment dissolves into a vocal break, then opens into the second instrumental body. The return should feel larger than the opening.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "6bc401de8f21cbb5780a8431f31c68692f137cd07c509af6132e67cc34ab5f2d",
+      "bass": "61ba421e610971f141a8102a73ad26ef34ee359d368517c7552be9e3eb2709a1",
+      "vocals": "23cbe768f6c3ab31af7fdfa9a19c2846f011e1478282772625216ba1d8a9ac17",
+      "other": "a0f1940efed228e7fa8fde6c0905846875204245ef08305d180e451e404a04d1"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "file": "20260105-122436-Chris Grey - LET THE WORLD BURN Official Lyric Video.mp3",
+  "sha256": "0bd0c9f4293e0c09742efd41e9d328474694ed84ab2d7ddad122aa6a31463738",
+  "sourceStartSeconds": 104,
+  "sourceEndSeconds": 163,
+  "decodedExcerptSeconds": 59.0,
+  "audioSha256": "92b2603411523def78783bed7e741b5d67984737a8eae9f96fa874c1a8214ebf",
+  "title": "Chris Grey — LET THE WORLD BURN",
+  "intent": "Vocal pickup into the last large chorus, voice-plus-drum articulation through it, then voice alone as the rhythm falls away. Leave held vowels room to travel.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "4bdfa2feca5d1f1364dd2735a79b9d26b57a26a6c6626478f9d6684129cbb751",
+      "bass": "2aacde595e70d8304e0dcedebc648b05c5aacf8970a378cc944f68d5361bdd4f",
+      "vocals": "62ddbd62dd37d59b9996071c96ba40b175421cc4d470994b16612129ad4f11e5",
+      "other": "a9d49034d9c52db525747a619b3ef741095bb334e4bfa54c98a7c980301fb722"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

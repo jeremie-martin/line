@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-03-MONTAGEM TOMADA (Slowed).webm",
+  "sha256": "7c734c6b50ebab6118bbdf21b097533864bf363dea29ad1f7ac897ca97f6aeb5",
+  "sourceStartSeconds": 22,
+  "sourceEndSeconds": 80,
+  "decodedExcerptSeconds": 58.0,
+  "audioSha256": "9d996651be5d0e9283708aff25e2365cc5eb474c3d8ee4605dbd2faed387b7cc",
+  "title": "MONTAGEM TOMADA (Slowed)",
+  "intent": "Percussion hands over to the voice through the central drumless passage; sustained bass rises carry motion, with a firm late return.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "83cfe065c9e8045ac927882a0de43924f993868a7682354070f506e57d469427",
+      "bass": "61b2f1d5cae964d9680c8250bd2b0bad4bb11621f08e38cc43d262c2ea2a2aa0",
+      "vocals": "97135d9c63fb3f74b52d515da708116fb26c7ae91462901661447a6e212b6259",
+      "other": "0c38088eb8e428bdd658cf90fc17e243043768a3ef28ea7ce0e8957c71cc4f89"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

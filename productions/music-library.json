@@ -1,0 +1,178 @@
+[
+  {
+    "id": "los_voltaje_selection",
+    "title": "LOS VOLTAJE",
+    "duration": 57.4,
+    "sourceStartSeconds": 34,
+    "sourceEndSeconds": 91.4,
+    "status": "listening draft"
+  },
+  {
+    "id": "luna_bala_slowed_selection",
+    "title": "LUNA BALA (Slowed)",
+    "duration": 56.0,
+    "sourceStartSeconds": 40,
+    "sourceEndSeconds": 96,
+    "status": "listening draft"
+  },
+  {
+    "id": "montagem_tomada_slowed_selection",
+    "title": "MONTAGEM TOMADA (Slowed)",
+    "duration": 58.0,
+    "sourceStartSeconds": 22,
+    "sourceEndSeconds": 80,
+    "status": "listening draft"
+  },
+  {
+    "id": "amor_na_praia_selection",
+    "title": "Amor Na Praia",
+    "duration": 60.0,
+    "sourceStartSeconds": 49,
+    "sourceEndSeconds": 109,
+    "status": "listening draft"
+  },
+  {
+    "id": "los_voltaje_slowed_selection",
+    "title": "LOS VOLTAJE (Slowed)",
+    "duration": 58.0,
+    "sourceStartSeconds": 39,
+    "sourceEndSeconds": 97,
+    "status": "listening draft"
+  },
+  {
+    "id": "funk_estranho_super_slowed_selection",
+    "title": "FUNK ESTRANHO (Super Slowed)",
+    "duration": 59.0,
+    "sourceStartSeconds": 33,
+    "sourceEndSeconds": 92,
+    "status": "listening draft"
+  },
+  {
+    "id": "passo_bem_solto_slowed_selection",
+    "title": "PASSO BEM SOLTO (Slowed)",
+    "duration": 58.0,
+    "sourceStartSeconds": 43,
+    "sourceEndSeconds": 101,
+    "status": "listening draft"
+  },
+  {
+    "id": "montagem_tomada_extended_selection",
+    "title": "MXZI — MONTAGEM TOMADA (Extended)",
+    "duration": 59.0,
+    "sourceStartSeconds": 181,
+    "sourceEndSeconds": 240,
+    "status": "listening draft"
+  },
+  {
+    "id": "luna_bala_original_selection",
+    "title": "LUNA BALA",
+    "duration": 58.0,
+    "sourceStartSeconds": 46,
+    "sourceEndSeconds": 104,
+    "status": "listening draft"
+  },
+  {
+    "id": "montagem_tomada_super_slowed_selection",
+    "title": "MONTAGEM TOMADA (Super Slowed)",
+    "duration": 60.0,
+    "sourceStartSeconds": 32,
+    "sourceEndSeconds": 92,
+    "status": "listening draft"
+  },
+  {
+    "id": "passo_bem_solto_selection",
+    "title": "PASSO BEM SOLTO",
+    "duration": 56.0,
+    "sourceStartSeconds": 35,
+    "sourceEndSeconds": 91,
+    "status": "listening draft"
+  },
+  {
+    "id": "los_voltaje_ultra_slowed_selection",
+    "title": "LOS VOLTAJE (Ultra Slowed)",
+    "duration": 60.0,
+    "sourceStartSeconds": 58,
+    "sourceEndSeconds": 118,
+    "status": "listening draft"
+  },
+  {
+    "id": "passo_bem_solto_super_slowed_selection",
+    "title": "PASSO BEM SOLTO (Super Slowed)",
+    "duration": 60.0,
+    "sourceStartSeconds": 47,
+    "sourceEndSeconds": 107,
+    "status": "listening draft"
+  },
+  {
+    "id": "funk_do_bounce_super_slowed_selection",
+    "title": "FUNK DO BOUNCE (Super Slowed)",
+    "duration": 60.0,
+    "sourceStartSeconds": 60,
+    "sourceEndSeconds": 120,
+    "status": "listening draft"
+  },
+  {
+    "id": "derniere_danse_coral_selection",
+    "title": "Dernière danse × Montagem Coral",
+    "duration": 60.0,
+    "sourceStartSeconds": 78,
+    "sourceEndSeconds": 138,
+    "status": "listening draft"
+  },
+  {
+    "id": "montagem_coma_selection",
+    "title": "ANDROMEDA — MONTAGEM COMA",
+    "duration": 59.0,
+    "sourceStartSeconds": 14,
+    "sourceEndSeconds": 73,
+    "status": "listening draft"
+  },
+  {
+    "id": "no_batidao_selection",
+    "title": "NO BATIDÃO",
+    "duration": 59.5,
+    "sourceStartSeconds": 30,
+    "sourceEndSeconds": 89.5,
+    "status": "listening draft"
+  },
+  {
+    "id": "no_batidao_slowed_selection",
+    "title": "NO BATIDÃO (Slowed)",
+    "duration": 59.5,
+    "sourceStartSeconds": 48,
+    "sourceEndSeconds": 107.5,
+    "status": "listening draft"
+  },
+  {
+    "id": "lua_na_praca_selection",
+    "title": "LUA NA PRAÇA",
+    "duration": 52.0,
+    "sourceStartSeconds": 29,
+    "sourceEndSeconds": 81,
+    "status": "listening draft"
+  },
+  {
+    "id": "let_the_world_burn_selection",
+    "title": "Chris Grey — LET THE WORLD BURN",
+    "duration": 59.0,
+    "sourceStartSeconds": 104,
+    "sourceEndSeconds": 163,
+    "status": "listening draft"
+  },
+  {
+    "id": "bones_selection",
+    "title": "Bones",
+    "duration": 60.0,
+    "sourceStartSeconds": 105,
+    "sourceEndSeconds": 165,
+    "status": "listening draft"
+  },
+  {
+    "id": "petrunko_selection",
+    "title": "Petrunko",
+    "duration": 60.0,
+    "sourceStartSeconds": 76,
+    "sourceEndSeconds": 136,
+    "status": "listening draft"
+  }
+]

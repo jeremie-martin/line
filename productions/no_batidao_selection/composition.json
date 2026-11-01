@@ -1,0 +1,217 @@
+{
+  "intent": "Voice pickup, percussion-only build, bass arrival, then the later vocal-led sparse-hit passage and instrumental finish. Distinguish the two stages of the return.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "VOICE PICKUP",
+      "air": 0.4,
+      "speed": 0.46
+    },
+    {
+      "t": 7.628,
+      "name": "DRUM BUILD",
+      "air": 0.48,
+      "speed": 0.6
+    },
+    {
+      "t": 15.244,
+      "name": "BASS ARRIVES",
+      "air": 0.61,
+      "speed": 0.77
+    },
+    {
+      "t": 29.547,
+      "name": "VOICE AND ANSWERS",
+      "air": 0.36,
+      "speed": 0.61
+    },
+    {
+      "t": 36.931,
+      "name": "LAST BODY",
+      "air": 0.64,
+      "speed": 0.82
+    },
+    {
+      "t": 58.63,
+      "name": "RELEASE",
+      "air": 0.83,
+      "speed": 0.4
+    }
+  ],
+  "groups": [
+    {
+      "source": "vocals",
+      "impact": 0.43,
+      "times": [
+        0.476,
+        0.94,
+        1.393,
+        1.858,
+        2.09,
+        2.786,
+        3.262,
+        3.68,
+        4.389,
+        4.632,
+        5.097,
+        5.492,
+        5.782,
+        6.258,
+        6.664,
+        7.396
+      ],
+      "reason": "A compact vocal pickup before the percussion enters."
+    },
+    {
+      "source": "drums",
+      "impact": 0.67,
+      "times": [
+        7.628,
+        7.86,
+        8.313,
+        8.777,
+        9.242,
+        9.706,
+        10.159,
+        10.623,
+        11.088,
+        11.552,
+        12.005,
+        12.469,
+        12.934,
+        13.398,
+        13.746,
+        14.083
+      ],
+      "reason": "Drum-only build; reserve fuller weight for the bass entrance."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        15.244,
+        15.697,
+        16.161,
+        16.625,
+        17.09,
+        17.543,
+        18.007,
+        18.471,
+        18.936,
+        19.4,
+        19.853,
+        20.317,
+        20.782,
+        21.235,
+        21.699,
+        22.163,
+        22.628,
+        23.092,
+        23.545,
+        24.009,
+        24.474,
+        24.927,
+        25.391,
+        25.855,
+        26.32,
+        26.784,
+        27.237,
+        27.701,
+        28.166,
+        28.619,
+        29.095
+      ],
+      "reason": "The full body is firmer than the build."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.51,
+      "times": [
+        29.547,
+        30.302,
+        30.499,
+        30.975,
+        31.277,
+        31.451,
+        32.102,
+        32.357,
+        32.578,
+        32.821,
+        34.191,
+        34.621,
+        35.12,
+        35.863,
+        36.026,
+        36.49
+      ],
+      "reason": "The later vocal passage gets individual articulations; nearby drum contacts carry shared attacks."
+    },
+    {
+      "source": "drums",
+      "impact": 0.74,
+      "times": [
+        30.012,
+        31.858,
+        33.239,
+        33.704,
+        35.55
+      ],
+      "reason": "Sparse but strong percussion answers."
+    },
+    {
+      "source": "drums",
+      "impact": 0.83,
+      "times": [
+        36.931,
+        37.396,
+        37.86,
+        38.313,
+        38.777,
+        39.242,
+        39.695,
+        40.171,
+        40.623,
+        41.088,
+        41.552,
+        42.017,
+        42.469,
+        42.922,
+        43.398,
+        43.851,
+        44.78,
+        45.244,
+        45.697,
+        46.161,
+        46.626,
+        47.09,
+        47.543,
+        48.007,
+        48.472,
+        48.936,
+        49.4,
+        49.853,
+        50.318,
+        50.782,
+        51.246,
+        52.164,
+        52.628,
+        53.092,
+        53.545,
+        54.01,
+        54.474,
+        54.938,
+        55.391,
+        55.856,
+        56.32,
+        56.784,
+        57.237,
+        57.702,
+        58.166,
+        58.63
+      ],
+      "reason": "Instrumental finish: retain the actual missing strokes rather than filling a grid."
+    }
+  ]
+}

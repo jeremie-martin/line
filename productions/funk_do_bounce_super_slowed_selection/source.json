@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-14-FUNK DO BOUNCE (Super Slowed).webm",
+  "sha256": "cd74d2a02fbb4d3e57a3586f1a808e04b50bf0523677e83aa9d37c9bc91534d6",
+  "sourceStartSeconds": 60,
+  "sourceEndSeconds": 120,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "9e455e47d696448a0f2f2b794c1f807aae6eef2d2197c449a4afefc1d9afcf0e",
+  "title": "FUNK DO BOUNCE (Super Slowed)",
+  "intent": "Voice-led break, bass-led restart, then actual drums entering much later. Shift the visual lead with the arrangement; finish with the instrumental decay.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "f2904c5bbecff1b762561d060a8b8296b4c1ef78bf4e806a6373227520c67649",
+      "bass": "ae702de93af3acb58e2818c6444ce3c3c4a39e87a3e0c6e9e457aa150b28563d",
+      "vocals": "cd5ddc0643f5378e8c12048ebae7536697546cf3af011ec0fe090eced06158a4",
+      "other": "008969aa57fc3685fb376429d6e130012318d04f58088da82bf776be7fa293d4"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

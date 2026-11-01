@@ -913,8 +913,9 @@ since that is where it failed.
     held-out check did its job here.
 
 ## Next iterations (2026-11-02, autonomous)
-`main` is unchanged by the review and simplify passes (8-seed checks). Two
-lines are running:
+`main` is unchanged by the review and simplify passes. Code review fixes
+f72f16ce and simplify 4198dcb6 both give 782.7 against 782.7 on V7 at 8 seeds,
+all 22 specs unchanged, compute unchanged. Two lines are running:
 
 ### H2. Construction policies, second round
 - **Change.** Collect demonstrations from the compiler now running H's

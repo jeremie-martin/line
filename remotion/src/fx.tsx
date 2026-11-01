@@ -42,6 +42,7 @@ export type TintFX = {
   blend: string;        // multiply | screen | overlay | soft-light | color
 };
 export type VignetteFX = {
+  style?: "radial" | "soft-base"; // soft-base is a fixed, static finishing layer
   strength: number;     // edge darkness 0..1
   rx: number;           // ellipse horizontal radius, % of frame WIDTH (50 = touches L/R edge)
   ry: number;           // ellipse vertical radius, % of frame HEIGHT (50 = touches top/bottom)
@@ -157,6 +158,14 @@ export const TintLayer: React.FC<{ fx: FXConfig; phaseColor?: string; enter: num
 // ── vignette (static + optional impact pulse) ───────────────────────────────────
 export const VignetteLayer: React.FC<{ fx: FXConfig; t: number; contacts: ImpactContact[]; enter: number }> = ({ fx, t, contacts, enter }) => {
   if (!fx.vignette) return null;
+  if (fx.vignette.style === "soft-base") {
+    // Owner-selected A: identical to the live comparison, including compositing.
+    // No entrance animation or impact response; placed above the flash/spectrum.
+    return <AbsoluteFill style={{
+      background: "linear-gradient(to bottom, rgba(20,27,35,.015) 0%, transparent 20%, transparent 54%, rgba(20,27,35,.018) 80%, rgba(20,27,35,.08) 100%)",
+      mixBlendMode: "multiply", pointerEvents: "none",
+    }} />;
+  }
   const cfg = { ...VIGNETTE_DEFAULT, ...fx.vignette };
   // reuse the shake trauma shape (the SHAKE_DEFAULT params) for the pulse term, so the
   // two share one definition of "felt slam". Gate/gain match the impact scale (~0.2–0.45)

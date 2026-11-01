@@ -240,7 +240,7 @@ export async function renderVideo(inp: VideoInput): Promise<string> {
       width: Number(inp.render.res.split("x")[0]), height: Number(inp.render.res.split("x")[1]),
     });
     await stage(name, "[3/3] presentation", () => run("npx", ["remotion", "render", "src/index.ts", "CurveOverlayVertical", outMp4,
-      `--crf=${FINAL_CRF}`, "--jpeg-quality=100", `--props=${props}`, `--public-dir=${renderPublic}`,
+      `--crf=${FINAL_CRF}`, "--jpeg-quality=100", "--color-space=bt709", `--props=${props}`, `--public-dir=${renderPublic}`,
       ...resources], log, join(ROOT, "remotion")),
       () => fileSizeLabel(outMp4));
 

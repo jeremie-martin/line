@@ -866,3 +866,11 @@ missing pairs. Run at most two comparisons at a time.
 B (beam slot) and F (gap-length weighting) are rebuilt on the new `main`.
 The hypotheses are unchanged. F needs the held-out panel at any decision,
 since that is where it failed.
+- **B on H (4 seeds): still parked.**
+  - +1.8 [−3.8, +7.4], 0.81; 15 of 22 specs up (Amour bench-long −6.7);
+    explicit requests +1.4.
+  - Strength flat; strong extra hits −0.004 per beat; body drag +0.13 s/min.
+  - A small, unconfirmed gain on every base so far (+2.8, +3.4, +1.8).
+- Note: a comment edit in `scripts/v0/` changes the compiler's content key,
+  so `main` had to be compiled again. Keep adoption commits to the code
+  that changes.

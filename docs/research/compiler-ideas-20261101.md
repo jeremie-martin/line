@@ -762,3 +762,18 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
   its level is about 30% higher, the future term weighs a little more
   against measured cost. A small effect either way; adopted only if not
   negative, so the artifact matches the compiler it serves.
+- **F rebuilt on D (`exp/gap-weighted-on-d`): not adopted (parked).**
+  - V7, 8 seeds: **+6.3 [+3.8, +8.8], > 0.99**; 17 of 22 specs up.
+    - Air rms −0.007 (P6 −0.028).
+    - Categories: P6 +25.0, P7 +11.1, P1 +7.8, but groove −8.0 (Amor spec
+      −18.1). Explicit requests −4.9. Strong extra hits +0.010 per beat.
+  - Groove and explicit losses are strength first (+5.3e-4 of rms²), then
+    speed (+2.0e-4), against air −2.0e-4.
+  - **Held out: −4.0 [−6.6, −1.4], < 0.01; 4 of 5 specs down**
+    (voice-drums −10.8, Trouble −8.5).
+  - Reading: the V7 gain comes from the long-gap categories; new music
+    behaves like the groove specs and loses. The weighting matches the
+    headline's own exactly (span against impact = gap length against mean),
+    so the loss likely comes from parts tuned on unweighted costs: the
+    learned future estimate and the arrival priors' scale.
+  - To revisit with a value model retrained under this weighting.

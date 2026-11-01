@@ -12,8 +12,8 @@
     },
     {
       "t": 4.4,
-      "name": "SPARSE ANSWERS",
-      "air": 0.65,
+      "name": "DRUMS AND LIGHT ANSWERS",
+      "air": 0.48,
       "speed": 0.58,
       "ease": "hold"
     },
@@ -180,6 +180,19 @@
         39.486
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.3,
+      "times": [
+        5.178,
+        5.735,
+        7.384,
+        7.93,
+        9.567,
+        10.124
+      ],
+      "reason": "Upper instrumental answers complete the call-and-response between drum pairs. Keep the later voice-only breath unfilled."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -187,5 +200,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Apply the owner’s quiet-articulation feedback to the early drum/upper call-and-response; retain the later vocal breath."
 }

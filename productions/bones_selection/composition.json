@@ -12,8 +12,8 @@
     },
     {
       "t": 8.673,
-      "name": "BRIDGE",
-      "air": 0.7,
+      "name": "VOICE WITH BASS ENTRIES",
+      "air": 0.52,
       "speed": 0.45,
       "ease": "hold"
     },
@@ -83,7 +83,6 @@
       "source": "drums",
       "impact": 0.59,
       "times": [
-        16.556,
         16.823,
         17.113
       ],
@@ -101,7 +100,6 @@
         23.673,
         23.928,
         24.462,
-        24.985,
         25.774,
         26.575,
         27.887,
@@ -111,7 +109,6 @@
         32.09,
         32.357,
         32.879,
-        33.402,
         34.191,
         34.992,
         36.304,
@@ -181,6 +178,82 @@
         17.357
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "bass",
+      "impact": 0.48,
+      "times": [
+        8.94,
+        11.041,
+        13.142
+      ],
+      "reason": "Bridge bass entries: distinct low attacks underneath the continuing vocal, introducing the instrumental foundation before the chorus."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.4,
+      "times": [
+        3.042,
+        5.143,
+        14.977,
+        15.65,
+        16.033,
+        16.347
+      ],
+      "reason": "Additional vocal articulations complete the exposed phrases and accelerate the pickup into the drum entrance."
+    },
+    {
+      "source": "drums",
+      "impact": 0.46,
+      "times": [
+        17.879,
+        18.901,
+        19.969,
+        21.049,
+        22.071,
+        23.104,
+        26.285,
+        27.365,
+        28.386,
+        30.523,
+        31.579,
+        34.714,
+        36.815,
+        37.895,
+        38.917,
+        39.996,
+        43.143,
+        45.232,
+        46.289,
+        47.345,
+        48.414,
+        50.26
+      ],
+      "reason": "Recurring secondary percussion strokes articulate the instrumental rhythm between the main hits. Their lower weight preserves the primary drum accents and vocal lead."
+    },
+    {
+      "source": "drums",
+      "impact": 0.5,
+      "times": [
+        24.985
+      ],
+      "reason": "Medium percussion answer: measured peak is lower than the surrounding main strokes, so it should not carry the same impact weight."
+    },
+    {
+      "source": "drums",
+      "impact": 0.5,
+      "times": [
+        33.402
+      ],
+      "reason": "Medium percussion answer: measured peak is lower than the surrounding main strokes, so it should not carry the same impact weight."
+    },
+    {
+      "source": "drums",
+      "impact": 0.43,
+      "times": [
+        16.556
+      ],
+      "reason": "First pickup stroke, leading into the stronger succeeding strokes."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -188,5 +261,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Owner hears missing instrumental gestures. Add the bridge bass and secondary drum pattern while retaining the vocal story and natural ending."
 }

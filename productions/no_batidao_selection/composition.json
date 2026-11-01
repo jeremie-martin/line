@@ -5,9 +5,9 @@
   "phases": [
     {
       "t": 0,
-      "name": "VOICE PICKUP",
-      "air": 0.4,
-      "speed": 0.46,
+      "name": "VOCAL PHRASES",
+      "air": 0.32,
+      "speed": 0.43,
       "ease": "hold"
     },
     {
@@ -51,21 +51,6 @@
       "source": "vocals",
       "impact": 0.43,
       "times": [
-        0.476,
-        0.94,
-        1.393,
-        1.858,
-        2.09,
-        2.786,
-        3.262,
-        3.68,
-        4.389,
-        4.632,
-        5.097,
-        5.492,
-        5.782,
-        6.258,
-        6.664,
         7.396
       ],
       "reason": "A compact vocal pickup before the percussion enters."
@@ -232,6 +217,44 @@
         36.931
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "sung",
+      "impact": 0.44,
+      "times": [
+        0.488,
+        0.952,
+        1.869,
+        2.798,
+        3.68,
+        4.632,
+        6.467
+      ],
+      "reason": "Clearer acoustic vocal attacks anchor the opening phrases. These are measured articulation estimates, not verified word boundaries."
+    },
+    {
+      "source": "sung",
+      "impact": 0.32,
+      "times": [
+        1.416,
+        2.101,
+        2.984,
+        3.274,
+        5.097,
+        5.352,
+        5.793,
+        6.026,
+        6.966
+      ],
+      "reason": "Lighter vocal turns complete the phrases between anchors. Replace the earlier near-even raw-onset selection, notably the misleading 6.258/6.664 continuations."
+    },
+    {
+      "source": "other",
+      "impact": 0.45,
+      "times": [
+        14.78
+      ],
+      "reason": "Distinct upper-instrument stab bridges the drum build and bass arrival, giving the transition a clear intermediate gesture."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -239,5 +262,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Owner hears unclear voice following in the opening. Recompose from the vocal attack estimates with phrase accents and lighter turns; preserve the later staged instrumental return. Add the distinct pre-bass instrumental stab."
 }

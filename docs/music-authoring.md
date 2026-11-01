@@ -657,3 +657,46 @@ VPN collection:
 
 Alternate seeds:
 `http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-review/all-candidates.json`
+
+
+### Second listening pass: quieter articulation and clearer leads
+
+The owner's listening feedback changes the authoring emphasis: quiet does not
+mean featureless. Follow distinct secondary percussion and upper-instrument
+figures with gentle impacts; retain deliberate space and a clear foreground.
+The original collection remains intact for comparison. No compiler, detector,
+benchmark, audio timing or scoring-contract change is part of this revision.
+
+The author revisited all 22 compositions. One read-only reviewer checked
+analogous opportunities in other songs; its suggestions were checked against
+source-specific peak/rise evidence. Neither review claims auditory access.
+In particular, a previously suggested Dernière closing "drum roll" is actually
+represented in the other-instrument stem: it is authored as such. Low rise alone
+is not a reason to reject a vocal gesture, and high peak alone does not identify
+a new attack. A one-off inspection table now displays both, plus the nearest
+existing contact, avoiding the earlier peak/rise ambiguity.
+
+| Recording | Decision |
+|---|---|
+| LOS VOLTAJE | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| LUNA BALA (Slowed) | Extend the ambition of the Luna reading into the instrumental body, without filling the genuinely empty early break. |
+| MONTAGEM TOMADA (Slowed) | Apply the owner’s quiet-articulation feedback to the early drum/upper call-and-response; retain the later vocal breath. |
+| Amor Na Praia | Owner requests more gentle distinct opening beats. Preserve the later full return; give the quiet instrumental figure its own lighter movement. |
+| LOS VOLTAJE (Slowed) | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| FUNK ESTRANHO (Super Slowed) | Owner wants more ambition from 10.8 s: foreground the increasingly articulated upper figure, then voice and the strong bass return. |
+| PASSO BEM SOLTO (Slowed) | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| MXZI — MONTAGEM TOMADA (Extended) | Retain: successful two-return story and upper-figure breath. The shorter variants gain early replies, not a blanket change across every version. |
+| LUNA BALA | Owner requests more ambition overall: distinct upper and bass counter-rhythms across the bodies, clearer opening melodic turn, and an intact vocal break before the last return. |
+| MONTAGEM TOMADA (Super Slowed) | Revisit the opening counterpart of the Slowed call-and-response. Keep the later vocal breath and strong return. |
+| PASSO BEM SOLTO | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| LOS VOLTAJE (Ultra Slowed) | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| PASSO BEM SOLTO (Super Slowed) | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| FUNK DO BOUNCE (Super Slowed) | Retain the changing voice/bass/drum/upper leads; acknowledge one quiet pickup while preserving the suspension. |
+| Dernière danse × Montagem Coral | Preserve the sustained vocal ride; give the closing instrumental phrase its two clear accents and a softer final reply. |
+| ANDROMEDA — MONTAGEM COMA | Owner identifies a light but distinctive 9.5–19 s passage. Rebalance its upper figure and quiet details, preserving the clear vocal calls and eventual drum return. |
+| NO BATIDÃO | Owner hears unclear voice following in the opening. Recompose from the vocal attack estimates with phrase accents and lighter turns; preserve the later staged instrumental return. Add the distinct pre-bass instrumental stab. |
+| NO BATIDÃO (Slowed) | Preserve the drum-led opening of this different excerpt. Add the distinct pre-bass instrumental stab. |
+| LUA NA PRAÇA | Retain exactly: owner praises the long central ride and overall interpretation. No new contacts in the quiet middle. |
+| Chris Grey — LET THE WORLD BURN | Retain the dramatic chorus and voice-alone ending, completing two supported articulations in the final exposed phrases. |
+| Bones | Owner hears missing instrumental gestures. Add the bridge bass and secondary drum pattern while retaining the vocal story and natural ending. |
+| Petrunko | Retain exactly: owner describes it as perfect; instrumental reading and suspension are coherent. |

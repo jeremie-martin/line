@@ -25,10 +25,10 @@
       "ease": "hold"
     },
     {
-      "t": 12.841,
-      "name": "PERCUSSION BUILD",
-      "air": 0.4,
-      "speed": 0.5,
+      "t": 12.434,
+      "name": "UPPER FIGURE BUILD",
+      "air": 0.38,
+      "speed": 0.56,
       "ease": "smooth"
     },
     {
@@ -80,11 +80,7 @@
         3.379,
         7.895,
         9.033,
-        10.159,
-        10.728,
-        11.297,
-        11.865,
-        12.434
+        10.159
       ],
       "reason": "The upper figure leads out of the break; label it instrumental, not a proven voice."
     },
@@ -92,14 +88,6 @@
       "source": "drums",
       "impact": 0.44,
       "times": [
-        12.841,
-        13.282,
-        13.839,
-        14.129,
-        15.116,
-        15.534,
-        16.091,
-        16.382,
         17.369,
         17.798,
         18.646,
@@ -115,13 +103,10 @@
       "impact": 0.48,
       "times": [
         16.962,
-        17.136,
         18.088,
-        18.274,
         19.226,
         19.783,
-        20.352,
-        21.002
+        20.352
       ],
       "reason": "The brief exposed vocal pickup remains distinct from drum answers."
     },
@@ -201,6 +186,97 @@
         21.49
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.43,
+      "times": [
+        10.728
+      ],
+      "reason": "The upper instrumental figure becomes the lead as its subdivision develops."
+    },
+    {
+      "source": "other",
+      "impact": 0.43,
+      "times": [
+        11.297
+      ],
+      "reason": "The upper instrumental figure becomes the lead as its subdivision develops."
+    },
+    {
+      "source": "other",
+      "impact": 0.43,
+      "times": [
+        11.865
+      ],
+      "reason": "The upper instrumental figure becomes the lead as its subdivision develops."
+    },
+    {
+      "source": "other",
+      "impact": 0.59,
+      "times": [
+        12.434
+      ],
+      "reason": "Prominent upper-figure accent launches the busier instrumental phrase."
+    },
+    {
+      "source": "other",
+      "impact": 0.36,
+      "times": [
+        11.587,
+        12.144,
+        12.992,
+        13.27,
+        13.839,
+        14.408,
+        15.256,
+        15.534,
+        16.103,
+        16.382
+      ],
+      "reason": "Light articulated replies of the developing upper figure, including the previously omitted subdivisions."
+    },
+    {
+      "source": "other",
+      "impact": 0.59,
+      "times": [
+        13.56,
+        14.687,
+        15.813
+      ],
+      "reason": "Repeated prominent upper-figure attacks give the build a recognizable melodic rhythm, rather than following only the quieter drums."
+    },
+    {
+      "source": "other",
+      "impact": 0.5,
+      "times": [
+        14.118
+      ],
+      "reason": "Accented upper-instrument answer supported by percussion."
+    },
+    {
+      "source": "drums",
+      "impact": 0.62,
+      "times": [
+        20.91
+      ],
+      "reason": "The stronger closing percussion attack completes the pickup into the bass return; it replaces the nearby vocal estimate rather than doubling the same mixed gesture."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.31,
+      "times": [
+        17.136
+      ],
+      "reason": "Lighter vocal continuation after the accented phrase entrance."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.31,
+      "times": [
+        18.274
+      ],
+      "reason": "Lighter vocal continuation after the accented phrase entrance."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -208,5 +284,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Owner wants more ambition from 10.8 s: foreground the increasingly articulated upper figure, then voice and the strong bass return."
 }

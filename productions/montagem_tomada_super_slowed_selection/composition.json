@@ -5,8 +5,8 @@
   "phases": [
     {
       "t": 0,
-      "name": "SPARSE DRUMS",
-      "air": 0.72,
+      "name": "LIGHT FIGURE AND DRUM ANSWERS",
+      "air": 0.5,
       "speed": 0.52,
       "ease": "hold"
     },
@@ -172,6 +172,18 @@
         37.013
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.29,
+      "times": [
+        0.511,
+        0.975,
+        1.591,
+        3.437,
+        4.063
+      ],
+      "reason": "The opening upper figure answers the drum pairs with gentle contacts; it is an articulated opening, unlike the later held vocal breath."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -179,5 +191,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Revisit the opening counterpart of the Slowed call-and-response. Keep the later vocal breath and strong return."
 }

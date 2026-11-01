@@ -6,7 +6,7 @@
  *
  *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=44] [--rounds=N]
  *                          [--mode=strike3] [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
- *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing)
+ *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
  *   npm run compare -- reference set NAME [--from=REF] [--note=TEXT] | reference list
@@ -236,10 +236,12 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
     `  coverage: ${cov.matched.length}/${s.cases.length} matched pairs; complete rounds ${cov.complete}/${cov.rounds}; by category ${cov.byCat.join(' · ')}`,
     ...(full ? [] : [`  outstanding: candidate ${cov.outstanding.candidate}, reference ${cov.outstanding.reference} rides; resume with the same command`]), '');
   if (!cov.matched.length) return [...out, 'No matched pairs yet.'];
-  const evenly = cov.inComplete.length === cov.matched.length;
-  if (!full && cov.complete && !evenly)
-    out.push(`Evidence on the ${cov.complete} complete round(s) only (${cov.inComplete.length} pairs, the panel evenly):`, ...evidenceLines(evidence(s, cells, cov.inComplete)), '');
-  out.push(`Evidence on ${full ? 'the whole panel' : evenly ? `the ${cov.complete} complete round(s) (${cov.matched.length} pairs, the panel evenly)`
+  // "Evenly": the comparable seed blocks, rounds that cover every spec.
+  const rs = rounds(s.cases), even = comparableBlocks(s.cases, cov.done), evenIds = even.flatMap(k => rs[k].map(c => c.id));
+  const evenly = evenIds.length === cov.matched.length;
+  if (!full && even.length && !evenly)
+    out.push(`Evidence on the ${even.length} complete round(s) that cover every spec (${evenIds.length} pairs, the panel evenly):`, ...evidenceLines(evidence(s, cells, evenIds)), '');
+  out.push(`Evidence on ${full ? 'the whole panel' : evenly ? `the ${even.length} complete round(s) (${cov.matched.length} pairs, the panel evenly)`
     : `all ${cov.matched.length} matched pairs (categories unevenly covered)`}:`, ...evidenceLines(evidence(s, cells, cov.matched)),
     ...uncertaintyLines(blockUncertainty(s, cells)), '');
   const moved = cov.matched.map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
@@ -249,6 +251,8 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
   out.push('Detail (the stratified report on the matched pairs; A = candidate, B = reference):', '');
   return [...out, ...stratifiedReport(runOf(s, 'candidate', cells.candidate, cov.matched), runOf(s, 'reference', cells.reference, cov.matched), 'candidate', s.reference.name)];
 }
+/** The report up to its detail section: what to read first. */
+const summaryOf = (lines: string[]) => lines.slice(0, Math.max(0, lines.findIndex(l => l.startsWith('Detail ('))) || lines.length);
 function saveReport(s: Selection, lines: string[]) {
   const dir = resolve('generated/eval/compare', s.name);
   mkdirSync(dir, {recursive: true}); writeFileSync(join(dir, 'report.txt'), lines.join('\n') + '\n');
@@ -307,9 +311,9 @@ async function run() {
     }));
   } finally {for (const r of releases) r();}
   const lines = report(s, cells, notes);
-  console.log('\n' + lines.join('\n'));
+  console.log('\n' + summaryOf(lines).join('\n'));
   if (failures.length) console.log(`\n${failures.length} rides failed to compile (not results; fix and resume):\n${failures.join('\n')}`);
-  console.log(`\nreport saved: ${saveReport(s, lines)}`);
+  console.log(`\nfull report (with the detail): ${saveReport(s, lines)}`);
   if (stopping) process.exitCode = 130;
   else if (failures.length) process.exitCode = 1;
 }
@@ -390,7 +394,11 @@ async function main() {
   const command = process.argv[2];
   if (command === 'worker') return worker();
   if (command === 'run') return run();
-  if (command === 'report') {const s = await select(), {cells, notes} = await loadState(s), lines = report(s, cells, notes); console.log(lines.join('\n')); console.log(`\nreport saved: ${saveReport(s, lines)}`); return;}
+  if (command === 'report') {
+    const s = await select(), {cells, notes} = await loadState(s), lines = report(s, cells, notes);
+    console.log((flag('detail') ? lines : summaryOf(lines)).join('\n'));
+    console.log(`\nfull report (with the detail): ${saveReport(s, lines)}`); return;
+  }
   if (command === 'rides') return rides();
   if (command === 'reference' && process.argv[3] === 'set') {
     const name = process.argv[4], commit = resolveCommit(arg('from', 'HEAD')!);

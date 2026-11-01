@@ -67,9 +67,16 @@ npm run compare -- rides  --reference=main --candidate=<branch>          # most-
   once. Do not watch a log with `tail -f | grep`, which does not exit.
 - **Branches:** a candidate branch must start from the reference's commit.
   Otherwise the comparison mixes changes.
+- **Other builds:** a commit is compiled with this checkout's built engine and
+  `node_modules`. A commit with another engine source or lockfile is refused
+  rather than compiled with the wrong build.
 - Several comparisons against the same saved reference can run at once.
 
 ## Reading a report
+
+The console shows the summary (items 1–3) and the path of the full report,
+`generated/eval/compare/<name>/report.txt`, which adds the detail (item 4).
+`report --detail` prints everything.
 
 1. **Header:**
    - provenance: commits, compiler content, engine, measurement code and

@@ -117,7 +117,7 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
   out.push(`${a.run.panelName} — A = ${nameA}${b ? `, B = ${nameB}; differences are A − B, paired by case` : ''}`,
     `compiler A ${who(a)}${b ? `, B ${who(b)}` : ''}; evaluator ${a.run.evaluator.slice(0, 12)}; ${a.run.panel.length} cases`,
     'Strata weigh equally. Within a stratum each spec weighs equally; seeds are averaged.',
-    'No intervals: per spec, seed signs (+ A higher, − A lower, = identical) over cells complete in both arms.', '');
+    'Per spec: seed signs (+ A higher, − A lower, = identical) over cells complete in both arms; no per-spec intervals.', '');
   const strataNames = r.strata.map(s => s.stratum), ha = headline(a, strataNames), hb = b ? headline(b, strataNames) : undefined;
   const fmt = (x: number) => Number.isFinite(x) ? x.toFixed(2) : 'not recorded', cols = ha.counted;
   const row = (label: string, f: (s: string) => number, h: number, c: number, e: number) =>

@@ -42,8 +42,14 @@ export function compilerContent(root: string) {
   const key = digest({trees, dirtySha256, engineSha256});
   return {key, head, clean: dirtySha256 === EMPTY, dirtySha256, engineSha256};
 }
-/** Content of a commit, without checking it out. */
+/** Content of a commit, without checking it out. A commit is compiled from a
+ * worktree with this checkout's built engine and node_modules, so it must have
+ * the same engine source and lockfile; otherwise its rides would mix versions. */
 export function commitContent(commit: string, engineSha256: string) {
+  const same = (path: string) => git('.', 'rev-parse', `${commit}:${path}`).toString().trim() === git('.', 'rev-parse', `HEAD:${path}`).toString().trim()
+    && git('.', 'status', '--porcelain', '--', path).toString().trim() === '';
+  for (const path of ['engine-rs/src', 'package-lock.json'])
+    assert.ok(same(path), `${commit.slice(0, 8)} has another ${path} than this checkout's build; it cannot be compiled faithfully here (check out and build it, or compare within one build)`);
   const trees = Object.fromEntries(COMPILER_PATHS.map(p => [p, git('.', 'rev-parse', `${commit}:${p}`).toString().trim()]));
   return {key: digest({trees, dirtySha256: EMPTY, engineSha256}), head: commit, clean: true, dirtySha256: EMPTY, engineSha256};
 }

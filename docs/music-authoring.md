@@ -332,3 +332,93 @@ landmarks, band silence/gain behavior and timing at all three window sizes.
 
 Exploratory ASR, alignment and external-reference findings are recorded in
 [the sung-notes research log](research/sung-notes-20261031.md#november-1-external-reference-experiments).
+
+## Circus voice + drums specification
+
+`productions/circus_minimus_77s/variants/voice-drums.ts` is the owner-approved voice-and-drums variant,
+leaving the preferred spec and previous voice-led draft intact. It changes only
+38.4–47.5 s: vocal articulations provide the phrase, percussion-only events fill
+rhythmic positions, and close voice/drum pairs share a firmer drum contact. Bass
+is not a selector. Each of the 39 contacts records its measured source and role;
+one sung-only event at 42.632 s supplements the source-event data. A drum label
+does not prove a sung word. No synthetic grid or minimum compiler spacing is used.
+
+The author had already seen the owner's notes: this is **not a blind test**.
+The draft was hashed before the note comparison and was not retuned afterward.
+Ordered one-to-one matching against 39 approximate marks gave:
+
+| Tolerance | Previous voice-led | New voice + drums |
+| --- | ---: | ---: |
+| 30 ms | 10 | 28 |
+| 50 ms | 16 | 36 |
+| 80 ms | 24 | 39 |
+
+The previous draft had 24 contacts in this interval; the new one has 39. At
+80 ms every new contact and mark participates in exactly one match. The marks
+are non-exhaustive: unmatched contacts at narrower tolerances are not necessarily
+false positives. This correspondence does not establish perceptual quality,
+statistical significance, generalization, or compiler feasibility. Strengths are
+authored (vocal-only roughly 0.48–0.62, drum/shared 0.62–0.78) and were subsequently reviewed through the generated video below. This
+annotation comparison alone does not establish compiler feasibility.
+
+The existing spec dashboard loads this variant for click audition at reduced
+speed. The frozen hash, source contacts, comparison script and complete pairings
+are local under `generated/circus-voice-review/voice-drums/`.
+
+Generation follow-up: four standard-budget seeds (101/202/303/404), then 101 and
+404 at twice the allowance, all completed the full 77.09-second song under the
+current strike-v3 account and fulfilled their construction plans. All six matched
+39/39 hook targets; this is evaluator matching, not proof of perceptually strong
+hits. The larger allowance did not improve hook strength error. All outcomes
+remain in `generated/circus-voice-review/voice-drums/collection.json` with saved
+compiler/input identities; the specification and original playback speed were
+unchanged.
+
+The initial six-run review suggested seed 404 at standard budget: hook
+mean absolute timing offset 21.2 ms relative to quantized/jolt-adjusted compiler
+targets (maximum 50 ms), two extra detected hook impacts, mean achieved strength
+0.381 versus 0.615 requested. Eleven of 39 hook hits measure below 0.25. Shared
+voice/drum contacts average 0.592 achieved versus 0.715 requested; vocal-only
+contacts 0.284 versus 0.544. This is a useful compiler test case, not a claim of
+finished musical quality. The older landing ruler does not validate these rides;
+its results are preserved alongside the current account in the generation summary.
+`generation-summary.json` now retains all twelve outcomes and the exploratory selection
+policy; `seed-404-hook.json` records each authored target and realized event.
+
+Vertical-video follow-up: six fresh seeds (505/606/707/808/909/1001) at 7,917,750
+frames completed, bringing the exploratory set to 12 runs across allowances of
+5,278,500 / 7,917,750 / 10,557,000 frames. Actual work remained 4.79–5.00 million
+frames. None of the fresh runs improved hook strength RMS; seed 101 at standard
+budget was selected for the video on that criterion (404 retains the better
+overall score). Selection and all outcomes are preserved in `video-selection.json`.
+
+The existing production pipeline rendered 1080×1920 at 60 fps with its established
+camera, spectrum and effects. The master and 11-second hook excerpt are available
+as `vertical.mp4` and `hook.mp4` in the collection folder. Sample frames were
+inspected, full decoding checked, and direct VPN playback/seeking exercised.
+
+Audio QA found a constant ~42.6 ms lag in the initial rendered master relative to
+the original recording. A final mux of the original audio repaired the delivered
+master without changing its encoded video packets. Three independent 5-second
+windows at 5/39/68 seconds then showed zero best lag at 8 kHz and correlations
+above 0.99. Original render metadata/full video are retained; the current video
+sidecar records the explicit audio repair and points to `video-aligned.mp4`.
+The bundle and dashboard use that aligned master, and excerpts were regenerated.
+This is an artifact repair, not a general pipeline fix: the precise stage causing
+the original delay has not been isolated. See `audio-lag-check.json`,
+`audio-aligned-check.json`, and the video sidecar's `audioRemux` field.
+
+The owner accepted the voice-and-drums specification after watching the final
+video. It remains a separately named variant: the default and benchmark specs
+are unchanged. `notes.json` preserves the original approximate listening marks.
+Generated media and run artifacts remain local, outside Git; the committed
+specification, source evidence and tests preserve the authoring work.
+
+Integration check after rebasing onto `44c00256` (`rework/foundations`):
+335 TypeScript tests and 11 Python tests passed, as did type checking,
+reachability, the five-song browser checks, listening controls and judge parity
+(33 tracks). Compile parity still differs from 44 committed references. A fresh
+63-cell compile on the untouched upstream checkout produced exactly the same
+track hashes and physical-frame counts as this branch in every cell, using the
+rebuilt WASM engine. These are pre-existing reference mismatches; no reference
+fixtures were changed. The accepted spec still matches its pre-generation hash.

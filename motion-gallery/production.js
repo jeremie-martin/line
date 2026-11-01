@@ -42,7 +42,7 @@ async function verifiedAudio(c,signal){
  return blob;
 }
 function pause(){playRequest++;starting=false;const at=music.pause();if(playing)seconds=at;playing=false;$('play').textContent='Play';}
-async function start(){const request=++playRequest;starting=true;$('play').textContent='Pause';try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').value);if(request!==playRequest)return;starting=false;playing=true;}catch(e){if(request!==playRequest)return;starting=false;playing=false;$('play').textContent='Play';status(e.message,true);}}
+async function start(){const request=++playRequest;starting=true;$('play').textContent='Pause';try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').querySelector('input:checked').value);if(request!==playRequest)return;starting=false;playing=true;}catch(e){if(request!==playRequest)return;starting=false;playing=false;$('play').textContent='Play';status(e.message,true);}}
 function togglePlayback(){playing||starting?pause():start();}
 
 function draw(){
@@ -82,7 +82,7 @@ async function comparisonChanged(){
 }
 $('comparison').onchange=comparisonChanged;
 document.querySelector('header a[href="#generation"]').onclick=()=>{$('generation').open=true;};
-$('format').onchange=()=>{$('rides').dataset.format=$('format').value;draw();};
+$('format').onchange=()=>{$('rides').dataset.format=$('format').querySelector('input:checked').value;draw();};
 // Each frame shows the ride at the music position heard when the frame is on screen.
 function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max){pause();seek(+$('seek').max);}draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 $('play').onclick=event=>{togglePlayback();if(event.detail)$('result').focus({preventScroll:true});};

@@ -83,7 +83,7 @@ export function installPlaybackProbe({panel = false, maxFrames = 18000} = {}) {
     callback(ts);
     if (!active || callback.name !== 'tick') return;
     capture.frames.push({ts, entered, cost: now() - entered, playing, pose, audio, visible: w.document.visibilityState,
-      rate: Number(w.document.getElementById('rate')?.value ?? 1)});
+      rate: Number(w.document.getElementById('rate')?.querySelector?.('input:checked')?.value ?? w.document.getElementById('rate')?.value ?? 1)});
     if (capture.frames.length >= maxFrames) {capture.limitReached = true; api.stop();}
   });
   w.requestAnimationFrame = wrapped;

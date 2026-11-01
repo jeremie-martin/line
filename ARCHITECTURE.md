@@ -92,7 +92,7 @@ spec (beats, impacts, air/speed/amplitude targets)
    landing clicks and by the grading page). The camera is the videos' own follower
    centred on the mean of the ten traced points
    (`scripts/gallery/native/camera.js`). Production viewports are responsive
-   16:9 or 9:16 canvases, selected with Format (default horizontal, zoom 1.6).
+   16:9 or 9:16 canvases, selected with Format (default horizontal, zoom 2.0).
    Portrait previews fit within 72% of viewport height. Native replay is prepared in a worker before playback;
    drawing interpolates the saved poses and uses the native renderer's cached
    sprite atlas rather than rasterizing SVG body parts on every refresh.
@@ -102,6 +102,13 @@ spec (beats, impacts, air/speed/amplitude targets)
    it requires ffmpeg/ffprobe. Sources and study manifests are unchanged.
    Soundtrack switches reload the shared picture at the current position;
    playback has no follower, drift corrections, or JS loop seeks.
+   One-click native radio groups select speed and format. The watch area keeps
+   musical impacts visible beside the rider on desktop and immediately below it
+   on smaller screens: a whole-ride overview plus a fixed eight-second window
+   around playback, both seeking on the same player. The detail window rebuilds
+   only at window boundaries or resize; cursors update during playback. Existing
+   target/response values are unchanged. Explanations and the event table stay
+   in a separate collapsed measurements section.
    The review page preserves collection-authored titles and descriptions when
    opening rides, highlights the selected entry, and offers search and Previous/
    Next navigation. Generation controls are collapsed below the collection.

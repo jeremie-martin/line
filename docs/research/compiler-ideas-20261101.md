@@ -825,3 +825,16 @@ and H (retrained construction policies) were running together. They were
 stopped when the machine ran low on memory, so there are no results yet.
 Rides compiled before the stop are saved, and a rerun compiles only the
 missing pairs. Run at most two comparisons at a time.
+
+### Reruns after the memory stop
+- **G2, retrained value model at a level-matched weight (0.35): negative.**
+  - −2.1 [−8.2, +3.9], 0.17; 17 of 22 specs down; explicit requests −8.1.
+  - Even level-matched, the retrained model does worse on V7 than the
+    October one. **The October value model stays.**
+- **J, strong-ask effort (4 seeds):** +1.5 [+0.3, +2.6], 0.99, every block
+  positive; 11 specs up, 11 down; explicit requests +5.4.
+  - Very-strong bias +0.009, strong bias +0.003: the predicted direction,
+    small.
+  - **Physics frames +0.26M per ride (+9%).** The allowance was not
+    binding, so the extra effort adds work rather than moving it.
+  - Extending to 8 seeds.

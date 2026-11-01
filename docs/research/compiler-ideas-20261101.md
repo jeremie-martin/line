@@ -818,3 +818,10 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
   and air at equal frames. October's rebuild was worth impact loss −0.007
   and air rms −0.005. Expect a smaller effect, since the compiler has
   changed less since than between V6 and v3.
+
+### Status at the end of the session (2026-11-01, late)
+J (strong-ask effort), G2 (retrained value model at a level-matched weight)
+and H (retrained construction policies) were running together. They were
+stopped when the machine ran low on memory, so there are no results yet.
+Rides compiled before the stop are saved, and a rerun compiles only the
+missing pairs. Run at most two comparisons at a time.

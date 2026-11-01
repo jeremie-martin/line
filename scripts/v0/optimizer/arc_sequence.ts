@@ -15,7 +15,7 @@ const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
  * chosen now and then: each offer's rank is perturbed by Gumbel noise of this
  * scale, which samples the kept prefixes with probability falling smoothly as
  * exp(−Δcost / CHOICE_SCALE). 0.02 ≈ missing one hit's strength by 0.1. */
-const CHOICE_SCALE = .02;
+const CHOICE_SCALE = 0;
 const gumbel = (random: () => number) => -Math.log(-Math.log(Math.max(1e-12, random())));
 
 /** A free gap (request.free, the neutral plain-arcs request) is searched with

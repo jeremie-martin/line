@@ -302,7 +302,11 @@ async function run() {
   // Roots only when something must be compiled: a worktree per commit, this checkout for `.`.
   for (const side of ['candidate', 'reference'] as const) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
   // Only an arm that will be written is locked: a fully saved reference serves any number of comparisons at once.
-  const releases = [...new Set((['candidate', 'reference'] as const).filter(side => missing[side].length).map(side => s.arms[side].dir))].map(d => lockArtifacts(d));
+  // If a second arm is already owned, give back the first before failing.
+  const releases: Array<() => void> = [];
+  try {
+    for (const d of new Set((['candidate', 'reference'] as const).filter(side => missing[side].length).map(side => s.arms[side].dir))) releases.push(lockArtifacts(d));
+  } catch (e) {for (const r of releases) r(); throw e;}
   const rs = rounds(s.cases).slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
   for (const r of rs) for (const c of r) for (const side of ['candidate', 'reference'] as const) if (missing[side].some(m => m.id === c.id)) queue.push({side, c});
   const announced = new Set<number>(coverage(s, cells).done);

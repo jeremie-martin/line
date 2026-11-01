@@ -233,9 +233,12 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
 }
 
 /** How much of the steep, kinetic arrival prior applies before a catch asked
- * at `ask`: from `steepArrivalFrom` on, all of it. */
+ * at `ask`: a smooth step centred on `steepArrivalFrom`, none 0.2 below it,
+ * all of it 0.2 above. */
 export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | undefined) {
-  return search?.steepArrivalFrom !== undefined && ask >= search.steepArrivalFrom ? 1 : 0;
+  if (search?.steepArrivalFrom === undefined) return 0;
+  const t = Math.max(0, Math.min(1, (ask - search.steepArrivalFrom + .2) / .4));
+  return t * t * (3 - 2 * t);
 }
 
 /** Arrival speed and heading priors toward the next catch, and (in repair)

@@ -62,3 +62,24 @@ Rules for the night:
   used.
 - **Adopted** in a clean version (no transfer draw): bench +22.4. Disclosed:
   transfer receivers are gone, and 5.65 vs 5.93 distinct families per ride.
+
+### 00:55–02:10: confirmation, cleanliness, compute
+- **Rides for the owner:** seven specs before the night and now
+  (`/generated/overnight-compare/collection.json`): the usual Luna, Tiki and
+  Amor specs, plus Trouble, Valhalla and Circus pairs3/pairs4.
+- **Final numbers, start of night vs now** (the merged compiler, every panel,
+  no ride lost): bench 716 → 739 (+22.8), pairs8 739 → 772 (+33.2), confirm
+  717 → 739 (+22.2), sealed 722 → 734 (+12.3; the sealed long ride −22.9),
+  held out 660 → 733 (+73.4, 16/16). Strong stray hits are down 0.023–0.032
+  per beat, and v3 is better everywhere.
+- **Stray hits ≥ 0.1 per beat:** 0.084 → 0.036; plain arcs give 0.005. What
+  remains is mostly in shaped sections, within 12 frames of a beat. Whether
+  the owner sees these is what his visibility study answers.
+- **Untouched-guide trim: a no-op.** The compiler already prunes a guide it
+  does not use, so offered-but-unused guides leave no lines.
+- **Allowance study** (bench headline, every cell complete): ¼× 644, ½× 707,
+  1× 739, 2× 739. At 2× the search barely spends the extra, because the
+  per-section effort is capped at 1.
+- **Uncapped effort:** 1× −2.4 (noise), 2× +7.8. Diminishing returns; not
+  adopted. Today's allowance is near the knee: halving it costs 32 points,
+  doubling it gains about 8.

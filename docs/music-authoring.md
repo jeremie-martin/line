@@ -700,3 +700,82 @@ existing contact, avoiding the earlier peak/rise ambiguity.
 | Chris Grey — LET THE WORLD BURN | Retain the dramatic chorus and voice-alone ending, completing two supported articulations in the final exposed phrases. |
 | Bones | Owner hears missing instrumental gestures. Add the bridge bass and secondary drum pattern while retaining the vocal story and natural ending. |
 | Petrunko | Retain exactly: owner describes it as perfect; instrumental reading and suspension are coherent. |
+
+
+Second-pass generation used three standard-budget seeds (101, 202, 303) per
+recording, plus two double-budget attempts for the denser original Luna. All 68
+attempts completed and qualified with no missing requested contacts. Larger
+budget did not improve Luna: standard seed 202 remains the closest of the five,
+with normalized strength RMS 0.215. This is a remaining realization limitation,
+not grounds to weaken the musical request or claim perfect synchronization.
+
+All nine unchanged interpretations reproduce the previous selected track hashes
+exactly. The old collection is preserved. Selection considers timing, requested
+strength, extra knocks and the authored motion; it is not automatic headline
+maximization. The full candidate records and reasons remain under
+`generated/music-library-round2/{results,choices,selection}.json`.
+
+| Recording | Selected seed |
+|---|---|
+| LOS VOLTAJE | 202 |
+| LUNA BALA (Slowed) | 202 |
+| MONTAGEM TOMADA (Slowed) | 101 |
+| Amor Na Praia | 202 |
+| LOS VOLTAJE (Slowed) | 101 |
+| FUNK ESTRANHO (Super Slowed) | 101 |
+| PASSO BEM SOLTO (Slowed) | 202 |
+| MXZI — MONTAGEM TOMADA (Extended) | 202 |
+| LUNA BALA | 202 |
+| MONTAGEM TOMADA (Super Slowed) | 101 |
+| PASSO BEM SOLTO | 202 |
+| LOS VOLTAJE (Ultra Slowed) | 303 |
+| PASSO BEM SOLTO (Super Slowed) | 202 |
+| FUNK DO BOUNCE (Super Slowed) | 202 |
+| Dernière danse × Montagem Coral | 202 |
+| ANDROMEDA — MONTAGEM COMA | 101 |
+| NO BATIDÃO | 101 |
+| NO BATIDÃO (Slowed) | 101 |
+| LUA NA PRAÇA | 101 |
+| Chris Grey — LET THE WORLD BURN | 101 |
+| Bones | 202 |
+| Petrunko | 202 |
+
+The export review exposed a real reporting mismatch: the production video
+overlay still replayed the retired impact ruler. It now reads the verified saved
+current impact account, preserves its one-to-one matches and missing contacts,
+and times effects from measured onsets. No new detection or matching occurs
+during rendering. Current normalized strength is never presented as legacy raw
+px/frame. Standalone historical rendering retains its explicitly labeled ruler.
+Three focused tests cover matches, invalid references and effect onset.
+
+Validation: 362 tests across 83 files pass; type checking passes; reachability
+reports 314 live files and zero unreachable files. Judge parity passes all 33
+tracks. Compile parity retains the existing 47 saved-reference mismatches, but
+all 63 actual track hashes and physical-frame counts exactly match the retained
+pre-change compiler baseline. No parity references were updated.
+
+All 22 native players and specification dashboards exercised playback without
+JavaScript errors. The served specifications match the edited contact times and
+strengths exactly. Browser checks and source evidence support the review; they
+do not replace the owner's listening judgment.
+
+All 22 selected rides now have full 1080 × 1920, 60 fps vertical videos through
+the established camera, spectrum and effects recipe. Each full video and excerpt
+passed stream checks and complete decoding; saved track/input identities and
+video checksums were verified. All 22 finished videos play in the phone-sized
+dashboard without JavaScript errors or horizontal overflow. Early and late
+sample frames were inspected for every video; these are visual spot checks, not
+a claim of full auditory review.
+
+Second-pass collection (native tracks and finished-video downloads):
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-round2/collection.json`
+
+The specification dashboard serves the revised compositions at their existing
+paths, for example `/spec-dashboard/?spec=productions/bones_selection/spec.ts`.
+The original collection remains at `/generated/music-library-review/collection.json`.
+
+Render timing evidence is retained in `generated/music-library-round2/render-timings.json`.
+Under the concurrent batch load (up to six render jobs, three Remotion workers
+each), median native ride rendering was 239.5 s and compositing was 710.5 s.
+Muxing and overlay-data preparation each took under a second at the median.
+These are not isolated single-video latency measurements.

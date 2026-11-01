@@ -130,14 +130,14 @@ export function proposeOpposingEntries(s: IntervalSearch) {
         ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})})) work.viable++;
       if (k % 8 === 7) retainSearch(s);
     }
-    // Flush catches from above: a line along the rider's top edge (its two
-    // receivers nearest a surface above, in travel order) meets both at once,
-    // so the push builds in one frame instead of spreading as the body follows.
-    const flush = flushEntry(Object.values(s.trace), incoming);
-    for (let k = 0; flush !== undefined && k < FLUSH_PROPOSALS; k++) {
+    // Flush catches from above: a line along an upper edge of the rider's
+    // outline meets both of its points at once (a sled point and the back,
+    // say), so the push builds in one frame instead of spreading.
+    const edges = upperOutlineEntries(Object.values(s.trace), incoming);
+    for (let k = 0; edges.length && k < FLUSH_PROPOSALS; k++) {
       const c = genericControl(s, k), frac = (n: number) => ((k + 1) * n) % 1;
       work.attempts++;
-      if (evaluate(s, {...c, contactSide: -1, entry: flush + (frac(.5772156649) - .5) * 4, turn: -c.turn, exit: 2 * incoming - c.exit,
+      if (evaluate(s, {...c, contactSide: -1, entry: edges[k % edges.length] + (frac(.5772156649) - .5) * 4, turn: -c.turn, exit: 2 * incoming - c.exit,
         ...(c.foldBend === undefined ? {} : {foldBend: -c.foldBend}),
         ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})})) work.viable++;
     }
@@ -150,15 +150,24 @@ export function proposeOpposingEntries(s: IntervalSearch) {
 }
 
 const FLUSH_PROPOSALS = 8;
-/** Heading (degrees) of the rider's top edge: the two points highest above the
- * travel direction `incoming`, ordered along it; undefined if they coincide. */
-export function flushEntry(points: Array<{x: number; y: number}>, incoming: number): number | undefined {
+/** Headings (degrees, along the travel) of the edges of the rider's convex
+ * outline that face a surface above the travel direction `incoming`. */
+export function upperOutlineEntries(points: Array<{x: number; y: number}>, incoming: number): number[] {
   const a = incoming * Math.PI / 180, up = {x: Math.sin(a), y: -Math.cos(a)}, along = {x: Math.cos(a), y: Math.sin(a)};
-  const [p, q] = points.slice().sort((u, v) => (v.x * up.x + v.y * up.y) - (u.x * up.x + u.y * up.y));
-  if (!p || !q) return undefined;
-  const [first, second] = (p.x * along.x + p.y * along.y) <= (q.x * along.x + q.y * along.y) ? [p, q] : [q, p];
-  const dx = second.x - first.x, dy = second.y - first.y;
-  return Math.hypot(dx, dy) < 1e-6 ? undefined : Math.atan2(dy, dx) * 180 / Math.PI;
+  // Monotone-chain hull, counter-clockwise in screen coordinates (y down).
+  const ps = points.slice().sort((u, v) => u.x - v.x || u.y - v.y), cross = (o: any, p: any, q: any) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
+  const half = (list: typeof ps) => {const h: typeof ps = []; for (const p of list) {while (h.length >= 2 && cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop(); h.push(p);} h.pop(); return h;};
+  const hull = [...half(ps), ...half(ps.slice().reverse())], entries: number[] = [];
+  for (let i = 0; i < hull.length; i++) {
+    const p = hull[i], q = hull[(i + 1) % hull.length], dx = q.x - p.x, dy = q.y - p.y, length = Math.hypot(dx, dy);
+    if (length < 2) continue;
+    // Outward normal of a counter-clockwise edge in y-down coordinates.
+    const nx = dy / length, ny = -dx / length;
+    if (nx * up.x + ny * up.y < .3) continue;
+    const forward = dx * along.x + dy * along.y >= 0;
+    entries.push(Math.atan2(forward ? dy : -dy, forward ? dx : -dx) * 180 / Math.PI);
+  }
+  return entries;
 }
 
 /** Short folded entries before a long runout, for folded transfer layouts. */

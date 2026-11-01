@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 // @ts-ignore: browser module of the review pages, plain JavaScript
-import {heard, outputClock, follow, displayTime, lastFrame, shownGap} from '../shared/playback.js';
+import {heard, outputClock, displayTime} from '../shared/playback.js';
 
 describe('music position from the audio output clock', () => {
   const run = {from: 12, startedAt: 3, rate: 1};
@@ -35,64 +35,5 @@ describe('display time of an animation frame', () => {
     expect(at(1000)).toBeCloseTo(1000 + 1000 / 60, 9);
     at(1000 + 1000 / 144); at(1000 + 2 * 1000 / 144);
     expect(at(1000 + 4 * 1000 / 144)).toBeCloseTo(1000 + 5 * 1000 / 144, 9);  // a dropped frame does not lengthen it
-  });
-});
-
-describe('what the two clips show', () => {
-  function fakeVideo() {
-    const listeners: Record<string, Array<() => void>> = {}, callbacks: Array<(now: number, meta: object) => void> = [];
-    return {addEventListener(type: string, f: () => void) {(listeners[type] ??= []).push(f);},
-      requestVideoFrameCallback(f: (now: number, meta: object) => void) {callbacks.push(f);},
-      present(meta: object) {callbacks.shift()!(0, meta);},
-      fire(type: string) {for (const f of listeners[type] ?? []) f();}};
-  }
-  it('remembers the last presented frame until a pause or seek', () => {
-    const video = fakeVideo(), last = lastFrame(video);
-    expect(last()).toBeUndefined();
-    video.present({mediaTime: 0.5, expectedDisplayTime: 1000});
-    video.present({mediaTime: 0.5 + 1 / 60, expectedDisplayTime: 1016});
-    expect(last()).toEqual({mediaTime: 0.5 + 1 / 60, expectedDisplayTime: 1016});
-    video.fire('seeking');
-    expect(last()).toBeUndefined();
-  });
-  it('compares the frames on screen, or the position of a clip without a current frame', () => {
-    const frame = (mediaTime: number, expectedDisplayTime: number) => ({mediaTime, expectedDisplayTime});
-    const clip = (f: object | undefined, time: number, paused = false) => ({frame: f, time, paused});
-    expect(shownGap(clip(frame(1, 990), 1.01), clip(frame(0.95, 990), 0.96), 1000)).toBeCloseTo(0.05, 12);
-    // A leader whose first frame waits for its sound is where its currentTime says.
-    expect(shownGap(clip(frame(0, 900), 0.01), clip(frame(0.05, 990), 0.06), 1000)).toBeCloseTo(-0.04, 12);
-    expect(shownGap(clip(frame(0.1, 995), 0.11), clip(frame(0.2, 900), 0.15, true), 1000)).toBeCloseTo(-0.05, 12);
-  });
-});
-
-describe('follower', () => {
-  it('ignores a one-frame difference, and seeks only when far apart', () => {
-    expect(follow(1 / 60, 'play')).toBe('play');
-    expect(follow(-1 / 60, 'play')).toBe('play');
-    expect(follow(-0.3, 'play')).toBe('seek');
-  });
-  it('corrects drift in either direction without freezing, then releases within half a frame', () => {
-    expect(follow(-2 / 60, 'play')).toBe('slow');
-    expect(follow(-0.015, 'slow')).toBe('slow');
-    expect(follow(-0.005, 'slow')).toBe('play');
-    expect(follow(2 / 60, 'play')).toBe('catch');
-    expect(follow(0.015, 'catch')).toBe('catch');
-    expect(follow(0.005, 'catch')).toBe('play');
-    expect(follow(0, 'catch')).toBe('play');
-  });
-  it.each([1, 0.5])('absorbs audio startup latency without seeking or stopping at %sx speed', rate => {
-    // The leader holds its first frame while its sound starts; the follower started at once.
-    let leader = 0, follower = 0, mode = 'play', seeks = 0, worstAfterSettling = 0;
-    for (let f = 0; f < 120; f++) {
-      mode = follow(leader - follower, mode);
-      if (mode === 'seek') seeks++;
-      if (f >= 3) leader += rate / 60;
-      const advance = rate * (mode === 'slow' ? 0.95 : mode === 'catch' ? 1.05 : 1) / 60;
-      expect(advance).toBeGreaterThan(0);
-      follower += advance;
-      if (f > 65) worstAfterSettling = Math.max(worstAfterSettling, Math.abs(leader - follower));
-    }
-    expect(seeks).toBe(0);
-    expect(worstAfterSettling).toBeLessThan(1.5 / 60);
   });
 });

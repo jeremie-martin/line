@@ -1,21 +1,31 @@
 /** Owner judgments from blind labelling studies, appended to
  * labels/studies/<study>.jsonl (tracked: these are ground truth, not scratch).
  *   GET  /api/labels/<study>  → {labeled: clip ids with a non-skipped answer}
+ *   GET  /api/labels/<study>/pair/<clip>?layout=wide|stacked → derived playback sources
  *   POST /api/labels/<study>  ← {clip, skipped, answers, note, viewMs, at} */
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {createPairMedia, type PairLayout} from './pair_media.ts';
 
 const reply = (res: ServerResponse, data: unknown, status = 200) => {
   res.writeHead(status, {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}); res.end(JSON.stringify(data));
 };
 export function createLabelsApi(root = process.cwd()) {
-  const store = join(root, 'labels/studies');
-  return async function handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
-    const match = /^\/api\/labels\/([a-z0-9-]+)$/.exec(url.pathname);
+  const store = join(root, 'labels/studies'), media = createPairMedia(root);
+  const handle = async function handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
+    const match = /^\/api\/labels\/([a-z0-9-]+)(?:\/pair\/([a-zA-Z0-9_-]+))?$/.exec(url.pathname);
     if (!match) return false;
     const study = match[1], manifestPath = join(root, 'generated/label-studies', study, 'manifest.json'), file = join(store, study + '.jsonl');
     if (!existsSync(manifestPath)) {reply(res, {error: 'unknown study'}, 404); return true;}
+    if (match[2]) {
+      if (req.method !== 'GET') {reply(res, {error: 'method not allowed'}, 405); return true;}
+      const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+      const clip = manifest.clips.find((c: any) => c.id === match[2]);
+      const layout = url.searchParams.get('layout') ?? 'wide';
+      if (!clip || !['wide', 'stacked'].includes(layout)) {reply(res, {error: 'unknown pair or layout'}, 400); return true;}
+      reply(res, await media.prepare(clip.left.src, clip.right.src, layout as PairLayout, manifest.length)); return true;
+    }
     const rows = () => existsSync(file) ? readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
     if (req.method === 'GET') {
       const latest = new Map<string, any>(); for (const r of rows()) latest.set(r.clip, r);
@@ -36,4 +46,5 @@ export function createLabelsApi(root = process.cwd()) {
       at: typeof label.at === 'string' ? label.at : new Date().toISOString()}) + '\n');
     reply(res, {ok: true}); return true;
   };
+  return Object.assign(handle, {close: media.close});
 }

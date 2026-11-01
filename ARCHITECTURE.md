@@ -89,15 +89,18 @@ spec (beats, impacts, air/speed/amplitude targets)
    and the music. The music plays through Web Audio and each frame draws the
    ride at the position heard when it reaches the screen
    (`shared/playback.js`, also used by the spec dashboard's cursor and
-   landing clicks and by the grading page, and which keeps the two clips of a
-   pair study on the same frame). The camera is the videos' own follower
+   landing clicks and by the grading page). The camera is the videos' own follower
    centred on the mean of the ten traced points
    (`scripts/gallery/native/camera.js`). Production viewports are responsive
    16:9 canvases. Native replay is prepared in a worker before playback;
    drawing interpolates the saved poses and uses the native renderer's cached
    sprite atlas rather than rasterizing SVG body parts on every refresh.
-   Pair studies play their saved videos with the sounding clip as leader;
-   small drift adjusts the muted follower by at most 5%, without freezing it.
+   Pair studies play one combined video, so both sides share every frame and
+   the browser's native audio/video clock. `scripts/gallery/pair_media.ts`
+   caches derived wide/stacked previews with either original soundtrack;
+   it requires ffmpeg/ffprobe. Sources and study manifests are unchanged.
+   Soundtrack switches reload the shared picture at the current position;
+   playback has no follower, drift corrections, or JS loop seeks.
    `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families

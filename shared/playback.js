@@ -3,11 +3,7 @@
  *
  * Music plays through Web Audio, whose output timestamp says which sample the
  * speakers play at a given performance.now(), so each animation frame draws the
- * ride or cursor at the music position heard when that frame reaches the screen. Pair clips are videos with their own sound: the sounding
- * clip keeps the browser's audio–video sync and leads, and the other shows the
- * same frame (compared from requestVideoFrameCallback) by slowing or catching
- * up through its playback rate. Small drift never freezes or seeks a clip;
- * only a large discontinuity requires a seek. */
+ * ride or cursor at the music position heard when that frame reaches the screen. Pair studies use a single combined video with native audio/video sync. */
 
 /** Music position (s) heard at audio context time `contextTime` from a source
  * started at context time `startedAt` at position `from` and `rate`. Until its
@@ -95,37 +91,4 @@ export function displayTime() {
     previous = ts;
     return ts + (gaps.length ? Math.min(...gaps) : 1000 / 60);
   };
-}
-
-/** The frame a video presented last (requestVideoFrameCallback metadata), or
- * undefined since it was paused, seeked or emptied. */
-export function lastFrame(video) {
-  let frame;
-  for (const type of ['seeking', 'pause', 'emptied']) video.addEventListener(type, () => {frame = undefined;});
-  const watch = (_, presented) => {frame = presented; video.requestVideoFrameCallback(watch);};
-  video.requestVideoFrameCallback?.(watch);
-  return () => frame;
-}
-
-/** Leader − follower (s) as seen on screen at performance time `now`. Each
- * clip shows its last presented frame while that frame is current (shown
- * within 50 ms); a paused clip, or one whose first frame is waiting for its
- * sound to start, is at its currentTime. */
-export function shownGap(leader, follower, now) {
-  const shown = ({frame, time, paused}) => !paused && frame && now - frame.expectedDisplayTime < 50 ? frame.mediaTime : time;
-  return shown(leader) - shown(follower);
-}
-
-/** What a muted follower does to show the leader's frame: 'play' at the base
- * rate, 'slow' by 5%, 'catch' up 5% faster, or 'seek'. `gap` is leader − follower as shown
- * (s) and `mode` what the follower is doing now. Shown frames can differ by one
- * for a refresh (a late frame under load), so it acts only on a gap of more
- * than a frame and a half (25 ms), releasing within half a frame (8 ms): ahead (the
- * leader's sound starting after a loop or an unmute), it slows for the leader;
- * behind, it catches up. More than 0.25 s apart (a clip still loading), it seeks. */
-export function follow(gap, mode) {
-  if (Math.abs(gap) > 0.25) return 'seek';
-  if (mode === 'slow' ? gap < -0.008 : gap < -0.025) return 'slow';
-  if (mode === 'catch' ? gap > 0.008 : gap > 0.025) return 'catch';
-  return 'play';
 }

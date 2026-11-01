@@ -6,15 +6,16 @@
 <main>
   <p id="prompt"></p>
   <p id="instructions"></p>
-  <div class="pair">
-    <figure>
-      <div class="stage"><video id="left" muted playsinline preload="auto"></video><span class="led" aria-hidden="true"></span><span class="tag">A</span></div>
+  <div class="pair" id="pair">
+    <div class="picture" id="picture">
+      <video id="pair-video" muted playsinline loop preload="auto"></video>
+      <div class="stage side-a"><span class="led" aria-hidden="true"></span><span class="tag">A</span></div>
+      <div class="stage side-b"><span class="led" aria-hidden="true"></span><span class="tag">B</span></div>
+    </div>
+    <div class="timelines">
       <canvas class="timeline" id="left-timeline" aria-label="Beats in clip A; drag to scrub"></canvas>
-    </figure>
-    <figure>
-      <div class="stage"><video id="right" muted playsinline preload="auto"></video><span class="led" aria-hidden="true"></span><span class="tag">B</span></div>
       <canvas class="timeline" id="right-timeline" aria-label="Beats in clip B; drag to scrub"></canvas>
-    </figure>
+    </div>
   </div>
   <div class="controls">
     <button id="play">Pause</button>

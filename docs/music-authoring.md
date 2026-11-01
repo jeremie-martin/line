@@ -517,3 +517,13 @@ both rides at support 0. The verifier now uses that same placement helper; a
 regression test fails before the fix, passes afterward, and still rejects altered
 geometry. This changes validation only, not construction or the authored specs.
 The 23 library tests and the new verifier regression pass together.
+
+After the verifier fix (`b60fa025`), one standard-budget seed 101 run each
+completed Let the World Burn (59 s) and Funk do Bounce (60 s), with valid and
+qualified current impact accounts and independent geometry validation. Actual
+compilation work was 3,750,995 / 4,047,700 allowed frames and
+3,769,651 / 4,115,700 respectively. These are first previews, not best-of-many
+selections or evidence of perceptual superiority. Plans, input/compiler
+identities, measurements and tracks remain in
+`generated/music-library-authoring/rides/*-verified/`; the existing production
+dashboard opens `generated/music-library-authoring/collection.json`.

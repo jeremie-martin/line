@@ -137,3 +137,38 @@ Rules for the night:
   - **R0, no tail refinement** (`refineTailSections: 1`, "spare work improves
     the ending"). This is a phase that touches only the last section.
     - Same hypothesis and decision rule.
+
+### 01:50–02:05: results of the leanness ablations
+- **A1, no future-value model: rejected.** Bench −10.2, lower in 6 of 7
+  strata (P4 +0.4), every ride complete. The model earns its place under
+  today's compiler, so it stays. Its 5 s per ride saving does not pay for that.
+- **R0, no ending refinement: holds.**
+  - Headline: bench −0.18, fresh seeds −0.21, pairs/words at 8 seeds −0.32.
+  - Every other ruler moves by at most 0.005 (impact, extras, air, speed,
+    drag).
+  - Compute: −0.04 to −0.13M physics frames and −3 to −9 s per ride (about
+    5% of a 105 s compile). Bench tracks are unchanged in 16 of 41 rides; the
+    phase touched only the last section.
+  - Reading: a whole phase that buys a fifth of a point.
+- **Built as a deletion** (`exp/no-tail-refinement`):
+  - Removed: `arc_refinement.ts`, `arc_complete_refinement.ts`, their two
+    tests, five options with their validation, and the `refinementStats`
+    plumbing (about 330 lines).
+  - Bench tracks and frame counts are identical to the R0 ablation, 41/41.
+  - **Decision point** (sealed and held out, baselines remeasured under the
+    new evaluator identity):
+    - held out −0.07 (16/16);
+    - sealed −3.8, all of it on one ride. On `sealed-long` seed 101 the
+      refinement rescued a poor ending: 532 with it, 466 without (speed). The
+      other 147 decision-point rides move by at most ±0.5.
+  - **Not adopted; left for the owner.** It is a real trade between a leaner
+    compiler that compiles about 5% faster and a rare rescue of a bad ending
+    (1 of 148 rides). Branch `exp/no-tail-refinement` is ready to merge
+    (tests pass; parity references would be refreshed in the adopting
+    commit).
+- **G0, no passive-arrival gate** (before a non-quiet catch planned without a
+  guide, arrival is passive and neither the heading prior nor the value
+  model applies). Hypothesis: < 3 points.
+  - Result: bench −1.4, mixed by stratum (P2 −7.4, P6 −14.1, P5 +5.1); body
+    drag +0.2 s/min; +3.4 s per ride.
+  - The gate earns a little and keeps rides cleaner. Kept.

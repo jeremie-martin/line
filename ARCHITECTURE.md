@@ -281,7 +281,8 @@ Known limits of the strike account:
     - `sealed` (every `sealed-*` × 3 seeds) runs only with `--sealed`, to
       confirm an adopted candidate.
     - `heldout`: the held-out songs' preferred specs (Trouble, Valhalla,
-      Circus Minimus `spec.ts`) plus Circus `pairs4` as a target, × 4 seeds,
+      Circus Minimus `spec.ts`) plus Circus `pairs4` and `voice-drums` (the
+      voice-and-drums hook) as targets, × 4 seeds,
       stratum H. It runs only with `--heldout`, at decision points; these
       songs never inform compiler decisions.
     - Case ids are `song~variant~seed` (`spec` for `spec.ts`); each planned

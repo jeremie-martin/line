@@ -30,7 +30,9 @@ export type ConstructionWindow = {from: number; to: number; family: string; rail
 /** Held-out songs: run only at decision points, never used for compiler decisions. */
 export const HELDOUT: Array<{song: string; variant: string | null}> = [
   {song: 'trouble_50s', variant: null}, {song: 'valhalla_40s', variant: null},
-  {song: 'circus_minimus_77s', variant: null}, {song: 'circus_minimus_77s', variant: 'pairs4'}];
+  {song: 'circus_minimus_77s', variant: null}, {song: 'circus_minimus_77s', variant: 'pairs4'},
+  // The voice-and-drums hook (2026-11-01): fast words, a hard ride for the compiler.
+  {song: 'circus_minimus_77s', variant: 'voice-drums'}];
 export const PANEL_HELP: Record<string, string> = {
   dev: 'the 4 panel specs x seeds 101-404, plus 2 perturbations',
   confirm: 'the 4 panel specs x seeds 505-808, plus 2 perturbations',
@@ -40,7 +42,7 @@ export const PANEL_HELP: Record<string, string> = {
   v7: 'V7.0 (tools/eval/suites/v7.0.json): its 28 specs x the first N seeds of 101, 202, 303, ... (N = 4 unless --seeds=N)',
   'v7-confirm': 'V7.0 at seeds 505, 606, 707, 808 (seeds 5 to 8 of the sequence)',
   sealed: 'every sealed-* variant x 101, 202, 303; only with --sealed, to confirm an adopted candidate',
-  heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 x 101-404; only with --heldout. '
+  heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 and voice-drums x 101-404; only with --heldout. '
     + 'These songs are held out from compiler decisions: run them only at decision points, never to tune',
 };
 export const PANEL_NAMES = Object.keys(PANEL_HELP);

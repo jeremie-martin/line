@@ -43,7 +43,7 @@ it('discovers bench and sealed variants into the declared panels', async () => {
   expect(new Set(pairs8.map(c => c.bench!.stratum))).toEqual(new Set(['P1', 'P2']));
   expect((await panelCases('sealed', root)).map(c => c.id)).toEqual([101, 202, 303].map(s => `amor_na_praia_46s~sealed-pairs~${s}`));
   const heldout = await panelCases('heldout', root);
-  expect(heldout).toHaveLength(16);
+  expect(heldout).toHaveLength(20);
   expect(heldout.map(c => c.id)).toContain('circus_minimus_77s~pairs4~404');
   expect(heldout.map(c => c.id)).toContain('trouble_50s~spec~101');
   expect((await panelCases('dev', root)).map(c => c.id)).toContain('luna_bala_44s~101~p1');

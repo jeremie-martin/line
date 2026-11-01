@@ -170,7 +170,7 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
     `  rides finished: gained ${e.gained.length}${e.gained.length ? ` (${e.gained.join(', ')})` : ''}, lost ${e.lost.length}${e.lost.length ? ` (${e.lost.join(', ')})` : ''}`,
     ...(e.explicit ? [`  explicit requests (E, apart from the headline, ${e.explicit.n} rides): headline ${e.explicit.score[0].toFixed(1)} vs ${e.explicit.score[1].toFixed(1)} ` +
       `(${signed(e.explicit.score[0] - e.explicit.score[1])}); finished ${e.explicit.finished[0]} vs ${e.explicit.finished[1]}; ` +
-      `requested gaps realized ${e.explicit.realized[0][0]}/${e.explicit.realized[0][1]} vs ${e.explicit.realized[1][0]}/${e.explicit.realized[1][1]}`] : []),
+      `requested gaps realized (the compiler's own shape check) ${e.explicit.realized[0][0]}/${e.explicit.realized[0][1]} vs ${e.explicit.realized[1][0]}/${e.explicit.realized[1][1]}`] : []),
     `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M); ` +
     `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`];
 }

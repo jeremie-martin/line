@@ -1,7 +1,7 @@
 {
   "intent": "Make the exposed vocal middle the focus, then contrast its articulation with stronger drum-led motion. The later short gap should remain a real release.",
   "reviewStatus": "listening draft; not owner-approved",
-  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list. The near-zero entrance is an audible pickup, not a requested landing; see entrancePickup and the preserved failed runs.",
   "phases": [
     {
       "t": 0,
@@ -58,7 +58,6 @@
       "source": "drums",
       "impact": 0.72,
       "times": [
-        0.209,
         0.755,
         1.033,
         1.312,
@@ -249,5 +248,10 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "entrancePickup": {
+    "t": 0.209,
+    "source": "drums",
+    "reason": "The first sound is an audible pickup at the crop boundary. The requested ride begins on the following gesture; all three standard-budget seeds failed to construct the original near-zero first landing."
+  }
 }

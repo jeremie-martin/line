@@ -229,7 +229,8 @@ async function run() {
   if (same) {missing.reference = []; console.log('candidate and reference are the same arm: each ride is compiled once and serves both');}
   // Roots only when something must be compiled: a worktree per commit, this checkout for `.`.
   for (const side of ['candidate', 'reference'] as const) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
-  const releases = [...new Set([s.arms.candidate.dir, s.arms.reference.dir])].map(d => lockArtifacts(d));
+  // Only an arm that will be written is locked: a fully saved reference serves any number of comparisons at once.
+  const releases = [...new Set((['candidate', 'reference'] as const).filter(side => missing[side].length).map(side => s.arms[side].dir))].map(d => lockArtifacts(d));
   const rs = rounds(s.cases).slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
   for (const r of rs) for (const c of r) for (const side of ['candidate', 'reference'] as const) if (missing[side].some(m => m.id === c.id)) queue.push({side, c});
   const announced = new Set<number>(coverage(s, cells).done);

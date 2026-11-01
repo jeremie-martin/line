@@ -5,9 +5,11 @@ import type { ArcMotionOptions } from './arc_options.ts';
 
 /** Native candidate cost plus a weighted future estimate. The arrival priors
  * count half: what they charge for the next catch measured about twice its
- * real cost (docs/research/compiler-ideas-20261101.md). */
+ * real cost. The heading prior counts fully: it prices a cost two catches
+ * ahead (extras in long floats) that the next interval alone does not show
+ * (docs/research/compiler-ideas-20261101.md). */
 export function valueRank(options: ArcMotionOptions, c: any) {
-  const cost = c.localCost + .5 * (c.cost - c.localCost);
+  const heading = c.headingPrior ?? 0, cost = c.localCost + heading + .5 * (c.cost - c.localCost - heading);
   return c.predictedFuture === undefined ? cost : cost + (options.valueWeight ?? .5) * c.predictedFuture;
 }
 

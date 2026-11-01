@@ -228,8 +228,9 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   // Keep future catches physically accessible; this is an optimizer prior,
   // never a change to the scored result.
   cost += .01 * Math.max(0, -finalVelocity.x / Math.max(1, s.pace)) ** 2;
-  cost = addArrivalPriors(s, finalVelocity, state, residuals, cost);
-  return {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity};
+  const priors = {heading: 0};
+  cost = addArrivalPriors(s, finalVelocity, state, residuals, cost, priors);
+  return {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior: priors.heading};
 }
 
 /** How much of the steep, kinetic arrival prior applies before a catch asked
@@ -244,7 +245,8 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
 /** Arrival speed and heading priors toward the next catch, and (in repair)
  * the distance to a reference arrival state. Appends residuals; returns the
  * cost with each term added in order. */
-function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
+function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number,
+  priors: {heading: number}) {
   const {ctx, options, i, targets} = s;
   const {contacts, gaps, planned} = ctx;
   const nextImpact = i < contacts.length - 1 ? gaps[contacts[i + 1].gap].targets.impact ?? 0 : 0;
@@ -281,6 +283,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
     residuals.push(r);
     cost += r * r;
+    priors.heading = r * r;
   }
   if (options.arrivalReference) {
     const target = options.arrivalReference, weight = Math.sqrt(1 / 10);
@@ -305,7 +308,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, gaps, impactTargets} = ctx;
   const {state, raw, det, observedImpacts} = traced;
-  const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity} = measured;
+  const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior} = measured;
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
   const angularRate = (dx * (nose.vy - tail.vy) - dy * (nose.vx - tail.vx)) / Math.max(1, dx * dx + dy * dy);
   const terminalPhysical = options.impactContract && i === contacts.length - 1
@@ -330,7 +333,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const contactPositions = !fragments && options.constructionRequests?.[i]?.construction === 'scattered'
     ? child.getCachedContactPositions(s.frame, s.horizon) : undefined;
   s.candidates.push({lines: added, c, cost, localCost, measurement, contactPositions,
-    searchCost: cost, residuals, heading, endSpeed, pose, valueFeatures, predictedFuture, terminalLoss,
+    searchCost: cost, headingPrior, residuals, heading, endSpeed, pose, valueFeatures, predictedFuture, terminalLoss,
     meta: {achieved, impact: actualImpact, release: result.release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}});
   // Interrupted evaluations never reach this cache insertion.
   const {child: _saved, ...saved} = result;

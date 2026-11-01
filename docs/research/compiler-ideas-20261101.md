@@ -184,3 +184,29 @@ The trade-off curve, quality against variety, is for the owner to read.
     changed.
 - **Next:** extend 0.002 to 8 seeds, because more seeds could change the
   reading here.
+
+## Free geometry at 0.002, 8 seeds
+
+| | 4 seeds | 8 seeds |
+|---|---|---|
+| headline | −3.1 [−19.5, +13.2] | **−6.8 [−13.5, −0.0]**, support 0.02 |
+| specs up / down | 10 / 12 | 8 / 14 |
+| geometry differs between starts | 69% vs 78% | 69% vs 81% |
+
+- **Categories at 8 seeds:**
+  - pairs +13.6;
+  - groove −12.9, calm −15.6, the long ride −29.1;
+  - words, intense, breaks and ride-outs within ±5.
+- **Other rulers:**
+  - body drag +0.6 s/min, in every category: arcs with the rail and
+    scattered fragments are used about twice as much;
+  - speed error +0.003;
+  - physics +10%;
+  - no ride lost, and explicit geometry is all realized.
+- **Reading:** as built, free geometry is slightly worse than the plan, by
+  about 7 points and with more body contact. It gives comparable variety
+  between starts with no lottery, but half the shapes.
+- **Likely cause, not yet tested:** dilution. Each of the seven geometries
+  gets about a seventh of the gap's search effort (often the 12-sample
+  floor), where the plan spends it all on one. Screening every geometry
+  cheaply and then spending the effort on the few best would test it.

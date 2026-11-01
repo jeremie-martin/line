@@ -777,3 +777,17 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
     so the loss likely comes from parts tuned on unweighted costs: the
     learned future estimate and the arrival priors' scale.
   - To revisit with a value model retrained under this weighting.
+
+### J. More search effort at catches with strong asks (October's L9, restored smoothly)
+- **Change.** An interval's local sample counts are scaled by
+  1 + 0.3 × steepArrival(its catch's ask): the same smooth step from ask 0.4
+  to 0.8 that the steep-arrival prior uses. The construction-rate estimate
+  accounts for it. The allowance is shared, so other intervals pace down.
+- **Hypothesis:**
+  - strength error on asks 0.6+ falls (the pool's best rises with more
+    samples where the options stop short);
+  - headline +1 to +3;
+  - no ride lost.
+- **Risks:**
+  - It starves later intervals (the 108 s ride).
+  - 0.3 is carried over from October, not re-derived.

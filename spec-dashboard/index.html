@@ -38,6 +38,21 @@
       <div class="music-meta" id="music-meta">No audio linked</div>
     </div>
 
+    <div class="listening-tools" aria-label="Listening and marking">
+      <div class="listening-speed">
+        <label for="listening-rate">Playback speed</label>
+        <input id="listening-rate" type="range" min="0.2" max="2" step="0.05" value="1">
+        <output id="listening-rate-value" for="listening-rate">1×</output>
+        <button id="listening-rate-reset" type="button">1×</button>
+      </div>
+      <div class="quick-marks" aria-label="Mark this moment">
+        <button type="button" data-quick-mark="mark" title="Mark this moment (M)">Mark <kbd>M</kbd></button>
+        <button type="button" data-quick-mark="voice" title="Mark a vocal sound (V)">Voice <kbd>V</kbd></button>
+        <button type="button" data-quick-mark="impact" title="Request an impact here (I)">Impact <kbd>I</kbd></button>
+      </div>
+      <small>Click a moment, then mark it—or mark while listening. Add text and tags in Notes.</small>
+    </div>
+
     <div class="overview-head">
       <div>
         <h2>Timeline</h2>

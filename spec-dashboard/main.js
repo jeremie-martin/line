@@ -14,7 +14,7 @@ const AXIS_META = {
 const CAMERA_META = {
   zoom: { label: "zoom", color: "#2d5d8f" },
 };
-const NOTE_TAGS = ["sync", "impact", "zoom", "speed", "air", "amplitude", "elevation", "music", "flat", "too much"];
+const NOTE_TAGS = ["mark", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "elevation", "music", "flat", "too much"];
 
 const refs = {
   specSelect: document.getElementById("spec-select"),
@@ -90,6 +90,7 @@ const state = {
   analysis: null,
   timeline: null,
   cursorT: 0,
+  playbackRate: 1,
   viewStart: 0,
   viewEnd: 0,
   selection: null,
@@ -119,6 +120,20 @@ async function init() {
 }
 
 function wireEvents() {
+  const rate = document.getElementById("listening-rate");
+  const setRate = (value) => {
+    const t = specTime(), playing = isPlaying();
+    state.playbackRate = Math.max(.2, Math.min(2, Number(value)));
+    rate.value = state.playbackRate;
+    document.getElementById("listening-rate-value").textContent = `${Number(state.playbackRate.toFixed(2))}×`;
+    if (playing) startPlayback(t);
+  };
+  rate.addEventListener("input", () => setRate(rate.value));
+  document.getElementById("listening-rate-reset").onclick = () => setRate(1);
+  for (const button of document.querySelectorAll("[data-quick-mark]")) {
+    button.onclick = () => quickMark(button.dataset.quickMark);
+  }
+  refs.toggleClicks.addEventListener("change", clearClicks);
   refs.specSelect.addEventListener("change", () => loadSpec(refs.specSelect.value, true));
   refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
     cursorT: specTime(),
@@ -251,8 +266,13 @@ function wireEvents() {
       else applyHistoryAction("redo");
       return;
     }
-    const tag = document.activeElement?.tagName;
-    if (tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT") return;
+    if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.repeat || event.isComposing || event.defaultPrevented) return;
+    const mark = {m: "mark", v: "voice", i: "impact"}[key];
+    if (mark) {
+      event.preventDefault();
+      quickMark(mark);
+      return;
+    }
     if (event.key === " ") {
       event.preventDefault();
       togglePlayback();
@@ -1797,6 +1817,23 @@ function buildActiveNoteSnapshot() {
   };
 }
 
+/** Quick marks use the heard song time during playback, or the selected anchor
+ * when paused. They are ordinary persisted notes, never edits to the spec. */
+async function quickMark(kind) {
+  if (!state.data) return;
+  const t = specTime();
+  const anchor = !isPlaying() && state.activeAnchor && Math.abs(state.activeAnchor.t - t) < .011
+    ? {...state.activeAnchor} : anchorFor("moment", t);
+  await flushPendingNoteSave();
+  state.selectedScope = anchor.scope;
+  renderScopeTabs();
+  setActiveAnchor(anchor);
+  state.activeTags = [...new Set([...state.activeTags, kind])];
+  renderTags();
+  toast(`${kind === "mark" ? "Marked" : kind === "voice" ? "Voice" : "Impact"} at ${formatTime(anchor.t)}`);
+  await saveActiveNote();
+}
+
 function saveActiveNoteDebounced() {
   const note = buildActiveNoteSnapshot();
   if (!note) return;
@@ -2041,11 +2078,12 @@ function togglePlayback() {
 }
 
 function startPlayback(t) {
-  clicks.until = -Infinity;
-  music.play(specToAudioTime(t, musicOffset(state.data.music))).then(() => updatePlaybackUi(), (error) => toast(String(error)));
+  clearClicks();
+  music.play(specToAudioTime(t, musicOffset(state.data.music)), state.playbackRate).then(() => updatePlaybackUi(), (error) => toast(String(error)));
 }
 
 function pausePlayback() {
+  clearClicks();
   if (isPlaying()) state.cursorT = specTime();
   music.pause();
   updatePlaybackUi(state.cursorT);
@@ -2102,6 +2140,7 @@ function tick(ts) {
     const t = specTime(onScreen(ts));
     if (t >= state.data.spec.duration) {
       state.cursorT = state.data.spec.duration;
+      clearClicks();
       music.pause();
     }
     scheduleClicks();
@@ -2115,16 +2154,23 @@ function tick(ts) {
 // impact, so a landing that misses the music, or music with no landing, is audible
 // rather than only visible. Clicks are scheduled on the music's own clock, slightly
 // ahead of the sound being rendered, so each lands on its spec time in the music.
-const clicks = { until: -Infinity };
+const clicks = { until: -Infinity, pending: new Set() };
+function clearClicks() {
+  for (const osc of clicks.pending) osc.stop();
+  clicks.pending.clear();
+  clicks.until = -Infinity;
+}
 function scheduleClicks() {
   if (!isPlaying() || !refs.toggleClicks.checked) return;
   const ctx = music.context, offset = musicOffset(state.data.music);
-  const now = audioToSpecTime(music.rendered(), offset), horizon = now + 0.15;
+  const now = audioToSpecTime(music.rendered(), offset), horizon = now + 0.15 * state.playbackRate;
   if (!(clicks.until >= now - 0.05 && clicks.until <= horizon)) clicks.until = now; // after a seek
   for (const contact of state.data.contacts) {
     if (contact.t <= clicks.until || contact.t > horizon) continue;
     const at = music.when(specToAudioTime(contact.t, offset));
     const osc = ctx.createOscillator(), gain = ctx.createGain();
+    clicks.pending.add(osc);
+    osc.onended = () => {clicks.pending.delete(osc); osc.disconnect(); gain.disconnect();};
     osc.frequency.value = 1800;
     gain.gain.setValueAtTime(0.15 + 0.6 * Math.sqrt(contact.impact ?? 0.5), at);
     gain.gain.exponentialRampToValueAtTime(0.001, at + 0.03);

@@ -12,7 +12,6 @@ import type { RenderConfig } from "./config.ts";
 import { LOCKED_FX } from "../fx_recipe.ts";
 
 const ROOT = resolve(import.meta.dirname, "..", "..");
-const MIRROR_URL = "http://127.0.0.1:8765/index.html";
 const RIDE_QP = 14;   // ride intermediate quality (near-lossless, fed to compositor)
 const FINAL_CRF = 16; // published overlay master quality
 const OUTPUT_FPS = 60; // overlay/output fps — the ride source.mp4 is 60fps, so this is 1:1 (no dup frames)
@@ -90,20 +89,6 @@ async function stage(name: string, step: string, runStep: () => Promise<void>, d
 
 // node binary + tsx loader, so we don't depend on npx resolution for .ts scripts.
 const TSX = [process.execPath, "--import", "tsx"];
-
-/** Start the local linerider.com mirror on :8765 if it isn't already up. Returns the
- *  spawned child (kill it on exit) or null if one was already serving. */
-export async function ensureMirror(): Promise<{ kill: () => void } | null> {
-  const up = async () => { try { return (await fetch(MIRROR_URL)).ok; } catch { return false; } };
-  if (await up()) return null;
-  const child = spawn("python3", ["-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "mirror"],
-    { cwd: ROOT, stdio: "ignore", detached: false });
-  for (let i = 0; i < 40; i++) {
-    if (await up()) return { kill: () => { try { child.kill(); } catch { /* already gone */ } } };
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error("mirror server did not come up on :8765");
-}
 
 /** make_spectrum.py needs librosa, which lives in the project venv, not base python3.
  *  Override with LR_SPECTRUM_PYTHON. */
@@ -221,17 +206,14 @@ export async function renderVideo(inp: VideoInput): Promise<string> {
     const bp = inp.render.beatPunchPct > 0
       ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic", `--jolt-ms=${inp.jolt}`]
       : [];
-    const mirror = await ensureMirror();
-    try {
-      await stage(name, `[1/${steps}] ride`, async () => {
-        const logLine = (message: unknown) => appendFileSync(log, String(message) + "\n");
-        const options = await resolveVideoOptions([
-          `--track=${inp.trackPath}`, ...(inp.specPath ? [`--spec=${inp.specPath}`, "--zoom=action"] : []),
-          `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${qp}`, `--out=${ride}`,
-        ], {log: logLine, warn: logLine, error: logLine});
-        await exportVideo({...options, log: logLine});
-      }, () => fileSizeLabel(ride));
-    } finally {mirror?.kill();}
+    await stage(name, `[1/${steps}] ride`, async () => {
+      const logLine = (message: unknown) => appendFileSync(log, String(message) + "\n");
+      const options = await resolveVideoOptions([
+        `--track=${inp.trackPath}`, ...(inp.specPath ? [`--spec=${inp.specPath}`, "--zoom=action"] : []),
+        `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${qp}`, `--out=${ride}`,
+      ], {log: logLine, warn: logLine, error: logLine});
+      await exportVideo({...options, log: logLine});
+    }, () => fileSizeLabel(ride));
 
     // 2. mux song.
     if (inp.audioPath) await stage(name, `[2/${steps}] audio`, () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath!, "-map", "0:v:0", "-map", "1:a:0",

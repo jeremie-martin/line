@@ -5,11 +5,11 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-const out=resolve(root,'generated/motion-gallery-renderer');
+const out=resolve(root,process.argv.find(a=>a.startsWith('--out='))?.slice(6)??'generated/motion-gallery-renderer');
 const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
 const sources={};
 mkdirSync(out,{recursive:true});
-const result=await build({absWorkingDir:root,entryPoints:['scripts/gallery/native/view.js','scripts/gallery/native/worker.js'],outdir:out,
+const result=await build({absWorkingDir:root,entryPoints:['scripts/gallery/native/view.js','scripts/gallery/native/worker.js','scripts/gallery/native/video.js'],outdir:out,
   bundle:true,format:'esm',minify:true,metafile:true,plugins:[{name:'vendored-line-rider',setup(b){
     b.onResolve({filter:/^native:\d+$/},a=>({path:a.path.slice(7),namespace:'native'}));
     b.onResolve({filter:/^\.\/\d+\.js$/,namespace:'native'},a=>({path:a.path.slice(2,-3),namespace:'native'}));

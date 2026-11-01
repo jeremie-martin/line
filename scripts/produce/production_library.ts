@@ -8,7 +8,6 @@ import {createHash} from 'node:crypto';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {repertoireSongs,validateAutomaticProductionRequest} from '../gallery/repertoire_catalog.ts';
 import {lockArtifacts} from '../lib/artifact_lock.ts';
-import {ensureMirror} from './render.ts';
 import {resolveJoltMs} from './jolt.ts';
 import {loadMusicCase} from './music_artifacts.ts';
 import {musicSource,assertLibraryEntry} from './library_plan.ts';
@@ -63,15 +62,10 @@ try {
    finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
   }
   if(phase!=='index'){
-   // The batch owns any server it starts. Individual render children therefore
-   // cannot shut down a shared server while another lane is still using it.
-   const mirror=phase==='render'?await ensureMirror():null;
-   try{
     const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;
     let next=0;const outcomes=await Promise.allSettled(Array.from({length:jobs},async()=>{while(next<queue.length)await run(queue[next++]);}));
     const rejected=outcomes.filter((r):r is PromiseRejectedResult=>r.status==='rejected');
     if(rejected.length)throw new AggregateError(rejected.map(r=>r.reason),'Production collection failed');
-   }finally{mirror?.kill();}
   }
   index();
 

@@ -1,28 +1,20 @@
 import {inspectRailContacts} from '../contacts.ts';
 export {selectGuideAlternative} from '../../v0/optimizer/arc_guide_choice.ts';
 import {bodyCentre,createCamera} from './camera.js';
+import {loadSpriteSheet} from './sprites.js';
 // These are the mirror's actual Canvas drawing and sprite-mapping functions.
 // Keep them unmodified; the surrounding gallery owns only loading and cameras.
 const {render:drawLines}=require('native:805');
 const {render:drawSprites,setupSprites}=require('native:806');
-const {SpriteSheet}=require('native:206');
 const EntityGenerator=require('native:823');
 const followStep=require('native:560');
 let sheetPromise;
 export function loadRider(){
   return sheetPromise??=(async()=>{
-    const url='/mirror/_v2153.0/bosh-sprite.svg';
-    const response=await fetch(url);if(!response.ok)throw new Error(`Cannot load Bosh artwork: ${response.status}`);
-    const text=await response.text(),dom=new DOMParser().parseFromString(text,'image/svg+xml');
-    if(dom.querySelector('parsererror'))throw new Error('Invalid Bosh artwork');
-    const image=new Image();
-    image.width=Number(dom.documentElement.getAttribute('width'));image.height=Number(dom.documentElement.getAttribute('height'));
-    const blob=URL.createObjectURL(new Blob([text],{type:'image/svg+xml'}));
-    try {image.src=blob;await image.decode();}finally{URL.revokeObjectURL(blob);}
     // The native renderer's mipmapped atlas rasterizes the SVG once, up to
     // 16x its size. Drawing the SVG afresh for every body part on every frame
     // is expensive, especially on high-density displays and paired views.
-    return setupSprites({spriteSvg:new SpriteSheet(url,dom,image),hq:false});
+    return setupSprites({spriteSvg:await loadSpriteSheet(),hq:false});
   })().catch(error=>{sheetPromise=undefined;throw error;});
 }
 // Same interpolation of points and state counters as mirror module 506.

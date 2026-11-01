@@ -139,6 +139,22 @@ and validation are in [music authoring](docs/music-authoring.md).
    its existing effects. Single-video jobs use up to 16 presentation workers,
    bounded by CPU count and RAM; collection lanes retain their smaller default.
 
+   **Style reviews:** prefer one player with instant variant switching that keeps
+   the same time and playing/paused state. Static overlays can be compared live
+   over one exported clip; motion-dependent effects need Remotion previews at
+   matching timestamps. Adopt the chosen treatment in Remotion and verify the
+   export, rather than leaving it only in the review page. November 2026's
+   owner-selected soft-base vignette is static, above the spectrum and flash:
+   faint bottom shading, a trace at the top, no entrance animation or impact pulse.
+   `motion-gallery/video-compare.html?collection=/path/to/comparison.json` compares
+   independently rendered videos in one player. The JSON has a `title` and
+   `videos: [{label, src, description?}]`; video paths resolve relative to the JSON.
+   Use a common time origin across exports. The outgoing video remains visible
+   until the selected one has a decoded frame at the matching time. Shorter
+   versions stop at their end; failed loads leave the current version in place.
+   Final Remotion exports explicitly use BT.709 limited range so subtle shading
+   is preserved in browser playback as well as decoded frames.
+
 ## Geometry families
 
 A geometry family is one row of `GEOMETRY_FAMILIES`

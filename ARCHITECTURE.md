@@ -321,8 +321,9 @@ Known limits of the strike account:
     worktree (`generated/eval/worktrees/`), with songs, audio and
     measurement taken from this checkout.
   - Cells are stored per **arm** (`generated/eval/arms/<key>/`): the
-    compiler's content (the committed trees of `scripts`, `benchmark`,
-    `engine-rs/src`, the lockfile and `tsconfig.json`, plus uncommitted changes and the
+    compiler's content (the committed trees of what it loads:
+    `scripts/v0`, `scripts/lib`, `vendor`, `engine-rs/src`, the lockfile and
+    `tsconfig.json`, plus uncommitted changes and the
     engine bytes, so a documentation commit changes nothing), and the mode,
     allowance, creative preferences and jolt. Any panel declaring the same
     resolved case reuses a cell.

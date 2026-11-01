@@ -7,6 +7,7 @@
  *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=44] [--rounds=N]
  *                          [--mode=strike3] [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing)
+ *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
  *   npm run compare -- reference set NAME [--from=REF] [--note=TEXT] | reference list
  *   npm run compare -- import --from=RUN   (bring an `eval` run's cells into the store)
@@ -26,9 +27,9 @@ import {pathToFileURL} from 'node:url';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
-import {panelCases, resolveCase, evaluatorIdentity, digest} from './inputs.ts';
+import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
 import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
-import {compileAndMeasure, allowanceFor, type ArmSettings} from './compile.ts';
+import {compileAndMeasure, allowanceFor, explicitPlan, type ArmSettings} from './compile.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, setReference, getReference,
   listReferences, importRun, type Arm} from './arms.ts';
 import {headline, headlineScore, specKey, mean} from './summary.ts';
@@ -67,11 +68,13 @@ async function select(): Promise<Selection> {
     candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, engineSha()), candidateSettings, jolt);
   }
   const ref = openArm('', `${reference.name} (${reference.commit.slice(0, 8)})`, refContent, settings, jolt);
-  const declared = await panelCases(panel);
+  // --only=REGEX restricts the panel to matching case ids (a targeted look; coverage then refers to that subset).
+  const only = arg('only') ? new RegExp(arg('only')!) : null, declared = (await panelCases(panel)).filter(c => !only || only.test(c.id));
+  assert.ok(declared.length, `no case of ${panel} matches --only`);
   assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
   const resolved = new Map(resolvedCases.map(r => [r.planned.id, Promise.resolve({spec: r.spec, music: r.music})]));
-  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}-${panel}`)!;
+  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}-${panel}${only ? '-only' : ''}`)!;
   return {panel, reference, arms: {candidate, reference: ref}, cases: resolvedCases.map(r => r.planned), resolved, evaluator: evaluatorIdentity(), name};
 }
 
@@ -122,28 +125,52 @@ function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[])
  * category), rides gained and lost, the spread over specs, and compute. */
 function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: string[]) {
   const a = runOf(s, 'candidate', cells.candidate, ids), b = runOf(s, 'reference', cells.reference, ids);
-  const strata = [...new Set(a.run.panel.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
-  const ha = headline(a, strata), hb = headline(b, strata);
+  const all = [...new Set(a.run.panel.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  // Explicit requests (E) are reported apart, never mixed into the headline.
+  const strata = all.filter(st => st !== EXPLICIT), ha = headline(a, strata), hb = headline(b, strata);
+  const explicitIds = a.run.panel.filter(c => c.bench!.stratum === EXPLICIT).map(c => c.id);
   const done = (side: Side, id: string) => cells[side].get(id).complete as boolean;
   const gained = ids.filter(id => done('candidate', id) && !done('reference', id)), lost = ids.filter(id => !done('candidate', id) && done('reference', id));
-  const specs = [...new Set(a.run.panel.map(specKey))].map(spec => {
+  const specs = [...new Set(a.run.panel.filter(c => c.bench!.stratum !== EXPLICIT).map(specKey))].map(spec => {
     const own = a.run.panel.filter(c => specKey(c) === spec).map(c => c.id);
     return {spec, d: mean(own.map(id => headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))))};
   }).sort((x, y) => x.d - y.d);
   const perRide = (side: Side, f: (c: any) => number) => mean(ids.map(id => f(cells[side].get(id))));
-  return {pairs: ids.length, strata, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
+  const explicit = explicitIds.length ? {n: explicitIds.length,
+    score: (['candidate', 'reference'] as const).map(side => mean(explicitIds.map(id => headlineScore(cells[side].get(id))))),
+    finished: (['candidate', 'reference'] as const).map(side => explicitIds.filter(id => done(side, id)).length),
+    realized: (['candidate', 'reference'] as const).map(side => {
+      const counts = explicitIds.map(id => requestedRealized(a.run.panel.find(c => c.id === id)!, cells[side].get(id)));
+      return [counts.reduce((n, x) => n + x[0], 0), counts.reduce((n, x) => n + x[1], 0)];
+    })} : null;
+  return {pairs: ids.length, strata, explicit, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
     candidate: ha.strata, reference: hb.strata, gained, lost, specs,
     frames: [perRide('candidate', c => c.physicalFrames), perRide('reference', c => c.physicalFrames)],
     compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)]};
 }
+/** Requested gaps of an explicit case that the ride realized as asked
+ * (the requested geometry, fulfilled), out of all requested gaps. */
+function requestedRealized(c: PlannedCase, cell: any): [number, number] {
+  let frame = 1, realized = 0, asked = 0;
+  for (const sec of cell.geometry?.sections ?? []) {
+    const w = sec && c.bench!.construction!.find(w => frame >= Math.round(w.from * 40) && frame < Math.round(w.to * 40));
+    if (w && frame > 1) {asked++; if (sec.family === w.family && sec.fulfilled) realized++;}
+    frame += sec.frames;
+  }
+  return [realized, asked];
+}
 function evidenceLines(e: ReturnType<typeof evidence>) {
   const up = e.specs.filter(x => x.d > 0).length, down = e.specs.filter(x => x.d < 0).length, same = e.specs.length - up - down;
   const ends = e.specs.length ? `lowest ${signed(e.specs[0].d)} (${e.specs[0].spec}), highest ${signed(e.specs.at(-1)!.d)} (${e.specs.at(-1)!.spec})` : '';
-  return [
-    `  headline ${e.candidate.toFixed(1)} vs ${e.reference.toFixed(1)}: ${signed(e.delta)} (strata weighted equally, on ${e.pairs} matched pairs)`,
+  const automatic = e.strata.length ? [
+    `  headline ${e.candidate.toFixed(1)} vs ${e.reference.toFixed(1)}: ${signed(e.delta)} (categories ${e.strata.join(', ')} weighted equally; ${e.pairs} matched pairs)`,
     `  by category: ${e.strata.map(st => `${st} ${signed(e.perStratum[st])}`).join(' · ')}`,
-    `  specs up ${up}, down ${down}, unchanged ${same}; ${ends}`,
+    `  specs up ${up}, down ${down}, unchanged ${same}; ${ends}`] : ['  (no automatic categories in this selection: no headline)'];
+  return [...automatic,
     `  rides finished: gained ${e.gained.length}${e.gained.length ? ` (${e.gained.join(', ')})` : ''}, lost ${e.lost.length}${e.lost.length ? ` (${e.lost.join(', ')})` : ''}`,
+    ...(e.explicit ? [`  explicit requests (E, apart from the headline, ${e.explicit.n} rides): headline ${e.explicit.score[0].toFixed(1)} vs ${e.explicit.score[1].toFixed(1)} ` +
+      `(${signed(e.explicit.score[0] - e.explicit.score[1])}); finished ${e.explicit.finished[0]} vs ${e.explicit.finished[1]}; ` +
+      `requested gaps realized ${e.explicit.realized[0][0]}/${e.explicit.realized[0][1]} vs ${e.explicit.realized[1][0]}/${e.explicit.realized[1][1]}`] : []),
     `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M); ` +
     `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`];
 }
@@ -197,6 +224,9 @@ async function run() {
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
   const {cells, missing, notes} = await loadState(s);
   for (const n of notes) console.log(n);
+  // The same arm on both sides (same compiler and setting): compile each ride once.
+  const same = s.arms.candidate.key === s.arms.reference.key;
+  if (same) {missing.reference = []; console.log('candidate and reference are the same arm: each ride is compiled once and serves both');}
   // Roots only when something must be compiled: a worktree per commit, this checkout for `.`.
   for (const side of ['candidate', 'reference'] as const) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
   const releases = [...new Set([s.arms.candidate.dir, s.arms.reference.dir])].map(d => lockArtifacts(d));
@@ -224,6 +254,7 @@ async function run() {
           continue;
         } finally {if (existsSync(pending)) unlinkSync(pending);}
         cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
+        if (same) cells.reference.set(c.id, cells[side].get(c.id));
         const cov = coverage(s, cells);
         for (const k of cov.done) if (!announced.has(k)) {
           announced.add(k);
@@ -269,12 +300,20 @@ async function rides() {
   await Promise.all(jobs.map(async ({id, side}) => {
     const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], dir = join(out, `${side}-${id.replace(/~/g, '-')}`);
     if (!existsSync(join(dir, 'manifest.json'))) {
-      const {spec} = await s.resolved.get(id)!;
+      const {spec, music} = await s.resolved.get(id)!;
+      // An explicit request replays with the same explicit plan.
+      let planArg: string[] = [];
+      if (c.bench?.construction) {
+        mkdirSync(dir, {recursive: true});
+        const plan = await explicitPlan(resolve(arm.root), spec, c.seed, arm.settings.creative ?? {},
+          music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite), c.bench.construction);
+        writeFileSync(join(dir, 'explicit-plan.json'), JSON.stringify(plan)); planArg = [`--plan=${join(dir, 'explicit-plan.json')}`];
+      }
       const {productionBudget} = await import(pathToFileURL(join(resolve(arm.root), 'scripts/v0/optimizer/production_budget.ts')).href);
       const budget = allowanceFor(arm.settings.budget, spec.duration, productionBudget);
       await new Promise<void>((done, fail) => {
         const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/produce/automatic.ts', `--song=${c.song}`, ...(c.variant ? [`--variant=${c.variant}`] : []),
-          `--seed=${c.seed}`, `--budget=${budget}`, `--compiler-root=${resolve(arm.root)}`, `--out=${dir}`,
+          `--seed=${c.seed}`, `--budget=${budget}`, `--compiler-root=${resolve(arm.root)}`, `--out=${dir}`, ...planArg,
           ...(arm.settings.creative ? [`--creative=${JSON.stringify(arm.settings.creative)}`] : [])], {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
         child.once('error', fail); child.once('exit', code => code === 0 ? done() : fail(new Error(`produce exited ${code}`)));
       });

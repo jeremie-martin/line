@@ -2,6 +2,7 @@
  * npm run produce:automatic -- --song=luna_bala_44s --seed=101 --out=DIR
  * --variant=NAME compiles productions/<song>/variants/NAME.ts instead of spec.ts.
  * --budget defaults to the length-scaled production allowance.
+ * --plan=FILE compiles an explicit construction plan (a V7 explicit request) instead of the seeded plan.
  * A gallery job instead supplies --request=FILE. No manual windows or seed selection. */
 import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
@@ -40,10 +41,11 @@ const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts'
 const harness=galleryHarnessIdentity(paths);
 const {spec,musicCase:c}=await loadMusicCase({song,variant,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt);
 const methodDetails={production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};
+const constructionPlan=arg('plan')?JSON.parse(readFileSync(resolve(arg('plan')!),'utf8')):undefined;
 const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,impactContract,
- cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request};
+ cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request,...(constructionPlan?{constructionPlan}:{})};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
-const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
+const began=performance.now(),checkpoint=compileHandoff(spec,seed,constructionPlan?{budget,impactContract,constructionPlan}:{budget,creative,impactContract,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
 const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,

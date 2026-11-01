@@ -12,7 +12,7 @@ export const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'am
 export const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 /** Where a stratified case's pattern happens: authored (music) seconds. An
  * empty list means the whole ride (the G stratum and the held-out specs). */
-export type BenchMeta = {stratum: string; pattern: string; windows: Array<[number, number]>};
+export type BenchMeta = {stratum: string; pattern: string; windows: Array<[number, number]>; construction?: ConstructionWindow[]};
 /** Legacy cases (dev, confirm) have no `variant` or `bench`; stratified cases
  * always have both (`variant: null` is the song's spec.ts). */
 export type EvalCase = {id: string; song: string; seed: number; perturbation: number | null; variant?: string | null; bench?: BenchMeta};
@@ -22,7 +22,11 @@ const panel = (seeds: number[], ps: number[]): EvalCase[] => [
 ];
 const LEGACY: Record<string, EvalCase[]> = {dev: panel([101, 202, 303, 404], [1, 2]), confirm: panel([505, 606, 707, 808], [3, 4])};
 
-export const STRATA = ['G', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+export const STRATA = ['G', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'E'];
+/** Explicit geometry requests (stratum E): these gaps ask for one geometry;
+ * the rest of the ride is the automatic plan. Reported apart from the headline. */
+export const EXPLICIT = 'E';
+export type ConstructionWindow = {from: number; to: number; family: string; rail: 'offered' | 'required' | 'handover'};
 /** Held-out songs: run only at decision points, never used for compiler decisions. */
 export const HELDOUT: Array<{song: string; variant: string | null}> = [
   {song: 'trouble_50s', variant: null}, {song: 'valhalla_40s', variant: null},
@@ -33,6 +37,8 @@ export const PANEL_HELP: Record<string, string> = {
   bench: 'stratified: G (4 panel specs) x 101, 202; every bench-* variant x 101, 202, 303',
   'bench-confirm': 'the bench specs at fresh seeds: G x 505, 606; bench-* x 505, 606, 707',
   'bench-pairs8': 'the P1 and P2 bench-* variants x 8 seeds (101-808), for completion claims',
+  v7: 'V7 (docs/research/v7-design-20261101.md): G (4 panel specs), every bench-* and v7-* variant, x 101, 202, 303, 404',
+  'v7-confirm': 'V7 at confirmation seeds 505, 606, 707, 808',
   sealed: 'every sealed-* variant x 101, 202, 303; only with --sealed, to confirm an adopted candidate',
   heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 x 101-404; only with --heldout. '
     + 'These songs are held out from compiler decisions: run them only at decision points, never to tune',
@@ -51,13 +57,20 @@ export function benchMeta(module: any, where: string): BenchMeta {
       `${where}: window ${i} must be [t0, t1] seconds with 0 <= t0 < t1 <= duration`);
     assert.ok(i === 0 || w[0] >= b.windows[i - 1][1], `${where}: windows must be sorted and disjoint`);
   });
-  return {stratum: b.stratum, pattern: b.pattern, windows: b.windows.map((w: number[]) => [w[0], w[1]])};
+  assert.equal(b.stratum === EXPLICIT, Array.isArray(b.construction), `${where}: stratum E and a \`construction\` list go together`);
+  if (b.construction) b.construction.forEach((w: any, i: number) => {
+    assert.ok(Number.isFinite(w.from) && Number.isFinite(w.to) && w.from < w.to && w.from >= 0 && w.to <= duration, `${where}: construction ${i} needs from < to inside the song`);
+    assert.ok(['arcs', 'fold', 'serpentine', 'scallops', 'terraces', 'scattered'].includes(w.family), `${where}: construction ${i}: unknown geometry ${w.family}`);
+    assert.ok(['offered', 'required', 'handover'].includes(w.rail), `${where}: construction ${i}: rail is offered, required or handover`);
+  });
+  return {stratum: b.stratum, pattern: b.pattern, windows: b.windows.map((w: number[]) => [w[0], w[1]]),
+    ...(b.construction ? {construction: b.construction.map((w: any) => ({from: w.from, to: w.to, family: w.family, rail: w.rail}))} : {})};
 }
 const variantPath = (root: string, song: string, variant: string) => resolve(root, 'productions', song, 'variants', `${variant}.ts`);
 const importBench = async (root: string, song: string, variant: string) =>
   benchMeta(await import(pathToFileURL(variantPath(root, song, variant)).href), `${song}/variants/${variant}.ts`);
 /** Every `productions/<song>/variants/<prefix>-*.ts`, sorted, with its bench metadata. */
-export async function discoverVariants(prefix: 'bench' | 'sealed', root = '.') {
+export async function discoverVariants(prefix: 'bench' | 'sealed' | 'v7', root = '.') {
   const songs = readdirSync(join(root, 'productions')).filter(s => existsSync(join(root, 'productions', s, 'variants'))).sort();
   const found = songs.flatMap(song => readdirSync(join(root, 'productions', song, 'variants'))
     .filter(f => f.startsWith(prefix + '-') && f.endsWith('.ts')).sort().map(f => ({song, variant: f.slice(0, -3)})));
@@ -75,6 +88,12 @@ export async function panelCases(name: string, root = '.'): Promise<EvalCase[]> 
   if (name === 'heldout') return HELDOUT.flatMap(h => [101, 202, 303, 404].map(seed =>
     stratified(h.song, h.variant, seed, {stratum: 'H', pattern: h.variant ?? 'preferred', windows: []})));
   if (name === 'sealed') return (await discoverVariants('sealed', root)).flatMap(v => [101, 202, 303].map(seed => stratified(v.song, v.variant, seed, v.bench)));
+  if (name === 'v7' || name === 'v7-confirm') {
+    const seeds = name === 'v7' ? [101, 202, 303, 404] : [505, 606, 707, 808];
+    const variants = [...await discoverVariants('bench', root), ...await discoverVariants('v7', root)];
+    return [...SONGS.flatMap(song => seeds.map(seed => stratified(song, null, seed, GROOVE))),
+      ...variants.flatMap(v => seeds.map(seed => stratified(v.song, v.variant, seed, v.bench)))];
+  }
   const bench = await discoverVariants('bench', root);
   if (name === 'bench-pairs8') return bench.filter(v => v.bench.stratum === 'P1' || v.bench.stratum === 'P2')
     .flatMap(v => [101, 202, 303, 404, 505, 606, 707, 808].map(seed => stratified(v.song, v.variant, seed, v.bench)));
@@ -94,7 +113,7 @@ export function perturb(spec: any, p: number) {
 
 export async function resolveCase(c: EvalCase, jolt: number) {
   const definition = {song: c.song, title: c.song, moments: [], ...(c.variant ? {variant: c.variant} : {})};
-  if (c.variant && /^(bench|sealed)-/.test(c.variant)) assert.deepEqual(await importBench('.', c.song, c.variant), c.bench, `${c.id}: bench metadata changed`);
+  if (c.variant && /^(bench|sealed|v7)-/.test(c.variant)) assert.deepEqual(await importBench('.', c.song, c.variant), c.bench, `${c.id}: bench metadata changed`);
   const loaded = await loadMusicCase(definition, jolt), authored = await loadMusicCase(definition, 0);
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};

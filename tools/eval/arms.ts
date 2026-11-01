@@ -20,10 +20,12 @@ import type {ArmSettings} from './compile.ts';
 import {gunzipSync, gzipSync} from 'node:zlib';
 
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
-/** What the compiler is made of (dependencies through the lockfile; package.json
- * scripts do not compile anything). Specs and songs (productions/) are inputs,
- * checked per case; tools/ is measurement and bookkeeping. */
-export const COMPILER_PATHS = ['scripts', 'benchmark', 'engine-rs/src', 'package-lock.json', 'tsconfig.json'];
+/** What the compiler is made of: the directories its import closure and its
+ * runtime-loaded models come from (handoff.ts: scripts/v0, scripts/lib,
+ * vendor/lr-core), the native engine source, and dependencies through the
+ * lockfile. Specs and songs (productions/) are inputs, checked per case;
+ * tools/, the producer and the gallery do not compile anything. */
+export const COMPILER_PATHS = ['scripts/v0', 'scripts/lib', 'vendor', 'engine-rs/src', 'package-lock.json', 'tsconfig.json'];
 const git = (root: string, ...args: string[]) => execFileSync('git', ['-C', root, ...args], {encoding: 'buffer', maxBuffer: 1 << 30});
 const EMPTY = sha('');
 

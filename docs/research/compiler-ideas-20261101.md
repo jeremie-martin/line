@@ -128,3 +128,29 @@ plan seed varies.
   gaps); geometry is used broadly; shapes are fewer than with the plan.
 - **Both:** no ride lost, and compute about constant (the gap's effort is
   shared, not multiplied).
+
+## Free geometry, first results (V7, 4 seeds, against `main` 741.0; no ride lost)
+
+| | headline | 95% interval | support | geometry differs between starts | shapes (fold, S-sweep, ripples, terraces), % of time |
+|---|---|---|---|---|---|
+| `main` (plan) | — | — | — | 78% | 42.3 |
+| free, best (scale 0) | −3.9 | [−21.7, +14.0] | 0.27 | **0%** | 18.9 |
+| free, scale 0.02 | **−37.6** | [−57.4, −17.8] | < 0.01 | 73% | 18.1 |
+
+- **Scale 0:** the free search alone matches the plan's quality within
+  noise. It gains on pairs, words and ride-outs, and loses on groove, calm and
+  the long ride. Every random start gives the same ride.
+  - It uses every geometry: arcs with the rail 26% of the time, scattered
+    20%, shapes 19%.
+- **Scale 0.02 was miscalibrated,** about 10× too coarse. A gap is about 1/70
+  of a ride, so a local-cost difference of 0.02 is about 2 headline points
+  per gap, and random choices add up over the gaps.
+- **Physics** is +0.30M per ride (+10%): seven geometries each keep the
+  12-sample floor.
+
+**Next (hypotheses stated first):** scales 0.002 and 0.005, about 0.2 and 0.5
+points per gap. Expected:
+- variety between starts well above 0%;
+- a headline cost of a few points at 0.002 and more at 0.005.
+
+The trade-off curve, quality against variety, is for the owner to read.

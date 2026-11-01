@@ -47,4 +47,16 @@ describe('review page camera', () => {
     expect(shown.x).toBeCloseTo(path[100] + (path[102] - path[100]) / 4, 9);
     expect(shown.y).toBeCloseTo(path[101] + (path[103] - path[101]) / 4, 9);
   });
+  it('keeps seeking deterministic after switching format and zoom', () => {
+    const centres = ride.map(bodyCentre), at = createCamera(step, centres);
+    const horizontal = {w: 1280, h: 720, z: 1.6}, vertical = {w: 405, h: 720, z: 1.6};
+    const before = at(horizontal, 150.5);
+    for (const view of [vertical, {...vertical, z: 2}, horizontal]) {
+      at(view, 300); // Play ahead, then seek back with the new framing.
+      const expected = createCamera(step, centres)(view, 150.5);
+      expect(at(view, 150.5)).toEqual(expected);
+    }
+    expect(at(horizontal, 150.5)).toEqual(before);
+  });
+
 });

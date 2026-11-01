@@ -66,6 +66,7 @@ async function comparisonChanged(){
  draw();passageLink();
 }
 $('comparison').onchange=comparisonChanged;
+$('format').onchange=()=>{$('rides').dataset.format=$('format').value;draw();};
 // Each frame shows the ride at the music position heard when the frame is on screen.
 function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max){pause();seek(+$('seek').max);}draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 $('play').onclick=()=>playing?pause():start();

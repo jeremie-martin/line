@@ -92,7 +92,8 @@ spec (beats, impacts, air/speed/amplitude targets)
    landing clicks and by the grading page). The camera is the videos' own follower
    centred on the mean of the ten traced points
    (`scripts/gallery/native/camera.js`). Production viewports are responsive
-   16:9 canvases. Native replay is prepared in a worker before playback;
+   16:9 or 9:16 canvases, selected with Format (default horizontal, zoom 1.6).
+   Portrait previews fit within 72% of viewport height. Native replay is prepared in a worker before playback;
    drawing interpolates the saved poses and uses the native renderer's cached
    sprite atlas rather than rasterizing SVG body parts on every refresh.
    Pair studies play one combined video, so both sides share every frame and

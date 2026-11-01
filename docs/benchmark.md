@@ -167,3 +167,21 @@ A reference names a commit; it changes only when we decide.
 - **Measurement code:** the import closure of `tools/eval/measure.ts`. If only
   it changed, saved tracks are remeasured, not recompiled, and the report says
   so.
+
+## Open questions
+
+- **V7 may over-weight long gaps (raised 2026-11-01, undecided).**
+  - Categories weigh equally, so the single long-ride spec (Amour
+    bench-long, P6) is 1/8 of the headline. The float (P3) and ride-out (P7)
+    categories also favour long gaps.
+  - Gap-length weighting of the search's span errors was tested in three
+    versions. Each gained on V7 (+4.5 to +7.4) and lost on the held-out
+    panel (−4.0, −9.9, −5.8; `docs/research/compiler-ideas-20261101.md`,
+    experiments F and F′).
+  - Ideas that help long gaps are therefore amplified on V7 in a way new
+    music did not reward.
+  - **Options:** keep V7 as is, rebalance the category weights, or add more
+    long-ride specs so P6 is not a single spec. A change would be a new
+    frozen suite version (V7.1), not an edit of v7.0.
+  - **Until then:** treat a V7 gain concentrated in P3/P6/P7 with caution,
+    and check it on the held-out panel before deciding.

@@ -593,3 +593,67 @@ recorded as audible pickups, with the requested ride starting on the next
 gesture. Their original failed runs remain untouched. The dense in-song voice
 pairs were retained and compiled successfully in the other songs. Fresh runs
 for the two entrance revisions use new directories and their own identities.
+
+
+Final production result: 72 preserved attempts, including the six original
+entrance failures. The revised specifications each have three complete,
+currently qualified candidates (66 total). One per recording is selected in
+`generated/music-library-review/collection.json`; `all-candidates.json` exposes
+all complete alternatives in the existing player. `results.json` preserves
+both rulers, failures, compute and per-phase diagnostics; `selection.json`
+records the chosen candidates and tradeoffs, and `reproduction.json` records
+the compiler/input/track identities.
+
+All 22 selected tracks have zero missing targets under `line.strike.v3` and
+passed independent construction validation. Mean absolute timing offsets range
+from 2.45 to 7.39 ms **against quantized compiler targets**, not verified musical
+or word boundaries. Strength RMS error ranges from 0.090 to 0.162. These are
+fidelity diagnostics, not perceptual quality scores. Every historical grade is
+invalid (zero score); its contact/extra-landing failures remain in the report.
+The historical and current contracts must not be presented as agreeing.
+
+All runs used the standard allowance (3,571,700–4,115,700 physics frames).
+Twenty recordings use the reviewed spec revision `a9830c77`; the two entrance
+revisions use `f04ae7fb`. Older artifacts retain their original identities.
+
+Selected seeds (the reasons for non-headline choices are in `selection.json`):
+
+| Recording | Seed |
+|---|---:|
+| LOS VOLTAJE | 202 |
+| LUNA BALA (Slowed) | 303 |
+| MONTAGEM TOMADA (Slowed) | 101 |
+| Amor Na Praia | 202 |
+| LOS VOLTAJE (Slowed) | 101 |
+| FUNK ESTRANHO (Super Slowed) | 303 |
+| PASSO BEM SOLTO (Slowed) | 202 |
+| MXZI — MONTAGEM TOMADA (Extended) | 202 |
+| LUNA BALA | 202 |
+| MONTAGEM TOMADA (Super Slowed) | 202 |
+| PASSO BEM SOLTO | 202 |
+| LOS VOLTAJE (Ultra Slowed) | 303 |
+| PASSO BEM SOLTO (Super Slowed) | 202 |
+| FUNK DO BOUNCE (Super Slowed) | 202 |
+| Dernière danse × Montagem Coral | 202 |
+| ANDROMEDA — MONTAGEM COMA | 101 |
+| NO BATIDÃO | 202 |
+| NO BATIDÃO (Slowed) | 202 |
+| LUA NA PRAÇA | 101 |
+| Chris Grey — LET THE WORLD BURN | 101 |
+| Bones | 202 |
+| Petrunko | 202 |
+
+
+Final validation: 359 tests across 82 files passed; type checking passed and
+reachability reports zero unreachable files. All 22 specification dashboards
+loaded verified evidence and exercised playback. All 22 selected native-player
+pages loaded, played, paused and sought without JavaScript errors. The actual
+collection's next/previous navigation and 390 px phone layout passed, with no
+horizontal document overflow. Screenshots are retained for visual inspection;
+these checks do not substitute for auditory listening.
+
+VPN collection:
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-review/collection.json`
+
+Alternate seeds:
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-review/all-candidates.json`

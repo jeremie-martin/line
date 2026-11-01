@@ -6,6 +6,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { clamp } from "./substrate.ts";
 
 type Source = { t: number; peak: number; rise: number; classes?: string[] };
 export type MusicEvent = { t: number; sources: Record<string, Source>; mix: { peak: number; rise: number } };
@@ -13,7 +14,7 @@ export type MusicEvent = { t: number; sources: Record<string, Source>; mix: { pe
 /** A sung note from tools/music/sung.py (productions/<song>/sung.json). */
 export type SungNote = { t: number; salience: number; pitch?: string; event: { t: number; stems: string[] } | null };
 
-export const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+export { clamp };
 
 /** Helpers over the events and tempo analysis in a song's folder. */
 export function measuredSong(dir: string) {

@@ -14,7 +14,7 @@ import type {Spec,TrackLine} from '../../scripts/v0/types.ts';
 export const VALUE_COLLECTION = Object.freeze({anchors:24,width:4,samples:24,depth:2});
 export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptions,lines:TrackLine[],committedRows:any[],budget:number){
  return withEngineScope(()=>{
- const ctx=createArcCompileContext(normalizeCompilerTimeline(spec),seed,options),rows:any[]=[];
+ const ctx=createArcCompileContext(normalizeCompilerTimeline(spec),options),rows:any[]=[];
  const {contacts,lineage}=ctx,eligible=Math.min(committedRows.length,contacts.length-1);
  const anchors=[...new Set(Array.from({length:Math.min(VALUE_COLLECTION.anchors,eligible)},(_,i)=>
   Math.round(i*Math.max(0,eligible-1)/Math.max(1,Math.min(VALUE_COLLECTION.anchors,eligible)-1))))];

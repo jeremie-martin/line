@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import {mkdirSync, existsSync, readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {resolveCase, digest, evaluatorIdentity} from './inputs.ts';
-import {readJson, readTrack, saveCell, atomicWrite, loadRun, runDir, type RunPlan} from './records.ts';
+import {readJson, readTrack, saveCell, atomicWrite, loadRun, runDir, compiledOutputs, type RunPlan} from './records.ts';
 import {measureCell} from './measure.ts';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 
@@ -39,10 +39,8 @@ for (const {planned: c} of inputs) {
 mkdirSync(join(out, 'cells'), {recursive: true}); atomicWrite(join(out, 'run.json'), JSON.stringify(plan));
 for (const {spec, music, planned: c} of inputs) {
   const prior = readJson(join(source, 'cells', c.id + '.json')), track = readTrack(source, c.id);
-  const cell = measureCell({c, mode: plan.mode, spec, music, track, physicalFrames: prior.physicalFrames,
-    compileMs: prior.compileMs, complete: prior.complete, fulfilled: prior.fulfilled, motion: prior.motion,
-    // Geometry facts are compiler output: carried over when recorded, never reconstructed.
-    geometry: prior.geometry});
+  // Compiler outputs (geometry facts among them) are carried over, never reconstructed.
+  const cell = measureCell({c, mode: plan.mode, spec, music, track, ...compiledOutputs(prior)});
   // Frozen V6 observations also pin the saved non-impact requests. Replaying
   // current authoring must not silently reinterpret an old track's axes.
   assert.deepEqual(JSON.parse(JSON.stringify(cell.frozen)), prior.frozen, `${c.id}: frozen observations changed`);

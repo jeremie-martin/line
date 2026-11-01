@@ -14,7 +14,7 @@ import {resetFrameCount, setPhysicsFrameLimit} from '../../../scripts/lib/detect
 for (const song of ['tiki_tiki_48s', 'luna_bala_44s']) {
   const path = new URL(`./${song}.json.gz`, import.meta.url), f = JSON.parse(gunzipSync(readFileSync(path)).toString());
   const spec = {...f.spec, axes: Object.fromEntries(Object.entries(f.axes).map(([k, values]: [string, any]) => [k, (t: number) => values[Math.round(t * 40)] ?? undefined]))};
-  const options = repertoireSearchOptions(spec, f.plan, 100_000_000, 'line.strike.v3'), ctx = createArcCompileContext(spec, f.seed, options);
+  const options = repertoireSearchOptions(spec, f.plan, 100_000_000, 'line.strike.v3'), ctx = createArcCompileContext(spec, options);
   const engine = ctx.lineage.rebuild(f.lines);
   resetFrameCount(); setPhysicsFrameLimit(null);
   const recorded = searchInterval(ctx, engine, f.section, {directControls: [f.control]}, [engine]);

@@ -17,34 +17,29 @@
  * round, categories interleaved, so a stopped run covers the panel evenly.
  * Ctrl-C keeps finished rides and prints a report labelled PARTIAL. */
 import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';
+import {execFileSync, spawn} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-import {execFileSync} from 'node:child_process';
-import {createHash} from 'node:crypto';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
-import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
 import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
 import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
-import {headline, headlineScore, specKey, mean} from './summary.ts';
-import {validateRunOptions, stratifiedReport} from './eval.ts';
+import {headline, headlineScore, specKey, mean, strataOf} from './summary.ts';
+import {validateRunOptions, stratifiedReport, pad} from './eval.ts';
 import {seedBlocks, formatSupport, MIN_BLOCKS} from './uncertainty.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
-const sha256 = (x: string | Buffer) => createHash('sha256').update(x).digest('hex');
-const engineSha = () => sha256(readFileSync(ENGINE_PATH));
 const subject = (commit: string) => execFileSync('git', ['log', '-1', '--format=%s', commit]).toString().trim();
-const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
 const signed = (x: number, d = 1) => !Number.isFinite(x) ? '—' : (x > 0 ? '+' : '') + x.toFixed(d);
 
 type Side = 'candidate' | 'reference';
+const SIDES = ['candidate', 'reference'] as const;
 type Selection = {panel: string; reference: ReturnType<typeof getReference>; arms: Record<Side, Arm>; cases: PlannedCase[];
-  resolved: Map<string, Promise<{spec: any; music: any}>>; evaluator: string; name: string};
+  rounds: PlannedCase[][]; resolved: Map<string, {spec: any; music: any}>; evaluator: string; name: string};
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
@@ -58,16 +53,15 @@ async function select(): Promise<Selection> {
   const settings: ArmSettings = {mode, budget, ...(creative ? {creative} : {})};
   const candidateSettings: ArmSettings = {mode, budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
   assert.ok(arg('reference'), '--reference=NAME is required (see `npm run compare -- reference list`)');
-  const reference = getReference(arg('reference')!), jolt = resolveJoltMs();
-  const refContent = commitContent(reference.commit, engineSha());
+  const reference = getReference(arg('reference')!), jolt = resolveJoltMs(), here = compilerContent('.');
+  const refContent = commitContent(reference.commit, here.engineSha256);
   const candidateRef = arg('candidate', '.')!;
   let candidate: Arm;
   if (candidateRef === '.') {
-    const content = compilerContent('.');
-    candidate = openArm('.', `this checkout (${content.head.slice(0, 8)}${content.clean ? '' : ' + uncommitted changes'})`, content, candidateSettings, jolt);
+    candidate = openArm('.', `this checkout (${here.head.slice(0, 8)}${here.clean ? '' : ' + uncommitted changes'})`, here, candidateSettings, jolt);
   } else {
     const commit = resolveCommit(candidateRef);
-    candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, engineSha()), candidateSettings, jolt);
+    candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, here.engineSha256), candidateSettings, jolt);
   }
   const ref = openArm('', `${reference.name} (${reference.commit.slice(0, 8)})`, refContent, settings, jolt);
   // --only=REGEX restricts the panel to matching case ids (a targeted look; coverage then refers to that subset).
@@ -75,7 +69,7 @@ async function select(): Promise<Selection> {
   assert.ok(declared.length, `no case of ${panel} matches --only`);
   assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
-  const resolved = new Map(resolvedCases.map(r => [r.planned.id, Promise.resolve({spec: r.spec, music: r.music})]));
+  const resolved = new Map(resolvedCases.map(r => [r.planned.id, {spec: r.spec, music: r.music}]));
   // Non-default settings are part of the default name, so they never collide with a standard comparison.
   const extra = [budget !== 'standard' ? `budget-${budget}` : '', candidateBudget !== budget ? `cand-budget-${candidateBudget}` : '',
     creative ? `creative-${digest(creative).slice(0, 6)}` : '', candidateCreative !== creative ? `cand-creative-${digest(candidateCreative ?? {}).slice(0, 6)}` : '']
@@ -91,7 +85,8 @@ async function select(): Promise<Selection> {
     const saved = readJson(configPath);
     assert.deepEqual(saved, config, `comparison ${name} was started with another configuration (${configPath}); use --name=… for a new one`);
   } else {mkdirSync(resolve('generated/eval/compare', name), {recursive: true}); writeFileSync(configPath, JSON.stringify(config, null, 1));}
-  return {panel, reference, arms: {candidate, reference: ref}, cases: resolvedCases.map(r => r.planned), resolved, evaluator: evaluatorIdentity(), name};
+  const cases = resolvedCases.map(r => r.planned);
+  return {panel, reference, arms: {candidate, reference: ref}, cases, rounds: rounds(cases), resolved, evaluator: evaluatorIdentity(), name};
 }
 
 /** Rounds: every spec's k-th seed (seeds in ascending order). */
@@ -115,10 +110,12 @@ export function rounds(cases: PlannedCase[]) {
 async function loadState(s: Selection) {
   const cells: Record<Side, Map<string, any>> = {candidate: new Map(), reference: new Map()};
   const missing: Record<Side, PlannedCase[]> = {candidate: [], reference: []}, notes: string[] = [];
-  for (const side of ['candidate', 'reference'] as const) {
+  for (const side of SIDES) {
+    // The same arm on both sides: its cells are loaded once and serve both.
+    if (side === 'reference' && s.arms.reference.key === s.arms.candidate.key) {cells.reference = cells.candidate; missing.reference = missing.candidate; break;}
     let remeasured = 0, stale = 0;
     for (const c of s.cases) {
-      const state = await savedCell(s.arms[side], c, s.evaluator, () => s.resolved.get(c.id)!);
+      const state = await savedCell(s.arms[side], c, s.evaluator, async () => s.resolved.get(c.id)!);
       if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (state.remeasured) remeasured++;}
       else {missing[side].push(c); if (state) stale++;}
     }
@@ -129,7 +126,7 @@ async function loadState(s: Selection) {
 }
 
 function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[]): Run {
-  const arm = s.arms[side], panel = s.cases.filter(c => ids.includes(c.id));
+  const arm = s.arms[side], wanted = new Set(ids), panel = s.cases.filter(c => wanted.has(c.id));
   const run: RunPlan = {schema: 'line.eval.v2', identity: {head: arm.content.clean ? arm.content.head : 'checkout', candidateFingerprint: arm.content.key},
     evaluator: s.evaluator, jolt: arm.jolt, mode: arm.settings.mode, budget: arm.settings.budget, panelName: s.panel, panel,
     ...(arm.settings.creative ? {creative: arm.settings.creative} : {})};
@@ -140,7 +137,7 @@ function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[])
  * category), rides gained and lost, the spread over specs, and compute. */
 function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: string[]) {
   const a = runOf(s, 'candidate', cells.candidate, ids), b = runOf(s, 'reference', cells.reference, ids);
-  const all = [...new Set(a.run.panel.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  const all = strataOf(a.run.panel);
   // The one headline definition (summary.ts): explicit requests (E) apart, never counted.
   const ha = headline(a, all), hb = headline(b, all), strata = ha.counted;
   const explicitIds = a.run.panel.filter(c => c.bench!.stratum === EXPLICIT).map(c => c.id);
@@ -153,12 +150,12 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
   const perRide = (side: Side, f: (c: any) => number) => mean(ids.map(id => f(cells[side].get(id))));
   const explicit = explicitIds.length ? {n: explicitIds.length,
     score: [ha.explicit, hb.explicit],
-    finished: (['candidate', 'reference'] as const).map(side => explicitIds.filter(id => done(side, id)).length),
-    realized: (['candidate', 'reference'] as const).map(side => {
+    finished: SIDES.map(side => explicitIds.filter(id => done(side, id)).length),
+    realized: SIDES.map(side => {
       const counts = explicitIds.map(id => requestedRealized(a.run.panel.find(c => c.id === id)!, cells[side].get(id)));
       return [counts.reduce((n, x) => n + x[0], 0), counts.reduce((n, x) => n + x[1], 0)];
     })} : null;
-  const diversity = (['candidate', 'reference'] as const).map(side =>
+  const diversity = SIDES.map(side =>
     betweenStarts(a.run.panel.filter(c => c.bench!.stratum !== EXPLICIT), cells[side]));
   return {pairs: ids.length, strata, explicit, diversity, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
     candidate: ha.strata, reference: hb.strata, gained, lost, specs,
@@ -203,7 +200,7 @@ function requestedRealized(c: PlannedCase, cell: any): [number, number] {
 /** Seed-block uncertainty (uncertainty.ts): one headline difference per
  * complete block, a block being one seed of every spec in the selection. */
 function blockUncertainty(s: Selection, cells: Record<Side, Map<string, any>>) {
-  const cov = coverage(s, cells), rs = rounds(s.cases), blocks = comparableBlocks(s.cases, cov.done);
+  const cov = coverage(s, cells), rs = s.rounds, blocks = comparableBlocks(s.cases, cov.done, rs);
   const u = seedBlocks(blocks.map(k => evidence(s, cells, rs[k].map(c => c.id)).delta));
   return 'unavailable' in u && blocks.length < cov.done.length
     ? {...u, unavailable: `${u.unavailable} covering every spec; ${cov.done.length - blocks.length} complete round(s) cover fewer specs and are left out`} : u;
@@ -211,8 +208,8 @@ function blockUncertainty(s: Selection, cells: Record<Side, Map<string, any>>) {
 /** The complete rounds that are comparable seed blocks: those covering every
  * spec of the selection (a panel with unequal seed counts per spec, such as
  * bench, has later rounds with fewer specs and other weights). */
-export function comparableBlocks(cases: PlannedCase[], done: number[]) {
-  const specs = new Set(cases.map(specKey)).size, rs = rounds(cases);
+export function comparableBlocks(cases: PlannedCase[], done: number[], rs = rounds(cases)) {
+  const specs = new Set(cases.map(specKey)).size;
   return done.filter(k => new Set(rs[k].map(specKey)).size === specs);
 }
 function uncertaintyLines(u: ReturnType<typeof seedBlocks>) {
@@ -242,13 +239,12 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
 }
 
 /** Coverage: matched pairs overall, per category, complete rounds, outstanding work. */
-export function coverage(s: Pick<Selection, "cases">, cells: Record<Side, Map<string, any>>) {
-  const matched = s.cases.filter(c => cells.candidate.has(c.id) && cells.reference.has(c.id)).map(c => c.id);
+export function coverage(s: Pick<Selection, 'cases'> & Partial<Pick<Selection, 'rounds'>>, cells: Record<Side, Map<string, any>>) {
+  const matched = s.cases.filter(c => cells.candidate.has(c.id) && cells.reference.has(c.id)).map(c => c.id), isMatched = new Set(matched);
   // Rounds can complete out of order (rides finish when they finish).
-  const rs = rounds(s.cases), done = rs.map((r, k) => r.every(c => matched.includes(c.id)) ? k : -1).filter(k => k >= 0);
+  const rs = s.rounds ?? rounds(s.cases), done = rs.map((r, k) => r.every(c => isMatched.has(c.id)) ? k : -1).filter(k => k >= 0);
   const complete = done.length, inComplete = done.flatMap(k => rs[k].map(c => c.id));
-  const cats = [...new Set(s.cases.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
-  const byCat = cats.map(st => `${st} ${s.cases.filter(c => c.bench!.stratum === st && matched.includes(c.id)).length}/${s.cases.filter(c => c.bench!.stratum === st).length}`);
+  const byCat = strataOf(s.cases).map(st => `${st} ${s.cases.filter(c => c.bench!.stratum === st && isMatched.has(c.id)).length}/${s.cases.filter(c => c.bench!.stratum === st).length}`);
   return {matched, inComplete, complete, done, rounds: rs.length, byCat,
     outstanding: {candidate: s.cases.filter(c => !cells.candidate.has(c.id)).length, reference: s.cases.filter(c => !cells.reference.has(c.id)).length}};
 }
@@ -268,20 +264,23 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
     ...(full ? [] : [`  outstanding: candidate ${cov.outstanding.candidate}, reference ${cov.outstanding.reference} rides; resume with the same command`]), '');
   if (!cov.matched.length) return [...out, 'No matched pairs yet.'];
   // "Evenly": the comparable seed blocks, rounds that cover every spec.
-  const rs = rounds(s.cases), even = comparableBlocks(s.cases, cov.done), evenIds = even.flatMap(k => rs[k].map(c => c.id));
+  const rs = s.rounds, even = comparableBlocks(s.cases, cov.done, rs), evenIds = even.flatMap(k => rs[k].map(c => c.id));
   const evenly = evenIds.length === cov.matched.length;
   if (!full && even.length && !evenly)
     out.push(`Evidence on the ${even.length} complete round(s) that cover every spec (${evenIds.length} pairs, the panel evenly):`, ...evidenceLines(evidence(s, cells, evenIds)), '');
   out.push(`Evidence on ${full ? 'the whole panel' : evenly ? `the ${even.length} complete round(s) (${cov.matched.length} pairs, the panel evenly)`
     : `all ${cov.matched.length} matched pairs (categories unevenly covered)`}:`, ...evidenceLines(evidence(s, cells, cov.matched)),
     ...uncertaintyLines(blockUncertainty(s, cells)), '');
-  const moved = cov.matched.map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
-    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 8);
+  const moved = movedMost(cov.matched, cells, 8);
   out.push('Rides that moved most (candidate − reference, headline points); see them with `npm run compare -- rides` and the same flags:',
     ...moved.map(m => `  ${pad(m.id, 46)}${signed(m.d)}`), '');
   out.push('Detail (the stratified report on the matched pairs; A = candidate, B = reference):', '');
   return [...out, ...stratifiedReport(runOf(s, 'candidate', cells.candidate, cov.matched), runOf(s, 'reference', cells.reference, cov.matched), 'candidate', s.reference.name)];
 }
+/** The `n` matched rides whose headline moved most, either way. */
+const movedMost = (ids: string[], cells: Record<Side, Map<string, any>>, n: number) =>
+  ids.map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
+    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, n);
 /** The report up to its detail section: what to read first. */
 const summaryOf = (lines: string[]) => lines.slice(0, Math.max(0, lines.findIndex(l => l.startsWith('Detail ('))) || lines.length);
 function saveReport(s: Selection, lines: string[]) {
@@ -300,15 +299,16 @@ async function run() {
   const same = s.arms.candidate.key === s.arms.reference.key;
   if (same) {missing.reference = []; console.log('candidate and reference are the same arm: each ride is compiled once and serves both');}
   // Roots only when something must be compiled: a worktree per commit, this checkout for `.`.
-  for (const side of ['candidate', 'reference'] as const) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
+  for (const side of SIDES) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
   // Only an arm that will be written is locked: a fully saved reference serves any number of comparisons at once.
   // If a second arm is already owned, give back the first before failing.
   const releases: Array<() => void> = [];
   try {
-    for (const d of new Set((['candidate', 'reference'] as const).filter(side => missing[side].length).map(side => s.arms[side].dir))) releases.push(lockArtifacts(d));
+    for (const d of new Set(SIDES.filter(side => missing[side].length).map(side => s.arms[side].dir))) releases.push(lockArtifacts(d));
   } catch (e) {for (const r of releases) r(); throw e;}
-  const rs = rounds(s.cases).slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
-  for (const r of rs) for (const c of r) for (const side of ['candidate', 'reference'] as const) if (missing[side].some(m => m.id === c.id)) queue.push({side, c});
+  const rs = s.rounds.slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
+  const toCompile = {candidate: new Set(missing.candidate.map(m => m.id)), reference: new Set(missing.reference.map(m => m.id))};
+  for (const r of rs) for (const c of r) for (const side of SIDES) if (toCompile[side].has(c.id)) queue.push({side, c});
   const announced = new Set<number>(coverage(s, cells).done);
   let stopping = false, finished = 0;
   const children = new Set<ReturnType<typeof spawn>>(), failures: string[] = [], began = performance.now();
@@ -316,7 +316,7 @@ async function run() {
   // scheduling, stop the workers, keep finished rides, release the locks, report.
   const stop = () => {if (!stopping) {stopping = true; console.log('\nstopping: finished rides are kept; writing a partial report…');} for (const ch of children) ch.kill('SIGINT');};
   process.on('SIGINT', stop); process.on('SIGTERM', stop);
-  console.log(`${queue.length} rides to compile (${rs.length < rounds(s.cases).length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
+  console.log(`${queue.length} rides to compile (${rs.length < s.rounds.length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
   try {
     let laneError: unknown;
     await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
@@ -376,8 +376,7 @@ async function worker() {
   const {cell, track, gallery} = await compileAndMeasure(p.root, c, {spec, music}, settings);
   assert.equal(compilerContent(p.root).key, p.contentKey, `the compiler at ${p.root} changed during this ride`);
   assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed during this ride');
-  const arm = {dir: armDir, settings} as Arm;
-  saveArmCell(arm, c, cell, track, p.evaluator, {commit: content.head, clean: content.clean, compiledAt: new Date().toISOString()}, gallery);
+  saveArmCell({dir: armDir, settings}, c, cell, track, p.evaluator, {commit: content.head, clean: content.clean, compiledAt: new Date().toISOString()}, gallery);
 }
 
 /** The rides that moved most (or --cases=ID,…), both arms, on the dashboard:
@@ -388,16 +387,14 @@ async function rides() {
   const top = Number(arg('top', '6'));
   assert.ok(Number.isSafeInteger(top) && top >= 1, '--top must be a positive integer');
   const s = await select(), {cells} = await loadState(s), cov = coverage(s, cells);
-  const ids = arg('cases') ? arg('cases')!.split(',') : cov.matched
-    .map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
-    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, top).map(x => x.id);
+  const ids = arg('cases') ? arg('cases')!.split(',') : movedMost(cov.matched, cells, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
   const {loadMusicCase, saveMusicCell} = await import('../../scripts/produce/music_artifacts.ts');
   const {writeGalleryJson} = await import('../../scripts/gallery/artifacts.ts');
   const {judgeIdentity} = await import('../../benchmark/v6/contract.ts');
   const outRoot = resolve('generated/compare', s.name), entries: any[] = [];
   mkdirSync(outRoot, {recursive: true});
-  for (const id of ids) for (const side of ['reference', 'candidate'] as const) {
+  for (const id of ids) for (const side of [...SIDES].reverse()) {
     const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], cell = cells[side].get(id), gallery = readArmGallery(arm, id);
     assert.ok(gallery, `${side} ${id} was saved before rides kept their compile outputs; compile it again to show it`);
     // An export is the saved ride itself: its folder is named by the arm and the
@@ -423,7 +420,7 @@ async function rides() {
       const saved = saveMusicCell({out, planSha256, c: musicCase, method: 'production', seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
         result: gallery.result, reference: null, referenceTrace: null, compileMs: gallery.compileMs, physicalFrames: gallery.physicalFrames,
         production, styles: production.styles, phrases, work: gallery.work});
-      assert.equal(saved.cell.trackHash, sha256(JSON.stringify(readArmTrack(arm, id))), `${side} ${id}: the exported track is not the compared one`);
+      assert.equal(saved.cell.trackHash, digest(readArmTrack(arm, id)), `${side} ${id}: the exported track is not the compared one`);
       writeGalleryJson(out, 'manifest.json', {schema: 'line.motion-gallery.v1', planSha256, plan, cells: [saved.cell],
         sets: [{actualCompilationFrames: gallery.physicalFrames, productionFrames: gallery.physicalFrames, productionAllowance: gallery.budget,
           validation: 'A saved benchmark ride, shown as compiled and compared (no second compile).'}],

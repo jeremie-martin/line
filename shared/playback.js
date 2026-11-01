@@ -39,7 +39,7 @@ export function outputClock() {
  * loaded, plays as silence on the same clock. Music that finishes decoding
  * during a run joins it at the position the run has reached. */
 export function createMusic() {
-  let context, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0;
+  let context, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0, requested = false;
   const stopSource = () => {source?.stop(); source = undefined;};
   /** Starts the buffer at music position `at` (≥ 0) on the current run's clock. */
   const startSource = (at) => {
@@ -50,31 +50,55 @@ export function createMusic() {
   const music = {
     get duration() {return buffer?.duration;},
     get playing() {return !!run;},
+    /** Playing, or a play still waiting for the audio context to resume. */
+    get requested() {return requested;},
     get context() {return context;},
-    async load(bytes) {
+    /** Loads music from bytes or a URL. Returns false when a later load or
+     * clear superseded it (a superseded load never applies, nor fails). */
+    async load(bytesOrUrl) {
       const n = ++loads; buffer = undefined;
       context ??= new AudioContext();
-      const decoded = await context.decodeAudioData(bytes);
-      if (n !== loads) return;
+      let decoded;
+      try {
+        let bytes = bytesOrUrl;
+        if (typeof bytesOrUrl === 'string') {
+          const res = await fetch(bytesOrUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          bytes = await res.arrayBuffer();
+        }
+        if (n !== loads) return false;
+        decoded = await context.decodeAudioData(bytes);
+      } catch (error) {
+        if (n !== loads) return false;
+        throw error;
+      }
+      if (n !== loads) return false;
       buffer = decoded;
       if (run && !source) {
         const at = Math.max(0, heard(run, context.currentTime));
         if (at < buffer.duration) startSource(at);
       }
+      return true;
     },
     clear() {loads++; music.pause(); buffer = undefined;},
     /** Plays from position `from` (s) at `rate`; the first call must come from a user
-     * gesture. A later play or pause cancels it while the audio is still resuming. */
+     * gesture. A later play or pause cancels it while the audio is still resuming
+     * (a cancelled play resolves without playing and never rejects). */
     async play(from, rate = 1) {
-      const n = ++plays; stopSource(); run = undefined;
+      const n = ++plays; stopSource(); run = undefined; requested = true;
       context ??= new AudioContext();
-      await context.resume();
+      try {
+        await context.resume();
+      } catch (error) {
+        if (n !== plays) return;
+        requested = false; throw error;
+      }
       if (n !== plays) return;
       run = {from, startedAt: context.currentTime, rate}; clock = outputClock();
       if (buffer && from < buffer.duration) startSource(Math.max(0, from));
     },
     /** Stops and returns the position heard now. */
-    pause() {plays++; stopped = music.position(performance.now()); stopSource(); run = undefined; return stopped;},
+    pause() {plays++; requested = false; stopped = music.position(performance.now()); stopSource(); run = undefined; return stopped;},
     /** Position heard at performance time `ms`. */
     position(ms) {
       if (!run) return stopped;

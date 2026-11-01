@@ -13,7 +13,7 @@ it('replaces precisely the earlier span estimate when construction leads its bea
   impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,completeBoundary:true,
   impactContract:'line.strike.v3' as const,impactPreparationFrames:2};
  const result=compileArcMotion(spec,17,options);expect(result.failure).toBeNull();expect(result.rows).toHaveLength(7);
- const ctx=createArcCompileContext(spec,17,options);resetFrameCount();setPhysicsFrameLimit(null);
+ const ctx=createArcCompileContext(spec,options);resetFrameCount();setPhysicsFrameLimit(null);
  try{for(let i=1;i<ctx.contacts.length;i++){
   const prefix=ctx.lineage.rebuild(result.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<i));
   const local=resolveIntervalOptions(ctx,i,{}),opened=openInterval(ctx,prefix,i,local,ctx.memoryFor(i),[])!;

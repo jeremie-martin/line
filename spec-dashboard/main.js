@@ -110,13 +110,10 @@ const state = {
   followSuspended: false,
 };
 
+// A newer spec's music supersedes an older one still downloading, and a play
+// still waiting on the audio context counts as playing for the controls (toggle,
+// seek, rate): both are tracked by the shared music (music.load, music.requested).
 const music = createMusic(), onScreen = displayTime();
-// A newer spec's audio request supersedes an older one still downloading, so a
-// slow fetch for a previous spec never replaces the current spec's music.
-let musicRequests = 0;
-// A play still waiting on the audio context counts as playing for the controls
-// (toggle, seek, rate), as in production.js, so they apply to that pending play.
-let playRequests = 0, starting = false;
 
 init().catch((error) => showFatal(error));
 
@@ -129,7 +126,7 @@ async function init() {
 function wireEvents() {
   const rate = document.getElementById("listening-rate");
   const setRate = (value) => {
-    const t = specTime(), playing = playRequested();
+    const t = specTime(), playing = music.requested;
     state.playbackRate = Math.max(.2, Math.min(2, Number(value)));
     rate.value = state.playbackRate;
     document.getElementById("listening-rate-value").textContent = `${Number(state.playbackRate.toFixed(2))}×`;
@@ -366,9 +363,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   }
 
   music.clear();
-  playRequests++; starting = false;
-  const musicRequest = ++musicRequests;
-  if (view.music?.audioUrl) loadMusic(view.music.audioUrl, musicRequest);
+  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
 
   if (pushUrl) {
     const params = new URLSearchParams(location.search);
@@ -380,16 +375,11 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   seekTo(state.cursorT, { select: true, reveal: false, resumeFollow: false });
 }
 
-async function loadMusic(url, request) {
+async function loadMusic(url) {
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const bytes = await res.arrayBuffer();
-    if (request !== musicRequests) return;
-    await music.load(bytes);
-    if (request === musicRequests) updatePlaybackUi();
+    if (await music.load(url)) updatePlaybackUi();
   } catch {
-    if (request === musicRequests) refs.musicMeta.textContent = "Audio failed to load";
+    refs.musicMeta.textContent = "Audio failed to load";
   }
 }
 
@@ -404,7 +394,9 @@ async function loadAnalysis(music) {
   const load = (url) => url ? fetch(url, { cache: "no-cache" }).then(readJsonOk).catch(() => null) : null;
   const [raw, measured, vocal] = await Promise.all([load(music.beatsUrl), load(music.eventsUrl), load(music.vocalEvidenceUrl)]);
   const analysis = normalizeAnalysis(raw ?? {}, musicOffset(music));
-  analysis.vocal = vocal;
+  // The y-axis ceilings do not depend on the view: computed once per song.
+  const ceiling = (field) => vocal[field].reduce((top, v) => v === null ? top : Math.max(top, v), 1);
+  analysis.vocal = vocal && {...vocal, ceilings: {rms: ceiling('rms'), spectralChange: ceiling('spectralChange')}};
   const note = document.getElementById('vocal-evidence-note');
   const evidenceError = music.vocalEvidenceError || (music.vocalEvidenceUrl && !vocal ? 'Vocal evidence could not be loaded. Reload before using these measurements.' : null);
   note.textContent = evidenceError || (vocal
@@ -1040,7 +1032,7 @@ function drawVocalEvidence(svg, L, plotW, y) {
   const last = Math.min(e.rms.length - 1, Math.ceil((state.viewEnd - offset) / dt));
   for (const [row, field, label, color] of [[0, 'rms', 'vocal RMS', '#a86820'], [1, 'spectralChange', 'change', '#77529c']]) {
     const top = y + row * 48, height = 38;
-    const ceiling = Math.max(1, ...e[field].filter(v => v !== null));
+    const ceiling = e.ceilings[field];
     add(svg, 'text', {x: 3, y: top + 16, class: 'svg-small'}, label);
     add(svg, 'text', {x: 3, y: top + 30, class: 'svg-small'}, `0–${ceiling.toFixed(2)}`);
     add(svg, 'line', {x1:L,x2:L+plotW,y1:top+height,y2:top+height,class:'svg-rule'});
@@ -2137,22 +2129,18 @@ function renderAgentContext() {
 // the cursor sits at the position heard, also where the spec runs past the music.
 function togglePlayback() {
   if (!state.data) return;
-  if (playRequested()) pausePlayback();
+  if (music.requested) pausePlayback();
   else startPlayback(state.cursorT);
 }
 
 function startPlayback(t) {
   clearClicks();
-  const request = ++playRequests;
-  starting = true;
-  const settle = () => { if (request === playRequests) starting = false; };
   music.play(specToAudioTime(t, musicOffset(state.data.music)), state.playbackRate)
-    .then(() => { settle(); updatePlaybackUi(); }, (error) => { settle(); toast(String(error)); });
+    .then(() => updatePlaybackUi(), (error) => toast(String(error)));
 }
 
 function pausePlayback() {
   clearClicks();
-  playRequests++; starting = false;
   if (isPlaying()) state.cursorT = specTime();
   music.pause();
   updatePlaybackUi(state.cursorT);
@@ -2163,10 +2151,6 @@ function isPlaying() {
   return music.playing;
 }
 
-/** Playing, or a play still waiting for the audio context to resume. */
-function playRequested() {
-  return music.playing || starting;
-}
 
 function hasAudio() {
   return Boolean(music.duration);
@@ -2202,7 +2186,7 @@ function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
-  if (playRequested()) startPlayback(next);
+  if (music.requested) startPlayback(next);
   if (opts.resumeFollow !== false) resumeFollow();
   if (opts.reveal !== false) revealTime(next, { manual: false });
   updatePlaybackUi(next);

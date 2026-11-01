@@ -46,6 +46,12 @@ export function arcMainSteps(support:number,subdivisions=4,faces?:number):number
 export function catchReceivers<P extends {x:number;y:number;vx:number;vy:number}>(trace:Record<string,P>):Record<string,P>{
   return Object.fromEntries(Object.entries(trace).map(([key,p])=>[key,{...p,x:p.x+.5*p.vx,y:p.y+.5*p.vy}]));
 }
+/** The receivers a catch's rail is placed against: every rider point for a
+ * surface met from the opposing side (contactSide −1: the body can touch it
+ * first), the sled's four points otherwise. */
+export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number):P[]{
+  return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
+}
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */

@@ -53,7 +53,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     {index: gaps.length, startFrame: frame, endFrame: horizon, endsWithContact: false, targets: {}};
   // Construction timing may lead the beat; musical span measurements keep
   // the authored boundaries. Both an estimate and its later replacement use
-  // the same sampled search targets.
+  // the same search targets.
   const outgoing = {...(gaps[scheduled.index] ?? scheduled), targets: scheduled.targets};
   const targets = outgoing.targets;
   const objectiveEnd = Math.min(horizon, duration);
@@ -63,7 +63,6 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   engine.prepareCollisionTrace(frame);
   getRiderMetered(engine, frame);
   const trace = catchReceivers(engine.readCollisionTrace()[0]);
-  const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
   const prefixRaw = extractRawTrajectory(engine, frame - 1), prefixDetection = detectPrefix(prefixRaw);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
   const prefixImpactFrames = account ? account.observe(engine, prefixRaw.frames, beforeState) : undefined;
@@ -113,7 +112,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   return {
     ctx, options, i, engine, protectedEngines, controlMemory,
     frame, gap, next, horizon, outgoing, targets, objectiveEnd,
-    beforeState, before, velocity, trace, points,
+    beforeState, before, velocity, trace,
     prefixRaw, prefixDetection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, controlContext,

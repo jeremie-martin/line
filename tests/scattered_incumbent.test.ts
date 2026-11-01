@@ -10,7 +10,7 @@ import {LineRiderEngine as Engine} from '../scripts/lib/native_motion/engine.ts'
 for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scattered incumbent without substituting unrelated controls: ${song}`,()=>{
  const f=JSON.parse(gunzipSync(readFileSync(new URL(`./fixtures/scattered-incumbent/${song}.json.gz`,import.meta.url))).toString());
  const spec={...f.spec,axes:Object.fromEntries(Object.entries(f.axes).map(([k,values]:[string,any])=>[k,(t:number)=>values[Math.round(t*40)]??undefined]))};
- const options=repertoireSearchOptions(spec,f.plan,100_000_000,'line.strike.v3'),ctx=createArcCompileContext(spec,f.seed,options),engine=ctx.lineage.rebuild(f.lines);
+ const options=repertoireSearchOptions(spec,f.plan,100_000_000,'line.strike.v3'),ctx=createArcCompileContext(spec,options),engine=ctx.lineage.rebuild(f.lines);
  resetFrameCount();setPhysicsFrameLimit(250_000);
  try{
   const initial=searchInterval(ctx,engine,f.section,{directControls:[f.control]},[engine]);

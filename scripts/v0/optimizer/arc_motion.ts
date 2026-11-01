@@ -35,7 +35,7 @@ function compileArcMotionOnce(spec: Spec, seed: number, options: ArcMotionOption
   if (duration < 1) throw new Error('arc duration must cover at least one frame');
   if (budget <= 2 * (end + 1)) throw new Error('arc budget must cover two complete replays and construction work');
   try {
-    const ctx = createArcCompileContext(spec, seed, options);
+    const ctx = createArcCompileContext(spec, options);
     const seq = startSequence(ctx);
     setPhysicsFrameLimit(budget - 2 * (end + 1));
     validateSectionStyles(options, ctx.contacts.length);

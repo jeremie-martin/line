@@ -13,11 +13,11 @@ import {createHash} from 'node:crypto';
 import {existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
-import {digest, evaluatorIdentity} from './inputs.ts';
-import {atomicWrite, readJson, type PlannedCase} from './records.ts';
+import {digest} from './inputs.ts';
+import {atomicWrite, compiledOutputs, readJson, readJsonGz, readTrack, type PlannedCase} from './records.ts';
 import {measureCell} from './measure.ts';
 import {ADAPTER_SHA256, type ArmSettings} from './compile.ts';
-import {gunzipSync, gzipSync} from 'node:zlib';
+import {gzipSync} from 'node:zlib';
 
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 /** What the compiler is made of: the directories its import closure and its
@@ -93,17 +93,20 @@ export function openArm(root: string, label: string, content: ReturnType<typeof 
   return {key, dir, root, label, content, settings, jolt};
 }
 
-const cellPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.json');
-export const trackPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.track.json.gz');
-export const readArmTrack = (arm: Arm, id: string) => JSON.parse(gunzipSync(readFileSync(trackPath(arm, id))).toString());
-export const galleryPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.gallery.json.gz');
-export const readArmGallery = (arm: Arm, id: string) => existsSync(galleryPath(arm, id)) ? JSON.parse(gunzipSync(readFileSync(galleryPath(arm, id))).toString()) : null;
-export function saveArmCell(arm: Arm, c: PlannedCase, cell: any, track: any, evaluator: string, provenance: any, gallery?: any) {
+const cellPath = (arm: Pick<Arm, 'dir'>, id: string) => join(arm.dir, 'cells', id + '.json');
+const trackPath = (arm: Pick<Arm, 'dir'>, id: string) => join(arm.dir, 'cells', id + '.track.json.gz');
+const galleryPath = (arm: Pick<Arm, 'dir'>, id: string) => join(arm.dir, 'cells', id + '.gallery.json.gz');
+export const readArmTrack = (arm: Pick<Arm, 'dir'>, id: string) => readTrack(arm.dir, id);
+export const readArmGallery = (arm: Pick<Arm, 'dir'>, id: string) => existsSync(galleryPath(arm, id)) ? readJsonGz(galleryPath(arm, id)) : null;
+type ArmTarget = Pick<Arm, 'dir' | 'settings'>;
+const writeArmCell = (arm: ArmTarget, c: PlannedCase, cell: any, trackHash: string, evaluator: string, provenance: any) =>
+  atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, mode: arm.settings.mode, trackHash, evaluator, provenance}));
+export function saveArmCell(arm: ArmTarget, c: PlannedCase, cell: any, track: any, evaluator: string, provenance: any, gallery?: any) {
   atomicWrite(trackPath(arm, c.id), gzipSync(JSON.stringify(track)));
   if (gallery) atomicWrite(galleryPath(arm, c.id), gzipSync(JSON.stringify(gallery)));
-  atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, mode: arm.settings.mode, trackHash: digest(track), evaluator, provenance}));
+  writeArmCell(arm, c, cell, digest(track), evaluator, provenance);
 }
-export type CellState = {cell: any; remeasured?: true} | {stale: string} | null;
+type CellState = {cell: any; remeasured?: true} | {stale: string} | null;
 /** A saved cell of `arm` for case `c`: reused when its resolved inputs equal
  * today's, remeasured in place when only the measurement code differs
  * (`remeasured`); `stale` (with the reason) when the inputs changed; null when absent. */
@@ -111,14 +114,14 @@ export async function savedCell(arm: Arm, c: PlannedCase, evaluator: string, res
   if (!existsSync(cellPath(arm, c.id))) return null;
   const cell = readJson(cellPath(arm, c.id));
   if (JSON.stringify(cell.case) !== JSON.stringify(c)) return {stale: describeInputChange(cell.case, c)};
+  if (cell.evaluator === evaluator) return {cell};
+  // Same compiler, same inputs, newer measurement code: replay the saved track
+  // (verified first; every reader of a saved track checks it against its cell).
   const track = readArmTrack(arm, c.id);
   assert.equal(digest(track), cell.trackHash, `${cellPath(arm, c.id)}: saved track differs from its cell`);
-  if (cell.evaluator === evaluator) return {cell};
-  // Same compiler, same inputs, newer measurement code: replay the saved track.
-  const {spec, music} = await resolved(), prior = cell;
-  const remeasured = measureCell({c, mode: arm.settings.mode, spec, music, track, physicalFrames: prior.physicalFrames, compileMs: prior.compileMs,
-    complete: prior.complete, fulfilled: prior.fulfilled, motion: prior.motion, geometry: prior.geometry});
-  saveArmCell(arm, c, remeasured, track, evaluator, {...prior.provenance, remeasuredFrom: prior.evaluator});
+  const {spec, music} = await resolved();
+  const remeasured = measureCell({c, mode: arm.settings.mode, spec, music, track, ...compiledOutputs(cell)});
+  writeArmCell(arm, c, remeasured, cell.trackHash, evaluator, {...cell.provenance, remeasuredFrom: cell.evaluator});
   return {cell: readJson(cellPath(arm, c.id)), remeasured: true};
 }
 function describeInputChange(old: any, now: any) {
@@ -143,5 +146,3 @@ export function getReference(name: string): Reference {
 }
 export const listReferences = (): Reference[] => existsSync(refDir())
   ? readdirSync(refDir()).filter(f => f.endsWith('.json')).map(f => readJson(join(refDir(), f))) : [];
-
-export {evaluatorIdentity};

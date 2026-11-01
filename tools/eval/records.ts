@@ -46,9 +46,12 @@ export function readCell(dir: string, plan: RunPlan, c: PlannedCase) {
   assert.equal(digest(readTrack(dir, c.id)), cell.trackHash, `${c.id}: saved track differs`);
   return cell;
 }
-export function readTrack(dir: string, id: string) {
-  return JSON.parse(gunzipSync(readFileSync(join(dir, 'cells', id + '.track.json.gz'))).toString());
-}
+export const readJsonGz = (path: string) => JSON.parse(gunzipSync(readFileSync(path)).toString());
+export const readTrack = (dir: string, id: string) => readJsonGz(join(dir, 'cells', id + '.track.json.gz'));
+/** What a remeasured cell carries over from its compile: compiler outputs that
+ * a replay of the saved track cannot reconstruct. */
+export const compiledOutputs = (cell: any) => ({physicalFrames: cell.physicalFrames, compileMs: cell.compileMs, complete: cell.complete,
+  fulfilled: cell.fulfilled, motion: cell.motion, geometry: cell.geometry});
 export function saveCell(dir: string, plan: RunPlan, c: PlannedCase, cell: any, track: any) {
   const base = join(dir, 'cells', c.id);
   atomicWrite(base + '.track.json.gz', gzipSync(JSON.stringify(track)));

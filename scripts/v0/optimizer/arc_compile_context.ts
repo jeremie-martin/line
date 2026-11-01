@@ -46,7 +46,7 @@ export type ArcSearchWork = ReturnType<typeof createSearchWork>;
 /** Timeline, start state, engine lineage, memory and accounting for a
  * normalized spec. Targets are read exactly as authored; the search is
  * deterministic, and a seed reaches the compiler only through the plan. */
-export function createArcCompileContext(spec: Spec, seed: number, options: ArcMotionOptions) {
+export function createArcCompileContext(spec: Spec, options: ArcMotionOptions) {
   const budget = options.budget, duration = Math.round(spec.duration * 40), end = duration + 20;
   const frames = spec.contacts.map(c => Math.round(c.t * 40));
   const impactTargets = spec.contacts.map((c, i) => ({frame: frames[i], impact: c.impact}));

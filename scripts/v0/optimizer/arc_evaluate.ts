@@ -8,7 +8,7 @@ import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { motionArc, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
@@ -116,7 +116,7 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
-    const main = motionArc(s.points, s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
+    const main = motionArc(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
     const supportEngine = add(engine, main), id = Math.max(...main.map(l => l.id)) + 1;
     const receiver = observedReceiver(supportEngine, main, s.frame, Math.min(s.horizon, ctx.duration), c, id, options, i === ctx.contacts.length - 1);
     if (!receiver) return {reason: 'receiver_no_window'};
@@ -125,9 +125,8 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
     if (parent) prefixes.set(child, {parent, lines: added});
     return {added, child};
   }
-  const receivers = c.contactSide === -1 ? Object.values(s.trace) : s.points;
   const added = fragments?.lines ??
-    motionArc(receivers, s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
+    motionArc(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
   return {added, child: add(engine, added)};
 }
 
@@ -228,9 +227,8 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   // Keep future catches physically accessible; this is an optimizer prior,
   // never a change to the scored result.
   cost += .01 * Math.max(0, -finalVelocity.x / Math.max(1, s.pace)) ** 2;
-  const priors = {heading: 0};
-  cost = addArrivalPriors(s, finalVelocity, state, residuals, cost, priors);
-  return {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior: priors.heading};
+  const priors = addArrivalPriors(s, finalVelocity, state, residuals, cost);
+  return {achieved, actualImpact, residuals, cost: priors.cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior: priors.heading};
 }
 
 /** How much of the steep, kinetic arrival prior applies before a catch asked
@@ -244,9 +242,9 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
 
 /** Arrival speed and heading priors toward the next catch, and (in repair)
  * the distance to a reference arrival state. Appends residuals; returns the
- * cost with each term added in order. */
-function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number,
-  priors: {heading: number}) {
+ * cost with each term added in order, and the heading prior's part of it. */
+function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
+  let heading = 0;
   const {ctx, options, i, targets} = s;
   const {contacts, gaps, planned} = ctx;
   const nextImpact = i < contacts.length - 1 ? gaps[contacts[i + 1].gap].targets.impact ?? 0 : 0;
@@ -283,7 +281,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
     residuals.push(r);
     cost += r * r;
-    priors.heading = r * r;
+    heading = r * r;
   }
   if (options.arrivalReference) {
     const target = options.arrivalReference, weight = Math.sqrt(1 / 10);
@@ -297,7 +295,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
       }
     }
   }
-  return cost;
+  return {cost, heading};
 }
 
 /** Turns a valid measurement into a candidate: arrival description, the

@@ -111,7 +111,7 @@ async function main() {
   }
 }
 const num = (x: number, signed = false) => !Number.isFinite(x) ? '—' : (signed && x > 0 ? '+' : '') + x.toFixed(3);
-const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
+export const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
 const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)}${r.run.creative ? `, creative ${JSON.stringify(r.run.creative)}` : ''})`;
 /** The stratified report (bench, sealed, held-out panels): completion, then
  * quality on both-complete cells, then per-spec detail with seed sign counts. */

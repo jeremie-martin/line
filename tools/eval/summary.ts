@@ -141,6 +141,9 @@ export function failurePoint(cell: any) {
   return {kind: frame === Infinity ? 'invalid' : crash <= miss ? `crash (${cell.terminus.reason})` : 'missed beat',
     time: frame === Infinity ? NaN : frame / 40, reached: frame === Infinity ? 1 : targets.filter((t: any) => t.frame < frame).length / targets.length};
 }
+/** The categories of `cases`, in numeric order (G, P1, P2, …, P10). */
+export const strataOf = (cases: Array<{bench?: {stratum: string} | null}>) =>
+  [...new Set(cases.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
 export const specKey = (c: any) => `${c.song}~${c.variant ?? 'spec'}`;
 /** Stratified comparison of run `a` against optional reference `b`.
  * Completion first, over every cell. Quality only on cells complete in both
@@ -152,7 +155,7 @@ export function stratify(a: Run, b?: Run) {
   if (b) assertPairedRuns(a, b);
   const cases = a.run.panel as any[];
   assert.ok(cases.every(c => c.bench), 'not a stratified run: use the legacy report');
-  const strata = [...new Set(cases.map(c => c.bench.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  const strata = strataOf(cases);
   const done = (r: Run | undefined, id: string) => r ? r.cells.get(id).complete as boolean : true;
   const failures = (r: Run) => cases.filter(c => !r.cells.get(c.id).complete).map(c => ({id: c.id, ...failurePoint(r.cells.get(c.id))}));
   const rows = strata.map(stratum => {
@@ -243,7 +246,7 @@ export function geometryStrata(a: Run, b?: Run) {
     return {group, rows: shares(group) ? rows.sort((x, y) => rank(x) - rank(y) || x.localeCompare(y)) : rows};
   });
   const complete = (id: string) => runs.every(r => r.cells.get(id).complete);
-  const strata = [...new Set(cases.map(c => c.bench.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  const strata = strataOf(cases);
   // One arm's value of a row over a stratum: seed mean per spec, then spec mean.
   // A family absent from a ride has share 0 there.
   const level = (arm: number, group: string, row: string, stratum: string) => {

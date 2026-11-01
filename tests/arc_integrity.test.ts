@@ -2,7 +2,7 @@ import {expect,it} from 'vitest';
 import {compileArcMotion,motionArc} from '../scripts/v0/optimizer/arc_motion.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
-import {catchReceivers} from '../scripts/v0/optimizer/arc_geometry.ts';
+import {catchReceivers, receiverPoints} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
@@ -31,7 +31,7 @@ it('keeps accepted reflow controls synchronized with the geometry used by later 
     const engine=createArcEngine({position:r.track.startPosition,velocity:r.track.riders[0].startVelocity},r.track.lines.filter(l=>group(l)<i));
     const row=r.rows[i],velocity=getRiderMetered(engine,row.frame).velocity;
     engine.prepareCollisionTrace(row.frame);getRiderMetered(engine,row.frame);
-    const trace=catchReceivers(engine.readCollisionTrace()[0]),points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
+    const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control.contactSide);
     const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,12,24)).get(i)!;
     const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
     expect(actual[0]).toEqual(rebuilt[0]);

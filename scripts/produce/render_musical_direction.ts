@@ -1,6 +1,7 @@
 /** Render preserved study rides through the existing production pipeline.
  * No compilation, style selection, geometry mutation or creative gate happens here. */
 import assert from 'node:assert/strict';
+import {verifiedVideoCell} from './video_input.ts';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,join,relative} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -20,7 +21,7 @@ const manifest=savedSet?{plan:read(join(root,'plan.json')),planSha256:hash(join(
 if(savedSet)assert.equal(savedSet.planSha256,manifest.planSha256);
 const ids=arg('ids')!.split(',');
 assert.ok(ids.length&&ids.every(id=>manifest.cells.some((c:any)=>c.id===id)));
-const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/export.ts','scripts/lib/export.ts',
+const paths=['scripts/produce/render_musical_direction.ts','scripts/produce/render.ts','scripts/produce/video_input.ts','scripts/lib/video_options.ts','scripts/export.ts','scripts/lib/export.ts',
   'scripts/make_overlay_data.ts','scripts/produce/overlay_impact.ts','scripts/make_spectrum.py','scripts/fx_recipe.ts',...execFileSync('git',['ls-files','remotion/src'],{encoding:'utf8'}).trim().split('\n').filter(Boolean)];
 const pipeline=galleryHarnessIdentity(paths),mirror=await ensureMirror();
 const probe=(p:string)=>JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-show_format','-of','json',p],{encoding:'utf8'}));
@@ -32,17 +33,7 @@ function check(p:string){
 }
 try{
   for(const id of ids){
-    const cell=manifest.cells.find((c:any)=>c.id===id),c=manifest.plan.cases.find((c:any)=>c.id===cell.caseId);
-    const bytes=readFileSync(join(root,cell.path));assert.equal(sha(bytes),cell.sha256);const record=JSON.parse(bytes.toString());
-    assert.equal(record.planSha256,manifest.planSha256);assert.ok(record.valid,'failed rides are inspectable but cannot be rendered as completed production videos');
-    assert.equal(hash(c.source),c.specSha256);assert.equal(hash(c.audioPath),c.audioSha256);
-    assert.equal(hash(join('productions',c.id,'audio.json')),c.analysisSha256);
-    const trackPath=join(root,cell.trackPath),reportPath=join(root,cell.reportPath);
-    assert.equal(sha(JSON.stringify(read(trackPath))),cell.trackHash);assert.deepEqual(read(trackPath),record.track);
-    assert.ok(record.track.lines.every((l:any)=>l.type===0));
-    const impactFile=join(root,id,'contact-impacts.json');
-    const impactPath=existsSync(impactFile)?impactFile:undefined;
-    if(impactPath){const saved=read(impactPath);assert.deepEqual(saved.evaluation,record.impactEvaluation);assert.deepEqual(saved.grade.score,record.score);}
+    const {cell,c,trackPath,reportPath,impactPath}=verifiedVideoCell(root,manifest,id);
     const identity={...(impactPath?{impactSha256:hash(impactPath)}:{}),planSha256:manifest.planSha256,cellSha256:cell.sha256,trackSha256:hash(trackPath),
       reportSha256:hash(reportPath),specSha256:c.specSha256,audioSha256:c.audioSha256,jolt:manifest.plan.jolt,render:c.render,pipeline};
     const savedPath=join(root,id+'.video.json');

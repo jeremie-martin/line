@@ -231,7 +231,17 @@ and validation are in [music authoring](docs/music-authoring.md).
    editable fields or native controls. Scrubbing and musical-impact jumps retain
    the prior playback state; seeking to the end stops. Pending audio starts are
    cancellable so rapid input cannot override a newer pause.
-   `render_repertoire.ts` renders vertical video when wanted.
+   `scripts/video.ts` makes a video from a fresh production, saved study or raw
+   review track. `renderVideo` in `scripts/produce/render.ts` owns the shared
+   ride export and audio mux; finished presentation adds the existing spectrum
+   and measured-impact effects. Plain review clips call this same function.
+   Format and presentation are independent. `renderBundle` adds publication
+   metadata, and `render_repertoire.ts` retains collection rendering and verified
+   media reuse. The browser's native drawing/export code remains authoritative:
+   physics replay is small compared with capture and encoding. The exporter waits
+   for readiness and uses one download timeout, cleared on success. Single-video
+   jobs use up to 16 workers, bounded by CPU count and RAM; collection lanes retain
+   their smaller per-render default.
 
 ## Geometry families
 

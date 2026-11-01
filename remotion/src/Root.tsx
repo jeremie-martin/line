@@ -13,9 +13,9 @@ import { CurveOverlay, CurveOverlayVertical, ImpactDetailOverlay } from "./Curve
 // ride cost — only the overlay stage re-renders. Effects are time-based, so nothing
 // desyncs across fps.
 export const RemotionRoot: React.FC = () => {
-  const { durationS = 56.55, fps = 30 } = getInputProps() as { durationS?: number; fps?: number };
+  const { durationS = 56.55, fps = 30, width = 1080, height = 1920 } = getInputProps() as { durationS?: number; fps?: number; width?: number; height?: number };
   const common = { durationInFrames: Math.ceil(durationS * fps), fps, width: 1920, height: 1080 } as const;
-  const vertical = { durationInFrames: Math.ceil(durationS * fps), fps, width: 1080, height: 1920 } as const;
+  const vertical = { durationInFrames: Math.ceil(durationS * fps), fps, width, height } as const;
   return (
     <>
       <Composition id="CurveOverlay" component={CurveOverlay} {...common} />

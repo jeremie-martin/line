@@ -94,8 +94,24 @@ Chromium installation instead of Playwright's default browser.
 | `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on the V7 panel ([docs/benchmark.md](docs/benchmark.md)) |
 | `npm run eval -- --name=DIR [--panel=v7\|v7-confirm]` | compile one panel with this checkout |
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
+| `npm run video -- --song=petrunko_selection --seed=404` | compile a fresh ride and make a finished vertical video |
+| `npm run video -- --study=DIR --style=plain --format=horizontal` | make one review video from a saved production (`--id=CELL` for a study with several rides) |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
+
+`video` also accepts `--track=FILE [--audio=FILE --spec=FILE]` for plain review
+media. Presentation (`plain` or `finished`) and format (`horizontal` or `vertical`)
+are independent. Use `--out=FILE.mp4`, `--workers=N`, or `--zoom-mult=N` when
+needed; `--help` lists the interface. Without a seed, a fresh seed is printed and
+recorded. Progress shows stage timings; detailed logs and compilation artifacts
+live in the adjacent `.assets` directory. Existing outputs are never overwritten.
+
+The same rendering implementation serves this command, gallery productions and
+review clips. Plain media skips spectrum analysis and presentation rendering.
+Finished media keeps the existing camera, measured-impact effects and visual recipe.
+Install `remotion/` dependencies for finished media; rendering requires local
+Chromium, ffmpeg/ffprobe and, for uncached spectrum analysis, the music Python
+environment (`LR_SPECTRUM_PYTHON` can select it).
 
 ## Checks
 

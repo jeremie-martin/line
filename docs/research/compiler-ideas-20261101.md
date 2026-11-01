@@ -415,7 +415,7 @@ Scratch replays are summarized here.
   - every ruler: strength by ask band, timing, extras, air, speed, body
     drag, geometry and diversity lines.
 
-### Result: best-measured beam slot (exp/beam-measured-slot, 9cbe6cb8), not adopted
+### Result: best-measured beam slot (exp/beam-measured-slot, 9cbe6cb8)
 | | change | 95% interval | support |
 |---|---|---|---|
 | V7, 4 seeds | +3.6 | [−6.5, +13.7] | 0.83 |
@@ -423,19 +423,42 @@ Scratch replays are summarized here.
 
 - **Completion:** unchanged; no ride gained or lost. Explicit requests
   +4.8.
-- **The predicted mechanism did not show up.** At 8 seeds:
-  - strong-ask bias +0.002, strong rms −0.001, very strong bias −0.005;
-  - air and speed rms within ±0.002.
+- **Where the gain comes from** (176 paired automatic cells, contributions
+  to rms²):
+  - strength −0.71e-4;
+  - timing −0.26e-4;
+  - span axes −0.24e-4;
+  - extras −0.02e-4.
+- **Strength error² by ask band:**
+  - asks under 0.4: −0.7%;
+  - asks 0.4–0.6: **−12%**;
+  - asks 0.6–0.8: **−5%** (falling short by > 0.15: 8.4% → 7.7%);
+  - asks 0.8+: +0.9%.
 
-  The small headline gain is spread thin, not carried by strength.
-- **Body drag worse:** +0.29 s/min, worse in 8 of 9 categories (roughly
-  +20% on the October level of about 1.5 s/min).
+  This matches the pool study. It helps where the pools held catches near
+  the ask, and does nothing for 0.8+ asks, where the options themselves
+  stop short.
+  - A first reading called the mechanism "absent". That was wrong: it rested
+    on the report's strong-ask *bias* and three-decimal rows, which hide a
+    change in error².
+- **Body drag worse:** 1.67 → 2.02 s/min (+21%), in 8 of 9 categories.
 - **Compute:** physics frames equal (the allowance binds). Compile wall time
-  +16 s per ride, but the two arms were not compiled side by side, so this is
+  +16 s per ride, but the arms were not compiled side by side, so this is
   indicative only.
-- **Reading:** keeping the best-measured continuation alive does not, in
-  this compiler, turn into stronger catches. Either its arrival really does
-  cost the next catch (the priors are about right), or the paths it opens
-  lose later for other reasons. This run does not say which. Not adopted: the
-  hypothesis's effect is absent, the headline gain is not established, and
-  body drag regresses.
+- **Held out** (5 specs × 4 seeds): −0.7, 95% interval [−24.5, +23.1],
+  support 0.46.
+  - 3 specs up, 2 down; one ride −101 (Circus voice-drums, seed 101).
+  - Body drag +0.39 s/min here too.
+  - Compile time side by side: 102 s against 101 s, so no compute cost.
+- **Why body drag rises:** the search's cost has no body-drag term
+  (`motion_objective.ts`: bursts and calm corrections only). The slot keeps
+  candidates that are best on what the search measures. The arrival priors
+  (upright arrival among them) were apparently holding drag down indirectly.
+- **Decision: not adopted for now.**
+  - The mechanism is general and small, and it works through the predicted
+    channel on V7.
+  - But the held-out panel does not confirm the gain, and body drag
+    regresses on both panels.
+  - If body drag ever becomes part of what the search measures (it is a
+    guard today, not a validated objective), this slot is worth re-testing.
+  - Branch kept: `exp/beam-measured-slot`.

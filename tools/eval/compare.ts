@@ -76,7 +76,11 @@ async function select(): Promise<Selection> {
   assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
   const resolved = new Map(resolvedCases.map(r => [r.planned.id, Promise.resolve({spec: r.spec, music: r.music})]));
-  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}@${reference.commit.slice(0, 8)}-${panel}${only ? '-only' : ''}`)!;
+  // Non-default settings are part of the default name, so they never collide with a standard comparison.
+  const extra = [budget !== 'standard' ? `budget-${budget}` : '', candidateBudget !== budget ? `cand-budget-${candidateBudget}` : '',
+    creative ? `creative-${digest(creative).slice(0, 6)}` : '', candidateCreative !== creative ? `cand-creative-${digest(candidateCreative ?? {}).slice(0, 6)}` : '']
+    .filter(Boolean).map(x => '-' + x.replace(/[^A-Za-z0-9._-]/g, '_')).join('');
+  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}@${reference.commit.slice(0, 8)}-${panel}${extra}${only ? '-only' : ''}`)!;
   // A comparison keeps its configuration under its name: running it again with
   // more seeds extends it; anything else needs another --name.
   // This checkout is edited all the time: pin it as "this checkout", a commit by its arm.

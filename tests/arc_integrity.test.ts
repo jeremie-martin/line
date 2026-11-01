@@ -2,6 +2,7 @@ import {expect,it} from 'vitest';
 import {compileArcMotion,motionArc} from '../scripts/v0/optimizer/arc_motion.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
+import {catchReceivers} from '../scripts/v0/optimizer/arc_interval_state.ts';
 import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
@@ -17,7 +18,9 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
 });
 it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:20,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
+  // A coarse first search (12 samples) leaves repairs to accept: with mid-frame catches (2026-11-01)
+  // the 20-sample search already gets this spec right, and nothing would exercise the synchronization.
+  const r=compileArcMotion(spec,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
   expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
   expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);
@@ -27,7 +30,7 @@ it('keeps accepted reflow controls synchronized with the geometry used by later 
     const engine=createArcEngine({position:r.track.startPosition,velocity:r.track.riders[0].startVelocity},r.track.lines.filter(l=>group(l)<i));
     const row=r.rows[i],velocity=getRiderMetered(engine,row.frame).velocity;
     engine.prepareCollisionTrace(row.frame);getRiderMetered(engine,row.frame);
-    const trace=engine.readCollisionTrace()[0],points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
+    const trace=catchReceivers(engine.readCollisionTrace()[0]),points=['PEG','TAIL','NOSE','STRING'].map(k=>trace[k]);
     const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,12,24)).get(i)!;
     const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
     expect(actual[0]).toEqual(rebuilt[0]);

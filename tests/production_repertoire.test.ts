@@ -58,7 +58,9 @@ it('refines mixed constructions and preserves functional requests',async()=>{
  const {arcRailGroups}=await import('../scripts/v0/optimizer/arc_guidance.ts');
  const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
- const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,200000),
+ // 300k: with catches placed mid-frame (2026-11-01) this search uses about 213k unconstrained,
+ // so the old 200k left refinement nothing; the old placement used 224k.
+ const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,300000),
   refineAttempts:2,refineSamples:0,refineWidth:2});
  expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
  expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
@@ -70,5 +72,5 @@ it('refines mixed constructions and preserves functional requests',async()=>{
  for(const i of fragments)roles[i]=result.rows[i].railGuides;
  expect(replay.grade.score.valid).toBe(true);
  expect(inspectRepertoireLayout(plan,result.track.lines,roles,replay.collisions,replay.positions).fulfilled).toBe(true);
- expect(result.stats.sim_frames).toBeLessThanOrEqual(200000);
+ expect(result.stats.sim_frames).toBeLessThanOrEqual(300000);
 });

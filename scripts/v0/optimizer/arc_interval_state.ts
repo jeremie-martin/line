@@ -16,6 +16,15 @@ import type { ArcCompileContext } from './arc_compile_context.ts';
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
 
+/** Where a catch is placed: each rider point half a frame after the beat
+ * frame's first collision pass, so the line is crossed in the middle of the
+ * beat frame. Placed at the pass itself, crossings fell near the frame's start
+ * (median −0.4 frame from its middle) and a fifth of strong hits tipped into
+ * the frame before (docs/research/compiler-ideas-20261101.md). */
+export function catchReceivers<P extends {x: number; y: number; vx: number; vy: number}>(trace: Record<string, P>): Record<string, P> {
+  return Object.fromEntries(Object.entries(trace).map(([key, p]) => [key, {...p, x: p.x + .5 * p.vx, y: p.y + .5 * p.vy}]));
+}
+
 /** A control whose construction fell short, and by how much; seeds recovery. */
 export type Near = {c: ArcMotionControl; deficit: number};
 /** Contact fragments that replace a connected curve, with their guide line ids. */
@@ -62,13 +71,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const velocity = getRiderMetered(engine, frame).velocity;
   engine.prepareCollisionTrace(frame);
   getRiderMetered(engine, frame);
-  // The catch is placed where each rider point will be half a frame after the
-  // beat frame's first collision pass, so the line is crossed in the middle of
-  // the beat frame. Placed at the pass itself, crossings fell near the frame's
-  // start (median −0.4 frame from its middle) and a fifth of strong hits tipped
-  // into the frame before (docs/research/compiler-ideas-20261101.md).
-  const trace = Object.fromEntries(Object.entries(engine.readCollisionTrace()[0]).map(([key, p]) =>
-    [key, {...p, x: p.x + .5 * p.vx, y: p.y + .5 * p.vy}]));
+  const trace = catchReceivers(engine.readCollisionTrace()[0]);
   const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
   const prefixRaw = extractRawTrajectory(engine, frame - 1), prefixDetection = detectPrefix(prefixRaw);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;

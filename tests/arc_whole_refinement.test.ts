@@ -4,13 +4,14 @@ import type {Spec} from '../scripts/v0/types.ts';
 
 it('improves a complete authored timeline inside a shared construction and repair budget',()=>{
   const spec:Spec={duration:5,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6,4.2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5,amplitude:()=>.2}};
-  const result=compileArcMotion(spec,17,{budget:72500,samples:80,channel:12,radius:24,
+  // 120k leaves refinement room after the search (mid-frame catches, 2026-11-01: 72.5k now left none).
+  const result=compileArcMotion(spec,17,{budget:120000,samples:80,channel:12,radius:24,
     impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,
     guidance:'clearance',guidanceSamples:24,
     refineAttempts:4,refineSamples:24,refineGuidanceSamples:48,refineWidth:3});
   expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
   expect(result.report.off_beat_landings).toEqual([]);expect(result.report.terminus.reason).toBe('endOfSpec');
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(72500);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(120000);
   expect(result.refinementStats.frames).toBeGreaterThan(0);
   expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
   expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);

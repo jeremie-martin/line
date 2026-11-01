@@ -17,8 +17,8 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
   expect(initial?.best?.actualImpact).toBeCloseTo(f.impact,12);
   const key=(c:any)=>arcControlMemoKey(c,options.channel);
   const incumbent=key(initial!.best.c);
-  // These cheaper connected carriers fail as scattered realizations. The
-  // previously verified offered control remains valid regardless of rank.
+  // The previously verified offered control remains valid regardless of rank,
+  // whether or not the cheaper connected carriers also realize scattered catches.
   const broader=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);
   expect(broader?.candidates.some(c=>key(c.c)===incumbent)).toBe(true);
   expect(broader?.best).toBeTruthy();
@@ -32,11 +32,15 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
   let atLimit;
   try {atLimit=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);}
   catch(e){if(!(e instanceof PhysicsFrameLimitExceeded))throw e;throw Error('discarded validated offered incumbent at the work ceiling',{cause:e});}
+  // It returns the best realization already validated, as without the ceiling.
   expect(atLimit?.best).toBeTruthy();
-  expect(atLimit?.best.actualImpact).toBeCloseTo(f.impact,12);
+  expect(atLimit?.best.actualImpact).toBeCloseTo(broader!.best.actualImpact,12);
   expect(ctx.work.budgetInterruptions).toHaveLength(0);
   // If another fragment still needs validation at the ceiling, preserve the
-  // verified offered incumbent while interrupting only that fresh replay.
+  // verified offered incumbent while interrupting only that fresh replay. Since
+  // catches are placed mid-frame (2026-11-01), Luna's carriers fail earlier (the
+  // rider comes apart) and never reach fragment validation; Tiki's still do.
+  if(song!=='tiki_tiki_48s')return;
   for(const k of ctx.lineage.memoContexts.values())for(const entry of k.keys())
     if(entry.endsWith('|fragments')&&entry!==incumbent+'|fragments')k.delete(entry);
   setPhysicsFrameLimit(getPhysicsFrameCount()+2);

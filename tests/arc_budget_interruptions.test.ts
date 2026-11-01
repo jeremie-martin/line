@@ -10,7 +10,9 @@ const options = { samples: 32, channel: 12, radius: 24,
   arrivalWeight: .3, headingWeight: .3, };
 
 it('keeps the physically validated final curve when another proposal hits the frame limit', () => {
-  const result = compileArcMotion(spec, 17, {...options, budget: 4400});
+  // 3500: the allowance that runs out while the last support is being searched, after a valid
+  // curve was found (re-derived for mid-frame catches, 2026-11-01; it was 4400).
+  const result = compileArcMotion(spec, 17, {...options, budget: 3500});
   expect(result.searchBudgetExhausted).toBe(true);
   expect(result.budgetInterruptions.at(-1)).toMatchObject({index: 6, retained: true});
   expect(result.budgetInterruptions.at(-1)!.viable).toBeGreaterThan(0);
@@ -19,7 +21,7 @@ it('keeps the physically validated final curve when another proposal hits the fr
   expect(result.report.off_beat_landings).toHaveLength(0);
   expect(result.report.terminus.reason).toBe('endOfSpec');
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(4400);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(3500);
 });
 
 it('does not invent a usable curve when the first proposal cannot finish', () => {

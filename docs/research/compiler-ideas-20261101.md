@@ -259,3 +259,26 @@ Per realized geometry and gap length: the catch the gap builds at its start
   about launching, not about which geometry is chosen.
 - **Reading:** the mid-frame placement addresses the general bias. The
   fold's aligned entry is a candidate second cause, to look at after.
+
+## Mid-frame catches: result (adopted)
+
+| | change | 95% interval | support |
+|---|---|---|---|
+| V7, 4 seeds | +16.0 | [+7.5, +24.5] | > 0.99 |
+| V7, 8 seeds | **+15.5** | [+11.8, +19.3] | > 0.99 |
+| V7, half the allowance | +15.0 | [+10.8, +19.1] | > 0.99 |
+| held out (5 specs) | +12.7 | [−4.2, +29.6] | 0.95 |
+
+- At 8 seeds all 22 specs are up and every category gains (+13 to +19).
+  The explicit cases are +10.5 and all realized. On the held-out panel all
+  5 specs are up.
+- **Timing:** early hits 15.3% → 4.4%, late 4.0% → 4.1%; on strong asks,
+  early 20.9% → 6.3%. The hypothesis held exactly, unlike the continuous
+  timing error, which turned early hits into late ones.
+- **Other rulers:** strong-ask bias is better, body drag lower, air slightly
+  better, speed ±0.005. Head-down or backward strong arrivals are mixed and
+  small (+0.015 in groove, −0.015 elsewhere).
+- **The ending refinement still works at the real allowance**, with
+  proposals and accepted repairs on V7 rides. Small synthetic tests whose
+  budgets had been tuned to the old frame use were re-derived; see
+  REWORK.md.

@@ -93,3 +93,38 @@ plan seed varies.
   parameter), or belong in construction: catches cross early within their
   frame (median −0.37), so centring the catch itself would be the direct
   fix. Not pursued blindly; see the next steps.
+
+## Free geometry: no plan, every geometry searched, random near-best choice (hypotheses stated before the runs)
+**Agreed with the owner, 2026-11-01:**
+- The compiler searches for the best track it can, with no plan.
+- Where several kinds of geometry are nearly as good, it picks one at random.
+- The seed only starts the random generator.
+
+**Branches:**
+- `exp/free-geometry`: choice scale 0.02, about missing one hit's strength
+  by 0.1;
+- `exp/free-geometry-best`: scale 0, always the best.
+
+**Mechanism:**
+- Every gap after the start is a neutral free request, searched with every
+  geometry:
+  - plain arcs without the rail;
+  - arcs, fold, S-sweep, ripples, terraces and scattered, each with the rail
+    offered.
+- The geometries share the gap's sampling effort, and each is checked against
+  its own request.
+- Offers are ranked with Gumbel noise of the choice scale: kept with
+  probability falling as exp(−Δcost / scale). The final whole-ride choice is
+  always the best.
+- Explicit requests (E) are searched as asked.
+
+**Hypotheses:**
+- **Scale 0:** the V7 headline at least `main`'s (B gained when free), with
+  fewer shapes. With no plan and no random choice, rides are identical across
+  random starts (geometry differs in 0% of gaps): the generator question,
+  made visible.
+- **Scale 0.02:** the headline between scale 0 and `main`, possibly at or
+  above `main`. Rides differ between random starts again (`main`: 78% of
+  gaps); geometry is used broadly; shapes are fewer than with the plan.
+- **Both:** no ride lost, and compute about constant (the gap's effort is
+  shared, not multiplied).

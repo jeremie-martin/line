@@ -719,3 +719,24 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
   - It was rejected twice on older compilers (−10 on the full suite in
     September; again on Oct 4, numbers not recorded).
   - The learned future estimate was trained on unweighted costs.
+
+### Results D, E, F
+- **D, heading prior at full weight in ranking: adopted.**
+  - V7, 4 seeds: +1.3 [+0.1, +2.5], 0.98.
+  - V7, 8 seeds: +0.9 [−1.1, +3.0], 0.85. Amour bench-long +9.1 (it lost
+    8.8 under A); every other category within ±2.4.
+  - Held out: **+4.7 [+2.8, +6.6], > 0.99**, 4 of 5 specs up.
+- **E, guide start and end searched: parked.**
+  - V7, 4 seeds: +0.7 [−1.9, +3.2], 0.77; 11 specs up, 11 down.
+  - The hypothesis failed: strong extra hits rose (+0.009 per beat) instead
+    of falling.
+  - Amour bench-long +18.4 and Tiki ride-out +20.5, but the dense specs lose
+    (P2 −14.1).
+- **F, span errors weighted by gap length:** V7, 4 seeds, against the main
+  before D: **+7.4 [−1.0, +15.8], 0.97**.
+  - Air rms −0.007 overall, −0.035 on P6.
+  - Long-gap categories gain: P6 +47.1, P7 +12.6, P1 +10.3, P4 +8.4.
+  - Dense ones lose: G −9.4, P2 −10.9, P5 −3.7; explicit requests −5.5.
+  - Strong extra hits +0.007 per beat.
+  - Next: rebuild on top of D, compare at 8 seeds, and look at the dense
+    specs' losses.

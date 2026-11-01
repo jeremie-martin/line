@@ -22,6 +22,32 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1: the heading prior keeps full weight in ranking (adopted)
+
+**Found** (studies agent, `docs/research/compiler-ideas-20261101.md`): the
+half-weight adoption cost Amour bench-long 8.8 points.
+- Extra hits inside long floats doubled.
+- More soft catches that open a float were reached steeper than 45°, where
+  the heading prior starts charging.
+- That prior prices a cost two catches ahead, which the one-interval probes
+  behind the half-weight calibration did not see.
+
+**Change:** each candidate records its heading-prior cost. `valueRank`
+counts it fully and the other arrival priors at ½ (`arc_evaluate.ts`,
+`arc_candidates.ts`).
+
+**Results** (no ride lost; compute unchanged):
+
+| panel | change | interval / support |
+|---|---|---|
+| V7, 8 seeds | +0.9 | [−1.1, +3.0], 0.85; Amour bench-long +9.1, other categories within ±2.4 |
+| held out | **+4.7** | [+2.8, +6.6], > 0.99; 4 of 5 specs up |
+
+- Strength rulers unchanged; body drag −0.05 s/min.
+- No test needed re-deriving.
+
+Parity references were refreshed.
+
 ## November 1: ranking counts the arrival priors at half weight (adopted)
 
 **Found** (`docs/research/compiler-ideas-20261101.md`):

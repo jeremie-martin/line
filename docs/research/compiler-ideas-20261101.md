@@ -72,3 +72,24 @@ plan seed varies.
     score; the drift toward fewer shapes must still be measured.
   - It costs compute. A cheaper form would stop a plan early once its partial
     ride is clearly behind.
+
+## Idea 1, result: rejected
+- **V7, 4 seeds:** −10.6, interval [−15.8, −5.3], support < 0.01. Every
+  block is negative (−7.5, −12.2, −8.1, −14.4) and 20 of 22 specs are down.
+  The timing loss went up in every category; no ride was lost.
+- **Why** (offsets of matched hits, seeds 101–404):
+
+  | | early | on time | late |
+  |---|---|---|---|
+  | `main` | 15.6% | 80.0% | 4.4% |
+  | continuous timing | 6.9% | 70.7% | 22.3% |
+
+  The continuous error cured early hits, but it **under-charged near
+  misses**. A hit just past the frame boundary got almost no error in the
+  search, while the scorer charges it a full frame. The search exploited
+  exactly that and moved hits just past the late edge.
+- **Lesson:** a smooth stand-in for a stepped score must never charge less
+  than the score does. Fixes that obey this need a smoothing width (a new
+  parameter), or belong in construction: catches cross early within their
+  frame (median −0.37), so centring the catch itself would be the direct
+  fix. Not pursued blindly; see the next steps.

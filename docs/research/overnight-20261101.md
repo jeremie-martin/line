@@ -200,3 +200,25 @@ Rules for the night:
 - **Not pursued tonight,** following the groundwork rule (careful
   structural work only on request). Bit-identical speed work is possible
   here, if the owner wants it.
+- **Where the compile time goes, inclusive.** Interval search 87%, of which
+  candidate evaluation is 80%:
+  - building candidate geometry 26%, almost all of it `addLine` (24%): the
+    engine fork re-syncs the shared versioned cache and re-runs the
+    invalidation;
+  - physics stepping (`isBoundAtFrame`) 18%;
+  - local search (guide and response) 52% overall;
+  - garbage collection 8%.
+  The fork path is the largest single lever for speed (Rust,
+  `scripts/lib/native_motion/src/engine.rs` `add_lines` / `update_computed`).
+  It is parity-critical and was not touched tonight.
+
+### 02:15–02:25: S1, the ask-driven arrival law at every catch (rejected)
+- **Hypothesis:** the 0.6 threshold for the steep, ask-driven arrival prior
+  could go. The prior is already a continuous law in the ask (arrival speed
+  hypot(speed, impulse), angle atan2(impulse, speed)), so applying it at every
+  catch removes the threshold. Expected: within 3 points.
+- **Result:** bench −12.5, lower in every stratum. Air rms +0.006, strong
+  bias −0.006; body drag −0.3 s/min (better).
+- **Reading:** the threshold is a measured optimum, as on October 5, and not
+  an accident. Kept. A smooth blend around 0.6 would only be a tuned ramp, so
+  I did not try one.

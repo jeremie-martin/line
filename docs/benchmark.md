@@ -89,6 +89,10 @@ The console shows the summary (items 1–3) and the path of the full report,
    - specs up and down, with the lowest and highest;
    - rides gained and lost;
    - the explicit-request line;
+   - how different the rides of different random starts are, for each arm:
+     the share of gaps whose geometry differs (family, and whether the upper
+     rail was touched) and the mean per-gap airtime difference. This is a
+     property of the generator to watch, never a target;
    - physics frames and compile seconds per ride;
    - the uncertainty line (below).
 

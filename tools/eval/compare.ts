@@ -155,10 +155,36 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
       const counts = explicitIds.map(id => requestedRealized(a.run.panel.find(c => c.id === id)!, cells[side].get(id)));
       return [counts.reduce((n, x) => n + x[0], 0), counts.reduce((n, x) => n + x[1], 0)];
     })} : null;
-  return {pairs: ids.length, strata, explicit, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
+  const diversity = (['candidate', 'reference'] as const).map(side =>
+    betweenStarts(a.run.panel.filter(c => c.bench!.stratum !== EXPLICIT), cells[side]));
+  return {pairs: ids.length, strata, explicit, diversity, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
     candidate: ha.strata, reference: hb.strata, gained, lost, specs,
     frames: [perRide('candidate', c => c.physicalFrames), perRide('reference', c => c.physicalFrames)],
     compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)]};
+}
+/** How different the rides of different random starts are, within one arm:
+ * for every spec and every pair of its seeds, the share of gaps whose realized
+ * geometry differs (family, and whether the upper rail was touched) and the
+ * mean per-gap difference in airtime; pairs averaged per spec, specs equally.
+ * Reported to watch the generator, never part of any score. */
+export function betweenStarts(cases: PlannedCase[], cells: Map<string, any>) {
+  const bySpec = new Map<string, any[]>();
+  for (const c of cases) if (cells.get(c.id)?.geometry) bySpec.set(specKey(c), [...(bySpec.get(specKey(c)) ?? []), cells.get(c.id)]);
+  const geometry: number[] = [], airtime: number[] = [];
+  for (const rides of bySpec.values()) {
+    const g: number[] = [], m: number[] = [];
+    for (let x = 0; x < rides.length; x++) for (let y = x + 1; y < rides.length; y++) {
+      const a = rides[x].geometry.sections, b = rides[y].geometry.sections, n = Math.min(a.length, b.length);
+      const kind = (s: any) => `${s.family}${s.guideFrames > 0 ? '+rail' : ''}`;
+      let differ = 0; for (let k = 1; k < n; k++) if (kind(a[k]) !== kind(b[k])) differ++;
+      g.push(differ / Math.max(1, n - 1));
+      const air = (ride: any) => new Map(ride.gaps.filter((o: any) => o[1] === 'air' && o[3] !== null).map((o: any) => [o[0], o[3]]));
+      const aa = air(rides[x]), ab = air(rides[y]), shared = [...aa.keys()].filter(k => ab.has(k));
+      m.push(mean(shared.map(k => Math.abs((aa.get(k) as number) - (ab.get(k) as number)))));
+    }
+    if (g.length) {geometry.push(mean(g)); airtime.push(mean(m));}
+  }
+  return {specs: geometry.length, geometry: mean(geometry), airtime: mean(airtime)};
 }
 /** Requested gaps of an explicit case that the ride realized as asked
  * (the requested geometry, fulfilled), out of all requested gaps. */
@@ -206,6 +232,8 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
     ...(e.explicit ? [`  explicit requests (E, apart from the headline, ${e.explicit.n} rides): headline ${e.explicit.score[0].toFixed(1)} vs ${e.explicit.score[1].toFixed(1)} ` +
       `(${signed(e.explicit.score[0] - e.explicit.score[1])}); finished ${e.explicit.finished[0]} vs ${e.explicit.finished[1]}; ` +
       `requested gaps realized (the compiler's own shape check) ${e.explicit.realized[0][0]}/${e.explicit.realized[0][1]} vs ${e.explicit.realized[1][0]}/${e.explicit.realized[1][1]}`] : []),
+    ...(e.diversity[0].specs ? [`  between random starts (reported, never a target): geometry differs in ${(100 * e.diversity[0].geometry).toFixed(0)}% vs ` +
+      `${(100 * e.diversity[1].geometry).toFixed(0)}% of gaps; airtime differs by ${e.diversity[0].airtime.toFixed(3)} vs ${e.diversity[1].airtime.toFixed(3)} per gap`] : []),
     `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M); ` +
     `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`];
 }

@@ -22,7 +22,7 @@ Rules for the night:
 
 ## Log
 
-### 00:05–01:20: X, the section fallback, replaces the 9-frame rule (adopted)
+### 23:45–00:10: X, the section fallback, replaces the 9-frame rule (adopted)
 - **Built:** C's idea at its simplest. A dead-ended shaped section retries with
   plain arcs and keeps its guide; otherwise it backtracks as before. No
   threshold. `minFrames` and `fitShapesToSections` are deleted, and the planner
@@ -39,7 +39,7 @@ Rules for the night:
   at equal or better completion. Disclosed: the sealed cost, and P1 inverted
   arrivals +0.08 (6 cells).
 
-### 01:30–04:40: do we need the plan? (data), and guides offered (adopted)
+### 00:10–00:52: do we need the plan? (data), and guides offered (adopted)
 - **New eval option `--creative=JSON`** passes planner preferences as an arm,
   recorded in the run.
 - **No plan, plain unguided arcs everywhere:** bench headline 753 vs 717 for
@@ -63,7 +63,7 @@ Rules for the night:
 - **Adopted** in a clean version (no transfer draw): bench +22.4. Disclosed:
   transfer receivers are gone, and 5.65 vs 5.93 distinct families per ride.
 
-### 00:55–02:10: confirmation, cleanliness, compute
+### 00:52–01:20: confirmation, cleanliness, compute
 - **Rides for the owner:** seven specs before the night and now
   (`/generated/overnight-compare/collection.json`): the usual Luna, Tiki and
   Amor specs, plus Trouble, Valhalla and Circus pairs3/pairs4.
@@ -83,3 +83,36 @@ Rules for the night:
 - **Uncapped effort:** 1× −2.4 (noise), 2× +7.8. Diminishing returns; not
   adopted. Today's allowance is near the knee: halving it costs 32 points,
   doubling it gains about 8.
+
+### 01:20–01:45: where the remaining stray hits are (study only)
+- **Data** (`tools/research/stray_hits.ts`): unrequested v3 impacts of strength ≥ 0.1 in the current compiler
+  (`now-bench`, plus the experimental optional-guide runs on pairs8 and
+  confirm). 114 complete rides, 7,852 beats, 258 stray hits; 12 of them are
+  ≥ 0.25.
+- **Rate per minute of ride, by section family:**
+
+  | section | minutes | stray hits per minute |
+  |---|---|---|
+  | plain arcs, no guide | 28.7 | 0.38 |
+  | scattered | 14.9 | 1.41 |
+  | arcs with a guide offered | 11.0 | 1.91 |
+  | scallops | 9.8 | 2.56 |
+  | serpentine | 8.4 | 4.75 |
+  | fold | 10.7 | 5.03 |
+  | terraces | 10.9 | 7.89 |
+
+- **Two kinds, in about equal parts:**
+  1. *The body against the guide* (about 140 of 258): the head or arms brush
+     the upper rail. This happens in every guided family.
+  2. *The sled on the main line* (about 90): the shape's own steps and corners,
+     mostly terraces and folds. Most of the 12 strong ones are this kind, in
+     sections of 40+ frames.
+- **Timing:** most happen 5–12 frames after a beat, almost never just before
+  one.
+- **In the score:** extras are 12% of the v3 impact loss. The search already
+  pays for them (`line.strike.v3`), so they are trade-offs the search accepted
+  in exchange for the shape, not blind spots.
+- **Not done, on purpose:** I did not tune the extra cost or the guide
+  clearance. Whether the owner sees a 0.1–0.25 body brush is exactly what his
+  pending visibility study answers. Until then, any weight would optimize an
+  unvalidated measure.

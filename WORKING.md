@@ -32,6 +32,12 @@ that must not change what the compiler produces.
   re-runs it at fresh seeds; `bench-pairs8` re-runs the P1 and P2 specs at
   8 seeds before any completion claim. `dev` and `confirm` stay runnable for
   history. `npm run eval -- --name=X` with no `--panel` still runs `dev`.
+- To compare a change: `npm run compare -- run --reference=main
+  [--candidate=<branch>]` (default: this checkout), with `--panel=…` as
+  above. Stop it whenever the evidence is clear enough to read, and resume it
+  with the same command. `npm run compare -- rides` shows the rides that moved
+  most, side by side. `npm run compare -- reference set main --from=<commit>`
+  moves the reference, after an adoption.
 - Bench specs are variants named `bench-<pattern>.ts` with a `bench` export
   (see ARCHITECTURE.md). Adding one changes the panel: compare only runs with
   identical resolved inputs (the report refuses otherwise).

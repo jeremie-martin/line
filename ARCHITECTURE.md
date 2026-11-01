@@ -310,6 +310,42 @@ Known limits of the strike account:
     clip centering remains at onset. Existing study IDs cannot be overwritten.
     Review render reuse checks track, authoring, rendering inputs and movie bytes.
   - Held-out new music: Trouble, Valhalla and Circus Minimus (`--panel=heldout`).
+- **`npm run compare`** (`tools/eval/compare.ts`, `arms.ts`) compares a
+  candidate compiler with a named reference on a stratified panel. It is
+  bookkeeping and evidence only: it announces no winner, has no automatic
+  stopping and computes no probability.
+  - `reference set NAME --from=REF` names a commit; `reference list` shows
+    them. A new reference is chosen explicitly, after a decision.
+  - `run --reference=NAME [--candidate=.|REF]` compiles only what is missing.
+    `.` is this checkout as it is; a commit or branch is compiled from a
+    worktree (`generated/eval/worktrees/`), with songs, audio and
+    measurement taken from this checkout.
+  - Cells are stored per **arm** (`generated/eval/arms/<key>/`): the
+    compiler's content (the committed trees of `scripts`, `benchmark`,
+    `engine-rs/src` and the package files, plus uncommitted changes and the
+    engine bytes, so a documentation commit changes nothing), and the mode,
+    allowance, creative preferences and jolt. Any panel declaring the same
+    resolved case reuses a cell.
+    - A cell whose inputs changed is recompiled.
+    - A cell whose measurement code changed is remeasured from its track,
+      and the report says so.
+  - Rides run round by round, where a round is every spec's k-th seed, with
+    categories interleaved. After each complete round it prints the evidence:
+    - coverage;
+    - the headline difference overall and per category;
+    - specs up and down, with the extremes;
+    - rides gained and lost;
+    - physics frames and compile time per ride.
+  - Ctrl-C (or `--rounds=N`) keeps finished rides. The report is then
+    labelled PARTIAL, and evidence on complete rounds is shown apart from the
+    uneven remainder. Running the same command resumes.
+  - The report adds the most-moved rides and the stratified report on the
+    matched pairs.
+  - `rides` produces the most-moved rides of both arms for the dashboard
+    (`generated/compare/<name>/collection.json`) and checks that they equal
+    the compared tracks.
+  - `import --from=RUN` brings an `eval` run's cells into the store when its
+    compiler can be identified exactly.
 - **`tools/report`** builds the overnight results page
   (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
   cuts before/after clips, `scale_clips.ts` shows the strength scale

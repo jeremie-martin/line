@@ -15,7 +15,7 @@ import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
 import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
 import {summarize, bootstrap, songValues, stratify, geometryStrata, headline, type Run} from './summary.ts';
-import {measureCell, geometryFacts} from './measure.ts';
+import {CONTRACTS, compileAndMeasure} from './compile.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
@@ -28,7 +28,6 @@ Bench, sealed and held-out runs get the stratified report (completion first, the
 cells complete in both arms, per-spec sign counts, strata weighted equally).
 The held-out songs (Trouble, Valhalla, Circus Minimus) are excluded from compiler decisions;
 --heldout is for decision points only.`;
-const CONTRACTS = {landing: undefined, strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'} as const;
 export function validateRunOptions(mode: string, budget: string, jobs: number, panel: string, flags: {sealed?: boolean; heldout?: boolean} = {}) {
   assert.ok(Object.hasOwn(CONTRACTS, mode), 'unknown compilation mode');
   assert.ok(PANEL_NAMES.includes(panel), 'unknown evaluation panel');
@@ -56,20 +55,11 @@ async function worker(dir: string, id: string) {
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed');
   const {spec, music, planned} = await resolveCase(c, plan.jolt);
   assert.deepEqual(planned, c, 'resolved authoring changed');
-  const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
-  const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
-  // standard*F scales the production allowance for this ride's length (a budget study).
-  const budget = plan.budget === 'standard' ? productionBudget(spec.duration)
-    : plan.budget.startsWith('standard*') ? Math.round(productionBudget(spec.duration) * Number(plan.budget.slice(9))) : Number(plan.budget), began = performance.now();
-  const cp = compileHandoff(spec, c.seed, {budget, creative: plan.creative ?? {}, impactContract: CONTRACTS[plan.mode as keyof typeof CONTRACTS],
-    phraseBoundaries: music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite)});
-  const compileMs = performance.now() - began, r = cp.repertoire!;
-  const cell = measureCell({c, mode: plan.mode, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
-    compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full, geometry: geometryFacts(r)});
+  const {cell, track} = await compileAndMeasure('.', c, {spec, music}, plan);
   assert.deepEqual(compilerIdentity('.'), plan.identity, 'compiler changed during worker');
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed during worker');
   assert.deepEqual((await resolveCase(c, plan.jolt)).planned, c, 'authoring changed during worker');
-  saveCell(dir, plan, c, cell, cp.track);
+  saveCell(dir, plan, c, cell, track);
 }
 async function main() {
   const command = process.argv[2];

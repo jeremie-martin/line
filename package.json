@@ -21,7 +21,8 @@
     "measure": "node --import tsx tools/measure/observe.ts && node --import tsx tools/measure/measures.ts",
     "labels:analyze": "node --import tsx tools/measure/analyze_labels.ts",
     "eval": "node --import tsx tools/eval/eval.ts run",
-    "eval:report": "node --import tsx tools/eval/eval.ts report"
+    "eval:report": "node --import tsx tools/eval/eval.ts report",
+    "compare": "node --import tsx tools/eval/compare.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

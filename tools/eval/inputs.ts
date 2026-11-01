@@ -113,8 +113,9 @@ export function evaluatorIdentity(root = '.') {
   const {metafile} = buildSync({absWorkingDir: resolve(root), entryPoints: ['tools/eval/measure.ts', 'tools/eval/inputs.ts', 'scripts/lib/_lr_engine_wasm.ts'],
     bundle: true, platform: 'node', format: 'esm', packages: 'external', metafile: true, write: false,
     outdir: '/unused-evaluator-build', logLevel: 'silent'});
+  // The import closure is the measurement: reports, comparison bookkeeping and
+  // research scripts beside it do not change what a cell records.
   const files = new Set([...Object.keys(metafile.inputs),
-    ...['tools/eval', 'tools/measure'].flatMap(dir => readdirSync(join(root, dir)).filter(f => f.endsWith('.ts')).map(f => join(dir, f))),
     'package-lock.json', 'scripts/lib/native_motion/engine.wasm',
     'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm']);
   return digest({node: process.version, files: [...files].sort().map(p => [p, createHash('sha256').update(readFileSync(join(root, p))).digest('hex')])});

@@ -1,0 +1,317 @@
+/** Compare a candidate compiler with a named reference, on a panel.
+ *
+ * Bookkeeping only: it compiles what is missing, reuses every compatible saved
+ * cell, reports the evidence after each round, and stops and resumes at any
+ * point. It announces no winner; the decision is ours.
+ *
+ *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=44] [--rounds=N]
+ *                          [--mode=strike3] [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
+ *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing)
+ *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
+ *   npm run compare -- reference set NAME [--from=REF] [--note=TEXT] | reference list
+ *   npm run compare -- import --from=RUN   (bring an `eval` run's cells into the store)
+ *
+ * --candidate=. (the default) compiles this checkout as it is, uncommitted
+ * changes included; a commit or branch compiles from a worktree of it, so this
+ * checkout stays free. A round is every spec's k-th seed: rides run round by
+ * round, categories interleaved, so a stopped run covers the panel evenly.
+ * Ctrl-C keeps finished rides and prints a report labelled PARTIAL. */
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
+import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
+import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
+import {panelCases, resolveCase, evaluatorIdentity, digest} from './inputs.ts';
+import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
+import {compileAndMeasure, allowanceFor, type ArmSettings} from './compile.ts';
+import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, setReference, getReference,
+  listReferences, importRun, type Arm} from './arms.ts';
+import {headline, headlineScore, specKey, mean} from './summary.ts';
+import {validateRunOptions, stratifiedReport} from './eval.ts';
+
+const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
+const flag = (k: string) => process.argv.includes(`--${k}`);
+const engineSha = () => createHash('sha256').update(readFileSync(ENGINE_PATH)).digest('hex');
+const subject = (commit: string) => execFileSync('git', ['log', '-1', '--format=%s', commit]).toString().trim();
+const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
+const signed = (x: number, d = 1) => !Number.isFinite(x) ? '—' : (x > 0 ? '+' : '') + x.toFixed(d);
+
+type Side = 'candidate' | 'reference';
+type Selection = {panel: string; reference: ReturnType<typeof getReference>; arms: Record<Side, Arm>; cases: PlannedCase[];
+  resolved: Map<string, Promise<{spec: any; music: any}>>; evaluator: string; name: string};
+
+/** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
+async function select(): Promise<Selection> {
+  const panel = arg('panel', 'bench')!, mode = arg('mode', 'strike3')!, budget = arg('budget', 'standard')!;
+  const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
+  validateRunOptions(mode, budget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  const candidateBudget = arg('candidate-budget', budget)!, candidateCreative = arg('candidate-creative') ? JSON.parse(arg('candidate-creative')!) : creative;
+  validateRunOptions(mode, candidateBudget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  const settings: ArmSettings = {mode, budget, ...(creative ? {creative} : {})};
+  const candidateSettings: ArmSettings = {mode, budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
+  assert.ok(arg('reference'), '--reference=NAME is required (see `npm run compare -- reference list`)');
+  const reference = getReference(arg('reference')!), jolt = resolveJoltMs();
+  const refContent = commitContent(reference.commit, engineSha());
+  const candidateRef = arg('candidate', '.')!;
+  let candidate: Arm;
+  if (candidateRef === '.') {
+    const content = compilerContent('.');
+    candidate = openArm('.', `this checkout (${content.head.slice(0, 8)}${content.clean ? '' : ' + uncommitted changes'})`, content, candidateSettings, jolt);
+  } else {
+    const commit = resolveCommit(candidateRef);
+    candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, engineSha()), candidateSettings, jolt);
+  }
+  const ref = openArm('', `${reference.name} (${reference.commit.slice(0, 8)})`, refContent, settings, jolt);
+  const declared = await panelCases(panel);
+  assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
+  const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
+  const resolved = new Map(resolvedCases.map(r => [r.planned.id, Promise.resolve({spec: r.spec, music: r.music})]));
+  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}-${panel}`)!;
+  return {panel, reference, arms: {candidate, reference: ref}, cases: resolvedCases.map(r => r.planned), resolved, evaluator: evaluatorIdentity(), name};
+}
+
+/** Rounds: every spec's k-th seed (seeds in ascending order). */
+export function rounds(cases: PlannedCase[]) {
+  const bySpec = new Map<string, PlannedCase[]>();
+  for (const c of cases) bySpec.set(specKey(c), [...(bySpec.get(specKey(c)) ?? []), c]);
+  const index = new Map<string, number>();
+  for (const xs of bySpec.values()) xs.sort((a, b) => a.seed - b.seed).forEach((c, k) => index.set(c.id, k));
+  const count = Math.max(...index.values()) + 1;
+  // Within a round, take categories in turn so a stopped round is spread out.
+  return Array.from({length: count}, (_, k) => {
+    const own = cases.filter(c => index.get(c.id) === k), byCat = new Map<string, PlannedCase[]>();
+    for (const c of own) byCat.set(c.bench!.stratum, [...(byCat.get(c.bench!.stratum) ?? []), c]);
+    const lists = [...byCat.keys()].sort((a, b) => a.localeCompare(b, 'en', {numeric: true})).map(s => byCat.get(s)!), order: PlannedCase[] = [];
+    for (let i = 0; lists.some(l => i < l.length); i++) for (const l of lists) if (i < l.length) order.push(l[i]);
+    return order;
+  });
+}
+
+/** Saved cells of both arms (remeasured if needed), and what is missing. */
+async function loadState(s: Selection) {
+  const cells: Record<Side, Map<string, any>> = {candidate: new Map(), reference: new Map()};
+  const missing: Record<Side, PlannedCase[]> = {candidate: [], reference: []}, notes: string[] = [];
+  for (const side of ['candidate', 'reference'] as const) {
+    let remeasured = 0, stale = 0;
+    for (const c of s.cases) {
+      const arm = s.arms[side], before = existsSync(join(arm.dir, 'cells', c.id + '.json')) ? readJson(join(arm.dir, 'cells', c.id + '.json')).evaluator : null;
+      const state = await savedCell(arm, c, s.evaluator, () => s.resolved.get(c.id)!);
+      if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (before && before !== s.evaluator) remeasured++;}
+      else {missing[side].push(c); if (state) stale++;}
+    }
+    notes.push(`${side}: ${cells[side].size} saved${remeasured ? ` (${remeasured} remeasured with today's measurement code)` : ''}, ` +
+      `${missing[side].length} to compile${stale ? ` (${stale} saved with other inputs)` : ''}`);
+  }
+  return {cells, missing, notes};
+}
+
+function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[]): Run {
+  const arm = s.arms[side], panel = s.cases.filter(c => ids.includes(c.id));
+  const run: RunPlan = {schema: 'line.eval.v2', identity: {head: arm.content.clean ? arm.content.head : 'checkout', candidateFingerprint: arm.content.key},
+    evaluator: s.evaluator, jolt: arm.jolt, mode: arm.settings.mode, budget: arm.settings.budget, panelName: s.panel, panel,
+    ...(arm.settings.creative ? {creative: arm.settings.creative} : {})};
+  return {dir: arm.dir, run, cells: new Map(ids.map(id => [id, cells.get(id)]))};
+}
+
+/** The evidence on matched pairs: headline difference (overall and per
+ * category), rides gained and lost, the spread over specs, and compute. */
+function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: string[]) {
+  const a = runOf(s, 'candidate', cells.candidate, ids), b = runOf(s, 'reference', cells.reference, ids);
+  const strata = [...new Set(a.run.panel.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  const ha = headline(a, strata), hb = headline(b, strata);
+  const done = (side: Side, id: string) => cells[side].get(id).complete as boolean;
+  const gained = ids.filter(id => done('candidate', id) && !done('reference', id)), lost = ids.filter(id => !done('candidate', id) && done('reference', id));
+  const specs = [...new Set(a.run.panel.map(specKey))].map(spec => {
+    const own = a.run.panel.filter(c => specKey(c) === spec).map(c => c.id);
+    return {spec, d: mean(own.map(id => headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))))};
+  }).sort((x, y) => x.d - y.d);
+  const perRide = (side: Side, f: (c: any) => number) => mean(ids.map(id => f(cells[side].get(id))));
+  return {pairs: ids.length, strata, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
+    candidate: ha.strata, reference: hb.strata, gained, lost, specs,
+    frames: [perRide('candidate', c => c.physicalFrames), perRide('reference', c => c.physicalFrames)],
+    compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)]};
+}
+function evidenceLines(e: ReturnType<typeof evidence>) {
+  const up = e.specs.filter(x => x.d > 0).length, down = e.specs.filter(x => x.d < 0).length, same = e.specs.length - up - down;
+  const ends = e.specs.length ? `lowest ${signed(e.specs[0].d)} (${e.specs[0].spec}), highest ${signed(e.specs.at(-1)!.d)} (${e.specs.at(-1)!.spec})` : '';
+  return [
+    `  headline ${e.candidate.toFixed(1)} vs ${e.reference.toFixed(1)}: ${signed(e.delta)} (strata weighted equally, on ${e.pairs} matched pairs)`,
+    `  by category: ${e.strata.map(st => `${st} ${signed(e.perStratum[st])}`).join(' · ')}`,
+    `  specs up ${up}, down ${down}, unchanged ${same}; ${ends}`,
+    `  rides finished: gained ${e.gained.length}${e.gained.length ? ` (${e.gained.join(', ')})` : ''}, lost ${e.lost.length}${e.lost.length ? ` (${e.lost.join(', ')})` : ''}`,
+    `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M); ` +
+    `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`];
+}
+
+/** Coverage: matched pairs overall, per category, complete rounds, outstanding work. */
+export function coverage(s: Pick<Selection, "cases">, cells: Record<Side, Map<string, any>>) {
+  const matched = s.cases.filter(c => cells.candidate.has(c.id) && cells.reference.has(c.id)).map(c => c.id);
+  // Rounds can complete out of order (rides finish when they finish).
+  const rs = rounds(s.cases), done = rs.map((r, k) => r.every(c => matched.includes(c.id)) ? k : -1).filter(k => k >= 0);
+  const complete = done.length, inComplete = done.flatMap(k => rs[k].map(c => c.id));
+  const cats = [...new Set(s.cases.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
+  const byCat = cats.map(st => `${st} ${s.cases.filter(c => c.bench!.stratum === st && matched.includes(c.id)).length}/${s.cases.filter(c => c.bench!.stratum === st).length}`);
+  return {matched, inComplete, complete, done, rounds: rs.length, byCat,
+    outstanding: {candidate: s.cases.filter(c => !cells.candidate.has(c.id)).length, reference: s.cases.filter(c => !cells.reference.has(c.id)).length}};
+}
+
+function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: string[] = []) {
+  const cov = coverage(s, cells), full = cov.matched.length === s.cases.length, out: string[] = [];
+  const {candidate: ca, reference: ra} = s.arms;
+  out.push(`${full ? 'COMPLETE' : 'PARTIAL'} comparison on ${s.panel}: candidate ${ca.label} vs reference ${s.reference.name}`,
+    `  reference ${s.reference.name}: ${s.reference.commit.slice(0, 8)} "${subject(s.reference.commit)}"${s.reference.note ? ` (${s.reference.note})` : ''}`,
+    `  candidate: ${ca.content.clean ? `${ca.content.head.slice(0, 8)} "${subject(ca.content.head)}"` : `${ca.content.head.slice(0, 8)} with uncommitted changes`}`,
+    `  provenance: compiler content ${ca.content.key.slice(0, 12)} vs ${ra.content.key.slice(0, 12)}${ca.content.key === ra.content.key ? ' (THE SAME COMPILER)' : ''}; ` +
+    `engine ${ca.content.engineSha256.slice(0, 12)}; measurement ${s.evaluator.slice(0, 12)}; mode ${ca.settings.mode}; ` +
+    `allowance ${ca.settings.budget === ra.settings.budget ? ca.settings.budget : `candidate ${ca.settings.budget}, reference ${ra.settings.budget}`}` +
+    `${JSON.stringify(ca.settings.creative ?? {}) !== JSON.stringify(ra.settings.creative ?? {}) ? `; creative candidate ${JSON.stringify(ca.settings.creative ?? {})}, reference ${JSON.stringify(ra.settings.creative ?? {})}` : ''}`,
+    ...notes.map(n => `  ${n}`),
+    `  coverage: ${cov.matched.length}/${s.cases.length} matched pairs; complete rounds ${cov.complete}/${cov.rounds}; by category ${cov.byCat.join(' · ')}`,
+    ...(full ? [] : [`  outstanding: candidate ${cov.outstanding.candidate}, reference ${cov.outstanding.reference} rides; resume with the same command`]), '');
+  if (!cov.matched.length) return [...out, 'No matched pairs yet.'];
+  const evenly = cov.inComplete.length === cov.matched.length;
+  if (!full && cov.complete && !evenly)
+    out.push(`Evidence on the ${cov.complete} complete round(s) only (${cov.inComplete.length} pairs, the panel evenly):`, ...evidenceLines(evidence(s, cells, cov.inComplete)), '');
+  out.push(`Evidence on ${full ? 'the whole panel' : evenly ? `the ${cov.complete} complete round(s) (${cov.matched.length} pairs, the panel evenly)`
+    : `all ${cov.matched.length} matched pairs (categories unevenly covered)`}:`, ...evidenceLines(evidence(s, cells, cov.matched)), '');
+  const moved = cov.matched.map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
+    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 8);
+  out.push('Rides that moved most (candidate − reference, headline points); see them with `npm run compare -- rides` and the same flags:',
+    ...moved.map(m => `  ${pad(m.id, 46)}${signed(m.d)}`), '');
+  out.push('Detail (the stratified report on the matched pairs; A = candidate, B = reference):', '');
+  return [...out, ...stratifiedReport(runOf(s, 'candidate', cells.candidate, cov.matched), runOf(s, 'reference', cells.reference, cov.matched), 'candidate', s.reference.name)];
+}
+function saveReport(s: Selection, lines: string[]) {
+  const dir = resolve('generated/eval/compare', s.name);
+  mkdirSync(dir, {recursive: true}); writeFileSync(join(dir, 'report.txt'), lines.join('\n') + '\n');
+  return join(dir, 'report.txt');
+}
+
+async function run() {
+  const s = await select(), jobs = Number(arg('jobs', '44')), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
+  assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
+  const {cells, missing, notes} = await loadState(s);
+  for (const n of notes) console.log(n);
+  // Roots only when something must be compiled: a worktree per commit, this checkout for `.`.
+  for (const side of ['candidate', 'reference'] as const) if (missing[side].length && !s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
+  const releases = [...new Set([s.arms.candidate.dir, s.arms.reference.dir])].map(d => lockArtifacts(d));
+  const rs = rounds(s.cases).slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
+  for (const r of rs) for (const c of r) for (const side of ['candidate', 'reference'] as const) if (missing[side].some(m => m.id === c.id)) queue.push({side, c});
+  const announced = new Set<number>(coverage(s, cells).done);
+  let stopping = false, finished = 0;
+  const children = new Set<ReturnType<typeof spawn>>(), failures: string[] = [], began = performance.now();
+  process.on('SIGINT', () => {if (!stopping) {stopping = true; console.log('\nstopping: finished rides are kept; writing a partial report…');} for (const ch of children) ch.kill('SIGINT');});
+  console.log(`${queue.length} rides to compile (${rs.length < rounds(s.cases).length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
+  try {
+    await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
+      while (queue.length && !stopping) {
+        const {side, c} = queue.shift()!, arm = s.arms[side], pending = join(arm.dir, `pending-${c.id}.json`);
+        writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
+        try {
+          await new Promise<void>((done, fail) => {
+            const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
+              {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit'], detached: true});
+            children.add(child);
+            child.once('error', fail); child.once('exit', (code, signal) => {children.delete(child); code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`));});
+          });
+        } catch (e) {
+          if (!stopping) {failures.push(`${side} ${c.id}: ${e}`); console.error(`FAILED ${side} ${c.id}: ${e}`);}
+          continue;
+        } finally {if (existsSync(pending)) unlinkSync(pending);}
+        cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
+        const cov = coverage(s, cells);
+        for (const k of cov.done) if (!announced.has(k)) {
+          announced.add(k);
+          console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
+            `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + evidenceLines(evidence(s, cells, cov.inComplete)).join('\n'));
+        }
+        if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
+      }
+    }));
+  } finally {for (const r of releases) r();}
+  const lines = report(s, cells, notes);
+  console.log('\n' + lines.join('\n'));
+  if (failures.length) console.log(`\n${failures.length} rides failed to compile (not results; fix and resume):\n${failures.join('\n')}`);
+  console.log(`\nreport saved: ${saveReport(s, lines)}`);
+  if (stopping) process.exitCode = 130;
+}
+
+async function worker() {
+  const armDir = arg('arm')!, p = readJson(arg('pending')!), c: PlannedCase = p.case, meta = readJson(join(armDir, 'arm.json'));
+  const content = compilerContent(p.root);
+  assert.equal(content.key, p.contentKey, `the compiler at ${p.root} changed before this ride started`);
+  assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed');
+  const {spec, music, planned} = await resolveCase(c, meta.jolt);
+  assert.deepEqual(planned, c, 'resolved inputs changed');
+  const settings = {mode: meta.mode, budget: meta.budget, creative: meta.creative};
+  const {cell, track} = await compileAndMeasure(p.root, c, {spec, music}, settings);
+  assert.equal(compilerContent(p.root).key, p.contentKey, `the compiler at ${p.root} changed during this ride`);
+  assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed during this ride');
+  const arm = {dir: armDir, settings} as Arm;
+  saveArmCell(arm, c, cell, track, p.evaluator, {commit: content.head, clean: content.clean, compiledAt: new Date().toISOString()});
+}
+
+async function rides() {
+  const s = await select(), {cells} = await loadState(s), cov = coverage(s, cells);
+  const top = Number(arg('top', '6')), ids = arg('cases') ? arg('cases')!.split(',') : cov.matched
+    .map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
+    .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, top).map(x => x.id);
+  assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
+  const out = resolve('generated/compare', s.name), entries: any[] = [];
+  mkdirSync(out, {recursive: true});
+  for (const side of ['reference', 'candidate'] as const) if (!s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
+  const jobs = ids.flatMap(id => (['reference', 'candidate'] as const).map(side => ({id, side})));
+  await Promise.all(jobs.map(async ({id, side}) => {
+    const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], dir = join(out, `${side}-${id.replace(/~/g, '-')}`);
+    if (!existsSync(join(dir, 'manifest.json'))) {
+      const {spec} = await s.resolved.get(id)!;
+      const {productionBudget} = await import(pathToFileURL(join(resolve(arm.root), 'scripts/v0/optimizer/production_budget.ts')).href);
+      const budget = allowanceFor(arm.settings.budget, spec.duration, productionBudget);
+      await new Promise<void>((done, fail) => {
+        const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/produce/automatic.ts', `--song=${c.song}`, ...(c.variant ? [`--variant=${c.variant}`] : []),
+          `--seed=${c.seed}`, `--budget=${budget}`, `--compiler-root=${resolve(arm.root)}`, `--out=${dir}`,
+          ...(arm.settings.creative ? [`--creative=${JSON.stringify(arm.settings.creative)}`] : [])], {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
+        child.once('error', fail); child.once('exit', code => code === 0 ? done() : fail(new Error(`produce exited ${code}`)));
+      });
+    }
+    const produced = JSON.parse(readFileSync(join(dir, `${c.song}-${c.seed}-production`, 'track.json'), 'utf8'));
+    const same = digest(produced.lines) === digest(readArmTrack(arm, id).lines), cell = cells[side].get(id);
+    entries.push({id: `${side}-${id}`, order: ids.indexOf(id) * 2 + (side === 'candidate' ? 1 : 0),
+      title: `${id} · ${side === 'reference' ? `reference ${s.reference.name}` : `candidate ${s.arms.candidate.label}`} — score ${headlineScore(cell).toFixed(0)}` +
+        `${side === 'candidate' ? ` (${signed(headlineScore(cell) - headlineScore(cells.reference.get(id)))})` : ''}${cell.complete ? '' : ', did not finish'}${same ? '' : ' [differs from the compared ride]'}`,
+      status: cell.complete ? 'Fulfilled' : 'Incomplete', manifest: '/' + join('generated/compare', s.name, `${side}-${id.replace(/~/g, '-')}`, 'manifest.json'), seed: c.seed, video: false});
+  }));
+  entries.sort((x, y) => x.order - y.order);
+  writeFileSync(join(out, 'collection.json'), JSON.stringify({schema: 'line.production-library.v1',
+    description: `${s.name}: reference ${s.reference.name} then candidate, for the rides that moved most`, entries: entries.map(({order: _o, ...e}) => e)}, null, 1));
+  console.log(`rides: http://10.77.77.30:8767/motion-gallery/production.html?collection=/generated/compare/${s.name}/collection.json`);
+}
+
+async function main() {
+  const command = process.argv[2];
+  if (command === 'worker') return worker();
+  if (command === 'run') return run();
+  if (command === 'report') {const s = await select(), {cells, notes} = await loadState(s), lines = report(s, cells, notes); console.log(lines.join('\n')); console.log(`\nreport saved: ${saveReport(s, lines)}`); return;}
+  if (command === 'rides') return rides();
+  if (command === 'reference' && process.argv[3] === 'set') {
+    const name = process.argv[4], commit = resolveCommit(arg('from', 'HEAD')!);
+    assert.ok(name && !name.startsWith('--'), 'usage: reference set NAME [--from=REF] [--note=TEXT]');
+    const r = setReference(name, commit, arg('note'));
+    console.log(`reference ${r.name} = ${commit.slice(0, 8)} "${subject(commit)}"`); return;
+  }
+  if (command === 'reference' && process.argv[3] === 'list') {
+    for (const r of listReferences()) console.log(`${pad(r.name, 24)}${r.commit.slice(0, 8)} ${r.setAt.slice(0, 10)} "${subject(r.commit)}"${r.note ? ` — ${r.note}` : ''}`);
+    return;
+  }
+  if (command === 'import') {
+    const {arm, copied, kept} = importRun(resolve('generated/eval', arg('from')!));
+    console.log(`imported into arm ${arm.key}: ${copied} cells copied, ${kept} already present`); return;
+  }
+  console.error(readFileSync(import.meta.filename, 'utf8').split('*/')[0]); process.exitCode = 2;
+}
+if (import.meta.filename === process.argv[1]) await main();

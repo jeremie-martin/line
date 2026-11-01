@@ -106,6 +106,8 @@ music. The interval assumes the blocks are independent replicates.
     comparisons (about 4% with heavy-tailed blocks);
   - on real rides of one compiler split into two pretend arms, 5.1%, with
     interval coverage 94.4%.
+  - The arms that real-ride check used were deleted in a cleanup; to repeat
+    it, pass any arm with 8 complete seed blocks.
 - **Not valid under arbitrary stopping:** reading it after every round and
   stopping when it looks good makes it optimistic.
 - **More seeds when they could change the decision,** not as a reflex. The

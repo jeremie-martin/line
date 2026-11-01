@@ -638,3 +638,33 @@ hits from above are late.
     compiler before judging any of them. Collection from the current
     compiler started (`generated/value-v4/collect-1`, 176 training cases
     disjoint from the evaluation and held-out songs).
+
+### Studies agent (report-only; branch `research/studies-20261101`)
+Full report kept in the session scratchpad. Summary:
+- **Hits from above.**
+  - They touch on time (first contact one frame before the beat, like floor
+    hits), but the push builds over about 4 frames: one or two sled points,
+    then the back follows.
+  - Strength stays flat (0.54–0.57) at any approach speed.
+  - Their candidates are rarely timely and strong: the best on-time upper
+    candidate averages 0.40, against 0.75 for the other side.
+  - So construction is the lever, not ranking.
+- **Amour bench-long under A** (−8.8, interval about [−18.5, +0.9]): extra
+  hits inside long floats doubled.
+  - More soft catches that open a float are reached steeper than 45° (56%
+    against 40%), and those produce the extras.
+  - 45° is where the heading prior starts charging. That prior was pricing a
+    real cost two catches ahead, which the one-interval probes did not see.
+  - Across specs, gaps of 100+ frames lose under A and every band under 60
+    frames gains.
+- **Remaining loss (current arm, headline 766.2):**
+  - strength 35%, air 29%, speed 21%, timing 7%, extras 7%;
+  - largest pools: strength on asks 0.6–0.8 at gaps of 15–30 frames (9.7%),
+    and air on asks 0.8+ at gaps of 100+ frames (7.8%).
+
+### D. Heading prior at full weight in ranking; arrival priors stay at ½
+- **Change.** The candidate records its heading-prior cost separately.
+  `valueRank` counts that part fully and the other arrival priors at ½.
+- **Hypothesis.** The long-float specs recover their extras (Amour
+  bench-long back near main), while A's strong-ask gains remain. The headline
+  is at least A's.

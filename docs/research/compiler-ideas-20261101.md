@@ -414,3 +414,28 @@ Scratch replays are summarized here.
   - completion reported separately;
   - every ruler: strength by ask band, timing, extras, air, speed, body
     drag, geometry and diversity lines.
+
+### Result: best-measured beam slot (exp/beam-measured-slot, 9cbe6cb8), not adopted
+| | change | 95% interval | support |
+|---|---|---|---|
+| V7, 4 seeds | +3.6 | [−6.5, +13.7] | 0.83 |
+| V7, 8 seeds | +2.8 | [−1.2, +6.8] | 0.93 |
+
+- **Completion:** unchanged; no ride gained or lost. Explicit requests
+  +4.8.
+- **The predicted mechanism did not show up.** At 8 seeds:
+  - strong-ask bias +0.002, strong rms −0.001, very strong bias −0.005;
+  - air and speed rms within ±0.002.
+
+  The small headline gain is spread thin, not carried by strength.
+- **Body drag worse:** +0.29 s/min, worse in 8 of 9 categories (roughly
+  +20% on the October level of about 1.5 s/min).
+- **Compute:** physics frames equal (the allowance binds). Compile wall time
+  +16 s per ride, but the two arms were not compiled side by side, so this is
+  indicative only.
+- **Reading:** keeping the best-measured continuation alive does not, in
+  this compiler, turn into stronger catches. Either its arrival really does
+  cost the next catch (the priors are about right), or the paths it opens
+  lose later for other reasons. This run does not say which. Not adopted: the
+  hypothesis's effect is absent, the headline gain is not established, and
+  body drag regresses.

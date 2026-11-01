@@ -23,30 +23,41 @@ The suite's design and its baseline are in
 - **Explicit requests** (stratum E): 6 specs where a few gaps ask for one
   geometry. They are reported on their own line, never in the headline.
 - **Panels:**
-  - `v7`: every spec × seeds 101–404, so 4 rounds of 28 rides;
-  - `v7-confirm`: seeds 505–808;
+  - `v7` (the default of `compare`): every spec × the first N seeds of
+    101, 202, 303, …; N = 4 unless `--seeds=N`;
+  - `v7-confirm`: seeds 505–808, the sequence's seeds 5–8;
   - `heldout` (`--heldout`, decision points only) and `sealed` (`--sealed`,
     a small reserve that wears out with use) are as before.
 
   The older `bench*` panels still run.
-- **Frozen** as git tag `v7.0`. Changing the suite makes a new version
-  (V7.1), never a silent edit.
+- **Frozen:** the suite is exactly the list in `tools/eval/suites/v7.0.json`
+  (git tag `v7.0`). A spec file that is not listed is not part of it,
+  whatever its name. Changing the list makes a new version (V7.1), never a
+  silent edit.
 
 ## Comparing a change
 
 ```
-npm run compare -- run --reference=main --candidate=<branch>   # or no --candidate: this checkout as it is
-npm run compare -- report --reference=main --candidate=<branch> # saved rides only, compiles nothing
-npm run compare -- rides  --reference=main --candidate=<branch> # most-moved rides, side by side on the dashboard
+npm run compare -- run --reference=main --candidate=<branch>             # 4 seeds; no --candidate: this checkout as it is
+npm run compare -- run --reference=main --candidate=<branch> --seeds=8   # extend: compiles only the missing pairs
+npm run compare -- report --reference=main --candidate=<branch>          # saved rides only, compiles nothing
+npm run compare -- rides  --reference=main --candidate=<branch>          # most-moved rides, side by side on the dashboard
 ```
 
-- `--panel=v7` is what to use. The default, `bench`, is kept for older runs.
+- The panel is V7 unless `--panel=…` says otherwise.
+- **A comparison has a name** (by default the candidate, the reference and its
+  commit, and the panel) and keeps its configuration under it. Running it
+  again with more seeds extends it; changing anything else needs `--name=…`.
 - **A candidate branch** compiles from its own worktree; this checkout stays
   free.
 - **Only missing rides are compiled.** Any ride saved under the same
   compiler, setting and inputs is reused, whatever run produced it.
-- **Stop at any time** (Ctrl-C, or `--rounds=N`): finished rides are kept and
-  the report says PARTIAL. The same command resumes.
+- **Stop at any time** (Ctrl-C, a termination signal, or `--rounds=N`):
+  finished rides are kept, and the report says PARTIAL. The same command
+  resumes.
+- **Exit status:** 0 when done, 1 if a ride failed to compile (a tool
+  failure, not a ride that did not finish), 130 when stopped. A killed run can
+  leave a lock in its arm; the message names the PID to check first.
 - **Options:**
   - `--only=REGEX`: a subset of cases;
   - `--jobs=N`: parallel rides (default 44);
@@ -54,6 +65,8 @@ npm run compare -- rides  --reference=main --candidate=<branch> # most-moved rid
   - `--candidate-budget` and `--candidate-creative`: one arm.
 - **Agents:** run it as a tracked background task, so its end is noticed at
   once. Do not watch a log with `tail -f | grep`, which does not exit.
+- **Branches:** a candidate branch must start from the reference's commit.
+  Otherwise the comparison mixes changes.
 - Several comparisons against the same saved reference can run at once.
 
 ## Reading a report
@@ -69,7 +82,8 @@ npm run compare -- rides  --reference=main --candidate=<branch> # most-moved rid
    - specs up and down, with the lowest and highest;
    - rides gained and lost;
    - the explicit-request line;
-   - physics frames and compile seconds per ride.
+   - physics frames and compile seconds per ride;
+   - the uncertainty line (below).
 
    On a PARTIAL run, the evidence on complete rounds (the suite evenly) comes
    first.
@@ -77,9 +91,29 @@ npm run compare -- rides  --reference=main --candidate=<branch> # most-moved rid
 4. **Detail:** the stratified report on the matched pairs, with completion,
    quality under every ruler with per-spec seed signs, and geometry use.
 
+**The uncertainty line.** It is computed on complete seed blocks: one seed of
+every spec. Each block gives one headline difference, with the headline's own
+weights. From 3 blocks on, the report shows:
+- their mean;
+- a 95% interval (t, n − 1 degrees of freedom);
+- the directional support P(mean change > 0) under that model, shown as
+  "> 0.99" or "< 0.01" at the extremes.
+
+It describes the mean change **on this fixed suite across seeds**, not on new
+music. The interval assumes the blocks are independent replicates.
+- **Validated** (`tools/research/validate_uncertainty.ts`):
+  - in simulation without a true change, support exceeds 0.95 in 5% of
+    comparisons (about 4% with heavy-tailed blocks);
+  - on real rides of one compiler split into two pretend arms, 5.1%, with
+    interval coverage 94.4%.
+- **Not valid under arbitrary stopping:** reading it after every round and
+  stopping when it looks good makes it optimistic.
+- **More seeds when they could change the decision,** not as a reflex. The
+  report never announces a winner.
+
 What to keep in mind:
-- **No verdict, no interval, no probability.** Seeds move a single ride by
-  15–40 points, so look at the categories and at specs up and down, not one
+- **Single rides are noisy:** a seed moves one ride by 15–40 points. Look at
+  the categories, at specs up and down, and at the uncertainty line, not one
   number alone.
 - **Completion and geometry realization are near 100%** for today's compiler.
   The quality numbers carry the signal. "Realized" is the compiler's own
@@ -103,14 +137,14 @@ A reference names a commit; it changes only when we decide.
 | `generated/eval/arms/<key>/` | saved rides of one compiler under one setting |
 | `generated/eval/references/` | named references |
 | `generated/eval/compare/<name>/report.txt` | the last report of each comparison |
-| `generated/compare/<name>/` | rides for the dashboard |
+| `generated/eval/compare/<name>/comparison.json` | the comparison's configuration |
+| `generated/compare/<name>/` | rides for the dashboard: the saved rides, written from the compile's own outputs (no second compile) |
 | `generated/eval/worktrees/` | checkouts of compared commits; remove one with `git worktree remove <dir>` |
-
-`npm run compare -- import --from=<eval run>` brings an older `npm run eval`
-run into the store when its compiler can be identified exactly.
 
 ## What makes two rides comparable
 
+- **Compile adapter:** the bytes of `tools/eval/compile.ts`, which turns a case
+  into compile options. A change there is a different arm.
 - **Compiler content:** the committed trees of what the compiler loads
   (`scripts/v0`, `scripts/lib`, `vendor`, `engine-rs/src`, the lockfile,
   `tsconfig.json`), plus uncommitted changes and the engine bytes. A commit

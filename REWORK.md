@@ -46,6 +46,11 @@ worth questioning.
 - A linear law (weight = ask) was −0.9 and is not adopted.
 - Details: `docs/research/v7-rejudge-20261101.md`.
 
+**Correction after the tooling review.** With seed-block uncertainty over
+8 seeds, the change is +2.0, interval [−1.9, +5.9], directional support 0.87.
+It leans positive but is not established. The adoption rests on the smooth
+law, no lost rides and lower drag, not on a demonstrated headline gain.
+
 ## November 1 (overnight): studies and ablations (nothing adopted)
 
 Full log: `docs/research/overnight-20261101.md`. Each hypothesis was stated

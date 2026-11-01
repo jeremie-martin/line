@@ -791,3 +791,18 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
 - **Risks:**
   - It starves later intervals (the 108 s ride).
   - 0.3 is carried over from October, not re-derived.
+- **Result G (4 seeds): negative.**
+  - −4.8 [−6.5, −3.1], < 0.01; 15 of 22 specs down; explicit requests
+    −10.1.
+  - Strong extra hits +0.010 per beat; speed rms +0.002.
+  - Same ranking quality on held-out training groups, but a level about
+    30% higher. At the old weight (0.45), the future term weighs about 30%
+    more against measured cost.
+
+### G2. Retrained value model at a level-matched weight
+- **Change:** G's model, with `valueWeight` 0.45 × 0.122/0.156 = 0.35, so
+  the weight × level product equals the October model's on the training
+  labels. A single calibration, not a sweep.
+- **Hypothesis.** If G's loss was the level, G2 is about neutral or
+  positive. If it is still negative, the retrained model generalizes worse
+  to V7 than the October one, and the October model stays.

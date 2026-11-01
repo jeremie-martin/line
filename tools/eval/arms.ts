@@ -10,13 +10,13 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync, copyFileSync} from 'node:fs';
+import {existsSync, mkdirSync, readdirSync, readFileSync, symlinkSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {digest, evaluatorIdentity} from './inputs.ts';
 import {atomicWrite, readJson, type PlannedCase} from './records.ts';
 import {measureCell} from './measure.ts';
-import type {ArmSettings} from './compile.ts';
+import {ADAPTER_SHA256, type ArmSettings} from './compile.ts';
 import {gunzipSync, gzipSync} from 'node:zlib';
 
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
@@ -66,15 +66,17 @@ export function worktreeFor(commit: string) {
 }
 
 export type Arm = {key: string; dir: string; root: string; label: string; content: ReturnType<typeof compilerContent>; settings: ArmSettings; jolt: number};
-export function armKey(contentKey: string, settings: ArmSettings, jolt: number) {
-  return digest({contentKey, mode: settings.mode, budget: settings.budget, creative: settings.creative ?? {}, jolt}).slice(0, 16);
+/** An arm: the compiler's content, the compile adapter (tools/eval/compile.ts)
+ * and the setting. A change to any of them is a different arm. */
+export function armKey(contentKey: string, settings: ArmSettings, jolt: number, adapter = ADAPTER_SHA256) {
+  return digest({contentKey, adapter, mode: settings.mode, budget: settings.budget, creative: settings.creative ?? {}, jolt}).slice(0, 16);
 }
 export function openArm(root: string, label: string, content: ReturnType<typeof compilerContent>, settings: ArmSettings, jolt: number): Arm {
   const key = armKey(content.key, settings, jolt), dir = resolve('generated/eval/arms', key);
   mkdirSync(join(dir, 'cells'), {recursive: true});
   // Several commits can share one compiler content (a documentation commit
   // changes nothing); the arm lists the ones it has seen, for provenance.
-  const meta = {schema: 'line.eval-arm.v1', contentKey: content.key,
+  const meta = {schema: 'line.eval-arm.v2', contentKey: content.key, adapterSha256: ADAPTER_SHA256,
     engineSha256: content.engineSha256, mode: settings.mode, budget: settings.budget, creative: settings.creative ?? {}, jolt};
   const commit = content.clean ? content.head : 'uncommitted changes on ' + content.head;
   if (existsSync(join(dir, 'arm.json'))) {
@@ -88,8 +90,11 @@ export function openArm(root: string, label: string, content: ReturnType<typeof 
 const cellPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.json');
 export const trackPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.track.json.gz');
 export const readArmTrack = (arm: Arm, id: string) => JSON.parse(gunzipSync(readFileSync(trackPath(arm, id))).toString());
-export function saveArmCell(arm: Arm, c: PlannedCase, cell: any, track: any, evaluator: string, provenance: any) {
+export const galleryPath = (arm: Arm, id: string) => join(arm.dir, 'cells', id + '.gallery.json.gz');
+export const readArmGallery = (arm: Arm, id: string) => existsSync(galleryPath(arm, id)) ? JSON.parse(gunzipSync(readFileSync(galleryPath(arm, id))).toString()) : null;
+export function saveArmCell(arm: Arm, c: PlannedCase, cell: any, track: any, evaluator: string, provenance: any, gallery?: any) {
   atomicWrite(trackPath(arm, c.id), gzipSync(JSON.stringify(track)));
+  if (gallery) atomicWrite(galleryPath(arm, c.id), gzipSync(JSON.stringify(gallery)));
   atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, mode: arm.settings.mode, trackHash: digest(track), evaluator, provenance}));
 }
 export type CellState = {cell: any} | {stale: string} | null;
@@ -133,38 +138,4 @@ export function getReference(name: string): Reference {
 export const listReferences = (): Reference[] => existsSync(refDir())
   ? readdirSync(refDir()).filter(f => f.endsWith('.json')).map(f => readJson(join(refDir(), f))) : [];
 
-/** Bring an `eval` run into the arm store, when its compiler can be identified
- * exactly: a clean commit, or a commit whose only difference was untracked
- * files that are byte-identical today (verified against the recorded digest).
- * Cells keep their measurement identity and are remeasured on first use. */
-export function importRun(runDirPath: string) {
-  const plan = readJson(join(runDirPath, 'run.json')), id = plan.identity;
-  assert.ok(id?.head && id?.dirtySha256 && id?.engineSha256, 'the run records no compiler identity');
-  assert.equal(id.engineSha256, sha(readFileSync(ENGINE_PATH)), 'the run used other native physics');
-  if (id.dirtySha256 !== EMPTY) {
-    const PATHS = ['scripts', 'benchmark', 'engine-rs/src', 'productions', 'package.json', 'package-lock.json', 'tsconfig.json'];
-    // The recorded digest covers the run's untracked files (no tracked diff
-    // allowed). Find the subset of today's untracked files that reproduces it
-    // exactly: files added since then do not prevent the proof.
-    const untracked = git('.', 'ls-files', '--others', '--exclude-standard', '-z', '--', ...PATHS).toString().split('\0').filter(Boolean).sort();
-    const digestOf = (paths: string[]) => {const h = createHash('sha256'); for (const p of paths) h.update(p + '\0').update(readFileSync(p)); return h.digest('hex');};
-    const subsets = (from: string[], k: number): string[][] => k === 0 ? [[]] : from.flatMap((p, i) => subsets(from.slice(i + 1), k - 1).map(r => [p, ...r]));
-    assert.ok(id.untracked <= 3 && untracked.length <= 40 && subsets(untracked, id.untracked).some(xs => digestOf(xs) === id.dirtySha256),
-      'the run was compiled with uncommitted changes that cannot be identified; recompile it instead');
-  }
-  const content = commitContent(id.head, id.engineSha256), settings = {mode: plan.mode, budget: plan.budget, ...(plan.creative ? {creative: plan.creative} : {})};
-  const arm = openArm('.', `import ${id.head.slice(0, 8)}`, content, settings, plan.jolt);
-  let copied = 0, kept = 0;
-  for (const c of plan.panel) {
-    const from = join(runDirPath, 'cells', c.id);
-    if (!existsSync(from + '.json')) continue;
-    if (existsSync(cellPath(arm, c.id))) {kept++; continue;}
-    const cell = readJson(from + '.json');
-    copyFileSync(from + '.track.json.gz', trackPath(arm, c.id));
-    const {planSha256: _p, ...rest} = cell;
-    atomicWrite(cellPath(arm, c.id), JSON.stringify({...rest, evaluator: plan.evaluator, provenance: {importedFrom: runDirPath, commit: id.head}}));
-    copied++;
-  }
-  return {arm, copied, kept};
-}
 export {evaluatorIdentity};

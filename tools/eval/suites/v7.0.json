@@ -1,0 +1,153 @@
+{
+ "name": "V7.0",
+ "frozen": "2026-11-01",
+ "gitTag": "v7.0",
+ "design": "docs/research/v7-design-20261101.md",
+ "seeds": {
+  "sequence": "101 x k for k = 1, 2, 3, ...",
+  "default": 4
+ },
+ "note": "The suite is exactly this list. A spec file not listed here is not part of V7.0, whatever its name; changing the list makes a new version.",
+ "specs": [
+  {
+   "song": "luna_bala_44s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "bench-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "bench-restart",
+   "stratum": "P5"
+  },
+  {
+   "song": "amour_de_ma_vie_108s",
+   "variant": "bench-long",
+   "stratum": "P6"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-pairs",
+   "stratum": "P1"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "bench-breakdown",
+   "stratum": "P5"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "bench-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-pairs",
+   "stratum": "P1"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-explicit-handover",
+   "stratum": "E"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-explicit-sweep",
+   "stratum": "E"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-breaks",
+   "stratum": "P5"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-explicit-terraces",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-explicit-fold",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-explicit-scattered",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-explicit-ripples",
+   "stratum": "E"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  }
+ ]
+}

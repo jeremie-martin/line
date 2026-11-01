@@ -10,7 +10,6 @@
  *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
  *   npm run compare -- reference set NAME [--from=REF] [--note=TEXT] | reference list
- *   npm run compare -- import --from=RUN   (bring an `eval` run's cells into the store)
  *
  * --candidate=. (the default) compiles this checkout as it is, uncommitted
  * changes included; a commit or branch compiles from a worktree of it, so this
@@ -23,21 +22,22 @@ import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'no
 import {join, resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {pathToFileURL} from 'node:url';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
 import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
-import {compileAndMeasure, allowanceFor, explicitPlan, type ArmSettings} from './compile.ts';
-import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, setReference, getReference,
-  listReferences, importRun, type Arm} from './arms.ts';
+import {compileAndMeasure, type ArmSettings} from './compile.ts';
+import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
+  listReferences, type Arm} from './arms.ts';
 import {headline, headlineScore, specKey, mean} from './summary.ts';
 import {validateRunOptions, stratifiedReport} from './eval.ts';
+import {seedBlocks, formatSupport, MIN_BLOCKS} from './uncertainty.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
-const engineSha = () => createHash('sha256').update(readFileSync(ENGINE_PATH)).digest('hex');
+const sha256 = (x: string | Buffer) => createHash('sha256').update(x).digest('hex');
+const engineSha = () => sha256(readFileSync(ENGINE_PATH));
 const subject = (commit: string) => execFileSync('git', ['log', '-1', '--format=%s', commit]).toString().trim();
 const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
 const signed = (x: number, d = 1) => !Number.isFinite(x) ? '—' : (x > 0 ? '+' : '') + x.toFixed(d);
@@ -48,7 +48,9 @@ type Selection = {panel: string; reference: ReturnType<typeof getReference>; arm
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
-  const panel = arg('panel', 'bench')!, mode = arg('mode', 'strike3')!, budget = arg('budget', 'standard')!;
+  const panel = arg('panel', 'v7')!, mode = arg('mode', 'strike3')!, budget = arg('budget', 'standard')!;
+  // --seeds=N: the first N seeds of the v7 sequence (default 4); more seeds reuse every saved ride.
+  const seedCount = arg('seeds') ? Number(arg('seeds')) : undefined;
   const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
   validateRunOptions(mode, budget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
   const candidateBudget = arg('candidate-budget', budget)!, candidateCreative = arg('candidate-creative') ? JSON.parse(arg('candidate-creative')!) : creative;
@@ -69,12 +71,22 @@ async function select(): Promise<Selection> {
   }
   const ref = openArm('', `${reference.name} (${reference.commit.slice(0, 8)})`, refContent, settings, jolt);
   // --only=REGEX restricts the panel to matching case ids (a targeted look; coverage then refers to that subset).
-  const only = arg('only') ? new RegExp(arg('only')!) : null, declared = (await panelCases(panel)).filter(c => !only || only.test(c.id));
+  const only = arg('only') ? new RegExp(arg('only')!) : null, declared = (await panelCases(panel, '.', seedCount)).filter(c => !only || only.test(c.id));
   assert.ok(declared.length, `no case of ${panel} matches --only`);
   assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
   const resolved = new Map(resolvedCases.map(r => [r.planned.id, Promise.resolve({spec: r.spec, music: r.music})]));
-  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}-${panel}${only ? '-only' : ''}`)!;
+  const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}@${reference.commit.slice(0, 8)}-${panel}${only ? '-only' : ''}`)!;
+  // A comparison keeps its configuration under its name: running it again with
+  // more seeds extends it; anything else needs another --name.
+  // This checkout is edited all the time: pin it as "this checkout", a commit by its arm.
+  const config = {panel, only: arg('only') ?? null, reference: reference.commit, referenceArm: ref.key,
+    candidate: candidateRef === '.' ? {ref: '.'} : {ref: candidateRef, arm: candidate.key}};
+  const configPath = resolve('generated/eval/compare', name, 'comparison.json');
+  if (existsSync(configPath)) {
+    const saved = readJson(configPath);
+    assert.deepEqual(saved, config, `comparison ${name} was started with another configuration (${configPath}); use --name=… for a new one`);
+  } else {mkdirSync(resolve('generated/eval/compare', name), {recursive: true}); writeFileSync(configPath, JSON.stringify(config, null, 1));}
   return {panel, reference, arms: {candidate, reference: ref}, cases: resolvedCases.map(r => r.planned), resolved, evaluator: evaluatorIdentity(), name};
 }
 
@@ -126,8 +138,8 @@ function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[])
 function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: string[]) {
   const a = runOf(s, 'candidate', cells.candidate, ids), b = runOf(s, 'reference', cells.reference, ids);
   const all = [...new Set(a.run.panel.map(c => c.bench!.stratum))].sort((x, y) => x.localeCompare(y, 'en', {numeric: true}));
-  // Explicit requests (E) are reported apart, never mixed into the headline.
-  const strata = all.filter(st => st !== EXPLICIT), ha = headline(a, strata), hb = headline(b, strata);
+  // The one headline definition (summary.ts): explicit requests (E) apart, never counted.
+  const ha = headline(a, all), hb = headline(b, all), strata = ha.counted;
   const explicitIds = a.run.panel.filter(c => c.bench!.stratum === EXPLICIT).map(c => c.id);
   const done = (side: Side, id: string) => cells[side].get(id).complete as boolean;
   const gained = ids.filter(id => done('candidate', id) && !done('reference', id)), lost = ids.filter(id => !done('candidate', id) && done('reference', id));
@@ -137,7 +149,7 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
   }).sort((x, y) => x.d - y.d);
   const perRide = (side: Side, f: (c: any) => number) => mean(ids.map(id => f(cells[side].get(id))));
   const explicit = explicitIds.length ? {n: explicitIds.length,
-    score: (['candidate', 'reference'] as const).map(side => mean(explicitIds.map(id => headlineScore(cells[side].get(id))))),
+    score: [ha.explicit, hb.explicit],
     finished: (['candidate', 'reference'] as const).map(side => explicitIds.filter(id => done(side, id)).length),
     realized: (['candidate', 'reference'] as const).map(side => {
       const counts = explicitIds.map(id => requestedRealized(a.run.panel.find(c => c.id === id)!, cells[side].get(id)));
@@ -158,6 +170,20 @@ function requestedRealized(c: PlannedCase, cell: any): [number, number] {
     frame += sec.frames;
   }
   return [realized, asked];
+}
+/** Seed-block uncertainty (uncertainty.ts): one headline difference per
+ * complete block, a block being one seed of every spec in the selection. */
+function blockUncertainty(s: Selection, cells: Record<Side, Map<string, any>>) {
+  const cov = coverage(s, cells), rs = rounds(s.cases);
+  return seedBlocks(cov.done.map(k => evidence(s, cells, rs[k].map(c => c.id)).delta));
+}
+function uncertaintyLines(u: ReturnType<typeof seedBlocks>) {
+  if ('unavailable' in u) return [`  uncertainty: not estimable yet (${u.unavailable})`];
+  return [`  uncertainty over ${u.n} complete seed blocks: mean ${signed(u.mean)}, 95% interval [${signed(u.interval[0])}, ${signed(u.interval[1])}]; ` +
+    `directional support P(mean change > 0) ${formatSupport(u.support)}`,
+    `    block differences: ${u.blocks.map(d => signed(d)).join(', ')}`,
+    `    (a t model of the seed blocks: the mean change on this fixed suite across seeds, not on new music; ` +
+    `reading it repeatedly and stopping when it looks good makes it optimistic)`];
 }
 function evidenceLines(e: ReturnType<typeof evidence>) {
   const up = e.specs.filter(x => x.d > 0).length, down = e.specs.filter(x => x.d < 0).length, same = e.specs.length - up - down;
@@ -205,7 +231,8 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
   if (!full && cov.complete && !evenly)
     out.push(`Evidence on the ${cov.complete} complete round(s) only (${cov.inComplete.length} pairs, the panel evenly):`, ...evidenceLines(evidence(s, cells, cov.inComplete)), '');
   out.push(`Evidence on ${full ? 'the whole panel' : evenly ? `the ${cov.complete} complete round(s) (${cov.matched.length} pairs, the panel evenly)`
-    : `all ${cov.matched.length} matched pairs (categories unevenly covered)`}:`, ...evidenceLines(evidence(s, cells, cov.matched)), '');
+    : `all ${cov.matched.length} matched pairs (categories unevenly covered)`}:`, ...evidenceLines(evidence(s, cells, cov.matched)),
+    ...uncertaintyLines(blockUncertainty(s, cells)), '');
   const moved = cov.matched.map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
     .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, 8);
   out.push('Rides that moved most (candidate − reference, headline points); see them with `npm run compare -- rides` and the same flags:',
@@ -260,7 +287,8 @@ async function run() {
         for (const k of cov.done) if (!announced.has(k)) {
           announced.add(k);
           console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
-            `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + evidenceLines(evidence(s, cells, cov.inComplete)).join('\n'));
+            `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + [...evidenceLines(evidence(s, cells, cov.inComplete)),
+              ...(cov.complete >= MIN_BLOCKS ? uncertaintyLines(blockUncertainty(s, cells)) : [])].join('\n'));
         }
         if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
       }
@@ -271,6 +299,7 @@ async function run() {
   if (failures.length) console.log(`\n${failures.length} rides failed to compile (not results; fix and resume):\n${failures.join('\n')}`);
   console.log(`\nreport saved: ${saveReport(s, lines)}`);
   if (stopping) process.exitCode = 130;
+  else if (failures.length) process.exitCode = 1;
 }
 
 async function worker() {
@@ -281,54 +310,62 @@ async function worker() {
   const {spec, music, planned} = await resolveCase(c, meta.jolt);
   assert.deepEqual(planned, c, 'resolved inputs changed');
   const settings = {mode: meta.mode, budget: meta.budget, creative: meta.creative};
-  const {cell, track} = await compileAndMeasure(p.root, c, {spec, music}, settings);
+  const {cell, track, gallery} = await compileAndMeasure(p.root, c, {spec, music}, settings);
   assert.equal(compilerContent(p.root).key, p.contentKey, `the compiler at ${p.root} changed during this ride`);
   assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed during this ride');
   const arm = {dir: armDir, settings} as Arm;
-  saveArmCell(arm, c, cell, track, p.evaluator, {commit: content.head, clean: content.clean, compiledAt: new Date().toISOString()});
+  saveArmCell(arm, c, cell, track, p.evaluator, {commit: content.head, clean: content.clean, compiledAt: new Date().toISOString()}, gallery);
 }
 
+/** The rides that moved most (or --cases=ID,…), both arms, on the dashboard:
+ * the saved rides themselves. The gallery record is written by the producer's
+ * own writer (saveMusicCell) from the compile outputs saved with each ride, and
+ * the exported track must be byte-identical to the compared one. */
 async function rides() {
   const s = await select(), {cells} = await loadState(s), cov = coverage(s, cells);
   const top = Number(arg('top', '6')), ids = arg('cases') ? arg('cases')!.split(',') : cov.matched
     .map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
     .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
-  const out = resolve('generated/compare', s.name), entries: any[] = [];
-  mkdirSync(out, {recursive: true});
-  for (const side of ['reference', 'candidate'] as const) if (!s.arms[side].root) s.arms[side].root = worktreeFor(s.arms[side].content.head);
-  const jobs = ids.flatMap(id => (['reference', 'candidate'] as const).map(side => ({id, side})));
-  await Promise.all(jobs.map(async ({id, side}) => {
-    const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], dir = join(out, `${side}-${id.replace(/~/g, '-')}`);
-    if (!existsSync(join(dir, 'manifest.json'))) {
-      const {spec, music} = await s.resolved.get(id)!;
-      // An explicit request replays with the same explicit plan.
-      let planArg: string[] = [];
-      if (c.bench?.construction) {
-        mkdirSync(dir, {recursive: true});
-        const plan = await explicitPlan(resolve(arm.root), spec, c.seed, arm.settings.creative ?? {},
-          music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite), c.bench.construction);
-        writeFileSync(join(dir, 'explicit-plan.json'), JSON.stringify(plan)); planArg = [`--plan=${join(dir, 'explicit-plan.json')}`];
-      }
-      const {productionBudget} = await import(pathToFileURL(join(resolve(arm.root), 'scripts/v0/optimizer/production_budget.ts')).href);
-      const budget = allowanceFor(arm.settings.budget, spec.duration, productionBudget);
-      await new Promise<void>((done, fail) => {
-        const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/produce/automatic.ts', `--song=${c.song}`, ...(c.variant ? [`--variant=${c.variant}`] : []),
-          `--seed=${c.seed}`, `--budget=${budget}`, `--compiler-root=${resolve(arm.root)}`, `--out=${dir}`, ...planArg,
-          ...(arm.settings.creative ? [`--creative=${JSON.stringify(arm.settings.creative)}`] : [])], {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
-        child.once('error', fail); child.once('exit', code => code === 0 ? done() : fail(new Error(`produce exited ${code}`)));
+  const {loadMusicCase, saveMusicCell} = await import('../../scripts/produce/music_artifacts.ts');
+  const {writeGalleryJson} = await import('../../scripts/gallery/artifacts.ts');
+  const {judgeIdentity} = await import('../../benchmark/v6/contract.ts');
+  const outRoot = resolve('generated/compare', s.name), entries: any[] = [];
+  mkdirSync(outRoot, {recursive: true});
+  for (const id of ids) for (const side of ['reference', 'candidate'] as const) {
+    const c = s.cases.find(x => x.id === id)!, arm = s.arms[side], cell = cells[side].get(id), gallery = readArmGallery(arm, id);
+    assert.ok(gallery, `${side} ${id} was saved before rides kept their compile outputs; compile it again to show it`);
+    const label = `${side}-${id.replace(/~/g, '-')}`, out = join(outRoot, label);
+    if (!existsSync(join(out, 'manifest.json'))) {
+      mkdirSync(out, {recursive: true});
+      const {musicCase} = await loadMusicCase({song: c.song, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`, moments: [], ...(c.variant ? {variant: c.variant} : {})}, arm.jolt);
+      for (const key of ['specSha256', 'audioSha256', 'analysisSha256'] as const) assert.equal(musicCase[key], c.input[key], `${id}: ${key} changed since the ride was compared`);
+      const plan = {schema: 'line.automatic-production.v1', kind: 'musical-direction', source: 'npm run compare (saved benchmark ride)',
+        compiler: {contentKey: arm.content.key, commit: arm.content.clean ? arm.content.head : null, arm: arm.key}, judge: judgeIdentity(),
+        jolt: arm.jolt, impactContract: gallery.result.impactEvaluation?.contract, cases: [musicCase], seeds: [c.seed], budgets: [gallery.budget],
+        methods: ['production'], methodDetails: {production: {title: 'Automatic arrangement', description: 'A saved V7 benchmark ride.'}},
+        request: {mode: 'production', song: c.song, ...(c.variant ? {variant: c.variant} : {}), seed: c.seed, budget: gallery.budget, creative: arm.settings.creative ?? {}}};
+      const planSha256 = writeGalleryJson(out, 'plan.json', plan), production = gallery.production;
+      const phrases = production.plan.phrases.map((p: any) => {
+        const requests = production.plan.requests.slice(p.first, p.first + p.count);
+        return {...p, title: p.construction, window: [requests[0].frame / 40, Math.min(musicCase.durationFrames / 40, requests.at(-1)!.next / 40)], sections: requests.map((r: any) => r.section)};
       });
+      const saved = saveMusicCell({out, planSha256, c: musicCase, method: 'production', seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
+        result: gallery.result, reference: null, referenceTrace: null, compileMs: gallery.compileMs, physicalFrames: gallery.physicalFrames,
+        production, styles: production.styles, phrases, work: gallery.work});
+      assert.equal(saved.cell.trackHash, sha256(JSON.stringify(readArmTrack(arm, id))), `${side} ${id}: the exported track is not the compared one`);
+      writeGalleryJson(out, 'manifest.json', {schema: 'line.motion-gallery.v1', planSha256, plan, cells: [saved.cell],
+        sets: [{actualCompilationFrames: gallery.physicalFrames, productionFrames: gallery.physicalFrames, productionAllowance: gallery.budget,
+          validation: 'A saved benchmark ride, shown as compiled and compared (no second compile).'}],
+        summary: [{method: 'production', valid: Number(saved.cell.valid), runs: 1, meanScore: saved.cell.score.score}]});
     }
-    const produced = JSON.parse(readFileSync(join(dir, `${c.song}-${c.seed}-production`, 'track.json'), 'utf8'));
-    const same = digest(produced.lines) === digest(readArmTrack(arm, id).lines), cell = cells[side].get(id);
-    entries.push({id: `${side}-${id}`, order: ids.indexOf(id) * 2 + (side === 'candidate' ? 1 : 0),
+    entries.push({id: `${side}-${id}`, seed: c.seed, video: false, status: cell.complete ? 'Fulfilled' : 'Incomplete',
       title: `${id} · ${side === 'reference' ? `reference ${s.reference.name}` : `candidate ${s.arms.candidate.label}`} — score ${headlineScore(cell).toFixed(0)}` +
-        `${side === 'candidate' ? ` (${signed(headlineScore(cell) - headlineScore(cells.reference.get(id)))})` : ''}${cell.complete ? '' : ', did not finish'}${same ? '' : ' [differs from the compared ride]'}`,
-      status: cell.complete ? 'Fulfilled' : 'Incomplete', manifest: '/' + join('generated/compare', s.name, `${side}-${id.replace(/~/g, '-')}`, 'manifest.json'), seed: c.seed, video: false});
-  }));
-  entries.sort((x, y) => x.order - y.order);
-  writeFileSync(join(out, 'collection.json'), JSON.stringify({schema: 'line.production-library.v1',
-    description: `${s.name}: reference ${s.reference.name} then candidate, for the rides that moved most`, entries: entries.map(({order: _o, ...e}) => e)}, null, 1));
+        `${side === 'candidate' ? ` (${signed(headlineScore(cell) - headlineScore(cells.reference.get(id)))})` : ''}${cell.complete ? '' : ', did not finish'}`,
+      manifest: '/' + join('generated/compare', s.name, label, 'manifest.json')});
+  }
+  writeGalleryJson(outRoot, 'collection.json', {schema: 'line.production-library.v1',
+    description: `${s.name}: reference ${s.reference.name}, then the candidate, for each ride`, entries});
   console.log(`rides: http://10.77.77.30:8767/motion-gallery/production.html?collection=/generated/compare/${s.name}/collection.json`);
 }
 
@@ -347,10 +384,6 @@ async function main() {
   if (command === 'reference' && process.argv[3] === 'list') {
     for (const r of listReferences()) console.log(`${pad(r.name, 24)}${r.commit.slice(0, 8)} ${r.setAt.slice(0, 10)} "${subject(r.commit)}"${r.note ? ` — ${r.note}` : ''}`);
     return;
-  }
-  if (command === 'import') {
-    const {arm, copied, kept} = importRun(resolve('generated/eval', arg('from')!));
-    console.log(`imported into arm ${arm.key}: ${copied} cells copied, ${kept} already present`); return;
   }
   console.error(readFileSync(import.meta.filename, 'utf8').split('*/')[0]); process.exitCode = 2;
 }

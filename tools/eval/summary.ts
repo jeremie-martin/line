@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {makeRng} from '../../scripts/lib/rng.ts';
 import {GEOMETRY_FAMILIES} from '../../scripts/v0/optimizer/geometry_families.ts';
 
-import {SONGS} from './inputs.ts';
+import {SONGS, EXPLICIT} from './inputs.ts';
 import {assertPairedRuns, type Run} from './records.ts';
 export {SONGS} from './inputs.ts';
 export {loadRun, type Run} from './records.ts';
@@ -17,13 +17,20 @@ export const mean = (xs: number[]) => {const s = xs.filter(Number.isFinite); ret
  * 0 when the ride is invalid or incomplete, as the headline always counted
  * failures; NaN only for cells measured before the grade was recorded. */
 export const headlineScore = (cell: any) => cell.score ? (cell.complete && cell.score.valid ? cell.score.score : 0) : NaN;
-/** The headline of a stratified run: the mean score over every cell (failures
- * at 0) per stratum, the mean of strata (equal weights), and the plain mean over
- * all cells, the closest to the historical headline. */
+/** The one headline definition, shared by every report: per stratum the mean
+ * score of its specs (each spec the mean of its seeds; failures at 0); the
+ * headline is the mean of strata, explicit requests (E) excluded; `cells` is
+ * the plain mean over the counted cells. E is returned apart, never counted. */
 export function headline(r: Run, strata: string[]) {
   const cases = r.run.panel as any[], score = (c: any) => headlineScore(r.cells.get(c.id));
-  const perStratum = Object.fromEntries(strata.map(s => [s, mean(cases.filter(c => c.bench.stratum === s).map(score))]));
-  return {perStratum, strata: mean(Object.values(perStratum)), cells: mean(cases.map(score)),
+  const stratumMean = (s: string) => {
+    const own = cases.filter(c => c.bench.stratum === s);
+    return mean([...new Set(own.map(specKey))].map(spec => mean(own.filter(c => specKey(c) === spec).map(score))));
+  };
+  const counted = strata.filter(s => s !== EXPLICIT), perStratum = Object.fromEntries(strata.map(s => [s, stratumMean(s)]));
+  return {perStratum, counted, strata: mean(counted.map(s => perStratum[s])),
+    cells: mean(cases.filter(c => counted.includes(c.bench.stratum)).map(score)),
+    explicit: strata.includes(EXPLICIT) ? perStratum[EXPLICIT] : NaN,
     recorded: cases.filter(c => Number.isFinite(score(c))).length};
 }
 /** Song-level summary of one cell: the numbers a decision would be based on. */

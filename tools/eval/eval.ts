@@ -119,12 +119,15 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
     'Strata weigh equally. Within a stratum each spec weighs equally; seeds are averaged.',
     'No intervals: per spec, seed signs (+ A higher, − A lower, = identical) over cells complete in both arms.', '');
   const strataNames = r.strata.map(s => s.stratum), ha = headline(a, strataNames), hb = b ? headline(b, strataNames) : undefined;
-  const fmt = (x: number) => Number.isFinite(x) ? x.toFixed(2) : 'not recorded';
-  out.push(`0. Headline score (production grade, 1000·exp(−rms/0.25); invalid or incomplete rides count 0)`,
-    `${pad('', 9)}${strataNames.map(s => pad(s, 10)).join('')}${pad('strata', 10)}all cells`,
-    `${pad(A, 9)}${strataNames.map(s => pad(fmt(ha.perStratum[s]), 10)).join('')}${pad(fmt(ha.strata), 10)}${fmt(ha.cells)}`,
-    ...(hb ? [`${pad(B, 9)}${strataNames.map(s => pad(fmt(hb.perStratum[s]), 10)).join('')}${pad(fmt(hb.strata), 10)}${fmt(hb.cells)}`,
-      `${pad('A − B', 9)}${strataNames.map(s => pad(fmt(ha.perStratum[s] - hb.perStratum[s]), 10)).join('')}${pad(fmt(ha.strata - hb.strata), 10)}${fmt(ha.cells - hb.cells)}`] : []),
+  const fmt = (x: number) => Number.isFinite(x) ? x.toFixed(2) : 'not recorded', cols = ha.counted;
+  const row = (label: string, f: (s: string) => number, h: number, c: number, e: number) =>
+    `${pad(label, 9)}${cols.map(s => pad(fmt(f(s)), 10)).join('')}${pad(fmt(h), 10)}${pad(fmt(c), 11)}${cols.length < strataNames.length ? fmt(e) : ''}`;
+  out.push(`0. Headline score (production grade, 1000·exp(−rms/0.25); invalid or incomplete rides count 0;`,
+    `   headline = mean of strata${cols.length < strataNames.length ? '; explicit requests (E) are shown apart and never counted' : ''})`,
+    `${pad('', 9)}${cols.map(s => pad(s, 10)).join('')}${pad('headline', 10)}${pad('all cells', 11)}${cols.length < strataNames.length ? 'E (apart)' : ''}`,
+    row(A, s => ha.perStratum[s], ha.strata, ha.cells, ha.explicit),
+    ...(hb ? [row(B, s => hb.perStratum[s], hb.strata, hb.cells, hb.explicit),
+      row('A − B', s => ha.perStratum[s] - hb.perStratum[s], ha.strata - hb.strata, ha.cells - hb.cells, ha.explicit - hb.explicit)] : []),
     ...(ha.recorded < a.run.panel.length || (hb && hb.recorded < a.run.panel.length) ? ['(cells measured before the score was recorded show "not recorded": remeasure them)'] : []),
     '', '1. Completion (every cell)', `${pad('stratum', 9)}${pad('cells', 7)}${pad(A, 8)}${paired ? pad(B, 8) + pad('recovered', 11) + 'lost' : ''}`);
   for (const s of r.strata) {

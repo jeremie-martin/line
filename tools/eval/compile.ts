@@ -1,11 +1,17 @@
 /** One evaluation compile: the compiler at `root` (this checkout, or a
  * worktree of another commit) compiles one resolved case; the measurement
  * code of this checkout measures it. Shared by `eval` and `compare`. */
+import {createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {measureCell, geometryFacts} from './measure.ts';
 import type {PlannedCase} from './records.ts';
 
+/** This adapter turns a resolved case into compile options (allowance, phrase
+ * boundaries, explicit plans), so it is part of what a saved ride depends on:
+ * its bytes enter every arm's identity (arms.ts). */
+export const ADAPTER_SHA256 = createHash('sha256').update(readFileSync(import.meta.filename)).digest('hex');
 export const CONTRACTS = {landing: undefined, strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'} as const;
 export type ArmSettings = {mode: string; budget: string; creative?: Record<string, unknown>};
 
@@ -54,5 +60,12 @@ export async function compileAndMeasure(root: string, c: PlannedCase, resolved: 
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const cell = measureCell({c, mode: settings.mode, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
     compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full, geometry: geometryFacts(r)});
-  return {cell, track: cp.track};
+  // The compile's own outputs that the gallery record is written from
+  // (scripts/produce/music_artifacts.ts saveMusicCell), so a saved ride can be
+  // shown on the dashboard exactly as compared, without compiling it again.
+  const {result, ...production} = r, gallery = {budget, compileMs, physicalFrames: r.physicalFrames, production, work: cp.work,
+    result: {track: result.track, report: result.report, rows: result.rows, stats: result.stats, attempts: result.attempts, failure: result.failure,
+      impactEvaluation: result.impactEvaluation, impactTrajectoryLoss: result.impactTrajectoryLoss, trajectoryLoss: result.trajectoryLoss,
+      opposingEntryWork: result.opposingEntryWork}};
+  return {cell, track: cp.track, gallery};
 }

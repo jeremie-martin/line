@@ -1,0 +1,171 @@
+{
+  "intent": "An instrumental reading: low pulse gives way to the exposed repeating upper figure and build, then strong bass-and-drum replies. Do not mislabel the upper figure as singing.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "LAST LOW HIT",
+      "air": 0.7,
+      "speed": 0.45
+    },
+    {
+      "t": 1.962,
+      "name": "UPPER FIGURE",
+      "air": 0.58,
+      "speed": 0.48
+    },
+    {
+      "t": 11.482,
+      "name": "DRUM BUILD",
+      "air": 0.48,
+      "speed": 0.57
+    },
+    {
+      "t": 16.939,
+      "name": "ROLL",
+      "air": 0.3,
+      "speed": 0.68
+    },
+    {
+      "t": 21.1,
+      "name": "SUSPEND",
+      "air": 0.82,
+      "speed": 0.5
+    },
+    {
+      "t": 22.396,
+      "name": "RETURN",
+      "air": 0.65,
+      "speed": 0.8
+    },
+    {
+      "t": 40.472,
+      "name": "LAST RESPONSE",
+      "air": 0.7,
+      "speed": 0.83
+    },
+    {
+      "t": 56.483,
+      "name": "DECAY",
+      "air": 0.82,
+      "speed": 0.45
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.61,
+      "times": [
+        0.58
+      ],
+      "reason": "The low phrase closes once, then gives way to the upper figure."
+    },
+    {
+      "source": "other",
+      "impact": 0.46,
+      "times": [
+        1.962,
+        2.31,
+        3.309,
+        4.005,
+        4.679,
+        5.12,
+        6.049,
+        7.407,
+        8.777,
+        9.451,
+        10.136,
+        10.82
+      ],
+      "reason": "Exposed upper instrumental figure, not classified as words or voice."
+    },
+    {
+      "source": "drums",
+      "impact": 0.59,
+      "times": [
+        11.482,
+        12.167,
+        12.852,
+        13.526,
+        14.211,
+        14.896,
+        15.569,
+        16.254,
+        16.939,
+        17.276,
+        17.612,
+        17.961,
+        18.309,
+        18.646,
+        18.982,
+        19.331,
+        19.667,
+        20.19,
+        20.538,
+        20.875
+      ],
+      "reason": "Increasing drum subdivision in the build; the fastest roll is represented by accents, not every noisy transient."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        22.396,
+        23.754,
+        24.776,
+        25.124,
+        26.482,
+        26.831,
+        27.504,
+        27.841,
+        29.211,
+        29.559,
+        30.569,
+        31.939,
+        32.287,
+        32.961,
+        33.297,
+        34.667,
+        35.689,
+        36.026,
+        37.407,
+        37.744,
+        38.417,
+        38.754,
+        40.124,
+        40.472,
+        41.482,
+        42.852,
+        43.189,
+        43.862,
+        44.211,
+        45.581,
+        46.602,
+        46.939,
+        48.309,
+        48.646,
+        49.331,
+        49.667,
+        51.037,
+        51.374,
+        52.396,
+        53.766,
+        54.102,
+        54.776,
+        55.124
+      ],
+      "reason": "Syncopated bass-and-drum replies share the percussion onset. Omit trailing bass transients rather than doubling each response."
+    },
+    {
+      "source": "drums",
+      "impact": 0.5,
+      "times": [
+        56.483,
+        57.504,
+        57.853
+      ],
+      "reason": "Three lighter closing strokes."
+    }
+  ]
+}

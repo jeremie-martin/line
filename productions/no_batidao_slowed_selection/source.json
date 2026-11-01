@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-18-NO BATIDÃO (Slowed).webm",
+  "sha256": "54f66154b1a84d8e52d12d56fb4a61e7bbcbf323acd811c0adfc13438d9526d5",
+  "sourceStartSeconds": 48,
+  "sourceEndSeconds": 107.5,
+  "decodedExcerptSeconds": 59.5,
+  "audioSha256": "33d2daf9636b618d85593624b166df94073f4c0e973b966a62fdb298268f5ce0",
+  "title": "NO BATIDÃO (Slowed)",
+  "intent": "Percussion opens the clip before the bass arrives. Follow the vocal articulations in the later sparse-hit passage, then hand the ending back to the rhythm section.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "3cc2f468fabfe2f03ae2f6efb8c8ed950a07a494f0d3051f9f35dfcdc0b0c6d2",
+      "bass": "ba8826f0e8fbccb602e9c5f9fd60aecc5fb458b811f6acfdf3065a06de7ccd3e",
+      "vocals": "7ce973dc0373e97c7e823b3162647acbf1c4c52b017653fc9a17048f62742533",
+      "other": "29c3314753e867782279e7a43eca10c1d515b9f0456ec47895941f5face68ff8"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

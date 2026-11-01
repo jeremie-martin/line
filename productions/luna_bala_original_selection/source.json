@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-09-LUNA BALA.webm",
+  "sha256": "3593607a1d6f3b076f92a17f0bf1f7d2faaf53dc6920e2224b29e4cb1de831f9",
+  "sourceStartSeconds": 46,
+  "sourceEndSeconds": 104,
+  "decodedExcerptSeconds": 58.0,
+  "audioSha256": "4d8595ad20e3336d0928d47420fb5565fce9e6c03da1e686ad907970dd7f149f",
+  "title": "LUNA BALA",
+  "intent": "Vocal pickup into the second body, then a second quieter interruption and final return. Keep the two returns distinct in weight and air.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "8b65d2ab6e426d73e5826d30c0dc45695887cd04ba354092148930f54543ffbf",
+      "bass": "8d30629ee45d6d0a951dd84d8e5da720a9e1c6dc1576d19c95b72daf3f9d632c",
+      "vocals": "ddc61d3d7f15576e007f94f7faa9181fb18c34d1306e8cf093e323efc4f79250",
+      "other": "8c546ad313884b91d795765ae537bc1579c80b0bee69f64f59d2aa09d10d7c23"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

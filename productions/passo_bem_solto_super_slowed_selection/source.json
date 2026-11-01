@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-13-PASSO BEM SOLTO (Super Slowed).webm",
+  "sha256": "736a873f078f31ce473fb3ae49112d1995bbd6b5d4df3d00dc8a8ec56936372b",
+  "sourceStartSeconds": 47,
+  "sourceEndSeconds": 107,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "1672c7613f38fa763087cad2697dbfb53370db842a75b745ea4923f6d3bc69bb",
+  "title": "PASSO BEM SOLTO (Super Slowed)",
+  "intent": "Make the exposed vocal middle the focus, then contrast its articulation with stronger drum-led motion. The later short gap should remain a real release.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "7791faeb37a207f80a17a92084a4fdb0bc2413ed7586b1774fa461bf2ec8a614",
+      "bass": "ab539c7211b8074905795170b4dbe0779d1d00feb3ba476d11a70c0a55b87fa5",
+      "vocals": "d1431fac54a0583839306d9dc2e7ae9a5caec7a0c5061af8669ef9192f66d063",
+      "other": "737963ac66e14a25ae0d6742f3dfd16162ccfe0eaf7ade2a4222e431c5431015"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

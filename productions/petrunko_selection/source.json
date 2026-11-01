@@ -1,0 +1,33 @@
+{
+  "file": "petrunko.aac",
+  "sha256": "0074f59924ddda0a601357357c90ce787415c0d02eec22494b1a06aafca4924a",
+  "sourceStartSeconds": 76,
+  "sourceEndSeconds": 136,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "d94f85a8e0255b94bc81e328d5ade63ef0c08e60447a9795aafc5213cd0ad2f8",
+  "title": "Petrunko",
+  "intent": "An instrumental reading: low pulse gives way to the exposed repeating upper figure and build, then strong bass-and-drum replies. Do not mislabel the upper figure as singing.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "e7873a839fdc87a1ed72af7bdd982c7eb9132492bddf291bb48273d6f6fbcf5c",
+      "bass": "48788f38004af145a59204b80d4fcf7538b1a1ed4ea7102db6d7646bc47050dc",
+      "vocals": "77fced18752cf697fca937fe2329690e307dd60c99f8c5131b4ce65b3a17698a",
+      "other": "674a9ceb3fbb1f847bdde4457aca4a0310e41209908cbf13169a73ef5d7a10e6"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

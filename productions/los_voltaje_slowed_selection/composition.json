@@ -1,0 +1,183 @@
+{
+  "intent": "Use the extra space for vocal articulations in the breakdown and distinct paired percussion accents on the return, rather than merely stretching the original spec.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "GROOVE TAIL",
+      "air": 0.6,
+      "speed": 0.6
+    },
+    {
+      "t": 4.6,
+      "name": "VOICE",
+      "air": 0.67,
+      "speed": 0.4
+    },
+    {
+      "t": 13.5,
+      "name": "PHRASE RISE",
+      "air": 0.45,
+      "speed": 0.53
+    },
+    {
+      "t": 18.19,
+      "name": "FAST PICKUP",
+      "air": 0.25,
+      "speed": 0.68
+    },
+    {
+      "t": 22.291,
+      "name": "RETURN",
+      "air": 0.64,
+      "speed": 0.77
+    },
+    {
+      "t": 39.265,
+      "name": "WIDER ARCS",
+      "air": 0.7,
+      "speed": 0.8
+    },
+    {
+      "t": 56.773,
+      "name": "TAIL",
+      "air": 0.82,
+      "speed": 0.5
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.72,
+      "times": [
+        0.418,
+        0.964,
+        1.509,
+        2.055,
+        2.601,
+        3.146,
+        3.692,
+        4.238
+      ],
+      "reason": "The last opening percussion phrase."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.37,
+      "times": [
+        4.656,
+        5.027,
+        5.375,
+        9.404,
+        11.355,
+        11.587,
+        12.26,
+        13.537,
+        13.851,
+        14.083,
+        14.443,
+        15.035,
+        15.755,
+        15.964,
+        16.3
+      ],
+      "reason": "Vocal turns through the breakdown; no background pulse filling."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.53,
+      "times": [
+        18.193,
+        18.483,
+        18.739,
+        19.029,
+        19.377,
+        19.621,
+        20.108,
+        20.329,
+        20.689,
+        21.06,
+        21.444,
+        21.827,
+        22.152
+      ],
+      "reason": "A more articulated pickup than the original-speed reading."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        22.291,
+        22.86,
+        23.394,
+        23.94,
+        24.485,
+        25.043,
+        25.588,
+        26.134,
+        26.401,
+        26.68,
+        27.237,
+        27.771,
+        28.317,
+        28.862,
+        29.42,
+        29.965,
+        30.511,
+        31.057,
+        31.602,
+        32.148,
+        32.694,
+        33.239,
+        33.797,
+        34.342,
+        34.888,
+        35.155,
+        35.434,
+        35.979,
+        36.525,
+        37.071,
+        37.616,
+        38.162,
+        38.708,
+        39.265,
+        39.811,
+        40.356,
+        40.902,
+        41.448,
+        41.993,
+        42.551,
+        43.085,
+        43.642,
+        43.909,
+        44.188,
+        44.733,
+        45.279,
+        45.825,
+        46.37,
+        46.916,
+        47.462,
+        48.007,
+        48.565,
+        49.11,
+        49.656,
+        50.202,
+        50.747,
+        51.304,
+        51.85,
+        52.396,
+        52.674,
+        52.953,
+        53.487,
+        54.033,
+        54.579,
+        55.124,
+        55.681,
+        56.227,
+        56.773
+      ],
+      "reason": "Main percussion with the four short responses; omit weaker subdivisions and a near-duplicate at 30.116."
+    }
+  ]
+}

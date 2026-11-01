@@ -1,0 +1,193 @@
+{
+  "intent": "Percussion opening and bass-led answer, a genuine quiet break, then a staged drum-first and bass-second return. Avoid filling the quiet section with tiny hits.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "PERCUSSION",
+      "air": 0.53,
+      "speed": 0.64
+    },
+    {
+      "t": 5.56,
+      "name": "VOICE PICKUP",
+      "air": 0.45,
+      "speed": 0.5
+    },
+    {
+      "t": 7.837,
+      "name": "BASS BODY",
+      "air": 0.6,
+      "speed": 0.72
+    },
+    {
+      "t": 13.1,
+      "name": "PHRASE GAP",
+      "air": 0.75,
+      "speed": 0.43
+    },
+    {
+      "t": 15.093,
+      "name": "SECOND ANSWER",
+      "air": 0.63,
+      "speed": 0.74
+    },
+    {
+      "t": 20.55,
+      "name": "VOICE RELEASE",
+      "air": 0.6,
+      "speed": 0.45
+    },
+    {
+      "t": 22,
+      "name": "QUIET",
+      "air": 0.85,
+      "speed": 0.3
+    },
+    {
+      "t": 29.652,
+      "name": "DRUM RETURN",
+      "air": 0.5,
+      "speed": 0.6
+    },
+    {
+      "t": 36.92,
+      "name": "BASS RETURNS",
+      "air": 0.67,
+      "speed": 0.8
+    },
+    {
+      "t": 49.644,
+      "name": "ENDING",
+      "air": 0.86,
+      "speed": 0.4
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.7,
+      "times": [
+        0.557,
+        1.01,
+        1.463,
+        1.916,
+        2.38,
+        2.833,
+        3.286,
+        3.738,
+        4.191,
+        4.528,
+        4.876,
+        5.329,
+        5.561
+      ],
+      "reason": "Opening drum phrase, with its quick closing strokes."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.36,
+      "times": [
+        6.142,
+        6.362,
+        7.036,
+        7.396,
+        20.55,
+        20.805,
+        21.037,
+        21.328,
+        21.757
+      ],
+      "reason": "Two exposed vocal pickups; leave the ensuing near-silence open."
+    },
+    {
+      "source": "drums",
+      "impact": 0.75,
+      "times": [
+        7.837,
+        8.29,
+        8.731,
+        9.195,
+        9.648,
+        10.101,
+        10.553,
+        11.006,
+        11.459,
+        11.923,
+        12.376,
+        12.829,
+        15.093,
+        15.557,
+        16.01,
+        16.463,
+        16.916,
+        17.369,
+        17.833,
+        18.286,
+        18.739,
+        19.191,
+        19.644,
+        20.097
+      ],
+      "reason": "Bass-and-drum body, preserving its internal gap; use 7.837 rather than the near-duplicate 7.767."
+    },
+    {
+      "source": "drums",
+      "impact": 0.68,
+      "times": [
+        29.652,
+        30.105,
+        30.557,
+        31.01,
+        31.463,
+        31.916,
+        32.38,
+        32.833,
+        33.286,
+        33.739,
+        34.191,
+        34.644,
+        35.097,
+        35.445,
+        35.782
+      ],
+      "reason": "Drum-first return; not yet the full-weight body."
+    },
+    {
+      "source": "drums",
+      "impact": 0.82,
+      "times": [
+        36.92,
+        37.373,
+        37.825,
+        38.278,
+        38.742,
+        39.195,
+        39.648,
+        40.101,
+        40.554,
+        41.006,
+        41.471,
+        41.912,
+        42.376,
+        42.713,
+        43.061,
+        44.188,
+        44.64,
+        45.105,
+        45.546,
+        46.01,
+        46.463,
+        46.916,
+        47.369,
+        47.821,
+        48.286,
+        48.739,
+        49.191,
+        49.644
+      ],
+      "reason": "The bass completes the return. Keep the staggered phrase turn and final release."
+    }
+  ]
+}

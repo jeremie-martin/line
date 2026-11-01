@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-04-Amor Na Praia.webm",
+  "sha256": "3a650f4dbe5bc1689938e762df2bcecafaaa0eb2f9c986ef20c4fa86ec01ec0b",
+  "sourceStartSeconds": 49,
+  "sourceEndSeconds": 109,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "93848c39c7fa909aefdfae0f0ec9394c0ca5a3882d6ec241e3fc3a30d7e2ee5d",
+  "title": "Amor Na Praia",
+  "intent": "Build from the quiet middle, preserve isolated percussion punctuation, then let the returning bass-and-drum phrases drive a sustained finish.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "3433026412fcc48bebe4e91cf4bcfc41da9f2f7d5f5b1d922e2888f106de3e0e",
+      "bass": "cf4cd284245fd09fd578c4a01aa59dd172093b50cd4ee319dd878fff214169f3",
+      "vocals": "fe08a876269d7da0a8087be675f6e5019adb9a9cfae1bc5870f95883eedda076",
+      "other": "43715ba1111da6fc6f736ce22ec4f77595dd9d247bcf12d49ee86c4966f3f2f1"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

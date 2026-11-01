@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-12-LOS VOLTAJE (Ultra Slowed).webm",
+  "sha256": "c8d5559159d8935c586b482d9394fea85808df259873db23b5317699fb6bfe6d",
+  "sourceStartSeconds": 58,
+  "sourceEndSeconds": 118,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "4ef7106af11524e49c4f219376c5b9be3907660f6d7cae50cc99c4fae24a9e26",
+  "title": "LOS VOLTAJE (Ultra Slowed)",
+  "intent": "Let the long breakdown breathe with voice-led touches; use the broad return for weighted percussion arcs and a quieter natural release.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "6ab09e9494e1c9de1febd218c495804a08ae0c7abb7e5ccd8f6f637b4ff70e15",
+      "bass": "8778748aac18667b2d63b6c4724e225ae763e0cff563ee512e175f1f61daeca5",
+      "vocals": "a53ecded5dd14a0f29e689c3df72e7da1939ee0f7c74b53f3442ca9968c8bc52",
+      "other": "2fb0ffb1c7efed0501b9a2efc98384136833f95afff1cb0643d66276cbd97453"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

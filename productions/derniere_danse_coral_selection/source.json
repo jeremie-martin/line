@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-15-Derniere danse X Montagem Coral full mashup (Original mix).webm",
+  "sha256": "36d1c0cb2fe6c89c257b54cd56ad82d8a44b66b68813161818d8efd50d964b30",
+  "sourceStartSeconds": 78,
+  "sourceEndSeconds": 138,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "32319282c4e0734dc3b1500fc11401c014c3a32cd07b0d37ef461cc2333d0584",
+  "title": "Dernière danse × Montagem Coral",
+  "intent": "Start with the exposed vocal line, retain isolated percussion answers, follow the stronger vocal passage near the later breakdown, then close on the returning rhythm.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "d1bb2fe54e745a8138d1e07a69c82e618c7b99b5777e6029677469e8eddbc04c",
+      "bass": "83140ba2685600ba5994d9f77a13dd5eebdd000f3a94ef53a6f6264886c54227",
+      "vocals": "9b2b6901d4f88b82719cdd2cf0bf15b61dbeae7af1c2726dc52fbb6ad456fa4c",
+      "other": "6d01c4cd1e6314f35985e6f788d2c376c914f13380e60b88298f430e281c6821"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

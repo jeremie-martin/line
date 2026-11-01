@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-11-PASSO BEM SOLTO.webm",
+  "sha256": "b3e14066520b6144ae6a323a4110f1feecbae55b963f2048cec68b3ff2b4499c",
+  "sourceStartSeconds": 35,
+  "sourceEndSeconds": 91,
+  "decodedExcerptSeconds": 56.0,
+  "audioSha256": "89f0309e26e7f60aa2b1254e3225bcc3a9b460b649abf2c865e17f296196c171",
+  "title": "PASSO BEM SOLTO",
+  "intent": "A compact call-and-response between percussion and voice, preserving both interruptions rather than maintaining constant density.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "a79417d37f8bf93086c154eda7690f2cafb8eb74101368149a252998b47943d4",
+      "bass": "5d784b66735e3811afce06f9b4a76f1e61fa9e19320b041fe99678eb15b1aed6",
+      "vocals": "155978e0a5a2f416d8dd8686d1c89052ed52aedefa6956ca6f79c19b8dcb8217",
+      "other": "dd31dc213e22b2c88903990e1144a0e9538ea0b426ef390a798a4b285934e460"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

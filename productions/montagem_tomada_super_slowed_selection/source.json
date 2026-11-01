@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-10-MONTAGEM TOMADA (Super Slowed).webm",
+  "sha256": "d141f910413d5f1b662454fa065082c2b73b26b0cea5440d738d5edc2dd92083",
+  "sourceStartSeconds": 32,
+  "sourceEndSeconds": 92,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "d060bec4338f2a6e705312763e0933212fe3f7ccb0f1a4d5276ab6e146aec77a",
+  "title": "MONTAGEM TOMADA (Super Slowed)",
+  "intent": "Sparse percussion opens into the last part of the groove, then a long exposed vocal passage and bass swell precede the final drum return.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "d9d67a74c9dba4a5214d85b925b3490ae111fd0f34bd3e1874abd4f6eafcff8a",
+      "bass": "0f21b686b31ff22a8fd5f335ee3306c8a3318f9598c062cc4d2ecedfb789b41d",
+      "vocals": "6b390c4e0a212f61d272e009c4029d26e85553e58aea8c5bdde233a7da0cd38f",
+      "other": "83a3ab3f80798289fd98514f2170674807abf195d1c67bbe236d6e621bb0d53a"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

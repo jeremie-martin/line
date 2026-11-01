@@ -1,0 +1,186 @@
+{
+  "intent": "Build from the quiet middle, preserve isolated percussion punctuation, then let the returning bass-and-drum phrases drive a sustained finish.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "QUIET RELEASE",
+      "air": 0.7,
+      "speed": 0.35
+    },
+    {
+      "t": 4.992,
+      "name": "BASS AND VOICE",
+      "air": 0.65,
+      "speed": 0.42
+    },
+    {
+      "t": 9.88,
+      "name": "ISOLATED ANSWERS",
+      "air": 0.48,
+      "speed": 0.52
+    },
+    {
+      "t": 17.206,
+      "name": "RUN UP",
+      "air": 0.3,
+      "speed": 0.68
+    },
+    {
+      "t": 19.644,
+      "name": "RETURN",
+      "air": 0.61,
+      "speed": 0.78
+    },
+    {
+      "t": 39.776,
+      "name": "LAST PHRASES",
+      "air": 0.67,
+      "speed": 0.8
+    },
+    {
+      "t": 58.073,
+      "name": "RELEASE",
+      "air": 0.85,
+      "speed": 0.4
+    }
+  ],
+  "groups": [
+    {
+      "source": "vocals",
+      "impact": 0.28,
+      "times": [
+        0.139,
+        4.992
+      ],
+      "reason": "Two separated vocal observations; preserve the quiet between them."
+    },
+    {
+      "source": "bass",
+      "impact": 0.43,
+      "times": [
+        5.55,
+        5.979,
+        6.629,
+        7.21,
+        8.034,
+        8.324,
+        9.66
+      ],
+      "reason": "A bass gesture grows out of the break; leave its small ripples unlanded."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.39,
+      "times": [
+        10.217,
+        10.484,
+        11.122,
+        11.378,
+        11.738,
+        12.353,
+        12.748,
+        13.247,
+        13.7,
+        14.141,
+        15.058,
+        15.383,
+        15.848,
+        16.277,
+        16.591,
+        16.985,
+        17.485,
+        18.437,
+        18.878,
+        19.168,
+        19.342
+      ],
+      "reason": "Keep the vocal line, sharing close coincidences with the percussion instead of doubling them."
+    },
+    {
+      "source": "drums",
+      "impact": 0.73,
+      "times": [
+        9.88,
+        14.454,
+        14.768,
+        17.206,
+        17.659,
+        18.123
+      ],
+      "reason": "Isolated strong answers and the run into the return."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        19.644,
+        20.259,
+        20.863,
+        21.478,
+        22.082,
+        22.698,
+        23.301,
+        23.917,
+        24.52,
+        25.136,
+        25.751,
+        26.355,
+        26.97,
+        27.574,
+        28.189,
+        28.793,
+        29.408,
+        30.012,
+        30.627,
+        31.231,
+        31.846,
+        32.461,
+        33.065,
+        33.681,
+        34.284,
+        34.9,
+        35.503,
+        36.119,
+        36.722,
+        37.338,
+        37.941,
+        38.557,
+        39.172,
+        39.776,
+        40.391,
+        40.995,
+        41.61,
+        42.214,
+        42.829,
+        43.433,
+        44.048,
+        44.664,
+        45.267,
+        45.883,
+        46.475,
+        47.102,
+        47.705,
+        48.321,
+        48.924,
+        49.54,
+        50.143,
+        50.759,
+        51.374,
+        51.978,
+        52.593,
+        53.197,
+        53.812,
+        54.416,
+        55.031,
+        55.635,
+        56.239,
+        56.854,
+        57.469,
+        58.073
+      ],
+      "reason": "The measured percussion carries the full return; vocal and bass decoration remains texture."
+    }
+  ]
+}

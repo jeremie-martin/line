@@ -1,0 +1,33 @@
+{
+  "file": "bones.aac",
+  "sha256": "19d9881b14ee76972fd8a12b233efb42751d77170d8c1481120bc6e6740841c8",
+  "sourceStartSeconds": 105,
+  "sourceEndSeconds": 165,
+  "decodedExcerptSeconds": 60.0,
+  "audioSha256": "5cd54466b171a1122c0788f96367db63becb76917f235498384087ec6a1e40da",
+  "title": "Bones",
+  "intent": "Begin with the stripped vocal bridge, follow its build into the final chorus, combine vocal phrase accents with the drums, and retain the natural ending.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "8d094ad4d1f55a9eb5da79c3fdb93788b8e286703338a5e638d679e0498a3c2e",
+      "bass": "2b7263df86ee723b1a1234523601d9e70cfc1d12f99a0cd1903b7788285704a6",
+      "vocals": "5a5db44e01d64396cfd299466d99c79836dc48e30305d44ca891490048d46d18",
+      "other": "bb65575e4857031a1081fd18723f21f5e912c9fa395b3e0197daf7ba59f665f6"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "intent": "Percussion hands over to the voice through the central drumless passage; sustained bass rises carry motion, with a firm late return.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "DRUM PHRASES",
+      "air": 0.55,
+      "speed": 0.68
+    },
+    {
+      "t": 4.4,
+      "name": "SPARSE ANSWERS",
+      "air": 0.65,
+      "speed": 0.58
+    },
+    {
+      "t": 11.49,
+      "name": "GROOVE",
+      "air": 0.57,
+      "speed": 0.72
+    },
+    {
+      "t": 21,
+      "name": "VOICE",
+      "air": 0.55,
+      "speed": 0.44
+    },
+    {
+      "t": 31.25,
+      "name": "BUILD",
+      "air": 0.38,
+      "speed": 0.58
+    },
+    {
+      "t": 37.291,
+      "name": "BASS SWELL",
+      "air": 0.72,
+      "speed": 0.67
+    },
+    {
+      "t": 39.486,
+      "name": "RETURN",
+      "air": 0.6,
+      "speed": 0.82
+    },
+    {
+      "t": 57.04,
+      "name": "EXIT",
+      "air": 0.8,
+      "speed": 0.48
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.76,
+      "times": [
+        0.511,
+        1.068,
+        1.614,
+        2.159,
+        2.705,
+        3.262,
+        4.354,
+        6.002,
+        6.548,
+        8.197,
+        8.742,
+        10.391,
+        10.937,
+        11.494,
+        12.04,
+        13.142,
+        13.688,
+        14.234,
+        14.791,
+        15.337,
+        15.882,
+        16.428,
+        16.985,
+        17.531,
+        18.077,
+        18.622,
+        19.18,
+        19.725,
+        20.271,
+        20.828
+      ],
+      "reason": "The absent strokes in the first phrase stay absent."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.4,
+      "times": [
+        21.954,
+        22.477,
+        23.046,
+        23.591,
+        23.917,
+        25.623,
+        26.064,
+        26.366,
+        26.807,
+        29.722,
+        30.012,
+        30.465,
+        30.743,
+        31.254,
+        31.811,
+        32.914,
+        34.006,
+        35.643,
+        36.2,
+        37.849,
+        38.417,
+        38.801,
+        39.126
+      ],
+      "reason": "Vocal articulation takes over; omit neighbouring estimates that describe one broader gesture."
+    },
+    {
+      "source": "bass",
+      "impact": 0.65,
+      "times": [
+        37.291
+      ],
+      "reason": "The sustained bass swell gets one entry, not repeated impacts."
+    },
+    {
+      "source": "drums",
+      "impact": 0.83,
+      "times": [
+        39.486,
+        40.031,
+        40.577,
+        41.134,
+        41.68,
+        42.225,
+        42.771,
+        43.328,
+        43.874,
+        44.42,
+        44.977,
+        45.523,
+        46.068,
+        46.614,
+        47.171,
+        48.263,
+        48.82,
+        49.366,
+        49.911,
+        50.457,
+        51.003,
+        51.56,
+        52.106,
+        52.651,
+        53.209,
+        53.754,
+        54.3,
+        54.846,
+        55.403,
+        55.948,
+        57.04
+      ],
+      "reason": "The final percussion phrase; leave its deliberate holes intact."
+    }
+  ]
+}

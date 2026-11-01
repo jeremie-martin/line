@@ -1,0 +1,33 @@
+{
+  "file": "20251222-124532-01-LOS VOLTAJE.webm",
+  "sha256": "6e4820737c845fcd8d5c220241b80a2ea9d27184389e58ca0b3cadfd052ad3f1",
+  "sourceStartSeconds": 34,
+  "sourceEndSeconds": 91.4,
+  "decodedExcerptSeconds": 57.4,
+  "audioSha256": "d3750f9f4a5cac031e1e150101cb33a8ef2fd991c01b879e8f1c165bc0141a92",
+  "title": "LOS VOLTAJE",
+  "intent": "Groove gives way to a voice-led middle; rebuild into the full percussion return. Keep the bass texture moving without turning every ripple into an impact.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "82e6488a30f1fc042ac54b8a4d465d4cd6c8ab2dd10b29e4a0c12bea03e0d3fc",
+      "bass": "137529564a347a714030eda139941daa2b8cbdf65e84253be51e2e3c44134c0f",
+      "vocals": "22f939ac2132cfba69c04b4a9a5832424a1cc44e0146c5358bb79ddb0a061486",
+      "other": "e87571699361feee70069dc301447cad0c4934be1fe8a0801d2c47033cf63f31"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  }
+}

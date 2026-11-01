@@ -1,0 +1,202 @@
+{
+  "intent": "Make the exposed vocal middle the focus, then contrast its articulation with stronger drum-led motion. The later short gap should remain a real release.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "GROOVE TAIL",
+      "air": 0.62,
+      "speed": 0.62
+    },
+    {
+      "t": 5.457,
+      "name": "EXPOSED VOICE",
+      "air": 0.38,
+      "speed": 0.48
+    },
+    {
+      "t": 16.672,
+      "name": "ANSWERS",
+      "air": 0.57,
+      "speed": 0.55
+    },
+    {
+      "t": 23.255,
+      "name": "RETURN",
+      "air": 0.66,
+      "speed": 0.75
+    },
+    {
+      "t": 38.4,
+      "name": "BREATH",
+      "air": 0.84,
+      "speed": 0.42
+    },
+    {
+      "t": 40.821,
+      "name": "LAST RETURN",
+      "air": 0.7,
+      "speed": 0.79
+    },
+    {
+      "t": 58.387,
+      "name": "DECAY",
+      "air": 0.82,
+      "speed": 0.48
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.72,
+      "times": [
+        0.209,
+        0.755,
+        1.033,
+        1.312,
+        1.858,
+        2.403,
+        2.949,
+        3.495,
+        4.052,
+        4.598,
+        5.143
+      ],
+      "reason": "Opening three-stroke answer and groove tail."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.49,
+      "times": [
+        5.457,
+        5.979,
+        6.269,
+        6.583,
+        6.827,
+        7.117,
+        7.639,
+        8.173,
+        8.731,
+        9.613,
+        10.31,
+        10.635,
+        10.925,
+        11.169,
+        12.016,
+        12.562,
+        12.829,
+        13.108,
+        13.41,
+        13.955,
+        14.791,
+        15.07,
+        15.302,
+        15.604,
+        19.702,
+        19.981,
+        20.294,
+        20.828,
+        21.351,
+        21.618,
+        21.896,
+        22.442,
+        22.988
+      ],
+      "reason": "The voice carries the middle; close shared attacks use the drum contact instead."
+    },
+    {
+      "source": "drums",
+      "impact": 0.7,
+      "times": [
+        14.478,
+        16.672,
+        18.588,
+        18.866,
+        21.06
+      ],
+      "reason": "Punctuation inside the vocal passage."
+    },
+    {
+      "source": "drums",
+      "impact": 0.8,
+      "times": [
+        23.255,
+        23.812,
+        24.358,
+        24.903,
+        25.449,
+        26.006,
+        26.552,
+        27.098,
+        27.365,
+        27.655,
+        28.201,
+        28.746,
+        29.292,
+        29.849,
+        30.395,
+        30.941,
+        31.486,
+        32.032,
+        32.589,
+        33.135,
+        33.692,
+        34.238,
+        34.783,
+        35.329,
+        35.886,
+        36.153,
+        36.432,
+        36.978,
+        37.523,
+        38.081,
+        40.821,
+        41.378,
+        41.924,
+        42.469,
+        43.015,
+        43.572,
+        44.118,
+        44.664,
+        44.942,
+        45.221,
+        45.767,
+        46.312,
+        46.858,
+        47.404,
+        47.961,
+        48.506,
+        49.052,
+        49.598,
+        50.155,
+        50.701,
+        51.246,
+        51.792,
+        52.361,
+        52.895,
+        53.441,
+        53.719,
+        53.998,
+        54.555,
+        55.089,
+        55.647,
+        56.192,
+        56.75,
+        57.295,
+        57.841
+      ],
+      "reason": "Wider arcs distinguish this slower reading, but the short percussion replies remain explicit."
+    },
+    {
+      "source": "drums",
+      "impact": 0.6,
+      "times": [
+        58.387,
+        58.944,
+        59.49
+      ],
+      "reason": "The phrase starts to release."
+    }
+  ]
+}

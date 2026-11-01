@@ -1,0 +1,173 @@
+{
+  "intent": "A brief groove fragment dissolves into a vocal break, then opens into the second instrumental body. The return should feel larger than the opening.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "GROOVE DISSOLVES",
+      "air": 0.55,
+      "speed": 0.6
+    },
+    {
+      "t": 3.2,
+      "name": "EMPTY SPACE",
+      "air": 0.8,
+      "speed": 0.35
+    },
+    {
+      "t": 7.3,
+      "name": "VOICE",
+      "air": 0.58,
+      "speed": 0.43
+    },
+    {
+      "t": 16.8,
+      "name": "PICKUP",
+      "air": 0.38,
+      "speed": 0.57
+    },
+    {
+      "t": 20.921,
+      "name": "SECOND BODY",
+      "air": 0.64,
+      "speed": 0.76
+    },
+    {
+      "t": 37.268,
+      "name": "DENSER RESPONSE",
+      "air": 0.52,
+      "speed": 0.82
+    },
+    {
+      "t": 54.7,
+      "name": "PHRASE EXIT",
+      "air": 0.72,
+      "speed": 0.6
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.7,
+      "times": [
+        0.755,
+        1.289,
+        1.846,
+        2.392,
+        2.937
+      ],
+      "reason": "The groove recedes; do not fill the ensuing silence."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.36,
+      "times": [
+        7.314,
+        7.86,
+        8.951,
+        10.031,
+        10.577,
+        11.122,
+        12.469,
+        12.759,
+        13.34,
+        13.874,
+        14.385,
+        14.965,
+        15.523,
+        16.811,
+        17.287,
+        17.496,
+        18.054,
+        18.251,
+        18.75,
+        19.145,
+        19.83,
+        20.376
+      ],
+      "reason": "Vocal phrase rather than every noisy estimate; preserve several close articulations in the pickup."
+    },
+    {
+      "source": "drums",
+      "impact": 0.64,
+      "times": [
+        12.19
+      ],
+      "reason": "One isolated percussion answer within the exposed passage."
+    },
+    {
+      "source": "drums",
+      "impact": 0.79,
+      "times": [
+        20.921,
+        21.467,
+        22.013,
+        22.558,
+        23.092,
+        23.65,
+        24.195,
+        24.741,
+        25.275,
+        25.832,
+        26.366,
+        26.912,
+        27.458,
+        28.015,
+        28.549,
+        29.095,
+        29.64,
+        30.186,
+        30.732,
+        31.277,
+        31.823,
+        32.38,
+        32.914,
+        33.46,
+        34.006,
+        34.551,
+        35.097,
+        35.643,
+        36.177,
+        36.734,
+        37.268,
+        37.814,
+        38.359,
+        38.917,
+        39.462,
+        39.996,
+        40.275,
+        40.542,
+        41.099,
+        41.633,
+        42.179,
+        42.725,
+        43.282,
+        43.816,
+        44.362,
+        44.907,
+        45.453,
+        45.987,
+        46.533,
+        47.078,
+        47.636,
+        48.181,
+        48.715,
+        48.994,
+        49.261,
+        49.807,
+        50.352,
+        50.898,
+        51.444,
+        51.989,
+        52.535,
+        53.081,
+        53.626,
+        54.172,
+        54.706,
+        55.252
+      ],
+      "reason": "The full rhythm takes over; two conspicuous paired strokes remain, weaker subdivisions do not become mandatory landings."
+    }
+  ]
+}

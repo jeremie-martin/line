@@ -1,0 +1,182 @@
+{
+  "intent": "Percussion opens the clip before the bass arrives. Follow the vocal articulations in the later sparse-hit passage, then hand the ending back to the rhythm section.",
+  "reviewStatus": "listening draft; not owner-approved",
+  "omissions": "Only the explicitly listed gestures are landings. Unselected subdivisions, coincident layers and sustained texture remain musical background; section-specific reasons are recorded below. No threshold or grid generates this list.",
+  "phases": [
+    {
+      "t": 0,
+      "name": "DRUM BUILD",
+      "air": 0.55,
+      "speed": 0.56
+    },
+    {
+      "t": 6.409,
+      "name": "BASS ARRIVES",
+      "air": 0.65,
+      "speed": 0.74
+    },
+    {
+      "t": 23.626,
+      "name": "VOICE",
+      "air": 0.4,
+      "speed": 0.57
+    },
+    {
+      "t": 32.496,
+      "name": "RETURN",
+      "air": 0.69,
+      "speed": 0.8
+    },
+    {
+      "t": 58.584,
+      "name": "ENDING",
+      "air": 0.86,
+      "speed": 0.4
+    }
+  ],
+  "groups": [
+    {
+      "source": "drums",
+      "impact": 0.67,
+      "times": [
+        0.302,
+        0.859,
+        1.416,
+        1.962,
+        2.519,
+        3.077,
+        3.634,
+        4.191,
+        4.609,
+        5.027
+      ],
+      "reason": "Percussion alone before the low end joins."
+    },
+    {
+      "source": "drums",
+      "impact": 0.78,
+      "times": [
+        6.409,
+        6.966,
+        7.523,
+        8.081,
+        8.626,
+        9.183,
+        9.741,
+        10.298,
+        10.855,
+        11.401,
+        11.958,
+        12.516,
+        13.073,
+        13.63,
+        14.187,
+        14.745,
+        15.29,
+        15.848,
+        16.405,
+        16.962,
+        17.508,
+        18.065,
+        18.622,
+        19.18,
+        19.737,
+        20.283,
+        20.84,
+        21.397,
+        21.954,
+        22.512,
+        23.069
+      ],
+      "reason": "Full body, broader motion than the original-speed reading."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.5,
+      "times": [
+        23.626,
+        24.52,
+        24.776,
+        25.345,
+        25.693,
+        25.902,
+        26.691,
+        26.993,
+        27.26,
+        27.562,
+        29.211,
+        29.722,
+        31.196,
+        31.405,
+        31.974,
+        32.752
+      ],
+      "reason": "Vocal articulation in the sparse passage; no indiscriminate extra vocal contacts under the full groove."
+    },
+    {
+      "source": "drums",
+      "impact": 0.72,
+      "times": [
+        24.172,
+        26.389,
+        28.061,
+        28.619,
+        30.836
+      ],
+      "reason": "Strong isolated answers."
+    },
+    {
+      "source": "drums",
+      "impact": 0.82,
+      "times": [
+        32.496,
+        33.054,
+        33.611,
+        34.168,
+        34.725,
+        35.271,
+        35.828,
+        36.386,
+        36.943,
+        37.5,
+        38.046,
+        38.603,
+        39.16,
+        39.706,
+        40.275,
+        40.832,
+        41.935,
+        42.493,
+        43.05,
+        43.595,
+        44.153,
+        44.71,
+        45.267,
+        45.825,
+        46.382,
+        46.928,
+        47.485,
+        48.042,
+        48.599,
+        49.145,
+        49.702,
+        50.817,
+        51.374,
+        51.931,
+        52.489,
+        53.034,
+        53.592,
+        54.149,
+        54.706,
+        55.263,
+        55.809,
+        56.366,
+        56.924,
+        57.481,
+        58.038,
+        58.584
+      ],
+      "reason": "The last instrumental body preserves the phrase gaps and ends with the recording."
+    }
+  ]
+}

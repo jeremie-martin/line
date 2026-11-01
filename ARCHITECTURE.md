@@ -13,6 +13,13 @@ spec (beats, impacts, air/speed/amplitude targets)
   → review:    native player with music; optional vertical video render
 ```
 
+Authoring evidence is separate from compilation. `tools/music/vocal_evidence.py`
+reads the separated vocal audio and existing detector outputs to write descriptive
+`vocal-evidence.json` files (RMS, spectral changes, band changes and acoustic
+landmarks). The spec dashboard verifies source hashes and exposes these values
+without changing candidate times or producing contacts. Definitions, limitations
+and validation are in [music authoring](docs/music-authoring.md).
+
 1. **Entry.** `compileHandoff` (`scripts/v0/optimizer/handoff.ts`) accepts a
    spec and either creative preferences (automatic arrangement) or an explicit
    intentional construction plan (`line.repertoire-policy.v2`, as in the V6

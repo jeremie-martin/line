@@ -789,3 +789,5 @@ textarea {
 #listening-rate-value { min-width:3.5em; font-variant-numeric:tabular-nums; text-align:right; }
 .listening-tools small { flex-basis:100%; color:var(--muted, #666); }
 .quick-marks kbd { margin-left:5px; font:11px system-ui; opacity:.65; }
+.evidence-note { font-size:12px; line-height:1.5; color:var(--muted, #666); margin:8px 0; max-width:100ch; }
+.evidence-note.error { color:#a8442f; }

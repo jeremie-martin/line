@@ -198,3 +198,137 @@ Observations from one song, not rules. Variants live in
 New songs are the only test of whether the compiler generalizes. Author them
 freely, but do not tune the compiler on them. Keep at least one new song
 untouched by any compiler decision.
+
+## Descriptive vocal evidence (November 2026)
+
+Use the existing spec dashboard, not a separate authoring workflow. Its source
+lanes retain every measured instrument at its own timestamp. A coincident drum
+no longer conceals the vocal observation. Event snapping remains optional;
+unsnapped listener marks are approximate observations, not exact ground truth.
+
+To add continuous evidence after stem separation and optional `sung.py` analysis:
+
+```sh
+python tools/music/vocal_evidence.py --song circus_minimus_77s
+```
+
+Requires NumPy, librosa (tested with 0.11.0), ffmpeg, the production audio, and
+`generated/stems/<song>/{vocals.wav,stems.json}`. Produces
+`productions/<song>/vocal-evidence.json`, readable by an agent and the dashboard.
+The dashboard checks recorded source/code hashes and refuses stale evidence.
+These checks detect changed files; they cannot prove that stem separation was
+correct or that a supplied stem originally came from the supplied recording.
+
+The measurements use identical settings for every song: 22,050 Hz mono,
+1,024-sample centered windows, 256-sample steps (46.4 ms windows, 11.6 ms steps).
+RMS is linear amplitude, without song normalization. Spectral change is cosine
+distance between successive Hann-window magnitude spectra at 200–6,000 Hz;
+missing/silent comparisons are null. Plot scales are fixed across zoom levels
+and shown beside each trace. Window centers are not vocal onset boundaries.
+Zero padding affects the first/last half-window. Gain invariance only applies
+above the numerical silence floor. A nearly silent spectrum can have a large
+shape change, so read it alongside RMS and listen.
+
+All raw vocal onset estimates and both existing sung classifier outputs remain
+available. The UI labels them onset, tonal and noisy estimates. These are not
+words, speaker identities, confidence probabilities or impact suggestions.
+The separated stem may mix several voices and retain instrumental leakage.
+No measurement or candidate selects the artistic focus or changes a spec.
+Copied agent context includes the current measurement window, nearby source
+observations and the evidence file URL; the file contains all candidates and
+measurement definitions for further inspection.
+
+Validation used one fixed implementation on Circus, Trouble, Valhalla, Luna
+Bala and Tiki Tiki, without per-song parameter changes. Browser checks verified
+that every source observation and candidate within the spec duration survived
+into the display. Vocal source observations previously visible versus retained:
+
+| Song | Previously visible | Retained |
+| --- | ---: | ---: |
+| Circus | 223 | 310 |
+| Trouble | 123 | 160 |
+| Valhalla | 75 | 87 |
+| Luna Bala | 60 | 118 |
+| Tiki Tiki | 96 | 122 |
+
+These counts measure information preservation, **not word-detection accuracy**.
+Of the owner's 39 approximate Circus marks, 16 have an existing candidate
+within 30 ms, 27 within 50 ms and 32 within 80 ms. Seven still lack a candidate
+within 80 ms. This is a diagnostic proximity check: marks are uncertain,
+unmarked times are not negative labels, and neither precision nor recall can
+be inferred from it. Continuous evidence exposes additional changes for
+inspection; it does not establish that those seven articulations are resolved.
+Circus and previously inspected Trouble/Valhalla passages are development
+material. Luna Bala and Tiki Tiki check cross-song operation, not held-out
+perceptual accuracy. Broader listening with independently annotated passages
+is needed before making a vocal-alignment accuracy claim.
+
+Reproducible checks:
+
+```sh
+python -m unittest discover -s tests -p test_vocal_evidence.py
+npx vitest run tests/music_evidence.test.ts tests/vocal_evidence_provenance.test.ts
+node tests/browser/vocal-evidence.mjs http://127.0.0.1:8771
+node tests/browser/spec-listening.mjs http://127.0.0.1:8771
+```
+
+Synthetic checks cover silence, uniform gain, constant-amplitude timbre changes,
+centered impulse support and invalid inputs. Browser checks are read-only or
+intercept note writes in memory; they never edit the owner's annotations.
+
+### Acoustic landmarks and band measurements
+
+The evidence builder now adds two descriptive fields while preserving all
+existing candidates, times, RMS values and spectral-shape values:
+
+- Each candidate has `landmarks`: the preceding local RMS minimum (librosa
+  backtracking), and the steepest positive linear RMS rise between that minimum
+  and the candidate's nearest measurement frame. A flat/falling interval has no
+  rise landmark. A clip-start fallback is explicit. These are frame-centered
+  measurements, not onset boundaries, a confidence interval or a corrected time.
+- `bandFlux` contains three continuous mean-positive log-mel changes, in
+  dB/frame. One 64-filter Hann-window mel spectrogram supplies all three groups,
+  using filter centers at 80–1000, 1000–3000 and 3000–8000 Hz. Filter supports
+  overlap the boundaries. There are no consonant/vowel labels or event picks.
+
+The existing 1024-sample window and 256-sample step remain fixed across songs.
+Log power uses reference 1, floor 1e-10 and no relative dB clipping. Differences
+are placed at the later of the adjacent centered STFT frames, without an extra
+onset-detector compensation shift. The first difference is unavailable. Values
+are not normalized per song; gain invariance only holds above the power floor.
+Quiet spectral components can still show large relative changes.
+
+The existing dashboard shows band values in the cursor inspector and acoustic
+landmarks in candidate tooltips. Copied agent context includes nearby candidates
+and their landmarks. No extra permanent timeline lanes or automatic impacts were
+added; the original candidates still determine what their existing dots mean.
+
+Checks used fixed settings on all five songs above: all 1,413 candidates and
+all existing continuous values were preserved exactly. Of those candidates,
+79 have no positive RMS rise in the inspected interval; this is reported as
+unavailable rather than filled with a guessed time. These counts are diagnostics,
+not detection accuracy. The builder took roughly 0.1–0.3 seconds per song in the
+warm local experiment, including decoding; first imports/JIT can take longer.
+
+Synthetic tests cover silence, gain, an impulse, a constant-power harmonic
+change, a sustained tone and vibrato. Windows of 512/1024/2048 samples were
+examined without selecting a winner on listener annotations. The impulse check
+confirmed librosa's additional onset compensation shifts a peak by respectively
+11.6/23.2/46.4 ms relative to the centered-frame measurements. This is a timing
+convention, not proof of an error in the existing detector: centered windows can
+respond before the true attack. No global correction was applied.
+
+Vibrato produces substantial band flux despite having no new syllable. Shorter
+windows also trade frequency resolution for timing localization. These findings
+are why the new outputs remain measurements rather than new vocal detections.
+Fewer missed syllables or better perceptual alignment have **not** been established.
+That needs a small reviewed set of real passages including non-attacks, not just
+proximity to the owner's approximate, non-exhaustive positive marks.
+
+The bounded study, its frozen settings, before/after preservation checks and
+results are in `generated/circus-voice-review/acoustic-experiment/` (`run.py`,
+`plan.json`, `results.json`, `before/`). The Python tests above now also exercise
+landmarks, band silence/gain behavior and timing at all three window sizes.
+
+Exploratory ASR, alignment and external-reference findings are recorded in
+[the sung-notes research log](research/sung-notes-20261031.md#november-1-external-reference-experiments).

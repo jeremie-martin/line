@@ -1,4 +1,5 @@
 import { createMusic, displayTime } from "../shared/playback.js";
+import { sourceEvents, vocalFrame } from "./music-evidence.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -388,17 +389,20 @@ async function readJsonOk(res) {
 }
 
 async function loadAnalysis(music) {
-  if (!music?.beatsUrl && !music?.eventsUrl) return null;
+  if (!music) return null;
   const load = (url) => url ? fetch(url, { cache: "no-cache" }).then(readJsonOk).catch(() => null) : null;
-  const [raw, measured] = await Promise.all([load(music.beatsUrl), load(music.eventsUrl)]);
+  const [raw, measured, vocal] = await Promise.all([load(music.beatsUrl), load(music.eventsUrl), load(music.vocalEvidenceUrl)]);
   const analysis = normalizeAnalysis(raw ?? {}, musicOffset(music));
-  // Measured events (tools/music/events.py) replace anonymous onsets: each is drawn in
-  // the colour of the instrument that rises most, at the height of that rise.
+  analysis.vocal = vocal;
+  const note = document.getElementById('vocal-evidence-note');
+  const evidenceError = music.vocalEvidenceError || (music.vocalEvidenceUrl && !vocal ? 'Vocal evidence could not be loaded. Reload before using these measurements.' : null);
+  note.textContent = evidenceError || (vocal
+    ? 'Vocal evidence: estimated separated stem, possibly multiple voices or instrument leakage. RMS and spectral change are measurements; dots are unfiltered detector candidates, not words or impact suggestions. Window centers are not exact onset times. Hover for values; zoom to inspect.'
+    : 'No continuous vocal evidence generated for this song. Instrument events below retain each source’s own timing.');
+  note.classList.toggle('error', Boolean(evidenceError));
+  // Keep every instrument at its own time, including quieter overlapping vocals.
   if (measured?.events) {
-    analysis.onsets = measured.events.map((event) => {
-      const [source, value] = Object.entries(event.sources).sort((a, b) => b[1].rise - a[1].rise)[0];
-      return { t: round(audioToSpecTime(event.t, musicOffset(music)), 4), strength: value.rise, source };
-    });
+    analysis.onsets = sourceEvents(measured.events, musicOffset(music));
   }
   return analysis;
 }
@@ -849,9 +853,11 @@ function renderTimeline() {
   const notesH = refs.toggleNotes.checked ? 34 : 0;
   const top = 20;
   const spectroY = top + 26;
-  const eventsH = state.analysis?.onsets.length ? 52 : 0;
+  const eventsH = state.analysis?.onsets.length ? 104 : 0;
   const eventsY = spectroY + spectroH + 10;
-  const impactY = eventsY + eventsH + 18;
+  const vocalH = state.analysis?.vocal ? 164 : 0;
+  const vocalY = eventsY + eventsH + 10;
+  const impactY = vocalY + vocalH + 18;
   const axesY = impactY + impactH + 18;
   const H = axesY + axisNames.length * (axisH + axisGap) + zoomH + zoomGap + notesH + 42;
   const viewStart = clamp(state.viewStart, 0, data.spec.duration);
@@ -888,6 +894,7 @@ function renderTimeline() {
   drawSpectrogram(svg, L, plotW, spectroY, spectroH);
   drawBeatLayer(svg, L, plotW, spectroY, spectroH, H);
   if (eventsH) drawEventLane(svg, L, plotW, eventsY, eventsH);
+  if (vocalH) drawVocalEvidence(svg, L, plotW, vocalY);
   drawContacts(svg, L, plotW, spectroY, H);
   drawImpactLane(svg, L, plotW, impactY, impactH);
 
@@ -988,29 +995,62 @@ function drawBeatLayer(svg, L, plotW, y, h, H) {
   }
 }
 
-// Measured events (or anonymous onsets for songs without events.json) in their own
-// lane: one bar per event, coloured by its leading instrument, as tall as its rise
-// relative to the strongest event in view.
+// Separate sources: no winner selection and no viewport-dependent rescaling.
 function drawEventLane(svg, L, plotW, y, h) {
   const duration = state.data.spec.duration;
-  add(svg, "text", { x: 12, y: y + 17, class: "svg-label" }, "events");
   add(svg, "rect", { x: L, y, width: plotW, height: h, fill: "#f4efe6", opacity: 0.6 });
   const sourceColors = { drums: "#e0574a", bass: "#5b8fd1", vocals: "#f0a04b", other: "#5fbf8f" };
   const measured = state.analysis.onsets.some((event) => event.source);
   const visible = state.analysis.onsets.filter((event) => event.t >= 0 && event.t <= duration && timeVisible(event.t));
-  const maxStrength = measured ? Math.max(1e-6, ...visible.map((event) => event.strength))
-    : Math.max(1, ...visible.map((event) => event.strength || 1));
+  const sources = measured ? ['drums', 'bass', 'vocals', 'other'] : ['onsets'];
+  const laneH = h / sources.length;
+  const maxStrength = Math.max(1, ...state.analysis.onsets.map(event => event.strength || 0));
+  sources.forEach((source, i) => add(svg, 'text', {x: 12, y: y + i * laneH + 15, class: 'svg-small'}, source));
   for (const event of visible) {
     const x = state.timeline.xFor(event.t);
-    const height = Math.max(3, Math.min(h, (event.strength / maxStrength) * h));
-    add(svg, "rect", {
+    const height = Math.max(2, Math.min(laneH - 3, (event.strength / maxStrength) * (laneH - 3)));
+    const row = measured ? Math.max(0, sources.indexOf(event.source)) : 0;
+    const mark = add(svg, "rect", {
       x: x - 1,
-      y: y + h - height,
+      y: y + (row + 1) * laneH - height,
       width: 2,
       height,
       fill: sourceColors[event.source] ?? "#f6c85f",
       opacity: measured ? 0.85 : 0.34,
+      "data-event-source": event.source ?? "onsets",
     });
+    add(mark, 'title', {}, `${event.source || 'onset'} at ${event.t.toFixed(3)} s · rise ${event.strength} · peak ${event.peak ?? 'not recorded'}; detector estimate, not a word boundary`);
+  }
+}
+
+function drawVocalEvidence(svg, L, plotW, y) {
+  const e = state.analysis.vocal, offset = musicOffset(state.data.music), dt = e.hopSamples / e.sampleRate;
+  const first = Math.max(0, Math.floor((state.viewStart - offset) / dt));
+  const last = Math.min(e.rms.length - 1, Math.ceil((state.viewEnd - offset) / dt));
+  for (const [row, field, label, color] of [[0, 'rms', 'vocal RMS', '#a86820'], [1, 'spectralChange', 'change', '#77529c']]) {
+    const top = y + row * 48, height = 38;
+    const ceiling = Math.max(1, ...e[field].filter(v => v !== null));
+    add(svg, 'text', {x: 3, y: top + 16, class: 'svg-small'}, label);
+    add(svg, 'text', {x: 3, y: top + 30, class: 'svg-small'}, `0–${ceiling.toFixed(2)}`);
+    add(svg, 'line', {x1:L,x2:L+plotW,y1:top+height,y2:top+height,class:'svg-rule'});
+    let path = '', pen = false;
+    for (let i = first; i <= last; i++) {
+      const v = e[field][i];
+      if (v === null) {pen = false; continue;}
+      path += `${pen ? 'L' : 'M'}${state.timeline.xFor(i * dt + offset).toFixed(2)},${(top + height - (v / ceiling) * height).toFixed(2)} `;
+      pen = true;
+    }
+    add(svg, 'path', {d:path,fill:'none',stroke:color,'stroke-width':1.2,'data-evidence-series':field});
+  }
+  const kinds = ['spectral-onset', 'pitched-estimate', 'unpitched-estimate'];
+  ['onset est.', 'tonal est.', 'noisy est.'].forEach((label, i) => add(svg,'text',{x:3,y:y+108+i*17,class:'svg-small'},label));
+  for (const c of e.candidates) {
+    if (!timeVisible(c.t + offset)) continue;
+    const dot = add(svg,'circle',{cx:state.timeline.xFor(c.t+offset),cy:y+104+kinds.indexOf(c.kind)*17,r:2.8,fill:'#6b737b','data-vocal-candidate':c.kind});
+    const landmarks = c.landmarks;
+    const timing = landmarks ? ` · RMS minimum ${landmarks.precedingMinimumT.toFixed(3)} s${landmarks.minimumAtClipStart ? ' (clip-start fallback)' : ''} · steepest rise ${landmarks.steepestRiseT === null ? 'unavailable' : landmarks.steepestRiseT.toFixed(3) + ' s'}; measurement landmarks, not onset bounds` : '';
+    if (landmarks) dot.dataset.acousticLandmarks = 'true';
+    add(dot,'title',{},`${c.kind} at ${c.t.toFixed(3)} s (audio)${timing}${c.pitch ? ` · pitch estimate ${c.pitch}` : ''}${c.flatness !== undefined ? ` · flatness ${c.flatness}` : ''}${c.rise_db !== undefined ? ` · rise ${c.rise_db} dB` : ''} · not a word label`);
   }
 }
 
@@ -1284,6 +1324,10 @@ function renderInspector(t = specTime()) {
     detail("zoom", zoomValue === null ? "none" : fmt(zoomValue)),
     detail("zoom kf", zoomKeyframeHit ? `#${zoomKeyframeHit.point.index} ${signed(zoomKeyframeHit.point.t - t)}s` : "none"),
   ].join("");
+  const vocal = vocalFrame(state.analysis?.vocal, specToAudioTime(t));
+  if (vocal) refs.cursorGrid.innerHTML += detail('vocal window', `${vocal.t.toFixed(3)}s (audio)`) + detail('vocal RMS', vocal.rms.toFixed(4))
+    + detail('spectral change', vocal.change === null ? 'unavailable' : vocal.change.toFixed(4));
+  if (vocal?.bandFlux) refs.cursorGrid.innerHTML += detail('band change · dB/frame', vocal.bandFlux.map(b => `${b.filterCenterHz[0]}–${b.filterCenterHz[1]} Hz: ${b.value === null ? 'unavailable' : b.value.toFixed(2)}`).join(' · '));
 
   refs.axisReadouts.innerHTML = "";
   for (const axis of data.summary.activeAxes) {
@@ -2060,6 +2104,14 @@ function renderAgentContext() {
       duration: round(selection.t1 - selection.t0, 3),
     } : null,
     note: activeNote,
+    evidence: {
+      url: state.data.music?.vocalEvidenceUrl ?? null,
+      error: state.data.music?.vocalEvidenceError ?? null,
+      meaning: 'Measurements and detector estimates, not words or impact requests. Vocal window and candidate times are in audio seconds; source times below are spec seconds.',
+      vocalWindow: vocalFrame(state.analysis?.vocal, specToAudioTime(t)),
+      nearbySources: (state.analysis?.onsets ?? []).filter(event => Math.abs(event.t - t) <= .25),
+      nearbyVocalCandidates: (state.analysis?.vocal?.candidates ?? []).filter(c => Math.abs(c.t - specToAudioTime(t)) <= .25),
+    },
     stagedEdits: state.edits,
     nearbyContacts: state.data.contacts
       .map((contact, index) => ({ index, t: contact.t, dt: round(contact.t - t, 3), impact: contact.impact }))

@@ -554,3 +554,25 @@ px/frame). The rider's centre of mass is not rising.
   - Not yet known: why they are late and weak. Candidates include catch
     construction placing the line by sled points while the body touches
     first, and slower-building body contacts.
+
+## Experiments after the studies (autonomous iterations, 2026-11-01)
+Checked first: a catch on an upper surface already uses all ten rider points
+as receivers (`buildGeometry`, `contactSide === -1`). Receivers are not why
+hits from above are late.
+
+### A. Ranking charges the arrival priors at half weight
+- **Basis.** The same-state probes measured the next interval's real cost
+  change at about 0.45 of what ranking charges (0.042 against 0.093; 0.024
+  against 0.053).
+- **Change.** In `valueRank` only (prefix choice and beam ranking), the
+  arrival-prior part of a candidate's cost counts ½. Local search keeps the
+  priors in full, so proposals are still steered the same way.
+- **Hypothesis:**
+  - more catches closer to their asks are kept;
+  - strength error² on mid and strong asks falls;
+  - the next catches lose a little (the probes say less than ranking
+    assumed);
+  - V7 headline up.
+- **Risk.** The priors may also stand for consequences beyond the next
+  interval (not measured). Then the next catches lose more than expected,
+  and air or speed could suffer.

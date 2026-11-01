@@ -192,6 +192,15 @@
         4.481
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "sung",
+      "impact": 0.42,
+      "times": [
+        50.178,
+        53.081
+      ],
+      "reason": "Previously omitted unpitched vocal attacks complete the exposed closing phrases; retain the held notes between them."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -199,5 +208,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Retain the dramatic chorus and voice-alone ending, completing two supported articulations in the final exposed phrases."
 }

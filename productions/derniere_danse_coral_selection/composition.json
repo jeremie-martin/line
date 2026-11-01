@@ -213,6 +213,23 @@
         47.88
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.4,
+      "times": [
+        55.113,
+        55.577
+      ],
+      "reason": "Two distinct upper-instrument closing attacks after the last vocal gesture; the evidence places them in other, not drums."
+    },
+    {
+      "source": "other",
+      "impact": 0.2,
+      "times": [
+        56.599
+      ],
+      "reason": "One lighter upper-figure tail articulation, then leave the remaining decay open."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -220,5 +237,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Preserve the sustained vocal ride; give the closing instrumental phrase its two clear accents and a softer final reply."
 }

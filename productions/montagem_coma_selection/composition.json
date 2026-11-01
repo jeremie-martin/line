@@ -12,9 +12,9 @@
     },
     {
       "t": 9.567,
-      "name": "BASS AND UPPER FIGURE",
-      "air": 0.65,
-      "speed": 0.48,
+      "name": "LIGHT UPPER FIGURE",
+      "air": 0.45,
+      "speed": 0.45,
       "ease": "hold"
     },
     {
@@ -103,18 +103,6 @@
         33.077
       ],
       "reason": "Percussion bursts retain their empty phrase slots and short answers."
-    },
-    {
-      "source": "bass",
-      "impact": 0.49,
-      "times": [
-        10.333,
-        11.471,
-        12.376,
-        13.839,
-        14.838
-      ],
-      "reason": "The bass keeps the music moving when the voice recedes, without demanding every pulse."
     },
     {
       "source": "vocals",
@@ -221,6 +209,46 @@
         43.073
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.28,
+      "times": [
+        9.834,
+        10.101,
+        11.088,
+        12.585,
+        13.119,
+        13.456
+      ],
+      "reason": "Quiet upper-instrument phrase: follow its articulation instead of emphasizing sustained bass as a heavy pulse."
+    },
+    {
+      "source": "other",
+      "impact": 0.37,
+      "times": [
+        10.588,
+        14.095,
+        14.582
+      ],
+      "reason": "Brighter replies in the upper instrumental figure; still lighter than the later drum return."
+    },
+    {
+      "source": "drums",
+      "impact": 0.2,
+      "times": [
+        11.842,
+        12.33
+      ],
+      "reason": "Two light percussion details support the upper phrase without turning this passage into a strong drum section."
+    },
+    {
+      "source": "vocals",
+      "impact": 0.27,
+      "times": [
+        18.077
+      ],
+      "reason": "Quieter vocal answer between the two clearer calls before the return."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -228,5 +256,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Owner identifies a light but distinctive 9.5–19 s passage. Rebalance its upper figure and quiet details, preserving the clear vocal calls and eventual drum return."
 }

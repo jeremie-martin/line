@@ -5,15 +5,15 @@
   "phases": [
     {
       "t": 0,
-      "name": "QUIET RELEASE",
-      "air": 0.7,
+      "name": "GENTLE UPPER FIGURE",
+      "air": 0.43,
       "speed": 0.35,
       "ease": "hold"
     },
     {
       "t": 4.992,
-      "name": "BASS AND VOICE",
-      "air": 0.65,
+      "name": "FIGURE AND VOICE",
+      "air": 0.48,
       "speed": 0.42,
       "ease": "hold"
     },
@@ -61,20 +61,6 @@
         4.992
       ],
       "reason": "Two separated vocal observations; preserve the quiet between them."
-    },
-    {
-      "source": "bass",
-      "impact": 0.43,
-      "times": [
-        5.55,
-        5.979,
-        6.629,
-        7.21,
-        8.034,
-        8.324,
-        9.66
-      ],
-      "reason": "A bass gesture grows out of the break; leave its small ripples unlanded."
     },
     {
       "source": "vocals",
@@ -194,6 +180,45 @@
         19.644
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.2,
+      "times": [
+        0.627,
+        1.068,
+        1.672,
+        2.136,
+        2.601,
+        3.506,
+        3.971,
+        4.574
+      ],
+      "reason": "Quiet but distinct upper-instrument articulations make the opening audible in the ride; gentle contacts rather than an empty float."
+    },
+    {
+      "source": "other",
+      "impact": 0.28,
+      "times": [
+        3.088
+      ],
+      "reason": "The brighter upper-figure accent stands slightly above the gentle opening replies."
+    },
+    {
+      "source": "other",
+      "impact": 0.27,
+      "times": [
+        5.492,
+        5.944,
+        6.548,
+        7.012,
+        7.465,
+        7.941,
+        8.382,
+        8.986,
+        9.451
+      ],
+      "reason": "Follow the articulated upper figure over the swelling bass, rather than assigning heavier landings to changes within the sustained bass envelope."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -206,5 +231,6 @@
     "t": 0.139,
     "source": "vocals",
     "reason": "The first sound is an audible pickup at the crop boundary. The requested ride begins on the following gesture; all three standard-budget seeds failed to construct the original near-zero first landing."
-  }
+  },
+  "ownerFeedbackRevision": "Owner requests more gentle distinct opening beats. Preserve the later full return; give the quiet instrumental figure its own lighter movement."
 }

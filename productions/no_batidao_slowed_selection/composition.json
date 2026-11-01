@@ -196,6 +196,14 @@
         32.496
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "other",
+      "impact": 0.45,
+      "times": [
+        5.863
+      ],
+      "reason": "Distinct upper-instrument stab bridges the drum build and bass arrival, giving the transition a clear intermediate gesture."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -203,5 +211,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Preserve the drum-led opening of this different excerpt. Add the distinct pre-bass instrumental stab."
 }

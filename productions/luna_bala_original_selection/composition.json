@@ -12,15 +12,15 @@
     },
     {
       "t": 5.584,
-      "name": "BODY",
-      "air": 0.59,
+      "name": "DRUMS AND UPPER ANSWERS",
+      "air": 0.47,
       "speed": 0.76,
       "ease": "hold"
     },
     {
       "t": 19.423,
-      "name": "SECOND PHRASE",
-      "air": 0.5,
+      "name": "SYNCOPATED BASS ANSWERS",
+      "air": 0.4,
       "speed": 0.82,
       "ease": "hold"
     },
@@ -56,7 +56,6 @@
         1.022,
         2.101,
         2.252,
-        3.17,
         3.332,
         3.75,
         4.214,
@@ -151,7 +150,6 @@
         44.826,
         45.279,
         45.743,
-        45.976,
         46.208,
         46.672,
         47.125,
@@ -168,7 +166,6 @@
         52.21,
         52.663,
         53.127,
-        53.359,
         53.592,
         54.056,
         54.509,
@@ -196,6 +193,83 @@
         42.353
       ],
       "reason": "Structural accent: the return opens more strongly than the following body; this is an authored emphasis, not a measured loudness value."
+    },
+    {
+      "source": "sung",
+      "impact": 0.38,
+      "times": [
+        2.868
+      ],
+      "reason": "Measured pitched turn fills the opening melodic phrase, replacing a later raw spectral detection inside that sustained sound."
+    },
+    {
+      "source": "other",
+      "impact": 0.4,
+      "times": [
+        6.293,
+        6.769,
+        8.139,
+        8.603,
+        9.985,
+        10.449,
+        11.831,
+        12.748,
+        13.677,
+        14.129,
+        15.523,
+        15.975,
+        17.369,
+        17.821
+      ],
+      "reason": "Upper instrumental answers give the first body a second articulated layer between the strong drums, rather than a single repeated pulse."
+    },
+    {
+      "source": "bass",
+      "impact": 0.36,
+      "times": [
+        20.979,
+        21.432,
+        22.837,
+        23.754,
+        24.683,
+        25.136,
+        26.529,
+        27.516,
+        28.375,
+        28.828,
+        30.198,
+        32.055
+      ],
+      "reason": "Selected syncopated bass answers distinguish the second phrase from the first upper-led body. The drum foundation stays stronger; not every bass fluctuation becomes a landing."
+    },
+    {
+      "source": "bass",
+      "impact": 0.34,
+      "times": [
+        43.572,
+        44.977,
+        47.276,
+        52.802,
+        54.172,
+        56.935
+      ],
+      "reason": "A few distinct low replies enliven the final return without filling every subdivision or disturbing the preceding vocal break."
+    },
+    {
+      "source": "drums",
+      "impact": 0.59,
+      "times": [
+        45.976
+      ],
+      "reason": "Medium answering stroke within the final drum double, lighter than the primary beat."
+    },
+    {
+      "source": "drums",
+      "impact": 0.59,
+      "times": [
+        53.359
+      ],
+      "reason": "Medium answering stroke within the final drum double, lighter than the primary beat."
     }
   ],
   "curveIntent": "Section targets hold through their phrase; only explicitly marked builds interpolate toward the next phase. The compiler averages targets over each contact gap.",
@@ -203,5 +277,6 @@
     "Independent structure and evidence reviews completed; owner listening remains pending.",
     "Dense vocal pairs remain intentional; old compiler spacing limits are not musical rules. Source labels describe evidence, not verified syllables.",
     "Impacts are authored relative weights. Structural accents are distinguished; constant body weights remain a coarse interpretation, not a loudness measurement."
-  ]
+  ],
+  "ownerFeedbackRevision": "Owner requests more ambition overall: distinct upper and bass counter-rhythms across the bodies, clearer opening melodic turn, and an intact vocal break before the last return."
 }

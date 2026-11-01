@@ -154,3 +154,33 @@ points per gap. Expected:
 - a headline cost of a few points at 0.002 and more at 0.005.
 
 The trade-off curve, quality against variety, is for the owner to read.
+
+## Free geometry: the trade-off curve (V7, 4 seeds, against `main` 741.0; no ride lost)
+
+| choice scale | headline | 95% interval | support | geometry differs between starts | airtime difference per gap | shapes, % of time |
+|---|---|---|---|---|---|---|
+| `main` (plan) | — | — | — | 78% | 0.042 | 42.3 |
+| 0 (best) | −3.9 | [−21.7, +14.0] | 0.27 | 0% | 0.000 | 18.9 |
+| **0.002** | **−3.1** | [−19.5, +13.2] | 0.29 | **69%** | **0.042** | 18.6 |
+| 0.005 | −8.3 | [−28.7, +12.2] | 0.14 | 69% | 0.043 | 16.4 |
+| 0.02 | −37.6 | [−57.4, −17.8] | < 0.01 | 73% | 0.052 | 18.1 |
+
+- **Variety saturates at the smallest scale tried.** A tiny random choice
+  early in a ride sends it down a genuinely different good path. More
+  randomness only costs quality, so the choice needs only to break
+  near-ties.
+- **Scale 0.002 against the plan:**
+  - quality is not distinguishable at 4 seeds;
+  - variety between starts is about the plan's (69% against 78% of gaps;
+    the same airtime difference);
+  - no lottery, and no plan;
+  - shapes drop to 19% of ride time (from 42%); arcs with the rail and
+    scattered fragments double;
+  - physics +10%, since seven geometries each keep the sampling floor.
+- **Categories at 0.002:**
+  - pairs +11.5, words +3.6, ride-outs +3.8;
+  - groove −12.1, calm −12.9, the long ride −19.0;
+  - explicit requests −14.0, since the free gaps around the requested ones
+    changed.
+- **Next:** extend 0.002 to 8 seeds, because more seeds could change the
+  reading here.

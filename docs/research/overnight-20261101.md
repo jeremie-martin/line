@@ -116,3 +116,24 @@ Rules for the night:
   clearance. Whether the owner sees a 0.1–0.25 body brush is exactly what his
   pending visibility study answers. Until then, any weight would optimize an
   unvalidated measure.
+
+### 01:45: where the headline loses points, and two leanness ablations (hypotheses stated first)
+- **Headline loss today** (`now-bench`, share of the mean loss):
+  - impact strength 35%, air 24%, speed 19%, impact timing 16%, extras 7%.
+  - Strength undershoots on strong asks: bias −0.06 at 0.6–0.8 and −0.13
+    at ≥ 0.8. This is the documented frontier (ARCHITECTURE "Measured
+    limits"), so I am not attacking it alone tonight.
+  - Timing loss is one-frame offsets on about 6% of beats (25 ms). Whether
+    that is visible is unvalidated, so it is left alone.
+- **Hypotheses, stated before the runs.** Each change would make the
+  compiler leaner (less learned machinery, fewer special phases) if it costs
+  nothing:
+  - **A1, no future-value model** (`arc_value_model.json`, 0.6 MB, plus its
+    73 features). On Oct 5 a constant model or none landed within about 0.01
+    of it.
+    - Hypothesis: under today's compiler, removing it moves the bench
+      headline by less than 3 points at equal completion.
+    - If so, it is a deletion candidate for the owner. If not, it stays.
+  - **R0, no tail refinement** (`refineTailSections: 1`, "spare work improves
+    the ending"). This is a phase that touches only the last section.
+    - Same hypothesis and decision rule.

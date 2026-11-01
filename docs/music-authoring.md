@@ -502,3 +502,18 @@ separation differences. Regenerate descriptive evidence if any input changes.
 The dedicated spec tests check all recordings, source-time provenance, distinct
 physics frames, excerpt bounds, phase/axis validity and audio identity when the
 local file is present. They do not certify musical quality.
+
+Integration validation on `a9b4178a`: the full suite passed 358 tests; all 22
+dashboard pages loaded their verified evidence and exercised playback. Type
+checking, reachability and judge parity (33 tracks) passed. Compile parity has
+47 saved-reference differences, but a fresh run on the untouched upstream
+checkout produced exactly the same track hashes and physical-frame counts as
+this branch for all 63 cells. References were not overwritten.
+
+The first two preview-generation attempts exposed a separate upstream integration
+issue: the compiler uses `catchReceivers` to place catches mid-frame, while
+`verifyMainConstruction` still reconstructed the old position. Saving rejected
+both rides at support 0. The verifier now uses that same placement helper; a
+regression test fails before the fix, passes afterward, and still rejects altered
+geometry. This changes validation only, not construction or the authored specs.
+The 23 library tests and the new verifier regression pass together.

@@ -9,6 +9,7 @@
     "scripts/gallery/build_renderer.mjs",
     "scripts/serve.ts",
     "motion-gallery/production.js",
+    "motion-gallery/video-compare.js",
     "scripts/gallery/check_production_ui.mjs",
     "motion-gallery/replay.js",
     "motion-gallery/contact-impact-review.js",

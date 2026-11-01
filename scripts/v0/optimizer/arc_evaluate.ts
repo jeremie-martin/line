@@ -232,6 +232,12 @@ function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) 
   return {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity};
 }
 
+/** How much of the steep, kinetic arrival prior applies before a catch asked
+ * at `ask`: from `steepArrivalFrom` on, all of it. */
+export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | undefined) {
+  return search?.steepArrivalFrom !== undefined && ask >= search.steepArrivalFrom ? 1 : 0;
+}
+
 /** Arrival speed and heading priors toward the next catch, and (in repair)
  * the distance to a reference arrival state. Appends residuals; returns the
  * cost with each term added in order. */
@@ -241,33 +247,35 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
   const nextImpact = i < contacts.length - 1 ? gaps[contacts[i + 1].gap].targets.impact ?? 0 : 0;
   // A strong next ask gets the same steep, kinetic arrival prior as a passive catch:
   // a whole-body hit needs speed into the surface, which a shallow arrival lacks.
-  const steep = i < contacts.length - 1 && options.impactSearch?.steepArrivalFrom !== undefined && nextImpact >= options.impactSearch.steepArrivalFrom;
+  // `steep` is how much of that prior applies (0 to 1); it shifts the arrival
+  // speed and angle toward the kinetic ones and replaces the ordinary heading prior.
+  const steep = i < contacts.length - 1 ? steepArrival(nextImpact, options.impactSearch) : 0;
   if (i < contacts.length - 1 && (options.arrivalWeight ?? 0) > 0) {
     const nextSpeed = authoredSpeedToPx(planned[contacts[i + 1].gap + 1]?.targets.speed ?? targets.speed ?? .55);
-    const passive = (options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden') || steep;
     // A passive catch redirects incoming speed into the next surface.
     // Prepare kinetic headroom for an unguided landing.
     // This is a proposal prior; actual native continuation decides merit.
-    const impulse = impactToRawPx(nextImpact), arrivalSpeed = passive ? Math.hypot(nextSpeed, impulse) : nextSpeed;
-    const desiredArrival = clamp(15 + deg(passive ? Math.atan2(impulse, nextSpeed) : impulse / nextSpeed), 20, 70);
-    const weight = Math.sqrt(options.arrivalWeight ?? 0);
-    const r1 = options.passiveArrival || steep ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
+    const kinetic = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden' ? 1 : steep;
+    const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * Math.hypot(nextSpeed, impulse);
+    const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
+    const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
+    const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (Math.hypot(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail
     // axis past vertical, or pointing against the travel (uprightArrival).
     let r3 = 0;
-    if (passive && options.impactSearch?.uprightArrival && state?.points) {
+    if (kinetic > 0 && options.impactSearch?.uprightArrival && state?.points) {
       const ax = state.points.NOSE.x - state.points.TAIL.x, ay = state.points.NOSE.y - state.points.TAIL.y, len = Math.hypot(ax, ay) || 1;
       const backward = Math.max(0, -(ax * finalVelocity.x + ay * finalVelocity.y) / (len * (Math.hypot(finalVelocity.x, finalVelocity.y) || 1)));
       const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
-      r3 = weight * options.impactSearch.uprightArrival * (backward + inverted);
+      r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
     }
     residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
     cost += r1 * r1 + r2 * r2 + r3 * r3;
   }
-  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && !steep) {
+  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && steep < 1) {
     const angle = deg(Math.atan2(finalVelocity.y, finalVelocity.x));
-    const r = Math.sqrt(options.headingWeight!) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
+    const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
     residuals.push(r);
     cost += r * r;
   }

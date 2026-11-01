@@ -130,11 +130,35 @@ export function proposeOpposingEntries(s: IntervalSearch) {
         ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})})) work.viable++;
       if (k % 8 === 7) retainSearch(s);
     }
+    // Flush catches from above: a line along the rider's top edge (its two
+    // receivers nearest a surface above, in travel order) meets both at once,
+    // so the push builds in one frame instead of spreading as the body follows.
+    const flush = flushEntry(Object.values(s.trace), incoming);
+    for (let k = 0; flush !== undefined && k < FLUSH_PROPOSALS; k++) {
+      const c = genericControl(s, k), frac = (n: number) => ((k + 1) * n) % 1;
+      work.attempts++;
+      if (evaluate(s, {...c, contactSide: -1, entry: flush + (frac(.5772156649) - .5) * 4, turn: -c.turn, exit: 2 * incoming - c.exit,
+        ...(c.foldBend === undefined ? {} : {foldBend: -c.foldBend}),
+        ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})})) work.viable++;
+    }
+    retainSearch(s);
   } finally {
     work.physicsFrames += getPhysicsFrameCount() - began;
     for (const [key, count] of Object.entries(s.failures))
       work.failures[key] = (work.failures[key] ?? 0) + count - (beforeFailures[key] ?? 0);
   }
+}
+
+const FLUSH_PROPOSALS = 8;
+/** Heading (degrees) of the rider's top edge: the two points highest above the
+ * travel direction `incoming`, ordered along it; undefined if they coincide. */
+export function flushEntry(points: Array<{x: number; y: number}>, incoming: number): number | undefined {
+  const a = incoming * Math.PI / 180, up = {x: Math.sin(a), y: -Math.cos(a)}, along = {x: Math.cos(a), y: Math.sin(a)};
+  const [p, q] = points.slice().sort((u, v) => (v.x * up.x + v.y * up.y) - (u.x * up.x + u.y * up.y));
+  if (!p || !q) return undefined;
+  const [first, second] = (p.x * along.x + p.y * along.y) <= (q.x * along.x + q.y * along.y) ? [p, q] : [q, p];
+  const dx = second.x - first.x, dy = second.y - first.y;
+  return Math.hypot(dx, dy) < 1e-6 ? undefined : Math.atan2(dy, dx) * 180 / Math.PI;
 }
 
 /** Short folded entries before a long runout, for folded transfer layouts. */

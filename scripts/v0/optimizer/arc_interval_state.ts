@@ -62,7 +62,13 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const velocity = getRiderMetered(engine, frame).velocity;
   engine.prepareCollisionTrace(frame);
   getRiderMetered(engine, frame);
-  const trace = engine.readCollisionTrace()[0];
+  // The catch is placed where each rider point will be half a frame after the
+  // beat frame's first collision pass, so the line is crossed in the middle of
+  // the beat frame. Placed at the pass itself, crossings fell near the frame's
+  // start (median −0.4 frame from its middle) and a fifth of strong hits tipped
+  // into the frame before (docs/research/compiler-ideas-20261101.md).
+  const trace = Object.fromEntries(Object.entries(engine.readCollisionTrace()[0]).map(([key, p]) =>
+    [key, {...p, x: p.x + .5 * p.vx, y: p.y + .5 * p.vy}]));
   const points = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
   const prefixRaw = extractRawTrajectory(engine, frame - 1), prefixDetection = detectPrefix(prefixRaw);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;

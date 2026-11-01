@@ -454,11 +454,16 @@ Scratch replays are summarized here.
   (`motion_objective.ts`: bursts and calm corrections only). The slot keeps
   candidates that are best on what the search measures. The arrival priors
   (upright arrival among them) were apparently holding drag down indirectly.
-- **Decision: not adopted for now.**
+- **Decision: not adopted for now, and not rejected.** Parked to revisit or
+  refine later (owner, 2026-11-01). The gain on V7 is a reason to come back to
+  it.
   - The mechanism is general and small, and it works through the predicted
     channel on V7.
   - But the held-out panel does not confirm the gain, and body drag
     regresses on both panels.
-  - If body drag ever becomes part of what the search measures (it is a
-    guard today, not a validated objective), this slot is worth re-testing.
+  - Body drag is a proxy the owner has only judged by eye, useful mainly as a
+    sign of roof and control-rail use. It is reported, not a veto and not an
+    objective. The owner loves upper receivers. He finds the control rail, as
+    used today, often boring, and thinks a better use of upper receivers could
+    replace some of it.
   - Branch kept: `exp/beam-measured-slot`.

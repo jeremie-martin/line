@@ -22,6 +22,28 @@ target. The evaluator identity changes; old runs load and say "not recorded"
   0.3 points; every complete ride realizes every section, touches every guide
   and realizes its shaped turns.
 
+## November 1: target jitter removed (adopted)
+
+**Found:** every Amour spec omitted `jitter`, so the compiler applied the
+legacy default (σ 0.05). It perturbed each gap's air and speed targets at
+random and aimed at them, while the scorer measures the authored targets.
+
+**Change:**
+- the compiler reads targets exactly (behavioural);
+- then the feature was removed entirely: `Spec.jitter`, `CALIB.SIGMA`,
+  `sampleGapTargets`, and the `jitter: 0` lines (structural, byte-identical,
+  compile and judge parity pass). The range clamp stays.
+
+**Result** (V7, 4 seeds): +7.2, interval [+4.5, +10.0], support > 0.99.
+- Only the 8 Amour specs moved (up to +84 on a ride); the rest are
+  identical.
+- Air error is −0.004, speed −0.002, and no ride was lost.
+- The held-out songs already used 0, so they are unchanged.
+
+Specifications carry no randomness now. The search is deterministic, and a
+seed reaches the compiler only through the plan
+(`docs/research/compiler-ideas-20261101.md`).
+
 ## November 1: the steep-arrival threshold becomes a smooth step (adopted, first V7 decision)
 
 **Why:** a hard switch at ask 0.6 turned four preferences on at once; on V7,

@@ -102,6 +102,13 @@ spec (beats, impacts, air/speed/amplitude targets)
    it requires ffmpeg/ffprobe. Sources and study manifests are unchanged.
    Soundtrack switches reload the shared picture at the current position;
    playback has no follower, drift corrections, or JS loop seeks.
+   The review page preserves collection-authored titles and descriptions when
+   opening rides, highlights the selected entry, and offers search and Previous/
+   Next navigation. Generation controls are collapsed below the collection.
+   Space toggles playback; arrows seek 5 s (Shift: 1 s), without intercepting
+   editable fields or native controls. Scrubbing and musical-impact jumps retain
+   the prior playback state; seeking to the end stops. Pending audio starts are
+   cancellable so rapid input cannot override a newer pause.
    `render_repertoire.ts` renders vertical video when wanted.
 
 ## Geometry families

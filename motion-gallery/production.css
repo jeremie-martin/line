@@ -7,3 +7,24 @@
 .rides[data-format=vertical] canvas{aspect-ratio:9/16}
 .transport label:has(#format){max-width:none}
 .fields>label{min-width:0}
+/* Review first: preserve authored titles, give metadata its own line. */
+.intro{margin-bottom:20px}.intro h1{font-size:36px;margin:10px 0}.intro p{margin:8px 0}
+#result{scroll-margin-top:20px}#result:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
+#result-title{font-size:clamp(22px,2.4vw,32px);line-height:1.35;margin:8px 0;overflow-wrap:anywhere}
+#result-context{margin:6px 0}#result-note{font-size:14px;margin:8px 0}
+.heading>div:first-child{min-width:0}.review-controls{flex-shrink:0;font-size:13px}
+.selection-nav{display:flex;gap:16px;align-items:center;justify-content:space-between;margin:18px 0;flex-wrap:wrap}
+.keyboard-hint{font-size:12px;margin:4px 0 18px}#production,#reference{cursor:pointer}
+#library{grid-template-columns:repeat(auto-fit,minmax(min(100%,480px),1fr))}
+#library article{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+#library h3{font-size:17px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+#library p{font-size:13px;margin:0}#library button{margin-top:auto}
+#library article.selected{border-color:var(--accent);box-shadow:inset 4px 0 var(--accent)}
+#filter-rides{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:6px;max-width:100%;background:white;color:var(--ink)}
+#collection{scroll-margin-top:20px}#collection-count{font-size:13px}#generation{margin:30px 0}#generation>summary{font-weight:600}
+#generate{margin:16px 0 0}#status{margin:0}#status:empty{display:none}
+@media(max-width:740px){.review-controls{margin-top:12px}.selection-nav{gap:8px}.selection-nav button{padding:8px 10px}.keyboard-hint{line-height:1.8}}
+.view-options{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin:12px 0}
+.view-options>a{font-size:13px;margin-right:auto}.view-options>label{min-width:0}
+.view-options .inspect-control{flex-direction:row;align-items:center}
+.view-options #zoom{max-width:140px}

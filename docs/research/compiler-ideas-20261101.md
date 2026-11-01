@@ -806,3 +806,15 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
 - **Hypothesis.** If G's loss was the level, G2 is about neutral or
   positive. If it is still negative, the retrained model generalizes worse
   to V7 than the October one, and the October model stays.
+
+### H. Construction policies retrained on today's compiler
+- **Data.** The same collection plus V6 transfer-layout plans on
+  non-evaluation music (`collect-3t`, 30 records): 17,077 demonstrations,
+  as in October's rebuild (`generated/value-v4/construction-2`).
+- **Change:** `repertoire_policy_model_v3.json(.gz)` replaced; the pointer
+  keeps its file name.
+- **Hypothesis.** Policies demonstrated by today's compiler propose closer
+  to what it now keeps. Fewer wasted proposals mean small gains in strength
+  and air at equal frames. October's rebuild was worth impact loss −0.007
+  and air rms −0.005. Expect a smaller effect, since the compiler has
+  changed less since than between V6 and v3.

@@ -699,3 +699,23 @@ Full report kept in the session scratchpad. Top three, for testing in turn:
   - more partial upper rails, toward upper receivers.
 - **Risk.** Shapes lose the guide's holding job, and the fixed guidance
   samples spread over two more keys.
+
+### F. Span errors weighted by gap length in the interval search
+- **Change.** Each gap's air, speed and amplitude residuals get
+  √(gap length / mean gap length) in the interval search. The same weight
+  applies in the prior-gap correction (`arcSpanLoss`,
+  `arcBoundaryCorrection`), and the memory's response weights carry it. The
+  mean weight is 1, so the cost's overall scale is kept. This makes the
+  search consistent with the whole-ride objective and the headline; no new
+  parameter.
+- **Hypothesis:**
+  - air rms down, mostly on long gaps (the high floats fall less short);
+  - long-gap speed better;
+  - strong-ask strength up in dense passages (short gaps' span terms count
+    less there);
+  - short-gap air and speed slightly worse;
+  - headline up in P3/P6/P7 and the dense strata, groove about neutral.
+- **Risks:**
+  - It was rejected twice on older compilers (−10 on the full suite in
+    September; again on Oct 4, numbers not recorded).
+  - The learned future estimate was trained on unweighted costs.

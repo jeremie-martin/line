@@ -103,10 +103,10 @@ export function saveArmCell(arm: Arm, c: PlannedCase, cell: any, track: any, eva
   if (gallery) atomicWrite(galleryPath(arm, c.id), gzipSync(JSON.stringify(gallery)));
   atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, mode: arm.settings.mode, trackHash: digest(track), evaluator, provenance}));
 }
-export type CellState = {cell: any} | {stale: string} | null;
+export type CellState = {cell: any; remeasured?: true} | {stale: string} | null;
 /** A saved cell of `arm` for case `c`: reused when its resolved inputs equal
- * today's, remeasured in place when only the measurement code differs;
- * `stale` (with the reason) when the inputs changed; null when absent. */
+ * today's, remeasured in place when only the measurement code differs
+ * (`remeasured`); `stale` (with the reason) when the inputs changed; null when absent. */
 export async function savedCell(arm: Arm, c: PlannedCase, evaluator: string, resolved: () => Promise<{spec: any; music: any}>): Promise<CellState> {
   if (!existsSync(cellPath(arm, c.id))) return null;
   const cell = readJson(cellPath(arm, c.id));
@@ -119,7 +119,7 @@ export async function savedCell(arm: Arm, c: PlannedCase, evaluator: string, res
   const remeasured = measureCell({c, mode: arm.settings.mode, spec, music, track, physicalFrames: prior.physicalFrames, compileMs: prior.compileMs,
     complete: prior.complete, fulfilled: prior.fulfilled, motion: prior.motion, geometry: prior.geometry});
   saveArmCell(arm, c, remeasured, track, evaluator, {...prior.provenance, remeasuredFrom: prior.evaluator});
-  return {cell: readJson(cellPath(arm, c.id))};
+  return {cell: readJson(cellPath(arm, c.id)), remeasured: true};
 }
 function describeInputChange(old: any, now: any) {
   const keys = [...new Set([...Object.keys(old), ...Object.keys(now)])].filter(k => JSON.stringify(old[k]) !== JSON.stringify(now[k]));

@@ -15,7 +15,7 @@ import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
 import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
 import {summarize, bootstrap, songValues, stratify, geometryStrata, headline, type Run} from './summary.ts';
-import {CONTRACTS, compileAndMeasure} from './compile.ts';
+import {ADAPTER_SHA256, CONTRACTS, compileAndMeasure} from './compile.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
@@ -46,13 +46,16 @@ async function planFor(mode: string, budget: string, panelName: string, creative
   const cases = await panelCases(panelName);
   assert.ok(cases.length > 0, `panel ${panelName} declares no cases (no matching variant files found)`);
   const panel = await Promise.all(cases.map(async c => (await resolveCase(c, jolt)).planned));
-  return {schema: 'line.eval.v2', identity, evaluator, jolt, mode, budget, panelName, panel, ...(creative ? {creative} : {})};
+  // The compile adapter (compile.ts) turns a case into compile options; neither the
+  // compiler identity nor the evaluator identity covers it, so the plan pins it.
+  return {schema: 'line.eval.v2', identity, evaluator, adapter: ADAPTER_SHA256, jolt, mode, budget, panelName, panel, ...(creative ? {creative} : {})};
 }
 async function worker(dir: string, id: string) {
   const plan = readPlan(dir), c = plan.panel.find(c => c.id === id);
   assert.ok(c, 'undeclared worker case');
   assert.deepEqual(compilerIdentity('.'), plan.identity, 'compiler changed before worker started');
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed');
+  assert.equal(ADAPTER_SHA256, plan.adapter, 'compile adapter (tools/eval/compile.ts) changed since the run was planned');
   const {spec, music, planned} = await resolveCase(c, plan.jolt);
   assert.deepEqual(planned, c, 'resolved authoring changed');
   const {cell, track} = await compileAndMeasure('.', c, {spec, music}, plan);

@@ -9,6 +9,8 @@ import {digest, type resolveCase} from './inputs.ts';
 export type PlannedCase = Awaited<ReturnType<typeof resolveCase>>['planned'];
 export type RunPlan = {schema: 'line.eval.v2'; identity: any; evaluator: string; jolt: number; mode: string; budget: string;
   panelName: string; panel: PlannedCase[]; remeasuredFrom?: {runSha256: string; cellsSha256: string};
+  /** sha256 of the compile adapter (tools/eval/compile.ts) the run compiles with; absent on older runs. */
+  adapter?: string;
   /** Creative preferences passed to the planner (absent = the defaults). An arm, not an input: paired runs may differ. */
   creative?: Record<string, unknown>};
 export type Run = {dir: string; run: RunPlan; cells: Map<string, any>};

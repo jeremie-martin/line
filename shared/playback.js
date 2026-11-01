@@ -36,10 +36,17 @@ export function outputClock() {
 
 /** Decoded music on the audio hardware clock. Playback runs on the audio
  * context's clock, so a position before or after the music, or with no music
- * loaded, plays as silence on the same clock. */
+ * loaded, plays as silence on the same clock. Music that finishes decoding
+ * during a run joins it at the position the run has reached. */
 export function createMusic() {
   let context, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0;
   const stopSource = () => {source?.stop(); source = undefined;};
+  /** Starts the buffer at music position `at` (≥ 0) on the current run's clock. */
+  const startSource = (at) => {
+    source = context.createBufferSource(); source.buffer = buffer; source.playbackRate.value = run.rate;
+    source.connect(context.destination);
+    source.start(music.when(at), at);
+  };
   const music = {
     get duration() {return buffer?.duration;},
     get playing() {return !!run;},
@@ -48,7 +55,12 @@ export function createMusic() {
       const n = ++loads; buffer = undefined;
       context ??= new AudioContext();
       const decoded = await context.decodeAudioData(bytes);
-      if (n === loads) buffer = decoded;
+      if (n !== loads) return;
+      buffer = decoded;
+      if (run && !source) {
+        const at = Math.max(0, heard(run, context.currentTime));
+        if (at < buffer.duration) startSource(at);
+      }
     },
     clear() {loads++; music.pause(); buffer = undefined;},
     /** Plays from position `from` (s) at `rate`; the first call must come from a user
@@ -59,11 +71,7 @@ export function createMusic() {
       await context.resume();
       if (n !== plays) return;
       run = {from, startedAt: context.currentTime, rate}; clock = outputClock();
-      if (buffer && from < buffer.duration) {
-        source = context.createBufferSource(); source.buffer = buffer; source.playbackRate.value = rate;
-        source.connect(context.destination);
-        source.start(music.when(Math.max(0, from)), Math.max(0, from));
-      }
+      if (buffer && from < buffer.duration) startSource(Math.max(0, from));
     },
     /** Stops and returns the position heard now. */
     pause() {plays++; stopped = music.position(performance.now()); stopSource(); run = undefined; return stopped;},

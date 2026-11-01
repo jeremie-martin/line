@@ -56,6 +56,6 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
   return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
-    sectionFallbacks:(result as any).sectionFallbacks??[],valid:validRide(result),qualified:validRide(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
+    sectionFallbacks:result.sectionFallbacks,valid:validRide(result),qualified:validRide(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
     ...(options.impactContract?{impactSearchProfile:impactSearchProfile(options.impactContract)}:{})};
 }

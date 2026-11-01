@@ -36,6 +36,17 @@ export function arcMainSteps(support:number,subdivisions=4,faces?:number):number
   return faces??Math.max(4,Math.ceil(support*subdivisions));
 }
 
+/** Where a catch is placed: each rider point half a frame after the beat
+ * frame's first collision pass, so the line is crossed in the middle of the
+ * beat frame. Placed at the pass itself, crossings fell near the frame's start
+ * (median −0.4 frame from its middle) and a fifth of strong hits tipped into
+ * the frame before (docs/research/compiler-ideas-20261101.md). The compiler
+ * (arc_interval_state.ts) and the construction verifier
+ * (scripts/gallery/verify_construction.ts) both build receivers with it. */
+export function catchReceivers<P extends {x:number;y:number;vx:number;vy:number}>(trace:Record<string,P>):Record<string,P>{
+  return Object.fromEntries(Object.entries(trace).map(([key,p])=>[key,{...p,x:p.x+.5*p.vx,y:p.y+.5*p.vy}]));
+}
+
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
 export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{

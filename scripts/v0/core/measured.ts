@@ -24,6 +24,7 @@ export function measuredSong(dir: string) {
 
   /** The measured event at an authored time (within 30 ms). */
   function event(t: number): MusicEvent {
+    if (!events.length) throw new Error(`no measured events in ${resolve(dir, "events.json")}: rerun tools/music/events.py`);
     const e = events.reduce((best, x) => (Math.abs(x.t - t) < Math.abs(best.t - t) ? x : best));
     if (Math.abs(e.t - t) > 0.03) throw new Error(`no measured event at ${t}`);
     return e;

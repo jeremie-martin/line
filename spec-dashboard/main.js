@@ -111,6 +111,12 @@ const state = {
 };
 
 const music = createMusic(), onScreen = displayTime();
+// A newer spec's audio request supersedes an older one still downloading, so a
+// slow fetch for a previous spec never replaces the current spec's music.
+let musicRequests = 0;
+// A play still waiting on the audio context counts as playing for the controls
+// (toggle, seek, rate), as in production.js, so they apply to that pending play.
+let playRequests = 0, starting = false;
 
 init().catch((error) => showFatal(error));
 
@@ -123,7 +129,7 @@ async function init() {
 function wireEvents() {
   const rate = document.getElementById("listening-rate");
   const setRate = (value) => {
-    const t = specTime(), playing = isPlaying();
+    const t = specTime(), playing = playRequested();
     state.playbackRate = Math.max(.2, Math.min(2, Number(value)));
     rate.value = state.playbackRate;
     document.getElementById("listening-rate-value").textContent = `${Number(state.playbackRate.toFixed(2))}×`;
@@ -267,16 +273,17 @@ function wireEvents() {
       else applyHistoryAction("redo");
       return;
     }
-    if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.repeat || event.isComposing || event.defaultPrevented) return;
+    if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.defaultPrevented) return;
+    // Auto-repeat would add duplicate marks or toggle playback repeatedly; held arrows keep seeking.
     const mark = {m: "mark", v: "voice", i: "impact"}[key];
     if (mark) {
       event.preventDefault();
-      quickMark(mark);
+      if (!event.repeat) quickMark(mark);
       return;
     }
     if (event.key === " ") {
       event.preventDefault();
-      togglePlayback();
+      if (!event.repeat) togglePlayback();
     } else if (event.key === "ArrowLeft") {
       seekTo(specTime() - 1);
     } else if (event.key === "ArrowRight") {
@@ -359,7 +366,9 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   }
 
   music.clear();
-  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
+  playRequests++; starting = false;
+  const musicRequest = ++musicRequests;
+  if (view.music?.audioUrl) loadMusic(view.music.audioUrl, musicRequest);
 
   if (pushUrl) {
     const params = new URLSearchParams(location.search);
@@ -371,14 +380,16 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   seekTo(state.cursorT, { select: true, reveal: false, resumeFollow: false });
 }
 
-async function loadMusic(url) {
+async function loadMusic(url, request) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await music.load(await res.arrayBuffer());
-    updatePlaybackUi();
+    const bytes = await res.arrayBuffer();
+    if (request !== musicRequests) return;
+    await music.load(bytes);
+    if (request === musicRequests) updatePlaybackUi();
   } catch {
-    refs.musicMeta.textContent = "Audio failed to load";
+    if (request === musicRequests) refs.musicMeta.textContent = "Audio failed to load";
   }
 }
 
@@ -1315,6 +1326,8 @@ function renderInspector(t = specTime()) {
   const zoomValue = cameraZoomAt(t);
   const zoomKeyframeHit = nearestCameraZoomKeyframe(t);
   refs.cursorTime.textContent = formatTime(t);
+  const vocal = vocalFrame(state.analysis?.vocal, specToAudioTime(t));
+  // One assignment per call: this runs on every animation frame during playback.
   refs.cursorGrid.innerHTML = [
     detail("contact", contactHit ? `#${contactHit.index} ${signed(contactHit.contact.t - t)}s` : "none"),
     detail("impact", contactHit?.contact.impact === null ? "untargeted" : fmt(contactHit?.contact.impact)),
@@ -1323,11 +1336,10 @@ function renderInspector(t = specTime()) {
     detail("keyframe", keyframeHit ? `${keyframeHit.point.axis} #${keyframeHit.point.index} ${signed(keyframeHit.point.t - t)}s` : "none"),
     detail("zoom", zoomValue === null ? "none" : fmt(zoomValue)),
     detail("zoom kf", zoomKeyframeHit ? `#${zoomKeyframeHit.point.index} ${signed(zoomKeyframeHit.point.t - t)}s` : "none"),
+    ...(vocal ? [detail('vocal window', `${vocal.t.toFixed(3)}s (audio)`), detail('vocal RMS', vocal.rms.toFixed(4)),
+      detail('spectral change', vocal.change === null ? 'unavailable' : vocal.change.toFixed(4))] : []),
+    ...(vocal?.bandFlux ? [detail('band change · dB/frame', vocal.bandFlux.map(b => `${b.filterCenterHz[0]}–${b.filterCenterHz[1]} Hz: ${b.value === null ? 'unavailable' : b.value.toFixed(2)}`).join(' · '))] : []),
   ].join("");
-  const vocal = vocalFrame(state.analysis?.vocal, specToAudioTime(t));
-  if (vocal) refs.cursorGrid.innerHTML += detail('vocal window', `${vocal.t.toFixed(3)}s (audio)`) + detail('vocal RMS', vocal.rms.toFixed(4))
-    + detail('spectral change', vocal.change === null ? 'unavailable' : vocal.change.toFixed(4));
-  if (vocal?.bandFlux) refs.cursorGrid.innerHTML += detail('band change · dB/frame', vocal.bandFlux.map(b => `${b.filterCenterHz[0]}–${b.filterCenterHz[1]} Hz: ${b.value === null ? 'unavailable' : b.value.toFixed(2)}`).join(' · '));
 
   refs.axisReadouts.innerHTML = "";
   for (const axis of data.summary.activeAxes) {
@@ -2125,24 +2137,35 @@ function renderAgentContext() {
 // the cursor sits at the position heard, also where the spec runs past the music.
 function togglePlayback() {
   if (!state.data) return;
-  if (isPlaying()) pausePlayback();
+  if (playRequested()) pausePlayback();
   else startPlayback(state.cursorT);
 }
 
 function startPlayback(t) {
   clearClicks();
-  music.play(specToAudioTime(t, musicOffset(state.data.music)), state.playbackRate).then(() => updatePlaybackUi(), (error) => toast(String(error)));
+  const request = ++playRequests;
+  starting = true;
+  const settle = () => { if (request === playRequests) starting = false; };
+  music.play(specToAudioTime(t, musicOffset(state.data.music)), state.playbackRate)
+    .then(() => { settle(); updatePlaybackUi(); }, (error) => { settle(); toast(String(error)); });
 }
 
 function pausePlayback() {
   clearClicks();
+  playRequests++; starting = false;
   if (isPlaying()) state.cursorT = specTime();
   music.pause();
   updatePlaybackUi(state.cursorT);
 }
 
+/** Audio is running: the clock to read the position from. */
 function isPlaying() {
   return music.playing;
+}
+
+/** Playing, or a play still waiting for the audio context to resume. */
+function playRequested() {
+  return music.playing || starting;
 }
 
 function hasAudio() {
@@ -2179,7 +2202,7 @@ function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
-  if (isPlaying()) startPlayback(next);
+  if (playRequested()) startPlayback(next);
   if (opts.resumeFollow !== false) resumeFollow();
   if (opts.reveal !== false) revealTime(next, { manual: false });
   updatePlaybackUi(next);

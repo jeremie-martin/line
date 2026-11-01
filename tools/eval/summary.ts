@@ -199,9 +199,12 @@ export function geometryOfCell(cell: any) {
   const all = g.sections as any[], frames = all.reduce((n, s) => n + s.frames, 0), key = (s: any) => `${s.family}/${s.guidance}`;
   const time: Record<string, number> = {}, sections: Record<string, number> = {};
   for (const s of all) {time[key(s)] = (time[key(s)] ?? 0) + s.frames / frames; sections[key(s)] = (sections[key(s)] ?? 0) + 1 / all.length;}
-  const guided = all.filter(s => s.guidance === 'required'), transfer = guided.filter(s => s.rail === 'transfer');
+  // Guided: a connected section given a guide rail, required (explicit plans, and
+  // automatic plans before 2026-11-01) or offered ('optional', automatic plans since).
+  const railed = (s: any) => s.guidance !== 'forbidden' && s.family !== 'scattered';
+  const guided = all.filter(railed), transfer = guided.filter(s => s.rail === 'transfer');
   const shaped = all.filter(s => s.family !== 'arcs' && s.family !== 'scattered');
-  const short = all.filter(s => s.frames < g.shapedMinFrames), shortGuidedArcs = short.filter(s => s.family === 'arcs' && s.guidance === 'required').length;
+  const short = all.filter(s => s.frames < g.shapedMinFrames), shortGuidedArcs = short.filter(s => s.family === 'arcs' && railed(s)).length;
   const untouched = guided.filter(s => s.guideFrames === 0).length;
   return {time, sections,
     plan: {'transfer, share of guided time': share(transfer.reduce((n, s) => n + s.frames, 0), guided.reduce((n, s) => n + s.frames, 0)),

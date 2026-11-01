@@ -27,7 +27,7 @@ import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
 import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
-import {compileAndMeasure, type ArmSettings} from './compile.ts';
+import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
 import {headline, headlineScore, specKey, mean} from './summary.ts';
@@ -118,9 +118,8 @@ async function loadState(s: Selection) {
   for (const side of ['candidate', 'reference'] as const) {
     let remeasured = 0, stale = 0;
     for (const c of s.cases) {
-      const arm = s.arms[side], before = existsSync(join(arm.dir, 'cells', c.id + '.json')) ? readJson(join(arm.dir, 'cells', c.id + '.json')).evaluator : null;
-      const state = await savedCell(arm, c, s.evaluator, () => s.resolved.get(c.id)!);
-      if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (before && before !== s.evaluator) remeasured++;}
+      const state = await savedCell(s.arms[side], c, s.evaluator, () => s.resolved.get(c.id)!);
+      if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (state.remeasured) remeasured++;}
       else {missing[side].push(c); if (state) stale++;}
     }
     notes.push(`${side}: ${cells[side].size} saved${remeasured ? ` (${remeasured} remeasured with today's measurement code)` : ''}, ` +
@@ -294,6 +293,7 @@ function saveReport(s: Selection, lines: string[]) {
 async function run() {
   const s = await select(), jobs = Number(arg('jobs', '44')), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
+  assert.ok(maxRounds === Infinity || (Number.isSafeInteger(maxRounds) && maxRounds >= 1), '--rounds must be a positive integer');
   const {cells, missing, notes} = await loadState(s);
   for (const n of notes) console.log(n);
   // The same arm on both sides (same compiler and setting): compile each ride once.
@@ -318,33 +318,42 @@ async function run() {
   process.on('SIGINT', stop); process.on('SIGTERM', stop);
   console.log(`${queue.length} rides to compile (${rs.length < rounds(s.cases).length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
   try {
+    let laneError: unknown;
     await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
-      while (queue.length && !stopping) {
-        const {side, c} = queue.shift()!, arm = s.arms[side], pending = join(arm.dir, `pending-${c.id}.json`);
-        writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
-        try {
-          await new Promise<void>((done, fail) => {
-            const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
-              {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit'], detached: true});
-            children.add(child);
-            child.once('error', fail); child.once('exit', (code, signal) => {children.delete(child); code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`));});
-          });
-        } catch (e) {
-          if (!stopping) {failures.push(`${side} ${c.id}: ${e}`); console.error(`FAILED ${side} ${c.id}: ${e}`);}
-          continue;
-        } finally {if (existsSync(pending)) unlinkSync(pending);}
-        cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
-        if (same) cells.reference.set(c.id, cells[side].get(c.id));
-        const cov = coverage(s, cells);
-        for (const k of cov.done) if (!announced.has(k)) {
-          announced.add(k);
-          console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
-            `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + [...evidenceLines(evidence(s, cells, cov.inComplete)),
-              ...(cov.complete >= MIN_BLOCKS ? uncertaintyLines(blockUncertainty(s, cells)) : [])].join('\n'));
+      try {
+        while (queue.length && !stopping) {
+          const {side, c} = queue.shift()!, arm = s.arms[side], pending = join(arm.dir, `pending-${c.id}.json`);
+          writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
+          try {
+            await new Promise<void>((done, fail) => {
+              const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
+                {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit'], detached: true});
+              children.add(child);
+              child.once('error', fail); child.once('exit', (code, signal) => {children.delete(child); code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`));});
+            });
+          } catch (e) {
+            if (!stopping) {failures.push(`${side} ${c.id}: ${e}`); console.error(`FAILED ${side} ${c.id}: ${e}`);}
+            continue;
+          } finally {if (existsSync(pending)) unlinkSync(pending);}
+          cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
+          if (same) cells.reference.set(c.id, cells[side].get(c.id));
+          const cov = coverage(s, cells);
+          for (const k of cov.done) if (!announced.has(k)) {
+            announced.add(k);
+            console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
+              `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + [...evidenceLines(evidence(s, cells, cov.inComplete)),
+                ...(cov.complete >= MIN_BLOCKS ? uncertaintyLines(blockUncertainty(s, cells)) : [])].join('\n'));
+          }
+          if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
         }
-        if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
+      } catch (e) {
+        // An unexpected error (not a failed ride): stop scheduling and stop the
+        // detached workers, so that none outlives the arm locks released below.
+        laneError ??= e; stopping = true;
+        for (const ch of children) ch.kill('SIGINT');
       }
     }));
+    if (laneError !== undefined) throw laneError;
   } finally {for (const r of releases) r();}
   const lines = report(s, cells, notes);
   console.log('\n' + summaryOf(lines).join('\n'));
@@ -359,6 +368,8 @@ async function worker() {
   const content = compilerContent(p.root);
   assert.equal(content.key, p.contentKey, `the compiler at ${p.root} changed before this ride started`);
   assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed');
+  // The compile adapter this worker loaded is part of the arm's identity (armKey).
+  assert.equal(ADAPTER_SHA256, meta.adapterSha256, 'tools/eval/compile.ts changed since this arm was opened');
   const {spec, music, planned} = await resolveCase(c, meta.jolt);
   assert.deepEqual(planned, c, 'resolved inputs changed');
   const settings = {mode: meta.mode, budget: meta.budget, creative: meta.creative};
@@ -374,8 +385,10 @@ async function worker() {
  * own writer (saveMusicCell) from the compile outputs saved with each ride, and
  * the exported track must be byte-identical to the compared one. */
 async function rides() {
+  const top = Number(arg('top', '6'));
+  assert.ok(Number.isSafeInteger(top) && top >= 1, '--top must be a positive integer');
   const s = await select(), {cells} = await loadState(s), cov = coverage(s, cells);
-  const top = Number(arg('top', '6')), ids = arg('cases') ? arg('cases')!.split(',') : cov.matched
+  const ids = arg('cases') ? arg('cases')!.split(',') : cov.matched
     .map(id => ({id, d: headlineScore(cells.candidate.get(id)) - headlineScore(cells.reference.get(id))}))
     .sort((x, y) => Math.abs(y.d) - Math.abs(x.d)).slice(0, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');

@@ -2,7 +2,7 @@ import {expect,it} from 'vitest';
 import {compileArcMotion,motionArc} from '../scripts/v0/optimizer/arc_motion.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
-import {catchReceivers} from '../scripts/v0/optimizer/arc_interval_state.ts';
+import {catchReceivers} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';

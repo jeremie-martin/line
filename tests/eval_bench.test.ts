@@ -167,8 +167,9 @@ it('computes one ride\'s geometry shares and realized facts', () => {
   expect(g.time['fold/required']).toBeCloseTo(20 / 60);
   expect(g.sections['arcs/required']).toBeCloseTo(1 / 5);
   expect(Object.values(g.time).reduce((n, x) => n + x, 0)).toBeCloseTo(1);
-  expect(g.plan['transfer, share of guided time']).toBeCloseTo(8 / 34);
-  expect(g.plan['transfer, share of guided sections']).toBeCloseTo(1 / 3);
+  // Guided = connected sections with a guide rail, offered ('optional') or required: 10 + 20 + 8 + 6 frames.
+  expect(g.plan['transfer, share of guided time']).toBeCloseTo(8 / 44);
+  expect(g.plan['transfer, share of guided sections']).toBeCloseTo(1 / 4);
   expect(g.plan['distinct families per ride']).toBe(4);
   // Short = under 9 frames: the 8-frame guided arcs and the 6-frame (unfitted) serpentine.
   expect(g.plan['short sections per ride']).toBe(2);
@@ -177,7 +178,7 @@ it('computes one ride\'s geometry shares and realized facts', () => {
   expect(g.plan['short guided arcs, share of sections']).toBeCloseTo(1 / 5);
   expect(g.realized['sections fulfilled, share']).toBeCloseTo(3 / 5);
   expect(g.realized['guided, guide never touched per ride']).toBe(1);
-  expect(g.realized['guided, guide never touched, share']).toBeCloseTo(1 / 3);
+  expect(g.realized['guided, guide never touched, share']).toBeCloseTo(1 / 4);
   expect(g.realized['shaped, turns realized, share']).toBeCloseTo(1 / 2);
   expect(g.realized['shaped, turn reversals per section']).toBeCloseTo(3 / 2);
   expect(geometryOfCell(cell(c))).toBeNull();

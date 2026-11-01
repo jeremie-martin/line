@@ -32,11 +32,11 @@ try{
   const entry=collection.entries[i];
   await page.locator('#library button').nth(i).click();
   await page.waitForFunction(()=>!document.getElementById('play').disabled);
-  assert.match(await page.locator('#result-title').textContent(),new RegExp(`seed ${entry.seed}$`));
+  assert.match(await page.locator('#result-context').textContent(),new RegExp(`(^| · )Seed ${entry.seed}( · |$)`));
   assert.match(await page.locator('#result-note').textContent(),/every requested construction fulfilled/);
   assert.ok(await page.locator('#observations tr').count()>20);
   await page.locator('#seek').evaluate(e=>{e.value='12';e.dispatchEvent(new Event('input'));});
-  assert.equal(await page.locator('#time').textContent(),'12.00 s');
+  assert.match(await page.locator('#time').textContent(),/^12\.00 \/ \d+(\.\d)? s$/);
   await page.locator('#play').click();
   await page.waitForFunction(()=>+document.getElementById('seek').value>12.1);
   await page.locator('#play').click();
@@ -61,7 +61,7 @@ try{
  await page.evaluate(()=>{const buttons=document.querySelectorAll('#library button');buttons[1].click();buttons[6].click();buttons[11].click();});
  await page.waitForFunction(()=>!document.getElementById('play').disabled);
  await page.waitForFunction(()=>!document.getElementById('movie').hidden&&document.getElementById('movie').readyState>=1);
- assert.match(await page.locator('#result-title').textContent(),/seed 303$/);
+ assert.match(await page.locator('#result-context').textContent(),/(^| · )Seed 303( · |$)/);
  assert.match(await page.locator('#play').getAttribute('data-source'),/amour_de_ma_vie/);
  assert.match(await page.locator('#play').getAttribute('data-sha256'),/^[0-9a-f]{64}$/);
  assert.match(await page.locator('#movie').getAttribute('src'),/amour_de_ma_vie_44s-303/);
@@ -83,7 +83,7 @@ try{
  await stale.waitForFunction(()=>document.getElementById('status').textContent.includes('does not match the saved recording'));
  assert.equal(await stale.locator('#play').isDisabled(),true);assert.equal(await stale.locator('#seek').isDisabled(),false);
  await stale.locator('#seek').evaluate(e=>{e.value='12';e.dispatchEvent(new Event('input'));});
- assert.equal(await stale.locator('#time').textContent(),'12.00 s');
+ assert.match(await stale.locator('#time').textContent(),/^12\.00 \/ \d+(\.\d)? s$/);
  await stale.unroute('**/*.mp3');await stale.reload();await stale.waitForFunction(()=>!document.getElementById('play').disabled);
  checks.push({changedRecordingCannotPlayAgainstSavedTrack:true,scrubbingSurvivesAudioMismatch:true,verifiedAudioRecoversOnReload:true});
  assert.deepEqual(errors,[]);

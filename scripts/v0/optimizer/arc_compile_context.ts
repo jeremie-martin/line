@@ -3,7 +3,7 @@
  * over compile-local variables. */
 import { detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildDriftReport, clampGapTargets } from '../core/substrate.ts';
-import { authoredSpeedToPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
+import { authoredSpeedToPx, PREROLL, type Spec, type TrackLine } from '../types.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
 import { ArcControlMemory, arcConstructionMemoryKey } from './arc_memory.ts';
 import { createArcLineage } from './arc_lineage.ts';

@@ -82,8 +82,6 @@ const stratified = (song: string, variant: string | null, seed: number, bench: B
   ({id: `${song}~${variant ?? 'spec'}~${seed}`, song, seed, perturbation: null, variant, bench});
 const GROOVE: BenchMeta = {stratum: 'G', pattern: 'groove', windows: []};
 
-/** The declared cases of a panel. Stratified panels are discovered from the
- * variant files, so adding a spec needs no change here. */
 /** The frozen V7 suite: exactly the specs its file lists (docs/benchmark.md). */
 export const V7_SUITE = 'tools/eval/suites/v7.0.json';
 /** Seed k (1-based) of every V7 sequence: 101, 202, 303, ... */
@@ -98,6 +96,8 @@ export async function v7Cases(seeds: number[], root = '.'): Promise<EvalCase[]> 
   }));
   return specs.flatMap(s => seeds.map(seed => stratified(s.song, s.variant, seed, s.bench)));
 }
+/** The declared cases of a panel. Stratified panels are discovered from the
+ * variant files, so adding a spec needs no change here. */
 export async function panelCases(name: string, root = '.', seedCount?: number): Promise<EvalCase[]> {
   assert.ok(PANEL_NAMES.includes(name), `unknown evaluation panel ${name}`);
   assert.ok(seedCount === undefined || name === 'v7', '--seeds applies to the v7 panel');

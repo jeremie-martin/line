@@ -7,7 +7,12 @@ import type { ArcMotionOptions } from './arc_options.ts';
  * count half: what they charge for the next catch measured about twice its
  * real cost. The heading prior counts fully: it prices a cost two catches
  * ahead (extras in long floats) that the next interval alone does not show
- * (docs/research/compiler-ideas-20261101.md). */
+ * (docs/research/compiler-ideas-20261101.md). "Half" applies to everything
+ * measureObjective adds after `localCost` except the heading prior: the arrival
+ * speed/angle/upright terms, and also the small backward-velocity
+ * (accessibility) prior and, in repair, the reference-arrival distance. Only
+ * this ranking is reweighted; candidate `cost` (local search, refinement)
+ * keeps every prior at full weight. */
 export function valueRank(options: ArcMotionOptions, c: any) {
   const heading = c.headingPrior ?? 0, cost = c.localCost + heading + .5 * (c.cost - c.localCost - heading);
   return c.predictedFuture === undefined ? cost : cost + (options.valueWeight ?? .5) * c.predictedFuture;

@@ -8,7 +8,8 @@
  * are restored, so the compiled ride must equal the saved one (checked by the
  * report).
  * Compared, for X against K:
- *   predicted = what ranking charges X for the future (arrival priors +
+ *   predicted = what ranking charges X for the future (valueRank beyond the
+ *               local cost: the priors at their ranking weights plus the
  *               weighted learned estimate), minus the same for K;
  *   measured  = the next interval's lowest measured local cost after X, minus
  *               after K.
@@ -23,6 +24,7 @@ import {digest} from '../eval/inputs.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {sequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
+import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
 import {getPhysicsFrameCount, refundPhysicsFramesTo} from '../../scripts/lib/detector.ts';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 
@@ -57,7 +59,7 @@ async function worker(id: string, seed: number) {
   sequenceObserver.offers = (i, offered, chosen, ctx, protectedEngines) => {
     if (!(asks[i]! >= .6) || i + 2 >= ctx.contacts.length || !chosen.length) return;
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, pool = kept.interval.candidates as any[];
-    const ask = asks[i]!, w = ctx.options.valueWeight ?? .5;
+    const ask = asks[i]!;
     const closest = pool.reduce((a, b) => Math.abs(b.meta.impact - ask) < Math.abs(a.meta.impact - ask) ? b : a);
     const measured = pool.reduce((a, b) => b.localCost < a.localCost ? b : a);
     const arms = [['K', kept.candidate], ['S', closest], ['M', measured]] as const;
@@ -65,7 +67,8 @@ async function worker(id: string, seed: number) {
     for (const [name, x] of arms) {
       const same = arms.find(([, y]) => y === x)![0];
       if (same !== name) {row.arms[name] = {same}; continue;}
-      const entry: any = {imp: r4(x.meta.impact), local: r4(x.localCost), ahead: r4(x.cost - x.localCost + w * (x.predictedFuture ?? 0))};
+      // What ranking charges beyond the measured local cost: the ranking's own formula (valueRank).
+      const entry: any = {imp: r4(x.meta.impact), local: r4(x.localCost), ahead: r4(valueRank(ctx.options, x) - x.localCost)};
       isolated(ctx, i + 1, [...protectedEngines], () => {
         const child = ctx.lineage.add(kept.parent.seq.engine, x.lines);
         try {

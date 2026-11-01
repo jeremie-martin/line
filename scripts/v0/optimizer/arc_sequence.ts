@@ -23,13 +23,13 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
     deepestPrefix: {lines: [], rows: []}};
 }
 
-/** Expand distinct physical prefixes until the track is complete. A dead end
- * may reopen untried alternatives at a recent boundary. */
 /** Study-only observer of each boundary's measured offers and the ones kept.
  * Report tools set it in-process; the compiler never reads anything back. */
 export const sequenceObserver: {offers?: (i: number, offered: ReadonlyArray<{parent: {seq: ArcSequence}; interval: IntervalResult; candidate: any; rank: number}>,
   chosen: ReadonlyArray<{parent: {seq: ArcSequence}; candidate: any}>, ctx: ArcCompileContext, protectedEngines: readonly Engine[]) => void} = {};
 
+/** Expand distinct physical prefixes until the track is complete. A dead end
+ * may reopen untried alternatives at a recent boundary. */
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};

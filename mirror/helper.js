@@ -86,13 +86,17 @@
 
   // The exporter's camera follows the app's rider position, which leaves out the
   // sled points; in a spin that point circles the body and the world lurches
-  // (docs/research/camera-20261031.md). Follow the mean of all body points
-  // instead, with the app's own follower otherwise unchanged.
+  // (docs/research/camera-20261031.md). Follow the mean of the ten body and
+  // sled points instead (the collision points: the scarf's flutter points are
+  // left out, as in the review page's camera), with the app's own follower
+  // otherwise unchanged.
   function followBodyCentre(exporter) {
     const follower = exporter && exporter.cameraFollower;
     if (!follower) return;
     follower._getRiderPosition = function (track, frame) {
-      const points = track.getFrame(frame).snapshot.entities[0].entities[0].points;
+      const all = track.getFrame(frame).snapshot.entities[0].entities[0].points;
+      const body = all.filter((p) => p.type === "CollisionPoint");
+      const points = body.length ? body : all;
       let x = 0, y = 0;
       for (const p of points) { x += p.pos.x; y += p.pos.y; }
       return { x: x / points.length, y: y / points.length };

@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getRiderMetered, extractRawTrajectory, detect, detectPrefix } from '../../lib/detector.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { CALIB, impactToRawPx, type AxisValues, type Gap, type TrackLine } from '../types.ts';
-import type { ArcMotionControl } from './arc_geometry.ts';
+import { catchReceivers, type ArcMotionControl } from './arc_geometry.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
 import { arcSpanLoss } from './arc_boundary.ts';
@@ -15,15 +15,6 @@ import type { ArcCompileContext } from './arc_compile_context.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
-
-/** Where a catch is placed: each rider point half a frame after the beat
- * frame's first collision pass, so the line is crossed in the middle of the
- * beat frame. Placed at the pass itself, crossings fell near the frame's start
- * (median −0.4 frame from its middle) and a fifth of strong hits tipped into
- * the frame before (docs/research/compiler-ideas-20261101.md). */
-export function catchReceivers<P extends {x: number; y: number; vx: number; vy: number}>(trace: Record<string, P>): Record<string, P> {
-  return Object.fromEntries(Object.entries(trace).map(([key, p]) => [key, {...p, x: p.x + .5 * p.vx, y: p.y + .5 * p.vy}]));
-}
 
 /** A control whose construction fell short, and by how much; seeds recovery. */
 export type Near = {c: ArcMotionControl; deficit: number};

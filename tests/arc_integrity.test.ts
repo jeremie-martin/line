@@ -16,11 +16,9 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.report.contacts.some(c=>c.status!=='hit')).toBe(true);
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
 });
-it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  const r=compileArcMotion({...spec,jitter:.025},17,{...options,budget:200000,samples:20,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
-  expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
+it('keeps committed controls synchronized with the geometry that follows them',()=>{
+  const r=compileArcMotion({...spec,jitter:.025},17,{...options,budget:200000,samples:20,guidance:'clearance',guidanceSamples:24});
   expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
-  expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);
   resetFrameCount();setPhysicsFrameLimit(null);
   try{for(let i=0;i<r.rows.length;i++){
     const group=(l:any)=>Math.floor((l.id-1000)/10000);

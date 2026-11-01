@@ -8,7 +8,7 @@
  * - constructionStyle(): the geometry style of each section.
  *
  * IntervalOverrides are set only inside the compiler, per interval search
- * (allowance scaling and complete-track refinement). IntervalOptions is what one interval search sees. */
+ * (allowance scaling). IntervalOptions is what one interval search sees. */
 import type { ArcMotionControl, ArcGeometryStyle, ArcSectionStyle } from './arc_geometry.ts';
 import type { ArcControlExample } from './arc_memory.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
@@ -67,14 +67,6 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
-  /** Complete-track refinement with the whole authored objective: attempts,
-   * samples and width; refineTailSections spends the remaining work on the
-   * ending without reconstructing a long suffix. */
-  refineTailSections?: number;
-  refineAttempts?: number;
-  refineSamples?: number;
-  refineGuidanceSamples?: number;
-  refineWidth?: number;
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -140,8 +132,6 @@ export const EVALUATION_IDENTITY = {
   responseSamples: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  refineTailSections: 'search', refineAttempts: 'search',
-  refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search',
   constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
   warmStart: 'search', warmIncoming: 'search', directControls: 'search', localOnly: 'search',
   completeGuidanceBudget: 'search', controlPolicy: 'search',
@@ -159,8 +149,6 @@ export function evaluationContext(options: IntervalOptions, i: number) {
 
 /** Rejects out-of-range allowances and inconsistent impact settings before any work. */
 export function validateArcOptions(seed: number, options: ArcMotionOptions) {
-  if (options.refineTailSections !== undefined && (!Number.isSafeInteger(options.refineTailSections) || options.refineTailSections < 1))
-    throw new Error('invalid refinement tail window');
   if (options.initialRecoverySamples !== undefined && (!Number.isSafeInteger(options.initialRecoverySamples) ||
     options.initialRecoverySamples < 0 || options.initialRecoverySamples > 320)) throw new Error('invalid initialization recovery allowance');
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0) throw new Error('invalid arc compiler input');

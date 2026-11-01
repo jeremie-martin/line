@@ -45,9 +45,10 @@ spec (beats, impacts, air/speed/amplitude targets)
    - keeps all distinct untried measured alternatives at four recent boundaries,
      reopening at most eight at a time after a physical dead end; recovery
      shares the allowance and preserves the longest prefix on interruption;
-   - finishes with terminal selection and ending refinement
-     (`arc_complete_refinement.ts`, `arc_refinement.ts`), then a cold replay
-     checked against an independent engine (`arc_finalize.ts`).
+   - finishes with terminal selection, then a cold replay checked against an
+     independent engine (`arc_finalize.ts`). (An ending-refinement phase was
+     deleted on 2026-11-01: it bought 0.2 headline points for ~5% of compile
+     time.)
 
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
@@ -174,9 +175,9 @@ the evidence are in `docs/research/strike-definition-20261004.md`.
 (strength = centre-of-mass redirection) stay as comparisons.
 
 The compiler uses accounts only through `impact_accounts.ts`. Search,
-refinement, terminal selection, the final replay, production and the review
-all observe and account through one interface. Terminal selection, complete-track
-refinement and final selection also share `arc_objective.ts`: the trajectory loss
+terminal selection, the final replay, production and the review
+all observe and account through one interface. Terminal selection and final
+selection also share `arc_objective.ts`: the trajectory loss
 and each physical-support motion/engagement cost are included exactly once. Its search profile is in
 `contact_impact_profile.ts`, chosen on the song-level evaluation (REWORK.md
 log):
@@ -326,7 +327,7 @@ Known limits of the strike account:
     section or the interval: `guidance`, `completeBoundary`, `futureValueModel`,
     `initialRecoverySamples` and the sample counts.
   - Numeric settings that production never varies (weights, `channel`,
-    `radius`, the refinement and memory allowances) are
+    `radius`, the memory allowances) are
     still options, because tests set other values.
 - **Budget rules are saturating caps tuned to V4.**
   - Local sample caps are in `connected_arcs.ts` and `repertoire_search.ts`.

@@ -1,6 +1,6 @@
 /** Impact accounts the compiler can optimize, behind one interface.
  *
- * Search, refinement, terminal selection, the production replay and the review all
+ * Search, terminal selection, the production replay and the review all
  * go through `impactAccount(id)`, so a measurement change is one registry entry and
  * never a scattered set of branches. Observation reads only already simulated
  * frames: it never steps physics.
@@ -31,7 +31,7 @@ export type ImpactAccount = {
   account(events: readonly ContactImpactEvent[], targets: readonly ImpactTarget[]): ReturnType<typeof accountContactImpacts>;
   evaluate(observed: ImpactObservation[], targets: readonly ImpactTarget[], duration: number, survived: boolean): ImpactEvaluation;
 };
-/** Complete evaluation of a ride under one account (shared by search, refinement,
+/** Complete evaluation of a ride under one account (shared by search, terminal selection,
  * final replay, production and review). */
 export type ImpactEvaluation = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];
   account: ReturnType<typeof accountContactImpacts>; valid: boolean; speedGains: ReturnType<typeof contactSpeedGains>};

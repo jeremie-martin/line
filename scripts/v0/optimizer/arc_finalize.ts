@@ -76,7 +76,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     searchBudgetExhausted: work.searchBudgetExhausted, budgetInterruptions: work.budgetInterruptions,
     candidateMemo: {hits: work.memoHits, rejectedHits: work.memoRejectedHits}, samples: work.samples, backtracks: work.backtracks,
     trajectoryLoss, selectionLoss,
-    planningDecisions: work.planningDecisions, sectionFallbacks: work.sectionFallbacks, refinementStats: work.refinementStats, terminalSelectionStats: work.terminalSelectionStats,
+    planningDecisions: work.planningDecisions, sectionFallbacks: work.sectionFallbacks, terminalSelectionStats: work.terminalSelectionStats,
     ...(impactEvaluation ? {impactEvaluation, impactTrajectoryLoss} : {}),
     guidanceReduction: guidanceReduction.stats, constructionFrames,
   };

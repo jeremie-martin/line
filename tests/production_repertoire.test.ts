@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';
 import {compileHandoff} from '../scripts/v0/optimizer/handoff.ts';
 import type {Spec} from '../scripts/v0/types.ts';
-const spec:Spec={duration:3,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:3,preroll:5,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 it('routes creative production explicitly and meters every stage, including final replay',()=>{
   const first=compileHandoff(spec,101,{budget:50000,creative:{variation:0}}),r=first.repertoire!;
   expect(r.plan.requests).toHaveLength(6);

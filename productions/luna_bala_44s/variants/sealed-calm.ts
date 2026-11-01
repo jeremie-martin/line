@@ -46,7 +46,6 @@ const spec: Spec = {
     },
   },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
-  jitter: 0,
   axes: {
     air: keyframes(kf([
       [0.0, 0.88], [FLOAT_FROM, 0.9], [7.3, 0.95], [DROP, 0.95], [DROP + 0.3, 0.66],

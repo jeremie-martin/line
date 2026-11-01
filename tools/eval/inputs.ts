@@ -134,7 +134,7 @@ export async function resolveCase(c: EvalCase, jolt: number) {
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const targets = spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact ?? null}));
   const input = {jolt, specSha256: music.specSha256, audioSha256: music.audioSha256, analysisSha256: music.analysisSha256,
-    resolvedSha256: digest({duration: spec.duration, preroll: spec.preroll, jitter: spec.jitter, targets, music})};
+    resolvedSha256: digest({duration: spec.duration, preroll: spec.preroll, targets, music})};
   return {spec, music, planned: {...c, input, targets, authoredTargets: authored.musicCase.contacts}};
 }
 

@@ -53,7 +53,7 @@ export function caseSpec(c: Case): Spec {
   }
   return { duration: c.durationFrames / 40, contacts: c.contacts.map(x => ({ t: x.frame / 40, ...(x.impact === undefined ? {} : { impact: x.impact }) })),
     axes: { air: sampledCurve(air), ...Object.fromEntries(Object.entries(c.samples).map(([a, v]) => [a, sampledCurve(v)])) },
-    jitter: 0, preroll: c.preroll, ...(c.start ? { start: c.start } : {}) };
+    preroll: c.preroll, ...(c.start ? { start: c.start } : {}) };
 }
 export function targets(c: Case, gap: Gap): AxisValues {
   const out: AxisValues = { air: c.air[gap.index].target };

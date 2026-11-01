@@ -3,7 +3,7 @@ import {normalizeCompilerTimeline} from '../scripts/v0/optimizer/compiler_input.
 import {compileHandoff} from '../scripts/v0/optimizer/handoff.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import type {Spec} from '../scripts/v0/types.ts';
-const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map((t,i)=>({t,impact:.2+.08*i})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map((t,i)=>({t,impact:.2+.08*i})),axes:{air:()=>.5,speed:()=>.5}};
 
 it.each([NaN,Infinity,-Infinity,0,-1])('rejects duration %s before any frame-by-frame validation',duration=>{
   expect(()=>compileHandoff({...spec,duration},17,{budget:30000,creative:{}})).toThrow('Spec.duration');

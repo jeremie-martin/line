@@ -251,7 +251,6 @@ const spec: Spec = {
     },
   },
   contacts,
-  jitter: 0,
   axes: {
     air,
     speed,

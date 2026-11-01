@@ -69,7 +69,7 @@ it('keeps a deliberate face count across support lengths and verifies physical c
 });
 
 it('searches fixed faces without bypassing real geometry',()=>{
-  const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+  const spec:Spec={duration:2,preroll:5,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
   const options={budget:25000,samples:24,channel:12,radius:24,faces:3};
   const a=compileArcMotion(spec,17,options);
   expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);
@@ -127,7 +127,7 @@ it('builds a distinct normal geometry for every profile without changing ordinar
   expect({points,v,control}).toEqual(original);
 });
 it.each(MOTION_PROFILES)('searches and independently replays %s within the same budget',method=>{
-  const spec:Spec={duration:2,preroll:5,jitter:0,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+  const spec:Spec={duration:2,preroll:5,contacts:[.5,1,1.5,2].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
   const options={budget:25000,samples:24,channel:12,radius:24,
     ...constructionStyle({section:0,frame:1,next:2,construction:method,guidance:'required'})};
   const result=compileArcMotion(spec,17,options);

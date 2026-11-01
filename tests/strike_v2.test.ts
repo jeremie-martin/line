@@ -8,7 +8,7 @@ import {motionChanges} from '../tools/measure/motion_change.ts';
 import {POINTS} from '../tools/measure/observe.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 
-const spec: Spec = {duration: 3, preroll: 5, jitter: 0, contacts: [.6, 1.2, 1.8, 2.4, 3].map(t => ({t, impact: .4})), axes: {air: () => .5, speed: () => .5}};
+const spec: Spec = {duration: 3, preroll: 5, contacts: [.6, 1.2, 1.8, 2.4, 3].map(t => ({t, impact: .4})), axes: {air: () => .5, speed: () => .5}};
 
 it('v2 sees nothing in free flight', () => {
   const engine = createArcEngine({position: {x: 0, y: 0}, velocity: {x: 5, y: -4}}, []), raw = extractRawTrajectory(engine, 30);

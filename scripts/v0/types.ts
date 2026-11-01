@@ -42,16 +42,6 @@ export type Spec = {
    * geometry that reaches the chosen initial condition.
    */
   preroll?: number;
-  /**
-   * Per-gap target jitter (Gaussian σ): each gap's resolved axis target is
-   * perturbed by `gauss(target, jitter)` once, for neighbor-to-neighbor
-   * variety so adjacent catches aren't identical on a flat curve. Omitted ⇒
-   * `CALIB.SIGMA` (0.05, the legacy default). Set `0` for an exact, un-jittered
-   * read of the curve (useful when the curve itself carries the variation, e.g.
-   * the continuous showcase specs). First step of moving jitter out of CALIB
-   * into the spec; a future per-axis form may follow.
-   */
-  jitter?: number;
 };
 
 export type SpecCamera = {
@@ -199,8 +189,7 @@ export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
 
 /**
  * The creative axes, in canonical order. Single source of iteration. New axes
- * are *appended* (never reordered): per-axis RNG draws in `sampleGapTargets`
- * happen only for targeted axes, so appending keeps existing specs byte-identical.
+ * are *appended* (never reordered), so appending keeps existing specs byte-identical.
  * Axis semantics:
  *   - `air`           — airborne-frame fraction, [0, 0.99].
  *   - `speed`         — authored pace, [0, 1], mapped to raw px/frame by
@@ -272,7 +261,7 @@ export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
  * The numeric bag flowing through `gap.targets`, candidate `achieved`,
- * `axisCost`, and `sampleGapTargets`.
+ * `axisCost`, and `clampGapTargets`.
  */
 export type AxisValues = Partial<Record<AxisName, number>>;
 
@@ -788,15 +777,6 @@ export const CALIB = {
    *  achieved envelope on a soaring-arc probe spec, the same way grain's cap was
    *  set. */
   AMPLITUDE_CAP: 60,
-  /**
-   * Per-gap target jitter (Gaussian σ): each gap's resolved axis target gets
-   * `gauss(target, SIGMA)` noise for neighbor-to-neighbor variety. Global for
-   * now. FUTURE (deferred, see project memory): move jitter into the spec as a
-   * creative lever — per-axis (steady speed but jittery air), and ultimately a
-   * curve that can oscillate fast *within* a single gap (sub-gap variation),
-   * not just one sample per gap. Tracked as a follow-up to the curve refactor.
-   */
-  SIGMA: 0.05,
 } as const;
 
 /**

@@ -5,7 +5,7 @@ import {replayGalleryTrack} from '../scripts/gallery/artifacts.ts';
 import {contactImpactGrade} from '../scripts/gallery/contact_impact_grade.ts';
 import {sliceTimeline,effectiveAxes,axesAtFrame} from '../scripts/v0/core/substrate.ts';
 import type {Spec} from '../scripts/v0/types.ts';
-const spec:Spec={duration:3,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
+const spec:Spec={duration:3,preroll:5,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 it('uses the same impact account in automatic construction, replay and review without rerolling the arrangement',()=>{
   const ordinary=compileHandoff(spec,101,{budget:180000,creative:{}}).repertoire!;
   const checkpoint=compileHandoff(spec,101,{budget:180000,creative:{},impactContract:STRIKE_CONTRACT.id}),r=checkpoint.repertoire!;

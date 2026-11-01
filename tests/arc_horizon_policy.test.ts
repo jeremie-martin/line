@@ -10,7 +10,7 @@ import {ARC_VALUE_FEATURE_SCHEMA} from '../scripts/v0/optimizer/arc_value.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const empty={featureSchema:ARC_POLICY_SCHEMA,featureCount:57,exemplars:[]};
 const long={featureSchema:ARC_HORIZON_POLICY_SCHEMA,featureCount:67,models:[empty,{featureSchema:ARC_HORIZON_POLICY_SCHEMA,featureCount:67,exemplars:[]}],proposalWeights:[1,0]};
-const spec:Spec={duration:4,preroll:5,jitter:0,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:t=>t>=1.8?.8:.2}};
+const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:t=>t>=1.8?.8:.2}};
 const options={budget:40000,samples:40,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,guidance:'clearance' as const,guidanceSamples:92,responseSamples:92,completeBoundary:true,memorySamples:4,memoryResponseSamples:4,futureValueModel:{featureSchema:ARC_VALUE_FEATURE_SCHEMA,featureCount:73,model:{initial:0,trees:[]}}};
 it('keeps old proposals, memory, future-value inputs and physical work unchanged in an inactive longer-window mixture',()=>{
   const a=compileArcMotion(spec,17,{...options,controlPolicy:empty});seen.length=0;

@@ -5,6 +5,7 @@ import { detect } from '../../lib/detector.ts';
 import { sliceTimeline, effectiveAxes, resolveStartState, buildDriftReport, clampGapTargets } from '../core/substrate.ts';
 import { authoredSpeedToPx, PREROLL, CALIB, type Spec, type TrackLine } from '../types.ts';
 import { scheduleNativeContacts } from './native_motion_schedule.ts';
+import { makeRng } from '../../lib/rng.ts';
 import { ArcControlMemory, arcConstructionMemoryKey } from './arc_memory.ts';
 import { createArcLineage } from './arc_lineage.ts';
 import type { ArcMotionOptions } from './arc_options.ts';
@@ -71,8 +72,8 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
 
   const constructionMemories = new Map<string, ArcControlMemory>();
   /** Learned responses stay local to their physical constructor and guide permission. */
-  const memoryFor = (index: number) => {
-    const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index]});
+  const memoryFor = (index: number, styled: ArcMotionOptions = options) => {
+    const key = arcConstructionMemoryKey({...styled, ...styled.sectionStyles?.[index]});
     let memory = constructionMemories.get(key);
     if (!memory) {
       memory = new ArcControlMemory();
@@ -112,7 +113,9 @@ export function createArcCompileContext(spec: Spec, seed: number, options: ArcMo
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));
 
   return {options, budget, spec, duration, end, frames, impactTargets, gaps, planned, start, contacts, hasFragments,
-    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor};
+    lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor,
+    // Randomness of the search's own choices (arc_sequence.ts); the seed only makes a run reproducible.
+    random: makeRng(seed)};
 }
 
 export type ArcCompileContext = ReturnType<typeof createArcCompileContext>;

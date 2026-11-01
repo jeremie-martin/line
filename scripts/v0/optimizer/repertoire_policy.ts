@@ -14,7 +14,9 @@ export type {Construction};
 export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
 export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance;
-  railLayout?:'paired'|'transfer';context?:RepertoireContext};
+  railLayout?:'paired'|'transfer';context?:RepertoireContext;
+  /** No geometry is asked for: the search tries every family and keeps what serves (arc_sequence.ts). */
+  free?:boolean};
 export type ProductionPlan={schema:'line.production-plan.v1';policy:string;seed:number;timelineSha256:string;
   phraseBoundaries:number[];
   musicalSha256?:string;

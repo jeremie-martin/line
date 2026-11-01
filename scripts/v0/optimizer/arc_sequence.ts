@@ -7,9 +7,42 @@ import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
 import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
-import { constructionStyle } from './repertoire_policy.ts';
+import { constructionStyle, constructions, type ConstructionRequest } from './repertoire_policy.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
+
+/** How much worse (in local-cost units) an alternative may be and still be
+ * chosen now and then: each offer's rank is perturbed by Gumbel noise of this
+ * scale, which samples the kept prefixes with probability falling smoothly as
+ * exp(−Δcost / CHOICE_SCALE). 0.02 ≈ missing one hit's strength by 0.1. */
+const CHOICE_SCALE = .02;
+const gumbel = (random: () => number) => -Math.log(-Math.log(Math.max(1e-12, random())));
+
+/** A free gap (request.free, the neutral plain-arcs request) is searched with
+ * every geometry: plain arcs without the rail, and each family with the rail
+ * offered. An explicit request is searched as asked. */
+type Family = {ctx: ArcCompileContext; request?: ConstructionRequest};
+function familiesFor(ctx: ArcCompileContext, i: number): Family[] {
+  const request = ctx.options.constructionRequests?.[i];
+  const free = request?.free && request.construction === 'arcs' && request.guidance === 'optional' && request.railLayout === 'paired';
+  if (!free) return [{ctx, request}];
+  const {free: _free, ...base} = request;
+  const asks: ConstructionRequest[] = [{...base, construction: 'arcs', guidance: 'forbidden'},
+    ...constructions.map(construction => ({...base, construction, guidance: 'optional' as const}))];
+  return asks.map(ask => {
+    const options = {...ctx.options, sectionStyles: {...ctx.options.sectionStyles, [i]: constructionStyle(ask)},
+      constructionRequests: {...ctx.options.constructionRequests, [i]: ask}};
+    return {ctx: {...ctx, options, memoryFor: (index: number) => ctx.memoryFor(index, options)}, request: ask};
+  });
+}
+/** The chosen geometry of each free gap becomes its request, where every later
+ * stage (finalize, realization, reports) reads it. */
+function realizeFamilies(ctx: ArcCompileContext, rows: any[]) {
+  for (const [i, row] of rows.entries()) if (row.realized) {
+    ctx.options.constructionRequests![i] = row.realized;
+    if (ctx.options.sectionStyles) ctx.options.sectionStyles[i] = constructionStyle(row.realized);
+  }
+}
 
 /** The committed track and the engine at its end. */
 export type ArcSequence = {
@@ -28,7 +61,7 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};
-  type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number};
+  type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number; family: Family};
   let beam: Node[] = [{seq: {...seq, lines: seq.lines.slice(), rows: seq.rows.slice()}, localCost: 0}], observedRate = 0;
   const frontier: Offer[][] = [];
   let deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
@@ -48,8 +81,9 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       const nextSeq: ArcSequence = {...parent, engine: parentEngine, lines: parent.lines.slice(), rows: parent.rows.slice(),
         failure: null};
       const child = ctx.lineage.add(parentEngine, proposal.candidate.lines);
-      commitInterval(ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
-        restoreCandidate(proposal.candidate, child), [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
+      commitInterval(proposal.family.ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
+        restoreCandidate(proposal.candidate, child), [...protectedEngines, ...nodes.map(b => b.seq.engine)],
+        proposal.family.ctx !== ctx ? proposal.family.request : undefined);
       nodes.push({seq: nextSeq, localCost: proposal.localCost});
     }
     return nodes;
@@ -63,20 +97,25 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const offered: Offer[] = [];
     const began = getPhysicsFrameCount();
     let searched = 0;
+    // Every geometry of a free gap shares the gap's sampling effort.
+    const families = familiesFor(ctx, i), share = localScale / families.length;
     try {
       for (const parent of beam) {
-        const interval = searchInterval(ctx, parent.seq.engine, i, {
-          samples: Math.max(12, Math.floor((options.samples ?? 80) * localScale)),
-          guidanceSamples: Math.floor((options.guidanceSamples ?? 0) * localScale),
-          responseSamples: Math.floor((options.responseSamples ?? 0) * localScale),
-        }, protectedEngines);
+        for (const family of families) {
+          const interval = searchInterval(family.ctx, parent.seq.engine, i, {
+            samples: Math.max(12, Math.floor((options.samples ?? 80) * share)),
+            guidanceSamples: Math.floor((options.guidanceSamples ?? 0) * share),
+            responseSamples: Math.floor((options.responseSamples ?? 0) * share),
+            ...(families.length > 1 ? {initialRecoverySamples: Math.floor((options.initialRecoverySamples ?? 0) / families.length)} : {}),
+          }, protectedEngines);
+          Engine.retainOnly(protectedEngines);
+          if (!interval?.best) continue;
+          const candidates = i === contacts.length - 1 ? interval.candidates : distinctCandidates(options, interval.candidates, 8);
+          for (const candidate of candidates) offered.push({parent, interval, candidate, family,
+            localCost: parent.localCost + candidate.localCost,
+            rank: i === contacts.length - 1 ? candidate.terminalLoss : parent.localCost + valueRank(options, candidate)});
+        }
         searched++;
-        if (!interval?.best) continue;
-        const candidates = i === contacts.length - 1 ? interval.candidates : distinctCandidates(options, interval.candidates, 8);
-        for (const candidate of candidates) offered.push({parent, interval, candidate,
-          localCost: parent.localCost + candidate.localCost,
-          rank: i === contacts.length - 1 ? candidate.terminalLoss : parent.localCost + valueRank(options, candidate)});
-        Engine.retainOnly(protectedEngines);
       }
     } catch (error) {
       if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
@@ -102,6 +141,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       while (previous >= 0 && !frontier[previous]?.length) previous--;
       if (previous < 0 || work.searchBudgetExhausted) {
         seq.deepestPrefix = deepest;
+        realizeFamilies(ctx, deepest.rows);
         seq.failure = {frame, reason: work.searchBudgetExhausted ? 'budget' : 'no_arc'};
         return;
       }
@@ -118,6 +158,9 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     observedRate = observedRate ? .8 * observedRate + .2 * measuredRate : measuredRate;
     work.observedConstructionRate = observedRate;
     const firstComplete = i === contacts.length - 1 ? offered[0] : undefined;
+    // Where the gap was free, near-best alternatives are kept now and then
+    // (never for the final, whole-ride choice).
+    if (families.length > 1 && i < contacts.length - 1) for (const offer of offered) offer.rank -= CHOICE_SCALE * gumbel(ctx.random);
     offered.sort((a, b) => a.rank - b.rank);
     // Do not keep more prefixes than the remaining allowance can search
     // at the minimum local sampling floor. Each retained branch costs work.
@@ -141,11 +184,12 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     seq.deepestPrefix = deepest;
     work.planningDecisions.push({index:i, frame, beamWidth:beam.length, offered:offered.length, localScale, physicsFrames:getPhysicsFrameCount()-began});
   }
+  realizeFamilies(ctx, seq.rows);
 }
 
 /** Materialize a selected, already verified physical prefix. */
 function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, best: any,
-  protectedEngines: Engine[] = []) {
+  protectedEngines: Engine[] = [], realized?: ConstructionRequest) {
   const {options, memoryFor} = ctx;
   const {candidates, failures, frame, next, horizon, incoming} = interval;
   seq.failure = null;
@@ -161,5 +205,5 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
     achieved: best.achieved, impact: best.actualImpact, release: best.release, lines: best.lines.length,
     railGuides: selectedMeta?.railGuides ?? best.railGuides,
     ...(options.motionQuality ? {motion: selectedMeta?.motion ?? best.motion, motionCost: selectedMeta?.motionCost ?? best.motionCost} : {}),
-    failures, spent: getPhysicsFrameCount()});
+    failures, spent: getPhysicsFrameCount(), ...(realized ? {realized} : {})});
 }

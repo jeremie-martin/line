@@ -41,7 +41,13 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
     previous=construction+':'+guidance;first+=count;
   }
-  return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
+  // Free geometry (experiment): no draws. Every gap after the start is the
+  // neutral request marked free; the search tries every geometry there and
+  // keeps what serves (arc_sequence.ts).
+  void phrases;
+  const free=requests.map((r,i)=>i?{...r,construction:'arcs' as const,guidance:'optional' as const,railLayout:'paired' as const,free:true}:r);
+  return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),
+    phrases:free.length>1?[{first:1,count:free.length-1,construction:'arcs',guidance:'optional',railLayout:'paired'}]:[],requests:free});
 }
 
 /** Splits each phrase where its sections' requests no longer agree (a phrase

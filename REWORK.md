@@ -2067,6 +2067,15 @@ tests and one missing-audio failure, reproduced on untouched HEAD
 Evidence, including rejected trials and raw samples:
 `docs/research/engine-performance-20261103.json`.
 
+## November 2: bright post-processing family
+
+Following owner feedback, seven bright candidates explore paper, pastel light,
+contact zoom, ink hue and registration, with two new frequency graphics. Four
+full-film choices keep their earlier references. Presets remain opt-in study
+candidates; production defaults stay unchanged. Rebased onto `eeec89e2`, retaining
+upstream's shared construction verifier. Details and evidence are in
+`docs/research/postprocessing-style-study-20261102.md`.
+
 ## November 2: expanded style study and comparison reliability
 
 Phone feedback exposed a hidden-video compositor-callback dependency and excessive

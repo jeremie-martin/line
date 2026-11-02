@@ -222,3 +222,57 @@ controlled speed comparison. The native ride export is reused throughout.
 The physical phone still needs the owner's normal-use feedback. Visual critiques
 used stills and temporal sequences; browser checks measured actual playback but
 all local audio stayed muted. No listening review is claimed.
+
+## Third study: brighter paper and contact gestures
+
+Owner feedback favours several useful presets, with more bright backgrounds—not
+necessarily white—and particularly the warm paper treatment. The third study
+adds seven light candidates; earlier light/dark collections remain available.
+It rebases the branch onto foundations `eeec89e2`. The construction-verifier
+conflict keeps upstream's shared `catchReceivers`/`receiverPoints` implementation.
+Saved rides remain fixed for fair style comparison; future compilations use the
+rebased compiler.
+
+| Candidate | Leading idea | Review position |
+| --- | --- | --- |
+| Daybreak | Mint/peach atmosphere on cream, requested-air framing, open contours | Lua full film |
+| Press pop | A single contact zoom pulse with no oscillatory rebound; folded spectrum | Petrunko full film |
+| Sunprint | Bold blue geometry on yellow paper, stronger light-theme dots | LOS full film |
+| Living ink | The dark core warms from teal to burgundy on measured contacts | LOS full film |
+| Registration lock | Two underprints gather into the core on contact, reversing the outward ink burst | Focused ingredient |
+| Letterpress | Opposing same-frame highlight/shadow edges and folded frequencies | Material experiment |
+| Side glide | A small horizontal contact kick and gentle roll, with overscan | Camera experiment |
+
+New spectrum forms are folded faces with continuous band heights and peak caps.
+Caps use each band's actual maximum over the preceding 0.4 seconds, including
+the current frame. They are frequency peaks, not inferred beats or vocal events.
+Camera direction is artistic, not inferred travel direction. The colour pulse
+keeps both ink endpoints dark; it is not a quantitative force ruler. No new
+handcrafted effect timeline or automatic style-selection workflow was introduced.
+
+Independent critique promoted Daybreak/Press Pop/Sunprint and, after contact
+sequences, Living Ink. Registration is legible but subtle. Letterpress does not
+yet justify a full-film slot beside Press Pop. Side Glide retains rider detail
+at full resolution but deserves real-time taste review; half-resolution
+transform resampling looks softer. The dot and cap bodies were strengthened for
+bright-background phone legibility. Geometry is never anisotropically distorted.
+
+Artifacts and scratch scripts live under `generated/style-lab-v3/`. The main
+collection includes Approved, Cut Paper, Elastic and Two-colour Print references.
+The full-film view also retains Petrunko's earlier Cut Paper favourite. All local
+review audio stayed muted; visual frame-sequence critique is not a listening review.
+
+Third-study validation: 33 short clips (21 new plus 12 references) and eight full
+movies (four candidates, three approved references and Petrunko Cut Paper) all
+decode completely with expected frame counts, BT.709 limited range and identical
+PCM audio within each comparison. Browser checks pass 51 grouped switches and
+eight paused/eight playing full-film selections across the three songs, with no
+page errors or phone-width overflow. All seven new surfaces pass alpha and
+geometry-overlap audits. Side-glide overscan is checked by inverse-mapping frame
+corners through its translation/rotation; dark ink contrast and contact settling
+have regression tests. Approved and Cut Paper reference stills are pixel-identical.
+
+The rebased full suite passed 407 tests; final focused checks passed 34 tests.
+Both TypeScript projects, reachability and judge parity (33 tracks) pass. Physical
+phone testing is not claimed. Full-film and short-passage links are in the two
+collection JSON files under `generated/style-lab-v3/`.

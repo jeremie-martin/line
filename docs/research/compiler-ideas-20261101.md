@@ -972,3 +972,17 @@ A's half weight was calibrated on the compiler before H.
 `tools/research/catch_price.ts` now prices "ahead" through `valueRank`
 itself, so a rerun on today's `main` shows whether ranking still over- or
 under-charges.
+- **Result: ranking's price now matches the measured one.** 16 rides, 506
+  strong catches; all 16 probed compiles are identical to the saved `main`
+  rides.
+  - Closest-to-ask candidate: ranking charges +0.046 for the next interval,
+    and the real search measures +0.048 (median +0.009). The correlation
+    rose from 0.45 to 0.63.
+  - Lowest-measured candidate: charged +0.022, measured +0.017.
+  - Over two steps the kept choice still wins in 83% and 58% of probes.
+  - After A, D and H, the arrival priors are calibrated against what the
+    next interval really pays. Calibration gives no case for further
+    reweighting; remaining strength gains need better options, not a
+    different price.
+
+### H2 running (second-round construction policies, `exp/construction-r2`)

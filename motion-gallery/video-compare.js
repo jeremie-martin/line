@@ -221,7 +221,13 @@ async function togglePlay() {
 }
 $('play').onclick = togglePlay;
 $('sound').onclick = () => {muted = !muted; if (active >= 0) videos[active].muted = muted; controls();};
-$('fullscreen').onclick = () => {stage.requestFullscreen?.().catch(error => {status.textContent = error.message;});};
+$('fullscreen').onclick = async () => {
+  try {
+    if (stage.requestFullscreen) await stage.requestFullscreen();
+    else if (active >= 0 && videos[active].webkitEnterFullscreen) videos[active].webkitEnterFullscreen();
+    else status.textContent = 'Fullscreen is unavailable in this browser.';
+  } catch (error) {status.textContent = error.message;}
+};
 $('seek').oninput = () => {
   if (active < 0) return;
   pending?.abort(); wanted = active;
@@ -251,11 +257,12 @@ try {
     passages = data.passages; groups = data.groups;
     if (!Array.isArray(passages) || !passages.length || passages.some(p => typeof p.id !== 'string' || typeof p.label !== 'string' || !validVideos(p.videos) || p.videos.some(v => typeof v.id !== 'string') || new Set(p.videos.map(v => v.id)).size !== p.videos.length))
       throw new Error('Each passage needs an id, label and videos with unique style ids.');
-    if (!Array.isArray(groups) || !groups.length || groups.some(g => typeof g.id !== 'string' || typeof g.label !== 'string' || !Array.isArray(g.variants) || g.variants.length < 1 || g.variants.length > 5 || g.variants.some(id => typeof id !== 'string') || new Set(g.variants).size !== g.variants.length))
-      throw new Error('Each comparison group needs one to five distinct style ids.');
+    if (!Array.isArray(groups) || !groups.length || groups.some(g => typeof g.id !== 'string' || typeof g.label !== 'string' || !Array.isArray(g.variants) || g.variants.length < 1 || g.variants.some(id => typeof id !== 'string') || new Set(g.variants).size !== g.variants.length))
+      throw new Error('Each comparison group needs distinct style ids.');
     if (passages.some(p => !p.videos.some(v => groups.some(g => g.variants.includes(v.id)))))
       throw new Error('Every passage needs a video available in a comparison group.');
     $('study-controls').hidden = false;
+    $('comparison-groups').hidden = groups.length === 1;
     groups.forEach((group, index) => {const b = document.createElement('button'); b.textContent = group.label; b.onclick = () => changeGroup(index); $('groups').append(b);});
     passages.forEach((passage, index) => {const b = document.createElement('button'); b.textContent = passage.label; b.onclick = () => changePassage(index); $('passages').append(b);});
   } else {

@@ -164,6 +164,35 @@ describe('rendered video comparison', () => {
     } finally {await page.close();}
   }, 20000);
 
+  test('fullscreen uses the native video fallback when element fullscreen is unavailable', async () => {
+    const page = await open();
+    try {
+      await page.evaluate(() => {
+        Object.defineProperty(Element.prototype, 'requestFullscreen', {value: undefined, configurable: true});
+        Object.defineProperty(HTMLVideoElement.prototype, 'webkitEnterFullscreen', {value: function (this: HTMLVideoElement) {
+          this.dataset.nativeFullscreen = 'called';
+        }, configurable: true});
+      });
+      await page.locator('#fullscreen').click();
+      expect(await page.locator('video.active').getAttribute('data-native-fullscreen')).toBe('called');
+    } finally {await page.close();}
+  });
+
+  test('a shared group can span more styles than any individual passage', async () => {
+    const collection = {groups: [{id: 'full', label: 'Full films', variants: ['a', 'b', 'short', 'd', 'e', 'f']}],
+      passages: groupedCollection.passages.map((passage, index) => ({...passage,
+        videos: passage.videos.map((video, i) => ({...video, id: index ? ['d', 'e', 'f'][i] : video.id}))}))};
+    const page = await open(collection);
+    try {
+      expect(await page.locator('#versions button').count()).toBe(3);
+      expect(await page.locator('#comparison-groups').isVisible()).toBe(false);
+      await page.locator('#passages button').nth(1).click();
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/a.mp4'));
+      expect(await page.locator('#versions button').count()).toBe(3);
+      expect(await page.locator('#status').textContent()).toBe('');
+    } finally {await page.close();}
+  });
+
   test('switches with withheld compositor callbacks and delayed media, loading only requested versions', async () => {
     const requests: string[] = [], page = await open(groupedCollection, requests, {hiddenFrames: true, delayMediaMs: 250});
     try {

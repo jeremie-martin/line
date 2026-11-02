@@ -961,3 +961,14 @@ all 22 specs unchanged, compute unchanged. Two lines are running:
 - **Hypothesis.** Same as K: timelier and stronger hits from above on mid
   and strong asks, and a small headline gain. If K′ is also null, the slow
   build of these hits is not about which points meet the line first.
+- **Result K′ (4 seeds): null; the flush line is closed.**
+  - +0.0 [−3.7, +3.7], 0.51; 11 of 22 specs up; very strong bias +0.002.
+  - Strong extra hits −0.010 per beat (fewer); explicit requests +0.8.
+  - Reading: the slow build of hits from above is not about which points
+    meet the line first.
+
+### Re-measuring the price of a stronger catch on the current compiler
+A's half weight was calibrated on the compiler before H.
+`tools/research/catch_price.ts` now prices "ahead" through `valueRank`
+itself, so a rerun on today's `main` shows whether ranking still over- or
+under-charges.

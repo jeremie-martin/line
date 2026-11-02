@@ -112,3 +112,113 @@ render confirms that the new light and dark treatments preserve geometry visibil
   settle the visual vocabulary; do not add a second specification system prematurely.
 - Delayed video echoes, particles and blur stacks were not necessary for this study.
   They add visual/decode cost and can make the real track harder to read.
+
+## Second study: paper, light and musical space
+
+The owner's phone review exposed a player failure despite the earlier headless
+checks, and requested much broader artistic exploration. The second study lives
+in `generated/style-lab-v2/`; the first collection remains intact.
+
+### Comparison reliability
+
+The old player preloaded every style and required a compositor callback from a
+hidden incoming video. A decoded hidden video can lack that callback. The player
+now loads only the requested source (at most two during transition), uses decoded
+media readiness as a bounded fallback, and starts playback within the click
+handler. A browser playback refusal leaves a prepared picture and a usable Play
+button. It never requires changing songs to recover.
+
+A fault-injection test reproduces the old callback failure and passes with the
+fix. Eleven player tests include delayed loading, rapid changes, playback
+refusal and preload restricted until a user gesture. Play remains available even
+before the first frame; a failed preload keeps the chosen style for retry.
+Native-video fullscreen is used when element fullscreen is unavailable. Full
+movies keep all available treatments for a song together at the same playhead. Actual videos passed 24 delayed playing switches across desktop/phone
+viewports. Five playing switches in the existing Brave session took 0.30–0.50s,
+with no pause, error or extra retained source. This is **not physical-phone
+verification**. Evidence: `generated/player-reliability/`.
+
+### New visual vocabulary
+
+Eleven new experiments and one energetic combination join the four earlier complete directions:
+
+| Treatment | Leading idea | Review position |
+| --- | --- | --- |
+| Cut paper | Constant soft directional shadow, warm paper, richer print blocks | Full-film candidate |
+| Two-colour print | Crisp offset coral ink under blue geometry | Print alternative |
+| Impact stamps | Contact-driven opacity of a fixed small ink expansion; stable camera | Focused ingredient |
+| Contour atlas | Open nested frequency contours | Quiet alternative |
+| Spectral memory | Current frequency contour plus three actual past spectra | Full-film candidate |
+| Light filament | Crisp bright geometry with a restrained same-frame halo | Full-film candidate |
+| Tuning forks | Fine frequency stems and contact-responsive caps | Focused ingredient |
+| Aurora | Slow requested-air colour field behind geometry and a frequency ribbon | Full-film candidate |
+| Phosphor | Dot-grid frequencies with continuous boundary opacity | Full-film candidate |
+| Resonance fan | Broad elliptical frequency stems | Exploratory; weak in quiet passages |
+| Edge currents | Narrow mirrored frequency side rails, open lower centre | Composition alternative |
+| Arc light | Contact light edge, confident kick and fuller bars | Energetic combination |
+
+The monochrome surface treatments intentionally recolour the rider and scarf
+along with the track. Their masks preserve the source's alpha; shadows and halos
+use the same frame, not a second video or delayed geometry. Contours and ribbons
+are frequency displays, not waveforms. Memory uses actual spectra at 0.12, 0.24
+and 0.40 seconds in the past. Side rails mirror the same bands decoratively;
+they do not claim stereo information. Print-block height is deliberately stepped.
+Dot intensity is continuous across grid boundaries, avoiding an accidental
+quantization flicker. None of these effects changes the ride or music.
+
+Independent criticism materially changed the prototypes: stronger contours and
+stems at phone scale, richer print colour, a wider fan, a softer constant paper
+shadow, no Aurora reflection, continuous dot transitions, and a fixed morphology
+radius crossfaded by contact strength instead of a potentially quantized radius.
+Temporal-frame reviews covered strong, dense and quiet Petrunko passages. They
+are visual frame-sequence reviews with sound muted, not listening judgments.
+
+The curated full-film choices are Lua–Aurora, Petrunko–Cut paper,
+LOS–Filament, LOS–Memory, Petrunko–Phosphor and LOS–Arc light. The existing approved treatment
+remains the production default and the comparison reference. Arc light addresses the review finding that most new dark looks are quieter
+than Approved; it combines existing primitives rather than inventing another
+effect family. The fan and quieter line studies stay accessible without being promoted as recommendations.
+
+### Compositing and playback evidence
+
+All 12 new surfaces pass alpha/background and geometry-overlap checks, including
+actual Remotion renders. At 540px, half-strength stamp expansion produces 50.24%
+of the full added ink, with monotonic intermediate pixels; it is a visible,
+continuous effect. Evidence: `generated/style-lab-v2/compositor-audit/`.
+
+Four two-second playback samples in the existing Brave session displayed
+120–121 frames each, with 0, 0, 0 and 1 dropped frame while two renders ran.
+These short samples are a sanity check, not a claim of universal playback
+smoothness. The computer and test-page audio were muted.
+
+The second study adds no authoring language, automatic style decision or resume
+protocol. Scratch scripts and render manifests remain in the generated directory.
+
+### Delivered second study
+
+- **51 short clips:** sixteen directions/combinations plus Approved, across all
+  three passages, at 540×960 and 60 fps.
+- **Nine full movies:** six selected treatments and three song references, at
+  1080×1920 and 60 fps. Full-film switching keeps the same song/playhead while
+  comparing its available treatments.
+- All **60 files** decode completely with expected frame counts and BT.709
+  limited range. Decoded PCM audio is identical within each comparison group.
+- **90 short-film switches** and **nine paused plus nine playing full-film
+  selections** pass across all three songs, with no page errors or phone-width
+  overflow. Separate existing-Brave checks cover short and full-resolution files.
+- **401 tests** passed in the full suite. Following the final grouping/fullscreen
+  changes, all **11 player tests** pass. Both TypeScript projects, reachability
+  (zero unreachable files), and judge parity (33 tracks) pass.
+- The approved reference still is pixel-identical. No compiler/specification
+  path changed; this study does not claim new compiler-performance evidence.
+
+The selected films are accessible through `full-collection.json`; all directions
+are in `collection.json`, both under `generated/style-lab-v2/`. Rendering,
+verification, browser checks and provenance remain beside those local artifacts.
+The full-quality experimental masks/halos can cost more to render than the
+approved recipe; observed concurrent-job times are recorded, not presented as a
+controlled speed comparison. The native ride export is reused throughout.
+
+The physical phone still needs the owner's normal-use feedback. Visual critiques
+used stills and temporal sequences; browser checks measured actual playback but
+all local audio stayed muted. No listening review is claimed.

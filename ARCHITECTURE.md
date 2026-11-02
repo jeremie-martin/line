@@ -258,7 +258,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    independently rendered videos in one player. The JSON has a `title` and
    `videos: [{label, src, description?}]`; video paths resolve relative to the JSON.
    Use a common time origin across exports. The outgoing video remains visible
-   until the selected one has a decoded frame at the matching time. Shorter
+   until the selected one has a decoded frame at the matching time. Only the active
+   and incoming sources load; hidden compositor callbacks are not a prerequisite
+   for a decoded-frame handoff. Playback refusals leave a usable Play control. Shorter
    versions stop at their end; failed loads leave the current version in place.
    Grouped studies add `groups: [{id, label, variants: [styleId]}]` and
    `passages: [{id, label, videos: [{id: styleId, label, src}]}]`. A passage change

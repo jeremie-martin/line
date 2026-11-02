@@ -2067,6 +2067,19 @@ tests and one missing-audio failure, reproduced on untouched HEAD
 Evidence, including rejected trials and raw samples:
 `docs/research/engine-performance-20261103.json`.
 
+## November 2: expanded style study and comparison reliability
+
+Phone feedback exposed a hidden-video compositor-callback dependency and excessive
+preloading. Comparison now loads only active/incoming media and retains a usable
+picture/control when browser playback policy refuses a transition. Fault injection,
+delayed real-video switches and the existing Brave session exercise the fix.
+
+Eleven additional opt-in treatments and an energetic combination explore paper, luminous geometry, actual
+spectral memory and different spectrum compositions. Independent critique refined
+phone legibility, continuous dot transitions and alpha-safe contact ink expansion.
+The approved production recipe stays unchanged. Evidence and artistic judgments
+are appended to `docs/research/postprocessing-style-study-20261102.md`.
+
 ## November 2: curated post-processing study (opt-in)
 
 Four experimental directions—Elastic print, Electric paper, Suspension and

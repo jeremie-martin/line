@@ -47,8 +47,8 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
  const artifact=loadConstructionArtifact(constructionModel??'v6');
  return {...connectedArcOptions(spec,allowance),
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
-  // Preserve the complete ride while using spare work to improve its ending.
-  refineTailSections:1,refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
+  // Preserve the complete ride while using spare work where its regret is highest.
+  refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
   memorySamples:16,policySamples:16,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
   initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),

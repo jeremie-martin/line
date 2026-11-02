@@ -328,3 +328,24 @@ full-film selections pass paused and playing switches, with no page errors or
 horizontal overflow. Source/props hashes and reviewed code identity are saved
 in the local study's `provenance.json`; verification details and scratch review
 scripts stay alongside the generated media. Computer output remained muted.
+
+## Unified review
+
+The review entry point is `/motion-gallery/style-review.html`. It links a small
+shortlist, seven focused families, all short treatments, all full films, rendered
+vignette controls, and explicitly labelled live vignette sketches. The original
+four studies and early drafts remain in a collapsed archive; the known opaque-edge
+first draft is marked historical rather than offered as a current candidate.
+
+Collections live under `generated/style-review/`. The local `build.py` combines
+the four studies by song/style, taking the latest available render for duplicate
+entries and preserving absolute source links without copying videos. Every one of
+34 distinct short treatments is covered by a family: 102 short videos across
+three songs, plus 19 full-film versions. Earlier vignette windows stay separate.
+The local inventory records all source entries; no experiment is silently removed.
+
+Validation: all 127 short/full/vignette media references exist and match duration,
+frame count, frame rate and decoded PCM audio within their comparison. Browser
+checks pass all hub links, desktop and phone-width layout, and 172 focused/player
+selections without page errors. No new player implementation or media render was
+needed; the existing same-moment comparison player is reused.

@@ -12,7 +12,7 @@ beforeAll(async () => {
     execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', `color=c=${color}:s=90x160:r=30`, '-t', seconds,
       '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(dir, `${name}.mp4`)]);
   }
-  browser = await chromium.launch();
+  browser = await chromium.launch({args: ['--mute-audio']});
 }, 20000);
 afterAll(async () => {await browser?.close(); if (dir) rmSync(dir, {recursive: true, force: true});});
 
@@ -30,14 +30,21 @@ const groupedCollection = {
     {id: 'short', label: 'Short', src: `/${id}/short.mp4`},
   ]})),
 };
-async function open(collection: object = flatCollection, requests: string[] = []): Promise<Page> {
+async function open(collection: object = flatCollection, requests: string[] = [], options: {hiddenFrames?: boolean; delayMediaMs?: number} = {}): Promise<Page> {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
+  if (options.hiddenFrames) await page.addInitScript(() => {
+    // A compositor may withhold callbacks for an occluded video. Decode/seek
+    // still work; the comparison must not wait forever for presentation.
+    HTMLVideoElement.prototype.requestVideoFrameCallback = () => 1;
+    HTMLVideoElement.prototype.cancelVideoFrameCallback = () => {};
+  });
   await page.route('http://comparison.test/**', async route => {
     const path = new URL(route.request().url()).pathname;
     if (path === '/collection.json') return route.fulfill({json: collection});
     const media = /^\/(?:first\/|second\/)?(a|b|short)\.mp4$/.exec(path);
     if (media) {
       requests.push(path);
+      if (options.delayMediaMs) await new Promise(resolve => setTimeout(resolve, options.delayMediaMs));
       const bytes = readFileSync(join(dir, `${media[1]}.mp4`)), range = /^bytes=(\d+)-(\d*)$/.exec(route.request().headers().range ?? '');
       if (!range) return route.fulfill({body: bytes, contentType: 'video/mp4'});
       const start = Number(range[1]), end = range[2] ? Math.min(Number(range[2]), bytes.length - 1) : bytes.length - 1;
@@ -113,7 +120,8 @@ describe('rendered video comparison', () => {
       const next = await page.locator('video.active').evaluate((v: HTMLVideoElement) => ({time: v.currentTime, paused: v.paused}));
       expect(next).toEqual({time: 0, paused: true});
       expect(await page.locator('#stage video').count()).toBe(3);
-      expect(await page.locator('#stage video').evaluateAll(videos => videos.every(v => (v as HTMLVideoElement).currentSrc.includes('/second/')))).toBe(true);
+      expect(await page.locator('#stage video[src]').count()).toBe(1);
+      expect(await page.locator('#stage video[src]').evaluateAll(videos => videos.every(v => (v as HTMLVideoElement).currentSrc.includes('/second/')))).toBe(true);
       await seek(page, .25);
       await page.locator('#groups button').nth(1).click();
       await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/a.mp4'));
@@ -141,6 +149,55 @@ describe('rendered video comparison', () => {
       expect(state.paused).toBe(false); expect(state.muted).toBe(true); expect(state.rate).toBe(1.5); expect(state.time).toBeLessThan(1);
       expect(await page.locator('video.active').count()).toBe(1); expect(await page.locator('#stage video').count()).toBe(3); expect(errors).toEqual([]);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    } finally {await page.close();}
+  }, 20000);
+
+  test('switches with withheld compositor callbacks and delayed media, loading only requested versions', async () => {
+    const requests: string[] = [], page = await open(groupedCollection, requests, {hiddenFrames: true, delayMediaMs: 250});
+    try {
+      expect(requests).toEqual(['/first/a.mp4']);
+      await seek(page, 1);
+      await page.locator('#versions button').nth(1).click();
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.currentSrc)).toContain('/first/a.mp4');
+      await page.waitForFunction(() => document.querySelectorAll('#versions button')[1].getAttribute('aria-pressed') === 'true');
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.currentTime)).toBeCloseTo(1, 2);
+      expect(await page.locator('video[src]').count()).toBe(1);
+      await page.locator('#play').click();
+      await select(page, 0);
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
+      await page.locator('#passages button').nth(1).click();
+      expect(await page.locator('#transition-frame').isVisible()).toBe(true);
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/a.mp4'));
+      expect(await page.locator('#transition-frame').isVisible()).toBe(false);
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => !v.paused)).toBe(true);
+      expect(requests.some(path => path.endsWith('short.mp4'))).toBe(false);
+      expect(await page.locator('video[src]').count()).toBe(1);
+      expect(await page.locator('#status').textContent()).toBe('');
+    } finally {await page.close();}
+  }, 20000);
+
+  test.each([false, true])('playback refusal (only after unmute: %s) leaves a picture and working Play control', async onlyAfterUnmute => {
+    const page = await open();
+    try {
+      await page.locator('#play').click();
+      await page.evaluate(onlyAfterUnmute => {
+        const original = HTMLMediaElement.prototype.play;
+        HTMLMediaElement.prototype.play = function () {
+          if (this.currentSrc.endsWith('/b.mp4') && (!onlyAfterUnmute || !this.muted)) {
+            this.pause();
+            return Promise.reject(new DOMException('Playback needs a gesture', 'NotAllowedError'));
+          }
+          return original.call(this);
+        };
+        (window as unknown as {restorePlay: () => void}).restorePlay = () => {HTMLMediaElement.prototype.play = original;};
+      }, onlyAfterUnmute);
+      await select(page, 1);
+      await page.waitForFunction(() => document.querySelector('#play')?.textContent === 'Play');
+      expect(await page.locator('#status').textContent()).toContain('Tap Play');
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThanOrEqual(2);
+      await page.evaluate(() => (window as unknown as {restorePlay: () => void}).restorePlay());
+      await page.locator('#play').click();
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
     } finally {await page.close();}
   }, 20000);
 

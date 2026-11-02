@@ -19,17 +19,29 @@ function waitFor(video, ready, events, signal) {
     video.addEventListener('error', failed); signal.addEventListener('abort', aborted);
   });
 }
+// Hidden/occluded videos may decode without a compositor callback (notably on
+// mobile). seeked + HAVE_CURRENT_DATA is the media readiness contract; prefer a
+// presented frame, but never make visibility depend on a hidden presentation.
 function painted(video, signal) {
   if (signal.aborted) return Promise.reject(abortError());
-  if (!video.requestVideoFrameCallback) return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   return new Promise((resolve, reject) => {
-    let frame;
-    const finish = error => {clearTimeout(timer); video.cancelVideoFrameCallback(frame); signal.removeEventListener('abort', aborted); error ? reject(error) : resolve();};
+    let frame, poll;
+    const finish = error => {
+      clearTimeout(timer); clearInterval(poll);
+      if (frame !== undefined) video.cancelVideoFrameCallback(frame);
+      signal.removeEventListener('abort', aborted);
+      error ? reject(error) : resolve();
+    };
     const aborted = () => finish(abortError());
     const timer = setTimeout(() => finish(new Error('Could not prepare a video frame.')), 5000);
     signal.addEventListener('abort', aborted);
-    frame = video.requestVideoFrameCallback(() => finish());
+    frame = video.requestVideoFrameCallback?.(() => finish());
+    poll = setInterval(() => {if (!video.seeking && video.readyState >= 2) finish();}, 100);
   });
+}
+function release(video) {
+  video.pause(); video.muted = true;
+  if (video.hasAttribute('src')) {video.removeAttribute('src'); video.load();}
 }
 function clockDifference(reference, candidate) {
   let delta = reference.currentTime - candidate.currentTime;
@@ -64,14 +76,20 @@ function describe(entry) {
 async function select(index) {
   if (!entries[index]) return;
   pending?.abort();
-  for (let i = 0; i < videos.length; i++) if (i !== active) {videos[i].pause(); videos[i].muted = true;}
+  for (let i = 0; i < videos.length; i++) if (i !== active && i !== index) release(videos[i]);
   wanted = index; styleId = entries[index].id; controls();
   if (index === active) {status.textContent = ''; return;}
   const controller = new AbortController(); pending = controller;
   const signal = controller.signal, next = videos[index];
   status.textContent = `Preparing ${entries[index].label}…`;
   try {
-    if (next.error || next.networkState === HTMLMediaElement.NETWORK_EMPTY) next.load();
+    next.muted = true;
+    if (!next.hasAttribute('src')) next.src = new URL(entries[index].src, collectionUrl).href;
+    else if (next.error) next.load();
+    // Keep this call in the user's click/keyboard gesture. Waiting for metadata
+    // first loses per-element playback permission in mobile browsers.
+    if (playing) next.play().catch(() => {});
+
     await waitFor(next, () => next.readyState >= 2, ['loadeddata', 'canplay'], signal);
     if (signal.aborted) throw abortError();
     const previous = active >= 0 ? videos[active] : null;
@@ -79,7 +97,7 @@ async function select(index) {
     next.volume = previous?.volume ?? savedVolume;
     // Keep the outgoing video visible and audible while preparing the next one.
     // Only a decoded frame at the matching time is allowed to replace it.
-    let shorter = false;
+    let shorter = false, needsPlay = false;
     for (let attempt = 0; attempt < 4; attempt++) {
       if (signal.aborted) throw abortError();
       const time = previous?.currentTime ?? 0;
@@ -93,7 +111,11 @@ async function select(index) {
       }
       if (playing && !shorter) {
         const frame = painted(next, signal);
-        await Promise.all([frame, next.play()]);
+        try {await Promise.all([frame, next.play()]);}
+        catch (error) {
+          if (error.name !== 'NotAllowedError') throw error;
+          next.pause(); playing = false; needsPlay = true; break;
+        }
         // Seeking takes time while the outgoing clock keeps moving. Catch up
         // silently before the handoff instead of repeatedly seeking behind it.
         const deadline = performance.now() + 2000;
@@ -109,17 +131,30 @@ async function select(index) {
     if (signal.aborted) throw abortError();
     if (!playing || shorter) next.pause();
     if (previous) {previous.muted = true; previous.pause(); previous.classList.remove('active');}
-    next.muted = muted; next.classList.add('active'); active = index; frameHold.hidden = true;
+    next.classList.add('active'); active = index; frameHold.hidden = true;
+    next.muted = muted;
+    if (previous) release(previous);
+    // Some mobile policies pause on unmute. Never leave a false 'Pause' button
+    // or a dead end: the prepared picture stays visible and Play can recover.
+    if (playing && !shorter) {
+      try {await next.play();} catch (error) {
+        if (signal.aborted) return;
+        playing = false; needsPlay = true;
+      }
+    }
+    if (signal.aborted) return;
     if (shorter) playing = false;
     stage.style.aspectRatio = `${next.videoWidth} / ${next.videoHeight}`;
     describe(entries[index]);
     $('play').disabled = false; $('seek').disabled = false;
-    status.textContent = shorter ? 'This version ends earlier; showing its final moment.' : '';
+    status.textContent = shorter ? 'This version ends earlier; showing its final moment.' : needsPlay ? 'Ready. Tap Play to continue.' : '';
     controls();
   } catch (error) {
     if (signal.aborted) return;
     next.pause(); next.muted = true; wanted = active; styleId = entries[active]?.id ?? styleId; controls();
     status.textContent = error.message;
+  } finally {
+    if (pending === controller) pending = null;
   }
 }
 async function changeGroup(index) {
@@ -144,17 +179,21 @@ async function changePassage(index) {
       frameHold.getContext('2d').drawImage(previous, 0, 0); frameHold.hidden = false;
     }
   }
-  for (const video of videos) {video.pause(); video.muted = true; video.removeAttribute('src'); video.load(); video.remove();}
+  for (const video of videos) {release(video); video.remove();}
   passageIndex = index; entries = passages[index].videos; active = -1; wanted = -1;
   $('play').disabled = true; $('seek').disabled = true; $('seek').value = '0'; $('time').textContent = '0:00'; describe(null);
   $('passage-description').textContent = passages[index].description ?? '';
   if (groups.length && !entries.some(e => groups[groupIndex].variants.includes(e.id)))
     groupIndex = groups.findIndex(g => entries.some(e => g.variants.includes(e.id)));
   if (groups.length) $('intent').textContent = groups[groupIndex].description ?? '';
-  videos = entries.map(entry => {
-    const video = document.createElement('video'); video.src = new URL(entry.src, collectionUrl).href;
+  videos = entries.map(() => {
+    const video = document.createElement('video');
     video.preload = 'auto'; video.playsInline = true; video.loop = true; video.muted = true;
-    video.setAttribute('aria-hidden', 'true'); stage.append(video); return video;
+    video.setAttribute('aria-hidden', 'true');
+    video.addEventListener('pause', () => {
+      if (videos[active] === video && !pending && video.paused) {playing = false; controls();}
+    });
+    stage.append(video); return video;
   });
   versionButtons();
   const available = visibleIndexes(), preserved = available.find(i => entries[i].id === styleId);
@@ -162,9 +201,12 @@ async function changePassage(index) {
 }
 async function togglePlay() {
   if (active < 0) return;
+  const video = videos[active];
   playing = !playing;
-  if (playing) {try {await videos[active].play();} catch (error) {playing = false; status.textContent = error.message;}}
-  else {videos[active].pause();}
+  if (playing) {
+    try {await video.play(); if (video === videos[active] && !pending) status.textContent = '';}
+    catch (error) {if (video === videos[active]) {playing = false; status.textContent = error.message;}}
+  } else {video.pause();}
   controls();
 }
 $('play').onclick = togglePlay;

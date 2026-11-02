@@ -1020,3 +1020,24 @@ under-charges.
 - **Question.** Does a wider local search pay at all? If clearly yes, the
   caps should become a scale-free law of the allowance. If not, the options
   themselves are the limit.
+- **Result L (4 seeds): wider search does not pay.**
+  - +0.1 [−3.5, +3.7]; physics frames +0.30M (+10%).
+  - Together with the double allowance, today's compiler is limited neither
+    by compute nor by breadth. The gains came from what it proposes (H) and
+    how it ranks (A, D).
+- **Unused work.** Rides use about 45% of their allowance: about 2.9M physics
+  frames of 6.3M, and none is exhausted. Production refinement, the one
+  search against the real whole-ride objective, revises only the last section
+  (`refineTailSections: 1`, 12 attempts).
+
+### M. Refinement may revise any section
+- **Change.** `refineTailSections` removed from the production options. The
+  same 12 refinement attempts go to the highest-regret supports anywhere in
+  the ride. Every proposal is completed into a whole ride and replayed, and
+  one is kept only if the complete ride is strictly better.
+- **History.** "Refine-all" was rejected on 2026-10-04 on an older compiler
+  that was then budget-bound. Today more than half the allowance is unused.
+- **Hypothesis.** Small gains where a mid-ride support has the highest regret
+  (for example a dense strong passage), with no ride lost (refinement keeps a
+  replacement only when strictly better). Physics frames up, within the
+  allowance.

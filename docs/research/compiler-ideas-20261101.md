@@ -1059,3 +1059,30 @@ under-charges.
 - **Hypothesis.** More demonstrations per style, scallops especially, give
   steadier proposals: a gain over `main` at least as large as H2's, without
   the body-drag rise that came with H2 alone.
+- **Result H3: parked; a candidate for the owner's call.**
+  - V7, 8 seeds: **+4.2 [+1.4, +6.9], > 0.99**; 18 of 22 specs up;
+    explicit requests +4.1.
+  - Held out: **+0.8 [−12.4, +14.0]**, 3 of 5 specs up; Valhalla −9.1 on all
+    four seeds.
+  - Costs: body drag +0.39 s/min, strong extra hits +0.011 per beat, and a
+    policy archive of 22.6 MB against 10.3 MB.
+  - Not adopted, since the held-out panel does not confirm. Branch
+    `exp/construction-r12`; the artifact can be rebuilt from
+    `generated/value-v4/collect-{3,3t,r2,r2t}`.
+
+### Where this leaves the compiler (2026-11-02)
+- **Adopted since yesterday:** A, D, H. Main V7 is 782.7 at 8 seeds; held
+  out 743.7.
+- **Closed or parked today:** K, K′, H2, M (null); twice the allowance and
+  caps ×2 (no effect); H3 (V7 yes, held out neutral).
+- **Ranking is calibrated:** its future price matches the measured
+  next-step cost. More compute or breadth does not help, and rides use about
+  45% of their allowance.
+- **What is left:** the options the search proposes. Retraining the policies
+  was the big step (H); further rounds and pooled data give diminishing,
+  unconfirmed gains.
+- **Next likely levers, needing the owner's direction:**
+  - new construction options or geometry (the owner's upper-receiver
+    intuition), since flush catches within today's geometry did not help;
+  - V7's composition (the open question on long gaps);
+  - the two open section-fallback findings from the code review.

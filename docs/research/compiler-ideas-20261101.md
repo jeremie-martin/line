@@ -986,3 +986,19 @@ under-charges.
     different price.
 
 ### H2 running (second-round construction policies, `exp/construction-r2`)
+- **Result H2 (4 seeds): parked.**
+  - +1.8 [−6.0, +9.7], 0.74; 14 of 22 specs up; explicit requests −1.0.
+  - Body drag +0.42 s/min again.
+  - Diminishing returns, as with October's second round.
+
+### Diagnostic: the same compiler at twice the allowance
+- **Question.** Are today's limits in the options the search can find, or in
+  how much search it can afford?
+- **Change.** The current `main` at `standard*2` against `standard`. Not a
+  candidate for adoption: compute is a cost. This is a measurement for
+  choosing where to work next.
+- **Reading plan:**
+  - a large gain (≥ +10) means search-limited: engine speed and frame
+    efficiency become worth more;
+  - a small gain means the options themselves are the limit: mechanisms and
+    geometry.

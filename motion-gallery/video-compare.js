@@ -151,7 +151,9 @@ async function select(index) {
     controls();
   } catch (error) {
     if (signal.aborted) return;
-    next.pause(); next.muted = true; wanted = active; styleId = entries[active]?.id ?? styleId; controls();
+    next.pause(); next.muted = true; wanted = active >= 0 ? active : index;
+    if (active < 0) playing = false;
+    styleId = entries[wanted]?.id ?? styleId; controls();
     status.textContent = error.message;
   } finally {
     if (pending === controller) pending = null;
@@ -181,7 +183,9 @@ async function changePassage(index) {
   }
   for (const video of videos) {release(video); video.remove();}
   passageIndex = index; entries = passages[index].videos; active = -1; wanted = -1;
-  $('play').disabled = true; $('seek').disabled = true; $('seek').value = '0'; $('time').textContent = '0:00'; describe(null);
+  // Preload is only a hint on mobile. Keep a user-gesture path to load/play
+  // even before the first frame arrives (including after a failed preload).
+  $('play').disabled = false; $('seek').disabled = true; $('seek').value = '0'; $('time').textContent = '0:00'; describe(null);
   $('passage-description').textContent = passages[index].description ?? '';
   if (groups.length && !entries.some(e => groups[groupIndex].variants.includes(e.id)))
     groupIndex = groups.findIndex(g => entries.some(e => g.variants.includes(e.id)));
@@ -200,7 +204,13 @@ async function changePassage(index) {
   await select(preserved ?? available[0]);
 }
 async function togglePlay() {
-  if (active < 0) return;
+  if (active < 0) {
+    if (wanted < 0) return;
+    playing = !playing; controls();
+    if (playing) await select(wanted);
+    else videos[wanted].pause();
+    return;
+  }
   const video = videos[active];
   playing = !playing;
   if (playing) {

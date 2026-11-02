@@ -30,13 +30,25 @@ const groupedCollection = {
     {id: 'short', label: 'Short', src: `/${id}/short.mp4`},
   ]})),
 };
-async function open(collection: object = flatCollection, requests: string[] = [], options: {hiddenFrames?: boolean; delayMediaMs?: number} = {}): Promise<Page> {
+async function open(collection: object = flatCollection, requests: string[] = [], options: {hiddenFrames?: boolean; delayMediaMs?: number; blockedPreload?: boolean} = {}): Promise<Page> {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
   if (options.hiddenFrames) await page.addInitScript(() => {
     // A compositor may withhold callbacks for an occluded video. Decode/seek
     // still work; the comparison must not wait forever for presentation.
     HTMLVideoElement.prototype.requestVideoFrameCallback = () => 1;
     HTMLVideoElement.prototype.cancelVideoFrameCallback = () => {};
+  });
+  if (options.blockedPreload) await page.addInitScript(() => {
+    const ready = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'readyState')!.get!;
+    const play = HTMLMediaElement.prototype.play, unlocked = new WeakSet<HTMLMediaElement>();
+    Object.defineProperty(HTMLMediaElement.prototype, 'readyState', {get() {
+      return unlocked.has(this) ? ready.call(this) : Math.min(1, ready.call(this));
+    }});
+    HTMLMediaElement.prototype.play = function () {
+      unlocked.add(this);
+      queueMicrotask(() => this.dispatchEvent(new Event('canplay')));
+      return play.call(this);
+    };
   });
   await page.route('http://comparison.test/**', async route => {
     const path = new URL(route.request().url()).pathname;
@@ -56,7 +68,7 @@ async function open(collection: object = flatCollection, requests: string[] = []
     return route.fulfill({status: 404});
   });
   await page.goto('http://comparison.test/video-compare.html?collection=/collection.json');
-  await page.waitForSelector('video.active');
+  await page.waitForSelector(options.blockedPreload ? '#versions button' : 'video.active');
   return page;
 }
 async function select(page: Page, index: number): Promise<void> {
@@ -198,6 +210,33 @@ describe('rendered video comparison', () => {
       await page.evaluate(() => (window as unknown as {restorePlay: () => void}).restorePlay());
       await page.locator('#play').click();
       expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+    } finally {await page.close();}
+  }, 20000);
+
+  test.each([false, true])('Play loads the first frame when preload is restricted (after error: %s)', async afterError => {
+    const page = await open(groupedCollection, [], {blockedPreload: true});
+    try {
+      await page.waitForFunction(() => (document.querySelector('video[src]') as HTMLVideoElement)?.readyState === 1);
+      expect(await page.locator('video.active').count()).toBe(0);
+      expect(await page.locator('#play').isEnabled()).toBe(true);
+      if (afterError) {
+        await page.locator('video[src]').evaluate(v => v.dispatchEvent(new Event('error')));
+        await page.waitForFunction(() => document.querySelector('#status')?.textContent?.includes('Could not load'));
+      }
+      await page.locator('#play').click();
+      await page.waitForSelector('video.active');
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+      await page.locator('#play').click();
+      await page.locator('#passages button').nth(1).click();
+      await page.waitForFunction(() => (document.querySelector('video[src]') as HTMLVideoElement)?.readyState === 1);
+      expect(await page.locator('video.active').count()).toBe(0);
+      expect(await page.locator('#transition-frame').isVisible()).toBe(true);
+      expect(await page.locator('#play').isEnabled()).toBe(true);
+      await page.locator('#play').click();
+      await page.waitForFunction(() => (document.querySelector('video.active') as HTMLVideoElement)?.currentSrc.endsWith('/second/a.mp4'));
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.paused)).toBe(false);
+      expect(await page.locator('#transition-frame').isVisible()).toBe(false);
+      expect(await page.locator('#status').textContent()).toBe('');
     } finally {await page.close();}
   }, 20000);
 

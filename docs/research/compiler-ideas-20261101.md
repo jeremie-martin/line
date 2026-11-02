@@ -1002,3 +1002,21 @@ under-charges.
     efficiency become worth more;
   - a small gain means the options themselves are the limit: mechanisms and
     geometry.
+- **Result: twice the allowance changes nothing.**
+  - +0.1 [−1.4, +1.6]; 10 of 22 specs up.
+  - Physics frames only 2.99M → 3.05M: the search does not use the extra
+    allowance.
+  - At the standard allowance every sample count in `connectedArcOptions` is
+    already at its cap: `samples` min 80, `guidanceSamples` min 176,
+    `proposalGuidanceSamples` min 160, and the counts derived from them. So
+    the compiler is not limited by compute but by these saturating caps. Per
+    the owner's design rule, budget knobs should be scale-free laws, not
+    saturating ramps.
+
+### L (diagnostic). Sample caps ×2 at the standard allowance
+- **Change.** Every cap in `connectedArcOptions` doubled (80→160, 176→352,
+  160→320, the memory allowance 96→192 and the planning breadth 160→320).
+  The allowance is unchanged; it is still charged, and it now binds sooner.
+- **Question.** Does a wider local search pay at all? If clearly yes, the
+  caps should become a scale-free law of the allowance. If not, the options
+  themselves are the limit.

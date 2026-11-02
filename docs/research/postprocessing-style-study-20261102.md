@@ -313,3 +313,18 @@ colour-only controls and material comparisons. `full-collection.json` pairs Lua
 with Iris, Petrunko with Mint (plus earlier Cut Paper), and LOS with Cobalt and
 Magenta. Earlier collections remain available. Reviews were muted and visual;
 they are not listening tests or claims of physical-phone validation.
+
+Fourth-study checks: all 413 repository tests pass; final focused checks pass 38
+style/player tests. Both TypeScript projects, reachability and 33-track judge
+parity pass. All seven new treatments pass transparent-surface and full-compositor
+geometry-overlap checks. The approved reference still is pixel-identical. The
+short-passage player passes 39 grouped switches across all three songs, including
+playing switches, without page errors or phone-width overflow.
+
+Final delivery: 30 short clips and eight full films (including references) all
+fully decode, have the expected frame counts/dimensions and BT.709 limited-range
+encoding, and preserve identical PCM audio within each comparison. All eight
+full-film selections pass paused and playing switches, with no page errors or
+horizontal overflow. Source/props hashes and reviewed code identity are saved
+in the local study's `provenance.json`; verification details and scratch review
+scripts stay alongside the generated media. Computer output remained muted.

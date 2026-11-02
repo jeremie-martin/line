@@ -14,7 +14,8 @@ import {
 } from "remotion";
 import {ribbonPaths} from './study/spectrum';
 import {studyFrame, type StudyFrame} from './study/looks';
-import {StudyRide, StudyRipples} from './study/Layers';
+import {SpectrumForms} from './study/SpectrumForms';
+import {StudyRide, StudyRipples, StudyAtmosphere} from './study/Layers';
 import { RideFX, TintLayer, VignetteLayer, FlashLayer, BottomFade, type FXConfig } from "./fx";
 
 // ── Data bundle (written by scripts/make_overlay_data.ts) ────────────────────
@@ -524,7 +525,9 @@ const SpectrumViz: React.FC<{
         </mask>
       </defs>
       <g mask={fade ? `url(#${id}-mask)` : undefined}>
-      {look?.ribbon ? <>
+      {look?.spectrumForm ? <SpectrumForms mode={look.spectrumForm} row={row}
+        history={[.12, .24, .4].filter(age => t >= age).map(age => spec.frames[Math.max(0, Math.floor((t - age) * spec.fps))] ?? [])}
+        width={width} height={maxBar} palette={palette} accent={look.accent} dark={look.dark} /> : look?.ribbon ? <>
         <path d={ribbon.fill} fill={`url(#${id}-palette)`} opacity={.38} />
         <path d={ribbon.crest} fill="none" stroke={`url(#${id}-palette)`} strokeWidth={3} strokeLinejoin="round" />
         {sym && <path d={ribbon.fill} transform={`translate(0 ${2 * maxBar}) scale(1 -1)`} fill={`url(#${id}-palette)`} opacity={look.reflection * .5} />}
@@ -661,8 +664,8 @@ const BottomCurvePanelVertical: React.FC<{
           spec={spectrum} t={t} id="specfade-main" look={look}
           left={variant.specFullWidth ? 0 : panelLeft}
           width={variant.specFullWidth ? width : panelW}
-          baseY={Math.round(height * variant.specCenterPct)}
-          maxBar={Math.round(height * variant.specMaxBarPct)}
+          baseY={Math.round(height * (look?.spectrumForm === 'rails' ? .8 : variant.specCenterPct))}
+          maxBar={Math.round(height * (look?.spectrumForm === 'rails' ? .45 : variant.specMaxBarPct))}
           sym={variant.specSym} fade={!variant.specFullWidth} enter={enter}
         />
       )}
@@ -694,9 +697,10 @@ export const CurveOverlayVertical: React.FC = () => {
       {/* ride shifted up; revealed area below is white (matches the ride background).
           RideFX applies overscan + impact shake + chromatic aberration + grade
           (all no-ops when the matching fx.* key is absent). */}
+      <StudyAtmosphere look={look} />
       <StudyRide look={look}><RideFX videoFile={videoFile} shiftPx={shift} t={t} contacts={data.contacts} fx={fx} /></StudyRide>
       {/* melt the up-shifted video's bottom edge into white (kills the ~87% seam) */}
-      <BottomFade color={look?.dark ? "16,25,35" : undefined} />
+      <BottomFade color={look?.backgroundRgb ?? (look?.dark ? "16,25,35" : undefined)} />
       {/* look layers below the HUD so the data panel/spectrum stay crisp on top */}
       <TintLayer fx={fx} phaseColor={activePhase?.color} enter={enter} />
       {fx.vignette?.style !== "soft-base" && <VignetteLayer fx={fx} t={t} contacts={data.contacts} enter={enter} />}

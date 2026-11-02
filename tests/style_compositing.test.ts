@@ -23,3 +23,19 @@ test('ink colours real edges without adding opacity to empty source pixels', asy
     expect(edges[1].equals(edges[0])).toBe(false);
   } finally {await browser.close();}
 }, 10000);
+
+test('paper, halo and weight treatments preserve empty alpha and a crisp geometry core', async () => {
+  const browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({viewport: {width: 300, height: 200}});
+    const blank: Buffer[] = [];
+    for (const surface of [undefined, {core: '#243e42', shadow: '#d9956e', offset: 6},
+      {core: '#fff8df', halo: '#c68cff', haloRadius: 5}, {core: '#242638', weight: .65}]) {
+      const markup = renderToStaticMarkup(createElement(StudyRide, {look: {ink: 0, scale: 1, y: 0, dark: false, surface}},
+        createElement('div', {style: {position: 'absolute', left: 100, top: 90, width: 100, height: 8, background: '#000'}})));
+      await page.setContent(`<body style="margin:0;background:rgb(230,230,230)">${markup}</body>`);
+      blank.push(await page.screenshot({clip: {x: 10, y: 10, width: 20, height: 20}}));
+    }
+    for (const image of blank.slice(1)) expect(image.equals(blank[0])).toBe(true);
+  } finally {await browser.close();}
+}, 10000);

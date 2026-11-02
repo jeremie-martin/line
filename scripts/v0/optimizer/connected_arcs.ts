@@ -33,13 +33,13 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   // including the two cold replays, rather than named benchmark budgets.
   const allowance = .7 * (budget - 2 * (end + 1)) / Math.max(1, end);
   const refinement = Math.max(0, allowance - 80);
-  const planningBreadth = Math.max(12, Math.min(160, Math.floor(Math.min(80, allowance) + .8 * refinement)));
+  const planningBreadth = Math.max(12, Math.min(320, Math.floor(Math.min(80, allowance) + .8 * refinement)));
   // Memory proposals retain their separate, smaller allowance curve.
-  const memoryAllowance = Math.min(96, Math.floor(.8 * refinement));
+  const memoryAllowance = Math.min(192, Math.floor(.8 * refinement));
   // Give guide fitting its own saturating allowance after base proposals.
-  const proposalGuidanceSamples = Math.min(160, Math.floor(2.25 * refinement));
-  const samples = Math.min(80, planningBreadth);
-  const guidanceSamples = Math.min(176, Math.floor(1.5 * proposalGuidanceSamples));
+  const proposalGuidanceSamples = Math.min(320, Math.floor(2.25 * refinement));
+  const samples = Math.min(160, planningBreadth);
+  const guidanceSamples = Math.min(352, Math.floor(1.5 * proposalGuidanceSamples));
   const responseSamples = Math.floor(guidanceSamples * 161 / 176);
   return { budget, samples,
     channel: 12, radius: 24, impactWeight: 1,

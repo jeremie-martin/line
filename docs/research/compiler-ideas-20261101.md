@@ -1041,3 +1041,21 @@ under-charges.
   (for example a dense strong passage), with no ride lost (refinement keeps a
   replacement only when strictly better). Physics frames up, within the
   allowance.
+- **Result M (4 seeds): closed.**
+  - −0.1 [−0.3, +0.0]: rides nearly identical; frames +0.02M.
+  - Refinement accepts almost nothing anywhere in the ride, so opening it to
+    every section has no lever.
+
+### H3. Construction policies from both collections (double the demonstrations)
+- **Basis.**
+  - Policy coverage is complete: every construction style V7 uses has a
+    group. Unguided arcs (35% of ride time) and optional-rail arcs each have
+    about 5,150 demonstrations.
+  - But scallops are thin: 474 demonstrations for 11% of ride time.
+  - H2 (round-2 data only) was +1.8, not established.
+- **Change.** Train on round 1 (`collect-3` + `collect-3t`, the pre-H
+  compiler) and round 2 (`collect-r2` + `collect-r2t`, the current compiler)
+  together. Deduplication is by control and features.
+- **Hypothesis.** More demonstrations per style, scallops especially, give
+  steadier proposals: a gain over `main` at least as large as H2's, without
+  the body-drag rise that came with H2 alone.

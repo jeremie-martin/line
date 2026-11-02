@@ -30,7 +30,7 @@ test('paper, halo and weight treatments preserve empty alpha and a crisp geometr
     const page = await browser.newPage({viewport: {width: 300, height: 200}});
     const blank: Buffer[] = [];
     for (const surface of [undefined, {core: '#243e42', shadow: '#d9956e', offset: 6},
-      {core: '#fff8df', halo: '#c68cff', haloRadius: 5}, {core: '#242638', weight: .65}]) {
+      {core: '#fff8df', halo: '#c68cff', haloRadius: 5}, {core: '#242638', weight: .65}, {core: '#344d46', shadow: '#b89c6b', highlight: '#fffcef', offset: 3}]) {
       const markup = renderToStaticMarkup(createElement(StudyRide, {look: {ink: 0, scale: 1, y: 0, dark: false, surface}},
         createElement('div', {style: {position: 'absolute', left: 100, top: 90, width: 100, height: 8, background: '#000'}})));
       await page.setContent(`<body style="margin:0;background:rgb(230,230,230)">${markup}</body>`);

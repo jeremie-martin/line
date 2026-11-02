@@ -53,6 +53,28 @@ describe('style-study signal semantics', () => {
     expect(studyFrame('arc-light', 2, data)?.surface?.offset).toBe(0);
     expect(studyFrame('arc-light', 1.24, {...data, contacts: [{t: 1.2, impactMeasured: null}]})?.surface?.offset).toBe(0);
   });
+  test('bright contact gestures settle without inventing motion before a measured onset', () => {
+    const data = {axes: [], contacts: [{t: 1, actualTime: 1.2, impactMeasured: 1}]};
+    const quiet = studyFrame('registration', 1.1, data)!;
+    expect(studyFrame('registration', 1.24, data)!.surface!.offset).toBeLessThan(quiet.surface!.offset!);
+    expect(studyFrame('registration', 2, data)!.surface!.offset).toBe(quiet.surface!.offset);
+    for (let t = 0; t < 3; t += .01) {
+      expect(studyFrame('press-pop', t, data)!.scale).toBeGreaterThanOrEqual(1.012);
+      const ink = studyFrame('living-ink', t, data)!.surface!.core.match(/\d+/g)!.map(Number);
+      expect(.2126 * ink[0] + .7152 * ink[1] + .0722 * ink[2]).toBeLessThan(90);
+      const look = studyFrame('side-glide', t, data)!;
+      // Inverse-map the output corners: overscan must cover every corner even
+      // at simultaneous maximum side movement and roll around the rider pivot.
+      const angle = -(look.rotation ?? 0) * Math.PI / 180;
+      for (const x of [0, 1080]) for (const y of [0, 1920]) {
+        const dx = x - 540 - (look.x ?? 0), dy = y - 672;
+        const sx = 540 + (dx * Math.cos(angle) - dy * Math.sin(angle)) / look.scale;
+        const sy = 672 + (dx * Math.sin(angle) + dy * Math.cos(angle)) / look.scale;
+        expect(sx).toBeGreaterThanOrEqual(0); expect(sx).toBeLessThanOrEqual(1080);
+        expect(sy).toBeGreaterThanOrEqual(0); expect(sy).toBeLessThanOrEqual(1920);
+      }
+    }
+  });
   test('approved treatment stays untouched; experimental recipes are finite and bounded', () => {
     const data = {axes, contacts: [{t: 1, impactMeasured: 1}]};
     expect(studyFrame('approved', 1, data)).toBeNull();

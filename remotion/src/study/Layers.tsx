@@ -6,11 +6,14 @@ import type {StudyFrame} from './looks';
 export const StudyRide: React.FC<{look: StudyFrame | null; children: React.ReactNode}> = ({look, children}) => {
   if (!look) return <>{children}</>;
   const ink = look.ink;
+  const transform = look.x !== undefined || look.rotation !== undefined
+    ? `translate(${look.x ?? 0}px, ${look.y}px) rotate(${look.rotation ?? 0}deg) scale(${look.scale})`
+    : `translateY(${look.y}px) scale(${look.scale})`;
   if (look.surface) {
     const surface = look.surface;
     // Convert only existing ink to alpha. The opaque white movie background
     // disappears, so coloured paper and atmosphere can sit genuinely behind it.
-    return <AbsoluteFill style={{transform: `translateY(${look.y}px) scale(${look.scale})`, transformOrigin: '50% 35%'}}>
+    return <AbsoluteFill style={{transform, transformOrigin: '50% 35%'}}>
       <svg width={0} height={0} style={{position: 'absolute'}} aria-hidden><defs>
         <filter id="study-surface" x="-5%" y="-5%" width="110%" height="110%" colorInterpolationFilters="sRGB">
           <feColorMatrix in="SourceGraphic" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.2126 -.7152 -.0722 0 1" result="darkness" />
@@ -28,18 +31,23 @@ export const StudyRide: React.FC<{look: StudyFrame | null; children: React.React
             <feFlood floodColor={surface.shadow} result="shadow-colour" />
             <feComposite in="shadow-colour" in2="offset" operator="in" result="shadow" />
           </>}
+          {surface.highlight && <>
+            <feOffset in="mask" dx={-(surface.offset ?? 0)} dy={-(surface.offset ?? 0) * .65} result="highlight-mask" />
+            <feFlood floodColor={surface.highlight} result="highlight-colour" />
+            <feComposite in="highlight-colour" in2="highlight-mask" operator="in" result="highlight" />
+          </>}
           {surface.halo && <>
             <feGaussianBlur in="mask" stdDeviation={surface.haloRadius ?? 2} result="blur" />
             <feFlood floodColor={surface.halo} floodOpacity={.65} result="halo-colour" />
             <feComposite in="halo-colour" in2="blur" operator="in" result="halo" />
           </>}
-          <feMerge>{surface.shadow && <feMergeNode in="shadow" />}{surface.halo && <feMergeNode in="halo" />}{surface.weight !== undefined && <feMergeNode in="weight-ink" />}<feMergeNode in="core" /></feMerge>
+          <feMerge>{surface.highlight && <feMergeNode in="highlight" />}{surface.shadow && <feMergeNode in="shadow" />}{surface.halo && <feMergeNode in="halo" />}{surface.weight !== undefined && <feMergeNode in="weight-ink" />}<feMergeNode in="core" /></feMerge>
         </filter>
       </defs></svg>
       <AbsoluteFill style={{filter: 'url(#study-surface)'}}>{children}</AbsoluteFill>
     </AbsoluteFill>;
   }
-  return <AbsoluteFill style={{transform: `translateY(${look.y}px) scale(${look.scale})`, transformOrigin: '50% 35%',
+  return <AbsoluteFill style={{transform, transformOrigin: '50% 35%',
     filter: look.dark ? 'invert(1)' : ink > .01 ? 'url(#study-ink)' : undefined,
     mixBlendMode: look.dark ? 'screen' : undefined}}>
     {ink > .01 && <svg width={0} height={0} style={{position: 'absolute'}} aria-hidden><defs>

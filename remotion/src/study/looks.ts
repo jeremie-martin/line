@@ -2,6 +2,7 @@
 import {LOCKED_FX} from '../../../scripts/fx_recipe';
 import type {FXConfig} from '../fx';
 import type {ImpactContact} from '../impact';
+import type {SpectrumForm} from './SpectrumForms';
 import {contactAccent, contactKick, phraseAt, recentContacts, type TargetAxis} from './signals';
 
 export const STUDY_LOOKS = {
@@ -22,6 +23,13 @@ export const STUDY_LOOKS = {
   risograph: {label: 'Two-colour print', description: 'Offset coral print beneath blue-black geometry; compact stepped frequencies.'},
   phosphor: {label: 'Phosphor', description: 'A dot-matrix frequency display beneath precise luminous geometry, without flicker or scanlines.'},
   fan: {label: 'Resonance fan', description: 'Frequency stems open into a shallow fan below the ride; warm ink and a quiet camera.'},
+  registration: {label: 'Registration lock', description: 'Two coloured underprints gather into the crisp dark line on contact, then relax outward.'},
+  daybreak: {label: 'Daybreak', description: 'Pastel light behind dark teal geometry, open frequency contours and slow breathing room.'},
+  'press-pop': {label: 'Press pop', description: 'A single contact zoom pulse and ink accent on warm yellow paper, with folded spectrum faces.'},
+  'side-glide': {label: 'Side glide', description: 'A small horizontal kick and gentle roll, with clear spectrum peaks on a pale mint canvas.'},
+  'living-ink': {label: 'Living ink', description: 'Measured contacts briefly warm the dark ink from teal to plum; the camera stays steady.'},
+  letterpress: {label: 'Letterpress', description: 'Opposite light and shadow edges give the ink a pressed-paper finish, with folded frequencies.'},
+  sunprint: {label: 'Sunprint', description: 'Confident blue ink on bright yellow paper, with warm and teal frequency dots.'},
   'motion-only': {label: 'Elastic motion only', description: 'Only the current oscillating shake is replaced by an onset-relative kick; the other approved effects remain.'},
   'ink-only': {label: 'Ink accent only', description: 'Only the RGB split is replaced by short cyan/coral ink edges; the other approved effects remain.'},
   'ribbon-only': {label: 'Spectrum ribbon only', description: 'Only the bars become a continuous frequency silhouette; the approved ride effects and palette remain.'},
@@ -31,9 +39,9 @@ export type StudyData = {contacts: ImpactContact[]; axes: TargetAxis[]};
 export type StudyFrame = {
   id: StudyLook; fx: FXConfig; background: string; dark: boolean; palette?: string[];
   ribbon: boolean; reflection: number; glow: number; accent: number;
-  scale: number; y: number; ink: number;
-  spectrumForm?: 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails';
-  surface?: {core: string; shadow?: string; offset?: number; shadowBlur?: number; halo?: string; haloRadius?: number; weight?: number};
+  scale: number; y: number; ink: number; x?: number; rotation?: number;
+  spectrumForm?: SpectrumForm;
+  surface?: {core: string; shadow?: string; highlight?: string; offset?: number; shadowBlur?: number; halo?: string; haloRadius?: number; weight?: number};
   atmosphere?: {color: string; second: string; amount: number; position: number};
   backgroundRgb?: string; ripples: {age: number; strength: number}[];
 };
@@ -135,6 +143,48 @@ export function studyFrame(id: string | undefined, t: number, data: StudyData): 
     frame.background = '#fff7ef'; frame.backgroundRgb = '255,247,239';
     frame.surface = {core: '#543d3c'}; frame.spectrumForm = 'fan';
     frame.palette = ['#b36a55', '#b78e54', '#568d95']; frame.reflection = 0;
+  }
+  if (id === 'registration') {
+    frame.background = '#fff5e8'; frame.backgroundRgb = '255,245,232';
+    frame.surface = {core: '#2d3f52', shadow: '#df8b77', highlight: '#7cb9bb', offset: 3.5 * (1 - Math.min(1, accent * 1.8))};
+    frame.spectrumForm = 'caps'; frame.palette = ['#409f9d', '#cd925a', '#b67585']; frame.reflection = 0;
+  }
+  if (id === 'daybreak') {
+    frame.background = '#fbf6e9'; frame.backgroundRgb = '251,246,233';
+    frame.surface = {core: '#264f5c'};
+    frame.atmosphere = {color: '#77bcb5', second: '#efb574', amount: .14 + .1 * air, position: 35 + 25 * air};
+    frame.spectrumForm = 'contours'; frame.palette = ['#259e9a', '#6987b1', '#c66c49']; frame.reflection = 0;
+    frame.scale = 1.035 - .025 * air + .008 * accent;
+  }
+  if (id === 'press-pop') {
+    frame.background = '#fff2ce'; frame.backgroundRgb = '255,242,206';
+    frame.surface = {core: '#263c4c', weight: .5 * accent};
+    frame.spectrumForm = 'pleats'; frame.palette = ['#169b96', '#dd9251', '#d26758']; frame.reflection = 0;
+    frame.scale = 1.012 + .028 * accent;
+  }
+  if (id === 'side-glide') {
+    frame.background = '#eff8f4'; frame.backgroundRgb = '239,248,244';
+    frame.surface = {core: '#263f52'}; frame.spectrumForm = 'caps';
+    frame.palette = ['#20a398', '#df9551', '#bd6888']; frame.reflection = 0;
+    frame.x = 12 * kick; frame.rotation = .22 * kick; frame.scale = 1.045;
+  }
+  if (id === 'living-ink') {
+    frame.background = '#fff7ed'; frame.backgroundRgb = '255,247,237';
+    // Both endpoints stay dark. This is an artistic ink pulse, never a force ruler.
+    const u = Math.min(1, accent * 1.6);
+    frame.surface = {core: `rgb(${Math.round(28 + 87 * u)},${Math.round(79 - 34 * u)},${Math.round(83 - 17 * u)})`};
+    frame.spectrumForm = 'caps'; frame.palette = ['#209e96', '#d78347', '#b05c83']; frame.reflection = 0;
+  }
+  if (id === 'letterpress') {
+    frame.background = '#f6edcf'; frame.backgroundRgb = '246,237,207';
+    frame.surface = {core: '#344d46', shadow: '#b89c6b', highlight: '#fffcef', offset: 2.5 + .7 * accent};
+    frame.spectrumForm = 'pleats'; frame.palette = ['#4f9688', '#c6a257', '#c27558']; frame.reflection = 0;
+  }
+  if (id === 'sunprint') {
+    frame.background = '#fff0b4'; frame.backgroundRgb = '255,240,180';
+    frame.surface = {core: '#204d89'}; frame.spectrumForm = 'dots';
+    frame.palette = ['#14958e', '#dd6637', '#b36a71']; frame.reflection = 0;
+    frame.scale = 1.015 + .012 * accent;
   }
   return frame;
 }

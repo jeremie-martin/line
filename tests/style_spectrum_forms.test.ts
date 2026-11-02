@@ -5,7 +5,7 @@ import {SpectrumForms, type SpectrumForm, type SpectrumFormsProps} from '../remo
 const require = createRequire(new URL('../remotion/package.json', import.meta.url));
 const {createElement} = require('react');
 const {renderToStaticMarkup} = require('react-dom/server');
-const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails'];
+const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails', 'pleats', 'caps'];
 const defaults: SpectrumFormsProps = {
   mode: 'contours', row: [.2, .8, .4], history: [], width: 300, height: 100,
   palette: ['#126', '#f84'], accent: .5, dark: false,
@@ -101,4 +101,46 @@ describe('transparent experimental spectrum forms', () => {
     expect(ends[0] + ends[1]).toBeCloseTo(defaults.width);
     expect(ends[2] + ends[3]).toBeCloseTo(defaults.width);
   });
+  test('pleats retain actual band ridges, continuous heights and transparent gaps', () => {
+    const source = markup({mode: 'pleats', row: [.5, 0, 1]});
+    expect(source.match(/<polygon /g)).toHaveLength(4);
+    expect(source).not.toContain('<rect');
+    const polygons = [...source.matchAll(/points="([^"]+)"/g)].map(match =>
+      match[1].split(' ').map(pair => pair.split(',').map(Number)));
+    expect(Math.min(...polygons.slice(0, 2).flat().map(point => point[1]))).toBe(50);
+    expect(Math.min(...polygons.slice(2).flat().map(point => point[1]))).toBe(0);
+    expect(Math.max(...polygons.slice(0, 2).flat().map(point => point[0]))).toBeLessThan(100);
+    expect(Math.min(...polygons.slice(2).flat().map(point => point[0]))).toBeGreaterThan(200);
+    for (const points of polygons) for (const [x, y] of points) {
+      expect(x).toBeGreaterThanOrEqual(0); expect(x).toBeLessThanOrEqual(300);
+      expect(y).toBeGreaterThanOrEqual(0); expect(y).toBeLessThanOrEqual(100);
+    }
+    expect(markup({mode: 'pleats', row: [.5001]})).not.toBe(markup({mode: 'pleats', row: [.5]}));
+    for (const match of source.matchAll(/opacity="([^"]+)"/g)) expect(Number(match[1])).toBeLessThan(1);
+  });
+  test('peak caps use only current and supplied historical energy at each band', () => {
+    const source = markup({mode: 'caps', row: [.2, .8, 0], history: [[.9, .3], [.4, NaN, .6]]});
+    expect(source.match(/<rect /g)).toHaveLength(2);
+    expect(source.match(/<line /g)).toHaveLength(3);
+    const peaks = [...source.matchAll(/ y1="([^"]+)"/g)].map(match => Number(match[1]));
+    const capStroke = .75, baseline = 100 - capStroke / 2, usable = 100 - capStroke;
+    for (const [i, peak] of [.9, .8, .6].entries()) expect(peaks[i]).toBeCloseTo(baseline - peak * usable);
+    const noHistory = markup({mode: 'caps', row: [.2, .8, 0], history: []});
+    expect(noHistory.match(/<line /g)).toHaveLength(2);
+    const top = Number(noHistory.match(/ y="([^"]+)"/)?.[1]);
+    const cap = Number(noHistory.match(/ y1="([^"]+)"/)?.[1]);
+    expect(cap).toBeCloseTo(top);
+    expect(markup({mode: 'caps', row: [0], history: [[NaN], []]})).not.toMatch(/<(rect|line)\b/);
+  });
+  test('peak caps and folded bands stay finite and bounded for small viewports', () => {
+    for (const mode of ['pleats', 'caps'] as const) {
+      const source = markup({mode, row: [1, 0, .5], history: [[Infinity, -1, 2]], width: 3, height: 1});
+      expect(source).not.toMatch(/NaN|Infinity|undefined/);
+      for (const match of source.matchAll(/ (?:y|y1|y2|height)="([^"]+)"/g)) {
+        expect(Number(match[1])).toBeGreaterThanOrEqual(0);
+        expect(Number(match[1])).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
 });

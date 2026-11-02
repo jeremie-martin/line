@@ -526,7 +526,8 @@ const SpectrumViz: React.FC<{
       </defs>
       <g mask={fade ? `url(#${id}-mask)` : undefined}>
       {look?.spectrumForm ? <SpectrumForms mode={look.spectrumForm} row={row}
-        history={[.12, .24, .4].filter(age => t >= age).map(age => spec.frames[Math.max(0, Math.floor((t - age) * spec.fps))] ?? [])}
+        history={look.spectrumForm === 'caps' ? spec.frames.slice(Math.max(0, fi - Math.floor(.4 * spec.fps)), fi)
+          : [.12, .24, .4].filter(age => t >= age).map(age => spec.frames[Math.max(0, Math.floor((t - age) * spec.fps))] ?? [])}
         width={width} height={maxBar} palette={palette} accent={look.accent} dark={look.dark} /> : look?.ribbon ? <>
         <path d={ribbon.fill} fill={`url(#${id}-palette)`} opacity={.38} />
         <path d={ribbon.crest} fill="none" stroke={`url(#${id}-palette)`} strokeWidth={3} strokeLinejoin="round" />

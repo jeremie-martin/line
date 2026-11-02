@@ -1,7 +1,7 @@
 import React from 'react';
 import {ribbonPaths} from './spectrum';
 
-export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails';
+export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails' | 'pleats' | 'caps';
 export type SpectrumFormsProps = {
   mode: SpectrumForm;
   row: readonly number[];
@@ -68,7 +68,7 @@ export const SpectrumForms: React.FC<SpectrumFormsProps> = ({mode, row, history,
         fill={color(i / Math.max(1, values.length - 1))}
         // Fade in the fractional cell and move the bright crest continuously:
         // the previous cap settles to body ink as the next cap becomes visible.
-        opacity={unit(occupied - level) * (.3 + (.42 + .18 * hit) * unit(2 - occupied + level))} />);
+        opacity={unit(occupied - level) * ((dark ? .3 : .5) + ((dark ? .42 : .3) + (dark ? .18 : .15) * hit) * unit(2 - occupied + level))} />);
     })}</g>;
   }
   if (mode === 'fan') {
@@ -91,6 +91,42 @@ export const SpectrumForms: React.FC<SpectrumFormsProps> = ({mode, row, history,
       return <g key={i} stroke={color(i / Math.max(1, values.length - 1))} strokeWidth={lineWidth} opacity={.65}>
         <line x1={inset} x2={inset + extent * value} y1={y} y2={y} />
         <line x1={width - inset} x2={width - inset - extent * value} y1={y} y2={y} />
+      </g>;
+    })}</g>;
+  }
+  if (mode === 'pleats') {
+    const step = width / values.length, half = step * .39;
+    return <g>{values.map((value, i) => {
+      if (value <= 0) return null;
+      const center = (i + .5) * step, top = height * (1 - value);
+      const fold = Math.min(height * value * .12, step * .3);
+      const left = center - half, right = center + half;
+      // Each ridge is the actual band height. The shallow folded shoulders
+      // supply material shading without connecting bands into an opaque panel.
+      return <g key={i} fill={color(i / Math.max(1, values.length - 1))}>
+        <polygon points={`${left},${height} ${center},${height} ${center},${top} ${left},${top + fold}`}
+          opacity={.42 + .1 * hit} />
+        <polygon points={`${center},${height} ${right},${height} ${right},${top + fold} ${center},${top}`}
+          opacity={.65 + .08 * hit} />
+      </g>;
+    })}</g>;
+  }
+  if (mode === 'caps') {
+    const step = width / values.length, barWidth = step * .38;
+    const capWidth = step * .7, capStroke = Math.min(stroke, height, step * .4);
+    const baseline = height - capStroke / 2, usableHeight = height - capStroke;
+    return <g>{values.map((value, i) => {
+      // Only the supplied historical samples can hold a cap above the current
+      // band. Missing bands and invalid samples contribute no invented energy.
+      const peak = Math.max(value, ...history.map(samples => unit(samples[i] ?? 0)));
+      if (peak <= 0) return null;
+      const center = (i + .5) * step, h = value * usableHeight;
+      const y = baseline - peak * usableHeight, ink = color(i / Math.max(1, values.length - 1));
+      return <g key={i}>
+        {value > 0 && <rect x={center - barWidth / 2} y={baseline - h} width={barWidth} height={h}
+          fill={ink} opacity={.52 + .08 * hit} />}
+        <line x1={center - capWidth / 2} x2={center + capWidth / 2} y1={y} y2={y}
+          stroke={ink} strokeWidth={capStroke} opacity={.85 + .1 * hit} />
       </g>;
     })}</g>;
   }

@@ -6,6 +6,10 @@ import type {SpectrumForm} from './SpectrumForms';
 import {contactAccent, contactKick, phraseAt, recentContacts, type TargetAxis} from './signals';
 
 export const STUDY_LOOKS = {
+  'cobalt-poster': {label: 'Cobalt poster', description: 'Open cobalt frequency brackets, crisp blue geometry and a concise contact zoom.'},
+  'mint-relief': {label: 'Mint relief', description: 'Plum ink and lilac relief on cool mint; the material gathers on contact while the camera rests.'},
+  'iris-weave': {label: 'Iris weave', description: 'Seven real past frequency contours recede beneath a confident current line, with slow authored-air framing.'},
+  'magenta-signal': {label: 'Magenta signal', description: 'One bold magenta frequency contour and a brief matching contact edge on near-white.'},
   approved: {label: 'Approved', description: 'The approved full-width spectrum, impact effects and static soft-base vignette.'},
   elastic: {label: 'Elastic print', description: 'A deliberate contact kick and rebound, crisp colour accents, and a warmer spectrum.'},
   electric: {label: 'Electric paper', description: 'Cyan and coral ink edges, a luminous spectrum and graphic contact ripples; very little camera movement.'},
@@ -24,6 +28,9 @@ export const STUDY_LOOKS = {
   phosphor: {label: 'Phosphor', description: 'A dot-matrix frequency display beneath precise luminous geometry, without flicker or scanlines.'},
   fan: {label: 'Resonance fan', description: 'Frequency stems open into a shallow fan below the ride; warm ink and a quiet camera.'},
   registration: {label: 'Registration lock', description: 'Two coloured underprints gather into the crisp dark line on contact, then relax outward.'},
+  'press-porcelain': {label: 'Press · Porcelain', description: 'The same Press Pop motion and folded spectrum, in porcelain, blue and teal.'},
+  'press-mint': {label: 'Press · Mint', description: 'The same Press Pop motion and folded spectrum, on pale mint with plum ink.'},
+  'press-lilac': {label: 'Press · Lilac', description: 'The same Press Pop motion and folded spectrum, in lilac, navy and teal.'},
   daybreak: {label: 'Daybreak', description: 'Pastel light behind dark teal geometry, open frequency contours and slow breathing room.'},
   'press-pop': {label: 'Press pop', description: 'A single contact zoom pulse and ink accent on warm yellow paper, with folded spectrum faces.'},
   'side-glide': {label: 'Side glide', description: 'A small horizontal kick and gentle roll, with clear spectrum peaks on a pale mint canvas.'},
@@ -41,14 +48,27 @@ export type StudyFrame = {
   ribbon: boolean; reflection: number; glow: number; accent: number;
   scale: number; y: number; ink: number; x?: number; rotation?: number;
   spectrumForm?: SpectrumForm;
+  spectrumShadow?: {color: string; offset: number};
   surface?: {core: string; shadow?: string; highlight?: string; offset?: number; shadowBlur?: number; halo?: string; haloRadius?: number; weight?: number};
   atmosphere?: {color: string; second: string; amount: number; position: number};
   backgroundRgb?: string; ripples: {age: number; strength: number}[];
 };
 
+const colourStudies: Record<string, {background: string; rgb: string; core: string; palette: string[]}> = {
+  'press-porcelain': {background: '#f4f7fb', rgb: '244,247,251', core: '#243b62', palette: ['#236fa1', '#7e8ed4', '#288f8b']},
+  'press-mint': {background: '#eef8f3', rgb: '238,248,243', core: '#43395c', palette: ['#1d9686', '#587db5', '#976ca8']},
+  'press-lilac': {background: '#f5f1fc', rgb: '245,241,252', core: '#30455b', palette: ['#596bbb', '#9c66a0', '#3b9f9a']},
+};
+
 export function studyFrame(id: string | undefined, t: number, data: StudyData): StudyFrame | null {
   if (!id || id === 'approved') return null;
   if (!(id in STUDY_LOOKS)) throw new Error(`Unknown style study look: ${id}`);
+  const colours = colourStudies[id];
+  if (colours) {
+    const base = studyFrame('press-pop', t, data)!;
+    return {...base, id: id as StudyLook, background: colours.background, backgroundRgb: colours.rgb,
+      surface: {...base.surface!, core: colours.core}, palette: colours.palette};
+  }
   const accent = contactAccent(t, data.contacts), kick = contactKick(t, data.contacts);
   const air = phraseAt(data.axes, 'air', t), speed = phraseAt(data.axes, 'speed', t);
   const frame: StudyFrame = {id: id as StudyLook, fx: {...LOCKED_FX}, background: '#ffffff', dark: false,
@@ -185,6 +205,30 @@ export function studyFrame(id: string | undefined, t: number, data: StudyData): 
     frame.surface = {core: '#204d89'}; frame.spectrumForm = 'dots';
     frame.palette = ['#14958e', '#dd6637', '#b36a71']; frame.reflection = 0;
     frame.scale = 1.015 + .012 * accent;
+  }
+  if (id === 'cobalt-poster') {
+    frame.background = '#f7f9fc'; frame.backgroundRgb = '247,249,252';
+    frame.surface = {core: '#213859', shadow: '#2aa9b7', offset: 5 * accent};
+    frame.spectrumForm = 'slits'; frame.palette = ['#2456a6', '#2456a6']; frame.reflection = 0;
+    frame.scale = 1.014 + .02 * accent;
+  }
+  if (id === 'mint-relief') {
+    frame.background = '#eef7f3'; frame.backgroundRgb = '238,247,243';
+    const offset = 4 * (1 - .65 * accent);
+    frame.surface = {core: '#493a5f', shadow: '#b3a4cb', offset};
+    frame.spectrumShadow = {color: '#b3a4cb', offset};
+    frame.spectrumForm = 'blocks'; frame.palette = ['#497c82', '#72638d', '#497c82']; frame.reflection = 0;
+  }
+  if (id === 'iris-weave') {
+    frame.background = '#f6f4fb'; frame.backgroundRgb = '246,244,251';
+    frame.surface = {core: '#293e59'};
+    frame.spectrumForm = 'weave'; frame.palette = ['#485a91', '#817e9e']; frame.reflection = 0;
+    frame.scale = 1.035 - .025 * air;
+  }
+  if (id === 'magenta-signal') {
+    frame.background = '#f9fafc'; frame.backgroundRgb = '249,250,252';
+    frame.surface = {core: '#26313d', shadow: '#bd3f86', offset: 4 * accent};
+    frame.spectrumForm = 'crest'; frame.palette = ['#bd3f86', '#bd3f86']; frame.reflection = 0;
   }
   return frame;
 }

@@ -276,3 +276,40 @@ The rebased full suite passed 407 tests; final focused checks passed 34 tests.
 Both TypeScript projects, reachability and judge parity (33 tracks) pass. Physical
 phone testing is not claimed. Full-film and short-passage links are in the two
 collection JSON files under `generated/style-lab-v3/`.
+
+## Cool light: identities rather than a warm-paper default
+
+User feedback: Press Pop and Sunprint leaned too far into yellow/orange. Bright
+work should include cool, neutral and coloured light backgrounds. The fourth
+study keeps the existing studies intact and compares four complete treatments:
+
+- **Mint relief:** plum geometry, cool mint paper and a lilac directional shadow
+  shared by the spectrum. The relief gathers on measured contact; camera rests.
+- **Iris weave:** navy geometry and a lavender field, with seven actual historical
+  frequency contours at 60 ms intervals. Slow framing follows requested air.
+- **Cobalt poster:** open blue frequency brackets, cyan contact underprint and a
+  concise zoom pulse. Precise rather than exuberant; the name is an art direction.
+- **Magenta signal:** one assertive magenta contour and matching contact edge,
+  with a steady camera. Deliberately spare; not every song needs this restraint.
+
+Separate Porcelain/Mint/Lilac Press controls change **only colours**. Their motion,
+material weight, spectrum geometry and timing match Press Pop exactly. This lets
+us discuss colour without confusing it with effect preferences.
+
+Two independent agent critiques informed the selection and reviewed rendered
+frames. Initial cobalt/magenta strokes were too delicate at phone width; they
+were strengthened without glow or greater amplitude. Iris history was made more
+visible while remaining less than half the current contour's opacity. Mint was
+already coherent; more shadow would soften the rider unnecessarily. Empty upper
+space is useful and was deliberately retained.
+
+The new spectrum forms are open SVG marks. Weave linearly reconstructs adjacent
+real spectrum rows for smooth history; it invents neither instrument labels nor
+pre-roll. No new effect timeline, automatic style choice or orchestration layer.
+The approved production recipe remains unchanged. The study is opt-in.
+
+Artifacts: `generated/style-lab-v4/collection.json` groups complete identities,
+colour-only controls and material comparisons. `full-collection.json` pairs Lua
+with Iris, Petrunko with Mint (plus earlier Cut Paper), and LOS with Cobalt and
+Magenta. Earlier collections remain available. Reviews were muted and visual;
+they are not listening tests or claims of physical-phone validation.

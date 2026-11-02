@@ -1,7 +1,7 @@
 import React from 'react';
 import {ribbonPaths} from './spectrum';
 
-export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails' | 'pleats' | 'caps';
+export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails' | 'pleats' | 'caps' | 'weave' | 'slits' | 'crest';
 export type SpectrumFormsProps = {
   mode: SpectrumForm;
   row: readonly number[];
@@ -25,6 +25,36 @@ export const SpectrumForms: React.FC<SpectrumFormsProps> = ({mode, row, history,
   const color = (fraction: number): string => colors[Math.min(colors.length - 1, Math.floor(unit(fraction) * colors.length))];
   const stroke = Math.max(.6, Math.min(2.2, width / 400));
 
+  if (mode === 'weave' || mode === 'crest') {
+    const lineWidth = Math.min(mode === 'crest' ? width / 180 : stroke * 1.6, width / 8, height / 8), pad = lineWidth / 2;
+    const innerWidth = width - 2 * pad, innerHeight = height - 2 * pad;
+    const previous = mode === 'weave' ? history.slice(0, 7).map(samples => samples.map(unit)) : [];
+    // Fixed depth keeps the current contour still as history becomes available.
+    // Every receding line is a supplied past spectrum, never a scaled duplicate.
+    const amplitude = innerHeight * (mode === 'weave' ? .72 : 1);
+    return <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+      {previous.map((samples, index) => ({samples, index})).reverse().map(({samples, index}) =>
+        audible(samples) && <path key={index} d={ribbonPaths(samples, innerWidth, amplitude).crest}
+          transform={`translate(${pad} ${pad + innerHeight * .04 * (index + 1)})`}
+          stroke={colors[Math.min(1, colors.length - 1)]} strokeWidth={lineWidth * .7}
+          opacity={.42 - index * .032} />)}
+      {audible(values) && <path d={ribbonPaths(values, innerWidth, amplitude).crest}
+        transform={`translate(${pad} ${pad})`} stroke={colors[0]} strokeWidth={lineWidth} opacity={mode === 'crest' ? 1 : .9} />}
+    </g>;
+  }
+  if (mode === 'slits') {
+    const step = width / values.length, lineWidth = Math.min(stroke * 2, step * .22, height / 8);
+    const baseline = height - lineWidth / 2, usableHeight = height - lineWidth;
+    return <g fill="none" stroke={colors[0]} strokeWidth={lineWidth} strokeLinecap="round" strokeLinejoin="round" opacity={.98}>
+      {values.map((value, i) => {
+        if (value <= 0) return null;
+        const center = (i + .5) * step, half = step * .26, top = baseline - value * usableHeight;
+        // Open-bottom brackets give each frequency its own air and saturated ink,
+        // without a filled floor or a connection across silent bands.
+        return <path key={i} d={`M ${center - half},${baseline} L ${center - half},${top} L ${center + half},${top} L ${center + half},${baseline}`} />;
+      })}
+    </g>;
+  }
   if (mode === 'contours') {
     if (!audible(values)) return null;
     return <g fill="none" strokeLinecap="round" strokeLinejoin="round">

@@ -12,7 +12,7 @@ import {
   continueRender,
   getInputProps,
 } from "remotion";
-import {ribbonPaths} from './study/spectrum';
+import {ribbonPaths, sampleSpectrumRow} from './study/spectrum';
 import {studyFrame, type StudyFrame} from './study/looks';
 import {SpectrumForms} from './study/SpectrumForms';
 import {StudyRide, StudyRipples, StudyAtmosphere} from './study/Layers';
@@ -499,7 +499,7 @@ const SpectrumViz: React.FC<{
   sym: boolean; fade: boolean; enter: number; id: string; look?: StudyFrame | null;
 }> = ({ spec, t, left, width, baseY, maxBar, sym, fade, enter, id, look }) => {
   const fi = Math.max(0, Math.min(spec.frames.length - 1, Math.floor(t * spec.fps)));
-  const row = spec.frames[fi] ?? [];
+  const row = look?.spectrumForm === 'weave' ? sampleSpectrumRow(spec.frames, spec.fps, t) : spec.frames[fi] ?? [];
   const n = row.length || 1;
   const gap = 3;
   const bw = (width - gap * (n - 1)) / n;
@@ -510,11 +510,11 @@ const SpectrumViz: React.FC<{
   return (
     <svg width={width} height={svgH} style={{ position: "absolute", left, top: baseY - maxBar, opacity: enter,
       mixBlendMode: look && !['motion-only', 'ink-only'].includes(look.id) ? (look.dark ? 'screen' : 'multiply') : undefined,
-      filter: look?.glow ? `drop-shadow(0 0 ${2 + look.glow * 5}px ${look.dark ? '#49bbc366' : '#43b8c544'})` : undefined }}>
+      filter: look?.spectrumShadow ? `drop-shadow(${look.spectrumShadow.offset}px ${look.spectrumShadow.offset}px 0 ${look.spectrumShadow.color})` : look?.glow ? `drop-shadow(0 0 ${2 + look.glow * 5}px ${look.dark ? '#49bbc366' : '#43b8c544'})` : undefined }}>
 
       <defs>
         <linearGradient id={`${id}-palette`} x1="0" x2="1" y1="0" y2="0">
-          {palette.map((color, i) => <stop key={color} offset={stops[i]} stopColor={color} />)}
+          {palette.map((color, i) => <stop key={i} offset={stops[i]} stopColor={color} />)}
         </linearGradient>
         <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">
           <stop offset="0" stopColor="#fff" stopOpacity="0" /><stop offset="0.07" stopColor="#fff" stopOpacity="1" />
@@ -526,7 +526,7 @@ const SpectrumViz: React.FC<{
       </defs>
       <g mask={fade ? `url(#${id}-mask)` : undefined}>
       {look?.spectrumForm ? <SpectrumForms mode={look.spectrumForm} row={row}
-        history={look.spectrumForm === 'caps' ? spec.frames.slice(Math.max(0, fi - Math.floor(.4 * spec.fps)), fi)
+        history={look.spectrumForm === 'weave' ? [.06, .12, .18, .24, .3, .36, .42].filter(age => t >= age).map(age => sampleSpectrumRow(spec.frames, spec.fps, t - age)) : look.spectrumForm === 'caps' ? spec.frames.slice(Math.max(0, fi - Math.floor(.4 * spec.fps)), fi)
           : [.12, .24, .4].filter(age => t >= age).map(age => spec.frames[Math.max(0, Math.floor((t - age) * spec.fps))] ?? [])}
         width={width} height={maxBar} palette={palette} accent={look.accent} dark={look.dark} /> : look?.ribbon ? <>
         <path d={ribbon.fill} fill={`url(#${id}-palette)`} opacity={.38} />

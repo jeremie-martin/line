@@ -5,7 +5,7 @@ import {SpectrumForms, type SpectrumForm, type SpectrumFormsProps} from '../remo
 const require = createRequire(new URL('../remotion/package.json', import.meta.url));
 const {createElement} = require('react');
 const {renderToStaticMarkup} = require('react-dom/server');
-const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails', 'pleats', 'caps'];
+const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails', 'pleats', 'caps', 'weave', 'slits', 'crest'];
 const defaults: SpectrumFormsProps = {
   mode: 'contours', row: [.2, .8, .4], history: [], width: 300, height: 100,
   palette: ['#126', '#f84'], accent: .5, dark: false,
@@ -13,6 +13,57 @@ const defaults: SpectrumFormsProps = {
 const markup = (props: Partial<SpectrumFormsProps>): string => renderToStaticMarkup(createElement(SpectrumForms, {...defaults, ...props}));
 
 describe('transparent experimental spectrum forms', () => {
+  test('weave uses at most seven actual past rows with a dominant current contour', () => {
+    const source = markup({mode: 'weave', history: [[.9, .1, .9], [0, 0, 0], [.1, .1, .1]]});
+    expect(source.match(/<path /g)).toHaveLength(3);
+    expect(source).toContain('fill="none"');
+    expect(source).not.toBe(markup({mode: 'weave', history: [[.1, .9, .1], [0, 0, 0], [.1, .1, .1]]}));
+    const paths = [...source.matchAll(/<path [^>]+/g)].map(match => match[0]);
+    const last = paths.at(-1)!;
+    expect(Number(last.match(/opacity="([^"]+)"/)?.[1])).toBeGreaterThan(.8);
+    for (const path of paths.slice(0, -1)) {
+      expect(Number(path.match(/opacity="([^"]+)"/)?.[1])).toBeLessThanOrEqual(Number(last.match(/opacity="([^"]+)"/)?.[1]) / 2);
+      expect(Number(path.match(/stroke-width="([^"]+)"/)?.[1])).toBeLessThan(Number(last.match(/stroke-width="([^"]+)"/)?.[1]));
+    }
+    const history = Array.from({length: 7}, () => [.5]);
+    expect(markup({mode: 'weave', history})).toBe(markup({mode: 'weave', history: [...history, [1]]}));
+    expect(markup({mode: 'weave', history}).match(/<path /g)).toHaveLength(8);
+    expect(markup({mode: 'weave', row: [0], history: [[NaN], []]})).not.toContain('<path');
+    expect(markup({mode: 'weave', row: [0], history: [[.5]]}).match(/<path /g)).toHaveLength(1);
+    // History does not move the present line as the beginning of a clip fills in.
+    expect(markup({mode: 'weave'}).match(/<path [^>]+/)?.[0]).toBe(last);
+  });
+  test('crest is a single current contour and slits leave open gaps with one ink', () => {
+    for (const mode of ['crest', 'slits'] as const) {
+      const source = markup({mode, row: [1, 0, .5]});
+      expect(source).toContain('fill="none"');
+      expect(source).not.toMatch(/<(rect|polygon)\b/);
+      expect(source).not.toContain('#f84');
+      expect(source).toBe(markup({mode, row: [1, 0, .5], history: [[1, 1, 1]], accent: 1}));
+      expect(source.match(/<path /g)).toHaveLength(mode === 'crest' ? 1 : 2);
+      expect(source).not.toMatch(/ Z[" ]/);
+    }
+    expect(markup({mode: 'slits', row: [.001]})).not.toBe(markup({mode: 'slits', row: [.002]}));
+  });
+  test('new open graphics keep their entire strokes inside even tiny viewports', () => {
+    for (const mode of ['weave', 'crest', 'slits'] as const) for (const [width, height] of [[300, 100], [3, 1]]) {
+      const source = markup({mode, width, height, row: [1, 0, .5], history: Array.from({length: 7}, () => [0, 1, 0])});
+      for (const match of source.matchAll(/<path ([^>]+)/g)) {
+        const path = match[1];
+        const translation = path.match(/transform="translate\(([^ ]+) ([^)]+)\)"/);
+        const dx = Number(translation?.[1] ?? 0), dy = Number(translation?.[2] ?? 0);
+        const lineWidth = Number(path.match(/stroke-width="([^"]+)"/)?.[1] ?? source.match(/stroke-width="([^"]+)"/)?.[1]);
+        const coordinates = path.match(/d="([^"]+)"/)![1];
+        for (const pair of coordinates.matchAll(/([\d.e+-]+),([\d.e+-]+)/g)) {
+          const x = Number(pair[1]) + dx, y = Number(pair[2]) + dy;
+          expect(x - lineWidth / 2).toBeGreaterThanOrEqual(-1e-10);
+          expect(x + lineWidth / 2).toBeLessThanOrEqual(width + 1e-10);
+          expect(y - lineWidth / 2).toBeGreaterThanOrEqual(-1e-10);
+          expect(y + lineWidth / 2).toBeLessThanOrEqual(height + 1e-10);
+        }
+      }
+    }
+  });
   test('empty data and silent bands do not invent visible marks', () => {
     for (const mode of modes) {
       expect(markup({mode, row: []})).toBe('');

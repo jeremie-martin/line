@@ -1,7 +1,7 @@
 import {describe, expect, test} from 'vitest';
 import {contactAccent, contactKick, phraseAt, recentContacts, targetAt} from '../remotion/src/study/signals.ts';
 import {STUDY_LOOKS, studyFrame} from '../remotion/src/study/looks.ts';
-import {ribbonPaths} from '../remotion/src/study/spectrum.ts';
+import {ribbonPaths, sampleSpectrumRow} from '../remotion/src/study/spectrum.ts';
 import {LOCKED_FX} from '../scripts/fx_recipe.ts';
 
 const axes = [{axis: 'air', target: [{t: 0, v: .2}, {t: 1, v: .2}, {t: 1.01, v: .9}, {t: 3, v: .9}]}];
@@ -89,4 +89,41 @@ describe('style-study signal semantics', () => {
     expect(LOCKED_FX.chroma.maxPx).toBe(14);
     expect(() => studyFrame('typo', 0, data)).toThrow('Unknown');
   });
+});
+
+describe('cool colour controls and spectral reconstruction', () => {
+  test('Press colour controls change only their colours and identity', () => {
+    const data = {axes, contacts: [{t: 1, impactMeasured: .8}]};
+    const geometry = (frame: NonNullable<ReturnType<typeof studyFrame>>) => {
+      const {id, background, backgroundRgb, palette, surface, ...rest} = frame;
+      const {core, ...material} = surface!;
+      return {...rest, material};
+    };
+    for (const t of [0, 1.04, 1.2, 2]) {
+      const base = studyFrame('press-pop', t, data)!;
+      for (const id of ['press-porcelain', 'press-mint', 'press-lilac']) {
+        expect(geometry(studyFrame(id, t, data)!)).toEqual(geometry(base));
+      }
+    }
+  });
+  test('new contact styles settle and keep an unchanging camera where intended', () => {
+    const data = {axes: [], contacts: [{t: 1, impactMeasured: 1}]};
+    for (const id of ['cobalt-poster', 'magenta-signal']) {
+      expect(studyFrame(id, .5, data)!.surface!.offset).toBe(0);
+      expect(studyFrame(id, 1.04, data)!.surface!.offset).toBeGreaterThan(0);
+      expect(studyFrame(id, 2, data)!.surface!.offset).toBe(0);
+    }
+    for (const id of ['mint-relief', 'magenta-signal']) {
+      expect(studyFrame(id, 1.04, data)!.scale).toBe(1);
+    }
+  });
+});
+
+test('spectrum sampling interpolates real adjacent rows without inventing pre-roll', () => {
+  expect(sampleSpectrumRow([[0, 1], [1, 0]], 10, .025)).toEqual([.25, .75]);
+  expect(sampleSpectrumRow([[0], [1]], 10, 5)).toEqual([1]);
+  expect(sampleSpectrumRow([[1]], 10, -.01)).toEqual([]);
+  expect(sampleSpectrumRow([], 10, 0)).toEqual([]);
+  expect(sampleSpectrumRow([[1]], 0, 0)).toEqual([]);
+  expect(sampleSpectrumRow([[NaN, 2, -1], [1, Infinity, 1]], 10, .05)).toEqual([.5, .5, .5]);
 });

@@ -10,6 +10,7 @@ export const STUDY_LOOKS = {
   electric: {label: 'Electric paper', description: 'Cyan and coral ink edges, a luminous spectrum and graphic contact ripples; very little camera movement.'},
   suspension: {label: 'Suspension', description: 'A flowing frequency ribbon and slow camera breathing from the authored air lane, punctuated by measured contacts.'},
   graphite: {label: 'Graphite', description: 'A consistently dark canvas, bright geometry and an electric spectrum. No flashing inversions.'},
+  'arc-light': {label: 'Arc light', description: 'A stronger contact kick and cyan light edge, with crisp warm-white geometry and confident spectrum bars.'},
   'cut-paper': {label: 'Cut paper', description: 'Charcoal cut-outs with a small warm shadow, cream paper and stepped spectrum blocks.'},
   edges: {label: 'Edge currents', description: 'Frequency side rails leave the lower centre open; the ride remains the focus.'},
   atlas: {label: 'Contour atlas', description: 'Open nested frequency contours and dark teal linework; space and geometry lead.'},
@@ -68,6 +69,12 @@ export function studyFrame(id: string | undefined, t: number, data: StudyData): 
     frame.dark = true; frame.background = '#101923'; frame.palette = ['#53e4db', '#71baff', '#ff8c9d'];
     frame.y = 12 * kick; frame.scale = 1.025 + .013 * kick; frame.reflection = .23; frame.glow = .4 + accent;
     frame.ripples = recentContacts(t, data.contacts, .48).slice(-3);
+  }
+  if (id === 'arc-light') {
+    frame.dark = true; frame.background = '#111c2b'; frame.backgroundRgb = '17,28,43';
+    frame.surface = {core: '#fff9e7', shadow: '#40d9ea', offset: 8 * accent, halo: '#69a9db', haloRadius: 1.5 + 4 * accent};
+    frame.palette = ['#43d6ce', '#73aafa', '#f2be6a']; frame.reflection = .12;
+    frame.y = 18 * kick; frame.scale = 1.03 + .025 * kick;
   }
   if (id === 'cut-paper') {
     frame.background = '#f8f1e5'; frame.backgroundRgb = '248,241,229';

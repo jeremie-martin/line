@@ -46,6 +46,13 @@ describe('style-study signal semantics', () => {
       expect(path.fill).toContain('L 100,20 L 0,20 Z');
     }
   });
+  test('Arc light releases its contact edge fully between impacts', () => {
+    const data = {axes: [], contacts: [{t: 1, actualTime: 1.2, impactMeasured: .8}]};
+    expect(studyFrame('arc-light', 1.1, data)?.surface?.offset).toBe(0);
+    expect(studyFrame('arc-light', 1.24, data)?.surface?.offset).toBeGreaterThan(0);
+    expect(studyFrame('arc-light', 2, data)?.surface?.offset).toBe(0);
+    expect(studyFrame('arc-light', 1.24, {...data, contacts: [{t: 1.2, impactMeasured: null}]})?.surface?.offset).toBe(0);
+  });
   test('approved treatment stays untouched; experimental recipes are finite and bounded', () => {
     const data = {axes, contacts: [{t: 1, impactMeasured: 1}]};
     expect(studyFrame('approved', 1, data)).toBeNull();

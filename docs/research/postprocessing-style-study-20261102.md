@@ -349,3 +349,98 @@ frame count, frame rate and decoded PCM audio within their comparison. Browser
 checks pass all hub links, desktop and phone-width layout, and 172 focused/player
 selections without page errors. No new player implementation or media render was
 needed; the existing same-moment comparison player is reused.
+
+## Feedback pass: clear resting geometry, expressive accompaniment
+
+The owner's partial review is a starting point, not a rule to maximize sharpness
+at every moment. The main distinction is a clear settled view versus brief,
+intentional accents. Persistent material shadows, peak-hold caps, decorative
+ellipses and broad atmospheric haze are not in the new shortlist. The earlier
+looks remain available, including Aurora as a lower-priority atmospheric idea.
+
+Seven treatments cover four graphic families plus purposeful variants:
+Cobalt architecture (brackets/contact zoom), Mint percussion (blocks/ink weight),
+Silver tuning (stronger current-value stems), Iris terraces (receding real history),
+Graphite mirror (dark/reflection/rebound), Porcelain mirror (light/reflection/contact
+edge), and Electric registration (two transient underprints). Electric and Mint
+have related settled compositions; their difference should be judged in motion.
+There is no new automatic adoption or style-selection workflow.
+
+Iris uses fixed-x gaps rather than dashes that crawl along a deforming path. A
+continuous-contour control remains available: preserve the liked flowing language
+as an option. Another control changes only vertical placement, keeping height,
+colour and history constant. A lower band reduces confusion but cannot guarantee
+that moving track geometry never enters it. No opaque exclusion panel is added.
+
+The suspected rectangular shading was investigated separately. In an empty
+1080×300 upper region at Petrunko frame 1154, the uncompressed old Mint PNG has 13
+RGB colours from the faint static vignette; changing only that vignette produces
+one uniform colour. Thus this particular stepped field exists before video
+encoding; it is not evidence of an opaque spectrum panel. Encoding can affect its
+appearance, and this does not establish the cause of every rectangle reported.
+The new main treatments use unshaded backgrounds. The diagnostic Mint control
+retains its old shadow so that the vignette comparison stays isolated.
+
+All new short comparisons, including selected earlier references, are rendered at
+1080×1920/60 fps rather than comparing a full-resolution candidate with a smaller
+preview. Existing approved production defaults are unchanged.
+
+The review home links `/motion-gallery/style-catalog.html` alongside the existing
+switching player. The catalogue offers settled and contact PNGs and synchronized
+four-second muted H.264 loops, at full resolution/60 fps. At most four treatments
+are active. It loads no videos until requested, pauses/resumes together, releases
+media when changing views and pauses when hidden. The loop includes approach,
+contact and recovery; a freeze-frame alone overstates the duration of an effect.
+Full-size images are one click away. Each focused catalogue group links to its
+matching switching comparison; unavailable controls are disabled for other songs.
+Scratch assembly, media, diagnostics and review checks live in
+`generated/style-lab-v5/`. The original review and complete archives remain intact.
+
+Independent final frame review favours continuous lower Iris for fluidity; the
+segmented variant is more technical-looking, so both remain candidates. Electric
+briefly doubles fine rider detail more than Mint; its recovery and closely spaced
+contacts must be judged in the loop. The new treatments are related families,
+not seven claims of completely different visual worlds.
+
+The wider compile-parity gate reported mismatches and was stopped. A clean detached
+checkout of starting commit `f947ceae`, using the same inputs and WASM binary,
+reproduced the Luna automatic #101 mismatch exactly: actual track hash
+`afa7d59682059cdba7e2cf784d9c700f7fbcc120ddb1d45d4d3b929346eaa5bc` and 2,671,513
+physics frames, versus the stored 2,650,217. This sampled failure predates this
+visual change; no compiler references were updated. Full details are in the local
+`parity-baseline-comparison.json`. The temporary checkout was removed. Compiler
+parity is not claimed to pass. Judge parity (33 tracks) passes.
+
+Delivery verification: 31 short comparisons and seven full-film versions
+(including approved references) decode completely at 1080×1920/60 fps with matching
+PCM audio within each comparison. The catalogue has 31 silent four-second loops
+and 62 full-resolution stills. All 13 available catalogue groups pass image,
+synchronization, muted playback, pause/release and desktop/phone-width layout
+checks. The switching player passes 33 grouped short selections and seven paused/
+seven playing full-film selections. All seven new surfaces pass alpha and
+full-compositor geometry-overlap audits; the approved reference still remains
+pixel-identical. Browser review used muted playback; physical-phone testing is
+not claimed. The new four-film selection is Cobalt/Petrunko, Iris/Lua, and
+Electric/Graphite on LOS.
+
+After rendering finished, the clean final run passed all 418 tests across 91
+files. The earlier loaded run had one catalogue timeout; its log is preserved
+separately. The final focused style/player checks pass 43 tests, both TypeScript
+projects pass, and reachability reports zero unreachable files. Compile-parity's
+separately reproduced baseline mismatch remains the explicit exception above.
+
+A fresh independent review of the finished pass found no blocker. It favoured
+Cobalt, Mint and Graphite; considered Electric's strong but brief accent a useful
+contrast; and cautioned that segmented Iris may overcorrect. Continuous Iris stays
+first in the isolated shape comparison. The reviewer also spotted the existing
+bottom fade on a departing LOS track tail. Checking the shifted source confirmed
+its crop-softening purpose; the rider remains clear. We preserved it rather than
+exposing a hard boundary, and retained framing as a separate future experiment.
+An optional rider-detail crop is deferred; full-resolution frames already open
+from the catalogue. This review used actual frames and extracted sequences, muted.
+
+Final navigation refinement: opening the focused switching player from the
+catalogue now preserves the selected song. Unknown passage links fall back safely
+to the first song. The final 44 focused style/player tests pass, including the new
+navigation case, and real generated-page checks preserve Lua and LOS correctly.
+No media or rendering changed after the complete delivery verification.

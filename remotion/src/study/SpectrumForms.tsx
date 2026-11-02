@@ -1,7 +1,7 @@
 import React from 'react';
 import {ribbonPaths} from './spectrum';
 
-export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails' | 'pleats' | 'caps' | 'weave' | 'slits' | 'crest';
+export type SpectrumForm = 'contours' | 'memory' | 'stems' | 'blocks' | 'dots' | 'fan' | 'rails' | 'pleats' | 'caps' | 'weave' | 'slits' | 'crest' | 'terraces' | 'needles';
 export type SpectrumFormsProps = {
   mode: SpectrumForm;
   row: readonly number[];
@@ -25,14 +25,18 @@ export const SpectrumForms: React.FC<SpectrumFormsProps> = ({mode, row, history,
   const color = (fraction: number): string => colors[Math.min(colors.length - 1, Math.floor(unit(fraction) * colors.length))];
   const stroke = Math.max(.6, Math.min(2.2, width / 400));
 
-  if (mode === 'weave' || mode === 'crest') {
+  if (mode === 'weave' || mode === 'terraces' || mode === 'crest') {
     const lineWidth = Math.min(mode === 'crest' ? width / 180 : stroke * 1.6, width / 8, height / 8), pad = lineWidth / 2;
     const innerWidth = width - 2 * pad, innerHeight = height - 2 * pad;
-    const previous = mode === 'weave' ? history.slice(0, 7).map(samples => samples.map(unit)) : [];
+    const previous = mode !== 'crest' ? history.slice(0, 7).map(samples => samples.map(unit)) : [];
+    if (!audible(values) && !previous.some(audible)) return null;
     // Fixed depth keeps the current contour still as history becomes available.
     // Every receding line is a supplied past spectrum, never a scaled duplicate.
-    const amplitude = innerHeight * (mode === 'weave' ? .72 : 1);
-    return <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+    const amplitude = innerHeight * (mode !== 'crest' ? .72 : 1);
+    return <g fill="none" strokeLinecap="round" strokeLinejoin="round" clipPath={mode === 'terraces' ? 'url(#terrace-columns)' : undefined}>
+      {mode === 'terraces' && <defs><clipPath id="terrace-columns">
+        {Array.from({length: 48}, (_, i) => <rect key={i} x={i * width / 48} y={0} width={width / 48 * .78} height={height} />)}
+      </clipPath></defs>}
       {previous.map((samples, index) => ({samples, index})).reverse().map(({samples, index}) =>
         audible(samples) && <path key={index} d={ribbonPaths(samples, innerWidth, amplitude).crest}
           transform={`translate(${pad} ${pad + innerHeight * .04 * (index + 1)})`}
@@ -75,14 +79,14 @@ export const SpectrumForms: React.FC<SpectrumFormsProps> = ({mode, row, history,
         strokeWidth={stroke * 1.25} opacity={.92} />}
     </g>;
   }
-  if (mode === 'stems') {
+  if (mode === 'stems' || mode === 'needles') {
     const step = width / values.length;
     const radius = Math.min(step * .28, height / 4, stroke * (1.1 + .85 * hit));
     return <g>{values.map((value, i) => {
       if (value <= 0) return null;
       const x = (i + .5) * step, y = radius + (height - 2 * radius) * (1 - value);
       return <g key={i} stroke={color(i / Math.max(1, values.length - 1))}>
-        <line x1={x} x2={x} y1={height} y2={y} strokeWidth={stroke * .9} opacity={.55} />
+        <line x1={x} x2={x} y1={height} y2={y} strokeWidth={stroke * (mode === 'needles' ? 1.4 : .9)} opacity={mode === 'needles' ? .85 : .55} />
         <circle cx={x} cy={y} r={radius} fill={color(i / Math.max(1, values.length - 1))}
           stroke="none" opacity={.68 + .22 * hit} />
       </g>;

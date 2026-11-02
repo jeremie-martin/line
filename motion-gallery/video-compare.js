@@ -277,5 +277,7 @@ try {
     const a = document.createElement('a'); a.href = target.href; a.textContent = link.label; $('related').append(a);
   }
   $('related').hidden = !$('related').children.length;
-  await changePassage(0); tick();
+  const requestedPassage = new URLSearchParams(location.search).get('passage');
+  const initialPassage = passages.findIndex(p => p.id === requestedPassage);
+  await changePassage(Math.max(0, initialPassage)); tick();
 } catch (error) {status.textContent = error.message;}

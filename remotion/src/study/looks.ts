@@ -6,6 +6,16 @@ import type {SpectrumForm} from './SpectrumForms';
 import {contactAccent, contactKick, phraseAt, recentContacts, type TargetAxis} from './signals';
 
 export const STUDY_LOOKS = {
+  'cobalt-clear': {label: 'Cobalt architecture', description: 'Near-black geometry, cobalt brackets and a short contact zoom. Clean between accents.'},
+  'mint-clear': {label: 'Mint percussion', description: 'Almost-white mint, dark ink and solid frequency blocks. A small contact weight accent; no shadow.'},
+  'silver-tuning': {label: 'Silver tuning', description: 'Neutral paper, graphite geometry and blue-violet frequency stems, with a steady camera.'},
+  'iris-terraces': {label: 'Iris terraces', description: 'Separated lavender frequency contours and real receding history in a shallow lower band.'},
+  'graphite-mirror': {label: 'Graphite mirror', description: 'Crisp white geometry, a luminous reflected spectrum and a brief contact rebound. No halo or rings.'},
+  'porcelain-mirror': {label: 'Porcelain mirror', description: 'A soft reflected spectrum on white, dark geometry and a brief teal contact edge.'},
+  'electric-registration': {label: 'Electric registration', description: 'Violet and cyan frequency blocks with two short-lived contact underprints. Quiet ink between hits.'},
+  'iris-continuous': {label: 'Iris · continuous', description: 'The same lower Iris composition with continuous frequency contours. A shape comparison, not a verdict against the earlier flowing animation.'},
+  'iris-terraces-high': {label: 'Iris terraces · higher', description: 'The identical Iris treatment at the earlier spectrum position. Only vertical placement changes.'},
+  'mint-unshaded': {label: 'Mint · no vignette', description: 'The previous Mint relief, changing only the vignette. A diagnostic control, not a new complete treatment.'},
   'cobalt-poster': {label: 'Cobalt poster', description: 'Open cobalt frequency brackets, crisp blue geometry and a concise contact zoom.'},
   'mint-relief': {label: 'Mint relief', description: 'Plum ink and lilac relief on cool mint; the material gathers on contact while the camera rests.'},
   'iris-weave': {label: 'Iris weave', description: 'Seven real past frequency contours recede beneath a confident current line, with slow authored-air framing.'},
@@ -48,6 +58,7 @@ export type StudyFrame = {
   ribbon: boolean; reflection: number; glow: number; accent: number;
   scale: number; y: number; ink: number; x?: number; rotation?: number;
   spectrumForm?: SpectrumForm;
+  spectrumLayout?: {center: number; height: number};
   spectrumShadow?: {color: string; offset: number};
   surface?: {core: string; shadow?: string; highlight?: string; offset?: number; shadowBlur?: number; halo?: string; haloRadius?: number; weight?: number};
   atmosphere?: {color: string; second: string; amount: number; position: number};
@@ -63,6 +74,9 @@ const colourStudies: Record<string, {background: string; rgb: string; core: stri
 export function studyFrame(id: string | undefined, t: number, data: StudyData): StudyFrame | null {
   if (!id || id === 'approved') return null;
   if (!(id in STUDY_LOOKS)) throw new Error(`Unknown style study look: ${id}`);
+  if (id === 'iris-continuous') return {...studyFrame('iris-terraces', t, data)!, id, spectrumForm: 'weave'};
+  if (id === 'iris-terraces-high') return {...studyFrame('iris-terraces', t, data)!, id, spectrumLayout: {center: .73, height: .13}};
+  if (id === 'mint-unshaded') return {...studyFrame('mint-relief', t, data)!, id, fx: {}};
   const colours = colourStudies[id];
   if (colours) {
     const base = studyFrame('press-pop', t, data)!;
@@ -229,6 +243,49 @@ export function studyFrame(id: string | undefined, t: number, data: StudyData): 
     frame.background = '#f9fafc'; frame.backgroundRgb = '249,250,252';
     frame.surface = {core: '#26313d', shadow: '#bd3f86', offset: 4 * accent};
     frame.spectrumForm = 'crest'; frame.palette = ['#bd3f86', '#bd3f86']; frame.reflection = 0;
+  }
+  if (['cobalt-clear', 'mint-clear', 'silver-tuning', 'iris-terraces', 'graphite-mirror', 'porcelain-mirror', 'electric-registration'].includes(id)) {
+    frame.fx = {}; frame.background = '#fafbfd'; frame.backgroundRgb = '250,251,253';
+    frame.surface = {core: '#202631'}; frame.reflection = 0;
+    frame.spectrumLayout = {center: .79, height: .15};
+  }
+  if (id === 'cobalt-clear') {
+    frame.spectrumForm = 'slits'; frame.palette = ['#315ca4', '#315ca4'];
+    frame.scale = 1 + .035 * accent;
+  }
+  if (id === 'mint-clear') {
+    frame.background = '#f6faf8'; frame.backgroundRgb = '246,250,248';
+    frame.surface = {core: '#24232b', weight: .25 * accent};
+    frame.spectrumForm = 'blocks'; frame.palette = ['#488d91', '#75739b', '#488d91'];
+  }
+  if (id === 'silver-tuning') {
+    frame.background = '#fcfcfd'; frame.backgroundRgb = '252,252,253';
+    frame.spectrumForm = 'needles'; frame.palette = ['#66849c', '#6e75a3', '#8799ad'];
+    frame.spectrumLayout = {center: .81, height: .14};
+  }
+  if (id === 'iris-terraces') {
+    frame.background = '#f8f8fc'; frame.backgroundRgb = '248,248,252';
+    frame.spectrumForm = 'terraces'; frame.palette = ['#65618f', '#807e98'];
+    frame.spectrumLayout = {center: .82, height: .13};
+    frame.scale = 1.02 - .02 * air;
+  }
+  if (id === 'graphite-mirror') {
+    frame.dark = true; frame.background = '#111923'; frame.backgroundRgb = '17,25,35';
+    frame.surface = {core: '#fafcff'}; frame.palette = ['#6dcac9', '#94bce5', '#c8b1db'];
+    frame.reflection = .38; frame.y = 13 * kick; frame.scale = 1.025 + .016 * kick;
+    frame.spectrumLayout = {center: .76, height: .16};
+  }
+  if (id === 'porcelain-mirror') {
+    frame.background = '#ffffff'; frame.backgroundRgb = '255,255,255';
+    frame.palette = ['#66a7ac', '#8b99be', '#c095a3']; frame.reflection = .32;
+    if (accent > .015) frame.surface = {core: '#202631', shadow: '#489ca5', offset: 7 * accent};
+    frame.spectrumLayout = {center: .77, height: .16};
+  }
+  if (id === 'electric-registration') {
+    frame.background = '#ffffff'; frame.backgroundRgb = '255,255,255';
+    frame.spectrumForm = 'blocks'; frame.palette = ['#489ca5', '#8376b5', '#b572a1'];
+    if (accent > .015) frame.surface = {core: '#202631', shadow: '#28aab4', highlight: '#af5c94', offset: 11 * accent};
+    frame.scale = 1 + .022 * accent;
   }
   return frame;
 }

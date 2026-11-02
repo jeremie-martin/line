@@ -5,7 +5,7 @@ import {SpectrumForms, type SpectrumForm, type SpectrumFormsProps} from '../remo
 const require = createRequire(new URL('../remotion/package.json', import.meta.url));
 const {createElement} = require('react');
 const {renderToStaticMarkup} = require('react-dom/server');
-const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails', 'pleats', 'caps', 'weave', 'slits', 'crest'];
+const modes: SpectrumForm[] = ['contours', 'memory', 'stems', 'blocks', 'dots', 'fan', 'rails', 'pleats', 'caps', 'weave', 'slits', 'crest', 'terraces', 'needles'];
 const defaults: SpectrumFormsProps = {
   mode: 'contours', row: [.2, .8, .4], history: [], width: 300, height: 100,
   palette: ['#126', '#f84'], accent: .5, dark: false,
@@ -194,4 +194,14 @@ describe('transparent experimental spectrum forms', () => {
     }
   });
 
+});
+
+test('terraces keep real history but break continuous track-like contours', () => {
+ const source = markup({mode: 'terraces', history: [[.1,.9,.2]]});
+ expect(source).toContain('clip-path=');
+ expect(source).not.toContain('stroke-dasharray');
+ expect(source.match(/<rect /g)).toHaveLength(48);
+ expect(source.match(/<path /g)).toHaveLength(2);
+ expect(source).not.toBe(markup({mode: 'terraces', history: [[.9,.1,.8]]}));
+ expect(source).toContain('fill="none"');
 });

@@ -30,7 +30,7 @@ const groupedCollection = {
     {id: 'short', label: 'Short', src: `/${id}/short.mp4`},
   ]})),
 };
-async function open(collection: object = flatCollection, requests: string[] = [], options: {hiddenFrames?: boolean; delayMediaMs?: number; blockedPreload?: boolean} = {}): Promise<Page> {
+async function open(collection: object = flatCollection, requests: string[] = [], options: {passage?: string; hiddenFrames?: boolean; delayMediaMs?: number; blockedPreload?: boolean} = {}): Promise<Page> {
   const page = await browser.newPage({viewport: {width: 390, height: 844}});
   if (options.hiddenFrames) await page.addInitScript(() => {
     // A compositor may withhold callbacks for an occluded video. Decode/seek
@@ -67,7 +67,7 @@ async function open(collection: object = flatCollection, requests: string[] = []
     });
     return route.fulfill({status: 404});
   });
-  await page.goto('http://comparison.test/video-compare.html?collection=/collection.json');
+  await page.goto('http://comparison.test/video-compare.html?collection=/collection.json' + (options.passage ? '&passage=' + encodeURIComponent(options.passage) : ''));
   await page.waitForSelector(options.blockedPreload ? '#versions button' : 'video.active');
   return page;
 }
@@ -269,4 +269,14 @@ describe('rendered video comparison', () => {
     } finally {await page.close();}
   }, 20000);
 
+});
+
+test('comparison links select the requested song and safely fall back for an unknown song', async () => {
+  for (const [requested, expected] of [['second', 'second'], ['missing', 'first']]) {
+    const page = await open(groupedCollection, [], {passage: requested});
+    try {
+      expect(await page.locator('video.active').evaluate((v: HTMLVideoElement) => v.currentSrc)).toContain('/' + expected + '/');
+      expect(await page.locator('#passages button[aria-pressed="true"]').textContent()).toBe(expected);
+    } finally {await page.close();}
+  }
 });

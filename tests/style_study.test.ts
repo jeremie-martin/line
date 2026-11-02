@@ -84,7 +84,8 @@ describe('style-study signal semantics', () => {
       expect(look.scale).toBeGreaterThanOrEqual(1);
       expect(look.scale).toBeLessThan(1.06);
       expect(Math.abs(look.y)).toBeLessThan(20);
-      expect(look.fx.vignette).toEqual({style: 'soft-base'});
+      if (['cobalt-clear','mint-clear','silver-tuning','iris-terraces','iris-terraces-high','iris-continuous','graphite-mirror','porcelain-mirror','electric-registration','mint-unshaded'].includes(id)) expect(look.fx.vignette).toBeUndefined();
+      else expect(look.fx.vignette).toEqual({style: 'soft-base'});
     }
     expect(LOCKED_FX.chroma.maxPx).toBe(14);
     expect(() => studyFrame('typo', 0, data)).toThrow('Unknown');
@@ -127,3 +128,25 @@ test('spectrum sampling interpolates real adjacent rows without inventing pre-ro
   expect(sampleSpectrumRow([[1]], 0, 0)).toEqual([]);
   expect(sampleSpectrumRow([[NaN, 2, -1], [1, Infinity, 1]], 10, .05)).toEqual([.5, .5, .5]);
 });
+
+ test('clear treatments settle to a single crisp ink without atmosphere or decorative rings', () => {
+   const data = {axes: [], contacts: [{t: 1, impactMeasured: 1}]};
+   for (const id of ['cobalt-clear','mint-clear','silver-tuning','iris-terraces','graphite-mirror','porcelain-mirror','electric-registration']) {
+     const quiet = studyFrame(id, 2, data)!;
+     expect(quiet.surface?.shadow).toBeUndefined();
+     expect(quiet.surface?.halo).toBeUndefined();
+     expect(quiet.atmosphere).toBeUndefined();
+     expect(quiet.ripples).toEqual([]);
+     expect(quiet.spectrumLayout!.center).toBeGreaterThan(.7);
+     expect(quiet.spectrumLayout!.center + quiet.spectrumLayout!.height).toBeLessThan(1);
+   }
+   expect(studyFrame('electric-registration', 1.04, data)!.surface!.offset).toBeGreaterThan(0);
+ });
+ test('diagnostic controls isolate vignette and vertical placement', () => {
+   const data = {axes: [], contacts: []};
+   const mint = studyFrame('mint-relief', 1, data)!;
+   expect(studyFrame('mint-unshaded', 1, data)).toEqual({...mint, id: 'mint-unshaded', fx: {}});
+   const iris = studyFrame('iris-terraces', 1, data)!;
+   expect(studyFrame('iris-continuous', 1, data)).toEqual({...iris, id: 'iris-continuous', spectrumForm: 'weave'});
+   expect(studyFrame('iris-terraces-high', 1, data)).toEqual({...iris, id: 'iris-terraces-high', spectrumLayout: {...iris.spectrumLayout!, center: .73}});
+ });

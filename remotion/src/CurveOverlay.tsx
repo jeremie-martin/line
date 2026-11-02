@@ -499,7 +499,7 @@ const SpectrumViz: React.FC<{
   sym: boolean; fade: boolean; enter: number; id: string; look?: StudyFrame | null;
 }> = ({ spec, t, left, width, baseY, maxBar, sym, fade, enter, id, look }) => {
   const fi = Math.max(0, Math.min(spec.frames.length - 1, Math.floor(t * spec.fps)));
-  const row = look?.spectrumForm === 'weave' ? sampleSpectrumRow(spec.frames, spec.fps, t) : spec.frames[fi] ?? [];
+  const row = (look?.spectrumForm === 'weave' || look?.spectrumForm === 'terraces') ? sampleSpectrumRow(spec.frames, spec.fps, t) : spec.frames[fi] ?? [];
   const n = row.length || 1;
   const gap = 3;
   const bw = (width - gap * (n - 1)) / n;
@@ -526,7 +526,7 @@ const SpectrumViz: React.FC<{
       </defs>
       <g mask={fade ? `url(#${id}-mask)` : undefined}>
       {look?.spectrumForm ? <SpectrumForms mode={look.spectrumForm} row={row}
-        history={look.spectrumForm === 'weave' ? [.06, .12, .18, .24, .3, .36, .42].filter(age => t >= age).map(age => sampleSpectrumRow(spec.frames, spec.fps, t - age)) : look.spectrumForm === 'caps' ? spec.frames.slice(Math.max(0, fi - Math.floor(.4 * spec.fps)), fi)
+        history={(look.spectrumForm === 'weave' || look.spectrumForm === 'terraces') ? [.06, .12, .18, .24, .3, .36, .42].filter(age => t >= age).map(age => sampleSpectrumRow(spec.frames, spec.fps, t - age)) : look.spectrumForm === 'caps' ? spec.frames.slice(Math.max(0, fi - Math.floor(.4 * spec.fps)), fi)
           : [.12, .24, .4].filter(age => t >= age).map(age => spec.frames[Math.max(0, Math.floor((t - age) * spec.fps))] ?? [])}
         width={width} height={maxBar} palette={palette} accent={look.accent} dark={look.dark} /> : look?.ribbon ? <>
         <path d={ribbon.fill} fill={`url(#${id}-palette)`} opacity={.38} />
@@ -665,8 +665,8 @@ const BottomCurvePanelVertical: React.FC<{
           spec={spectrum} t={t} id="specfade-main" look={look}
           left={variant.specFullWidth ? 0 : panelLeft}
           width={variant.specFullWidth ? width : panelW}
-          baseY={Math.round(height * (look?.spectrumForm === 'rails' ? .8 : variant.specCenterPct))}
-          maxBar={Math.round(height * (look?.spectrumForm === 'rails' ? .45 : variant.specMaxBarPct))}
+          baseY={Math.round(height * (look?.spectrumForm === 'rails' ? .8 : look?.spectrumLayout?.center ?? variant.specCenterPct))}
+          maxBar={Math.round(height * (look?.spectrumForm === 'rails' ? .45 : look?.spectrumLayout?.height ?? variant.specMaxBarPct))}
           sym={variant.specSym} fade={!variant.specFullWidth} enter={enter}
         />
       )}

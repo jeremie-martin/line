@@ -28,17 +28,51 @@ including cached empty cells. Detaching starts with empty lookup shortcuts:
 the copied grid owns different allocations. Solver arithmetic, collision order
 and physical-frame accounting are unchanged.
 
-For a performance change, save the previous WASM and use `npm run bench:engine
--- --reference=before.wasm --candidate=engine.wasm --out=results.json`.
-The benchmark includes registration, replay and sibling edit/rollback workloads
-over committed tracks. It verifies raw states, ordered events, cached contact
-positions and cache-work counts outside timing. Use the same Rust toolchain for
-both builds, warm both modules, and alternate sequential runs on a quiet machine.
-On a hybrid CPU, pin to one core (`taskset -c 2 node --expose-gc --import tsx
-tools/measure/engine.ts ...` on the November 3 host). Record CPU, Node, artifact
-hashes, input hashes and raw samples. Its timing intervals describe these fixed
-workloads, not quality across seeds or unseen songs. Confirm any end-to-end
-claim with real paired compiles and exact track/work checks.
+For a performance change, build both binaries with the same Rust toolchain and
+save them before measuring. `npm run perf:engine` adapts the archived
+`scripts/v0/bench/perf_ab.ts` workflow to the current compiler. It snapshots the
+source and fixtures in a disposable directory, switches only that directory's
+WASM, and alternates fresh, warmed Node processes. The live package is untouched.
+Use a quiet machine; on the November 3 hybrid CPU, pin to CPU 2:
+
+```sh
+taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --rounds=12 --confirm-rounds=24 --out=generated/engine-ab/screen
+taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --stage=confirm --rounds=24 --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
+```
+
+The engine panel includes registration, replay and sibling edits/rollback over
+all committed tracks. It verifies raw states, ordered events, cached contact
+positions and cache-work counts before timing. Its primary measurement is total
+panel wall time per simulated frame, including registration cost. The lighter
+`npm run bench:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm`
+remains useful for per-workload diagnosis, but has no promotion decision.
+
+For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
+commands (or predeclare another set of indices in `tools/parity/cells.json`).
+Each warmup and timed compile must match its committed track and work count.
+The primary metric uses the parity worker's compile time per physical frame;
+CPU time is diagnostic and also includes worker bookkeeping.
+The report also shows individual cell decisions and blocks qualification when
+one detects a regression. Always check default automatic construction separately
+(`--mode=compile --cells=61`) before adoption. Its process warms only that
+workload; the mixed panel warms every selected case. An aggregate win cannot
+override a default-path regression.
+
+Declare rounds, repetitions, warmups, cells and the confirmation count before
+screening. The tool preserves the protocol and every raw pair, refuses to
+overwrite evidence, and issues no interim verdict. KEEP requires favorable
+paired bootstrap support (default 95%), a negative median delta, and an exact
+one-sided sign-test p-value at most `1-p` (0.05 by default). Ties supply no sign
+evidence. Only a fresh KEEP confirmation with identical source, inputs, WASM hashes, host, Node
+and CPU affinity qualifies performance; full correctness gates still apply.
+Do not repeatedly extend or restart a run until it passes. Bootstrap support describes resampling these
+fixed workloads, not a posterior probability, an anytime-valid stopping rule,
+or quality across seeds and unseen songs. An identical-binary A/A run should be
+INCONCLUSIVE; it is a host sanity check, not proof of universal calibration.
+
+Both arms share the installed dependencies through a symlink: keep dependencies,
+Node, affinity and the machine workload fixed throughout screening and
+confirmation. Historical timings are not a new machine's baseline.
 
 Structural backend changes require `npm run verify:engine`, exact compile/work
 and judge parity, the native ownership/cache tests, typecheck and reachability.

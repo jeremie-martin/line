@@ -16,6 +16,7 @@ Run from the repo root.
 | `npm run verify:engine` | compare compiler and independent reference engines on all 33 committed tracks: exact states and ordered collisions |
 | `npm run build:native` | rebuild the separate compiler backend and update its packaged hashes; leaves this reference engine untouched |
 | `npm run bench:engine -- --reference=before.wasm --candidate=after.wasm` | paired physics-only timings, with state/contact/cache-work checks before timing |
+| `npm run perf:engine -- --reference=before.wasm --candidate=after.wasm --out=generated/engine-ab/screen` | isolated, fresh-process screening; follow with a frozen-candidate confirmation (see native backend README) |
 | `npm run verify:engine:trace -- --fixture` | legacy fingerprint diagnostic; needs an explicitly recorded baseline |
 
 Install the Rust target with `rustup target add wasm32-unknown-unknown`.
@@ -34,8 +35,11 @@ against published `lr-core`. Full structural gates remain `npm run parity`,
 This switch selects consumers of the legacy interop shim. The current compiler
 imports `scripts/lib/native_motion/engine.ts` directly, so changing `LR_ENGINE`
 does **not** switch its simulation backend. For compiler-engine A/B measurements,
-use distinct packaged binaries in isolated checkouts; for engine-only timings,
-pass both binary paths to `bench:engine`.
+use `perf:engine --mode=compile` with both binary paths. Its private snapshot
+uses the same source for both arms and swaps only the compiler WASM. The
+[native backend README](../scripts/lib/native_motion/README.md) documents the
+fixed screening/confirmation protocol and probability interpretation.
+For engine workload diagnostics, pass both binary paths to `bench:engine`.
 
 | value | engine |
 |---|---|

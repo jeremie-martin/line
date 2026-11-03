@@ -70,7 +70,9 @@ npm run verify:engine   # exact states + collisions vs reference on committed tr
 The compiler backend is packaged separately. After editing its Rust sources, use
 `npm run build:native`; the independent reference build stays unchanged. See
 [`engine-rs/README.md`](engine-rs/README.md) for parity and per-machine engine
-benchmarks (`npm run bench:engine`). Old machine timings are historical evidence.
+benchmarks. `npm run perf:engine` provides paired screening and fresh
+confirmation; `npm run bench:engine` provides workload diagnostics. Old machine
+timings are historical evidence.
 
 ## Everyday commands
 

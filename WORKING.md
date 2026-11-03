@@ -92,6 +92,13 @@ plan and its log.
 - Parity limits its default by available CPUs and roughly 4 GB per worker
   (at most 23). On the November 3 laptop (20 threads, 16 GB), this is four
   workers; `--jobs=N` overrides it. Do not benchmark alongside
-  parity or other heavy checks. Engine-only comparisons use `npm run bench:engine`;
+  parity or other heavy checks. Engine performance decisions use
+  `npm run perf:engine`: fixed paired rounds, a frozen candidate, and fresh
+  confirmation under the same protocol. `--mode=compile` checks actual compiler
+  time and exact track/work parity; `bench:engine` is a workload diagnostic.
+  Check default automatic construction as a separate compile workload before
+  adopting an engine change; an aggregate win must not hide a regression there.
+  See `scripts/lib/native_motion/README.md` for the protocol and A/A control.
+  Bootstrap support is not a posterior or an anytime-valid stopping rule;
   quality probabilities from V7 seed blocks are not performance evidence.
 - Do not rerun the full sentinel for structural changes; parity is the gate.

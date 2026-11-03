@@ -14,7 +14,7 @@
  * change updates them with `compile --update`, in its own commit. */
 import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
-import {join} from 'node:path';
+import {join, resolve} from 'node:path';
 import {tmpdir, availableParallelism, totalmem} from 'node:os';
 import {spawn} from 'node:child_process';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
@@ -36,7 +36,7 @@ function caseOf(cell: {id: string}) {
   return {c, music: catalog.music.find((m: any) => m.id === c.sourceId)!};
 }
 
-async function compileWorker(index: number, out: string) {
+export async function compileWorker(index: number, out: string) {
   const cell = doc.cells[index], {c, music} = caseOf(cell), requested = c.plans[cell.seed];
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const began = performance.now();
@@ -64,6 +64,7 @@ function compare(expected: Record<string, unknown>, actual: Record<string, unkno
   return keys.filter(k => expected[k] !== undefined && expected[k] !== actual[k]).map(k => `${k}: expected ${expected[k]}, got ${actual[k]}`);
 }
 
+if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
 const command = process.argv[2];
 if (command === 'worker') await compileWorker(Number(arg('cell')), arg('out')!);
 else if (command === 'compile') {
@@ -121,3 +122,5 @@ else if (command === 'compile') {
   for (const f of failures) console.log('  ' + f);
   process.exit(failures.length ? 1 : 0);
 } else throw new Error('usage: parity.ts compile|judge');
+
+}

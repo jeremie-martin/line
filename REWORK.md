@@ -1,5 +1,69 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: restore the paired engine promotion workflow
+
+The archived `archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts`
+contains the right foundation: alternate paired, fresh, warmed processes;
+change only WASM; normalize by physical work; preserve samples and make an
+explicit decision. The earlier `bench:engine` diagnostic did not restore that
+whole workflow. `npm run perf:engine` now adapts it to the current backend and
+uses the actual parity worker for compiler timings.
+
+The adapter snapshots source and fixtures in a private directory instead of
+swapping the live package. It fixes the old bootstrap RNG's floating-point
+integer multiplication, treats ties neutrally, requires an exact sign test as
+well as bootstrap support and a favorable median, and requires fixed sample
+counts plus a fresh confirmation of frozen artifacts. Source/input/WASM hashes
+are checked between stages; the final adapter also enforces host, Node and CPU
+affinity identity. Installed dependencies must remain fixed. Bootstrap support
+is a resampling fraction, not a posterior probability or an anytime-valid rule.
+
+All measurements used the same November 3 laptop, Rust 1.95.0 plain release
+builds, Node 22.22.2, CPU 2, and sequential workers without concurrent builds or
+tests. A real identical-binary A/A control was INCONCLUSIVE: 6 wins/6 losses,
+mean delta +0.10%, 95% bootstrap interval −0.31% to +0.54%.
+
+**Retained:** the already committed collision-cache reuse passed 12 screening
+and 24 fresh confirmation pairs against a same-toolchain pre-change rebuild.
+Confirmation reduced composite engine time by 2.11% (95% interval 1.88–2.33%),
+winning all 24 pairs. This composite includes registration, replay and branch
+edits; it is different from the earlier 4.3% replay-only result.
+
+The separate default automatic case (cell 61, seed 101, 150k allowance) also
+passed 12 screening and 24 fresh confirmation pairs: **1.18% less compile time**
+(95% interval 0.94–1.42%), winning 23/24 confirmation pairs. Every warmup and
+timed compile preserved its track hash and 147,209 charged physics frames.
+This supports a gain on that warmed case, not on every song or budget.
+
+**Further experiments were not promoted:**
+
+| candidate versus the retained cache | evidence | decision |
+|---|---|---|
+| shared immutable geometry alone | 12 engine pairs: 0.48% slower | reject |
+| shared geometry plus cached raster cells | 24 fresh engine pairs: 0.92% less time; 12 fresh three-case compiler pairs: 1.21% less time | reject after default-path check |
+| one lookup to edit/remove empty grid buckets | 24 engine pairs: estimated 0.18% less time, interval −0.48% to +0.16% delta; 12 automatic pairs: no detected difference | inconclusive; do not promote |
+
+The raster-cache trial is the important counterexample. In the three-case
+150k-budget compiler panel (fold, terraces, automatic), the automatic case was
+0.41% slower despite the aggregate win. A subsequently declared standalone
+automatic check lost **all 24 fresh pairs**, averaging 1.55% slower (interval
+1.26–1.86%). Lower WASM memory and faster explicit layouts did not justify
+that default-path regression. Its source and WASM were removed from the package.
+
+The final report now exposes individual compile-cell decisions and blocks
+qualification on a detected cell regression. The workflow also requires a
+separate default automatic workload before adoption: mixed-case warming can
+produce a different context from standalone use. No inconclusive run was
+extended until it passed; no new native-engine change was adopted in this round. Candidate patches,
+artifact hashes and every raw sample are preserved in
+`docs/research/engine-promotion-20261103.json`.
+
+Validation: 63/63 compiler track/work cells, 33/33 judge tracks, 61,115 frame
+states and 305,336 ordered collisions exact; ten Rust tests pass, typecheck has
+zero errors, reachability has zero unreachable files. The suite has 339 passing
+tests and the previously reproduced missing-audio failure in
+`eval_evidence.test.ts`.
+
 ## November 3: physics-engine baseline and collision lookup reuse
 
 Structural physics work on the new host: i7-12800H, 20 logical CPUs, 16 GB RAM,

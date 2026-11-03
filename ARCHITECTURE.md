@@ -88,8 +88,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    detached caches reset these pointers because their cloned grids have their
    own allocations. `npm run verify:engine` compares every frame state and
    ordered collision on the committed parity tracks with the independent
-   reference; `npm run bench:engine` measures identical engine workloads on
-   the current machine.
+   reference. `npm run perf:engine` adapts the archived paired process workflow
+   to isolated WASM comparisons on the current machine, with fixed screening
+   and fresh confirmation. Its compile mode uses the same worker and exact
+   track/work references as parity. `bench:engine` provides workload diagnostics.
 
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:

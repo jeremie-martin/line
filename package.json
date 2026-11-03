@@ -18,6 +18,7 @@
     "verify:engine": "node --import tsx tools/parity/engine.ts",
     "verify:engine:trace": "node --max-old-space-size=8192 --import tsx scripts/v0/bench/sim_trace.ts",
     "bench:engine": "node --import tsx tools/measure/engine.ts",
+    "perf:engine": "node --import tsx tools/measure/engine_ab.ts",
     "build:native": "node tools/measure/build_native_engine.mjs",
     "gallery:renderer": "node scripts/gallery/build_renderer.mjs",
     "build:wasm": "cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml && wasm-opt --enable-bulk-memory --enable-nontrapping-float-to-int --enable-sign-ext -O3 engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm -o engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm",

@@ -80,19 +80,26 @@ and validation are in [music authoring](docs/music-authoring.md).
    cache snapshot until either needs to write. Cached reads do not copy it;
    releasing the source before the next write transfers the storage without
    copying. Live lineages still isolate edits, frame extension and truncation.
-   The independent judge is unchanged.
-   One Rust arena owns version slots, lineage holders and reconciliation scratch.
-   Each engine operation holds a scoped mutable borrow; references cannot escape
-   and nested arena entry is rejected. Collision history owns its indexes,
-   snapshots and rollback boundaries together, with the boundary length defining
-   the tracked prefix. Clones clear borrowed history shortcuts; reset and rollback
-   invalidate them before releasing nodes. ABI buffers and trace state still
-   require synchronous access.
-   Native compiler engines have a synchronous ownership scope. Search pruning
-   and final replay release only this compilation's handles; caller-owned replay
-   engines survive both success and failure. Independent continuation-label
-   collection uses the same boundary. The frozen judge uses its private
-   replay instance.
+   The independent judge is unchanged and remains a separate implementation.
+   One Rust arena owns version ancestry, lineage caches and reconciliation
+   scratch. Each operation holds a checked mutable borrow. The frame-cache
+   module privately owns geometry, computed frames and their derived indexes;
+   collision history privately owns snapshots and rollback boundaries. Clones
+   clear borrowed shortcuts, and reset/rollback invalidate them before release.
+
+   JavaScript wrappers uniquely own native handles. Empty batches return the
+   existing wrapper; disposed wrappers reject later reads even after slot reuse.
+   Synchronous ownership scopes protect caller engines through nested success
+   and failure, then release local handles. Traces belong to their requesting
+   version and remain correct through sibling interleaving. Pending replay is
+   visible before metering; history reconstruction cannot overwrite a trace.
+   The typed WASM adapter manages borrowed views. Variable outputs grow as needed
+   instead of silently capping events; state and trace buffers follow topology.
+   Transport remains synchronous, and retained observations must be copied.
+   Contact/body reads check cache availability and observe in one native call.
+   Raw-frame payloads reuse cached contact summaries. Pure body-motion values are
+   memoized lazily per frame; this memo can be shared across detached snapshots
+   without copying their simulation data, and follows frame rollback and reset.
 
    The collision grid stores lines in their original raster cells. Nearby-line
    queries expand the 3×3 neighborhood only when read, with a shared query cache
@@ -108,8 +115,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    ordered collision on the committed parity tracks with the independent
    reference. `npm run perf:engine` adapts the archived paired process workflow
    to isolated WASM comparisons on the current machine, with fixed screening
-   and fresh confirmation. Its compile mode uses the same worker and exact
-   track/work references as parity. `bench:engine` provides workload diagnostics.
+   and fresh confirmation. It can also compare frozen wrapper/consumer sources
+   in the same execution directory, with fixed runner, fixtures and dependencies.
+   Its compile mode uses the same worker and exact track/work references as parity.
+   `bench:engine` provides workload diagnostics.
 
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:

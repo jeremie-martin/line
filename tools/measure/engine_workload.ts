@@ -12,18 +12,20 @@ type Exports = Record<string, any> & {memory: WebAssembly.Memory};
 export function instance(module: WebAssembly.Module): Exports {
   return new WebAssembly.Instance(module, {}).exports as Exports;
 }
+function addBatch(ex: Exports, handle: number, lines: any[]) {
+  const ids = new Int32Array(ex.memory.buffer, ex.add_ids_ptr(), lines.length * 3);
+  const coords = new Float64Array(ex.memory.buffer, ex.add_coords_ptr(), lines.length * 4);
+  lines.forEach((l, i) => {
+    ids[i * 3] = l.id; ids[i * 3 + 1] = l.type;
+    ids[i * 3 + 2] = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
+    coords[i * 4] = l.x1; coords[i * 4 + 1] = l.y1;
+    coords[i * 4 + 2] = l.x2; coords[i * 4 + 3] = l.y2;
+  });
+  return ex.add_lines(handle, lines.length);
+}
 function add(ex: Exports, handle: number, lines: any[]) {
   for (let start = 0; start < lines.length; start += ex.add_lines_cap()) {
-    const batch = lines.slice(start, start + ex.add_lines_cap());
-    const ids = new Int32Array(ex.memory.buffer, ex.add_ids_ptr(), batch.length * 3);
-    const coords = new Float64Array(ex.memory.buffer, ex.add_coords_ptr(), batch.length * 4);
-    batch.forEach((l, i) => {
-      ids[i * 3] = l.id; ids[i * 3 + 1] = l.type;
-      ids[i * 3 + 2] = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
-      coords[i * 4] = l.x1; coords[i * 4 + 1] = l.y1;
-      coords[i * 4 + 2] = l.x2; coords[i * 4 + 3] = l.y2;
-    });
-    const next = ex.add_lines(handle, batch.length);
+    const next = addBatch(ex, handle, lines.slice(start, start + ex.add_lines_cap()));
     ex.free_engine(handle);
     handle = next;
   }
@@ -49,12 +51,10 @@ export function run(ex: Exports, workload: Workload, verify = false) {
       const count = ex.get_updates(h, f);
       digest.update(String(count));
       digest.update(new Uint8Array(ex.memory.buffer, ex.events_ptr(), count * 3 * 8));
-      if (ex.get_contact_positions) {
-        const contacts = ex.get_contact_positions(h, f, f);
-        assert(contacts >= 0);
-        digest.update(String(contacts));
-        digest.update(new Uint8Array(ex.memory.buffer, ex.contact_positions_ptr(), contacts * 3 * 8));
-      }
+      const contacts = ex.get_contact_positions(h, f, f);
+      assert(contacts >= 0);
+      digest.update(String(contacts));
+      digest.update(new Uint8Array(ex.memory.buffer, ex.contact_positions_ptr(), contacts * 3 * 8));
     }
   };
   for (const {track} of tracks) {
@@ -73,7 +73,7 @@ export function run(ex: Exports, workload: Workload, verify = false) {
       root = add(ex, root, track.lines.slice(0, split));
       observe(root, 120);
       for (let i = 0; i < 12; i++) {
-        const branch = ex.add_line(root, 1000000 + i, i % 2, -50, 20 + i, 350, 40 + i, 0);
+        const branch = addBatch(ex, root, [{id: 1000000 + i, type: i % 2, x1: -50, y1: 20 + i, x2: 350, y2: 40 + i}]);
         const child = add(ex, branch, track.lines.slice(split, split + 100 + i * 20));
         observe(child, 180);
         if (verify) for (let f = 0; f <= 180; f++) observe(child, f);

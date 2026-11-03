@@ -1,5 +1,102 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: simplify engine ownership, observations and private ABI
+
+The engine now has explicit owners: `EngineArena` manages versions and lineage
+reconciliation; `FrameCache` owns geometry, computed frames and derived read
+summaries; `CollisionHistory` owns rollback indexes; the kernel only steps the
+state and records into an explicitly supplied trace. The former `frame` module
+is named `history`, and `Holder` is named `Lineage`. Redundant forwarding functions
+and cached-read layers are gone. Cache storage is private, so edits, reset and
+truncation maintain its invariants in one place.
+
+Collision traces now belong to the requesting version. Interleaved siblings
+cannot overwrite each other's observations, and pending trace eviction happens
+before metered reads report available frames. History reconstruction never
+records a requested trace. The private ABI has a typed adapter with centralized
+view refresh, including vectors moving within an unchanged memory buffer.
+Dynamic retained outputs replace fixed event/window arrays and their silent
+limits. Batch insertion is the only insertion ABI; the unused batch simulator,
+single-line export, recording selector and wrapper compatibility fallbacks are
+removed. The independent judge and reference implementations stay independent.
+
+JavaScript wrappers have one construction path and one handle registration.
+Explicit disposal, finalization and scope cleanup share an idempotent release;
+disposed wrappers fail even after a slot is reused. Empty insertion keeps its
+existing owner. Synchronous scopes protect caller-owned engines and reject
+asynchronous callbacks. The old study-specific cleanup name becomes
+`disposeEngines`. Build manifests discover the current source set and tests
+check completeness and hashes. The root, architecture, judge and native manuals
+now describe the actual boundaries and workflows.
+
+Cached observations check availability and read in one native operation.
+Raw frames use cached contact IDs and first-contact point order. Body motion
+is a pure lazy `OnceCell` observation owned by each frame summary; shared cache
+snapshots may fill it without copying simulation state, and rollback discards
+it with its frame. It preserves the reference arithmetic order. Extra solver
+trace specialization and a finite contact-order interning table were tried and
+removed: neither justified the added complexity.
+
+**Measure the entire change, including its wrapper.** `perf:engine` now accepts
+`--reference-root` to compare frozen source arms in one disposable execution
+directory, with a fixed runner and judge binary. It rejects differing fixtures,
+dependencies and judge source, records both source identities and requires both
+source and binary equality for an A/A control. Fresh confirmation checks both
+identities. The initial cleanup passed its engine panel but regressed default
+automatic compilation by 3.79% and the larger budget by 1.17%; it was rejected.
+Profiles and twelve fixed, changed-candidate diagnostics led to the compact
+observations and lazy memo. All failures remain in the evidence; no unchanged
+run was extended or restarted to obtain acceptance.
+
+**Final cleanup regression guards against `2a5ef4f1`, without a speedup claim:**
+the final source and packaged binary were frozen before full correctness checks
+and fresh fixed guards. Runs used CPU 2, Node 22.22.2 and plain Rust 1.95.0 release
+builds, without simultaneous builds or tests. Adoption requires no REJECT in
+any guard and upper 95% time-delta bounds below +0.5% for the engine panel and
+default automatic. Engine arms have two measured repetitions after one warmup;
+compiler arms have one. The twelve-pair identical-source/binary control is
+INCONCLUSIVE.
+
+| workload | pairs | mean time delta | 95% paired-bootstrap interval |
+|---|---:|---:|---:|
+| combined engine panel | 24 | +0.07% | -0.25% to +0.47% |
+| standalone automatic, cell 61 | 24 | -0.92% | -1.15% to -0.70% |
+| 750k-budget automatic, cell 62 | 8 | -0.58% | -0.82% to -0.33% |
+
+All three guards pass. Every warmup and measured compile preserves the committed
+track and charged work (147,209 or 741,902 frames). These cleanup screens do not
+qualify an independently confirmed speedup. The twelve-pair isolated
+post-registration stepping diagnostic is INCONCLUSIVE, with mean time delta
++0.43% (95% interval -0.33% to +1.26%). It alternates arms in one
+process after three warmups; it is a phase diagnostic, not promotion confirmation.
+It does not exclude a small stepping regression.
+
+Measured WASM linear-memory high-water sizes fall from 5.0625 to 3.5 MiB for
+registration, 10.8125 to 10.3125 MiB for replay, and 3.75 to 2.125 MiB for branches.
+The inline lazy memo consumes part of the removed fixed buffers' savings.
+These macro workloads do not request variable window/event outputs, which grow
+and retain storage when used. These are buffer sizes, not live allocations or
+RSS. The package shrinks from 112,337 to 110,415 bytes and exactly matches the
+frozen measured artifact. ABI transport remains synchronous and module-global;
+this cleanup does not make it a concurrent native C API.
+
+Validation: all 63 compiler parity cells preserve exact tracks and charged work.
+Independent replay passes on 33 tracks, 61,115 states and 305,336 ordered
+collisions. The expanded gate also checks raw frames, body motion, contact IDs
+and cached-only observation behavior on all 61,115 frames. Judge parity passes
+all 33 tracks. All 20 Rust tests pass; JavaScript has 355 passes and the same
+pre-existing missing-audio failure in `tests/eval_evidence.test.ts`.
+Typecheck and reachability pass. New regression coverage exercises disposed
+handle reuse, scope lifetimes, interleaved traces, rollback/memo isolation,
+memory growth, output beyond former limits and frozen source overlays.
+
+The plans, rejected candidates, prototype patches, profiles, 20 fixed paired
+runs (232 pairs), isolated stepping/memory diagnostics and reproducible final
+identity/decision audit are archived in
+`docs/research/engine-design-cleanup-20261103.json`. The archive explicitly marks
+coverage limits of historical prototype source snapshots; the final complete
+source identities, binary, manifest and every frozen changed file are verified.
+
 ## November 3: scope engine ownership and centralize history rollback
 
 The native engine now owns version slots, lineage holders, free lists and

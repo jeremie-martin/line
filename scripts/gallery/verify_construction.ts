@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {catchReceivers, receiverPoints, motionArc, type ArcMotionControl, type ArcSectionStyle} from '../v0/optimizer/arc_geometry.ts';
 import type {compileArcMotion} from '../v0/optimizer/arc_motion.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
-const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
+const {LineRiderEngine:Engine,disposeEngines:dispose}=
   await import(new URL('../lib/native_motion/engine.ts?construction-verification',import.meta.url).href);
 export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>['track'],rows:Array<{frame:number;control:ArcMotionControl}>,
   options:Pick<ArcSectionStyle,'profile'|'profileStrength'|'profileStart'|'rippleCycles'|'foldAngle'|'subdivisions'|'faces'>&

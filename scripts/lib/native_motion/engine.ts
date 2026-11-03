@@ -1,56 +1,19 @@
-/**
- * WasmLineRiderEngine — a drop-in for vendored lr-core backed by the Rust→WASM
- * kernel (engine-rs). Implements the read surface the compiler/oracle use:
- * setStart / addLine / getStateMapAtFrame / getUpdatesAtFrame / getLastFrameIndex
- * (+ getRider for the detector path). Selected via LR_ENGINE=wasm in _lr_engine.ts.
- *
- * The Rust engine (engine-rs) reproduces lr-core's shared-cache model exactly, so
- * this is a bit-identical drop-in on the compiler's full beam-frontier / mid-stream
- * addLine access pattern (forking + invalidation + physics-frame budget) — proven
- * by wasm:replay (real op-DAG) and wasm:compile (track-hash parity). addLine takes
- * a single line or the compiler's batched array.
- */
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+/** Compiler physics API. Immutable versions share a lineage's computed cache;
+ * detached versions share a snapshot until mutation. Wrappers uniquely own their
+ * native handles and fail explicitly after release. The independent reference
+ * adapter is intentionally separate; it must not inherit compiler refactors. */
+import {wasm, views, ENTITY_IDS, NENT, POINT_STRIDE, WINDOW_STRIDE, ADD_LINES_CAP, eventValues, windowValues, windowContacts} from './wasm.ts';
+import type {RawFrame, CandidateWindowRaw} from '../detector.ts';
 
-const WASM_URL = new URL("./engine.wasm", import.meta.url);
-// deno-lint-ignore no-explicit-any
-const ex: any = new WebAssembly.Instance(new WebAssembly.Module(readFileSync(fileURLToPath(WASM_URL))), {}).exports;
-const GET_CANDIDATE_WINDOW = ex.get_candidate_window;
+// Capture hot native entry points once at the module boundary.
+const {get_last_frame_index, get_rider, get_raw_frame, get_state_map, get_body_motion, get_cached_events, has_contact, get_updates} = wasm;
 
-const ENTITY_IDS = [
-  "RIDER_MOUNTED", "SLED_INTACT", "PEG", "TAIL", "NOSE", "STRING",
-  "BUTT", "SHOULDER", "RHAND", "LHAND", "LFOOT", "RFOOT",
-] as const;
-const NENT = 12;
-const LEFT_EXTENDED = 1;
-const RIGHT_EXTENDED = 2;
-const SLED_POINT_MASK = 0b111100;
-const SCRATCH_LEN = NENT * 6 + NENT;
-const SCRATCH_PTR = ex.scratch_ptr();
-const OUT_LEN = (2400 + 1) * 60;
-const OUT_PTR = ex.out_ptr();
-const EVENTS_LEN = 49152;
-const EVENTS_PTR = ex.events_ptr();
-const ADD_LINES_CAP: number = ex.add_lines_cap();
-const ADD_IDS_PTR = ex.add_ids_ptr();
-const ADD_COORDS_PTR = ex.add_coords_ptr();
-const RIDER_POINT_IDS = [
-  "PEG",
-  "TAIL",
-  "NOSE",
-  "STRING",
-  "BUTT",
-  "SHOULDER",
-  "RHAND",
-  "LHAND",
-  "LFOOT",
-  "RFOOT",
-] as const;
+type Vec2 = {x: number; y: number};
+type LineData = {id?: number; type?: number; x1: number; y1: number; x2: number; y2: number;
+  flipped?: boolean; leftExtended?: boolean; rightExtended?: boolean};
+const RIDER_POINT_IDS = ENTITY_IDS.slice(2);
 const RIDER_SLED_POINTS = RIDER_POINT_IDS.slice(0, 4);
 const RIDER_SLED_OFFSET = 6;
-const RIDER_POINT_STRIDE = 6;
-const CANDIDATE_WINDOW_STRIDE = 9;
 const EMPTY_SLED_CONTACTS = Object.freeze([]) as unknown as string[];
 const EMPTY_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
 
@@ -68,112 +31,67 @@ const NO_COLLISION_UPDATES: any[] = (() => {
   return Object.freeze(u) as any[];
 })();
 
-// Engines are immutable: setStart/addLine fork a new handle. The compiler holds
-// many live engines (beam frontier) and discards transient candidates — free
-// their handles when the JS wrapper is GC'd, or a real compile leaks/OOMs.
-type EngineRegistration = { handle: number };
-const LIVE_ENGINES = new Set<EngineRegistration>();
-let protectedEngines = new Set<EngineRegistration>();
-
-/** Synchronous engine ownership boundary. Cleanup inside the callback may
- * discard its temporary engines, but cannot invalidate a caller's live engines.
- * The callback returns data, not engine wrappers from this scope. */
-export function withEngineScope<T>(run: () => T): T {
-  const previous = protectedEngines;
-  protectedEngines = new Set(LIVE_ENGINES);
-  try { return run(); } finally {
-    disposeAllWasmEnginesForStudy();
-    protectedEngines = previous;
-  }
+function frameIndex(frame: number): number {
+  if (frame < 0 || frame !== (frame | 0))
+    throw new RangeError('frame must be a nonnegative 32-bit integer');
+  return frame;
 }
 
-const FINALIZER = new FinalizationRegistry<EngineRegistration>((registration) => {
-  LIVE_ENGINES.delete(registration);
-  ex.free_engine(registration.handle);
-});
+const adoptHandle = Symbol('native engine handle');
+type EngineRegistration = {handle: number};
+const liveEngines = new Set<EngineRegistration>();
+let protectedEngines = new Set<EngineRegistration>();
+const finalizer = new FinalizationRegistry<EngineRegistration>(release);
 
-/**
- * Release disposable engine handles after a self-contained replay or study.
- * Within withEngineScope, engines owned by its caller are protected.
- * Repeated calls and later FinalizationRegistry callbacks are safe because the
- * Rust ABI treats freeing an invalid/already-freed handle as a no-op.
- */
-export function disposeAllWasmEnginesForStudy(): number {
+function register(owner: LineRiderEngine, handle: number): EngineRegistration {
+  const registration = {handle};
+  liveEngines.add(registration);
+  finalizer.register(owner, registration, registration);
+  return registration;
+}
+
+function release(registration: EngineRegistration): void {
+  const handle = registration.handle;
+  if (handle < 0) return;
+  registration.handle = -1;
+  finalizer.unregister(registration);
+  liveEngines.delete(registration);
+  wasm.free_engine(handle);
+}
+
+/** Release engines owned by the current scope. Caller-owned engines survive
+ * nested compilation; each registration releases its native handle at most once. */
+export function disposeEngines(): number {
   let count = 0;
-  for (const registration of LIVE_ENGINES) {
+  for (const registration of liveEngines) {
     if (protectedEngines.has(registration)) continue;
+    release(registration);
     count++;
-    FINALIZER.unregister(registration);
-    ex.free_engine(registration.handle);
-    LIVE_ENGINES.delete(registration);
   }
   return count;
 }
 
-// The scratch address is static. Only the backing ArrayBuffer can change after
-// memory.grow, so reuse the view until the buffer identity changes.
-let scratchBuffer: ArrayBuffer | undefined;
-let scratchView: Float64Array | undefined;
-function scratch(): Float64Array {
-  const buffer = ex.memory.buffer;
-  if (buffer !== scratchBuffer) {
-    scratchBuffer = buffer;
-    scratchView = new Float64Array(buffer, SCRATCH_PTR, SCRATCH_LEN);
+/** A synchronous lifetime boundary. Return plain data; engine wrappers allocated
+ * inside the callback are released on success and failure. */
+export function withEngineScope<T>(run: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
+  const previous = protectedEngines;
+  protectedEngines = new Set(liveEngines);
+  try {
+    const result = run();
+    if (result && typeof (result as {then?: unknown}).then === 'function')
+      throw new TypeError('engine scopes must be synchronous');
+    return result;
+  } finally {
+    disposeEngines();
+    protectedEngines = previous;
   }
-  return scratchView as Float64Array;
 }
 
-let outBuffer: ArrayBuffer | undefined;
-let outView: Float64Array | undefined;
-function out(): Float64Array {
-  const buffer = ex.memory.buffer;
-  if (buffer !== outBuffer) {
-    outBuffer = buffer;
-    outView = new Float64Array(buffer, OUT_PTR, OUT_LEN);
-  }
-  return outView as Float64Array;
-}
-
-let eventsBuffer: ArrayBuffer | undefined;
-let eventsView: Float64Array | undefined;
-function events(): Float64Array {
-  const buffer = ex.memory.buffer;
-  if (buffer !== eventsBuffer) {
-    eventsBuffer = buffer;
-    eventsView = new Float64Array(buffer, EVENTS_PTR, EVENTS_LEN);
-  }
-  return eventsView as Float64Array;
-}
-
-let addBuffer: ArrayBuffer | undefined;
-let addIdsView: Int32Array | undefined;
-let addCoordsView: Float64Array | undefined;
-function addViews(): [Int32Array, Float64Array] {
-  const buffer = ex.memory.buffer;
-  if (buffer !== addBuffer) {
-    addBuffer = buffer;
-    addIdsView = new Int32Array(buffer, ADD_IDS_PTR, ADD_LINES_CAP * 3);
-    addCoordsView = new Float64Array(buffer, ADD_COORDS_PTR, ADD_LINES_CAP * 4);
-  }
-  return [addIdsView as Int32Array, addCoordsView as Float64Array];
-}
-
-// deno-lint-ignore no-explicit-any
-export function createLineFromJson(data: any): any {
-  if (data.extended) {
-    data.leftExtended = !!(LEFT_EXTENDED & data.extended);
-    data.rightExtended = !!(RIGHT_EXTENDED & data.extended);
-  }
-  return data; // passthrough; the kernel precomputes geometry from normalized fields
-}
-
-// deno-lint-ignore no-explicit-any
 function pointState(sc: Float64Array, i: number): any {
   const o = i * 6;
   return pointStateFrom(sc[o], sc[o + 1], sc[o + 2], sc[o + 3], sc[o + 4], sc[o + 5]);
 }
 
-// deno-lint-ignore no-explicit-any
 function pointStateFrom(px: number, py: number, prevx: number, prevy: number, vx: number, vy: number): any {
   return {
     __state__: {
@@ -187,7 +105,6 @@ function pointStateFrom(px: number, py: number, prevx: number, prevy: number, vx
   };
 }
 
-// deno-lint-ignore no-explicit-any
 function bindingState(sc: Float64Array, i: number): any {
   const fsu = sc[NENT * 6 + i];
   return {
@@ -198,39 +115,52 @@ function bindingState(sc: Float64Array, i: number): any {
 }
 
 export class LineRiderEngine {
-  private h: number;
+  private registration: EngineRegistration;
+  private get h(): number {
+    const handle = this.registration.handle;
+    if (handle < 0) throw new Error('engine has been disposed');
+    return handle;
+  }
+  constructor();
+  /** @internal Only native operations hold the adoption token. */
+  constructor(handle: number, key: typeof adoptHandle);
+  constructor(handle?: number, key?: typeof adoptHandle) {
+    if (handle !== undefined && key !== adoptHandle)
+      throw new Error('native handles can only be adopted by engine operations');
+    this.registration = register(this, handle ?? wasm.create_engine());
+  }
+
+  private static fromHandle(handle: number): LineRiderEngine {
+    return new LineRiderEngine(handle, adoptHandle);
+  }
+
+  dispose(): void { release(this.registration); }
+
   prepareCollisionTrace(frame: number): void {
     if (!Number.isSafeInteger(frame) || frame < 1) throw new Error("invalid trace frame");
-    ex.prepare_collision_trace(this.h, frame);
+    wasm.prepare_collision_trace(this.h, frameIndex(frame));
   }
   readCollisionTrace(): Array<Record<string, { x: number; y: number; prevx: number; prevy: number; vx: number; vy: number }>> {
-    if (ex.collision_trace_count() !== 6) throw new Error("collision trace is incomplete");
-    const data = new Float64Array(ex.memory.buffer, ex.collision_trace_ptr(), 6 * NENT * 6);
+    if (wasm.get_collision_trace(this.h) !== 6) throw new Error("collision trace is incomplete");
+    const data = new Float64Array(wasm.memory.buffer, wasm.collision_trace_ptr(), 6 * NENT * 6);
     return Array.from({ length: 6 }, (_, iteration) => Object.fromEntries(RIDER_POINT_IDS.map(id => {
       const k = (iteration * NENT + ENTITY_IDS.indexOf(id)) * 6;
       return [id, { x: data[k], y: data[k + 1], prevx: data[k + 2], prevy: data[k + 3], vx: data[k + 4], vy: data[k + 5] }];
     })));
   }
-  detach(): LineRiderEngine { return new LineRiderEngine(ex.detach_engine(this.h)); }
+  detach(): LineRiderEngine { return LineRiderEngine.fromHandle(wasm.detach_engine(this.h)); }
   static retainOnly(engines: readonly LineRiderEngine[]): void {
-    const keep = new Set(engines.map(e => e.h));
-    for (const registration of LIVE_ENGINES) if (!keep.has(registration.handle) && !protectedEngines.has(registration)) {
-      FINALIZER.unregister(registration); ex.free_engine(registration.handle);
-      LIVE_ENGINES.delete(registration);
-    }
+    const keep = new Set(engines.map(engine => {
+      engine.h; // reject disposed owners before releasing anything
+      return engine.registration;
+    }));
+    for (const registration of liveEngines)
+      if (!keep.has(registration) && !protectedEngines.has(registration)) release(registration);
   }
-  constructor(handle?: number) {
-    this.h = handle ?? ex.create_engine();
-    const registration = { handle: this.h };
-    LIVE_ENGINES.add(registration);
-    FINALIZER.register(this, registration, registration);
+  setStart(position: Vec2, velocity: Vec2): LineRiderEngine {
+    return LineRiderEngine.fromHandle(wasm.set_start(this.h, position.x, position.y, velocity.x, velocity.y));
   }
-  // deno-lint-ignore no-explicit-any
-  setStart(position: any, velocity: any): LineRiderEngine {
-    return new LineRiderEngine(ex.set_start(this.h, position.x, position.y, velocity.x, velocity.y));
-  }
-  // deno-lint-ignore no-explicit-any
-  addLine(line: any): LineRiderEngine {
+  addLine(line: LineData | LineData[]): LineRiderEngine {
     // The compiler adds an arc as a batch (array). lr-core's addLine([l1..ln])
     // runs _addLine per line against the same (progressively-truncated) frame
     // cache with no recompute in between. The batch crosses the ABI in chunks of
@@ -238,9 +168,10 @@ export class LineRiderEngine {
     // order: the same sequence of _addLine truncations.
     const lines = Array.isArray(line) ? line : [line];
     let h = this.h;
+    if (lines.length === 0) return this;
     for (let from = 0; from < lines.length; from += ADD_LINES_CAP) {
       const n = Math.min(ADD_LINES_CAP, lines.length - from);
-      const [ids, coords] = addViews();
+      const {addIds: ids, addCoords: coords} = views();
       for (let k = 0; k < n; k++) {
         const l = lines[from + k];
         ids[k * 3] = l.id ?? 0;
@@ -251,26 +182,25 @@ export class LineRiderEngine {
         coords[k * 4 + 2] = l.x2;
         coords[k * 4 + 3] = l.y2;
       }
-      const next = ex.add_lines(h, n);
-      if (h !== this.h) ex.free_engine(h); // free unwrapped transient handles
+      const next = wasm.add_lines(h, n);
+      if (h !== this.h) wasm.free_engine(h); // free unwrapped transient handles
       h = next;
     }
-    return new LineRiderEngine(h);
+    return LineRiderEngine.fromHandle(h);
   }
   /** Collision positions from an already evaluated window. Never advances physics.
    * Copy across the ABI so another engine read cannot overwrite this observation. */
   getCachedContactPositions(startFrame: number, endFrame: number): Float64Array {
     if (!Number.isSafeInteger(startFrame) || !Number.isSafeInteger(endFrame) || startFrame < 0 || endFrame < startFrame)
       throw new Error('invalid cached contact window');
-    const count = ex.get_contact_positions(this.h, startFrame, endFrame);
+    const count = wasm.get_contact_positions(this.h, frameIndex(startFrame), frameIndex(endFrame));
     if (count < 0) throw new Error('contact window must already be simulated');
-    return new Float64Array(ex.memory.buffer, ex.contact_positions_ptr(), count * 3).slice();
+    return new Float64Array(wasm.memory.buffer, wasm.contact_positions_ptr(), count * 3).slice();
   }
 
   getLastFrameIndex(): number {
-    return ex.get_last_frame_index(this.h);
+    return get_last_frame_index(this.h);
   }
-  // deno-lint-ignore no-explicit-any
   private stateMapFrom(sc: Float64Array): Map<string, any> {
     const m = new Map<string, any>();
     for (let i = 0; i < NENT; i++) {
@@ -278,22 +208,22 @@ export class LineRiderEngine {
     }
     return m;
   }
-  // deno-lint-ignore no-explicit-any
   getStateMapAtFrame(frame: number): Map<string, any> {
-    ex.get_state_map(this.h, frame);
-    return this.stateMapFrom(scratch());
+    get_state_map(this.h, frameIndex(frame));
+    return this.stateMapFrom(views().scratch);
   }
-  // deno-lint-ignore no-explicit-any
   getUpdatesAtFrame(frame: number): any[] {
+    const handle = this.h;
+    frameIndex(frame);
     if (frame === 0) return [];
-    const n = ex.get_updates(this.h, frame);
+    const n = get_updates(handle, frame);
     // Common case: no collisions this frame → the fixed StepUpdate + ConstraintUpdate
     // sequence, shared (read-only) instead of rebuilt.
     if (n === 0) return NO_COLLISION_UPDATES;
     // events are (iter, line_id, point_idx) triples — copy out before any
     // further wasm call can grow/detach the buffer.
     const ev = new Int32Array(3 * n);
-    const view = events();
+    const view = eventValues(n * 3);
     for (let k = 0; k < 3 * n; k++) ev[k] = view[k];
     // synthesize lr-core's per-frame update sequence (scarf excluded):
     // StepUpdate, then 6×(22 ConstraintUpdate + collisions of that iteration),
@@ -311,73 +241,55 @@ export class LineRiderEngine {
     for (let c = 0; c < 3; c++) updates.push(CONSTRAINT_UPDATE);
     return updates;
   }
-  // deno-lint-ignore no-explicit-any
-  getRawFrameAtFrame(frame: number): any {
-    const n = ex.get_raw_frame(this.h, frame);
-    const sc = scratch();
-    let sledContacts: string[] | undefined;
-    let contactLineIds: number[] | undefined;
-    let seenPoints = 0;
-    if (n > 0) {
-      const ev = events();
-      for (let p = 0; p < n; p++) {
-        const pointIdx = ev[p * 3 + 2] | 0;
-        const bit = 1 << pointIdx;
-        if ((SLED_POINT_MASK & bit) === 0) continue;
-        if ((seenPoints & bit) === 0) {
-          seenPoints |= bit;
-          sledContacts ??= [];
-          sledContacts.push(ENTITY_IDS[pointIdx]);
-        }
-        const lineId = ev[p * 3 + 1];
-        contactLineIds ??= [];
-        if (!contactLineIds.includes(lineId)) {
-          contactLineIds.push(lineId);
-        }
-      }
+  getRawFrameAtFrame(frame: number): RawFrame {
+    const n = get_raw_frame(this.h, frameIndex(frame));
+    const sc = views().scratch;
+    const pointCount = sc[6];
+    const sledContacts = pointCount ? new Array<string>(pointCount) : EMPTY_SLED_CONTACTS;
+    for (let i = 0; i < pointCount; i++) sledContacts[i] = ENTITY_IDS[sc[7 + i]];
+    const contactLineIds = n ? new Array<number>(n) : EMPTY_CONTACT_LINE_IDS;
+    if (n) {
+      const contacts = eventValues(n);
+      for (let i = 0; i < n; i++) contactLineIds[i] = contacts[i];
     }
     return {
       frame,
       position: { x: sc[0], y: sc[1] },
       velocity: { x: sc[2], y: sc[3] },
-      sledContacts: sledContacts ?? EMPTY_SLED_CONTACTS,
-      contactLineIds: contactLineIds ?? EMPTY_CONTACT_LINE_IDS,
+      sledContacts,
+      contactLineIds,
       sledBroken: sc[5] !== -1,
       riderEjected: sc[4] !== -1,
     };
   }
-  /** Construction checks include body contacts as well as sled contacts. This
-   * is a read of an already metered frame, never an uncharged simulation. */
+  /** All-point contact observations read cached events and never step physics. */
   getAllContactLineIdsAtFrame(frame: number): number[] {
-    if(!Number.isSafeInteger(frame)||frame<0||frame>this.getLastFrameIndex())
-      throw new Error('all-contact observation requires an already simulated frame');
-    const n=ex.get_raw_frame(this.h,frame),ev=events(),ids=new Set<number>();
-    for(let p=0;p<n;p++)ids.add(ev[p*3+1]);
+    const n = get_cached_events(this.h, frameIndex(frame));
+    if (n < 0) throw new Error('observation requires an already simulated frame');
+    const ev = eventValues(n * 3), ids = new Set<number>();
+    for (let p = 0; p < n; p++) ids.add(ev[p * 3 + 1]);
     return [...ids];
   }
-  /** All-point physical contact, read from already metered native state. The
-   * impact account does not need line/point wrapper allocations in hot search. */
   hasContactAtFrame(frame: number): boolean {
-    if(!Number.isSafeInteger(frame)||frame<0||frame>this.getLastFrameIndex())
-      throw new Error('impact contact observation requires an already simulated frame');
-    return ex.get_raw_frame(this.h,frame)>0;
+    const contact = has_contact(this.h, frameIndex(frame));
+    if (contact < 0) throw new Error('observation requires an already simulated frame');
+    return contact > 0;
   }
-  getCandidateWindow(startFrame: number, endFrame: number): any | null {
-    if (typeof GET_CANDIDATE_WINDOW !== "function") return null;
+  getCandidateWindow(startFrame: number, endFrame: number): CandidateWindowRaw | null {
+    const handle = this.h;
     const start = Math.max(0, Math.trunc(startFrame));
     const end = Math.trunc(endFrame);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end > 0x7fffffff || end < start) return null;
     const frames = end - start + 1;
-    if (frames * CANDIDATE_WINDOW_STRIDE > OUT_LEN) return null;
-    const contactCount = GET_CANDIDATE_WINDOW(this.h, start, end);
+    const contactCount = wasm.get_candidate_window(handle, start, end);
     if (contactCount < 0) return null;
     return {
       startFrame: start,
       duration: end,
       frames,
-      stride: CANDIDATE_WINDOW_STRIDE,
-      data: out(),
-      contacts: events(),
+      stride: WINDOW_STRIDE,
+      data: windowValues(frames * WINDOW_STRIDE),
+      contacts: windowContacts(contactCount),
       contactCount,
     };
   }
@@ -386,23 +298,12 @@ export class LineRiderEngine {
    * and radius of gyration. Same arithmetic, in the same order, as bodyMotion() in
    * scripts/lib/strike_impact.ts over ballisticState(), so results are identical. */
   bodyMotionAt(frame: number): {v: {x: number; y: number}; L: number; R: number} {
-    ex.get_state_map(this.h, frame);
-    const state = scratch(), n = RIDER_POINT_IDS.length;
-    if (n !== 10) throw new Error('strike observation expects the ten rider points');
-    let cx = 0, cy = 0, vx = 0, vy = 0;
-    for (let index = 0; index < n; index++) {
-      const o = (index + 2) * RIDER_POINT_STRIDE;
-      cx += state[o]; cy += state[o + 1]; vx += state[o] - state[o + 2]; vy += state[o + 1] - state[o + 3];
-    }
-    cx /= 10; cy /= 10; vx /= 10; vy /= 10;
-    let L = 0, R2 = 0;
-    for (let index = 0; index < n; index++) {
-      const o = (index + 2) * RIDER_POINT_STRIDE, rx = state[o] - cx, ry = state[o + 1] - cy;
-      L += rx * (state[o + 1] - state[o + 3] - vy) - ry * (state[o] - state[o + 2] - vx); R2 += rx * rx + ry * ry;
-    }
-    return {v: {x: vx, y: vy}, L, R: Math.sqrt(R2 / 10)};
+    if (!get_body_motion(this.h, frameIndex(frame)))
+      throw new Error('observation requires an already simulated frame');
+    const state = views().scratch;
+    return {v: {x: state[0], y: state[1]}, L: state[2], R: state[3]};
   }
-  // deno-lint-ignore no-explicit-any
+
   getRider(frame: number): any {
     // Lean path: the kernel computes the BODY average + the two binding fsu in
     // Rust (get_rider writes 6 f64 to the head of SCRATCH), so the hot detector
@@ -411,13 +312,13 @@ export class LineRiderEngine {
     // bindings and four ordinary sled probes. `ballisticState()` lazily copies
     // all ten point/previous-point states from this same already-computed frame;
     // other point reads retain the cold full-stateMap fallback.
-    ex.get_rider(this.h, frame);
-    const sc = scratch();
+    get_rider(this.h, frameIndex(frame));
+    const sc = views().scratch;
     const fsuRider = sc[4], fsuSled = sc[5];
     const peg = RIDER_SLED_OFFSET;
-    const tail = peg + RIDER_POINT_STRIDE;
-    const nose = tail + RIDER_POINT_STRIDE;
-    const stringPoint = nose + RIDER_POINT_STRIDE;
+    const tail = peg + POINT_STRIDE;
+    const nose = tail + POINT_STRIDE;
+    const stringPoint = nose + POINT_STRIDE;
     const pegPx = sc[peg], pegPy = sc[peg + 1];
     const pegPrevx = sc[peg + 2], pegPrevy = sc[peg + 3], pegVx = sc[peg + 4], pegVy = sc[peg + 5];
     const tailPx = sc[tail], tailPy = sc[tail + 1];
@@ -434,8 +335,8 @@ export class LineRiderEngine {
       ballisticState: () => {
         // Refresh scratch because the rider object may outlive another ABI read.
         // The frame is cached, so this advances zero physics frames.
-        ex.get_state_map(this.h, frame);
-        const state = scratch();
+        get_state_map(this.h, frameIndex(frame));
+        const state = views().scratch;
         const points: Record<string, {
           x: number;
           y: number;
@@ -445,7 +346,7 @@ export class LineRiderEngine {
           vy: number;
         }> = {};
         for (let index = 0; index < RIDER_POINT_IDS.length; index++) {
-          const offset = (index + 2) * RIDER_POINT_STRIDE;
+          const offset = (index + 2) * POINT_STRIDE;
           points[RIDER_POINT_IDS[index]] = {
             x: state[offset],
             y: state[offset + 1],
@@ -457,12 +358,11 @@ export class LineRiderEngine {
         }
         return {
           points,
-          riderMounted: state[NENT * RIDER_POINT_STRIDE] === -1,
-          sledIntact: state[NENT * RIDER_POINT_STRIDE + 1] === -1,
+          riderMounted: state[NENT * POINT_STRIDE] === -1,
+          sledIntact: state[NENT * POINT_STRIDE + 1] === -1,
         };
       },
-      // deno-lint-ignore no-explicit-any
-      get: (id: string): any => {
+            get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
         if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
         if (id === RIDER_SLED_POINTS[0]) return pointStateFrom(pegPx, pegPy, pegPrevx, pegPrevy, pegVx, pegVy);
@@ -477,21 +377,21 @@ export class LineRiderEngine {
   /** Whether the rider is mounted and the sled intact at `frame`, simulating up
    * to it if needed. Allocates nothing; callers meter through detector.ts. */
   isBoundAtFrame(frame: number): boolean {
-    ex.get_rider(this.h, frame);
-    const sc = scratch();
+    get_rider(this.h, frameIndex(frame));
+    const sc = views().scratch;
     return sc[4] === -1 && sc[5] === -1;
   }
   getSledPointPositionsAtFrame(frame: number, out: number[] = []): number[] {
-    ex.get_rider(this.h, frame);
-    const sc = scratch();
+    get_rider(this.h, frameIndex(frame));
+    const sc = views().scratch;
     out[0] = sc[RIDER_SLED_OFFSET];
     out[1] = sc[RIDER_SLED_OFFSET + 1];
-    out[2] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE];
-    out[3] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE + 1];
-    out[4] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 2];
-    out[5] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 2 + 1];
-    out[6] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 3];
-    out[7] = sc[RIDER_SLED_OFFSET + RIDER_POINT_STRIDE * 3 + 1];
+    out[2] = sc[RIDER_SLED_OFFSET + POINT_STRIDE];
+    out[3] = sc[RIDER_SLED_OFFSET + POINT_STRIDE + 1];
+    out[4] = sc[RIDER_SLED_OFFSET + POINT_STRIDE * 2];
+    out[5] = sc[RIDER_SLED_OFFSET + POINT_STRIDE * 2 + 1];
+    out[6] = sc[RIDER_SLED_OFFSET + POINT_STRIDE * 3];
+    out[7] = sc[RIDER_SLED_OFFSET + POINT_STRIDE * 3 + 1];
     out.length = 8;
     return out;
   }

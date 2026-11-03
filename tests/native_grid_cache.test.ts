@@ -1,5 +1,5 @@
 import {it, expect} from 'vitest';
-import {LineRiderEngine as Native, disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Native, disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 const core: any = await import('lr-core/line-rider-engine/index.js');
 const Reference = typeof core.default === 'function' ? core.default : core.default.default;
 const line = core.createLineFromJson ?? core.default.createLineFromJson;

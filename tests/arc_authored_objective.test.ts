@@ -1,7 +1,7 @@
 import {expect,it} from 'vitest';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
-import {disposeAllWasmEnginesForStudy} from '../scripts/lib/native_motion/engine.ts';
+import {disposeEngines} from '../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory,detect,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import {measureGapAxes} from '../scripts/v0/core/measure.ts';
 import {sliceTimeline} from '../scripts/v0/core/substrate.ts';
@@ -42,5 +42,5 @@ it('measures the authored ending while physically validating the complete surviv
     const expected=measureGapAxes(det,tail,[],160),grace=measureGapAxes(det,tail,[],180),actual=result.rows.at(-1)!.achieved;
     expect(actual.air).toBe(expected.air);expect(actual.speed).toBe(expected.speed);expect(actual.amplitude).toBe(expected.amplitude);
     expect(actual.air).not.toBe(grace.air);
-  }finally{disposeAllWasmEnginesForStudy();}
+  }finally{disposeEngines();}
 });

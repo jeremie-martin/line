@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Engine,disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,getPhysicsFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 const core:any=await import('../vendor/lr-core/line-rider-engine/index.js');
 const Reference=typeof core.default==='function'?core.default:core.default.default;
@@ -37,7 +37,13 @@ it('rejects an incomplete observation after a budget interruption',()=>{
 
 it('binds the packaged native sources and WASM to their recorded manifest',()=>{
  const root=new URL('../scripts/lib/native_motion/',import.meta.url);
- const manifest=JSON.parse(readFileSync(new URL('manifest.json',root),'utf8'));
+ const manifestBytes=readFileSync(new URL('manifest.json',root));
+ const manifest=JSON.parse(manifestBytes.toString());
+ expect(createHash('sha256').update(manifestBytes).digest('hex')).toBe(readFileSync(new URL('manifest.json.sha256',root),'utf8').trim());
+ const sources=['Cargo.toml','Cargo.lock','engine.wasm',
+  ...readdirSync(root).filter(name=>name.endsWith('.ts')),
+  ...readdirSync(new URL('src/',root)).filter(name=>name.endsWith('.rs')).map(name=>`src/${name}`)].sort();
+ expect(Object.keys(manifest.generated).sort()).toEqual(sources);
  for(const [name,expected]of Object.entries(manifest.generated))
   expect(createHash('sha256').update(readFileSync(new URL(name,root))).digest('hex'),name).toBe(expected);
 });

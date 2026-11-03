@@ -1,43 +1,35 @@
-//! WASM ABI — the export surface the JS wrapper (`engine.ts`) drives.
-//! Frozen contract: symbol names, signatures, and the SCRATCH/EVENTS buffer
-//! layouts must not change. Owns the exchange buffers and the `sim()` batch kernel
-//! (retained for batch replay callers). The stateful engine state lives
-//! in engine.rs (one shared cache per lineage); these are thin marshalling shims.
+//! Private compiler ABI, shipped together with wasm.ts. Exchange buffers are
+//! borrowed until the next WASM call; the wrapper refreshes views after growth.
+//! Engine state and observations are owned by the arena, not these buffers.
 
-use crate::engine;
-use crate::frame::CollisionHistory;
-use crate::grid::FlatIntMap;
-use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
-use crate::line::{build_line, line_cells, push_line, GridLine};
-use crate::{NENT, OUT_ORDER};
+use crate::engine::with_arena;
+use crate::line::build_line;
+use crate::{ITERATE, NENT};
 
-const MAX_LINES: usize = 1024;
-const MAX_FRAMES: usize = 2400;
-const LINE_STRIDE: usize = 6; // x1,y1,x2,y2,type,flags
-const OUT_STRIDE: usize = 60; // 10 points * 6
+// Variable outputs retain high-water storage and publish only their returned
+// logical prefix. No batch-simulation limit constrains a stateful read.
+static mut WINDOW: Vec<f64> = Vec::new();
+static mut WINDOW_CONTACTS: Vec<f64> = Vec::new();
+static mut EVENTS: Vec<f64> = Vec::new();
 
-// Exchange buffers. LINES_IN: caller writes line data. OUT: batch sim() output.
-// SCRATCH: 12 entities × 6 f64 (= 72), then 12 framesSinceUnbind. EVENTS:
-// per-frame collision records as (iteration, line_id, point_idx) f64 triples.
-static mut LINES_IN: [f64; MAX_LINES * LINE_STRIDE] = [0.0; MAX_LINES * LINE_STRIDE];
-static mut OUT: [f64; (MAX_FRAMES + 1) * OUT_STRIDE] = [0.0; (MAX_FRAMES + 1) * OUT_STRIDE];
+// State: 12 entities × six coordinates, then 12 binding counters.
+// EVENTS carries ordered collision triples for update reads, or deduplicated
+// contact line ids for raw-frame reads. Each operation returns its logical count.
 const SCRATCH_LEN: usize = NENT * 6 + NENT;
 static mut SCRATCH: [f64; SCRATCH_LEN] = [0.0; SCRATCH_LEN];
-const EVENTS_LEN: usize = 49152; // 16384 collision records × 3
-static mut EVENTS: [f64; EVENTS_LEN] = [0.0; EVENTS_LEN];
 // add_lines batch input: per line (id, type, flags) in ADD_IDS and (x1, y1, x2, y2)
-// in ADD_COORDS, the arguments add_line takes, for up to ADD_LINES_CAP lines.
+// in ADD_COORDS, for up to ADD_LINES_CAP lines.
 const ADD_LINES_CAP: usize = 4096;
 static mut ADD_IDS: [i32; ADD_LINES_CAP * 3] = [0; ADD_LINES_CAP * 3];
 static mut ADD_COORDS: [f64; ADD_LINES_CAP * 4] = [0.0; ADD_LINES_CAP * 4];
 
 #[no_mangle]
-pub extern "C" fn lines_in_ptr() -> u32 {
-    &raw const LINES_IN as u32
+pub extern "C" fn window_ptr() -> u32 {
+    unsafe { (&*&raw const WINDOW).as_ptr() as u32 }
 }
 #[no_mangle]
-pub extern "C" fn out_ptr() -> u32 {
-    &raw const OUT as u32
+pub extern "C" fn window_contacts_ptr() -> u32 {
+    unsafe { (&*&raw const WINDOW_CONTACTS).as_ptr() as u32 }
 }
 #[no_mangle]
 pub extern "C" fn scratch_ptr() -> u32 {
@@ -45,7 +37,7 @@ pub extern "C" fn scratch_ptr() -> u32 {
 }
 #[no_mangle]
 pub extern "C" fn events_ptr() -> u32 {
-    &raw const EVENTS as u32
+    unsafe { (&*&raw const EVENTS).as_ptr() as u32 }
 }
 #[no_mangle]
 pub extern "C" fn add_ids_ptr() -> u32 {
@@ -60,94 +52,26 @@ pub extern "C" fn add_lines_cap() -> u32 {
     ADD_LINES_CAP as u32
 }
 
-// ── batch sim() — pure forward simulation of a
-// fixed track from a start state; no history/collisions recording (track=false). ──
-#[no_mangle]
-pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
-    let n_lines = n_lines as usize;
-    let frames = (frames as usize).min(MAX_FRAMES);
-    let mut grid: FlatIntMap<Vec<GridLine>> = FlatIntMap::default();
-    for li in 0..n_lines {
-        let b = li * LINE_STRIDE;
-        let l = unsafe {
-            build_line(
-                li as i32,
-                LINES_IN[b],
-                LINES_IN[b + 1],
-                LINES_IN[b + 2],
-                LINES_IN[b + 3],
-                LINES_IN[b + 4] as i64,
-                LINES_IN[b + 5] as i64,
-            )
-        };
-        let cells = line_cells(&l);
-        push_line(&mut grid, l, &cells);
-    }
-    let (rest, endur) = compute_rest_endur();
-    let mut s = init_state(sx, sy, svx, svy);
-
-    let write = |f: usize, s: &State| {
-        let base = f * OUT_STRIDE;
-        for (k, &i) in OUT_ORDER.iter().enumerate() {
-            let o = base + k * 6;
-            unsafe {
-                OUT[o] = s.px[i];
-                OUT[o + 1] = s.py[i];
-                OUT[o + 2] = s.prevx[i];
-                OUT[o + 3] = s.prevy[i];
-                OUT[o + 4] = s.vx[i];
-                OUT[o + 5] = s.vy[i];
-            }
-        }
-    };
-    write(0, &s);
-    let mut ev: Vec<crate::kernel::Collision> = Vec::new();
-    let mut history = CollisionHistory::new();
-    let mut lc = LineCellCache::default();
-    for f in 1..=frames {
-        ev.clear();
-        step_state::<false>(
-            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut history, &mut lc,
-        );
-        write(f, &s);
-    }
-    frames as u32
-}
-
 // ── stateful engine ABI (handles = version ids in engine.rs) ──
 #[no_mangle]
 pub extern "C" fn create_engine() -> u32 {
-    engine::create()
+    with_arena(|arena| arena.create())
 }
 
 // Release the external ownership of a version. Descendants and the current cache
 // retain any ancestry they need. Slots become reusable only at lineage death.
 #[no_mangle]
 pub extern "C" fn free_engine(h: u32) {
-    engine::free(h);
+    with_arena(|arena| arena.free(h));
 }
 
 #[no_mangle]
 pub extern "C" fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
-    engine::set_start(h, px, py, vx, vy)
-}
-
-#[no_mangle]
-pub extern "C" fn add_line(
-    h: u32,
-    id: i32,
-    ty: i32,
-    x1: f64,
-    y1: f64,
-    x2: f64,
-    y2: f64,
-    flags: i32,
-) -> u32 {
-    engine::add_line(h, id, ty, x1, y1, x2, y2, flags)
+    with_arena(|arena| arena.set_start(h, px, py, vx, vy))
 }
 
 /// addLine for the first `n` lines of the ADD_IDS/ADD_COORDS buffers as one
-/// version: the same cache operations, in order, as `n` add_line calls.
+/// version, applying the same ordered geometry edits for every batch size.
 #[no_mangle]
 pub extern "C" fn add_lines(h: u32, n: u32) -> u32 {
     let n = (n as usize).min(ADD_LINES_CAP);
@@ -166,18 +90,24 @@ pub extern "C" fn add_lines(h: u32, n: u32) -> u32 {
             )
         })
         .collect();
-    engine::add_lines(h, lines)
+    with_arena(|arena| arena.add_lines(h, lines))
 }
 
 #[no_mangle]
 pub extern "C" fn get_last_frame_index(h: u32) -> i32 {
-    engine::last_frame_index(h)
+    with_arena(|arena| arena.last_frame_index(h))
 }
 
 #[no_mangle]
 pub extern "C" fn get_state_map(h: u32, f: i32) {
     let out = unsafe { &mut *&raw mut SCRATCH };
-    engine::state_into(h, f, out);
+    with_arena(|arena| arena.state_into(h, f, out));
+}
+
+#[no_mangle]
+pub extern "C" fn get_body_motion(h: u32, f: i32) -> i32 {
+    let out = unsafe { &mut *&raw mut SCRATCH };
+    with_arena(|arena| arena.body_motion_into(h, f, out)) as i32
 }
 
 // Lean getRider for the detector hot path: writes 6 f64 to the head of SCRATCH
@@ -186,47 +116,72 @@ pub extern "C" fn get_state_map(h: u32, f: i32) {
 #[no_mangle]
 pub extern "C" fn get_rider(h: u32, f: i32) {
     let out = unsafe { &mut *&raw mut SCRATCH };
-    engine::rider_into(h, f, out);
+    with_arena(|arena| arena.rider_into(h, f, out));
 }
 
 #[no_mangle]
 pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
     let out = unsafe { &mut *&raw mut EVENTS };
-    engine::events_into(h, f, out, EVENTS_LEN / 3) as i32
+    with_arena(|arena| arena.events_into(h, f, out)) as i32
+}
+
+#[no_mangle]
+pub extern "C" fn get_cached_events(h: u32, f: i32) -> i32 {
+    let out = unsafe { &mut *&raw mut EVENTS };
+    with_arena(|arena| arena.cached_events_into(h, f, out)).map_or(-1, |n| n as i32)
+}
+
+#[no_mangle]
+pub extern "C" fn has_contact(h: u32, f: i32) -> i32 {
+    with_arena(|arena| arena.has_contact(h, f)).map_or(-1, |contact| contact as i32)
 }
 
 #[no_mangle]
 pub extern "C" fn get_raw_frame(h: u32, f: i32) -> i32 {
     let scratch = unsafe { &mut *&raw mut SCRATCH };
     let events = unsafe { &mut *&raw mut EVENTS };
-    engine::raw_frame_into(h, f, scratch, events, EVENTS_LEN / 3) as i32
+    with_arena(|arena| arena.raw_frame_into(h, f, scratch, events)) as i32
 }
 
 #[no_mangle]
 pub extern "C" fn get_candidate_window(h: u32, start: i32, end: i32) -> i32 {
-    let out = unsafe { &mut *&raw mut OUT };
-    let contacts = unsafe { &mut *&raw mut EVENTS };
-    engine::candidate_window_into(h, start, end, out, contacts, EVENTS_LEN)
+    let out = unsafe { &mut *&raw mut WINDOW };
+    let contacts = unsafe { &mut *&raw mut WINDOW_CONTACTS };
+    with_arena(|arena| arena.candidate_window_into(h, start, end, out, contacts))
 }
 
 #[no_mangle]
-pub extern "C" fn detach_engine(h: u32) -> u32 { engine::detach(h) }
+pub extern "C" fn detach_engine(h: u32) -> u32 {
+    with_arena(|arena| arena.detach(h))
+}
 
 #[no_mangle]
-pub extern "C" fn prepare_collision_trace(h: u32, frame: i32) { engine::prepare_collision_trace(h, frame); }
+pub extern "C" fn prepare_collision_trace(h: u32, frame: i32) {
+    with_arena(|arena| arena.prepare_collision_trace(h, frame));
+}
+static mut TRACE: [f64; ITERATE * NENT * 6] = [0.0; ITERATE * NENT * 6];
 #[no_mangle]
-pub extern "C" fn collision_trace_ptr() -> u32 { crate::kernel::collision_trace_ptr() }
+pub extern "C" fn collision_trace_ptr() -> u32 {
+    &raw const TRACE as u32
+}
 #[no_mangle]
-pub extern "C" fn collision_trace_count() -> u32 { crate::kernel::collision_trace_count() }
+pub extern "C" fn get_collision_trace(h: u32) -> u32 {
+    let out = unsafe { &mut *&raw mut TRACE };
+    with_arena(|arena| arena.collision_trace_into(h, out)) as u32
+}
 
 // A read buffer only: records are owned by the normal per-lineage frame cache.
 static mut CONTACT_POSITIONS: Vec<f64> = Vec::new();
 #[no_mangle]
 pub extern "C" fn get_contact_positions(h: u32, start: i32, end: i32) -> i32 {
     let out = unsafe { &mut *&raw mut CONTACT_POSITIONS };
-    if engine::contact_positions(h, start, end, out) { (out.len() / 3) as i32 } else { -1 }
+    if with_arena(|arena| arena.contact_positions(h, start, end, out)) {
+        (out.len() / 3) as i32
+    } else {
+        -1
+    }
 }
 #[no_mangle]
 pub extern "C" fn contact_positions_ptr() -> u32 {
-    unsafe { (&* &raw const CONTACT_POSITIONS).as_ptr() as u32 }
+    unsafe { (&*&raw const CONTACT_POSITIONS).as_ptr() as u32 }
 }

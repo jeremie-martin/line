@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Engine,disposeEngines} from '../scripts/lib/native_motion/engine.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import {collectFutureProbes} from '../tools/research/value_probes.ts';
 import {readCollectionCell} from '../tools/research/value_collect.ts';
@@ -23,7 +23,7 @@ it('collects native continuation labels without any production planner hook',()=
  expect(collected.probes.some(p=>Number.isFinite(p.pureFuture))).toBe(true);
  expect(JSON.stringify(compiled.track)).toBe(source);
  expect([0,72].map(frame=>JSON.stringify(caller.getRider(frame).ballisticState()))).toEqual(snapshots);
- disposeAllWasmEnginesForStudy();
+ disposeEngines();
  expect(collectFutureProbes(spec,17,options,compiled.track.lines,compiled.rows,200000)).toEqual(collected);
 },30000);
 it('rejects stale and empty collection records before reuse',()=>{

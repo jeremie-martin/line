@@ -11,7 +11,7 @@
 // Resolved positions belong to the collision that produced them, before later constraints.
 pub(crate) type Collision = (u8, i32, i32, f64, f64);
 
-use crate::frame::CollisionHistory;
+use crate::history::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
 use crate::line::{GridLine, Line, MAX_FORCE_LENGTH};
 use crate::{
@@ -499,6 +499,8 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
 /// `track`, point snapshots and line collisions are recorded in `history` at
 /// `frame_index`; recording is purely additive — it does not affect the physics.
 #[allow(clippy::too_many_arguments)]
+// Keep the large solver out of the frequently called cached-read path.
+#[inline(never)]
 pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
     grid: &FlatIntMap<Vec<GridLine>>,
@@ -508,8 +510,9 @@ pub(crate) fn step_state<const TRACK: bool>(
     frame_index: i32,
     history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
+    mut trace: Option<&mut CollisionTrace>,
 ) {
-    history.begin_frame();
+    if TRACK { history.begin_frame(); }
     line_cache.begin_frame();
     // step
     for i in 0..NENT {
@@ -532,7 +535,7 @@ pub(crate) fn step_state<const TRACK: bool>(
     for it in 0..ITERATE {
         unsafe {
             resolve_iter_constraints(s, rest, endur);
-            trace_collision_state(s, frame_index, it);
+            if let Some(trace) = trace.as_deref_mut() { trace.record(s, it); }
             let it = it as u8;
             collide_point::<PEG, false, TRACK>(
                 s,
@@ -811,20 +814,31 @@ mod tests {
     }
 }
 
-// Compiler observation only: copy state immediately before the collision sweep.
-static mut TRACE_TARGET: i32 = -1;
-static mut TRACE_COUNT: u32 = 0;
-static mut COLLISION_TRACE: [f64; 6 * NENT * 6] = [0.0; 6 * NENT * 6];
-pub(crate) fn set_trace_target(frame: i32) { unsafe { TRACE_TARGET = frame; TRACE_COUNT = 0; } }
-pub(crate) fn collision_trace_ptr() -> u32 { &raw const COLLISION_TRACE as u32 }
-pub(crate) fn collision_trace_count() -> u32 { unsafe { TRACE_COUNT } }
-unsafe fn trace_collision_state(s: &State, frame: i32, iteration: usize) {
-    if frame != TRACE_TARGET { return; }
-    for i in 0..NENT {
-        let k = (iteration * NENT + i) * 6;
-        COLLISION_TRACE[k] = s.px[i]; COLLISION_TRACE[k + 1] = s.py[i];
-        COLLISION_TRACE[k + 2] = s.prevx[i]; COLLISION_TRACE[k + 3] = s.prevy[i];
-        COLLISION_TRACE[k + 4] = s.vx[i]; COLLISION_TRACE[k + 5] = s.vy[i];
+// A requested observation belongs to an engine version. The solver only writes
+// into the explicitly supplied trace, never global state or lazy history replay.
+pub(crate) struct CollisionTrace {
+    pub frame: i32,
+    pub count: usize,
+    pub points: [f64; ITERATE * NENT * 6],
+}
+
+impl CollisionTrace {
+    pub(crate) fn new(frame: i32) -> Self {
+        Self { frame, count: 0, points: [0.0; ITERATE * NENT * 6] }
     }
-    TRACE_COUNT = (iteration + 1) as u32;
+    pub(crate) fn reset(&mut self, frame: i32) {
+        self.frame = frame;
+        self.count = 0;
+    }
+    #[cold]
+    #[inline(never)]
+    fn record(&mut self, s: &State, iteration: usize) {
+        for i in 0..NENT {
+            let k = (iteration * NENT + i) * 6;
+            self.points[k] = s.px[i]; self.points[k + 1] = s.py[i];
+            self.points[k + 2] = s.prevx[i]; self.points[k + 3] = s.prevy[i];
+            self.points[k + 4] = s.vx[i]; self.points[k + 5] = s.vy[i];
+        }
+        self.count = iteration + 1;
+    }
 }

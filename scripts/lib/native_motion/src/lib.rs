@@ -1,13 +1,13 @@
-//! Line Rider body physics — a Rust→WASM reimplementation of the vendored lr-core,
-//! a BIT-IDENTICAL drop-in (the cosmetic scarf dropped). Organized 1:1 with the JS
-//! engine so each module audits against one source file:
+//! Compiler physics backend, independently checked against engine-rs and lr-core.
+//! Modules separate simulation, stored frames, version ownership and transport:
 //!
-//!   grid.rs   ← utils/hashNumberPair.js + grids/getCellsFromLine.js + ClassicGrid geom
-//!   line.rs   ← lines/{Line,SolidLine,AccLine}.js + ClassicGrid cellLinesMap
-//!   kernel.rs ← states/index.js + constraints/index.js + SolidLine.collide (the solver)
-//!   frame.rs  ← line-engine/Frame.js (collision-history grid + invalidation scan)
-//!   engine.rs ← line-engine/LineEngine.js (lazy frame cache, fork, _addLine)
-//!   abi.rs    ← the WASM export surface (frozen contract)
+//!   grid.rs    — cell coordinates, rasterization and integer lookup tables
+//!   line.rs    — immutable line geometry and ordered grid registration
+//!   kernel.rs  — body state, solver, collision queries and explicit observations
+//!   history.rs — collision indexes and rollback for geometry edits
+//!   cache.rs   — geometry, computed frames, summaries and lazy history
+//!   engine.rs  — immutable versions, lineage reconciliation and handle ownership
+//!   abi.rs     — private compiler WASM boundary, paired with wasm.ts
 //!
 //! Only +,-,*,/,sqrt; `f64::sqrt` → wasm `f64.sqrt` (IEEE-754 correctly-rounded,
 //! identical to V8). Exact operation order is preserved — the chaotic sim demands it.
@@ -15,7 +15,8 @@
 mod grid;
 mod line;
 mod kernel;
-mod frame;
+mod history;
+mod cache;
 mod engine;
 mod abi;
 
@@ -77,8 +78,6 @@ pub(crate) const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
     (PEG, TAIL, STRING, PEG, SLED_INTACT),
     (PEG, TAIL, STRING, PEG, RIDER_MOUNTED),
 ];
-
-pub(crate) const OUT_ORDER: [usize; 10] = [BUTT, LFOOT, LHAND, NOSE, PEG, RFOOT, RHAND, SHOULDER, STRING, TAIL];
 
 pub(crate) const GRAVITY_X: f64 = 0.0;
 pub(crate) const GRAVITY_Y: f64 = 0.175;

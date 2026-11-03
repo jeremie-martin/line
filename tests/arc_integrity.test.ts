@@ -3,7 +3,7 @@ import {compileArcMotion,motionArc} from '../scripts/v0/optimizer/arc_motion.ts'
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {arcRailGroups} from '../scripts/v0/optimizer/arc_guidance.ts';
 import {catchReceivers, receiverPoints} from '../scripts/v0/optimizer/arc_geometry.ts';
-import {disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
+import {disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};

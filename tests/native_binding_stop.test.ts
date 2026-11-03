@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Engine,disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {boundThroughMetered,resetFrameCount,getPhysicsFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 
 // At 8 px/frame the rider hits the wall and comes unbound at frame 11.

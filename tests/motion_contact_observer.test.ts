@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine as Engine,disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory,resetFrameCount,getPhysicsFrameCount} from '../scripts/lib/detector.ts';
 it('reads all native collision IDs without advancing or charging extra physics',()=>{
   const engine=new Engine().setStart({x:0,y:-15},{x:4,y:0}).addLine([

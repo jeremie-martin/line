@@ -63,15 +63,17 @@ open `motion-gallery/night.html`. The running log is `PROGRESS.md`.
 
 ```sh
 npm install
-npm run build:wasm      # Rust → WASM physics engine (needs cargo + wasm-opt)
+npm run build:wasm      # independent judge (needs cargo + wasm-opt)
 npm run verify:engine   # exact states + collisions vs reference on committed tracks
 ```
 
-The compiler backend is packaged separately. After editing its Rust sources, use
+The compiler backend is packaged separately. After editing its Rust or TypeScript sources, use
 `npm run build:native`; the independent reference build stays unchanged. See
-[`engine-rs/README.md`](engine-rs/README.md) for parity and per-machine engine
+[`scripts/lib/native_motion/README.md`](scripts/lib/native_motion/README.md) for
+compiler-engine ownership, build, parity and per-machine engine
 benchmarks. `npm run perf:engine` provides paired screening and fresh
-confirmation; `npm run bench:engine` provides workload diagnostics. Old machine
+confirmation, including frozen source comparisons for wrapper changes;
+`npm run bench:engine` provides workload diagnostics. Old machine
 timings are historical evidence.
 
 ## Everyday commands

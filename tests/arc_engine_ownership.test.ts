@@ -4,7 +4,7 @@ import {execFileSync} from 'node:child_process';
 it('retains an empty prefix engine across collection of temporary wrappers',()=>{
   const script=`
     import {createArcEngine} from './scripts/v0/optimizer/arc_engine.ts';
-    import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from './scripts/lib/native_motion/engine.ts';
+    import {LineRiderEngine as Engine,disposeEngines as dispose} from './scripts/lib/native_motion/engine.ts';
     const engine=createArcEngine({position:{x:100,y:40},velocity:{x:2,y:0}});
     Engine.retainOnly([engine]);
     const before=engine.getRider(0).ballisticState();
@@ -19,7 +19,7 @@ it('retains an empty prefix engine across collection of temporary wrappers',()=>
 it.each(['_lr_engine_wasm', 'native_motion/engine'])('preserves caller-owned %s engines across successful and failed compilations',(backend)=>{
   const script=`
     import assert from 'node:assert/strict';
-    import {LineRiderEngine as Engine,disposeAllWasmEnginesForStudy as dispose} from './scripts/lib/${backend}.ts';
+    import {LineRiderEngine as Engine,${backend === 'native_motion/engine' ? 'disposeEngines' : 'disposeAllWasmEnginesForStudy'} as dispose} from './scripts/lib/${backend}.ts';
     import {compileHandoff} from './scripts/v0/optimizer/handoff.ts';
     import {compileArcMotion} from './scripts/v0/optimizer/arc_motion.ts';
     const spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
@@ -50,7 +50,7 @@ it.each(['_lr_engine_wasm', 'native_motion/engine'])('preserves caller-owned %s 
 
 
 it('restores nested ownership after failure and releases only local handles',async()=>{
-  const {LineRiderEngine: Engine,withEngineScope,disposeAllWasmEnginesForStudy: dispose}=await import('../scripts/lib/native_motion/engine.ts');
+  const {LineRiderEngine: Engine,withEngineScope,disposeEngines: dispose}=await import('../scripts/lib/native_motion/engine.ts');
   const caller=new Engine(), before=caller.getRider(0).ballisticState();
   try {
     withEngineScope(()=>{

@@ -1,144 +1,128 @@
-# Compiler simulation backend
+# Compiler physics backend
 
-This isolated copy of the accepted Rust physics engine provides the compiler
-with shared prefix caches, metered collision observation, and cached resolved
-collision positions. Reading cached contacts does not step or replay physics.
-Live descendants and the current cache retain the ancestry they need; released
-branch payloads are reclaimed once neither needs them. These facilities do not
-change the stepping equations or permit supplying a rider state.
+The compiler imports `engine.ts` directly. It preserves the reference engine's
+state arithmetic, ordered collisions and path-dependent frame budget while
+supporting prefix sharing, rollback and compiler observations. The independent
+judge remains in `engine-rs`, with its own adapter and replay instance.
 
-Detached lineages share an immutable cache snapshot until either needs to
-mutate it. Cached reads leave that snapshot shared. A first write copies the
-cache if another lineage still owns it; releasing the source first transfers
-the storage without copying. Grid edits, start resets, frame extension and
-trace eviction remain local to their lineage, including physical-frame charges.
+## Ownership and boundaries
 
-Version slots, lineage holders, free lists and reconciliation scratch have one
-`EngineArena` owner. Stateful operations enter through a scoped `RefCell` borrow;
-internal methods use ordinary references and cannot leak arena references across
-calls. Nested arena entry is rejected. There are no mutable statics or unsafe
-blocks in `engine.rs`. This is not a concurrent ABI: exchange buffers and kernel
-trace state remain module-global and require synchronous access.
+| module | owns |
+|---|---|
+| `engine.ts` | JavaScript handle lifetimes, synchronous scopes and consumer-facing reads |
+| `wasm.ts` | the typed private ABI and borrowed memory views |
+| `src/engine.rs` | version ancestry, lineage reconciliation and requested observations |
+| `src/cache.rs` | geometry, computed frames, event storage and compact read summaries |
+| `src/history.rs` | lazy collision indexes, snapshots and rollback boundaries |
+| `src/kernel.rs` | stepping, collision queries and recording into an explicit trace |
+| `src/line.rs`, `src/grid.rs` | immutable line geometry, cell traversal and lookup tables |
+| `src/abi.rs` | input/output marshalling; it owns no engine state |
 
-`CollisionHistory` owns collision indexes, snapshots, active-cell shortcuts and
-per-frame rollback boundaries. The boundary length defines the tracked prefix,
-removing the separate history-length counter. Its three private boundary arrays
-advance, reset and truncate together. Cloning starts with empty borrowed
-shortcuts; reset and rollback invalidate shortcuts before releasing nodes.
-The kernel receives this owner instead of six separate mutable history objects.
+A version belongs to one lineage. Reads reconcile its shared frame cache before
+observing or extending it. Live descendants and the current cache retain the
+ancestry they need; unused branches are reclaimed, with handle slots reserved
+until lineage death. Detached lineages share a cache snapshot until a write.
+Cached reads do not copy it; releasing the source transfers ownership directly.
+Body motion is a pure, lazy per-frame observation stored in a `OnceCell`. Shared
+snapshots may fill that memo without copying simulation data. Copies preserve
+valid observations; rollback and reset discard them with their frames.
 
-The benchmark engine remains in `engine-rs`. Every completed compiler output is
-cold-replayed with that engine and must match the full raw trajectory exactly.
-The independent judge is unchanged. Native callers retain ownership of their
-engines across compilation: pruning and cleanup occur inside a synchronous
-`withEngineScope`, including independent continuation-label collection.
+One checked arena borrow encloses each native operation. Frame-cache storage is
+private: geometry edits, resets and truncation maintain its derived indexes.
+History length comes from its boundaries. Grid edits invalidate borrowed line
+queries; rollback/reset invalidate history shortcuts before releasing nodes.
+Copies start with empty shortcuts; ownership transfers preserve their owner.
 
-`manifest.json` keeps the original accepted-source provenance and the current
-packaged source/WASM hashes. A test checks every packaged hash. Source and WASM
-bytes also enter the compiler identity independently of this manifest.
+Each wrapper uniquely owns its native handle. Empty line batches return the
+existing wrapper. `dispose()` is idempotent; every later read through that
+wrapper fails explicitly, even after the native slot has been reused.
+`retainOnly()` prunes live engines, and `disposeEngines()` releases the current
+scope's engines. `withEngineScope()` is synchronous, protects caller-owned engines
+through nested success/failure, and releases its local engines on exit. Return
+plain data from a scope; an escaped local wrapper is already disposed.
 
-Rebuild with `npm run build:native` (requires the Rust
-`wasm32-unknown-unknown` target). It builds into `generated/native-motion-target`,
-packages `engine.wasm`, and updates the generated source/WASM and manifest
-hashes. It does not overwrite the independent judge build in `engine-rs`.
+Traces belong to the requesting version, including when sibling versions are
+interleaved. Preparing a trace evicts the requested frame; a pending trace also
+exposes that eviction before a metered read if another sibling filled the cache.
+Only the explicit replay records it. Lazy history reconstruction never records
+observations. Cached contact/body observations cannot advance physics.
+Each observation checks and reads in one native operation. Contact-presence reads
+do not copy events. Raw-frame reads reuse cached contact ids and first-contact
+point order, rather than re-deriving them from collisions in JavaScript.
 
-The collision grid registers lines only in their original raster cells. A shared
-query cache flattens the 3×3 neighborhood when it is read. Each point filters
-that list with the original normal-dot-velocity > 0 predicate at its first
-sweep in a frame and whenever it changes cell. Velocity stays fixed through
-all six sweeps, so later sweeps reuse the filtered list. Filtering preserves the
-predicate's NaN behavior; the remaining collision arithmetic is unchanged.
-Lists preserve cell order, descending line ids within cells and duplicates
-across cells. Buffers reserve the full input query length before filtering and
-retain capacity; this avoids repeated growth and the increased WASM memory
-high-water size seen with individual pushes in the unreserved prototype.
-Filtering now compacts directly into that reserved space, removing per-entry
-vector growth checks and direction-dependent branches. Only the initialized,
-accepted prefix becomes visible; order and duplicates remain unchanged.
+## ABI and output lifetime
 
-Grid insertion/removal invalidates both query levels, including cached misses.
-The grid owns the immutable lines; cached pointers are borrowed. A collision
-keeps its original query while moving the point, and the next sweep refreshes
-the point's list. Every step refreshes filtered point lists, including history
-replays that reuse a frame index; the shared queries persist until grid edits.
-Copying a shared cache starts with empty borrowed queries; ownership transfer
-keeps the owning grid and its valid queries together. Solver arithmetic,
-collision order and physical-frame accounting are unchanged.
+The compiler ABI is private and ships with `wasm.ts`; it is not the frozen judge
+ABI. Line insertion has one chunked batch path. The retired batch simulator,
+its input buffer and the unused single-line export are absent.
 
-For a performance change, build both binaries with the same Rust toolchain and
-save them before measuring. `npm run perf:engine` adapts the archived
-`scripts/v0/bench/perf_ab.ts` workflow to the current compiler. It snapshots the
-source and fixtures in a disposable directory, switches only that directory's
-WASM, and alternates fresh, warmed Node processes. The live package is untouched.
-Use a quiet machine; on the November 3 hybrid CPU, pin to CPU 2:
+State/trace buffers have topology-defined sizes. Variable event and window
+outputs grow as needed and retain their initialized high-water storage. Returned
+counts define the logical prefix: output is never silently capped. Candidate
+contacts have their own buffer, separate from ordinary event reads.
+
+Views borrow WASM memory until the next engine call. The adapter refreshes them
+when memory grows or a vector moves, even inside the same memory buffer. Copy
+before retaining a window across calls. `getCachedContactPositions()` and
+`readCollisionTrace()` already return owned observations. Transport buffers still
+require synchronous access; this is not a concurrent native C API.
+
+The neighborhood cache builds ordered 3×3 queries on demand and retains a
+filtered list per point. Velocity is fixed across the six sweeps; filters refresh
+at a frame boundary or cell change. Original cell order, descending line ids,
+duplicates and direction-predicate NaN behavior are preserved. A sweep retains
+its original list when a collision moves a point. These specializations remain
+because they improve measured performance while preserving parity.
+
+## Build and verify
+
+`npm run build:native` uses locked Cargo release output for
+`wasm32-unknown-unknown` in `generated/native-motion-target`. It packages the WASM
+and discovers all Rust/TypeScript sources and Cargo inputs for the manifest.
+The original accepted-source provenance remains recorded separately. A test
+checks manifest completeness and hashes. The judge build is untouched.
+
+Structural backend changes require `npm run verify:engine`, `npm run parity`
+(exact tracks and charged work), `npm run parity:judge`, `npm test`,
+`npm run typecheck`, `npm run reach`, and the native Rust tests:
+
+```sh
+cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml
+```
+
+## Measure on the current machine
+
+Save both release binaries before measuring. `bench:engine` is a fixed-workload
+diagnostic; `perf:engine` uses fresh warmed processes, alternating order, a fixed
+sample count and a frozen candidate. It checks states, ordered events, cached
+contacts and work counts. Compile mode checks exact committed tracks and work
+on every warmup and timed compile. Use a quiet machine; on the November 3 hybrid
+CPU, pin to CPU 2. Never overlap timings with builds or correctness checks.
 
 ```sh
 taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --rounds=12 --confirm-rounds=24 --out=generated/engine-ab/screen
 taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --stage=confirm --rounds=24 --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
 ```
 
-The engine panel includes registration, replay and sibling edits/rollback over
-all committed tracks. It verifies raw states, ordered events, cached contact
-positions and cache-work counts before timing. Its primary measurement is total
-panel wall time per simulated frame, including registration cost. The lighter
-`npm run bench:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm`
-remains useful for per-workload diagnosis, but has no promotion decision.
-When a change shifts cost between registration and stepping, measure and report
-those phases separately too. The November 3 lazy-query study improves compiler
-and combined engine workloads but increases isolated post-registration stepping
-time; see `docs/research/engine-lazy-neighborhoods-20261103.json` and `REWORK.md`.
-The subsequent direction-filter study recovers part of that stepping cost with
-unchanged measured memory high-water sizes; its final candidate has separate
-fresh engine and automatic confirmations in
-`docs/research/engine-direction-filter-20261103.json`.
-The subsequent copy-on-write study targets detached-prefix ownership. Its
-predeclared primary is standalone automatic compilation, which frequently
-detaches prefixes; the broad engine panel is a regression guard. Fresh
-confirmation reduces that compile time by 3.39%, with no detected change in
-the broad panel or isolated stepping. See
-`docs/research/engine-copy-on-write-20261103.json` for the complete evidence,
-including the deferred copy cost when both lineages remain live.
-The subsequent direction-compaction study confirms 2.25% less combined engine
-time and 1.26% less standalone automatic compile time, with unchanged measured
-memory high-water sizes. See
-`docs/research/engine-direction-compaction-20261103.json` and `REWORK.md` for
-phase diagnostics, rejected experiments and exact correctness gates.
+By default, both arms use the current source and differ only in WASM. For wrapper
+or consumer changes, add `--reference-root=/path/to/earlier-checkout` to both
+commands. Both frozen source versions run in the same disposable cwd, switching
+changed files outside timing. The runner and independent judge binary are fixed;
+differing fixtures, dependencies or judge source are rejected. Results record
+both source hashes. An A/A control requires identical source and binary hashes.
 
-The subsequent ownership cleanup uses the same paired-process scaffolding as
-predeclared regression guards, without a new speedup claim. Adoption requires
-no REJECT in engine, standalone automatic and larger-budget checks, upper 95%
-time-delta bounds below +0.5% for engine and automatic, unchanged or lower
-measured memory and exact structural gates. These guards do not replace fresh
-confirmation when claiming a performance improvement. The complete cleanup
-study is `docs/research/engine-ownership-cleanup-20261103.json`.
+Add `--mode=compile --cells=61` for standalone default automatic construction.
+Check it separately before adopting engine changes; an aggregate win cannot hide
+a default-path regression. Cell 62 checks its larger budget. If costs shift
+between registration and simulation, also report isolated stepping. For storage
+changes, report WASM linear-memory high-water size separately from live memory
+or process RSS.
 
-For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
-commands (or predeclare another set of indices in `tools/parity/cells.json`).
-Each warmup and timed compile must match its committed track and work count.
-The primary metric uses the parity worker's compile time per physical frame;
-CPU time is diagnostic and also includes worker bookkeeping.
-The report also shows individual cell decisions and blocks qualification when
-one detects a regression. Always check default automatic construction separately
-(`--mode=compile --cells=61`) before adoption. Its process warms only that
-workload; the mixed panel warms every selected case. An aggregate win cannot
-override a default-path regression.
-
-Declare rounds, repetitions, warmups, cells and the confirmation count before
-screening. The tool preserves the protocol and every raw pair, refuses to
-overwrite evidence, and issues no interim verdict. KEEP requires favorable
-paired bootstrap support (default 95%), a negative median delta, and an exact
-one-sided sign-test p-value at most `1-p` (0.05 by default). Ties supply no sign
-evidence. Only a fresh KEEP confirmation with identical source, inputs, WASM hashes, host, Node
-and CPU affinity qualifies performance; full correctness gates still apply.
-Do not repeatedly extend or restart a run until it passes. Bootstrap support describes resampling these
-fixed workloads, not a posterior probability, an anytime-valid stopping rule,
-or quality across seeds and unseen songs. An identical-binary A/A run should be
-INCONCLUSIVE; it is a host sanity check, not proof of universal calibration.
-
-Both arms share the installed dependencies through a symlink: keep dependencies,
-Node, affinity and the machine workload fixed throughout screening and
-confirmation. Historical timings are not a new machine's baseline.
-
-Structural backend changes require `npm run verify:engine`, exact compile/work
-and judge parity, the native ownership/cache tests, typecheck and reachability.
-The independent reference engine remains unchanged.
+Declare the protocol before timing. KEEP requires favorable paired-bootstrap
+support, a negative median and the exact sign safeguard. Only a fresh KEEP
+confirmation with identical frozen identities and protocol qualifies a speedup.
+Predeclared cleanup regression guards can instead establish an adoption decision
+without claiming a speedup. Never extend or restart an unchanged run until it
+passes. Bootstrap support is neither a posterior nor an anytime-valid rule.
+Historical studies and discarded experiments are in `REWORK.md` and
+`docs/research/`; their timings are not a new machine's baseline.

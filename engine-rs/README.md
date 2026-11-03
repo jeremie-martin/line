@@ -1,6 +1,8 @@
-# engine-rs — Rust→WASM drop-in for the lr-core physics engine
+# Independent reference physics engine
 
-Goal: a WASM engine that is a **bit-identical drop-in** for the physics engine —
+This is the independent judge, kept separate from the compiler backend in
+`scripts/lib/native_motion`. Its original goal was a **bit-identical drop-in**
+for the physics engine —
 swap it in for our optimized `vendor/lr-core` (or the published `official`
 lr-core) and the compiler produces **exactly the same tracks and hashes**. The
 cosmetic scarf is out of scope (our vendored engine doesn't simulate it, and the
@@ -36,7 +38,8 @@ This switch selects consumers of the legacy interop shim. The current compiler
 imports `scripts/lib/native_motion/engine.ts` directly, so changing `LR_ENGINE`
 does **not** switch its simulation backend. For compiler-engine A/B measurements,
 use `perf:engine --mode=compile` with both binary paths. Its private snapshot
-uses the same source for both arms and swaps only the compiler WASM. The
+uses the same source for both arms by default; `--reference-root` also compares
+a frozen earlier wrapper/compiler source. The
 [native backend README](../scripts/lib/native_motion/README.md) documents the
 fixed screening/confirmation protocol and probability interpretation.
 For engine workload diagnostics, pass both binary paths to `bench:engine`.
@@ -47,7 +50,9 @@ For engine workload diagnostics, pass both binary paths to `bench:engine`.
 | `js` | our optimized vendored `lr-core` |
 | `official` | the untouched published `lr-core` (parity reference) |
 | `wasm` | this Rust→WASM engine |
-| `record` | wraps vendored, logs the compile's op-DAG → `generated/trace/compile_ops.json` (for `wasm:replay`) |
+
+Unknown selector values fail explicitly. The old operation recorder and its
+replay consumer belong to the archive tag, not the current engine workflow.
 
 ## Architecture (`src/`)
 
@@ -74,12 +79,13 @@ it as a version tree whose `compareTo` is a walk of the patch chain.
 The original port qualified as a bit-identical drop-in using `wasm:check`,
 `wasm:engine`, `trace`/`trace:diff` (max err 0), `wasm:diff`, `wasm:budget`,
 `wasm:replay` (0 mismatches on the real op-DAG), and `wasm:compile` (`wasm ≡
-vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
-`wasm:compile -- --official` to re-confirm), so `wasm ≡ official` transitively.
+vendored` track-hash on all 4 specs). The port also checked `vendored ≡ official`, establishing transitive parity
+then. Those commands remain at the archive tag; use the current gates above
+for this checkout.
 
-Historical performance (not a baseline for a new machine): the kernel alone was ~5× the JS engine (`wasm:bench`), and end-to-end
-(`LR_ENGINE=wasm npm run perf`) is now much faster than the JS engine
-(roughly 13.1k ns/physics-frame on the current W9 stack). The biggest boundary win is a
+Historical performance from the port (not a current baseline): the kernel alone was ~5× the JS engine (`wasm:bench`), and end-to-end
+(`LR_ENGINE=wasm npm run perf` at the archive tag) was reported as much faster than the JS engine
+(roughly 13.1k ns/physics-frame on the earlier W9 stack). The biggest boundary win is a
 fused raw-frame ABI for the detector hot path: Rust computes the BODY average,
 binding states, and collision records in one cache read, and the wrapper returns
 the detector's `RawFrame` shape directly instead of crossing wasm twice and

@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {LineRiderEngine,disposeAllWasmEnginesForStudy} from '../scripts/lib/native_motion/engine.ts';
+import {LineRiderEngine,disposeEngines} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit,getPhysicsFrameCount} from '../scripts/lib/detector.ts';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {observedReceiver} from '../scripts/v0/optimizer/observed_receiver.ts';
@@ -24,5 +24,5 @@ it.each([{support:4,horizon:80,flight:2},{support:2,horizon:9,flight:1}])('obser
   getRiderMetered(child,frame+2);
   expect([frame,frame+1,frame+2].some(f=>child.getAllContactLineIdsAtFrame(f).some(id=>id>=2000))).toBe(true);
   expect(getPhysicsFrameCount()).toBeLessThan(5000);
- }finally{disposeAllWasmEnginesForStudy();setPhysicsFrameLimit(null);}
+ }finally{disposeEngines();setPhysicsFrameLimit(null);}
 });

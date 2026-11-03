@@ -1,7 +1,7 @@
 /** Final stage of an arc compilation: cold replay of the chosen geometry,
  * pruning of untouched guide segments, an independent fixed-engine replay
  * that must agree exactly, and the measured result. */
-import { disposeAllWasmEnginesForStudy as disposeSearch, type LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
+import { disposeEngines as disposeSearch, type LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, setPhysicsFrameLimit, extractRawTrajectory } from '../../lib/detector.ts';
 import { buildTrackJson } from '../core/substrate.ts';
 import type { TrackLine } from '../types.ts';

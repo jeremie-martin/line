@@ -1,5 +1,5 @@
 /** Rebuild only the compiler engine; leave the independent judge untouched. */
-import {readFileSync, writeFileSync, copyFileSync, chmodSync} from 'node:fs';
+import {readFileSync, writeFileSync, copyFileSync, chmodSync, readdirSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -11,7 +11,10 @@ copyFileSync(new URL('wasm32-unknown-unknown/release/lr_engine.wasm', target), n
 chmodSync(new URL('engine.wasm', native), 0o644);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const manifestPath = new URL('manifest.json', native), manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-for (const name of Object.keys(manifest.generated)) manifest.generated[name] = hash(readFileSync(new URL(name, native)));
+const sources = ['Cargo.toml', 'Cargo.lock', 'engine.wasm',
+  ...readdirSync(native).filter(name => name.endsWith('.ts')),
+  ...readdirSync(new URL('src/', native)).filter(name => name.endsWith('.rs')).map(name => `src/${name}`)].sort();
+manifest.generated = Object.fromEntries(sources.map(name => [name, hash(readFileSync(new URL(name, native)))]));
 writeFileSync(manifestPath, JSON.stringify(manifest) + '\n');
 writeFileSync(new URL('manifest.json.sha256', native), hash(readFileSync(manifestPath)) + '\n');
 console.log(`Packaged compiler engine ${manifest.generated['engine.wasm']}`);

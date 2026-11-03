@@ -355,15 +355,14 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.cursorT = clamp(Number(restore?.cursorT ?? 0), 0, view.spec.duration);
   state.viewStart = clamp(Number(restore?.viewStart ?? 0), 0, view.spec.duration);
   state.viewEnd = clamp(Number(restore?.viewEnd ?? view.spec.duration), state.viewStart + 1e-6, view.spec.duration);
+  music.clear();
+  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
   state.analysis = await loadAnalysis(view.music);
   // A beat grid is only a tempo hypothesis; where measured events exist, notes snap to them.
   if (state.analysis?.onsets.some((event) => event.source) && state.snapMode === "beat") {
     state.snapMode = "event";
     refs.snapMode.value = "event";
   }
-
-  music.clear();
-  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
 
   if (pushUrl) {
     const params = new URLSearchParams(location.search);

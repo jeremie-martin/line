@@ -60,10 +60,10 @@ async function worker(id:string,seed:number,dir:string){
  const plan=JSON.parse(readFileSync(join(dir,'plan.json'),'utf8')),w=plan.work.find((w:any)=>w.id===id&&w.seed===seed);
  assert.ok(w,'undeclared collection worker');assert.deepEqual(compilerIdentity('.'),plan.compiler);assert.equal(sourceIdentity(),plan.collector);
  const requested=plan.budget;
-  const {caseSpec} = await import('../../benchmark/v4/model.ts');
-  const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
-  const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
-  const {collectFutureProbes} = await import('./value_probes.ts');
+  const [{caseSpec}, {compileHandoff}, {productionBudget}, {collectFutureProbes}] = await Promise.all([
+    import('../../benchmark/v4/model.ts'), import('../../scripts/v0/optimizer/handoff.ts'),
+    import('../../scripts/v0/optimizer/production_budget.ts'), import('./value_probes.ts'),
+  ]);
   const c = (await trainingCases()).find((x: any) => x.id === id)!;
   assert.equal(digest(c),w.inputSha256,'training input changed');
   const spec = caseSpec(c);
@@ -73,9 +73,10 @@ async function worker(id:string,seed:number,dir:string){
     : compileHandoff(spec, seed, {budget, creative: {}, impactContract: 'line.strike.v3',
       phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
   // Construction demonstrations (as archive build_construction_examples.ts): fulfilled sections' committed controls.
-  const {arcConstructionMemoryKey} = await import('../../scripts/v0/optimizer/arc_memory.ts');
-  const {constructionStyle} = await import('../../scripts/v0/optimizer/repertoire_policy.ts');
-  const {repertoireSearchOptions} = await import('../../scripts/v0/optimizer/repertoire_search.ts');
+  const [{arcConstructionMemoryKey}, {constructionStyle}, {repertoireSearchOptions}] = await Promise.all([
+    import('../../scripts/v0/optimizer/arc_memory.ts'), import('../../scripts/v0/optimizer/repertoire_policy.ts'),
+    import('../../scripts/v0/optimizer/repertoire_search.ts'),
+  ]);
   const rep: any = cp.repertoire!;
   const options = repertoireSearchOptions(spec, rep.plan, budget, 'line.strike.v3');
   const construction = rep.result.rows.map((row: any, i: number) => {

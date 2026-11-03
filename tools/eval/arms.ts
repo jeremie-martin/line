@@ -110,7 +110,7 @@ type CellState = {cell: any; remeasured?: true} | {stale: string} | null;
 /** A saved cell of `arm` for case `c`: reused when its resolved inputs equal
  * today's, remeasured in place when only the measurement code differs
  * (`remeasured`); `stale` (with the reason) when the inputs changed; null when absent. */
-export async function savedCell(arm: Arm, c: PlannedCase, evaluator: string, resolved: () => Promise<{spec: any; music: any}>): Promise<CellState> {
+export function savedCell(arm: Arm, c: PlannedCase, evaluator: string, resolved: () => {spec: any; music: any}): CellState {
   if (!existsSync(cellPath(arm, c.id))) return null;
   const cell = readJson(cellPath(arm, c.id));
   if (JSON.stringify(cell.case) !== JSON.stringify(c)) return {stale: describeInputChange(cell.case, c)};
@@ -119,7 +119,7 @@ export async function savedCell(arm: Arm, c: PlannedCase, evaluator: string, res
   // (verified first; every reader of a saved track checks it against its cell).
   const track = readArmTrack(arm, c.id);
   assert.equal(digest(track), cell.trackHash, `${cellPath(arm, c.id)}: saved track differs from its cell`);
-  const {spec, music} = await resolved();
+  const {spec, music} = resolved();
   const remeasured = measureCell({c, mode: arm.settings.mode, spec, music, track, ...compiledOutputs(cell)});
   writeArmCell(arm, c, remeasured, cell.trackHash, evaluator, {...cell.provenance, remeasuredFrom: cell.evaluator});
   return {cell: readJson(cellPath(arm, c.id)), remeasured: true};

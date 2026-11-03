@@ -107,8 +107,13 @@ function narrative(data) {
 }
 
 try {
-  const data = await fetchJson('/generated/report/night/data.json');
-  data.narrative = await fetchJson('/generated/report/night/narrative.json').catch(() => ({}));
+  const scaleReady = fetchJson('/generated/report/night/scale.json').catch(() => null);
+  const clipsReady = fetchJson('/generated/report/night/clips.json').catch(() => null);
+  const [data, story] = await Promise.all([
+    fetchJson('/generated/report/night/data.json'),
+    fetchJson('/generated/report/night/narrative.json').catch(() => ({})),
+  ]);
+  data.narrative = story;
   narrative(data);
   const controls = $('scorecard-controls'); let which = 'dev', panel = 'authored';
   const button = (label, on) => {const b = el('button', {}, label); b.onclick = () => {on(); render();}; return b;};
@@ -117,6 +122,5 @@ try {
     const b = button(label, fn); b.dataset.key = key; controls.append(b);
   }
   render(); curve(data); songs(data); experiments(data);
-  scale(await fetchJson('/generated/report/night/scale.json').catch(() => null));
-  clips(await fetchJson('/generated/report/night/clips.json').catch(() => null));
+  await Promise.all([scaleReady.then(scale), clipsReady.then(clips)]);
 } catch (e) {document.querySelector('main').prepend(el('p', {class: 'bad'}, `Cannot load the report: ${e.message}`));}

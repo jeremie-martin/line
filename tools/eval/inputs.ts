@@ -131,7 +131,7 @@ export function perturb(spec: any, p: number) {
 export async function resolveCase(c: EvalCase, jolt: number) {
   const definition = {song: c.song, title: c.song, moments: [], ...(c.variant ? {variant: c.variant} : {})};
   if (c.variant && /^(bench|sealed|v7)-/.test(c.variant)) assert.deepEqual(await importBench('.', c.song, c.variant), c.bench, `${c.id}: bench metadata changed`);
-  const loaded = await loadMusicCase(definition, jolt), authored = await loadMusicCase(definition, 0);
+  const [loaded, authored] = await Promise.all([loadMusicCase(definition, jolt), loadMusicCase(definition, 0)]);
   const spec = c.perturbation ? perturb(loaded.spec, c.perturbation) : loaded.spec;
   const music = {...loaded.musicCase, contacts: spec.contacts.map((x: any) => ({frame: Math.round(x.t * 40), impact: x.impact}))};
   const targets = spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact ?? null}));

@@ -107,7 +107,7 @@ export function rounds(cases: PlannedCase[]) {
 }
 
 /** Saved cells of both arms (remeasured if needed), and what is missing. */
-async function loadState(s: Selection) {
+function loadState(s: Selection) {
   const cells: Record<Side, Map<string, any>> = {candidate: new Map(), reference: new Map()};
   const missing: Record<Side, PlannedCase[]> = {candidate: [], reference: []}, notes: string[] = [];
   for (const side of SIDES) {
@@ -115,7 +115,7 @@ async function loadState(s: Selection) {
     if (side === 'reference' && s.arms.reference.key === s.arms.candidate.key) {cells.reference = cells.candidate; missing.reference = missing.candidate; break;}
     let remeasured = 0, stale = 0;
     for (const c of s.cases) {
-      const state = await savedCell(s.arms[side], c, s.evaluator, async () => s.resolved.get(c.id)!);
+      const state = savedCell(s.arms[side], c, s.evaluator, () => s.resolved.get(c.id)!);
       if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (state.remeasured) remeasured++;}
       else {missing[side].push(c); if (state) stale++;}
     }
@@ -293,7 +293,7 @@ async function run() {
   const s = await select(), jobs = Number(arg('jobs', '44')), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
   assert.ok(maxRounds === Infinity || (Number.isSafeInteger(maxRounds) && maxRounds >= 1), '--rounds must be a positive integer');
-  const {cells, missing, notes} = await loadState(s);
+  const {cells, missing, notes} = loadState(s);
   for (const n of notes) console.log(n);
   // The same arm on both sides (same compiler and setting): compile each ride once.
   const same = s.arms.candidate.key === s.arms.reference.key;
@@ -386,12 +386,13 @@ async function worker() {
 async function rides() {
   const top = Number(arg('top', '6'));
   assert.ok(Number.isSafeInteger(top) && top >= 1, '--top must be a positive integer');
-  const s = await select(), {cells} = await loadState(s), cov = coverage(s, cells);
+  const s = await select(), {cells} = loadState(s), cov = coverage(s, cells);
   const ids = arg('cases') ? arg('cases')!.split(',') : movedMost(cov.matched, cells, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
-  const {loadMusicCase, saveMusicCell} = await import('../../scripts/produce/music_artifacts.ts');
-  const {writeGalleryJson} = await import('../../scripts/gallery/artifacts.ts');
-  const {judgeIdentity} = await import('../../benchmark/v6/contract.ts');
+  const [{loadMusicCase, saveMusicCell}, {writeGalleryJson}, {judgeIdentity}] = await Promise.all([
+    import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/gallery/artifacts.ts'),
+    import('../../benchmark/v6/contract.ts'),
+  ]);
   const outRoot = resolve('generated/compare', s.name), entries: any[] = [];
   mkdirSync(outRoot, {recursive: true});
   for (const id of ids) for (const side of [...SIDES].reverse()) {
@@ -441,7 +442,7 @@ async function main() {
   if (command === 'worker') return worker();
   if (command === 'run') return run();
   if (command === 'report') {
-    const s = await select(), {cells, notes} = await loadState(s), lines = report(s, cells, notes);
+    const s = await select(), {cells, notes} = loadState(s), lines = report(s, cells, notes);
     console.log((flag('detail') ? lines : summaryOf(lines)).join('\n'));
     console.log(`\nfull report (with the detail): ${saveReport(s, lines)}`); return;
   }

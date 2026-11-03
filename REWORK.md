@@ -1,5 +1,52 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: overlap independent loading and render preparation
+
+A fresh async-path audit scanned 206 first-party source files, including the
+compiler, engine adapters, producer/evaluation tools, browser review pages,
+dashboard and mirror helper. Physics stepping and search were already
+synchronous. Their code, WASM artifacts, ownership rules and accounting remain
+unchanged. Independent startup imports now load together in the producer,
+evaluation adapter, judge and research workers. Saved-cell lookup and its
+comparison-state caller now return synchronously instead of creating and
+awaiting promises around synchronous reads and already resolved inputs.
+
+Render preparation now overlaps overlay-data generation with the dependent
+ride-export/audio-mux chain. Composition waits for both; failure cleanup waits
+for both writers to settle. The worker and Remotion resource limits remain.
+Static requests bypass asynchronous API misses through namespace dispatch.
+
+Gallery artifacts fetch their bytes and checksum together, and an optional
+video response is reused instead of downloaded twice. Music downloads overlap
+native preparation; video metadata and library/job loading also overlap their
+independent work. Pair/night pages load independent resources together, while
+the night report still renders before optional resources finish. Dashboard
+audio starts while analysis loads. Checksum verification, superseded-selection
+cancellation, optional-media fallbacks and audio-failure scrubbing are preserved.
+
+The audit deliberately retains sequential physics/replay, bounded worker loops,
+benchmark arms, produced-file dependencies, save-before-reload operations and
+validation-before-publication. Promise grouping does not parallelize synchronous
+CPU work. External renderer readiness waits were not proven unnecessary.
+
+Validation: all 63 compiler parity cells retain exact tracks and charged work;
+judge parity passes all 33 tracks. JavaScript has 366 passes and the same
+pre-existing missing-audio fixture failure in `tests/eval_evidence.test.ts`.
+Typecheck and reachability pass. Deferred-operation tests prove overlap and
+cleanup barriers without relying on wall-clock thresholds. Four browser checks
+cover overlapping loads, superseded selection, bad-audio recovery and dashboard
+audio/analysis loading. They use synthetic signed artifacts and the installed
+Chromium; the unavailable generated production collection was not re-rendered.
+
+A predeclared controlled latency diagnostic used eight alternating pairs after
+one warmup per arm, pinned to CPU 2, after correctness work completed. With an
+80 ms delay per loopback response, verified JSON plus checksum averaged
+167.3 ms before and 84.4 ms after. Every result was identical and both candidate
+requests overlapped in every pair. This is evidence for removing the network
+wait, not an end-to-end application or physics speedup. The plan, full source
+inventory, decisions about retained ordering, frozen hashes, tests and raw
+latency pairs are in `docs/research/async-hot-paths-20261103.json`.
+
 ## November 3: simplify engine ownership, observations and private ABI
 
 The engine now has explicit owners: `EngineArena` manages versions and lineage

@@ -22,10 +22,10 @@ const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => pr
 async function compileOne(spec: string, planSeed: number, searchSeed: number) {
   const c = (await panelCases('v7', '.', 1)).find(x => `${x.song}~${x.variant ?? 'spec'}` === spec)!;
   const {spec: s, music, planned} = await resolveCase({...c, id: `${spec}~${searchSeed}`, seed: searchSeed}, resolveJoltMs());
-  const {planIntentionalRepertoire} = await import('../../scripts/v0/optimizer/intentional_repertoire.ts');
-  const {normalizeCompilerTimeline} = await import('../../scripts/v0/optimizer/compiler_input.ts');
-  const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
-  const {productionBudget} = await import('../../scripts/v0/optimizer/production_budget.ts');
+  const [{planIntentionalRepertoire}, {normalizeCompilerTimeline}, {compileHandoff}, {productionBudget}] = await Promise.all([
+    import('../../scripts/v0/optimizer/intentional_repertoire.ts'), import('../../scripts/v0/optimizer/compiler_input.ts'),
+    import('../../scripts/v0/optimizer/handoff.ts'), import('../../scripts/v0/optimizer/production_budget.ts'),
+  ]);
   const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);
   // The plan's draws come from planSeed; the search runs with searchSeed.
   const plan = {...planIntentionalRepertoire(normalizeCompilerTimeline(s), planSeed, {}, boundaries), seed: searchSeed};

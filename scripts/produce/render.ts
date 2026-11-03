@@ -8,7 +8,7 @@
  * loop with a small render-lane cap):
  *   1. ride render   — scripts/export.ts (mirror + Playwright) → <name>.vert.mp4
  *   2. mux song      — ffmpeg → remotion/public/<name>.source.mp4
- *   3. overlay data  — scripts/make_overlay_data.ts → remotion/public/<name>.overlay.json
+ *   3. overlay data (alongside 1–2) — scripts/make_overlay_data.ts → remotion/public/<name>.overlay.json
  *   4. overlay render— remotion CurveOverlayVertical → remotion/out/<name>.mp4
  *   5. bundle        — stage in .staging-…, write upload.json (sidecar last), atomic mv
  *                      into <inbox>/<project>/<Y>/<M>/<D>/<project>-s<seed>-<stamp>/
@@ -84,7 +84,7 @@ function fileSizeLabel(path: string): string {
   }
 }
 
-async function stage(name: string, step: string, runStep: () => Promise<void>, detail?: () => string): Promise<void> {
+async function stage(name: string, step: string, runStep: () => void | Promise<void>, detail?: () => string): Promise<void> {
   const t0 = Date.now();
   console.log(`render ${name}  ${step} ...`);
   const pulse = setInterval(() => {
@@ -227,24 +227,28 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
     const bp = inp.render.beatPunchPct > 0
       ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic", `--jolt-ms=${inp.jolt}`]
       : [];
-    await stage(name, "[1/5] ride render", () => run(TSX[0], [...TSX.slice(1), "scripts/export.ts",
-      `--track=${inp.trackPath}`, `--spec=${inp.specPath}`, "--zoom=action",
-      `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${RIDE_QP}`, `--out=${ride}`], log),
-      () => fileSizeLabel(ride));
-
-    // 2. mux song.
-    await stage(name, "[2/5] mux audio", () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath, "-map", "0:v:0", "-map", "1:a:0",
-      "-c:v", "copy", "-c:a", "aac", "-shortest", source], log),
-      () => fileSizeLabel(source));
-
-    // 3. overlay data bundle.
     let durationS = 0;
-    await stage(name, "[3/5] overlay data", async () => {
-      await run(TSX[0], [...TSX.slice(1), "scripts/make_overlay_data.ts",
-        `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`], log);
-      durationS = JSON.parse(readFileSync(overlay, "utf8")).durationS as number;
-      copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase), join(renderPublic, inp.spectrumBase));
-    }, () => `${durationS.toFixed(1)}s data`);
+    const prepared = await Promise.allSettled([
+      (async () => {
+        await stage(name, "[1/5] ride render", () => run(TSX[0], [...TSX.slice(1), "scripts/export.ts",
+          `--track=${inp.trackPath}`, `--spec=${inp.specPath}`, "--zoom=action",
+          `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${RIDE_QP}`, `--out=${ride}`], log),
+          () => fileSizeLabel(ride));
+
+        // 2. mux song.
+        await stage(name, "[2/5] mux audio", () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath, "-map", "0:v:0", "-map", "1:a:0",
+          "-c:v", "copy", "-c:a", "aac", "-shortest", source], log),
+          () => fileSizeLabel(source));
+      })(),
+      stage(name, "[3/5] overlay data", async () => {
+        await run(TSX[0], [...TSX.slice(1), "scripts/make_overlay_data.ts",
+          `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`], log);
+        durationS = JSON.parse(readFileSync(overlay, "utf8")).durationS as number;
+        copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase), join(renderPublic, inp.spectrumBase));
+      }, () => `${durationS.toFixed(1)}s data`),
+    ]);
+    // A failed branch must not delete files while its sibling is still writing.
+    for (const result of prepared) if (result.status === 'rejected') throw result.reason;
 
     // 4. overlay render (CurveOverlayVertical, locked look + post-FX at 60fps) — runs from remotion/.
     const props = JSON.stringify({
@@ -258,7 +262,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
 
     // 5. bundle: stage → upload.json (sidecar last) → atomic mv into this run dir.
     let final = "";
-    await stage(name, "[5/5] bundle commit", async () => {
+    await stage(name, "[5/5] bundle commit", () => {
       const { iso } = utcStamp(new Date());
       final = join(inp.outDir, inp.song, name); // <run>/<song>/<song>-s<seed>
       const tmp = join(inp.outDir, `.staging-${name}`);

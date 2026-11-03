@@ -140,6 +140,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    Portrait previews fit within 72% of viewport height. Native replay is prepared in a worker before playback;
    drawing interpolates the saved poses and uses the native renderer's cached
    sprite atlas rather than rasterizing SVG body parts on every refresh.
+   Artifact bytes and checksums load together. Music downloads overlap native
+   preparation, and optional video metadata loads independently of audio.
+   Checksums and selection cancellation are checked before publishing results;
+   failed audio still leaves the saved ride available for scrubbing.
    Pair studies play one combined video, so both sides share every frame and
    the browser's native audio/video clock. `scripts/gallery/pair_media.ts`
    caches derived wide/stacked previews with either original soundtrack;
@@ -444,6 +448,9 @@ inputs; compilation also checks them against current inputs. Failed jobs remain
 visible and the batch exits unsuccessfully.
 Concurrent jobs settle before the batch releases its directory lock or stops a
 shared rendering server, including when a worker fails.
+Within one render, overlay-data generation overlaps ride rendering and audio
+muxing. Composition waits for both branches; failures also wait for both before
+removing their temporary files. Worker and Remotion resource limits still apply.
 
 Future-model collection uses frozen physical prefixes and an independent native
 probe allowance. Its declared plan binds compiler, collector, inputs, work and

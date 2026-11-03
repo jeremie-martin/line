@@ -54,8 +54,9 @@ async function judgeTrack(cell: Cell, track: any) {
     const j = judgeV6Track(track, c, music, cell.seed);
     return {score: j.score, musicalScore: j.musicalScore, valid: j.valid, fulfilled: j.fulfilled};
   }
-  const {replayGalleryTrack} = await import('../../scripts/gallery/artifacts.ts');
-  const {contactImpactGrade} = await import('../../scripts/gallery/contact_impact_grade.ts');
+  const [{replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([
+    import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts'),
+  ]);
   const replay = replayGalleryTrack(track, music, true, CONTRACTS[cell.mode] as any), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }

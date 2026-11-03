@@ -29,8 +29,9 @@ const RAILS = {offered: {guidance: 'optional', railLayout: 'paired'}, required: 
  * Built with the compiler under test (its planner and plan validation). */
 export async function explicitPlan(root: string, spec: any, seed: number, creative: Record<string, unknown>, boundaries: number[], windows: NonNullable<NonNullable<PlannedCase['bench']>['construction']>) {
   const load = (f: string) => import(pathToFileURL(join(root, 'scripts/v0/optimizer', f)).href);
-  const {planIntentionalRepertoire} = await load('intentional_repertoire.ts'), {validateProductionPlan} = await load('repertoire_policy.ts');
-  const {normalizeCompilerTimeline} = await load('compiler_input.ts');
+  const [{planIntentionalRepertoire}, {validateProductionPlan}, {normalizeCompilerTimeline}] = await Promise.all([
+    load('intentional_repertoire.ts'), load('repertoire_policy.ts'), load('compiler_input.ts'),
+  ]);
   const normalized = normalizeCompilerTimeline(spec), plan = planIntentionalRepertoire(normalized, seed, creative, boundaries);
   const requests = plan.requests.map((r: any) => {
     const w = r.section > 0 && windows.find(w => r.frame >= Math.round(w.from * 40) && r.frame < Math.round(w.to * 40));
@@ -49,8 +50,10 @@ export async function explicitPlan(root: string, spec: any, seed: number, creati
 }
 
 export async function compileAndMeasure(root: string, c: PlannedCase, resolved: {spec: any; music: any}, settings: ArmSettings) {
-  const {compileHandoff} = await import(pathToFileURL(join(root, 'scripts/v0/optimizer/handoff.ts')).href);
-  const {productionBudget} = await import(pathToFileURL(join(root, 'scripts/v0/optimizer/production_budget.ts')).href);
+  const [{compileHandoff}, {productionBudget}] = await Promise.all([
+    import(pathToFileURL(join(root, 'scripts/v0/optimizer/handoff.ts')).href),
+    import(pathToFileURL(join(root, 'scripts/v0/optimizer/production_budget.ts')).href),
+  ]);
   const {spec, music} = resolved, budget = allowanceFor(settings.budget, spec.duration, productionBudget), began = performance.now();
   const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite), creative = settings.creative ?? {};
   const impactContract = CONTRACTS[settings.mode as keyof typeof CONTRACTS], windows = c.bench?.construction;

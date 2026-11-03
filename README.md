@@ -76,6 +76,11 @@ confirmation, including frozen source comparisons for wrapper changes;
 `npm run bench:engine` provides workload diagnostics. Old machine
 timings are historical evidence.
 
+With `npm run serve` running, `node tests/browser/async-loading.mjs` checks
+concurrent gallery loading, cancellation, and audio-failure recovery using
+synthetic artifacts. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to use an existing
+Chromium installation instead of Playwright's default browser.
+
 ## Everyday commands
 
 | command | what it does |

@@ -1,6 +1,7 @@
 import {playerShortcut} from './player-shortcuts.js';
 import {prepareView} from './replay.js';
 import {sha256Hex} from './sha256.js';
+import {checked} from './artifacts.js';
 import {createContactImpactReview} from './contact-impact-review.js';
 import {createMusic,displayTime} from '../shared/playback.js';
 const $=id=>document.getElementById(id),music=createMusic(),onScreen=displayTime();
@@ -28,7 +29,6 @@ const fmt=(v,n=2)=>Number.isFinite(v)?v.toFixed(n):'—';
 function el(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function status(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 async function api(path,body){const r=await fetch('/api/repertoire/'+path,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw new Error(d.error??r.statusText);return d;}
-async function checked(url,signal,digest){const r=await fetch(url,{signal});if(!r.ok)throw new Error(`Artifact unavailable (${r.status})`);const bytes=await r.arrayBuffer();if(!digest){const sum=await fetch(url+'.sha256',{signal});if(!sum.ok)throw new Error('Missing artifact identity');digest=(await sum.text()).trim();}const actual=await sha256Hex(bytes);if(actual!==digest)throw new Error('Artifact checksum mismatch');return JSON.parse(new TextDecoder().decode(bytes));}
 async function verifiedAudio(c,signal){
  let blob=audioCache.get(c.audioSha256);
  if(!blob){
@@ -101,7 +101,7 @@ function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.lo
 async function loadMovie(m,url,signal,token){
   const c=m.cells.find(c=>c.method==='production'),recordUrl=new URL(c.id+'.video.json',url);
   const probe=await fetch(recordUrl,{signal});if(!probe.ok)return;
-  const v=await checked(recordUrl.href,signal);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
+  const v=await checked(recordUrl.href,signal,undefined,probe);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
   if(token!==opening)return;
   const src=new URL(v.full.path,url).href;$('movie-link').href=src;$('movie-link').hidden=false;
   $('movie').src=src;$('movie').hidden=false;
@@ -115,6 +115,9 @@ async function openResult(path,job,initialTime=0){
  for(const id of ['production','reference']){const c=$(id);c.getContext('2d').clearRect(0,0,c.width,c.height);}music.clear();delete $('play').dataset.source;delete $('play').dataset.sha256;
  try{
   const url=new URL(path,location.href),m=await checked(url.href,signal),cells=[m.cells.find(c=>c.method==='production')];if(!cells[0])throw new Error('Missing automatic arrangement');
+  // Download and verify music while the ride is loaded and replayed. Observe
+  // rejection immediately; audio failure must leave the saved ride scrubbable.
+  const audio=verifiedAudio(m.plan.cases[0],signal).then(blob=>({blob}),error=>({error}));
   const data=await Promise.all(cells.map(c=>checked(new URL(c.path,url).href,signal,c.sha256)));data.forEach(r=>{if(r.planSha256!==m.planSha256)throw new Error('Mismatched plan identity');});
   const libraryEntry=libraryEntries.find(e=>new URL(e.manifest??'',location.href).href===url.href),prior=libraryEntry?.priorManifest;
   previousUrl=prior?new URL(prior,location.href):undefined;
@@ -148,12 +151,17 @@ async function openResult(path,job,initialTime=0){
   $('review-moments').replaceChildren(...reviewMoments.map(({title,at,reason})=>{const b=el('button',title);b.title=reason??'';b.onclick=()=>jump(at);return b;}));
   seek(initialTime);
   let audioFailure;
-  try{
-   const c=m.plan.cases[0],blob=await verifiedAudio(c,signal);if(token!==opening)return;
-   await music.load(await blob.arrayBuffer());if(token!==opening)return;
-   $('play').dataset.source=c.audioPath;$('play').dataset.sha256=c.audioSha256;$('play').disabled=false;
-  }catch(e){if(signal.aborted||token!==opening)return;audioFailure=e.message+'; the saved ride can still be scrubbed.';status(audioFailure,true);}
-  await loadMovie(m,url,signal,token);
+  const media=await Promise.allSettled([
+   (async()=>{try{
+    const c=m.plan.cases[0],ready=await audio;if(token!==opening)return;
+    if('error' in ready)throw ready.error;
+    const bytes=await ready.blob.arrayBuffer();if(token!==opening)return;
+    await music.load(bytes);if(token!==opening)return;
+    $('play').dataset.source=c.audioPath;$('play').dataset.sha256=c.audioSha256;$('play').disabled=false;
+   }catch(e){if(signal.aborted||token!==opening)return;audioFailure=e.message+'; the saved ride can still be scrubbed.';status(audioFailure,true);}})(),
+   loadMovie(m,url,signal,token),
+  ]);
+  for(const result of media)if(result.status==='rejected')throw result.reason;
   if(token===opening&&$('comparison').checked)await comparisonChanged();
   if(token===opening&&audioFailure)status(audioFailure,true);
  }catch(e){if(signal.aborted||token!==opening)return;$('result-note').textContent='Could not open result: '+e.message;$('result-note').classList.add('error');}
@@ -193,4 +201,4 @@ async function loadLibrary(){try{
  const initial=interactionReview?.initial.manifest??params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
  if(initial){const at=Math.max(0,Number(params.get('t'))||interactionReview?.initial.range[0]||0);$('comparison').checked=!interactionReview&&params.get('compare')==='previous';await openResult(initial,undefined,interactionReview?Math.round(at*40)/40:at);}
  }catch(e){$('library').textContent=e.message;}}
-try{catalog=await api('catalog');names=Object.fromEntries(catalog.constructions.map(c=>[c.id,c.label]));$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const {id,label:name}of catalog.constructions){const label=el('label'),input=el('input');input.type='checkbox';input.value=id;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await loadLibrary();await refreshJobs();setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}
+try{catalog=await api('catalog');names=Object.fromEntries(catalog.constructions.map(c=>[c.id,c.label]));$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const {id,label:name}of catalog.constructions){const label=el('label'),input=el('input');input.type='checkbox';input.value=id;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await Promise.all([loadLibrary(),refreshJobs()]);setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

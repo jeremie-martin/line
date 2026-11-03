@@ -142,8 +142,12 @@ $('skip').onclick = () => save(true);
 $('back').onclick = () => {if (state.index > 0) {state.index--; show();}};
 
 try {
-  state.manifest = await (await fetch(`/generated/label-studies/${study}/manifest.json`)).json();
-  state.labeled = new Set((await (await fetch(`/api/labels/${study}`)).json()).labeled ?? []);
+  const [manifest, labels] = await Promise.all([
+    fetch(`/generated/label-studies/${study}/manifest.json`).then(r => r.json()),
+    fetch(`/api/labels/${study}`).then(r => r.json()),
+  ]);
+  state.manifest = manifest;
+  state.labeled = new Set(labels.labeled ?? []);
   $('prompt').textContent = state.manifest.prompt;
   for (const [v, text] of state.manifest.choices ?? SLAM) {
     const b = document.createElement('button'); b.className = 'choice'; b.dataset.v = v; b.textContent = text; $('choices').appendChild(b);

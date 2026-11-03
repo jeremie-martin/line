@@ -49,7 +49,10 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, url: URL) {
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
-    if (await api(req, res, url) || await labels(req, res, url) || await specs(req, res, url)) return;
+    const handler = url.pathname.startsWith('/api/repertoire/') ? api
+      : url.pathname.startsWith('/api/labels/') ? labels
+      : url.pathname.startsWith('/api/spec') ? specs : undefined;
+    if (handler && await handler(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}
     serveStatic(req, res, url);
   } catch (e) {

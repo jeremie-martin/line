@@ -76,7 +76,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    Native engine versions share a physical cache within a lineage. Live
    descendants and the current cache retain the ancestry they need; released
    branches are reclaimed immediately when neither needs them. Handle slots
-   remain reserved until lineage death. The independent judge is unchanged.
+   remain reserved until lineage death. Detached lineages share an immutable
+   cache snapshot until either needs to write. Cached reads do not copy it;
+   releasing the source before the next write transfers the storage without
+   copying. Live lineages still isolate edits, frame extension and truncation.
+   The independent judge is unchanged.
    Native compiler engines have a synchronous ownership scope. Search pruning
    and final replay release only this compilation's handles; caller-owned replay
    engines survive both success and failure. Independent continuation-label
@@ -88,8 +92,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    and a retained list per point. Each point filters the original direction
    predicate when a frame begins or its cell changes: velocity stays fixed
    through the six sweeps. Query order and cross-cell duplicates match the
-   reference. Grid edits invalidate both levels; detached caches start with
-   empty queries. Each collision sweep keeps its original list even when the
+   reference. Grid edits invalidate both levels; copying a shared cache clears
+   its borrowed queries, while ownership transfer preserves the owning grid.
+   Each collision sweep keeps its original list even when the
    point moves into another cell. `npm run verify:engine` compares every frame state and
    ordered collision on the committed parity tracks with the independent
    reference. `npm run perf:engine` adapts the archived paired process workflow

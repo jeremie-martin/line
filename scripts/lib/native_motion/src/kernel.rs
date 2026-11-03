@@ -108,7 +108,7 @@ pub(crate) struct LineCellCache {
 }
 
 // Queries borrow immutable lines owned by the grid. Edits invalidate all lists;
-// detached engines start empty and never copy borrowed pointers.
+// cache clones start empty and never copy borrowed pointers.
 impl Clone for LineCellCache {
     fn clone(&self) -> Self {
         Self::default()

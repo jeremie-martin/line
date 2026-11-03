@@ -7,6 +7,12 @@ Live descendants and the current cache retain the ancestry they need; released
 branch payloads are reclaimed once neither needs them. These facilities do not
 change the stepping equations or permit supplying a rider state.
 
+Detached lineages share an immutable cache snapshot until either needs to
+mutate it. Cached reads leave that snapshot shared. A first write copies the
+cache if another lineage still owns it; releasing the source first transfers
+the storage without copying. Grid edits, start resets, frame extension and
+trace eviction remain local to their lineage, including physical-frame charges.
+
 The benchmark engine remains in `engine-rs`. Every completed compiler output is
 cold-replayed with that engine and must match the full raw trajectory exactly.
 The independent judge is unchanged. Native callers retain ownership of their
@@ -38,7 +44,8 @@ The grid owns the immutable lines; cached pointers are borrowed. A collision
 keeps its original query while moving the point, and the next sweep refreshes
 the point's list. Every step refreshes filtered point lists, including history
 replays that reuse a frame index; the shared queries persist until grid edits.
-Detaching starts with empty queries. Solver arithmetic,
+Copying a shared cache starts with empty borrowed queries; ownership transfer
+keeps the owning grid and its valid queries together. Solver arithmetic,
 collision order and physical-frame accounting are unchanged.
 
 For a performance change, build both binaries with the same Rust toolchain and
@@ -67,6 +74,13 @@ The subsequent direction-filter study recovers part of that stepping cost with
 unchanged measured memory high-water sizes; its final candidate has separate
 fresh engine and automatic confirmations in
 `docs/research/engine-direction-filter-20261103.json`.
+The subsequent copy-on-write study targets detached-prefix ownership. Its
+predeclared primary is standalone automatic compilation, which frequently
+detaches prefixes; the broad engine panel is a regression guard. Fresh
+confirmation reduces that compile time by 3.39%, with no detected change in
+the broad panel or isolated stepping. See
+`docs/research/engine-copy-on-write-20261103.json` for the complete evidence,
+including the deferred copy cost when both lineages remain live.
 
 For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
 commands (or predeclare another set of indices in `tools/parity/cells.json`).

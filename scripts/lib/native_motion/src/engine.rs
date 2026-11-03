@@ -16,6 +16,8 @@
 //! (`_removeLine`), then redo the target branch's (`_addLine`) — exactly the diff
 //! lr-core applies. Forking is a cheap tree node; the heavy frame cache is shared.
 
+use std::rc::Rc;
+
 use crate::frame::{
     index_of_collision_in_cell, index_of_collision_with_line, rollback_collisions, rollback_grid,
     ActiveCellCache, Collisions, HistGrid, SnapNode,
@@ -407,10 +409,23 @@ struct Version {
 }
 
 struct Holder {
-    cache: Cache,
+    // Detached lineages share an immutable snapshot until one needs to write.
+    // Releasing the source first transfers the cache without cloning its data.
+    cache: Rc<Cache>,
     current: i32,          // version the cache is currently synced to
     live: u32,             // handles in this lineage whose JS wrapper hasn't been freed
     version_ids: Vec<u32>, // reserved slots, including reclaimed nodes; reusable at lineage death
+}
+
+impl Holder {
+    // A cached read must not trigger copy-on-write. Only extending the prefix
+    // mutates frame storage; grid edits and truncation use make_mut separately.
+    fn compute_to(&mut self, frame: usize) -> &Cache {
+        if self.cache.frames.len() <= frame {
+            Rc::make_mut(&mut self.cache).compute_to(frame);
+        }
+        &self.cache
+    }
 }
 
 // Nodes are owned by external handles, their descendants and the current cache.
@@ -493,7 +508,7 @@ pub(crate) fn create() -> u32 {
         freed: false, children: 0,
     });
     holders()[holder as usize] = Some(Holder {
-        cache: Cache::new(),
+        cache: Rc::new(Cache::new()),
         current: vid as i32,
         live: 1,
         version_ids: vec![vid],
@@ -520,7 +535,7 @@ pub(crate) fn set_start(h: u32, px: f64, py: f64, vx: f64, vy: f64) -> u32 {
         freed: false, children: 0,
     });
     let hh = holders()[holder as usize].as_mut().unwrap();
-    hh.cache.set_initial_states(px, py, vx, vy);
+    Rc::make_mut(&mut hh.cache).set_initial_states(px, py, vx, vy);
     hh.current = vid as i32;
     hh.live += 1;
     hh.version_ids.push(vid);
@@ -552,8 +567,9 @@ pub(crate) fn add_lines(h: u32, lines: Vec<Line>) -> u32 {
         (p.holder, p.depth, p.start, p.start_gen)
     };
     let hh = holders()[holder as usize].as_mut().unwrap();
+    let cache = Rc::make_mut(&mut hh.cache);
     for l in lines.iter() {
-        hh.cache.add_line(l.clone());
+        cache.add_line(l.clone());
     }
     let vid = alloc_version(Version {
         holder,
@@ -588,7 +604,7 @@ pub(crate) fn free(h: u32) {
     let hh = holders()[holder_id as usize].as_mut().unwrap();
     hh.live -= 1;
     if hh.live == 0 {
-        let dead = holders()[holder_id as usize].take().unwrap(); // drops the heavy Cache
+        let dead = holders()[holder_id as usize].take().unwrap(); // releases this lineage's cache ownership
         for vid in dead.version_ids {
             versions()[vid as usize] = None;
             free_versions().push(vid);
@@ -673,7 +689,7 @@ fn update_computed(target: u32) {
     let start_changed = ver(current).start_gen != ver(target).start_gen;
     let target_start = ver(target).start;
 
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
+    let cache = Rc::make_mut(&mut holders()[holder as usize].as_mut().unwrap().cache);
     // linesList reconcile (Immo runs this before initialStateMap). Drain the redo
     // scratch (moves the Lines out, keeps the buffer's capacity for reuse).
     #[allow(static_mut_refs)]
@@ -717,9 +733,8 @@ pub(crate) fn state_into(h: u32, f: i32, out: &mut [f64]) {
     }
     update_computed(h);
     let holder = ver(h as i32).holder;
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
-    cache.compute_to(f);
+    let cache = holders()[holder as usize].as_mut().unwrap().compute_to(f);
     let s = &cache.frames[f];
     for i in 0..NENT {
         let o = i * 6;
@@ -745,9 +760,8 @@ pub(crate) fn rider_into(h: u32, f: i32, out: &mut [f64]) {
     }
     update_computed(h);
     let holder = ver(h as i32).holder;
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
-    cache.compute_to(f);
+    let cache = holders()[holder as usize].as_mut().unwrap().compute_to(f);
     let s = &cache.frames[f];
     let summary = cache.summaries[f];
     out[0] = summary.body_px;
@@ -778,9 +792,8 @@ pub(crate) fn events_into(h: u32, f: i32, out: &mut [f64], cap: usize) -> usize 
     }
     update_computed(h);
     let holder = ver(h as i32).holder;
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
-    cache.compute_to(f);
+    let cache = holders()[holder as usize].as_mut().unwrap().compute_to(f);
     let ev = cache.events_at(f);
     let n = ev.len().min(cap);
     for (k, &(it, id, pt, _, _)) in ev.iter().take(n).enumerate() {
@@ -805,9 +818,8 @@ pub(crate) fn raw_frame_into(
     }
     update_computed(h);
     let holder = ver(h as i32).holder;
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
     let f = f as usize;
-    cache.compute_to(f);
+    let cache = holders()[holder as usize].as_mut().unwrap().compute_to(f);
     let summary = cache.summaries[f];
     scratch[0] = summary.body_px;
     scratch[1] = summary.body_py;
@@ -849,8 +861,7 @@ pub(crate) fn candidate_window_into(
 
     update_computed(h);
     let holder = ver(h as i32).holder;
-    let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
-    cache.compute_to(end as usize);
+    let cache = holders()[holder as usize].as_mut().unwrap().compute_to(end as usize);
 
     let mut contact_total = 0usize;
     for i in 0..frame_count {
@@ -886,8 +897,9 @@ pub(crate) fn candidate_window_into(
     contact_total as i32
 }
 
-/// Copy an already-computed immutable prefix into an independent cache.
-/// No call to compute_to or step_state, and no new initial state is supplied.
+/// Detach an already-computed immutable prefix into an independent lineage.
+/// Share its backing cache until a write; no stepping or new initial state.
+/// Cache::clone resets borrowed line queries when copy-on-write is necessary.
 pub(crate) fn detach(h: u32) -> u32 {
     update_computed(h);
     let (cache, start, start_gen) = {
@@ -911,7 +923,7 @@ pub(crate) fn prepare_collision_trace(h: u32, frame: i32) {
     update_computed(h);
     let holder = ver(h as i32).holder;
     let cache = &mut holders()[holder as usize].as_mut().unwrap().cache;
-    if cache.frames.len() > frame as usize { cache.set_frames_length(frame as usize); }
+    if cache.frames.len() > frame as usize { Rc::make_mut(cache).set_frames_length(frame as usize); }
     crate::kernel::set_trace_target(frame);
 }
 
@@ -935,8 +947,11 @@ pub(crate) fn contact_positions(h: u32, start: i32, end: i32, out: &mut Vec<f64>
 #[cfg(test)]
 mod ownership_tests {
     use super::*;
+    // These tests share the single-threaded ABI's global handle arenas.
+    static ARENA_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
     #[test]
     fn released_branches_preserve_live_descendants_and_cache_ancestry() {
+        let _guard = ARENA_LOCK.lock().unwrap();
         let unrelated = create();
         let root = create();
         let start = set_start(root, 0.0, -15.0, 4.0, 0.0);
@@ -965,4 +980,54 @@ mod ownership_tests {
         assert_eq!(last_frame_index(unrelated), 0, "other lineage is caller-owned");
         free(unrelated);
     }
+
+    #[test]
+    fn detached_prefixes_isolate_reads_edits_trace_eviction_and_released_sources() {
+        let _guard = ARENA_LOCK.lock().unwrap();
+        let root = create();
+        let start = set_start(root, 0.0, -15.0, 4.0, 0.0);
+        free(root);
+        let base = add_line(start, 1, 0, -50.0, 10.0, 800.0, 10.0, 0);
+        free(start);
+        let mut at60 = [0.0; 84];
+        state_into(base, 60, &mut at60);
+        let detached = detach(base);
+        let mut actual = [0.0; 84];
+        state_into(detached, 60, &mut actual);
+        assert_eq!(actual, at60);
+        let mut at100 = [0.0; 84];
+        state_into(detached, 100, &mut at100);
+        assert_eq!(last_frame_index(base), 60, "extending a detached prefix must not extend its source");
+        state_into(base, 60, &mut actual);
+        assert_eq!(actual, at60);
+        state_into(base, 100, &mut actual);
+        assert_eq!(actual, at100);
+        let edited = add_line(base, 2, 0, -50.0, 8.0, 800.0, 8.0, 0);
+        state_into(edited, 100, &mut actual);
+        assert_ne!(actual, at100);
+        assert_eq!(last_frame_index(detached), 100);
+        state_into(detached, 100, &mut actual);
+        assert_eq!(actual, at100);
+        prepare_collision_trace(detached, 40);
+        assert_eq!(last_frame_index(detached), 39);
+        assert_eq!(last_frame_index(edited), 100, "trace eviction belongs only to its lineage");
+        state_into(detached, 100, &mut actual);
+        assert_eq!(actual, at100);
+        crate::kernel::set_trace_target(-1);
+        let reset = set_start(detached, 10.0, -25.0, 2.0, 1.0);
+        assert_eq!(last_frame_index(reset), 0);
+        assert_eq!(last_frame_index(edited), 100);
+        state_into(detached, 100, &mut actual);
+        assert_eq!(actual, at100);
+        let mut expected = [0.0; 84];
+        state_into(detached, 120, &mut expected);
+        let transferred = detach(detached);
+        free(reset); free(detached); free(edited); free(base);
+        state_into(transferred, 120, &mut actual);
+        assert_eq!(actual, expected);
+        state_into(transferred, 140, &mut actual);
+        assert_eq!(last_frame_index(transferred), 140);
+        free(transferred);
+    }
+
 }

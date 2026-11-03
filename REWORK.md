@@ -1,5 +1,64 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: transfer detached physics caches without eager copying
+
+The native engine now shares an immutable cache snapshot between detached
+lineages until either needs to write. If the source is released first, the
+remaining lineage keeps the storage without copying geometry, frames or
+history. Cached reads never trigger a copy. If both remain live, the first
+writer receives its own cache before any edit, extension, reset or trace
+eviction. An actual cache copy clears borrowed line queries; ownership transfer
+keeps those queries with their owning grid. Solver equations, frame storage,
+the ABI and physical-frame accounting are unchanged.
+
+Fresh replay and automatic-workload profiles guided this round. Kernel
+experiments included SIMD, constraint factoring, predicate short-circuiting,
+empty-query reuse and inactive-trace call removal. None qualified for adoption.
+Compact saved frames reduced memory but did not pass the compiler screening
+gate. The automatic profile also exposed prefix detachment cost, leading to
+the accepted ownership change. All prototype patches and measurements are
+preserved in `docs/research/engine-copy-on-write-20261103.json`.
+
+**Confirmed against `6a0f4c01` on this machine:** the frozen candidate used
+plain Rust 1.95.0 release builds, Node 22.22.2 and CPU 2. Before screening it,
+standalone automatic compilation was declared primary because it frequently
+detaches prefixes; the broad engine panel has few detachments. Twelve screen
+pairs followed by twenty-four fresh confirmation pairs, with one warmup and
+one measured compile per arm, give **3.39% less compile time** on cell 61
+(150k allowance), interval **3.17–3.60%**, winning **24/24 pairs**. Every warmup
+and measured compile preserves the committed track and 147,209 charged frames.
+A fresh twelve-pair identical-binary control was INCONCLUSIVE.
+
+The predeclared twenty-four-pair engine regression guard was INCONCLUSIVE:
+mean time delta +0.15%, interval −0.12% to +0.44%, with two measured repetitions
+after one warmup. The eight-pair 750k-budget guard won all eight pairs,
+averaging 1.57% less time (interval 1.12–1.99%) with exact tracks and 741,902
+charged frames. These are regression checks, not independently confirmed
+speedup claims. This change removes engine ownership overhead; the results
+do not establish faster solver arithmetic.
+
+Separate twelve-pair diagnostics after three warmups in one process found
+no detectable stepping change (−0.10%, interval −0.40% to +0.22%). Twenty
+detach-and-release cycles per committed track remove almost all copying cost
+(−99.88%). Keeping the source alive and including the detached cache's first
+write instead gives +0.13%, interval −0.15% to +0.41%, INCONCLUSIVE. This
+explicitly includes the deferred copy cost. These phase diagnostics are not
+fresh-process promotion confirmations.
+
+WASM linear-memory high-water size is unchanged for registration (5.06 MiB)
+and replay (10.81 MiB); the branch workload falls from 3.875 to 3.750 MiB.
+These are memory-buffer sizes, not live allocations or RSS. The packaged WASM
+grows from 110,887 to 111,185 bytes and is byte-identical to the measured
+candidate. The independent judge and compiler search code remain unchanged.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work.
+Independent engine parity is exact on 33 tracks, 61,115 states and 305,336
+ordered collisions; judge parity passes on all 33 tracks. All fourteen Rust
+tests pass. New tests exercise the first mutation of a shared snapshot from
+either live lineage and continuation after all source handles are released.
+Typecheck and reachability pass. JavaScript tests have 340 passes and the same
+pre-existing missing-audio failure in `tests/eval_evidence.test.ts`.
+
 ## November 3: reuse collision direction checks within each frame
 
 The physics kernel now filters nearby lines with the original

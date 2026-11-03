@@ -100,6 +100,8 @@ plan and its log.
   adopting an engine change; an aggregate win must not hide a regression there.
   When a change shifts work between registration and simulation, report isolated
   stepping cost alongside the combined workloads and compiler timings.
+  For cache/allocation changes, also report WASM linear-memory high-water size;
+  it is distinct from live allocations or process RSS.
   See `scripts/lib/native_motion/README.md` for the protocol and A/A control.
   Bootstrap support is not a posterior or an anytime-valid stopping rule;
   quality probabilities from V7 seed blocks are not performance evidence.

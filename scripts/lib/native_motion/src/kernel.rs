@@ -103,7 +103,7 @@ impl QueryCache {
 
 pub(crate) struct LineCellCache {
     point_cells: [PointCell; NENT],
-    point_lines: [Vec<*const Line>; NENT],
+    point_lines: [Vec<*const Line>; NENT], // ordered lines passing this frame's direction predicate
     queries: QueryCache,
 }
 
@@ -126,6 +126,16 @@ impl Default for LineCellCache {
 }
 
 impl LineCellCache {
+    // Velocity is constant through all six sweeps, but changes at each step.
+    // Refresh filtered point lists even when a replay reuses a frame index.
+    // The shared neighborhood queries remain valid until a grid edit.
+    #[inline]
+    fn begin_frame(&mut self) {
+        for point in &mut self.point_cells {
+            point.epoch = 0;
+        }
+    }
+
     #[inline]
     pub(crate) fn invalidate(&mut self) {
         self.queries.invalidate();
@@ -137,15 +147,32 @@ impl LineCellCache {
     }
 
     #[inline]
-    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<GridLine>>) {
+    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<GridLine>>, vx: f64, vy: f64) {
         let point = &mut self.point_cells[I];
         if point.epoch == self.queries.current_epoch {
             return;
         }
+        self.refresh_point_lines(grid, I, vx, vy);
+    }
+
+    // Keep the uncommon list rebuild out of each monomorphized point solver.
+    #[inline(never)]
+    fn refresh_point_lines(&mut self, grid: &FlatIntMap<Vec<GridLine>>, index: usize, vx: f64, vy: f64) {
+        let point = &mut self.point_cells[index];
         let query = self.queries.lookup(grid, point.key, point.cell_x, point.cell_y);
-        let lines = &mut self.point_lines[I];
+        let lines = &mut self.point_lines[index];
         lines.clear();
-        lines.extend_from_slice(query);
+        // Reserve once for the largest possible result before filtering. Growing
+        // one pointer at a time fragments the WASM heap during long replays.
+        lines.reserve(query.len());
+        for &ptr in query {
+            let line = unsafe { &*ptr };
+            // This is the original collision predicate, with the same arithmetic
+            // and NaN behavior. Position changes during a sweep cannot change it.
+            if line.normx * vx + line.normy * vy > 0.0 {
+                lines.push(ptr);
+            }
+        }
         point.epoch = self.queries.current_epoch;
     }
 
@@ -404,7 +431,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
             vyi,
         );
     }
-    line_cache.cache_point_lines::<I>(grid);
+    line_cache.cache_point_lines::<I>(grid, vxi, vyi);
     let lns = &line_cache.point_lines[I];
     if !lns.is_empty() {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
@@ -413,12 +440,6 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
             // Only point_cells is updated below; this query stays fixed during
             // the sweep even when a collision moves the entity to another cell.
             let l = &*line;
-            let pnt_dir = l.normx * vxi + l.normy * vyi;
-            if pnt_dir > 0.0 {
-                // Continue with the remaining canonical collision predicates.
-            } else {
-                continue;
-            }
             let ox = pxi - l.p1x;
             let oy = pyi - l.p1y;
             let perp_comp = l.normx * ox + l.normy * oy;
@@ -502,6 +523,7 @@ pub(crate) fn step_state<const TRACK: bool>(
     touched_lines: &mut Vec<i32>,
 ) {
     active_cells.begin_frame();
+    line_cache.begin_frame();
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -698,7 +720,7 @@ mod tests {
 
     fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<GridLine>>, x: f64, y: f64) -> Vec<i32> {
         cache.point_cell::<PEG>(x, y);
-        cache.cache_point_lines::<PEG>(grid);
+        cache.cache_point_lines::<PEG>(grid, 0.0, 1.0);
         cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()
     }
 
@@ -763,6 +785,38 @@ mod tests {
         }
         assert_ne!(cache.queries.keys[0], 0); // evicted the shared query for (0,0)
         assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
+    }
+
+    #[test]
+    fn direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates() {
+        use crate::line::{build_line, push_line};
+        let mut grid = FlatIntMap::default();
+        push_line(&mut grid, build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
+        push_line(&mut grid, build_line(2, 0.0, 5.0, 10.0, 5.0, 0, 1), &[(0, 0)]);
+        push_line(&mut grid, build_line(3, 5.0, 0.0, 5.0, 10.0, 1, 0), &[(0, 0)]);
+        // A zero-length line has NaN normals and must never pass direction > 0.
+        push_line(&mut grid, build_line(4, 0.0, 0.0, 0.0, 0.0, 0, 0), &[(0, 0)]);
+        let mut cache = LineCellCache::default();
+        for (vx, vy, expected) in [
+            (0.0, 1.0, vec![1, 1]),
+            (0.0, -1.0, vec![2]),
+            (-1.0, 1.0, vec![3, 1, 1]),
+            (1.0, -1.0, vec![2]),
+            (0.0, -0.0, vec![]),
+            (f64::NAN, 1.0, vec![]),
+            (0.0, f64::INFINITY, vec![1, 1]),
+            (0.0, 1.0, vec![1, 1]),
+        ] {
+            let query_epoch = cache.queries.current_epoch;
+            cache.begin_frame();
+            assert_eq!(cache.queries.current_epoch, query_epoch);
+            for _ in 0..6 {
+                cache.point_cell::<PEG>(1.0, 1.0);
+                cache.cache_point_lines::<PEG>(&grid, vx, vy);
+                let got: Vec<i32> = cache.point_lines[PEG].iter().map(|&p| unsafe { (*p).id }).collect();
+                assert_eq!(got, expected);
+            }
+        }
     }
 
     #[test]

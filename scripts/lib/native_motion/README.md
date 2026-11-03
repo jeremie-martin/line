@@ -23,15 +23,22 @@ packages `engine.wasm`, and updates the generated source/WASM and manifest
 hashes. It does not overwrite the independent judge build in `engine-rs`.
 
 The collision grid registers lines only in their original raster cells. A shared
-query cache flattens the 3×3 neighborhood when it is read, and each point retains
-its own ordered list of nearby line pointers while it stays in that cell. The
-lists preserve cell order, descending line ids within cells, and duplicates
-across cells. Buffers retain capacity between queries.
+query cache flattens the 3×3 neighborhood when it is read. Each point filters
+that list with the original normal-dot-velocity > 0 predicate at its first
+sweep in a frame and whenever it changes cell. Velocity stays fixed through
+all six sweeps, so later sweeps reuse the filtered list. Filtering preserves the
+predicate's NaN behavior; the remaining collision arithmetic is unchanged.
+Lists preserve cell order, descending line ids within cells and duplicates
+across cells. Buffers reserve the full input query length before filtering and
+retain capacity; this avoids repeated growth and the increased WASM memory
+high-water size seen with individual pushes in the unreserved prototype.
 
 Grid insertion/removal invalidates both query levels, including cached misses.
 The grid owns the immutable lines; cached pointers are borrowed. A collision
 keeps its original query while moving the point, and the next sweep refreshes
-the point's list. Detaching starts with empty queries. Solver arithmetic,
+the point's list. Every step refreshes filtered point lists, including history
+replays that reuse a frame index; the shared queries persist until grid edits.
+Detaching starts with empty queries. Solver arithmetic,
 collision order and physical-frame accounting are unchanged.
 
 For a performance change, build both binaries with the same Rust toolchain and
@@ -56,6 +63,10 @@ When a change shifts cost between registration and stepping, measure and report
 those phases separately too. The November 3 lazy-query study improves compiler
 and combined engine workloads but increases isolated post-registration stepping
 time; see `docs/research/engine-lazy-neighborhoods-20261103.json` and `REWORK.md`.
+The subsequent direction-filter study recovers part of that stepping cost with
+unchanged measured memory high-water sizes; its final candidate has separate
+fresh engine and automatic confirmations in
+`docs/research/engine-direction-filter-20261103.json`.
 
 For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
 commands (or predeclare another set of indices in `tools/parity/cells.json`).

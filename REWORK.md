@@ -1,5 +1,64 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: reuse collision direction checks within each frame
+
+The physics kernel now filters nearby lines with the original
+normal-dot-velocity > 0 predicate when a point starts a frame or changes cell.
+Velocity stays fixed through the six solver sweeps, so the intervening sweeps
+reuse that ordered list. Cell order, cross-cell duplicates, NaN rejection and
+all response arithmetic are preserved. Each step resets the filtered lists,
+including history replay at an already-used frame index. A shared refill
+routine keeps list construction out of each specialized point solver.
+
+**Confirmed against `d63cd32a` on this machine:** twelve screening pairs followed
+by twenty-four fresh pairs for each primary workload, pinned to CPU 2, plain
+Rust 1.95.0 release builds and Node 22.22.2. The engine panel uses two measured
+repetitions per arm; the standalone compiler case uses one, both after one
+warmup. A fresh twelve-pair identical-binary control was INCONCLUSIVE.
+
+| workload | time reduction | 95% paired-bootstrap interval | faster pairs |
+|---|---:|---:|---:|
+| combined engine panel | 1.76% | 1.30–2.13% | 23/24 |
+| standalone automatic, cell 61, 150k allowance | 2.42% | 2.18–2.67% | 24/24 |
+
+Engine component averages are 22.8→22.9 ms for registration,
+197.8→190.9 ms for replay including registration, and 337.0→334.0 ms for
+branches/edits. The separately declared eight-pair 750k-budget regression check
+won all eight pairs, averaging 2.47% less compile time. It is not a separately
+confirmed speedup claim. Every warmup and timed compile preserved its committed
+track hash and physical-frame charge.
+
+The final twelve-pair post-registration diagnostic takes **4.23% less time**
+than `d63cd32a` (interval 3.17–5.27%). A fresh comparison with the pre-lazy-query
+engine still takes **1.88% more time** (interval 1.19–2.56%). This recovers part
+of the previous stepping cost; it does not establish a universal solver gain.
+These diagnostics use alternating pairs in one process, separately from the
+fresh-process promotion confirmations.
+
+**Memory affected selection.** The first filtered candidate passed confirmation
+at 1.82% less engine time and 4.40% less automatic compile time, but replay WASM
+linear-memory high-water grew from 10.81 to 13.31 MiB. It was not adopted.
+Reserving the full query length before filtering avoids repeated buffer growth.
+That revised binary went through its own screening and fresh confirmations.
+Its measured high-water sizes match the baseline on all three workloads:
+5.06 MiB registration, 10.81 MiB replay and 3.88 MiB branches. These are WASM
+linear-memory sizes, not live allocations or RSS. The package itself shrinks
+from 114,166 to 110,887 bytes.
+
+Spatial cache slots, cached neighboring buckets, a separate unfiltered point
+list and world-coordinate cache bounds were also explored. They were slower
+or inconclusive and were not adopted. Source patches, raw measurements, frozen
+artifact hashes and both candidate decisions are preserved in
+`docs/research/engine-direction-filter-20261103.json`. The packaged rebuild is
+byte-identical to the final measured artifact.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work.
+Independent engine parity is exact on 33 tracks, 61,115 states and 305,336
+ordered collisions; judge parity passes on all 33 tracks. All thirteen Rust
+tests pass, including the new frame/velocity filtering cases. Typecheck and
+reachability pass. JavaScript tests have 339 passes and the same pre-existing
+missing-audio failure in `tests/eval_evidence.test.ts`.
+
 ## November 3: lazy nearby-line queries in the compiler engine
 
 The native compiler backend now registers a line only in its original raster

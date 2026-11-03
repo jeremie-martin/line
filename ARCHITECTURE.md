@@ -85,8 +85,10 @@ and validation are in [music authoring](docs/music-authoring.md).
 
    The collision grid stores lines in their original raster cells. Nearby-line
    queries expand the 3×3 neighborhood only when read, with a shared query cache
-   and a retained list per point. Query order and cross-cell duplicates match
-   the reference. Grid edits invalidate both levels; detached caches start with
+   and a retained list per point. Each point filters the original direction
+   predicate when a frame begins or its cell changes: velocity stays fixed
+   through the six sweeps. Query order and cross-cell duplicates match the
+   reference. Grid edits invalidate both levels; detached caches start with
    empty queries. Each collision sweep keeps its original list even when the
    point moves into another cell. `npm run verify:engine` compares every frame state and
    ordered collision on the committed parity tracks with the independent

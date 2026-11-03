@@ -5273,11 +5273,640 @@
         "types": "\n> line@0.0.0 typecheck\n> tsc --noEmit -p .\n\n",
         "reach": "\n> line@0.0.0 reach\n> node tools/deps/reach.mjs\n\nentries 143  live 305 files / 35039 lines  unreachable 0 files / 0 lines\n"
       }
+    },
+    "dense": {
+      "base": "265545b6",
+      "decision": "REJECT: default compile screen +0.768% slower [0.503,1.043], 11/12 pairs slower. No confirmation or promotion. Native ownership/lifetime tests and all independent replay fixtures passed. Lower compiler WASM high-water is recorded, but does not override the declared performance gate. Restore boxed versions.",
+      "measurements": {
+        "dense-screen": {
+          "schema": "line.engine-ab.v1",
+          "complete": true,
+          "adaptedFrom": "archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts",
+          "date": "2026-11-03T21:16:20.308Z",
+          "head": "6f23ce88f6219ee9a819372bd746ff51297b8bf4",
+          "machine": {
+            "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+            "node": "v22.22.2",
+            "platform": "linux",
+            "release": "7.0.0-38-generic",
+            "affinity": "2"
+          },
+          "sourceSha256": "5616b45e1559800c0996dca19aca0738386dfe0c16bb4fec4d7f48cfede1ef2b",
+          "referenceSourceSha256": "6d7e3f98359664081af6456223f124d2ef6353546569c9d6c7df9a3c05208d88",
+          "sourceChanges": [
+            "scripts/lib/native_motion/README.md",
+            "scripts/lib/native_motion/manifest.json",
+            "scripts/lib/native_motion/manifest.json.sha256",
+            "scripts/lib/native_motion/src/engine.rs"
+          ],
+          "referenceRoot": "/tmp/engine-dod-20261103/after-packed",
+          "artifacts": [
+            {
+              "path": "/tmp/engine-dod-20261103/packed.wasm",
+              "sha256": "69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc"
+            },
+            {
+              "path": "/tmp/engine-dod-20261103/dense.wasm",
+              "sha256": "b222fcfa01b16e8ff505b42f9f19d42838c530c2ce111b441343fdee7ed56e5a"
+            }
+          ],
+          "protocol": {
+            "mode": "compile",
+            "stage": "screen",
+            "rounds": 12,
+            "confirmRounds": 24,
+            "reps": 1,
+            "warmup": 1,
+            "threshold": 0.95,
+            "cells": [
+              61
+            ]
+          },
+          "screening": null,
+          "interpretation": "Fixed-round paired bootstrap support and exact sign safeguard on this workload; not a posterior probability or an anytime-valid rule. Full correctness gates are separate.",
+          "samples": [
+            {
+              "round": 0,
+              "arm": 0,
+              "wallMs": 1953.1309710000005,
+              "cpuMs": 2203.197,
+              "frames": 147209,
+              "nsPerFrame": 13267.741585093307,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1953.1309710000005,
+                  "cpuMs": 2203.197
+                }
+              ]
+            },
+            {
+              "round": 0,
+              "arm": 1,
+              "wallMs": 1985.327792,
+              "cpuMs": 2146.425,
+              "frames": 147209,
+              "nsPerFrame": 13486.456616103635,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1985.327792,
+                  "cpuMs": 2146.425
+                }
+              ]
+            },
+            {
+              "round": 1,
+              "arm": 1,
+              "wallMs": 1966.5398490000002,
+              "cpuMs": 2129.089,
+              "frames": 147209,
+              "nsPerFrame": 13358.828937089445,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1966.5398490000002,
+                  "cpuMs": 2129.089
+                }
+              ]
+            },
+            {
+              "round": 1,
+              "arm": 0,
+              "wallMs": 1952.0290219999997,
+              "cpuMs": 2204.284,
+              "frames": 147209,
+              "nsPerFrame": 13260.255976197106,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1952.0290219999997,
+                  "cpuMs": 2204.284
+                }
+              ]
+            },
+            {
+              "round": 2,
+              "arm": 0,
+              "wallMs": 1954.0176560000004,
+              "cpuMs": 2205.975,
+              "frames": 147209,
+              "nsPerFrame": 13273.764892092198,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1954.0176560000004,
+                  "cpuMs": 2205.975
+                }
+              ]
+            },
+            {
+              "round": 2,
+              "arm": 1,
+              "wallMs": 1984.7542669999998,
+              "cpuMs": 2148.732,
+              "frames": 147209,
+              "nsPerFrame": 13482.560624690064,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1984.7542669999998,
+                  "cpuMs": 2148.732
+                }
+              ]
+            },
+            {
+              "round": 3,
+              "arm": 1,
+              "wallMs": 1969.243465,
+              "cpuMs": 2133.488,
+              "frames": 147209,
+              "nsPerFrame": 13377.194770700162,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1969.243465,
+                  "cpuMs": 2133.488
+                }
+              ]
+            },
+            {
+              "round": 3,
+              "arm": 0,
+              "wallMs": 1950.8325179999997,
+              "cpuMs": 2204.415,
+              "frames": 147209,
+              "nsPerFrame": 13252.128049236118,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1950.8325179999997,
+                  "cpuMs": 2204.415
+                }
+              ]
+            },
+            {
+              "round": 4,
+              "arm": 0,
+              "wallMs": 1957.1051780000003,
+              "cpuMs": 2211.019,
+              "frames": 147209,
+              "nsPerFrame": 13294.73862331787,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1957.1051780000003,
+                  "cpuMs": 2211.019
+                }
+              ]
+            },
+            {
+              "round": 4,
+              "arm": 1,
+              "wallMs": 1968.7133760000002,
+              "cpuMs": 2134.845,
+              "frames": 147209,
+              "nsPerFrame": 13373.593842767767,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1968.7133760000002,
+                  "cpuMs": 2134.845
+                }
+              ]
+            },
+            {
+              "round": 5,
+              "arm": 1,
+              "wallMs": 1971.5991159999994,
+              "cpuMs": 2137.603,
+              "frames": 147209,
+              "nsPerFrame": 13393.196856170476,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1971.5991159999994,
+                  "cpuMs": 2137.603
+                }
+              ]
+            },
+            {
+              "round": 5,
+              "arm": 0,
+              "wallMs": 1963.3498040000004,
+              "cpuMs": 2220.941,
+              "frames": 147209,
+              "nsPerFrame": 13337.158760673603,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1963.3498040000004,
+                  "cpuMs": 2220.941
+                }
+              ]
+            },
+            {
+              "round": 6,
+              "arm": 0,
+              "wallMs": 1970.2373690000004,
+              "cpuMs": 2136.046,
+              "frames": 147209,
+              "nsPerFrame": 13383.94642311272,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1970.2373690000004,
+                  "cpuMs": 2136.046
+                }
+              ]
+            },
+            {
+              "round": 6,
+              "arm": 1,
+              "wallMs": 1984.8057199999998,
+              "cpuMs": 2152.815,
+              "frames": 147209,
+              "nsPerFrame": 13482.910148156701,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1984.8057199999998,
+                  "cpuMs": 2152.815
+                }
+              ]
+            },
+            {
+              "round": 7,
+              "arm": 1,
+              "wallMs": 1973.4734640000001,
+              "cpuMs": 2142.164,
+              "frames": 147209,
+              "nsPerFrame": 13405.92942007622,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1973.4734640000001,
+                  "cpuMs": 2142.164
+                }
+              ]
+            },
+            {
+              "round": 7,
+              "arm": 0,
+              "wallMs": 1976.374526,
+              "cpuMs": 2234.594,
+              "frames": 147209,
+              "nsPerFrame": 13425.636516789054,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1976.374526,
+                  "cpuMs": 2234.594
+                }
+              ]
+            },
+            {
+              "round": 8,
+              "arm": 0,
+              "wallMs": 1968.2811420000003,
+              "cpuMs": 2223.924,
+              "frames": 147209,
+              "nsPerFrame": 13370.657650007814,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1968.2811420000003,
+                  "cpuMs": 2223.924
+                }
+              ]
+            },
+            {
+              "round": 8,
+              "arm": 1,
+              "wallMs": 1982.664025,
+              "cpuMs": 2148.764,
+              "frames": 147209,
+              "nsPerFrame": 13468.361479257383,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1982.664025,
+                  "cpuMs": 2148.764
+                }
+              ]
+            },
+            {
+              "round": 9,
+              "arm": 1,
+              "wallMs": 1985.164613,
+              "cpuMs": 2152.111,
+              "frames": 147209,
+              "nsPerFrame": 13485.348130888737,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1985.164613,
+                  "cpuMs": 2152.111
+                }
+              ]
+            },
+            {
+              "round": 9,
+              "arm": 0,
+              "wallMs": 1975.946078,
+              "cpuMs": 2229.963,
+              "frames": 147209,
+              "nsPerFrame": 13422.726042565333,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1975.946078,
+                  "cpuMs": 2229.963
+                }
+              ]
+            },
+            {
+              "round": 10,
+              "arm": 0,
+              "wallMs": 1972.180213,
+              "cpuMs": 2138.807,
+              "frames": 147209,
+              "nsPerFrame": 13397.14428465651,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1972.180213,
+                  "cpuMs": 2138.807
+                }
+              ]
+            },
+            {
+              "round": 10,
+              "arm": 1,
+              "wallMs": 1980.6876760000005,
+              "cpuMs": 2146.524,
+              "frames": 147209,
+              "nsPerFrame": 13454.93601614032,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1980.6876760000005,
+                  "cpuMs": 2146.524
+                }
+              ]
+            },
+            {
+              "round": 11,
+              "arm": 1,
+              "wallMs": 1989.9945490000005,
+              "cpuMs": 2157.643,
+              "frames": 147209,
+              "nsPerFrame": 13518.158190056318,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1989.9945490000005,
+                  "cpuMs": 2157.643
+                }
+              ]
+            },
+            {
+              "round": 11,
+              "arm": 0,
+              "wallMs": 1968.8915670000001,
+              "cpuMs": 2135.616,
+              "frames": 147209,
+              "nsPerFrame": 13374.804305443284,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1968.8915670000001,
+                  "cpuMs": 2135.616
+                }
+              ]
+            }
+          ],
+          "decision": {
+            "n": 12,
+            "meanDeltaPct": 0.7679152142240121,
+            "medianDeltaPct": 0.7350771347436149,
+            "intervalPct": [
+              0.502569268341621,
+              1.0434502865784154
+            ],
+            "bootstrapSupportFaster": 0,
+            "wins": 1,
+            "losses": 11,
+            "ties": 0,
+            "fasterSignP": 0.999755859375,
+            "twoSidedSignP": 0.00634765625,
+            "threshold": 0.95,
+            "resamples": 50000,
+            "verdict": "REJECT"
+          },
+          "cellDecisions": [
+            {
+              "cell": 61,
+              "decision": {
+                "n": 12,
+                "meanDeltaPct": 0.7679152142240134,
+                "medianDeltaPct": 0.735077134743615,
+                "intervalPct": [
+                  0.5025692683416184,
+                  1.0434502865784172
+                ],
+                "bootstrapSupportFaster": 0,
+                "wins": 1,
+                "losses": 11,
+                "ties": 0,
+                "fasterSignP": 0.999755859375,
+                "twoSidedSignP": 0.00634765625,
+                "threshold": 0.95,
+                "resamples": 50000,
+                "verdict": "REJECT"
+              }
+            }
+          ],
+          "regressionGuardPassed": false,
+          "control": false,
+          "controlPassed": null,
+          "performanceQualified": false
+        }
+      },
+      "sourcePatch": "diff --git a/scripts/lib/native_motion/README.md b/scripts/lib/native_motion/README.md\nindex e27e9b0f..00b7f8d7 100644\n--- a/scripts/lib/native_motion/README.md\n+++ b/scripts/lib/native_motion/README.md\n@@ -21,7 +21,9 @@ judge remains in `engine-rs`, with its own adapter and replay instance.\n A version belongs to one lineage. Reads reconcile its shared frame cache before\n observing or extending it. Live descendants and the current cache retain the\n ancestry they need; unused branches are reclaimed, with handle slots reserved\n-until lineage death. Detached lineages share a cache snapshot until a write.\n+until lineage death. Versions occupy inline arena slots; references never escape\n+a checked arena call, so vector growth needs no per-version box. Detached lineages\n+share a cache snapshot until a write.\n Cached reads do not copy it; releasing the source transfers ownership directly.\n Body motion is a pure, lazy per-frame observation stored in a `OnceCell`. Shared\n snapshots may fill that memo without copying simulation data. Copies preserve\ndiff --git a/scripts/lib/native_motion/manifest.json b/scripts/lib/native_motion/manifest.json\nindex 3e0ff24b..b661fc6c 100644\n--- a/scripts/lib/native_motion/manifest.json\n+++ b/scripts/lib/native_motion/manifest.json\n@@ -1 +1 @@\n-{\"schema\":\"line.planner-cache-backend.v1\",\"researchOnly\":false,\"implementation\":\"36a53b73d346c00e5ef3f337ce8cfc07ec00b8ba84738ef1bb26e50c83861cc9\",\"acceptedSources\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"f945fca16d45b5dfa36486eee95d44fbc043c4e2ffb8ef50c46563587d5a0512\",\"src/abi.rs\":\"095fc8fc62b35c5357c2d96e4356d5acdd0a14fdd6022bbc3198bd65e82f16ee\",\"src/engine.rs\":\"8d798d149bbe5421cc38c6d776846ee802b48d436cec577a363792fb4bf5d339\",\"src/frame.rs\":\"365ef290377c62fbf7b18b183d540f73f8e485d14423dfa46f3ce9fa1fb83285\",\"src/grid.rs\":\"6835bb65ca720a7bcc7becef36aeeb8c8f874a29342457252e52c801f7a8b1f5\",\"src/kernel.rs\":\"e1e0d402db1f63af868f8ba31766a29d8526114823c4c92f419524ac734a6b64\",\"src/lib.rs\":\"aade2692272c382c3086bf061340cf81207b472a0521b8cf31455e2d3641974d\",\"src/line.rs\":\"e053f3a59279bb7ba36444904872863143e5f093582a289b899afa71d1c56503\"},\"wrapperSource\":\"298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b\",\"generated\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"7e1f5c6369779c3ab9febafc03a4e321a5864b9055cd048837c596b2575e5afa\",\"engine.ts\":\"6f974cc25ba29757d687a355bf314a6f381438d9c8d1a21b386686aa38fa86f5\",\"engine.wasm\":\"69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc\",\"src/abi.rs\":\"2c5cbe4f7e4b766e80282960b856ff4c832d2f01f38e5bcc010a6b99024ea9b6\",\"src/cache.rs\":\"8cb285fe0d5894d6db8e930dcdf39846f13fcb59825a8b8161e51b443817f4b0\",\"src/engine.rs\":\"4753a158c2b74160ac200035fef855cbd283587645550986fc966b78b2964548\",\"src/grid.rs\":\"9e4500cca2f5b20af64e6fc55682f8031a36d39bbb0920cff3602985856336ca\",\"src/history.rs\":\"71dd593b738225df0007bed3b39b7367990eb543d83b9c68a0e89db40aeaa671\",\"src/kernel.rs\":\"955e1143dbd36ffd41b30a588f6c59548d43a3ffb5f54b1791d637445f3c5f05\",\"src/lib.rs\":\"a9a3c07e284e368e759c0762ee22177d34eb90befd30995d8dedc2d5c0e08015\",\"src/line.rs\":\"62f1ac4c8ad8d01e0c97a8733c8ee3bffd31947599cb0aa98de6c94f27674fbc\",\"wasm.ts\":\"52b87a2037751e381ca94a05a8ac71725ec9f4dd3c8ed6728f78adcdfdf422eb\"},\"capabilities\":[\"detached_prefix_cache\",\"metered_collision_trace\",\"cached_contact_positions\",\"owned_version_ancestry\"],\"note\":\"Computed-cache copies and collision observations only. Cached contact positions are read without stepping or replay. Final judging uses the unchanged benchmark engine.\",\"packagedFromManifestSha256\":\"6ecdf9ee2c6a3cb8cfdb0b0546ba814705207f967486041c0c1bfda5d7803f39\"}\n+{\"schema\":\"line.planner-cache-backend.v1\",\"researchOnly\":false,\"implementation\":\"36a53b73d346c00e5ef3f337ce8cfc07ec00b8ba84738ef1bb26e50c83861cc9\",\"acceptedSources\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"f945fca16d45b5dfa36486eee95d44fbc043c4e2ffb8ef50c46563587d5a0512\",\"src/abi.rs\":\"095fc8fc62b35c5357c2d96e4356d5acdd0a14fdd6022bbc3198bd65e82f16ee\",\"src/engine.rs\":\"8d798d149bbe5421cc38c6d776846ee802b48d436cec577a363792fb4bf5d339\",\"src/frame.rs\":\"365ef290377c62fbf7b18b183d540f73f8e485d14423dfa46f3ce9fa1fb83285\",\"src/grid.rs\":\"6835bb65ca720a7bcc7becef36aeeb8c8f874a29342457252e52c801f7a8b1f5\",\"src/kernel.rs\":\"e1e0d402db1f63af868f8ba31766a29d8526114823c4c92f419524ac734a6b64\",\"src/lib.rs\":\"aade2692272c382c3086bf061340cf81207b472a0521b8cf31455e2d3641974d\",\"src/line.rs\":\"e053f3a59279bb7ba36444904872863143e5f093582a289b899afa71d1c56503\"},\"wrapperSource\":\"298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b\",\"generated\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"7e1f5c6369779c3ab9febafc03a4e321a5864b9055cd048837c596b2575e5afa\",\"engine.ts\":\"6f974cc25ba29757d687a355bf314a6f381438d9c8d1a21b386686aa38fa86f5\",\"engine.wasm\":\"b222fcfa01b16e8ff505b42f9f19d42838c530c2ce111b441343fdee7ed56e5a\",\"src/abi.rs\":\"2c5cbe4f7e4b766e80282960b856ff4c832d2f01f38e5bcc010a6b99024ea9b6\",\"src/cache.rs\":\"8cb285fe0d5894d6db8e930dcdf39846f13fcb59825a8b8161e51b443817f4b0\",\"src/engine.rs\":\"a5137848af693b5318ccdbcee838109a6f12d40c10f701d5d927c12ec05b6cd2\",\"src/grid.rs\":\"9e4500cca2f5b20af64e6fc55682f8031a36d39bbb0920cff3602985856336ca\",\"src/history.rs\":\"71dd593b738225df0007bed3b39b7367990eb543d83b9c68a0e89db40aeaa671\",\"src/kernel.rs\":\"955e1143dbd36ffd41b30a588f6c59548d43a3ffb5f54b1791d637445f3c5f05\",\"src/lib.rs\":\"a9a3c07e284e368e759c0762ee22177d34eb90befd30995d8dedc2d5c0e08015\",\"src/line.rs\":\"62f1ac4c8ad8d01e0c97a8733c8ee3bffd31947599cb0aa98de6c94f27674fbc\",\"wasm.ts\":\"52b87a2037751e381ca94a05a8ac71725ec9f4dd3c8ed6728f78adcdfdf422eb\"},\"capabilities\":[\"detached_prefix_cache\",\"metered_collision_trace\",\"cached_contact_positions\",\"owned_version_ancestry\"],\"note\":\"Computed-cache copies and collision observations only. Cached contact positions are read without stepping or replay. Final judging uses the unchanged benchmark engine.\",\"packagedFromManifestSha256\":\"6ecdf9ee2c6a3cb8cfdb0b0546ba814705207f967486041c0c1bfda5d7803f39\"}\ndiff --git a/scripts/lib/native_motion/manifest.json.sha256 b/scripts/lib/native_motion/manifest.json.sha256\nindex 46b0b553..091fe414 100644\n--- a/scripts/lib/native_motion/manifest.json.sha256\n+++ b/scripts/lib/native_motion/manifest.json.sha256\n@@ -1 +1 @@\n-ea09a15f3b405df79f566be44ca8c7ce7bf6c51332b64f3a2f5b9bd36c38de26\n+1725fadd9dc7d4ca9169bec39f9eb7ef3b5b8d8faf1cce45101c6be9726d69af\ndiff --git a/scripts/lib/native_motion/src/engine.rs b/scripts/lib/native_motion/src/engine.rs\nindex 0f4148b3..cd1b76df 100644\n--- a/scripts/lib/native_motion/src/engine.rs\n+++ b/scripts/lib/native_motion/src/engine.rs\n@@ -48,7 +48,8 @@ struct Lineage {\n // RefCell enforces the non-reentrant boundary instead of relying on static-mut\n // aliases. The WASM instance is single-threaded; native test threads own arenas.\n pub(crate) struct EngineArena {\n-    versions: Vec<Option<Box<Version>>>,\n+    // Dense slots need no stable addresses: references stay inside an arena call.\n+    versions: Vec<Option<Version>>,\n     lineages: Vec<Option<Lineage>>,\n     free_versions: Vec<u32>,\n     free_lineages: Vec<u32>,\n@@ -88,10 +89,10 @@ impl EngineArena {\n             self.versions[v.parent as usize].as_mut().unwrap().children += 1;\n         }\n         if let Some(id) = self.free_versions.pop() {\n-            self.versions[id as usize] = Some(Box::new(v));\n+            self.versions[id as usize] = Some(v);\n             id\n         } else {\n-            self.versions.push(Some(Box::new(v)));\n+            self.versions.push(Some(v));\n             (self.versions.len() - 1) as u32\n         }\n     }\n",
+      "sourcePatchSha256": "043cf5e6949e00ed0229867cb2144866252158df695b46b7f73dcc2c2380e583",
+      "wasmSha256": "b222fcfa01b16e8ff505b42f9f19d42838c530c2ce111b441343fdee7ed56e5a",
+      "wasmBytes": 111034,
+      "memory": {
+        "description": "WASM linear-memory high-water size after complete workload in a fresh instance; not live allocations or RSS.",
+        "artifacts": [
+          {
+            "arm": "packed",
+            "sha256": "69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc"
+          },
+          {
+            "arm": "dense",
+            "sha256": "b222fcfa01b16e8ff505b42f9f19d42838c530c2ce111b441343fdee7ed56e5a"
+          }
+        ],
+        "samples": [
+          {
+            "arm": "packed",
+            "workload": "register",
+            "frames": 0,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 3670016
+          },
+          {
+            "arm": "packed",
+            "workload": "replay",
+            "frames": 61082,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 10813440
+          },
+          {
+            "arm": "packed",
+            "workload": "branches",
+            "frames": 105530,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 2228224
+          },
+          {
+            "arm": "dense",
+            "workload": "register",
+            "frames": 0,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 3670016
+          },
+          {
+            "arm": "dense",
+            "workload": "replay",
+            "frames": 61082,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 10813440
+          },
+          {
+            "arm": "dense",
+            "workload": "branches",
+            "frames": 105530,
+            "initialWasmBytes": 1245184,
+            "finalWasmBytes": 2228224
+          }
+        ]
+      },
+      "compileMemory": {
+        "memory-dense-candidate-62.json": {
+          "root": "/home/holo/line",
+          "cell": 62,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 156368896,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-dense-baseline-61.json": {
+          "root": "/tmp/engine-dod-20261103/after-packed",
+          "cell": 61,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 63766528,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-dense-candidate-61.json": {
+          "root": "/home/holo/line",
+          "cell": 61,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 60424192,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-dense-baseline-62.json": {
+          "root": "/tmp/engine-dod-20261103/after-packed",
+          "cell": 62,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 176816128,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        }
+      },
+      "validationLogs": {
+        "build": "\n> line@0.0.0 build:native\n> node tools/measure/build_native_engine.mjs\n\n   Compiling lr_engine v0.0.0 (/home/holo/line/scripts/lib/native_motion)\n    Finished `release` profile [optimized] target(s) in 1.37s\nPackaged compiler engine b222fcfa01b16e8ff505b42f9f19d42838c530c2ce111b441343fdee7ed56e5a\n",
+        "targeted": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  5 passed (5)\n      Tests  14 passed (14)\n   Start at  22:15:24\n   Duration  1.36s (transform 225ms, setup 0ms, import 319ms, tests 704ms, environment 0ms)\n\n",
+        "rust": "   Compiling lr_engine v0.0.0 (/home/holo/line/scripts/lib/native_motion)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.37s\n     Running unittests src/lib.rs (/tmp/engine-dod-20261103/native-target/debug/deps/lr_engine-d2c531ed3f9af7b2)\n\nrunning 20 tests\ntest grid::tests::hash_int_pair_round_trips_grid_coords ... ok\ntest engine::ownership_tests::arena_scope_rejects_reentry_and_releases_its_borrow_after_unwind ... ok\ntest history::tests::rollback_and_clone_keep_history_queries_local_to_their_prefix ... ok\ntest kernel::tests::flat_query_preserves_duplicates_and_survives_point_movement_during_sweep ... ok\ntest engine::ownership_tests::independently_owned_arenas_do_not_share_handles_or_reconciliation ... ok\ntest kernel::tests::direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates ... ok\ntest line::tests::push_line_keeps_one_entry_per_line_id_per_cell ... ok\ntest line::tests::push_line_orders_each_cell_by_descending_line_id ... ok\ntest line::tests::push_line_preserves_3x3_query_order_and_duplicates ... ok\ntest line::tests::remove_line_drops_id_and_empties_cell ... ok\ntest engine::ownership_tests::traces_belong_to_versions_and_pending_sibling_replay_is_visible ... ok\ntest kernel::tests::query_cache_invalidates_hits_misses_clones_and_epoch_wrap ... ok\ntest kernel::tests::shared_query_eviction_does_not_replace_a_points_cached_lines ... ok\ntest engine::ownership_tests::released_branches_preserve_live_descendants_and_cache_ancestry ... ok\ntest grid::tests::branch_floor_cell_coordinate_matches_rust_floor_cast ... ok\ntest engine::ownership_tests::event_output_keeps_every_record_past_the_former_capacity ... ok\ntest kernel::tests::direction_compaction_handles_full_empty_and_growing_queries ... ok\ntest kernel::tests::point_cell_cache_matches_exact_grid_hash ... ok\ntest engine::ownership_tests::detached_prefixes_isolate_reads_edits_trace_eviction_and_released_sources ... ok\ntest line::tests::bucket_search_matches_linear_scan_under_churn ... ok\n\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s\n\n",
+        "verify": "\n> line@0.0.0 verify:engine\n> node --import tsx tools/parity/engine.ts\n\nsame  landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz\nsame  landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz\nsame  landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz\nsame  landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-single-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz\nsame  landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nPASS  33 tracks, 61115 frame states, 305336 ordered collisions\nPASS  61115 raw-frame, body-motion and cached-contact observations\n",
+        "types": "\n> line@0.0.0 typecheck\n> tsc --noEmit -p .\n\n",
+        "reach": "\n> line@0.0.0 reach\n> node tools/deps/reach.mjs\n\nentries 143  live 304 files / 35000 lines  unreachable 0 files / 0 lines\n"
+      }
     }
   },
   "studyTools": {
     "measure.py": "import subprocess,json,pathlib,sys\nroot=pathlib.Path('/tmp/engine-dod-20261103')\nname,base,candidate,ref=sys.argv[1:]\ndef run(label,mode,rounds,cells='61',confirm=None,aa=False):\n out=root/f'{name}-{label}'\n args=['taskset','-c','2','npm','run','perf:engine','--',f'--reference={candidate if aa else base}',f'--candidate={candidate}',f'--mode={mode}',f'--cells={cells}',f'--rounds={rounds}','--confirm-rounds=24',f'--out={out}']\n if not aa and ref!='-': args.append(f'--reference-root={ref}')\n if confirm: args += ['--stage=confirm',f'--screen={confirm}/result.json']\n with open(root/f'{name}-{label}.log','w') as log: subprocess.run(args,stdout=log,stderr=subprocess.STDOUT,check=True)\n result=json.loads((out/'result.json').read_text()); print(label,json.dumps(result['decision']),flush=True)\n return out,result\nif name=='packed':\n _, control=run('aa','compile',12,aa=True)\n assert control['decision']['verdict']=='INCONCLUSIVE', 'A/A unexpectedly directional; investigate before timing candidates'\nscreen,result=run('screen','compile',12)\nif result['decision']['verdict']=='KEEP':\n _,result=run('confirm','compile',24,confirm=screen)\n if result['decision']['verdict']=='KEEP':\n  run('engine','engine',24)\n  run('large','compile',8,cells='62')\n",
     "memory.mjs": "import {readFileSync,writeFileSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {run,instance,workloads} from '/home/holo/line/tools/measure/engine_workload.ts';\nconst [out,...arms]=process.argv.slice(2),samples=[],artifacts=[];\nfor(const arm of arms){\n const bytes=readFileSync(`/tmp/engine-dod-20261103/${arm}.wasm`);artifacts.push({arm,sha256:createHash('sha256').update(bytes).digest('hex')});\n const module=new WebAssembly.Module(bytes);\n for(const workload of workloads){const ex=instance(module),initialWasmBytes=ex.memory.buffer.byteLength;const {frames}=run(ex,workload);samples.push({arm,workload,frames,initialWasmBytes,finalWasmBytes:ex.memory.buffer.byteLength});}\n}\nwriteFileSync(out,JSON.stringify({description:'WASM linear-memory high-water size after complete workload in a fresh instance; not live allocations or RSS.',artifacts,samples},null,2)+'\\n');console.log(samples);\n",
-    "compile_memory.mts": "import {writeFileSync} from 'node:fs';\nconst [root, cell, out] = process.argv.slice(2);\nprocess.chdir(root);\nconst {wasm} = await import(`${root}/scripts/lib/native_motion/wasm.ts`);\nconst {compileWorker} = await import(`${root}/tools/parity/parity.ts`);\nconst initialWasmBytes = wasm.memory.buffer.byteLength;\nawait compileWorker(Number(cell), `${out}.track.json`);\nwriteFileSync(out, JSON.stringify({root, cell: Number(cell), initialWasmBytes,\n  finalWasmBytes: wasm.memory.buffer.byteLength,\n  description: 'Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS.'}, null, 2) + '\\n');\n"
+    "compile_memory.mts": "import {writeFileSync} from 'node:fs';\nconst [root, cell, out] = process.argv.slice(2);\nprocess.chdir(root);\nconst {wasm} = await import(`${root}/scripts/lib/native_motion/wasm.ts`);\nconst {compileWorker} = await import(`${root}/tools/parity/parity.ts`);\nconst initialWasmBytes = wasm.memory.buffer.byteLength;\nawait compileWorker(Number(cell), `${out}.track.json`);\nwriteFileSync(out, JSON.stringify({root, cell: Number(cell), initialWasmBytes,\n  finalWasmBytes: wasm.memory.buffer.byteLength,\n  description: 'Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS.'}, null, 2) + '\\n');\n",
+    "audit.mts": "import assert from 'node:assert/strict';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {decide} from '/home/holo/line/tools/measure/engine_decision.ts';\nconst study = JSON.parse(readFileSync('/home/holo/line/docs/research/engine-data-oriented-20261103.json','utf8'));\nlet count = 0;\nfor (const experiment of Object.values(study.experiments) as any[]) for (const run of Object.values(experiment.measurements) as any[]) {\n  assert(run.complete); assert.equal(run.samples.length, run.protocol.rounds * 2);\n  const pairs = Array.from({length: run.protocol.rounds}, (_, round) => {\n    const a = run.samples.find((s:any) => s.round === round && s.arm === 0);\n    const b = run.samples.find((s:any) => s.round === round && s.arm === 1);\n    assert.equal(a.frames, b.frames);\n    return {base: a.nsPerFrame, candidate: b.nsPerFrame};\n  });\n  assert.deepEqual(decide(pairs, run.protocol.threshold), run.decision);\n  count++;\n}\nwriteFileSync('/tmp/engine-dod-20261103/audit.json',JSON.stringify({runs:count,status:'PASS: all archived paired decisions exactly reproduced from raw samples'})+'\\n');\nconsole.log(`${count} archived decisions reproduced`);\n"
+  },
+  "final": {
+    "implementationCommit": "265545b6",
+    "accepted": [
+      "packed"
+    ],
+    "rejected": [
+      "spans",
+      "dense"
+    ],
+    "decision": "Retain the independently confirmed packed-observation speedup. Restore the two slower candidates. Final implementation is byte-identical to the fully validated first accepted commit; later commits record evidence only.",
+    "memoryTradeoff": "Packed observations raise fresh 750k-budget compile WASM high-water from 151.25 to 168.625 MiB, while lowering default compile high-water. Dense slots lower these readings but fail the declared performance gate. No overall memory-reduction claim.",
+    "restorationCheck": {
+      "command": "git diff 265545b6 --exit-code -- scripts tools tests ARCHITECTURE.md README.md",
+      "exitCode": 0,
+      "packagedArtifactTests": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  2 passed (2)\n      Tests  4 passed (4)\n   Start at  22:20:42\n   Duration  484ms (transform 239ms, setup 0ms, import 294ms, tests 56ms, environment 0ms)\n\n"
+    }
+  },
+  "audit": {
+    "runs": 7,
+    "status": "PASS: all archived paired decisions exactly reproduced from raw samples"
   }
 }

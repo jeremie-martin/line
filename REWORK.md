@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: reject inline native version slots; finish three experiments
+
+Third sequential experiment, against accepted `265545b6`: replace boxed versions
+with inline optional arena slots. References stay inside a checked arena call,
+so movement is safe. All 20 Rust ownership tests, 14 targeted wrapper/cache tests,
+33 independent replay fixtures (61115 states and 305336 ordered collisions),
+typecheck and reach pass.
+
+The frozen full-source default compile screen12 REJECTs: +0.768% time,
+95% interval [+0.503,+1.043], 11/12 pairs slower, with exact track/work parity.
+No confirmation follows a rejected screen. Raw-engine WASM high-water is
+unchanged. Fresh compile high-water falls from 60.8125 to 57.625 MiB and from
+168.625 to 149.125 MiB for the default/larger-budget cases; WASM is 51 bytes
+smaller. These storage benefits do not override the declared performance gate.
+Restore the boxed arena and archive the experiment.
+
+All three trials are complete: retain packed cached observations; reject shared
+trajectory spans and inline versions. Final production sources, tests and packaged
+WASM exactly match the fully validated `265545b6`; later commits contain study
+evidence only. `docs/research/engine-data-oriented-20261103.json` retains every
+fixed run, candidate patch, artifact identity, validation log and memory reading.
+
+
 ## November 3: reject shared trajectory spans
 
 Second sequential data-oriented experiment, against accepted `265545b6`.

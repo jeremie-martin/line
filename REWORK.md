@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: reject shared trajectory spans
+
+Second sequential data-oriented experiment, against accepted `265545b6`.
+A read-only two-span view retained physical prefix/suffix arrays separately;
+detection, motion scoring and construction checks read it without whole-trajectory
+concatenation. Targeted tests covered every trajectory split, slice boundaries,
+resumed detection, motion and authored construction windows; all ten passed,
+with zero type errors/unreachable files.
+
+The frozen full-source default compile screen12 REJECTs: +0.695% time,
+95% interval [+0.389,+1.009], 11/12 pairs slower. Every timed compile preserves
+track/work parity. No confirmation or full promotion checks follow a rejected
+screen. Fresh compiler WASM high-water is unchanged (60.8125/168.625 MiB).
+The removed allocation does not justify this implementation's added access
+abstraction; restore the simpler flat candidate arrays. The prototype patch,
+raw paired samples and checks remain in `docs/research/engine-data-oriented-20261103.json`.
+
+
 ## November 3: packed cached physics observations
 
 First of three sequential data-oriented experiments, against `32da1e18`.

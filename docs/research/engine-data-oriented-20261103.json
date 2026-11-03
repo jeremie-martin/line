@@ -4724,6 +4724,555 @@
         "types": "\n> line@0.0.0 typecheck\n> tsc --noEmit -p .\n\n",
         "reach": "\n> line@0.0.0 reach\n> node tools/deps/reach.mjs\n\nentries 143  live 304 files / 35000 lines  unreachable 0 files / 0 lines\n"
       }
+    },
+    "spans": {
+      "base": "265545b6",
+      "decision": "REJECT: default compile screen is +0.695% slower [0.389,1.009], 11/12 pairs slower. No confirmation or promotion. Targeted boundary tests, typecheck and reach passed. Fresh compile WASM high-water unchanged. Production patch removed; full structural gates unnecessary for the discarded prototype.",
+      "measurements": {
+        "spans-screen": {
+          "schema": "line.engine-ab.v1",
+          "complete": true,
+          "adaptedFrom": "archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts",
+          "date": "2026-11-03T21:11:27.130Z",
+          "head": "265545b652c8a38cbcda3621e88e14c4e72789b4",
+          "machine": {
+            "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+            "node": "v22.22.2",
+            "platform": "linux",
+            "release": "7.0.0-38-generic",
+            "affinity": "2"
+          },
+          "sourceSha256": "afd4fd2fb901c34b9d8bef57b39d1dc9da14f9dc2991440c4588863239047e45",
+          "referenceSourceSha256": "6d7e3f98359664081af6456223f124d2ef6353546569c9d6c7df9a3c05208d88",
+          "sourceChanges": [
+            "scripts/lib/detector.ts",
+            "scripts/lib/frame_sequence.ts",
+            "scripts/v0/optimizer/arc_evaluate.ts",
+            "scripts/v0/optimizer/motion_quality.ts",
+            "scripts/v0/optimizer/repertoire_candidate.ts"
+          ],
+          "referenceRoot": "/tmp/engine-dod-20261103/after-packed",
+          "artifacts": [
+            {
+              "path": "/tmp/engine-dod-20261103/packed.wasm",
+              "sha256": "69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc"
+            },
+            {
+              "path": "/tmp/engine-dod-20261103/spans.wasm",
+              "sha256": "69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc"
+            }
+          ],
+          "protocol": {
+            "mode": "compile",
+            "stage": "screen",
+            "rounds": 12,
+            "confirmRounds": 24,
+            "reps": 1,
+            "warmup": 1,
+            "threshold": 0.95,
+            "cells": [
+              61
+            ]
+          },
+          "screening": null,
+          "interpretation": "Fixed-round paired bootstrap support and exact sign safeguard on this workload; not a posterior probability or an anytime-valid rule. Full correctness gates are separate.",
+          "samples": [
+            {
+              "round": 0,
+              "arm": 0,
+              "wallMs": 1950.6179520000005,
+              "cpuMs": 2204.059,
+              "frames": 147209,
+              "nsPerFrame": 13250.670488896742,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1950.6179520000005,
+                  "cpuMs": 2204.059
+                }
+              ]
+            },
+            {
+              "round": 0,
+              "arm": 1,
+              "wallMs": 1966.1638369999996,
+              "cpuMs": 2130.904,
+              "frames": 147209,
+              "nsPerFrame": 13356.27466391321,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1966.1638369999996,
+                  "cpuMs": 2130.904
+                }
+              ]
+            },
+            {
+              "round": 1,
+              "arm": 1,
+              "wallMs": 1987.4578469999997,
+              "cpuMs": 2238.666,
+              "frames": 147209,
+              "nsPerFrame": 13500.926213750516,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1987.4578469999997,
+                  "cpuMs": 2238.666
+                }
+              ]
+            },
+            {
+              "round": 1,
+              "arm": 0,
+              "wallMs": 1956.290787,
+              "cpuMs": 2209.866,
+              "frames": 147209,
+              "nsPerFrame": 13289.206414010014,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1956.290787,
+                  "cpuMs": 2209.866
+                }
+              ]
+            },
+            {
+              "round": 2,
+              "arm": 0,
+              "wallMs": 1963.1317,
+              "cpuMs": 2214.877,
+              "frames": 147209,
+              "nsPerFrame": 13335.677166477593,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1963.1317,
+                  "cpuMs": 2214.877
+                }
+              ]
+            },
+            {
+              "round": 2,
+              "arm": 1,
+              "wallMs": 1972.151504,
+              "cpuMs": 2136.875,
+              "frames": 147209,
+              "nsPerFrame": 13396.94926261302,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1972.151504,
+                  "cpuMs": 2136.875
+                }
+              ]
+            },
+            {
+              "round": 3,
+              "arm": 1,
+              "wallMs": 1975.69652,
+              "cpuMs": 2227.599,
+              "frames": 147209,
+              "nsPerFrame": 13421.03077936811,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1975.69652,
+                  "cpuMs": 2227.599
+                }
+              ]
+            },
+            {
+              "round": 3,
+              "arm": 0,
+              "wallMs": 1955.059116,
+              "cpuMs": 2119.711,
+              "frames": 147209,
+              "nsPerFrame": 13280.839595405172,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1955.059116,
+                  "cpuMs": 2119.711
+                }
+              ]
+            },
+            {
+              "round": 4,
+              "arm": 0,
+              "wallMs": 1966.948696,
+              "cpuMs": 2217.923,
+              "frames": 147209,
+              "nsPerFrame": 13361.606260486791,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1966.948696,
+                  "cpuMs": 2217.923
+                }
+              ]
+            },
+            {
+              "round": 4,
+              "arm": 1,
+              "wallMs": 1972.1021049999995,
+              "cpuMs": 2227.596,
+              "frames": 147209,
+              "nsPerFrame": 13396.613692097626,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1972.1021049999995,
+                  "cpuMs": 2227.596
+                }
+              ]
+            },
+            {
+              "round": 5,
+              "arm": 1,
+              "wallMs": 1972.4703999999997,
+              "cpuMs": 2223.197,
+              "frames": 147209,
+              "nsPerFrame": 13399.115543207276,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1972.4703999999997,
+                  "cpuMs": 2223.197
+                }
+              ]
+            },
+            {
+              "round": 5,
+              "arm": 0,
+              "wallMs": 1965.4384940000004,
+              "cpuMs": 2130.094,
+              "frames": 147209,
+              "nsPerFrame": 13351.347363272629,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1965.4384940000004,
+                  "cpuMs": 2130.094
+                }
+              ]
+            },
+            {
+              "round": 6,
+              "arm": 0,
+              "wallMs": 1964.0187180000003,
+              "cpuMs": 2220.595,
+              "frames": 147209,
+              "nsPerFrame": 13341.702735566441,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1964.0187180000003,
+                  "cpuMs": 2220.595
+                }
+              ]
+            },
+            {
+              "round": 6,
+              "arm": 1,
+              "wallMs": 1991.5705450000005,
+              "cpuMs": 2156.911,
+              "frames": 147209,
+              "nsPerFrame": 13528.864030052513,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1991.5705450000005,
+                  "cpuMs": 2156.911
+                }
+              ]
+            },
+            {
+              "round": 7,
+              "arm": 1,
+              "wallMs": 1982.7251489999999,
+              "cpuMs": 2147.055,
+              "frames": 147209,
+              "nsPerFrame": 13468.776698435557,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1982.7251489999999,
+                  "cpuMs": 2147.055
+                }
+              ]
+            },
+            {
+              "round": 7,
+              "arm": 0,
+              "wallMs": 1972.6007390000004,
+              "cpuMs": 2137.785,
+              "frames": 147209,
+              "nsPerFrame": 13400.00094423575,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1972.6007390000004,
+                  "cpuMs": 2137.785
+                }
+              ]
+            },
+            {
+              "round": 8,
+              "arm": 0,
+              "wallMs": 1969.1409209999997,
+              "cpuMs": 2135.382,
+              "frames": 147209,
+              "nsPerFrame": 13376.498182855667,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1969.1409209999997,
+                  "cpuMs": 2135.382
+                }
+              ]
+            },
+            {
+              "round": 8,
+              "arm": 1,
+              "wallMs": 1981.6449949999997,
+              "cpuMs": 2237.849,
+              "frames": 147209,
+              "nsPerFrame": 13461.439144345792,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1981.6449949999997,
+                  "cpuMs": 2237.849
+                }
+              ]
+            },
+            {
+              "round": 9,
+              "arm": 1,
+              "wallMs": 1976.3699029999998,
+              "cpuMs": 2141.259,
+              "frames": 147209,
+              "nsPerFrame": 13425.605112459156,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1976.3699029999998,
+                  "cpuMs": 2141.259
+                }
+              ]
+            },
+            {
+              "round": 9,
+              "arm": 0,
+              "wallMs": 1974.7246100000007,
+              "cpuMs": 2230.732,
+              "frames": 147209,
+              "nsPerFrame": 13414.428533581511,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1974.7246100000007,
+                  "cpuMs": 2230.732
+                }
+              ]
+            },
+            {
+              "round": 10,
+              "arm": 0,
+              "wallMs": 1966.0345169999996,
+              "cpuMs": 2225.123,
+              "frames": 147209,
+              "nsPerFrame": 13355.39618501586,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1966.0345169999996,
+                  "cpuMs": 2225.123
+                }
+              ]
+            },
+            {
+              "round": 10,
+              "arm": 1,
+              "wallMs": 1994.1809240000002,
+              "cpuMs": 2253.208,
+              "frames": 147209,
+              "nsPerFrame": 13546.59649885537,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1994.1809240000002,
+                  "cpuMs": 2253.208
+                }
+              ]
+            },
+            {
+              "round": 11,
+              "arm": 1,
+              "wallMs": 1985.2059079999995,
+              "cpuMs": 2151.676,
+              "frames": 147209,
+              "nsPerFrame": 13485.628650422186,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1985.2059079999995,
+                  "cpuMs": 2151.676
+                }
+              ]
+            },
+            {
+              "round": 11,
+              "arm": 0,
+              "wallMs": 1990.1533330000002,
+              "cpuMs": 2250.692,
+              "frames": 147209,
+              "nsPerFrame": 13519.236819759662,
+              "measurements": [
+                {
+                  "cell": 61,
+                  "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                  "physicalFrames": 147209,
+                  "compileMs": 1990.1533330000002,
+                  "cpuMs": 2250.692
+                }
+              ]
+            }
+          ],
+          "decision": {
+            "n": 12,
+            "meanDeltaPct": 0.6952008026485772,
+            "medianDeltaPct": 0.5741266706358878,
+            "intervalPct": [
+              0.3893370526462418,
+              1.0089835871346893
+            ],
+            "bootstrapSupportFaster": 0,
+            "wins": 1,
+            "losses": 11,
+            "ties": 0,
+            "fasterSignP": 0.999755859375,
+            "twoSidedSignP": 0.00634765625,
+            "threshold": 0.95,
+            "resamples": 50000,
+            "verdict": "REJECT"
+          },
+          "cellDecisions": [
+            {
+              "cell": 61,
+              "decision": {
+                "n": 12,
+                "meanDeltaPct": 0.695200802648579,
+                "medianDeltaPct": 0.5741266706358917,
+                "intervalPct": [
+                  0.3893370526462414,
+                  1.0089835871346955
+                ],
+                "bootstrapSupportFaster": 0,
+                "wins": 1,
+                "losses": 11,
+                "ties": 0,
+                "fasterSignP": 0.999755859375,
+                "twoSidedSignP": 0.00634765625,
+                "threshold": 0.95,
+                "resamples": 50000,
+                "verdict": "REJECT"
+              }
+            }
+          ],
+          "regressionGuardPassed": false,
+          "control": false,
+          "controlPassed": null,
+          "performanceQualified": false
+        }
+      },
+      "sourcePatch": "diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md\nindex 3de2f86d..e55393e6 100644\n--- a/ARCHITECTURE.md\n+++ b/ARCHITECTURE.md\n@@ -63,8 +63,8 @@ and validation are in [music authoring](docs/music-authoring.md).\n    targeted, capped amplitude needs a separate raw-peak read to preserve\n    search pressure above the reporting cap. Reported axes remain capped.\n    A candidate that leaves its interval's prefix unchanged reuses the prefix\n-   frames and resumes the prefix's detector state, so it reads and scans only\n-   its own frames; the detection is identical to scanning the whole ride.\n+   frames in a read-only two-span view and resumes the prefix's detector state,\n+   so it reads and scans only its own frames; the detection is identical to scanning the whole ride.\n    A candidate whose rider or sled comes apart stops replaying at that frame,\n    since an unbinding is permanent, and is charged only the frames simulated.\n \ndiff --git a/scripts/lib/detector.ts b/scripts/lib/detector.ts\nindex 840a399b..4fc061d4 100644\n--- a/scripts/lib/detector.ts\n+++ b/scripts/lib/detector.ts\n@@ -14,6 +14,7 @@\n  * with hand-built fixtures.\n  */\n \n+import type {FrameSequence} from './frame_sequence.ts';\n import { COLLISION_UPDATE_TYPE } from \"./update_types.ts\";\n \n // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 Pinned constants (PROBLEM.md \u00a7Definitions) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n@@ -82,6 +83,9 @@ export type RawTrajectory = {\n   frames: RawFrame[];\n };\n \n+/** Detection accepts shared prefix/suffix storage as well as a flat replay. */\n+type TrajectoryView = {duration: number; frames: FrameSequence<RawFrame>};\n+\n export type CandidateWindowRaw = {\n   startFrame: number;\n   /** Inclusive last frame requested for the window. */\n@@ -235,7 +239,7 @@ type SummaryState = {\n  * begins with the same frame objects; the result equals `detect`. */\n export type DetectionPrefix = { readonly state: DetectorState; readonly summary: SummaryState; readonly last: RawFrame | undefined };\n \n-export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {}): Detection {\n+export function detect(raw: TrajectoryView, params: Partial<DetectorParams> = {}): Detection {\n   if (raw.frames.length === 0) throw new Error(\"detect: empty trajectory\");\n   const state = scanFrames(startDetector({ ...DEFAULT_PARAMS, ...params }), raw.frames, raw.frames.length);\n   return finishDetection(raw, state, startSummary());\n@@ -250,10 +254,10 @@ export function detectPrefix(raw: RawTrajectory, params: Partial<DetectorParams>\n }\n \n /** `detect(raw)` for a trajectory that extends the frames of `prefix`. */\n-export function detectFrom(prefix: DetectionPrefix, raw: RawTrajectory): Detection {\n+export function detectFrom(prefix: DetectionPrefix, raw: TrajectoryView): Detection {\n   const p = prefix.state;\n   if (raw.frames.length === 0) throw new Error(\"detect: empty trajectory\");\n-  if (raw.frames.length < p.next || (p.next > 0 && raw.frames[p.next - 1] !== prefix.last))\n+  if (raw.frames.length < p.next || (p.next > 0 && raw.frames.at(p.next - 1) !== prefix.last))\n     throw new Error(\"detectFrom: trajectory does not extend the detected prefix\");\n   const state: DetectorState = {\n     ...p, P: { ...p.P },\n@@ -272,12 +276,12 @@ function startDetector(P: DetectorParams): DetectorState {\n \n // Walk forward from state.next to `until`; stop at the first terminus condition.\n // Build measurements only up to the terminus frame inclusive.\n-function scanFrames(state: DetectorState, frames: RawFrame[], until: number): DetectorState {\n+function scanFrames(state: DetectorState, frames: FrameSequence<RawFrame>, until: number): DetectorState {\n   const { P, position, velocity, speed, sledContacts, contactLineIds, airborne, events } = state;\n   let { stallRun, airborneRun, airborneFrom, terminus } = state;\n   let i = state.next;\n   for (; terminus === null && i < until; i++) {\n-    const fr = frames[i];\n+    const fr = frames.at(i)!;\n \n     // Record per-frame measurements.\n     position.push(fr.position);\n@@ -330,7 +334,7 @@ function scanFrames(state: DetectorState, frames: RawFrame[], until: number): De\n       const windowLen = windowEnd - i;\n       let groundedInWindow = 1; // current frame is grounded by construction\n       for (let j = i + 1; j < windowEnd; j++) {\n-        if (frames[j].sledContacts.length > 0) groundedInWindow++;\n+        if (frames.at(j)!.sledContacts.length > 0) groundedInWindow++;\n       }\n       const contactFraction = groundedInWindow / windowLen;\n       const persisted = contactFraction >= P.persistenceRatio;\n@@ -352,7 +356,7 @@ function scanFrames(state: DetectorState, frames: RawFrame[], until: number): De\n \n     // --- kick emission (angle change between consecutive velocities) ---\n     if (i > 0) {\n-      const v0 = frames[i - 1].velocity;\n+      const v0 = frames.at(i - 1)!.velocity;\n       const v1 = fr.velocity;\n       const a = signedAngleDeg(v0, v1);\n       if (Math.abs(a) >= P.thetaDeg) {\n@@ -364,13 +368,13 @@ function scanFrames(state: DetectorState, frames: RawFrame[], until: number): De\n   return state;\n }\n \n-function finishDetection(raw: RawTrajectory, state: DetectorState, summary: SummaryState): Detection {\n+function finishDetection(raw: TrajectoryView, state: DetectorState, summary: SummaryState): Detection {\n   const frames = raw.frames;\n   let terminus = state.terminus;\n   if (terminus === null) {\n     // Reached the end of the supplied trajectory without a terminus condition.\n     // Did we reach spec duration?\n-    const lastFrame = frames[frames.length - 1].frame;\n+    const lastFrame = frames.at(-1)!.frame;\n     terminus = {\n       frame: Math.min(lastFrame, raw.duration),\n       reason: lastFrame >= raw.duration ? \"endOfSpec\" : \"rideStalled\",\ndiff --git a/scripts/lib/frame_sequence.ts b/scripts/lib/frame_sequence.ts\nnew file mode 100644\nindex 00000000..11d434a9\n--- /dev/null\n+++ b/scripts/lib/frame_sequence.ts\n@@ -0,0 +1,31 @@\n+/** Read-only frame access shared by flat replays and a candidate's two spans. */\n+export interface FrameSequence<T> {\n+  readonly length: number;\n+  at(index: number): T | undefined;\n+  slice(start?: number, end?: number): readonly T[];\n+}\n+\n+/** A shared physical prefix plus an owned candidate suffix. Never flattens the\n+ * full trajectory; consumers materialize only windows crossing the boundary. */\n+export class FrameSpans<T> implements FrameSequence<T> {\n+  readonly length: number;\n+  constructor(private readonly prefix: readonly T[], private readonly suffix: readonly T[]) {\n+    this.length = prefix.length + suffix.length;\n+  }\n+  at(index: number): T | undefined {\n+    index = Math.trunc(index) || 0;\n+    if (index < 0) index += this.length;\n+    return index < this.prefix.length ? this.prefix[index] : this.suffix[index - this.prefix.length];\n+  }\n+  slice(start = 0, end = this.length): readonly T[] {\n+    const normalize = (index: number) => {\n+      index = Math.trunc(index) || 0;\n+      return index < 0 ? Math.max(0, this.length + index) : Math.min(this.length, index);\n+    };\n+    const from = normalize(start), to = normalize(end), split = this.prefix.length;\n+    if (to <= from) return [];\n+    if (from >= split) return from === split && to === this.length ? this.suffix : this.suffix.slice(from - split, to - split);\n+    if (to <= split) return from === 0 && to === split ? this.prefix : this.prefix.slice(from, to);\n+    return this.prefix.slice(from).concat(this.suffix.slice(0, to - split));\n+  }\n+}\ndiff --git a/scripts/v0/optimizer/arc_evaluate.ts b/scripts/v0/optimizer/arc_evaluate.ts\nindex f2124d3f..887e8e85 100644\n--- a/scripts/v0/optimizer/arc_evaluate.ts\n+++ b/scripts/v0/optimizer/arc_evaluate.ts\n@@ -4,6 +4,7 @@\n  * construction requirement becomes a candidate. Measurements and rejections\n  * are memoized by control within the search's memo context. */\n import { getRiderMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, detectFrom } from '../../lib/detector.ts';\n+import {FrameSpans} from '../../lib/frame_sequence.ts';\n import { findAuthoredContactNearFrame } from '../core/substrate.ts';\n import { measureGapAxes } from '../core/measure.ts';\n import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';\n@@ -144,7 +145,7 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine\n   // A reusable prefix keeps its frames and its detector state; only the\n   // candidate's own frames are read and scanned.\n   const raw = prefixReusable\n-    ? {duration: horizon, frames: s.prefixRaw.frames.concat(extractRawTrajectoryWindow(child, frame, horizon).frames)}\n+    ? {duration: horizon, frames: new FrameSpans(s.prefixRaw.frames, extractRawTrajectoryWindow(child, frame, horizon).frames)}\n     : extractRawTrajectory(child, horizon);\n   const det = prefixReusable ? detectFrom(s.prefixDetection, raw) : detect(raw);\n   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;\n@@ -316,7 +317,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad\n   const terminalLoss = i === contacts.length - 1\n     ? arcSelectionObjective(ctx, raw, terminalPhysical, arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts)).loss : undefined;\n   let release: number | undefined;\n-  for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames[k].sledContacts.length) release = raw.frames[k].frame;\n+  for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames.at(k)!.sledContacts.length) release = raw.frames.at(k)!.frame;\n   const finalState = state.points;\n   const heading = deg(Math.atan2(finalVelocity.y, finalVelocity.x)), endSpeed = Math.hypot(finalVelocity.x, finalVelocity.y);\n   const pose = deg(Math.atan2(finalState.NOSE.y - finalState.TAIL.y, finalState.NOSE.x - finalState.TAIL.x));\ndiff --git a/scripts/v0/optimizer/motion_quality.ts b/scripts/v0/optimizer/motion_quality.ts\nindex 8077c42a..418c3862 100644\n--- a/scripts/v0/optimizer/motion_quality.ts\n+++ b/scripts/v0/optimizer/motion_quality.ts\n@@ -2,6 +2,7 @@\n  * Stored velocity is pre-solve. The next stored velocity minus gravity is the\n  * current effective velocity; the final sample can use the already-read state.\n  * No contact gate: internal motion can follow the final collision by a frame. */\n+import type {FrameSequence} from '../../lib/frame_sequence.ts';\n import type {RawFrame, Vec2} from '../../lib/detector.ts';\n \n export const MOTION_OBSERVATION_VERSION='line.motion-observation.v1';\n@@ -10,13 +11,13 @@ const speed=(v:Vec2)=>Math.hypot(v.x,v.y);\n const direction=(a:Vec2,b:Vec2)=>Math.abs(Math.atan2(a.x*b.y-a.y*b.x,a.x*b.x+a.y*b.y));\n export type MotionSample={frame:number;incoming:Vec2;effective:Vec2;speedBefore:number;speedAfter:number;\n   gravityGain:number;solverGain:number;directionCorrection:number};\n-export function motionSamples(frames:readonly Pick<RawFrame,'frame'|'velocity'>[],from:number,to:number,terminalEffective?:Vec2):MotionSample[]{\n+export function motionSamples(frames:FrameSequence<Pick<RawFrame,'frame'|'velocity'>>,from:number,to:number,terminalEffective?:Vec2):MotionSample[]{\n   if(!Number.isSafeInteger(from)||!Number.isSafeInteger(to)||from<1||to<from)throw new Error('invalid motion observation window');\n-  const first=frames[0]?.frame,last=frames.at(-1)?.frame;\n+  const first=frames.at(0)?.frame,last=frames.at(-1)?.frame;\n   if(first===undefined||last===undefined||from<first||to>last||to===last&&!terminalEffective)throw new Error('motion window requires its next velocity or terminal effective state');\n   const samples:MotionSample[]=[];\n   for(let frame=from;frame<=to;frame++){\n-    const row=frames[frame-first],next=frames[frame-first+1];\n+    const row=frames.at(frame-first),next=frames.at(frame-first+1);\n     if(row?.frame!==frame||next&&next.frame!==frame+1)throw new Error('motion samples require a contiguous native trajectory');\n     const incoming=row.velocity,effective=next?{x:next.velocity.x,y:next.velocity.y-NATIVE_GRAVITY}:terminalEffective!;\n     if(![incoming.x,incoming.y,effective.x,effective.y].every(Number.isFinite))throw new Error('nonfinite motion sample');\ndiff --git a/scripts/v0/optimizer/repertoire_candidate.ts b/scripts/v0/optimizer/repertoire_candidate.ts\nindex 1b276888..8f7d8d02 100644\n--- a/scripts/v0/optimizer/repertoire_candidate.ts\n+++ b/scripts/v0/optimizer/repertoire_candidate.ts\n@@ -1,11 +1,12 @@\n /** Search and final evaluation use the same authored construction window even\n  * when contact scheduling uses the musical judge's one-frame timing tolerance.\n  * `frames` is a complete trajectory indexed from frame zero. */\n+import type {FrameSequence} from '../../lib/frame_sequence.ts';\n import {inspectLayout} from './repertoire_layout.ts';\n import type {ConstructionRequest} from './repertoire_policy.ts';\n import type {TrackLine} from '../types.ts';\n-export function inspectConstructionWindow(request:ConstructionRequest,lines:TrackLine[],guideIds:ReadonlySet<number>,frames:readonly {contactLineIds:number[];position?:{x:number;y:number}}[],allContacts?:(frame:number)=>number[]){\n+export function inspectConstructionWindow(request:ConstructionRequest,lines:TrackLine[],guideIds:ReadonlySet<number>,frames:FrameSequence<{contactLineIds:number[];position?:{x:number;y:number}}>,allContacts?:(frame:number)=>number[]){\n  const count=Math.max(0,Math.min(request.next,frames.length)-request.frame);\n  return inspectLayout(request,lines,guideIds,Array.from({length:count},(_,offset)=>\n-  allContacts?allContacts(request.frame+offset):frames[request.frame+offset].contactLineIds),frames.slice(request.frame,request.next).map(f=>f.position));\n+  allContacts?allContacts(request.frame+offset):frames.at(request.frame+offset)!.contactLineIds),frames.slice(request.frame,request.next).map(f=>f.position));\n }\ndiff --git a/tests/detector_resume.test.ts b/tests/detector_resume.test.ts\nindex c1ee0012..aec11725 100644\n--- a/tests/detector_resume.test.ts\n+++ b/tests/detector_resume.test.ts\n@@ -1,5 +1,6 @@\n import {expect, it} from 'vitest';\n import {detect, detectFrom, detectPrefix, type RawFrame} from '../scripts/lib/detector.ts';\n+import {FrameSpans} from '../scripts/lib/frame_sequence.ts';\n import {makeRng} from '../scripts/lib/rng.ts';\n \n /** Contact/air runs with occasional stalls, bind breaks and world exits. */\n@@ -26,6 +27,8 @@ it('resuming a detected prefix equals detecting the whole trajectory', () => {\n     for (let k = 1; k <= frames.length; k++) {\n       const prefix = detectPrefix({duration: k - 1, frames: frames.slice(0, k)});\n       expect(detectFrom(prefix, {duration, frames: frames.slice(0, k).concat(frames.slice(k))})).toEqual(whole);\n+      const spans = new FrameSpans(frames.slice(0, k), frames.slice(k));\n+      expect(detectFrom(prefix, {duration, frames: spans})).toEqual(whole);\n     }\n   }\n });\ndiff --git a/tests/frame_sequence.test.ts b/tests/frame_sequence.test.ts\nnew file mode 100644\nindex 00000000..78f4f690\n--- /dev/null\n+++ b/tests/frame_sequence.test.ts\n@@ -0,0 +1,15 @@\n+import {it, expect} from 'vitest';\n+import {FrameSpans} from '../scripts/lib/frame_sequence.ts';\n+it('reads and slices across every split like an array, retaining complete spans', () => {\n+  const frames = Array.from({length: 12}, (_,frame) => ({frame}));\n+  for (let split = 0; split <= frames.length; split++) {\n+    const prefix = frames.slice(0, split), suffix = frames.slice(split), view = new FrameSpans(prefix, suffix);\n+    expect(view.length).toBe(frames.length);\n+    for (let from = -14; from <= 14; from++) {\n+      expect(view.at(from)).toBe(frames.at(from));\n+      for (let to = -14; to <= 14; to++) expect(view.slice(from, to)).toEqual(frames.slice(from, to));\n+    }\n+    if (suffix.length) expect(view.slice(split)).toBe(suffix);\n+    if (prefix.length) expect(view.slice(0, split)).toBe(prefix);\n+  }\n+});\ndiff --git a/tests/motion_quality.test.ts b/tests/motion_quality.test.ts\nindex 985b9f19..c7fa59a0 100644\n--- a/tests/motion_quality.test.ts\n+++ b/tests/motion_quality.test.ts\n@@ -1,4 +1,5 @@\n import {describe,it,expect} from 'vitest';\n+import {FrameSpans} from '../scripts/lib/frame_sequence.ts';\n import {motionSamples,summarizeMotion,NATIVE_GRAVITY} from '../scripts/v0/optimizer/motion_quality.ts';\n \n describe('native motion observations',()=>{\n@@ -8,6 +9,8 @@ describe('native motion observations',()=>{\n       {frame:2,velocity:{x:5,y:-1+NATIVE_GRAVITY}},\n       {frame:3,velocity:{x:5,y:-1+2*NATIVE_GRAVITY}}];\n     const xs=motionSamples(frames,1,3,{x:6,y:0});\n+    for(let cut=0;cut<=frames.length;cut++)\n+      expect(motionSamples(new FrameSpans(frames.slice(0,cut),frames.slice(cut)),1,3,{x:6,y:0})).toEqual(xs);\n     expect(xs[1].solverGain).toBeCloseTo(0,12);\n     expect(xs[0].directionCorrection).toBeGreaterThan(0);\n     expect(xs.reduce((n,x)=>n+x.solverGain+x.gravityGain,0)).toBeCloseTo(6-Math.hypot(4,-2),12);\ndiff --git a/tests/repertoire_candidate.test.ts b/tests/repertoire_candidate.test.ts\nindex 0ec6125a..9249dde9 100644\n--- a/tests/repertoire_candidate.test.ts\n+++ b/tests/repertoire_candidate.test.ts\n@@ -1,3 +1,4 @@\n+import {FrameSpans} from '../scripts/lib/frame_sequence.ts';\n import {it,expect} from 'vitest';\n import fixture from './fixtures/repertoire_authored_window.json';\n import {inspectConstruction} from '../scripts/v0/optimizer/repertoire_realization.ts';\n@@ -20,4 +21,6 @@ it('does not mistake a sled-only contact gap for a body-free transfer',()=>{\n  expect(inspectConstructionWindow(request,lines,guides,frames).fulfilled).toBe(true);\n  const checked=inspectConstructionWindow(request,lines,guides,frames,f=>transfer.all[f-request.frame]);\n  expect(checked.reasons).toContain('missing-separated-transfer');\n+ for(const cut of [0,request.frame,request.next-1,frames.length])\n+  expect(inspectConstructionWindow(request,lines,guides,new FrameSpans(frames.slice(0,cut),frames.slice(cut)),f=>transfer.all[f-request.frame])).toEqual(checked);\n });\n",
+      "sourcePatchSha256": "2cbca3fd25117ebb0fc48dc642e3659c6d0d656ddcb067a43afa350b927a4f9c",
+      "wasmSha256": "69c20af58af6516b1244969d77726962a0ea370a0136297364a876e6e53b16dc",
+      "wasmBytes": 111085,
+      "memory": null,
+      "compileMemory": {
+        "memory-spans-candidate-61.json": {
+          "root": "/home/holo/line",
+          "cell": 61,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 63766528,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-spans-candidate-62.json": {
+          "root": "/home/holo/line",
+          "cell": 62,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 176816128,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-spans-baseline-61.json": {
+          "root": "/tmp/engine-dod-20261103/after-packed",
+          "cell": 61,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 63766528,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        },
+        "memory-spans-baseline-62.json": {
+          "root": "/tmp/engine-dod-20261103/after-packed",
+          "cell": 62,
+          "initialWasmBytes": 1245184,
+          "finalWasmBytes": 176816128,
+          "description": "Linear-memory high-water after a fresh compile, including packed observation output; not live allocations or process RSS."
+        }
+      },
+      "validationLogs": {
+        "targeted": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  4 passed (4)\n      Tests  10 passed (10)\n   Start at  22:10:50\n   Duration  1.52s (transform 118ms, setup 0ms, import 148ms, tests 1.10s, environment 0ms)\n\n",
+        "types": "\n> line@0.0.0 typecheck\n> tsc --noEmit -p .\n\n",
+        "reach": "\n> line@0.0.0 reach\n> node tools/deps/reach.mjs\n\nentries 143  live 305 files / 35039 lines  unreachable 0 files / 0 lines\n"
+      }
     }
   },
   "studyTools": {

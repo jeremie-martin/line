@@ -83,6 +83,14 @@ and validation are in [music authoring](docs/music-authoring.md).
    collection uses the same boundary. The frozen judge uses its private
    replay instance.
 
+   Collision-grid lookup shortcuts survive successive physics frames until a
+   grid edit invalidates them. Each point also retains its current bucket;
+   detached caches reset these pointers because their cloned grids have their
+   own allocations. `npm run verify:engine` compares every frame state and
+   ordered collision on the committed parity tracks with the independent
+   reference; `npm run bench:engine` measures identical engine workloads on
+   the current machine.
+
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:
    - layout fulfillment, i.e. whether each requested construction actually

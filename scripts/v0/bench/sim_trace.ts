@@ -9,10 +9,13 @@
  * tiny, changes the fingerprint and is pinpointed to the first divergent frame.
  *
  * Workflow:
- *   1. On a clean baseline:  npm run trace          → records reference fingerprints
- *   2. After an engine edit: npm run trace          → checks; exits non-zero + reports
- *                                                      the first divergent frame if any
- *   3. To re-baseline on purpose: npm run trace -- --update
+ *   1. Record a trusted reference explicitly:
+ *      LR_ENGINE=official npm run verify:engine:trace -- --fixture --update --dump
+ *   2. Check the reference WASM:
+ *      npm run verify:engine:trace -- --fixture
+ *   3. Numeric diagnostics (nonzero exit on missing reference or drift):
+ *      npm run verify:engine:trace -- --fixture --diff
+ * The compiler backend has a separate gate: npm run verify:engine.
  *
  * Sources (mix freely):
  *   --fixture[=segments]            the synthetic downhill (continuous contact)
@@ -30,7 +33,7 @@ import { COLLISION_UPDATE_TYPE } from "../../lib/update_types.ts";
 
 const OUT_DIR = "generated/trace";
 // Track fixtures the oracle checks by default. Drop any *.json export here and
-// `npm run trace` picks it up automatically (the synthetic fixture is always
+// `npm run verify:engine:trace` picks it up automatically (the synthetic fixture is always
 // included too as a continuous-contact case).
 const TRACKS_DIR = "scripts/v0/bench/tracks";
 
@@ -235,6 +238,10 @@ function diffTrajectories(ref: Trajectory, cand: Trajectory): {
   rmsByWindow: { from: number; to: number; rms: number; max: number }[];
   shapeMismatch: string | null;
 } {
+  if (ref.frames !== cand.frames || ref.data.length !== cand.data.length) {
+    return { ok: false, firstDiffFrame: 0, firstExceedFrame: {}, maxErr: Infinity,
+      maxAt: null, rmsByWindow: [], shapeMismatch: 'frame counts differ' };
+  }
   if (ref.ids.length !== cand.ids.length || ref.ids.some((id, i) => id !== cand.ids[i])) {
     return { ok: false, firstDiffFrame: 0, firstExceedFrame: {}, maxErr: Infinity, maxAt: null, rmsByWindow: [], shapeMismatch: `point set differs (ref ${ref.ids.length} vs cand ${cand.ids.length})` };
   }
@@ -255,6 +262,10 @@ function diffTrajectories(ref: Trajectory, cand: Trajectory): {
     const a = ref.data[f], b = cand.data[f];
     let frameMax = 0;
     for (let k = 0; k < nIds * 6; k++) {
+      if (!Number.isFinite(a[k]) || !Number.isFinite(b[k])) {
+        return {ok: false, firstDiffFrame: f, firstExceedFrame: {}, maxErr: Infinity,
+          maxAt: null, rmsByWindow: [], shapeMismatch: `non-finite or missing component ${k} at frame ${f}`};
+      }
       const e = Math.abs(a[k] - b[k]);
       if (e > 0 && firstDiffFrame === null) firstDiffFrame = f;
       winSumSq += e * e; winCount++;
@@ -341,6 +352,7 @@ function main() {
     for (const { src, frames } of sources) {
       const dumpPath = resolve(OUT_DIR, `${src.name}.dump.json`);
       if (!existsSync(dumpPath)) {
+        anyMissing = true;
         console.log(`  SKIP  ${src.name} — no numeric reference (run with --dump first)`);
         continue;
       }
@@ -370,7 +382,8 @@ function main() {
       }
     }
     console.log("");
-    console.log(anyDrift ? "TRACE: numeric drift reported above." : "TRACE: numerically bit-identical to reference on all sources.");
+    console.log(anyDrift ? "TRACE: numeric drift reported above." : anyMissing ? "TRACE: missing numeric references." : "TRACE: numerically bit-identical to reference on all sources.");
+    if (anyDrift || anyMissing) process.exitCode = 1;
     return;
   }
 
@@ -393,7 +406,7 @@ function main() {
       // would "pass" on a fresh checkout by adopting whatever the current (possibly
       // broken) code emits. Capture baselines on known-good HEAD with --update only.
       anyMissing = true;
-      console.log(`  MISS  ${src.name.padEnd(18)} no baseline at ${refPath} — record on known-good HEAD: npm run verify:engine -- --update`);
+      console.log(`  MISS  ${src.name.padEnd(18)} no baseline at ${refPath} — record on known-good HEAD: npm run verify:engine:trace -- --update`);
       continue;
     }
 
@@ -416,7 +429,7 @@ function main() {
     console.log("TRACE: MISMATCH — behavior changed. Do NOT keep this engine change.");
     process.exit(1);
   } else if (anyMissing) {
-    console.log("TRACE: MISSING baseline(s) — cannot verify. Record on known-good HEAD: npm run verify:engine -- --update");
+    console.log("TRACE: MISSING baseline(s) — cannot verify. Record on known-good HEAD: npm run verify:engine:trace -- --update");
     process.exit(1);
   } else if (anyWritten) {
     console.log("TRACE: reference recorded. Re-run after an engine change to verify byte-identical behavior.");

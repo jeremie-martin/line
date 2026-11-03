@@ -1,0 +1,3907 @@
+{
+  "schema": "line.engine-study.v1",
+  "date": "2026-11-03",
+  "baselineCommit": "eeec89e242d82fe88273794fb66058f94b66b055",
+  "scope": "Compiler physics backend only. Independent judge, solver arithmetic, search, quality measures and physics allowance unchanged.",
+  "toolchain": {
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "build": "Cargo release wasm32-unknown-unknown; no Binaryen; same toolchain for A and B",
+    "affinity": "logical CPU 2",
+    "memoryGiB": 15.3,
+    "governor": "powersave",
+    "cpu2MaxKHz": 4700000
+  },
+  "audit": [
+    "Historical timings and 23-worker defaults came from a 64-core / 62 GB host, not this i7-12800H / 16 GB host.",
+    "Compiler imports native_motion directly; LR_ENGINE does not switch this backend.",
+    "Reference WASM was absent. Built from unchanged engine-rs sources; installed missing wasm32 target.",
+    "Legacy trace defaults lacked local fixtures/baselines; numeric diff returned success for missing baselines and drift. New gate uses committed tracks, old diagnostic now fails closed.",
+    "V7 probabilities concern seed-block quality on a fixed suite. Engine timing intervals instead concern repeated identical workloads on this machine.",
+    "One full-suite test needs absent production audio; the same failure was reproduced on untouched HEAD."
+  ],
+  "experiments": [
+    {
+      "name": "rebuild",
+      "description": "Shipped binary versus same-source Rust 1.95 rebuild",
+      "decision": "Exact state/event/cache-work matches; rebuild not used as an optimization claim",
+      "protocol": {
+        "rounds": 3,
+        "warmup": 1,
+        "order": "alternating, sequential",
+        "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+      },
+      "artifacts": [
+        {
+          "path": "/tmp/line-engine-study/packaged.wasm",
+          "sha256": "c3390dc10cd90757903bc865b6f9ad3fec40462d071dbf30b8ea81bfb5057077"
+        },
+        {
+          "path": "/tmp/line-engine-study/baseline.wasm",
+          "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+        }
+      ],
+      "summary": [
+        {
+          "workload": "register",
+          "referenceMs": 80.3083656666666,
+          "candidateMs": 90.71762833333332,
+          "ratio": 1.125093697897624,
+          "interval": [
+            0.8474986805644659,
+            1.4936139230398044
+          ]
+        },
+        {
+          "workload": "replay",
+          "referenceMs": 268.95447833333327,
+          "candidateMs": 268.79203233333357,
+          "ratio": 0.9993947723285094,
+          "interval": [
+            0.9966879657056258,
+            1.0021089301007453
+          ]
+        },
+        {
+          "workload": "branches",
+          "referenceMs": 388.3730599999999,
+          "candidateMs": 391.83467133333335,
+          "ratio": 1.008754513574831,
+          "interval": [
+            0.9424935401523269,
+            1.0796738919750375
+          ]
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 80.40398499999992,
+          "cpuMs": 80.405,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.38759600000003,
+          "cpuMs": 79.387,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.40170399999988,
+          "cpuMs": 96.49,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 81.46409799999992,
+          "cpuMs": 81.406,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.05701399999998,
+          "cpuMs": 79.056,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.36358500000006,
+          "cpuMs": 96.372,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.35648100000026,
+          "cpuMs": 269.281,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 269.4431440000003,
+          "cpuMs": 269.446,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 268.1874340000004,
+          "cpuMs": 268.153,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.6729660000001,
+          "cpuMs": 268.597,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.8339879999994,
+          "cpuMs": 268.761,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 268.74551900000006,
+          "cpuMs": 268.75,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 387.36991299999954,
+          "cpuMs": 387.342,
+          "frames": 102890
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 387.14046400000007,
+          "cpuMs": 387.031,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 402.11125600000014,
+          "cpuMs": 402.037,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.53501700000015,
+          "cpuMs": 385.813,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 391.21425,
+          "cpuMs": 391.226,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 386.2522939999999,
+          "cpuMs": 386.134,
+          "frames": 102890
+        }
+      ]
+    },
+    {
+      "name": "cache",
+      "description": "Retain line-grid shortcut pointers across frames; invalidate on grid edits and reset on clone",
+      "decision": "Retained",
+      "protocol": {
+        "rounds": 8,
+        "warmup": 3,
+        "order": "alternating, sequential",
+        "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+      },
+      "artifacts": [
+        {
+          "path": "/tmp/line-engine-study/baseline.wasm",
+          "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+        },
+        {
+          "path": "/tmp/line-engine-study/cache.wasm",
+          "sha256": "bbd9d9b9fff6b78b0e28379d6ff872edd048bac344e9075740157dfe17dab2a9"
+        }
+      ],
+      "summary": [
+        {
+          "workload": "register",
+          "referenceMs": 87.79883362499999,
+          "candidateMs": 83.38798162499995,
+          "ratio": 0.9504558349209036,
+          "interval": [
+            0.8224065019683493,
+            1.0984425487554796
+          ]
+        },
+        {
+          "workload": "replay",
+          "referenceMs": 269.68872774999977,
+          "candidateMs": 264.38102749999996,
+          "ratio": 0.9803498745553706,
+          "interval": [
+            0.965576433278923,
+            0.9953493513476266
+          ]
+        },
+        {
+          "workload": "branches",
+          "referenceMs": 388.36161425,
+          "candidateMs": 381.5677121250003,
+          "ratio": 0.9823821542733864,
+          "interval": [
+            0.966138300635988,
+            0.9988991186867672
+          ]
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 97.13852099999986,
+          "cpuMs": 97.128,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.34531599999991,
+          "cpuMs": 79.343,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.94679399999995,
+          "cpuMs": 78.958,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 96.35233999999991,
+          "cpuMs": 96.348,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.83463900000015,
+          "cpuMs": 79.849,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.3264449999997,
+          "cpuMs": 79.336,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.74911500000007,
+          "cpuMs": 96.757,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.51351399999976,
+          "cpuMs": 79.524,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.05746700000009,
+          "cpuMs": 78.998,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.10525999999982,
+          "cpuMs": 95.497,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.75383899999997,
+          "cpuMs": 78.75,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.37707300000011,
+          "cpuMs": 79.387,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.69475300000022,
+          "cpuMs": 95.695,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.92229399999997,
+          "cpuMs": 78.928,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.95479000000023,
+          "cpuMs": 78.965,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.4223619999998,
+          "cpuMs": 95.425,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.07565799999975,
+          "cpuMs": 268.087,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 264.37810999999965,
+          "cpuMs": 264.387,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 263.0552539999999,
+          "cpuMs": 263.032,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.69132100000024,
+          "cpuMs": 268.606,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.44572999999946,
+          "cpuMs": 268.445,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 263.7547199999999,
+          "cpuMs": 263.756,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 263.2242489999999,
+          "cpuMs": 262.551,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.3502900000003,
+          "cpuMs": 268.368,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.3416849999994,
+          "cpuMs": 268.352,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 270.7892260000008,
+          "cpuMs": 270.785,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 263.60798800000157,
+          "cpuMs": 263.524,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 267.9682389999998,
+          "cpuMs": 267.964,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 278.39969999999994,
+          "cpuMs": 278.394,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 262.85851699999876,
+          "cpuMs": 262.876,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 263.38015599999926,
+          "cpuMs": 262.564,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.23719899999924,
+          "cpuMs": 269.241,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.3845390000006,
+          "cpuMs": 386.282,
+          "frames": 102890
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 377.52865700000075,
+          "cpuMs": 377.503,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 377.2438149999998,
+          "cpuMs": 377.247,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.11406700000043,
+          "cpuMs": 385.425,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 395.8247510000001,
+          "cpuMs": 395.81,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 377.5509149999998,
+          "cpuMs": 377.495,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.3870330000009,
+          "cpuMs": 378.289,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 387.1675869999999,
+          "cpuMs": 387.161,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.29575999999906,
+          "cpuMs": 385.608,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 393.6567180000002,
+          "cpuMs": 393.668,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 377.22339100000136,
+          "cpuMs": 377.192,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.1425470000013,
+          "cpuMs": 386.045,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.2588219999998,
+          "cpuMs": 386.249,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 377.19256400000086,
+          "cpuMs": 376.569,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 393.75860399999874,
+          "cpuMs": 393.685,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 392.70484099999885,
+          "cpuMs": 392.68,
+          "frames": 102890
+        }
+      ]
+    },
+    {
+      "name": "bounds",
+      "description": "Avoid cell-coordinate division using conservative inward-rounded world bounds",
+      "decision": "Rejected: no reliable additional benefit",
+      "protocol": {
+        "rounds": 8,
+        "warmup": 3,
+        "order": "alternating, sequential",
+        "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+      },
+      "artifacts": [
+        {
+          "path": "/tmp/line-engine-study/baseline.wasm",
+          "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+        },
+        {
+          "path": "/tmp/line-engine-study/bounds.wasm",
+          "sha256": "241e5a9639aea5ff08a6fa6744418714903246d9150f0d1c2e2fc9e058d4b4cb"
+        }
+      ],
+      "summary": [
+        {
+          "workload": "register",
+          "referenceMs": 87.51580612500004,
+          "candidateMs": 83.09703987499995,
+          "ratio": 0.9503662977948943,
+          "interval": [
+            0.8261173550390672,
+            1.0933024157828781
+          ]
+        },
+        {
+          "workload": "replay",
+          "referenceMs": 271.6464702499999,
+          "candidateMs": 267.8634158750001,
+          "ratio": 0.9861176924208481,
+          "interval": [
+            0.9626330498281463,
+            1.0101752723730197
+          ]
+        },
+        {
+          "workload": "branches",
+          "referenceMs": 388.0309285000003,
+          "candidateMs": 389.899645125,
+          "ratio": 1.0047122653848168,
+          "interval": [
+            0.985306356147904,
+            1.0245003799236256
+          ]
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 96.1328639999997,
+          "cpuMs": 96.15,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.39850200000001,
+          "cpuMs": 79.41,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.98401100000001,
+          "cpuMs": 78.995,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.88467499999979,
+          "cpuMs": 95.814,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 78.69470100000035,
+          "cpuMs": 78.677,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.78113699999994,
+          "cpuMs": 78.787,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 95.82448899999963,
+          "cpuMs": 95.83,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.6055720000004,
+          "cpuMs": 79.609,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.50357500000018,
+          "cpuMs": 79.5,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 95.52021000000013,
+          "cpuMs": 95.533,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.7910109999998,
+          "cpuMs": 78.797,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.1621070000001,
+          "cpuMs": 79.16,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.84568399999989,
+          "cpuMs": 95.859,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.85544500000015,
+          "cpuMs": 78.856,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.62151399999993,
+          "cpuMs": 78.632,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.29727099999991,
+          "cpuMs": 95.241,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.6917539999995,
+          "cpuMs": 269.692,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.31387900000027,
+          "cpuMs": 267.249,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.1840009999996,
+          "cpuMs": 267.192,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 267.86362999999983,
+          "cpuMs": 267.872,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.5729419999998,
+          "cpuMs": 268.565,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.0463399999999,
+          "cpuMs": 266.964,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 261.32270900000003,
+          "cpuMs": 261.31,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 275.14772900000025,
+          "cpuMs": 275.135,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.6082260000003,
+          "cpuMs": 268.618,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 277.71455799999967,
+          "cpuMs": 277.038,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.00601300000017,
+          "cpuMs": 267.013,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.795435,
+          "cpuMs": 269.794,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 283.70098700000017,
+          "cpuMs": 283.615,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.82997799999976,
+          "cpuMs": 267.816,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 267.4898490000014,
+          "cpuMs": 267.477,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.7910589999992,
+          "cpuMs": 269.792,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.19045299999925,
+          "cpuMs": 385.184,
+          "frames": 102890
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 386.63736400000016,
+          "cpuMs": 386.637,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 385.4186529999988,
+          "cpuMs": 385.314,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 384.80285899999944,
+          "cpuMs": 384.793,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 399.02605500000027,
+          "cpuMs": 398.317,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 385.43544699999984,
+          "cpuMs": 385.451,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 386.42190200000005,
+          "cpuMs": 386.427,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.58060999999907,
+          "cpuMs": 385.475,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.58787200000006,
+          "cpuMs": 385.565,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 402.1029729999991,
+          "cpuMs": 401.486,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 385.1253460000007,
+          "cpuMs": 385.062,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 388.7087900000006,
+          "cpuMs": 388.718,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 384.33263400000214,
+          "cpuMs": 384.241,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 385.0180590000018,
+          "cpuMs": 384.989,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 403.03741699999955,
+          "cpuMs": 402.372,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 391.01815500000157,
+          "cpuMs": 390.963,
+          "frames": 102890
+        }
+      ]
+    },
+    {
+      "name": "hash",
+      "description": "Mix high bits in the line-cache slot hash",
+      "decision": "Rejected: no additional benefit over retained cache",
+      "protocol": {
+        "rounds": 8,
+        "warmup": 3,
+        "order": "alternating, sequential",
+        "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+      },
+      "artifacts": [
+        {
+          "path": "/tmp/line-engine-study/baseline.wasm",
+          "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+        },
+        {
+          "path": "/tmp/line-engine-study/hash.wasm",
+          "sha256": "90860dc3750738d5aa7ae84324029cfba0b20f936b2549ecfd5ff5affb605648"
+        }
+      ],
+      "summary": [
+        {
+          "workload": "register",
+          "referenceMs": 87.45993449999986,
+          "candidateMs": 83.13265725000008,
+          "ratio": 0.9511466061555204,
+          "interval": [
+            0.8266363178044985,
+            1.0944109845112364
+          ]
+        },
+        {
+          "workload": "replay",
+          "referenceMs": 270.66130199999986,
+          "candidateMs": 265.6948788749995,
+          "ratio": 0.9816564291055239,
+          "interval": [
+            0.9646328278100618,
+            0.9989804587014876
+          ]
+        },
+        {
+          "workload": "branches",
+          "referenceMs": 388.1352611249997,
+          "candidateMs": 382.5360830000002,
+          "ratio": 0.9855199316815414,
+          "interval": [
+            0.9711462549670354,
+            1.000106349351631
+          ]
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.83785799999987,
+          "cpuMs": 95.778,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.75291799999968,
+          "cpuMs": 78.746,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.0781920000004,
+          "cpuMs": 79.077,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.63418999999976,
+          "cpuMs": 95.631,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 78.793091,
+          "cpuMs": 78.803,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.87628700000005,
+          "cpuMs": 78.879,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.57706700000017,
+          "cpuMs": 96.587,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.9359730000001,
+          "cpuMs": 79.935,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.44749299999967,
+          "cpuMs": 79.46,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 95.34458799999993,
+          "cpuMs": 95.355,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.70517700000028,
+          "cpuMs": 78.713,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 78.98015299999997,
+          "cpuMs": 78.371,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.65680499999962,
+          "cpuMs": 95.598,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.79098000000022,
+          "cpuMs": 78.801,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 78.93604899999991,
+          "cpuMs": 78.946,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.39391299999988,
+          "cpuMs": 95.407,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.2819929999996,
+          "cpuMs": 268.606,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 265.18694199999936,
+          "cpuMs": 265.193,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 265.32320999999956,
+          "cpuMs": 265.337,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.69483299999956,
+          "cpuMs": 268.674,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.14838899999995,
+          "cpuMs": 268.064,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 265.761657,
+          "cpuMs": 265.765,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 260.12532999999985,
+          "cpuMs": 260.114,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 274.23783399999957,
+          "cpuMs": 273.63,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.5767169999999,
+          "cpuMs": 268.503,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 272.5938099999994,
+          "cpuMs": 272.599,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 264.9538999999986,
+          "cpuMs": 264.951,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.2342149999986,
+          "cpuMs": 269.148,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 278.1783370000012,
+          "cpuMs": 278.149,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 266.4077639999996,
+          "cpuMs": 266.406,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 265.20641799999976,
+          "cpuMs": 264.523,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.93809800000054,
+          "cpuMs": 268.88,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.16084299999966,
+          "cpuMs": 386.151,
+          "frames": 102890
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.780804,
+          "cpuMs": 379.682,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.83173700000043,
+          "cpuMs": 378.826,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.397782,
+          "cpuMs": 384.792,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 398.08191499999884,
+          "cpuMs": 398.019,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.5138500000012,
+          "cpuMs": 379.526,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.2234960000005,
+          "cpuMs": 379.191,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.66913999999997,
+          "cpuMs": 386.593,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.1994560000003,
+          "cpuMs": 385.589,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 388.84458900000027,
+          "cpuMs": 388.788,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.62859000000026,
+          "cpuMs": 379.638,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.0437600000005,
+          "cpuMs": 385.013,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.45893100000103,
+          "cpuMs": 385.372,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.82047500000044,
+          "cpuMs": 378.831,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 395.6451229999984,
+          "cpuMs": 394.925,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 392.07026199999746,
+          "cpuMs": 392.082,
+          "frames": 102890
+        }
+      ]
+    },
+    {
+      "name": "point",
+      "description": "Add a per-point bucket shortcut to the retained cache",
+      "decision": "Retained, with original slot hash",
+      "protocol": {
+        "rounds": 8,
+        "warmup": 3,
+        "order": "alternating, sequential",
+        "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+      },
+      "artifacts": [
+        {
+          "path": "/tmp/line-engine-study/baseline.wasm",
+          "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+        },
+        {
+          "path": "/tmp/line-engine-study/point.wasm",
+          "sha256": "e909b0fd3bdf67dd7773dd8dd91be14be7cdef228fc32bd6c0e0d2711689549d"
+        }
+      ],
+      "summary": [
+        {
+          "workload": "register",
+          "referenceMs": 87.35677987499997,
+          "candidateMs": 83.83042750000004,
+          "ratio": 0.9605532690689246,
+          "interval": [
+            0.8339702229916222,
+            1.106349552156932
+          ]
+        },
+        {
+          "workload": "replay",
+          "referenceMs": 271.39775124999994,
+          "candidateMs": 262.8811381249998,
+          "ratio": 0.9686657090054167,
+          "interval": [
+            0.9448607442268655,
+            0.9930704196741114
+          ]
+        },
+        {
+          "workload": "branches",
+          "referenceMs": 388.85179825000046,
+          "candidateMs": 383.1382736249998,
+          "ratio": 0.9852124499716411,
+          "interval": [
+            0.968210175496434,
+            1.0025132932335088
+          ]
+        }
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 96.12880900000027,
+          "cpuMs": 96.144,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.8317320000001,
+          "cpuMs": 79.768,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.38698499999964,
+          "cpuMs": 79.397,
+          "frames": 0
+        },
+        {
+          "round": 1,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.73889800000006,
+          "cpuMs": 95.746,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 78.97990499999969,
+          "cpuMs": 78.991,
+          "frames": 0
+        },
+        {
+          "round": 2,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.90753700000005,
+          "cpuMs": 79.918,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.68000500000016,
+          "cpuMs": 96.692,
+          "frames": 0
+        },
+        {
+          "round": 3,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.23317399999996,
+          "cpuMs": 79.245,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 78.92196700000022,
+          "cpuMs": 78.918,
+          "frames": 0
+        },
+        {
+          "round": 4,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 96.16069299999981,
+          "cpuMs": 96.142,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.41164800000024,
+          "cpuMs": 79.409,
+          "frames": 0
+        },
+        {
+          "round": 5,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 79.2342209999997,
+          "cpuMs": 79.238,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.49633199999971,
+          "cpuMs": 95.507,
+          "frames": 0
+        },
+        {
+          "round": 6,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.64673399999992,
+          "cpuMs": 79.581,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 1,
+          "wallMs": 79.6180860000004,
+          "cpuMs": 79.622,
+          "frames": 0
+        },
+        {
+          "round": 7,
+          "workload": "register",
+          "arm": 0,
+          "wallMs": 95.12093300000015,
+          "cpuMs": 95.124,
+          "frames": 0
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.2197820000001,
+          "cpuMs": 269.113,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 261.9722759999995,
+          "cpuMs": 261.964,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 261.71478599999955,
+          "cpuMs": 261.723,
+          "frames": 61082
+        },
+        {
+          "round": 1,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.82803199999944,
+          "cpuMs": 268.222,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.57363499999974,
+          "cpuMs": 268.508,
+          "frames": 61082
+        },
+        {
+          "round": 2,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 262.1332620000003,
+          "cpuMs": 262.151,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 256.1485539999994,
+          "cpuMs": 256.13,
+          "frames": 61082
+        },
+        {
+          "round": 3,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 274.7579560000004,
+          "cpuMs": 274.745,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.288818,
+          "cpuMs": 268.214,
+          "frames": 61082
+        },
+        {
+          "round": 4,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 262.2770499999997,
+          "cpuMs": 262.269,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 272.3054800000009,
+          "cpuMs": 271.59,
+          "frames": 61082
+        },
+        {
+          "round": 5,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 269.11617599999954,
+          "cpuMs": 269.133,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 283.8780800000004,
+          "cpuMs": 283.819,
+          "frames": 61082
+        },
+        {
+          "round": 6,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 261.9502249999987,
+          "cpuMs": 261.949,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 1,
+          "wallMs": 264.5474720000002,
+          "cpuMs": 264.546,
+          "frames": 61082
+        },
+        {
+          "round": 7,
+          "workload": "replay",
+          "arm": 0,
+          "wallMs": 268.5195309999999,
+          "cpuMs": 268.478,
+          "frames": 61082
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.9406220000001,
+          "cpuMs": 386.319,
+          "frames": 102890
+        },
+        {
+          "round": 0,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.8070059999991,
+          "cpuMs": 379.815,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.12161000000015,
+          "cpuMs": 379.054,
+          "frames": 102890
+        },
+        {
+          "round": 1,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 385.57886999999937,
+          "cpuMs": 385.545,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 398.8392679999997,
+          "cpuMs": 398.761,
+          "frames": 102890
+        },
+        {
+          "round": 2,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 379.83869100000084,
+          "cpuMs": 379.205,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.8949250000005,
+          "cpuMs": 378.901,
+          "frames": 102890
+        },
+        {
+          "round": 3,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.9381790000007,
+          "cpuMs": 386.873,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.3751740000007,
+          "cpuMs": 386.335,
+          "frames": 102890
+        },
+        {
+          "round": 4,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 395.6745350000001,
+          "cpuMs": 395.649,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.8619429999999,
+          "cpuMs": 378.792,
+          "frames": 102890
+        },
+        {
+          "round": 5,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.144505000002,
+          "cpuMs": 385.51,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 386.1538090000031,
+          "cpuMs": 386.089,
+          "frames": 102890
+        },
+        {
+          "round": 6,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 378.2899619999989,
+          "cpuMs": 378.276,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 1,
+          "wallMs": 394.61751699999877,
+          "cpuMs": 394.589,
+          "frames": 102890
+        },
+        {
+          "round": 7,
+          "workload": "branches",
+          "arm": 0,
+          "wallMs": 393.843958999998,
+          "cpuMs": 393.772,
+          "frames": 102890
+        }
+      ]
+    }
+  ],
+  "confirmation": {
+    "schema": "line.engine-performance.v1",
+    "date": "2026-11-03T08:07:48.816Z",
+    "machine": {
+      "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+      "threads": 20,
+      "platform": "linux",
+      "release": "7.0.0-38-generic",
+      "node": "v22.22.2"
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/line-engine-study/baseline.wasm",
+        "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+      },
+      {
+        "path": "/home/holo/line/scripts/lib/native_motion/engine.wasm",
+        "sha256": "9b98bdb699cc25b93ca64acbba33cf9d33c0ead445c461baca858c20aaac2e93"
+      }
+    ],
+    "inputs": [
+      {
+        "name": "landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz",
+        "sha256": "3f845282ba7020e5096ae92b3af7ac2dff2e71c24b088426fc3887e46c4c2a90"
+      },
+      {
+        "name": "landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz",
+        "sha256": "23731f719220ef1c0711f19f28deb9596073290afb0b3a75e5bc9fa5de54b091"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz",
+        "sha256": "cdc2a302f2ede80ac09a37f994fa8bea47cb06035aae41afaa7c231b18392df1"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz",
+        "sha256": "75962fcd34f10037ccfff1b3284a5aad632fc3065c6c6b32426180777db825db"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz",
+        "sha256": "8a928729efa2ded9e2b6009965375daf49584d70607ca15ffd1488a1f8891be2"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz",
+        "sha256": "5edb1cbce5e9a4669cc65e734b77bcdef2709f109de6513a28b6dcedef11ccc2"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz",
+        "sha256": "e6ed5c2d1af3ee095f6ddb6ca5a98539a3e3d0e76d653fd3fe6686fd8d73cd93"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz",
+        "sha256": "f8b46e2c52aec2683da876a646e17fff25db5c53f3ee7b3b684ff1e7a836fbfd"
+      },
+      {
+        "name": "landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz",
+        "sha256": "fd341e79a33249add937081add7022ab603bf231cb8ee2e9cd143d42790b94ee"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz",
+        "sha256": "85b0151c33895ad2a7114b4bc10f376f4cb91f9d617715a4afdd7bb25c06458c"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "c95af09c1695eb54fbc6db5cfa1be701c771d7b9a20d8ffe71003df4954c54e3"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "0f8dd997b837ae9505d09614463a10005d0563ea484d3016eb7cdcd3607e089e"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz",
+        "sha256": "cdac43b3e14be320b78d1fbe210a45dcc49f6c2d713b429c1487f0e1b7b0ff82"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz",
+        "sha256": "a1830a9c29abcbef17a118f55b782c81ef32a420a4315a42ee4282585677da0f"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz",
+        "sha256": "9cb9d43deb05a53282f1902c377d8cf0ca76ab0d9504e8a7f9fc49c62542ca01"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-single-paired-303.json.gz",
+        "sha256": "a218dda753b17a2cd2cfb7ec51d0c625f9d7ef9d7ce2bff1e6dd31d598c50196"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz",
+        "sha256": "8b96a85ee95d280243178df31c54f6e8ffd7b3084057781391df04ee9fc6ed31"
+      },
+      {
+        "name": "landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "d4197baab19adc63c08fbb1bb6b80dd8105ef2863c40964975e61e26fa27668b"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "df97d4f262e0279af430b276616979b5cfe77c723428313dfa24fc868edd80ea"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "477a385c02d976856d408e8924c631b90db3c71fa8e393477e20af8eb2f4abb9"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "51da4d6b28ca550d825608ace9c5646dcfa8b36f763c9daadb52a5f569c67942"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "01756e98438f1cefccef317f98bd30e4cdd0ba0ef691d695abb95d999a661376"
+      },
+      {
+        "name": "strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "56feb668d96f4ab1fed301c905b99d6188cea3975b2e90ec765513849b4f0f8f"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "b4824877bf68257544fbef220915a18d3174d047447d160d400e0aa486cb53f3"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "2d62e3813952c069cfc12ce2236c4a8e0bcdec51720d1f9700cb2f5268c94d91"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "bd424a245283fa701c594ea78864aa7e26c18411b9e611a094cf1a89b71baff4"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "77eb00dfc8ec5d488943109ab70246f34fac0413fcdbacb181214a88d45690f8"
+      },
+      {
+        "name": "strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "c3c414424144c4457365beb86fa770c28cfd8bd6f8543624a0898828fa9dd009"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "f519f940e7222ba351b836fa786b788aae933f1979bde793e06002daf78edd00"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "d8d9158a581b6c228c9c84362ba9c91d3eb710900f2d2f06410541d6e7f31c86"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "23d99fea4f116b4aeb8410286f5932b74bd47d9e855d7ed55beeab9b84185456"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "cf52569705cde21524b53553a52a04dbaceef08351780b64738ff50a6d53caa6"
+      },
+      {
+        "name": "strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "fcb224bdf100982e5e8fa199ec5f9c495f6cbfa8820c3a8c53dc7673a85e1496"
+      }
+    ],
+    "protocol": {
+      "rounds": 12,
+      "warmup": 4,
+      "order": "alternating, sequential",
+      "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+    },
+    "verification": [
+      {
+        "workload": "register",
+        "frames": 0,
+        "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "workload": "replay",
+        "frames": 61082,
+        "fingerprint": "24007f7a77b62229a4869c696612bbeb8fb30d493add5655d9a39b5f2f179a01"
+      },
+      {
+        "workload": "branches",
+        "frames": 105530,
+        "fingerprint": "66d618d2b3c9dfcf729c5997ef9374fe942923c0f56e69caa9ba085482828d29"
+      }
+    ],
+    "summary": [
+      {
+        "workload": "register",
+        "referenceMs": 76.58992783333333,
+        "candidateMs": 76.64182833333332,
+        "ratio": 1.0006581234381096,
+        "interval": [
+          0.9821283426767182,
+          1.0195375049188216
+        ]
+      },
+      {
+        "workload": "replay",
+        "referenceMs": 251.28072616666668,
+        "candidateMs": 240.50492158333304,
+        "ratio": 0.9572744829031062,
+        "interval": [
+          0.9411272766866996,
+          0.9736987316354977
+        ]
+      },
+      {
+        "workload": "branches",
+        "referenceMs": 388.0054251666664,
+        "candidateMs": 380.2160680833331,
+        "ratio": 0.9799289348459439,
+        "interval": [
+          0.9760544843524372,
+          0.9838187649794884
+        ]
+      }
+    ],
+    "samples": [
+      {
+        "round": 0,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 73.38042099999984,
+        "cpuMs": 73.395,
+        "frames": 0
+      },
+      {
+        "round": 0,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.52991500000007,
+        "cpuMs": 74.538,
+        "frames": 0
+      },
+      {
+        "round": 1,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 75.07888900000034,
+        "cpuMs": 75.091,
+        "frames": 0
+      },
+      {
+        "round": 1,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 74.4454569999998,
+        "cpuMs": 74.375,
+        "frames": 0
+      },
+      {
+        "round": 2,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.72301799999968,
+        "cpuMs": 78.738,
+        "frames": 0
+      },
+      {
+        "round": 2,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.15627700000005,
+        "cpuMs": 74.147,
+        "frames": 0
+      },
+      {
+        "round": 3,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 78.569344,
+        "cpuMs": 78.584,
+        "frames": 0
+      },
+      {
+        "round": 3,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.86319300000014,
+        "cpuMs": 78.877,
+        "frames": 0
+      },
+      {
+        "round": 4,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.19046900000012,
+        "cpuMs": 78.139,
+        "frames": 0
+      },
+      {
+        "round": 4,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 78.73720300000014,
+        "cpuMs": 78.754,
+        "frames": 0
+      },
+      {
+        "round": 5,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.75616899999977,
+        "cpuMs": 74.752,
+        "frames": 0
+      },
+      {
+        "round": 5,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.23599999999988,
+        "cpuMs": 78.241,
+        "frames": 0
+      },
+      {
+        "round": 6,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 73.3097130000001,
+        "cpuMs": 73.304,
+        "frames": 0
+      },
+      {
+        "round": 6,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.43142399999988,
+        "cpuMs": 74.447,
+        "frames": 0
+      },
+      {
+        "round": 7,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 78.9817350000003,
+        "cpuMs": 78.918,
+        "frames": 0
+      },
+      {
+        "round": 7,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 77.8760600000005,
+        "cpuMs": 77.884,
+        "frames": 0
+      },
+      {
+        "round": 8,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 74.7942549999998,
+        "cpuMs": 74.802,
+        "frames": 0
+      },
+      {
+        "round": 8,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 73.74512099999993,
+        "cpuMs": 73.747,
+        "frames": 0
+      },
+      {
+        "round": 9,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 78.83573699999943,
+        "cpuMs": 78.843,
+        "frames": 0
+      },
+      {
+        "round": 9,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.67388300000039,
+        "cpuMs": 78.601,
+        "frames": 0
+      },
+      {
+        "round": 10,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 74.53056500000002,
+        "cpuMs": 74.542,
+        "frames": 0
+      },
+      {
+        "round": 10,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 78.382611,
+        "cpuMs": 78.395,
+        "frames": 0
+      },
+      {
+        "round": 11,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 79.49751500000002,
+        "cpuMs": 78.892,
+        "frames": 0
+      },
+      {
+        "round": 11,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.05609999999979,
+        "cpuMs": 78.068,
+        "frames": 0
+      },
+      {
+        "round": 0,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 247.04921999999988,
+        "cpuMs": 246.998,
+        "frames": 61082
+      },
+      {
+        "round": 0,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 240.5712280000007,
+        "cpuMs": 240.581,
+        "frames": 61082
+      },
+      {
+        "round": 1,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 243.37498499999947,
+        "cpuMs": 243.311,
+        "frames": 61082
+      },
+      {
+        "round": 1,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 249.22883900000033,
+        "cpuMs": 249.121,
+        "frames": 61082
+      },
+      {
+        "round": 2,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 257.28597400000035,
+        "cpuMs": 257.291,
+        "frames": 61082
+      },
+      {
+        "round": 2,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 238.83007799999905,
+        "cpuMs": 238.828,
+        "frames": 61082
+      },
+      {
+        "round": 3,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 246.54357299999901,
+        "cpuMs": 246.493,
+        "frames": 61082
+      },
+      {
+        "round": 3,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 252.46176000000014,
+        "cpuMs": 252.385,
+        "frames": 61082
+      },
+      {
+        "round": 4,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.30241000000024,
+        "cpuMs": 248.313,
+        "frames": 61082
+      },
+      {
+        "round": 4,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.7260009999991,
+        "cpuMs": 239.737,
+        "frames": 61082
+      },
+      {
+        "round": 5,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 238.3681570000008,
+        "cpuMs": 238.287,
+        "frames": 61082
+      },
+      {
+        "round": 5,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 252.32455300000038,
+        "cpuMs": 252.219,
+        "frames": 61082
+      },
+      {
+        "round": 6,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 246.86221300000034,
+        "cpuMs": 246.86,
+        "frames": 61082
+      },
+      {
+        "round": 6,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 243.75026400000024,
+        "cpuMs": 243.739,
+        "frames": 61082
+      },
+      {
+        "round": 7,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 238.6829319999997,
+        "cpuMs": 238.008,
+        "frames": 61082
+      },
+      {
+        "round": 7,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.7907009999999,
+        "cpuMs": 248.72,
+        "frames": 61082
+      },
+      {
+        "round": 8,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 265.9081619999997,
+        "cpuMs": 265.914,
+        "frames": 61082
+      },
+      {
+        "round": 8,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 238.40743100000145,
+        "cpuMs": 238.348,
+        "frames": 61082
+      },
+      {
+        "round": 9,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.62028699999973,
+        "cpuMs": 239.592,
+        "frames": 61082
+      },
+      {
+        "round": 9,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 252.36377899999934,
+        "cpuMs": 252.273,
+        "frames": 61082
+      },
+      {
+        "round": 10,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.16453899999942,
+        "cpuMs": 248.165,
+        "frames": 61082
+      },
+      {
+        "round": 10,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 238.12612999999874,
+        "cpuMs": 238.069,
+        "frames": 61082
+      },
+      {
+        "round": 11,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 240.05799299999853,
+        "cpuMs": 239.377,
+        "frames": 61082
+      },
+      {
+        "round": 11,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 246.62656400000014,
+        "cpuMs": 246.641,
+        "frames": 61082
+      },
+      {
+        "round": 0,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.4019759999974,
+        "cpuMs": 385.734,
+        "frames": 105530
+      },
+      {
+        "round": 0,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.5920469999983,
+        "cpuMs": 379.503,
+        "frames": 105530
+      },
+      {
+        "round": 1,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.68282799999724,
+        "cpuMs": 379.703,
+        "frames": 105530
+      },
+      {
+        "round": 1,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 391.3897289999986,
+        "cpuMs": 391.183,
+        "frames": 105530
+      },
+      {
+        "round": 2,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 388.5697709999986,
+        "cpuMs": 388.552,
+        "frames": 105530
+      },
+      {
+        "round": 2,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.38030100000105,
+        "cpuMs": 379.697,
+        "frames": 105530
+      },
+      {
+        "round": 3,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.2903100000003,
+        "cpuMs": 379.195,
+        "frames": 105530
+      },
+      {
+        "round": 3,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.2581710000013,
+        "cpuMs": 386.275,
+        "frames": 105530
+      },
+      {
+        "round": 4,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 389.22923399999854,
+        "cpuMs": 389.036,
+        "frames": 105530
+      },
+      {
+        "round": 4,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.1977430000006,
+        "cpuMs": 380.181,
+        "frames": 105530
+      },
+      {
+        "round": 5,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.64544699999897,
+        "cpuMs": 380.036,
+        "frames": 105530
+      },
+      {
+        "round": 5,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.94246099999873,
+        "cpuMs": 387.79,
+        "frames": 105530
+      },
+      {
+        "round": 6,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 391.1593270000012,
+        "cpuMs": 391.179,
+        "frames": 105530
+      },
+      {
+        "round": 6,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.51909199999864,
+        "cpuMs": 380.327,
+        "frames": 105530
+      },
+      {
+        "round": 7,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 378.66214500000206,
+        "cpuMs": 378.654,
+        "frames": 105530
+      },
+      {
+        "round": 7,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.9279779999997,
+        "cpuMs": 387.313,
+        "frames": 105530
+      },
+      {
+        "round": 8,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.52975400000287,
+        "cpuMs": 387.384,
+        "frames": 105530
+      },
+      {
+        "round": 8,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 382.35550299999886,
+        "cpuMs": 382.259,
+        "frames": 105530
+      },
+      {
+        "round": 9,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 383.0293219999985,
+        "cpuMs": 382.849,
+        "frames": 105530
+      },
+      {
+        "round": 9,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.0231559999993,
+        "cpuMs": 386.007,
+        "frames": 105530
+      },
+      {
+        "round": 10,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.5896360000006,
+        "cpuMs": 386.968,
+        "frames": 105530
+      },
+      {
+        "round": 10,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 378.38307800000257,
+        "cpuMs": 378.209,
+        "frames": 105530
+      },
+      {
+        "round": 11,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.8550009999999,
+        "cpuMs": 379.849,
+        "frames": 105530
+      },
+      {
+        "round": 11,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.043909,
+        "cpuMs": 385.853,
+        "frames": 105530
+      }
+    ]
+  },
+  "validation": {
+    "compileParity": {
+      "cells": 63,
+      "trackHashes": "exact",
+      "chargedFrames": "exact",
+      "seconds": 539
+    },
+    "engineParity": {
+      "tracks": 33,
+      "frameStates": 61115,
+      "orderedCollisions": 305336,
+      "result": "exact"
+    },
+    "judgeParity": {
+      "tracks": 33,
+      "result": "exact"
+    },
+    "rustTests": {
+      "passed": 10
+    },
+    "npmTests": {
+      "passed": 335,
+      "failed": 1,
+      "failure": "tests/eval_evidence.test.ts worker-failure CLI test requires missing productions/amor_na_praia_46s/audio.mp3; reproduced on untouched HEAD"
+    },
+    "typecheckErrors": 0,
+    "unreachableFiles": 0,
+    "legacyMissingNumericReferenceExitCode": 1,
+    "buildReproducesValidatedArtifact": true,
+    "parityRejectsInvalidInputs": [
+      "--jobs=0",
+      "--jobs=NaN",
+      "--jobs=4 --ids=missing-case"
+    ]
+  },
+  "benchmarkSourceSha256": "e754d99917a86dc837de6bdfa2b52618ed80815562eb927e336882d3180ceda6",
+  "shippedBinaryConfirmation": {
+    "schema": "line.engine-performance.v1",
+    "date": "2026-11-03T08:17:57.150Z",
+    "machine": {
+      "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+      "threads": 20,
+      "platform": "linux",
+      "release": "7.0.0-38-generic",
+      "node": "v22.22.2"
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/line-engine-study/packaged.wasm",
+        "sha256": "c3390dc10cd90757903bc865b6f9ad3fec40462d071dbf30b8ea81bfb5057077"
+      },
+      {
+        "path": "/home/holo/line/scripts/lib/native_motion/engine.wasm",
+        "sha256": "9b98bdb699cc25b93ca64acbba33cf9d33c0ead445c461baca858c20aaac2e93"
+      }
+    ],
+    "inputs": [
+      {
+        "name": "landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz",
+        "sha256": "3f845282ba7020e5096ae92b3af7ac2dff2e71c24b088426fc3887e46c4c2a90"
+      },
+      {
+        "name": "landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz",
+        "sha256": "23731f719220ef1c0711f19f28deb9596073290afb0b3a75e5bc9fa5de54b091"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz",
+        "sha256": "cdc2a302f2ede80ac09a37f994fa8bea47cb06035aae41afaa7c231b18392df1"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz",
+        "sha256": "75962fcd34f10037ccfff1b3284a5aad632fc3065c6c6b32426180777db825db"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz",
+        "sha256": "8a928729efa2ded9e2b6009965375daf49584d70607ca15ffd1488a1f8891be2"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz",
+        "sha256": "5edb1cbce5e9a4669cc65e734b77bcdef2709f109de6513a28b6dcedef11ccc2"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz",
+        "sha256": "e6ed5c2d1af3ee095f6ddb6ca5a98539a3e3d0e76d653fd3fe6686fd8d73cd93"
+      },
+      {
+        "name": "landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz",
+        "sha256": "f8b46e2c52aec2683da876a646e17fff25db5c53f3ee7b3b684ff1e7a836fbfd"
+      },
+      {
+        "name": "landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz",
+        "sha256": "fd341e79a33249add937081add7022ab603bf231cb8ee2e9cd143d42790b94ee"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz",
+        "sha256": "85b0151c33895ad2a7114b4bc10f376f4cb91f9d617715a4afdd7bb25c06458c"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "c95af09c1695eb54fbc6db5cfa1be701c771d7b9a20d8ffe71003df4954c54e3"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "0f8dd997b837ae9505d09614463a10005d0563ea484d3016eb7cdcd3607e089e"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz",
+        "sha256": "cdac43b3e14be320b78d1fbe210a45dcc49f6c2d713b429c1487f0e1b7b0ff82"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz",
+        "sha256": "a1830a9c29abcbef17a118f55b782c81ef32a420a4315a42ee4282585677da0f"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz",
+        "sha256": "9cb9d43deb05a53282f1902c377d8cf0ca76ab0d9504e8a7f9fc49c62542ca01"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-single-paired-303.json.gz",
+        "sha256": "a218dda753b17a2cd2cfb7ec51d0c625f9d7ef9d7ce2bff1e6dd31d598c50196"
+      },
+      {
+        "name": "landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz",
+        "sha256": "8b96a85ee95d280243178df31c54f6e8ffd7b3084057781391df04ee9fc6ed31"
+      },
+      {
+        "name": "landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "d4197baab19adc63c08fbb1bb6b80dd8105ef2863c40964975e61e26fa27668b"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "df97d4f262e0279af430b276616979b5cfe77c723428313dfa24fc868edd80ea"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "477a385c02d976856d408e8924c631b90db3c71fa8e393477e20af8eb2f4abb9"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "51da4d6b28ca550d825608ace9c5646dcfa8b36f763c9daadb52a5f569c67942"
+      },
+      {
+        "name": "strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "01756e98438f1cefccef317f98bd30e4cdd0ba0ef691d695abb95d999a661376"
+      },
+      {
+        "name": "strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "56feb668d96f4ab1fed301c905b99d6188cea3975b2e90ec765513849b4f0f8f"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "b4824877bf68257544fbef220915a18d3174d047447d160d400e0aa486cb53f3"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "2d62e3813952c069cfc12ce2236c4a8e0bcdec51720d1f9700cb2f5268c94d91"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "bd424a245283fa701c594ea78864aa7e26c18411b9e611a094cf1a89b71baff4"
+      },
+      {
+        "name": "strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "77eb00dfc8ec5d488943109ab70246f34fac0413fcdbacb181214a88d45690f8"
+      },
+      {
+        "name": "strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "c3c414424144c4457365beb86fa770c28cfd8bd6f8543624a0898828fa9dd009"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+        "sha256": "f519f940e7222ba351b836fa786b788aae933f1979bde793e06002daf78edd00"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-automatic-101.json.gz",
+        "sha256": "d8d9158a581b6c228c9c84362ba9c91d3eb710900f2d2f06410541d6e7f31c86"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+        "sha256": "23d99fea4f116b4aeb8410286f5932b74bd47d9e855d7ed55beeab9b84185456"
+      },
+      {
+        "name": "strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+        "sha256": "cf52569705cde21524b53553a52a04dbaceef08351780b64738ff50a6d53caa6"
+      },
+      {
+        "name": "strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+        "sha256": "fcb224bdf100982e5e8fa199ec5f9c495f6cbfa8820c3a8c53dc7673a85e1496"
+      }
+    ],
+    "protocol": {
+      "rounds": 12,
+      "warmup": 4,
+      "order": "alternating, sequential",
+      "interval": "95% Student t on paired log wall-time ratios; fixed workloads, timing noise only"
+    },
+    "verification": [
+      {
+        "workload": "register",
+        "frames": 0,
+        "fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "workload": "replay",
+        "frames": 61082,
+        "fingerprint": "24007f7a77b62229a4869c696612bbeb8fb30d493add5655d9a39b5f2f179a01"
+      },
+      {
+        "workload": "branches",
+        "frames": 105530,
+        "fingerprint": "66d618d2b3c9dfcf729c5997ef9374fe942923c0f56e69caa9ba085482828d29"
+      }
+    ],
+    "summary": [
+      {
+        "workload": "register",
+        "referenceMs": 77.10777200000014,
+        "candidateMs": 76.27885149999993,
+        "ratio": 0.9893225616975925,
+        "interval": [
+          0.9638979236963756,
+          1.0154178228027724
+        ]
+      },
+      {
+        "workload": "replay",
+        "referenceMs": 251.4937714166671,
+        "candidateMs": 240.6419564166666,
+        "ratio": 0.9569778766455895,
+        "interval": [
+          0.9438015923377071,
+          0.970338113247653
+        ]
+      },
+      {
+        "workload": "branches",
+        "referenceMs": 388.8436685000003,
+        "candidateMs": 381.46556200000003,
+        "ratio": 0.9810234966869504,
+        "interval": [
+          0.9761186814994186,
+          0.9859529576603684
+        ]
+      }
+    ],
+    "samples": [
+      {
+        "round": 0,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 75.21570900000006,
+        "cpuMs": 75.232,
+        "frames": 0
+      },
+      {
+        "round": 0,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 79.7901509999997,
+        "cpuMs": 79.796,
+        "frames": 0
+      },
+      {
+        "round": 1,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 75.33740499999976,
+        "cpuMs": 75.353,
+        "frames": 0
+      },
+      {
+        "round": 1,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 75.55456400000003,
+        "cpuMs": 75.57,
+        "frames": 0
+      },
+      {
+        "round": 2,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 79.67869800000017,
+        "cpuMs": 79.693,
+        "frames": 0
+      },
+      {
+        "round": 2,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.6792389999996,
+        "cpuMs": 74.693,
+        "frames": 0
+      },
+      {
+        "round": 3,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 75.5106880000003,
+        "cpuMs": 75.522,
+        "frames": 0
+      },
+      {
+        "round": 3,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 79.03267700000015,
+        "cpuMs": 79.045,
+        "frames": 0
+      },
+      {
+        "round": 4,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 75.42927899999995,
+        "cpuMs": 75.37,
+        "frames": 0
+      },
+      {
+        "round": 4,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 79.24407000000019,
+        "cpuMs": 79.258,
+        "frames": 0
+      },
+      {
+        "round": 5,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 75.67702100000042,
+        "cpuMs": 75.691,
+        "frames": 0
+      },
+      {
+        "round": 5,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 79.1526130000002,
+        "cpuMs": 79.157,
+        "frames": 0
+      },
+      {
+        "round": 6,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 73.63826999999992,
+        "cpuMs": 73.639,
+        "frames": 0
+      },
+      {
+        "round": 6,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.56022799999982,
+        "cpuMs": 74.567,
+        "frames": 0
+      },
+      {
+        "round": 7,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.9081269999997,
+        "cpuMs": 74.922,
+        "frames": 0
+      },
+      {
+        "round": 7,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 79.34900300000027,
+        "cpuMs": 79.346,
+        "frames": 0
+      },
+      {
+        "round": 8,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 74.54386400000021,
+        "cpuMs": 74.551,
+        "frames": 0
+      },
+      {
+        "round": 8,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 74.16670199999953,
+        "cpuMs": 74.173,
+        "frames": 0
+      },
+      {
+        "round": 9,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 76.1867599999996,
+        "cpuMs": 76.195,
+        "frames": 0
+      },
+      {
+        "round": 9,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 79.6111719999999,
+        "cpuMs": 78.919,
+        "frames": 0
+      },
+      {
+        "round": 10,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 78.74659200000042,
+        "cpuMs": 78.763,
+        "frames": 0
+      },
+      {
+        "round": 10,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 79.86509500000011,
+        "cpuMs": 79.877,
+        "frames": 0
+      },
+      {
+        "round": 11,
+        "workload": "register",
+        "arm": 1,
+        "wallMs": 75.4207320000005,
+        "cpuMs": 75.428,
+        "frames": 0
+      },
+      {
+        "round": 11,
+        "workload": "register",
+        "arm": 0,
+        "wallMs": 75.34082300000046,
+        "cpuMs": 75.351,
+        "frames": 0
+      },
+      {
+        "round": 0,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 249.21076900000025,
+        "cpuMs": 249.223,
+        "frames": 61082
+      },
+      {
+        "round": 0,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.58480300000065,
+        "cpuMs": 239.592,
+        "frames": 61082
+      },
+      {
+        "round": 1,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.7118220000002,
+        "cpuMs": 239.635,
+        "frames": 61082
+      },
+      {
+        "round": 1,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.88793599999917,
+        "cpuMs": 248.887,
+        "frames": 61082
+      },
+      {
+        "round": 2,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 255.36721300000136,
+        "cpuMs": 255.367,
+        "frames": 61082
+      },
+      {
+        "round": 2,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.58470999999918,
+        "cpuMs": 238.96,
+        "frames": 61082
+      },
+      {
+        "round": 3,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 248.59001499999977,
+        "cpuMs": 248.526,
+        "frames": 61082
+      },
+      {
+        "round": 3,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 249.08677299999908,
+        "cpuMs": 249.098,
+        "frames": 61082
+      },
+      {
+        "round": 4,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 252.57331300000078,
+        "cpuMs": 252.587,
+        "frames": 61082
+      },
+      {
+        "round": 4,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 237.97572000000036,
+        "cpuMs": 237.917,
+        "frames": 61082
+      },
+      {
+        "round": 5,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.3785310000003,
+        "cpuMs": 239.326,
+        "frames": 61082
+      },
+      {
+        "round": 5,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 249.4584100000011,
+        "cpuMs": 249.463,
+        "frames": 61082
+      },
+      {
+        "round": 6,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.63515300000108,
+        "cpuMs": 248.634,
+        "frames": 61082
+      },
+      {
+        "round": 6,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 240.1310590000012,
+        "cpuMs": 239.436,
+        "frames": 61082
+      },
+      {
+        "round": 7,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 240.0141969999986,
+        "cpuMs": 240.024,
+        "frames": 61082
+      },
+      {
+        "round": 7,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.72995900000024,
+        "cpuMs": 248.749,
+        "frames": 61082
+      },
+      {
+        "round": 8,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 266.4042609999997,
+        "cpuMs": 266.408,
+        "frames": 61082
+      },
+      {
+        "round": 8,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 242.8171629999997,
+        "cpuMs": 242.752,
+        "frames": 61082
+      },
+      {
+        "round": 9,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.89305299999978,
+        "cpuMs": 239.889,
+        "frames": 61082
+      },
+      {
+        "round": 9,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 247.79770800000006,
+        "cpuMs": 247.8,
+        "frames": 61082
+      },
+      {
+        "round": 10,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 252.7963200000013,
+        "cpuMs": 252.159,
+        "frames": 61082
+      },
+      {
+        "round": 10,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 240.06268199999977,
+        "cpuMs": 240.008,
+        "frames": 61082
+      },
+      {
+        "round": 11,
+        "workload": "replay",
+        "arm": 1,
+        "wallMs": 239.9597219999996,
+        "cpuMs": 239.971,
+        "frames": 61082
+      },
+      {
+        "round": 11,
+        "workload": "replay",
+        "arm": 0,
+        "wallMs": 248.97744200000125,
+        "cpuMs": 248.99,
+        "frames": 61082
+      },
+      {
+        "round": 0,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.57939500000066,
+        "cpuMs": 386.526,
+        "frames": 105530
+      },
+      {
+        "round": 0,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 383.62964600000123,
+        "cpuMs": 383.628,
+        "frames": 105530
+      },
+      {
+        "round": 1,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.2093480000003,
+        "cpuMs": 380.211,
+        "frames": 105530
+      },
+      {
+        "round": 1,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 389.74039300000004,
+        "cpuMs": 389.669,
+        "frames": 105530
+      },
+      {
+        "round": 2,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.7481709999993,
+        "cpuMs": 387.125,
+        "frames": 105530
+      },
+      {
+        "round": 2,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.9910319999981,
+        "cpuMs": 379.927,
+        "frames": 105530
+      },
+      {
+        "round": 3,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 384.07670500000313,
+        "cpuMs": 384.095,
+        "frames": 105530
+      },
+      {
+        "round": 3,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.6185740000001,
+        "cpuMs": 387.629,
+        "frames": 105530
+      },
+      {
+        "round": 4,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 389.8369559999992,
+        "cpuMs": 389.778,
+        "frames": 105530
+      },
+      {
+        "round": 4,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 382.1389479999998,
+        "cpuMs": 381.574,
+        "frames": 105530
+      },
+      {
+        "round": 5,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 380.7632389999999,
+        "cpuMs": 380.706,
+        "frames": 105530
+      },
+      {
+        "round": 5,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 392.5720959999999,
+        "cpuMs": 392.575,
+        "frames": 105530
+      },
+      {
+        "round": 6,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 388.4648469999993,
+        "cpuMs": 388.463,
+        "frames": 105530
+      },
+      {
+        "round": 6,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 384.53970499999923,
+        "cpuMs": 384.439,
+        "frames": 105530
+      },
+      {
+        "round": 7,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.4182980000005,
+        "cpuMs": 378.782,
+        "frames": 105530
+      },
+      {
+        "round": 7,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 386.49306799999977,
+        "cpuMs": 386.43,
+        "frames": 105530
+      },
+      {
+        "round": 8,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 387.0301010000003,
+        "cpuMs": 387.049,
+        "frames": 105530
+      },
+      {
+        "round": 8,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 379.5244849999981,
+        "cpuMs": 379.525,
+        "frames": 105530
+      },
+      {
+        "round": 9,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 383.5955670000003,
+        "cpuMs": 383.491,
+        "frames": 105530
+      },
+      {
+        "round": 9,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 388.5713130000004,
+        "cpuMs": 388.015,
+        "frames": 105530
+      },
+      {
+        "round": 10,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 391.5150840000024,
+        "cpuMs": 391.537,
+        "frames": 105530
+      },
+      {
+        "round": 10,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 381.1126399999994,
+        "cpuMs": 380.924,
+        "frames": 105530
+      },
+      {
+        "round": 11,
+        "workload": "branches",
+        "arm": 1,
+        "wallMs": 378.5871310000002,
+        "cpuMs": 378.531,
+        "frames": 105530
+      },
+      {
+        "round": 11,
+        "workload": "branches",
+        "arm": 0,
+        "wallMs": 389.9540240000024,
+        "cpuMs": 389.857,
+        "frames": 105530
+      }
+    ]
+  },
+  "reproduction": {
+    "build": "npm run build:native",
+    "engineTiming": "taskset -c 2 node --expose-gc --import tsx tools/measure/engine.ts --reference=before.wasm --candidate=scripts/lib/native_motion/engine.wasm --rounds=12 --warmup=4 --out=results.json",
+    "engineGate": "npm run verify:engine",
+    "compilerGate": "npm run parity -- --jobs=4",
+    "judgeGate": "npm run parity:judge",
+    "rustTests": "cargo test --manifest-path scripts/lib/native_motion/Cargo.toml --target-dir /tmp/native-motion-tests"
+  },
+  "profile": {
+    "cell": 62,
+    "artifact": "baseline rebuilt with profile.release.strip=false to retain function names",
+    "sampledMs": 16624.978,
+    "topSelfTime": [
+      {
+        "function": "_ZN9lr_engine6kernel10step_state17h5fe3b54df1283104E",
+        "ms": 2345.841,
+        "share": 0.14110340476841532
+      },
+      {
+        "function": "",
+        "ms": 1950.85,
+        "share": 0.11734451618522443
+      },
+      {
+        "function": "(garbage collector)",
+        "ms": 1571.283,
+        "share": 0.09451338822824307
+      },
+      {
+        "function": "_ZN9lr_engine6engine15update_computed17h6ba90733844b8334E",
+        "ms": 1126.526,
+        "share": 0.06776105207477567
+      },
+      {
+        "function": "_ZN9lr_engine4line9push_line17hd6d2267e60ab4550E",
+        "ms": 975.641,
+        "share": 0.0586852505910083
+      },
+      {
+        "function": "traceCandidate",
+        "ms": 544.816,
+        "share": 0.032770930584088594
+      },
+      {
+        "function": "proposeControls",
+        "ms": 454.807,
+        "share": 0.027356848231618713
+      },
+      {
+        "function": "_ZN9lr_engine6engine5Cache8add_line17hc7e3d497d2af171dE",
+        "ms": 382.405,
+        "share": 0.023001834949796626
+      },
+      {
+        "function": "motionArc",
+        "ms": 322.153,
+        "share": 0.019377649702754494
+      },
+      {
+        "function": "detach_engine",
+        "ms": 310.498,
+        "share": 0.018676596143465573
+      },
+      {
+        "function": "evaluateCandidate",
+        "ms": 268.831,
+        "share": 0.016170307112586855
+      },
+      {
+        "function": "_RNvCsfLfy6EI15iL_7___rustc14___rust_realloc",
+        "ms": 257.262,
+        "share": 0.015474426492474155
+      },
+      {
+        "function": "recordCandidate",
+        "ms": 250.874,
+        "share": 0.015090185382500957
+      },
+      {
+        "function": "_RNvMs0_NtCsjqx8TIyZbP9_8dlmalloc8dlmallocINtB5_8DlmallocNtNtB7_3sys6SystemE6mallocCsebHcaeoSrxy_3std",
+        "ms": 235.899,
+        "share": 0.01418943231082772
+      },
+      {
+        "function": "_RNvMs0_NtCsjqx8TIyZbP9_8dlmalloc8dlmallocINtB5_8DlmallocNtNtB7_3sys6SystemE4freeCsebHcaeoSrxy_3std",
+        "ms": 233.076,
+        "share": 0.014019627574845513
+      },
+      {
+        "function": "detectFrom",
+        "ms": 233.01,
+        "share": 0.014015657644780041
+      },
+      {
+        "function": "inspectConstruction",
+        "ms": 218.557,
+        "share": 0.01314630311089735
+      },
+      {
+        "function": "summarizeMotion",
+        "ms": 192.365,
+        "share": 0.011570842379460593
+      },
+      {
+        "function": "scanFrames",
+        "ms": 172.458,
+        "share": 0.010373427261076677
+      },
+      {
+        "function": "measureGapAxes",
+        "ms": 157.141,
+        "share": 0.009452102733609632
+      }
+    ]
+  },
+  "endToEnd": {
+    "protocol": "Two sequential pairs per cell, alternating A/B order, pinned to logical CPU 2. Same Rust 1.95.0 release toolchain for both binaries. Process CPU includes startup; compileMs excludes module load. No concurrent checks. Too few pairs for an end-to-end speed claim.",
+    "head": "eeec89e2",
+    "cases": [
+      52,
+      54,
+      62
+    ],
+    "samples": [
+      {
+        "round": 0,
+        "cell": 52,
+        "arm": 0,
+        "trackHash": "0d24e858832143168d9ea6c2d5b63e423e9eae22a76b8108e4433f78dcc52894",
+        "physicalFrames": 2724026,
+        "compileMs": 45493.437035,
+        "cpuMs": 46070,
+        "peakRssKiB": 829644,
+        "wallMs": 46160
+      },
+      {
+        "round": 0,
+        "cell": 52,
+        "arm": 1,
+        "trackHash": "0d24e858832143168d9ea6c2d5b63e423e9eae22a76b8108e4433f78dcc52894",
+        "physicalFrames": 2724026,
+        "compileMs": 45592.208533,
+        "cpuMs": 46060,
+        "peakRssKiB": 848912,
+        "wallMs": 46090
+      },
+      {
+        "round": 0,
+        "cell": 54,
+        "arm": 0,
+        "trackHash": "3b670d56640af343edede6794494a3c22deb7e721b95ba66f1ac5f00ad32d77d",
+        "physicalFrames": 2742744,
+        "compileMs": 46163.931227,
+        "cpuMs": 46630,
+        "peakRssKiB": 831720,
+        "wallMs": 46660
+      },
+      {
+        "round": 0,
+        "cell": 54,
+        "arm": 1,
+        "trackHash": "3b670d56640af343edede6794494a3c22deb7e721b95ba66f1ac5f00ad32d77d",
+        "physicalFrames": 2742744,
+        "compileMs": 45886.180979000004,
+        "cpuMs": 46370,
+        "peakRssKiB": 846636,
+        "wallMs": 46410
+      },
+      {
+        "round": 0,
+        "cell": 62,
+        "arm": 0,
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902,
+        "compileMs": 15677.810893,
+        "cpuMs": 16140,
+        "peakRssKiB": 472852,
+        "wallMs": 16149.999999999998
+      },
+      {
+        "round": 0,
+        "cell": 62,
+        "arm": 1,
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902,
+        "compileMs": 15499.760752,
+        "cpuMs": 15960,
+        "peakRssKiB": 504308,
+        "wallMs": 15980
+      },
+      {
+        "round": 1,
+        "cell": 52,
+        "arm": 1,
+        "trackHash": "0d24e858832143168d9ea6c2d5b63e423e9eae22a76b8108e4433f78dcc52894",
+        "physicalFrames": 2724026,
+        "compileMs": 46123.106893000004,
+        "cpuMs": 46600,
+        "peakRssKiB": 851268,
+        "wallMs": 46620
+      },
+      {
+        "round": 1,
+        "cell": 52,
+        "arm": 0,
+        "trackHash": "0d24e858832143168d9ea6c2d5b63e423e9eae22a76b8108e4433f78dcc52894",
+        "physicalFrames": 2724026,
+        "compileMs": 46423.742475,
+        "cpuMs": 46900,
+        "peakRssKiB": 849744,
+        "wallMs": 46920
+      },
+      {
+        "round": 1,
+        "cell": 54,
+        "arm": 1,
+        "trackHash": "3b670d56640af343edede6794494a3c22deb7e721b95ba66f1ac5f00ad32d77d",
+        "physicalFrames": 2742744,
+        "compileMs": 45954.290782000004,
+        "cpuMs": 46430,
+        "peakRssKiB": 822988,
+        "wallMs": 46450
+      },
+      {
+        "round": 1,
+        "cell": 54,
+        "arm": 0,
+        "trackHash": "3b670d56640af343edede6794494a3c22deb7e721b95ba66f1ac5f00ad32d77d",
+        "physicalFrames": 2742744,
+        "compileMs": 46504.477577000005,
+        "cpuMs": 47040,
+        "peakRssKiB": 847020,
+        "wallMs": 47070
+      },
+      {
+        "round": 1,
+        "cell": 62,
+        "arm": 1,
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902,
+        "compileMs": 15541.202858999999,
+        "cpuMs": 16000,
+        "peakRssKiB": 489232,
+        "wallMs": 16020
+      },
+      {
+        "round": 1,
+        "cell": 62,
+        "arm": 0,
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902,
+        "compileMs": 15682.482074,
+        "cpuMs": 16149.999999999998,
+        "peakRssKiB": 491408,
+        "wallMs": 16160
+      }
+    ],
+    "artifacts": [
+      {
+        "root": "/tmp/line-engine-study/before",
+        "sha256": "c57cf189075323a8e278f121637b1d858c1aaba619231cf35c2ffa0e23bc0dfd"
+      },
+      {
+        "root": "/home/holo/line",
+        "sha256": "9b98bdb699cc25b93ca64acbba33cf9d33c0ead445c461baca858c20aaac2e93"
+      }
+    ],
+    "pairs": [
+      {
+        "cell": 52,
+        "round": 0,
+        "compileTimeRatio": 1.0021711153176667,
+        "processCpuRatio": 0.9997829390058607
+      },
+      {
+        "cell": 52,
+        "round": 1,
+        "compileTimeRatio": 0.9935240985329459,
+        "processCpuRatio": 0.9936034115138592
+      },
+      {
+        "cell": 54,
+        "round": 0,
+        "compileTimeRatio": 0.9939833926483811,
+        "processCpuRatio": 0.994424190435342
+      },
+      {
+        "cell": 54,
+        "round": 1,
+        "compileTimeRatio": 0.9881691651284755,
+        "processCpuRatio": 0.98703231292517
+      },
+      {
+        "cell": 62,
+        "round": 0,
+        "compileTimeRatio": 0.9886431758735209,
+        "processCpuRatio": 0.9888475836431226
+      },
+      {
+        "cell": 62,
+        "round": 1,
+        "compileTimeRatio": 0.990991272023564,
+        "processCpuRatio": 0.9907120743034057
+      }
+    ]
+  },
+  "conclusion": "Retain collision-grid and per-point lookup caching. Engine replay time falls 4.3%, branch/edit time 1.9% versus shipped binary. Six real-compile pairs are too few and too close to no change for a reliable whole-compiler speed claim. No solver, search, scoring, trajectory, contact ordering or charged-work change.",
+  "sourceHashes": {
+    "tools/measure/engine.ts": "e754d99917a86dc837de6bdfa2b52618ed80815562eb927e336882d3180ceda6",
+    "tools/measure/build_native_engine.mjs": "14217b4794bd733f5f9d5cac806603335786269c6375fabe213324cfe7a51bfc",
+    "tools/parity/engine.ts": "93d936bc27bbf7ce3b54f8f06db9872e8e5e4bb0a8390bcbaaddb5ec7fe23fab",
+    "tools/parity/parity.ts": "4f548b0eb94bb139e60ca61dc9108aef3f11f2a4391773d5600a0b917603fb8d",
+    "scripts/lib/native_motion/src/kernel.rs": "e29002f095e361a88672539622487d401f962de4ce0a73b01bb8492775b25762",
+    "scripts/lib/native_motion/src/engine.rs": "8f8f824003e3a419cb8a0a7bb5642e7fa9055293373cb96a7bec256032bc5ece",
+    "scripts/lib/native_motion/engine.wasm": "9b98bdb699cc25b93ca64acbba33cf9d33c0ead445c461baca858c20aaac2e93"
+  }
+}

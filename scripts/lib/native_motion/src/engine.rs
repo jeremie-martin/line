@@ -54,7 +54,7 @@ struct Cache {
     rest: [f64; NITER],
     endur: [f64; NITER],
     cell_lines: FlatIntMap<Vec<GridLine>>, // ClassicGrid cellLinesMap (collision lookup)
-    line_cache: LineCellCache,             // frame-local shortcut for repeated line-grid cells
+    line_cache: LineCellCache,             // shortcut valid until the line grid changes
     lines_cells: IntMap<i32, Vec<(i64, i64)>>, // ClassicGrid lineCellsMap (id → cell coords, for remove)
     frames: Vec<State>,                        // frames[0] = initial; lazily extended
     events: Vec<Event>,                        // flat per-frame collision records
@@ -192,6 +192,7 @@ impl Cache {
                 self.set_frames_length(idx as usize);
             }
         }
+        self.line_cache.invalidate();
         push_line(&mut self.cell_lines, l, &cells);
         self.lines_cells.insert(id, cells);
     }
@@ -202,6 +203,9 @@ impl Cache {
     /// so the lines leave the grid in the same order and the cache truncates
     /// once, to the earliest collision with any of them.
     fn remove_lines(&mut self, ids: &[i32], removed: &mut Vec<i32>) {
+        if !ids.is_empty() {
+            self.line_cache.invalidate();
+        }
         removed.clear();
         let mut first: Option<i32> = None;
         for &id in ids {

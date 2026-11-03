@@ -1,7 +1,7 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=23]
+ *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=N]
  *   node --import tsx tools/parity/parity.ts judge   [--all]
  *
  * `compile` recompiles the committed cells in fresh processes.
@@ -15,7 +15,7 @@
 import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join} from 'node:path';
-import {tmpdir} from 'node:os';
+import {tmpdir, availableParallelism, totalmem} from 'node:os';
 import {spawn} from 'node:child_process';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
@@ -67,8 +67,11 @@ function compare(expected: Record<string, unknown>, actual: Record<string, unkno
 const command = process.argv[2];
 if (command === 'worker') await compileWorker(Number(arg('cell')), arg('out')!);
 else if (command === 'compile') {
-  const mode = arg('mode'), jobs = Number(arg('jobs', '23')), only = arg('ids')?.split(',');
+  const defaultJobs = Math.max(1, Math.min(23, availableParallelism(), Math.floor(totalmem() / 4_000_000_000)));
+  const mode = arg('mode'), jobs = Number(arg('jobs', String(defaultJobs))), only = arg('ids')?.split(',');
+  if (!Number.isInteger(jobs) || jobs < 1 || jobs > 64) throw new Error('--jobs must be an integer from 1 to 64');
   const queue = doc.cells.map((c, i) => ({c, i})).filter(({c}) => (!mode || c.mode === mode) && (!only || only.includes(c.id)));
+  if (!queue.length) throw new Error('No parity cells selected');
   const dir = mkdtempSync(join(tmpdir(), 'parity-')), failures: string[] = [], began = performance.now();
   await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
     while (queue.length) {

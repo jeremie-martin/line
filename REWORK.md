@@ -1,5 +1,58 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: physics-engine baseline and collision lookup reuse
+
+Structural physics work on the new host: i7-12800H, 20 logical CPUs, 16 GB RAM,
+Node 22.22.2, Rust 1.95.0. Earlier host timings are not this machine's baseline.
+The compiler's `native_motion` backend is separate from `engine-rs`, and is not
+selected by `LR_ENGINE`. The independent reference engine and compiler search
+are unchanged.
+
+**Kept:** collision-grid lookup shortcuts now survive frame boundaries, and
+each point retains its current bucket. Grid edits invalidate both cache levels,
+including cached misses. A detached grid starts with empty shortcuts, so it
+cannot retain pointers into its source grid. Physics arithmetic, collision
+order, trajectories and charged frame counts are unchanged.
+
+**Measurements:** 12 sequential pairs per workload, alternating order after
+four warmups, pinned to CPU 2 with GC before each sample. Both arms consume the
+same 33 committed tracks. Against the originally shipped binary:
+
+| workload | before | after | time reduction |
+|---|---:|---:|---:|
+| registration | 77.1 ms | 76.3 ms | within noise |
+| full replay | 251.5 ms | 240.6 ms | 4.3% (95% ratio interval: 0.944–0.970) |
+| sibling edits, rollback and detached prefix | 388.8 ms | 381.5 ms | 1.9% (0.976–0.986) |
+
+A separate comparison against a same-source, same-toolchain rebuild gives
+4.3% and 2.0% reductions. These are engine workloads, not whole-compiler claims.
+Six real compile pairs (arcs, scattered geometry and low-budget automatic;
+two pairs each) range from 0.2% slower to 1.2% faster, all with exact track/work
+parity. This small sample does not establish a reliable whole-compiler gain.
+The intervals describe timing noise on these fixed workloads, not quality
+across seeds or new songs. A conservative world-coordinate bounds shortcut
+and a different cache slot hash did not add reliable gains and were removed.
+
+**Workflow repairs:** `build:native` rebuilds and hashes the compiler package
+without touching the judge. `verify:engine` uses committed tracks instead of
+missing local trace fixtures. The legacy numeric diagnostic now fails on
+missing references, mismatched frame counts, non-finite values or drift.
+`bench:engine` records hardware, artifact/input hashes and all paired samples,
+and checks states, events, cached contact positions and cache work outside
+timing. Parity defaults to machine-appropriate concurrency (four here) and
+rejects invalid worker counts or empty selections.
+
+**Validation:** 63/63 compiler track/work cells and 33/33 judge tracks exact;
+61,115 frame states and 305,336 ordered collisions match the independent
+engine. Cache edits, sibling switches, resets and detachments also match
+published JavaScript physics. Ten Rust tests pass; TypeScript has zero errors,
+and reachability has zero unreachable files. The full suite has 335 passing
+tests and one missing-audio failure, reproduced on untouched HEAD
+(`productions/amor_na_praia_46s/audio.mp3` is absent on this host).
+
+Evidence, including rejected trials and raw samples:
+`docs/research/engine-performance-20261103.json`.
+
 ## October 31: geometry use in the bench report (tooling)
 
 Report-only; no compiler, spec or ruler change, parity identical. Every new

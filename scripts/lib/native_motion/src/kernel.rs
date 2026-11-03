@@ -31,6 +31,8 @@ struct PointCell {
     min_y: f64,
     max_y: f64,
     valid: bool,
+    bucket: *const Vec<GridLine>,
+    epoch: u32,
 }
 
 impl PointCell {
@@ -41,16 +43,25 @@ impl PointCell {
         min_y: 0.0,
         max_y: 0.0,
         valid: false,
+        bucket: std::ptr::null(),
+        epoch: 0,
     };
 }
 
-#[derive(Clone)]
 pub(crate) struct LineCellCache {
     keys: [i64; LINE_CELL_CACHE_SLOTS],
     ptrs: [*const Vec<GridLine>; LINE_CELL_CACHE_SLOTS],
     epochs: [u32; LINE_CELL_CACHE_SLOTS],
     current_epoch: u32,
     point_cells: [PointCell; NENT],
+}
+
+// Bucket pointers belong to one grid allocation. A detached engine clones the
+// grid, so its shortcut cache must start empty even if no line is edited.
+impl Clone for LineCellCache {
+    fn clone(&self) -> Self {
+        Self::default()
+    }
 }
 
 impl Default for LineCellCache {
@@ -67,10 +78,13 @@ impl Default for LineCellCache {
 
 impl LineCellCache {
     #[inline]
-    fn begin_frame(&mut self) {
+    pub(crate) fn invalidate(&mut self) {
         self.current_epoch = self.current_epoch.wrapping_add(1);
         if self.current_epoch == 0 {
             self.epochs.fill(0);
+            for point in &mut self.point_cells {
+                point.epoch = 0;
+            }
             self.current_epoch = 1;
         }
     }
@@ -107,8 +121,28 @@ impl LineCellCache {
             min_y,
             max_y,
             valid: scaled_x.is_finite() && scaled_y.is_finite() && min_x < max_x && min_y < max_y,
+            bucket: std::ptr::null(),
+            epoch: 0,
         };
         cached.key
+    }
+
+    #[inline]
+    fn lookup_point<'a, const I: usize>(
+        &mut self,
+        grid: &'a FlatIntMap<Vec<GridLine>>,
+        cell: i64,
+    ) -> Option<&'a Vec<GridLine>> {
+        // point_cell must precede this call: a cell change clears the point's
+        // epoch. Grid edits invalidate both shortcut levels, including misses.
+        let point = &self.point_cells[I];
+        if point.epoch == self.current_epoch {
+            return unsafe { point.bucket.as_ref() };
+        }
+        let found = self.lookup(grid, cell);
+        self.point_cells[I].bucket = found.map_or(std::ptr::null(), |v| v);
+        self.point_cells[I].epoch = self.current_epoch;
+        found
     }
 
     #[inline]
@@ -352,7 +386,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
             vyi,
         );
     }
-    if let Some(lns) = line_cache.lookup(grid, center_cell) {
+    if let Some(lns) = line_cache.lookup_point::<I>(grid, center_cell) {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
         for entry in lns.iter() {
             let l = &entry.line;
@@ -445,7 +479,6 @@ pub(crate) fn step_state<const TRACK: bool>(
     touched_lines: &mut Vec<i32>,
 ) {
     active_cells.begin_frame();
-    line_cache.begin_frame();
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
@@ -639,6 +672,40 @@ pub(crate) fn step_state<const TRACK: bool>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bucket_cache_invalidates_hits_misses_and_cloned_pointers() {
+        use crate::line::{build_line, line_cells, push_line, remove_line};
+        let mut grid = FlatIntMap::default();
+        let mut cache = LineCellCache::default();
+        let cell = cache.point_cell::<PEG>(1.0, 1.0);
+        assert!(cache.lookup_point::<PEG>(&grid, cell).is_none());
+        let line = build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0);
+        let cells = line_cells(&line);
+        cache.invalidate();
+        push_line(&mut grid, line, &cells);
+        assert_eq!(cache.lookup_point::<PEG>(&grid, cell).unwrap()[0].line.id, 1);
+
+        let mut cloned = cache.clone();
+        let mut other = grid.clone();
+        remove_line(&mut other, 1, &cells);
+        let clone_cell = cloned.point_cell::<PEG>(1.0, 1.0);
+        assert!(cloned.lookup_point::<PEG>(&other, clone_cell).is_none());
+
+        cache.invalidate();
+        remove_line(&mut grid, 1, &cells);
+        // Force table reallocation before reusing the original point.
+        for key in 100..1000 { grid.get_or_insert_default(key); }
+        assert!(cache.lookup_point::<PEG>(&grid, cell).is_none());
+        let moved = cache.point_cell::<PEG>(1400.0, -1400.0);
+        assert!(cache.lookup_point::<PEG>(&grid, moved).is_none());
+
+        cache.current_epoch = u32::MAX;
+        cache.invalidate();
+        assert_eq!(cache.current_epoch, 1);
+        assert!(cache.point_cells.iter().all(|p| p.epoch == 0));
+        assert!(cache.lookup_point::<PEG>(&grid, moved).is_none());
+    }
 
     #[test]
     fn point_cell_cache_matches_exact_grid_hash() {

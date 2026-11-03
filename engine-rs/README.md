@@ -13,13 +13,29 @@ Run from the repo root.
 | command | what it does |
 |---|---|
 | `npm run build:wasm` | rebuild and Binaryen-optimize `lr_engine.wasm` after editing Rust (needs `wasm-opt`) |
-| `npm run verify:engine` | per-frame full-state fingerprints of the reference tracks; must be byte-identical |
+| `npm run verify:engine` | compare compiler and independent reference engines on all 33 committed tracks: exact states and ordered collisions |
+| `npm run build:native` | rebuild the separate compiler backend and update its packaged hashes; leaves this reference engine untouched |
+| `npm run bench:engine -- --reference=before.wasm --candidate=after.wasm` | paired physics-only timings, with state/contact/cache-work checks before timing |
+| `npm run verify:engine:trace -- --fixture` | legacy fingerprint diagnostic; needs an explicitly recorded baseline |
 
-The finer-grained WASM parity checks used while porting the engine (`wasm:*`)
-live at tag `archive/pre-rework-2026-10-03`; restore them before any engine
-change that `verify:engine` cannot localize.
+Install the Rust target with `rustup target add wasm32-unknown-unknown`.
+`build:wasm` additionally needs Binaryen's `wasm-opt`; a plain reference build
+is `cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml`.
+`build:native` uses plain Cargo release output in its own target directory.
+
+The earlier `wasm:*` commands live at tag `archive/pre-rework-2026-10-03`.
+The current engine gate requires no untracked trace files. The separate cache
+regression test compares edits, sibling reads, start resets and detached prefixes
+against published `lr-core`. Full structural gates remain `npm run parity`,
+`npm run parity:judge`, tests, typecheck and reachability.
 
 ## The `LR_ENGINE` switch (`scripts/lib/_lr_engine.ts`)
+
+This switch selects consumers of the legacy interop shim. The current compiler
+imports `scripts/lib/native_motion/engine.ts` directly, so changing `LR_ENGINE`
+does **not** switch its simulation backend. For compiler-engine A/B measurements,
+use distinct packaged binaries in isolated checkouts; for engine-only timings,
+pass both binary paths to `bench:engine`.
 
 | value | engine |
 |---|---|
@@ -49,15 +65,15 @@ replays `_addLine`/`_removeLine`, truncating the shared cache). This makes the
 physics-frame budget path-dependent on the search's read order; `engine.rs` models
 it as a version tree whose `compareTo` is a walk of the patch chain.
 
-## Current state
+## Historical port results
 
-**The WASM engine is a bit-identical drop-in.** All gates green: `wasm:check`,
+The original port qualified as a bit-identical drop-in using `wasm:check`,
 `wasm:engine`, `trace`/`trace:diff` (max err 0), `wasm:diff`, `wasm:budget`,
 `wasm:replay` (0 mismatches on the real op-DAG), and `wasm:compile` (`wasm ≡
 vendored` track-hash on all 4 specs). `vendored ≡ official` still holds (run
 `wasm:compile -- --official` to re-confirm), so `wasm ≡ official` transitively.
 
-Performance: the kernel alone is ~5× the JS engine (`wasm:bench`), and end-to-end
+Historical performance (not a baseline for a new machine): the kernel alone was ~5× the JS engine (`wasm:bench`), and end-to-end
 (`LR_ENGINE=wasm npm run perf`) is now much faster than the JS engine
 (roughly 13.1k ns/physics-frame on the current W9 stack). The biggest boundary win is a
 fused raw-frame ABI for the detector hot path: Rust computes the BODY average,

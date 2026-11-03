@@ -87,7 +87,11 @@ plan and its log.
 
 ## Compute
 
-- The machine has 64 cores and 62 GB of RAM.
-- Parity uses 23 parallel compiles, and a full sentinel run takes about 30
-  minutes at 24 jobs.
+- The earlier timing records used a 64-core, 62 GB host. Check the current
+  machine before choosing concurrency or interpreting those timings.
+- Parity limits its default by available CPUs and roughly 4 GB per worker
+  (at most 23). On the November 3 laptop (20 threads, 16 GB), this is four
+  workers; `--jobs=N` overrides it. Do not benchmark alongside
+  parity or other heavy checks. Engine-only comparisons use `npm run bench:engine`;
+  quality probabilities from V7 seed blocks are not performance evidence.
 - Do not rerun the full sentinel for structural changes; parity is the gate.

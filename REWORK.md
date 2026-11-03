@@ -1,5 +1,66 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: scope engine ownership and centralize history rollback
+
+The native engine now owns version slots, lineage holders, free lists and
+reconciliation scratch in one `EngineArena`. Stateful operations borrow it
+through one checked scope; internal references cannot escape that call.
+This removes every mutable static and unsafe block from `engine.rs`.
+The existing ABI exchange buffers and trace state remain synchronous and
+module-global; this change does not make the whole backend concurrent.
+
+`CollisionHistory` now owns the invalidation indexes, snapshots, active-cell
+shortcuts and rollback boundaries. Its boundary length replaces the redundant
+tracked-length counter. Reset, rollback and frame completion maintain all
+boundaries together; the kernel takes one history owner instead of six mutable
+history arguments. Clone clears borrowed shortcuts, and reset/rollback invalidate
+them before releasing nodes. Physics arithmetic, collision order, cached public
+frames, charged work and the ABI are unchanged.
+
+**Cleanup regression guards against `b512e1ae`, without a speedup claim:**
+the predeclared cleanup guards use the existing paired-process scaffolding,
+pinned to CPU 2 with Node 22.22.2 and plain Rust 1.95.0 release builds. Adoption
+requires no REJECT in any guard, upper 95% time-delta bounds below +0.5% in
+engine and standalone automatic, unchanged or lower measured memory and exact
+structural gates. Engine arms use two measured repetitions after one warmup;
+compile arms use one. The twelve-pair identical-binary control is INCONCLUSIVE.
+
+| workload | pairs | mean time delta | 95% paired-bootstrap interval |
+|---|---:|---:|---:|
+| combined engine panel | 24 | -0.48% | -0.69% to -0.25% |
+| standalone automatic, cell 61 | 24 | -2.08% | -2.22% to -1.92% |
+| 750k-budget automatic, cell 62 | 8 | -0.66% | -0.86% to -0.42% |
+
+All three guards pass. These fixed runs were not extended, and their screening
+decisions are not presented as independently confirmed speedups. Every warmup
+and timed compile preserves the committed track and charged work (147,209 or
+741,902 frames). The twelve-pair isolated post-registration stepping diagnostic
+has mean time delta +0.98% (95% interval -0.42% to +2.28%).
+Its result is INCONCLUSIVE and does not exclude a small stepping regression.
+It alternates arms in one process after three warmups and is not a promotion
+confirmation.
+
+Measured WASM linear-memory high-water sizes match baseline: 5.06 MiB for
+registration, 10.81 MiB for replay and 3.75 MiB for branches. These are memory
+buffer sizes, not live allocations or RSS. The package grows from 111,336 to
+112,337 bytes and exactly matches the frozen measured artifact.
+
+A further experiment combined three boundary vectors into one record array.
+It preserved exact diagnostics and memory, but its isolated stepping result
+was slower by 1.88% (interval +0.78% to +2.93%). It was rejected; the accepted
+owner keeps separate private arrays with centralized operations. The arena-only
+and history-only probes, combined candidate, rejected boundary layout, source
+patches, plans and all raw pairs are archived in
+`docs/research/engine-ownership-cleanup-20261103.json`.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work.
+Independent engine parity is exact on 33 tracks, 61,115 states and 305,336
+ordered collisions; judge parity passes on all 33 tracks. All eighteen Rust
+tests pass, including arena reentry rejection, independent ownership, and
+history clone/rollback isolation. Typecheck and reachability pass. JavaScript
+has 340 passes and the same pre-existing missing-audio failure in
+`tests/eval_evidence.test.ts`.
+
 ## November 3: compact collision direction filters directly in reserved space
 
 The physics kernel now compacts accepted line pointers directly into the

@@ -81,6 +81,13 @@ and validation are in [music authoring](docs/music-authoring.md).
    releasing the source before the next write transfers the storage without
    copying. Live lineages still isolate edits, frame extension and truncation.
    The independent judge is unchanged.
+   One Rust arena owns version slots, lineage holders and reconciliation scratch.
+   Each engine operation holds a scoped mutable borrow; references cannot escape
+   and nested arena entry is rejected. Collision history owns its indexes,
+   snapshots and rollback boundaries together, with the boundary length defining
+   the tracked prefix. Clones clear borrowed history shortcuts; reset and rollback
+   invalidate them before releasing nodes. ABI buffers and trace state still
+   require synchronous access.
    Native compiler engines have a synchronous ownership scope. Search pruning
    and final replay release only this compilation's handles; caller-owned replay
    engines survive both success and failure. Independent continuation-label

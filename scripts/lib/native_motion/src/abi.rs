@@ -1,12 +1,12 @@
-//! WASM ABI — the export surface the JS wrapper (`_lr_engine_wasm.ts`) drives.
+//! WASM ABI — the export surface the JS wrapper (`engine.ts`) drives.
 //! Frozen contract: symbol names, signatures, and the SCRATCH/EVENTS buffer
 //! layouts must not change. Owns the exchange buffers and the `sim()` batch kernel
-//! (the Phase-0b regression harness, wasm:check). The stateful engine state lives
+//! (retained for batch replay callers). The stateful engine state lives
 //! in engine.rs (one shared cache per lineage); these are thin marshalling shims.
 
 use crate::engine;
-use crate::frame::ActiveCellCache;
-use crate::grid::{FlatIntMap, IntMap};
+use crate::frame::CollisionHistory;
+use crate::grid::FlatIntMap;
 use crate::kernel::{compute_rest_endur, init_state, step_state, LineCellCache, State};
 use crate::line::{build_line, line_cells, push_line, GridLine};
 use crate::{NENT, OUT_ORDER};
@@ -60,7 +60,7 @@ pub extern "C" fn add_lines_cap() -> u32 {
     ADD_LINES_CAP as u32
 }
 
-// ── batch sim() — Phase-0b regression harness (wasm:check). Pure forward sim of a
+// ── batch sim() — pure forward simulation of a
 // fixed track from a start state; no history/collisions recording (track=false). ──
 #[no_mangle]
 pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames: u32) -> u32 {
@@ -102,18 +102,12 @@ pub extern "C" fn sim(n_lines: u32, sx: f64, sy: f64, svx: f64, svy: f64, frames
     };
     write(0, &s);
     let mut ev: Vec<crate::kernel::Collision> = Vec::new();
-    let mut hist = IntMap::default();
-    let mut tc: Vec<i64> = Vec::new();
-    let mut hs = Vec::new();
-    let mut ac = ActiveCellCache::default();
+    let mut history = CollisionHistory::new();
     let mut lc = LineCellCache::default();
-    let mut coll = IntMap::default();
-    let mut tl: Vec<i32> = Vec::new();
     for f in 1..=frames {
         ev.clear();
         step_state::<false>(
-            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut hist, &mut tc, &mut hs, &mut ac,
-            &mut lc, &mut coll, &mut tl,
+            &mut s, &grid, &rest, &endur, &mut ev, f as i32, &mut history, &mut lc,
         );
         write(f, &s);
     }

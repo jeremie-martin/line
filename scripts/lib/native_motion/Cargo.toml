@@ -7,9 +7,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-# (none) — the engine uses only std BTreeMap/Vec. Forking is a cheap version-tree
-# node over ONE shared mutable cache per lineage (see engine.rs), not per-fork
-# structural sharing, so no persistent-collection crate is needed.
+# The engine uses std collections and Rc. Versions share one cache per lineage;
+# detached lineages share it read-only until mutation (see engine.rs).
 
 [profile.release]
 opt-level = 3

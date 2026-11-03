@@ -13,6 +13,20 @@ cache if another lineage still owns it; releasing the source first transfers
 the storage without copying. Grid edits, start resets, frame extension and
 trace eviction remain local to their lineage, including physical-frame charges.
 
+Version slots, lineage holders, free lists and reconciliation scratch have one
+`EngineArena` owner. Stateful operations enter through a scoped `RefCell` borrow;
+internal methods use ordinary references and cannot leak arena references across
+calls. Nested arena entry is rejected. There are no mutable statics or unsafe
+blocks in `engine.rs`. This is not a concurrent ABI: exchange buffers and kernel
+trace state remain module-global and require synchronous access.
+
+`CollisionHistory` owns collision indexes, snapshots, active-cell shortcuts and
+per-frame rollback boundaries. The boundary length defines the tracked prefix,
+removing the separate history-length counter. Its three private boundary arrays
+advance, reset and truncate together. Cloning starts with empty borrowed
+shortcuts; reset and rollback invalidate shortcuts before releasing nodes.
+The kernel receives this owner instead of six separate mutable history objects.
+
 The benchmark engine remains in `engine-rs`. Every completed compiler output is
 cold-replayed with that engine and must match the full raw trajectory exactly.
 The independent judge is unchanged. Native callers retain ownership of their
@@ -89,6 +103,14 @@ time and 1.26% less standalone automatic compile time, with unchanged measured
 memory high-water sizes. See
 `docs/research/engine-direction-compaction-20261103.json` and `REWORK.md` for
 phase diagnostics, rejected experiments and exact correctness gates.
+
+The subsequent ownership cleanup uses the same paired-process scaffolding as
+predeclared regression guards, without a new speedup claim. Adoption requires
+no REJECT in engine, standalone automatic and larger-budget checks, upper 95%
+time-delta bounds below +0.5% for engine and automatic, unchanged or lower
+measured memory and exact structural gates. These guards do not replace fresh
+confirmation when claiming a performance improvement. The complete cleanup
+study is `docs/research/engine-ownership-cleanup-20261103.json`.
 
 For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
 commands (or predeclare another set of indices in `tools/parity/cells.json`).

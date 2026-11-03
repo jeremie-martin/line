@@ -4,16 +4,14 @@
 //!   step → 6×(resolve 22 iterating, collide 10) → resolve 3 non-iterating.
 //!
 //! The arithmetic here is REUSED VERBATIM from the proven kernel (bit-identical on
-//! all 5 fixtures via wasm:check/trace) — only the collision section is restructured
+//! the committed tracks via verify:engine) — only the collision section is restructured
 //! to use center-cell history and line lookup indexes equivalent to lr-core's
 //! 3×3 neighborhood queries.
 
 // Resolved positions belong to the collision that produced them, before later constraints.
 pub(crate) type Collision = (u8, i32, i32, f64, f64);
 
-use crate::frame::{
-    add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode,
-};
+use crate::frame::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
 use crate::line::{GridLine, Line, MAX_FORCE_LENGTH};
 use crate::{
@@ -407,13 +405,8 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
     grid: &FlatIntMap<Vec<GridLine>>,
     events: &mut Vec<Collision>,
     frame_index: i32,
-    hist: &mut HistGrid,
-    touched_cells: &mut Vec<i64>,
-    hist_snaps: &mut Vec<SnapNode>,
-    active_cells: &mut ActiveCellCache,
+    history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
-    coll: &mut Collisions,
-    touched_lines: &mut Vec<i32>,
     it: u8,
     fric: f64,
 ) {
@@ -426,11 +419,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
     let center_cell = line_cache.point_cell::<I>(pxi, pyi);
     // addToGrid (A): pre-collision snapshot.
     if TRACK {
-        add_to_grid(
-            hist,
-            touched_cells,
-            hist_snaps,
-            active_cells,
+        history.record_point(
             center_cell,
             frame_index,
             pxi,
@@ -490,11 +479,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
                     let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[I], pxi, pyi);
-                    add_to_grid(
-                        hist,
-                        touched_cells,
-                        hist_snaps,
-                        active_cells,
+                    history.record_point(
                         pcell,
                         frame_index,
                         pxi,
@@ -502,7 +487,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                         vxi,
                         vyi,
                     );
-                    add_to_collisions(coll, touched_lines, l.id, frame_index);
+                    history.record_collision(l.id, frame_index);
                 }
             }
         }
@@ -511,8 +496,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
 
 /// One frame: step → 6×(constraints, collision) → BindJoints. `events` collects
 /// (iteration, line_id, point_idx) per collision (for getUpdatesAtFrame). When
-/// `track`, the addToGrid collision-history (→ `hist`, new cells → `touched_cells`)
-/// and addToCollisions (→ `coll`, new line ids → `touched_lines`) are recorded at
+/// `track`, point snapshots and line collisions are recorded in `history` at
 /// `frame_index`; recording is purely additive — it does not affect the physics.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn step_state<const TRACK: bool>(
@@ -522,15 +506,10 @@ pub(crate) fn step_state<const TRACK: bool>(
     endur: &[f64; NITER],
     events: &mut Vec<Collision>,
     frame_index: i32,
-    hist: &mut HistGrid,
-    touched_cells: &mut Vec<i64>,
-    hist_snaps: &mut Vec<SnapNode>,
-    active_cells: &mut ActiveCellCache,
+    history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
-    coll: &mut Collisions,
-    touched_lines: &mut Vec<i32>,
 ) {
-    active_cells.begin_frame();
+    history.begin_frame();
     line_cache.begin_frame();
     // step
     for i in 0..NENT {
@@ -560,13 +539,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.8,
             );
@@ -575,13 +549,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.0,
             );
@@ -590,13 +559,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.0,
             );
@@ -605,13 +569,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.0,
             );
@@ -620,13 +579,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.8,
             );
@@ -635,13 +589,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.8,
             );
@@ -650,13 +599,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.1,
             );
@@ -665,13 +609,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.1,
             );
@@ -680,13 +619,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.0,
             );
@@ -695,13 +629,8 @@ pub(crate) fn step_state<const TRACK: bool>(
                 grid,
                 events,
                 frame_index,
-                hist,
-                touched_cells,
-                hist_snaps,
-                active_cells,
+                history,
                 line_cache,
-                coll,
-                touched_lines,
                 it,
                 0.0,
             );

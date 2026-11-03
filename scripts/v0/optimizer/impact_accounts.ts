@@ -15,7 +15,7 @@
  *  diagnostic in tools/measure.) */
 export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v3';
 import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, observeMotionWindow, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
   type StrikeContract} from '../../lib/strike_impact.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
@@ -51,6 +51,8 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
         ...(motion ? {impulse: [0, 0, 0]} : {})} as any] : [];
       const from = Math.max(first, 1);
       if (from > last) return head;
+      if (typeof engine.getCachedMotionWindow === 'function')
+        return [...head, ...observeMotionWindow(from, engine.getCachedMotionWindow(from - 1, last), c)];
       if (motion) {
         const motions = [];
         // The native engine reads whole-body motion without allocating point states.

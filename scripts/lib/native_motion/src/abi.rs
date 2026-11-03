@@ -151,6 +151,12 @@ pub extern "C" fn get_candidate_window(h: u32, start: i32, end: i32) -> i32 {
 }
 
 #[no_mangle]
+pub extern "C" fn get_motion_window(h: u32, start: i32, end: i32) -> i32 {
+    let out = unsafe { &mut *&raw mut WINDOW };
+    with_arena(|arena| arena.motion_window_into(h, start, end, out)) as i32
+}
+
+#[no_mangle]
 pub extern "C" fn detach_engine(h: u32) -> u32 {
     with_arena(|arena| arena.detach(h))
 }

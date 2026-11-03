@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: packed cached physics observations
+
+First of three sequential data-oriented experiments, against `32da1e18`.
+The compiler reads contiguous [vx, vy, angular momentum, radius, contact]
+records with one cached-only native call per observed window. Strike frames
+consume those values directly, sharing the scalar path's arithmetic without
+intermediate motion objects. Reads validate the complete window, never simulate,
+and borrow output only until the next engine call. The independent judge is
+unchanged.
+
+CPU 2, frozen full source/binary arms: A/A12 is inconclusive (+0.072%,
+95% interval [-0.136,+0.295]); default automatic screen12 and fresh confirm24
+both KEEP. Confirmation is -1.768% time [-1.963,-1.556], 24/24 favorable pairs.
+Engine guard24 is +0.001% [-0.313,+0.429], within the predeclared +0.5% upper
+bound. The separate 750k-budget guard8 is -2.889% [-3.247,-2.533]; it is a
+regression guard, not independently confirmed speedup evidence. Adopt.
+
+Engine-panel WASM high-water remains 3.5/10.3125/2.125 MiB for registration,
+replay and branching. Fresh compile high-water is mixed: default 70.3125 to
+60.8125 MiB; larger-budget 151.25 to 168.625 MiB. These single-process readings
+include allocator/GC lifetime effects and are not live allocations or RSS;
+no memory-reduction claim is made. WASM grows by 670 bytes to 111085 bytes.
+
+Validation: exact tracks and work in all 63 compiler cells; 33 judge tracks;
+61115 independent frame states/packed observations and 305336 ordered collisions;
+20 Rust tests; zero type errors and unreachable files. JavaScript: 367 pass,
+one existing missing-audio fixture failure in `eval_evidence.test.ts`.
+Raw paired samples, protocol, source patch, identities, memory readings and logs:
+`docs/research/engine-data-oriented-20261103.json`.
+
+
 ## November 3: overlap independent loading and render preparation
 
 A fresh async-path audit scanned 206 first-party source files, including the

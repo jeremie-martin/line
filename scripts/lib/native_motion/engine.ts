@@ -293,6 +293,13 @@ export class LineRiderEngine {
       contactCount,
     };
   }
+  /** Cached [vx, vy, angular momentum, radius, contact] records. Borrowed until
+   * the next engine call; consume immediately or copy before retaining. */
+  getCachedMotionWindow(start: number, end: number): Float64Array {
+    if (!wasm.get_motion_window(this.h, frameIndex(start), frameIndex(end)))
+      throw new Error('observation requires an already simulated window');
+    return windowValues((end - start + 1) * 5).subarray(0, (end - start + 1) * 5);
+  }
   /** Whole-body motion of an already simulated frame without allocating point
    * states: centre-of-mass velocity, angular momentum about the centre (unit masses)
    * and radius of gyration. Same arithmetic, in the same order, as bodyMotion() in

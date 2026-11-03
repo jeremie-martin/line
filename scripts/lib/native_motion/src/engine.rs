@@ -395,6 +395,29 @@ impl EngineArena {
         true
     }
 
+    /// Packed cached-only [vx, vy, angular momentum, radius, contact] per frame.
+    pub(crate) fn motion_window_into(
+        &mut self,
+        handle: u32,
+        start: i32,
+        end: i32,
+        out: &mut Vec<f64>,
+    ) -> bool {
+        if start < 0 || end < start {
+            return false;
+        }
+        let Some(cache) = self.cached_frame_cache(handle, end) else {
+            return false;
+        };
+        out.clear();
+        out.reserve((end - start + 1) as usize * 5);
+        for frame in start as usize..=end as usize {
+            out.extend_from_slice(cache.body_motion(frame));
+            out.push((!cache.events_at(frame).is_empty()) as u8 as f64);
+        }
+        true
+    }
+
     pub(crate) fn collision_trace_into(&self, handle: u32, out: &mut [f64]) -> usize {
         let Some(version) = self.versions.get(handle as usize).and_then(Option::as_ref) else {
             return 0;

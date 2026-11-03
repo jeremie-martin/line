@@ -97,7 +97,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    instead of silently capping events; state and trace buffers follow topology.
    Transport remains synchronous, and retained observations must be copied.
    Contact/body reads check cache availability and observe in one native call.
-   Raw-frame payloads reuse cached contact summaries. Pure body-motion values are
+   Raw-frame payloads reuse cached contact summaries. Impact observation reads packed
+   cached motion/contact windows and computes strike frames without intermediate
+   per-frame motion objects. Pure body-motion values are
    memoized lazily per frame; this memo can be shared across detached snapshots
    without copying their simulation data, and follows frame rollback and reset.
 

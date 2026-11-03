@@ -49,6 +49,9 @@ observations. Cached contact/body observations cannot advance physics.
 Each observation checks and reads in one native operation. Contact-presence reads
 do not copy events. Raw-frame reads reuse cached contact ids and first-contact
 point order, rather than re-deriving them from collisions in JavaScript.
+Impact observation consumes packed cached whole-body motion/contact windows in one
+native call, then computes strike frames directly without temporary motion objects.
+The window validates the entire range before reading and cannot step physics.
 
 ## ABI and output lifetime
 

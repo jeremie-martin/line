@@ -16,6 +16,7 @@ for (const file of files) {
   const engines = [Native, Reference].map(Engine => new Engine()
     .setStart(track.startPosition, track.riders[0].startVelocity).addLine(track.lines));
   try {
+    const expectedMotion: number[] = [];
     for (let f = 0; f <= track.duration; f++) {
       const states = engines.map(e => [...e.getStateMapAtFrame(f)].map(([id, state]: [string, any]) => [id, state.__state__]));
       assert.deepEqual(states[0], states[1], `${file}, frame ${f}: state`);
@@ -27,7 +28,9 @@ for (const file of files) {
       const points = Object.fromEntries(states[1].slice(2).map(([id, state]: any) => [id, {
         x: state.pos.x, y: state.pos.y, prevX: state.prevPos.x, prevY: state.prevPos.y,
       }]));
-      assert.deepEqual(native.bodyMotionAt(f), bodyMotion({points}), `${file}, frame ${f}: body motion`);
+      const motion = bodyMotion({points});
+      expectedMotion.push(motion.v.x, motion.v.y, motion.L, motion.R, events[1].length > 0 ? 1 : 0);
+      assert.deepEqual(native.bodyMotionAt(f), motion, `${file}, frame ${f}: body motion`);
       assert.equal(native.hasContactAtFrame(f), events[1].length > 0, `${file}, frame ${f}: contact presence`);
       assert.deepEqual(native.getAllContactLineIdsAtFrame(f), [...new Set(events[1].map((e: any) => e[0]))],
         `${file}, frame ${f}: contact ids`);
@@ -35,6 +38,7 @@ for (const file of files) {
       collisions += events[0].length;
       frames++;
     }
+    assert.deepEqual([...(engines[0] as Native).getCachedMotionWindow(0, track.duration)], expectedMotion, `${file}: packed motion window`);
   } finally {
     disposeNative(); disposeReference();
   }

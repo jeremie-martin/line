@@ -90,10 +90,14 @@ export function bodyMotion(state: {points: Record<string, PointState>}) {
   }
   return {v: {x: vx, y: vy}, L, R: Math.sqrt(R2 / 10)};
 }
-function redirection(a: Vec, b: Vec) {
-  const sa = Math.hypot(a.x, a.y), sb = Math.hypot(b.x, b.y);
-  if (sa < 1e-10 || sb < 1e-10) return 0;
-  return .5 * (sa + sb) * Math.abs(Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y));
+function strikeFrame(frame: number, ax: number, ay: number, bx: number, by: number, contact: boolean, c: StrikeContract): StrikeFrame {
+  if (!Number.isFinite(ax) || !Number.isFinite(ay) || !Number.isFinite(bx) || !Number.isFinite(by))
+    throw new Error('nonfinite strike observation');
+  const free = Math.hypot(ax, ay + c.gravity), before = Math.hypot(ax, ay), after = Math.hypot(bx, by);
+  const bend = before < 1e-10 || after < 1e-10 ? 0
+    : .5 * (before + after) * Math.abs(Math.atan2(ax * by - ay * bx, ax * bx + ay * by));
+  return {frame, contact, J: Math.hypot(bx - ax, by - ay - c.gravity), bend,
+    solverGain: after - free, gravityGain: free - before, speedBefore: before};
 }
 /** `velocities[k]` is the centre velocity at frame `first + k − 1`: one frame before
  * the observed range, so the first frame's change is known. */
@@ -101,10 +105,7 @@ export function observeStrikes(first: number, velocities: readonly Vec[], contac
   const out: StrikeFrame[] = [];
   for (let k = 1; k < velocities.length; k++) {
     const a = velocities[k - 1], b = velocities[k], frame = first + k - 1;
-    if (![a.x, a.y, b.x, b.y].every(Number.isFinite)) throw new Error('nonfinite strike observation');
-    const free = Math.hypot(a.x, a.y + c.gravity), before = Math.hypot(a.x, a.y);
-    out.push({frame, contact: contactAt(frame), J: Math.hypot(b.x - a.x, b.y - a.y - c.gravity), bend: redirection(a, b),
-      solverGain: Math.hypot(b.x, b.y) - free, gravityGain: free - before, speedBefore: before});
+    out.push(strikeFrame(frame, a.x, a.y, b.x, b.y, contactAt(frame), c));
   }
   return out;
 }
@@ -116,6 +117,20 @@ export function observeMotion(first: number, motions: ReadonlyArray<ReturnType<t
     const a = motions[k], b = motions[k + 1];
     return {...f, impulse: [b.v.x - a.v.x, b.v.y - a.v.y - c.gravity, (b.L - a.L) / (10 * (a.R + b.R) / 2)] as const};
   });
+}
+
+/** Packed cached [vx, vy, L, R, contact] records, starting one frame before
+ * `first`. Consume borrowed native data synchronously without further engine calls. */
+export function observeMotionWindow(first: number, data: Float64Array, c: StrikeContract): StrikeFrame[] {
+  const out: StrikeFrame[] = [], motion = c.strength === 'motion' || c.split === 'reversal';
+  for (let b = 5; b < data.length; b += 5) {
+    const a = b - 5;
+    const f = strikeFrame(first + b / 5 - 1, data[a], data[a + 1], data[b], data[b + 1], data[b + 4] !== 0, c);
+    if (motion) f.impulse = [data[b] - data[a], data[b + 1] - data[a + 1] - c.gravity,
+      (data[b + 2] - data[a + 2]) / (10 * (data[a + 3] + data[b + 3]) / 2)];
+    out.push(f);
+  }
+  return out;
 }
 
 /** Optional diagnostic observer reports actual opposite-push boundaries. It does not

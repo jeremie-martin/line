@@ -165,14 +165,22 @@ impl LineCellCache {
         // Reserve once for the largest possible result before filtering. Growing
         // one pointer at a time fragments the WASM heap during long replays.
         lines.reserve(query.len());
+        // Compact into the reserved buffer without Vec::push's capacity check
+        // or a direction-dependent branch for each candidate. Rejected entries
+        // overwrite the next unused slot; the accepted prefix stays ordered.
+        let output = lines.as_mut_ptr();
+        let mut count = 0;
         for &ptr in query {
             let line = unsafe { &*ptr };
-            // This is the original collision predicate, with the same arithmetic
-            // and NaN behavior. Position changes during a sweep cannot change it.
-            if line.normx * vx + line.normy * vy > 0.0 {
-                lines.push(ptr);
-            }
+            let passes = line.normx * vx + line.normy * vy > 0.0;
+            // SAFETY: before input i, count <= i < query.len() <= capacity.
+            // Pointers are Copy and have no destructor. The Vec stays length 0
+            // until its fully initialized accepted prefix is published below.
+            unsafe { output.add(count).write(ptr); }
+            count += passes as usize;
         }
+        // SAFETY: count <= query.len(), and every slot below count was written.
+        unsafe { lines.set_len(count); }
         point.epoch = self.queries.current_epoch;
     }
 
@@ -816,6 +824,28 @@ mod tests {
                 let got: Vec<i32> = cache.point_lines[PEG].iter().map(|&p| unsafe { (*p).id }).collect();
                 assert_eq!(got, expected);
             }
+        }
+    }
+
+    #[test]
+    fn direction_compaction_handles_full_empty_and_growing_queries() {
+        use crate::line::{build_line, push_line};
+        let mut cache = LineCellCache::default();
+        for count in [0, 1, 32, 4097, 3, 0, 65, 1] {
+            let mut grid = FlatIntMap::default();
+            for id in 0..count {
+                push_line(&mut grid, build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
+            }
+            cache.invalidate();
+            let one_cell: Vec<i32> = (0..count).rev().collect();
+            let expected: Vec<i32> = one_cell.iter().chain(one_cell.iter()).copied().collect();
+            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
+            cache.begin_frame();
+            cache.cache_point_lines::<PEG>(&grid, 0.0, -1.0);
+            assert!(cache.point_lines[PEG].is_empty());
+            // The entirely rejected pass must not leave stale output entries.
+            cache.begin_frame();
+            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
         }
     }
 

@@ -1,5 +1,65 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: compact collision direction filters directly in reserved space
+
+The physics kernel now compacts accepted line pointers directly into the
+already-reserved query buffer. Each input writes at the current output count;
+only a passing direction predicate advances that count. This removes both
+per-entry vector growth checks and a direction-dependent branch. The vector
+publishes only the initialized accepted prefix. Before input i, the output
+count is at most i, so every write fits within the reserved input length.
+The original arithmetic, NaN rejection, order and cross-cell duplicates remain
+unchanged. No search code, simulation equations or work accounting changed.
+
+**Confirmed against `71bab968` on this machine:** fixed twelve-pair screens,
+then twenty-four fresh pairs for each workload, pinned to CPU 2 with Node
+22.22.2 and plain Rust 1.95.0 release builds. The engine panel uses two measured
+repetitions per arm; standalone automatic uses one, both after one warmup.
+A fresh twelve-pair identical-binary control was INCONCLUSIVE.
+
+| workload | time reduction | 95% paired-bootstrap interval | faster pairs |
+|---|---:|---:|---:|
+| combined engine panel | 2.25% | 1.86–2.61% | 23/24 |
+| standalone automatic, cell 61, 150k allowance | 1.26% | 1.06–1.46% | 24/24 |
+
+Within the confirmed panel, component averages are 22.6→22.2 ms for registration,
+189.1→182.1 ms for replay including registration, and 332.3→327.4 ms for
+branches/edits. Registration's paired result is INCONCLUSIVE.
+The separately declared eight-pair 750k-budget regression
+check was KEEP, with mean time delta -1.62% (95% interval -2.12% to -1.21%).
+It is not a separately confirmed speedup claim. Every warmup and timed compile
+preserves the committed track and charged work (147,209 or 741,902 frames).
+
+The final twelve-pair isolated post-registration stepping diagnostic has mean
+time delta **-4.63% (95% interval -5.52% to -3.64%)** against this round's baseline.
+A separate, predeclared twelve-pair comparison with `4be353e8`, before lazy
+queries, has delta **-2.09% (95% interval -2.59% to -1.57%)**. These alternate
+arms in one process after three warmups; they are phase diagnostics, not
+fresh-process promotion confirmations.
+The older-baseline check was declared after engine confirmation and does not
+change the promotion criteria.
+
+Measured WASM linear-memory high-water sizes match baseline: 5.06 MiB for
+registration, 10.81 MiB for replay and 3.75 MiB for branches. These are memory
+buffer sizes, not live allocations or RSS. The package grows from 111,185 to
+111,336 bytes and exactly matches the frozen measured binary.
+
+This round also tested a conservative spatial filter to skip history replay
+for disjoint edits, outlined collision functions, suppression of unused history
+events, direct writes retaining the direction branch, and contiguous query
+normals. The spatial filter and outlining were slower; suppressing history
+events showed no reliable benefit. Contiguous normals did not establish an
+additional benefit over the simpler chosen design. All prototype patches,
+profiles, raw pairs and decisions remain in
+`docs/research/engine-direction-compaction-20261103.json`.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work.
+Independent engine parity is exact on 33 tracks, 61,115 states and 305,336
+ordered collisions; judge parity passes on all 33 tracks. All fifteen Rust
+tests pass, including full, empty, growing and shrinking filter buffers.
+Typecheck and reachability pass. JavaScript has 340 passes and the same
+pre-existing missing-audio failure in `tests/eval_evidence.test.ts`.
+
 ## November 3: transfer detached physics caches without eager copying
 
 The native engine now shares an immutable cache snapshot between detached

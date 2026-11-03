@@ -92,8 +92,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    and a retained list per point. Each point filters the original direction
    predicate when a frame begins or its cell changes: velocity stays fixed
    through the six sweeps. Query order and cross-cell duplicates match the
-   reference. Grid edits invalidate both levels; copying a shared cache clears
-   its borrowed queries, while ownership transfer preserves the owning grid.
+   reference. Filtering compacts accepted pointers into already-reserved space,
+   publishing only the initialized prefix. Grid edits invalidate both levels;
+   copying a shared cache clears its borrowed queries, while ownership transfer
+   preserves the owning grid.
    Each collision sweep keeps its original list even when the
    point moves into another cell. `npm run verify:engine` compares every frame state and
    ordered collision on the committed parity tracks with the independent

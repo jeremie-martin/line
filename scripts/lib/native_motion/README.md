@@ -38,6 +38,9 @@ Lists preserve cell order, descending line ids within cells and duplicates
 across cells. Buffers reserve the full input query length before filtering and
 retain capacity; this avoids repeated growth and the increased WASM memory
 high-water size seen with individual pushes in the unreserved prototype.
+Filtering now compacts directly into that reserved space, removing per-entry
+vector growth checks and direction-dependent branches. Only the initialized,
+accepted prefix becomes visible; order and duplicates remain unchanged.
 
 Grid insertion/removal invalidates both query levels, including cached misses.
 The grid owns the immutable lines; cached pointers are borrowed. A collision
@@ -81,6 +84,11 @@ confirmation reduces that compile time by 3.39%, with no detected change in
 the broad panel or isolated stepping. See
 `docs/research/engine-copy-on-write-20261103.json` for the complete evidence,
 including the deferred copy cost when both lineages remain live.
+The subsequent direction-compaction study confirms 2.25% less combined engine
+time and 1.26% less standalone automatic compile time, with unchanged measured
+memory high-water sizes. See
+`docs/research/engine-direction-compaction-20261103.json` and `REWORK.md` for
+phase diagnostics, rejected experiments and exact correctness gates.
 
 For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
 commands (or predeclare another set of indices in `tools/parity/cells.json`).

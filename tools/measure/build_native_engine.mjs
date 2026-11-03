@@ -1,5 +1,5 @@
 /** Rebuild only the compiler engine; leave the independent judge untouched. */
-import {readFileSync, writeFileSync, copyFileSync} from 'node:fs';
+import {readFileSync, writeFileSync, copyFileSync, chmodSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -8,6 +8,7 @@ const target = new URL('generated/native-motion-target/', root);
 execFileSync('cargo', ['build', '--locked', '--release', '--target', 'wasm32-unknown-unknown',
   '--manifest-path', fileURLToPath(new URL('Cargo.toml', native)), '--target-dir', fileURLToPath(target)], {stdio: 'inherit'});
 copyFileSync(new URL('wasm32-unknown-unknown/release/lr_engine.wasm', target), new URL('engine.wasm', native));
+chmodSync(new URL('engine.wasm', native), 0o644);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const manifestPath = new URL('manifest.json', native), manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 for (const name of Object.keys(manifest.generated)) manifest.generated[name] = hash(readFileSync(new URL(name, native)));

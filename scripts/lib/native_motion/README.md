@@ -22,11 +22,17 @@ Rebuild with `npm run build:native` (requires the Rust
 packages `engine.wasm`, and updates the generated source/WASM and manifest
 hashes. It does not overwrite the independent judge build in `engine-rs`.
 
-The collision lookup cache survives frame boundaries, and each point retains
-its current bucket. Grid insertion/removal invalidates both cache levels,
-including cached empty cells. Detaching starts with empty lookup shortcuts:
-the copied grid owns different allocations. Solver arithmetic, collision order
-and physical-frame accounting are unchanged.
+The collision grid registers lines only in their original raster cells. A shared
+query cache flattens the 3×3 neighborhood when it is read, and each point retains
+its own ordered list of nearby line pointers while it stays in that cell. The
+lists preserve cell order, descending line ids within cells, and duplicates
+across cells. Buffers retain capacity between queries.
+
+Grid insertion/removal invalidates both query levels, including cached misses.
+The grid owns the immutable lines; cached pointers are borrowed. A collision
+keeps its original query while moving the point, and the next sweep refreshes
+the point's list. Detaching starts with empty queries. Solver arithmetic,
+collision order and physical-frame accounting are unchanged.
 
 For a performance change, build both binaries with the same Rust toolchain and
 save them before measuring. `npm run perf:engine` adapts the archived
@@ -46,6 +52,10 @@ positions and cache-work counts before timing. Its primary measurement is total
 panel wall time per simulated frame, including registration cost. The lighter
 `npm run bench:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm`
 remains useful for per-workload diagnosis, but has no promotion decision.
+When a change shifts cost between registration and stepping, measure and report
+those phases separately too. The November 3 lazy-query study improves compiler
+and combined engine workloads but increases isolated post-registration stepping
+time; see `docs/research/engine-lazy-neighborhoods-20261103.json` and `REWORK.md`.
 
 For actual compiler timings, add `--mode=compile --cells=57,59,61` to both
 commands (or predeclare another set of indices in `tools/parity/cells.json`).

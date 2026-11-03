@@ -1,5 +1,60 @@
 # Foundations rework (started 2026-10-03)
 
+## November 3: lazy nearby-line queries in the compiler engine
+
+The native compiler backend now registers a line only in its original raster
+cells. Previously each registration expanded into nine neighboring buckets.
+That made edits and version reconciliation costly; a fresh automatic-workload
+profile put substantial time in registration and reconciliation.
+
+A shared cache now flattens nearby-line queries on demand. Each point retains
+its own copy of the ordered line pointers until it changes cell or the grid is
+edited. Query buffers reuse capacity. The grid owns the immutable lines, edits
+invalidate both query levels (including empty queries), and detached engines
+start with empty queries. Cell order, descending ids within cells and duplicates
+across cells are preserved. A collision keeps traversing its original list even
+if it moves the point into another cell. Physics arithmetic and the ABI are
+unchanged; the independent judge is untouched.
+
+**Confirmed against `4be353e8` on this machine:** twelve screening pairs followed
+by twenty-four fresh pairs for each primary workload, pinned to CPU 2, plain
+Rust 1.95.0 release builds and Node 22.22.2. Both confirmations won 24/24 pairs.
+
+| workload | time reduction | 95% paired-bootstrap interval |
+|---|---:|---:|
+| combined engine panel | 20.99% | 20.74–21.24% |
+| standalone automatic, cell 61, 150k allowance | 13.52% | 13.36–13.68% |
+
+The confirmed engine components average 78.6→22.9 ms for registration,
+241.6→195.8 ms for full replay including registration, and 381.3→335.5 ms for
+branches/edits. A separately declared eight-pair standalone 750k-budget check
+(cell 62) won all eight pairs, averaging 16.20% less compile time. It is a
+regression guard, not a separately confirmed speedup claim. Every measured and
+warmup compile matched its committed track hash and charged frame count.
+
+**Tradeoff:** stepping after registration takes 8.37% more time in a separate
+twelve-pair diagnostic (interval 7.69–9.02%). The registration and edit savings
+outweigh that cost in the measured compiler workloads. This is an optimization
+for the compiler backend, not a universal solver-speed improvement. The study
+reports this phase separately so the combined replay result cannot conceal it.
+WASM linear-memory high-water size on replay falls from 14.50 to 10.81 MiB;
+registration falls from 6.44 to 5.06 MiB, and the branch workload stays at
+3.88 MiB. These are linear-memory sizes, not process RSS or live allocations.
+
+Development tried cached bucket arrays, compact bucket lists, separate flat
+lists per point and a shared flat cache before combining the two query levels.
+The final candidate was frozen before confirmation. The package rebuild is
+byte-identical to that measured binary; its sources, prototype patches and raw
+measurements are in `docs/research/engine-lazy-neighborhoods-20261103.json`.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work.
+Independent engine parity is exact on 33 tracks, 61,115
+frame states and 305,336 ordered collisions; judge parity passes on 33 tracks.
+All twelve Rust tests pass, including cache eviction, grid edits, epoch wrap,
+duplicate ordering and movement during a sweep. Typecheck and reachability
+pass. The suite has 339 passing tests and the same pre-existing missing-audio
+failure.
+
 ## November 3: restore the paired engine promotion workflow
 
 The archived `archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts`

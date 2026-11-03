@@ -32,7 +32,6 @@ pub(crate) struct Line {
 
 #[derive(Clone)]
 pub(crate) struct GridLine {
-    pub group: u8,
     pub line: Rc<Line>,
 }
 
@@ -99,70 +98,32 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
         && line_pos <= l.right_bound
 }
 
+// Original raster cells keep line ids in descending order. Neighborhood
+// expansion happens on a cached read, rather than nine times on every edit.
 #[inline]
-fn center_group(dx: i64, dy: i64) -> u8 {
-    ((dx + 1) * 3 + (dy + 1)) as u8
+fn bucket_position(bucket: &[GridLine], id: i32) -> (usize, bool) {
+    let pos = bucket.partition_point(|e| e.line.id > id);
+    (pos, pos < bucket.len() && bucket[pos].line.id == id)
 }
 
-/// Entries precede (group, id) in a bucket's order: ascending 3×3 group, then
-/// descending line id. Every bucket is kept in this order with at most one entry
-/// per (group, id), so an entry's place is found by binary search.
-#[inline]
-fn bucket_position(bucket: &[GridLine], group: u8, id: i32) -> (usize, bool) {
-    let pos = bucket.partition_point(|e| e.group < group || (e.group == group && e.line.id > id));
-    let found = pos < bucket.len() && bucket[pos].group == group && bucket[pos].line.id == id;
-    (pos, found)
-}
-
-#[inline]
-fn insert_grid_line(bucket: &mut Vec<GridLine>, group: u8, l: &Rc<Line>) {
-    let (pos, found) = bucket_position(bucket, group, l.id);
-    if found {
-        return;
-    }
-    bucket.insert(
-        pos,
-        GridLine {
-            group,
-            line: Rc::clone(l),
-        },
-    );
-}
-
-/// ClassicGrid cellLinesMap.add, inverted for center-cell lookup: a line in
-/// original cell C contributes to every entity center cell whose 3×3 neighborhood
-/// contains C. Each center bucket is sorted by the original 3×3 cell order, then
-/// by DESCENDING line id inside that cell, preserving getLinesNearEntity order.
 pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<GridLine>>, l: Line, cells: &[(i64, i64)]) {
     let line = Rc::new(l);
     for &(cx, cy) in cells {
-        for dx in -1..=1 {
-            for dy in -1..=1 {
-                let center = hash_int_pair(cx - dx, cy - dy);
-                let group = center_group(dx, dy);
-                insert_grid_line(grid.get_or_insert_default(center), group, &line);
-            }
+        let bucket = grid.get_or_insert_default(hash_int_pair(cx, cy));
+        let (pos, found) = bucket_position(bucket, line.id);
+        if !found {
+            bucket.insert(pos, GridLine { line: Rc::clone(&line) });
         }
     }
 }
 
-/// ClassicGrid cellLinesMap.remove for the expanded center-cell buckets.
 pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: &[(i64, i64)]) {
     for &(cx, cy) in cells {
-        for dx in -1..=1 {
-            for dy in -1..=1 {
-                let center = hash_int_pair(cx - dx, cy - dy);
-                let group = center_group(dx, dy);
-                if let Some(bucket) = grid.get_mut(&center) {
-                    let (pos, found) = bucket_position(bucket, group, id);
-                    if found {
-                        bucket.remove(pos);
-                    }
-                    if bucket.is_empty() {
-                        grid.remove(&center);
-                    }
-                }
-            }
+        let key = hash_int_pair(cx, cy);
+        if let Some(bucket) = grid.get_mut(&key) {
+            let (pos, found) = bucket_position(bucket, id);
+            if found { bucket.remove(pos); }
+            if bucket.is_empty() { grid.remove(&key); }
         }
     }
 }
@@ -170,6 +131,20 @@ pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn center_group(dx: i64, dy: i64) -> u8 { ((dx + 1) * 3 + dy + 1) as u8 }
+
+    fn query(grid: &FlatIntMap<Vec<GridLine>>, cx: i64, cy: i64) -> Vec<(u8, i32)> {
+        let mut out = Vec::new();
+        for dx in -1..=1 {
+            for dy in -1..=1 {
+                if let Some(bucket) = grid.get(&hash_int_pair(cx + dx, cy + dy)) {
+                    out.extend(bucket.iter().map(|e| (center_group(dx, dy), e.line.id)));
+                }
+            }
+        }
+        out
+    }
 
     fn test_line(id: i32) -> Line {
         build_line(id, 0.0, 0.0, 14.0, 1.0, 0, 0)
@@ -179,7 +154,7 @@ mod tests {
     fn push_line_orders_each_cell_by_descending_line_id() {
         let mut grid = FlatIntMap::default();
         let cell = (3, 5);
-        let key = hash_int_pair(cell.0, cell.1); // the (0,0)-group center == the cell itself
+        let key = hash_int_pair(cell.0, cell.1); // the original raster cell
         push_line(&mut grid, test_line(10), &[cell]);
         push_line(&mut grid, test_line(30), &[cell]);
         push_line(&mut grid, test_line(20), &[cell]);
@@ -200,18 +175,12 @@ mod tests {
     #[test]
     fn push_line_preserves_3x3_query_order_and_duplicates() {
         let mut grid = FlatIntMap::default();
-        let center = hash_int_pair(0, 0);
         let cell0 = (-1, -1);
         let cell1 = (-1, 0);
         push_line(&mut grid, test_line(20), &[cell0]);
         push_line(&mut grid, test_line(10), &[cell1]);
         push_line(&mut grid, test_line(30), &[cell0, cell1]);
-        let got: Vec<(u8, i32)> = grid
-            .get(&center)
-            .unwrap()
-            .iter()
-            .map(|e| (e.group, e.line.id))
-            .collect();
+        let got = query(&grid, 0, 0);
         assert_eq!(got, vec![(0, 30), (0, 20), (1, 30), (1, 10)]);
     }
 
@@ -295,13 +264,14 @@ mod tests {
             }
             if step % 50 == 0 {
                 for (key, expected) in &reference {
-                    let got: Vec<(u8, i32)> = grid.get(key).unwrap().iter().map(|e| (e.group, e.line.id)).collect();
+                    let (cx, cy) = crate::grid::unhash_int_pair(*key);
+                    let got = query(&grid, cx, cy);
                     assert_eq!(&got, expected);
                 }
                 for x in -4..=4 {
                     for y in -4..=4 {
                         let key = hash_int_pair(x, y);
-                        assert_eq!(grid.get(&key).is_some(), reference.contains_key(&key));
+                        assert_eq!(!query(&grid, x, y).is_empty(), reference.contains_key(&key));
                     }
                 }
             }

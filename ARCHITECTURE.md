@@ -83,10 +83,12 @@ and validation are in [music authoring](docs/music-authoring.md).
    collection uses the same boundary. The frozen judge uses its private
    replay instance.
 
-   Collision-grid lookup shortcuts survive successive physics frames until a
-   grid edit invalidates them. Each point also retains its current bucket;
-   detached caches reset these pointers because their cloned grids have their
-   own allocations. `npm run verify:engine` compares every frame state and
+   The collision grid stores lines in their original raster cells. Nearby-line
+   queries expand the 3×3 neighborhood only when read, with a shared query cache
+   and a retained list per point. Query order and cross-cell duplicates match
+   the reference. Grid edits invalidate both levels; detached caches start with
+   empty queries. Each collision sweep keeps its original list even when the
+   point moves into another cell. `npm run verify:engine` compares every frame state and
    ordered collision on the committed parity tracks with the independent
    reference. `npm run perf:engine` adapts the archived paired process workflow
    to isolated WASM comparisons on the current machine, with fixed screening

@@ -15,13 +15,11 @@ use crate::frame::{
     add_to_collisions, add_to_grid, ActiveCellCache, Collisions, HistGrid, SnapNode,
 };
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
-use crate::line::{GridLine, MAX_FORCE_LENGTH};
+use crate::line::{GridLine, Line, MAX_FORCE_LENGTH};
 use crate::{
     BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT, NITER,
     NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
 };
-
-const LINE_CELL_CACHE_SLOTS: usize = 64;
 
 #[derive(Clone, Copy)]
 struct PointCell {
@@ -31,7 +29,8 @@ struct PointCell {
     min_y: f64,
     max_y: f64,
     valid: bool,
-    bucket: *const Vec<GridLine>,
+    cell_x: i64,
+    cell_y: i64,
     epoch: u32,
 }
 
@@ -43,21 +42,73 @@ impl PointCell {
         min_y: 0.0,
         max_y: 0.0,
         valid: false,
-        bucket: std::ptr::null(),
+        cell_x: 0,
+        cell_y: 0,
         epoch: 0,
     };
 }
 
-pub(crate) struct LineCellCache {
-    keys: [i64; LINE_CELL_CACHE_SLOTS],
-    ptrs: [*const Vec<GridLine>; LINE_CELL_CACHE_SLOTS],
-    epochs: [u32; LINE_CELL_CACHE_SLOTS],
+const QUERY_SLOTS: usize = 64;
+
+struct QueryCache {
+    keys: [i64; QUERY_SLOTS],
+    lines: [Vec<*const Line>; QUERY_SLOTS],
+    epochs: [u32; QUERY_SLOTS],
     current_epoch: u32,
-    point_cells: [PointCell; NENT],
 }
 
-// Bucket pointers belong to one grid allocation. A detached engine clones the
-// grid, so its shortcut cache must start empty even if no line is edited.
+impl Default for QueryCache {
+    fn default() -> Self {
+        Self {
+            keys: [0; QUERY_SLOTS],
+            lines: std::array::from_fn(|_| Vec::new()),
+            epochs: [0; QUERY_SLOTS],
+            current_epoch: 1,
+        }
+    }
+}
+
+impl QueryCache {
+    #[inline]
+    fn invalidate(&mut self) {
+        self.current_epoch = self.current_epoch.wrapping_add(1);
+        if self.current_epoch == 0 {
+            self.epochs.fill(0);
+            self.current_epoch = 1;
+        }
+    }
+
+    // Flatten only neighborhoods actually read. Buffers retain capacity across
+    // eviction and invalidation; cell order and cross-cell duplicates are kept.
+    #[inline]
+    fn lookup(&mut self, grid: &FlatIntMap<Vec<GridLine>>, key: i64, cx: i64, cy: i64) -> &[*const Line] {
+        let hash = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);
+        let slot = ((hash ^ (hash >> 32)) as usize) & (QUERY_SLOTS - 1);
+        if self.epochs[slot] != self.current_epoch || self.keys[slot] != key {
+            let lines = &mut self.lines[slot];
+            lines.clear();
+            for dx in -1..=1 {
+                for dy in -1..=1 {
+                    if let Some(bucket) = grid.get(&hash_int_pair(cx + dx, cy + dy)) {
+                        lines.extend(bucket.iter().map(|entry| std::rc::Rc::as_ptr(&entry.line)));
+                    }
+                }
+            }
+            self.keys[slot] = key;
+            self.epochs[slot] = self.current_epoch;
+        }
+        &self.lines[slot]
+    }
+}
+
+pub(crate) struct LineCellCache {
+    point_cells: [PointCell; NENT],
+    point_lines: [Vec<*const Line>; NENT],
+    queries: QueryCache,
+}
+
+// Queries borrow immutable lines owned by the grid. Edits invalidate all lists;
+// detached engines start empty and never copy borrowed pointers.
 impl Clone for LineCellCache {
     fn clone(&self) -> Self {
         Self::default()
@@ -65,13 +116,11 @@ impl Clone for LineCellCache {
 }
 
 impl Default for LineCellCache {
-    fn default() -> LineCellCache {
-        LineCellCache {
-            keys: [0; LINE_CELL_CACHE_SLOTS],
-            ptrs: [std::ptr::null(); LINE_CELL_CACHE_SLOTS],
-            epochs: [0; LINE_CELL_CACHE_SLOTS],
-            current_epoch: 1,
+    fn default() -> Self {
+        Self {
             point_cells: [PointCell::EMPTY; NENT],
+            point_lines: std::array::from_fn(|_| Vec::new()),
+            queries: QueryCache::default(),
         }
     }
 }
@@ -79,26 +128,36 @@ impl Default for LineCellCache {
 impl LineCellCache {
     #[inline]
     pub(crate) fn invalidate(&mut self) {
-        self.current_epoch = self.current_epoch.wrapping_add(1);
-        if self.current_epoch == 0 {
-            self.epochs.fill(0);
+        self.queries.invalidate();
+        if self.queries.current_epoch == 1 {
             for point in &mut self.point_cells {
                 point.epoch = 0;
             }
-            self.current_epoch = 1;
         }
     }
 
     #[inline]
-    fn slot(cell: i64) -> usize {
-        ((cell as u64).wrapping_mul(0x9E3779B97F4A7C15) as usize) & (LINE_CELL_CACHE_SLOTS - 1)
+    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<GridLine>>) {
+        let point = &mut self.point_cells[I];
+        if point.epoch == self.queries.current_epoch {
+            return;
+        }
+        let query = self.queries.lookup(grid, point.key, point.cell_x, point.cell_y);
+        let lines = &mut self.point_lines[I];
+        lines.clear();
+        lines.extend_from_slice(query);
+        point.epoch = self.queries.current_epoch;
     }
 
     #[inline(always)]
     fn point_cell<const I: usize>(&mut self, px: f64, py: f64) -> i64 {
+        Self::update_cell(&mut self.point_cells[I], px, py)
+    }
+
+    #[inline(always)]
+    fn update_cell(cached: &mut PointCell, px: f64, py: f64) -> i64 {
         let scaled_x = px / GRID_SIZE;
         let scaled_y = py / GRID_SIZE;
-        let cached = unsafe { self.point_cells.get_unchecked_mut(I) };
         if cached.valid
             && scaled_x >= cached.min_x
             && scaled_x < cached.max_x
@@ -121,52 +180,11 @@ impl LineCellCache {
             min_y,
             max_y,
             valid: scaled_x.is_finite() && scaled_y.is_finite() && min_x < max_x && min_y < max_y,
-            bucket: std::ptr::null(),
+            cell_x,
+            cell_y,
             epoch: 0,
         };
         cached.key
-    }
-
-    #[inline]
-    fn lookup_point<'a, const I: usize>(
-        &mut self,
-        grid: &'a FlatIntMap<Vec<GridLine>>,
-        cell: i64,
-    ) -> Option<&'a Vec<GridLine>> {
-        // point_cell must precede this call: a cell change clears the point's
-        // epoch. Grid edits invalidate both shortcut levels, including misses.
-        let point = &self.point_cells[I];
-        if point.epoch == self.current_epoch {
-            return unsafe { point.bucket.as_ref() };
-        }
-        let found = self.lookup(grid, cell);
-        self.point_cells[I].bucket = found.map_or(std::ptr::null(), |v| v);
-        self.point_cells[I].epoch = self.current_epoch;
-        found
-    }
-
-    #[inline]
-    fn lookup<'a>(
-        &mut self,
-        grid: &'a FlatIntMap<Vec<GridLine>>,
-        cell: i64,
-    ) -> Option<&'a Vec<GridLine>> {
-        let slot = Self::slot(cell);
-        if self.epochs[slot] == self.current_epoch && self.keys[slot] == cell {
-            let ptr = self.ptrs[slot];
-            return if ptr.is_null() {
-                None
-            } else {
-                Some(unsafe { &*ptr })
-            };
-        }
-        let found = grid.get(&cell);
-        self.keys[slot] = cell;
-        self.ptrs[slot] = found
-            .map(|bucket| bucket as *const Vec<GridLine>)
-            .unwrap_or(std::ptr::null());
-        self.epochs[slot] = self.current_epoch;
-        found
     }
 }
 
@@ -386,10 +404,15 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
             vyi,
         );
     }
-    if let Some(lns) = line_cache.lookup_point::<I>(grid, center_cell) {
+    line_cache.cache_point_lines::<I>(grid);
+    let lns = &line_cache.point_lines[I];
+    if !lns.is_empty() {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
-        for entry in lns.iter() {
-            let l = &entry.line;
+        for &line in lns {
+            // Entries point into immutable Rc<Line> records owned by the grid.
+            // Only point_cells is updated below; this query stays fixed during
+            // the sweep even when a collision moves the entity to another cell.
+            let l = &*line;
             let pnt_dir = l.normx * vxi + l.normy * vyi;
             if pnt_dir > 0.0 {
                 // Continue with the remaining canonical collision predicates.
@@ -437,7 +460,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 events.push((it, l.id, I as i32, posx, posy));
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
-                    let pcell = line_cache.point_cell::<I>(pxi, pyi);
+                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[I], pxi, pyi);
                     add_to_grid(
                         hist,
                         touched_cells,
@@ -673,38 +696,73 @@ pub(crate) fn step_state<const TRACK: bool>(
 mod tests {
     use super::*;
 
+    fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<GridLine>>, x: f64, y: f64) -> Vec<i32> {
+        cache.point_cell::<PEG>(x, y);
+        cache.cache_point_lines::<PEG>(grid);
+        cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()
+    }
+
     #[test]
-    fn bucket_cache_invalidates_hits_misses_and_cloned_pointers() {
+    fn query_cache_invalidates_hits_misses_clones_and_epoch_wrap() {
         use crate::line::{build_line, line_cells, push_line, remove_line};
         let mut grid = FlatIntMap::default();
         let mut cache = LineCellCache::default();
-        let cell = cache.point_cell::<PEG>(1.0, 1.0);
-        assert!(cache.lookup_point::<PEG>(&grid, cell).is_none());
+        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());
         let line = build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0);
         let cells = line_cells(&line);
         cache.invalidate();
         push_line(&mut grid, line, &cells);
-        assert_eq!(cache.lookup_point::<PEG>(&grid, cell).unwrap()[0].line.id, 1);
-
+        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
         let mut cloned = cache.clone();
         let mut other = grid.clone();
         remove_line(&mut other, 1, &cells);
-        let clone_cell = cloned.point_cell::<PEG>(1.0, 1.0);
-        assert!(cloned.lookup_point::<PEG>(&other, clone_cell).is_none());
-
+        assert!(ids(&mut cloned, &other, 1.0, 1.0).is_empty());
         cache.invalidate();
         remove_line(&mut grid, 1, &cells);
-        // Force table reallocation before reusing the original point.
         for key in 100..1000 { grid.get_or_insert_default(key); }
-        assert!(cache.lookup_point::<PEG>(&grid, cell).is_none());
-        let moved = cache.point_cell::<PEG>(1400.0, -1400.0);
-        assert!(cache.lookup_point::<PEG>(&grid, moved).is_none());
-
-        cache.current_epoch = u32::MAX;
+        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());
+        assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());
+        cache.queries.current_epoch = u32::MAX;
         cache.invalidate();
-        assert_eq!(cache.current_epoch, 1);
+        assert_eq!(cache.queries.current_epoch, 1);
+        assert!(cache.queries.epochs.iter().all(|&e| e == 0));
         assert!(cache.point_cells.iter().all(|p| p.epoch == 0));
-        assert!(cache.lookup_point::<PEG>(&grid, moved).is_none());
+        assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());
+    }
+
+    #[test]
+    fn flat_query_preserves_duplicates_and_survives_point_movement_during_sweep() {
+        use crate::line::{build_line, push_line, remove_line};
+        let mut grid = FlatIntMap::default();
+        let mut cache = LineCellCache::default();
+        for (id, cells) in [(1, vec![(-1, -1)]), (2, vec![(-1, 0)]), (3, vec![(-1, -1), (-1, 0)])] {
+            push_line(&mut grid, build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);
+        }
+        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![3, 1, 3, 2]);
+        let query = &cache.point_lines[PEG];
+        LineCellCache::update_cell(&mut cache.point_cells[PEG], 14.0, 1.0);
+        assert_eq!(query.iter().map(|&l| unsafe { (*l).id }).collect::<Vec<_>>(), vec![3, 1, 3, 2]);
+        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
+        cache.invalidate();
+        push_line(&mut grid, build_line(4, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(2, 0)]);
+        assert_eq!(ids(&mut cache, &grid, 14.0, 1.0), vec![4]);
+        cache.invalidate();
+        remove_line(&mut grid, 4, &[(2, 0)]);
+        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
+    }
+
+    #[test]
+    fn shared_query_eviction_does_not_replace_a_points_cached_lines() {
+        use crate::line::{build_line, push_line};
+        let mut grid = FlatIntMap::default();
+        push_line(&mut grid, build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0)]);
+        let mut cache = LineCellCache::default();
+        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
+        for cx in 1..1024 {
+            cache.queries.lookup(&grid, hash_int_pair(cx, 100), cx, 100);
+        }
+        assert_ne!(cache.queries.keys[0], 0); // evicted the shared query for (0,0)
+        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
     }
 
     #[test]

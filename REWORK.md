@@ -103,6 +103,17 @@ Both required KEEP, so neither is retained or rerun. Their frozen evidence is in
 `docs/research/engine-packed-paths-20261104.json` and
 `docs/research/engine-constraint-phase-20261104.json`.
 
+Deriving rest/endurance constants directly from the fixed topology removes the
+per-cache arrays, 30 loads per solver and 1,476 binary bytes. Exact constant
+checks, 27 Rust tests and native replay pass. Its screen12 remains inconclusive:
+−0.71% [−1.40,−0.03], but only 8/12 wins, failing the declared sign safeguard.
+It is not promoted or rerun (`docs/research/engine-fixed-constraints-20261104.json`).
+An untimed line-use diagnostic also closes the lazy-bound follow-up: 69.22% of
+constructed lines are visited, and profiles do not show a substantial collision
+solver saving to justify further certificate machinery. Counts, exact work/hash,
+raw profiles and cautiously mapped names are in
+`docs/research/engine-line-use-20261104.json`; no new lazy implementation is added.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

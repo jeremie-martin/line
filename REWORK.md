@@ -2,6 +2,14 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Separating raster offsets from hot collision geometry and calculating acceleration
+only on an acceleration hit reduces the actual WASM line record from 104 to
+80 bytes. All 29 Rust tests and independent native replay pass; 96 additional
+acceleration scenarios match 7,776 states and 19,318 ordered collisions. Its
+screen12 remains **INCONCLUSIVE: −0.27% [−1.23,+0.67]**, 7/12 wins. Required
+KEEP fails; no confirmation, tuning or adoption follows. Full evidence:
+`docs/research/engine-hot-line-record-20261104.json`.
+
 Sharing immutable geometry buckets across cache copies passes 28 Rust tests and
 independent native replay, including ownership and edit-isolation checks. The
 fixed screen12 is **+1.07% [−0.20,+2.48]**, 5/12 wins, INCONCLUSIVE. Required

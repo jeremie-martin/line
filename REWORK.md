@@ -1,5 +1,138 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: resume performance work from the calibrated foundations
+
+Branch `perf/compiler-after-foundations`, reference `4edec76a`. Fresh V8 Inspector
+profiles (250 us sampling, CPU 2, five warmups and three measured compiles) put
+candidate recording at 0.99% of default cell 61 and 8.34% of high-budget cell 62.
+Its own body accounts for 0.61% and 4.39%; whole-trajectory scoring is only part
+of that cost. Native replay and geometry registration remain the largest costs.
+The unprofiled baseline is about 7,500 / 7,700 ns per charged frame under this
+warmup policy, which must not be compared directly with historical one-warmup
+results. Exact track hashes and charged work match in all diagnostic iterations.
+
+First hypothesis: build owned candidate facts directly, instead of creating a
+live result, copying it twice to omit its engine, then copying the candidate for
+the memo. Search and memo can share their owned measurement; the live result is
+the one wrapper that adds an engine. This removes redundant object copying and
+expresses the ownership boundary at construction, without changing scoring,
+search order, lifetimes or the native engine. Source is frozen before timing.
+
+Predeclared adoption: speed improvement required, not a memory tradeoff. Protocol
+v3, compile cells 61 and 62, CPU 2, 12 screening pairs then 24 fresh confirmation
+pairs if qualified; five warmups, three repeats, 95% requested confidence and a
+2% practical margin. Require aggregate FASTER in both stages and each cell's
+upper regression bound at most +2%. Report both cells separately; an aggregate
+win does not establish a default-cell speedup or the 7,000 ns target. Preserve
+every result, collect resources separately, and require the full structural gate
+and a clean design before adoption. No other heavy work during timing.
+
+The first screen is complete and rejected: aggregate −0.32% [−1.26%, +0.16%]
+(EQUIVALENT within ±2%), default cell 61 −0.24% [−1.17%, +4.38%]
+(INCONCLUSIVE, failing its regression guard), cell 62 −0.65% [−1.39%, −0.33%]
+(EQUIVALENT). All 384 warmup/measured compiles and four resource compiles kept
+exact tracks/work. WASM capacity stayed 17.3125 / 32.5 MiB. No confirmation or
+repeat was run; the candidate code is reverted. Raw evidence is retained in
+`docs/research/engine-owned-candidate-20261104-screen.json`.
+
+An untimed V8 layout audit closes the control-deletion hypothesis: all 9,905
+default controls keep fast properties, and only 255 of 44,631 large-workload
+controls lose them. Default terminal scoring runs only six times, versus 388
+times at the larger budget; it cannot explain a large default-workload gain.
+
+Next diagnostic: share direction filtering among points within the *same solver
+frame*, using their actual velocity bounds. This differs from the rejected
+fixed-rectangle cache across changing velocities. Count original direction dots,
+unique cell/frame queries, ambiguous lines needing all ten exact predicates and
+the resulting extra collision-line visits; check every proposed common verdict
+against all ten original predicates while leaving the solver unchanged. Proceed
+only if the conservative cost (two bound dots per query line plus ten dots per
+ambiguous line) removes at least 50% of original dots, and shared lists increase
+collision-line visits by no more than 10%. Otherwise close this design without
+a production cache or timing trial. Both diagnostic cells must keep track/work.
+
+The shared-frame direction design fails: the default workload would increase
+direction dots by 95.26% and collision-line visits by 29.01%. Both cells preserve
+exact track/work in the unchanged shadow solver; no production change follows.
+
+A distinct diagnostic tests certificates over *line normals*, not a fixed
+velocity rectangle or a shared superset. Each query keeps component bounds for
+its accepted and rejected normals. At a new velocity, at most two exact bound
+dots may prove that the complete ordered filter is unchanged. Validate every
+predicted reuse against the original full filter. Before implementation, require
+at least 50% fewer estimated arithmetic operations, counting three per dot and
+four bounds updates per line on a miss, plus the certificate dots. No parameter
+tuning or timing follows a failed diagnostic. Output/work must remain exact.
+
+The normal certificate also fails: estimated arithmetic rises 64.84% / 57.81%
+in the two workloads, despite exact shadow verdicts and track/work. No cache is
+added. Investigation then identifies unnecessary whole-trajectory scoring during
+refinement: only planning reads candidate terminal scores; refinement sorts by
+local cost and judges its shortlisted complete revisions separately.
+
+Demand counts close that lead for these workloads: default has 6 terminal
+scores and large has 388, but neither has a terminal score from local refinement.
+All are needed by planning. No deferred score or phase option is introduced.
+
+Next implementation hypothesis: a search's whole-trajectory objective can reuse
+owned measurements of its unchanged raw prefix. Cache only completed span-axis
+reductions, motion samples whose next velocity is in the prefix, and completed
+support motion terms. Preserve the original per-axis/per-support accumulation
+order, recompute boundary-dependent observations, and fall back to full scoring
+when the candidate does not extend that prefix. Reuse the already-continued
+strike events for terminal accounting instead of detecting the same prefix again.
+
+Predeclared adoption requires a speedup on the larger-budget cell 62: protocol
+v3, CPU 2, screen12 then fresh confirm24, five warmups, three repeats, 95%
+confidence, 2% margin. Separately run a fixed cell-61 guard12 with the same policy;
+its upper regression bound must be at most +2%. Separate processes avoid the
+large-cell heap affecting the default workload's warmup. Report absolute timings
+for each workload; this does not establish the 7,000 ns default target. Require
+unchanged WASM capacity, no more than 15% increase in separately measured peak
+RSS, exact track/work and the complete structural validation gate. Freeze all
+executable changes before screening; no timing/profiling/check overlap.
+
+The prefix-objective screen measures −2.498% [−3.197%, −1.997%], narrowly
+INCONCLUSIVE at the declared 2% margin. No confirmation or extra pairs follow;
+the default guard finishes as declared, then the candidate is reverted. Its
+patch, all 394 exact shadow scores and the complete timing evidence are retained
+in `docs/research/engine-performance-20261104.md` and its linked artifacts.
+
+Next hypothesis: collision-history snapshots duplicate velocities already held
+by their owning saved frame. Velocity is fixed during all six solver sweeps;
+only position changes. Keep the exact snapshot position and point identity,
+resolve velocity from that frame, and consolidate the inline/linked snapshot
+records. Expected linked-record size is 24 bytes instead of 40. History and
+saved states already clone and roll back under the same FrameCache owner.
+
+This trial permits a resource tradeoff: require at least 15% lower WASM high-water
+capacity in both cells 61/62, reproduced in three fresh processes per arm/cell;
+peak process RSS must not rise more than 15%. CPU regression bounds must be at
+most +2% in separate fixed 12-pair v3 compile guards for both workloads (CPU 2,
+five warmups, three repeats, 95% confidence, 2% margin). No speedup claim without
+fresh FASTER confirmation of a qualifying screen. Also report native workload
+costs separately. Full structural gates and a straightforward ownership model
+are mandatory. Check resource eligibility before spending the timing rounds;
+do not change the thresholds after observing results.
+
+The velocity-storage trial passes 30 Rust tests, all 65 saved/live physics
+cases and all 12 fresh compiler resource observations with exact track/work.
+WASM capacity falls 17.3125 → 15.625 MiB (9.75%) and 32.5 → 31.375 MiB (3.46%).
+It fails the declared 15% resource gate in both workloads. No timing trial or
+adoption follows; source and packaged binary are reverted. The complete patch,
+resource observations and validation counts are archived with this round's
+diagnostics. Smaller individual records are not sufficient evidence of a useful
+whole-workload improvement.
+
+Round closed with no production change adopted. All 788 warmup/timed/resource
+compiles preserve exact track/work. The final restored tree passes `npm run
+check`: 424 JS tests, 29 Rust tests, zero type/reach errors, 65 saved/live physics
+cases, 63 exact compiler track/work cells (254 s), and 33 judge tracks. Native
+WASM remains `b0fc5d3b…`; all executable sources match `4edec76a`. Latest paired
+default reference median is 7,578 ns/charged frame with five warmups; the 7,000 ns
+target remains unmet. Full results and rejected patches:
+`docs/research/engine-performance-20261104.md`.
+
 
 ## November 4: separate saved physics contracts from generation provenance
 

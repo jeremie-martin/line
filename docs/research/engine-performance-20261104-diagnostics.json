@@ -1,0 +1,1220 @@
+{
+  "schema": "line.engine-optimization-diagnostics.v1",
+  "referenceCommit": "4edec76a",
+  "node": "v22.22.2",
+  "cpuAffinity": [
+    2
+  ],
+  "limits": [
+    "Unpaired baselines and instrumented runs are diagnostics, not adoption timing.",
+    "V8 profiles use five warmups, three sampled compiles and a 250 microsecond interval.",
+    "Native normal-bound diagnostics retain the original solver and validate every predicted common result.",
+    "Function-name reconstruction from a separate build was not treated as an exact symbol map: type/function sections differed."
+  ],
+  "baseline": {
+    "61": {
+      "cell": 61,
+      "profiling": false,
+      "node": "v22.22.2",
+      "iterations": [
+        {
+          "rep": -5,
+          "wallMs": 2432.312963,
+          "cpuMs": 2432.217,
+          "nsPerFrame": 16522.855008864946,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": -4,
+          "wallMs": 1288.7225940000003,
+          "cpuMs": 1288.431,
+          "nsPerFrame": 8754.373672805334,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": -3,
+          "wallMs": 1270.809362,
+          "cpuMs": 1269.925,
+          "nsPerFrame": 8632.687960654579,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": -2,
+          "wallMs": 1147.7432090000002,
+          "cpuMs": 1146.773,
+          "nsPerFrame": 7796.691839493511,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": -1,
+          "wallMs": 1079.202405,
+          "cpuMs": 1079.033,
+          "nsPerFrame": 7331.0898450502345,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": 0,
+          "wallMs": 1096.6214739999996,
+          "cpuMs": 1095.737,
+          "nsPerFrame": 7449.4186768472,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": 1,
+          "wallMs": 1107.4906390000015,
+          "cpuMs": 1107.118,
+          "nsPerFrame": 7523.253598625094,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        },
+        {
+          "rep": 2,
+          "wallMs": 1109.735278,
+          "cpuMs": 1108.809,
+          "nsPerFrame": 7538.501572594067,
+          "physicalFrames": 147209,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+        }
+      ]
+    },
+    "62": {
+      "cell": 62,
+      "profiling": false,
+      "node": "v22.22.2",
+      "iterations": [
+        {
+          "rep": -5,
+          "wallMs": 7722.932667000001,
+          "cpuMs": 7719.999,
+          "nsPerFrame": 10409.639907966282,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": -4,
+          "wallMs": 5975.125,
+          "cpuMs": 5972.251,
+          "nsPerFrame": 8053.792818997657,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": -3,
+          "wallMs": 5784.159358999999,
+          "cpuMs": 5781.178,
+          "nsPerFrame": 7796.392729767542,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": -2,
+          "wallMs": 5744.100214999999,
+          "cpuMs": 5741.058,
+          "nsPerFrame": 7742.3975336365165,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": -1,
+          "wallMs": 5754.398901999997,
+          "cpuMs": 5751.564,
+          "nsPerFrame": 7756.278999113087,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": 0,
+          "wallMs": 5699.7975350000015,
+          "cpuMs": 5696.691,
+          "nsPerFrame": 7682.682530846395,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": 1,
+          "wallMs": 5736.203070999996,
+          "cpuMs": 5733.628,
+          "nsPerFrame": 7731.753076551884,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        },
+        {
+          "rep": 2,
+          "wallMs": 5695.596574000003,
+          "cpuMs": 5692.914,
+          "nsPerFrame": 7677.020110472816,
+          "physicalFrames": 741902,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+        }
+      ]
+    }
+  },
+  "profileSummaries": {
+    "61": {
+      "cell": 61,
+      "msPerCompile": 1216.817,
+      "self": [
+        {
+          "fn": "wasm-function[44] wasm://wasm/0005d47e",
+          "pct": 25.59
+        },
+        {
+          "fn": "(garbage collector) ",
+          "pct": 7.66
+        },
+        {
+          "fn": "wasm-function[58] wasm://wasm/0005d47e",
+          "pct": 5.96
+        },
+        {
+          "fn": "wasm-function[49] wasm://wasm/0005d47e",
+          "pct": 4.49
+        },
+        {
+          "fn": "nearestControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 3.42
+        },
+        {
+          "fn": "evaluateCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 2.27
+        },
+        {
+          "fn": "wasm-function[53] wasm://wasm/0005d47e",
+          "pct": 2.22
+        },
+        {
+          "fn": "motionArcPaths scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 2.17
+        },
+        {
+          "fn": "wasm-function[50] wasm://wasm/0005d47e",
+          "pct": 1.77
+        },
+        {
+          "fn": "arcControlProposals scripts/v0/optimizer/arc_control_policy.ts",
+          "pct": 1.39
+        },
+        {
+          "fn": "wasm-function[62] wasm://wasm/0005d47e",
+          "pct": 1.29
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 1.29
+        },
+        {
+          "fn": "measureGapAxes scripts/v0/core/measure.ts",
+          "pct": 1.17
+        },
+        {
+          "fn": "wasm-function[32] wasm://wasm/00052e8a",
+          "pct": 1.16
+        },
+        {
+          "fn": "getCachedRawFrames scripts/lib/native_motion/engine.ts",
+          "pct": 1.11
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 1.09
+        },
+        {
+          "fn": "inspectConstruction scripts/v0/optimizer/repertoire_realization.ts",
+          "pct": 1.06
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_lineage.ts",
+          "pct": 1.03
+        },
+        {
+          "fn": "normalizeArcControl scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 1.03
+        },
+        {
+          "fn": "contact scripts/v0/optimizer/impact_accounts.ts",
+          "pct": 0.95
+        },
+        {
+          "fn": "detectStrikes scripts/lib/strike_impact.ts",
+          "pct": 0.94
+        },
+        {
+          "fn": "set filename ",
+          "pct": 0.92
+        },
+        {
+          "fn": "pruneUntouchedGuides scripts/v0/optimizer/arc_finalize.ts",
+          "pct": 0.9
+        },
+        {
+          "fn": "strikeFrame scripts/lib/strike_impact.ts",
+          "pct": 0.83
+        },
+        {
+          "fn": "wasm-function[15] wasm://wasm/0005d47e",
+          "pct": 0.83
+        },
+        {
+          "fn": "scanFrames scripts/lib/detector.ts",
+          "pct": 0.81
+        },
+        {
+          "fn": "signedAngleDeg scripts/lib/detector.ts",
+          "pct": 0.76
+        },
+        {
+          "fn": "accountContactImpacts scripts/lib/contact_impact.ts",
+          "pct": 0.69
+        },
+        {
+          "fn": "wasm-function[3] wasm://wasm/0005d47e",
+          "pct": 0.64
+        },
+        {
+          "fn": "buildGeometry scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.64
+        },
+        {
+          "fn": "recordCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.61
+        },
+        {
+          "fn": "wasm-function[14] wasm://wasm/0005d47e",
+          "pct": 0.58
+        },
+        {
+          "fn": "finalizeArcTrack scripts/v0/optimizer/arc_finalize.ts",
+          "pct": 0.58
+        },
+        {
+          "fn": "inspectTrajectory scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.52
+        },
+        {
+          "fn": "inspectConstructionWindow scripts/v0/optimizer/repertoire_candidate.ts",
+          "pct": 0.51
+        },
+        {
+          "fn": "withDetection scripts/lib/detector.ts",
+          "pct": 0.49
+        },
+        {
+          "fn": "wasm-function[45] wasm://wasm/0005d47e",
+          "pct": 0.48
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/repertoire_realization.ts",
+          "pct": 0.48
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/production_repertoire.ts",
+          "pct": 0.46
+        },
+        {
+          "fn": "arcControlMemoKey scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 0.45
+        }
+      ],
+      "inclusive": [
+        {
+          "fn": "(root) ",
+          "pct": 100.0
+        },
+        {
+          "fn": "(anon) file:///tmp/engine-performance-20261104/profile.mts",
+          "pct": 92.34
+        },
+        {
+          "fn": "compileHandoff scripts/v0/optimizer/handoff.ts",
+          "pct": 92.33
+        },
+        {
+          "fn": "compileProductionRepertoire scripts/v0/optimizer/production_repertoire.ts",
+          "pct": 92.32
+        },
+        {
+          "fn": "compileArcMotion scripts/v0/optimizer/arc_motion.ts",
+          "pct": 89.63
+        },
+        {
+          "fn": "withPhysicsFrameSession scripts/lib/detector.ts",
+          "pct": 89.45
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_motion.ts",
+          "pct": 89.45
+        },
+        {
+          "fn": "compileArcMotionOnce scripts/v0/optimizer/arc_motion.ts",
+          "pct": 89.45
+        },
+        {
+          "fn": "withEngineScope scripts/lib/native_motion/engine.ts",
+          "pct": 89.45
+        },
+        {
+          "fn": "runIntervalSequence scripts/v0/optimizer/arc_sequence.ts",
+          "pct": 84.03
+        },
+        {
+          "fn": "searchInterval scripts/v0/optimizer/arc_interval.ts",
+          "pct": 81.69
+        },
+        {
+          "fn": "evaluate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 68.39
+        },
+        {
+          "fn": "evaluateCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 68.16
+        },
+        {
+          "fn": "replayCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 33.17
+        },
+        {
+          "fn": "wasm-function[43] wasm://wasm/0005d47e",
+          "pct": 32.58
+        },
+        {
+          "fn": "wasm-function[44] wasm://wasm/0005d47e",
+          "pct": 31.49
+        },
+        {
+          "fn": "boundThroughMetered scripts/lib/detector.ts",
+          "pct": 30.71
+        },
+        {
+          "fn": "advanceWhileBound scripts/lib/native_motion/engine.ts",
+          "pct": 30.69
+        },
+        {
+          "fn": "wasm-function[65] wasm://wasm/0005d47e",
+          "pct": 30.68
+        },
+        {
+          "fn": "proposeOpposingEntries scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 29.95
+        },
+        {
+          "fn": "proposeInitialControls scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 18.5
+        },
+        {
+          "fn": "buildGeometry scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 17.14
+        },
+        {
+          "fn": "recoverInitialization scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 14.55
+        },
+        {
+          "fn": "addBatch scripts/lib/native_motion/engine.ts",
+          "pct": 13.45
+        },
+        {
+          "fn": "wasm-function[62] wasm://wasm/0005d47e",
+          "pct": 13.05
+        },
+        {
+          "fn": "addSolidPaths scripts/lib/native_motion/engine.ts",
+          "pct": 12.52
+        },
+        {
+          "fn": "coordinateSearch scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 11.06
+        },
+        {
+          "fn": "withDetection scripts/lib/detector.ts",
+          "pct": 10.54
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 9.49
+        },
+        {
+          "fn": "wasm-function[49] wasm://wasm/0005d47e",
+          "pct": 8.1
+        },
+        {
+          "fn": "(garbage collector) ",
+          "pct": 7.66
+        },
+        {
+          "fn": "inspectTrajectory scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 6.05
+        },
+        {
+          "fn": "wasm-function[58] wasm://wasm/0005d47e",
+          "pct": 6.04
+        },
+        {
+          "fn": "openInterval scripts/v0/optimizer/arc_interval_state.ts",
+          "pct": 5.95
+        },
+        {
+          "fn": "finalizeArcTrack scripts/v0/optimizer/arc_finalize.ts",
+          "pct": 4.76
+        },
+        {
+          "fn": "motionArcPaths scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 3.74
+        },
+        {
+          "fn": "proposeControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 3.71
+        },
+        {
+          "fn": "extractRawTrajectoryWindow scripts/lib/detector.ts",
+          "pct": 3.64
+        },
+        {
+          "fn": "nearestControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 3.51
+        },
+        {
+          "fn": "observe scripts/v0/optimizer/impact_accounts.ts",
+          "pct": 3.48
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/impact_accounts.ts",
+          "pct": 3.33
+        },
+        {
+          "fn": "extractRawTrajectory scripts/lib/detector.ts",
+          "pct": 3.18
+        },
+        {
+          "fn": "wasm-function[53] wasm://wasm/0005d47e",
+          "pct": 3.14
+        },
+        {
+          "fn": "inspectConstructionWindow scripts/v0/optimizer/repertoire_candidate.ts",
+          "pct": 2.75
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_lineage.ts",
+          "pct": 2.67
+        },
+        {
+          "fn": "wasm-function[50] wasm://wasm/0005d47e",
+          "pct": 2.59
+        },
+        {
+          "fn": "measureObjective scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 2.52
+        },
+        {
+          "fn": "readMeteredFrame scripts/lib/detector.ts",
+          "pct": 2.24
+        },
+        {
+          "fn": "(anon) scripts/lib/detector.ts",
+          "pct": 2.19
+        },
+        {
+          "fn": "inspectLayout scripts/v0/optimizer/repertoire_layout.ts",
+          "pct": 2.11
+        },
+        {
+          "fn": "wasm-function[52] wasm://wasm/0005d47e",
+          "pct": 1.98
+        },
+        {
+          "fn": "detectStrikes scripts/lib/strike_impact.ts",
+          "pct": 1.85
+        },
+        {
+          "fn": "inspectConstruction scripts/v0/optimizer/repertoire_realization.ts",
+          "pct": 1.85
+        },
+        {
+          "fn": "extractRawFrame scripts/lib/detector.ts",
+          "pct": 1.84
+        },
+        {
+          "fn": "arcControlMemoKey scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 1.64
+        }
+      ]
+    },
+    "62": {
+      "cell": 62,
+      "msPerCompile": 6149.702,
+      "self": [
+        {
+          "fn": "wasm-function[44] wasm://wasm/0005d47e",
+          "pct": 26.38
+        },
+        {
+          "fn": "(garbage collector) ",
+          "pct": 8.81
+        },
+        {
+          "fn": "wasm-function[58] wasm://wasm/0005d47e",
+          "pct": 5.24
+        },
+        {
+          "fn": "wasm-function[49] wasm://wasm/0005d47e",
+          "pct": 4.43
+        },
+        {
+          "fn": "recordCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 4.39
+        },
+        {
+          "fn": "wasm-function[53] wasm://wasm/0005d47e",
+          "pct": 2.34
+        },
+        {
+          "fn": "nearestControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 1.99
+        },
+        {
+          "fn": "motionArcPaths scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 1.92
+        },
+        {
+          "fn": "measureGapAxes scripts/v0/core/measure.ts",
+          "pct": 1.89
+        },
+        {
+          "fn": "evaluateCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 1.64
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 1.33
+        },
+        {
+          "fn": "scanFrames scripts/lib/detector.ts",
+          "pct": 1.18
+        },
+        {
+          "fn": "wasm-function[62] wasm://wasm/0005d47e",
+          "pct": 1.16
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 1.13
+        },
+        {
+          "fn": "detectStrikes scripts/lib/strike_impact.ts",
+          "pct": 1.09
+        },
+        {
+          "fn": "inspectConstruction scripts/v0/optimizer/repertoire_realization.ts",
+          "pct": 1.08
+        },
+        {
+          "fn": "wasm-function[50] wasm://wasm/0005d47e",
+          "pct": 1.03
+        },
+        {
+          "fn": "accountContactImpacts scripts/lib/contact_impact.ts",
+          "pct": 1.03
+        },
+        {
+          "fn": "normalizeArcControl scripts/v0/optimizer/arc_motion_control.ts",
+          "pct": 1.02
+        },
+        {
+          "fn": "getCachedRawFrames scripts/lib/native_motion/engine.ts",
+          "pct": 0.91
+        },
+        {
+          "fn": "arcControlProposals scripts/v0/optimizer/arc_control_policy.ts",
+          "pct": 0.91
+        },
+        {
+          "fn": "wasm-function[15] wasm://wasm/0005d47e",
+          "pct": 0.9
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_lineage.ts",
+          "pct": 0.86
+        },
+        {
+          "fn": "signedAngleDeg scripts/lib/detector.ts",
+          "pct": 0.73
+        },
+        {
+          "fn": "buildGeometry scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.71
+        },
+        {
+          "fn": "set filename ",
+          "pct": 0.69
+        },
+        {
+          "fn": "wasm-function[3] wasm://wasm/0005d47e",
+          "pct": 0.68
+        },
+        {
+          "fn": "strikeFrame scripts/lib/strike_impact.ts",
+          "pct": 0.61
+        },
+        {
+          "fn": "motionSamples scripts/v0/optimizer/motion_quality.ts",
+          "pct": 0.6
+        },
+        {
+          "fn": "inspectTrajectory scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.59
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_compile_context.ts",
+          "pct": 0.57
+        },
+        {
+          "fn": "intervalMotionSummary scripts/v0/optimizer/motion_objective.ts",
+          "pct": 0.57
+        },
+        {
+          "fn": "wasm-function[14] wasm://wasm/0005d47e",
+          "pct": 0.55
+        },
+        {
+          "fn": "withDetection scripts/lib/detector.ts",
+          "pct": 0.54
+        },
+        {
+          "fn": "measureObjective scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.54
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 0.45
+        },
+        {
+          "fn": "__name scripts/lib/strike_impact.ts",
+          "pct": 0.44
+        },
+        {
+          "fn": "readCachedMotionWindow scripts/lib/native_motion/engine.ts",
+          "pct": 0.44
+        },
+        {
+          "fn": "motionBurst scripts/v0/optimizer/motion_quality.ts",
+          "pct": 0.42
+        },
+        {
+          "fn": "addSolidPaths scripts/lib/native_motion/engine.ts",
+          "pct": 0.42
+        }
+      ],
+      "inclusive": [
+        {
+          "fn": "(root) ",
+          "pct": 100.0
+        },
+        {
+          "fn": "compileHandoff scripts/v0/optimizer/handoff.ts",
+          "pct": 91.19
+        },
+        {
+          "fn": "compileProductionRepertoire scripts/v0/optimizer/production_repertoire.ts",
+          "pct": 91.19
+        },
+        {
+          "fn": "(anon) file:///tmp/engine-performance-20261104/profile.mts",
+          "pct": 91.19
+        },
+        {
+          "fn": "compileArcMotion scripts/v0/optimizer/arc_motion.ts",
+          "pct": 90.52
+        },
+        {
+          "fn": "withPhysicsFrameSession scripts/lib/detector.ts",
+          "pct": 90.49
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_motion.ts",
+          "pct": 90.49
+        },
+        {
+          "fn": "compileArcMotionOnce scripts/v0/optimizer/arc_motion.ts",
+          "pct": 90.49
+        },
+        {
+          "fn": "withEngineScope scripts/lib/native_motion/engine.ts",
+          "pct": 90.49
+        },
+        {
+          "fn": "runIntervalSequence scripts/v0/optimizer/arc_sequence.ts",
+          "pct": 89.22
+        },
+        {
+          "fn": "searchInterval scripts/v0/optimizer/arc_interval.ts",
+          "pct": 87.33
+        },
+        {
+          "fn": "evaluate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 76.54
+        },
+        {
+          "fn": "evaluateCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 76.37
+        },
+        {
+          "fn": "replayCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 33.86
+        },
+        {
+          "fn": "guidanceSearch scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 33.39
+        },
+        {
+          "fn": "wasm-function[43] wasm://wasm/0005d47e",
+          "pct": 32.72
+        },
+        {
+          "fn": "advanceWhileBound scripts/lib/native_motion/engine.ts",
+          "pct": 31.67
+        },
+        {
+          "fn": "boundThroughMetered scripts/lib/detector.ts",
+          "pct": 31.65
+        },
+        {
+          "fn": "wasm-function[65] wasm://wasm/0005d47e",
+          "pct": 31.61
+        },
+        {
+          "fn": "wasm-function[44] wasm://wasm/0005d47e",
+          "pct": 31.61
+        },
+        {
+          "fn": "responseSearch scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 30.28
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 26.36
+        },
+        {
+          "fn": "withDetection scripts/lib/detector.ts",
+          "pct": 20.1
+        },
+        {
+          "fn": "proposeOpposingEntries scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 19.57
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 19.06
+        },
+        {
+          "fn": "buildGeometry scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 15.87
+        },
+        {
+          "fn": "proposeInitialControls scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 14.09
+        },
+        {
+          "fn": "addBatch scripts/lib/native_motion/engine.ts",
+          "pct": 12.13
+        },
+        {
+          "fn": "wasm-function[62] wasm://wasm/0005d47e",
+          "pct": 11.66
+        },
+        {
+          "fn": "addSolidPaths scripts/lib/native_motion/engine.ts",
+          "pct": 11.34
+        },
+        {
+          "fn": "coordinateSearch scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 9.21
+        },
+        {
+          "fn": "(garbage collector) ",
+          "pct": 8.81
+        },
+        {
+          "fn": "recordCandidate scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 8.34
+        },
+        {
+          "fn": "wasm-function[49] wasm://wasm/0005d47e",
+          "pct": 6.66
+        },
+        {
+          "fn": "inspectTrajectory scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 6.33
+        },
+        {
+          "fn": "wasm-function[58] wasm://wasm/0005d47e",
+          "pct": 5.33
+        },
+        {
+          "fn": "recoverInitialization scripts/v0/optimizer/arc_proposals.ts",
+          "pct": 5.28
+        },
+        {
+          "fn": "openInterval scripts/v0/optimizer/arc_interval_state.ts",
+          "pct": 4.66
+        },
+        {
+          "fn": "measureObjective scripts/v0/optimizer/arc_evaluate.ts",
+          "pct": 3.97
+        },
+        {
+          "fn": "motionArcPaths scripts/v0/optimizer/arc_geometry.ts",
+          "pct": 3.67
+        },
+        {
+          "fn": "wasm-function[53] wasm://wasm/0005d47e",
+          "pct": 3.22
+        },
+        {
+          "fn": "guideShapeSearch scripts/v0/optimizer/arc_local_search.ts",
+          "pct": 2.92
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/impact_accounts.ts",
+          "pct": 2.83
+        },
+        {
+          "fn": "measureGapAxes scripts/v0/core/measure.ts",
+          "pct": 2.77
+        },
+        {
+          "fn": "inspectConstructionWindow scripts/v0/optimizer/repertoire_candidate.ts",
+          "pct": 2.76
+        },
+        {
+          "fn": "(anon) scripts/v0/optimizer/arc_lineage.ts",
+          "pct": 2.31
+        },
+        {
+          "fn": "detectStrikes scripts/lib/strike_impact.ts",
+          "pct": 2.24
+        },
+        {
+          "fn": "proposeControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 2.18
+        },
+        {
+          "fn": "observe scripts/v0/optimizer/impact_accounts.ts",
+          "pct": 2.16
+        },
+        {
+          "fn": "nearestControls scripts/v0/optimizer/arc_memory.ts",
+          "pct": 2.07
+        },
+        {
+          "fn": "inspectLayout scripts/v0/optimizer/repertoire_layout.ts",
+          "pct": 2.01
+        },
+        {
+          "fn": "scanFrames scripts/lib/detector.ts",
+          "pct": 1.91
+        },
+        {
+          "fn": "extractRawTrajectoryWindow scripts/lib/detector.ts",
+          "pct": 1.75
+        },
+        {
+          "fn": "inspectConstruction scripts/v0/optimizer/repertoire_realization.ts",
+          "pct": 1.73
+        },
+        {
+          "fn": "readMeteredFrame scripts/lib/detector.ts",
+          "pct": 1.66
+        }
+      ]
+    }
+  },
+  "counts": {
+    "layout": {
+      "61": {
+        "cell": 61,
+        "layout": {
+          "calls": 9905,
+          "inputFast": 9905,
+          "copiedFast": 9905,
+          "resultFast": 9905,
+          "deletedPresent": 0,
+          "contexts": {
+            "|true||true": {
+              "calls": 56,
+              "fast": 56
+            },
+            "|false|paired|true": {
+              "calls": 2889,
+              "fast": 2889
+            },
+            "|true|paired|true": {
+              "calls": 2232,
+              "fast": 2232
+            },
+            "scallops|true|paired|true": {
+              "calls": 461,
+              "fast": 461
+            },
+            "fold|true|paired|true": {
+              "calls": 1422,
+              "fast": 1422
+            },
+            "serpentine|true|paired|true": {
+              "calls": 1321,
+              "fast": 1321
+            },
+            "terraces|true|paired|true": {
+              "calls": 1524,
+              "fast": 1524
+            }
+          }
+        },
+        "candidates": {
+          "calls": 3365,
+          "terminal": 6,
+          "terminalPrefixFrames": 10164,
+          "terminalNewFrames": 522
+        },
+        "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+        "physicalFrames": 147209
+      },
+      "62": {
+        "cell": 62,
+        "layout": {
+          "calls": 44631,
+          "inputFast": 44631,
+          "copiedFast": 44631,
+          "resultFast": 44376,
+          "deletedPresent": 303,
+          "contexts": {
+            "|true||true": {
+              "calls": 245,
+              "fast": 245
+            },
+            "|false|paired|true": {
+              "calls": 14429,
+              "fast": 14182
+            },
+            "|true|paired|true": {
+              "calls": 11032,
+              "fast": 11032
+            },
+            "scallops|true|paired|true": {
+              "calls": 1678,
+              "fast": 1678
+            },
+            "fold|true|paired|true": {
+              "calls": 5864,
+              "fast": 5856
+            },
+            "serpentine|true|paired|true": {
+              "calls": 5631,
+              "fast": 5631
+            },
+            "terraces|true|paired|true": {
+              "calls": 5752,
+              "fast": 5752
+            }
+          }
+        },
+        "candidates": {
+          "calls": 23472,
+          "terminal": 388,
+          "terminalPrefixFrames": 657272,
+          "terminalNewFrames": 33756
+        },
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902
+      }
+    },
+    "directions": {
+      "61": {
+        "cell": 61,
+        "counts": {
+          "existingDirectionDots": 15779285,
+          "filterCalls": 1596170,
+          "uniqueFrameQueries": 547580,
+          "uniqueFrameQueryLines": 5111343,
+          "commonPass": 1846502,
+          "commonReject": 1206099,
+          "mixed": 2058742,
+          "existingCollisionLineVisits": 50368237,
+          "sharedCollisionLineVisits": 64980800,
+          "pointSweeps": 9198840
+        },
+        "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+        "physicalFrames": 147209
+      },
+      "62": {
+        "cell": 62,
+        "counts": {
+          "existingDirectionDots": 86040586,
+          "filterCalls": 7999563,
+          "uniqueFrameQueries": 2736047,
+          "uniqueFrameQueryLines": 27778876,
+          "commonPass": 9399289,
+          "commonReject": 7182358,
+          "mixed": 11197229,
+          "existingCollisionLineVisits": 266008201,
+          "sharedCollisionLineVisits": 346318612,
+          "pointSweeps": 46136880
+        },
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902
+      }
+    },
+    "certificates": {
+      "61": {
+        "cell": 61,
+        "counts": {
+          "filterCalls": 1596170,
+          "originalDots": 15779285,
+          "certificateDots": 1101516,
+          "hits": 967760,
+          "hitLines": 5103969,
+          "misses": 628410,
+          "missLines": 10675316
+        },
+        "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+        "physicalFrames": 147209
+      },
+      "62": {
+        "cell": 62,
+        "counts": {
+          "filterCalls": 7999563,
+          "originalDots": 86040586,
+          "certificateDots": 5712521,
+          "hits": 4958952,
+          "hitLines": 30297329,
+          "misses": 3040611,
+          "missLines": 55743257
+        },
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902
+      }
+    },
+    "terminal-demand": {
+      "61": {
+        "cell": 61,
+        "counts": {
+          "recorded": 3365,
+          "terminal": 6,
+          "localTerminal": 0
+        },
+        "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+        "physicalFrames": 147209
+      },
+      "62": {
+        "cell": 62,
+        "counts": {
+          "recorded": 23472,
+          "terminal": 388,
+          "localTerminal": 0
+        },
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902
+      }
+    },
+    "objective-shadow": {
+      "61": {
+        "cell": 61,
+        "terminalChecks": 6,
+        "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+        "physicalFrames": 147209
+      },
+      "62": {
+        "cell": 62,
+        "terminalChecks": 388,
+        "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+        "physicalFrames": 741902
+      }
+    }
+  },
+  "profileArtifacts": [
+    {
+      "path": "generated/engine-performance-20261104/cell-61-0.cpuprofile",
+      "sha256": "7d799505dd219c96ca2c58f44ff6394f104dd9dd136b5af81a0a3e98e2de9e28",
+      "bytes": 232138
+    },
+    {
+      "path": "generated/engine-performance-20261104/cell-61-1.cpuprofile",
+      "sha256": "841ea261a56650a99cf51a1c932cc74e122a167c36bf8fff3e6c9c9d924d0131",
+      "bytes": 221556
+    },
+    {
+      "path": "generated/engine-performance-20261104/cell-61-2.cpuprofile",
+      "sha256": "15a7fe3c0a6da672d2c8e492d790d6e96a51df954c22e85af0140c3cf4fa73b7",
+      "bytes": 217881
+    },
+    {
+      "path": "generated/engine-performance-20261104/cell-62-0.cpuprofile",
+      "sha256": "b31c587c0d883b6a9d5fc92f5fa7eaf9028257e5f3baa05cdeb8870cba2c4b1f",
+      "bytes": 591724
+    },
+    {
+      "path": "generated/engine-performance-20261104/cell-62-1.cpuprofile",
+      "sha256": "5b2bd77b7e876ecc22f9c4543d079f614fa08c5b203628ac56191525acd10d63",
+      "bytes": 575397
+    },
+    {
+      "path": "generated/engine-performance-20261104/cell-62-2.cpuprofile",
+      "sha256": "03582902c350c54bdb9b20d9c14904579f9d881b31146f71a58c8c4a4d35c131",
+      "bytes": 572039
+    }
+  ],
+  "studyFiles": {
+    "profile.mts": "import assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/home/holo/line/benchmark/v6/model.ts';\nimport {policy} from '/home/holo/line/benchmark/v6/policy.ts';\nimport {caseSpec} from '/home/holo/line/benchmark/v4/model.ts';\nimport {compileHandoff} from '/home/holo/line/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=-5;rep<3;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n",
+    "profile-all.py": "import subprocess\nfor cell, mode in [(61,[]),(62,[]),(61,['--profile']),(62,['--profile'])]:\n subprocess.run(['taskset','-c','2','node','--expose-gc','--import','tsx','/tmp/engine-performance-20261104/profile.mts',str(cell),*mode],cwd='/home/holo/line',check=True)\n",
+    "prepare-layout.py": "from pathlib import Path\nimport shutil\nroot=Path('/tmp/engine-performance-20261104'); study=root/'layout-source'\nshutil.copytree(root/'reference',study)\n(study/'node_modules').symlink_to('/home/holo/line/node_modules',target_is_directory=True)\np=study/'scripts/v0/optimizer/arc_motion_control.ts'\ns=p.read_text();s='''const layoutFast = new Function('value', 'return %HasFastProperties(value)') as (value: object) => boolean;\nconst layoutCounts = {calls: 0, inputFast: 0, copiedFast: 0, resultFast: 0, deletedPresent: 0, contexts: {} as Record<string, {calls: number; fast: number}>};\n(globalThis as any).__controlLayout = layoutCounts;\n'''+s\ns=s.replace('  const c = {...control};','  const c = {...control};\\n  layoutCounts.calls++; layoutCounts.inputFast += +layoutFast(control); layoutCounts.copiedFast += +layoutFast(c);',1)\ns=s.replace('{delete c[key];continue;}','{layoutCounts.deletedPresent += +Object.hasOwn(c,key); delete c[key];continue;}',1)\ns=s.replace('  return c;','''  const fast = +layoutFast(c); layoutCounts.resultFast += fast;\n  const style = [context.profile,context.guides,context.railLayout,context.independentGuide].join('|');\n  const count = layoutCounts.contexts[style] ??= {calls:0,fast:0}; count.calls++; count.fast+=fast;\n  return c;''',1)\np.write_text(s)\np=study/'scripts/v0/optimizer/arc_evaluate.ts';s=p.read_text();s='''const candidateCounts = {calls: 0, terminal: 0, terminalPrefixFrames: 0, terminalNewFrames: 0};\n(globalThis as any).__candidateCounts = candidateCounts;\n'''+s\nmarker='  const terminalPhysical = options.impactContract && i === contacts.length - 1'\ns=s.replace(marker,'''  candidateCounts.calls++;\n  if (i === contacts.length - 1) {candidateCounts.terminal++;candidateCounts.terminalPrefixFrames+=s.prefixRaw.frames.length;candidateCounts.terminalNewFrames+=raw.frames.length-s.prefixRaw.frames.length;}\n'''+marker,1)\np.write_text(s)\nentry=(root/'profile.mts').read_text().replace('/home/holo/line',str(study))\nentry=entry.replace('for(let rep=-5;rep<3;rep++){','for(let rep=0;rep<1;rep++){')\nentry=entry[:entry.index('if(profiling)profiler.disconnect();')]+'''writeFileSync(`${root}/layout-${cellIndex}.json`,JSON.stringify({cell:cellIndex,layout:(globalThis as any).__controlLayout,candidates:(globalThis as any).__candidateCounts,trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Layout diagnostic cell ${cellIndex}: exact track/work`);\n'''\n(root/'layout.mts').write_text(entry)\n",
+    "prepare-directions.py": "from pathlib import Path\nroot=Path('/tmp/engine-performance-20261104');study=root/'layout-source';reference=root/'reference'\n# Restore earlier JS instrumentation. The new counts describe unchanged native behavior.\nfor name in ['scripts/v0/optimizer/arc_motion_control.ts','scripts/v0/optimizer/arc_evaluate.ts']:\n (study/name).write_bytes((reference/name).read_bytes())\np=study/'scripts/lib/native_motion/src/kernel.rs';s=(reference/'scripts/lib/native_motion/src/kernel.rs').read_text()\ns=s.replace('const QUERY_SLOTS: usize = 64;', '''static mut DIRECTION_COUNTS: [u64; 10] = [0; 10];\n#[no_mangle]\npub extern \"C\" fn direction_count(index: usize) -> f64 { unsafe { DIRECTION_COUNTS[index] as f64 } }\nconst QUERY_SLOTS: usize = 64;''')\ns=s.replace('pub(crate) struct LineCellCache {','''pub(crate) struct LineCellCache {\n    diagnostic_seen: std::collections::HashMap<i64, usize>,\n    diagnostic_velocities: [[f64; 2]; NENT],\n    diagnostic_bounds: [f64; 4],''')\ns=s.replace('            point_cells: [PointCell::EMPTY; NENT],','''            diagnostic_seen: Default::default(),\n            diagnostic_velocities: [[0.0; 2]; NENT],\n            diagnostic_bounds: [0.0; 4],\n            point_cells: [PointCell::EMPTY; NENT],''')\ns=s.replace('    line_cache.begin_frame();','')\ns=s.replace('    for it in 0..ITERATE {','''    line_cache.begin_frame();\n    line_cache.diagnostic_seen.clear();\n    let mut bounds = [f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY];\n    for &(i, _) in &COLLIDING_POINTS {\n        line_cache.diagnostic_velocities[i] = [s.vx[i], s.vy[i]];\n        assert!(s.vx[i].is_finite() && s.vy[i].is_finite());\n        bounds[0] = bounds[0].min(s.vx[i]); bounds[1] = bounds[1].max(s.vx[i]);\n        bounds[2] = bounds[2].min(s.vy[i]); bounds[3] = bounds[3].max(s.vy[i]);\n    }\n    line_cache.diagnostic_bounds = bounds;\n    for it in 0..ITERATE {''',1)\nmarker='        let lines = &mut self.point_lines[index];'\ns=s.replace(marker,'''        unsafe { DIRECTION_COUNTS[0] += query.len() as u64; DIRECTION_COUNTS[1] += 1; }\n        if !self.diagnostic_seen.contains_key(&point.key) {\n            let [x0, x1, y0, y1] = self.diagnostic_bounds;\n            let mut shared = 0;\n            unsafe { DIRECTION_COUNTS[2] += 1; DIRECTION_COUNTS[3] += query.len() as u64; }\n            for &ptr in query {\n                let line = unsafe { &*ptr };\n                let (xmin,xmax) = if line.normx >= 0.0 {(x0,x1)} else {(x1,x0)};\n                let (ymin,ymax) = if line.normy >= 0.0 {(y0,y1)} else {(y1,y0)};\n                let lower = line.normx * xmin + line.normy * ymin;\n                let upper = line.normx * xmax + line.normy * ymax;\n                let passes: Vec<_> = COLLIDING_POINTS.iter().map(|&(i,_)| {\n                    let [vx,vy] = self.diagnostic_velocities[i]; line.normx * vx + line.normy * vy > 0.0\n                }).collect();\n                if lower > 0.0 {assert!(passes.iter().all(|&p| p)); unsafe {DIRECTION_COUNTS[4] += 1;}}\n                else if upper <= 0.0 {assert!(passes.iter().all(|&p| !p)); unsafe {DIRECTION_COUNTS[5] += 1;}}\n                else {unsafe {DIRECTION_COUNTS[6] += 1;}}\n                shared += passes.iter().any(|&p| p) as usize;\n            }\n            self.diagnostic_seen.insert(point.key,shared);\n        }\n'''+marker,1)\ns=s.replace('    let lns = &line_cache.point_lines[index];','''    let lns = &line_cache.point_lines[index];\n    unsafe { DIRECTION_COUNTS[7] += lns.len() as u64;\n      DIRECTION_COUNTS[8] += line_cache.diagnostic_seen[&center_cell] as u64;\n      DIRECTION_COUNTS[9] += 1; }''',1)\np.write_text(s)\nentry=(root/'profile.mts').read_text().replace('/home/holo/line',str(study)).replace('for(let rep=-5;rep<3;rep++){','for(let rep=0;rep<1;rep++){')\nentry=\"import {wasm} from '\"+str(study)+\"/scripts/lib/native_motion/wasm.ts';\\n\"+entry\nentry=entry[:entry.index('if(profiling)profiler.disconnect();')]+'''const keys=['existingDirectionDots','filterCalls','uniqueFrameQueries','uniqueFrameQueryLines','commonPass','commonReject','mixed','existingCollisionLineVisits','sharedCollisionLineVisits','pointSweeps'];\nwriteFileSync(`${root}/directions-${cellIndex}.json`,JSON.stringify({cell:cellIndex,counts:Object.fromEntries(keys.map((k,i)=>[k,(wasm as any).direction_count(i)])),trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Direction diagnostic cell ${cellIndex}: exact track/work`);\n'''\n(root/'directions.mts').write_text(entry)\n",
+    "prepare-normal-certificates.py": "from pathlib import Path\nroot=Path('/tmp/engine-performance-20261104');study=root/'layout-source';reference=root/'reference'\np=study/'scripts/lib/native_motion/src/kernel.rs';s=(reference/'scripts/lib/native_motion/src/kernel.rs').read_text()\ns=s.replace('const QUERY_SLOTS: usize = 64;', '''static mut CERTIFICATE_COUNTS: [u64; 7] = [0; 7];\n#[no_mangle]\npub extern \"C\" fn certificate_count(index: usize) -> f64 { unsafe { CERTIFICATE_COUNTS[index] as f64 } }\n#[derive(Clone)]\nstruct NormalCertificate { bounds: [[f64; 4]; 2], counts: [usize; 2], accepted: Vec<bool> }\nconst QUERY_SLOTS: usize = 64;''')\ns=s.replace('struct QueryCache {','''struct QueryCache {\n    certificates: [Option<NormalCertificate>; QUERY_SLOTS],''',1)\ns=s.replace('            keys: [0; QUERY_SLOTS],','''            certificates: std::array::from_fn(|_| None),\n            keys: [0; QUERY_SLOTS],''',1)\ns=s.replace('key: i64, cx: i64, cy: i64) -> &[*const Line]','key: i64, cx: i64, cy: i64, vx: f64, vy: f64) -> &[*const Line]',1)\ns=s.replace('            let lines = &mut self.lines[slot];','''            self.certificates[slot] = None;\n            let lines = &mut self.lines[slot];''',1)\ns=s.replace('        &self.lines[slot]','''        let lines = &self.lines[slot];\n        unsafe { CERTIFICATE_COUNTS[0] += 1; CERTIFICATE_COUNTS[1] += lines.len() as u64; }\n        let mut hit = vx.is_finite() && vy.is_finite();\n        if let Some(c) = &self.certificates[slot] {\n            for kind in 0..2 {\n                if c.counts[kind] == 0 { continue; }\n                let [x0,x1,y0,y1] = c.bounds[kind];\n                let x = if (vx >= 0.0) == (kind == 1) {x0} else {x1};\n                let y = if (vy >= 0.0) == (kind == 1) {y0} else {y1};\n                let dot = x * vx + y * vy;\n                unsafe { CERTIFICATE_COUNTS[2] += 1; }\n                hit &= if kind == 1 {dot > 0.0} else {dot <= 0.0};\n            }\n        } else { hit = false; }\n        let accepted: Vec<_> = lines.iter().map(|&&ptr| {let l = unsafe {&*ptr}; l.normx * vx + l.normy * vy > 0.0}).collect();\n        if hit {\n            assert_eq!(accepted,self.certificates[slot].as_ref().unwrap().accepted);\n            unsafe { CERTIFICATE_COUNTS[3] += 1; CERTIFICATE_COUNTS[4] += lines.len() as u64; }\n        } else {\n            let mut certificate = NormalCertificate { bounds: [[f64::INFINITY,f64::NEG_INFINITY,f64::INFINITY,f64::NEG_INFINITY]; 2], counts: [0; 2], accepted };\n            let mut finite = true;\n            for (&ptr,&pass) in lines.iter().zip(&certificate.accepted) {\n                let l = unsafe {&*ptr}; let b = &mut certificate.bounds[pass as usize];\n                finite &= l.normx.is_finite() && l.normy.is_finite();\n                b[0] = b[0].min(l.normx); b[1] = b[1].max(l.normx); b[2] = b[2].min(l.normy); b[3] = b[3].max(l.normy);\n                certificate.counts[pass as usize] += 1;\n            }\n            self.certificates[slot] = finite.then_some(certificate);\n            unsafe { CERTIFICATE_COUNTS[5] += 1; CERTIFICATE_COUNTS[6] += lines.len() as u64; }\n        }\n        &self.lines[slot]''',1)\ns=s.replace('point.key, point.cell_x, point.cell_y);','point.key, point.cell_x, point.cell_y, vx, vy);',1)\ns=s.replace('map(|&&ptr|','map(|&ptr|')\np.write_text(s)\nentry=(root/'directions.mts').read_text()\nstart=entry.index(\"const keys=['existingDirectionDots'\")\nentry=entry[:start]+'''const keys=['filterCalls','originalDots','certificateDots','hits','hitLines','misses','missLines'];\nwriteFileSync(`${root}/certificates-${cellIndex}.json`,JSON.stringify({cell:cellIndex,counts:Object.fromEntries(keys.map((k,i)=>[k,(wasm as any).certificate_count(i)])),trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Normal certificate diagnostic cell ${cellIndex}: exact track/work`);\n'''\n(root/'certificates.mts').write_text(entry)\n",
+    "prepare-objective-shadow.py": "from pathlib import Path\nimport shutil\nr=Path('/tmp/engine-performance-20261104');s=r/'layout-source';p=Path('/home/holo/line')\nfor f in ['scripts/lib/strike_impact.ts','scripts/v0/optimizer/arc_evaluate.ts','scripts/v0/optimizer/arc_interval_state.ts','scripts/v0/optimizer/arc_objective.ts','scripts/v0/optimizer/impact_accounts.ts']:\n shutil.copyfile(p/f,s/f)\np=s/'scripts/v0/optimizer/arc_evaluate.ts';v=p.read_text().replace(\"import {ArcObjectiveContinuation} from './arc_objective.ts';\", \"import {ArcObjectiveContinuation, arcDetectedTrajectoryObjective, arcSelectionObjective} from './arc_objective.ts';\")\nv=\"import assert from 'node:assert/strict';\\n(globalThis as any).__terminalChecks=0;\\n\"+v\nbefore='''  const terminalLoss = i === contacts.length - 1\n    ? (s.terminalObjective ??= new ArcObjectiveContinuation(ctx, s.prefixRaw, options.amplitudeWeight))\n      .score(raw, det, terminalPhysical, terminalImpacts).loss : undefined;'''\nafter='''  const terminalScore = i === contacts.length - 1\n    ? (s.terminalObjective ??= new ArcObjectiveContinuation(ctx, s.prefixRaw, options.amplitudeWeight))\n      .score(raw, det, terminalPhysical, terminalImpacts) : undefined;\n  if (terminalScore) {\n    const coldImpacts = terminalPhysical ? impactAccountFor(options.impactContract!).evaluate(terminalPhysical, impactTargets, duration, true) : undefined;\n    const expected = arcSelectionObjective(ctx,raw,terminalPhysical,arcDetectedTrajectoryObjective(det,ctx.gaps,options.amplitudeWeight,coldImpacts));\n    assert.deepEqual(terminalScore,expected); (globalThis as any).__terminalChecks++;\n  }\n  const terminalLoss = terminalScore?.loss;'''\nassert before in v;v=v.replace(before,after);p.write_text(v)\ne=(r/'profile.mts').read_text().replace('/home/holo/line',str(s)).replace('for(let rep=-5;rep<3;rep++){','for(let rep=0;rep<1;rep++){')\ne=e[:e.index('if(profiling)profiler.disconnect();')]+'''writeFileSync(`${root}/objective-shadow-${cellIndex}.json`,JSON.stringify({cell:cellIndex,terminalChecks:(globalThis as any).__terminalChecks,trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Objective shadow cell ${cellIndex}: exact scores, regrets, track and work`);\n''';(r/'objective-shadow.mts').write_text(e)\n",
+    "candidate-record.patch": "diff --git a/scripts/v0/optimizer/arc_evaluate.ts b/scripts/v0/optimizer/arc_evaluate.ts\nindex db1750d2..9e38c4ba 100644\n--- a/scripts/v0/optimizer/arc_evaluate.ts\n+++ b/scripts/v0/optimizer/arc_evaluate.ts\n@@ -25,7 +25,7 @@ import { observedReceiver } from './observed_receiver.ts';\n import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';\n import { impactAccount as impactAccountFor } from './impact_accounts.ts';\n import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';\n-import type {CandidateGeometry, CandidateMemo, EvaluatedCandidate} from './arc_candidates.ts';\n+import type {CandidateGeometry, CandidateMeasurement, CandidateMemo, EvaluatedCandidate, MeasuredCandidate} from './arc_candidates.ts';\n \n const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));\n const deg = (x: number) => x * 180 / Math.PI;\n@@ -341,18 +341,19 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad\n   const valueFeatures = options.futureValueModel\n     ? ctx.futureValueFeatures(arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)), i) : undefined;\n   const predictedFuture = options.futureValueModel ? arcFutureValue(valueFeatures!, options.futureValueModel) : undefined;\n-  const result = {child, lines: added, c, cost, localCost, residuals, optimizationCost: cost,\n+  const measurement: CandidateMeasurement = {lines: added, c, cost, localCost, residuals, optimizationCost: cost,\n     achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,\n     localResiduals: residuals.slice(0, priorStart), arrivalResiduals: residuals.slice(priorStart)};\n-  const {child: _child, ...measurement} = result;\n   const contactPositions = !fragments && options.constructionRequests?.[i]?.construction === 'scattered'\n     ? child.getCachedContactPositions(s.frame, s.horizon) : undefined;\n-  s.candidates.push({lines: added, c, cost, localCost, measurement, contactPositions,\n+  const candidate: MeasuredCandidate = {lines: added, c, cost, localCost, measurement, contactPositions,\n     headingPrior, residuals, heading, endSpeed, pose, valueFeatures, predictedFuture, terminalLoss,\n-    meta: {achieved, impact: actualImpact, release: result.release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}});\n+    meta: {achieved, impact: actualImpact, release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}};\n+  s.candidates.push(candidate);\n   // Interrupted evaluations never reach this cache insertion.\n-  const {child: _saved, ...saved} = result;\n-  s.memo.set(key, {result: saved, candidate: {...s.candidates.at(-1)!}});\n+  // Build owned facts once; only the live result carries an engine handle.\n+  s.memo.set(key, {result: measurement, candidate});\n+  const result = {child, ...measurement};\n   if (!s.best || cost < s.best.optimizationCost) s.best = result;\n   return result;\n }\n",
+    "layout.mts": "import assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-performance-20261104/layout-source/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-performance-20261104/layout-source/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-performance-20261104/layout-source/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nwriteFileSync(`${root}/layout-${cellIndex}.json`,JSON.stringify({cell:cellIndex,layout:(globalThis as any).__controlLayout,candidates:(globalThis as any).__candidateCounts,trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Layout diagnostic cell ${cellIndex}: exact track/work`);\n",
+    "directions.mts": "import {wasm} from '/tmp/engine-performance-20261104/layout-source/scripts/lib/native_motion/wasm.ts';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-performance-20261104/layout-source/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-performance-20261104/layout-source/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-performance-20261104/layout-source/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nconst keys=['existingDirectionDots','filterCalls','uniqueFrameQueries','uniqueFrameQueryLines','commonPass','commonReject','mixed','existingCollisionLineVisits','sharedCollisionLineVisits','pointSweeps'];\nwriteFileSync(`${root}/directions-${cellIndex}.json`,JSON.stringify({cell:cellIndex,counts:Object.fromEntries(keys.map((k,i)=>[k,(wasm as any).direction_count(i)])),trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Direction diagnostic cell ${cellIndex}: exact track/work`);\n",
+    "certificates.mts": "import {wasm} from '/tmp/engine-performance-20261104/layout-source/scripts/lib/native_motion/wasm.ts';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-performance-20261104/layout-source/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-performance-20261104/layout-source/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-performance-20261104/layout-source/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nconst keys=['filterCalls','originalDots','certificateDots','hits','hitLines','misses','missLines'];\nwriteFileSync(`${root}/certificates-${cellIndex}.json`,JSON.stringify({cell:cellIndex,counts:Object.fromEntries(keys.map((k,i)=>[k,(wasm as any).certificate_count(i)])),trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Normal certificate diagnostic cell ${cellIndex}: exact track/work`);\n",
+    "terminal-demand.mts": "import assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-performance-20261104/layout-source/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-performance-20261104/layout-source/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-performance-20261104/layout-source/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nwriteFileSync(`${root}/terminal-demand-${cellIndex}.json`,JSON.stringify({cell:cellIndex,counts:(globalThis as any).__terminalDemand,trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Terminal demand cell ${cellIndex}: exact track/work`);\n",
+    "objective-shadow.mts": "import assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-performance-20261104/layout-source/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-performance-20261104/layout-source/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-performance-20261104/layout-source/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-performance-20261104';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-performance-20261104/layout-source/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nwriteFileSync(`${root}/objective-shadow-${cellIndex}.json`,JSON.stringify({cell:cellIndex,terminalChecks:(globalThis as any).__terminalChecks,trackHash:iterations[0].trackHash,physicalFrames:iterations[0].physicalFrames},null,2));\nconsole.log(`Objective shadow cell ${cellIndex}: exact scores, regrets, track and work`);\n",
+    "screen-objective.py": "import subprocess\nroot='/tmp/engine-performance-20261104'\ncommon=['taskset','-c','2','npm','run','perf:engine','--','--mode=compile',f'--reference={root}/reference/scripts/lib/native_motion/engine.wasm',f'--reference-root={root}/reference','--rounds=12','--confirm-rounds=24','--warmup=5','--reps=3','--margin-pct=2','--seed=1729']\nfor cell,name in [(62,'objective-screen'),(61,'objective-default-guard')]:\n subprocess.run(common+[f'--cells={cell}',f'--out={root}/{name}'],cwd='/home/holo/line',check=True)\n",
+    "objective-prefix.patch": "diff --git a/scripts/lib/strike_impact.ts b/scripts/lib/strike_impact.ts\nindex 50efbd68..f3aed782 100644\n--- a/scripts/lib/strike_impact.ts\n+++ b/scripts/lib/strike_impact.ts\n@@ -226,7 +226,13 @@ export function accountStrikes(events: readonly StrikeEvent[], targets: readonly\n  * validity (survived, every beat matched, every matched event fully observed). */\n export function evaluateStrikes(frames: readonly StrikeFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean,\n   c: StrikeContract = STRIKE_CONTRACT) {\n-  const events = detectStrikes(frames, c).filter(e => e.onset <= duration), account = accountStrikes(events, targets, c);\n+  return evaluateStrikeEvents(detectStrikes(frames, c), targets, duration, survived, c);\n+}\n+\n+/** Account an already detected (including continued) event stream. */\n+export function evaluateStrikeEvents(observed: readonly StrikeEvent[], targets: readonly ImpactTarget[], duration: number, survived: boolean,\n+  c: StrikeContract = STRIKE_CONTRACT) {\n+  const events = observed.filter(e => e.onset <= duration), account = accountStrikes(events, targets, c);\n   return {contract: c.id, events, targets, account,\n     valid: survived && account.complete && account.matches.every(m => events[m.event].complete)};\n }\ndiff --git a/scripts/v0/optimizer/arc_evaluate.ts b/scripts/v0/optimizer/arc_evaluate.ts\nindex db1750d2..1615e73f 100644\n--- a/scripts/v0/optimizer/arc_evaluate.ts\n+++ b/scripts/v0/optimizer/arc_evaluate.ts\n@@ -13,7 +13,7 @@ import type {SolidPath} from '../../lib/primitive.ts';\n import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';\n import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';\n import { arcRailGroups } from './arc_guidance.ts';\n-import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';\n+import {ArcObjectiveContinuation} from './arc_objective.ts';\n import { arcBoundaryCorrection } from './arc_boundary.ts';\n import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';\n import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';\n@@ -174,8 +174,8 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid\n     return {reason: 'late_release'} as Rejection;\n   const ruler = options.impactContract ? impactAccountFor(options.impactContract) : undefined;\n   const observedImpacts = ruler ? ruler.observe(child, raw.frames.slice(frame), state) : undefined;\n-  const impactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts)\n-    .filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon)) : undefined;\n+  const allImpactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts) : undefined;\n+  const impactEvents = allImpactEvents?.filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon));\n   const impactAccount = impactEvents ? ruler!.account(impactEvents, s.localImpactTargets) : undefined;\n   const impactMatch = impactAccount?.matches.find(m => m.target === s.currentImpactTarget);\n   if (options.impactContract && i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;\n@@ -189,7 +189,7 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid\n       return {reason: 'construction:' + fulfillment.reasons.join(','), near: {c, deficit: constructionDeficit(fulfillment)}} as Rejection;\n     }\n   }\n-  return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request};\n+  return {state, raw, det, observedImpacts, allImpactEvents, impactEvents, impactAccount, impactMatch, request};\n }\n \n type Trace = Exclude<ReturnType<typeof inspectTrajectory>, Rejection>;\n@@ -321,7 +321,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe\n function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, added: CandidateGeometry, child: Engine,\n   fragments: Fragments | undefined, traced: Trace, measured: Exclude<ReturnType<typeof measureObjective>, Rejection>): EvaluatedCandidate {\n   const {ctx, options, i, frame, horizon} = s;\n-  const {contacts, duration, gaps, impactTargets} = ctx;\n+  const {contacts, duration, impactTargets} = ctx;\n   const {state, raw, det, observedImpacts} = traced;\n   const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior} = measured;\n   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;\n@@ -329,9 +329,10 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad\n   const terminalPhysical = options.impactContract && i === contacts.length - 1\n     ? [...s.prefixImpactFrames!, ...observedImpacts!] : undefined;\n   const terminalImpacts = terminalPhysical\n-    ? impactAccountFor(options.impactContract!).evaluate(terminalPhysical, impactTargets, duration, true) : undefined;\n+    ? impactAccountFor(options.impactContract!).evaluateEvents(traced.allImpactEvents!, impactTargets, duration, true) : undefined;\n   const terminalLoss = i === contacts.length - 1\n-    ? arcSelectionObjective(ctx, raw, terminalPhysical, arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts)).loss : undefined;\n+    ? (s.terminalObjective ??= new ArcObjectiveContinuation(ctx, s.prefixRaw, options.amplitudeWeight))\n+      .score(raw, det, terminalPhysical, terminalImpacts).loss : undefined;\n   let release: number | undefined;\n   for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames[k].sledContacts.length) release = raw.frames[k].frame;\n   const finalState = state.points;\ndiff --git a/scripts/v0/optimizer/arc_interval_state.ts b/scripts/v0/optimizer/arc_interval_state.ts\nindex 758a4b7d..7b95abc0 100644\n--- a/scripts/v0/optimizer/arc_interval_state.ts\n+++ b/scripts/v0/optimizer/arc_interval_state.ts\n@@ -13,6 +13,7 @@ import { arcSpanLoss } from './arc_boundary.ts';\n import { impactAccount } from './impact_accounts.ts';\n import { evaluationContext, type IntervalOptions, type IntervalOverrides } from './arc_options.ts';\n import type { ArcCompileContext } from './arc_compile_context.ts';\n+import type {ArcObjectiveContinuation} from './arc_objective.ts';\n \n const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));\n const deg = (x: number) => x * 180 / Math.PI;\n@@ -121,6 +122,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number,\n     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,\n     /** Lowest optimization cost measured so far. */\n     best: null as EvaluatedCandidate | null,\n+    terminalObjective: undefined as ArcObjectiveContinuation | undefined,\n     candidates: [] as MeasuredCandidate[],\n     failures: {} as Record<string, number>,\n     near: [] as Near[],\ndiff --git a/scripts/v0/optimizer/arc_objective.ts b/scripts/v0/optimizer/arc_objective.ts\nindex 51860353..32e44db7 100644\n--- a/scripts/v0/optimizer/arc_objective.ts\n+++ b/scripts/v0/optimizer/arc_objective.ts\n@@ -1,12 +1,12 @@\n /** Shared whole-track objective. Search, refinement and final selection use\n  * the same authored axes and physical-support motion preferences. */\n-import {detect} from '../../lib/detector.ts';\n-import type {DriftReport, Gap} from '../types.ts';\n-import {measureGapAxes} from '../core/measure.ts';\n-import type {ImpactEvaluation as MusicalImpactEvaluation, ImpactObservation} from './impact_accounts.ts';\n+import {detect, type Detection, type RawTrajectory} from '../../lib/detector.ts';\n+import type {AxisValues, DriftReport, Gap} from '../types.ts';\n+import {AXIS_MEASURE, measureGapAxes} from '../core/measure.ts';\n+import type {ImpactAssessment as MusicalImpactEvaluation, ImpactObservation} from './impact_accounts.ts';\n import {CONTACT_IMPACT_CONTRACT} from '../../lib/contact_impact.ts';\n import {validRide} from './ride_validity.ts';\n-import {motionSamples, MOTION_BANDS} from './motion_quality.ts';\n+import {motionSamples, MOTION_BANDS, type MotionSample} from './motion_quality.ts';\n import {motionResiduals, intervalMotionSummary} from './motion_objective.ts';\n import {engagementGains, engagementGainResidualsOver} from './impact_search.ts';\n import type {ArcCompileContext} from './arc_compile_context.ts';\n@@ -22,7 +22,11 @@ export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Ga\n \n /** Whole authored-axis loss for an already detected physical trajectory. */\n export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3,impacts?:MusicalImpactEvaluation){\n-  const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));\n+  return measuredTrajectoryObjective(gaps.map(g=>measureGapAxes(det,g,[],g.endFrame)),gaps,amplitudeWeight,impacts);\n+}\n+\n+function measuredTrajectoryObjective(measured: AxisValues[], gaps: Gap[], amplitudeWeight: number, impacts?: MusicalImpactEvaluation) {\n+  const regrets=Array(gaps.length+1).fill(0);\n   let loss=0,normalizer=0;\n   for(const axis of ['air','speed','amplitude','impact'] as const){\n     if(axis==='impact'&&impacts){\n@@ -55,10 +59,68 @@ export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gap\n  * the musical objective above. Regrets partition exactly the same loss. */\n export function arcSelectionObjective(ctx: ArcCompileContext, raw: any,\n   physical: readonly ImpactObservation[] | undefined, base: {loss: number; regrets: number[]}) {\n+  return selectionObjective(ctx, raw, physical, base);\n+}\n+\n+type ObjectivePrefix = {\n+  raw: RawTrajectory;\n+  axes: Array<Pick<AxisValues, 'air' | 'speed' | 'amplitude'> | undefined>;\n+  motion?: MotionSample[];\n+  motionCosts: Array<number | undefined>;\n+};\n+\n+/** One search's immutable prefix and scoring configuration. Only owned scalar\n+ * reductions and motion samples survive a borrowed detection. Boundary impacts\n+ * and unfinished supports are measured again; accumulation order is unchanged. */\n+export class ArcObjectiveContinuation {\n+  private readonly prefix: ObjectivePrefix;\n+\n+  constructor(private readonly ctx: ArcCompileContext, raw: RawTrajectory, private readonly amplitudeWeight = 1 / 3) {\n+    this.prefix = {raw, axes: [], motionCosts: []};\n+  }\n+\n+  score(raw: RawTrajectory, det: Detection, physical: readonly ImpactObservation[] | undefined, impacts?: MusicalImpactEvaluation) {\n+    const prefix = this.prefix, last = prefix.raw.frames.length - 1;\n+    // Like DetectionContinuation, the caller appends to an immutable prefix.\n+    // A replay invalidated before that boundary uses the complete observation.\n+    if (last < 0 || raw.frames[last] !== prefix.raw.frames[last])\n+      return arcSelectionObjective(this.ctx, raw, physical,\n+        arcDetectedTrajectoryObjective(det, this.ctx.gaps, this.amplitudeWeight, impacts));\n+    const measured = this.ctx.gaps.map((gap, i) => {\n+      const saved = prefix.axes[i];\n+      if (saved) return {...saved, impact: impacts ? undefined : AXIS_MEASURE.impact({det, gap, gapLines: [], rangeEndFrame: gap.endFrame})};\n+      const axes = measureGapAxes(det, gap, [], gap.endFrame);\n+      // These three reductions read only their inclusive frame span. Impact\n+      // reads later frames/events, so it never enters this prefix cache.\n+      if (gap.endFrame <= last) {\n+        const {air, speed, amplitude} = axes;\n+        prefix.axes[i] = {air, speed, amplitude};\n+      }\n+      return axes;\n+    });\n+    return selectionObjective(this.ctx, raw, physical,\n+      measuredTrajectoryObjective(measured, this.ctx.gaps, this.amplitudeWeight, impacts), prefix);\n+  }\n+}\n+\n+function selectionObjective(ctx: ArcCompileContext, raw: RawTrajectory,\n+  physical: readonly ImpactObservation[] | undefined, base: {loss: number; regrets: number[]}, prefix?: ObjectivePrefix) {\n   const whole = {loss: base.loss, regrets: base.regrets.slice()};\n   if (!Number.isFinite(whole.loss)) return whole;\n   const {options, contacts, duration, gaps} = ctx;\n-  const observed = options.motionQuality ? motionSamples(raw.frames, 1, duration) : undefined;\n+  let observed: MotionSample[] | undefined;\n+  if (options.motionQuality) {\n+    if (prefix?.motion) {\n+      const from = prefix.motion.length + 1;\n+      observed = from > duration ? prefix.motion : prefix.motion.concat(motionSamples(raw.frames, from, duration));\n+    } else {\n+      observed = motionSamples(raw.frames, 1, duration);\n+      // A sample uses its next frame's velocity. Retain only samples with that\n+      // next frame in the prefix. Restarting at the next sample computes the\n+      // same speedBefore as the preceding sample's speedAfter.\n+      if (prefix) prefix.motion = observed.slice(0, Math.max(0, prefix.raw.frames.length - 2));\n+    }\n+  }\n   const gains = physical ? engagementGains(physical as any, options.impactSearch) : undefined;\n   // Samples are contiguous from frame 1. Each support reads only its own\n   // frames and the longest burst band before them.\n@@ -67,13 +129,18 @@ export function arcSelectionObjective(ctx: ArcCompileContext, raw: any,\n     const next = contacts[i + 1]?.frame ?? duration + 1;\n     let extra = gains ? engagementGainResidualsOver(gains, contact.frame, next - 1, options.impactSearch)\n       .reduce((sum, value) => sum + value * value, 0) / contacts.length : 0;\n-    const local = observed?.slice(Math.max(0, contact.frame - reach - 1), Math.max(0, next - 1));\n-    if (local?.some(s => s.frame >= contact.frame && s.frame < next)) {\n-      const request = options.constructionRequests?.[i];\n-      const impact = contact.gap >= 0 ? gaps[contact.gap].targets.impact : request?.context?.nextImpact ?? undefined;\n-      extra += motionResiduals(intervalMotionSummary(local, contact.frame, next - 1), impact, options.motionQuality!)\n-        .reduce((sum, value) => sum + value * value, 0) / contacts.length;\n+    let motionCost = prefix?.motionCosts[i];\n+    if (motionCost === undefined) {\n+      const local = observed?.slice(Math.max(0, contact.frame - reach - 1), Math.max(0, next - 1));\n+      if (local?.some(s => s.frame >= contact.frame && s.frame < next)) {\n+        const request = options.constructionRequests?.[i];\n+        const impact = contact.gap >= 0 ? gaps[contact.gap].targets.impact : request?.context?.nextImpact ?? undefined;\n+        motionCost = motionResiduals(intervalMotionSummary(local, contact.frame, next - 1), impact, options.motionQuality!)\n+          .reduce((sum, value) => sum + value * value, 0) / contacts.length;\n+        if (prefix && next - 1 <= (prefix.motion?.length ?? 0)) prefix.motionCosts[i] = motionCost;\n+      }\n     }\n+    if (motionCost !== undefined) extra += motionCost;\n     whole.loss += extra;\n     whole.regrets[i] += extra;\n   }\ndiff --git a/scripts/v0/optimizer/impact_accounts.ts b/scripts/v0/optimizer/impact_accounts.ts\nindex ccc209ff..b1a11eee 100644\n--- a/scripts/v0/optimizer/impact_accounts.ts\n+++ b/scripts/v0/optimizer/impact_accounts.ts\n@@ -15,7 +15,7 @@\n  *  diagnostic in tools/measure.) */\n export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v3';\n import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';\n-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, observeMotionWindow, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,\n+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, observeMotionWindow, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes, evaluateStrikeEvents,\n   type StrikeContract} from '../../lib/strike_impact.ts';\n import type {RawFrame} from '../../lib/detector.ts';\n \n@@ -29,12 +29,14 @@ export type ImpactAccount = {\n   prefix(observed: ImpactObservation[]): unknown;\n   continue(prefix: unknown, observed: ImpactObservation[]): ContactImpactEvent[];\n   account(events: readonly ContactImpactEvent[], targets: readonly ImpactTarget[]): ReturnType<typeof accountContactImpacts>;\n+  evaluateEvents(events: readonly ContactImpactEvent[], targets: readonly ImpactTarget[], duration: number, survived: boolean): ImpactAssessment;\n   evaluate(observed: ImpactObservation[], targets: readonly ImpactTarget[], duration: number, survived: boolean): ImpactEvaluation;\n };\n /** Complete evaluation of a ride under one account (shared by search, refinement,\n  * final replay, production and review). */\n-export type ImpactEvaluation = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];\n-  account: ReturnType<typeof accountContactImpacts>; valid: boolean; speedGains: ReturnType<typeof contactSpeedGains>};\n+export type ImpactAssessment = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];\n+  account: ReturnType<typeof accountContactImpacts>; valid: boolean};\n+export type ImpactEvaluation = ImpactAssessment & {speedGains: ReturnType<typeof contactSpeedGains>};\n \n function strikeAccount(c: StrikeContract): ImpactAccount {\n   const motion = c.strength === 'motion' || c.split === 'reversal';\n@@ -67,6 +69,7 @@ function strikeAccount(c: StrikeContract): ImpactAccount {\n     prefix: observed => strikePrefix(observed as any, c),\n     continue: (prefix, observed) => continueStrikes(prefix as any, observed as any, c),\n     account: (events, targets) => accountStrikes(events as any, targets, c),\n+    evaluateEvents: (events, targets, duration, survived) => evaluateStrikeEvents(events as any, targets, duration, survived, c),\n     evaluate(observed, targets, duration, survived) {\n       return {...evaluateStrikes(observed as any, targets, duration, survived, c),\n         speedGains: contactSpeedGains((observed as any[]).filter(f => f.frame <= duration))};\ndiff --git a/tests/arc_objective_continuation.test.ts b/tests/arc_objective_continuation.test.ts\nnew file mode 100644\nindex 00000000..3736a9b7\n--- /dev/null\n+++ b/tests/arc_objective_continuation.test.ts\n@@ -0,0 +1,43 @@\n+import {expect, it} from 'vitest';\n+import {detect, DetectionContinuation, type RawFrame, type RawTrajectory} from '../scripts/lib/detector.ts';\n+import {accountContactImpacts} from '../scripts/lib/contact_impact.ts';\n+import {createArcCompileContext} from '../scripts/v0/optimizer/arc_compile_context.ts';\n+import {ArcObjectiveContinuation, arcDetectedTrajectoryObjective, arcSelectionObjective} from '../scripts/v0/optimizer/arc_objective.ts';\n+import type {ImpactAssessment, ImpactObservation} from '../scripts/v0/optimizer/impact_accounts.ts';\n+\n+function row(frame: number, variant = 0): RawFrame {\n+  const contact = frame % 40 < 12 + variant;\n+  return {frame, position: {x: frame * 3, y: 20 * Math.sin(frame / 20 + variant)},\n+    velocity: {x: 3 + Math.sin(frame / 13 + variant), y: Math.cos(frame / 7 + variant)},\n+    sledContacts: contact ? ['PEG'] : [], contactLineIds: contact ? [1] : [], sledBroken: false, riderEjected: false};\n+}\n+\n+for (const motion of [false, true]) for (const account of ['landing', 'valid', 'invalid'] as const) {\n+  it(`matches full scoring across prefix boundaries (${motion ? 'motion' : 'axes'}, ${account})`, () => {\n+    const ctx = createArcCompileContext({duration: 5, preroll: 0,\n+      contacts: [1, 2, 3, 4].map(t => ({t, impact: .4})),\n+      axes: {air: () => .4, speed: () => .6, amplitude: () => .2}},\n+    {budget: 200_000, motionQuality: motion ? {burstWeight: .64, calmWeight: 1} : undefined,\n+      impactSearch: {engagementGainWeight: .05}});\n+    const impacts: ImpactAssessment | undefined = account === 'landing' ? undefined : {\n+      contract: 'line.strike.v3', events: [], targets: [], account: accountContactImpacts([], []), valid: account === 'valid'};\n+    const all = Array.from({length: 221}, (_, frame) => row(frame));\n+    for (const cut of [0, 1, 2, 10, 38, 39, 40, 41, 79, 80, 159, 160, 199, 200, 219, 220]) {\n+      const prefix: RawTrajectory = {duration: cut, frames: all.slice(0, cut + 1)};\n+      const scorer = new ArcObjectiveContinuation(ctx, prefix, .37), detector = new DetectionContinuation(prefix);\n+      for (const variant of [0, 1, 2, 0]) {\n+        const raw = {duration: 220, frames: prefix.frames.concat(all.slice(cut + 1).map(f => row(f.frame, variant)))};\n+        const physical: ImpactObservation[] = raw.frames.map(f => ({frame: f.frame, contact: !!f.sledContacts.length,\n+          solverGain: Math.sin(f.frame / 4 + (f.frame > cut ? variant : 0)), gravityGain: .1, speedBefore: 3}));\n+        const expected = arcSelectionObjective(ctx, raw, physical, arcDetectedTrajectoryObjective(detect(raw), ctx.gaps, .37, impacts));\n+        if (account === 'valid') expect(Number.isFinite(expected.loss)).toBe(true);\n+        detector.withDetection(raw, det => expect(scorer.score(raw, det, physical, impacts)).toStrictEqual(expected));\n+        // A changed boundary cannot reuse the cached prefix; a later real\n+        // continuation must still see its original owned reductions.\n+        const replaced = {...raw, frames: raw.frames.map((f, i) => i <= cut ? row(i, 3) : f)};\n+        expect(scorer.score(replaced, detect(replaced), physical, impacts)).toStrictEqual(\n+          arcSelectionObjective(ctx, replaced, physical, arcDetectedTrajectoryObjective(detect(replaced), ctx.gaps, .37, impacts)));\n+      }\n+    }\n+  });\n+}\ndiff --git a/tests/motion_quality.test.ts b/tests/motion_quality.test.ts\nindex f366ebb4..e4929046 100644\n--- a/tests/motion_quality.test.ts\n+++ b/tests/motion_quality.test.ts\n@@ -2,6 +2,13 @@ import {describe,it,expect} from 'vitest';\n import {motionSamples,summarizeMotion,NATIVE_GRAVITY} from '../scripts/v0/optimizer/motion_quality.ts';\n \n describe('native motion observations',()=>{\n+  it('restarting a sample window preserves exact observations at every split',()=>{\n+    const values=[-Number.MAX_VALUE,-1e100,-1,-Number.MIN_VALUE,-0,0,Number.MIN_VALUE,1,1e100,Number.MAX_VALUE];\n+    const frames=Array.from({length:42},(_,frame)=>({frame,velocity:{x:values[frame%values.length],y:values[(frame*3+1)%values.length]}}));\n+    const whole=motionSamples(frames,1,40);\n+    for(let cut=0;cut<whole.length;cut++)\n+      expect(whole.slice(0,cut).concat(motionSamples(frames,cut+1,40))).toStrictEqual(whole);\n+  });\n   it('subtracts gravity along the actual steered path and retains a delayed final response',()=>{\n     const frames=[{frame:0,velocity:{x:4,y:-2}},\n       {frame:1,velocity:{x:4,y:-2+NATIVE_GRAVITY}},\ndiff --git a/tests/strike_v2.test.ts b/tests/strike_v2.test.ts\nindex f4db012d..5d4be710 100644\n--- a/tests/strike_v2.test.ts\n+++ b/tests/strike_v2.test.ts\n@@ -60,6 +60,23 @@ it('v2/v3 incremental detection equals cold detection, across an opposite-push s\n   expect(detectStrikes(all, V3).length).toBeGreaterThan(detectStrikes(all, V2).length);\n });\n \n+it('accounts continued events exactly like a complete observation under every strike contract', () => {\n+  const frames = Array.from({length: 36}, (_, frame) => ({frame, contact: frame % 12 < 9,\n+    J: Math.abs(Math.sin(frame)) * 2, bend: .2, solverGain: .1, gravityGain: 0, speedBefore: 5,\n+    impulse: [Math.sin(frame) * 2, Math.cos(frame), .1] as const}));\n+  const targets = [{frame: 3, impact: .4}, {frame: 14, impact: .6}, {frame: 27, impact: .2}];\n+  for (const contract of [STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT]) {\n+    const ruler = impactAccount(contract.id);\n+    for (const duration of [20, 35]) for (const survived of [true, false]) {\n+      const {speedGains: _gains, ...expected} = ruler.evaluate(frames, targets, duration, survived);\n+      for (let cut = 0; cut <= frames.length; cut++) {\n+        const events = ruler.continue(ruler.prefix(frames.slice(0, cut)), frames.slice(cut));\n+        expect(ruler.evaluateEvents(events, targets, duration, survived)).toStrictEqual(expected);\n+      }\n+    }\n+  }\n+});\n+\n it('the native whole-body read equals bodyMotion over ballisticState exactly', async () => {\n   const {bodyMotion} = await import('../scripts/lib/strike_impact.ts');\n   const track = compileHandoff(spec, 101, {budget: 180000, creative: {}, impactContract: STRIKE_V3_CONTRACT.id}).track;\n",
+    "history-resources.mts": "import assert from 'node:assert/strict';\nimport {execFileSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nimport {copyFileSync, existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync} from 'node:fs';\nimport {snapshotSources, sourceOverlay} from '/home/holo/line/tools/measure/engine_sources.ts';\nconst root='/home/holo/line', study='/tmp/engine-performance-20261104', out=study+'/history-resources';\nassert(!existsSync(out)); mkdirSync(out);\nconst sandbox=out+'/worktree', reference=out+'/reference';\nsnapshotSources(root,sandbox,root); snapshotSources(study+'/reference',reference,root);\nconst overlay=sourceOverlay(reference,sandbox);\nsymlinkSync(root+'/node_modules',sandbox+'/node_modules');\nconst binaries=[reference+'/scripts/lib/native_motion/engine.wasm',root+'/scripts/lib/native_motion/engine.wasm'].map(p=>readFileSync(p));\nconst artifacts=binaries.map((b,arm)=>{const p=out+`/arm-${arm}.wasm`;writeFileSync(p,b);return {path:p,sha256:createHash('sha256').update(b).digest('hex')};});\nconst config=out+'/protocol.json';writeFileSync(config,JSON.stringify({mode:'compile',cells:[61,62],warmup:5,reps:3}));\nconst result={schema:'line.engine-resource-observations.v1',referenceCommit:'4edec76a',node:process.version,cpuAffinity:2,\n sourceSha256:overlay.sourceSha256,artifacts,scope:'Three fresh processes per arm/cell; existing compileWorker resource measurement and exact track/work assertions. No timing inference.',observations:[] as any[]};\nfor(const cell of [61,62])for(let rep=0;rep<3;rep++)for(const arm of (rep%2?[1,0]:[0,1])){\n overlay.activate(arm);copyFileSync(artifacts[arm].path,sandbox+'/scripts/lib/native_motion/engine.wasm');\n const path=out+`/cell-${cell}-rep-${rep}-arm-${arm}.json`;\n execFileSync(process.execPath,['--expose-gc','--import','tsx','tools/measure/engine_ab.ts','--worker',`--config=${config}`,`--result=${path}`,`--resources-cell=${cell}`],{cwd:sandbox,stdio:['ignore','ignore','pipe'],env:{...process.env,LR_ENGINE:'wasm'}});\n const observation=JSON.parse(readFileSync(path,'utf8')).iterations[0];\n result.observations.push({cell,rep,arm,...observation});\n writeFileSync(out+'/result.json',JSON.stringify(result,null,2)+'\\n');\n console.log(JSON.stringify({cell,rep,arm,wasmMiB:observation.resources.wasmLinearMemoryBytes/2**20,peakRssMiB:observation.resources.processMaxRssBytes/2**20}));\n}\n",
+    "history-velocity.patch": "diff --git a/scripts/lib/native_motion/src/cache.rs b/scripts/lib/native_motion/src/cache.rs\nindex 4f235269..1e655ddf 100644\n--- a/scripts/lib/native_motion/src/cache.rs\n+++ b/scripts/lib/native_motion/src/cache.rs\n@@ -117,7 +117,7 @@ impl FrameCache {\n     pub(crate) fn add_lines(&mut self, lines: &[LineRef]) {\n         if !lines.iter().any(|line| line.collidable) { return; }\n         self.ensure_history();\n-        if let Some(first) = self.history.first_for_added_lines(lines, i32::MAX) {\n+        if let Some(first) = self.history.first_for_added_lines(&self.frames, lines, i32::MAX) {\n             self.set_frames_length(first as usize);\n         }\n         self.line_cache.invalidate();\ndiff --git a/scripts/lib/native_motion/src/history.rs b/scripts/lib/native_motion/src/history.rs\nindex 0773c0a1..16066ed0 100644\n--- a/scripts/lib/native_motion/src/history.rs\n+++ b/scripts/lib/native_motion/src/history.rs\n@@ -5,28 +5,24 @@\n //! per-frame reverse patch (for `_setFramesLength` rollback) are observationally\n //! identical to lr-core's persistent per-frame structures.\n //!\n-//!   - `snapshotEntity` \u2192 `Snap{pos,vel}` (the parity fix)\n+//!   - snapshot positions plus the fixed velocities in their owning saved frame\n //!   - `Frame.grid` (center cell \u2192 CellFrameList) + addToGrid + getIndexOfCollisionInCell\n //!   - `Frame.collisions` (line id \u2192 frames) + addToCollisions + getIndexOfCollisionWithLine\n \n use crate::grid::{hash_int_pair, IntMap};\n use crate::line::{collides_with, Line, LineRef};\n+use crate::kernel::State;\n use std::cell::OnceCell;\n use crate::shared_prefix::SharedPrefix;\n \n-/// snapshotEntity: pos + vel only (Frame.js:16 \u2014 the only fields the invalidation\n-/// replay reads).\n+/// Positions change during collision sweeps; velocities do not. Keep the exact\n+/// position here and read this point's velocity from the owning saved frame.\n+/// The inline first snapshot and subsequent linked snapshots share one layout.\n #[derive(Clone, Copy)]\n-struct Snap {\n+struct Snapshot {\n     px: f64,\n     py: f64,\n-    vx: f64,\n-    vy: f64,\n-}\n-\n-#[derive(Clone)]\n-struct SnapNode {\n-    snap: Snap,\n+    point: u8,\n     next: i32,\n }\n \n@@ -35,8 +31,7 @@ struct SnapNode {\n #[derive(Clone)]\n struct CellFrame {\n     index: i32,\n-    first: Snap,\n-    rest_head: i32,\n+    first: Snapshot,\n     bounds: OnceCell<Option<SnapshotBounds>>,\n }\n \n@@ -50,19 +45,18 @@ struct SnapshotBounds {\n }\n \n impl SnapshotBounds {\n-    fn from_frame(frame: &CellFrame, links: &SharedPrefix<SnapNode>) -> Option<Self> {\n+    fn from_frame(frame: &CellFrame, links: &SharedPrefix<Snapshot>, state: &State) -> Option<Self> {\n         let mut bounds = Self { low: [f64::INFINITY; 4], high: [f64::NEG_INFINITY; 4] };\n         let mut snap = frame.first;\n-        let mut next = frame.rest_head;\n         loop {\n-            for (i, value) in [snap.px, snap.py, snap.vx, snap.vy].into_iter().enumerate() {\n+            let point = snap.point as usize;\n+            for (i, value) in [snap.px, snap.py, state.vx[point], state.vy[point]].into_iter().enumerate() {\n                 if !value.is_finite() { return None; }\n                 bounds.low[i] = bounds.low[i].min(value);\n                 bounds.high[i] = bounds.high[i].max(value);\n             }\n-            if next == -1 { return Some(bounds); }\n-            let node = &links[next as usize];\n-            snap = node.snap; next = node.next;\n+            if snap.next == -1 { return Some(bounds); }\n+            snap = links[snap.next as usize];\n         }\n     }\n \n@@ -155,34 +149,35 @@ impl ActiveCellCache {\n \n impl CellFrame {\n     #[inline]\n-    fn any_collides(&self, snap_links: &SharedPrefix<SnapNode>, l: &Line) -> bool {\n+    fn any_collides(&self, snap_links: &SharedPrefix<Snapshot>, l: &Line, state: &State) -> bool {\n         if collides_with(\n             l,\n             self.first.px,\n             self.first.py,\n-            self.first.vx,\n-            self.first.vy,\n+            state.vx[self.first.point as usize],\n+            state.vy[self.first.point as usize],\n         ) {\n             return true;\n         }\n-        if self.rest_head == -1 { return false; }\n-        if self.bounds.get_or_init(|| SnapshotBounds::from_frame(self, snap_links))\n+        if self.first.next == -1 { return false; }\n+        if self.bounds.get_or_init(|| SnapshotBounds::from_frame(self, snap_links, state))\n             .as_ref().is_some_and(|bounds| bounds.excludes(l)) { return false; }\n-        self.rest_collides(snap_links, l)\n+        self.rest_collides(snap_links, l, state)\n     }\n \n     #[cfg(test)]\n-    fn any_collides_exact(&self, snap_links: &SharedPrefix<SnapNode>, line: &Line) -> bool {\n-        collides_with(line, self.first.px, self.first.py, self.first.vx, self.first.vy)\n-            || self.rest_collides(snap_links, line)\n+    fn any_collides_exact(&self, snap_links: &SharedPrefix<Snapshot>, line: &Line, state: &State) -> bool {\n+        collides_with(line, self.first.px, self.first.py,\n+            state.vx[self.first.point as usize], state.vy[self.first.point as usize])\n+            || self.rest_collides(snap_links, line, state)\n     }\n \n     #[inline]\n-    fn rest_collides(&self, snap_links: &SharedPrefix<SnapNode>, l: &Line) -> bool {\n-        let mut next = self.rest_head;\n+    fn rest_collides(&self, snap_links: &SharedPrefix<Snapshot>, l: &Line, state: &State) -> bool {\n+        let mut next = self.first.next;\n         while next != -1 {\n             let n = &snap_links[next as usize];\n-            if collides_with(l, n.snap.px, n.snap.py, n.snap.vx, n.snap.vy) {\n+            if collides_with(l, n.px, n.py, state.vx[n.point as usize], state.vy[n.point as usize]) {\n                 return true;\n             }\n             next = n.next;\n@@ -200,7 +195,7 @@ pub(crate) struct CollisionHistory {\n     collisions: Collisions,\n     cells: Vec<i64>,\n     cell_ends: Vec<usize>,\n-    snaps: SharedPrefix<SnapNode>,\n+    snaps: SharedPrefix<Snapshot>,\n     snap_ends: Vec<usize>,\n     active: ActiveCellCache,\n     lines: Vec<i32>,\n@@ -277,13 +272,12 @@ impl CollisionHistory {\n         &mut self,\n         cell: i64,\n         frame: i32,\n+        point: u8,\n         px: f64,\n         py: f64,\n-        vx: f64,\n-        vy: f64,\n     ) {\n         debug_assert_eq!(frame as usize, self.len());\n-        let snap = Snap { px, py, vx, vy };\n+        let snap = Snapshot { px, py, point, next: -1 };\n         if let Some(node) = self.active.get(cell) {\n             append_snapshot(node, &mut self.snaps, snap);\n             return;\n@@ -299,7 +293,6 @@ impl CollisionHistory {\n         list.push(CellFrame {\n             index: frame,\n             first: snap,\n-            rest_head: -1,\n             bounds: OnceCell::new(),\n         });\n         self.active.put(cell, list.last_mut().unwrap());\n@@ -320,7 +313,8 @@ impl CollisionHistory {\n     /// complete registration batch: consecutive lines in the same raster cell\n     /// can reuse its nine center-cell lists. Load only lists actually visited,\n     /// retaining the adjacent-cell overlap skip within each line's footprint.\n-    pub(crate) fn first_for_added_lines(&self, lines: &[LineRef], before: i32) -> Option<i32> {\n+    pub(crate) fn first_for_added_lines(&self, frames: &SharedPrefix<State>, lines: &[LineRef], before: i32) -> Option<i32> {\n+        debug_assert!(self.len() <= frames.len(), \"history must belong to these saved frames\");\n         let mut best = before;\n         let mut query_cell = None;\n         let mut lists: [Option<&[CellFrame]>; 9] = [None; 9];\n@@ -341,7 +335,7 @@ impl CollisionHistory {\n                         let slot = ((dx + 1) * 3 + dy + 1) as usize;\n                         let list = *lists[slot].get_or_insert_with(|| self.grid\n                             .get(&hash_int_pair(cx, cy)).map_or(&[], Vec::as_slice));\n-                        if let Some(index) = index_of_collision_in_list(list, &self.snaps, line, best) {\n+                        if let Some(index) = index_of_collision_in_list(list, &self.snaps, frames, line, best) {\n                             best = index;\n                             if best == 1 { return Some(1); }\n                         }\n@@ -367,11 +361,11 @@ type HistGrid = IntMap<i64, Vec<CellFrame>>;\n type Collisions = IntMap<i32, Vec<i32>>;\n \n #[inline]\n-fn append_snapshot(frame: &mut CellFrame, snap_links: &mut SharedPrefix<SnapNode>, snap: Snap) {\n+fn append_snapshot(frame: &mut CellFrame, snap_links: &mut SharedPrefix<Snapshot>, mut snap: Snapshot) {\n     frame.bounds.take();\n-    let next = frame.rest_head;\n-    frame.rest_head = snap_links.len() as i32;\n-    snap_links.push(SnapNode { snap, next });\n+    snap.next = frame.first.next;\n+    frame.first.next = snap_links.len() as i32;\n+    snap_links.push(snap);\n }\n \n /// First node below `before` (ascending index) in one center-cell list whose\n@@ -379,7 +373,8 @@ fn append_snapshot(frame: &mut CellFrame, snap_links: &mut SharedPrefix<SnapNode\n #[inline]\n fn index_of_collision_in_list(\n     list: &[CellFrame],\n-    snap_links: &SharedPrefix<SnapNode>,\n+    snap_links: &SharedPrefix<Snapshot>,\n+    frames: &SharedPrefix<State>,\n     l: &Line,\n     before: i32,\n ) -> Option<i32> {\n@@ -387,7 +382,7 @@ fn index_of_collision_in_list(\n         if cf.index >= before {\n             break;\n         }\n-        if cf.any_collides(snap_links, l) {\n+        if cf.any_collides(snap_links, l, &frames[cf.index as usize]) {\n             return Some(cf.index);\n         }\n     }\n@@ -432,6 +427,47 @@ fn rollback_collisions(\n mod tests {\n     use super::*;\n     use crate::line::build_line;\n+    use crate::kernel::init_state;\n+\n+    // Standalone query cases use every array slot as a synthetic point.\n+    fn velocity_state(vx: f64, vy: f64) -> State {\n+        let mut state = init_state(100.0, 100.0, vx, vy);\n+        state.vx.fill(vx);\n+        state.vy.fill(vy);\n+        state\n+    }\n+\n+    #[test]\n+    fn snapshots_use_their_own_frame_velocity_and_sweep_position() {\n+        assert_eq!(std::mem::size_of::<Snapshot>(), 24);\n+        let line = build_line(1, 0.0, 0.0, 10.0, 0.0, 0, 0);\n+        let mut states = SharedPrefix::new(velocity_state(0.0, 0.0));\n+        let mut history = CollisionHistory::new();\n+        let cell = hash_int_pair(0, 0);\n+        for frame in 1..=2 {\n+            // The final positions are outside the line: history must retain\n+            // the intermediate sweep positions. Only point 1 in frame 2 has\n+            // the direction that can collide with this line.\n+            let mut state = velocity_state(0.0, -1.0);\n+            if frame == 2 { state.vy[1] = 1.0; }\n+            states.push(state);\n+            history.begin_frame();\n+            history.record_point(cell, frame, 0, 2.0, 1.0);\n+            history.record_point(cell, frame, 1, 3.0, 1.0);\n+            history.finish_frame();\n+        }\n+        assert_eq!(history.first_for_added_lines(&states, &[line.clone()], i32::MAX), Some(2));\n+        let mut branch = history.clone();\n+        let mut branch_states = states.clone();\n+        branch.truncate(2);\n+        branch_states.truncate(2);\n+        branch_states.push(velocity_state(0.0, -1.0));\n+        branch.begin_frame();\n+        branch.record_point(cell, 2, 1, 3.0, 1.0);\n+        branch.finish_frame();\n+        assert_eq!(branch.first_for_added_lines(&branch_states, &[line.clone()], i32::MAX), None);\n+        assert_eq!(history.first_for_added_lines(&states, &[line], i32::MAX), Some(2));\n+    }\n \n     #[test]\n     fn shared_snapshot_chunks_preserve_source_after_branch_rollback_and_append() {\n@@ -440,13 +476,13 @@ mod tests {\n         for frame in 1..=130 {\n             source.begin_frame();\n             for point in 0..70 {\n-                source.record_point(cell, frame, point as f64, frame as f64, 0.0, 1.0);\n+                source.record_point(cell, frame, (point % 10) as u8, point as f64, frame as f64);\n             }\n             source.finish_frame();\n         }\n         let values = |history: &CollisionHistory| (0..history.snaps.len()).map(|i| {\n-            let s = history.snaps[i].snap;\n-            [s.px.to_bits(), s.py.to_bits(), s.vx.to_bits(), s.vy.to_bits()]\n+            let s = history.snaps[i];\n+            [s.px.to_bits(), s.py.to_bits(), s.point as u64, s.next as u64]\n         }).collect::<Vec<_>>();\n         let original = values(&source);\n         for keep in [1, 2, 63, 64, 65, 129, 131] {\n@@ -456,7 +492,7 @@ mod tests {\n             for frame in keep..keep + 3 {\n                 branch.begin_frame();\n                 for point in 0..100 {\n-                    branch.record_point(cell, frame as i32, -(point as f64), -(frame as f64), -0.0, -1.0);\n+                    branch.record_point(cell, frame as i32, (point % 10) as u8, -(point as f64), -(frame as f64));\n                 }\n                 branch.finish_frame();\n             }\n@@ -472,13 +508,16 @@ mod tests {\n         let values = [-f64::MAX, -1.0e100, -10.0, -f64::MIN_POSITIVE, -0.0, 0.0,\n             f64::MIN_POSITIVE, 1.0e-200, 1.0, 10.0, 1.0e100, f64::MAX, f64::INFINITY, f64::NAN];\n         for trial in 0..200 {\n-            let mut frame = CellFrame { index: 1, first: Snap { px: -1.0, py: -1.0, vx: 0.0, vy: 1.0 },\n-                rest_head: -1, bounds: OnceCell::new() };\n+            let mut state = velocity_state(0.0, 1.0);\n+            let mut frame = CellFrame { index: 1, first: Snapshot { px: -1.0, py: -1.0, point: 0, next: -1 },\n+                bounds: OnceCell::new() };\n             let mut links = SharedPrefix::default();\n             for i in 0..12 {\n-                append_snapshot(&mut frame, &mut links, Snap {\n+                state.vx[i] = values[(trial * 5 + i) % values.len()];\n+                state.vy[i] = values[(trial * 7 + i) % values.len()];\n+                append_snapshot(&mut frame, &mut links, Snapshot {\n                     px: values[(trial + i) % values.len()], py: values[(trial * 3 + i) % values.len()],\n-                    vx: values[(trial * 5 + i) % values.len()], vy: values[(trial * 7 + i) % values.len()],\n+                    point: i as u8, next: -1,\n                 });\n             }\n             for i in 0..24 {\n@@ -487,32 +526,37 @@ mod tests {\n                 let x = values[(trial + i) % values.len()];\n                 let y = values[(trial * 2 + i) % values.len()];\n                 let line = Line::new(i as i32, x, y, x + 10.0, y + i as f64 - 12.0, 0, (i % 8) as i64);\n-                assert_eq!(frame.any_collides(&links, &line), frame.any_collides_exact(&links, &line));\n+                assert_eq!(frame.any_collides(&links, &line, &state), frame.any_collides_exact(&links, &line, &state));\n             }\n         }\n         let line = Line::new(1, 0.0, 0.0, 10.0, 0.0, 0, 0);\n-        let mut frame = CellFrame { index: 1, first: Snap { px: 1.0, py: -1.0, vx: 0.0, vy: 1.0 },\n-            rest_head: -1, bounds: OnceCell::new() };\n+        let state = velocity_state(0.0, 1.0);\n+        let mut frame = CellFrame { index: 1, first: Snapshot { px: 1.0, py: -1.0, point: 0, next: -1 },\n+            bounds: OnceCell::new() };\n         let mut links = SharedPrefix::default();\n-        append_snapshot(&mut frame, &mut links, Snap { px: 2.0, py: -2.0, vx: 0.0, vy: 1.0 });\n-        assert!(!frame.any_collides(&links, &line));\n+        append_snapshot(&mut frame, &mut links, Snapshot { px: 2.0, py: -2.0, point: 0, next: -1 });\n+        assert!(!frame.any_collides(&links, &line, &state));\n         assert!(frame.bounds.get().is_some());\n-        append_snapshot(&mut frame, &mut links, Snap { px: 2.0, py: 1.0, vx: 0.0, vy: 1.0 });\n+        append_snapshot(&mut frame, &mut links, Snapshot { px: 2.0, py: 1.0, point: 0, next: -1 });\n         assert!(frame.bounds.get().is_none());\n-        assert!(frame.any_collides(&links, &line));\n+        assert!(frame.any_collides(&links, &line, &state));\n     }\n \n     #[test]\n     fn overlapping_neighborhood_queries_equal_an_exhaustive_history_scan() {\n         let mut history = CollisionHistory::new();\n+        let mut states = SharedPrefix::new(velocity_state(0.0, 1.0));\n         for frame in 1..=80 {\n             history.begin_frame();\n+            let mut state = velocity_state(0.0, 1.0);\n             for point in 0..3 {\n                 let px = ((frame * 31 + point * 13) % 180 - 90) as f64;\n                 let py = ((frame * 17 + point * 7) % 70 - 35) as f64;\n                 let cell = hash_int_pair((px / 14.0).floor() as i64, (py / 14.0).floor() as i64);\n-                history.record_point(cell, frame, px, py, point as f64 - 1.0, 1.0);\n+                state.vx[point as usize] = point as f64 - 1.0;\n+                history.record_point(cell, frame, point as u8, px, py);\n             }\n+            states.push(state);\n             history.finish_frame();\n         }\n         for through in [81, 61, 21, 1] {\n@@ -528,7 +572,7 @@ mod tests {\n                         for dy in -1..=1 {\n                             if let Some(list) = history.grid.get(&hash_int_pair(gx + dx, gy + dy)) {\n                                 for frame in list {\n-                                    if frame.any_collides_exact(&history.snaps, &line) {\n+                                    if frame.any_collides_exact(&history.snaps, &line, &states[frame.index as usize]) {\n                                         expected = Some(expected.map_or(frame.index, |before: i32| before.min(frame.index)));\n                                     }\n                                 }\n@@ -536,9 +580,9 @@ mod tests {\n                         }\n                     }\n                 }\n-                assert_eq!(history.first_for_added_lines(std::slice::from_ref(&line), i32::MAX), expected);\n+                assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&line), i32::MAX), expected);\n                 for before in [1, 3, 37, 81] {\n-                    assert_eq!(history.first_for_added_lines(std::slice::from_ref(&line), before), expected.filter(|&index| index < before));\n+                    assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&line), before), expected.filter(|&index| index < before));\n                 }\n                 assert_eq!(history.len(), through, \"a query must not mutate history\");\n             }\n@@ -548,14 +592,19 @@ mod tests {\n     #[test]\n     fn batch_neighborhood_reuse_matches_unfiltered_history() {\n         let mut history = CollisionHistory::new();\n+        let mut states = SharedPrefix::new(velocity_state(0.0, 1.0));\n         for frame in 1..40 {\n             history.begin_frame();\n+            let mut state = velocity_state(0.0, 1.0);\n             for point in 0..12 {\n                 let x = ((frame * 11 + point * 3) % 70 - 35) as f64;\n                 let y = ((frame * 7 + point * 13) % 70 - 35) as f64;\n+                state.vx[point as usize] = point as f64 - 4.0;\n+                state.vy[point as usize] = 1.0;\n                 history.record_point(hash_int_pair((x / 14.0).floor() as i64,\n-                    (y / 14.0).floor() as i64), frame, x, y, point as f64 - 4.0, 1.0);\n+                    (y / 14.0).floor() as i64), frame, point as u8, x, y);\n             }\n+            states.push(state);\n             history.finish_frame();\n         }\n         for trial in 0..200 {\n@@ -571,7 +620,7 @@ mod tests {\n                         for dx in -1..=1 { for dy in -1..=1 {\n                             if let Some(list) = history.grid.get(&hash_int_pair(gx + dx, gy + dy)) {\n                                 for frame in list {\n-                                    if frame.index < expected && frame.any_collides_exact(&history.snaps, line) {\n+                                    if frame.index < expected && frame.any_collides_exact(&history.snaps, line, &states[frame.index as usize]) {\n                                         expected = frame.index;\n                                     }\n                                 }\n@@ -579,7 +628,7 @@ mod tests {\n                         }}\n                     }\n                 }\n-                assert_eq!(history.first_for_added_lines(&lines, before),\n+                assert_eq!(history.first_for_added_lines(&states, &lines, before),\n                     (expected < before).then_some(expected));\n             }\n         }\n@@ -590,30 +639,32 @@ mod tests {\n         let near = build_line(7, 0.0, 0.0, 10.0, 0.0, 0, 0);\n         let far = build_line(8, 140.0, 140.0, 150.0, 140.0, 0, 0);\n         let mut history = CollisionHistory::new();\n+        let mut states = SharedPrefix::new(velocity_state(0.0, 1.0));\n+        for _ in 0..3 { states.push(velocity_state(0.0, 1.0)); }\n         history.begin_frame();\n-        history.record_point(hash_int_pair(0, 0), 1, -1.0, 1.0, 0.0, 1.0);\n-        history.record_point(hash_int_pair(0, 0), 1, 1.0, 1.0, 0.0, 1.0);\n+        history.record_point(hash_int_pair(0, 0), 1, 0, -1.0, 1.0);\n+        history.record_point(hash_int_pair(0, 0), 1, 0, 1.0, 1.0);\n         history.record_collision(7, 1);\n         history.record_collision(7, 1);\n         history.finish_frame();\n         history.begin_frame();\n-        history.record_point(hash_int_pair(10, 10), 2, 141.0, 141.0, 0.0, 1.0);\n+        history.record_point(hash_int_pair(10, 10), 2, 0, 141.0, 141.0);\n         history.record_collision(8, 2);\n         history.finish_frame();\n         assert_eq!(history.len(), 3);\n-        assert_eq!(history.first_for_added_lines(std::slice::from_ref(&near), i32::MAX), Some(1));\n-        assert_eq!(history.first_for_added_lines(std::slice::from_ref(&far), i32::MAX), Some(2));\n+        assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&near), i32::MAX), Some(1));\n+        assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&far), i32::MAX), Some(2));\n         let mut detached = history.clone();\n         assert!(detached.active.get(hash_int_pair(10, 10)).is_none());\n         detached.truncate(2);\n         assert_eq!(detached.len(), 2);\n         assert_eq!(detached.first_with_line(8), None);\n-        assert_eq!(detached.first_for_added_lines(std::slice::from_ref(&far), i32::MAX), None);\n-        assert_eq!(detached.first_for_added_lines(std::slice::from_ref(&near), i32::MAX), Some(1));\n+        assert_eq!(detached.first_for_added_lines(&states, std::slice::from_ref(&far), i32::MAX), None);\n+        assert_eq!(detached.first_for_added_lines(&states, std::slice::from_ref(&near), i32::MAX), Some(1));\n         assert_eq!(history.first_with_line(8), Some(2));\n-        assert_eq!(history.first_for_added_lines(std::slice::from_ref(&far), i32::MAX), Some(2));\n+        assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&far), i32::MAX), Some(2));\n         detached.begin_frame();\n-        detached.record_point(hash_int_pair(0, 0), 2, 2.0, 1.0, 0.0, 1.0);\n+        detached.record_point(hash_int_pair(0, 0), 2, 0, 2.0, 1.0);\n         detached.record_collision(9, 2);\n         detached.finish_frame();\n         assert_eq!(detached.first_with_line(9), Some(2));\n@@ -624,13 +675,13 @@ mod tests {\n         assert_eq!(detached.len(), 1);\n         assert_eq!(detached.first_with_line(7), None);\n         assert_eq!(detached.first_with_line(9), None);\n-        assert_eq!(detached.first_for_added_lines(std::slice::from_ref(&near), i32::MAX), None);\n+        assert_eq!(detached.first_for_added_lines(&states, std::slice::from_ref(&near), i32::MAX), None);\n         assert!(detached.active.get(hash_int_pair(0, 0)).is_none());\n         history.clear();\n         assert_eq!(history.len(), 1);\n         assert_eq!(history.first_with_line(7), None);\n         assert_eq!(history.first_with_line(8), None);\n-        assert_eq!(history.first_for_added_lines(std::slice::from_ref(&far), i32::MAX), None);\n+        assert_eq!(history.first_for_added_lines(&states, std::slice::from_ref(&far), i32::MAX), None);\n         assert!(history.active.get(hash_int_pair(10, 10)).is_none());\n     }\n }\ndiff --git a/scripts/lib/native_motion/src/kernel.rs b/scripts/lib/native_motion/src/kernel.rs\nindex 21a0a3c2..95829dd7 100644\n--- a/scripts/lib/native_motion/src/kernel.rs\n+++ b/scripts/lib/native_motion/src/kernel.rs\n@@ -412,10 +412,9 @@ unsafe fn collide_point<const TRACK: bool>(\n         history.record_point(\n             center_cell,\n             frame_index,\n+            index as u8,\n             pxi,\n             pyi,\n-            vxi,\n-            vyi,\n         );\n     }\n     line_cache.cache_point_lines(grid, index, vxi, vyi);\n@@ -472,10 +471,9 @@ unsafe fn collide_point<const TRACK: bool>(\n                     history.record_point(\n                         pcell,\n                         frame_index,\n+                        index as u8,\n                         pxi,\n                         pyi,\n-                        vxi,\n-                        vyi,\n                     );\n                     history.record_collision(l.id, frame_index);\n                 }\n"
+  },
+  "historyVelocityValidation": {
+    "rustTests": 30,
+    "savedCases": 65,
+    "liveCases": 65,
+    "frameStates": 68827,
+    "orderedCollisions": 432018,
+    "freshResourceCompiles": 12,
+    "exactTrackAndWork": true,
+    "candidateWasm": "f62062f46742f55854fdc1cdf1b15a3c429939f37398c66fe011a162c5e125ca",
+    "decision": "Reject: WASM reductions 9.75% / 3.46% fail predeclared 15% in both cells; no timing trial."
+  },
+  "finalValidation": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "javascriptTests": 424,
+    "rustTests": 29,
+    "typeErrors": 0,
+    "unreachableFiles": 0,
+    "savedPhysicsCases": 65,
+    "livePhysicsCases": 65,
+    "exactFrameStates": 68827,
+    "orderedCollisions": 432018,
+    "compilerTrackAndWorkCells": 63,
+    "compilerParitySeconds": 254,
+    "judgeTracks": 33,
+    "productionSources": "identical to 4edec76a",
+    "wasmSha256": "b0fc5d3bd8da5e7c136607de11e347ce8823c88909da075b4f2cbe1471b7481c",
+    "log": {
+      "path": "generated/engine-performance-20261104/final-check.log",
+      "sha256": "2d91596e20eee299a47ed95f729477acf91c0c7f940cbef02e1cd390d62f690e"
+    }
+  }
+}

@@ -2,6 +2,13 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+An untimed shared direction-range diagnostic preserves exact track/work and
+checks every predicted hit against the complete ordered result. Fixed ±0.25
+velocity rectangles could skip 1,832,622 of 15,779,285 direction dots, but their
+certificates need 13,741,636 extra dots: **75.47% more**, before cache overhead.
+The declared reduction gate fails. No cache, parameter tuning or timing follows
+(`docs/research/engine-direction-ranges-20261104.json`).
+
 Separating raster offsets from hot collision geometry and calculating acceleration
 only on an acceleration hit reduces the actual WASM line record from 104 to
 80 bytes. All 29 Rust tests and independent native replay pass; 96 additional

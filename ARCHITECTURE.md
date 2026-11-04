@@ -92,9 +92,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    cache snapshot until either needs to write. Cached reads do not copy it;
    releasing the source before the next write transfers the storage without
    copying. Live lineages still isolate edits, frame extension and truncation.
-   Saved states share immutable 64-frame chunks across copies; an append copies
-   only a shared partial tail. Registration batches own contiguous geometry and
-   raster footprints, shared by indexed line references. Registration queries the
+   Saved states and collision snapshots use one immutable 64-entry prefix store
+   across copies; an append copies only a shared partial tail. Registration batches
+   own contiguous geometry and raster footprints, shared by indexed line references.
+   Registration queries the
    earliest invalidation once per batch. History frames lazily cache conservative
    component bounds, with exact predicate scans for survivors and nonfinite data.
    The independent judge is unchanged and remains a separate implementation.

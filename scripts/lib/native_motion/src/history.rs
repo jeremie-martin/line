@@ -12,6 +12,7 @@
 use crate::grid::{hash_int_pair, IntMap};
 use crate::line::{collides_with, Line, LineRef};
 use std::cell::OnceCell;
+use crate::shared_prefix::SharedPrefix;
 
 /// snapshotEntity: pos + vel only (Frame.js:16 — the only fields the invalidation
 /// replay reads).
@@ -49,7 +50,7 @@ struct SnapshotBounds {
 }
 
 impl SnapshotBounds {
-    fn from_frame(frame: &CellFrame, links: &[SnapNode]) -> Option<Self> {
+    fn from_frame(frame: &CellFrame, links: &SharedPrefix<SnapNode>) -> Option<Self> {
         let mut bounds = Self { low: [f64::INFINITY; 4], high: [f64::NEG_INFINITY; 4] };
         let mut snap = frame.first;
         let mut next = frame.rest_head;
@@ -154,7 +155,7 @@ impl ActiveCellCache {
 
 impl CellFrame {
     #[inline]
-    fn any_collides(&self, snap_links: &[SnapNode], l: &Line) -> bool {
+    fn any_collides(&self, snap_links: &SharedPrefix<SnapNode>, l: &Line) -> bool {
         if collides_with(
             l,
             self.first.px,
@@ -171,13 +172,13 @@ impl CellFrame {
     }
 
     #[cfg(test)]
-    fn any_collides_exact(&self, snap_links: &[SnapNode], line: &Line) -> bool {
+    fn any_collides_exact(&self, snap_links: &SharedPrefix<SnapNode>, line: &Line) -> bool {
         collides_with(line, self.first.px, self.first.py, self.first.vx, self.first.vy)
             || self.rest_collides(snap_links, line)
     }
 
     #[inline]
-    fn rest_collides(&self, snap_links: &[SnapNode], l: &Line) -> bool {
+    fn rest_collides(&self, snap_links: &SharedPrefix<SnapNode>, l: &Line) -> bool {
         let mut next = self.rest_head;
         while next != -1 {
             let n = &snap_links[next as usize];
@@ -199,7 +200,7 @@ pub(crate) struct CollisionHistory {
     collisions: Collisions,
     cells: Vec<i64>,
     cell_ends: Vec<usize>,
-    snaps: Vec<SnapNode>,
+    snaps: SharedPrefix<SnapNode>,
     snap_ends: Vec<usize>,
     active: ActiveCellCache,
     lines: Vec<i32>,
@@ -213,7 +214,7 @@ impl CollisionHistory {
             collisions: Collisions::default(),
             cells: Vec::new(),
             cell_ends: vec![0, 0],
-            snaps: Vec::new(),
+            snaps: SharedPrefix::default(),
             snap_ends: vec![0, 0],
             active: ActiveCellCache::default(),
             lines: Vec::new(),
@@ -366,7 +367,7 @@ type HistGrid = IntMap<i64, Vec<CellFrame>>;
 type Collisions = IntMap<i32, Vec<i32>>;
 
 #[inline]
-fn append_snapshot(frame: &mut CellFrame, snap_links: &mut Vec<SnapNode>, snap: Snap) {
+fn append_snapshot(frame: &mut CellFrame, snap_links: &mut SharedPrefix<SnapNode>, snap: Snap) {
     frame.bounds.take();
     let next = frame.rest_head;
     frame.rest_head = snap_links.len() as i32;
@@ -378,7 +379,7 @@ fn append_snapshot(frame: &mut CellFrame, snap_links: &mut Vec<SnapNode>, snap: 
 #[inline]
 fn index_of_collision_in_list(
     list: &[CellFrame],
-    snap_links: &[SnapNode],
+    snap_links: &SharedPrefix<SnapNode>,
     l: &Line,
     before: i32,
 ) -> Option<i32> {
@@ -433,13 +434,47 @@ mod tests {
     use crate::line::build_line;
 
     #[test]
+    fn shared_snapshot_chunks_preserve_source_after_branch_rollback_and_append() {
+        let mut source = CollisionHistory::new();
+        let cell = hash_int_pair(0, 0);
+        for frame in 1..=130 {
+            source.begin_frame();
+            for point in 0..70 {
+                source.record_point(cell, frame, point as f64, frame as f64, 0.0, 1.0);
+            }
+            source.finish_frame();
+        }
+        let values = |history: &CollisionHistory| (0..history.snaps.len()).map(|i| {
+            let s = history.snaps[i].snap;
+            [s.px.to_bits(), s.py.to_bits(), s.vx.to_bits(), s.vy.to_bits()]
+        }).collect::<Vec<_>>();
+        let original = values(&source);
+        for keep in [1, 2, 63, 64, 65, 129, 131] {
+            let mut branch = source.clone();
+            branch.truncate(keep);
+            let prefix = branch.snaps.len();
+            for frame in keep..keep + 3 {
+                branch.begin_frame();
+                for point in 0..100 {
+                    branch.record_point(cell, frame as i32, -(point as f64), -(frame as f64), -0.0, -1.0);
+                }
+                branch.finish_frame();
+            }
+            assert_eq!(values(&source), original);
+            assert_eq!(&values(&branch)[..prefix], &original[..prefix]);
+            assert_eq!(branch.len(), keep + 3);
+            assert_eq!(source.len(), 131);
+        }
+    }
+
+    #[test]
     fn snapshot_bounds_preserve_exact_predicates_and_reset_after_append() {
         let values = [-f64::MAX, -1.0e100, -10.0, -f64::MIN_POSITIVE, -0.0, 0.0,
             f64::MIN_POSITIVE, 1.0e-200, 1.0, 10.0, 1.0e100, f64::MAX, f64::INFINITY, f64::NAN];
         for trial in 0..200 {
             let mut frame = CellFrame { index: 1, first: Snap { px: -1.0, py: -1.0, vx: 0.0, vy: 1.0 },
                 rest_head: -1, bounds: OnceCell::new() };
-            let mut links = Vec::new();
+            let mut links = SharedPrefix::default();
             for i in 0..12 {
                 append_snapshot(&mut frame, &mut links, Snap {
                     px: values[(trial + i) % values.len()], py: values[(trial * 3 + i) % values.len()],
@@ -458,7 +493,7 @@ mod tests {
         let line = Line::new(1, 0.0, 0.0, 10.0, 0.0, 0, 0);
         let mut frame = CellFrame { index: 1, first: Snap { px: 1.0, py: -1.0, vx: 0.0, vy: 1.0 },
             rest_head: -1, bounds: OnceCell::new() };
-        let mut links = Vec::new();
+        let mut links = SharedPrefix::default();
         append_snapshot(&mut frame, &mut links, Snap { px: 2.0, py: -2.0, vx: 0.0, vy: 1.0 });
         assert!(!frame.any_collides(&links, &line));
         assert!(frame.bounds.get().is_some());

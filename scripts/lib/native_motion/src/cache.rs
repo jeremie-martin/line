@@ -3,7 +3,7 @@
 //! an edit needs it. Copying the cache resets its borrowed query shortcuts.
 
 use crate::grid::{FlatIntMap, IntMap};
-use crate::frame_states::FrameStates;
+use crate::shared_prefix::SharedPrefix;
 use crate::history::CollisionHistory;
 use crate::kernel::{
     init_state, step_state, CollisionTrace, LineCellCache, State,
@@ -42,7 +42,7 @@ pub(crate) struct FrameCache {
     cell_lines: FlatIntMap<Vec<LineRef>>, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // shortcut valid until the line grid changes
     lines: IntMap<i32, LineRef>, // id → shared geometry, including its removal footprint
-    frames: FrameStates,                        // frames[0] = initial; lazily extended
+    frames: SharedPrefix<State>,                        // frames[0] = initial; lazily extended
     events: Vec<Event>,                        // flat per-frame collision records
     event_offsets: Vec<usize>,                 // frame f => events[offset[f]..offset[f+1]]
     summaries: Vec<FrameSummary>, // per-frame compact read summaries for repeated detector windows
@@ -63,7 +63,7 @@ impl FrameCache {
             cell_lines: FlatIntMap::default(),
             line_cache: LineCellCache::default(),
             lines: IntMap::default(),
-            frames: FrameStates::new(s.clone()),
+            frames: SharedPrefix::new(s.clone()),
             events: Vec::new(),
             event_offsets: vec![0, 0],
             summaries: vec![summary],

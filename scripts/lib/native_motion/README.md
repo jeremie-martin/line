@@ -13,7 +13,7 @@ judge remains in `engine-rs`, with its own adapter and replay instance.
 | `wasm.ts` | the typed private ABI and borrowed memory views |
 | `src/engine.rs` | version ancestry, lineage reconciliation and requested observations |
 | `src/cache.rs` | geometry, computed frames, event storage and compact read summaries |
-| `src/frame_states.rs` | the visible saved-state prefix and shared immutable chunks |
+| `src/shared_prefix.rs` | visible append-only prefixes and shared immutable chunks |
 | `src/history.rs` | lazy collision indexes, snapshots and rollback boundaries |
 | `src/kernel.rs` | stepping, collision queries and recording into an explicit trace |
 | `src/line.rs`, `src/grid.rs` | immutable line geometry, cell traversal and lookup tables |
@@ -38,9 +38,10 @@ Cached reads do not copy it; releasing the source transfers ownership directly.
 Body motion is a pure, lazy per-frame observation stored in a `OnceCell`. Shared
 snapshots may fill that memo without copying simulation data. Copies preserve
 valid observations; rollback and reset discard them with their frames.
-Saved states share 64-frame chunks across cache copies. Truncation changes the
+Saved states and collision-history snapshots share immutable 64-entry chunks
+across cache copies through the same append-only prefix store. Truncation changes the
 visible prefix; appending copies only a shared partial tail. Up to 63 hidden tail
-states can remain allocated until that chunk is replaced or released. The mutable
+entries per store can remain allocated until that chunk is replaced or released. The mutable
 solver state is separate, and indexing cannot expose truncated states.
 
 Registration queries one earliest invalidation over the whole batch, then

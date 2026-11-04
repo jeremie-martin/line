@@ -1,5 +1,57 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: share immutable history and stop after this resource optimization
+
+Coarse geometry-lifecycle instrumentation finds that collision-history cloning
+accounts for about 86% of whole-cache clone time. Grid edits shift only about
+2.5 entries on average, and walking version ancestry itself is small; neither
+supports the proposed broader rewrite. These spans include instrumentation
+cost and are diagnostic attribution, not paired performance evidence.
+
+Generalize the existing immutable 64-entry saved-state chunks to `SharedPrefix<T>`
+and use the same store for collision snapshots. Detached caches share immutable
+prefixes; appending copies a shared partial tail, and truncation bounds visibility.
+This consolidates two storage needs without another cache, unsafe operation or
+optional implementation. Physics arithmetic, collision order, search, scoring,
+work accounting and complete compiler checkpoints remain exact.
+
+Fresh full-default confirmation24 measures **9,149.19 → 9,003.94 ns per charged
+physics frame**, a paired **−1.56% [−2.39, −0.77]**. The candidate's absolute
+95% interval is **[8,955.22, 9,052.34] ns**; the 7,000 ns target remains unmet.
+The larger compile guard8 improves **2.84% [2.32, 3.30]**, 8/8 wins.
+
+The main benefit is WASM linear-memory high-water: **58.8125 → 17.3125 MiB**
+(−70.56%) for default compilation and **134.6875 → 32.5 MiB** (−75.87%) for
+the larger workload. These are fresh-process high-water sizes, not live heap
+or process RSS. Native-only workload memory is unchanged for registration and
+replay, and falls from 2.0625 to 2 MiB for branching.
+
+There is a measured runtime tradeoff. The native-only guard24 is **+2.76%
+[+2.43, +3.12]**, REJECT, with 0/24 wins. Its descriptive workload means show
+branching +4.07%, replay +0.50%, and registration +1.85%. The separate stepping
+check12 is INCONCLUSIVE: −0.86% [−2.17, +0.53]. Do not call this a uniform
+engine speedup or represent the original native guard as passed.
+
+The original requirement that confirmation's entire interval exceed a 1%
+improvement also failed. After confirmation, the owner explicitly prioritized
+the large memory saving alongside correctness and absence of substantial
+end-to-end regression. Adoption is a resource tradeoff under that direction:
+both real compile workloads improve, while the native-only cost is disclosed.
+The initial plan, failed gates, user amendment and final judgment are retained.
+No run was extended or retried, and the frozen candidate was not retuned.
+
+Validation: 29 Rust tests; all 63 exact compiler track/work cells; 33 judge
+tracks; independent native replay over 61,115 states and 305,336 ordered
+collisions, including cached observations; typecheck and zero unreachable
+files. JavaScript has 389 passes and the existing missing-audio failure in
+`eval_evidence.test.ts`. Full sources, raw pairs, diagnostics, identities,
+validation and both native binaries are in
+`docs/research/engine-shared-history-prefix-20261104.json`.
+
+This is the final attempt at the owner's request. The validated resource
+optimization stays on the separate performance branch, without pushing.
+Further optimization is paused; the 7,000 ns objective remains unfinished.
+
 ## November 4: distinguish observation allocation from addressable runtime cost
 
 The follow-up ownership/demand audit preserves the complete default checkpoint

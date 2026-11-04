@@ -76,6 +76,13 @@ does not authorize sharing owned mutable observations. No such implementation
 is added. Exact track/work and diagnostic code are preserved in
 `docs/research/engine-observation-retrieval-counts-20261104.json`.
 
+Replacing manual grid flooring with `floor()` passes 28 Rust tests, exact native
+replay and 1,060,016 independent WASM/JavaScript conversion comparisons. Its
+fixed screen12 is **+0.20% [−0.61,+0.96]**, 6/12 wins, INCONCLUSIVE. The upper
+bound also exceeds the separately predeclared +0.5% cleanup guard, so neither
+speedup nor cleanup adoption qualifies. No further run follows; the original
+conversion remains. Evidence: `docs/research/engine-grid-floor-20261104.json`.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

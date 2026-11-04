@@ -37,6 +37,17 @@ validation was repeated; the original checks and amendment remain archived.
 Full source, tests, raw pairs, audits, memory readings, sampled profiles and
 upstream algorithm provenance are in `docs/research/engine-hypot2-20261104.json`.
 
+Follow-up state compaction keeps all velocities in one representation and moves
+the mixed entity layout to the output boundary. It passes 28 Rust tests and
+independent native replay, but screen12 is inconclusive: **+0.08%
+[−0.85,+1.00]**, 5/12 wins. Its required KEEP fails, so it is not adopted,
+confirmed or rerun (`docs/research/engine-dense-state-20261104.json`). A separate
+snapshot diagnostic finds only **0.5268%** exact consecutive-per-point repeats
+among 600,761 history submissions. No deduplication path is added. That diagnostic
+and fresh CPU profiles of the qualified compiler are preserved in
+`docs/research/engine-after-hypot2-diagnostics-20261104.json`; profile timings
+include inspector overhead and are not promotion evidence.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

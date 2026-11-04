@@ -48,6 +48,34 @@ and fresh CPU profiles of the qualified compiler are preserved in
 `docs/research/engine-after-hypot2-diagnostics-20261104.json`; profile timings
 include inspector overhead and are not promotion evidence.
 
+Further fixed 12-pair screens leave the qualified implementation unchanged:
+
+| candidate | paired time delta, 95% interval | favorable pairs |
+|---|---|---:|
+| paired SIMD direction predicates | +0.31% [−0.62,+1.30] | 6/12 |
+| streaming motion summaries | −0.46% [−1.82,+0.96] | 7/12 |
+| adjacent x/y state with scoped compiler vectorization | −0.93% [−2.04,+0.19] | 9/12 |
+
+All three are **INCONCLUSIVE** and fail their declared KEEP/minimum-benefit
+gates. None is adopted, extended, confirmed or rerun. The direction helper
+passes 3,257,049 comparisons with independent scalar JavaScript; the streaming
+summary passes 1,000 exact trajectory comparisons against its frozen batch
+predecessor. Both native candidates pass 27 Rust tests and exact native replay.
+The coordinate layout emits vectorized point stepping and loads/stores, but
+static inspection does not show vectorized constraint multiplication.
+Full source, tests, plans and raw pairs are retained in
+`docs/research/engine-simd-direction-pairs-20261104.json`,
+`docs/research/engine-stream-motion-20261104.json` and
+`docs/research/engine-vector-state-20261104.json`.
+
+An untimed redundant-work diagnostic finds 195 distinct retrieval queries in
+195 calls, with only 1,086 duplicate feature rows among 796,643 query-weighted
+model rows. Only 55,336 of 492,859 adjacent raw-frame observations repeat
+exactly (11.23%). These counts do not justify additional caches, and equality
+does not authorize sharing owned mutable observations. No such implementation
+is added. Exact track/work and diagnostic code are preserved in
+`docs/research/engine-observation-retrieval-counts-20261104.json`.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

@@ -2,6 +2,13 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Deferring terminal rider-state materialization past trajectory/construction
+validation removes 1,985 cached full-state reads (5,592 → 3,607). The complete
+default compiler checkpoint is byte-identical, integrating reads and detailed
+work match, and 16 focused tests/typecheck pass. Screen12 is **+0.36%
+[−0.61,+1.37]**, 4/12 wins, INCONCLUSIVE. Required KEEP fails; no confirmation,
+tuning or cleanup bypass follows (`docs/research/engine-deferred-state-20261104.json`).
+
 Inlining the direction filter into the shared point loop passes 27 Rust tests
 and exact native replay, but screen12 is **−0.54% [−1.20,+0.03]**, 7/12 wins,
 INCONCLUSIVE. Required KEEP fails. No confirmation, tuning or adoption follows

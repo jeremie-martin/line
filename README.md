@@ -61,8 +61,13 @@ open `motion-gallery/night.html`. The running log is `PROGRESS.md`.
 
 ## Setup
 
+The qualified toolchain is Node 22.22.2 (`.nvmrc`) and Rust 1.95.0
+(`rust-toolchain.toml`). Runtime upgrades need fresh physics and compiler parity;
+floating-point equality is qualified against this Node/V8 version.
+
 ```sh
-npm install
+nvm use
+npm ci
 npm run build:wasm      # independent judge (needs cargo + wasm-opt)
 npm run verify:engine   # exact states + collisions vs reference on committed tracks
 ```
@@ -75,6 +80,13 @@ benchmarks. `npm run perf:engine` provides paired screening and fresh
 confirmation, including frozen source comparisons for wrapper changes;
 `npm run bench:engine` provides workload diagnostics. Old machine
 timings are historical evidence.
+
+`npm run check:engine` runs the complete structural gate: types, reachability,
+JavaScript and Rust tests, native physics verification, compiler parity and judge
+parity. Evaluation, comparison and parity choose a conservative worker count from
+available CPUs and memory; `--jobs=N` overrides it (four by default on this 16 GB host).
+The v2 paired compile protocol measures CPU and wall time around the same compile
+operation and reports separate fresh-process WASM, JS heap and RSS observations.
 
 Compiler throughput is full compile time per charged physics frame, including
 search and observation work. It is distinct from isolated solver time. Structural
@@ -108,6 +120,7 @@ Chromium installation instead of Playwright's default browser.
 | command | what it guards |
 |---|---|
 | `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets) |
+| `npm run check:engine` | complete structural compiler/engine gate, including both parity suites |
 | `npm run parity:judge [-- --all]` | the V6 judge reproduces every stored score (this *is* the V6 freeze) |
 | `npm test` | unit and integration tests |
 | `npm run typecheck` | TypeScript; the error count may only go down |

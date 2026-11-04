@@ -55,7 +55,7 @@ export function guideProgress(guide:readonly TrackLine[],shaped:readonly TrackLi
   }
   return progresses;
 }
-export function inspectConstruction(request:ConstructionRequest,lines:TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[]){
+export function inspectConstruction(request:ConstructionRequest,lines:readonly TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[]){
   const main:TrackLine[]=[],guide:TrackLine[]=[],mainIds=new Set<number>();
   for(const line of lines){
     if(guideIds.has(line.id))guide.push(line);
@@ -120,7 +120,7 @@ export function inspectConstruction(request:ConstructionRequest,lines:TrackLine[
     mainLength:totalLength,guideLength:guide.reduce((n,l)=>n+length(l),0),turning,turnReversals,orderedTraversal:[early,middle,late],
     contactedMainSegments:main.filter(l=>touched.has(l.id)).length};
 }
-export function inspectRepertoire(plan:ProductionPlan,lines:TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[]){
+export function inspectRepertoire(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[]){
   const sections=plan.requests.map(r=>inspectConstruction(r,lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),
     new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next)));
   return {schema:'line.repertoire-realization.v1',fulfilled:sections.every(s=>s.fulfilled),

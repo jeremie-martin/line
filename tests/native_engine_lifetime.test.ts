@@ -88,7 +88,7 @@ it('refreshes every fixed view after memory growth and returns owned contact sna
   const saved = structuredClone(window);
   expect(window.some(frame => frame.contactLineIds.length)).toBe(true);
   base.getUpdatesAtFrame(40);
-  base.getCachedMotionWindow(0, 50);
+  base.readCachedMotionWindow(0, 50, values => Float64Array.from(values));
   expect(window).toEqual(saved);
 });
 

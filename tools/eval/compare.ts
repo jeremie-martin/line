@@ -4,7 +4,7 @@
  * cell, reports the evidence after each round, and stops and resumes at any
  * point. It announces no winner; the decision is ours.
  *
- *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=44] [--rounds=N]
+ *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=N] [--rounds=N]
  *                          [--mode=strike3] [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
@@ -18,6 +18,7 @@
  * Ctrl-C keeps finished rides and prints a report labelled PARTIAL. */
 import assert from 'node:assert/strict';
 import {execFileSync, spawn} from 'node:child_process';
+import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
 import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
@@ -290,7 +291,7 @@ function saveReport(s: Selection, lines: string[]) {
 }
 
 async function run() {
-  const s = await select(), jobs = Number(arg('jobs', '44')), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
+  const s = await select(), jobs = Number(arg('jobs', String(defaultWorkerJobs()))), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
   assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
   assert.ok(maxRounds === Infinity || (Number.isSafeInteger(maxRounds) && maxRounds >= 1), '--rounds must be a positive integer');
   const {cells, missing, notes} = loadState(s);

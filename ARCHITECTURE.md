@@ -59,6 +59,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
    classifies every option by whether it can change a measurement.
+   `arc_candidates.ts` distinguishes owned measurements, accepted/rejected memo
+   entries and evaluated candidates with a live engine. Stored measurements
+   exclude engine handles; selecting one rebuilds its engine. Geometry used in
+   cached prefix identities is read-only at the compiler boundary.
    Candidate scoring reuses the reported span axes for its residuals; only a
    targeted, capped amplitude needs a separate raw-peak read to preserve
    search pressure above the reporting cap. Reported axes remain capped.
@@ -68,6 +72,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    borrowed detection synchronously and retains only owned measurements. Detection
    rescans the short persistence boundary and candidate suffix, with the same
    result as scanning the whole ride.
+   Public detections are read-only, including their nested arrays. TypeScript
+   does not enforce borrow lifetimes: observation callbacks must return owned
+   results and must not capture borrowed storage for later use.
    A candidate whose rider or sled comes apart stops replaying at that frame,
    since an unbinding is permanent, and is charged only the frames simulated.
    Native replay performs that binding-stop loop; the shared meter still checks
@@ -114,6 +121,13 @@ and validation are in [music authoring](docs/music-authoring.md).
    The typed WASM adapter manages borrowed views. Variable outputs grow as needed
    instead of silently capping events; state and trace buffers follow topology.
    Transport remains synchronous, and retained observations must be copied.
+   `readCachedMotionWindow()` scopes its read-only view to a callback; another
+   engine call during that callback fails before it can invalidate the view.
+   Compilation is sequential inside each isolated worker. A session guard rejects
+   reentrant compilation before accounting can reset, and restores the caller's
+   limit on exit. Research observers have exception-safe installation scopes;
+   counterfactual probes restore both frame counters and the limit. These scopes
+   do not provide concurrent compiler sessions or automatic search-state rollback.
    Contact/body reads check cache availability and observe in one native call.
    Raw-frame payloads reuse cached contact summaries. Already simulated raw windows
    cross the ABI in one call and return owned frame objects. Impact observation reads packed
@@ -148,6 +162,14 @@ and validation are in [music authoring](docs/music-authoring.md).
    and fresh confirmation. It can also compare frozen wrapper/consumer sources
    in the same execution directory, with fixed runner, fixtures and dependencies.
    Its compile mode uses the same worker and exact track/work references as parity.
+   Protocol v2 captures compile CPU and wall time around `compileHandoff` only,
+   excluding loading, hashing and output. Separate fresh processes per arm/cell
+   report WASM linear-memory capacity, post-compile JS heap/RSS and process peak RSS.
+   Historical v1 records retain their original measurement boundaries.
+   Node and Rust versions are pinned; the packaged native manifest records the
+   compiler versions, target, profile, toolchain hash and build environment overrides.
+   `check:engine` combines the structural gates. Seeded native operation sequences
+   also compare mixed cache/lifetime operations with cold independent JS replays.
    `bench:engine` provides workload diagnostics.
 
 4. **Validate.** The finished track is replayed on a separate engine instance.

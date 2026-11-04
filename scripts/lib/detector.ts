@@ -120,17 +120,17 @@ export type Terminus = {
 
 export type Measurements = {
   /** Per-frame position (length = terminus.frame + 1). */
-  position: Vec2[];
+  readonly position: readonly Readonly<Vec2>[];
   /** Per-frame velocity. */
-  velocity: Vec2[];
+  readonly velocity: readonly Readonly<Vec2>[];
   /** |velocity|. */
-  speed: number[];
+  readonly speed: readonly number[];
   /** sled-point ids in contact, per frame. */
-  sledContacts: string[][];
+  readonly sledContacts: readonly (readonly string[])[];
   /** track-line ids the sled fired against, per frame (mirrors RawFrame.contactLineIds). */
-  contactLineIds: number[][];
+  readonly contactLineIds: readonly (readonly number[])[];
   /** !sledContacts.length, per frame. */
-  airborne: boolean[];
+  readonly airborne: readonly boolean[];
 };
 
 /** A continuous stretch of frames where the sled is in contact with a line. */
@@ -176,15 +176,15 @@ export type Summary = {
   /** Mean vx over airborne frames. */
   meanVxAirborne: number;
   /** All contiguous slide intervals, in order. */
-  slideSegments: SlideSegment[];
+  slideSegments: readonly Readonly<SlideSegment>[];
 };
 
 export type Detection = {
-  measurements: Measurements;
-  events: DetEvent[];
-  terminus: Terminus;
-  params: DetectorParams;
-  summary: Summary;
+  readonly measurements: Measurements;
+  readonly events: readonly Readonly<DetEvent>[];
+  readonly terminus: Readonly<Terminus>;
+  readonly params: Readonly<DetectorParams>;
+  readonly summary: Readonly<Summary>;
 };
 
 // ────────── Detector (pure function) ──────────
@@ -567,6 +567,25 @@ export function extractRawTrajectoryWindow(
 let _frameCount = 0;
 let _physicsFrames = 0;
 let _physicsFrameLimit: number | null = null;
+let compiling = false;
+
+/** One synchronous compiler session per worker. Preserve a caller's limit even
+ * on failure; completed counters remain available to the caller. Reentrancy
+ * must fail before the nested compiler can reset the active session's meter. */
+export function withPhysicsFrameSession<T>(run: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
+  if (compiling) throw new Error('compilation is already active in this worker');
+  compiling = true;
+  const limit = _physicsFrameLimit;
+  try {
+    const result = run();
+    if (result && typeof (result as {then?: unknown}).then === 'function')
+      throw new TypeError('compiler sessions must be synchronous');
+    return result;
+  } finally {
+    _physicsFrameLimit = limit;
+    compiling = false;
+  }
+}
 
 export class PhysicsFrameLimitExceeded extends Error {
   readonly limit: number;
@@ -607,12 +626,21 @@ export function resetFrameCount(): void {
   _physicsFrames = 0;
 }
 
-/** Refund the physics-frame counter back to a previously-saved value, discarding
- *  frames simulated since. Used by the FREE-PREVIEW proof-of-concept so forward-
- *  looking rollouts (which only inform ranking and whose nodes are discarded) do
- *  not count against the compile budget. Only ever lowers the counter. */
-export function refundPhysicsFramesTo(saved: number): void {
-  if (saved >= 0 && saved < _physicsFrames) _physicsFrames = saved;
+/** Research-only counterfactual work. Restore both counters and the limit on
+ * every exit. The caller must separately isolate its search state and engines;
+ * production search never uses this exemption from its work budget. */
+export function withPhysicsFrameProbe<T>(run: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
+  const reads = _frameCount, frames = _physicsFrames, limit = _physicsFrameLimit;
+  try {
+    const result = run();
+    if (result && typeof (result as {then?: unknown}).then === 'function')
+      throw new TypeError('physics probes must be synchronous');
+    return result;
+  } finally {
+    _frameCount = reads;
+    _physicsFrames = frames;
+    _physicsFrameLimit = limit;
+  }
 }
 
 function chargePhysicsFrames(delta: number): void {

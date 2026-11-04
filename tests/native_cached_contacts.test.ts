@@ -46,4 +46,8 @@ it('binds the packaged native sources and WASM to their recorded manifest',()=>{
  expect(Object.keys(manifest.generated).sort()).toEqual(sources);
  for(const [name,expected]of Object.entries(manifest.generated))
   expect(createHash('sha256').update(readFileSync(new URL(name,root))).digest('hex'),name).toBe(expected);
+ expect(manifest.build.target).toBe('wasm32-unknown-unknown');
+ expect(manifest.build.locked).toBe(true);
+ expect(manifest.build.toolchainSha256).toBe(createHash('sha256')
+  .update(readFileSync(new URL('../../../rust-toolchain.toml',root))).digest('hex'));
 });

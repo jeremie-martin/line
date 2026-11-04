@@ -1,5 +1,82 @@
 # Foundations rework (started 2026-10-03)
 
+
+## November 4: implement the compiler and engine foundations
+
+Implemented on `refactor/compiler-foundations`, based on `27562780` (executable
+baseline `13f9175b`). This is structural foundation work. Performance optimization
+remains paused; physics, search policy, scoring, budgets and parity references
+are unchanged. The packaged WASM remains byte-identical:
+`b0fc5d3bd8da5e7c136607de11e347ce8823c88909da075b4f2cbe1471b7481c`.
+
+- The real evaluation CLI failure/resume test now generates its own local music
+  fixtures in an isolated git root. It still exercises all 24 failed workers and
+  incompatible-resume rejection, without requiring production audio downloads.
+- Candidate facts, evaluated candidates and accepted/rejected memo records have
+  explicit types. Owned measurements reject live engine handles, and cached
+  prefix geometry is read-only. Runtime layouts and evaluation order are preserved.
+- Public detections are read-only, including nested observations. Packed motion
+  reads use a synchronous callback; calls to any engine during that read fail
+  before invalidating the shared view. Owned results survive subsequent reads.
+  Compile-only negative tests cover mutation and asynchronous-consumer mistakes.
+- Compiler accounting rejects reentrancy before a nested compile can reset it,
+  and restores caller limits on every exit. Study observer installation is scoped
+  and exception-safe. The arbitrary counter-refund API is replaced by a scoped
+  research probe that restores both counters and the limit after failure or
+  budget interruption. Both existing study consumers use the scoped interfaces.
+- Evaluation, comparison and parity share the conservative CPU/memory worker
+  default (four on this host), retaining explicit overrides. Node 22.22.2 and
+  Rust 1.95.0 are pinned. Native manifests record the actual build toolchain,
+  target, release profile, pin hash and environment overrides.
+- `npm run check:engine` combines the existing structural gates. Paired compile
+  protocol `line.engine-ab.v2` gives CPU and wall time the same `compileHandoff`
+  boundary, excluding input preparation, hashing and output. Separate fresh
+  processes per arm/cell collect WASM capacity, JS heap, RSS and process peak RSS.
+  Old v1 evidence keeps its original meaning. Frozen runners include their new
+  worker-policy dependency and snapshots retain toolchain pins.
+- Five deterministic seeds exercise 500 mixed add/branch/detach/reset/observe/
+  release operations and budget failures. The initial test exposed stale geometry
+  in lr-core's shared computed cache after branch/start-reset switches. Native
+  output matched a cold JS reconstruction. The final sequence test therefore uses
+  cold independent reference replays; cached work has separate metering and
+  compiler-parity coverage. No kernel change was needed.
+
+Validation: `npm run check:engine` passed: 401 JS tests at that checkpoint, all 29
+native Rust tests, zero type errors, zero unreachable files, all 63 exact compiler
+track/work cells, all 33 judge tracks, and native verification of 61,115 frame
+states plus 305,336 ordered collisions and the corresponding raw/motion/contact
+observations. After adding the saved-report CLI checks, the final full JS suite
+passed all 404 tests in 97 files, and typechecking remained clean.
+
+**The A/A checkpoint did not pass.** The fixed eight-pair control used identical
+frozen source and WASM, CPU 2, default compile cell 61, one warmup and one measured
+compile per arm/process. Its timing rule produced KEEP: mean -1.0985%, median
+-0.6514%, bootstrap interval [-2.6137%, -0.1239%], seven wins in eight pairs. That
+is a false positive between identical arms, not a speedup. `controlPassed=false`
+and `performanceQualified=false` are preserved in
+[`compiler-foundations-20261104-aa.json`](docs/research/compiler-foundations-20261104-aa.json).
+Both fresh resource samples report 18,153,472 bytes (17.3125 MiB) of WASM capacity.
+Heap and RSS snapshots differ and are not retained-live-memory measurements.
+
+The failed control revealed an operational reporting gap: its CLI had exited
+successfully and omitted `controlPassed` from the concise output. The final CLI
+prints that field, exits nonzero for a failed control, rejects controls as
+candidate-confirmation input, and supports `--report=<result.json>` without
+rerunning or rewriting measurements. Re-reporting this saved control now exits 1.
+The frozen A/A sources predate this report-only follow-up; its raw measurements
+are unchanged. The unchanged timing run was not repeated until it passed. No
+performance improvement or new absolute frame-speed qualification is claimed.
+Before another optimization campaign, investigate timing conditions and declare
+a fresh calibration protocol; this control does not clear small-gain claims.
+
+The remaining boundaries are explicit: compilation is sequential per isolated
+worker; TypeScript read-only types cannot enforce borrow lifetimes or prevent
+mutation through another alias; counterfactual research still owns its specialized
+search-state isolation in addition to scoped accounting. No generic concurrent
+session or automatic rollback framework has been introduced. The solver and
+independent judge remain separate, and the compiler can still evolve its proposals,
+objectives and ranking through the existing behavioral evaluation workflow.
+
 ## November 4: foundation review before another optimization campaign
 
 Reviewed executable commit `13f9175b` after the owner requested a broader

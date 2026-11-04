@@ -2,6 +2,7 @@
  * coordinate steps on the core controls, a broad-then-coordinate search over
  * guide and shape controls, and damped finite-difference response steps.
  * Every step is an ordinary measured evaluation. */
+import type {EvaluatedCandidate} from './arc_candidates.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
 import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, arcControlValue, arcControlStep, arcResponseKeys, arcControlActive } from './arc_motion_control.ts';
@@ -19,8 +20,9 @@ export function coordinateSearch(s: IntervalSearch) {
   const keys = ARC_CORE_KEYS;
   for (let k = initial; k < max; k++) {
     const key = keys[Math.floor((k - initial) / 2) % keys.length], round = Math.floor((k - initial) / (2 * keys.length)), sign = k % 2 === 0 ? -1 : 1;
-    const best = s.best;
-    const candidate = {...best.c, [key]: best.c[key] + sign * arcControlStep(key, 'coordinate', best.c.support) *
+    // Evaluation can replace the best, but never clears it during refinement.
+    const best = s.best!;
+    const candidate = {...best.c, [key]: best.c[key]! + sign * arcControlStep(key, 'coordinate', best.c.support) *
       Math.pow(.65, Math.floor(round / 2))};
     evaluate(s, candidate);
     if (k % 10 === 9) retainSearch(s);
@@ -53,7 +55,7 @@ export function guidanceSearch(s: IntervalSearch) {
 
 /** A broad low-discrepancy sweep of guide and expressive controls around
  * `origin`, followed by coordinate steps around the current best. */
-function guideShapeSearch(s: IntervalSearch, origin: any, keys: ControlKey[], count: number) {
+function guideShapeSearch(s: IntervalSearch, origin: EvaluatedCandidate, keys: ControlKey[], count: number) {
   const {options} = s;
   const broad = Math.min(24, Math.ceil(count / 3));
   for (let k = 0; keys.length && k < count; k++) {
@@ -70,7 +72,7 @@ function guideShapeSearch(s: IntervalSearch, origin: any, keys: ControlKey[], co
       if (options.independentGuide && k > 0) c.guideTilt = -15 + 30 * frac(.9159655941);
       if (options.railLayout === 'transfer' && k > 0) c.mainEnd = .3 + .6 * frac(.6931471806);
     } else {
-      const best = s.best;
+      const best = s.best!;
       const key = keys[Math.floor(k / 2) % keys.length];
       const step = arcControlStep(key, 'coordinate', best.c.support);
       c = {...best.c, [key]: arcControlValue(best.c, key, options.channel) +
@@ -89,7 +91,7 @@ function responseSearch(s: IntervalSearch, responseKeys: ControlKey[], responseA
   const {options, controlMemory, targets, impact, incoming, span} = s;
   let responseUsed = 0, trust = 1;
   while (responseUsed + 2 * responseKeys.length + 3 <= responseAllowance) {
-    const origin = s.best;
+    const origin = s.best!;
     const scale = (key: ControlKey) => arcControlStep(key, 'response', origin.c.support);
     const value = (key: ControlKey) => arcControlValue(origin.c, key, options.channel);
     const jac = origin.residuals.map(() => Array(responseKeys.length).fill(0));
@@ -118,7 +120,7 @@ function responseSearch(s: IntervalSearch, responseKeys: ControlKey[], responseA
       }
       responseUsed++;
     }
-    const improving = s.best.optimizationCost < origin.optimizationCost - 1e-12;
+    const improving = s.best!.optimizationCost < origin.optimizationCost - 1e-12;
     if (!improving) trust *= .5;
     retainSearch(s);
   }

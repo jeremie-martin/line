@@ -17,7 +17,18 @@ import {snapshotSources, sourceOverlay} from './engine_sources.ts';
 const arg = (key: string, fallback = '') => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const sha = (data: Uint8Array | string) => createHash('sha256').update(data).digest('hex');
 const enginePath = 'scripts/lib/native_motion/engine.wasm';
+const schema = 'line.engine-ab.v2';
 type Protocol = {mode: string; stage: string; rounds: number; confirmRounds: number; reps: number; warmup: number; threshold: number; cells: number[]};
+
+/** Report saved evidence without rerunning or rewriting it. A failed null
+ * control must also fail the CLI, so automation cannot silently bless it. */
+function report(result: any) {
+  assert.equal(result.schema, schema, 'unsupported measurement version');
+  assert.equal(result.complete, true, 'measurement is incomplete');
+  console.log(JSON.stringify({schema: result.schema, control: result.control, controlPassed: result.controlPassed,
+    decision: result.decision, cellDecisions: result.cellDecisions, performanceQualified: result.performanceQualified}, null, 2));
+  if (result.control && result.controlPassed !== true) process.exitCode = 1;
+}
 
 async function worker() {
   const config: Protocol = JSON.parse(readFileSync(arg('config'), 'utf8'));
@@ -43,19 +54,20 @@ async function worker() {
   }
   const {compileWorker} = await import('../parity/parity.ts');
   const cells = JSON.parse(readFileSync('tools/parity/cells.json', 'utf8')).cells;
+  const resourceCell = arg('resources-cell');
+  const selectedCells = resourceCell === '' ? config.cells : [Number(resourceCell)];
   let wallMs = 0, cpuMs = 0, frames = 0;
   const measurements: any[] = [];
-  for (let rep = -config.warmup; rep < config.reps; rep++) {
-    for (const cell of config.cells) {
-      const output = resolve('worker-cell.json'), cpu = process.cpuUsage();
-      await compileWorker(cell, output);
-      const used = process.cpuUsage(cpu), {trackHash, physicalFrames, compileMs} = JSON.parse(readFileSync(output, 'utf8'));
+  for (let rep = resourceCell === '' ? -config.warmup : 0; rep < (resourceCell === '' ? config.reps : 1); rep++) {
+    for (const cell of selectedCells) {
+      const output = resolve('worker-cell.json');
+      await compileWorker(cell, output, resourceCell !== '');
+      const {trackHash, physicalFrames, compileMs, compileCpuMs, resources} = JSON.parse(readFileSync(output, 'utf8'));
       assert.equal(trackHash, cells[cell].trackHash, `cell ${cell}: track parity`);
       assert.equal(physicalFrames, cells[cell].physicalFrames, `cell ${cell}: work parity`);
       if (rep >= 0) {
-        const ms = (used.user + used.system) / 1000;
-        wallMs += compileMs; cpuMs += ms; frames += physicalFrames;
-        measurements.push({cell, trackHash, physicalFrames, compileMs, cpuMs: ms});
+        wallMs += compileMs; cpuMs += compileCpuMs; frames += physicalFrames;
+        measurements.push({cell, trackHash, physicalFrames, compileMs, cpuMs: compileCpuMs, resources});
       }
     }
   }
@@ -64,6 +76,8 @@ async function worker() {
 
 if (process.argv.includes('--worker')) {
   writeFileSync(arg('result'), JSON.stringify(await worker()));
+} else if (arg('report')) {
+  report(JSON.parse(readFileSync(arg('report'), 'utf8')));
 } else {
   const root = fileURLToPath(new URL('../../', import.meta.url));
   const stage = arg('stage', 'screen'), mode = arg('mode', 'engine');
@@ -97,7 +111,9 @@ if (process.argv.includes('--worker')) {
   if (stage === 'confirm') {
     assert(arg('screen'), 'confirmation requires --screen=<screen result.json>');
     screening = JSON.parse(readFileSync(arg('screen'), 'utf8'));
+    assert.equal(screening.schema, schema, 'measurement protocol changed; run a fresh screen');
     assert.equal(screening.complete, true);
+    assert.equal(screening.control, false, 'an A/A control cannot qualify a candidate');
     assert.equal(screening.protocol.stage, 'screen');
     assert.equal(screening.decision.verdict, 'KEEP', 'only a screened candidate can enter confirmation');
     assert(!screening.cellDecisions?.some((c: any) => c.decision.verdict === 'REJECT'), 'screening detected a compile-cell regression');
@@ -107,29 +123,38 @@ if (process.argv.includes('--worker')) {
     for (const key of ['mode', 'reps', 'warmup', 'threshold', 'cells'] as const) assert.deepEqual(config[key], screening.protocol[key]);
     assert.equal(config.rounds, screening.protocol.confirmRounds, 'confirmation count must be fixed at screening');
   }
-  const result: any = {schema: 'line.engine-ab.v1', complete: false,
+  const result: any = {schema, complete: false,
     adaptedFrom: 'archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts',
     date: new Date().toISOString(), head: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(),
-    machine: {cpu: cpus()[0].model, node: process.version, platform: platform(), release: release(),
+    machine: {cpu: cpus()[0].model, node: process.version, v8: process.versions.v8,
+      workerFlags: ['--expose-gc', '--import', 'tsx'], nodeOptions: process.env.NODE_OPTIONS ?? '', platform: platform(), release: release(),
       affinity: existsSync('/proc/self/status') ? readFileSync('/proc/self/status', 'utf8').match(/^Cpus_allowed_list:\s*(.*)$/m)?.[1] : null},
     sourceSha256, referenceSourceSha256, sourceChanges: sources.changed, referenceRoot: referenceRoot || null, artifacts, protocol: config, screening: arg('screen') || null,
     interpretation: 'Fixed-round paired bootstrap support and exact sign safeguard on this workload; not a posterior probability or an anytime-valid rule. Full correctness gates are separate.',
+    timingScope: mode === 'compile' ? 'CPU and wall clocks enclose compileHandoff only, with prepared inputs; hashing, output and resource sampling excluded.' :
+      'CPU and wall clocks enclose run(instance, workload); instance creation and GC excluded.',
+    resourceScope: 'Compile resources use one fresh process per arm and cell, sampled after compilation without forced GC. WASM linear memory is a high-water capacity, heapUsed is a JS heap snapshot, rss is current process residency, processMaxRssBytes is lifetime process peak. These are not live allocation counts or timed samples.',
     samples: []};
   if (screening) assert.deepEqual(result.machine, screening.machine, 'host, Node or CPU affinity changed since screening');
   const save = () => writeFileSync(join(out, 'result.json'), JSON.stringify(result, null, 2) + '\n');
   save(); // Protocol and candidate are frozen before the first measurement.
-  function measure(arm: number, label: string, verify = false) {
+  function measure(arm: number, label: string, verify = false, resourceCell?: number) {
     sources.activate(arm);
     copyFileSync(snapshots[arm], join(sandbox, enginePath));
     const output = join(out, `${label}-${arm}.json`);
     execFileSync(process.execPath, ['--expose-gc', '--import', 'tsx', 'tools/measure/engine_ab.ts', '--worker',
-      `--config=${configPath}`, `--result=${output}`, `--verify=${verify}`],
+      `--config=${configPath}`, `--result=${output}`, `--verify=${verify}`,
+      ...(resourceCell === undefined ? [] : [`--resources-cell=${resourceCell}`])],
     {cwd: sandbox, env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'pipe']});
     return JSON.parse(readFileSync(output, 'utf8'));
   }
   if (mode === 'engine') {
     result.verification = measure(0, 'verify', true);
     assert.deepEqual(measure(1, 'verify', true), result.verification, 'state/event/cache-work mismatch');
+  } else {
+    result.resources = config.cells.map(cell => ({cell, arms: [0, 1].map(arm =>
+      measure(arm, `resources-${cell}`, false, cell).measurements[0])}));
+    save();
   }
   for (let round = 0; round < config.rounds; round++) {
     for (const arm of round % 2 === 0 ? [0, 1] : [1, 0]) result.samples.push({round, arm, ...measure(arm, `round-${round}`)});
@@ -152,6 +177,5 @@ if (process.argv.includes('--worker')) {
   result.performanceQualified = !result.control && stage === 'confirm' && result.decision.verdict === 'KEEP' && result.regressionGuardPassed;
   result.complete = true;
   save();
-  console.log(JSON.stringify({control: result.control, decision: result.decision, cellDecisions: result.cellDecisions,
-    performanceQualified: result.performanceQualified}, null, 2));
+  report(result);
 }

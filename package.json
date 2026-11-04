@@ -26,7 +26,8 @@
     "labels:analyze": "node --import tsx tools/measure/analyze_labels.ts",
     "eval": "node --import tsx tools/eval/eval.ts run",
     "eval:report": "node --import tsx tools/eval/eval.ts report",
-    "compare": "node --import tsx tools/eval/compare.ts"
+    "compare": "node --import tsx tools/eval/compare.ts",
+    "check:engine": "npm run typecheck && npm run reach && npm test && cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml --target-dir generated/native-motion-tests && npm run verify:engine && npm run parity && npm run parity:judge"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
@@ -41,5 +42,8 @@
     "@openai/codex": "^0.144.0",
     "playwright": "^1.49.0",
     "uplot": "^1.6.32"
+  },
+  "engines": {
+    "node": "22.22.2"
   }
 }

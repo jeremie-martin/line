@@ -2,7 +2,7 @@ import type {TrackLine} from '../types.ts';
 
 /** Emitter contract: one main chain and at most one opposing guide per support.
  * Shared with gallery inspection; fragments do not use it. */
-export function arcRailGroups(lines:TrackLine[]):Map<number,TrackLine[][]> {
+export function arcRailGroups(lines:readonly TrackLine[]):Map<number,TrackLine[][]> {
   const groups = new Map<number, TrackLine[][]>();
   for (const line of lines) {
     if (line.type !== 0) throw new Error('guidance reduction requires normal lines');

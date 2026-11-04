@@ -1,9 +1,9 @@
 import {afterEach, expect, it} from 'vitest';
-import {mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSync, symlinkSync} from 'node:fs';
 import {tmpdir} from 'node:os';
-import {join, dirname} from 'node:path';
-import {spawnSync} from 'node:child_process';
-import {digest, evaluatorIdentity} from '../tools/eval/inputs.ts';
+import {join, dirname, resolve} from 'node:path';
+import {spawnSync, execFileSync} from 'node:child_process';
+import {digest, evaluatorIdentity, SONGS} from '../tools/eval/inputs.ts';
 import {atomicWrite, saveCell, loadRun, readCells, readPlan, assertPairedRuns, type RunPlan} from '../tools/eval/records.ts';
 import {validateRunOptions} from '../tools/eval/eval.ts';
 
@@ -68,13 +68,42 @@ it('rejects invalid execution options before starting workers', () => {
   expect(() => validateRunOptions('unknown', 'standard', 1, 'dev')).toThrow();
 });
 it('failed workers make the actual CLI fail, retaining a resumable plan but no successful report', () => {
-  const dir = join(temporary(), 'run');
-  const r = spawnSync(process.execPath, ['--import', 'tsx', 'tools/eval/eval.ts', 'run', `--name=${dir}`, '--budget=1', '--jobs=8'], {encoding: 'utf8', maxBuffer: 2e6});
+  // Run the real CLI and compiler with tiny, entirely local authoring assets.
+  // A separate git root keeps input identity/resume checks real without editing
+  // production files or depending on untracked music downloads.
+  const root = temporary(), dir = join(root, 'run'), cli = resolve('tools/eval/eval.ts');
+  for (const name of ['scripts', 'tools', 'benchmark', 'engine-rs', 'node_modules'])
+    symlinkSync(resolve(name), join(root, name), 'dir');
+  for (const name of ['package.json', 'package-lock.json']) copyFileSync(name, join(root, name));
+  const audio = Buffer.alloc(44 + 16000, 128); // two seconds of silent 8-bit PCM
+  audio.write('RIFF', 0); audio.writeUInt32LE(audio.length - 8, 4); audio.write('WAVEfmt ', 8);
+  audio.writeUInt32LE(16, 16); audio.writeUInt16LE(1, 20); audio.writeUInt16LE(1, 22);
+  audio.writeUInt32LE(8000, 24); audio.writeUInt32LE(8000, 28);
+  audio.writeUInt16LE(1, 32); audio.writeUInt16LE(8, 34);
+  audio.write('data', 36); audio.writeUInt32LE(16000, 40);
+  for (const song of SONGS) {
+    const songDir = join(root, 'productions', song); mkdirSync(songDir, {recursive: true});
+    writeFileSync(join(songDir, 'select.json'), JSON.stringify({audio: 'audio.wav'}));
+    writeFileSync(join(songDir, 'audio.wav'), audio);
+    writeFileSync(join(songDir, 'audio.json'), '{}');
+    writeFileSync(join(songDir, 'spec.ts'), 'export default {duration:2,preroll:0,contacts:[{t:.6,impact:.4},{t:1.2,impact:.5}],axes:{air:()=>.5,speed:()=>.5}};');
+  }
+  const env = {...process.env, GIT_DIR: join(root, '.git'), GIT_WORK_TREE: root, GIT_INDEX_FILE: join(root, '.git/index')};
+  const git = (...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', ...args], {cwd: root, env, stdio: 'pipe'});
+  git('init', '-q');
+  git('add', '--', 'scripts', 'tools', 'benchmark', 'engine-rs', 'package.json', 'package-lock.json', 'productions');
+  git('commit', '-qm', 'Controlled evaluation inputs');
+  const args = ['--import', 'tsx', cli, 'run', `--name=${dir}`, '--budget=1', '--jobs=2'];
+  const r = spawnSync(process.execPath, args, {cwd: root, env, encoding: 'utf8', maxBuffer: 2e6});
   expect(r.status).toBe(1); expect(r.stderr).toContain('24 workers failed');
+  expect(r.stderr).toContain('budget');
+  expect(r.stderr).not.toContain('ENOENT');
   expect(() => loadRun(dir)).toThrow(/incomplete evaluation/);
   const plan = readPlan(dir);
-  const resumed = spawnSync(process.execPath, ['--import', 'tsx', 'tools/eval/eval.ts', 'run', `--name=${dir}`, '--budget=1', '--jobs=8'],
-    {env: {...process.env, LR_JOLT_OFFSET_MS: String(plan.jolt + 100)}, encoding: 'utf8', maxBuffer: 2e6});
+  expect(plan.panel).toHaveLength(24);
+  expect(readCells(dir, plan).size).toBe(0);
+  const resumed = spawnSync(process.execPath, args,
+    {cwd: root, env: {...env, LR_JOLT_OFFSET_MS: String(plan.jolt + 100)}, encoding: 'utf8', maxBuffer: 2e6});
   expect(resumed.status).toBe(1); expect(resumed.stderr).toContain('run inputs or measurement code changed');
   expect(digest(readPlan(dir))).toBe(digest(plan));
 }, 60000);

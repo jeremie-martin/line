@@ -6,8 +6,9 @@ import { createHash } from 'node:crypto';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import type { TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
+import type {CandidateGeometry, CandidateMemo} from './arc_candidates.ts';
 
-export type Prefix = {parent?: Prefix; lines?: TrackLine[]; key?: string};
+export type Prefix = {readonly parent?: Prefix; readonly lines?: CandidateGeometry; key?: string};
 type StartState = {position: {x: number; y: number}; velocity: {x: number; y: number}};
 
 const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
@@ -16,19 +17,19 @@ const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
 export function createArcLineage(start: StartState) {
   const prefixes = new WeakMap<Engine, Prefix>();
   const rootPrefix: Prefix = {key: 'root'};
-  const memoContexts = new Map<string, Map<string, any>>();
+  const memoContexts = new Map<string, Map<string, CandidateMemo>>();
 
   const prefixKey = (node: Prefix): string => node.key ??= createHash('sha256')
     .update(prefixKey(node.parent!) + '\n' + JSON.stringify(node.lines, (_key, value) => Object.is(value, -0) ? '-0' : value))
     .digest('hex');
 
-  const record = (parent: Engine, child: Engine, geometry: TrackLine[]) => {
+  const record = (parent: Engine, child: Engine, geometry: CandidateGeometry) => {
     const prefix = prefixes.get(parent);
     if (prefix) prefixes.set(child, {parent: prefix, lines: geometry});
     return child;
   };
 
-  const add = (parent: Engine, geometry: TrackLine[]) => record(parent, parent.addLine(geometry), geometry);
+  const add = (parent: Engine, geometry: CandidateGeometry) => record(parent, parent.addLine(geometry), geometry);
 
   const detach = (source: Engine) => {
     const child = source.detach(), prefix = prefixes.get(source);
@@ -36,7 +37,7 @@ export function createArcLineage(start: StartState) {
     return child;
   };
 
-  const rebuild = (geometry: TrackLine[]) => {
+  const rebuild = (geometry: CandidateGeometry) => {
     const result = createArcEngine(start, geometry);
     let prefix = rootPrefix;
     const groups: TrackLine[][] = [];

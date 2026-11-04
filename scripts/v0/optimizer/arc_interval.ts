@@ -11,7 +11,7 @@ import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import {arcControlMemoKey} from './arc_motion_control.ts';
-import {distinctCandidates} from './arc_candidates.ts';
+import {distinctCandidates, type EvaluatedCandidate} from './arc_candidates.ts';
 
 /** Searches interval `i` from `engine` with optional per-call overrides.
  * Engines in `protectedEngines` survive the search's engine cleanup. Returns
@@ -67,8 +67,8 @@ function replaceWithFragments(s: IntervalSearch) {
   // probe (used by joint refinement and continuation replay).
   for (const key of new Set(carriers.map(c => arcControlMemoKey(c.c, s.options.channel)))) {
     const saved = s.memo.get(key + '|fragments');
-    const candidate = saved?.candidate;
-    if (candidate) evaluate(s, candidate.c, {lines: candidate.lines, guideIds: candidate.meta.railGuides});
+    const candidate = saved && !('reason' in saved) ? saved.candidate : undefined;
+    if (candidate) evaluate(s, candidate.c, {lines: candidate.lines, guideIds: candidate.meta.railGuides!});
   }
   try {
     for (const proposal of source) {
@@ -82,8 +82,10 @@ function replaceWithFragments(s: IntervalSearch) {
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
     ctx.work.searchBudgetExhausted = true;
+    // evaluate() can set best after the reset above.
+    const best = s.best as EvaluatedCandidate | null;
     ctx.work.budgetInterruptions.push({phase: 'fragments', index: s.i, frame, viable: s.candidates.length, retained: !!s.best});
-    Engine.retainOnly([...s.protectedEngines, engine, ...(s.best ? [s.best.child] : [])]);
+    Engine.retainOnly([...s.protectedEngines, engine, ...(best ? [best.child] : [])]);
     if (!s.best) throw error;
   }
 }

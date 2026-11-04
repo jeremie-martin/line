@@ -51,8 +51,8 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
         ...(motion ? {impulse: [0, 0, 0]} : {})} as any] : [];
       const from = Math.max(first, 1);
       if (from > last) return head;
-      if (typeof engine.getCachedMotionWindow === 'function')
-        return [...head, ...observeMotionWindow(from, engine.getCachedMotionWindow(from - 1, last), c)];
+      if (typeof engine.readCachedMotionWindow === 'function')
+        return [...head, ...engine.readCachedMotionWindow(from - 1, last, (data: ArrayLike<number>) => observeMotionWindow(from, data, c))];
       if (motion) {
         const motions = [];
         // The native engine reads whole-body motion without allocating point states.

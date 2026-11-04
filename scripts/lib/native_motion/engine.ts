@@ -60,6 +60,11 @@ type EngineRegistration = {handle: number};
 const liveEngines = new Set<EngineRegistration>();
 let protectedEngines = new Set<EngineRegistration>();
 const finalizer = new FinalizationRegistry<EngineRegistration>(release);
+let readingMotion = false;
+
+function assertEngineAvailable(): void {
+  if (readingMotion) throw new Error('engine calls are not allowed inside a motion observation');
+}
 
 function register(owner: LineRiderEngine, handle: number): EngineRegistration {
   const registration = {handle};
@@ -69,6 +74,7 @@ function register(owner: LineRiderEngine, handle: number): EngineRegistration {
 }
 
 function release(registration: EngineRegistration): void {
+  assertEngineAvailable();
   const handle = registration.handle;
   if (handle < 0) return;
   registration.handle = -1;
@@ -135,6 +141,7 @@ function bindingState(sc: Float64Array, i: number): any {
 export class LineRiderEngine {
   private registration: EngineRegistration;
   private get h(): number {
+    assertEngineAvailable();
     const handle = this.registration.handle;
     if (handle < 0) throw new Error('engine has been disposed');
     return handle;
@@ -143,6 +150,7 @@ export class LineRiderEngine {
   /** @internal Only native operations hold the adoption token. */
   constructor(handle: number, key: typeof adoptHandle);
   constructor(handle?: number, key?: typeof adoptHandle) {
+    assertEngineAvailable();
     if (handle !== undefined && key !== adoptHandle)
       throw new Error('native handles can only be adopted by engine operations');
     this.registration = register(this, handle ?? wasm.create_engine());
@@ -192,8 +200,8 @@ export class LineRiderEngine {
     }
     return LineRiderEngine.fromHandle(h);
   }
-  addLine(line: LineData | LineData[]): LineRiderEngine {
-    const lines = Array.isArray(line) ? line : [line];
+  addLine(line: LineData | readonly LineData[]): LineRiderEngine {
+    const lines = Array.isArray(line) ? line : [line as LineData];
     return this.addBatch(lines.length, (from, size, ids, coords) => {
       for (let k = 0; k < size; k++) {
         const l = lines[from + k];
@@ -303,12 +311,23 @@ export class LineRiderEngine {
     }
     return frames;
   }
-  /** Cached [vx, vy, angular momentum, radius, contact] records. Borrowed until
-   * the next engine call; consume immediately or copy before retaining. */
-  getCachedMotionWindow(start: number, end: number): Float64Array {
+  /** Read cached [vx, vy, angular momentum, radius, contact] records in a
+   * synchronous scope. Return owned results; do not retain the borrowed view.
+   * Engine calls (including on other engines) are blocked until the read ends. */
+  readCachedMotionWindow<T>(start: number, end: number,
+    consume: (values: ArrayLike<number>) => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
     if (!wasm.get_motion_window(this.h, frameIndex(start), frameIndex(end)))
       throw new Error('observation requires an already simulated window');
-    return windowValues((end - start + 1) * 5).subarray(0, (end - start + 1) * 5);
+    const values = windowValues((end - start + 1) * 5).subarray(0, (end - start + 1) * 5);
+    readingMotion = true;
+    try {
+      const result = consume(values);
+      if (result && typeof (result as {then?: unknown}).then === 'function')
+        throw new TypeError('motion observation callbacks must be synchronous');
+      return result;
+    } finally {
+      readingMotion = false;
+    }
   }
   /** Whole-body motion of an already simulated frame without allocating point
    * states: centre-of-mass velocity, angular momentum about the centre (unit masses)

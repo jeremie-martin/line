@@ -10,7 +10,7 @@ it('packed observations equal scalar observations under every strike contract, w
   ]);
   try {
     resetFrameCount();
-    expect(() => engine.getCachedMotionWindow(0, 60)).toThrow('already simulated');
+    expect(() => engine.readCachedMotionWindow(0, 60, values => Float64Array.from(values))).toThrow('already simulated');
     expect(engine.getLastFrameIndex()).toBe(0);
     expect(getPhysicsFrameCount()).toBe(0);
     const raw = extractRawTrajectory(engine, 60), work = getPhysicsFrameCount();
@@ -21,17 +21,38 @@ it('packed observations equal scalar observations under every strike contract, w
       const account = impactAccount(id), frames = raw.frames.slice(from);
       expect(account.observe(engine, frames)).toEqual(account.observe(scalar, frames));
     }
-    const saved = engine.getCachedMotionWindow(0, 60).slice();
+    const saved = engine.readCachedMotionWindow(0, 60, values => Float64Array.from(values)).slice();
     expect(saved).toHaveLength(61 * 5);
-    expect(engine.getCachedMotionWindow(60, 60)).toHaveLength(5);
+    expect(engine.readCachedMotionWindow(60, 60, values => Float64Array.from(values))).toHaveLength(5);
     expect(getPhysicsFrameCount()).toBe(work);
     const sibling = engine.addLine({id: 3, type: 0, x1: -50, y1: 0, x2: 280, y2: 0});
-    expect(() => sibling.getCachedMotionWindow(0, 60)).toThrow('already simulated');
+    expect(() => sibling.readCachedMotionWindow(0, 60, values => Float64Array.from(values))).toThrow('already simulated');
     expect(getPhysicsFrameCount()).toBe(work);
-    expect(() => engine.getCachedMotionWindow(5, 4)).toThrow('already simulated');
-    expect(() => engine.getCachedMotionWindow(-1, 4)).toThrow(RangeError);
-    expect(() => engine.getCachedMotionWindow(0, 4.5)).toThrow(RangeError);
+    expect(() => engine.readCachedMotionWindow(5, 4, values => Float64Array.from(values))).toThrow('already simulated');
+    expect(() => engine.readCachedMotionWindow(-1, 4, values => Float64Array.from(values))).toThrow(RangeError);
+    expect(() => engine.readCachedMotionWindow(0, 4.5, values => Float64Array.from(values))).toThrow(RangeError);
     engine.dispose();
-    expect(() => engine.getCachedMotionWindow(0, 0)).toThrow('disposed');
+    expect(() => engine.readCachedMotionWindow(0, 0, values => Float64Array.from(values))).toThrow('disposed');
+  } finally {disposeEngines();}
+});
+
+it('contains borrowed motion reads, restores access after failures, and lets owned results survive reuse', () => {
+  const a = new Engine().setStart({x: 0, y: -15}, {x: 4, y: 0});
+  const b = new Engine().setStart({x: 0, y: -15}, {x: 8, y: 0});
+  try {
+    a.getRider(10); b.getRider(10);
+    const saved = a.readCachedMotionWindow(0, 10, values => Float64Array.from(values));
+    const before = [...saved];
+    for (const call of [() => b.getRider(10), () => new Engine(), () => a.dispose(),
+      () => Engine.retainOnly([]), () => b.readCachedMotionWindow(0, 10, () => 0)]) {
+      expect(() => a.readCachedMotionWindow(0, 10, call)).toThrow('inside a motion observation');
+      expect(a.getLastFrameIndex()).toBe(10);
+      expect(b.getLastFrameIndex()).toBe(10);
+    }
+    expect(() => a.readCachedMotionWindow(0, 10, () => { throw new Error('consumer failed'); })).toThrow('consumer failed');
+    expect(() => a.readCachedMotionWindow(0, 10, (() => Promise.resolve()) as any)).toThrow('synchronous');
+    b.readCachedMotionWindow(0, 10, values => { expect(values[0]).not.toBe(before[0]); });
+    expect([...saved]).toEqual(before);
+    expect(a.readCachedMotionWindow(0, 10, values => Array.from(values))).toEqual(before);
   } finally {disposeEngines();}
 });

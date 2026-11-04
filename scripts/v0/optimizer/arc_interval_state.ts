@@ -5,7 +5,7 @@ import {hypot2} from '../../lib/hypot2.ts';
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getRiderMetered, getBallisticStateMetered, extractRawTrajectory, detect, DetectionContinuation } from '../../lib/detector.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
-import { CALIB, impactToRawPx, type AxisValues, type Gap, type TrackLine } from '../types.ts';
+import { CALIB, impactToRawPx, type AxisValues, type Gap } from '../types.ts';
 import { catchReceivers, type ArcMotionControl } from './arc_geometry.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
@@ -18,9 +18,10 @@ const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
 
 /** A control whose construction fell short, and by how much; seeds recovery. */
-export type Near = {c: ArcMotionControl; deficit: number};
+export type {Near} from './arc_candidates.ts';
+import type {Near, CandidateGeometry, CandidateMemo, EvaluatedCandidate, MeasuredCandidate} from './arc_candidates.ts';
 /** Contact fragments that replace a connected curve, with their guide line ids. */
-export type Fragments = {lines: TrackLine[]; guideIds: number[]};
+export type Fragments = {lines: CandidateGeometry; guideIds: number[]};
 
 /** Compile options with the per-call overrides and the section style applied,
  * plus the learned policy and arrival preferences this interval implies:
@@ -119,8 +120,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     memo, priorGap, priorAxes, priorLoss, controlContext,
     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
-    best: null as any,
-    candidates: [] as any[],
+    best: null as EvaluatedCandidate | null,
+    candidates: [] as MeasuredCandidate[],
     failures: {} as Record<string, number>,
     near: [] as Near[],
     center: undefined as ArcMotionControl | undefined,
@@ -136,7 +137,7 @@ export type IntervalSearch = NonNullable<ReturnType<typeof openInterval>>;
  * contexts are kept, most recently used last. */
 function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: IntervalOptions) {
   const {prefixes, prefixKey, memoContexts} = ctx.lineage;
-  let memo = new Map<string, any>();
+  let memo = new Map<string, CandidateMemo>();
   const prefix = prefixes.get(engine);
   if (prefix && !options.arrivalReference &&
     (!options.futureValueModel || options.futureValueModel === ctx.options.futureValueModel)) {

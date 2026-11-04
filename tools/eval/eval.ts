@@ -2,13 +2,14 @@
  * reports require the full panel. A failed worker is a failed run, resumable
  * after its cause is addressed; an incomplete ride is still a recorded result.
  *
- * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=24] [--creative=JSON]
+ * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=N] [--creative=JSON]
  * node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
  * Panels are listed in USAGE below (PANEL_HELP in inputs.ts). */
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
+import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
@@ -20,7 +21,7 @@ import {ADAPTER_SHA256, CONTRACTS, compileAndMeasure} from './compile.ts';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 export const USAGE = `usage:
-  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|standard*F|N] [--jobs=24] [--sealed|--heldout] [--creative=JSON]
+  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|standard*F|N] [--jobs=N] [--sealed|--heldout] [--creative=JSON]
   npm run eval:report -- --name=DIR [--against=DIR]
 panels:
 ${Object.entries(PANEL_HELP).map(([k, v]) => `  ${k.padEnd(14)}${v}`).join('\n')}
@@ -69,7 +70,7 @@ async function main() {
   if (command === 'worker') {assert.ok(arg('name') && arg('case')); await worker(runDir(arg('name')!), arg('case')!); return;}
   if ((command !== 'run' && command !== 'report') || !arg('name')) {console.error(USAGE); process.exitCode = 2; return;}
   if (command === 'run') {
-    const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = Number(arg('jobs', '24'));
+    const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = Number(arg('jobs', String(defaultWorkerJobs())));
     validateRunOptions(mode, budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
     const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
     const dir = runDir(arg('name')!), plan = await planFor(mode, budget, panelName, creative);

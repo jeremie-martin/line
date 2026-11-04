@@ -2,7 +2,7 @@
  * This is pure geometry; emitted fragments still undergo a complete physical search. */
 import {contactFragments} from './contact_fragments.ts';
 import type {TrackLine} from '../types.ts';
-export function fragmentInterval(lines:TrackLine[],positions:Float64Array,width=.003){
+export function fragmentInterval(lines:readonly TrackLine[],positions:Float64Array,width=.003){
   const footprints=new Map<number,number[]>(),byId=new Map(lines.map(l=>[l.id,l]));
   for(let i=0;i<positions.length;i+=3){
     const l=byId.get(positions[i]);if(!l)continue;

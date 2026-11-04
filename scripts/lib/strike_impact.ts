@@ -122,7 +122,7 @@ export function observeMotion(first: number, motions: ReadonlyArray<ReturnType<t
 
 /** Packed cached [vx, vy, L, R, contact] records, starting one frame before
  * `first`. Consume borrowed native data synchronously without further engine calls. */
-export function observeMotionWindow(first: number, data: Float64Array, c: StrikeContract): StrikeFrame[] {
+export function observeMotionWindow(first: number, data: ArrayLike<number>, c: StrikeContract): StrikeFrame[] {
   const out: StrikeFrame[] = [], motion = c.strength === 'motion' || c.split === 'reversal';
   for (let b = 5; b < data.length; b += 5) {
     const a = b - 5;

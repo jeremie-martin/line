@@ -2,7 +2,7 @@
  * Entry, turn, release and continuation are corrected by native physics;
  * the seeded arrangement determines which constructions must be realized. */
 import { withEngineScope } from '../../lib/native_motion/engine.ts';
-import { resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
+import { resetFrameCount, setPhysicsFrameLimit, PhysicsFrameLimitExceeded, withPhysicsFrameSession } from '../../lib/detector.ts';
 import { validateSpec } from '../core/substrate.ts';
 export { motionArc, type ArcMotionControl } from './arc_geometry.ts';
 import { normalizeCompilerTimeline } from './compiler_input.ts';
@@ -19,7 +19,7 @@ export type { ArcMotionOptions, SectionStyle, IntervalOverrides, IntervalOptions
  * physics frames. The result carries the track, its report, the committed
  * rows and the search telemetry. */
 export function compileArcMotion(spec: Spec, seed: number, options: ArcMotionOptions) {
-  const result = withEngineScope(() => compileArcMotionOnce(spec, seed, options));
+  const result = withPhysicsFrameSession(() => withEngineScope(() => compileArcMotionOnce(spec, seed, options)));
   return {...result, ...arcAttemptTelemetry(result, options), budget: options.budget};
 }
 

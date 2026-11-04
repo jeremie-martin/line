@@ -41,7 +41,7 @@ for (const file of files) {
       frames++;
     }
     assert.deepEqual((engines[0] as Native).getCachedRawFrames(0, track.duration), expectedRaw, `${file}: cached raw window`);
-    assert.deepEqual([...(engines[0] as Native).getCachedMotionWindow(0, track.duration)], expectedMotion, `${file}: packed motion window`);
+    assert.deepEqual([...(engines[0] as Native).readCachedMotionWindow(0, track.duration, values => Float64Array.from(values))], expectedMotion, `${file}: packed motion window`);
   } finally {
     disposeNative(); disposeReference();
   }

@@ -3,13 +3,13 @@
  * are swapped between fresh processes, outside the measured interval. */
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {cpSync, copyFileSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
+import {cpSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
 import {basename, dirname, join, relative} from 'node:path';
 
 const enginePath = 'scripts/lib/native_motion/engine.wasm';
 export const judgePath = 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
 const runnerFiles = ['tools/measure/engine_ab.ts', 'tools/measure/engine_sources.ts',
-  'tools/measure/engine_decision.ts', 'tools/measure/engine_workload.ts', 'tools/parity/parity.ts'];
+  'tools/measure/engine_decision.ts', 'tools/measure/engine_workload.ts', 'tools/parity/parity.ts', 'tools/lib/worker_jobs.ts'];
 const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 
 export function snapshotSources(source: string, destination: string, runnerRoot: string): void {
@@ -19,6 +19,8 @@ export function snapshotSources(source: string, destination: string, runnerRoot:
       filter: path => !['target', 'node_modules', '.cache', '__pycache__'].includes(basename(path))});
   for (const file of ['package.json', 'package-lock.json', 'tsconfig.json'])
     copyFileSync(join(source, file), join(destination, file));
+  for (const file of ['.nvmrc', 'rust-toolchain.toml'])
+    if (existsSync(join(source, file))) copyFileSync(join(source, file), join(destination, file));
   // The independent judge and measurement runner are fixed in both arms.
   for (const file of [judgePath, ...runnerFiles]) {
     mkdirSync(dirname(join(destination, file)), {recursive: true});

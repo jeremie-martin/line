@@ -173,7 +173,7 @@ export function measurementLastFrame(det: Detection): number {
   return frameOffset(det) + det.measurements.airborne.length - 1;
 }
 
-export function contactLineIdsAt(det: Detection, frame: number): number[] {
+export function contactLineIdsAt(det: Detection, frame: number): readonly number[] {
   const index = measurementIndex(det, frame);
   return index >= 0 ? det.measurements.contactLineIds[index] ?? [] : [];
 }

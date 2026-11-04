@@ -22,10 +22,10 @@ import {v7Cases, resolveCase} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {digest} from '../eval/inputs.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
-import {sequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
+import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
-import {getPhysicsFrameCount, refundPhysicsFramesTo} from '../../scripts/lib/detector.ts';
+import {withPhysicsFrameProbe} from '../../scripts/lib/detector.ts';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
@@ -34,14 +34,13 @@ const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => pr
 const r4 = (x: number | undefined) => x === undefined || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 
 /** Runs `probe` with every compile-visible side effect undone afterwards. */
-function isolated<T>(ctx: any, index: number, protectedEngines: readonly Engine[], probe: () => T): T {
-  const frames = getPhysicsFrameCount(), work = structuredClone(ctx.work);
+function isolated<T>(ctx: any, index: number, protectedEngines: readonly Engine[], probe: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
+  const work = structuredClone(ctx.work);
   const memos = [...ctx.lineage.memoContexts].map(([k, v]: [string, Map<string, any>]) => [k, v, new Map(v)] as const);
   const memory: any = ctx.memoryFor(index), controls = memory.controls.slice(), responses = memory.responses.slice();
   try {
-    return probe();
+    return withPhysicsFrameProbe(probe);
   } finally {
-    refundPhysicsFramesTo(frames);
     Object.assign(ctx.work, work);
     ctx.lineage.memoContexts.clear();
     for (const [k, original, copy] of memos) {original.clear(); for (const [a, b] of copy) original.set(a, b); ctx.lineage.memoContexts.set(k, original);}
@@ -56,7 +55,7 @@ async function worker(id: string, seed: number) {
   const {spec, music, planned} = await resolveCase(c, resolveJoltMs());
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const probes: any[] = [];
-  sequenceObserver.offers = (i, offered, chosen, ctx, protectedEngines) => {
+  const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen, ctx, protectedEngines) => {
     if (!(asks[i]! >= .6) || i + 2 >= ctx.contacts.length || !chosen.length) return;
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, pool = kept.interval.candidates as any[];
     const ask = asks[i]!;
@@ -84,8 +83,8 @@ async function worker(id: string, seed: number) {
     }
     probes.push(row);
   };
-  const {cell, track} = await compileAndMeasure('.', planned, {spec, music}, {mode: 'strike3', budget: 'standard'});
-  sequenceObserver.offers = undefined;
+  const {cell, track} = await withSequenceObserver(observe, () =>
+    compileAndMeasure('.', planned, {spec, music}, {mode: 'strike3', budget: 'standard'}));
   for (const p of probes) appendFileSync(join(out, 'probes.jsonl'), JSON.stringify({spec: id, seed, ...p}) + '\n');
   appendFileSync(join(out, 'rides.jsonl'), JSON.stringify({spec: id, seed, complete: cell.complete, score: cell.score?.score ?? 0, trackHash: digest(track)}) + '\n');
 }

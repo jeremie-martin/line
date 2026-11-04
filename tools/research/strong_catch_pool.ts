@@ -11,7 +11,7 @@ import {join} from 'node:path';
 import {v7Cases, resolveCase} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
-import {sequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
+import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
   'tiki_tiki_48s~v7-intense', 'tiki_tiki_48s~bench-pairs', 'amour_de_ma_vie_44s~bench-intense', 'luna_bala_44s~bench-breakdown'];
@@ -24,7 +24,7 @@ async function worker(id: string, seed: number) {
   const {spec, music, planned} = await resolveCase(c, resolveJoltMs());
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const pools: any[] = [];
-  sequenceObserver.offers = (i, offered, chosen) => {
+  const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen) => {
     if (!(asks[i] >= .6)) return;
     const parents = [...new Set(offered.map(o => o.interval))];
     pools.push({i, ask: asks[i], kept: chosen.map(o => key(o.candidate.c)), parents: parents.map(interval => interval.candidates.map((x: any) => {
@@ -34,8 +34,8 @@ async function worker(id: string, seed: number) {
         local: r4(x.localCost), future: r4(x.predictedFuture), offered: offered.some(o => o.candidate === x)};
     }))});
   };
-  const {cell, gallery} = await compileAndMeasure('.', planned, {spec, music}, {mode: 'strike3', budget: 'standard'});
-  sequenceObserver.offers = undefined;
+  const {cell, gallery} = await withSequenceObserver(observe, () =>
+    compileAndMeasure('.', planned, {spec, music}, {mode: 'strike3', budget: 'standard'}));
   const finalKeys = gallery.result.rows.map((row: any) => key(row.control));
   const measured = cell.impact3.perBeat.map((b: any) => b.hit?.strength ?? null);
   for (const p of pools) appendFileSync(join(out, 'pools.jsonl'), JSON.stringify({spec: id, seed, ...p, final: finalKeys[p.i], measured: measured[p.i - 1]}) + '\n');

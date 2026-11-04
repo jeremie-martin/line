@@ -3,7 +3,7 @@ import type { TrackLine } from '../types.ts';
 
 export function createArcEngine(start: {
   position: {x: number; y: number}; velocity: {x: number; y: number};
-}, lines: TrackLine[] = []): Engine {
+}, lines: readonly TrackLine[] = []): Engine {
   const base = new Engine().setStart(start.position, start.velocity);
   return base.addLine(lines);
 }

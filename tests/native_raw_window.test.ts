@@ -12,7 +12,7 @@ it('reads owned windows with scalar contact order and rejects incomplete caches'
   for(const [start,end]of [[0,0],[0,60],[7,18],[59,60]]){
    const frames=engine.getCachedRawFrames(start,end);
    expect(frames).toEqual(Array.from({length:end-start+1},(_,k)=>engine.getRawFrameAtFrame(start+k)));
-   const saved=structuredClone(frames);engine.getCachedMotionWindow(0,60);
+   const saved=structuredClone(frames);engine.readCachedMotionWindow(0,60, values => Float64Array.from(values));
    expect(frames).toEqual(saved);
   }
   const sibling=engine.addLine({id:3,type:0,x1:-50,y1:0,x2:280,y2:0});

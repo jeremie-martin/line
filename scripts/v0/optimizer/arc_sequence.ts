@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import { distinctArrival, distinctCandidates, valueRank, restoreCandidate } from './arc_candidates.ts';
+import { distinctArrival, distinctCandidates, valueRank, restoreCandidate, type MeasuredCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
 
@@ -23,17 +23,27 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
     deepestPrefix: {lines: [], rows: []}};
 }
 
-/** Study-only observer of each boundary's measured offers and the ones kept.
- * Report tools set it in-process; the compiler never reads anything back. */
-export const sequenceObserver: {offers?: (i: number, offered: ReadonlyArray<{parent: {seq: ArcSequence}; interval: IntervalResult; candidate: any; rank: number}>,
-  chosen: ReadonlyArray<{parent: {seq: ArcSequence}; candidate: any}>, ctx: ArcCompileContext, protectedEngines: readonly Engine[]) => void} = {};
+/** Study-only access to measured offers. Counterfactual studies may inspect the
+ * search context, but must restore any state they change before returning. */
+type SequenceObserver = (i: number, offered: ReadonlyArray<{parent: {seq: ArcSequence}; interval: IntervalResult; candidate: MeasuredCandidate; rank: number}>,
+  chosen: ReadonlyArray<{parent: {seq: ArcSequence}; candidate: MeasuredCandidate}>, ctx: ArcCompileContext, protectedEngines: readonly Engine[]) => void;
+let sequenceObserver: SequenceObserver | undefined;
+
+/** Install a study observer for one isolated worker task, including async input
+ * loading. Overlapping studies are rejected; success and failure both remove it. */
+export async function withSequenceObserver<T>(observer: SequenceObserver, run: () => Promise<T>): Promise<T> {
+  if (sequenceObserver) throw new Error('a sequence study is already active in this worker');
+  sequenceObserver = observer;
+  try { return await run(); }
+  finally { sequenceObserver = undefined; }
+}
 
 /** Expand distinct physical prefixes until the track is complete. A dead end
  * may reopen untried alternatives at a recent boundary. */
 export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   const {contacts, options, budget, end, work} = ctx;
   type Node = {seq: ArcSequence; localCost: number};
-  type Offer = {parent: Node; interval: IntervalResult; candidate: any; localCost: number; rank: number};
+  type Offer = {parent: Node; interval: IntervalResult; candidate: MeasuredCandidate; localCost: number; rank: number};
   let beam: Node[] = [{seq: {...seq, lines: seq.lines.slice(), rows: seq.rows.slice()}, localCost: 0}], observedRate = 0;
   const frontier: Offer[][] = [];
   let deepest = {lines: seq.lines.slice(), rows: seq.rows.slice()};
@@ -80,7 +90,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
         const candidates = i === contacts.length - 1 ? interval.candidates : distinctCandidates(options, interval.candidates, 8);
         for (const candidate of candidates) offered.push({parent, interval, candidate,
           localCost: parent.localCost + candidate.localCost,
-          rank: i === contacts.length - 1 ? candidate.terminalLoss : parent.localCost + valueRank(options, candidate)});
+          rank: i === contacts.length - 1 ? candidate.terminalLoss! : parent.localCost + valueRank(options, candidate)});
         Engine.retainOnly(protectedEngines);
       }
     } catch (error) {
@@ -131,7 +141,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const minimumScale = Math.max(.05, 12 / Math.max(12, options.samples ?? 80));
     const width = clamp(Math.floor(remainingRate / Math.max(1, observedRate * minimumScale * 1.1)), 1, 8);
     const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
-    sequenceObserver.offers?.(i, offered, chosen, ctx, protectedEngines);
+    sequenceObserver?.(i, offered, chosen, ctx, protectedEngines);
     if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
       finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};
     // Keep all distinct measured alternatives at four recent boundaries,

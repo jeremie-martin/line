@@ -38,7 +38,7 @@ export type TraceFrame = {
   /** CoM travel heading (deg) from velocity. Its divergence from sledPoseDeg is spin. */
   comHeadingDeg: number;
   airborne: boolean;
-  contactLineIds: number[];
+  contactLineIds: readonly number[];
 };
 
 /** A small, NEUTRAL vocabulary of physical observations — not aesthetic

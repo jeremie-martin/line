@@ -15,8 +15,9 @@
 import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
-import {tmpdir, availableParallelism, totalmem} from 'node:os';
+import {tmpdir} from 'node:os';
 import {spawn} from 'node:child_process';
+import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
@@ -36,15 +37,23 @@ function caseOf(cell: {id: string}) {
   return {c, music: catalog.music.find((m: any) => m.id === c.sourceId)!};
 }
 
-export async function compileWorker(index: number, out: string) {
+export async function compileWorker(index: number, out: string, collectResources = false) {
   const cell = doc.cells[index], {c, music} = caseOf(cell), requested = c.plans[cell.seed];
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
-  const began = performance.now();
-  const checkpoint = compileHandoff(caseSpec(music), cell.seed, {budget: cell.budget ?? policy.budget,
+  const spec = caseSpec(music), options = {budget: cell.budget ?? policy.budget,
     ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
-    ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})});
+    ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})};
+  // v2: both clocks enclose only compileHandoff. Input loading, hashing,
+  // serialization and diagnostic resource sampling are outside this boundary.
+  const cpu = process.cpuUsage(), began = performance.now();
+  const checkpoint = compileHandoff(spec, cell.seed, options);
+  const compileMs = performance.now() - began, used = process.cpuUsage(cpu);
+  const resources = collectResources ? {
+    wasmLinearMemoryBytes: (await import('../../scripts/lib/native_motion/wasm.ts')).wasm.memory.buffer.byteLength,
+    ...process.memoryUsage(), processMaxRssBytes: process.resourceUsage().maxRSS * 1024,
+  } : undefined;
   writeFileSync(out, JSON.stringify({trackHash: sha(JSON.stringify(checkpoint.track)), physicalFrames: checkpoint.stats.sim_frames,
-    compileMs: performance.now() - began, track: checkpoint.track}));
+    compileMs, compileCpuMs: (used.user + used.system) / 1000, resources, track: checkpoint.track}));
 }
 
 async function judgeTrack(cell: Cell, track: any) {
@@ -69,7 +78,7 @@ if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
 const command = process.argv[2];
 if (command === 'worker') await compileWorker(Number(arg('cell')), arg('out')!);
 else if (command === 'compile') {
-  const defaultJobs = Math.max(1, Math.min(23, availableParallelism(), Math.floor(totalmem() / 4_000_000_000)));
+  const defaultJobs = defaultWorkerJobs();
   const mode = arg('mode'), jobs = Number(arg('jobs', String(defaultJobs))), only = arg('ids')?.split(',');
   if (!Number.isInteger(jobs) || jobs < 1 || jobs > 64) throw new Error('--jobs must be an integer from 1 to 64');
   const queue = doc.cells.map((c, i) => ({c, i})).filter(({c}) => (!mode || c.mode === mode) && (!only || only.includes(c.id)));

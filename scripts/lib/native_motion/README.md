@@ -96,9 +96,12 @@ outputs grow as needed and retain their initialized high-water storage. Returned
 counts define the logical prefix: output is never silently capped. Raw-frame
 contacts have their own buffer, separate from ordinary event reads.
 
-Views borrow WASM memory until the next engine call. The adapter refreshes them
-when memory grows or a vector moves, even inside the same memory buffer. Copy
-before retaining a window across calls. `getCachedContactPositions()` and
+Private adapter views borrow WASM memory until the next engine call. The adapter
+refreshes them when memory grows or a vector moves, even inside the same memory
+buffer. Public `readCachedMotionWindow()` passes a read-only view to a synchronous
+callback and blocks engine calls until it returns, including calls on other
+engines. Return owned results; TypeScript cannot prevent deliberate capture of a
+borrowed reference. `getCachedContactPositions()` and
 `readCollisionTrace()` already return owned observations. Transport buffers still
 require synchronous access; this is not a concurrent native C API.
 
@@ -116,6 +119,9 @@ because they improve measured performance while preserving parity.
 and discovers all Rust/TypeScript sources and Cargo inputs for the manifest.
 The original accepted-source provenance remains recorded separately. A test
 checks manifest completeness and hashes. The judge build is untouched.
+Rust 1.95.0 is pinned at the repository root; the manifest records the actual
+rustc/Cargo versions, target, profile, pin hash and environment overrides. Node
+22.22.2 is the qualified consumer runtime. Requalify changes to either toolchain.
 
 Structural backend changes require `npm run verify:engine`, `npm run parity`
 (exact tracks and charged work), `npm run parity:judge`, `npm test`,
@@ -124,6 +130,13 @@ Structural backend changes require `npm run verify:engine`, `npm run parity`
 ```sh
 cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml
 ```
+
+`npm run check:engine` runs all these structural checks in sequence. It does not
+rebuild the backend or run performance decisions. The JS suite includes seeded
+add/branch/detach/reset/observe/release sequences and budget interruptions, compared
+with cold independent JS replays. Cold reconstruction avoids relying on lr-core's
+mutable cache behavior after branch/start-reset switches; native cache work is
+covered separately by metering tests and exact compiler-work parity.
 
 ## Measure on the current machine
 
@@ -152,6 +165,22 @@ a default-path regression. Cell 62 checks its larger budget. If costs shift
 between registration and simulation, also report isolated stepping. For storage
 changes, report WASM linear-memory high-water size separately from live memory
 or process RSS.
+
+The current result schema is `line.engine-ab.v2`. Compile CPU and wall clocks
+both enclose `compileHandoff` with prepared inputs, stopping before hashing,
+serialization and output. Native-workload timing is unchanged. A v2 confirmation
+requires a v2 screen; historical v1 evidence is left intact. Results record Node,
+V8, worker flags and Node environment options as well as frozen source hashes.
+Compile runs also sample resources in a separate fresh process per arm/cell:
+WASM linear-memory capacity (high-water), post-compile heap usage and RSS, and
+the process lifetime maximum RSS. No forced GC is applied to that sample; heap
+usage is neither retained live memory nor an allocation count. Resource samples
+do not enter the paired timing decision. Declare any memory/speed tradeoff before
+the next experiment, and preserve the individual timing verdicts.
+`npm run perf:engine -- --report=/path/to/result.json` reports a completed v2
+record without repeating measurements or changing evidence. A failed A/A control
+prints `controlPassed: false` and exits nonzero, even if its raw timing verdict
+says KEEP. Controls cannot enter candidate confirmation.
 
 An absolute compiler target uses full compile time divided by the unchanged
 charged physics count. It includes search and observation work, so it is distinct

@@ -7,7 +7,7 @@ import {hypot2} from '../../lib/hypot2.ts';
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, type Detection } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
-import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
+import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
 import type {SolidPath} from '../../lib/primitive.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
@@ -25,6 +25,7 @@ import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactAccount as impactAccountFor } from './impact_accounts.ts';
 import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
+import type {CandidateGeometry, CandidateMemo, EvaluatedCandidate} from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -103,10 +104,10 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
 
 /** A memoized measurement competes again in this search; its engine is rebuilt
  * from the validated geometry, so later simulation stays metered. */
-function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: any) {
+function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: CandidateMemo) {
   const work = s.ctx.work;
   work.memoHits++;
-  if (saved.reason) {
+  if ('reason' in saved) {
     if (saved.near) rememberNear(s, saved.near);
     work.memoRejectedHits++;
     s.failures[saved.reason] = (s.failures[saved.reason] ?? 0) + 1;
@@ -125,7 +126,7 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: any) {
 /** Support geometry for `c` on the interval's prefix engine: a connected arc,
  * explicit fragments, or (transfer layouts) a support plus a receiving curve
  * placed from the observed free flight. */
-function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): ({added: TrackLine[]; paths?: never} | {added?: never; paths: SolidPath[]}) & {child: Engine} | Rejection {
+function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): ({added: CandidateGeometry; paths?: never} | {added?: never; paths: SolidPath[]}) & {child: Engine} | Rejection {
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
@@ -158,7 +159,7 @@ function replayCandidate(s: IntervalSearch, child: Engine, prefixReusable: boole
 
 /** Validates the detected trajectory and observes its requested impact and
  * construction. Detector arrays are borrowed only for this evaluation. */
-function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: TrackLine[], child: Engine, fragments: Fragments | undefined,
+function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: CandidateGeometry, child: Engine, fragments: Fragments | undefined,
   replay: Exclude<ReturnType<typeof replayCandidate>, Rejection>, det: Detection) {
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, frames} = ctx;
@@ -197,7 +198,7 @@ type Trace = Exclude<ReturnType<typeof inspectTrajectory>, Rejection>;
  * impact at this contact (and, with the impact contract, its event account),
  * the corrected preceding span, motion quality, then the arrival priors that
  * only guide search. `localCost` excludes the arrival priors. */
-function measureObjective(s: IntervalSearch, added: TrackLine[], traced: Trace) {
+function measureObjective(s: IntervalSearch, added: CandidateGeometry, traced: Trace) {
   const {ctx, options, i, frame, next, horizon, targets, impact, gap} = s;
   const {contacts, duration, gaps} = ctx;
   const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
@@ -317,8 +318,8 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
 /** Turns a valid measurement into a candidate: arrival description, the
  * terminal loss of a final support, the learned future value, and the memo
  * entry. Updates `s.best`. */
-function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, added: TrackLine[], child: Engine,
-  fragments: Fragments | undefined, traced: Trace, measured: Exclude<ReturnType<typeof measureObjective>, Rejection>) {
+function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, added: CandidateGeometry, child: Engine,
+  fragments: Fragments | undefined, traced: Trace, measured: Exclude<ReturnType<typeof measureObjective>, Rejection>): EvaluatedCandidate {
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, gaps, impactTargets} = ctx;
   const {state, raw, det, observedImpacts} = traced;
@@ -351,7 +352,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
     meta: {achieved, impact: actualImpact, release: result.release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}});
   // Interrupted evaluations never reach this cache insertion.
   const {child: _saved, ...saved} = result;
-  s.memo.set(key, {result: saved, candidate: {...s.candidates.at(-1)}});
+  s.memo.set(key, {result: saved, candidate: {...s.candidates.at(-1)!}});
   if (!s.best || cost < s.best.optimizationCost) s.best = result;
   return result;
 }

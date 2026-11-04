@@ -2,6 +2,19 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+The final source cleanup removes the duplicate constraint tuple table and
+numeric indices while retaining the original ordered calls. Rest constants
+derive directly from their fixed endpoints. The packaged WASM is **byte-identical**
+to `144ae46c`; executed JavaScript is unchanged. A tested monotonicity argument
+replaces the stale repel-gate warning. All 28 Rust tests, 63 exact compiler cells,
+33 judge/native tracks, typecheck and reach pass; JavaScript retains 389 passes
+and the existing missing-audio failure. This is a maintainability improvement,
+with **no new timing claim**. Full evidence: `docs/research/engine-direct-topology-20261104.json`.
+
+The same archive records a closed observation-demand diagnostic: deferred
+summary prefixes would avoid only 11.50% of constructions after clone/reset/
+rollback effects, below the declared 25% gate. No lazy-summary path is added.
+
 A runtime constraint table removes duplicate metadata/calls and shrinks the two
 generated solver bodies **41.61%**. All 28 Rust tests (including 60,000 unrolled
 solver comparisons) and independent native replay pass. Screen12 nevertheless

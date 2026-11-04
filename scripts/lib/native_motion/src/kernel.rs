@@ -15,7 +15,7 @@ use crate::history::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
 use crate::line::{Line, LineRef, MAX_FORCE_LENGTH};
 use crate::{
-    COLLIDING_POINTS, BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT,
+    COLLIDING_POINTS, BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITERATE, JOINTS, LFOOT, LHAND, NENT,
     NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
 };
 
@@ -263,16 +263,15 @@ pub(crate) fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
 }
 
 /// Rest lengths belong to the fixed rider topology, not to a frame cache.
-/// Every solver call supplies a constant index, so release compilation folds
+/// Every solver call supplies fixed endpoints, so release compilation folds
 /// this expression while preserving its original rounded arithmetic.
 #[inline(always)]
-fn rest_length(k: usize) -> f64 {
-    let (_, p1, p2, _, _, factor) = ITER[k];
+fn rest_length(p1: usize, p2: usize, factor: f64) -> f64 {
     dist(BASE[p1].0, BASE[p1].1, BASE[p2].0, BASE[p2].1) * factor
 }
 
 #[inline(always)]
-fn resolve_stick(s: &mut State, k: usize, p1: usize, p2: usize) {
+fn resolve_stick(s: &mut State, p1: usize, p2: usize) {
     let p1x = s.px[p1];
     let p1y = s.py[p1];
     let p2x = s.px[p2];
@@ -281,7 +280,7 @@ fn resolve_stick(s: &mut State, k: usize, p1: usize, p2: usize) {
     let gd = if length == 0.0 {
         0.0
     } else {
-        (length - rest_length(k)) / length
+        (length - rest_length(p1, p2, 1.0)) / length
     };
     let diff = gd * 0.5;
     let dx = (p1x - p2x) * diff;
@@ -293,23 +292,19 @@ fn resolve_stick(s: &mut State, k: usize, p1: usize, p2: usize) {
 }
 
 #[inline(always)]
-fn resolve_repel(s: &mut State, k: usize, p1: usize, p2: usize) {
+fn resolve_repel(s: &mut State, p1: usize, p2: usize) {
     let p1x = s.px[p1];
     let p1y = s.py[p1];
     let p2x = s.px[p2];
     let p2y = s.py[p2];
-    // Repels fire only when length < rest, which is rare (~2% — feet rarely closer
-    // to the shoulder than rest). Gate the sqrt on len_sq < rest² so the common
-    // inactive case skips the sqrt entirely. Inside the gate, `length` and the
-    // applied math are byte-identical to the original (same len_sq, same sqrt, same
-    // `length < rest` branch). The ONLY semantic difference is the gate vs the
-    // original `length < rest` comparison, which can disagree in a ULP-wide band
-    // where round(rest²) rounds below rest² — `verify`/`--diff` is the arbiter of
-    // whether that band ever occurs for these inputs.
+    // For both fixed repel rests, sqrt(round(rest * rest)) == rest (tested
+    // below). Monotonic sqrt therefore guarantees that length < rest implies
+    // len_sq < round(rest * rest). The gate skips only inactive repels; the
+    // original length check and response arithmetic remain inside it.
     let dx0 = p2x - p1x;
     let dy0 = p2y - p1y;
     let len_sq = dx0 * dx0 + dy0 * dy0;
-    let r = rest_length(k);
+    let r = rest_length(p1, p2, 0.5);
     if len_sq < r * r {
         let length = len_sq.sqrt();
         if length < r {
@@ -332,10 +327,10 @@ fn resolve_repel(s: &mut State, k: usize, p1: usize, p2: usize) {
 #[inline(always)]
 fn resolve_bind(
     s: &mut State,
-    k: usize,
     p1: usize,
     p2: usize,
     bind: usize,
+    endurance: f64,
 ) {
     let p1x = s.px[p1];
     let p1y = s.py[p1];
@@ -350,10 +345,10 @@ fn resolve_bind(
         let gd = if length == 0.0 {
             0.0
         } else {
-            (length - rest_length(k)) / length
+            (length - rest_length(p1, p2, 1.0)) / length
         };
         let diff = gd * 0.5;
-        if diff > ITER[k].4 * rest_length(k) * 0.5 {
+        if diff > endurance * rest_length(p1, p2, 1.0) * 0.5 {
             s.fsu[bind] = 0;
         } else {
             let dx = (p1x - p2x) * diff;
@@ -368,28 +363,28 @@ fn resolve_bind(
 
 #[inline(always)]
 fn resolve_iter_constraints(s: &mut State) {
-    resolve_stick(s, 0, PEG, TAIL);
-    resolve_stick(s, 1, TAIL, NOSE);
-    resolve_stick(s, 2, NOSE, STRING);
-    resolve_stick(s, 3, STRING, PEG);
-    resolve_stick(s, 4, PEG, NOSE);
-    resolve_stick(s, 5, STRING, TAIL);
-    resolve_bind(s, 6, PEG, BUTT, RIDER_MOUNTED);
-    resolve_bind(s, 7, TAIL, BUTT, RIDER_MOUNTED);
-    resolve_bind(s, 8, NOSE, BUTT, RIDER_MOUNTED);
-    resolve_stick(s, 9, SHOULDER, BUTT);
-    resolve_stick(s, 10, SHOULDER, LHAND);
-    resolve_stick(s, 11, SHOULDER, RHAND);
-    resolve_stick(s, 12, BUTT, LFOOT);
-    resolve_stick(s, 13, BUTT, RFOOT);
-    resolve_stick(s, 14, SHOULDER, RHAND);
-    resolve_bind(s, 15, SHOULDER, PEG, RIDER_MOUNTED);
-    resolve_bind(s, 16, STRING, LHAND, RIDER_MOUNTED);
-    resolve_bind(s, 17, STRING, RHAND, RIDER_MOUNTED);
-    resolve_bind(s, 18, LFOOT, NOSE, RIDER_MOUNTED);
-    resolve_bind(s, 19, RFOOT, NOSE, RIDER_MOUNTED);
-    resolve_repel(s, 20, SHOULDER, LFOOT);
-    resolve_repel(s, 21, SHOULDER, RFOOT);
+    resolve_stick(s, PEG, TAIL);
+    resolve_stick(s, TAIL, NOSE);
+    resolve_stick(s, NOSE, STRING);
+    resolve_stick(s, STRING, PEG);
+    resolve_stick(s, PEG, NOSE);
+    resolve_stick(s, STRING, TAIL);
+    resolve_bind(s, PEG, BUTT, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, TAIL, BUTT, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, NOSE, BUTT, RIDER_MOUNTED, 0.057);
+    resolve_stick(s, SHOULDER, BUTT);
+    resolve_stick(s, SHOULDER, LHAND);
+    resolve_stick(s, SHOULDER, RHAND);
+    resolve_stick(s, BUTT, LFOOT);
+    resolve_stick(s, BUTT, RFOOT);
+    resolve_stick(s, SHOULDER, RHAND);
+    resolve_bind(s, SHOULDER, PEG, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, STRING, LHAND, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, STRING, RHAND, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, LFOOT, NOSE, RIDER_MOUNTED, 0.057);
+    resolve_bind(s, RFOOT, NOSE, RIDER_MOUNTED, 0.057);
+    resolve_repel(s, SHOULDER, LFOOT);
+    resolve_repel(s, SHOULDER, RFOOT);
 }
 
 #[inline(always)]
@@ -553,6 +548,19 @@ pub(crate) fn step_state<const TRACK: bool>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn squared_repel_gate_is_conservative_at_both_fixed_rest_boundaries() {
+        for p2 in [LFOOT, RFOOT] {
+            let rest = rest_length(SHOULDER, p2, 0.5);
+            let square = rest * rest;
+            assert_eq!(square.sqrt().to_bits(), rest.to_bits());
+            for bits in square.to_bits() - 4..=square.to_bits() + 4 {
+                let distance_squared = f64::from_bits(bits);
+                assert!(!(distance_squared.sqrt() < rest) || distance_squared < square);
+            }
+        }
+    }
 
     fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<LineRef>>, x: f64, y: f64) -> Vec<i32> {
         cache.point_cell(PEG,x, y);

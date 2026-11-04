@@ -19,6 +19,11 @@ judge remains in `engine-rs`, with its own adapter and replay instance.
 | `src/line.rs`, `src/grid.rs` | immutable line geometry, cell traversal and lookup tables |
 | `src/abi.rs` | input/output marshalling; it owns no engine state |
 
+The ordered solver calls are the single definition of iterating constraint
+endpoints and binding endurance. Rest lengths derive from those fixed endpoints
+and fold into constants in the packaged code; no runtime topology table or
+per-engine rest arrays are needed.
+
 Each registration batch owns contiguous immutable geometry and raster footprints.
 Line references retain the batch and an index; version patches, grid buckets and
 the line-id index share that ownership. Removing one line may retain its storage

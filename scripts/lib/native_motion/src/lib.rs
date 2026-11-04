@@ -46,33 +46,6 @@ pub(crate) const IS_POINT: [bool; NENT] = [
     false, false, true, true, true, true, true, true, true, true, true, true,
 ];
 
-// iterating constraints: (kind, p1, p2, binding, endurance_param, length_factor)
-// kind: 0=Stick, 1=BindStick, 2=RepelStick
-pub(crate) const ITER: [(u8, usize, usize, usize, f64, f64); 22] = [
-    (0, PEG, TAIL, 0, 0.0, 1.0),
-    (0, TAIL, NOSE, 0, 0.0, 1.0),
-    (0, NOSE, STRING, 0, 0.0, 1.0),
-    (0, STRING, PEG, 0, 0.0, 1.0),
-    (0, PEG, NOSE, 0, 0.0, 1.0),
-    (0, STRING, TAIL, 0, 0.0, 1.0),
-    (1, PEG, BUTT, RIDER_MOUNTED, 0.057, 1.0),
-    (1, TAIL, BUTT, RIDER_MOUNTED, 0.057, 1.0),
-    (1, NOSE, BUTT, RIDER_MOUNTED, 0.057, 1.0),
-    (0, SHOULDER, BUTT, 0, 0.0, 1.0),
-    (0, SHOULDER, LHAND, 0, 0.0, 1.0),
-    (0, SHOULDER, RHAND, 0, 0.0, 1.0),
-    (0, BUTT, LFOOT, 0, 0.0, 1.0),
-    (0, BUTT, RFOOT, 0, 0.0, 1.0),
-    (0, SHOULDER, RHAND, 0, 0.0, 1.0), // SHOULDER_RHAND_2
-    (1, SHOULDER, PEG, RIDER_MOUNTED, 0.057, 1.0),
-    (1, STRING, LHAND, RIDER_MOUNTED, 0.057, 1.0),
-    (1, STRING, RHAND, RIDER_MOUNTED, 0.057, 1.0),
-    (1, LFOOT, NOSE, RIDER_MOUNTED, 0.057, 1.0),
-    (1, RFOOT, NOSE, RIDER_MOUNTED, 0.057, 1.0),
-    (2, SHOULDER, LFOOT, 0, 0.0, 0.5),
-    (2, SHOULDER, RFOOT, 0, 0.0, 0.5),
-];
-
 // non-iterating BindJoints: (p1, p2, q1, q2, binding)
 pub(crate) const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
     (SHOULDER, BUTT, STRING, PEG, RIDER_MOUNTED),

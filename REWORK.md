@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+A conservative grid-envelope diagnostic finds **23.28%** of ordinary ten-point
+collision sweeps wholly outside the registered geometry. Every predicted miss
+is checked while the complete original solver still runs; exact track/work
+holds. The predeclared 25% eligibility gate fails. No bypass, padding tuning or
+timing follows (`docs/research/engine-grid-envelope-20261104.json`).
+
 Overwriting detector measurement suffixes before truncating preserves 15,120
 frozen-reference comparisons, four resume tests, typecheck and the complete
 default checkpoint. Fresh sampled `scanFrames` allocations nevertheless rise

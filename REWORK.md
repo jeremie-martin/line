@@ -2,6 +2,18 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+An owned numeric-column impact representation passes 36 focused tests, typecheck
+and 41,971 exact frozen-reference comparisons. It nevertheless loses all 12
+timing pairs: **+5.24% [+4.04,+6.56]**, REJECT. No confirmation, tuning or
+adoption follows (`docs/research/engine-strike-columns-20261104.json`).
+
+Untimed diagnostics also close two cache proposals. All 195 physical-prefix
+observations are unique. Even an unlimited exact whole-state map could reuse
+only 8.86% of ordinary collision-free steps, before validation or lookup cost;
+this fails the declared 25% eligibility gate. Neither cache is implemented.
+The impact read-demand counts and both exact track/work checks are preserved in
+`docs/research/engine-prefix-demand-20261104.json`.
+
 Indexed strike traversal and avoiding an empty-prefix continuation copy pass
 17 focused tests, typecheck and 23,061 frozen-reference comparisons. The fixed
 screen12 is inconclusive: **+0.45% [−0.36,+1.36]**, 5/12 wins. Required KEEP

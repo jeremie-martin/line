@@ -24,7 +24,8 @@ export function startSequence(ctx: ArcCompileContext): ArcSequence {
 }
 
 /** Study-only access to measured offers. Counterfactual studies may inspect the
- * search context, but must restore any state they change before returning. */
+ * search context as read-only. Counterfactual search uses withArcStudy with
+ * owned context and engines; observers must never mutate the active compile. */
 type SequenceObserver = (i: number, offered: ReadonlyArray<{parent: {seq: ArcSequence}; interval: IntervalResult; candidate: MeasuredCandidate; rank: number}>,
   chosen: ReadonlyArray<{parent: {seq: ArcSequence}; candidate: MeasuredCandidate}>, ctx: ArcCompileContext, protectedEngines: readonly Engine[]) => void;
 let sequenceObserver: SequenceObserver | undefined;

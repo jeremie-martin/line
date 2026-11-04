@@ -1,12 +1,8 @@
 /** Shared deterministic workloads for engine diagnostics and the paired decision gate. */
-import {readFileSync, readdirSync} from 'node:fs';
-import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
-const directory = resolve('tools/parity/tracks');
-export const tracks = readdirSync(directory).filter(p => p.endsWith('.json.gz')).sort().map(name => ({name,
-  track: JSON.parse(gunzipSync(readFileSync(resolve(directory, name))).toString())}));
+import {savedEngineTracks} from '../parity/engine_corpus.ts';
+export const tracks = savedEngineTracks();
 // ABI kept private here: the production wrapper and engine selection are unchanged.
 type Exports = Record<string, any> & {memory: WebAssembly.Memory};
 export function instance(module: WebAssembly.Module): Exports {

@@ -26,3 +26,21 @@ it('refuses to report incomplete or differently versioned measurements as qualif
   expect(report({schema: 'line.engine-ab.v1', complete: true}).status).not.toBe(0);
   expect(report({schema: 'line.engine-ab.v2', complete: false}).status).not.toBe(0);
 });
+
+it.each(['null', 'slowdown'])('v3 reports control failures without qualifying a candidate (%s)', control => {
+  const r = report({schema: 'line.engine-ab.v3', complete: true, control, controlPassed: false,
+    decision: {verdict: 'INCONCLUSIVE'}, performanceQualified: false});
+  expect(r.status).toBe(1);
+  expect(JSON.parse(r.stdout).performanceQualified).toBe(false);
+});
+
+it('rejects misspelled protocol flags before starting measurements', () => {
+  const r = spawnSync(process.execPath, ['--import', 'tsx', 'tools/measure/engine_ab.ts', '--confidnce=.99'], {encoding: 'utf8'});
+  expect(r.status).not.toBe(0);
+  expect(r.stderr).toContain('unknown option');
+});
+
+it.each([['--confidence'], ['--rounds=12', '--rounds=24'], ['--help=true']])('rejects ambiguous protocol options %j', (...args) => {
+  const r = spawnSync(process.execPath, ['--import', 'tsx', 'tools/measure/engine_ab.ts', ...args], {encoding: 'utf8'});
+  expect(r.status).not.toBe(0);
+});

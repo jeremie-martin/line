@@ -69,24 +69,22 @@ floating-point equality is qualified against this Node/V8 version.
 nvm use
 npm ci
 npm run build:wasm      # independent judge (needs cargo + wasm-opt)
-npm run verify:engine   # exact states + collisions vs reference on committed tracks
+npm run check:physics  # fast exact saved-reference check
 ```
 
 The compiler backend is packaged separately. After editing its Rust or TypeScript sources, use
 `npm run build:native`; the independent reference build stays unchanged. See
 [`scripts/lib/native_motion/README.md`](scripts/lib/native_motion/README.md) for
-compiler-engine ownership, build, parity and per-machine engine
-benchmarks. `npm run perf:engine` provides paired screening and fresh
-confirmation, including frozen source comparisons for wrapper changes;
-`npm run bench:engine` provides workload diagnostics. Old machine
-timings are historical evidence.
+compiler-engine ownership and build details. The concise
+[validation workflow](docs/engine-validation.md) covers the correctness layers,
+paired timing protocol and interpretation of resource measurements.
 
-`npm run check:engine` runs the complete structural gate: types, reachability,
-JavaScript and Rust tests, native physics verification, compiler parity and judge
-parity. Evaluation, comparison and parity choose a conservative worker count from
-available CPUs and memory; `--jobs=N` overrides it (four by default on this 16 GB host).
-The v2 paired compile protocol measures CPU and wall time around the same compile
-operation and reports separate fresh-process WASM, JS heap and RSS observations.
+`npm run check:physics` is the quick saved-reference check. `npm run check` runs
+the complete structural gate: types, reachability, JavaScript and Rust tests,
+live physics verification, compiler parity and judge parity. Evaluation,
+comparison and parity use a conservative CPU/memory worker count; `--jobs=N`
+overrides it (four by default on this 16 GB host). `npm run perf:engine -- --help`
+shows the paired experiment options; `npm run bench:engine` is a workload diagnostic.
 
 Compiler throughput is full compile time per charged physics frame, including
 search and observation work. It is distinct from isolated solver time. Structural
@@ -119,8 +117,10 @@ Chromium installation instead of Playwright's default browser.
 
 | command | what it guards |
 |---|---|
+| `npm run check:physics` | fast saved-reference physics, including seeded stress cases |
+| `npm run verify:engine` | live independent physics and derived-observation parity |
 | `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets) |
-| `npm run check:engine` | complete structural compiler/engine gate, including both parity suites |
+| `npm run check` | complete structural compiler/engine gate, including both parity suites |
 | `npm run parity:judge [-- --all]` | the V6 judge reproduces every stored score (this *is* the V6 freeze) |
 | `npm test` | unit and integration tests |
 | `npm run typecheck` | TypeScript; the error count may only go down |

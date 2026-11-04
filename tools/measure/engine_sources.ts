@@ -9,7 +9,7 @@ import {basename, dirname, join, relative} from 'node:path';
 const enginePath = 'scripts/lib/native_motion/engine.wasm';
 export const judgePath = 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
 const runnerFiles = ['tools/measure/engine_ab.ts', 'tools/measure/engine_sources.ts',
-  'tools/measure/engine_decision.ts', 'tools/measure/engine_workload.ts', 'tools/parity/parity.ts', 'tools/lib/worker_jobs.ts'];
+  'tools/measure/engine_decision.ts', 'tools/measure/engine_workload.ts', 'tools/parity/engine_corpus.ts', 'tools/parity/parity.ts', 'tools/lib/worker_jobs.ts'];
 const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 
 export function snapshotSources(source: string, destination: string, runnerRoot: string): void {

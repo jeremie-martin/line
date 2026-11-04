@@ -1,18 +1,15 @@
-/** Fresh-checkout physics gate: compiler backend vs the independent reference.
- * No generated fingerprints to record or accidentally bless. */
+/** Live differential gate: native wrappers vs the independent reference,
+ * including every physical state, ordered contact and derived observation. */
 import assert from 'node:assert/strict';
-import {readFileSync, readdirSync} from 'node:fs';
-import {gunzipSync} from 'node:zlib';
+import {engineCorpus} from './engine_corpus.ts';
 import {LineRiderEngine as Native, disposeEngines as disposeNative} from '../../scripts/lib/native_motion/engine.ts';
 import {LineRiderEngine as Reference, disposeAllWasmEnginesForStudy as disposeReference} from '../../scripts/lib/_lr_engine_wasm.ts';
 import {bodyMotion} from '../../scripts/lib/strike_impact.ts';
 
-const directory = new URL('./tracks/', import.meta.url);
-const files = readdirSync(directory).filter(name => name.endsWith('.json.gz')).sort();
-assert(files.length > 0, 'missing committed engine fixtures');
+const cases = engineCorpus();
+assert(cases.length > 0, 'missing committed engine fixtures');
 let frames = 0, collisions = 0;
-for (const file of files) {
-  const track = JSON.parse(gunzipSync(readFileSync(new URL(file, directory))).toString());
+for (const {name: file, track} of cases) {
   const engines = [Native, Reference].map(Engine => new Engine()
     .setStart(track.startPosition, track.riders[0].startVelocity).addLine(track.lines));
   try {
@@ -47,5 +44,5 @@ for (const file of files) {
   }
   console.log(`same  ${file}`);
 }
-console.log(`PASS  ${files.length} tracks, ${frames} frame states, ${collisions} ordered collisions`);
+console.log(`PASS  ${cases.length} cases, ${frames} frame states, ${collisions} ordered collisions`);
 console.log(`PASS  ${frames} raw-frame, body-motion and cached-contact observations`);

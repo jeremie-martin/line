@@ -197,3 +197,24 @@ it('bounds only distances that cannot enter the retained neighborhood', async ()
   }
  }
 });
+
+it('forks model, locally learned controls and responses into independently owned study state', () => {
+  const example: ArcResponseExample = {features: [0], incoming: 10, span: 20,
+    control: {entry: 8, turn: 20, exit: 15, support: 12, bias: 0, offset: .1},
+    targets: [.3], keys: ['entry'], jac: [[1]], residuals: [0], scale: [2], loss: 0};
+  const source = new ArcControlMemory([example]);
+  source.rememberControl({...example, features: [1], control: {...example.control, turn: 40}});
+  source.rememberResponse(example);
+  const copy = source.fork(), controls = copy.proposeControls([0], 10, 20, 10);
+  const weights = {amplitude: 1/3, impact: 1, damping: 0};
+  const responses = copy.proposeResponses([0], 10, 20, [.5], 1, weights);
+  expect(controls).toEqual(source.proposeControls([0], 10, 20, 10));
+  expect(responses).toEqual(source.proposeResponses([0], 10, 20, [.5], 1, weights));
+  // Mutating caller-owned examples after the fork cannot reach the copy.
+  example.control.entry = 99; example.jac[0][0] = 5;
+  source.rememberControl({...example, control: {...example.control, turn: 60}});
+  expect(copy.proposeControls([0], 10, 20, 10)).toEqual(controls);
+  expect(copy.proposeResponses([0], 10, 20, [.5], 1, weights)).toEqual(responses);
+  copy.rememberControl({...example, control: {...example.control, turn: 80}});
+  expect(source.proposeControls([0], 10, 20, 10).some(c => c.turn === 80)).toBe(false);
+});

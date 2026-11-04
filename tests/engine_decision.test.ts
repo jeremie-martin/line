@@ -1,37 +1,48 @@
 import {expect, it} from 'vitest';
-import {decide, decideCompileCells, random, signTail} from '../tools/measure/engine_decision.ts';
-it('handles wins, losses and ties without inventing evidence', () => {
-  expect(decide(Array.from({length: 12}, () => ({base: 100, candidate: 99})), .95, 1000).verdict).toBe('KEEP');
-  expect(decide(Array.from({length: 12}, () => ({base: 100, candidate: 101})), .95, 1000).verdict).toBe('REJECT');
-  const ties = decide(Array.from({length: 12}, () => ({base: 100, candidate: 100})), .95, 1000);
-  expect(ties).toMatchObject({verdict: 'INCONCLUSIVE', ties: 12, bootstrapSupportFaster: .5, fasterSignP: 1});
-  expect(signTail(10, 12)).toBeCloseTo(79 / 4096, 14);
+import {decide, decideCompileCells, pairOrder} from '../tools/measure/engine_decision.ts';
+const constant = (delta: number, n = 12) => Array.from({length: n}, () => ({base: 100, candidate: 100 + delta}));
+it('uses one declared practical margin, including ties and boundary values', () => {
+  expect(decide(constant(-3)).verdict).toBe('FASTER');
+  expect(decide(constant(3)).verdict).toBe('SLOWER');
+  for (const delta of [-2, 0, 2]) expect(decide(constant(delta)).verdict).toBe('EQUIVALENT');
+  expect(decide(constant(0))).toMatchObject({medianDeltaPct: 0, intervalPct: [0, 0], confidence: .95});
 });
-it('does not keep a change rescued by a few favorable outliers', () => {
-  const pairs = Array.from({length: 24}, (_, i) => ({base: 100, candidate: i < 16 ? 101 : 60}));
-  expect(decide(pairs, .95, 2000).verdict).toBe('INCONCLUSIVE');
-  expect(() => decide([{base: 0, candidate: 1}, ...pairs])).toThrow();
-});
-it('blocks a compile-cell regression even when the aggregate improves', () => {
-  const samples = Array.from({length: 12}, (_, round) => [0, 1].map(arm => ({round, arm,
-    measurements: [{cell: 57, compileMs: arm ? 90 : 100}, {cell: 61, compileMs: arm ? 102 : 100}]}))).flat();
-  expect(decide(Array.from({length: 12}, () => ({base: 200, candidate: 192}))).verdict).toBe('KEEP');
-  const result = decideCompileCells(samples, [57, 61]);
-  expect(result.regressionGuardPassed).toBe(false);
-  expect(result.decisions.map(c => c.decision.verdict)).toEqual(['KEEP', 'REJECT']);
-  expect(() => decideCompileCells(samples.slice(1), [57, 61])).toThrow('one sample per arm and round');
-});
-it('sign safeguard bounds false keeps in symmetric null simulations', () => {
-  const rng = random(175), n = 24;
-  let falseKeeps = 0;
-  for (let trial = 0; trial < 2000; trial++) {
-    let wins = 0;
-    for (let i = 0; i < n; i++) wins += rng() < .5 ? 1 : 0;
-    if (signTail(wins, n) <= .05) falseKeeps++;
+it('has exact conservative coverage under every possible sign pattern, without Monte Carlo', () => {
+  // IID continuous observations with true median zero have equiprobable signs.
+  for (const n of [8, 10, 12, 16]) {
+    let covered = 0;
+    for (let mask = 0; mask < 2 ** n; mask++) {
+      const pairs = Array.from({length: n}, (_, i) => ({base: 100, candidate: mask & (1 << i) ? 101 : 99}));
+      const {intervalPct: [lower, upper]} = decide(pairs);
+      covered += lower <= 0 && upper >= 0 ? 1 : 0;
+    }
+    const actual = covered / 2 ** n;
+    expect(actual).toBeGreaterThanOrEqual(.95);
+    expect(actual).toBe(decide(constant(0, n)).coverage);
   }
-  // This tests the conservative sign prerequisite, not bootstrap calibration
-  // or timing-noise independence on the host. The real A/A run is an additional
-  // host sanity check, not a proof of those assumptions.
-  expect(falseKeeps / 2000).toBeLessThan(.055);
-  expect(falseKeeps / 2000).toBeGreaterThan(.015);
+  expect(decide(constant(0)).coverage).toBe(1 - 158 / 4096);
+});
+it('does not let favorable outliers rescue an uncertain median', () => {
+  const pairs = Array.from({length: 24}, (_, i) => ({base: 100, candidate: i < 16 ? 103 : 60}));
+  expect(decide(pairs).verdict).toBe('INCONCLUSIVE');
+  for (const invalid of [0, -1, NaN, Infinity]) expect(() => decide([{base: invalid, candidate: 1}, ...pairs])).toThrow();
+  expect(() => decide(constant(0, 8), .999)).toThrow('too few pairs');
+});
+it('requires a bounded regression in every cell, not merely a failure to detect harm', () => {
+  const samples = Array.from({length: 12}, (_, round) => [0, 1].map(arm => ({round, arm,
+    iterations: [{rep: 0, cell: 57, compileMs: arm ? 90 : 100}, {rep: 0, cell: 61, compileMs: arm ? 103 : 100}]}))).flat();
+  expect(decide(constant(-3.5)).verdict).toBe('FASTER');
+  expect(decideCompileCells(samples, [57, 61]).regressionGuardPassed).toBe(false);
+  samples.forEach(s => {if (s.arm) s.iterations[1].compileMs = s.round % 2 ? 103 : 97;});
+  expect(decideCompileCells(samples, [57, 61]).regressionGuardPassed).toBe(false);
+  expect(() => decideCompileCells(samples.slice(1), [57, 61])).toThrow('one sample per arm and round');
+  expect(() => decideCompileCells(samples, [57, 57])).toThrow('unique cells');
+  expect(() => decideCompileCells(samples, [62])).toThrow('nonempty cell');
+});
+it('precommits reproducible, balanced random process ordering', () => {
+  const orders = pairOrder(24, 1729);
+  expect(orders.filter(p => p[0] === 0)).toHaveLength(12);
+  expect(orders).toEqual(pairOrder(24, 1729));
+  expect(orders).not.toEqual(pairOrder(24, 1730));
+  for (const n of [7, 9, 258]) expect(() => pairOrder(n, 1729)).toThrow();
 });

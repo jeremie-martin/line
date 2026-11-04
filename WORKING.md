@@ -11,7 +11,7 @@ that must not change what the compiler produces.
 - Gate: `npm run parity` (63 cells byte-identical) and `npm run parity:judge`.
 - Also: `npm test`, `npm run typecheck` (the count must not rise) and
   `npm run reach` (zero unreachable code).
-- `npm run check:engine` combines these gates with native Rust tests and
+- `npm run check` combines these gates with native Rust tests and
   `npm run verify:engine`. Rebuild with `npm run build:native` first when editing
   the packaged backend; stale source manifests fail the tests.
 - A structural commit that changes any track hash is a bug.
@@ -105,14 +105,15 @@ plan and its log.
   stepping cost alongside the combined workloads and compiler timings.
   For cache/allocation changes, also report WASM linear-memory high-water size;
   it is distinct from live allocations or process RSS.
-  Paired compile protocol v2 collects these resource observations in separate
-  fresh processes per arm/cell. Its CPU and wall clocks enclose `compileHandoff`
-  with prepared inputs, excluding hashing and output. Do not combine or relabel
-  v1 timing records under this boundary. Use an A/A control when changing the
-  measurement machinery; it cannot qualify a performance improvement.
-  See `scripts/lib/native_motion/README.md` for the protocol and A/A control.
-  Bootstrap support is not a posterior or an anytime-valid stopping rule;
-  quality probabilities from V7 seed blocks are not performance evidence.
+  Paired protocol v3 uses a fixed, balanced randomized process-pair experiment,
+  with every warmup retained and one exact median-change confidence interval.
+  Declare the practical speed/non-regression margin before measuring. An
+  inconclusive interval is not equivalence. Null and injected-slowdown controls
+  check the experiment; they cannot qualify a candidate. Separate fresh processes
+  collect resources. See `docs/engine-validation.md` for the current workflow.
+  Historical v1/v2 timing and decisions retain their original meanings; do not
+  compare different warmup policies as if they were code improvements. Quality
+  probabilities from V7 seed blocks are not performance evidence.
 - Do not rerun the full sentinel for structural changes; parity is the gate.
 - Use the pinned Node and Rust versions. Treat runtime/toolchain upgrades as
   explicit requalification work, particularly for binary64 equality. Preserve

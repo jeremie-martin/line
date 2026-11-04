@@ -46,7 +46,22 @@ export type ArcSearchWork = ReturnType<typeof createSearchWork>;
 /** Timeline, start state, engine lineage, memory and accounting for a
  * normalized spec. Targets are read exactly as authored; the search is
  * deterministic, and a seed reaches the compiler only through the plan. */
-export function createArcCompileContext(spec: Spec, options: ArcMotionOptions) {
+export function createArcCompileContext(spec: Spec, options: ArcMotionOptions): ArcCompileContext {
+  function owned(memories = new Map<string, ArcControlMemory>()): ArcCompileContext {
+    const data = buildContext(spec, options, memories);
+    const context: ArcCompileContext = {...data,
+      forkForStudy() {
+        const copy = owned(new Map([...memories].map(([key, memory]) => [key, memory.fork()])));
+        copy.work = structuredClone(context.work);
+        for (const [key, memo] of data.lineage.memoContexts) copy.lineage.memoContexts.set(key, structuredClone(memo));
+        return copy;
+      }};
+    return context;
+  }
+  return owned();
+}
+
+function buildContext(spec: Spec, options: ArcMotionOptions, constructionMemories: Map<string, ArcControlMemory>) {
   const budget = options.budget, duration = Math.round(spec.duration * 40), end = duration + 20;
   const frames = spec.contacts.map(c => Math.round(c.t * 40));
   const impactTargets = spec.contacts.map((c, i) => ({frame: frames[i], impact: c.impact}));
@@ -69,7 +84,6 @@ export function createArcCompileContext(spec: Spec, options: ArcMotionOptions) {
   const lineage = createArcLineage(start);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
-  const constructionMemories = new Map<string, ArcControlMemory>();
   /** Learned responses stay local to their physical constructor and guide permission. */
   const memoryFor = (index: number) => {
     const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index]});
@@ -114,4 +128,8 @@ export function createArcCompileContext(spec: Spec, options: ArcMotionOptions) {
     lineage, work: createSearchWork(), memoryFor, futureFeatures, futureValueFeatures, reportFor};
 }
 
-export type ArcCompileContext = ReturnType<typeof createArcCompileContext>;
+export type ArcCompileContext = ReturnType<typeof buildContext> & {
+  /** Independent accounting, memo values, learning and lineage. Authored inputs
+   * remain shared and must be treated as immutable by studies. */
+  forkForStudy(): ArcCompileContext;
+};

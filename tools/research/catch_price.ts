@@ -3,21 +3,21 @@
  * two), from the prefix of the beam's first kept candidate K, it also commits
  * two alternatives from the same measured pool: the candidate closest to the
  * ask (S) and the one with the lowest measured local cost (M). It then runs the
- * next interval's own search from each. These probes are isolated: the physics
- * meter is refunded, and the search memos, control memory and work counters
- * are restored, so the compiled ride must equal the saved one (checked by the
- * report).
+ * next interval's own search from each. Each probe owns its context and engine.
+ * Prefix preparation is excluded from their remaining search budget. Neither
+ * compiler caches nor learning are modified; the report checks track identity.
  * Compared, for X against K:
  *   predicted = what ranking charges X for the future (valueRank beyond the
  *               local cost: the priors at their ranking weights plus the
  *               weighted learned estimate), minus the same for K;
  *   measured  = the next interval's lowest measured local cost after X, minus
  *               after K.
- * node --import tsx tools/research/catch_price.ts run OUT [--jobs=8] [--seed=101] [--specs=a~b,c~d]
+ * node --import tsx tools/research/catch_price.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,c~d]
  * node --import tsx tools/research/catch_price.ts report OUT [ARM_DIR] */
+import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
-import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
-import {join} from 'node:path';
+import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
 import {v7Cases, resolveCase} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {digest} from '../eval/inputs.ts';
@@ -25,41 +25,26 @@ import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
-import {withPhysicsFrameProbe} from '../../scripts/lib/detector.ts';
-import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
+import {withArcStudy} from './arc_study.ts';
+import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
   'tiki_tiki_48s~v7-intense', 'tiki_tiki_48s~bench-pairs', 'amour_de_ma_vie_44s~bench-intense', 'luna_bala_44s~bench-breakdown'];
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
+const impactDistance = (value: number | undefined, target: number) => value === undefined ? Infinity : Math.abs(value - target);
 const r4 = (x: number | undefined) => x === undefined || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
-
-/** Runs `probe` with every compile-visible side effect undone afterwards. */
-function isolated<T>(ctx: any, index: number, protectedEngines: readonly Engine[], probe: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
-  const work = structuredClone(ctx.work);
-  const memos = [...ctx.lineage.memoContexts].map(([k, v]: [string, Map<string, any>]) => [k, v, new Map(v)] as const);
-  const memory: any = ctx.memoryFor(index), controls = memory.controls.slice(), responses = memory.responses.slice();
-  try {
-    return withPhysicsFrameProbe(probe);
-  } finally {
-    Object.assign(ctx.work, work);
-    ctx.lineage.memoContexts.clear();
-    for (const [k, original, copy] of memos) {original.clear(); for (const [a, b] of copy) original.set(a, b); ctx.lineage.memoContexts.set(k, original);}
-    memory.controls.splice(0, memory.controls.length, ...controls);
-    memory.responses.splice(0, memory.responses.length, ...responses);
-    Engine.retainOnly([...protectedEngines]);
-  }
-}
 
 async function worker(id: string, seed: number) {
   const c = (await v7Cases([seed])).find(x => `${x.song}~${x.variant ?? 'spec'}` === id)!;
+  assert(c, `unknown study case: ${id}`);
   const {spec, music, planned} = await resolveCase(c, resolveJoltMs());
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const probes: any[] = [];
-  const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen, ctx, protectedEngines) => {
+  const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen, ctx) => {
     if (!(asks[i]! >= .6) || i + 2 >= ctx.contacts.length || !chosen.length) return;
-    const kept = offered.find(o => o.candidate === chosen[0].candidate)!, pool = kept.interval.candidates as any[];
+    const kept = offered.find(o => o.candidate === chosen[0].candidate)!, pool = kept.interval.candidates;
     const ask = asks[i]!;
-    const closest = pool.reduce((a, b) => Math.abs(b.meta.impact - ask) < Math.abs(a.meta.impact - ask) ? b : a);
+    const closest = pool.reduce((a, b) => impactDistance(b.meta.impact, ask) < impactDistance(a.meta.impact, ask) ? b : a);
     const measured = pool.reduce((a, b) => b.localCost < a.localCost ? b : a);
     const arms = [['K', kept.candidate], ['S', closest], ['M', measured]] as const;
     const row: any = {i, ask, nextAsk: asks[i + 1] ?? null, pool: pool.length, arms: {}};
@@ -68,14 +53,13 @@ async function worker(id: string, seed: number) {
       if (same !== name) {row.arms[name] = {same}; continue;}
       // What ranking charges beyond the measured local cost: the ranking's own formula (valueRank).
       const entry: any = {imp: r4(x.meta.impact), local: r4(x.localCost), ahead: r4(valueRank(ctx.options, x) - x.localCost)};
-      isolated(ctx, i + 1, [...protectedEngines], () => {
-        const child = ctx.lineage.add(kept.parent.seq.engine, x.lines);
+      withArcStudy(ctx, [...kept.parent.seq.lines, ...x.lines], i + 1, (study, child) => {
         try {
-          const next = searchInterval(ctx, child, i + 1, {}, [...protectedEngines, child]);
-          const cs = (next?.candidates ?? []) as any[];
+          const next = searchInterval(study, child, i + 1, {}, [child]);
+          const cs = next?.candidates ?? [];
           if (!cs.length) {entry.next = null; return;}
           const best = cs.reduce((a, b) => b.localCost < a.localCost ? b : a);
-          const near = cs.reduce((a, b) => Math.abs(b.meta.impact - (asks[i + 1] ?? 0)) < Math.abs(a.meta.impact - (asks[i + 1] ?? 0)) ? b : a);
+          const near = cs.reduce((a, b) => impactDistance(b.meta.impact, asks[i + 1] ?? 0) < impactDistance(a.meta.impact, asks[i + 1] ?? 0) ? b : a);
           entry.next = {local: r4(best.localCost), imp: r4(best.meta.impact), nearImp: r4(near.meta.impact), viable: cs.length};
         } catch (error) {entry.next = null; entry.error = String(error).slice(0, 120);}
       });
@@ -91,22 +75,32 @@ async function worker(id: string, seed: number) {
 
 if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')));
 else if (command === 'run') {
-  mkdirSync(out, {recursive: true});
-  const done = new Set(existsSync(join(out, 'rides.jsonl')) ? readFileSync(join(out, 'rides.jsonl'), 'utf8').trim().split('\n').filter(Boolean).map(l => JSON.parse(l).spec) : []);
-  const queue = arg('specs', DEFAULT_SPECS.join(',')).split(',').filter(s => !done.has(s));
+  const jobs = Number(arg('jobs', String(defaultWorkerJobs()))), seed = Number(arg('seed', '101'));
+  assert(Number.isSafeInteger(jobs) && jobs > 0, '--jobs must be a positive integer');
+  assert(Number.isSafeInteger(seed), '--seed must be an integer');
+  const queue = arg('specs', DEFAULT_SPECS.join(',')).split(',');
+  assert(queue.every(Boolean) && new Set(queue).size === queue.length, '--specs must contain unique cases');
+  assert(out && !existsSync(out), 'new study requires a fresh output directory; existing evidence is never resumed or overwritten');
+  mkdirSync(dirname(out), {recursive: true});
+  mkdirSync(out);
+  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.catch-price.v2', seed, specs: queue,
+    preparation: 'owned context; cold prefix replayed through next entry frame outside the remaining search budget'}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await Promise.all(Array.from({length: Math.min(Number(arg('jobs', '8')), queue.length)}, async () => {
+  await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
     while (queue.length) {
       const spec = queue.shift()!;
-      await new Promise<void>(resolve => spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${arg('seed', '101')}`],
-        {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('exit', () => resolve()));
+      await new Promise<void>((resolve, reject) => spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`],
+        {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('error', reject).once('exit', code => code === 0 ? resolve() : reject(new Error(`worker failed: ${spec} (${code})`))));
     }
   }));
 } else {
+  const studyPath = join(out, 'study.json');
+  console.log(existsSync(studyPath) ? JSON.parse(readFileSync(studyPath, 'utf8')) : 'Legacy study: shared engine probes with state restoration.');
   const armDir = process.argv[4];
   if (armDir) {
     for (const r of readFileSync(join(out, 'rides.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l))) {
       const saved = JSON.parse(readFileSync(join(armDir, 'cells', `${r.spec}~${r.seed}.json`), 'utf8'));
+      if (saved.trackHash !== r.trackHash) process.exitCode = 1;
       console.log(`${saved.trackHash === r.trackHash ? 'same' : 'DIFFERENT'} track  ${r.spec}~${r.seed}`);
     }
   }

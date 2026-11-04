@@ -123,75 +123,12 @@ Rust 1.95.0 is pinned at the repository root; the manifest records the actual
 rustc/Cargo versions, target, profile, pin hash and environment overrides. Node
 22.22.2 is the qualified consumer runtime. Requalify changes to either toolchain.
 
-Structural backend changes require `npm run verify:engine`, `npm run parity`
-(exact tracks and charged work), `npm run parity:judge`, `npm test`,
-`npm run typecheck`, `npm run reach`, and the native Rust tests:
+`npm run check:physics` gives quick feedback against the saved independent oracle.
+`npm run verify:engine` checks live reference physics and derived public observations.
+`npm run check` runs the full structural gate, including compiler track/work parity,
+judge parity, JS/Rust tests, types and reachability. It does not rebuild the backend.
 
-```sh
-cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml
-```
-
-`npm run check:engine` runs all these structural checks in sequence. It does not
-rebuild the backend or run performance decisions. The JS suite includes seeded
-add/branch/detach/reset/observe/release sequences and budget interruptions, compared
-with cold independent JS replays. Cold reconstruction avoids relying on lr-core's
-mutable cache behavior after branch/start-reset switches; native cache work is
-covered separately by metering tests and exact compiler-work parity.
-
-## Measure on the current machine
-
-Save both release binaries before measuring. `bench:engine` is a fixed-workload
-diagnostic; `perf:engine` uses fresh warmed processes, alternating order, a fixed
-sample count and a frozen candidate. It checks states, ordered events, cached
-contacts and work counts. Compile mode checks exact committed tracks and work
-on every warmup and timed compile. Use a quiet machine; on the November 3 hybrid
-CPU, pin to CPU 2. Never overlap timings with builds or correctness checks.
-
-```sh
-taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --rounds=12 --confirm-rounds=24 --out=generated/engine-ab/screen
-taskset -c 2 npm run perf:engine -- --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --stage=confirm --rounds=24 --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
-```
-
-By default, both arms use the current source and differ only in WASM. For wrapper
-or consumer changes, add `--reference-root=/path/to/earlier-checkout` to both
-commands. Both frozen source versions run in the same disposable cwd, switching
-changed files outside timing. The runner and independent judge binary are fixed;
-differing fixtures, dependencies or judge source are rejected. Results record
-both source hashes. An A/A control requires identical source and binary hashes.
-
-Add `--mode=compile --cells=61` for standalone default automatic construction.
-Check it separately before adopting engine changes; an aggregate win cannot hide
-a default-path regression. Cell 62 checks its larger budget. If costs shift
-between registration and simulation, also report isolated stepping. For storage
-changes, report WASM linear-memory high-water size separately from live memory
-or process RSS.
-
-The current result schema is `line.engine-ab.v2`. Compile CPU and wall clocks
-both enclose `compileHandoff` with prepared inputs, stopping before hashing,
-serialization and output. Native-workload timing is unchanged. A v2 confirmation
-requires a v2 screen; historical v1 evidence is left intact. Results record Node,
-V8, worker flags and Node environment options as well as frozen source hashes.
-Compile runs also sample resources in a separate fresh process per arm/cell:
-WASM linear-memory capacity (high-water), post-compile heap usage and RSS, and
-the process lifetime maximum RSS. No forced GC is applied to that sample; heap
-usage is neither retained live memory nor an allocation count. Resource samples
-do not enter the paired timing decision. Declare any memory/speed tradeoff before
-the next experiment, and preserve the individual timing verdicts.
-`npm run perf:engine -- --report=/path/to/result.json` reports a completed v2
-record without repeating measurements or changing evidence. A failed A/A control
-prints `controlPassed: false` and exits nonzero, even if its raw timing verdict
-says KEEP. Controls cannot enter candidate confirmation.
-
-An absolute compiler target uses full compile time divided by the unchanged
-charged physics count. It includes search and observation work, so it is distinct
-from the isolated solver cost. Record the candidate mean and its interval as well
-as the paired speedup; a KEEP decision alone does not establish an absolute target.
-
-Declare the protocol before timing. KEEP requires favorable paired-bootstrap
-support, a negative median and the exact sign safeguard. Only a fresh KEEP
-confirmation with identical frozen identities and protocol qualifies a speedup.
-Predeclared cleanup regression guards can instead establish an adoption decision
-without claiming a speedup. Never extend or restart an unchanged run until it
-passes. Bootstrap support is neither a posterior nor an anytime-valid rule.
-Historical studies and discarded experiments are in `REWORK.md` and
-`docs/research/`; their timings are not a new machine's baseline.
+See [the validation workflow](../../../docs/engine-validation.md) for corpus and
+reference maintenance, scoped research probes, paired timing protocol v3, resource
+interpretation and examples. Current operation belongs there; historical timing
+and optimization decisions remain in `REWORK.md` and `docs/research/`.

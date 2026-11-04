@@ -1,6 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
 
+## November 4: simplify and calibrate the foundation workflow
+
+Follow-up on `refactor/compiler-foundations`, based on `148dc46d`. Scope: one
+exact paired timing interval and explicit non-regression margin; saved physics
+fingerprints plus live/stress checks; owned counterfactual study state; concise
+fast/full/performance commands. No physics or compiler behavior change intended.
+The fixed calibration protocol is predeclared in
+`docs/research/compiler-foundations-20261104-calibration.md`. Two null controls
+and one real 5% CPU slowdown control will all be retained, including failures.
+Performance optimization remains paused.
+
+Completed: quick saved-reference parity now covers 65 cases, 68,827 states and
+432,018 ordered collisions in a 53 KB fixture; its first isolated run took 0.61 s.
+The full live check covers the same corpus, and lifecycle/charged-work checks
+remain independent. Counterfactual studies own copied search state and a rebuilt
+engine prefix, replacing private-array save/restore. The study CLI requires a
+fresh output and records its preparation policy. Current commands and contracts
+are consolidated in `docs/engine-validation.md`; `check:physics` is fast feedback,
+`check` is the full gate, and `perf:engine -- --help` explains the paired experiment.
+
+Timing v3 uses a balanced randomized AB/BA order, fixed warmup/repeats, all raw
+iterations and one exact median-change interval with a predeclared practical
+margin. All three fixed controls passed: null intervals [−0.13%, +0.57%] and
+[−0.99%, +0.55%] fit ±2%; the real 5% CPU slowdown measured +5.09%, interval
+[+4.62%, +5.41%]. All raw records, the warmup pilots and the earlier failed v2
+control are preserved. This qualifies neither an optimization nor steady state;
+it supports the declared resolution on cell 61. The WASM remains unchanged.
+
+Validation: full structural gate passed (412 JS tests at that checkpoint, 29 Rust
+tests, all 63 exact compiler track/work cells and 33 judge tracks, zero type/reach
+errors). Final option/research-CLI checks pass (17 focused tests; suite total 418).
+Calibration contains 576 exact warmup/measured compiles plus six resource compiles.
+Results and provenance: `docs/research/compiler-foundations-20261104-calibration.md`.
+
 ## November 4: implement the compiler and engine foundations
 
 Implemented on `refactor/compiler-foundations`, based on `27562780` (executable

@@ -155,22 +155,16 @@ and validation are in [music authoring](docs/music-authoring.md).
    copying a shared cache clears its borrowed queries, while ownership transfer
    preserves the owning grid.
    Each collision sweep keeps its original list even when the
-   point moves into another cell. `npm run verify:engine` compares every frame state and
-   ordered collision on the committed parity tracks with the independent
-   reference. `npm run perf:engine` adapts the archived paired process workflow
-   to isolated WASM comparisons on the current machine, with fixed screening
-   and fresh confirmation. It can also compare frozen wrapper/consumer sources
-   in the same execution directory, with fixed runner, fixtures and dependencies.
-   Its compile mode uses the same worker and exact track/work references as parity.
-   Protocol v2 captures compile CPU and wall time around `compileHandoff` only,
-   excluding loading, hashing and output. Separate fresh processes per arm/cell
-   report WASM linear-memory capacity, post-compile JS heap/RSS and process peak RSS.
-   Historical v1 records retain their original measurement boundaries.
-   Node and Rust versions are pinned; the packaged native manifest records the
-   compiler versions, target, profile, toolchain hash and build environment overrides.
-   `check:engine` combines the structural gates. Seeded native operation sequences
-   also compare mixed cache/lifetime operations with cold independent JS replays.
-   `bench:engine` provides workload diagnostics.
+   point moves into another cell. `npm run check:physics` compares exact saved
+   state/event fingerprints; `npm run verify:engine` compares live independent
+   physics and derived observations. Both cover saved rides and seeded stress
+   cases. Separate generated-operation tests exercise cache and lifetime changes.
+   `npm run parity` checks exact compiler output **and charged work**.
+   `npm run check` combines all structural gates. Node and Rust are pinned;
+   the native package manifest records source and toolchain provenance.
+   [Validation and measurement](docs/engine-validation.md) documents these layers
+   and paired performance protocol v3. A timing verdict is separate from
+   correctness, design quality and a declared resource tradeoff.
 
 4. **Validate.** The finished track is replayed on a separate engine instance.
    That replay produces:

@@ -64,6 +64,16 @@ export class ArcControlMemory {
     this.modelWidth = width !== undefined && model.every(e => e.features.length === width && e.features.every(Number.isFinite)) ? width : undefined;
   }
 
+  /** Independent study state, including locally learned examples. Query scratch
+   * is rebuilt lazily; no private arrays need to escape for save/restore. */
+  fork(): ArcControlMemory {
+    const controls = structuredClone(this.controls);
+    const copy = new ArcControlMemory(controls.slice(0, this.modelCount));
+    copy.controls.push(...controls.slice(this.modelCount));
+    copy.responses.push(...structuredClone(this.responses));
+    return copy;
+  }
+
   rememberControl(example: ArcControlExample): void { this.controls.push(example); }
 
   rememberResponse(example: ArcResponseExample): void {

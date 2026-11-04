@@ -1,0 +1,1650 @@
+{
+  "schema": "line.engine-reference.v1",
+  "blockFrames": 256,
+  "encoding": "84 little-endian binary64 state values, uint32 collision count, ordered binary64 (iteration,line,point) triples per frame",
+  "oracleSha256": "fd01a182d579524ba7a832efb7917b8a4dd4dda922301201d9d37d9a7eb8775a",
+  "generatorSha256": "063597a20fac123027c46832e584dcec737dfd86f120540d725a4a0873a16602",
+  "corpusSha256": "f8b1b8b071b8023d3536e1426347b40bdbd76cdcf3ee277eeaea4cf2be6ca672",
+  "cases": [
+    {
+      "name": "landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz",
+      "inputSha256": "147e280bdab90654f79af64e6ddcf43f678f36d3645cd79abbb1f2eb03b53f0c",
+      "frames": 2341,
+      "collisions": 22493,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "2e6dca4296f2ce1bf2081868313fb3adbeeb7e1ced97e5735914084d09966677"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "614d54172e031e5ab9a42f52ea3d6cdc1eb2bf68a88cc02c98f64a207c90be86"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "5b175eb1d388d4d75cf65739a61525b2304dfc44437566eb75d4ba3d9d0f5fea"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "325ed37b7230018d32851ff2c863ff405c2c116c9b65bda7e01a31c9a6e65f2f"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "66abcc9ccec7a8ff647ae26324dd231ce57edd4f8aaaebf99d94c577604ef47e"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "4f970c61de24ee2feb7ac658e7cefc4706d746e110d35210239e6f0b3c8a1061"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "c82724b62aae198e0e7f7d13de00a7ef3af7e8f85b4670675013c3a9d38971dd"
+        },
+        {
+          "endFrame": 2047,
+          "sha256": "80e3d5caf534563e1473f1926df67adccbeb85a3a13a22acf811544bccb6c7c0"
+        },
+        {
+          "endFrame": 2303,
+          "sha256": "1ffb42e0bf39245db1f31aff2a2563eb1b78e687a923f751c0390e482bd20506"
+        },
+        {
+          "endFrame": 2340,
+          "sha256": "17e517b4f75d26b49afcb58e1fad3d9859a7a8491c20fb16669b19f0847b682e"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz",
+      "inputSha256": "f02fadbca10d90b1090b60ffd4482b22572e72d5a9acb1b0257a8abc46b8ab51",
+      "frames": 2421,
+      "collisions": 24672,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "ed4974c90a0f44a7bceb13b2e37cb1dbb0a9d1518f556249f0d8e47dd6868067"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "cd6cb91985483572ec644a0f71927567ab1fe157b172596a285f4580652ad3f2"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "cdf65a574e080d2814a2d32b7dd8943a077852b7f3194ea2241481209684e4ab"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "0626adf955087245fac1bb07379b75d30add147a7b88a97b91b5f1718df6a9b7"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "8ca619992dcb53462f94979cef56b233db21163f513b401a587b97f7407a16fd"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "80396a4941ddbd6e7af84823f63ea7f1ee9cf0f0096cc07c1addd48701385d38"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "fd8ac3dfae82d88c3939a31973b158f47afe5b1e81f2638abd98e20840b66102"
+        },
+        {
+          "endFrame": 2047,
+          "sha256": "37bb14c87250d88d956fb53d55e63ed1ba8f061e14f5d99a742a8302d4f1b759"
+        },
+        {
+          "endFrame": 2303,
+          "sha256": "390d10b5c1655ea26e67f9f521551dc8e6c07bc6ddd9379b836a95b1f6fd1f41"
+        },
+        {
+          "endFrame": 2420,
+          "sha256": "988dba8bce0f0e74ce82878318558a4427df0b2c1c70b9d03f4044bd30914c4b"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz",
+      "inputSha256": "b69c997afe887d2d47c35c15d0151d297ba2ab37f61637c205e9dfb0ee03f38c",
+      "frames": 1861,
+      "collisions": 9042,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "84de32af3dad44daf6971a3f8e9d0075cc5b6c3dc2dc13a3576e652bbd8ad4d2"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "61a1f9e208a95530df64505d3b6fd810c185e9c7b36b376c9fd90eca1cccbda3"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "fb928b8abfcf20ee6d2301a6c11d5a12e0ee6dffc76e65da8033fdf3ff4ad2a3"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "b9ea5353d47d74f673e6b5237db0e57005aacf770b6c21b0294b900663d80514"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "2a4e51538bb0046d52128ffaf60b6e743972f470676ee50bdc23735529d74733"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "830c1569264354350f5cd9a02e73cb827d7bbb7ea78f6edabab255d35a5d87bf"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "4a7dc1ff45b401cecdec1db4adc4df55fe9b3c56fada7240af931c34a479c527"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "329420f9cfd05d79f8b47e62dd6581c2ee8efd3c748532224af15e1f3ca2c939"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz",
+      "inputSha256": "d47a7725a2d15f34d3c74dc3fd561172fff6711ddaf21f8a04b6ba4586344cbd",
+      "frames": 1861,
+      "collisions": 8786,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "84ecc9af1245bb668090f85391af685745976dfcc0c1112730e83f97beb130fd"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "008fd7b82157904995bc0c43419d780518297dd74db66a4894668fb46995dddf"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "ecd7e2267fdd6751ea77da6a0b7446dd55e56d2a67f2d94be7b626eaac632d68"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "08f61afaa382c7ab92e89c82866b375c8f049a08d1c7f04b8446d5e1452b941d"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "bf787c6003bc6c8caaac5b63543875445d488711917f964f48931c0f0e139565"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "73a95c45867ac12512b8229b15421dbd4f2d774149c9a2d82b16de0cc77a9985"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "c7fc26569e9bcc837ca2cc8638c7d771efe3558c85d284d63b952ca7a38101a4"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "48782dc5768cf0b9fecda5a23aadfff0e1d97313248c509006e1e20ea44b9cef"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz",
+      "inputSha256": "e15227a18f2568330040aff5a9633ce5177f6bbbc7cc781b6320ebfd5d1da182",
+      "frames": 1861,
+      "collisions": 9200,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "84de32af3dad44daf6971a3f8e9d0075cc5b6c3dc2dc13a3576e652bbd8ad4d2"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "61a1f9e208a95530df64505d3b6fd810c185e9c7b36b376c9fd90eca1cccbda3"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "fb928b8abfcf20ee6d2301a6c11d5a12e0ee6dffc76e65da8033fdf3ff4ad2a3"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "b9ea5353d47d74f673e6b5237db0e57005aacf770b6c21b0294b900663d80514"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "f358be44ee6320d62e96b08cad2a0c61852c50c0eb03c073f9c733278be8fad4"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "9e11b4db158fc75d9e08395491e0b028b6131749b1ac79f408b163a1e8642560"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "5897a14de68e96159b0882fbab4421c3d418e7e1a25dae95cd35e933bbac3062"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "0e241a3ea72a2ba8f49126344a85a11eed089f7cb5d29058be0ba392c27cf3a0"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz",
+      "inputSha256": "069d9428b9a2b799c53fb53b546c4212009161bc9eb675ee669ef94cef0ed519",
+      "frames": 1861,
+      "collisions": 9820,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "84de32af3dad44daf6971a3f8e9d0075cc5b6c3dc2dc13a3576e652bbd8ad4d2"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "61a1f9e208a95530df64505d3b6fd810c185e9c7b36b376c9fd90eca1cccbda3"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "fb928b8abfcf20ee6d2301a6c11d5a12e0ee6dffc76e65da8033fdf3ff4ad2a3"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "b9ea5353d47d74f673e6b5237db0e57005aacf770b6c21b0294b900663d80514"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "ad518bd90eaccb75d8b38a85cdacccee0db248190ac482a2ea6ab9b5964dc5b5"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "01f4fcfec64878bc54401e0c5cc3bbd9fe34241559bbfe3c66c0556369d02855"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "a456dbaf61e4f4edc635898c2bb154065c6805f2fc84c6e359ee3d11226262c9"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "b460ea22655ec48110fb041873f2b1b3138a0ae52bfc48bfb469ed2f5e1c859e"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz",
+      "inputSha256": "72196603475ca71a4f3a5b321d9fa3c9e073f6ddff766dff02dcc773870bdeaf",
+      "frames": 1861,
+      "collisions": 9559,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "b3268e79ed53c0dacfb372bf05d9f42c9bedaec7952084837ea82c1aa0f43c94"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "796508ca313b870ce923685eeaa35628f4fd63badeef27f41ac0e4ca4c82959f"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "ece0d460f2952cd39b7057e83e7fea3727cbc5dd8488d14589e1cb065c268b06"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "676cf496071dc605c78c6e773c2b0f27de47efa5a2da778d1a3be76b5c119af7"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "03c3df85f6688637652525d8baa878d471068eab8a1d3bc536e488e0b7d7cbd7"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "8a22a63cdbf85cd6d3b7a4908326bfe34e770e69f552177f3b1afdff1a58134b"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "875a3818796cd3c4869598dac0113d4b91ffd6dff334aa08aaf77b942f3d704a"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "dfbdd9bf77a83305f299930b49904a904374f7c00cfa7cb20d938a2344367f4b"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz",
+      "inputSha256": "fde28d68093f7a9a9e61c23f2ac15e39afca7135eb966c4ef3185c347df88f9f",
+      "frames": 1861,
+      "collisions": 8582,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "948507fbe423602814d6d9e55d1adc4a9221ce43f3af7f523633dcfcc247c37d"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "3eb4b140cc7464f50f5a3916ce792610d33947ca08d3800d292644e2f2c74565"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "74c624786f6f4b8e4f4c6bab35464768fb615a393f84a1a9fd2bdceb1c01e93f"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "393c734751987c3066ced50c1320d009cea26704910f69571ca3dfdb5c0a204b"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "8ec4fa9a97341a76d011237d6d148ad7eefad76e0ea8e3286ec3e41a98dd2c45"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "c7acfadfe80ef9da73dcd6773e4695753ba1d1c7e7d6e54cb67f8da20591b95f"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "4df3cb63b48dbb553acea13115a536d90a9f357a2274ecd816254abae74c9d72"
+        },
+        {
+          "endFrame": 1860,
+          "sha256": "9c89c7469025a64ea1a9fbed50a19dcfbf9fdefe28c146e7b2e3264f8df6fb94"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz",
+      "inputSha256": "ff5fb508ccbaf8ebf6d2e130ed50a5fbe2d2d22767a3e2c9bd032d0359ffd612",
+      "frames": 1803,
+      "collisions": 12215,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "d5ebe758351a0c2b2a8afb30d16208bbda5101d3b51ee632d51ea4011c61c4e7"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "72f07889378a5d8a3b89b216827d880ee90fdbb34efdbf7037ceed8875fc9b74"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "cd6ad538f1361d1f3d078bb802dff6814f2d8032b73442828f864579e1979cc0"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "5cf6012a4657f5d20869b58b33c6ecc41db258fe963ea79db67e628b429049d6"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "5fc9c60a3142936a0d9606e74562bef03383e3f7ebe20c2c6de9374274989fd9"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "af0784c8fe59a8341274f4b256c98d637741611cc3ab96a6653942128ceb1f83"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "4c845792d4a66c339d5f32c995e25a4d580d360af26608ca2fe52ab1892b3dbe"
+        },
+        {
+          "endFrame": 1802,
+          "sha256": "7c2e44c0249fed5dfed684483cf8ffd2f48a8a91d3bc729b8ff9cba2f04484e0"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz",
+      "inputSha256": "f8bc2fdb6290c44cca4f02ff438902707b00448fde9bbe0f92950d3e0348dbdc",
+      "frames": 1781,
+      "collisions": 8223,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "edd27594aecfe117e238e15865ba2af9875241c36d4264f3a8f665da1551a47f"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "fb78bf2f4e6ec6fea424a1e357c95c84a9f4784e66f3a65d57736c725fd34857"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "9d9887b62939e709d756fc46c50d39b1094842aa940d364a2a6d495caeb19c57"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "22fb44d243b0b1bb77c8e582ec33d2121f29b0607625d020d1fc7a3ea94f3300"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "8ca559d53c7db8d37ed0adadac8920fc529c194592a28ea9c0cf5ea268d20289"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-automatic-101.json.gz",
+      "inputSha256": "70967283df8bbc3d123fbac0fabbfaa521bc6820f28a22a9241b7c5943635cd8",
+      "frames": 1781,
+      "collisions": 7746,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "1fa9aae1d095b3567c4dfb3d1bafaf68322beb2f59a3f9410ca5084a64085dc3"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "46aebb20ec3c1c5461e66f83b954a548982196a54875798de25164a6936a86dd"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "a11be690ed55bfb0ec19eb111da6ac072a990db7a0fa164205745b4dfebbcd39"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "ebab213599c59fcb01d6f42a7342e06603c6bb69bb601b6d9301943fa1f7deba"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "6e373a25ef0d584bb57b746f7954f864e5aed28057a453e0193fb21957ef01f8"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "8ae562bee66ac4eec089f42f5fbc6977c7381b6653609d29591a5e5f000a057a"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "1606b10cd2f123de82a078c4cc0fa4a70f2223b407515e45def9fab2610c5bac"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+      "inputSha256": "346539ff31efbccbb1049f442c4714cf8b19d6f125b677fb51c8b1fbf80b5d8f",
+      "frames": 1781,
+      "collisions": 8552,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "bc1dd29688a3a11088dcd31262069253499c5d6b25404a9983d0322656f77b97"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "9d58ab6a1022f8b08c79ac59cc87ac7948a08df108bbd758188cf1b898100838"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "f63ad72b396f48254495e9e5f3719e3b7c7fc8bd13088ec4a24fd47bd5661a92"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "6ca470e555177fd596f62d37ccc48b5f882a9689b98ab6b892cf6ebc0853410c"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "cc0cc9339c8cedca175ee7f7f2ee59c60b2406204127850597f3ec8337da21ad"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz",
+      "inputSha256": "3e7e00426641c0ebc97b38d1a62505f624feef76b8f014539cd1ce44267b14b3",
+      "frames": 1781,
+      "collisions": 8415,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "023239fd336c31ae212b32f2c7819f2b00728f2157991243b57a969925cbd04e"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "83bc0c9c529a7a5bd2d67366af071c2b31126ebb74b2bec693edfdb33be1be52"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "60ae3874ed4df3a29ef0c18d57417a36f5e7e5138c4912b6fd551c33d900075c"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "da010f05d110c7f8c47d33349e6f9e20a6dd731c8068c8477bf4e17f36c3c1d4"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "d665cd54c1918c6e56b9066deecdee33c0aac6f97d84f9cd09c532bd21df2deb"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz",
+      "inputSha256": "6bc17340ec72051d9a428cd50496d2ad6871a354eb7461cb3fb1603ebf8b20e2",
+      "frames": 1781,
+      "collisions": 8081,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "9b47bfe8f6e126e21c3cab43804918fcaf3f10e0974443fe6257c58fb5700ce2"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "0b8d9e37e6e55dc73eecc2646212c8c601610de18fa830a60356ba599a0e1d26"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "6f01266eb81d4ee543d39760c936171ea0ba904450cf3efe0ff53cf10a5e274b"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "7e38cb1a3d03a0723641ecffa24b84922952ea8bf131ee152b758d62d78e1b16"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "235b4f093f381b5b1c8d773ada20e8c29fe269d5a0418454c111ba7b63e4bde5"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz",
+      "inputSha256": "f085e6f386d462368c23903462006b6769e55f5dacf94cc96d2380cecd0c149e",
+      "frames": 1781,
+      "collisions": 8244,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "30337dec11e06633bd600a952aaf41a759c594f145cfd737482dc1ef8baea16a"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "f7d22064a5e83663600b97b01ebb1a9dcd091ffd5365b6986087e328050be5aa"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "ac98d28b0f3ab65a9acdaff5a391a5e1f288b57b8a3f6317ddb242a81ebaa76a"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "9ad4c483c52311a90406f49ca946f7836b12d1d78cea1d4b5d46424e18f563ae"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "ccb873f671450a09d18d96adb911d5dab3f3998acfbb05c339d8bcb5bf1ee8dd"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-single-paired-303.json.gz",
+      "inputSha256": "7a0842d5a2d86567b027d2f2ad80d2517e8610bb0668352739d36e1c7c95ebea",
+      "frames": 1781,
+      "collisions": 7935,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "ce8685ad763d3b4f66e409f205a7eb3a45a6567de83fe941b4e5f16c326651cf"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "dcae7d340ef32beeab3a92c53af4981b153a718676e77ccf714f45948a763063"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "30bf42a69d851ecb5606fb3ff3127b12d25a1c3273f926868ca65998619f0bf8"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "cf7d5533e12f6156ca2f795f2a91137608d7ed6c49847d9f9ee3acb1f04b15fc"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "e636b1edabdd7e3590c68e675011aed525011af3df37aff235ecf57ca1089efe"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz",
+      "inputSha256": "665b57331aaf981a6a43a4215e75f6813377badf1d5cb36b50b334fbcf3f3b02",
+      "frames": 1781,
+      "collisions": 8121,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "9e57c74fd953e14065bbdf9e3315db11ea2c791b43cf08dfe5418c04850af929"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ad3e7d21fb08dda46f2704596110f78a97c6cd96060d40d483415845b8536557"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "edd27594aecfe117e238e15865ba2af9875241c36d4264f3a8f665da1551a47f"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "fb78bf2f4e6ec6fea424a1e357c95c84a9f4784e66f3a65d57736c725fd34857"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "ee760805540610f699ab2e0719f8216c3cd94af6151d6fcee7d775b8e7caf589"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "42fdc4ec55ae896cf8b957e9d1207b048028f817dd59750136c67e28318a8b8b"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "182759da72b0fbe6a9f7adbf742aec27c4faa0ee3b9c71541ecfd14a6ee9737d"
+        }
+      ]
+    },
+    {
+      "name": "landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+      "inputSha256": "9d45458e6e716ebbe5e42cb369b775ba7f53251096e4bc1dda5e28d2b7f20d78",
+      "frames": 1941,
+      "collisions": 10551,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "d4c65646012a23cbdb38c5b60f9178d01d591b5c717d5528c49a27a89370e44e"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "bb4706b6f1bbb71db8097af33c4c00704d5925366298985bdb8190079fa68d79"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "bf97806dc5a0b68e645702590fcd316500846a9e4867087021132f23469a2436"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "487a818ec15a5318a20562a702cd5c2e5a3e8466127b7c56151cc3d6cc7cd886"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "57835277efeea18bbb55966174ba2a4f4f210884422b9560aa377c18e8729072"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "a9fa6ce0f0fbf161bce05b4d79913eff209151e5c286798bb625df429fa4b044"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "9bc925f2d41c90174635d791f30deb910c77094d01e5436d8d9bd835b54c8594"
+        },
+        {
+          "endFrame": 1940,
+          "sha256": "a38b79ad1e87c98c58d0aba6ec4a21143f96b882013cb0e0c861a7ebdf55b397"
+        }
+      ]
+    },
+    {
+      "name": "strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+      "inputSha256": "27af1584c29bd9fb131dff66f63c20eab78d569bc5403312d5bf8fe2aa7ae8f9",
+      "frames": 1781,
+      "collisions": 6862,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "7ef86c395dd33e6d4dc516928912ef7b0f841e005dfab605983ffeadfb1d663f"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "2d0fa6d0677acc2d5b1c8214d83974979653a0b8169603407de06f1907ce7b16"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "9233c17d6d3904595c475aec71699e379d49d2c6db53894fd82695f84bcdcc76"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "072b322ea107db5179690512063ea142ef42ad260bbb4c97d3515b706fa2bdc2"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "f5e144bf8fb9b04a324716c05287d94421188c0ab46e3076d86f1543b37bc3ad"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "895de2a5cbf426838a4263b9ffcc3d255b0cbc735b2accc9ac480e85f629b614"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "8ee185ae0f0bdde36cfcb05703c806d2728e9ac26900d74577898bc773210f6f"
+        }
+      ]
+    },
+    {
+      "name": "strike-canonical-music_luna_bala_44s-automatic-101.json.gz",
+      "inputSha256": "e36b073e5adf07ad29b34cb3e8fff589bca236d14d6afc046cebbf9ea4df94c9",
+      "frames": 1781,
+      "collisions": 7128,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "67a26c1e140fe209764aac6ed282566bfd4670e28fa0c9a04ab66bab61aadac5"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "4a469ab5edf3a4aa6c869a392b8affc5f558a867235f5e5335ddd19c5a602b5c"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "aa4d46ddebc9d6f1b732c4ec8a1e780fa1f40649a7134c546fd7e1211ca4d043"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "6d3e6d025b489b3145585ab6931664fa3155e711c4e6ce1eab29aa5ae65a66ca"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "49d899e6dda23ae022027adb548d7432ca590ac81ebc08e0f3fe727fdced2b4f"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "4ed6aa080440605be8853e02b7e5262a55788c6e4a3a2e22f94b218150e10332"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "d3b31984d5c34c19cd02cdabb2c4f7b5a7c86440f90070e97d15e7ec736941c6"
+        }
+      ]
+    },
+    {
+      "name": "strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+      "inputSha256": "47b82f073825c8725e6722f47317eaed8abdfd9ec0bb60b9a9ec23fa715abde8",
+      "frames": 1781,
+      "collisions": 6760,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "7ef86c395dd33e6d4dc516928912ef7b0f841e005dfab605983ffeadfb1d663f"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "2d0fa6d0677acc2d5b1c8214d83974979653a0b8169603407de06f1907ce7b16"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "f02afab8338b665843ea658088fc7f9274db4e7c1734633baed8040fec3ff40f"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "80318188bdb700198ab3f496e835c70e27b2ab25f47aede46495b025c828f6e7"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "43c9fad75fb6ca5d223a61688bdec491ecef461c2bdb12e660c4013b542a0ebf"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "ee68a255e9f0d4f14b3b79cd3efd1ac2d0e02934e295280d3b8cdb37434514de"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "46bae285c8af778808caf7d5c8829063412bdec9a40460162fd49d6babfbccf7"
+        }
+      ]
+    },
+    {
+      "name": "strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+      "inputSha256": "1636231276edf5d5d07a4ecf26805737ba05d4c02c4bb08e5531fc9f43c625a0",
+      "frames": 1781,
+      "collisions": 6752,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "7ef86c395dd33e6d4dc516928912ef7b0f841e005dfab605983ffeadfb1d663f"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "2d0fa6d0677acc2d5b1c8214d83974979653a0b8169603407de06f1907ce7b16"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "35d60772e906edfdfbf14b4d3093814eae2a21989dfd297778ad4fe87027adf0"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "4890ce463440c0fbee1997b33010d4666f2dd349e0c270f010c8216d963142c6"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "ca682217274da07b18f3cabedfcd20113153e5590c1b2ce3df9573e957030853"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "de6bf99da98e45996ac6f6752d88ddf1e0f8fa3cf3dcf5b92f04c6dc19988252"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "04f6e19eb976ea420cfb493639e6661c113948c29199bba1b4c1b7453e60cd09"
+        }
+      ]
+    },
+    {
+      "name": "strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+      "inputSha256": "433a0ca635e39e185c4b19fb7799a1989b6f2bffa9335179a32012415f89f6b0",
+      "frames": 1941,
+      "collisions": 10369,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "c4077f1f495e288361dda6d2c30ede15481bed22752e69b9f3d7d6304ca411e4"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "bf475c40770e44b46c390b9c32097e6e14a65bf4cc5e32c366209fbbba139b87"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "733f9051007daa6bc064e526df248eafc17cdb0685000849ef298e95a4178217"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "a03add3a1122137c67312a77a34f0ab5aa630a9afe2881ebf5b2720d219d595d"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "98e4e48dc533ac2a5ad4135a1c734345bd854024f99cb074edb625335f1e4ad1"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "419ec9599cc9363fd124a86a8e97c8f5578a6f8c4dffba4f9b39f83eaaa3148f"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "e5e37eeb7b8bbc95461b0ea57fefcd8cee988ca997e56932b7b36fce84bbc707"
+        },
+        {
+          "endFrame": 1940,
+          "sha256": "a07d02304059c488b9d36760c2fce23677d52e5e80341bdd2c5c8c94acf8bc0b"
+        }
+      ]
+    },
+    {
+      "name": "strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+      "inputSha256": "de4ee52872e448148aae655c574430548dfb3fdcf98399a8fa2023fbccc46815",
+      "frames": 1781,
+      "collisions": 6436,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "1aa0b3ffe7247e4c6d0508bbf0ecbad8e8696de603c80e70febf1e0ae68ae4de"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "6a0bc8b25fb73c34563ad0bd31857155232dbb9b9eb3bd6c986fe95485d8bd6e"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "b8372f7c2548bb86e5846a704fd67978fcb1d5b02e2b4208adbfcc7dac75b765"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "93a588b051ba10b998ec80285ededdf7c7aeb80552522e38fa44ddf3621f14c8"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "59da662e33c95801346a3f685d2617e0c70bfa7874c541952ec509f4fab54344"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "1b8f1a1729035e50d77a51b751bb478e306b6a734d46f882ea967af1b9f9f98e"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "9ae5382cc0c80a08734f99d214a7481bc0975db9a4d00352791e71af05184b9a"
+        }
+      ]
+    },
+    {
+      "name": "strike2-canonical-music_luna_bala_44s-automatic-101.json.gz",
+      "inputSha256": "05372cea105878067e64791dda8da4adb570851e7f461f643dba3d31a2f1ca38",
+      "frames": 1781,
+      "collisions": 6653,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "ed07344bf9bf03756f746b8571c3ce2b2a8eccf558aef8334962faf9bbe2392d"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "9d3dd8879ef33443ab6836aa1ce50d1db19a68a702ba0a6c3a3b9589af4b5391"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "ef6bb85cc3e36b5fd28d6428ffebea313bf6e00fef2fc9c1431381309ac967bc"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "e48eb64615e6887e327073e3570b2eb8f4a14433e60de9cd10625ada02f6e06c"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "e9e83a77d0f2d5b09c7591e333e021a72f871319a411b6129ec28a44d5e26e12"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "b9c4eb7c37a36c71a7d531fbf3b2b6953de033e0ce717148ba9dcb7d3a313c9a"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "9e27ecae8d6d8840bffeadf157eb39ff524941dd50b6607d254fe605533e768a"
+        }
+      ]
+    },
+    {
+      "name": "strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+      "inputSha256": "6995476d2b8eff81ffc2f2f56833cbb674b939f0ded94c2929f9b3d6a1d9a415",
+      "frames": 1781,
+      "collisions": 6886,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "1aa0b3ffe7247e4c6d0508bbf0ecbad8e8696de603c80e70febf1e0ae68ae4de"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "6a0bc8b25fb73c34563ad0bd31857155232dbb9b9eb3bd6c986fe95485d8bd6e"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "0e27307ec947d4462dbe936a4ec8fd2617669aa9b16b0dc5efb3be37b94eff95"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "5d4aed21451ab0ea152e749bd3d921eae854615598442d132a3d0056d47ceaca"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "d481edc1a1a769920d42238dccbd389c7f5c23898c8750a805e06038c1f2d5fe"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "b1b0a3573ebd26e1c46d4de37cab92ec11f94b1000dd1a5fc15459614b204556"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "a0df425199d6284b72c5ecebbafbf37daab1641ac7d33677e7f282c328805756"
+        }
+      ]
+    },
+    {
+      "name": "strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+      "inputSha256": "98b58e6560bbbea9c03cf1586e2dc286a2103a9a85c017b1470bd1537fa1238b",
+      "frames": 1781,
+      "collisions": 6369,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "1aa0b3ffe7247e4c6d0508bbf0ecbad8e8696de603c80e70febf1e0ae68ae4de"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "6a0bc8b25fb73c34563ad0bd31857155232dbb9b9eb3bd6c986fe95485d8bd6e"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "04e7203db18366e6b1c126c84609b4f972164b0e69e049da98851637ededae90"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "1064271fabedfd4ff156ee4521806858d2f91dc2e6ce6b240800475f2370f5d6"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "eb02aba53895524d851739d63ff371a3b1882768c9b45c88096ebdd31321ddc0"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "8a05349146491cc874926f7a20d6799061541cbbc5d9c3f4b5875a0383496849"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "31afe9a1856d640a40f94e3b58ef00f2b3eb771f06da79a071b3045e10143661"
+        }
+      ]
+    },
+    {
+      "name": "strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+      "inputSha256": "2fd35178f8ca7a6d29eda354761825506cdaf98244f0ab445db620d642bcfab1",
+      "frames": 1941,
+      "collisions": 10384,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "628e4d13be7a62b4970533a0a888ebc6f73bcd2096ee737c6bae5907216db0eb"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "ba2240bd4ade03f73c8bc50cd522db4c7a8c0085b6eb1504b888da22662683dc"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "ef09cfa04943032eebe24becf51dd7bdfcc343fa81465161a465ea7de0bc51b0"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "21184e5d8d38e9ea4747e67f7beae1b1528a7e6a48096514b5b893a4d35b1a7f"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "ed49a6d91412ed00af377f735ed42592f719991e2c2919f881ec0111f5455003"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "b24c6f9a9b44e07e07a5255cc07948a276c88fed1988c505fb869bc7d1813e49"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "d4ee487ae06b4acbc878d00ad084b9e0a5bc2b6e9899cf756dc1d87d135b8b96"
+        },
+        {
+          "endFrame": 1940,
+          "sha256": "36f9b5ed33cda9769c12aa350711502950f24046d6818392411b7a18408d79cb"
+        }
+      ]
+    },
+    {
+      "name": "strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz",
+      "inputSha256": "0d24e858832143168d9ea6c2d5b63e423e9eae22a76b8108e4433f78dcc52894",
+      "frames": 1781,
+      "collisions": 7693,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "e41b9ad41a422e3b4eb55ec5d5d97e120e3dea436f14488f0ad6c1b8d0c44663"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "33af8163548d5d0bb3998e60c669ff200c5bd8a08b6b407f4061938b1247acc5"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "29ea7d87f719c5fb807bdbb290d89698f3afe0498ab5f62aeab5c3819790bf83"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "af61d158e78d4f525d2e36681c41eacb4aa688e531655edb34718f6886aec575"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "34c4f97c1f9dc44f38b6e0a9a3d987b715909f0bfa37ab9011f7f6755ed9ccf4"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "fc69974b1f643bf92888cfc8de15e2925d3a361a125e6a8b0df32d7caa7c4757"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "e172ab2f7608ba41d3954ad5a00fc061b39f825326ef215e1f54aa63d2c3076b"
+        }
+      ]
+    },
+    {
+      "name": "strike3-canonical-music_luna_bala_44s-automatic-101.json.gz",
+      "inputSha256": "a161bc18f5f1c7b51720565b00f7981901f71e179ce0e40029c98fd752064b0f",
+      "frames": 1781,
+      "collisions": 7916,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "7b804d37ddf155b7109f39b4b203650b927ac36998533b86649f1a9d027be2e3"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "912daf8aed8d0bf3e09a870d9f6652edb24034d541d1630ccb6d32d8f2aab4c0"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "53dbe7c8b9ab39bfcda79c237370dc32bf9ec1931079b89868187d2b5159a701"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "3657e7003c216c072e8134d030911b73b83bc6f32b1be80a08d1905adca7affd"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "da79f83aaa000378e315d1a25ec54d325511b872cc212523e64e276548921027"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "251ac397252c1faae4b9365fdcd2d2ddf0aaeab54196dcc6926e7cfb127e3677"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "ab51a558ad336c8bd4c4b0a2475d371bbe27516d0c66a29a8fec12653d0aab0b"
+        }
+      ]
+    },
+    {
+      "name": "strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz",
+      "inputSha256": "efcba903e67bbc08d9e2ab1985b509e4efb2d8af2a4bbd616698af0b47c5a3a1",
+      "frames": 1781,
+      "collisions": 7719,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "e41b9ad41a422e3b4eb55ec5d5d97e120e3dea436f14488f0ad6c1b8d0c44663"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "33af8163548d5d0bb3998e60c669ff200c5bd8a08b6b407f4061938b1247acc5"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "a6dbf6159ab505d79b0a23a25b5aad85980ea36994e437dfe5675809b3c5409b"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "a5b52b0bca59c0182bfe7f98666f784e2aa0d8468c94ee3071905314d797ddc4"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "9d696c6bee11acebf61cb0870500f953d98bf155f4f19c43065c7e98610471dd"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "3d888a273df4faec10745e18223bb8304077d250a9c59e7a53c5855aee94726e"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "3bf2be3f52c51cc78e6643a651af28bdb4336ca465c0c34f2199e478233e60c5"
+        }
+      ]
+    },
+    {
+      "name": "strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz",
+      "inputSha256": "3b670d56640af343edede6794494a3c22deb7e721b95ba66f1ac5f00ad32d77d",
+      "frames": 1781,
+      "collisions": 7185,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "e41b9ad41a422e3b4eb55ec5d5d97e120e3dea436f14488f0ad6c1b8d0c44663"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "33af8163548d5d0bb3998e60c669ff200c5bd8a08b6b407f4061938b1247acc5"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "a7e768effcece8a86b28f99b9a556be15b75bd4a1ea4e058eaefd238cd1f7282"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "a10b8dd9fb76915a147482f811ea6d87132a13ffeb1ecd035200574fe3e3a933"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "e22e2baed7d31bd19e68d1e0b7750cf90f7ab258b19688bda18f6d9eb781aae9"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "61323aca3b701c6bd5c303f6e7b49df3aefc38a4653321a14441924d8a2c2c00"
+        },
+        {
+          "endFrame": 1780,
+          "sha256": "ee042508f3e36c5edc3337a69e41e20b20cccaaf06983f6c2300178f8523f94d"
+        }
+      ]
+    },
+    {
+      "name": "strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz",
+      "inputSha256": "90b71eef3dd20d0d7a97ee4a092764a98648106c2b76817623a6173ff81ea01a",
+      "frames": 1941,
+      "collisions": 9987,
+      "blocks": [
+        {
+          "endFrame": 255,
+          "sha256": "98ccc6ffac852d07454624938767b00045d928ef6957e3741a3365196dcaad12"
+        },
+        {
+          "endFrame": 511,
+          "sha256": "84aa1e3bddd76d38563edc92d3fcfc41f596b1853dca6d8be63e892a4364fa07"
+        },
+        {
+          "endFrame": 767,
+          "sha256": "eea14e6a8719995154c73b359b584fe933833eb70f5bb52032794721505f25fa"
+        },
+        {
+          "endFrame": 1023,
+          "sha256": "80b8b432100f27c2c8fb7038bef9d6cfe4bf2862c953af5a00c2781b8d178678"
+        },
+        {
+          "endFrame": 1279,
+          "sha256": "92551f6c25f89c818a7139813a5b59b82f102f1ba53ea19827da64f3270d0eec"
+        },
+        {
+          "endFrame": 1535,
+          "sha256": "f060f6da4ece1da429b4fca4d64f358ac3029657940d12e8f8ee22f8718f74d1"
+        },
+        {
+          "endFrame": 1791,
+          "sha256": "fab768029e86d1cc58f94bc2e920caa30f6770d88352dc935b8f8434cbb706ad"
+        },
+        {
+          "endFrame": 1940,
+          "sha256": "c2f96570af294fbf68abb377eb21dd6ed3e276f7a8c31e7e39b1ba5247c434c0"
+        }
+      ]
+    },
+    {
+      "name": "stress-1",
+      "inputSha256": "88b241e30bc544a7f10be9bfcf7df26efe587acb2767140b03b34777875036dc",
+      "frames": 241,
+      "collisions": 7697,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "3b6d0adcf42d824f9b017e37b85afb60814ccdf04b4a403b3a64894acd4715b9"
+        }
+      ]
+    },
+    {
+      "name": "stress-2",
+      "inputSha256": "fdc872285b55f2db420e4240dde71c66b0113316ed85cad069c9b532efe5ac65",
+      "frames": 241,
+      "collisions": 4326,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "ee4916c8b77a92dd7fdd6a3b041c745cc969371c7c537ba9c447d30db98e2679"
+        }
+      ]
+    },
+    {
+      "name": "stress-3",
+      "inputSha256": "1fd9317397a2b02939af17d33a08df74af50a57ee1140a97001e581d451ab34c",
+      "frames": 241,
+      "collisions": 2703,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "5e697713b576c82006a7930a49c7fb78e3e64cc3d779e35e5bc678f26e340c41"
+        }
+      ]
+    },
+    {
+      "name": "stress-4",
+      "inputSha256": "2bf1feb757e6e2b35a1d11ac8cd7237fb4b354898e40b1a3e0fb6356854ccf40",
+      "frames": 241,
+      "collisions": 219,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "e1d8cd0af95152b1ac8bfb5caa124eb1efd6954a3dd395eeef7557646c6ec85f"
+        }
+      ]
+    },
+    {
+      "name": "stress-5",
+      "inputSha256": "5e21e56abd6791a5bed0898a83982b3e265f9d5ebb7790c47adc91d63d4ead2c",
+      "frames": 241,
+      "collisions": 7137,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "4afcd5ddcddba6811b7f26f722c498cca8a89a294d20b48a02d855e727b89d6a"
+        }
+      ]
+    },
+    {
+      "name": "stress-6",
+      "inputSha256": "4f5f4e9604c87efd6231e03ff6f9d208dd5a6fc0f649cc3b50a083e73516750e",
+      "frames": 241,
+      "collisions": 0,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "45cf831c6b21535a5ffa1cd8e19d1d8c3b4f86c5c2bd31e0a80318ef596c5b15"
+        }
+      ]
+    },
+    {
+      "name": "stress-7",
+      "inputSha256": "f11566efc6b8d1d8f9c2385578430c0baf31da49e9513ff1d9668046eb7c695f",
+      "frames": 241,
+      "collisions": 299,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "2ef68770e7dea244622051d9cafb8f10bbc17f015264bffcd99af44aa4ee8232"
+        }
+      ]
+    },
+    {
+      "name": "stress-8",
+      "inputSha256": "5cd1750ef2a6b0f5c427b948907cfa5e7b950c9fa5a562d789cbf0f55416baa9",
+      "frames": 241,
+      "collisions": 261,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "4210c2ec39e6f476738acc878ce266d869147643837dd60bd871b51588456a68"
+        }
+      ]
+    },
+    {
+      "name": "stress-9",
+      "inputSha256": "4e559aa70911098a9f3624ba2296644cc44498d902794c552fa730b59f1596f6",
+      "frames": 241,
+      "collisions": 2070,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "2dd4d0fc96b9661a1b29485158b1c43a973c7c24c88ff806a0159081d63d252b"
+        }
+      ]
+    },
+    {
+      "name": "stress-10",
+      "inputSha256": "ea374e8287bbb126d086da72d155df37d662d420d8e742ed7aab3c6aae622e0a",
+      "frames": 241,
+      "collisions": 1834,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "a826f1745570b31033b40a352c0b81f274e66d8a1e062159bd7a065c9eec6d54"
+        }
+      ]
+    },
+    {
+      "name": "stress-11",
+      "inputSha256": "ed1c9d496679992b8150e45be38270ebddfd5f585d8e1b2d7c78818727388302",
+      "frames": 241,
+      "collisions": 30988,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "8998f02f5f5561a5a5d3ff7d5b255d7652bbb490f4cb1a7058171c219e00ba26"
+        }
+      ]
+    },
+    {
+      "name": "stress-12",
+      "inputSha256": "8a5716c2ee99d7e3336d57440b746be869fa4805c33b9f198ef381ac0330fc42",
+      "frames": 241,
+      "collisions": 298,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "7af0f3c6b6c1f0f744348a5e5459e5e973bca22b7203515f88ab350ee6ad58bc"
+        }
+      ]
+    },
+    {
+      "name": "stress-13",
+      "inputSha256": "05b6e2a28cce736aee5ef5de006777bc3e37e8d401390d4fdb8610e60dc278d2",
+      "frames": 241,
+      "collisions": 639,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "39bcf22df7e63dfdde7dcba21c479fcb685b8884a11ae0800a5fc3975d1cf967"
+        }
+      ]
+    },
+    {
+      "name": "stress-14",
+      "inputSha256": "4770d9609b57d59d62caf73a1bb4e4b87315a781b408cbda2c1619fb1e3deec8",
+      "frames": 241,
+      "collisions": 0,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "3ee4971e4441549d32e631fd74f5b37838f0dc409e3e912befc9d0ceeaebd859"
+        }
+      ]
+    },
+    {
+      "name": "stress-15",
+      "inputSha256": "c9dabeeb3468a1fa045f5d7e669bbe73c47ec4c52b87956c1b94a0844893da9f",
+      "frames": 241,
+      "collisions": 7231,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "8f14667732cf0f4edb4979f4a8368c43963430bc4dd5b9c36b488a2fe5dc6f2d"
+        }
+      ]
+    },
+    {
+      "name": "stress-16",
+      "inputSha256": "0f17d4034adcf2b656529562f2b14335a94665b2f31cd76713042257a74a7526",
+      "frames": 241,
+      "collisions": 2461,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "a456c446ec794d28afd3a69974c1dc5d25c9b435e4118d98a02b882d068c93e7"
+        }
+      ]
+    },
+    {
+      "name": "stress-17",
+      "inputSha256": "cfe0058f025cea5f723adf353b0ebde4ddcdf4a31611e250a56ee9fae726dd88",
+      "frames": 241,
+      "collisions": 1099,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "4e3a6fd9d0f9a75cf5d3cb752038bb193d7837fbf495f508bf2997e703d5b8d2"
+        }
+      ]
+    },
+    {
+      "name": "stress-18",
+      "inputSha256": "6db1e355a25154c65b0392e5c776aa66178189d84f8b826af6c6941827b03d18",
+      "frames": 241,
+      "collisions": 1861,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "fce77cb2a5346f1c79804e4706f3b228bef00f48cd75390121ba96ddd03c98be"
+        }
+      ]
+    },
+    {
+      "name": "stress-19",
+      "inputSha256": "8e0e2800be8f666e5c2efd87f36e9b73b8d44b2809c9e81d7a2e075c12ea1974",
+      "frames": 241,
+      "collisions": 1068,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "b64e026593d22e393c1c782bdf6443014f7cc0f301b3afc3864892cd0ddc5ba8"
+        }
+      ]
+    },
+    {
+      "name": "stress-20",
+      "inputSha256": "e0f2eb116762ecadba188544a717dd0b3d23ff9faa42ec0d56ac11b9edb8a2c8",
+      "frames": 241,
+      "collisions": 40,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "21f29c3485e1ffe15ee3dd8cf19bd1f9e0d9531cb1701f3c54163ee67a7f221a"
+        }
+      ]
+    },
+    {
+      "name": "stress-21",
+      "inputSha256": "746c567c013babdb6cb8964289dae02c1289ad935558c43b13b3d1c0b2e0340b",
+      "frames": 241,
+      "collisions": 46736,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "07316788142897854c5196304abee215a80acc8aaba144e5a3f4093b9b6a17bb"
+        }
+      ]
+    },
+    {
+      "name": "stress-22",
+      "inputSha256": "0d67f1bf4090899d1a2192fbdabd41daa69556d0429abc895ac9bd4ef47b4d94",
+      "frames": 241,
+      "collisions": 82,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "757fea8ec4704a99ae79b132baf92d5d4521ad248a4816e811a68ed344e9ecfb"
+        }
+      ]
+    },
+    {
+      "name": "stress-23",
+      "inputSha256": "8f44ae27e8a9661ec0a9dc218b6146d0c5b655443e72d56c25ae5f2ff78e87de",
+      "frames": 241,
+      "collisions": 0,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "3cdb824ddb002501b360fd234953d368e857ea4b2bce35a4b64ef9911df75bbe"
+        }
+      ]
+    },
+    {
+      "name": "stress-24",
+      "inputSha256": "6f510e6dfea5b6ad31f03d15e7b8736a24e342ef36ea989b569d970174af7992",
+      "frames": 241,
+      "collisions": 12,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "e6786046830510779584e541e07be8cc9a14973195af9fc1391965aa7d94f188"
+        }
+      ]
+    },
+    {
+      "name": "stress-25",
+      "inputSha256": "6ae97764d0f2ae58a10b3fd8d546b127487998f9636543c4cd2c6e04d388b982",
+      "frames": 241,
+      "collisions": 388,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "6ed2d8e1dbc82ee49551c8a77077747c8957ae67db22d47dfa87df16c807edef"
+        }
+      ]
+    },
+    {
+      "name": "stress-26",
+      "inputSha256": "cc13c6284806eec40290117a0215d9dd8786429e0e92f9e5e27f8dcdbf4abc17",
+      "frames": 241,
+      "collisions": 85,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "e4460ff9395caca9672d076cfe15cfa6eb8856524b97f0bfd4c1810656647ca9"
+        }
+      ]
+    },
+    {
+      "name": "stress-27",
+      "inputSha256": "a6569d6036d810682608e0c8c704efaefe542b7c8c48b00c6f811f78c8994c99",
+      "frames": 241,
+      "collisions": 4702,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "f0cabcee4a64cee050483e738df3ff0cb6caa8321823b5951cccfa82aadda7e8"
+        }
+      ]
+    },
+    {
+      "name": "stress-28",
+      "inputSha256": "d1f362214c836db49177ceb1999caa8ea77ad383974206d0c3bc538796f39e6a",
+      "frames": 241,
+      "collisions": 747,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "3a4c583adf40d479ba3811ba904160d0337c1b53bd0c2cd1ffc8161ea88c70c3"
+        }
+      ]
+    },
+    {
+      "name": "stress-29",
+      "inputSha256": "ae874a819f9d2de6a7826fba800f8b38c1e6d2c99554467c89e93405062baa5c",
+      "frames": 241,
+      "collisions": 908,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "ae02f2a1b5e9429c8e6a66240709b357e5d86a2fb9d4bc6588887ec78727b9ff"
+        }
+      ]
+    },
+    {
+      "name": "stress-30",
+      "inputSha256": "ec2751a9b912db67be712dee06185fecbc386f0f69e3e1992d8636f1694df96b",
+      "frames": 241,
+      "collisions": 177,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "3cebc1797a55b99a9404d42b7b003a66a3cbde8cb4271b64d94602c2fb588f8f"
+        }
+      ]
+    },
+    {
+      "name": "stress-31",
+      "inputSha256": "f2568edffb326f64bf1f039dbe18a532e33090bb05a635cc02a259bed57a959d",
+      "frames": 241,
+      "collisions": 614,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "613b896bfc71c4c325ef761efcccce664bad2abeac45af179b8a5e82a2af4424"
+        }
+      ]
+    },
+    {
+      "name": "stress-32",
+      "inputSha256": "afabfdda6fe491da4aee92ceb344d0ad3dd0b802eb2d6da5637b34e5fcf6cd8f",
+      "frames": 241,
+      "collisions": 0,
+      "blocks": [
+        {
+          "endFrame": 240,
+          "sha256": "53f8c6a450541405cd26ab9cc20f4ca8c410fbe2f6c54a85ea2254d7f2d1ab12"
+        }
+      ]
+    }
+  ]
+}

@@ -78,3 +78,33 @@ it('retrieves by supervised neighborhood before physical distance',()=>{
   expect(()=>arcControlProposals(query,20,30,{...fixture,exemplars:[{...fixture.exemplars[0],proximityLeaves:[]}]},1))
     .toThrow('proximity mismatch');
 });
+
+it('preserves stable retained neighborhoods for ties, weighted distances and unordered rows',()=>{
+  let seed=0x832ac128;
+  const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
+  for(let trial=0;trial<80;trial++){
+    const features=Array.from({length:57},()=>Math.floor(random()*3));
+    const weights=trial%2?Array.from({length:57},()=>Math.floor(random()*3)):undefined;
+    const count=[1,3,8,24][trial%4],limit=Math.max(24,count*8);
+    const exemplars=Array.from({length:200},(_,i)=>({
+      features:Array.from({length:57},(_,j)=>i%7===0?features[j]:Math.floor(random()*3)),
+      target:Array.from({length:10},()=>random()*10),
+    }));
+    if(trial%5===0)exemplars[trial].features[0]=NaN;
+    if(trial%7===0)exemplars[trial+1].features[1]=Infinity;
+    const retained:Array<{distance:number;row:typeof exemplars[number]}>=[];
+    for(const row of exemplars){
+      const distance=row.features.reduce((sum,x,j)=>sum+(x-features[j])**2*(weights?.[j]??(j<7?2:j<47?1:4)),0);
+      if(retained.length===limit&&distance>=retained.at(-1)!.distance)continue;
+      retained.push({distance,row});retained.sort((a,b)=>a.distance-b.distance);
+      if(retained.length>limit)retained.pop();
+    }
+    const expected:ReturnType<typeof arcControlProposals>=[];
+    for(const {row:{target:v}} of retained){
+      const c={entry:20+30*v[0],turn:60*v[1],exit:20+60*v[2],support:30*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]};
+      if(expected.some(p=>arcControlsSimilar(c,p)))continue;
+      expected.push(c);if(expected.length===count)break;
+    }
+    expect(arcControlProposals(features,20,30,{featureSchema:model.featureSchema,featureCount:57,featureWeights:weights,exemplars},count)).toEqual(expected);
+  }
+});

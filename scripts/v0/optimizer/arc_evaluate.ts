@@ -3,12 +3,14 @@
  * physical prefix; only a replay that meets every physical, musical and
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
-import { getRiderMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, detectFrom } from '../../lib/detector.ts';
+import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, type Detection } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { measureGapAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx, type TrackLine } from '../types.ts';
+import {solidPathLines} from '../arc.ts';
+import type {SolidPath} from '../../lib/primitive.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { motionArc, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
@@ -74,18 +76,28 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   };
   const built = buildGeometry(s, c, fragments);
   if ('reason' in built) return reject(built.reason);
-  const {added, child} = built;
-  if (!added.length) return null;
+  const {child} = built;
+  const count = built.added ? built.added.length : built.paths.reduce((n, p) => n + Math.max(0, p.points.length - 1), 0);
+  if (!count) return null;
   const prefixReusable = child.getLastFrameIndex() >= s.frame - 1;
-  if (added.length >= 10000) throw new Error('arc geometry id range exhausted');
-  const traced = traceCandidate(s, c, added, child, fragments, prefixReusable);
-  if ('reason' in traced) {
-    if (traced.near) rememberNear(s, traced.near);
-    return reject(traced.reason, traced.near);
-  }
-  const measured = measureObjective(s, added, traced);
-  if ('reason' in measured) return reject(measured.reason);
-  return recordCandidate(s, c, key, added, child, fragments, traced, measured);
+  if (count >= 10000) throw new Error('arc geometry id range exhausted');
+  const replay = replayCandidate(s, child, prefixReusable);
+  if ('reason' in replay) return reject(replay.reason);
+  const added = built.added ?? solidPathLines(built.paths);
+  s.ctx.lineage.record(s.engine, child, added);
+  // Borrowed detector storage is consumed entirely within this evaluation.
+  // Candidate records and memo entries contain only owned measurements.
+  const consume = (det: Detection) => {
+    const traced = inspectTrajectory(s, c, added, child, fragments, replay, det);
+    if ('reason' in traced) {
+      if (traced.near) rememberNear(s, traced.near);
+      return reject(traced.reason, traced.near);
+    }
+    const measured = measureObjective(s, added, traced);
+    if ('reason' in measured) return reject(measured.reason);
+    return recordCandidate(s, c, key, added, child, fragments, traced, measured);
+  };
+  return prefixReusable ? s.detection.withDetection(replay.raw, consume) : consume(detect(replay.raw));
 }
 
 /** A memoized measurement competes again in this search; its engine is rebuilt
@@ -112,7 +124,7 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: any) {
 /** Support geometry for `c` on the interval's prefix engine: a connected arc,
  * explicit fragments, or (transfer layouts) a support plus a receiving curve
  * placed from the observed free flight. */
-function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): {added: TrackLine[]; child: Engine} | Rejection {
+function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): ({added: TrackLine[]; paths?: never} | {added?: never; paths: SolidPath[]}) & {child: Engine} | Rejection {
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
@@ -125,28 +137,31 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
     if (parent) prefixes.set(child, {parent, lines: added});
     return {added, child};
   }
-  const added = fragments?.lines ??
-    motionArc(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
-  return {added, child: add(engine, added)};
+  if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines)};
+  const paths = motionArcPaths(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
+  return {paths, child: engine.addSolidPaths(paths)};
 }
 
-/** Replays the candidate to the interval horizon and checks the prefix, the
- * rider, the authored contact timing, the release and any requested
- * construction. Returns the measured trajectory or the rejection. A candidate
- * whose rider or sled comes apart stops there and is charged only that far. */
-function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine[], child: Engine, fragments: Fragments | undefined,
-  prefixReusable: boolean) {
-  const {ctx, options, i, frame, horizon} = s;
-  const {contacts, duration, frames} = ctx;
-  if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== s.before) return {reason: 'prefix'} as Rejection;
+/** Check the prefix and replay to the interval horizon. A candidate whose
+ * rider or sled comes apart stops there and is charged only that far. */
+function replayCandidate(s: IntervalSearch, child: Engine, prefixReusable: boolean) {
+  const {frame, horizon} = s;
+  if (!matchesBallisticStateMetered(child, frame - 1, s.beforeState)) return {reason: 'prefix'} as Rejection;
   if (!boundThroughMetered(child, horizon)) return {reason: 'binding'} as Rejection;
-  const state = getRiderMetered(child, horizon).ballisticState();
-  // A reusable prefix keeps its frames and its detector state; only the
-  // candidate's own frames are read and scanned.
+  const state = getBallisticStateMetered(child, horizon);
   const raw = prefixReusable
     ? {duration: horizon, frames: s.prefixRaw.frames.concat(extractRawTrajectoryWindow(child, frame, horizon).frames)}
     : extractRawTrajectory(child, horizon);
-  const det = prefixReusable ? detectFrom(s.prefixDetection, raw) : detect(raw);
+  return {state, raw};
+}
+
+/** Validates the detected trajectory and observes its requested impact and
+ * construction. Detector arrays are borrowed only for this evaluation. */
+function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: TrackLine[], child: Engine, fragments: Fragments | undefined,
+  replay: Exclude<ReturnType<typeof replayCandidate>, Rejection>, det: Detection) {
+  const {ctx, options, i, frame, horizon} = s;
+  const {contacts, duration, frames} = ctx;
+  const {state, raw} = replay;
   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;
   if (!options.impactContract && i > 0 && !findAuthoredContactNearFrame(det, frame, 1, frame - contacts[i - 1].frame))
     return {reason: 'missed'} as Rejection;
@@ -175,7 +190,7 @@ function traceCandidate(s: IntervalSearch, c: ArcMotionControl, added: TrackLine
   return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request};
 }
 
-type Trace = Exclude<ReturnType<typeof traceCandidate>, Rejection>;
+type Trace = Exclude<ReturnType<typeof inspectTrajectory>, Rejection>;
 
 /** Weighted residuals and cost of a valid replay: authored span axes, the
  * impact at this contact (and, with the impact contract, its event account),

@@ -113,3 +113,87 @@ it('preserves exact response proposals when explicit weight metadata does not ch
  expect(explicit.proposeResponses(features,20,32,wanted,1,{...weights,axisWeights:[1,1,1/3,1.5]}))
   .toEqual(plain.proposeResponses(features,20,32,wanted,1,weights));
 });
+
+it('retrieves exactly the stable sorted proposals through ties, duplicates, updates and nonfinite distances', async()=>{
+ const {arcReferencedControl,arcControlsSimilar}=await import('../scripts/v0/optimizer/arc_motion_control.ts');
+ const {makeRng}=await import('../scripts/lib/rng.ts');
+ const rng=makeRng(8419),memory=new ArcControlMemory(),examples:any[]=[];
+ for(let batch=0;batch<6;batch++){
+  for(let i=0;i<40;i++){
+   const source=examples.length&&i%3===0?examples[Math.floor(rng()*examples.length)]:undefined;
+   const example=source??{features:Array.from({length:57},(_,k)=>batch===4&&k===56?Infinity:batch===5&&k===55?NaN:Math.floor(rng()*4)),incoming:0,span:10,
+    control:{entry:Math.floor(rng()*4),turn:Math.floor(rng()*4),exit:Math.floor(rng()*4),support:5,bias:0,offset:0}};
+   examples.push(example);memory.rememberControl(example);
+  }
+  for(const features of [Array(57).fill(1),Array(57).fill(2),Array(57).fill(1e308),[1],Array(57).fill(Infinity),Array(57).fill(NaN)])
+   for(const count of [0,1,4,30,300])for(const duration of ['relative','both'] as const){
+    const ordered=examples.map(m=>({m,d:m.features.reduce((sum:number,v:number,k:number)=>sum+(v-features[k])**2*(k>=47?4:k<7?2:1),0)})).sort((a,b)=>a.d-b.d);
+    const expected:any[]=[];
+    if(count>0)outer:for(const {m}of ordered){
+     for(const span of duration==='both'?[30,m.span]:[30]){
+      const c=arcReferencedControl(m,12,span);
+      if(expected.some(p=>arcControlsSimilar(c,p)))continue;
+      expected.push(c);if(expected.length>=count)break outer;
+     }
+    }
+    expect(memory.proposeControls(features,12,30,count,duration)).toEqual(expected);
+   }
+ }
+});
+
+it('preserves weighted feature arithmetic across arrival, point-state and future boundaries', async () => {
+ const {arcFeatureDistance}=await import('../scripts/v0/optimizer/arc_value.ts');
+ const {makeRng}=await import('../scripts/lib/rng.ts');
+ const rng=makeRng(57219);
+ for(const length of [0,1,6,7,8,46,47,48,57,67])for(let trial=0;trial<100;trial++){
+  const a=Array.from({length},()=>rng()*20-10),b=Array.from({length},()=>rng()*20-10);
+  const weights=Array.from({length},()=>rng()*4);
+  for(const w of [undefined,weights,new Array<number>(length)]){
+   const expected=a.reduce((sum,v,k)=>sum+(v-b[k])**2*(w?.[k]??(k>=47?4:k<7?2:1)),0);
+   expect(arcFeatureDistance(a,b,w)).toBe(expected);
+  }
+ }
+});
+
+it('expands exact seeded neighborhoods through duplicates while reading local updates afresh', async () => {
+ const {arcReferencedControl,arcControlsSimilar}=await import('../scripts/v0/optimizer/arc_motion_control.ts');
+ const {makeRng}=await import('../scripts/lib/rng.ts');
+ const rng=makeRng(39215);
+ for(const scale of [1e-200,1,1e200])for(const width of [7,57,67]){
+  const make=(i:number)=>({features:Array.from({length:width},()=>Math.floor(rng()*8)*scale),incoming:0,span:10,
+   control:{entry:i%5,turn:i%7,exit:i%3,support:5,bias:0,offset:0}});
+  const model=Array.from({length:171},(_,i)=>make(i)),local=[make(192),make(193)];
+  const memory=new ArcControlMemory(model);for(const row of local)memory.rememberControl(row);
+  for(const query of [model[0].features,Array(width).fill(scale),Array(width).fill(Infinity),[NaN]]){
+   const ordered=[...model,...local].map(m=>({m,d:m.features.reduce((sum,v,k)=>sum+(v-query[k])**2*(k>=47?4:k<7?2:1),0)})).sort((a,b)=>a.d-b.d);
+   for(const count of [1,16,33,300])for(const duration of ['relative','both'] as const){
+    const expected:any[]=[];
+    outer:for(const {m} of ordered)for(const span of duration==='both'?[30,m.span]:[30]){
+     const control=arcReferencedControl(m,12,span);
+     if(expected.some(p=>arcControlsSimilar(p,control)))continue;
+     expected.push(control);if(expected.length>=count)break outer;
+    }
+    expect(memory.proposeControls(query,12,30,count,duration)).toEqual(expected);
+   }
+   local[0].features[0]=NaN;
+  }
+ }
+});
+
+it('bounds only distances that cannot enter the retained neighborhood', async () => {
+ const {arcFeatureDistance}=await import('../scripts/v0/optimizer/arc_value.ts');
+ const {makeRng}=await import('../scripts/lib/rng.ts');
+ const rng=makeRng(58321);
+ for(let i=0;i<1000;i++){
+  const a=Array.from({length:57},()=>rng()*20-10),b=Array.from({length:57},()=>rng()*20-10);
+  const exact=arcFeatureDistance(a,b);
+  const bits=new BigUint64Array(new Float64Array([exact]).buffer);
+  if(exact>0&&Number.isFinite(exact))bits[0]--;
+  const below=exact===0?-Number.MIN_VALUE:new Float64Array(bits.buffer)[0];
+  for(const limit of [0,exact/2,below,exact,exact*2,Infinity]){
+   const bounded=arcFeatureDistance(a,b,undefined,limit);
+   if(exact<=limit)expect(bounded).toBe(exact);
+   else expect(bounded>limit).toBe(true);
+  }
+ }
+});

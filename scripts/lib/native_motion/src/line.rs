@@ -6,13 +6,12 @@
 
 use std::rc::Rc;
 
-use crate::grid::{classic_cells, hash_int_pair, FlatIntMap};
+use crate::grid::{append_classic_cells, hash_int_pair, FlatIntMap};
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
 pub(crate) const ACC: f64 = 0.1;
 
-/// Precomputed line geometry (matches SolidLine's cached fields).
-#[derive(Clone)]
+/// Shared immutable geometry and its raster footprint, constructed once.
 pub(crate) struct Line {
     pub id: i32,
     pub p1x: f64,
@@ -28,58 +27,91 @@ pub(crate) struct Line {
     pub accx: f64,
     pub accy: f64,
     pub collidable: bool,
+    cell_range: std::ops::Range<usize>,
 }
 
+impl Line {
+    pub(crate) fn new(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Self {
+        let flipped = (flags & 1) != 0;
+        let left_ext = (flags & 2) != 0;
+        let right_ext = (flags & 4) != 0;
+        let is_acc = ty == 1;
+        let vecx = x2 - x1;
+        let vecy = y2 - y1;
+        let len_sq = vecx * vecx + vecy * vecy;
+        let inv_len_sq = 1.0 / len_sq;
+        let length = len_sq.sqrt();
+        let inv_length = 1.0 / length;
+        let flip_sign = if flipped { -1.0 } else { 1.0 };
+        let normx = (-vecy) * (inv_length * flip_sign);
+        let normy = (vecx) * (inv_length * flip_sign);
+        let extension = (MAX_FORCE_LENGTH / length).min(0.25);
+        let left_bound = if left_ext { -extension } else { 0.0 };
+        let right_bound = if right_ext { 1.0 + extension } else { 1.0 };
+        let accx = (-normy) * (ACC * flip_sign);
+        let accy = (normx) * (ACC * flip_sign);
+        let collidable = ty == 0 || ty == 1;
+        Self {
+            id,
+            p1x: x1,
+            p1y: y1,
+            vecx,
+            vecy,
+            normx,
+            normy,
+            inv_len_sq,
+            left_bound,
+            right_bound,
+            is_acc,
+            accx,
+            accy,
+            collidable,
+            cell_range: 0..0,
+        }
+    }
+}
+
+/// A line reference keeps its immutable batch alive. Geometry is contiguous;
+/// grid edits and detached caches clone ownership, never the line payloads.
 #[derive(Clone)]
-pub(crate) struct GridLine {
-    pub line: Rc<Line>,
+pub(crate) struct LineRef {
+    batch: Rc<LineBatch>,
+    index: usize,
 }
 
-pub(crate) fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> Line {
-    let flipped = (flags & 1) != 0;
-    let left_ext = (flags & 2) != 0;
-    let right_ext = (flags & 4) != 0;
-    let is_acc = ty == 1;
-    let vecx = x2 - x1;
-    let vecy = y2 - y1;
-    let len_sq = vecx * vecx + vecy * vecy;
-    let inv_len_sq = 1.0 / len_sq;
-    let length = len_sq.sqrt();
-    let inv_length = 1.0 / length;
-    let flip_sign = if flipped { -1.0 } else { 1.0 };
-    let normx = (-vecy) * (inv_length * flip_sign);
-    let normy = (vecx) * (inv_length * flip_sign);
-    let extension = (MAX_FORCE_LENGTH / length).min(0.25);
-    let left_bound = if left_ext { -extension } else { 0.0 };
-    let right_bound = if right_ext { 1.0 + extension } else { 1.0 };
-    let accx = (-normy) * (ACC * flip_sign);
-    let accy = (normx) * (ACC * flip_sign);
-    Line {
-        id,
-        p1x: x1,
-        p1y: y1,
-        vecx,
-        vecy,
-        normx,
-        normy,
-        inv_len_sq,
-        left_bound,
-        right_bound,
-        is_acc,
-        accx,
-        accy,
-        collidable: ty == 0 || ty == 1, // SCENERY(2) not collidable
+struct LineBatch {
+    lines: Vec<Line>,
+    cells: Vec<(i64, i64)>,
+}
+
+impl LineRef {
+    pub(crate) fn batch(mut lines: Vec<Line>) -> Vec<Self> {
+        let mut cells = Vec::new();
+        for line in &mut lines {
+            let start = cells.len();
+            if line.collidable {
+                append_classic_cells(line.p1x, line.p1y, line.vecx, line.vecy, &mut cells);
+            }
+            line.cell_range = start..cells.len();
+        }
+        let batch = Rc::new(LineBatch { lines, cells });
+        (0..batch.lines.len()).map(|index| Self { batch: batch.clone(), index }).collect()
+    }
+
+    pub(crate) fn cells(&self) -> &[(i64, i64)] {
+        &self.batch.cells[self.cell_range.clone()]
     }
 }
 
-/// Cells a line rasterizes into (integer `(cx, cy)` coords), or empty for
-/// non-collidable lines.
-pub(crate) fn line_cells(l: &Line) -> Vec<(i64, i64)> {
-    if l.collidable {
-        classic_cells(l.p1x, l.p1y, l.vecx, l.vecy)
-    } else {
-        Vec::new()
-    }
+impl std::ops::Deref for LineRef {
+    type Target = Line;
+    #[inline]
+    fn deref(&self) -> &Line { &self.batch.lines[self.index] }
+}
+
+#[cfg(test)]
+pub(crate) fn build_line(id: i32, x1: f64, y1: f64, x2: f64, y2: f64, ty: i64, flags: i64) -> LineRef {
+    LineRef::batch(vec![Line::new(id, x1, y1, x2, y2, ty, flags)]).pop().unwrap()
 }
 
 /// SolidLine.collidesWith / `shouldCollide` — the predicate (reads only pos+vel),
@@ -101,23 +133,22 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
 // Original raster cells keep line ids in descending order. Neighborhood
 // expansion happens on a cached read, rather than nine times on every edit.
 #[inline]
-fn bucket_position(bucket: &[GridLine], id: i32) -> (usize, bool) {
-    let pos = bucket.partition_point(|e| e.line.id > id);
-    (pos, pos < bucket.len() && bucket[pos].line.id == id)
+fn bucket_position(bucket: &[LineRef], id: i32) -> (usize, bool) {
+    let pos = bucket.partition_point(|e| e.id > id);
+    (pos, pos < bucket.len() && bucket[pos].id == id)
 }
 
-pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<GridLine>>, l: Line, cells: &[(i64, i64)]) {
-    let line = Rc::new(l);
+pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<LineRef>>, line: &LineRef, cells: &[(i64, i64)]) {
     for &(cx, cy) in cells {
         let bucket = grid.get_or_insert_default(hash_int_pair(cx, cy));
         let (pos, found) = bucket_position(bucket, line.id);
         if !found {
-            bucket.insert(pos, GridLine { line: Rc::clone(&line) });
+            bucket.insert(pos, line.clone());
         }
     }
 }
 
-pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: &[(i64, i64)]) {
+pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<LineRef>>, id: i32, cells: &[(i64, i64)]) {
     for &(cx, cy) in cells {
         let key = hash_int_pair(cx, cy);
         if let Some(bucket) = grid.get_mut(&key) {
@@ -132,21 +163,37 @@ pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<GridLine>>, id: i32, cells: 
 mod tests {
     use super::*;
 
+    #[test]
+    fn grid_and_surviving_entries_own_their_batch_after_other_references_drop() {
+        let mut batch = LineRef::batch(vec![
+            Line::new(1, 0.0, 0.0, 14.0, 0.0, 0, 0),
+            Line::new(2, 0.0, 2.0, 14.0, 2.0, 0, 0),
+        ]);
+        let survivor = batch.pop().unwrap();
+        let mut grid = FlatIntMap::default();
+        push_line(&mut grid, &batch[0], &[(0, 0)]);
+        drop(batch);
+        assert!(collides_with(&survivor, 5.0, 3.0, 0.0, 1.0));
+        assert!(collides_with(&grid.get(&hash_int_pair(0, 0)).unwrap()[0], 5.0, 1.0, 0.0, 1.0));
+        remove_line(&mut grid, 1, &[(0, 0)]);
+        assert!(collides_with(&survivor, 5.0, 3.0, 0.0, 1.0));
+    }
+
     fn center_group(dx: i64, dy: i64) -> u8 { ((dx + 1) * 3 + dy + 1) as u8 }
 
-    fn query(grid: &FlatIntMap<Vec<GridLine>>, cx: i64, cy: i64) -> Vec<(u8, i32)> {
+    fn query(grid: &FlatIntMap<Vec<LineRef>>, cx: i64, cy: i64) -> Vec<(u8, i32)> {
         let mut out = Vec::new();
         for dx in -1..=1 {
             for dy in -1..=1 {
                 if let Some(bucket) = grid.get(&hash_int_pair(cx + dx, cy + dy)) {
-                    out.extend(bucket.iter().map(|e| (center_group(dx, dy), e.line.id)));
+                    out.extend(bucket.iter().map(|e| (center_group(dx, dy), e.id)));
                 }
             }
         }
         out
     }
 
-    fn test_line(id: i32) -> Line {
+    fn test_line(id: i32) -> LineRef {
         build_line(id, 0.0, 0.0, 14.0, 1.0, 0, 0)
     }
 
@@ -155,10 +202,10 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1); // the original raster cell
-        push_line(&mut grid, test_line(10), &[cell]);
-        push_line(&mut grid, test_line(30), &[cell]);
-        push_line(&mut grid, test_line(20), &[cell]);
-        let ids: Vec<i32> = grid.get(&key).unwrap().iter().map(|e| e.line.id).collect();
+        push_line(&mut grid, &test_line(10), &[cell]);
+        push_line(&mut grid, &test_line(30), &[cell]);
+        push_line(&mut grid, &test_line(20), &[cell]);
+        let ids: Vec<i32> = grid.get(&key).unwrap().iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![30, 20, 10]);
     }
 
@@ -167,8 +214,8 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1);
-        push_line(&mut grid, test_line(10), &[cell, cell]);
-        let ids: Vec<i32> = grid.get(&key).unwrap().iter().map(|e| e.line.id).collect();
+        push_line(&mut grid, &test_line(10), &[cell, cell]);
+        let ids: Vec<i32> = grid.get(&key).unwrap().iter().map(|e| e.id).collect();
         assert_eq!(ids, vec![10]);
     }
 
@@ -177,9 +224,9 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let cell0 = (-1, -1);
         let cell1 = (-1, 0);
-        push_line(&mut grid, test_line(20), &[cell0]);
-        push_line(&mut grid, test_line(10), &[cell1]);
-        push_line(&mut grid, test_line(30), &[cell0, cell1]);
+        push_line(&mut grid, &test_line(20), &[cell0]);
+        push_line(&mut grid, &test_line(10), &[cell1]);
+        push_line(&mut grid, &test_line(30), &[cell0, cell1]);
         let got = query(&grid, 0, 0);
         assert_eq!(got, vec![(0, 30), (0, 20), (1, 30), (1, 10)]);
     }
@@ -189,14 +236,14 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1);
-        push_line(&mut grid, test_line(10), &[cell]);
-        push_line(&mut grid, test_line(20), &[cell]);
+        push_line(&mut grid, &test_line(10), &[cell]);
+        push_line(&mut grid, &test_line(20), &[cell]);
         remove_line(&mut grid, 10, &[cell]);
         assert_eq!(
             grid.get(&key)
                 .unwrap()
                 .iter()
-                .map(|e| e.line.id)
+                .map(|e| e.id)
                 .collect::<Vec<_>>(),
             vec![20]
         );
@@ -234,7 +281,7 @@ mod tests {
             if live.is_empty() || next(3) > 0 {
                 let id = next(400) as i32;
                 let cells: Vec<(i64, i64)> = (0..1 + next(3)).map(|_| (next(5) as i64 - 2, next(5) as i64 - 2)).collect();
-                push_line(&mut grid, test_line(id), &cells);
+                push_line(&mut grid, &test_line(id), &cells);
                 for &(cx, cy) in &cells {
                     for dx in -1..=1 {
                         for dy in -1..=1 {

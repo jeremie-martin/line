@@ -239,7 +239,7 @@ pub(crate) fn hash_int_pair(a: i64, b: i64) -> i64 {
 }
 
 // Retained as the inverse of hash_int_pair for the round-trip property test; the hot
-// paths now carry cell coords directly (classic_cells emits them) so no production
+// paths now carry cell coords directly (the classic raster walk emits them) so no production
 // code unhashes a stored cell any more.
 #[allow(dead_code)]
 pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
@@ -275,10 +275,10 @@ pub(crate) fn cell_hash(px: f64, py: f64) -> i64 {
 
 /// getCellsFromLine.js classicCells — the faithful float walk producing the integer
 /// cell coords a line rasterizes into, in walk order. `(p1x,p1y)`→`(p1x+vecx,p1y+vecy)`.
-/// Returns `(cx, cy)` pairs (not the Szudzik hash): every consumer immediately needs
+/// Appends `(cx, cy)` pairs (not the Szudzik hash): every consumer immediately needs
 /// the coords to enumerate the line's inverse-3×3 neighborhood, and emitting them
 /// here avoids an `unhash_int_pair` (a sqrt) per stored cell downstream.
-pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<(i64, i64)> {
+pub(crate) fn append_classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64, cells: &mut Vec<(i64, i64)>) {
     let p2x = p1x + vecx;
     let p2y = p1y + vecy;
     let cs_x = cell_cor(p1x);
@@ -290,9 +290,9 @@ pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<(i6
     let ce_x = cell_cor(p2x);
     let ce_y = cell_cor(p2y);
 
-    let mut cells = vec![(cs_x, cs_y)];
+    cells.push((cs_x, cs_y));
     if (vecx == 0.0 && vecy == 0.0) || (cs_x == ce_x && cs_y == ce_y) {
-        return cells;
+        return;
     }
     let box_left = cs_x.min(ce_x);
     let box_right = cs_x.max(ce_x);
@@ -343,7 +343,6 @@ pub(crate) fn classic_cells(p1x: f64, p1y: f64, vecx: f64, vecy: f64) -> Vec<(i6
             break;
         }
     }
-    cells
 }
 
 #[cfg(test)]

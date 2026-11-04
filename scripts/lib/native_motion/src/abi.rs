@@ -3,7 +3,7 @@
 //! Engine state and observations are owned by the arena, not these buffers.
 
 use crate::engine::with_arena;
-use crate::line::build_line;
+use crate::line::{Line, LineRef};
 use crate::{ITERATE, NENT};
 
 // Variable outputs retain high-water storage and publish only their returned
@@ -79,7 +79,7 @@ pub extern "C" fn add_lines(h: u32, n: u32) -> u32 {
     let coords = unsafe { &*&raw const ADD_COORDS };
     let lines = (0..n)
         .map(|k| {
-            build_line(
+            Line::new(
                 ids[k * 3],
                 coords[k * 4],
                 coords[k * 4 + 1],
@@ -90,7 +90,7 @@ pub extern "C" fn add_lines(h: u32, n: u32) -> u32 {
             )
         })
         .collect();
-    with_arena(|arena| arena.add_lines(h, lines))
+    with_arena(|arena| arena.add_lines(h, LineRef::batch(lines)))
 }
 
 #[no_mangle]
@@ -120,6 +120,11 @@ pub extern "C" fn get_rider(h: u32, f: i32) {
 }
 
 #[no_mangle]
+pub extern "C" fn advance_while_bound(h: u32, frame: i32) -> i32 {
+    with_arena(|arena| arena.advance_while_bound(h, frame)) as i32
+}
+
+#[no_mangle]
 pub extern "C" fn get_updates(h: u32, f: i32) -> i32 {
     let out = unsafe { &mut *&raw mut EVENTS };
     with_arena(|arena| arena.events_into(h, f, out)) as i32
@@ -144,10 +149,10 @@ pub extern "C" fn get_raw_frame(h: u32, f: i32) -> i32 {
 }
 
 #[no_mangle]
-pub extern "C" fn get_candidate_window(h: u32, start: i32, end: i32) -> i32 {
+pub extern "C" fn get_raw_window(h: u32, start: i32, end: i32) -> i32 {
     let out = unsafe { &mut *&raw mut WINDOW };
     let contacts = unsafe { &mut *&raw mut WINDOW_CONTACTS };
-    with_arena(|arena| arena.candidate_window_into(h, start, end, out, contacts))
+    with_arena(|arena| arena.raw_window_into(h, start, end, out, contacts))
 }
 
 #[no_mangle]

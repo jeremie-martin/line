@@ -63,10 +63,22 @@ and validation are in [music authoring](docs/music-authoring.md).
    targeted, capped amplitude needs a separate raw-peak read to preserve
    search pressure above the reporting cap. Reported axes remain capped.
    A candidate that leaves its interval's prefix unchanged reuses the prefix
-   frames and resumes the prefix's detector state, so it reads and scans only
-   its own frames; the detection is identical to scanning the whole ride.
+   frames and resumes the prefix's detector state. One interval owns reusable
+   detector columns and a scalar checkpoint; candidate evaluation consumes the
+   borrowed detection synchronously and retains only owned measurements. Detection
+   rescans the short persistence boundary and candidate suffix, with the same
+   result as scanning the whole ride.
    A candidate whose rider or sled comes apart stops replaying at that frame,
    since an unbinding is permanent, and is charged only the frames simulated.
+   Native replay performs that binding-stop loop; the shared meter still checks
+   allowance and charges the actual cache extension. Prefix comparisons read
+   native state directly, preserving the former serialized-number semantics.
+
+   Construction memory retrieves exact stable nearest neighborhoods with a
+   bounded heap, expanding when adaptation consumes a page. Immutable model rows
+   permit conservative partial-distance bounds; local examples are read afresh.
+   Ragged or nonfinite input retains stable full sorting. Proposal order, model
+   weights, scoring and search allowances are unchanged.
 
    Scattered sections use resolved collision positions from the carrier's
    original simulation. Reading those cached records advances no physics;
@@ -80,6 +92,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    cache snapshot until either needs to write. Cached reads do not copy it;
    releasing the source before the next write transfers the storage without
    copying. Live lineages still isolate edits, frame extension and truncation.
+   Saved states share immutable 64-frame chunks across copies; an append copies
+   only a shared partial tail. Registration batches own contiguous geometry and
+   raster footprints, shared by indexed line references. Registration queries the
+   earliest invalidation once per batch. History frames lazily cache conservative
+   component bounds, with exact predicate scans for survivors and nonfinite data.
    The independent judge is unchanged and remains a separate implementation.
    One Rust arena owns version ancestry, lineage caches and reconciliation
    scratch. Each operation holds a checked mutable borrow. The frame-cache
@@ -97,7 +114,8 @@ and validation are in [music authoring](docs/music-authoring.md).
    instead of silently capping events; state and trace buffers follow topology.
    Transport remains synchronous, and retained observations must be copied.
    Contact/body reads check cache availability and observe in one native call.
-   Raw-frame payloads reuse cached contact summaries. Impact observation reads packed
+   Raw-frame payloads reuse cached contact summaries. Already simulated raw windows
+   cross the ABI in one call and return owned frame objects. Impact observation reads packed
    cached motion/contact windows and computes strike frames without intermediate
    per-frame motion objects. Pure body-motion values are
    memoized lazily per frame; this memo can be shared across detached snapshots

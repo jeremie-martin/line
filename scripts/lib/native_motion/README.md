@@ -13,10 +13,17 @@ judge remains in `engine-rs`, with its own adapter and replay instance.
 | `wasm.ts` | the typed private ABI and borrowed memory views |
 | `src/engine.rs` | version ancestry, lineage reconciliation and requested observations |
 | `src/cache.rs` | geometry, computed frames, event storage and compact read summaries |
+| `src/frame_states.rs` | the visible saved-state prefix and shared immutable chunks |
 | `src/history.rs` | lazy collision indexes, snapshots and rollback boundaries |
 | `src/kernel.rs` | stepping, collision queries and recording into an explicit trace |
 | `src/line.rs`, `src/grid.rs` | immutable line geometry, cell traversal and lookup tables |
 | `src/abi.rs` | input/output marshalling; it owns no engine state |
+
+Each registration batch owns contiguous immutable geometry and raster footprints.
+Line references retain the batch and an index; version patches, grid buckets and
+the line-id index share that ownership. Removing one line may retain its storage
+while another member of its batch remains live. Cache copies and reconciliation
+reuse these records without recomputing geometry or cell traversal.
 
 A version belongs to one lineage. Reads reconcile its shared frame cache before
 observing or extending it. Live descendants and the current cache retain the
@@ -26,6 +33,16 @@ Cached reads do not copy it; releasing the source transfers ownership directly.
 Body motion is a pure, lazy per-frame observation stored in a `OnceCell`. Shared
 snapshots may fill that memo without copying simulation data. Copies preserve
 valid observations; rollback and reset discard them with their frames.
+Saved states share 64-frame chunks across cache copies. Truncation changes the
+visible prefix; appending copies only a shared partial tail. Up to 63 hidden tail
+states can remain allocated until that chunk is replaced or released. The mutable
+solver state is separate, and indexing cannot expose truncated states.
+
+Registration queries one earliest invalidation over the whole batch, then
+truncates once. Consecutive raster cells reuse borrowed history lists only for
+that query. A history frame lazily caches component bounds to exclude impossible
+collisions; survivors use the original predicate and operation order. Nonfinite
+inputs fall back to the snapshot scan. Appending clears the affected bound.
 
 One checked arena borrow encloses each native operation. Frame-cache storage is
 private: geometry edits, resets and truncation maintain its derived indexes.
@@ -52,16 +69,25 @@ point order, rather than re-deriving them from collisions in JavaScript.
 Impact observation consumes packed cached whole-body motion/contact windows in one
 native call, then computes strike frames directly without temporary motion objects.
 The window validates the entire range before reading and cannot step physics.
+Raw trajectory extraction also reads already simulated windows in one native
+call, returning owned ordinary frame objects. It preserves contact order and both
+work counters. The unused computing candidate-window API has been removed.
+Prefix validation compares a rider state directly with its saved ballistic state,
+without allocating point objects or serializing JSON. Signed zero and nonfinite
+values keep their previous comparison semantics.
 
 ## ABI and output lifetime
 
 The compiler ABI is private and ships with `wasm.ts`; it is not the frozen judge
-ABI. Line insertion has one chunked batch path. The retired batch simulator,
+ABI. Individual lines and connected solid paths use one chunked batch writer.
+The compiler can register paths before materializing its reporting records;
+only candidates that survive prefix and binding checks need those records.
+The retired batch simulator,
 its input buffer and the unused single-line export are absent.
 
 State/trace buffers have topology-defined sizes. Variable event and window
 outputs grow as needed and retain their initialized high-water storage. Returned
-counts define the logical prefix: output is never silently capped. Candidate
+counts define the logical prefix: output is never silently capped. Raw-frame
 contacts have their own buffer, separate from ordinary event reads.
 
 Views borrow WASM memory until the next engine call. The adapter refreshes them
@@ -120,6 +146,11 @@ a default-path regression. Cell 62 checks its larger budget. If costs shift
 between registration and simulation, also report isolated stepping. For storage
 changes, report WASM linear-memory high-water size separately from live memory
 or process RSS.
+
+An absolute compiler target uses full compile time divided by the unchanged
+charged physics count. It includes search and observation work, so it is distinct
+from the isolated solver cost. Record the candidate mean and its interval as well
+as the paired speedup; a KEEP decision alone does not establish an absolute target.
 
 Declare the protocol before timing. KEEP requires favorable paired-bootstrap
 support, a negative median and the exact sign safeguard. Only a fresh KEEP

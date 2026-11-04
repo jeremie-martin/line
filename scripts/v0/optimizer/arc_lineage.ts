@@ -22,11 +22,13 @@ export function createArcLineage(start: StartState) {
     .update(prefixKey(node.parent!) + '\n' + JSON.stringify(node.lines, (_key, value) => Object.is(value, -0) ? '-0' : value))
     .digest('hex');
 
-  const add = (parent: Engine, geometry: TrackLine[]) => {
-    const child = parent.addLine(geometry), prefix = prefixes.get(parent);
+  const record = (parent: Engine, child: Engine, geometry: TrackLine[]) => {
+    const prefix = prefixes.get(parent);
     if (prefix) prefixes.set(child, {parent: prefix, lines: geometry});
     return child;
   };
+
+  const add = (parent: Engine, geometry: TrackLine[]) => record(parent, parent.addLine(geometry), geometry);
 
   const detach = (source: Engine) => {
     const child = source.detach(), prefix = prefixes.get(source);
@@ -48,7 +50,7 @@ export function createArcLineage(start: StartState) {
     return result;
   };
 
-  return {prefixes, memoContexts, prefixKey, add, detach, rebuild};
+  return {prefixes, memoContexts, prefixKey, record, add, detach, rebuild};
 }
 
 export type ArcLineage = ReturnType<typeof createArcLineage>;

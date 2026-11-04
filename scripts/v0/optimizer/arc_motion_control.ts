@@ -93,12 +93,14 @@ export function normalizeArcControl(control: ArcMotionControl, context: ArcContr
 
 /** All other geometry inputs are fixed by the surrounding evaluation context.
  * Absence and signed zero are significant. Only implicit clearance is exactly
- * equivalent to the fixed channel, even when the search default would be 12. */
+ * equivalent to the fixed channel, even when the search default would be 12.
+ * Numeric strings contain no separator; the fixed field order distinguishes
+ * absence, signed zero and every nonfinite value without JSON encoding. */
 export function arcControlMemoKey(c: ArcMotionControl, channel?: number): string {
-  return JSON.stringify(ARC_CONTROL_KEYS.map(key => {
+  return ARC_CONTROL_KEYS.map(key => {
     const value = key === 'clearance' ? c.clearance ?? channel ?? 0 : c[key];
-    return value === undefined ? 'absent' : Object.is(value, -0) ? '-0' : Number.isFinite(value) ? value : String(value);
-  }));
+    return value === undefined ? '' : Object.is(value, -0) ? '-0' : String(value);
+  }).join('|');
 }
 
 export function arcControlValue(c: ArcMotionControl, key: ControlKey, channel?: number): number {

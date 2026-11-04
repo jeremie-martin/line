@@ -14,6 +14,7 @@
  * with hand-built fixtures.
  */
 
+import type {LineRiderEngine, BallisticState} from './native_motion/engine.ts';
 import { COLLISION_UPDATE_TYPE } from "./update_types.ts";
 
 // ────────── Pinned constants (PROBLEM.md §Definitions) ──────────
@@ -82,16 +83,7 @@ export type RawTrajectory = {
   frames: RawFrame[];
 };
 
-export type CandidateWindowRaw = {
-  startFrame: number;
-  /** Inclusive last frame requested for the window. */
-  duration: number;
-  frames: number;
-  stride: number;
-  data: Float64Array;
-  contacts: Float64Array;
-  contactCount: number;
-};
+
 
 export type DetectorParams = {
   K: number;
@@ -230,39 +222,67 @@ type SummaryState = {
   runStart: number;
 };
 
-/** Detection of a trajectory's leading frames, stopped before any landing
- * check could look past them. `detectFrom` resumes it on a trajectory that
- * begins with the same frame objects; the result equals `detect`. */
-export type DetectionPrefix = { readonly state: DetectorState; readonly summary: SummaryState; readonly last: RawFrame | undefined };
-
 export function detect(raw: RawTrajectory, params: Partial<DetectorParams> = {}): Detection {
   if (raw.frames.length === 0) throw new Error("detect: empty trajectory");
   const state = scanFrames(startDetector({ ...DEFAULT_PARAMS, ...params }), raw.frames, raw.frames.length);
   return finishDetection(raw, state, startSummary());
 }
 
-/** Scans `raw` up to the last frame whose landing check stays inside it. */
-export function detectPrefix(raw: RawTrajectory, params: Partial<DetectorParams> = {}): DetectionPrefix {
-  const P: DetectorParams = { ...DEFAULT_PARAMS, ...params };
-  const state = scanFrames(startDetector(P), raw.frames, Math.max(0, raw.frames.length - P.persistenceFrames + 1));
-  const summary = scanSummary(startSummary(), state, state.airborne.length);
-  return { state, summary, last: state.next > 0 ? raw.frames[state.next - 1] : undefined };
-}
-
-/** `detect(raw)` for a trajectory that extends the frames of `prefix`. */
-export function detectFrom(prefix: DetectionPrefix, raw: RawTrajectory): Detection {
-  const p = prefix.state;
-  if (raw.frames.length === 0) throw new Error("detect: empty trajectory");
-  if (raw.frames.length < p.next || (p.next > 0 && raw.frames[p.next - 1] !== prefix.last))
-    throw new Error("detectFrom: trajectory does not extend the detected prefix");
-  const state: DetectorState = {
-    ...p, P: { ...p.P },
-    position: p.position.slice(), velocity: p.velocity.slice(), speed: p.speed.slice(),
-    sledContacts: p.sledContacts.slice(), contactLineIds: p.contactLineIds.slice(), airborne: p.airborne.slice(),
-    events: p.events.map((e) => ({ ...e })),
+/** Repeated continuations of one immutable trajectory prefix. Measurement
+ * storage belongs to this workspace. A synchronous callback may read it and
+ * return owned results, but must not retain or mutate the detection arrays.
+ * This keeps candidate evaluation from copying the same prefix on every read. */
+export class DetectionContinuation {
+  private readonly prefix: {
+    detector: Pick<DetectorState, 'P' | 'next' | 'stallRun' | 'airborneRun' | 'airborneFrom' | 'terminus'>;
+    summary: Omit<SummaryState, 'slideSegments'>;
+    measurements: number;
+    events: number;
+    segments: number;
   };
-  const summary = { ...prefix.summary, slideSegments: prefix.summary.slideSegments.map((s) => ({ ...s })) };
-  return finishDetection(raw, scanFrames(state, raw.frames, raw.frames.length), summary);
+  private readonly state: DetectorState;
+  private readonly summary: SummaryState;
+  private readonly last: RawFrame | undefined;
+  private active = false;
+
+  constructor(raw: RawTrajectory, params: Partial<DetectorParams> = {}) {
+    const P = {...DEFAULT_PARAMS, ...params};
+    this.state = scanFrames(startDetector(P), raw.frames, Math.max(0, raw.frames.length - P.persistenceFrames + 1));
+    this.summary = scanSummary(startSummary(), this.state, this.state.airborne.length);
+    this.last = this.state.next > 0 ? raw.frames[this.state.next - 1] : undefined;
+    const {next, stallRun, airborneRun, airborneFrom, terminus} = this.state;
+    const {slideSegments, ...summary} = this.summary;
+    // Continuations only append. Reset lengths and scalar state; retain one
+    // copy of the immutable prefix observations in the working arrays.
+    this.prefix = {detector: {P, next, stallRun, airborneRun, airborneFrom, terminus}, summary,
+      measurements: this.state.position.length, events: this.state.events.length, segments: slideSegments.length};
+  }
+
+  withDetection<T>(raw: RawTrajectory, consume: (detection: Detection) => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
+    if (this.active) throw new Error('detection continuation is already in use');
+    const {detector: p, measurements, events, segments} = this.prefix, state = this.state, summary = this.summary;
+    if (raw.frames.length === 0) throw new Error('detect: empty trajectory');
+    if (raw.frames.length < p.next || (p.next > 0 && raw.frames[p.next - 1] !== this.last))
+      throw new Error('trajectory does not extend the detected prefix');
+    state.P = {...p.P};
+    state.next = p.next; state.stallRun = p.stallRun;
+    state.airborneRun = p.airborneRun; state.airborneFrom = p.airborneFrom; state.terminus = p.terminus;
+    state.position.length = measurements; state.velocity.length = measurements;
+    state.speed.length = measurements; state.sledContacts.length = measurements;
+    state.contactLineIds.length = measurements; state.airborne.length = measurements;
+    state.events.length = events;
+    Object.assign(summary, this.prefix.summary);
+    summary.slideSegments.length = segments;
+    this.active = true;
+    try {
+      const result = consume(finishDetection(raw, scanFrames(state, raw.frames, raw.frames.length), summary));
+      if (result && typeof (result as {then?: unknown}).then === 'function')
+        throw new TypeError('detection callbacks must be synchronous');
+      return result;
+    } finally {
+      this.active = false;
+    }
+  }
 }
 
 function startDetector(P: DetectorParams): DetectorState {
@@ -496,6 +516,13 @@ export function extractRawTrajectoryWindow(
   duration: number,
 ): RawTrajectory {
   const before = engineLastFrameIndex(engine);
+  const start = Math.max(0, startFrame), end = Math.floor(duration);
+  if (before !== null && before >= end && end >= start && Number.isInteger(start) &&
+      typeof engine.getCachedRawFrames === 'function') {
+    const frames: RawFrame[] = engine.getCachedRawFrames(start, end);
+    _frameCount += frames.length;
+    return {duration, frames};
+  }
   let chargedThrough = before;
   const frames: RawFrame[] = [];
   for (let f = Math.max(0, startFrame); f <= duration; f++) {
@@ -521,33 +548,6 @@ export function extractRawTrajectoryWindow(
     chargePhysicsFrames(Math.max(0, after - before));
   }
   return { duration, frames };
-}
-
-// deno-lint-ignore no-explicit-any
-export function extractCandidateWindow(engine: any, startFrame: number, duration: number): CandidateWindowRaw | null {
-  const fast = engine?.getCandidateWindow;
-  if (typeof fast !== "function") return null;
-  const start = Math.max(0, startFrame);
-  if (duration < start) return null;
-
-  const before = engineLastFrameIndex(engine);
-  if (
-    _physicsFrameLimit !== null &&
-    before !== null &&
-    duration > before &&
-    _physicsFrames + (duration - before) > _physicsFrameLimit
-  ) {
-    throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (duration - before));
-  }
-
-  const window = fast.call(engine, start, duration) as CandidateWindowRaw | null;
-  const after = engineLastFrameIndex(engine);
-  if (before !== null && after !== null) {
-    chargePhysicsFrames(Math.max(0, after - before));
-  }
-  if (window === null) return null;
-  _frameCount += window.frames;
-  return window;
 }
 
 /** Two work-unit counters, both reset per compile and non-reentrant
@@ -638,12 +638,9 @@ function engineLastFrameIndex(engine: any): number | null {
   }
 }
 
-/** `engine.getRider(frame)` wrapped to charge any frames it newly
- *  simulates to the physics counter. Use this instead of a raw
- *  `engine.getRider(frame)` anywhere outside the extraction loop, so the
- *  honest work unit captures simulation triggered by point probes too. */
-// deno-lint-ignore no-explicit-any
-export function getRiderMetered(engine: any, frame: number): any {
+/** Check the requested extension before reading, then charge what the engine
+ * actually computed. Native snapshots and rider observations share this rule. */
+function readMeteredFrame<T>(engine: any, frame: number, read: () => T): T {
   const before = engineLastFrameIndex(engine);
   if (
     _physicsFrameLimit !== null &&
@@ -653,10 +650,24 @@ export function getRiderMetered(engine: any, frame: number): any {
   ) {
     throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + (frame - before));
   }
-  const rider = engine.getRider(frame);
+  const result = read();
   const after = engineLastFrameIndex(engine);
   if (before !== null && after !== null) chargePhysicsFrames(Math.max(0, after - before));
-  return rider;
+  return result;
+}
+
+/** Meter rider probes outside the extraction loop. Cached frames cost zero. */
+export function getRiderMetered(engine: any, frame: number): any {
+  return readMeteredFrame(engine, frame, () => engine.getRider(frame));
+}
+
+/** Owned native state reads and comparisons share the same meter boundary. */
+export function getBallisticStateMetered(engine: LineRiderEngine, frame: number): BallisticState {
+  return readMeteredFrame(engine, frame, () => engine.getBallisticStateAtFrame(frame));
+}
+
+export function matchesBallisticStateMetered(engine: LineRiderEngine, frame: number, expected: BallisticState): boolean {
+  return readMeteredFrame(engine, frame, () => engine.matchesBallisticStateAtFrame(frame, expected));
 }
 
 /** Whether the rider is still mounted and the sled intact at `frame` on a native
@@ -667,6 +678,18 @@ export function getRiderMetered(engine: any, frame: number): any {
 export function boundThroughMetered(engine: any, frame: number): boolean {
   const before = engine.getLastFrameIndex() as number;
   if (frame <= before) return engine.isBoundAtFrame(frame);
+  if (typeof engine.advanceWhileBound === 'function' && Number.isFinite(frame) && frame <= 0x7fffffff) {
+    const target = Math.floor(frame);
+    if (target <= before) return true;
+    const end = _physicsFrameLimit === null ? target : Math.min(target, before + Math.floor(_physicsFrameLimit - _physicsFrames));
+    if (end > before) {
+      const bound = engine.advanceWhileBound(end);
+      chargePhysicsFrames(engine.getLastFrameIndex() - before);
+      if (!bound) return false;
+    }
+    if (end < target) throw new PhysicsFrameLimitExceeded(_physicsFrameLimit!, _physicsFrames + 1);
+    return true;
+  }
   for (let f = before + 1; f <= frame; f++) {
     if (_physicsFrameLimit !== null && _physicsFrames + 1 > _physicsFrameLimit) {
       throw new PhysicsFrameLimitExceeded(_physicsFrameLimit, _physicsFrames + 1);

@@ -2,13 +2,19 @@
  * detached versions share a snapshot until mutation. Wrappers uniquely own their
  * native handles and fail explicitly after release. The independent reference
  * adapter is intentionally separate; it must not inherit compiler refactors. */
-import {wasm, views, ENTITY_IDS, NENT, POINT_STRIDE, WINDOW_STRIDE, ADD_LINES_CAP, eventValues, windowValues, windowContacts} from './wasm.ts';
-import type {RawFrame, CandidateWindowRaw} from '../detector.ts';
+import {wasm, views, ENTITY_IDS, NENT, POINT_STRIDE, RAW_FRAME_STRIDE, ADD_LINES_CAP, eventValues, windowValues, windowContacts} from './wasm.ts';
+import type {RawFrame} from '../detector.ts';
+import type {SolidPath} from '../primitive.ts';
 
 // Capture hot native entry points once at the module boundary.
 const {get_last_frame_index, get_rider, get_raw_frame, get_state_map, get_body_motion, get_cached_events, has_contact, get_updates} = wasm;
 
 type Vec2 = {x: number; y: number};
+export type BallisticState = {points: Record<string, {x: number; y: number; prevX: number; prevY: number; vx: number; vy: number}>;
+  riderMounted: boolean; sledIntact: boolean};
+// The prior JSON state comparison identifies signed zero and all nonfinite
+// numbers. Compare directly while preserving that observable numeric contract.
+const sameStateNumber = (a: number, b: number) => a === b || !Number.isFinite(a) && !Number.isFinite(b);
 type LineData = {id?: number; type?: number; x1: number; y1: number; x2: number; y2: number;
   flipped?: boolean; leftExtended?: boolean; rightExtended?: boolean};
 const RIDER_POINT_IDS = ENTITY_IDS.slice(2);
@@ -30,6 +36,18 @@ const NO_COLLISION_UPDATES: any[] = (() => {
   for (let c = 0; c < 3; c++) u.push(CONSTRAINT_UPDATE);
   return Object.freeze(u) as any[];
 })();
+
+function rawFrameFrom(frame: number, values: Float64Array, offset: number,
+  contacts: Float64Array | undefined, firstContact: number, contactCount: number): RawFrame {
+  const pointCount = values[offset + 6];
+  const sledContacts = pointCount ? new Array<string>(pointCount) : EMPTY_SLED_CONTACTS;
+  for (let i = 0; i < pointCount; i++) sledContacts[i] = ENTITY_IDS[values[offset + 7 + i]];
+  const contactLineIds = contactCount ? new Array<number>(contactCount) : EMPTY_CONTACT_LINE_IDS;
+  for (let i = 0; i < contactCount; i++) contactLineIds[i] = contacts![firstContact + i];
+  return {frame, position: {x: values[offset], y: values[offset + 1]},
+    velocity: {x: values[offset + 2], y: values[offset + 3]}, sledContacts, contactLineIds,
+    sledBroken: values[offset + 5] !== -1, riderEjected: values[offset + 4] !== -1};
+}
 
 function frameIndex(frame: number): number {
   if (frame < 0 || frame !== (frame | 0))
@@ -160,33 +178,47 @@ export class LineRiderEngine {
   setStart(position: Vec2, velocity: Vec2): LineRiderEngine {
     return LineRiderEngine.fromHandle(wasm.set_start(this.h, position.x, position.y, velocity.x, velocity.y));
   }
-  addLine(line: LineData | LineData[]): LineRiderEngine {
-    // The compiler adds an arc as a batch (array). lr-core's addLine([l1..ln])
-    // runs _addLine per line against the same (progressively-truncated) frame
-    // cache with no recompute in between. The batch crosses the ABI in chunks of
-    // at most ADD_LINES_CAP lines, each one native version applying its lines in
-    // order: the same sequence of _addLine truncations.
-    const lines = Array.isArray(line) ? line : [line];
+  /** Both input forms share chunking and transient-handle ownership. */
+  private addBatch(count: number, write: (from: number, size: number, ids: Int32Array, coords: Float64Array) => void): LineRiderEngine {
     let h = this.h;
-    if (lines.length === 0) return this;
-    for (let from = 0; from < lines.length; from += ADD_LINES_CAP) {
-      const n = Math.min(ADD_LINES_CAP, lines.length - from);
-      const {addIds: ids, addCoords: coords} = views();
-      for (let k = 0; k < n; k++) {
+    if (!count) return this;
+    for (let from = 0; from < count; from += ADD_LINES_CAP) {
+      const n = Math.min(ADD_LINES_CAP, count - from);
+      const {addIds, addCoords} = views();
+      write(from, n, addIds, addCoords);
+      const next = wasm.add_lines(h, n);
+      if (h !== this.h) wasm.free_engine(h);
+      h = next;
+    }
+    return LineRiderEngine.fromHandle(h);
+  }
+  addLine(line: LineData | LineData[]): LineRiderEngine {
+    const lines = Array.isArray(line) ? line : [line];
+    return this.addBatch(lines.length, (from, size, ids, coords) => {
+      for (let k = 0; k < size; k++) {
         const l = lines[from + k];
         ids[k * 3] = l.id ?? 0;
         ids[k * 3 + 1] = l.type ?? 0;
         ids[k * 3 + 2] = (l.flipped ? 1 : 0) | (l.leftExtended ? 2 : 0) | (l.rightExtended ? 4 : 0);
-        coords[k * 4] = l.x1;
-        coords[k * 4 + 1] = l.y1;
-        coords[k * 4 + 2] = l.x2;
-        coords[k * 4 + 3] = l.y2;
+        coords[k * 4] = l.x1; coords[k * 4 + 1] = l.y1;
+        coords[k * 4 + 2] = l.x2; coords[k * 4 + 3] = l.y2;
       }
-      const next = wasm.add_lines(h, n);
-      if (h !== this.h) wasm.free_engine(h); // free unwrapped transient handles
-      h = next;
-    }
-    return LineRiderEngine.fromHandle(h);
+    });
+  }
+  /** Register connected ordinary solid lines without allocating per-line objects.
+   * The native version owns the copied geometry; vertices need not stay alive. */
+  addSolidPaths(paths: readonly SolidPath[]): LineRiderEngine {
+    const count = paths.reduce((n, p) => n + Math.max(0, p.points.length - 1), 0);
+    let path = 0, point = 1;
+    return this.addBatch(count, (_from, size, ids, coords) => {
+      for (let k = 0; k < size; k++, point++) {
+        while (point >= paths[path].points.length) { path++; point = 1; }
+        const {id, points} = paths[path], a = points[point - 1], b = points[point];
+        ids[k * 3] = id + point - 1; ids[k * 3 + 1] = 0; ids[k * 3 + 2] = 0;
+        coords[k * 4] = a.x; coords[k * 4 + 1] = a.y;
+        coords[k * 4 + 2] = b.x; coords[k * 4 + 3] = b.y;
+      }
+    });
   }
   /** Collision positions from an already evaluated window. Never advances physics.
    * Copy across the ABI so another engine read cannot overwrite this observation. */
@@ -243,24 +275,7 @@ export class LineRiderEngine {
   }
   getRawFrameAtFrame(frame: number): RawFrame {
     const n = get_raw_frame(this.h, frameIndex(frame));
-    const sc = views().scratch;
-    const pointCount = sc[6];
-    const sledContacts = pointCount ? new Array<string>(pointCount) : EMPTY_SLED_CONTACTS;
-    for (let i = 0; i < pointCount; i++) sledContacts[i] = ENTITY_IDS[sc[7 + i]];
-    const contactLineIds = n ? new Array<number>(n) : EMPTY_CONTACT_LINE_IDS;
-    if (n) {
-      const contacts = eventValues(n);
-      for (let i = 0; i < n; i++) contactLineIds[i] = contacts[i];
-    }
-    return {
-      frame,
-      position: { x: sc[0], y: sc[1] },
-      velocity: { x: sc[2], y: sc[3] },
-      sledContacts,
-      contactLineIds,
-      sledBroken: sc[5] !== -1,
-      riderEjected: sc[4] !== -1,
-    };
+    return rawFrameFrom(frame, views().scratch, 0, n ? eventValues(n) : undefined, 0, n);
   }
   /** All-point contact observations read cached events and never step physics. */
   getAllContactLineIdsAtFrame(frame: number): number[] {
@@ -275,23 +290,18 @@ export class LineRiderEngine {
     if (contact < 0) throw new Error('observation requires an already simulated frame');
     return contact > 0;
   }
-  getCandidateWindow(startFrame: number, endFrame: number): CandidateWindowRaw | null {
-    const handle = this.h;
-    const start = Math.max(0, Math.trunc(startFrame));
-    const end = Math.trunc(endFrame);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end > 0x7fffffff || end < start) return null;
-    const frames = end - start + 1;
-    const contactCount = wasm.get_candidate_window(handle, start, end);
-    if (contactCount < 0) return null;
-    return {
-      startFrame: start,
-      duration: end,
-      frames,
-      stride: WINDOW_STRIDE,
-      data: windowValues(frames * WINDOW_STRIDE),
-      contacts: windowContacts(contactCount),
-      contactCount,
-    };
+  /** Owned raw observations of an already simulated window. Native transport
+   * views are consumed here; callers keep ordinary independent frame objects. */
+  getCachedRawFrames(start: number, end: number): RawFrame[] {
+    const count = wasm.get_raw_window(this.h, frameIndex(start), frameIndex(end));
+    if (count < 0) throw new Error('observation requires an already simulated window');
+    const length = end - start + 1, values = windowValues(length * RAW_FRAME_STRIDE);
+    const contacts = windowContacts(count), frames: RawFrame[] = [];
+    for (let i = 0; i < length; i++) {
+      const offset = i * RAW_FRAME_STRIDE;
+      frames.push(rawFrameFrom(start + i, values, offset, contacts, values[offset + 11], values[offset + 12]));
+    }
+    return frames;
   }
   /** Cached [vx, vy, angular momentum, radius, contact] records. Borrowed until
    * the next engine call; consume immediately or copy before retaining. */
@@ -309,6 +319,42 @@ export class LineRiderEngine {
       throw new Error('observation requires an already simulated frame');
     const state = views().scratch;
     return {v: {x: state[0], y: state[1]}, L: state[2], R: state[3]};
+  }
+
+  matchesBallisticStateAtFrame(frame: number, expected: BallisticState): boolean {
+    get_state_map(this.h, frameIndex(frame));
+    const state = views().scratch;
+    if ((state[NENT * POINT_STRIDE] === -1) !== expected.riderMounted ||
+        (state[NENT * POINT_STRIDE + 1] === -1) !== expected.sledIntact) return false;
+    for (let index = 0; index < RIDER_POINT_IDS.length; index++) {
+      const offset = (index + 2) * POINT_STRIDE, point = expected.points[RIDER_POINT_IDS[index]];
+      if (!sameStateNumber(state[offset], point.x) || !sameStateNumber(state[offset + 1], point.y) ||
+          !sameStateNumber(state[offset + 2], point.prevX) || !sameStateNumber(state[offset + 3], point.prevY) ||
+          !sameStateNumber(state[offset + 4], point.vx) || !sameStateNumber(state[offset + 5], point.vy)) return false;
+    }
+    return true;
+  }
+
+  getBallisticStateAtFrame(frame: number): BallisticState {
+    get_state_map(this.h, frameIndex(frame));
+    const state = views().scratch;
+    const points: BallisticState['points'] = {};
+    for (let index = 0; index < RIDER_POINT_IDS.length; index++) {
+      const offset = (index + 2) * POINT_STRIDE;
+      points[RIDER_POINT_IDS[index]] = {
+        x: state[offset],
+        y: state[offset + 1],
+        prevX: state[offset + 2],
+        prevY: state[offset + 3],
+        vx: state[offset + 4],
+        vy: state[offset + 5],
+      };
+    }
+    return {
+      points,
+      riderMounted: state[NENT * POINT_STRIDE] === -1,
+      sledIntact: state[NENT * POINT_STRIDE + 1] === -1,
+    };
   }
 
   getRider(frame: number): any {
@@ -339,37 +385,8 @@ export class LineRiderEngine {
     return {
       position: { x: sc[0], y: sc[1] },
       velocity: { x: sc[2], y: sc[3] },
-      ballisticState: () => {
-        // Refresh scratch because the rider object may outlive another ABI read.
-        // The frame is cached, so this advances zero physics frames.
-        get_state_map(this.h, frameIndex(frame));
-        const state = views().scratch;
-        const points: Record<string, {
-          x: number;
-          y: number;
-          prevX: number;
-          prevY: number;
-          vx: number;
-          vy: number;
-        }> = {};
-        for (let index = 0; index < RIDER_POINT_IDS.length; index++) {
-          const offset = (index + 2) * POINT_STRIDE;
-          points[RIDER_POINT_IDS[index]] = {
-            x: state[offset],
-            y: state[offset + 1],
-            prevX: state[offset + 2],
-            prevY: state[offset + 3],
-            vx: state[offset + 4],
-            vy: state[offset + 5],
-          };
-        }
-        return {
-          points,
-          riderMounted: state[NENT * POINT_STRIDE] === -1,
-          sledIntact: state[NENT * POINT_STRIDE + 1] === -1,
-        };
-      },
-            get: (id: string): any => {
+      ballisticState: (): BallisticState => this.getBallisticStateAtFrame(frame),
+      get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
         if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
         if (id === RIDER_SLED_POINTS[0]) return pointStateFrom(pegPx, pegPy, pegPrevx, pegPrevy, pegVx, pegVy);
@@ -387,6 +404,10 @@ export class LineRiderEngine {
     get_rider(this.h, frameIndex(frame));
     const sc = views().scratch;
     return sc[4] === -1 && sc[5] === -1;
+  }
+  /** Stop newly simulated frames at the first broken binding. */
+  advanceWhileBound(frame: number): boolean {
+    return wasm.advance_while_bound(this.h, frameIndex(frame)) !== 0;
   }
   getSledPointPositionsAtFrame(frame: number, out: number[] = []): number[] {
     get_rider(this.h, frameIndex(frame));

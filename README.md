@@ -76,6 +76,11 @@ confirmation, including frozen source comparisons for wrapper changes;
 `npm run bench:engine` provides workload diagnostics. Old machine
 timings are historical evidence.
 
+Compiler throughput is full compile time per charged physics frame, including
+search and observation work. It is distinct from isolated solver time. Structural
+optimizations preserve exact output and charged work; an absolute speed target
+also requires fresh confirmation and the declared regression guards.
+
 With `npm run serve` running, `node tests/browser/async-loading.mjs` checks
 concurrent gallery loading, cancellation, and audio-failure recovery using
 synthetic artifacts. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to use an existing

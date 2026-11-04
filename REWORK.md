@@ -1,5 +1,75 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: qualify a 9,658 ns compiler checkpoint; 7,000 ns remains open
+
+Full default automatic compilation now takes **9,658 ns per charged physics
+frame**, compared with **13,527 ns** at `421c0e81` (production code `265545b6`).
+The fresh 24-pair confirmation gives **28.60% less time**, paired 95% interval
+**28.26–28.95%**, with 24/24 favorable pairs. The candidate mean's separate
+fixed-sample bootstrap interval is **9,617–9,699 ns**. This qualifies a useful
+checkpoint, but **does not meet the user's 7,000 ns target**. The denominator
+remains exactly 147,209 charged frames, and the track hash is unchanged.
+
+Construction memory now retrieves exact stable nearest neighborhoods with a
+bounded heap and expands only when adaptation needs more examples. Conservative
+partial-distance bounds preserve the original floating-point summation order
+for retained rows; nonfinite or ragged input keeps stable full sorting. Local
+examples remain fresh. Policy neighborhoods use stable insertion. Model weights,
+proposal order, search allowances, scoring and the independent judge stay fixed.
+
+Native registration batches share contiguous immutable geometry and raster
+footprints. Registration takes one minimum invalidation over a batch; borrowed
+history lists are reused within that query. Lazy component bounds exclude
+impossible snapshot collisions before the exact predicate scan. Saved states
+share 64-frame chunks across detached caches. Connected solid paths use the same
+batch writer as individual lines, and rejected prefix/binding checks avoid
+unneeded reporting records. Cached raw windows cross the ABI once; direct
+ballistic-state reads/comparisons and native binding-stop replay share the frame
+meter. The unused computing candidate-window API is removed.
+
+One detector workspace owns each interval's prefix observations and scalar
+checkpoint. Evaluation consumes its borrowed detection synchronously and saves
+only owned measurements. Construction inspection, geometry generation and motion
+summaries also avoid duplicated scans and temporary records. Ownership, bounds,
+fallbacks and output lifetimes are documented in the backend README.
+
+Qualification uses the existing frozen full-source scaffold, Node 22.22.2,
+Rust 1.95.0, CPU 2, one warmup and unchanged workloads. Fixed screen12 precedes
+fresh confirm24; no timing overlaps correctness checks or profiling.
+
+| Separate guard or diagnostic | Baseline → candidate ns/frame | Paired time delta, 95% interval |
+|---|---:|---:|
+| Native workloads, guard24 | 3,194 → 3,135 | −1.85% [−2.20, −1.41] |
+| Larger automatic budget, guard8 | 12,094 → 8,666 | −28.34% [−28.68, −28.04] |
+| Isolated post-registration stepping, diagnostic12 | 2,695 → 2,676 | −0.69% [−1.93, +0.58] |
+
+Both regression guards pass. They are not separate fresh-confirmation speedup
+claims; isolated stepping is inconclusive. Fresh WASM linear-memory high-water
+is mixed: default compilation **60.8125 → 64.6875 MiB**, larger compilation
+**168.625 → 146.75 MiB**. Native registration/replay/branches fall from
+**3.5/10.3125/2.125** to **3.0625/6.3125/2.0625 MiB**. These readings are neither
+live allocations nor RSS. Shared batches may retain removed members, and a
+truncated chunk can retain at most 63 hidden tail states. The packaged binary
+is 116,065 bytes, up from 111,085; the build remains ordinary Cargo release output.
+
+Validation: all 63 compiler cells preserve exact tracks and charged work;
+all 33 judge tracks pass; independent replay matches 61,115 states, 305,336
+ordered collisions and 61,115 raw observations. All 27 Rust tests pass;
+JavaScript has 386 passes and the existing missing-audio failure in
+`tests/eval_evidence.test.ts` (`productions/amor_na_praia_46s/audio.mp3`).
+Typecheck and reachability are clean.
+
+`docs/research/engine-under7k-20261103.json` preserves the frozen patch, source
+and binary identities, raw pairs, checks, memory readings, profiles and failed
+experiments. Early screens are cumulative comparisons against the original
+baseline, not isolated evidence for each added optimization. Later experiments
+use direct frozen development references. Ablations that failed their declared
+non-regression criterion were restored. Spatial-miss caching, compact grid
+storage, raw-frame object reuse and Binaryen O3 did not qualify; frame-local
+solver copies failed their static instruction prerequisite. None remains as a
+production option. The final raw-sample audit independently reproduces every
+completed paired decision and checks each measured compile's exact work/hash.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

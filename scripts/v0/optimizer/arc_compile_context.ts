@@ -75,8 +75,7 @@ export function createArcCompileContext(spec: Spec, options: ArcMotionOptions) {
     const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index]});
     let memory = constructionMemories.get(key);
     if (!memory) {
-      memory = new ArcControlMemory();
-      for (const example of options.constructionExamples?.[key] ?? []) memory.rememberControl(example);
+      memory = new ArcControlMemory(options.constructionExamples?.[key]);
       constructionMemories.set(key, memory);
     }
     return memory;

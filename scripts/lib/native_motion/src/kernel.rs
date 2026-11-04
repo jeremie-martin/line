@@ -13,7 +13,7 @@ pub(crate) type Collision = (u8, i32, i32, f64, f64);
 
 use crate::history::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
-use crate::line::{GridLine, Line, MAX_FORCE_LENGTH};
+use crate::line::{Line, LineRef, MAX_FORCE_LENGTH};
 use crate::{
     BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT, NITER,
     NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
@@ -79,7 +79,7 @@ impl QueryCache {
     // Flatten only neighborhoods actually read. Buffers retain capacity across
     // eviction and invalidation; cell order and cross-cell duplicates are kept.
     #[inline]
-    fn lookup(&mut self, grid: &FlatIntMap<Vec<GridLine>>, key: i64, cx: i64, cy: i64) -> &[*const Line] {
+    fn lookup(&mut self, grid: &FlatIntMap<Vec<LineRef>>, key: i64, cx: i64, cy: i64) -> &[*const Line] {
         let hash = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);
         let slot = ((hash ^ (hash >> 32)) as usize) & (QUERY_SLOTS - 1);
         if self.epochs[slot] != self.current_epoch || self.keys[slot] != key {
@@ -88,7 +88,7 @@ impl QueryCache {
             for dx in -1..=1 {
                 for dy in -1..=1 {
                     if let Some(bucket) = grid.get(&hash_int_pair(cx + dx, cy + dy)) {
-                        lines.extend(bucket.iter().map(|entry| std::rc::Rc::as_ptr(&entry.line)));
+                        lines.extend(bucket.iter().map(|entry| &**entry as *const Line));
                     }
                 }
             }
@@ -145,7 +145,7 @@ impl LineCellCache {
     }
 
     #[inline]
-    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<GridLine>>, vx: f64, vy: f64) {
+    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<LineRef>>, vx: f64, vy: f64) {
         let point = &mut self.point_cells[I];
         if point.epoch == self.queries.current_epoch {
             return;
@@ -155,7 +155,7 @@ impl LineCellCache {
 
     // Keep the uncommon list rebuild out of each monomorphized point solver.
     #[inline(never)]
-    fn refresh_point_lines(&mut self, grid: &FlatIntMap<Vec<GridLine>>, index: usize, vx: f64, vy: f64) {
+    fn refresh_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {
         let point = &mut self.point_cells[index];
         let query = self.queries.lookup(grid, point.key, point.cell_x, point.cell_y);
         let lines = &mut self.point_lines[index];
@@ -402,7 +402,7 @@ unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[
 #[allow(clippy::too_many_arguments)]
 unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: bool>(
     s: &mut State,
-    grid: &FlatIntMap<Vec<GridLine>>,
+    grid: &FlatIntMap<Vec<LineRef>>,
     events: &mut Vec<Collision>,
     frame_index: i32,
     history: &mut CollisionHistory,
@@ -433,7 +433,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
     if !lns.is_empty() {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
         for &line in lns {
-            // Entries point into immutable Rc<Line> records owned by the grid.
+            // Entries point into immutable batch geometry owned by the grid.
             // Only point_cells is updated below; this query stays fixed during
             // the sweep even when a collision moves the entity to another cell.
             let l = &*line;
@@ -503,7 +503,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
 #[inline(never)]
 pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
-    grid: &FlatIntMap<Vec<GridLine>>,
+    grid: &FlatIntMap<Vec<LineRef>>,
     rest: &[f64; NITER],
     endur: &[f64; NITER],
     events: &mut Vec<Collision>,
@@ -658,7 +658,7 @@ pub(crate) fn step_state<const TRACK: bool>(
 mod tests {
     use super::*;
 
-    fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<GridLine>>, x: f64, y: f64) -> Vec<i32> {
+    fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<LineRef>>, x: f64, y: f64) -> Vec<i32> {
         cache.point_cell::<PEG>(x, y);
         cache.cache_point_lines::<PEG>(grid, 0.0, 1.0);
         cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()
@@ -666,14 +666,14 @@ mod tests {
 
     #[test]
     fn query_cache_invalidates_hits_misses_clones_and_epoch_wrap() {
-        use crate::line::{build_line, line_cells, push_line, remove_line};
+        use crate::line::{build_line, push_line, remove_line};
         let mut grid = FlatIntMap::default();
         let mut cache = LineCellCache::default();
         assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());
         let line = build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0);
-        let cells = line_cells(&line);
+        let cells = line.cells();
         cache.invalidate();
-        push_line(&mut grid, line, &cells);
+        push_line(&mut grid, &line, cells);
         assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
         let mut cloned = cache.clone();
         let mut other = grid.clone();
@@ -698,7 +698,7 @@ mod tests {
         let mut grid = FlatIntMap::default();
         let mut cache = LineCellCache::default();
         for (id, cells) in [(1, vec![(-1, -1)]), (2, vec![(-1, 0)]), (3, vec![(-1, -1), (-1, 0)])] {
-            push_line(&mut grid, build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);
+            push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);
         }
         assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![3, 1, 3, 2]);
         let query = &cache.point_lines[PEG];
@@ -706,7 +706,7 @@ mod tests {
         assert_eq!(query.iter().map(|&l| unsafe { (*l).id }).collect::<Vec<_>>(), vec![3, 1, 3, 2]);
         assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
         cache.invalidate();
-        push_line(&mut grid, build_line(4, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(2, 0)]);
+        push_line(&mut grid, &build_line(4, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(2, 0)]);
         assert_eq!(ids(&mut cache, &grid, 14.0, 1.0), vec![4]);
         cache.invalidate();
         remove_line(&mut grid, 4, &[(2, 0)]);
@@ -717,7 +717,7 @@ mod tests {
     fn shared_query_eviction_does_not_replace_a_points_cached_lines() {
         use crate::line::{build_line, push_line};
         let mut grid = FlatIntMap::default();
-        push_line(&mut grid, build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0)]);
+        push_line(&mut grid, &build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0)]);
         let mut cache = LineCellCache::default();
         assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
         for cx in 1..1024 {
@@ -731,11 +731,11 @@ mod tests {
     fn direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates() {
         use crate::line::{build_line, push_line};
         let mut grid = FlatIntMap::default();
-        push_line(&mut grid, build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
-        push_line(&mut grid, build_line(2, 0.0, 5.0, 10.0, 5.0, 0, 1), &[(0, 0)]);
-        push_line(&mut grid, build_line(3, 5.0, 0.0, 5.0, 10.0, 1, 0), &[(0, 0)]);
+        push_line(&mut grid, &build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
+        push_line(&mut grid, &build_line(2, 0.0, 5.0, 10.0, 5.0, 0, 1), &[(0, 0)]);
+        push_line(&mut grid, &build_line(3, 5.0, 0.0, 5.0, 10.0, 1, 0), &[(0, 0)]);
         // A zero-length line has NaN normals and must never pass direction > 0.
-        push_line(&mut grid, build_line(4, 0.0, 0.0, 0.0, 0.0, 0, 0), &[(0, 0)]);
+        push_line(&mut grid, &build_line(4, 0.0, 0.0, 0.0, 0.0, 0, 0), &[(0, 0)]);
         let mut cache = LineCellCache::default();
         for (vx, vy, expected) in [
             (0.0, 1.0, vec![1, 1]),
@@ -766,7 +766,7 @@ mod tests {
         for count in [0, 1, 32, 4097, 3, 0, 65, 1] {
             let mut grid = FlatIntMap::default();
             for id in 0..count {
-                push_line(&mut grid, build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
+                push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);
             }
             cache.invalidate();
             let one_cell: Vec<i32> = (0..count).rev().collect();

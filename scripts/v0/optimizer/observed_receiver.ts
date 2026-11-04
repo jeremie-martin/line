@@ -2,7 +2,7 @@
  * This only proposes geometry. Full interval, motion and construction checks
  * remain the caller's responsibility; every observation is metered physics. */
 import type {LineRiderEngine} from '../../lib/native_motion/engine.ts';
-import {getRiderMetered} from '../../lib/detector.ts';
+import {getBallisticStateMetered,getRiderMetered} from '../../lib/detector.ts';
 import {motionArc,type ArcMotionControl,type ArcGeometryStyle} from './arc_geometry.ts';
 import {makeSolidLine} from '../arc.ts';
 import type {TrackLine} from '../types.ts';
@@ -16,7 +16,7 @@ export function observedReceiver(engine:LineRiderEngine,main:TrackLine[],frame:n
  const last=horizon-2;
  let contacted=false,free=0,at=-1;
  for(let f=frame;f<=last;f++){
-  const state=getRiderMetered(engine,f).ballisticState();
+  const state=getBallisticStateMetered(engine,f);
   if(!state.riderMounted||!state.sledIntact)return null;
   const collisions=engine.getAllContactLineIdsAtFrame(f);
   if(collisions.some(id=>own.has(id)))contacted=true;

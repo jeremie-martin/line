@@ -2,7 +2,7 @@
  * interval, the physical boundary it starts from (read once, on the meter),
  * and the measured candidates that proposals and local search accumulate. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { getRiderMetered, extractRawTrajectory, detect, detectPrefix } from '../../lib/detector.ts';
+import { getRiderMetered, getBallisticStateMetered, extractRawTrajectory, detect, DetectionContinuation } from '../../lib/detector.ts';
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { CALIB, impactToRawPx, type AxisValues, type Gap, type TrackLine } from '../types.ts';
 import { catchReceivers, type ArcMotionControl } from './arc_geometry.ts';
@@ -58,12 +58,12 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const targets = outgoing.targets;
   const objectiveEnd = Math.min(horizon, duration);
 
-  const beforeState = getRiderMetered(engine, frame - 1).ballisticState(), before = JSON.stringify(beforeState);
+  const beforeState = getBallisticStateMetered(engine, frame - 1);
   const velocity = getRiderMetered(engine, frame).velocity;
   engine.prepareCollisionTrace(frame);
   getRiderMetered(engine, frame);
   const trace = catchReceivers(engine.readCollisionTrace()[0]);
-  const prefixRaw = extractRawTrajectory(engine, frame - 1), prefixDetection = detectPrefix(prefixRaw);
+  const prefixRaw = extractRawTrajectory(engine, frame - 1), detection = new DetectionContinuation(prefixRaw);
   const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
   const prefixImpactFrames = account ? account.observe(engine, prefixRaw.frames, beforeState) : undefined;
   const impactPrefix = account ? account.prefix(prefixImpactFrames!) as any : undefined;
@@ -112,8 +112,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   return {
     ctx, options, i, engine, protectedEngines, controlMemory,
     frame, gap, next, horizon, outgoing, targets, objectiveEnd,
-    beforeState, before, velocity, trace,
-    prefixRaw, prefixDetection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
+    beforeState, velocity, trace,
+    prefixRaw, detection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, controlContext,
     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,

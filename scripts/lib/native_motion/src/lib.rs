@@ -5,6 +5,7 @@
 //!   line.rs    — immutable line geometry and ordered grid registration
 //!   kernel.rs  — body state, solver, collision queries and explicit observations
 //!   history.rs — collision indexes and rollback for geometry edits
+//!   frame_states.rs — saved-state chunks shared across detached caches
 //!   cache.rs   — geometry, computed frames, summaries and lazy history
 //!   engine.rs  — immutable versions, lineage reconciliation and handle ownership
 //!   abi.rs     — private compiler WASM boundary, paired with wasm.ts
@@ -16,6 +17,7 @@ mod grid;
 mod line;
 mod kernel;
 mod history;
+mod frame_states;
 mod cache;
 mod engine;
 mod abi;

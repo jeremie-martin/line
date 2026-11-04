@@ -1,7 +1,8 @@
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
 import {profileHeading,foldTime,validProfileControls,type MotionProfileControls} from './motion_profiles.ts';
-import { makeSolidLine } from '../arc.ts';
+import { solidPathLines } from '../arc.ts';
+import type {SolidPath} from '../../lib/primitive.ts';
 import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
@@ -55,7 +56,12 @@ export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
-export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):TrackLine[]{
+export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine[] {
+  return solidPathLines(motionArcPaths(...args));
+}
+
+/** Native candidate evaluation can register these vertices directly. */
+export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):SolidPath[]{
   const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);
@@ -67,13 +73,17 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
   const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
   const anchor={x:point.x+side*n.x*c.offset,y:point.y+side*n.y*c.offset};
   let x=anchor.x-approach*t.x,y=anchor.y-approach*t.y;
-  const lines:TrackLine[]=[];
-  lines.push(makeSolidLine(id++,x,y,anchor.x,anchor.y));x=anchor.x;y=anchor.y;
+  // Work in connected vertices; materialize each physical line only once,
+  // after clipping and orientation have settled its endpoints.
+  let main = [{x,y},anchor];
+  let guide: Array<{x:number;y:number}> = [];
+  x=anchor.x;y=anchor.y;
   let v=Math.max(2,velocity.x*t.x+velocity.y*t.y),previousAngle=entry;
   const uniformDt=c.support/steps;
+  const first=c.turnFraction===undefined?Math.min(5,c.support*.5):c.support*c.turnFraction;
+  const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
+  const profileContext={start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle};
   for(let k=0;k<steps;k++){
-    const first=c.turnFraction===undefined?Math.min(5,c.support*.5):c.support*c.turnFraction;
-      const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
     let dt=uniformDt,time=(k+.5)*dt;
     if(profile==='fold'&&(style?.profileStrength??1)>0){
       const onset=profileFirst/c.support,amount=Math.min(1,style?.profileStrength??1);
@@ -86,7 +96,7 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
-      {start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle});
+      profileContext);
     // Fixed angular folds have actual corners. Applying a smooth-curve radius
     // per face would weaken their angle whenever search shortened that face.
     // Their full corner geometry must pass physical evaluation instead.
@@ -95,11 +105,11 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
     previousAngle=a;
     v=Math.max(1,v+.175*Math.sin(a)*dt);
     const xx=x+Math.cos(a)*v*dt, yy=y+Math.sin(a)*v*dt;
-    lines.push(makeSolidLine(id++,x,y,xx,yy));x=xx;y=yy;
+    main.push({x:xx,y:yy});x=xx;y=yy;
   }
-  const mainCount=lines.length,clearance=c.clearance??channel;
+  const mainCount=main.length-1,clearance=c.clearance??channel;
   if(style?.guides!==false&&clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
-    const vertices=lines.map(l=>({x:l.x1,y:l.y1}));vertices.push({x:lines.at(-1)!.x2,y:lines.at(-1)!.y2});
+    const vertices=main;
     const roof=vertices.slice(2).map((p,i)=>{
       const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
@@ -119,26 +129,25 @@ export function motionArc(points:any[], velocity:{x:number;y:number}, c:ArcMotio
         const pivot=clipped[Math.floor(clipped.length/2)],a=rad(c.guideTilt),co=Math.cos(a),si=Math.sin(a);
         for(const p of clipped){const x=p.x-pivot.x,y=p.y-pivot.y;p.x=pivot.x+co*x-si*y;p.y=pivot.y+si*x+co*y;}
       }
-      clipped.reverse();
-      for(let i=1;i<clipped.length;i++)lines.push(makeSolidLine(id++,clipped[i-1].x,clipped[i-1].y,clipped[i].x,clipped[i].y));
+      guide=clipped.reverse();
     }
   }
-  const orient=(main:TrackLine[],guide:TrackLine[])=>{
-    if(side===1)return [...main,...guide];
-    const reverse=(chain:TrackLine[])=>{const first=chain[0]?.id??0;return chain.slice().reverse().map((l,i)=>
-      makeSolidLine(first+i,l.x2,l.y2,l.x1,l.y1));};
-    return [...reverse(main),...reverse(guide)];
-  };
   if(style?.railLayout==='transfer'){
-    const main=lines.slice(0,mainCount),extent=clamp(c.mainEnd??.7,.2,1);
-    let remaining=main.slice(1).reduce((n,l)=>n+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)*extent;
-    const retained=[main[0]];
-    for(const line of main.slice(1)){
-      const length=Math.hypot(line.x2-line.x1,line.y2-line.y1);if(remaining<=1e-9)break;
-      if(remaining>=length){retained.push(line);remaining-=length;}
-      else{retained.push({...line,x2:lerp(line.x1,line.x2,remaining/length),y2:lerp(line.y1,line.y2,remaining/length)});break;}
+    const extent=clamp(c.mainEnd??.7,.2,1);
+    let length=0;
+    for(let i=1;i<main.length-1;i++)length+=Math.hypot(main[i+1].x-main[i].x,main[i+1].y-main[i].y);
+    let remaining=length*extent;
+    const retained=[main[0],main[1]];
+    for(let i=1;i<main.length-1;i++){
+      const from=main[i],to=main[i+1],length=Math.hypot(to.x-from.x,to.y-from.y);
+      if(remaining<=1e-9)break;
+      if(remaining>=length){retained.push(to);remaining-=length;}
+      else{retained.push({x:lerp(from.x,to.x,remaining/length),y:lerp(from.y,to.y,remaining/length)});break;}
     }
-    return orient(retained,lines.slice(mainCount));
+    main=retained;
   }
-  return side===1?lines:orient(lines.slice(0,mainCount),lines.slice(mainCount));
+  if(side===-1){main.reverse();guide.reverse();}
+  // Guide ids retain the original full-main offset even when a transfer
+  // shortens its main support; orientation never changes the id range.
+  return [{id, points: main}, {id: id + mainCount, points: guide}];
 }

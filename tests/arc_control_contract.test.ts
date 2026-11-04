@@ -48,3 +48,18 @@ it('offers response search only active dimensions that have a response step', ()
   expect(() => arcControlStep('guideEnd', 'response', 20)).toThrow('no response step');
   expect(arcControlStep('support', 'response', 3)).toBe(.6);
 });
+
+it('keeps memo equivalence for every numeric field, including nonfinite values',()=>{
+  const oldKey=(c:ArcMotionControl,channel?:number)=>JSON.stringify(ARC_CONTROL_KEYS.map(key=>{
+    const value=key==='clearance'?c.clearance??channel??0:c[key];
+    return value===undefined?'absent':Object.is(value,-0)?'-0':Number.isFinite(value)?value:String(value);
+  }));
+  const oldToNew=new Map<string,string>(),newToOld=new Map<string,string>();
+  const values=[undefined,-Infinity,-Number.MAX_VALUE,-1e-200,-1,-0,0,1,1e-200,Number.MAX_VALUE,Infinity,NaN];
+  for(const key of ARC_CONTROL_KEYS)for(const value of values)for(const channel of [undefined,-0,0,12,NaN]){
+    const c={...control,[key]:value},before=oldKey(c,channel),after=arcControlMemoKey(c,channel);
+    if(oldToNew.has(before))expect(after).toBe(oldToNew.get(before));
+    if(newToOld.has(after))expect(before).toBe(newToOld.get(after));
+    oldToNew.set(before,after);newToOld.set(after,before);
+  }
+});

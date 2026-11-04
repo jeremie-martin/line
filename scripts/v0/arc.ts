@@ -64,3 +64,11 @@ export function makeSolidLine(
     rightExtended: false,
   };
 }
+
+/** Materialize a connected path only when a consumer needs individual lines. */
+export function solidPathLines(paths: readonly import('../lib/primitive.ts').SolidPath[]): TrackLine[] {
+  const lines: TrackLine[] = [];
+  for (const {id, points} of paths) for (let i = 1; i < points.length; i++)
+    lines.push(makeSolidLine(id + i - 1, points[i - 1].x, points[i - 1].y, points[i].x, points[i].y));
+  return lines;
+}

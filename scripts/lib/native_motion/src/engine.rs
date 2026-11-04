@@ -3,15 +3,15 @@
 //! preserves lr-core's path-dependent frame budget, including sibling reads.
 //! Handles, ancestry and optional solver observations have one arena owner.
 
-use crate::cache::FrameCache;
+use crate::cache::{FrameCache, FrameSummary};
 use crate::kernel::CollisionTrace;
 #[cfg(test)]
 use crate::line::build_line;
-use crate::line::Line;
+use crate::line::LineRef;
 use crate::{NENT, NOSE, PEG, STRING, TAIL};
 use std::{cell::RefCell, rc::Rc};
 
-pub(crate) const CANDIDATE_WINDOW_STRIDE: usize = 9;
+pub(crate) const RAW_FRAME_STRIDE: usize = 13;
 
 // ── version tree (each engine handle is a node) + per-lineage cache ──
 enum Patch {
@@ -19,7 +19,7 @@ enum Patch {
     SetStart,
     /// One addLine batch, in insertion order. A batch is one version: lr-core's
     /// addLine([l1..ln]) applies its lines with no read in between.
-    AddLines(Vec<Line>),
+    AddLines(Vec<LineRef>),
 }
 
 struct Version {
@@ -54,7 +54,7 @@ pub(crate) struct EngineArena {
     free_lineages: Vec<u32>,
     generation: u32,
     undo: Vec<i32>,
-    redo: Vec<Line>,
+    redo: Vec<LineRef>,
     removed: Vec<i32>,
 }
 
@@ -175,7 +175,7 @@ impl EngineArena {
     /// addLine([l1..ln]): sync the cache to `h`, add each line to the shared cache in
     /// order, and create one version (AddLines patch) that becomes the cache's current.
     /// The cache sees the same _addLine sequence as n single-line versions would.
-    pub(crate) fn add_lines(&mut self, h: u32, lines: Vec<Line>) -> u32 {
+    pub(crate) fn add_lines(&mut self, h: u32, lines: Vec<LineRef>) -> u32 {
         self.update_computed(h);
         let (lineage, parent_depth, start, start_generation) = {
             let p = self.ver(h as i32);
@@ -183,9 +183,7 @@ impl EngineArena {
         };
         let hh = self.lineages[lineage as usize].as_mut().unwrap();
         let cache = Rc::make_mut(&mut hh.cache);
-        for l in lines.iter() {
-            cache.add_line(l.clone());
-        }
+        cache.add_lines(&lines);
         let vid = self.alloc_version(Version {
             lineage,
             parent: h as i32,
@@ -315,12 +313,10 @@ impl EngineArena {
         let target_start = ver(target).start;
 
         let cache = Rc::make_mut(&mut self.lineages[lineage as usize].as_mut().unwrap().cache);
-        // linesList reconcile (Immo runs this before initialStateMap). Drain the redo
-        // scratch (moves the Lines out, keeps the buffer's capacity for reuse).
+        // Reconcile geometry before the initial state, retaining scratch capacity.
         cache.remove_lines(undo_ids, &mut self.removed);
-        for l in redo_lines.drain(..) {
-            cache.add_line(l);
-        }
+        cache.add_lines(redo_lines);
+        redo_lines.clear();
         // initialStateMap reconcile: a SetStart somewhere between the two versions.
         if start_changed {
             cache.set_initial_states(
@@ -383,6 +379,19 @@ impl EngineArena {
             .unwrap()
             .cache;
         (frame <= cache.last_frame_index()).then_some(cache)
+    }
+
+    /// One native call for a bounded replay. The caller chooses an affordable
+    /// horizon and charges the actual cache extension, including early failure.
+    pub(crate) fn advance_while_bound(&mut self, handle: u32, frame: i32) -> bool {
+        if frame < 0 || !self.valid(handle) { return false; }
+        self.update_computed(handle);
+        let lineage = self.ver(handle as i32).lineage;
+        let cache = &mut self.lineages[lineage as usize].as_mut().unwrap().cache;
+        if cache.frame_count() > frame as usize { return cache.is_bound(frame as usize); }
+        let trace = self.versions[handle as usize].as_mut().unwrap().trace.as_deref_mut()
+            .filter(|trace| trace.count == 0);
+        Rc::make_mut(cache).advance_while_bound(frame as usize, trace)
     }
 
     /// Whole-body motion, in the same point and arithmetic order as bodyMotion()
@@ -535,19 +544,7 @@ impl EngineArena {
         };
         let f = f as usize;
         let summary = cache.summary(f);
-        scratch[0] = summary.body_px;
-        scratch[1] = summary.body_py;
-        scratch[2] = summary.body_vx;
-        scratch[3] = summary.body_vy;
-        scratch[4] = summary.rider_fsu as f64;
-        scratch[5] = summary.sled_fsu as f64;
-        scratch[6] = summary.sled_count as f64;
-        for (i, point) in summary.sled_points[..summary.sled_count as usize]
-            .iter()
-            .enumerate()
-        {
-            scratch[7 + i] = *point as f64;
-        }
+        write_raw_summary(summary, scratch);
         let count = summary.contact_count;
         grow_output(contacts, count);
         contacts[..count].copy_from_slice(
@@ -556,12 +553,9 @@ impl EngineArena {
         count
     }
 
-    /// Candidate-window detector ABI: compute a consecutive frame window once and
-    /// write just the fields candidate scoring consumes. Layout per frame:
-    /// [body_px, body_py, body_vx, body_vy, rider_fsu, sled_fsu, sled_mask,
-    ///  contact_offset, contact_count]. Sled-side contact line ids are written
-    /// contiguously to `contacts`, deduped per frame in collision-event order.
-    pub(crate) fn candidate_window_into(
+    /// Cached raw frames: the scalar payload, followed by contact offset/count.
+    /// Read the complete window in one arena borrow without advancing physics.
+    pub(crate) fn raw_window_into(
         &mut self,
         h: u32,
         start: i32,
@@ -569,45 +563,27 @@ impl EngineArena {
         out: &mut Vec<f64>,
         contacts: &mut Vec<f64>,
     ) -> i32 {
-        if !self.valid(h) || start < 0 || end < start {
+        if start < 0 || end < start {
             return -1;
         }
-        let frame_count = (end - start + 1) as usize;
-        let Some(cache) = self.frame_cache(h, end) else {
+        let Some(cache) = self.cached_frame_cache(h, end) else {
             return -1;
         };
-
-        grow_output(out, frame_count * CANDIDATE_WINDOW_STRIDE);
-        let mut contact_total = 0usize;
+        let first_contact = cache.summary(start as usize).contact_offset;
+        let last = cache.summary(end as usize);
+        let contact_count = last.contact_offset + last.contact_count - first_contact;
+        contacts.clear();
+        contacts.extend_from_slice(cache.contacts(first_contact, first_contact + contact_count));
+        let frame_count = (end - start + 1) as usize;
+        grow_output(out, frame_count * RAW_FRAME_STRIDE);
         for i in 0..frame_count {
-            let frame = start as usize + i;
-            let summary = cache.summary(frame);
-            let base = i * CANDIDATE_WINDOW_STRIDE;
-
-            out[base] = summary.body_px;
-            out[base + 1] = summary.body_py;
-            out[base + 2] = summary.body_vx;
-            out[base + 3] = summary.body_vy;
-            out[base + 4] = summary.rider_fsu as f64;
-            out[base + 5] = summary.sled_fsu as f64;
-
-            let contact_start = contact_total;
-            let contact_end = contact_total + summary.contact_count;
-            grow_output(contacts, contact_end);
-            if summary.contact_count > 0 {
-                let src_start = summary.contact_offset;
-                let src_end = src_start + summary.contact_count;
-                contacts[contact_total..contact_end]
-                    .copy_from_slice(cache.contacts(src_start, src_end));
-                contact_total = contact_end;
-            }
-
-            out[base + 6] = summary.sled_mask() as f64;
-            out[base + 7] = contact_start as f64;
-            out[base + 8] = (contact_total - contact_start) as f64;
+            let summary = cache.summary(start as usize + i);
+            let row = &mut out[i * RAW_FRAME_STRIDE..(i + 1) * RAW_FRAME_STRIDE];
+            write_raw_summary(summary, row);
+            row[11] = (summary.contact_offset - first_contact) as f64;
+            row[12] = summary.contact_count as f64;
         }
-
-        contact_total as i32
+        contact_count as i32
     }
 
     /// Detach an already-computed immutable prefix into an independent lineage.
@@ -712,6 +688,24 @@ fn write_events(events: &[crate::kernel::Collision], out: &mut Vec<f64>) -> usiz
         record[2] = point as f64;
     }
     events.len()
+}
+
+fn write_raw_summary(summary: &FrameSummary, out: &mut [f64]) {
+    out[..7].copy_from_slice(&[
+        summary.body_px,
+        summary.body_py,
+        summary.body_vx,
+        summary.body_vy,
+        summary.rider_fsu as f64,
+        summary.sled_fsu as f64,
+        summary.sled_count as f64,
+    ]);
+    for (i, point) in summary.sled_points[..summary.sled_count as usize]
+        .iter()
+        .enumerate()
+    {
+        out[7 + i] = *point as f64;
+    }
 }
 
 thread_local! {

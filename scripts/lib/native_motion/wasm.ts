@@ -20,12 +20,13 @@ interface NativeExports {
   get_state_map(handle: number, frame: number): void;
   get_body_motion(handle: number, frame: number): number;
   get_rider(handle: number, frame: number): void;
+  advance_while_bound(handle: number, frame: number): number;
   get_updates(handle: number, frame: number): number;
   get_cached_events(handle: number, frame: number): number;
   has_contact(handle: number, frame: number): number;
   // Scratch: six rider values, point count, ordered point ids. EVENTS: line ids.
   get_raw_frame(handle: number, frame: number): number;
-  get_candidate_window(handle: number, start: number, end: number): number;
+  get_raw_window(handle: number, start: number, end: number): number;
   get_motion_window(handle: number, start: number, end: number): number;
   detach_engine(handle: number): number;
   prepare_collision_trace(handle: number, frame: number): void;
@@ -43,7 +44,7 @@ export const ENTITY_IDS = [
 ] as const;
 export const NENT = ENTITY_IDS.length;
 export const POINT_STRIDE = 6;
-export const WINDOW_STRIDE = 9;
+export const RAW_FRAME_STRIDE = 13;
 export const ADD_LINES_CAP = wasm.add_lines_cap();
 
 const pointers = {scratch: wasm.scratch_ptr(),

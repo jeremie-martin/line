@@ -1,5 +1,5 @@
 /** Learned proposals for coherent arcs; every output is checked by physical search. */
-import {arcArrivalFeatures} from './arc_value.ts';
+import {arcArrivalFeatures, arcFeatureDistance} from './arc_value.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
 import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';
@@ -64,6 +64,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     if(weights&&(weights.length!==features.length||weights.some(w=>!Number.isFinite(w)||w<0)))throw new Error('arc policy distance weights mismatch');
     const nearest:Array<{distance:number;value:number[];reference?:{control:ArcMotionControl;incoming:number;span:number}}>=[],limit=Math.max(24,count*8);
     const matches=queryLeaves?partitionMatches(model,queryLeaves):undefined;
+    let ordered=true;
     for(let index=0;index<model.exemplars.length;index++){
       const row=model.exemplars[index];
       let partitionDistance=0;
@@ -73,14 +74,28 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
         // bound already beyond the retained neighborhood cannot enter it.
         if(nearest.length===limit&&partitionDistance>nearest[nearest.length-1].distance)continue;
       }
-      let distance=0;for(let k=0;k<features.length;k++)distance+=(features[k]-row.features[k])**2*(weights?.[k]??(k>=47?4:k<7?2:1));
+      let distance=arcFeatureDistance(features,row.features,weights);
       if(queryLeaves){
         // Shared supervised partitions provide the primary neighborhood;
         // continuous physical distance breaks ties without case identities.
         distance=partitionDistance+distance/(1+distance);
       }
       if(nearest.length===limit&&distance>=nearest[nearest.length-1].distance)continue;
-      nearest.push({distance,value:row.target,reference:row.controlReference});nearest.sort((a,b)=>a.distance-b.distance);if(nearest.length>limit)nearest.pop();
+      const entry={distance,value:row.target,reference:row.controlReference};
+      ordered=ordered&&!Number.isNaN(distance);
+      if(ordered){
+        // Insert after equal distances to preserve the exemplar order on ties.
+        let low=0,high=nearest.length;
+        while(low<high){
+          const middle=(low+high)>>>1;
+          if(distance<nearest[middle].distance)high=middle;else low=middle+1;
+        }
+        nearest.splice(low,0,entry);
+      }else{
+        // NaN does not define an ordering; retain the original stable sort.
+        nearest.push(entry);nearest.sort((a,b)=>a.distance-b.distance);
+      }
+      if(nearest.length>limit)nearest.pop();
     }
     const selected:ArcMotionControl[]=[];
     for(const {value:v,reference} of nearest){

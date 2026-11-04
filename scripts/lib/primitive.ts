@@ -40,6 +40,9 @@ export type TrackLine = {
   rightExtended: boolean;
 };
 
+/** Connected ordinary solid lines, with consecutive ids in vertex order. */
+export type SolidPath = {id: number; points: readonly {x: number; y: number}[]};
+
 export type TrackJson = {
   label: string;
   creator: string;

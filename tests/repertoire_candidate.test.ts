@@ -21,3 +21,13 @@ it('does not mistake a sled-only contact gap for a body-free transfer',()=>{
  const checked=inspectConstructionWindow(request,lines,guides,frames,f=>transfer.all[f-request.frame]);
  expect(checked.reasons).toContain('missing-separated-transfer');
 });
+
+it('counts contacted frames once and permits every traversal stage within the same frame',()=>{
+ const lines=Array.from({length:4},(_,i)=>({id:i,type:0,x1:(i-1)*10,y1:0,x2:i*10,y2:0})) as TrackLine[];
+ lines.push({id:4,type:0,x1:30,y1:-10,x2:0,y2:-10} as TrackLine);
+ const result=inspectConstruction({section:0,construction:'arcs',guidance:'required'} as ConstructionRequest,
+  lines,new Set([4]),[[3,2,1,1,999],[],[4,4]]);
+ expect(result.mainContactFrames).toBe(1);expect(result.guideContactFrames).toBe(1);
+ expect(result.contactedMainSegments).toBe(3);expect(result.orderedTraversal).toEqual([0,0,0]);
+ expect(result.fulfilled).toBe(true);
+});

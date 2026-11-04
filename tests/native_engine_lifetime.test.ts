@@ -83,14 +83,13 @@ it('refreshes every fixed view after memory growth and returns owned contact sna
   base.getRider(50);
   base.getCachedContactPositions(0, 0);
   expect([...contacts]).toEqual(before);
-  const window = base.getCandidateWindow(0, 50)!;
-  expect(window.frames).toBe(51);
-  const saved = [...window.data.slice(0, 51 * 9)];
-  const savedContacts = [...window.contacts.slice(0, window.contactCount)];
-  expect(savedContacts.length).toBeGreaterThan(0);
-  base.getUpdatesAtFrame(40); // event reads no longer overwrite window contacts
-  expect([...window.data.slice(0, 51 * 9)]).toEqual(saved);
-  expect([...window.contacts.slice(0, window.contactCount)]).toEqual(savedContacts);
+  const window = base.getCachedRawFrames(0, 50);
+  expect(window.length).toBe(51);
+  const saved = structuredClone(window);
+  expect(window.some(frame => frame.contactLineIds.length)).toBe(true);
+  base.getUpdatesAtFrame(40);
+  base.getCachedMotionWindow(0, 50);
+  expect(window).toEqual(saved);
 });
 
 it('rejects invalid frame reads and prevents observations from simulating', () => {
@@ -120,19 +119,15 @@ it('rejects invalid frame reads and prevents observations from simulating', () =
   expect(detached.bodyMotionAt(4)).toEqual(motion);
 });
 
-it('sizes candidate output to the requested window instead of the retired batch limit', () => {
+it('sizes cached output to the requested window instead of the retired batch limit', () => {
   const engine = new Engine(), end = 16_385;
-  const window = engine.getCandidateWindow(0, end)!;
-  expect(window.frames).toBe(end + 1);
-  expect(window.data.length).toBeGreaterThanOrEqual((end + 1) * 9);
-  const tail = [...window.data.slice(end * 9, end * 9 + 6)];
-  const rider = engine.getRider(end);
-  expect(tail).toEqual([rider.position.x, rider.position.y, rider.velocity.x, rider.velocity.y,
-    rider.get('RIDER_MOUNTED').framesSinceUnbind, rider.get('SLED_INTACT').framesSinceUnbind]);
-  const small = engine.getCandidateWindow(0, 2)!;
-  expect(small.frames).toBe(3);
-  const shifted=engine.getCandidateWindow(end-1,end)!;
-  const previous=engine.getRider(end-1);
-  expect([...shifted.data.slice(0,2)]).toEqual([previous.position.x,previous.position.y]);
+  engine.getRider(end);
+  const window = engine.getCachedRawFrames(0, end);
+  expect(window.length).toBe(end + 1);
+  expect(window[end]).toEqual(engine.getRawFrameAtFrame(end));
+  const small = engine.getCachedRawFrames(0, 2);
+  expect(small.length).toBe(3);
+  const shifted = engine.getCachedRawFrames(end - 1, end);
+  expect(shifted).toEqual([engine.getRawFrameAtFrame(end - 1), engine.getRawFrameAtFrame(end)]);
   expect(engine.getLastFrameIndex()).toBe(end);
 });

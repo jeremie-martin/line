@@ -1,6 +1,6 @@
 /** Improve complete physical arc tracks; every offered continuation is simulated. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { getPhysicsFrameCount, getRiderMetered, extractRawTrajectory, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
+import { getPhysicsFrameCount, getRiderMetered, getBallisticStateMetered, matchesBallisticStateMetered, extractRawTrajectory, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { DriftReport, TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
@@ -64,7 +64,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
       const sourceLines = incumbent.lines, sourceRows = incumbent.rows;
       const prefix = sourceLines.filter(l => sectionOf(l) < i);
       const base = operations.create(prefix);
-      const before = JSON.stringify(getRiderMetered(base, frame - 1).ballisticState());
+      const before = getBallisticStateMetered(base, frame - 1);
       const boundary = getRiderMetered(incumbent.engine, horizon);
       const reference = {position: boundary.position, velocity: boundary.velocity, state: boundary.ballisticState()};
       const searchResult = search(base, i, {warmStart: sourceRows[i].control, localOnly: true,
@@ -101,7 +101,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
           continue;
         }
         const {child, proposed, proposedRows} = revision;
-        if (JSON.stringify(getRiderMetered(child, frame - 1).ballisticState()) !== before) {
+        if (!matchesBallisticStateMetered(child, frame - 1, before)) {
           counts.prefixChanged++;
           Engine.retainOnly([incumbent.engine, base]);
           continue;

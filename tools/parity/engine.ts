@@ -16,7 +16,7 @@ for (const file of files) {
   const engines = [Native, Reference].map(Engine => new Engine()
     .setStart(track.startPosition, track.riders[0].startVelocity).addLine(track.lines));
   try {
-    const expectedMotion: number[] = [];
+    const expectedMotion: number[] = [], expectedRaw = [];
     for (let f = 0; f <= track.duration; f++) {
       const states = engines.map(e => [...e.getStateMapAtFrame(f)].map(([id, state]: [string, any]) => [id, state.__state__]));
       assert.deepEqual(states[0], states[1], `${file}, frame ${f}: state`);
@@ -24,7 +24,9 @@ for (const file of files) {
         .map((u: any) => [u.id, u.updated.map((p: any) => p.id)]));
       assert.deepEqual(events[0], events[1], `${file}, frame ${f}: collision order`);
       const native = engines[0] as Native;
-      assert.deepEqual(native.getRawFrameAtFrame(f), engines[1].getRawFrameAtFrame(f), `${file}, frame ${f}: raw frame`);
+      const raw = engines[1].getRawFrameAtFrame(f);
+      expectedRaw.push(raw);
+      assert.deepEqual(native.getRawFrameAtFrame(f), raw, `${file}, frame ${f}: raw frame`);
       const points = Object.fromEntries(states[1].slice(2).map(([id, state]: any) => [id, {
         x: state.pos.x, y: state.pos.y, prevX: state.prevPos.x, prevY: state.prevPos.y,
       }]));
@@ -38,6 +40,7 @@ for (const file of files) {
       collisions += events[0].length;
       frames++;
     }
+    assert.deepEqual((engines[0] as Native).getCachedRawFrames(0, track.duration), expectedRaw, `${file}: cached raw window`);
     assert.deepEqual([...(engines[0] as Native).getCachedMotionWindow(0, track.duration)], expectedMotion, `${file}: packed motion window`);
   } finally {
     disposeNative(); disposeReference();

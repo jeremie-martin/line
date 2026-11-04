@@ -43,3 +43,17 @@ it('can search calm landing corrections without penalizing energetic contact',as
  expect(motionResiduals(summary,.02,{burstWeight:0,calmWeight:1,calmLanding:true}).at(-1)).toBeGreaterThan(0);
  expect(motionResiduals(summary,.8,{burstWeight:0,calmWeight:1,calmLanding:true}).at(-1)).toBe(0);
 });
+
+it('retains exact frame-local speeds when reusing the preceding effective speed',()=>{
+  let seed=0x16319a21;
+  const random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
+  for(const scale of [0,1e-200,1,1e100,1e200]){
+    const frames=Array.from({length:42},(_,frame)=>({frame,velocity:{x:(random()-.5)*scale,y:(random()-.5)*scale}}));
+    const samples=motionSamples(frames,3,41,{x:7,y:-2});
+    for(const sample of samples){
+      const incoming=frames[sample.frame].velocity;
+      expect(sample.speedBefore).toBe(Math.hypot(incoming.x,incoming.y-NATIVE_GRAVITY));
+      expect(sample.speedAfter).toBe(Math.hypot(sample.effective.x,sample.effective.y));
+    }
+  }
+});

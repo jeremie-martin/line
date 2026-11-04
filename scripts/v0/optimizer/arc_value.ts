@@ -12,6 +12,33 @@ export function arcArrivalFeatures(state: any, heading: number, speed: number, p
   return features;
 }
 
+/** Exact retrieval distance: arrival features weigh twice, relative point
+ * state once, and authored future targets four times. Traverse these contiguous
+ * feature groups in order so the floating-point sum stays unchanged. A bounded
+ * query may return Infinity once the default metric exceeds maxDistance. */
+export function arcFeatureDistance(a: readonly number[], b: readonly number[], weights?: readonly number[], maxDistance = Infinity): number {
+  let sum = 0;
+  if (weights) {
+    for (let k = 0; k < a.length; k++) sum += (a[k] - b[k]) ** 2 * (weights[k] ?? (k >= 47 ? 4 : k < 7 ? 2 : 1));
+    return sum;
+  }
+  let k = 0;
+  for (const end = Math.min(7, a.length); k < end; k++) sum += (a[k] - b[k]) ** 2 * 2;
+  if (sum > maxDistance) return Infinity;
+  if (Number.isFinite(maxDistance)) {
+    // These terms retain their original order while omitting nonnegative
+    // point-state terms, so their sum is a conservative lower bound. Survivors
+    // still compute the complete distance below in its original order.
+    let bound = sum;
+    for (let j = 47; j < a.length; j++) bound += (a[j] - b[j]) ** 2 * 4;
+    if (bound > maxDistance) return Infinity;
+  }
+  for (const end = Math.min(47, a.length); k < end; k++) sum += (a[k] - b[k]) ** 2;
+  if (sum > maxDistance) return Infinity;
+  for (; k < a.length; k++) sum += (a[k] - b[k]) ** 2 * 4;
+  return sum;
+}
+
 export function arcFutureValue(features: number[], artifact: any): number {
   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');

@@ -3,11 +3,12 @@
 //! an edit needs it. Copying the cache resets its borrowed query shortcuts.
 
 use crate::grid::{FlatIntMap, IntMap};
+use crate::frame_states::FrameStates;
 use crate::history::CollisionHistory;
 use crate::kernel::{
     compute_rest_endur, init_state, step_state, CollisionTrace, LineCellCache, State,
 };
-use crate::line::{line_cells, push_line, remove_line, GridLine, Line};
+use crate::line::{push_line, remove_line, LineRef};
 use crate::{
     BUTT, LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
     STRING, TAIL,
@@ -35,27 +36,19 @@ pub(crate) struct FrameSummary {
     pub(crate) contact_count: usize,
 }
 
-impl FrameSummary {
-    pub(crate) fn sled_mask(&self) -> u32 {
-        self.sled_points[..self.sled_count as usize]
-            .iter()
-            .fold(0, |mask, point| mask | (1 << point))
-    }
-}
-
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 #[derive(Clone)]
 pub(crate) struct FrameCache {
     rest: [f64; NITER],
     endur: [f64; NITER],
-    cell_lines: FlatIntMap<Vec<GridLine>>, // ClassicGrid cellLinesMap (collision lookup)
+    cell_lines: FlatIntMap<Vec<LineRef>>, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // shortcut valid until the line grid changes
-    lines_cells: IntMap<i32, Vec<(i64, i64)>>, // ClassicGrid lineCellsMap (id → cell coords, for remove)
-    frames: Vec<State>,                        // frames[0] = initial; lazily extended
+    lines: IntMap<i32, LineRef>, // id → shared geometry, including its removal footprint
+    frames: FrameStates,                        // frames[0] = initial; lazily extended
     events: Vec<Event>,                        // flat per-frame collision records
     event_offsets: Vec<usize>,                 // frame f => events[offset[f]..offset[f+1]]
     summaries: Vec<FrameSummary>, // per-frame compact read summaries for repeated detector windows
-    candidate_contacts: Vec<f64>, // flat per-frame sled contact line ids used by getCandidateWindow
+    contact_ids: Vec<f64>,        // flat per-frame sled contact line ids used by raw-frame reads
     // Invalidation indexes are materialized lazily, without recharging frames.
     history: CollisionHistory,
     history_events: Vec<Event>, // scratch for lazy history replay
@@ -67,19 +60,19 @@ impl FrameCache {
     pub(crate) fn new() -> FrameCache {
         let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
-        let mut candidate_contacts = Vec::new();
-        let summary = Self::summarize_frame(&s, &[], &mut candidate_contacts);
+        let mut contact_ids = Vec::new();
+        let summary = Self::summarize_frame(&s, &[], &mut contact_ids);
         FrameCache {
             rest,
             endur,
             cell_lines: FlatIntMap::default(),
             line_cache: LineCellCache::default(),
-            lines_cells: IntMap::default(),
-            frames: vec![s.clone()],
+            lines: IntMap::default(),
+            frames: FrameStates::new(s.clone()),
             events: Vec::new(),
             event_offsets: vec![0, 0],
             summaries: vec![summary],
-            candidate_contacts,
+            contact_ids,
             history: CollisionHistory::new(),
             history_events: Vec::new(),
             cur: s,
@@ -112,7 +105,7 @@ impl FrameCache {
         self.events.truncate(self.event_offsets[len]);
         self.event_offsets.truncate(len + 1);
         if len < self.summaries.len() {
-            self.candidate_contacts
+            self.contact_ids
                 .truncate(self.summaries[len].contact_offset);
             self.summaries.truncate(len);
         }
@@ -123,30 +116,20 @@ impl FrameCache {
         self.cur_dirty = true;
     }
 
-    /// _addLine: register the line, then truncate the frame cache to its first
-    /// collision frame per cell (in classicCells order; each truncation shortens
-    /// the last frame the next cell scans — the running-minimum invalidation).
-    pub(crate) fn add_line(&mut self, l: Line) {
-        if !l.collidable {
-            return; // grid.add returns [] for non-collidable: no registration, no invalidation
-        }
+    /// Geometry registration never simulates between lines. Their invalidations
+    /// therefore compose as one minimum over the same history, followed by one
+    /// truncation. Preserve insertion order, including repeated line ids.
+    pub(crate) fn add_lines(&mut self, lines: &[LineRef]) {
+        if !lines.iter().any(|line| line.collidable) { return; }
         self.ensure_history();
-        let cells = line_cells(&l);
-        let id = l.id;
-        // Invalidation reads only history
-        // and set_frames_length touches only history/frames — both disjoint from
-        // cell_lines/lines_cells. So we run the invalidation loop first (borrowing
-        // &l), then move l into push_line and cells into lines_cells, avoiding the
-        // line + cells-Vec clones the original eager registration required. The grid
-        // registration order vs invalidation is immaterial (disjoint state).
-        for &(cx, cy) in cells.iter() {
-            if let Some(idx) = self.history.first_in_cell(cx, cy, &l) {
-                self.set_frames_length(idx as usize);
-            }
+        if let Some(first) = self.history.first_for_added_lines(lines, i32::MAX) {
+            self.set_frames_length(first as usize);
         }
         self.line_cache.invalidate();
-        push_line(&mut self.cell_lines, l, &cells);
-        self.lines_cells.insert(id, cells);
+        for line in lines.iter().filter(|line| line.collidable) {
+            push_line(&mut self.cell_lines, line, line.cells());
+            self.lines.insert(line.id, line.clone());
+        }
     }
 
     /// _removeLine for each id in order: unregister the line, truncate to its
@@ -161,8 +144,8 @@ impl FrameCache {
         removed.clear();
         let mut first: Option<i32> = None;
         for &id in ids {
-            if let Some(cells) = self.lines_cells.remove(&id) {
-                remove_line(&mut self.cell_lines, id, &cells);
+            if let Some(line) = self.lines.remove(&id) {
+                remove_line(&mut self.cell_lines, id, line.cells());
                 if let Some(f) = self.history.first_with_line(id) {
                     first = Some(first.map_or(f, |b| b.min(f)));
                 }
@@ -198,8 +181,8 @@ impl FrameCache {
         self.event_offsets.clear();
         self.event_offsets.extend_from_slice(&[0, 0]);
         self.summaries.clear();
-        self.candidate_contacts.clear();
-        let summary = Self::summarize_frame(&s, &[], &mut self.candidate_contacts);
+        self.contact_ids.clear();
+        let summary = Self::summarize_frame(&s, &[], &mut self.contact_ids);
         self.summaries.push(summary);
         self.history_events.clear();
         self.cur = s;
@@ -256,7 +239,7 @@ impl FrameCache {
             let summary = Self::summarize_frame(
                 &self.cur,
                 &self.events[self.event_offsets[fi as usize]..],
-                &mut self.candidate_contacts,
+                &mut self.contact_ids,
             );
             self.frames.push(self.cur.clone());
             self.event_offsets.push(self.events.len());
@@ -269,6 +252,22 @@ impl FrameCache {
         &self.events[self.event_offsets[f]..self.event_offsets[f + 1]]
     }
 
+    /// Advance one frame at a time, stopping on the first broken binding. This
+    /// shares the ordinary stepping path, including collision trace capture.
+    pub(crate) fn advance_while_bound(&mut self, frame: usize, mut trace: Option<&mut CollisionTrace>) -> bool {
+        while self.frames.len() <= frame {
+            let next = self.frames.len();
+            self.compute_to(next, trace.as_deref_mut());
+            if !self.is_bound(next) { return false; }
+        }
+        self.is_bound(frame)
+    }
+
+    pub(crate) fn is_bound(&self, frame: usize) -> bool {
+        let summary = self.summary(frame);
+        summary.rider_fsu == -1 && summary.sled_fsu == -1
+    }
+
     pub(crate) fn frame_count(&self) -> usize {
         self.frames.len()
     }
@@ -279,7 +278,7 @@ impl FrameCache {
         &self.summaries[index]
     }
     pub(crate) fn contacts(&self, start: usize, end: usize) -> &[f64] {
-        &self.candidate_contacts[start..end]
+        &self.contact_ids[start..end]
     }
 
     /// Derived once per immutable frame, only when an observer asks for it.
@@ -309,11 +308,7 @@ impl FrameCache {
         })
     }
 
-    fn summarize_frame(
-        s: &State,
-        events: &[Event],
-        candidate_contacts: &mut Vec<f64>,
-    ) -> FrameSummary {
+    fn summarize_frame(s: &State, events: &[Event], contact_ids: &mut Vec<f64>) -> FrameSummary {
         let (mut px, mut py, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
         for &entity in BODY.iter() {
             px += s.px[entity];
@@ -322,7 +317,7 @@ impl FrameCache {
             vy += s.vy[entity];
         }
         let n_body = BODY.len() as f64;
-        let contact_offset = candidate_contacts.len();
+        let contact_offset = contact_ids.len();
         let mut sled_mask = 0u32;
         let mut sled_points = [0; 4];
         let mut sled_count = 0;
@@ -338,14 +333,14 @@ impl FrameCache {
             }
             let line_id = line_id as f64;
             let mut seen_line = false;
-            for &seen in candidate_contacts[contact_offset..].iter() {
+            for &seen in contact_ids[contact_offset..].iter() {
                 if seen == line_id {
                     seen_line = true;
                     break;
                 }
             }
             if !seen_line {
-                candidate_contacts.push(line_id);
+                contact_ids.push(line_id);
             }
         }
         FrameSummary {
@@ -359,7 +354,50 @@ impl FrameCache {
             sled_count: sled_count as u8,
             motion: OnceCell::new(),
             contact_offset,
-            contact_count: candidate_contacts.len() - contact_offset,
+            contact_count: contact_ids.len() - contact_offset,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::line::build_line;
+
+    #[test]
+    fn batched_registration_matches_ordered_single_edits_and_future_replay() {
+        let mut base = FrameCache::new();
+        base.set_initial_states(0.0, -15.0, 8.0, 0.0);
+        base.add_lines(&[build_line(1, -50.0, 10.0, 800.0, 10.0, 0, 0)]);
+        base.compute_to(80, None);
+        for trial in 0..80 {
+            let lines: Vec<_> = (0..24).map(|i| {
+                let x = ((i * 31 + trial * 11) % 240 - 50) as f64;
+                let y = ((i * 13 + trial * 17) % 60 - 30) as f64;
+                build_line(2 + i % 19, x, y, x + 20.0, y + (trial % 5 - 2) as f64 * 10.0,
+                    (i % 3) as i64, (trial % 8) as i64)
+            }).collect();
+            let mut batch = base.clone();
+            let mut scalar = base.clone();
+            batch.add_lines(&lines);
+            for line in &lines { scalar.add_lines(std::slice::from_ref(line)); }
+            assert_eq!(batch.last_frame_index(), scalar.last_frame_index());
+            batch.compute_to(100, None);
+            scalar.compute_to(100, None);
+            for frame in 0..=100 {
+                let a = batch.frame(frame);
+                let b = scalar.frame(frame);
+                for (a, b) in [(&a.px, &b.px), (&a.py, &b.py), (&a.prevx, &b.prevx),
+                    (&a.prevy, &b.prevy), (&a.vx, &b.vx), (&a.vy, &b.vy)] {
+                    assert_eq!(a.map(f64::to_bits), b.map(f64::to_bits));
+                }
+                assert_eq!(a.fsu, b.fsu);
+                assert_eq!(batch.events_at(frame), scalar.events_at(frame));
+            }
+            let probe = [build_line(90, 0.0, 5.0, 120.0, 10.0, 0, 0)];
+            batch.add_lines(&probe);
+            scalar.add_lines(&probe);
+            assert_eq!(batch.last_frame_index(), scalar.last_frame_index());
         }
     }
 }

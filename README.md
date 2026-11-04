@@ -68,8 +68,8 @@ floating-point equality is qualified against this Node/V8 version.
 ```sh
 nvm use
 npm ci
-npm run build:wasm      # independent judge (needs cargo + wasm-opt)
-npm run check:physics  # fast exact saved-reference check
+npm run check:physics  # packaged engine vs saved physics; no judge build needed
+npm run build:wasm     # independent judge for live/full checks (cargo + wasm-opt)
 ```
 
 The compiler backend is packaged separately. After editing its Rust or TypeScript sources, use

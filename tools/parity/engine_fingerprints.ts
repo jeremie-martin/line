@@ -10,6 +10,10 @@ export const referenceWasm = new URL('../../engine-rs/target/wasm32-unknown-unkn
 export const nativeWasm = new URL('../../scripts/lib/native_motion/engine.wasm', import.meta.url);
 export const fixturePath = new URL('./engine-reference.json', import.meta.url);
 const blockFrames = 256;
+/** Compatibility is defined by the bytes we compare, not by the build that
+ * originally produced them. Change this contract when the encoding changes. */
+const format = Object.freeze({schema: 'line.engine-reference.v2', blockFrames,
+  encoding: '84 little-endian binary64 state values, uint32 collision count, ordered binary64 (iteration,line,point) triples per frame'});
 type Exports = {
   memory: WebAssembly.Memory;
   create_engine(): number; free_engine(handle: number): void;
@@ -67,24 +71,21 @@ export function fingerprint(module: WebAssembly.Module, track: PhysicsTrack) {
   return {frames: track.duration + 1, collisions, blocks};
 }
 
-function provenance() {
-  return {schema: 'line.engine-reference.v1', blockFrames,
-    encoding: '84 little-endian binary64 state values, uint32 collision count, ordered binary64 (iteration,line,point) triples per frame',
-    oracleSha256: sha256(readFileSync(referenceWasm)),
-    generatorSha256: sha256(readFileSync(new URL('./engine_fingerprints.ts', import.meta.url))),
-    corpusSha256: sha256(readFileSync(new URL('./engine_corpus.ts', import.meta.url)))};
-}
-
-/** Generation is deliberately tied to the independent reference binary. */
+/** Only generation reads the oracle and source bytes. Provenance records what
+ * produced this evidence; it is never a requirement on a future checkout. */
 export function referenceFingerprints() {
-  const module = new WebAssembly.Module(readFileSync(referenceWasm));
-  return {...provenance(), cases: engineCorpus().map(({name, inputSha256, track}) => ({name, inputSha256, ...fingerprint(module, track)}))};
+  const bytes = readFileSync(referenceWasm), module = new WebAssembly.Module(bytes);
+  return {format, provenance: {
+    oracleSha256: sha256(bytes),
+    generatorSha256: sha256(readFileSync(new URL('./engine_fingerprints.ts', import.meta.url))),
+    corpusSha256: sha256(readFileSync(new URL('./engine_corpus.ts', import.meta.url))),
+  }, cases: engineCorpus().map(({name, inputSha256, track}) => ({name, inputSha256, ...fingerprint(module, track)}))};
 }
 export type EngineReference = ReturnType<typeof referenceFingerprints>;
 
 export function verifyFingerprints(reference: EngineReference, module = new WebAssembly.Module(readFileSync(nativeWasm))) {
-  const {cases: expected, ...metadata} = reference;
-  assert.deepEqual(metadata, provenance(), 'stale engine reference provenance; review and regenerate explicitly');
+  assert.deepEqual(reference.format, format, 'unsupported engine reference format');
+  const expected = reference.cases;
   const cases = engineCorpus();
   assert.deepEqual(expected.map(c => [c.name, c.inputSha256]), cases.map(c => [c.name, c.inputSha256]), 'stale or incomplete engine corpus');
   let frames = 0, collisions = 0;

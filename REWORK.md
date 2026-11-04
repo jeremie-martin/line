@@ -1,6 +1,38 @@
 # Foundations rework (started 2026-10-03)
 
 
+## November 4: separate saved physics contracts from generation provenance
+
+Review exposed that `check:physics` compared historical generation hashes with
+current files. Reproduced with the documented `npm run build:wasm` and Binaryen
+133: the oracle changed from `fd01a182…` to `dcd97ed5…`, and the saved check failed
+before comparing any physics. The same design also required a local judge for a
+saved check and invalidated evidence on harmless generator/corpus-source edits.
+
+The single current reference format now separates the encoding contract from
+historical provenance. Verification checks encoding, ordered case/input identities
+and physical fingerprints; it never reads a judge or generation-source hashes.
+Generation reads the independent oracle once and hashes those exact bytes. The
+fixture's format-only migration preserves all cases, expected physics and original
+oracle/generator/corpus provenance. No compatibility reader or new dependency is
+introduced. Build/setup documentation now describes the separate saved and live
+checks consistently.
+
+Regression tests exercise the real CLI in minimal checkouts with an absent or
+unusable judge, harmless source edits, and a valid byte-different oracle. They
+verify explicit generation/provenance, no overwrite, and rejection of incompatible
+formats, changed inputs (including an RNG dependency), missing/reordered cases
+and altered physics. The new tests also pass a standalone strict TypeScript check.
+
+Validation: the documented `npm run build:wasm` with Binaryen 133 followed by
+`npm run check` passes: 424 JS tests, 29 Rust tests, zero type/reach errors, all
+65 live/saved physics cases (68,827 frame states and 432,018 ordered collisions),
+all 63 exact compiler track/work cells (256 s), and all 33 judge tracks. Direct
+checks also match every saved case with both the original Cargo artifact and the
+optimized artifact. The optimized local judge is retained; the packaged native
+WASM remains `b0fc5d3b…`. No compiler/judge expected result or physics fingerprint
+changed. Performance optimization remains paused.
+
 ## November 4: simplify and calibrate the foundation workflow
 
 Follow-up on `refactor/compiler-foundations`, based on `148dc46d`. Scope: one

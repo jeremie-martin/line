@@ -156,7 +156,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    preserves the owning grid.
    Each collision sweep keeps its original list even when the
    point moves into another cell. `npm run check:physics` compares exact saved
-   state/event fingerprints; `npm run verify:engine` compares live independent
+   state/event fingerprints without a local judge build. Encoding and case/input
+   identities define compatibility; generating source/binary hashes are historical
+   provenance. `npm run verify:engine` compares live independent
    physics and derived observations. Both cover saved rides and seeded stress
    cases. Separate generated-operation tests exercise cache and lifetime changes.
    `npm run parity` checks exact compiler output **and charged work**.

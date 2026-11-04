@@ -1,6 +1,6 @@
-/** Fast saved-reference check. Writing requires an explicit new path and always
- * runs the independent oracle, never the candidate. Committed evidence is not
- * overwritten by a verification command. */
+/** Fast saved-reference check; no local judge build is needed. Writing requires
+ * an explicit new path and runs the independent oracle. Verification never
+ * regenerates expected physics or rewrites historical provenance. */
 import {readFileSync, writeFileSync} from 'node:fs';
 import {fixturePath, referenceFingerprints, verifyFingerprints} from './engine_fingerprints.ts';
 

@@ -15,7 +15,8 @@ Run from the repo root.
 | command | what it does |
 |---|---|
 | `npm run build:wasm` | rebuild and Binaryen-optimize `lr_engine.wasm` after editing Rust (needs `wasm-opt`) |
-| `npm run verify:engine` | compare compiler and independent reference engines on all 33 committed tracks: exact states and ordered collisions |
+| `npm run check:physics` | compare the packaged compiler engine with saved physics; no local judge build needed |
+| `npm run verify:engine` | compare compiler and local independent reference engines on all 65 ride/stress cases, including derived observations |
 | `npm run build:native` | rebuild the separate compiler backend and update its packaged hashes; leaves this reference engine untouched |
 | `npm run bench:engine -- --reference=before.wasm --candidate=after.wasm` | paired physics-only timings, with state/contact/cache-work checks before timing |
 | `npm run perf:engine -- --reference=before.wasm --candidate=after.wasm --out=generated/engine-ab/screen` | isolated, fresh-process screening; follow with a frozen-candidate confirmation (see native backend README) |
@@ -25,6 +26,13 @@ Install the Rust target with `rustup target add wasm32-unknown-unknown`.
 `build:wasm` additionally needs Binaryen's `wasm-opt`; a plain reference build
 is `cargo build --release --target wasm32-unknown-unknown --manifest-path engine-rs/Cargo.toml`.
 `build:native` uses plain Cargo release output in its own target directory.
+
+Cargo and Binaryen builds can have different binary hashes while producing
+identical physics. Saved-reference verification depends on expected physical
+outputs, not on matching the original generator's binary. The generating oracle
+hash remains historical provenance. Explicit reference generation uses the local
+judge and records its actual hash; live verification exercises that local build.
+See [validation and reference maintenance](../docs/engine-validation.md).
 
 The earlier `wasm:*` commands live at tag `archive/pre-rework-2026-10-03`.
 The current engine gate requires no untracked trace files. The separate cache
@@ -41,7 +49,8 @@ use `perf:engine --mode=compile` with both binary paths. Its private snapshot
 uses the same source for both arms by default; `--reference-root` also compares
 a frozen earlier wrapper/compiler source. The
 [native backend README](../scripts/lib/native_motion/README.md) documents the
-fixed screening/confirmation protocol and probability interpretation.
+ownership and build details; the [validation workflow](../docs/engine-validation.md)
+documents screening, confirmation and confidence intervals.
 For engine workload diagnostics, pass both binary paths to `bench:engine`.
 
 | value | engine |

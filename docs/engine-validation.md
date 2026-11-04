@@ -5,7 +5,7 @@ search and judge are different contracts; passing one does not imply the others.
 
 | Command | Purpose |
 | --- | --- |
-| `npm run check:physics` | Fast exact saved-reference states and ordered collisions; no compiler or audio inputs |
+| `npm run check:physics` | Fast exact saved-reference states and ordered collisions; no local judge, compiler or audio inputs |
 | `npm test` | Unit, ownership, failure, cache and generated-operation tests |
 | `npm run verify:engine` | Live independent physics and wrapper/derived-observation comparison |
 | `npm run parity` | All 63 compiler tracks **and charged physics work**, exact |
@@ -15,8 +15,9 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
 
 After editing packaged native Rust or TypeScript, run `npm run build:native`
-before checking. The manifest test rejects stale packages. Do not rebuild the
-independent reference as part of a native optimization.
+before checking. The manifest test rejects stale packages. `npm run build:wasm`
+builds the separate local judge needed by live comparison, judge tests and the
+full gate. A native optimization does not require rebuilding that judge.
 
 ## Correctness layers
 
@@ -27,15 +28,25 @@ fingerprints cover every binary64 state value and ordered collision triple,
 including the collision iteration. They localize failures to 256-frame blocks;
 the live check compares individual frames and derived public observations.
 
-The 53 KB reference records input, oracle and generator hashes. Ordinary checks
-cannot update it. To extend the corpus, generate to a **new path**:
+The saved reference separates its encoding `format` from historical `provenance`.
+`check:physics` checks the format, the complete case/input identities, and every
+expected state/event block. It never loads the local judge or compares current
+source hashes with the generator's hashes. Rebuilding or optimizing the judge,
+or refactoring the generator without changing its inputs/encoding, does not
+invalidate saved physics. Oracle, generator and corpus-source hashes record
+what originally produced the evidence; verification never refreshes them.
+
+Explicit generation reads the local independent judge and records its exact
+binary hash alongside source provenance. To extend the corpus, generate to a
+**new path**:
 
 ```sh
 npm run check:physics -- --write-reference=/tmp/new-engine-reference.json
 ```
 
-Generation always uses the independent oracle. Review the provenance and corpus
-change before replacing `tools/parity/engine-reference.json`. Existing physical
+Build the judge first if it is absent. Generation always uses that independent
+oracle, including when its binary differs from the original build. Review the
+provenance and corpus change before replacing `tools/parity/engine-reference.json`. Existing physical
 expectations must not be changed merely to make a candidate pass. The live check
 and generated lifecycle tests remain necessary: saved straight replays alone do
 not verify branch/reset/detach/release behavior or budget accounting.

@@ -1,10 +1,14 @@
 {
-  "schema": "line.engine-reference.v1",
-  "blockFrames": 256,
-  "encoding": "84 little-endian binary64 state values, uint32 collision count, ordered binary64 (iteration,line,point) triples per frame",
-  "oracleSha256": "fd01a182d579524ba7a832efb7917b8a4dd4dda922301201d9d37d9a7eb8775a",
-  "generatorSha256": "063597a20fac123027c46832e584dcec737dfd86f120540d725a4a0873a16602",
-  "corpusSha256": "f8b1b8b071b8023d3536e1426347b40bdbd76cdcf3ee277eeaea4cf2be6ca672",
+  "format": {
+    "schema": "line.engine-reference.v2",
+    "blockFrames": 256,
+    "encoding": "84 little-endian binary64 state values, uint32 collision count, ordered binary64 (iteration,line,point) triples per frame"
+  },
+  "provenance": {
+    "oracleSha256": "fd01a182d579524ba7a832efb7917b8a4dd4dda922301201d9d37d9a7eb8775a",
+    "generatorSha256": "063597a20fac123027c46832e584dcec737dfd86f120540d725a4a0873a16602",
+    "corpusSha256": "f8b1b8b071b8023d3536e1426347b40bdbd76cdcf3ee277eeaea4cf2be6ca672"
+  },
   "cases": [
     {
       "name": "landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz",

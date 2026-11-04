@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
 import {profileHeading,foldTime,validProfileControls,type MotionProfileControls} from './motion_profiles.ts';
@@ -70,7 +71,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const side=c.contactSide??1;
   if(side!==1&&side!==-1)throw new Error('invalid receiving surface side');
   const point=points.reduce((a,b)=>side*(a.x*n.x+a.y*n.y)<side*(b.x*n.x+b.y*n.y)?a:b);
-  const speed=Math.hypot(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
+  const speed=hypot2(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
   const anchor={x:point.x+side*n.x*c.offset,y:point.y+side*n.y*c.offset};
   let x=anchor.x-approach*t.x,y=anchor.y-approach*t.y;
   // Work in connected vertices; materialize each physical line only once,
@@ -116,7 +117,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
       return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
     });
-    const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+Math.hypot(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
+    const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
     const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
     // Every guide remains one substantial connected curve, including when its
     // endpoints move between subdivision vertices. Zero coverage is a single arc.
@@ -135,11 +136,11 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   if(style?.railLayout==='transfer'){
     const extent=clamp(c.mainEnd??.7,.2,1);
     let length=0;
-    for(let i=1;i<main.length-1;i++)length+=Math.hypot(main[i+1].x-main[i].x,main[i+1].y-main[i].y);
+    for(let i=1;i<main.length-1;i++)length+=hypot2(main[i+1].x-main[i].x,main[i+1].y-main[i].y);
     let remaining=length*extent;
     const retained=[main[0],main[1]];
     for(let i=1;i<main.length-1;i++){
-      const from=main[i],to=main[i+1],length=Math.hypot(to.x-from.x,to.y-from.y);
+      const from=main[i],to=main[i+1],length=hypot2(to.x-from.x,to.y-from.y);
       if(remaining<=1e-9)break;
       if(remaining>=length){retained.push(to);remaining-=length;}
       else{retained.push({x:lerp(from.x,to.x,remaining/length),y:lerp(from.y,to.y,remaining/length)});break;}

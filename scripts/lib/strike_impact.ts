@@ -1,3 +1,4 @@
+import {hypot2} from './hypot2.ts';
 /** line.strike.v1 / v2 / v3 — the impact account: what the eye reads as a hit on the beat.
  * v2 differs from v1 only in strength (below). v3 is v2 plus one identity rule:
  * opposite pushes are separate impacts (below).
@@ -93,10 +94,10 @@ export function bodyMotion(state: {points: Record<string, PointState>}) {
 function strikeFrame(frame: number, ax: number, ay: number, bx: number, by: number, contact: boolean, c: StrikeContract): StrikeFrame {
   if (!Number.isFinite(ax) || !Number.isFinite(ay) || !Number.isFinite(bx) || !Number.isFinite(by))
     throw new Error('nonfinite strike observation');
-  const free = Math.hypot(ax, ay + c.gravity), before = Math.hypot(ax, ay), after = Math.hypot(bx, by);
+  const free = hypot2(ax, ay + c.gravity), before = hypot2(ax, ay), after = hypot2(bx, by);
   const bend = before < 1e-10 || after < 1e-10 ? 0
     : .5 * (before + after) * Math.abs(Math.atan2(ax * by - ay * bx, ax * bx + ay * by));
-  return {frame, contact, J: Math.hypot(bx - ax, by - ay - c.gravity), bend,
+  return {frame, contact, J: hypot2(bx - ax, by - ay - c.gravity), bend,
     solverGain: after - free, gravityGain: free - before, speedBefore: before};
 }
 /** `velocities[k]` is the centre velocity at frame `first + k − 1`: one frame before
@@ -155,7 +156,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
     };
     for (let i = first + 1; i <= last; i++) {
       if (c.split === 'reversal') {
-        const a = push(peak), b = push(i), na = Math.hypot(a[0], a[1]), nb = Math.hypot(b[0], b[1]);
+        const a = push(peak), b = push(i), na = hypot2(a[0], a[1]), nb = hypot2(b[0], b[1]);
         if (na >= c.floor && nb >= c.floor && (a[0] * b[0] + a[1] * b[1]) / (na * nb) < c.reversalCos) {
           starts.push({at: i, kind: 'strike', reversal: true}); peak = i; continue;
         }

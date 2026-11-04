@@ -1,3 +1,4 @@
+import {hypot2} from './hypot2.ts';
 /**
  * Per-move adaptation: choose move parameters as a function of the rider's
  * incoming state at `opts.at`. Replaces the static defaults that each move
@@ -33,7 +34,7 @@ export type IncomingState = {
 export function readIncoming(engine: any, frame: number): IncomingState {
   const rider = engine.getRider(frame);
   const v = rider.velocity;
-  const speed = Math.hypot(v.x, v.y);
+  const speed = hypot2(v.x, v.y);
   const angleDeg = (Math.atan2(v.y, v.x) * 180) / Math.PI;
   return {
     pos: { x: rider.position.x, y: rider.position.y },

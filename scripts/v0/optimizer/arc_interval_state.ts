@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** State of one support-interval search: the options resolved for that
  * interval, the physical boundary it starts from (read once, on the meter),
  * and the measured candidates that proposals and local search accumulate. */
@@ -71,7 +72,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     ? impactTargets.filter(t => t.frame >= frame - account.matchFrames && t.frame <= horizon + account.matchFrames)
     : [];
   const currentImpactTarget = localImpactTargets.findIndex(t => t === impactTargets[gap]);
-  const incoming = deg(Math.atan2(velocity.y, velocity.x)), pace = Math.hypot(velocity.x, velocity.y);
+  const incoming = deg(Math.atan2(velocity.y, velocity.x)), pace = hypot2(velocity.x, velocity.y);
 
   // A final authored contact can have no scored tail. Its support still
   // needs room to realize the impact and survive the unscored grace.

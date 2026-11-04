@@ -1,8 +1,9 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** New-layout checks. The frozen V5 realization module remains untouched. */
 import {inspectConstruction} from './repertoire_realization.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
 import type {TrackLine} from '../types.ts';
-const length=(l:TrackLine)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
+const length=(l:TrackLine)=>hypot2(l.x2-l.x1,l.y2-l.y1);
 export function inspectLayout(request:ConstructionRequest,lines:TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[],positions?:readonly ({x:number;y:number}|undefined)[]){
   if(request.railLayout!=='transfer')return inspectConstruction(request,lines,guideIds,collisions);
   const base=inspectConstruction({...request,construction:'arcs'},lines,guideIds,collisions),reasons=[...base.reasons];
@@ -39,7 +40,7 @@ export function inspectLayout(request:ConstructionRequest,lines:TrackLine[],guid
   const contactHeadings=collisions.flatMap(ids=>{
     const unique=[...new Set(ids)].filter(id=>directions.has(id));if(!unique.length)return [];
     const v=unique.reduce((a,id)=>({x:a.x+directions.get(id)!.x,y:a.y+directions.get(id)!.y}),{x:0,y:0});
-    return Math.hypot(v.x,v.y)>1e-9?[Math.atan2(v.y,v.x)]:[];
+    return hypot2(v.x,v.y)>1e-9?[Math.atan2(v.y,v.x)]:[];
   });
   const contactTurns=contactHeadings.slice(1).map((a,i)=>Math.atan2(Math.sin(a-contactHeadings[i]),Math.cos(a-contactHeadings[i]))*180/Math.PI);
   const contactTurning=contactTurns.reduce((n,a)=>n+Math.abs(a),0);

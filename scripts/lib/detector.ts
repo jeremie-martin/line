@@ -1,3 +1,4 @@
+import {hypot2} from './hypot2.ts';
 /**
  * Trajectory analysis detector.
  *
@@ -302,7 +303,7 @@ function scanFrames(state: DetectorState, frames: RawFrame[], until: number): De
     // Record per-frame measurements.
     position.push(fr.position);
     velocity.push(fr.velocity);
-    const sp = Math.hypot(fr.velocity.x, fr.velocity.y);
+    const sp = hypot2(fr.velocity.x, fr.velocity.y);
     speed.push(sp);
     sledContacts.push(fr.sledContacts);
     contactLineIds.push(fr.contactLineIds);

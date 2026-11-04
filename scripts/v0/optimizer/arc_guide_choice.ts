@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Visible geometry and measured quality remain separate selection criteria.
  * No scorer changes, learned aesthetic weights, or per-passage rules. */
 import {arcRailGroups} from './arc_guidance.ts';
@@ -6,7 +7,7 @@ import type {TrackLine} from '../types.ts';
 export function guideFootprint(lines:TrackLine[]){
   const groups=arcRailGroups(lines),guides=[...groups.values()].map(chains=>chains[1]??[]);
   return {supportSections:groups.size,guideSections:guides.filter(g=>g.length).length,
-    guideLength:guides.flat().reduce((sum,l)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
+    guideLength:guides.flat().reduce((sum,l)=>sum+hypot2(l.x2-l.x1,l.y2-l.y1),0)};
 }
 export type GuideAlternative={id:string;valid:boolean;qualityRms:number|null;usage:ReturnType<typeof guideFootprint>};
 export const measuredGuideAlternative=(a:GuideAlternative)=>a.valid&&a.qualityRms!==null&&Number.isFinite(a.qualityRms)&&a.qualityRms>=0;

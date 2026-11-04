@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Learned proposals for coherent arcs; every output is checked by physical search. */
 import {arcArrivalFeatures, arcFeatureDistance} from './arc_value.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
@@ -30,7 +31,7 @@ export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[
   const tail=state.points.TAIL,nose=state.points.NOSE,dx=nose.x-tail.x,dy=nose.y-tail.y;
   const angular=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
   return arcArrivalFeatures(state,Math.atan2(velocity.y,velocity.x)*180/Math.PI,
-    Math.hypot(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
+    hypot2(velocity.x,velocity.y),Math.atan2(dy,dx)*180/Math.PI,angular,0);
 }
 export function arcControlProposals(features:number[],incoming:number,span:number,model:any,count:number):ArcMotionControl[]{
   const expected=model.featureSchema===ARC_POLICY_SCHEMA?57:model.featureSchema===ARC_HORIZON_POLICY_SCHEMA?67:0;

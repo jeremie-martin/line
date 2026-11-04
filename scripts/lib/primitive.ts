@@ -1,3 +1,4 @@
+import {hypot2} from './hypot2.ts';
 /**
  * Track-generation primitives. Step 1 = single landing. Step 2 = chained
  * landings.
@@ -976,7 +977,7 @@ export function placeSlideChain(
     }
     const v = rider.velocity;
     const incomingAngleDeg = (Math.atan2(v.y, v.x) * 180) / Math.PI;
-    const incomingSpeed = Math.hypot(v.x, v.y);
+    const incomingSpeed = hypot2(v.x, v.y);
 
     // Build a curve at this point with fixed shape.
     const a0 = (o.startAngleDeg * Math.PI) / 180;

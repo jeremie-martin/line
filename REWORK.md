@@ -1,5 +1,42 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: qualify scalar two-dimensional norms at 9,076 ns
+
+Full default automatic compilation now takes **9,076 ns per charged physics
+frame**, with an absolute 95% interval of **9,037–9,115**. Against qualified
+`974e4d2e`, screen12 passes at −4.36% [−5.10,−3.71], 12/12 wins; fresh confirm24
+passes at **−3.81% [−4.32,−3.29]**, 24/24 wins. The **7,000 ns target remains
+open**. Every timed compile preserves the same track and 147,209 charged frames.
+
+One small `hypot2` helper replaces 47 two-argument calls across 18 compiler
+modules. For finite numbers it scales before squaring and keeps the original
+two-term operation order; the first compensation in the reference builtin's
+Kahan sum is exactly zero. The zero vector returns positive zero, and nonfinite
+inputs delegate to the builtin. Three-argument calls remain unchanged. This
+removes temporary argument storage without approximate arithmetic or changes
+to physics, search, budgets, scoring or the independent judge.
+
+The native guard24 passes its +0.5% upper-bound condition: −0.21%
+[−0.49,+0.07], INCONCLUSIVE. Both arms use the identical native binary, so this
+is a non-regression check, not a native speedup claim. The larger compile guard8
+passes at **8,608 → 8,244 ns/frame**, −4.23% [−4.74,−3.75], 8/8 wins.
+Fresh sampled allocations fall about **15.8%**, from 1,146 to 965 MiB per
+compile in the profiling protocol; the `hypot` attribution falls from about
+124 to 2.4 MiB. Sampling includes collected objects and fixture loading and is
+neither live memory, RSS nor timing evidence. WASM memory high-water stays at
+**58.8125 MiB** for the default compile and **134.6875 MiB** for the larger one.
+
+All 63 compiler cells, 33 judge tracks and independent native replay pass.
+The helper also passes **944,722** numerical comparisons covering signed zero,
+nonfinite values, subnormals, arbitrary binary64 inputs and nearby magnitudes
+in both orders. JavaScript has 389 passes and the same pre-existing missing-audio
+failure; typecheck and reachability are clean. Rust source and binary are
+unchanged from the preceding 27-test qualification. Before any helper timing,
+the reference was advanced to the newly qualified topology solver and combined
+validation was repeated; the original checks and amendment remain archived.
+Full source, tests, raw pairs, audits, memory readings, sampled profiles and
+upstream algorithm provenance are in `docs/research/engine-hypot2-20261104.json`.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Evaluation of one control in an interval search. The control is built as
  * normal-line geometry and replayed on the native engine from the interval's
  * physical prefix; only a replay that meets every physical, musical and
@@ -274,17 +275,17 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     // Prepare kinetic headroom for an unguided landing.
     // This is a proposal prior; actual native continuation decides merit.
     const kinetic = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden' ? 1 : steep;
-    const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * Math.hypot(nextSpeed, impulse);
+    const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
     const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
     const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
     const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
-    const r2 = weight * (Math.hypot(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
+    const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail
     // axis past vertical, or pointing against the travel (uprightArrival).
     let r3 = 0;
     if (kinetic > 0 && options.impactSearch?.uprightArrival && state?.points) {
-      const ax = state.points.NOSE.x - state.points.TAIL.x, ay = state.points.NOSE.y - state.points.TAIL.y, len = Math.hypot(ax, ay) || 1;
-      const backward = Math.max(0, -(ax * finalVelocity.x + ay * finalVelocity.y) / (len * (Math.hypot(finalVelocity.x, finalVelocity.y) || 1)));
+      const ax = state.points.NOSE.x - state.points.TAIL.x, ay = state.points.NOSE.y - state.points.TAIL.y, len = hypot2(ax, ay) || 1;
+      const backward = Math.max(0, -(ax * finalVelocity.x + ay * finalVelocity.y) / (len * (hypot2(finalVelocity.x, finalVelocity.y) || 1)));
       const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
       r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
     }
@@ -333,7 +334,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   let release: number | undefined;
   for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames[k].sledContacts.length) release = raw.frames[k].frame;
   const finalState = state.points;
-  const heading = deg(Math.atan2(finalVelocity.y, finalVelocity.x)), endSpeed = Math.hypot(finalVelocity.x, finalVelocity.y);
+  const heading = deg(Math.atan2(finalVelocity.y, finalVelocity.x)), endSpeed = hypot2(finalVelocity.x, finalVelocity.y);
   const pose = deg(Math.atan2(finalState.NOSE.y - finalState.TAIL.y, finalState.NOSE.x - finalState.TAIL.x));
   ctx.work.viableCandidates++;
   const valueFeatures = options.futureValueModel

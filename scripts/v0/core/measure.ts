@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /**
  * Per-axis measurement ("reduction") registry.
  *
@@ -67,7 +68,7 @@ const measureGrain: AxisReduction = ({ gapLines }) =>
 
 /** Geometry-only grain reduction for consumers without a simulation context. */
 export function measureGrainFromLines(gapLines: readonly TrackLine[]): number | undefined {
-  const lineLens = gapLines.map((l) => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
+  const lineLens = gapLines.map((l) => hypot2(l.x2 - l.x1, l.y2 - l.y1));
   return lineLens.length > 0 ? Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP) : undefined;
 }
 
@@ -86,7 +87,7 @@ const measureElevation: AxisReduction = ({ det, gap, rangeEndFrame }) => {
   if (b <= a) return undefined;
   const v0 = velocityAt(det, a);
   if (v0 === undefined) return undefined;
-  const speed = Math.hypot(v0.x, v0.y);
+  const speed = hypot2(v0.x, v0.y);
   let dy = 0;
   for (let f = a + 1; f <= b; f++) {
     const v = velocityAt(det, f);
@@ -232,7 +233,7 @@ export function measureGapAxes(
     const lineLens = new Array<number>(gapLines.length);
     for (let i = 0; i < gapLines.length; i++) {
       const line = gapLines[i];
-      lineLens[i] = Math.hypot(line.x2 - line.x1, line.y2 - line.y1);
+      lineLens[i] = hypot2(line.x2 - line.x1, line.y2 - line.y1);
     }
     lineLens.sort((a, b) => a - b);
     const m = lineLens.length >> 1;
@@ -244,7 +245,7 @@ export function measureGapAxes(
   if (span > 0) {
     const v0 = velocityAt(det, a);
     if (v0 !== undefined && Number.isFinite(dyTotal)) {
-      const speed = Math.hypot(v0.x, v0.y);
+      const speed = hypot2(v0.x, v0.y);
       out.elevation = netDyToElevation(dyTotal, speed, span);
 
       let dy = 0, peak = 0;
@@ -288,7 +289,7 @@ export function summarizeBallisticAxisPrefix(
     if (airborneAt(det, f)) airFrames++;
     const v = velocityAt(det, f);
     if (v !== undefined) {
-      const speed = Math.hypot(v.x, v.y);
+      const speed = hypot2(v.x, v.y);
       if (Number.isFinite(speed)) {
         speedSumPx += speed;
         speedFrames++;
@@ -301,7 +302,7 @@ export function summarizeBallisticAxisPrefix(
   }
   const v0 = velocityAt(det, startFrame);
   if (v0 === undefined) return null;
-  const v0SpeedPx = Math.hypot(v0.x, v0.y);
+  const v0SpeedPx = hypot2(v0.x, v0.y);
   if (!Number.isFinite(v0SpeedPx)) return null;
   return {
     startFrame,

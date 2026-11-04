@@ -1,3 +1,4 @@
+import {hypot2} from './hypot2.ts';
 /** Experimental, shared impact measurement. Geometry/rail names and rider pose
  * classifications are deliberately absent. Frozen landing scoring is unchanged.
  * A contract revision changes identity, timing or strength and requires a fresh
@@ -22,7 +23,7 @@ export type ContactImpactEvent = {
   raw: number; strength: number; responsePeak: number; complete: boolean;
 };
 export type ImpactTarget = {frame: number; impact?: number};
-const norm = (v: Vec2) => Math.hypot(v.x, v.y);
+const norm = (v: Vec2) => hypot2(v.x, v.y);
 export function velocityRedirection(a: Vec2, b: Vec2): number {
   const sa = norm(a), sb = norm(b);
   if (sa < 1e-10 || sb < 1e-10) return 0;

@@ -1,8 +1,9 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Geometry and ordered physical-contact evidence, independent of search costs. */
 import type {TrackLine} from '../types.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
 export type SectionRealization=ReturnType<typeof inspectConstruction>;
-const length=(l:TrackLine)=>Math.hypot(l.x2-l.x1,l.y2-l.y1);
+const length=(l:TrackLine)=>hypot2(l.x2-l.x1,l.y2-l.y1);
 const GUIDE_REACH=40,CELL=32,INDEXED_PAIRS=50_000;
 /** Progress along `shaped` of each guide midpoint's nearest shaped segment
  * (the lowest index on ties, as a forward scan keeps the first), for guides
@@ -37,7 +38,7 @@ export function guideProgress(guide:readonly TrackLine[],shaped:readonly TrackLi
     const bx=Math.max(minX-x,0,x-maxX),by=Math.max(minY-y,0,y-maxY),reach=closest*(1+1e-9)+1e-6;
     if(bx*bx+by*by>reach*reach)return;
     const t=Math.max(0,Math.min(1,((x-m.x1)*dx+(y-m.y1)*dy)/Math.max(1e-12,len*len)));
-    const d=Math.hypot(x-m.x1-t*dx,y-m.y1-t*dy);
+    const d=hypot2(x-m.x1-t*dx,y-m.y1-t*dy);
     if(d<closest||d===closest&&i<best){closest=d;best=i;progress=(offset+t*len)/Math.max(1e-12,totalLength);}
   };
   for(const l of guide){

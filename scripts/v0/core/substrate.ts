@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /**
  * v0 substrate — pure, behavior-defining building blocks used by the handoff
  * compiler and optimizer helpers.
@@ -276,7 +277,7 @@ export function contactRedirArcPxAtLanding(
     const v = velocityAt(det, f);
     if (v === undefined) continue;
     if (airborneAt(det, f) === false) {
-      const s0 = Math.hypot(prev.x, prev.y), s1 = Math.hypot(v.x, v.y);
+      const s0 = hypot2(prev.x, prev.y), s1 = hypot2(v.x, v.y);
       if (s0 > 1e-9 && s1 > 1e-9) {
         const turn = Math.abs(wrapPi(Math.atan2(v.y, v.x) - Math.atan2(prev.y, prev.x)));
         arc += 0.5 * (s0 + s1) * turn;
@@ -730,7 +731,7 @@ export function buildDriftReport(
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
       if (name === "elevation") {
         const v0 = velocityAt(det, g.startFrame);
-        const speed = v0 !== undefined ? Math.hypot(v0.x, v0.y) : 0;
+        const speed = v0 !== undefined ? hypot2(v0.x, v0.y) : 0;
         axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
       }
       if (name === "impact") {
@@ -746,7 +747,7 @@ export function buildDriftReport(
         // acquire more perpendicular velocity than you carry, and beyond the
         // catchable ceiling the hit ejects). Use the speed at the contact frame.
         const vEnd = velocityAt(det, g.endFrame);
-        const speed = vEnd !== undefined ? Math.hypot(vEnd.x, vEnd.y) : 0;
+        const speed = vEnd !== undefined ? hypot2(vEnd.x, vEnd.y) : 0;
         axes[name].ceiling = impactCeiling(speed);
       }
       if (name === "speed") {

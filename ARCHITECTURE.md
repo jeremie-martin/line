@@ -120,6 +120,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    per-frame motion objects. Pure body-motion values are
    memoized lazily per frame; this memo can be shared across detached snapshots
    without copying their simulation data, and follows frame rollback and reset.
+   Two-dimensional geometry and motion magnitudes share `lib/hypot2.ts`: a
+   scalar normalized sum preserves the reference binary64 calculation without
+   temporary argument storage. Zero and nonfinite behavior remain explicit;
+   three-dimensional magnitudes retain `Math.hypot`.
 
    Solver rest lengths and endurance derive from the fixed rider topology;
    caches do not store duplicate constant arrays. One ordered point/friction

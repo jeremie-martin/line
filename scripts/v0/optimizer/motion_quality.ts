@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Native trajectory observations, separate from the frozen musical judge.
  * Stored velocity is pre-solve. The next stored velocity minus gravity is the
  * current effective velocity; the final sample can use the already-read state.
@@ -6,7 +7,7 @@ import type {RawFrame, Vec2} from '../../lib/detector.ts';
 
 export const MOTION_OBSERVATION_VERSION='line.motion-observation.v1';
 export const NATIVE_GRAVITY=.175;
-const speed=(v:Vec2)=>Math.hypot(v.x,v.y);
+const speed=(v:Vec2)=>hypot2(v.x,v.y);
 const direction=(a:Vec2,b:Vec2)=>Math.abs(Math.atan2(a.x*b.y-a.y*b.x,a.x*b.x+a.y*b.y));
 const BODY_POINT_IDS=['BUTT','SHOULDER','RHAND','LHAND','LFOOT','RFOOT'] as const;
 export type MotionSample={frame:number;incoming:Vec2;effective:Vec2;speedBefore:number;speedAfter:number;
@@ -22,7 +23,7 @@ export function motionSamples(frames:readonly Pick<RawFrame,'frame'|'velocity'>[
     if(row?.frame!==frame||next&&next.frame!==frame+1)throw new Error('motion samples require a contiguous native trajectory');
     const incoming=row.velocity,effective=next?{x:next.velocity.x,y:next.velocity.y-NATIVE_GRAVITY}:terminalEffective!;
     if(!Number.isFinite(incoming.x)||!Number.isFinite(incoming.y)||!Number.isFinite(effective.x)||!Number.isFinite(effective.y))throw new Error('nonfinite motion sample');
-    const speedBefore=previousSpeed??Math.hypot(incoming.x,incoming.y-NATIVE_GRAVITY),speedAfter=speed(effective),incomingSpeed=speed(incoming);
+    const speedBefore=previousSpeed??hypot2(incoming.x,incoming.y-NATIVE_GRAVITY),speedAfter=speed(effective),incomingSpeed=speed(incoming);
     previousSpeed=speedAfter;
     samples.push({frame,incoming,effective,speedBefore,speedAfter,
       gravityGain:incomingSpeed-speedBefore,solverGain:speedAfter-incomingSpeed,

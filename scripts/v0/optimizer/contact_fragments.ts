@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 import type {TrackLine} from '../types.ts';
 import type {RawTrajectory} from '../../lib/detector.ts';
 /** Intervals on each observed collision plane. Merging overlaps prevents duplicate
@@ -12,7 +13,7 @@ export function contactFragments(source: TrackLine[], footprints: Map<number, nu
     const line = byId.get(id);
     if (!line || line.type !== 0)
       throw new Error('normal source line required');
-    const dx = line.x2 - line.x1, dy = line.y2 - line.y1, length = Math.hypot(dx, dy);
+    const dx = line.x2 - line.x1, dy = line.y2 - line.y1, length = hypot2(dx, dy);
     if (!(length > 0) || !Number.isFinite(length))
       throw new Error('degenerate source line');
     const half = width / (2 * length), spans: Array<[number, number]> = [];
@@ -41,7 +42,7 @@ export function trajectoryDifference(reference: RawTrajectory, candidate: RawTra
     if (a.riderEjected !== b.riderEjected || a.sledBroken !== b.sledBroken ||
       Boolean(a.sledContacts.length) !== Boolean(b.sledContacts.length))
       return Infinity;
-    maximum = Math.max(maximum, Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y), Math.hypot(a.velocity.x - b.velocity.x, a.velocity.y - b.velocity.y));
+    maximum = Math.max(maximum, hypot2(a.position.x - b.position.x, a.position.y - b.position.y), hypot2(a.velocity.x - b.velocity.x, a.velocity.y - b.velocity.y));
   }
   return maximum;
 }

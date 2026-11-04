@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 import { authoredSpeedToPx, impactToRawPx, type Gap } from "../types.ts";
 
 /** Choose actual contact times inside the existing one-frame tolerance, leaving
@@ -63,7 +64,7 @@ export function nativeMotionSchedule(gaps: readonly Gap[], duration: number,
     low = 2; high = speed * 2;
     for (let j = 0; j < 32; j++) {
       const mid = (low + high) / 2;
-      const mean = vertical.reduce((s, y, k) => s + Math.hypot(vxAt(mid, k), y), 0) / vertical.length;
+      const mean = vertical.reduce((s, y, k) => s + hypot2(vxAt(mid, k), y), 0) / vertical.length;
       if (mean < speed) low = mid; else high = mid;
     }
     const pace = (low + high) / 2;
@@ -84,13 +85,13 @@ export function nativeMotionSchedule(gaps: readonly Gap[], duration: number,
     const incoming = desired[h - 1];
     const make = (delta: number) => Array.from({ length: 6 }, (_, k) => {
       const v = desired[h + k], angle = Math.atan2(v.y, v.x) + delta * Math.sin(2 * Math.PI * (k + 1) / 6);
-      return { x: Math.hypot(v.x, v.y) * Math.cos(angle), y: Math.hypot(v.x, v.y) * Math.sin(angle) };
+      return { x: hypot2(v.x, v.y) * Math.cos(angle), y: hypot2(v.x, v.y) * Math.sin(angle) };
     });
     const raw = (vs: Array<{ x: number; y: number }>) => {
       let previous = incoming, sum = 0;
       for (const v of vs) {
         const angle = Math.atan2(v.y, v.x) - Math.atan2(previous.y, previous.x);
-        sum += (Math.hypot(v.x, v.y) + Math.hypot(previous.x, previous.y)) / 2 * Math.abs(Math.atan2(Math.sin(angle), Math.cos(angle)));
+        sum += (hypot2(v.x, v.y) + hypot2(previous.x, previous.y)) / 2 * Math.abs(Math.atan2(Math.sin(angle), Math.cos(angle)));
         previous = v;
       }
       return sum;

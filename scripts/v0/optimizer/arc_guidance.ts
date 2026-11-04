@@ -1,3 +1,4 @@
+import {hypot2} from '../../lib/hypot2.ts';
 /** Reduce redundant guidance while retaining one coherent upper curve per arc. */
 import type { TrackLine } from '../types.ts';
 
@@ -21,7 +22,7 @@ export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: n
     const used = roof.lines.map((l, i) => touched.has(l.id) ? i : -1).filter(i => i >= 0);
     let lo = used.length ? Math.max(0, Math.min(...used) - 2) : roof.lines.length;
     let hi = used.length ? Math.min(roof.lines.length, Math.max(...used) + 3) : roof.lines.length;
-    const lengths = roof.lines.map(l => Math.hypot(l.x2 - l.x1, l.y2 - l.y1));
+    const lengths = roof.lines.map(l => hypot2(l.x2 - l.x1, l.y2 - l.y1));
     const totalLength = lengths.reduce((a, b) => a + b, 0);
     let retainedLength = lengths.slice(lo, hi).reduce((a, b) => a + b, 0);
     // Preserve substantial curves around the contact span, never scattered

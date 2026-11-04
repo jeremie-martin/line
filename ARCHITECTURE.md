@@ -59,11 +59,16 @@ and validation are in [music authoring](docs/music-authoring.md).
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)
    classifies every option by whether it can change a measurement.
-   `arc_candidates.ts` distinguishes owned measurements, accepted/rejected memo
-   entries and evaluated candidates with a live engine. Stored measurements
-   exclude engine handles; selecting one rebuilds its engine. Geometry used in
-   cached prefix identities is read-only at the compiler boundary.
-   Candidate scoring reuses the reported span axes for its residuals; only a
+   `arc_candidates.ts` shares one owned, read-only fact record between the
+   candidate list and memo. A live evaluation pairs that record with its engine;
+   selecting saved facts rebuilds the engine. One residual vector retains its
+   local partition count. Report rows add geometry-only grain when selected,
+   using the same reduction as full gap reports. Geometry used in cached prefix
+   identities is read-only at the compiler boundary.
+   Each interval prepares the fixed authored-future features once; candidates
+   append these to their physical-arrival features. Preparing them per search
+   respects construction fallback changes between searches.
+   Candidate scoring reuses its measured trajectory axes for residuals; only a
    targeted, capped amplitude needs a separate raw-peak read to preserve
    search pressure above the reporting cap. Reported axes remain capped.
    A candidate that leaves its interval's prefix unchanged reuses the prefix

@@ -18,9 +18,9 @@ vi.mock('../scripts/v0/optimizer/arc_interval.ts', () => ({
       if (arrival !== 55) return null;
     }
     const ids = index === 2 ? [64] : Array.from({length: 8}, (_, j) => (index ? arrival * 8 : 0) + j);
-    const candidates = ids.map(id => ({lines: [{id}], c: {}, cost: id, localCost: id,
-      heading: id * 5, endSpeed: 0, pose: 0, meta: {release: 0},
-      terminalLoss: 0, measurement: {achieved: {}, actualImpact: 0, release: 0}}));
+    const candidates = ids.map(id => ({lines: [{id,type:0,x1:0,y1:0,x2:1,y2:0}], c: {}, cost: id, localCost: id,
+      heading: id * 5, endSpeed: 0, pose: 0,
+      terminalLoss: 0, trajectoryAxes: {}, actualImpact: 0, release: 0}));
     return {best: candidates[0], candidates, failures: {}, frame: index * 10,
       next: (index + 1) * 10, horizon: (index + 1) * 10, span: 10, inputFeatures: [], incoming: {}};
   },

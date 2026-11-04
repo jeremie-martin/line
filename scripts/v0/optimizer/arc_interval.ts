@@ -67,8 +67,8 @@ function replaceWithFragments(s: IntervalSearch) {
   // probe (used by joint refinement and continuation replay).
   for (const key of new Set(carriers.map(c => arcControlMemoKey(c.c, s.options.channel)))) {
     const saved = s.memo.get(key + '|fragments');
-    const candidate = saved && !('reason' in saved) ? saved.candidate : undefined;
-    if (candidate) evaluate(s, candidate.c, {lines: candidate.lines, guideIds: candidate.meta.railGuides!});
+    const candidate = saved && !('reason' in saved) ? saved : undefined;
+    if (candidate) evaluate(s, candidate.c, {lines: candidate.lines, guideIds: candidate.railGuides!});
   }
   try {
     for (const proposal of source) {

@@ -44,7 +44,7 @@ async function worker(id: string, seed: number) {
     if (!(asks[i]! >= .6) || i + 2 >= ctx.contacts.length || !chosen.length) return;
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, pool = kept.interval.candidates;
     const ask = asks[i]!;
-    const closest = pool.reduce((a, b) => impactDistance(b.meta.impact, ask) < impactDistance(a.meta.impact, ask) ? b : a);
+    const closest = pool.reduce((a, b) => impactDistance(b.actualImpact, ask) < impactDistance(a.actualImpact, ask) ? b : a);
     const measured = pool.reduce((a, b) => b.localCost < a.localCost ? b : a);
     const arms = [['K', kept.candidate], ['S', closest], ['M', measured]] as const;
     const row: any = {i, ask, nextAsk: asks[i + 1] ?? null, pool: pool.length, arms: {}};
@@ -52,15 +52,15 @@ async function worker(id: string, seed: number) {
       const same = arms.find(([, y]) => y === x)![0];
       if (same !== name) {row.arms[name] = {same}; continue;}
       // What ranking charges beyond the measured local cost: the ranking's own formula (valueRank).
-      const entry: any = {imp: r4(x.meta.impact), local: r4(x.localCost), ahead: r4(valueRank(ctx.options, x) - x.localCost)};
+      const entry: any = {imp: r4(x.actualImpact), local: r4(x.localCost), ahead: r4(valueRank(ctx.options, x) - x.localCost)};
       withArcStudy(ctx, [...kept.parent.seq.lines, ...x.lines], i + 1, (study, child) => {
         try {
           const next = searchInterval(study, child, i + 1, {}, [child]);
           const cs = next?.candidates ?? [];
           if (!cs.length) {entry.next = null; return;}
           const best = cs.reduce((a, b) => b.localCost < a.localCost ? b : a);
-          const near = cs.reduce((a, b) => impactDistance(b.meta.impact, asks[i + 1] ?? 0) < impactDistance(a.meta.impact, asks[i + 1] ?? 0) ? b : a);
-          entry.next = {local: r4(best.localCost), imp: r4(best.meta.impact), nearImp: r4(near.meta.impact), viable: cs.length};
+          const near = cs.reduce((a, b) => impactDistance(b.actualImpact, asks[i + 1] ?? 0) < impactDistance(a.actualImpact, asks[i + 1] ?? 0) ? b : a);
+          entry.next = {local: r4(best.localCost), imp: r4(best.actualImpact), nearImp: r4(near.actualImpact), viable: cs.length};
         } catch (error) {entry.next = null; entry.error = String(error).slice(0, 120);}
       });
       row.arms[name] = entry;

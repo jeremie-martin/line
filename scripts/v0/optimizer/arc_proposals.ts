@@ -141,7 +141,7 @@ export function proposeOpposingEntries(s: IntervalSearch) {
 export function proposeCompactFolds(s: IntervalSearch) {
   const {options, support} = s;
   if (!(options.profile === 'fold' && options.railLayout === 'transfer' && s.initial > 0)) return;
-  const anchor = s.best?.c ?? s.near[0]?.c ?? s.center;
+  const anchor = s.best?.candidate.c ?? s.near[0]?.c ?? s.center;
   if (anchor) for (let k = 0; k < 16; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1, duration = Math.max(2, support * (.65 + .7 * frac(.4384471872)));
     const control = {...anchor, support: duration, foldTiming: 1, turnFraction: Math.min(5, duration * .2) / duration,
@@ -162,7 +162,7 @@ export function proposeCompactFolds(s: IntervalSearch) {
 export function proposeObservedReceivers(s: IntervalSearch) {
   const {options} = s;
   if (!(options.railLayout === 'transfer' && s.initial > 0)) return;
-  const anchor = s.best?.c ?? s.near[0]?.c ?? s.center;
+  const anchor = s.best?.candidate.c ?? s.near[0]?.c ?? s.center;
   if (anchor) for (let k = 0; k < 12; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1;
     evaluate(s, {...anchor, receiverFlight: 1 + Math.floor(5 * frac(.2718281828)), receiverEntry: -5 + 30 * frac(.7548776662),

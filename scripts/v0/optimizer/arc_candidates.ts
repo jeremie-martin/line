@@ -5,35 +5,35 @@ import type { ArcMotionOptions } from './arc_options.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 import type {TrackLine, AxisValues} from '../types.ts';
 import type {intervalMotionSummary} from './motion_objective.ts';
+import {withGrain} from '../core/measure.ts';
 
 /** Geometry is immutable once it identifies a measured physical prefix. */
 export type CandidateGeometry = readonly Readonly<TrackLine>[];
 export type Near = {c: ArcMotionControl; deficit: number};
 type Motion = ReturnType<typeof intervalMotionSummary>;
 
-/** Owned facts that survive engine cleanup. No engine or borrowed detector view
- * belongs here; selecting a cached measurement rebuilds its engine separately. */
-export type CandidateMeasurement = {
+/** One owned record for evaluation, ranking and memoization. The list and memo
+ * share these facts; only a live evaluation carries an engine. */
+export type MeasuredCandidate = Readonly<{
   child?: never;
   lines: CandidateGeometry; c: ArcMotionControl;
-  cost: number; localCost: number; optimizationCost: number; residuals: number[];
-  achieved: AxisValues; actualImpact?: number; terminalLoss?: number; release?: number;
+  cost: number; localCost: number; residuals: number[]; localResidualCount: number;
+  trajectoryAxes: AxisValues; actualImpact?: number; terminalLoss?: number; release?: number;
   railGuides?: number[]; motion?: Motion; motionCost: number;
-  localResiduals: number[]; arrivalResiduals: number[];
-};
-export type EvaluatedCandidate = Omit<CandidateMeasurement, 'child'> & {child: Engine};
-export type MeasuredCandidate = {
-  child?: never;
-  lines: CandidateGeometry; c: ArcMotionControl; cost: number; localCost: number;
-  measurement: CandidateMeasurement; contactPositions?: Float64Array;
-  headingPrior?: number; residuals: number[]; heading: number; endSpeed: number; pose: number;
-  valueFeatures?: number[]; predictedFuture?: number; terminalLoss?: number;
-  meta: {achieved: AxisValues; impact?: number; release?: number; lines: number;
-    railGuides?: number[]; motion?: Motion; motionCost: number};
-};
+  contactPositions?: Float64Array;
+  headingPrior?: number; heading: number; endSpeed: number; pose: number;
+  valueFeatures?: number[]; predictedFuture?: number;
+}>;
+export type EvaluatedCandidate = Readonly<{candidate: MeasuredCandidate; child: Engine}>;
 export type CandidateMemo =
   | {reason: string; near?: Near}
-  | {result: CandidateMeasurement; candidate: MeasuredCandidate};
+  | MeasuredCandidate;
+
+/** Grain depends only on geometry and never enters search. Measure it when
+ * a selected candidate becomes a report row, preserving all reported axes. */
+export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
+  return withGrain(candidate.trajectoryAxes, candidate.lines);
+}
 
 /** Native candidate cost plus a weighted future estimate. The arrival priors
  * count half: what they charge for the next catch measured about twice its
@@ -53,7 +53,7 @@ export function valueRank(options: ArcMotionOptions, c: Pick<MeasuredCandidate, 
 /** Arrivals that differ in heading, speed, pose or release frame. */
 export function distinctArrival(a: MeasuredCandidate, b: MeasuredCandidate) {
   return Math.abs(a.heading - b.heading) > 4 || Math.abs(a.endSpeed - b.endSpeed) > .4 ||
-    Math.abs(a.pose - b.pose) > 7 || a.meta.release !== undefined && b.meta.release !== undefined && Math.abs(a.meta.release - b.meta.release) > 2;
+    Math.abs(a.pose - b.pose) > 7 || a.release !== undefined && b.release !== undefined && Math.abs(a.release - b.release) > 2;
 }
 
 /** Up to `width` best-ranked candidates whose arrivals are mutually distinct. */
@@ -70,5 +70,5 @@ export function distinctCandidates(options: ArcMotionOptions, candidates: readon
  * not inherit those of the previously preferred local geometry. Engine
  * wrappers are rebuilt separately because search cleanup can free them. */
 export function restoreCandidate(candidate: MeasuredCandidate, child: Engine): EvaluatedCandidate {
-  return {...candidate.measurement, child, lines: candidate.lines, c: candidate.c, cost: candidate.cost, localCost: candidate.localCost};
+  return {candidate, child};
 }

@@ -5,6 +5,7 @@ import type { DriftReport, TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
 import type { ArcMotionOptions, IntervalOverrides } from './arc_options.ts';
 import type { IntervalResult } from './arc_interval.ts';
+import {reportedAxes, type CandidateGeometry, type MeasuredCandidate} from './arc_candidates.ts';
 
 export type ArcRefinementInput = {
   engine: Engine; lines: TrackLine[]; rows: any[];
@@ -15,7 +16,7 @@ export type ArcRefinementInput = {
   report: (raw: any, lines: TrackLine[]) => DriftReport;
   objective: (raw:any, report:DriftReport, engine:Engine) => {loss:number;regrets:number[]};
   validate?: (engine:Engine,lines:TrackLine[],raw:any,rows:any[])=>boolean;
-  engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:TrackLine[])=>Engine;detach:(base:Engine)=>Engine};
+  engines?: {create:(lines:TrackLine[])=>Engine;add:(base:Engine,lines:CandidateGeometry)=>Engine;detach:(base:Engine)=>Engine};
 };
 
 type EngineOperations = NonNullable<ArcRefinementInput['engines']>;
@@ -32,7 +33,7 @@ const sectionOf = (line: TrackLine) => Math.floor((line.id - 1000) / 10000);
 export function refineArcTrack(input: ArcRefinementInput) {
   const {contacts, end, start, options, search, report} = input;
   const operations: EngineOperations = input.engines ?? {create: (lines: TrackLine[]) => createArcEngine(start, lines),
-    add: (base: Engine, lines: TrackLine[]) => base.addLine(lines), detach: (base: Engine) => base.detach()};
+    add: (base: Engine, lines: CandidateGeometry) => base.addLine(lines), detach: (base: Engine) => base.detach()};
   const began = getPhysicsFrameCount(), ceiling = input.budget - 2 * (end + 1);
   const lines = input.lines.slice(), rows = input.rows.slice();
   const initialRaw = extractRawTrajectory(input.engine, end);
@@ -76,7 +77,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
         continue;
       }
       const attemptState = {i, base, prefix, sourceRows, searchResult};
-      const candidates = searchResult.candidates.slice().sort((a: any, b: any) => a.cost - b.cost);
+      const candidates = searchResult.candidates.slice().sort((a, b) => a.cost - b.cost);
       const offered = new Set<string>();
       let evaluated = 0;
       for (const candidate of candidates) {
@@ -149,29 +150,31 @@ function refinementTargets(input: ArcRefinementInput, incumbent: Incumbent, trie
     .sort((a, b) => b.priority - a.priority || a.index - b.index);
 }
 
-type AttemptState = {i: number; base: Engine; prefix: TrackLine[]; sourceRows: any[]; searchResult: any};
+type AttemptState = {i: number; base: Engine; prefix: TrackLine[]; sourceRows: any[]; searchResult: IntervalResult};
 
 /** The complete track obtained by replacing support i with `candidate`: each
  * later support is rebuilt from its recorded (or planned) control. Returns
  * null when a rebuilt support has no valid arc. */
-function completeRevision(input: ArcRefinementInput, operations: EngineOperations, attempt: AttemptState, candidate: any, incumbent: Engine) {
+function completeRevision(input: ArcRefinementInput, operations: EngineOperations, attempt: AttemptState, candidate: MeasuredCandidate, incumbent: Engine) {
   const {contacts, options, search} = input;
   const {i, base, prefix, sourceRows, searchResult} = attempt;
   let child = operations.add(base, candidate.lines), proposed = [...prefix, ...candidate.lines];
   const proposedRows = sourceRows.slice();
   proposedRows[i] = {...sourceRows[i], control: candidate.c, cost: candidate.cost,
     incoming: searchResult.incoming, span: searchResult.span, features: searchResult.inputFeatures,
-    ...candidate.meta, spent: getPhysicsFrameCount()};
+    achieved: reportedAxes(candidate), impact: candidate.actualImpact, release: candidate.release, lines: candidate.lines.length,
+    railGuides: candidate.railGuides, motion: candidate.motion, motionCost: candidate.motionCost, spent: getPhysicsFrameCount()};
   for (let j = i + 1; j < contacts.length; j++) {
     const next = search(child, j, {samples: 0, localOnly: true, guidance: undefined, warmStart: sourceRows[j].control,
       ...(options.constructionRequests ? {warmIncoming: sourceRows[j].incoming} : {})}, [incumbent, base]);
     if (!next?.best) return null;
-    proposed.push(...next.best.lines);
+    const best = next.best.candidate;
+    proposed.push(...best.lines);
     child = operations.detach(next.best.child);
-    proposedRows[j] = {...sourceRows[j], control: next.best.c, cost: next.best.cost,
+    proposedRows[j] = {...sourceRows[j], control: best.c, cost: best.cost,
       incoming: next.incoming, span: next.span, features: next.inputFeatures,
-      achieved: next.best.achieved, impact: next.best.actualImpact,
-      release: next.best.release, lines: next.best.lines.length, railGuides: next.best.railGuides,
+      achieved: reportedAxes(best), impact: best.actualImpact,
+      release: best.release, lines: best.lines.length, railGuides: best.railGuides,
       failures: next.failures, spent: getPhysicsFrameCount()};
     Engine.retainOnly([incumbent, base, child]);
   }

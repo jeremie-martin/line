@@ -95,9 +95,10 @@ function buildContext(spec: Spec, options: ArcMotionOptions, constructionMemorie
     return memory;
   };
 
-  /** Arrival features followed by the duration, impact and span targets of the next `count` supports. */
-  const futureFeatures = (arrival: number[], i: number, count = 2) => {
-    const features = [...arrival];
+  /** Duration, impact and span targets of the next `count` supports.
+   * Independent of a candidate's arrival; callers append these to its features. */
+  const futureFeatures = (i: number, count = 2) => {
+    const features: number[] = [];
     for (let k = 1; k <= count; k++) {
       const contact = contacts[i + k], target = contact ? planned.find(g => g.startFrame === contact.frame)?.targets : undefined;
       features.push(contact ? ((contacts[i + k + 1]?.frame ?? end + 1) - contact.frame) / 40 : 0,
@@ -108,8 +109,8 @@ function buildContext(spec: Spec, options: ArcMotionOptions, constructionMemorie
 
   /** Value prediction also knows which physical constructors must follow.
    * Keep proposal and response-memory feature contracts independent. */
-  const futureValueFeatures = (arrival: number[], i: number) => [
-    ...futureFeatures(arrival,i),
+  const futureValueFeatures = (i: number) => [
+    ...futureFeatures(i),
     ...[i+1,i+2].flatMap(index=>{
       if(index>=contacts.length)return Array(8).fill(0);
       const style={...options,...options.sectionStyles?.[index]};

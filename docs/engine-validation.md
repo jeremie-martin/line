@@ -104,10 +104,16 @@ With the default practical margin of 2%:
 - **INCONCLUSIVE:** the experiment does not resolve those alternatives.
 
 Only a fresh FASTER confirmation of the frozen screened candidate qualifies a
-speedup. Every declared compile cell must also have an upper bound no larger
-than the margin; uncertainty about harm does not pass that guard. Check default
+speedup beyond the declared practical margin. Every declared compile cell must
+also have an upper bound no larger than the margin; uncertainty about harm does
+not pass that guard. Check default
 automatic construction (cell 61), and its larger budget (62) where relevant.
 Correctness, code design and the declared adoption policy are separate gates.
+The margin describes effect size, not a probability of benefit. An interval
+entirely below zero can support a smaller improvement while remaining
+INCONCLUSIVE at 2%. That default is not a universal adoption minimum: weigh
+the interval, simpler design and resource changes under the stated policy.
+Record an owner-led policy revision explicitly without relabeling the experiment.
 For a memory/CPU tradeoff, predeclare the allowed regression and resource goal;
 do not reinterpret an inconclusive speed result as equivalence. Never extend or
 restart an unchanged experiment until it passes. There is no intermediate verdict.

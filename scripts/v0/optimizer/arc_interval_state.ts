@@ -100,10 +100,13 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
 
   // These describe the immutable incoming prefix already measured above.
   // Reusing them avoids a new physics read after committing the search budget.
-  const arrivalFeatures = arcPolicyArrival(beforeState, velocity), inputFeatures = ctx.futureFeatures(arrivalFeatures, i - 1);
+  const arrivalFeatures = arcPolicyArrival(beforeState, velocity), inputFeatures = arrivalFeatures.concat(ctx.futureFeatures(i - 1));
   // Only the learned proposal receives the longer authored window. Keep
   // response-memory and future-value inputs in their original units.
-  const policyInputFeatures = options.controlPolicy?.featureCount === 67 ? ctx.futureFeatures(arrivalFeatures, i - 1, 4) : inputFeatures;
+  const policyInputFeatures = options.controlPolicy?.featureCount === 67 ? arrivalFeatures.concat(ctx.futureFeatures(i - 1, 4)) : inputFeatures;
+  // Every candidate in this search has the same authored future. Prepare it
+  // once; only the physical arrival varies with the candidate.
+  const valueFutureFeatures: readonly number[] | undefined = options.futureValueModel ? ctx.futureValueFeatures(i) : undefined;
   const max = options.samples ?? 160, initial = options.localOnly ? 0 : Math.min(80, Math.ceil(max / 2));
   // Calm landing emphasis changes impact units between adjacent intervals.
   // Store those weights so response reuse can recover physical residuals
@@ -119,7 +122,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     prefixRaw, detection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, controlContext,
-    inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,
+    inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
     best: null as EvaluatedCandidate | null,
     terminalObjective: undefined as ArcObjectiveContinuation | undefined,

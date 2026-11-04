@@ -27,7 +27,7 @@ export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptio
  };
  const continueFrom=(base:Engine,index:number,depth:number,protectedEngines:Engine[]):number|null=>{
   const found=local(base,index,protectedEngines);if(!found?.best)return null;
-  if(depth===1||index===contacts.length-1)return found.best.cost;
+  if(depth===1||index===contacts.length-1)return found.best.candidate.cost;
   let best:number|null=null;
   for(const c of distinctCandidates(options,found.candidates,2)){
    const child=lineage.add(base,c.lines),tail=continueFrom(child,index+1,depth-1,[...protectedEngines,base]);
@@ -45,7 +45,7 @@ export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptio
    const branch=lineage.add(base,c.lines),depth=Math.min(VALUE_COLLECTION.depth,contacts.length-i-1);
    const state=getRiderMetered(branch,found.horizon).ballisticState(),nose=state.points.NOSE,tail=state.points.TAIL;
    const dx=nose.x-tail.x,dy=nose.y-tail.y,spin=(dx*(nose.vy-tail.vy)-dy*(nose.vx-tail.vx))/Math.max(1,dx*dx+dy*dy);
-   const features=c.valueFeatures??ctx.futureValueFeatures(arcArrivalFeatures(state,c.heading,c.endSpeed,c.pose,spin,found.horizon-(c.meta.release??found.frame)),i);
+   const features=c.valueFeatures??arcArrivalFeatures(state,c.heading,c.endSpeed,c.pose,spin,found.horizon-(c.release??found.frame)).concat(ctx.futureValueFeatures(i));
    const future=continueFrom(branch,i+1,depth,[base]);
    rows.push({index:i,contacts:contacts.length,features:features.slice(0,57),geometry:features.slice(57),localCost:c.localCost,
     pureFuture:future,depth,requestedDepth:depth,predictedFuture:c.predictedFuture??(options.futureValueModel?arcFutureValue(features,options.futureValueModel):null)});

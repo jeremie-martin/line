@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import { distinctArrival, distinctCandidates, valueRank, restoreCandidate, type MeasuredCandidate } from './arc_candidates.ts';
+import { distinctArrival, distinctCandidates, valueRank, restoreCandidate, reportedAxes, type MeasuredCandidate, type EvaluatedCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
 
@@ -161,22 +161,22 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
 }
 
 /** Materialize a selected, already verified physical prefix. */
-function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, best: any,
+function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, evaluated: EvaluatedCandidate,
   protectedEngines: Engine[] = []) {
   const {options, memoryFor} = ctx;
-  const {candidates, failures, frame, next, horizon, incoming} = interval;
+  const {failures, frame, next, horizon, incoming} = interval;
+  const {candidate: best, child} = evaluated;
   seq.failure = null;
   if ((options.memorySamples ?? 0) > 0 && i > 0)
     memoryFor(i).rememberControl({features: interval.inputFeatures, incoming, span: horizon - frame, control: best.c});
   // Incoming features were captured before candidate construction, which
   // can invalidate cached prefix frames even for a validated child.
   seq.lines.push(...best.lines);
-  seq.engine = ctx.lineage.detach(best.child);
+  seq.engine = ctx.lineage.detach(child);
   Engine.retainOnly([...protectedEngines, seq.engine]);
-  const selectedMeta = candidates.find(c => c.lines === best.lines)?.meta;
   seq.rows.push({frame, next, incoming, span: interval.span, features: interval.inputFeatures, cost: best.cost, control: best.c,
-    achieved: best.achieved, impact: best.actualImpact, release: best.release, lines: best.lines.length,
-    railGuides: selectedMeta?.railGuides ?? best.railGuides,
-    ...(options.motionQuality ? {motion: selectedMeta?.motion ?? best.motion, motionCost: selectedMeta?.motionCost ?? best.motionCost} : {}),
+    achieved: reportedAxes(best), impact: best.actualImpact, release: best.release, lines: best.lines.length,
+    railGuides: best.railGuides,
+    ...(options.motionQuality ? {motion: best.motion, motionCost: best.motionCost} : {}),
     failures, spent: getPhysicsFrameCount()});
 }

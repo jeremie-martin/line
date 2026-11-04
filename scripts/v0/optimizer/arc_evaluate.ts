@@ -6,7 +6,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * are memoized by control within the search's memo context. */
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, type Detection } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
-import { measureGapAxes } from '../core/measure.ts';
+import { AXIS_MEASURE, measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
 import type {SolidPath} from '../../lib/primitive.ts';
@@ -25,7 +25,7 @@ import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactAccount as impactAccountFor } from './impact_accounts.ts';
 import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
-import type {CandidateGeometry, CandidateMemo, EvaluatedCandidate} from './arc_candidates.ts';
+import {restoreCandidate, type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -114,12 +114,13 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: Candida
     return null;
   }
   work.viableCandidates++;
-  s.candidates.push({...saved.candidate, c});
+  const candidate = {...saved, c};
+  s.candidates.push(candidate);
   // Never reuse saved wrappers: retainOnly may already have freed them.
   // Rebuild from validated geometry; subsequent simulations stay metered.
   // A measurement from an earlier search must compete in this search.
-  const result = {...saved.result, c, child: s.ctx.lineage.add(s.engine, saved.result.lines)};
-  if (!s.best || result.optimizationCost < s.best.optimizationCost) s.best = result;
+  const result = restoreCandidate(candidate, s.ctx.lineage.add(s.engine, saved.lines));
+  if (!s.best || candidate.cost < s.best.candidate.cost) s.best = result;
   return result;
 }
 
@@ -202,14 +203,15 @@ function measureObjective(s: IntervalSearch, added: CandidateGeometry, traced: T
   const {ctx, options, i, frame, next, horizon, targets, impact, gap} = s;
   const {contacts, duration, gaps} = ctx;
   const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
-  const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, added, s.objectiveEnd);
+  const achieved = measureTrajectoryAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, s.objectiveEnd);
   const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
     ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);
   let actualImpact: number | undefined;
   if (impact !== undefined) {
-    actualImpact = impactEvents && impactMatch ? impactEvents[impactMatch.event].strength : measureGapAxes(det, gaps[gap], added, frame).impact;
+    actualImpact = impactEvents && impactMatch ? impactEvents[impactMatch.event].strength
+      : AXIS_MEASURE.impact({det, gap: gaps[gap], gapLines: added, rangeEndFrame: frame});
     if (actualImpact === undefined) return {reason: 'impact'} as Rejection;
     cost += (options.impactWeight ?? 2) * (actualImpact - impact) ** 2;
   }
@@ -238,14 +240,14 @@ function measureObjective(s: IntervalSearch, added: CandidateGeometry, traced: T
   const motionCost = motionErrors.reduce((n, r) => n + r * r, 0);
   residuals.push(...motionErrors);
   cost += motionCost;
-  const localCost = cost, priorStart = residuals.length;
+  const localCost = cost, localResidualCount = residuals.length;
   const finalVelocity = raw.frames.at(-1)!.velocity;
   if (i < contacts.length - 1 && finalVelocity.x < 1) return {reason: 'unusable_arrival'} as Rejection;
   // Keep future catches physically accessible; this is an optimizer prior,
   // never a change to the scored result.
   cost += .01 * Math.max(0, -finalVelocity.x / Math.max(1, s.pace)) ** 2;
   const priors = addArrivalPriors(s, finalVelocity, state, residuals, cost);
-  return {achieved, actualImpact, residuals, cost: priors.cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior: priors.heading};
+  return {achieved, actualImpact, residuals, cost: priors.cost, localCost, localResidualCount, motion, motionCost, finalVelocity, headingPrior: priors.heading};
 }
 
 /** How much of the steep, kinetic arrival prior applies before a catch asked
@@ -323,7 +325,7 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const {ctx, options, i, frame, horizon} = s;
   const {contacts, duration, impactTargets} = ctx;
   const {state, raw, det, observedImpacts} = traced;
-  const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior} = measured;
+  const {achieved, actualImpact, residuals, cost, localCost, localResidualCount, motion, motionCost, finalVelocity, headingPrior} = measured;
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
   const angularRate = (dx * (nose.vy - tail.vy) - dy * (nose.vx - tail.vx)) / Math.max(1, dx * dx + dy * dy);
   const terminalPhysical = options.impactContract && i === contacts.length - 1
@@ -340,20 +342,17 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const pose = deg(Math.atan2(finalState.NOSE.y - finalState.TAIL.y, finalState.NOSE.x - finalState.TAIL.x));
   ctx.work.viableCandidates++;
   const valueFeatures = options.futureValueModel
-    ? ctx.futureValueFeatures(arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)), i) : undefined;
+    ? arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)).concat(s.valueFutureFeatures!) : undefined;
   const predictedFuture = options.futureValueModel ? arcFutureValue(valueFeatures!, options.futureValueModel) : undefined;
-  const result = {child, lines: added, c, cost, localCost, residuals, optimizationCost: cost,
-    achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,
-    localResiduals: residuals.slice(0, priorStart), arrivalResiduals: residuals.slice(priorStart)};
-  const {child: _child, ...measurement} = result;
   const contactPositions = !fragments && options.constructionRequests?.[i]?.construction === 'scattered'
     ? child.getCachedContactPositions(s.frame, s.horizon) : undefined;
-  s.candidates.push({lines: added, c, cost, localCost, measurement, contactPositions,
-    headingPrior, residuals, heading, endSpeed, pose, valueFeatures, predictedFuture, terminalLoss,
-    meta: {achieved, impact: actualImpact, release: result.release, lines: added.length, railGuides: fragments?.guideIds, motion, motionCost}});
+  const candidate: MeasuredCandidate = {lines: added, c, cost, localCost, residuals, localResidualCount,
+    trajectoryAxes: achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,
+    contactPositions, headingPrior, heading, endSpeed, pose, valueFeatures, predictedFuture};
+  s.candidates.push(candidate);
   // Interrupted evaluations never reach this cache insertion.
-  const {child: _saved, ...saved} = result;
-  s.memo.set(key, {result: saved, candidate: {...s.candidates.at(-1)!}});
-  if (!s.best || cost < s.best.optimizationCost) s.best = result;
+  s.memo.set(key, candidate);
+  const result = restoreCandidate(candidate, child);
+  if (!s.best || cost < s.best.candidate.cost) s.best = result;
   return result;
 }

@@ -1,19 +1,7 @@
+/** Per-gap axis reductions. Trajectory measurements are independent of geometry;
+ * reporting adds grain from the selected lines. Objectives can measure individual
+ * axes through the registry below. */
 import {hypot2} from '../../lib/hypot2.ts';
-/**
- * Per-axis measurement ("reduction") registry.
- *
- * Each axis collapses a gap's worth of simulation into one normalized scalar,
- * and each does it DIFFERENTLY (air/speed are means over a frame range; grain is
- * a median of line lengths). Keeping
- * these as a name-keyed map — rather than hardcoded inline — means the achieved
- * value of an axis is defined in exactly one place, and a future axis (e.g.
- * `amplitude`, whose reduction is a per-gap PEAK height, not a mean) is a single
- * new entry here with no caller changes.
- *
- * The bodies are extracted verbatim from the former inline `measureAxes`; the
- * numbers are unchanged (guarded by the byte-identical / golden-parity gates).
- */
-
 import type { Detection } from "../../lib/detector.ts";
 import {
   type AxisName,
@@ -21,6 +9,7 @@ import {
   type Gap,
   type TrackLine,
   CALIB,
+  AXES,
   IMPACT_WINDOW,
   normImpact,
   speedPxToAuthored,
@@ -74,8 +63,8 @@ export function measureGrainFromLines(gapLines: readonly TrackLine[]): number | 
 
 /**
  * Altitude trend over [gap.start, rangeEndFrame], on the relative climb-effort
- * scale: net vertical displacement (Δy = ∫vy, reconstructed from velocity since
- * the candidate detection drops `position`) normalized against the speed-relative
+ * scale: net vertical displacement (Δy = ∫vy, the fingerprinted displacement
+ * definition) normalized against the speed-relative
  * elevation band for this gap (entering speed × gap length). 0.5 = level, →1 the
  * steepest climb this speed supports, →0 the steepest plunge. See types.ts
  * `netDyToElevation` / `elevationBand` — the same band the launch generator uses,
@@ -104,11 +93,9 @@ const measureElevation: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * trend and orthogonal to `air` (which is how *long* it stayed aloft). Frames
  * below the chord contribute nothing (clamped at 0 = no upward arc).
  *
- * Vertical displacement is reconstructed by integrating `vy` from the gap start:
- * NOT because position is unavailable - `POOL_MODE` is a hard `true` and every
- * candidate detection populates `position`. The integral form IS the
- * fingerprinted definition of this axis, so reading `position` directly would
- * change the float-op sequence and move a scored quantity. Do not "simplify" it.
+ * Vertical displacement is reconstructed by integrating `vy` from the gap start.
+ * Position is available, but the integral form is the fingerprinted definition:
+ * reading position directly would change the float-op sequence of a scored axis.
  * `velocity` is always present, and the integral of vy
  * is exactly the chord-relative height we need. Two passes, no allocation; this
  * runs per candidate, so it stays as cheap as `measureAir`/`measureSpeed`.
@@ -162,7 +149,7 @@ const measureAmplitude: AxisReduction = ({ det, gap, rangeEndFrame }) => {
  * `gapLines` is unused here. `undefined` when not targeted / no landing event near
  * the beat — the "not defined here" convention.
  */
-const measureImpact: AxisReduction = ({ det, gap }) => {
+function measureImpact(det: Detection, gap: Gap): number | undefined {
   if (gap.targets.impact === undefined) return undefined;
   const landing = findAuthoredContactNearFrame(
     det,
@@ -173,32 +160,52 @@ const measureImpact: AxisReduction = ({ det, gap }) => {
   if (landing === undefined) return undefined;
   const px = contactRedirArcPxAtLanding(det, landing.frame, IMPACT_WINDOW);
   return px === undefined ? undefined : normImpact(px);
-};
+}
 
-/** The reduction for each axis. Add a new axis = add one entry. */
+/** Individual reductions for consumers that need only selected axes. */
 export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
   air: measureAir,
   speed: measureSpeed,
   grain: measureGrain,
   elevation: measureElevation,
   amplitude: measureAmplitude,
-  impact: measureImpact,
+  impact: ({det, gap}) => measureImpact(det, gap),
 };
 
-/**
- * Measure all targeted-able axes over a gap. Equivalent to the former inline
- * `measureAxes`: every axis is measured (the cost function only scores the ones
- * actually targeted), absent axes omitted.
- */
+/** All gap axes, including geometry-only grain. Preserve the canonical field
+ * order and omit undefined axes in reports. */
 export function measureGapAxes(
   det: Detection,
   gap: Gap,
   gapLines: readonly TrackLine[],
   rangeEndFrame = gap.endFrame,
 ): AxisValues {
+  return withGrain(measureTrajectoryAxes(det, gap, rangeEndFrame), gapLines);
+}
+
+/** Add the geometry measurement only when a consumer needs it. Search scores
+ * trajectory axes; selecting a candidate for reporting measures its grain. */
+export function withGrain(axes: AxisValues, gapLines: readonly TrackLine[]): AxisValues {
+  const grain = measureGrainFromLines(gapLines);
+  if (grain === undefined) return axes;
+  const out: AxisValues = {};
+  for (const axis of AXES) {
+    const value = axis === 'grain' ? grain : axes[axis];
+    if (value !== undefined) out[axis] = value;
+  }
+  return out;
+}
+
+/** Measure trajectory axes without sorting line lengths for an unselected
+ * candidate. The shared scan preserves each reduction's arithmetic order. */
+export function measureTrajectoryAxes(
+  det: Detection,
+  gap: Gap,
+  rangeEndFrame = gap.endFrame,
+): AxisValues {
   const out: AxisValues = {};
 
-  // Hot all-axis path: preserve AXES output order while sharing the common frame
+  // Trajectory path: preserve AXES output order while sharing the common frame
   // scan across air/speed/elevation/amplitude. AXIS_MEASURE remains the per-axis
   // registry for callers that need individual reductions.
   const a = gap.startFrame;
@@ -229,18 +236,6 @@ export function measureGapAxes(
   if (totalFrames > 0) out.air = airFrames / totalFrames;
   if (speedFrames > 0) out.speed = speedPxToAuthored(speedSumPx / speedFrames);
 
-  if (gapLines.length > 0) {
-    const lineLens = new Array<number>(gapLines.length);
-    for (let i = 0; i < gapLines.length; i++) {
-      const line = gapLines[i];
-      lineLens[i] = hypot2(line.x2 - line.x1, line.y2 - line.y1);
-    }
-    lineLens.sort((a, b) => a - b);
-    const m = lineLens.length >> 1;
-    const grainMedian = lineLens.length % 2 ? lineLens[m] : (lineLens[m - 1] + lineLens[m]) / 2;
-    out.grain = Math.min(1, grainMedian / CALIB.LINE_LENGTH_CAP);
-  }
-
   const span = b - a;
   if (span > 0) {
     const v0 = velocityAt(det, a);
@@ -259,58 +254,7 @@ export function measureGapAxes(
     }
   }
 
-  const impact = measureImpact({ det, gap, gapLines, rangeEndFrame });
+  const impact = measureImpact(det, gap);
   if (impact !== undefined) out.impact = impact;
   return out;
-}
-
-export type BallisticAxisPrefixSummary = {
-  startFrame: number;
-  prefixEndFrame: number;
-  airFrames: number;
-  speedSumPx: number;
-  speedFrames: number;
-  dy: number;
-  v0SpeedPx: number;
-};
-
-export function summarizeBallisticAxisPrefix(
-  det: Detection,
-  gap: Pick<Gap, "startFrame">,
-  prefixEndFrame: number,
-): BallisticAxisPrefixSummary | null {
-  const startFrame = gap.startFrame;
-  const prefixEnd = Math.max(startFrame, Math.min(prefixEndFrame, measurementLastFrame(det)));
-  let airFrames = 0;
-  let speedSumPx = 0;
-  let speedFrames = 0;
-  let dy = 0;
-  for (let f = startFrame; f <= prefixEnd; f++) {
-    if (airborneAt(det, f)) airFrames++;
-    const v = velocityAt(det, f);
-    if (v !== undefined) {
-      const speed = hypot2(v.x, v.y);
-      if (Number.isFinite(speed)) {
-        speedSumPx += speed;
-        speedFrames++;
-      }
-    }
-    if (f > startFrame) {
-      if (v === undefined) return null;
-      dy += v.y;
-    }
-  }
-  const v0 = velocityAt(det, startFrame);
-  if (v0 === undefined) return null;
-  const v0SpeedPx = hypot2(v0.x, v0.y);
-  if (!Number.isFinite(v0SpeedPx)) return null;
-  return {
-    startFrame,
-    prefixEndFrame: prefixEnd,
-    airFrames,
-    speedSumPx,
-    speedFrames,
-    dy,
-    v0SpeedPx,
-  };
 }

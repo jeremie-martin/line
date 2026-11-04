@@ -27,10 +27,10 @@ async function worker(id: string, seed: number) {
   const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen) => {
     if (!(asks[i] >= .6)) return;
     const parents = [...new Set(offered.map(o => o.interval))];
-    pools.push({i, ask: asks[i], kept: chosen.map(o => key(o.candidate.c)), parents: parents.map(interval => interval.candidates.map((x: any) => {
-      const r = x.residuals as number[], local = x.measurement.localResiduals as number[];
-      return {k: key(x.c), imp: r4(x.meta.impact), air: r4(r[0]), speed: r4(r[1]), impR: r4(r[3]),
-        rest: r4(local.slice(4).reduce((s: number, v: number) => s + v * v, 0)), prior: r4(x.cost - x.localCost),
+    pools.push({i, ask: asks[i], kept: chosen.map(o => key(o.candidate.c)), parents: parents.map(interval => interval.candidates.map(x => {
+      const r = x.residuals;
+      return {k: key(x.c), imp: r4(x.actualImpact), air: r4(r[0]), speed: r4(r[1]), impR: r4(r[3]),
+        rest: r4(r.slice(4,x.localResidualCount).reduce((s, v) => s + v * v, 0)), prior: r4(x.cost - x.localCost),
         local: r4(x.localCost), future: r4(x.predictedFuture), offered: offered.some(o => o.candidate === x)};
     }))});
   };

@@ -122,3 +122,7 @@ plan and its log.
 - Before a new optimization trial, declare whether adoption requires a speedup
   or permits a resource tradeoff, with explicit regression bounds and separate
   correctness/design gates. A timing verdict alone is not an adoption decision.
+  The tool's default 2% margin is not a universal minimum benefit: weigh a
+  supported smaller improvement against simplicity and resource gains. Keep
+  the fixed experiment and its reported verdict intact; record any owner-led
+  change to the adoption policy explicitly.

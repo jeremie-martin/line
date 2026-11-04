@@ -1,5 +1,172 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: keep candidate facts minimal and measure geometry at reporting
+
+Trajectory workspace reuse also misses the 2% speed gate: screen −2.052%
+[−2.588%, −1.693%], INCONCLUSIVE. Finish its declared default guard and preserve
+the trial; no confirmation or extra pairs. Leave the working-array change out
+of the next candidate and retain the simpler facts/fixed-future implementation.
+
+Further ownership audit finds two residual slices created for every candidate:
+arrivalResiduals has no consumer; localResiduals is used only in a research
+report. Keep one vector plus its local partition count, derive a slice only at
+that report, and remove optimizationCost, which always duplicates cost.
+Likewise grain is a geometry-only reporting axis, never a search term. The
+counter records 1,201,491 line lengths across cell-62 full-axis measurements.
+Keep trajectory reductions in candidate facts and add grain only at reporting,
+using one existing grain formula and the canonical axis field order. No scoring,
+model, search, observation or native arithmetic changes.
+
+Compare this new combined candidate independently with `4d2346e8`: fixed v3
+cell-62 screen12 then fresh confirm24, both FASTER at 2%, and separate
+default-cell-61 guard12 bounding regression at +2%. CPU 2, five warmups,
+three repeats, requested 95% confidence, seeds 1729/2718. Require unchanged
+WASM capacity, at most 15% higher fresh peak RSS, frozen-reference axis tests,
+exact full checkpoints and the full structural gate. Freeze before timing;
+no heavy concurrent work, optional extension or unchanged-source restart.
+
+The fixed screen passes: −3.733% [−4.244%, −3.390%], FASTER at 2%.
+The default guard passes: −1.739% [−2.222%, −0.465%], bounding regression
+below +2% (its two-sided timing verdict is INCONCLUSIVE at the ±2% margin).
+Both resource guards pass. The unchanged candidate is in fresh confirm24.
+
+While confirmation is underway, the owner revises the adoption preference:
+2% is too rigid as a universal minimum; weigh evidence of benefit together with
+cleaner design instead of rejecting a sound improvement narrowly below it.
+Keep the frozen protocol, 24 pairs and raw 2% timing verdict unchanged. The
+engineering decision now considers the confidence interval and simplicity gains,
+with exact correctness and no unresolved meaningful default/resource regression
+still required. Earlier trial results and decisions remain recorded as run.
+
+Final confirmation passes at −3.643% [−4.002%, −3.090%], FASTER at 2%.
+Adopt the minimal-facts/fixed-future/reporting version; it qualifies under both
+policies. All 774 measurement compiles match exact tracks/work, all resource
+guards pass, and `npm run check` passes (442 JS, 29 Rust, 65 saved/live physics,
+63 compiler cases and 33 judge tracks; types/reach clean). Frozen source/test
+hashes remain unchanged. Default median compile cost is 7,432 ns per charged
+frame; the 7,000 ns default target remains open. See the
+[full trial history and evidence](docs/research/engine-candidate-records-20261104.md).
+
+## November 4: reuse the candidate trajectory prefix
+
+The facts/future-feature screen closes at −2.470% [−2.798%, −1.960%],
+INCONCLUSIVE at the declared 2% margin. Its default guard passes at −0.835%
+[−0.979%, −0.498%], EQUIVALENT; all 388 compiles match tracks/work and both
+resource guards pass. No confirmation, extra pairs or adoption of that version.
+
+The next candidate also removes repeated trajectory-prefix copies. Isolated
+counters find 28,113 reusable replays copying 25,021,462 unchanged prefix entries
+versus 669,523 suffix entries on cell 62 (default: 5,141 replays, 4,431,336 prefix
+entries and 117,886 suffix entries). One interval-owned working array retains
+its prefix and replaces the suffix. Evaluation borrows it synchronously, just
+like detector storage; the immutable prefix retained by terminal scoring stays
+separate. Invalidated prefixes continue to use the existing full native read.
+Candidate facts never retain the mutable trajectory array. No new cache or API.
+
+Compare the combined change independently with `4d2346e8`. Fixed v3 cell-62
+screen12 and fresh confirm24 must both be FASTER at 2%; default-cell-61 guard12
+must bound regression at +2%. CPU 2, five warmups, three repeats, requested 95%
+confidence, seeds 1729/2718. Require unchanged WASM capacity, fresh peak RSS at
+most 15% higher, full-checkpoint equality, focused ownership tests and the full
+structural gate. Freeze before timing; no concurrent heavy work, extra pairs or
+restart of an unchanged candidate. All earlier trials stay closed.
+
+## November 4: share candidate facts and prepare fixed future features
+
+Keep all earlier screens closed. The owner asks to combine the clean candidate
+representation with another improvement to reach the declared 2% threshold.
+Fresh profiles of separate live handles still put candidate recording at 3.78%
+self time on cell 62. Instrumented exact-checkpoint compiles find 16,299 future
+value feature constructions across only 425 eligible interval searches. Their
+target and construction suffix is constant within a search. Prepare that suffix
+when opening the interval; concatenate each candidate's physical arrival onto
+it. Keep one encoding, no cache or compatibility path. Proposal/response feature
+shapes, all values, scoring and search remain unchanged. The same counters find
+zero excess-amplitude rescans in both cells, so leave that path alone.
+
+The combined candidate is independently compared with `4d2346e8`, not with an
+earlier prototype. Fixed protocol v3: cell-62 screen12 then fresh confirm24,
+both FASTER at 2%; separate default-cell-61 guard12 bounds regression at +2%.
+CPU 2, five warmups, three repeats, requested 95% confidence, seeds 1729/2718.
+Require unchanged WASM capacity, at most 15% higher fresh peak RSS, exact full
+checkpoints, feature-contract/ownership tests and the full structural gate.
+Freeze after focused validation; no heavy work alongside timing, no additional
+pairs or restart of an unchanged candidate. No isolated speedup claim for the
+feature change from this combined comparison.
+
+## November 4: separate candidate facts from live handles
+
+The flat candidate-record screen completes at −1.140% [−1.585%, −0.008%],
+EQUIVALENT within ±2%; its speed gate fails. Finish its fixed default guard
+and preserve both results. No confirmation or adoption of that version.
+
+A distinct follow-up removes its remaining whole-record spread: live evaluations
+pair `{candidate, child}` instead of copying every measured field to attach an
+engine. Local search reads the shared facts; selection and refinement use the
+explicit candidate they selected. One canonical owned record and one small live
+handle wrapper, with no fallback metadata lookup or compatibility layer.
+
+Reference remains `4d2346e8`. This new candidate must independently pass the
+same fixed v3 cell-62 screen12 and fresh confirm24 at 2%, plus default-cell-61
+guard12 bounding regression at +2%. CPU 2, five warmups, three repeats, requested
+95% confidence, seeds 1729/2718. Require unchanged WASM capacity, at most 15%
+higher fresh peak RSS, complete exact checkpoints and the full structural gate.
+Freeze after implementation/checks; no other heavy work during timing and no
+extra pairs or restart of an unchanged candidate.
+
+The separate-handle screen also fails the speed gate: −1.172%
+[−1.570%, −0.833%], EQUIVALENT within ±2%. No confirmation or adoption.
+The default guard passes at −0.732% [−1.249%, −0.376%], EQUIVALENT.
+All 388 warmup/timed/resource compiles match exact tracks/work, and both
+resource guards pass. The owner explicitly asks to keep developing or combine
+this idea to achieve the required 2%. Retain it as an unadopted experimental
+base, preserving the closed results; profile/count complementary repeated
+measurement work before choosing the next frozen candidate. Production remains
+the earlier qualified prefix-scoring commit until a candidate qualifies.
+
+## November 4: one owned candidate record
+
+Reference remains `4d2346e8`; the query-normal trial is closed and reverted.
+Fresh profiles put candidate recording at 4.78% self time in cell 62. Unlike
+the earlier copy-removal trial, consolidate the representation itself: one
+read-only measurement/arrival record shared by the candidate list and memo;
+only live evaluation adds an engine handle. Remove duplicated `measurement`,
+`meta` and memo `result` records; project reporting fields only when selected.
+Adapt search, restoration, refinement and study consumers together. Preserve
+scoring, selection, record ownership and complete compiler output/work.
+
+Adoption requires larger cell 62 FASTER at 2% in fixed v3 screen12 and fresh
+confirm24, plus a separate default-cell-61 guard12 bounding regression at +2%.
+CPU 2, five warmups, three repeats, requested 95% confidence, seeds 1729/2718.
+WASM capacity must remain unchanged, fresh-process peak RSS may rise at most
+15%, and full structural/design gates must pass. Freeze before measuring;
+no heavy work alongside timings or extra pairs for an unchanged candidate.
+
+## November 4: contiguous collision-query normals
+
+Reference `4d2346e8`, on `perf/compiler-after-foundations`. Fresh Inspector
+profiles (five warmups, three measured compiles, 250 us samples, CPU 2)
+retain native stepping/collision lookup as the main cost. Hypothesis: store
+the two immutable normal components alongside each flattened neighborhood
+entry, so each frame's direction filter reads contiguous values instead of
+following every geometry pointer. Preserve the exact dot product, ordered
+entries/duplicates, borrowed-pointer lifetime and all invalidation boundaries.
+One private query-entry record; no new cache or geometry owner.
+
+Speed adoption requires default cell 61 FASTER at the 2% margin in fixed
+v3 screen12 and fresh confirm24; separate larger-budget cell 62 guard12
+must bound regression at +2%. CPU 2, five warmups, three repeats, requested
+95% confidence, order seeds 1729/2718. Require at most 5% higher WASM
+capacity and 15% higher fresh-process peak RSS, exact tracks/work, all
+structural gates and a clean design. No heavy work during timing, no
+extension/restart of an unchanged candidate, and no target claim from a
+different workload. Freeze before timing.
+
+The screen is EQUIVALENT: 0.231%, interval [-0.405%, 1.114%].
+The 2% speed gate fails; no guard, confirmation or extra pairs. Candidate
+source/package restored exactly. All 30 candidate Rust tests and 65 saved/live
+physics cases passed. Raw timing and the candidate patch are retained.
+
 ## November 4: improve the near-miss prefix objective
 
 Owner explicitly requests another attempt at the strongest prior approach.

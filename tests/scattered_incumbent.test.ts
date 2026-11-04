@@ -14,9 +14,9 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
  resetFrameCount();setPhysicsFrameLimit(250_000);
  try{
   const initial=searchInterval(ctx,engine,f.section,{directControls:[f.control]},[engine]);
-  expect(initial?.best?.actualImpact).toBeCloseTo(f.impact,12);
+  expect(initial?.best?.candidate.actualImpact).toBeCloseTo(f.impact,12);
   const key=(c:any)=>arcControlMemoKey(c,options.channel);
-  const incumbent=key(initial!.best.c);
+  const incumbent=key(initial!.best.candidate.c);
   // The previously verified offered control remains valid regardless of rank,
   // whether or not the cheaper connected carriers also realize scattered catches.
   const broader=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);
@@ -34,7 +34,7 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
   catch(e){if(!(e instanceof PhysicsFrameLimitExceeded))throw e;throw Error('discarded validated offered incumbent at the work ceiling',{cause:e});}
   // It returns the best realization already validated, as without the ceiling.
   expect(atLimit?.best).toBeTruthy();
-  expect(atLimit?.best.actualImpact).toBeCloseTo(broader!.best.actualImpact,12);
+  expect(atLimit?.best.candidate.actualImpact).toBeCloseTo(broader!.best.candidate.actualImpact,12);
   expect(ctx.work.budgetInterruptions).toHaveLength(0);
   // If another fragment still needs validation at the ceiling, preserve the
   // verified offered incumbent while interrupting only that fresh replay. Since
@@ -45,7 +45,7 @@ for(const song of ['tiki_tiki_48s','luna_bala_44s'])it(`retains an offered scatt
     if(entry.endsWith('|fragments')&&entry!==incumbent+'|fragments')k.delete(entry);
   setPhysicsFrameLimit(getPhysicsFrameCount()+2);
   const interrupted=searchInterval(ctx,engine,f.section,{directControls:[f.control,...f.carriers]},[engine]);
-  expect(interrupted?.best?.actualImpact).toBeCloseTo(f.impact,12);
+  expect(interrupted?.best?.candidate.actualImpact).toBeCloseTo(f.impact,12);
   expect(ctx.work.budgetInterruptions.at(-1)).toMatchObject({phase:'fragments',retained:true});
  }finally{setPhysicsFrameLimit(null);Engine.retainOnly([])}
 },30_000);

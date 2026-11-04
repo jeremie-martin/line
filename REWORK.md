@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+A runtime constraint table removes duplicate metadata/calls and shrinks the two
+generated solver bodies **41.61%**. All 28 Rust tests (including 60,000 unrolled
+solver comparisons) and independent native replay pass. Screen12 nevertheless
+REJECTs it: **+2.02% [+1.42,+2.66]**, 0/12 wins. No loop tuning, confirmation or
+adoption follows (`docs/research/engine-constraint-table-20261104.json`).
+
 A single-feature metric bound chosen by model range preserves the original
 heap/output/work and checks every predicted rejection. Its extra probes cost
 more than the distance terms avoided: **1.96% more arithmetic**, or 8.19% with

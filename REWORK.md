@@ -1,5 +1,46 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: profile whole candidate lifecycles before further optimization
+
+Fresh V8 Inspector CPU profiles of unchanged `214e38a8` cover one warmup and
+three full compiles each for automatic cells 61 and 62, pinned to CPU 2. A
+separate V8 allocation sample covers three default compiles. All nine captured
+compiles retain exact track/work and full checkpoint digests. Fixture loading,
+warmup and output serialization are excluded; profiler-control stacks remain in
+the raw captures but are excluded from application percentages. Linux `perf` is
+installed but denied by `perf_event_paranoid=4`; system settings are unchanged.
+
+The compiler's native WASM accounts for about **47%** of application samples in
+both workloads. Exclusive phase shares are replay/prefix checks **31.6%/33.6%**,
+geometry construction/registration **17.1%/16.3%**, and trajectory assessment,
+detection, objectives and candidate recording **12.7%/21.5%**. Candidate recording
+alone grows from **0.94% to 8.15%**. Model lookup is roughly **5%** of the default
+case; eliminating it cannot close the remaining **22.9%** reduction to 7,000 ns.
+These are diagnostic cost shares, not speedup evidence or hardware-counter data.
+
+Default sampled cumulative JavaScript allocation is **886 MiB/compile**, including
+collected objects, not live heap or RSS. Materializing cached raw-frame objects
+alone accounts for **134 MiB**. Impact observation, strikes, detector arrays and
+motion samples allocate further intermediate representations. This profile has a
+narrower boundary than earlier allocation studies, so their totals are not direct
+comparisons. GC samples remain unattributed to individual allocation sites.
+
+Prioritize the trajectory boundary: investigate one common representation and
+explicit observation lifetime across detection, impact, motion and construction
+assessment, preserving exact arithmetic and output. Then examine short-lived
+candidate geometry versus long-lived version registration, and the larger
+case's repeated whole-trajectory scoring. These are hypotheses requiring further
+ownership/cost evidence, not demonstrated improvements. Do not repeat the closed object
+pool, virtual-view or eager-column trials unchanged. Candidate order, physical
+work, collision order and the scoring contract remain fixed.
+
+Standard CPU/allocation flame graphs and a Speedscope export are available in
+`generated/report/engine-cost-map-20261104/`. Raw profiles, renderer provenance,
+classification code, limitations and design priorities are preserved in
+`docs/research/engine-cost-map-20261104.json`. No runtime change or new timing
+claim is made; the qualified default remains **9,076 ns/frame**. The next action
+is a cross-consumer trajectory investigation, not another series of small probes.
+
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
 The final source cleanup removes the duplicate constraint tuple table and

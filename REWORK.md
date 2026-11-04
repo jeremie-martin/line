@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Sharing immutable geometry buckets across cache copies passes 28 Rust tests and
+independent native replay, including ownership and edit-isolation checks. The
+fixed screen12 is **+1.07% [−0.20,+2.48]**, 5/12 wins, INCONCLUSIVE. Required
+KEEP fails; no follow-up timing, tuning or adoption follows. Source, tests and
+raw pairs: `docs/research/engine-shared-grid-buckets-20261104.json`.
+
 An owned numeric-column impact representation passes 36 focused tests, typecheck
 and 41,971 exact frozen-reference comparisons. It nevertheless loses all 12
 timing pairs: **+5.24% [+4.04,+6.56]**, REJECT. No confirmation, tuning or

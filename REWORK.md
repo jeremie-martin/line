@@ -83,6 +83,16 @@ bound also exceeds the separately predeclared +0.5% cleanup guard, so neither
 speedup nor cleanup adoption qualifies. No further run follows; the original
 conversion remains. Evidence: `docs/research/engine-grid-floor-20261104.json`.
 
+Constructing complete impact records and avoiding the account's extra spread
+array passes 20 focused tests and typecheck, but screen12 rejects it:
+**+2.46% [+1.20,+3.80]**, 1/12 wins. No further qualification or variant follows
+(`docs/research/engine-impact-records-20261104.json`). Reusing previous nearest
+rows only as initial heap seeds preserves exhaustive stable retrieval and passes
+16 focused tests. Its untimed distance-term count falls 7.38%, below the declared
+10% minimum, so no timing follows. The extra membership workspace is not adopted
+(`docs/research/engine-retrieval-seeds-20261104.json`). These trials leave the
+qualified 9,076 ns implementation unchanged.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

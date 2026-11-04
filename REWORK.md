@@ -114,6 +114,23 @@ solver saving to justify further certificate machinery. Counts, exact work/hash,
 raw profiles and cautiously mapped names are in
 `docs/research/engine-line-use-20261104.json`; no new lazy implementation is added.
 
+An ordered point/friction loop shrinks the two generated solver bodies by about
+65% and 61%, and the binary by 20,490 bytes. Rust tests and native replay pass,
+but its isolated screen12 is inconclusive: −1.20% [−2.06,−0.32], 9/12 wins,
+failing the sign safeguard. Binary control memo keys also preserve all 41,495
+equivalence cases but fail their screen: −0.36% [−1.31,+0.62], 7/12 wins.
+Neither isolated candidate is adopted or rerun. Evidence is in
+`docs/research/engine-point-loop-20261104.json` and
+`docs/research/engine-binary-control-key-20261104.json`.
+
+Fresh untimed stage counts find 9,550 geometry builds, 5,397 successful replays,
+3,412 successful inspections and 3,365 measured candidates. Native raw-window
+reads materialize 492,859 frame records across 5,592 calls. Sampled allocation
+profiles identify substantial temporary storage in `Math.hypot`; these include
+collected objects and fixture loading, and are neither live memory nor timing
+evidence. The raw profile, instrumentation and exact track/work checks are in
+`docs/research/engine-candidate-stages-20261104.json`.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

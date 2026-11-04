@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+A single-feature metric bound chosen by model range preserves the original
+heap/output/work and checks every predicted rejection. Its extra probes cost
+more than the distance terms avoided: **1.96% more arithmetic**, or 8.19% with
+model setup. The declared 25% reduction gate fails. No alternate axis, tuning or
+timing follows (`docs/research/engine-metric-axis-bound-20261104.json`).
+
 Native history performs 498,884 immutable line-finiteness checks for 402,034
 constructed lines: **1.24 checks per line**, below the predeclared 3× reuse
 gate. Exact default track/work holds. No precomputed flag or performance trial

@@ -1,5 +1,121 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: foundation review before another optimization campaign
+
+Reviewed executable commit `13f9175b` after the owner requested a broader
+maintainability checkpoint. Optimization remains paused. This review changes
+documentation only; it makes no new timing claim and does not promote another
+implementation. Scope: native ownership/cache mutation, the compiler's candidate
+and memo boundary, borrowed observations, metering/research hooks, and build,
+validation and measurement workflows. The recent full validation still applies
+to the unchanged executable; two small lifetime demonstrations supplement the
+source review, not the parity suite.
+
+**Assessment.** The core is usable and can evolve; it is not yet the simplest
+or most robust complete development system. The latest history sharing is a
+good consolidation: one safe immutable-prefix implementation serves states and
+collision snapshots, without depending on search ranking or musical objectives.
+Private native modules own mutation and invalidation, line batches own immutable
+geometry, and the independent judge stays separate. Keep those boundaries.
+Keep the measured, localized solver specializations rather than replacing them
+with a broad abstraction solely for uniformity. Their unsafe pointer shortcuts
+still deserve explicit invariant coverage when mutation paths change.
+
+The compiler remains free to change proposals, ranking, recovery and objectives.
+Track/work parity is the structural-change gate, not a prohibition on improving
+behavior. Intentional behavioral changes use the existing paired quality panels,
+fixed independent rulers, declared inputs and explicit reference updates. Physics
+parity and compiler-output parity are different contracts.
+
+Findings and bounded follow-up work, in priority order:
+
+1. **Restore a completely usable validation baseline before another campaign.**
+   `tests/eval_evidence.test.ts:70` launches the real evaluation CLI against local
+   production assets. Missing `amor_na_praia_46s/audio.mp3` stops planning before
+   the intended failed-worker and resume assertions can run. The known red test
+   is a coverage gap, not merely a noisy status. Make this scenario self-contained
+   with controlled fixtures; retain the actual worker-failure/resume assertions.
+   Do not skip it or loosen the assertions to accept an unrelated input failure.
+   Completion means the full suite is green without external production audio.
+
+2. **Make candidate ownership and memo contents explicit before expanding search.**
+   `arc_interval_state.ts` stores `best`, candidates and memo values as `any`;
+   `arc_candidates.ts` ranks/restores untyped records. `arc_lineage.ts` caches a
+   prefix hash over mutable `TrackLine[]` references. Current code carefully
+   strips engine wrappers from memoized measurements, and the exhaustive
+   `EVALUATION_IDENTITY` option classification is a valuable safeguard. Preserve
+   both. Define a small set of owned measurement/candidate types and an explicit
+   accepted/rejected memo union, with readonly geometry where identity is cached.
+   This should be an incremental type/boundary change, preserving runtime object
+   layout, evaluation order and outputs; it does not need a new search framework.
+
+   Borrowing also needs a clearer boundary. `getCachedMotionWindow()` returns an
+   ordinary `Float64Array`; `DetectionContinuation.withDetection()` passes a
+   mutable `Detection` and permits returning that same object. In deliberate
+   review probes, a retained detection's speed-array length changed from 40 to
+   20 after workspace reuse, and a motion view's first value changed from 4 to
+   8 after another engine's read. These violate the documented lifetime contract;
+   they are not observed failures of the current consumers. Keep borrowed views
+   internal to synchronous observation code and stored results owned. Readonly
+   types help prevent mutation but cannot by themselves enforce a borrow lifetime.
+
+3. **Correct host assumptions and capture the supported toolchain.**
+   `tools/eval/eval.ts:72` still defaults to 24 workers and
+   `tools/eval/compare.ts:293` to 44, while parity already sizes concurrency for
+   this 16 GB machine. Use a shared, conservative host-aware default with explicit
+   overrides before large quality runs. Oversubscription is an avoidable risk;
+   this review did not reproduce an out-of-memory failure.
+   The repository has no Node engine declaration/version file or Rust toolchain
+   pin. The qualified environment is Node 22.22.2 / V8 12.4.254.21-node.39 and
+   Rust 1.95.0. In particular, `hypot2` equality was established against that V8
+   calculation; do not assume an arbitrary runtime upgrade preserves it.
+   Record supported versions/build provenance and requalify explicit upgrades.
+
+4. **Make the operating boundary explicit before introducing concurrency.**
+   `detector.ts` owns global counters/limits, while the engine wrapper owns one
+   WASM instance and synchronous engine scopes. This supports the current
+   sequential compile inside isolated workers; it is not an in-process parallel
+   compiler-session abstraction. Preserve worker isolation. Before permitting
+   overlapping or reentrant compilation, scope accounting and cleanup explicitly.
+   The production module also exports `refundPhysicsFramesTo`, used by
+   `tools/research/catch_price.ts`, and `arc_sequence.ts` exposes a mutable global
+   research observer. These are live research facilities, not dead code. Narrow
+   their ability to mutate production accounting and ensure exception-safe
+   installation/restoration; do not casually extend manual save/restore lists
+   when adding compiler state.
+
+5. **Align resource measurements and make decisions reproducible.**
+   Compile CPU time in `engine_ab.ts:50` encloses the entire `compileWorker`,
+   including fixture resolution and output handling. `compileMs` starts inside
+   that worker and includes track hashing before its timestamp. The two fields
+   therefore describe different scopes. Existing paired wall-time comparisons
+   remain valid under their unchanged protocol; do not relabel those records.
+   For a new measurement version, capture CPU and wall time over the same declared
+   operation and label complete-process cost separately. Report WASM high-water,
+   JS heap and process RSS as distinct resources when measured.
+   Keep frozen sources, fixed interleaving, fresh confirmation and exact outputs.
+   Consolidate repeated qualification/memory/report steps around those existing
+   tools so a decision does not depend on reconstructing several `/tmp` scripts.
+   Declare a resource tradeoff policy before future trials; a native timing
+   verdict alone is not an overall design/adoption decision. The last memory
+   adoption remains explicitly a post-result user-priority decision, with its
+   failed original guards preserved.
+
+Alongside boundary work, extend deterministic reference comparisons with seeded
+sequences of add, branch, detach, reset, observe and release operations, including
+exceptions and budget interruptions. Existing tests already cover many of these
+individually. Sequence coverage targets future invalidation/lifetime mistakes;
+parity over saved tracks alone is not an architectural proof.
+
+The next phase should address the green baseline, resource-aware tooling and
+candidate/observation contracts before renewed tuning. Avoid a wholesale engine
+rewrite, a directory-renaming campaign, or adding layers merely to hide the
+specialized kernel. The previous campaign should have taken this design and
+whole-process profiling checkpoint earlier, rather than spending so long on
+small isolated probes. Use bounded campaigns with explicit review points next
+time. Runtime, physics, search, scoring, budgets and performance targets are
+unchanged by this review.
+
 ## November 4: share immutable history and stop after this resource optimization
 
 Coarse geometry-lifecycle instrumentation finds that collision-history cloning

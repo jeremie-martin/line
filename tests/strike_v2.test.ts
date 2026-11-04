@@ -60,6 +60,23 @@ it('v2/v3 incremental detection equals cold detection, across an opposite-push s
   expect(detectStrikes(all, V3).length).toBeGreaterThan(detectStrikes(all, V2).length);
 });
 
+it('accounts continued events exactly like a complete observation under every strike contract', () => {
+  const frames = Array.from({length: 36}, (_, frame) => ({frame, contact: frame % 12 < 9,
+    J: Math.abs(Math.sin(frame)) * 2, bend: .2, solverGain: .1, gravityGain: 0, speedBefore: 5,
+    impulse: [Math.sin(frame) * 2, Math.cos(frame), .1] as const}));
+  const targets = [{frame: 3, impact: .4}, {frame: 14, impact: .6}, {frame: 27, impact: .2}];
+  for (const contract of [STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT]) {
+    const ruler = impactAccount(contract.id);
+    for (const duration of [20, 35]) for (const survived of [true, false]) {
+      const {speedGains: _gains, ...expected} = ruler.evaluate(frames, targets, duration, survived);
+      for (let cut = 0; cut <= frames.length; cut++) {
+        const events = ruler.continue(ruler.prefix(frames.slice(0, cut)), frames.slice(cut));
+        expect(ruler.evaluateEvents(events, targets, duration, survived)).toStrictEqual(expected);
+      }
+    }
+  }
+});
+
 it('the native whole-body read equals bodyMotion over ballisticState exactly', async () => {
   const {bodyMotion} = await import('../scripts/lib/strike_impact.ts');
   const track = compileHandoff(spec, 101, {budget: 180000, creative: {}, impactContract: STRIKE_V3_CONTRACT.id}).track;

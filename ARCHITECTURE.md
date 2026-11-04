@@ -72,6 +72,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    borrowed detection synchronously and retains only owned measurements. Detection
    rescans the short persistence boundary and candidate suffix, with the same
    result as scanning the whole ride.
+   Terminal scoring keeps completed span reductions, support motion costs and
+   closed contact-engagement measurements in that interval workspace. It observes
+   unfinished windows and uses the already-continued strike events. These are
+   owned values; score terms retain their original accumulation order. A changed
+   prefix uses the complete calculation, and no scoring workspace enters a memo.
    Public detections are read-only, including their nested arrays. TypeScript
    does not enforce borrow lifetimes: observation callbacks must return owned
    results and must not capture borrowed storage for later use.
@@ -297,7 +302,9 @@ The compiler uses accounts only through `impact_accounts.ts`. Search,
 refinement, terminal selection, the final replay, production and the review
 all observe and account through one interface. Terminal selection, complete-track
 refinement and final selection also share `arc_objective.ts`: the trajectory loss
-and each physical-support motion/engagement cost are included exactly once. Its search profile is in
+and each physical-support motion/engagement cost are included exactly once.
+Scoring consumes the event/account/validity assessment; complete review evaluations
+also compute speed-gain diagnostics. Its search profile is in
 `contact_impact_profile.ts`, chosen on the song-level evaluation (REWORK.md
 log):
 

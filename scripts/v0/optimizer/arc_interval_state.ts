@@ -13,6 +13,7 @@ import { arcSpanLoss } from './arc_boundary.ts';
 import { impactAccount } from './impact_accounts.ts';
 import { evaluationContext, type IntervalOptions, type IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
+import type {ArcObjectiveContinuation} from './arc_objective.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -121,6 +122,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     inputFeatures, policyInputFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
     best: null as EvaluatedCandidate | null,
+    terminalObjective: undefined as ArcObjectiveContinuation | undefined,
     candidates: [] as MeasuredCandidate[],
     failures: {} as Record<string, number>,
     near: [] as Near[],

@@ -13,7 +13,7 @@ import type {SolidPath} from '../../lib/primitive.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
-import { arcDetectedTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
+import {ArcObjectiveContinuation} from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
 import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
@@ -174,8 +174,8 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
     return {reason: 'late_release'} as Rejection;
   const ruler = options.impactContract ? impactAccountFor(options.impactContract) : undefined;
   const observedImpacts = ruler ? ruler.observe(child, raw.frames.slice(frame), state) : undefined;
-  const impactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts)
-    .filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon)) : undefined;
+  const allImpactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts) : undefined;
+  const impactEvents = allImpactEvents?.filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon));
   const impactAccount = impactEvents ? ruler!.account(impactEvents, s.localImpactTargets) : undefined;
   const impactMatch = impactAccount?.matches.find(m => m.target === s.currentImpactTarget);
   if (options.impactContract && i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
@@ -189,7 +189,7 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
       return {reason: 'construction:' + fulfillment.reasons.join(','), near: {c, deficit: constructionDeficit(fulfillment)}} as Rejection;
     }
   }
-  return {state, raw, det, observedImpacts, impactEvents, impactAccount, impactMatch, request};
+  return {state, raw, det, observedImpacts, allImpactEvents, impactEvents, impactAccount, impactMatch, request};
 }
 
 type Trace = Exclude<ReturnType<typeof inspectTrajectory>, Rejection>;
@@ -321,7 +321,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
 function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, added: CandidateGeometry, child: Engine,
   fragments: Fragments | undefined, traced: Trace, measured: Exclude<ReturnType<typeof measureObjective>, Rejection>): EvaluatedCandidate {
   const {ctx, options, i, frame, horizon} = s;
-  const {contacts, duration, gaps, impactTargets} = ctx;
+  const {contacts, duration, impactTargets} = ctx;
   const {state, raw, det, observedImpacts} = traced;
   const {achieved, actualImpact, residuals, cost, localCost, priorStart, motion, motionCost, finalVelocity, headingPrior} = measured;
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
@@ -329,9 +329,10 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const terminalPhysical = options.impactContract && i === contacts.length - 1
     ? [...s.prefixImpactFrames!, ...observedImpacts!] : undefined;
   const terminalImpacts = terminalPhysical
-    ? impactAccountFor(options.impactContract!).evaluate(terminalPhysical, impactTargets, duration, true) : undefined;
+    ? impactAccountFor(options.impactContract!).evaluateEvents(traced.allImpactEvents!, impactTargets, duration, true) : undefined;
   const terminalLoss = i === contacts.length - 1
-    ? arcSelectionObjective(ctx, raw, terminalPhysical, arcDetectedTrajectoryObjective(det, gaps, options.amplitudeWeight, terminalImpacts)).loss : undefined;
+    ? (s.terminalObjective ??= new ArcObjectiveContinuation(ctx, s.prefixRaw, options.amplitudeWeight))
+      .score(raw, det, terminalPhysical, terminalImpacts).loss : undefined;
   let release: number | undefined;
   for (let k = raw.frames.length - 1; k >= 0 && release === undefined; k--) if (raw.frames[k].sledContacts.length) release = raw.frames[k].frame;
   const finalState = state.points;

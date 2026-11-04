@@ -15,7 +15,7 @@
  *  diagnostic in tools/measure.) */
 export const DEFAULT_IMPACT_ACCOUNT = 'line.strike.v3';
 import {CONTACT_IMPACT_CONTRACT, accountContactImpacts, contactSpeedGains, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, observeMotionWindow, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes,
+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT, observeStrikes, observeMotion, observeMotionWindow, bodyMotion, centreVelocity, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes, evaluateStrikeEvents,
   type StrikeContract} from '../../lib/strike_impact.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
@@ -29,12 +29,14 @@ export type ImpactAccount = {
   prefix(observed: ImpactObservation[]): unknown;
   continue(prefix: unknown, observed: ImpactObservation[]): ContactImpactEvent[];
   account(events: readonly ContactImpactEvent[], targets: readonly ImpactTarget[]): ReturnType<typeof accountContactImpacts>;
+  evaluateEvents(events: readonly ContactImpactEvent[], targets: readonly ImpactTarget[], duration: number, survived: boolean): ImpactAssessment;
   evaluate(observed: ImpactObservation[], targets: readonly ImpactTarget[], duration: number, survived: boolean): ImpactEvaluation;
 };
-/** Complete evaluation of a ride under one account (shared by search, refinement,
- * final replay, production and review). */
-export type ImpactEvaluation = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];
-  account: ReturnType<typeof accountContactImpacts>; valid: boolean; speedGains: ReturnType<typeof contactSpeedGains>};
+/** Event matching and validity used by search and whole-trajectory scoring. */
+export type ImpactAssessment = {contract: string; events: ContactImpactEvent[]; targets: readonly ImpactTarget[];
+  account: ReturnType<typeof accountContactImpacts>; valid: boolean};
+/** Complete ride evaluation, including speed-gain diagnostics for review. */
+export type ImpactEvaluation = ImpactAssessment & {speedGains: ReturnType<typeof contactSpeedGains>};
 
 function strikeAccount(c: StrikeContract): ImpactAccount {
   const motion = c.strength === 'motion' || c.split === 'reversal';
@@ -67,6 +69,7 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
     prefix: observed => strikePrefix(observed as any, c),
     continue: (prefix, observed) => continueStrikes(prefix as any, observed as any, c),
     account: (events, targets) => accountStrikes(events as any, targets, c),
+    evaluateEvents: (events, targets, duration, survived) => evaluateStrikeEvents(events as any, targets, duration, survived, c),
     evaluate(observed, targets, duration, survived) {
       return {...evaluateStrikes(observed as any, targets, duration, survived, c),
         speedGains: contactSpeedGains((observed as any[]).filter(f => f.frame <= duration))};

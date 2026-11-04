@@ -1,5 +1,48 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: improve the near-miss prefix objective
+
+Owner explicitly requests another attempt at the strongest prior approach.
+Keep that trial's evidence unchanged; this is a new implementation, not extra
+pairs for the old candidate. Reference remains the executable tree at `4edec76a`
+(identical to `61c88f1c`); branch remains `perf/compiler-after-foundations`.
+
+Hypothesis: completed support costs make cached motion samples redundant. Observe
+only the earliest unfinished support and its burst history, retaining scalar
+costs instead of whole-prefix sample arrays. Measure only targeted objective
+axes, cache their completed reductions, and reuse completed contact engagements
+while recomputing the trailing open engagement in full. Keep one scoring formula
+and the original accumulation order, with an independent frozen full-rescore
+test oracle and real-compiler shadow comparisons.
+
+Adoption requires a speedup on larger-budget cell 62: fixed v3 screen12 then
+fresh confirm24, CPU 2, five warmups, three repeats, requested 95% confidence,
+2% practical margin. Both stages must be FASTER. A separate fixed default-cell
+61 guard12 must bound regression at +2%. Require unchanged WASM capacity,
+no more than 15% higher fresh-process peak RSS, exact tracks/work and the full
+structural gate. Freeze executable sources before screening; no heavy work
+alongside timings, no extending an unchanged trial, and no absolute-default
+speedup claim from a high-budget improvement.
+
+Focused validation passes: typecheck/reach and 30 tests, including an independent
+frozen full scorer. Actual compiles compare all 394 terminal losses and regret
+arrays exactly, with unchanged tracks/work. On cell 62 the new scorer reads
+52,982 motion rows versus 682,880 in complete rescoring, and 49,002 engagement
+rows versus 691,028 (excluding the old impact diagnostic's additional gain scan).
+These are work counts, not speed claims. Source is frozen before timing;
+screen/guard use order seed 1729, fresh confirmation uses 2718.
+
+The fixed screen qualifies: −2.641% [−3.246%, −2.271%]. The separate default
+guard passes at −0.176% [−1.228%, +0.601%], EQUIVALENT. Fresh confirm24 also
+qualifies: −2.903% [−3.111%, −2.657%], with larger-workload medians 7,581 →
+7,365 ns/charged frame. All 774 warmup/timed/resource compiles keep exact
+tracks/work. WASM capacity is unchanged and every peak-RSS guard passes.
+Adopted after `npm run check` passes on the exact frozen source: 439 JavaScript
+tests, 29 Rust tests, zero type errors/unreachable files, 65 saved/live physics
+cases, 63 exact compiler cells and 33 judge tracks. The default workload remains
+equivalent at 7,527 ns/charged frame; the 7,000 ns target is not met. See
+[the study](docs/research/engine-prefix-scoring-20261104.md) for raw evidence.
+
 ## November 4: resume performance work from the calibrated foundations
 
 Branch `perf/compiler-after-foundations`, reference `4edec76a`. Fresh V8 Inspector

@@ -2,6 +2,13 @@ import {describe,it,expect} from 'vitest';
 import {motionSamples,summarizeMotion,NATIVE_GRAVITY} from '../scripts/v0/optimizer/motion_quality.ts';
 
 describe('native motion observations',()=>{
+  it('restarting a sample window preserves exact observations at every split',()=>{
+    const values=[-Number.MAX_VALUE,-1e100,-1,-Number.MIN_VALUE,-0,0,Number.MIN_VALUE,1,1e100,Number.MAX_VALUE];
+    const frames=Array.from({length:42},(_,frame)=>({frame,velocity:{x:values[frame%values.length],y:values[(frame*3+1)%values.length]}}));
+    const whole=motionSamples(frames,1,40);
+    for(let cut=0;cut<whole.length;cut++)
+      expect(whole.slice(0,cut).concat(motionSamples(frames,cut+1,40))).toStrictEqual(whole);
+  });
   it('subtracts gravity along the actual steered path and retains a delayed final response',()=>{
     const frames=[{frame:0,velocity:{x:4,y:-2}},
       {frame:1,velocity:{x:4,y:-2+NATIVE_GRAVITY}},

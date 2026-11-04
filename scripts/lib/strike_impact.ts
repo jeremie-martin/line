@@ -226,7 +226,13 @@ export function accountStrikes(events: readonly StrikeEvent[], targets: readonly
  * validity (survived, every beat matched, every matched event fully observed). */
 export function evaluateStrikes(frames: readonly StrikeFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean,
   c: StrikeContract = STRIKE_CONTRACT) {
-  const events = detectStrikes(frames, c).filter(e => e.onset <= duration), account = accountStrikes(events, targets, c);
+  return evaluateStrikeEvents(detectStrikes(frames, c), targets, duration, survived, c);
+}
+
+/** Account an already detected (including continued) event stream. */
+export function evaluateStrikeEvents(observed: readonly StrikeEvent[], targets: readonly ImpactTarget[], duration: number, survived: boolean,
+  c: StrikeContract = STRIKE_CONTRACT) {
+  const events = observed.filter(e => e.onset <= duration), account = accountStrikes(events, targets, c);
   return {contract: c.id, events, targets, account,
     valid: survived && account.complete && account.matches.every(m => events[m.event].complete)};
 }

@@ -1,5 +1,45 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: qualify the simpler topology solver at 9,495 ns
+
+The new qualified checkpoint takes **9,495 ns per charged physics frame** for
+full default automatic compilation; its absolute 95% interval is **9,447–9,538**.
+Against the preceding qualified `c942b254` implementation, fixed screen12 and
+fresh confirm24 both pass KEEP and the stronger predeclared minimum benefit:
+the paired interval's upper bound must be at most −1%. Confirmation gives
+**−1.53% [−2.05,−1.04]**, with 21/24 favorable pairs. The **7,000 ns target
+remains unmet**; exact work remains 147,209 frames.
+
+Rest lengths and endurance now derive from the fixed topology instead of
+per-cache arrays. One ordered point/friction table replaces ten duplicated
+collision calls. Safe constraint indexing produces the same optimized binary
+as the earlier unchecked accesses. Equations, floating-point order, zero-friction
+behavior, point/collision order, search and scoring are unchanged. The packaged
+WASM shrinks from 116,065 to **94,087 bytes**. Neither isolated predecessor was
+adopted or rerun: this jointly declared candidate has its own identity and
+stronger acceptance gate.
+
+The native guard24 passes at **3,124 → 3,095 ns/frame**, −0.94%
+[−1.17,−0.70], 23/24 wins. The larger-budget guard8 passes at **8,665 → 8,607**,
+−0.67% [−0.96,−0.38], 8/8 wins. Isolated post-registration stepping is a
+diagnostic, **2,647 → 2,619**, −1.06% [−1.98,−0.12], but only 7/12 wins:
+its verdict is INCONCLUSIVE, not a separately confirmed speedup.
+
+Fresh WASM linear-memory high-water falls from **64.6875 to 58.8125 MiB** on
+the default compile and **146.75 to 134.6875 MiB** on the larger compile.
+Native registration/replay/branches remain **3.0625/6.3125/2.0625 MiB**.
+These readings are neither live memory nor RSS. All 63 compiler cells, 33 judge
+tracks, independent native replay and 27 Rust tests pass. JavaScript has 386
+passes and the existing missing-audio failure; typecheck and reachability are
+clean. The evidence audit reproduces decisions and checks every timed compile's
+exact track/work. Full evidence: `docs/research/engine-topology-solver-20261104.json`.
+
+A separate untimed chunk-copy diagnostic finds only 1,395 avoidable state copies
+(under 1 MiB) per default compile. That opportunity does not justify another
+ownership path; no implementation or timing trial follows. Counts, original
+instrumented code and exact work/hash are archived in
+`docs/research/engine-visible-frame-prefix-20261104.json`.
+
 ## November 4: qualify a 9,658 ns compiler checkpoint; 7,000 ns remains open
 
 Full default automatic compilation now takes **9,658 ns per charged physics

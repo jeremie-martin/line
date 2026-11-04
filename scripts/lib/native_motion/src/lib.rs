@@ -72,7 +72,6 @@ pub(crate) const ITER: [(u8, usize, usize, usize, f64, f64); 22] = [
     (2, SHOULDER, LFOOT, 0, 0.0, 0.5),
     (2, SHOULDER, RFOOT, 0, 0.0, 0.5),
 ];
-pub(crate) const NITER: usize = 22;
 
 // non-iterating BindJoints: (p1, p2, q1, q2, binding)
 pub(crate) const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
@@ -84,3 +83,10 @@ pub(crate) const JOINTS: [(usize, usize, usize, usize, usize); 3] = [
 pub(crate) const GRAVITY_X: f64 = 0.0;
 pub(crate) const GRAVITY_Y: f64 = 0.175;
 pub(crate) const ITERATE: usize = 6;
+
+/// Collision visits and friction, in the rider's original point order.
+pub(crate) const COLLIDING_POINTS: [(usize, f64); 10] = [
+    (PEG, 0.8), (TAIL, 0.0), (NOSE, 0.0), (STRING, 0.0),
+    (BUTT, 0.8), (SHOULDER, 0.8), (RHAND, 0.1), (LHAND, 0.1),
+    (LFOOT, 0.0), (RFOOT, 0.0),
+];

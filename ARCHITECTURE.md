@@ -121,6 +121,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    memoized lazily per frame; this memo can be shared across detached snapshots
    without copying their simulation data, and follows frame rollback and reset.
 
+   Solver rest lengths and endurance derive from the fixed rider topology;
+   caches do not store duplicate constant arrays. One ordered point/friction
+   table drives the collision loop, preserving the original point visits and
+   zero-friction branch. Constraint equations and floating-point order stay fixed.
+
    The collision grid stores lines in their original raster cells. Nearby-line
    queries expand the 3×3 neighborhood only when read, with a shared query cache
    and a retained list per point. Each point filters the original direction

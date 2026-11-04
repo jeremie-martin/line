@@ -6,11 +6,11 @@ use crate::grid::{FlatIntMap, IntMap};
 use crate::frame_states::FrameStates;
 use crate::history::CollisionHistory;
 use crate::kernel::{
-    compute_rest_endur, init_state, step_state, CollisionTrace, LineCellCache, State,
+    init_state, step_state, CollisionTrace, LineCellCache, State,
 };
 use crate::line::{push_line, remove_line, LineRef};
 use crate::{
-    BUTT, LFOOT, LHAND, NENT, NITER, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
+    BUTT, LFOOT, LHAND, NENT, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
     STRING, TAIL,
 };
 use std::cell::OnceCell;
@@ -39,8 +39,6 @@ pub(crate) struct FrameSummary {
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 #[derive(Clone)]
 pub(crate) struct FrameCache {
-    rest: [f64; NITER],
-    endur: [f64; NITER],
     cell_lines: FlatIntMap<Vec<LineRef>>, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // shortcut valid until the line grid changes
     lines: IntMap<i32, LineRef>, // id → shared geometry, including its removal footprint
@@ -58,13 +56,10 @@ pub(crate) struct FrameCache {
 
 impl FrameCache {
     pub(crate) fn new() -> FrameCache {
-        let (rest, endur) = compute_rest_endur();
         let s = init_state(0.0, 0.0, 0.4, 0.0); // DEFAULT_START
         let mut contact_ids = Vec::new();
         let summary = Self::summarize_frame(&s, &[], &mut contact_ids);
         FrameCache {
-            rest,
-            endur,
             cell_lines: FlatIntMap::default(),
             line_cache: LineCellCache::default(),
             lines: IntMap::default(),
@@ -203,8 +198,6 @@ impl FrameCache {
             step_state::<true>(
                 &mut s,
                 &self.cell_lines,
-                &self.rest,
-                &self.endur,
                 &mut self.history_events,
                 fi,
                 &mut self.history,
@@ -228,8 +221,6 @@ impl FrameCache {
             step_state::<false>(
                 &mut self.cur,
                 &self.cell_lines,
-                &self.rest,
-                &self.endur,
                 &mut self.events,
                 fi,
                 &mut self.history,

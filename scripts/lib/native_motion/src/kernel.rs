@@ -15,7 +15,7 @@ use crate::history::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};
 use crate::line::{Line, LineRef, MAX_FORCE_LENGTH};
 use crate::{
-    BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT, NITER,
+    COLLIDING_POINTS, BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT,
     NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
 };
 
@@ -145,12 +145,12 @@ impl LineCellCache {
     }
 
     #[inline]
-    fn cache_point_lines<const I: usize>(&mut self, grid: &FlatIntMap<Vec<LineRef>>, vx: f64, vy: f64) {
-        let point = &mut self.point_cells[I];
+    fn cache_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {
+        let point = &mut self.point_cells[index];
         if point.epoch == self.queries.current_epoch {
             return;
         }
-        self.refresh_point_lines(grid, I, vx, vy);
+        self.refresh_point_lines(grid, index, vx, vy);
     }
 
     // Keep the uncommon list rebuild out of each monomorphized point solver.
@@ -183,8 +183,8 @@ impl LineCellCache {
     }
 
     #[inline(always)]
-    fn point_cell<const I: usize>(&mut self, px: f64, py: f64) -> i64 {
-        Self::update_cell(&mut self.point_cells[I], px, py)
+    fn point_cell(&mut self, index: usize, px: f64, py: f64) -> i64 {
+        Self::update_cell(&mut self.point_cells[index], px, py)
     }
 
     #[inline(always)]
@@ -262,46 +262,42 @@ pub(crate) fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {
     s
 }
 
-/// Rest length + endurance per iterating constraint, from the rider base pose.
-pub(crate) fn compute_rest_endur() -> ([f64; NITER], [f64; NITER]) {
-    let mut rest = [0.0f64; NITER];
-    let mut endur = [0.0f64; NITER];
-    for k in 0..NITER {
-        let (_kind, p1, p2, _bind, ep, lf) = ITER[k];
-        let r = dist(BASE[p1].0, BASE[p1].1, BASE[p2].0, BASE[p2].1) * lf;
-        rest[k] = r;
-        endur[k] = ep * r * 0.5;
-    }
-    (rest, endur)
+/// Rest lengths belong to the fixed rider topology, not to a frame cache.
+/// Every solver call supplies a constant index, so release compilation folds
+/// this expression while preserving its original rounded arithmetic.
+#[inline(always)]
+fn rest_length(k: usize) -> f64 {
+    let (_, p1, p2, _, _, factor) = ITER[k];
+    dist(BASE[p1].0, BASE[p1].1, BASE[p2].0, BASE[p2].1) * factor
 }
 
 #[inline(always)]
-unsafe fn resolve_stick(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize, p2: usize) {
-    let p1x = *s.px.get_unchecked(p1);
-    let p1y = *s.py.get_unchecked(p1);
-    let p2x = *s.px.get_unchecked(p2);
-    let p2y = *s.py.get_unchecked(p2);
+fn resolve_stick(s: &mut State, k: usize, p1: usize, p2: usize) {
+    let p1x = s.px[p1];
+    let p1y = s.py[p1];
+    let p2x = s.px[p2];
+    let p2y = s.py[p2];
     let length = dist(p1x, p1y, p2x, p2y);
     let gd = if length == 0.0 {
         0.0
     } else {
-        (length - *rest.get_unchecked(k)) / length
+        (length - rest_length(k)) / length
     };
     let diff = gd * 0.5;
     let dx = (p1x - p2x) * diff;
     let dy = (p1y - p2y) * diff;
-    *s.px.get_unchecked_mut(p1) = p1x - dx;
-    *s.py.get_unchecked_mut(p1) = p1y - dy;
-    *s.px.get_unchecked_mut(p2) = p2x + dx;
-    *s.py.get_unchecked_mut(p2) = p2y + dy;
+    s.px[p1] = p1x - dx;
+    s.py[p1] = p1y - dy;
+    s.px[p2] = p2x + dx;
+    s.py[p2] = p2y + dy;
 }
 
 #[inline(always)]
-unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize, p2: usize) {
-    let p1x = *s.px.get_unchecked(p1);
-    let p1y = *s.py.get_unchecked(p1);
-    let p2x = *s.px.get_unchecked(p2);
-    let p2y = *s.py.get_unchecked(p2);
+fn resolve_repel(s: &mut State, k: usize, p1: usize, p2: usize) {
+    let p1x = s.px[p1];
+    let p1y = s.py[p1];
+    let p2x = s.px[p2];
+    let p2y = s.py[p2];
     // Repels fire only when length < rest, which is rare (~2% — feet rarely closer
     // to the shoulder than rest). Gate the sqrt on len_sq < rest² so the common
     // inactive case skips the sqrt entirely. Inside the gate, `length` and the
@@ -313,7 +309,7 @@ unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize,
     let dx0 = p2x - p1x;
     let dy0 = p2y - p1y;
     let len_sq = dx0 * dx0 + dy0 * dy0;
-    let r = *rest.get_unchecked(k);
+    let r = rest_length(k);
     if len_sq < r * r {
         let length = len_sq.sqrt();
         if length < r {
@@ -325,82 +321,80 @@ unsafe fn resolve_repel(s: &mut State, rest: &[f64; NITER], k: usize, p1: usize,
             let diff = gd * 0.5;
             let dx = (p1x - p2x) * diff;
             let dy = (p1y - p2y) * diff;
-            *s.px.get_unchecked_mut(p1) = p1x - dx;
-            *s.py.get_unchecked_mut(p1) = p1y - dy;
-            *s.px.get_unchecked_mut(p2) = p2x + dx;
-            *s.py.get_unchecked_mut(p2) = p2y + dy;
+            s.px[p1] = p1x - dx;
+            s.py[p1] = p1y - dy;
+            s.px[p2] = p2x + dx;
+            s.py[p2] = p2y + dy;
         }
     }
 }
 
 #[inline(always)]
-unsafe fn resolve_bind(
+fn resolve_bind(
     s: &mut State,
-    rest: &[f64; NITER],
-    endur: &[f64; NITER],
     k: usize,
     p1: usize,
     p2: usize,
     bind: usize,
 ) {
-    let p1x = *s.px.get_unchecked(p1);
-    let p1y = *s.py.get_unchecked(p1);
-    let p2x = *s.px.get_unchecked(p2);
-    let p2y = *s.py.get_unchecked(p2);
+    let p1x = s.px[p1];
+    let p1y = s.py[p1];
+    let p2x = s.px[p2];
+    let p2y = s.py[p2];
     // `length` (a sqrt) is only used on the intact branch (fsu == -1, ~97% of the
     // time). Computing it lazily inside the branch skips the sqrt for the ~3%
     // broken-bind calls where it was discarded — strictly bit-identical (the value,
     // when used, is the same dist(); when unused it has no observable effect).
-    if *s.fsu.get_unchecked(bind) == -1 {
+    if s.fsu[bind] == -1 {
         let length = dist(p1x, p1y, p2x, p2y);
         let gd = if length == 0.0 {
             0.0
         } else {
-            (length - *rest.get_unchecked(k)) / length
+            (length - rest_length(k)) / length
         };
         let diff = gd * 0.5;
-        if diff > *endur.get_unchecked(k) {
-            *s.fsu.get_unchecked_mut(bind) = 0;
+        if diff > ITER[k].4 * rest_length(k) * 0.5 {
+            s.fsu[bind] = 0;
         } else {
             let dx = (p1x - p2x) * diff;
             let dy = (p1y - p2y) * diff;
-            *s.px.get_unchecked_mut(p1) = p1x - dx;
-            *s.py.get_unchecked_mut(p1) = p1y - dy;
-            *s.px.get_unchecked_mut(p2) = p2x + dx;
-            *s.py.get_unchecked_mut(p2) = p2y + dy;
+            s.px[p1] = p1x - dx;
+            s.py[p1] = p1y - dy;
+            s.px[p2] = p2x + dx;
+            s.py[p2] = p2y + dy;
         }
     }
 }
 
 #[inline(always)]
-unsafe fn resolve_iter_constraints(s: &mut State, rest: &[f64; NITER], endur: &[f64; NITER]) {
-    resolve_stick(s, rest, 0, PEG, TAIL);
-    resolve_stick(s, rest, 1, TAIL, NOSE);
-    resolve_stick(s, rest, 2, NOSE, STRING);
-    resolve_stick(s, rest, 3, STRING, PEG);
-    resolve_stick(s, rest, 4, PEG, NOSE);
-    resolve_stick(s, rest, 5, STRING, TAIL);
-    resolve_bind(s, rest, endur, 6, PEG, BUTT, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 7, TAIL, BUTT, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 8, NOSE, BUTT, RIDER_MOUNTED);
-    resolve_stick(s, rest, 9, SHOULDER, BUTT);
-    resolve_stick(s, rest, 10, SHOULDER, LHAND);
-    resolve_stick(s, rest, 11, SHOULDER, RHAND);
-    resolve_stick(s, rest, 12, BUTT, LFOOT);
-    resolve_stick(s, rest, 13, BUTT, RFOOT);
-    resolve_stick(s, rest, 14, SHOULDER, RHAND);
-    resolve_bind(s, rest, endur, 15, SHOULDER, PEG, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 16, STRING, LHAND, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 17, STRING, RHAND, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 18, LFOOT, NOSE, RIDER_MOUNTED);
-    resolve_bind(s, rest, endur, 19, RFOOT, NOSE, RIDER_MOUNTED);
-    resolve_repel(s, rest, 20, SHOULDER, LFOOT);
-    resolve_repel(s, rest, 21, SHOULDER, RFOOT);
+fn resolve_iter_constraints(s: &mut State) {
+    resolve_stick(s, 0, PEG, TAIL);
+    resolve_stick(s, 1, TAIL, NOSE);
+    resolve_stick(s, 2, NOSE, STRING);
+    resolve_stick(s, 3, STRING, PEG);
+    resolve_stick(s, 4, PEG, NOSE);
+    resolve_stick(s, 5, STRING, TAIL);
+    resolve_bind(s, 6, PEG, BUTT, RIDER_MOUNTED);
+    resolve_bind(s, 7, TAIL, BUTT, RIDER_MOUNTED);
+    resolve_bind(s, 8, NOSE, BUTT, RIDER_MOUNTED);
+    resolve_stick(s, 9, SHOULDER, BUTT);
+    resolve_stick(s, 10, SHOULDER, LHAND);
+    resolve_stick(s, 11, SHOULDER, RHAND);
+    resolve_stick(s, 12, BUTT, LFOOT);
+    resolve_stick(s, 13, BUTT, RFOOT);
+    resolve_stick(s, 14, SHOULDER, RHAND);
+    resolve_bind(s, 15, SHOULDER, PEG, RIDER_MOUNTED);
+    resolve_bind(s, 16, STRING, LHAND, RIDER_MOUNTED);
+    resolve_bind(s, 17, STRING, RHAND, RIDER_MOUNTED);
+    resolve_bind(s, 18, LFOOT, NOSE, RIDER_MOUNTED);
+    resolve_bind(s, 19, RFOOT, NOSE, RIDER_MOUNTED);
+    resolve_repel(s, 20, SHOULDER, LFOOT);
+    resolve_repel(s, 21, SHOULDER, RFOOT);
 }
 
 #[inline(always)]
 #[allow(clippy::too_many_arguments)]
-unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: bool>(
+unsafe fn collide_point<const TRACK: bool>(
     s: &mut State,
     grid: &FlatIntMap<Vec<LineRef>>,
     events: &mut Vec<Collision>,
@@ -408,15 +402,16 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
     history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
     it: u8,
+    index: usize,
     fric: f64,
 ) {
     let (mut pxi, mut pyi, vxi, vyi) = (
-        *s.px.get_unchecked(I),
-        *s.py.get_unchecked(I),
-        *s.vx.get_unchecked(I),
-        *s.vy.get_unchecked(I),
+        *s.px.get_unchecked(index),
+        *s.py.get_unchecked(index),
+        *s.vx.get_unchecked(index),
+        *s.vy.get_unchecked(index),
     );
-    let center_cell = line_cache.point_cell::<I>(pxi, pyi);
+    let center_cell = line_cache.point_cell(index, pxi, pyi);
     // addToGrid (A): pre-collision snapshot.
     if TRACK {
         history.record_point(
@@ -428,10 +423,10 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
             vyi,
         );
     }
-    line_cache.cache_point_lines::<I>(grid, vxi, vyi);
-    let lns = &line_cache.point_lines[I];
+    line_cache.cache_point_lines(grid, index, vxi, vyi);
+    let lns = &line_cache.point_lines[index];
     if !lns.is_empty() {
-        let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(I), *s.prevy.get_unchecked(I));
+        let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));
         for &line in lns {
             // Entries point into immutable batch geometry owned by the grid.
             // Only point_cells is updated below; this query stays fixed during
@@ -450,7 +445,7 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                 let ty = l.normy * perp_comp - pyi;
                 let posx = tx * -1.0;
                 let posy = ty * -1.0;
-                let (mut fvx, mut fvy) = if ZERO_FRICTION {
+                let (mut fvx, mut fvy) = if fric == 0.0 {
                     (prevxi, prevyi)
                 } else {
                     let mut fvx = (l.normy * fric) * perp_comp;
@@ -467,18 +462,18 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
                     fvx = fvx + l.accx;
                     fvy = fvy + l.accy;
                 }
-                *s.px.get_unchecked_mut(I) = posx;
-                *s.py.get_unchecked_mut(I) = posy;
-                *s.prevx.get_unchecked_mut(I) = fvx;
-                *s.prevy.get_unchecked_mut(I) = fvy;
+                *s.px.get_unchecked_mut(index) = posx;
+                *s.py.get_unchecked_mut(index) = posy;
+                *s.prevx.get_unchecked_mut(index) = fvx;
+                *s.prevy.get_unchecked_mut(index) = fvy;
                 pxi = posx;
                 pyi = posy;
                 prevxi = fvx;
                 prevyi = fvy;
-                events.push((it, l.id, I as i32, posx, posy));
+                events.push((it, l.id, index as i32, posx, posy));
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
-                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[I], pxi, pyi);
+                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[index], pxi, pyi);
                     history.record_point(
                         pcell,
                         frame_index,
@@ -504,8 +499,6 @@ unsafe fn collide_point<const I: usize, const ZERO_FRICTION: bool, const TRACK: 
 pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
     grid: &FlatIntMap<Vec<LineRef>>,
-    rest: &[f64; NITER],
-    endur: &[f64; NITER],
     events: &mut Vec<Collision>,
     frame_index: i32,
     history: &mut CollisionHistory,
@@ -534,109 +527,12 @@ pub(crate) fn step_state<const TRACK: bool>(
 
     for it in 0..ITERATE {
         unsafe {
-            resolve_iter_constraints(s, rest, endur);
+            resolve_iter_constraints(s);
             if let Some(trace) = trace.as_deref_mut() { trace.record(s, it); }
             let it = it as u8;
-            collide_point::<PEG, false, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.8,
-            );
-            collide_point::<TAIL, true, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.0,
-            );
-            collide_point::<NOSE, true, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.0,
-            );
-            collide_point::<STRING, true, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.0,
-            );
-            collide_point::<BUTT, false, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.8,
-            );
-            collide_point::<SHOULDER, false, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.8,
-            );
-            collide_point::<RHAND, false, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.1,
-            );
-            collide_point::<LHAND, false, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.1,
-            );
-            collide_point::<LFOOT, true, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.0,
-            );
-            collide_point::<RFOOT, true, TRACK>(
-                s,
-                grid,
-                events,
-                frame_index,
-                history,
-                line_cache,
-                it,
-                0.0,
-            );
+            for &(index, friction) in &COLLIDING_POINTS {
+                collide_point::<TRACK>(s, grid, events, frame_index, history, line_cache, it, index, friction);
+            }
         }
     }
 
@@ -659,8 +555,8 @@ mod tests {
     use super::*;
 
     fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<LineRef>>, x: f64, y: f64) -> Vec<i32> {
-        cache.point_cell::<PEG>(x, y);
-        cache.cache_point_lines::<PEG>(grid, 0.0, 1.0);
+        cache.point_cell(PEG,x, y);
+        cache.cache_point_lines(grid, PEG, 0.0, 1.0);
         cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()
     }
 
@@ -751,8 +647,8 @@ mod tests {
             cache.begin_frame();
             assert_eq!(cache.queries.current_epoch, query_epoch);
             for _ in 0..6 {
-                cache.point_cell::<PEG>(1.0, 1.0);
-                cache.cache_point_lines::<PEG>(&grid, vx, vy);
+                cache.point_cell(PEG,1.0, 1.0);
+                cache.cache_point_lines(&grid, PEG, vx, vy);
                 let got: Vec<i32> = cache.point_lines[PEG].iter().map(|&p| unsafe { (*p).id }).collect();
                 assert_eq!(got, expected);
             }
@@ -773,7 +669,7 @@ mod tests {
             let expected: Vec<i32> = one_cell.iter().chain(one_cell.iter()).copied().collect();
             assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
             cache.begin_frame();
-            cache.cache_point_lines::<PEG>(&grid, 0.0, -1.0);
+            cache.cache_point_lines(&grid, PEG, 0.0, -1.0);
             assert!(cache.point_lines[PEG].is_empty());
             // The entirely rejected pass must not leave stale output entries.
             cache.begin_frame();
@@ -809,7 +705,7 @@ mod tests {
         }
 
         for (x, y) in positions {
-            assert_eq!(cache.point_cell::<PEG>(x, y), crate::grid::cell_hash(x, y));
+            assert_eq!(cache.point_cell(PEG,x, y), crate::grid::cell_hash(x, y));
         }
     }
 }

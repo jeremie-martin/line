@@ -2,6 +2,11 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Inlining the direction filter into the shared point loop passes 27 Rust tests
+and exact native replay, but screen12 is **−0.54% [−1.20,+0.03]**, 7/12 wins,
+INCONCLUSIVE. Required KEEP fails. No confirmation, tuning or adoption follows
+(`docs/research/engine-filter-inline-20261104.json`).
+
 An untimed shared direction-range diagnostic preserves exact track/work and
 checks every predicted hit against the complete ordered result. Fixed ±0.25
 velocity rectangles could skip 1,832,622 of 15,779,285 direction dots, but their

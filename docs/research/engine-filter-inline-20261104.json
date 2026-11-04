@@ -1,0 +1,593 @@
+{
+  "schema": "line.engine-filter-inline-study.v1",
+  "updatedUtc": "2026-11-04T05:28:39.611196+00:00",
+  "status": "INCONCLUSIVE; candidate not adopted",
+  "reference": {
+    "productionCommit": "144ae46c",
+    "sourceSha256": "2041409c97bd0c0c56f703247853f85978f63e9664ad84b11a6673da177184f4",
+    "nativeSha256": "36c2fc92bc5a4e0c4655819b278592a8107a7bbd347afc54c68206307e3fcaab",
+    "qualifiedMeanNs": 9076.482994133059
+  },
+  "decisions": [
+    "Inline the existing direction filter into the current shared point solver; only one inline attribute and its rationale change. No allocation/layout/arithmetic or cache change.",
+    "All27 Rust tests and independent33track native replay pass. Production binary94087->94540 bytes. Separate unstripped diagnostic lacks refresh_point_lines/cache_point_lines/collide_point symbols but retains query lookup; it is never timed.",
+    "Fixed screen12 full default compile:9047.154021->8997.061714ns, -0.544184% [-1.199741,+0.034336],7/12 wins,INCONCLUSIVE. Exact track/work in all measured compiles. Required KEEP fails.",
+    "No confirmation, extension, retry, tuning or adoption. Remaining full gates not run. Production144ae46c and open7000ns target unchanged."
+  ],
+  "runs": {
+    "screen": {
+      "schema": "line.engine-ab.v1",
+      "complete": true,
+      "adaptedFrom": "archive/pre-rework-2026-10-03:scripts/v0/bench/perf_ab.ts",
+      "date": "2026-11-04T05:24:37.468Z",
+      "head": "28bf97ecf0f5fa55ce8a8def72b895d281016b33",
+      "machine": {
+        "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+        "node": "v22.22.2",
+        "platform": "linux",
+        "release": "7.0.0-38-generic",
+        "affinity": "2"
+      },
+      "sourceSha256": "1b6d50993e4e086b98f576dd90d78ce47b969a63fd5d670780159e67976472b9",
+      "referenceSourceSha256": "2041409c97bd0c0c56f703247853f85978f63e9664ad84b11a6673da177184f4",
+      "sourceChanges": [
+        "scripts/lib/native_motion/manifest.json",
+        "scripts/lib/native_motion/manifest.json.sha256",
+        "scripts/lib/native_motion/src/kernel.rs"
+      ],
+      "referenceRoot": "/tmp/engine-filter-inline-20261104/reference",
+      "artifacts": [
+        {
+          "path": "/tmp/engine-filter-inline-20261104/reference/scripts/lib/native_motion/engine.wasm",
+          "sha256": "36c2fc92bc5a4e0c4655819b278592a8107a7bbd347afc54c68206307e3fcaab"
+        },
+        {
+          "path": "/tmp/engine-filter-inline-20261104/candidate/scripts/lib/native_motion/engine.wasm",
+          "sha256": "5e4558e96f459f1d25a208453e564df64a3fbbb6da36e09d9b9a96055e2e188c"
+        }
+      ],
+      "protocol": {
+        "mode": "compile",
+        "stage": "screen",
+        "rounds": 12,
+        "confirmRounds": 24,
+        "reps": 1,
+        "warmup": 1,
+        "threshold": 0.95,
+        "cells": [
+          61
+        ]
+      },
+      "screening": null,
+      "interpretation": "Fixed-round paired bootstrap support and exact sign safeguard on this workload; not a posterior probability or an anytime-valid rule. Full correctness gates are separate.",
+      "samples": [
+        {
+          "round": 0,
+          "arm": 0,
+          "wallMs": 1314.5262159999997,
+          "cpuMs": 1479.876,
+          "frames": 147209,
+          "nsPerFrame": 8929.659300722102,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1314.5262159999997,
+              "cpuMs": 1479.876
+            }
+          ]
+        },
+        {
+          "round": 0,
+          "arm": 1,
+          "wallMs": 1325.334503,
+          "cpuMs": 1480.353,
+          "frames": 147209,
+          "nsPerFrame": 9003.080674415287,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1325.334503,
+              "cpuMs": 1480.353
+            }
+          ]
+        },
+        {
+          "round": 1,
+          "arm": 1,
+          "wallMs": 1319.501682,
+          "cpuMs": 1484.321,
+          "frames": 147209,
+          "nsPerFrame": 8963.457954337031,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1319.501682,
+              "cpuMs": 1484.321
+            }
+          ]
+        },
+        {
+          "round": 1,
+          "arm": 0,
+          "wallMs": 1323.9678119999999,
+          "cpuMs": 1491.975,
+          "frames": 147209,
+          "nsPerFrame": 8993.796656454428,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1323.9678119999999,
+              "cpuMs": 1491.975
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "arm": 0,
+          "wallMs": 1318.8171619999998,
+          "cpuMs": 1489.091,
+          "frames": 147209,
+          "nsPerFrame": 8958.807966904196,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1318.8171619999998,
+              "cpuMs": 1489.091
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "arm": 1,
+          "wallMs": 1313.7992140000001,
+          "cpuMs": 1484.401,
+          "frames": 147209,
+          "nsPerFrame": 8924.720730390127,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1313.7992140000001,
+              "cpuMs": 1484.401
+            }
+          ]
+        },
+        {
+          "round": 3,
+          "arm": 1,
+          "wallMs": 1325.2624559999995,
+          "cpuMs": 1497.871,
+          "frames": 147209,
+          "nsPerFrame": 9002.591254610788,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1325.2624559999995,
+              "cpuMs": 1497.871
+            }
+          ]
+        },
+        {
+          "round": 3,
+          "arm": 0,
+          "wallMs": 1327.54038,
+          "cpuMs": 1496.239,
+          "frames": 147209,
+          "nsPerFrame": 9018.065335679205,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1327.54038,
+              "cpuMs": 1496.239
+            }
+          ]
+        },
+        {
+          "round": 4,
+          "arm": 0,
+          "wallMs": 1350.85531,
+          "cpuMs": 1613.041,
+          "frames": 147209,
+          "nsPerFrame": 9176.445122241168,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1350.85531,
+              "cpuMs": 1613.041
+            }
+          ]
+        },
+        {
+          "round": 4,
+          "arm": 1,
+          "wallMs": 1309.1010439999995,
+          "cpuMs": 1480.708,
+          "frames": 147209,
+          "nsPerFrame": 8892.805765951807,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1309.1010439999995,
+              "cpuMs": 1480.708
+            }
+          ]
+        },
+        {
+          "round": 5,
+          "arm": 1,
+          "wallMs": 1327.825111,
+          "cpuMs": 1500.436,
+          "frames": 147209,
+          "nsPerFrame": 9019.999531278658,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1327.825111,
+              "cpuMs": 1500.436
+            }
+          ]
+        },
+        {
+          "round": 5,
+          "arm": 0,
+          "wallMs": 1317.033316,
+          "cpuMs": 1491.671,
+          "frames": 147209,
+          "nsPerFrame": 8946.69018877922,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1317.033316,
+              "cpuMs": 1491.671
+            }
+          ]
+        },
+        {
+          "round": 6,
+          "arm": 0,
+          "wallMs": 1327.65058,
+          "cpuMs": 1500.714,
+          "frames": 147209,
+          "nsPerFrame": 9018.813931213444,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1327.65058,
+              "cpuMs": 1500.714
+            }
+          ]
+        },
+        {
+          "round": 6,
+          "arm": 1,
+          "wallMs": 1328.511625,
+          "cpuMs": 1501.334,
+          "frames": 147209,
+          "nsPerFrame": 9024.663064078963,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1328.511625,
+              "cpuMs": 1501.334
+            }
+          ]
+        },
+        {
+          "round": 7,
+          "arm": 1,
+          "wallMs": 1326.0342480000004,
+          "cpuMs": 1597.356,
+          "frames": 147209,
+          "nsPerFrame": 9007.834086231143,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1326.0342480000004,
+              "cpuMs": 1597.356
+            }
+          ]
+        },
+        {
+          "round": 7,
+          "arm": 0,
+          "wallMs": 1325.6136860000001,
+          "cpuMs": 1497.58,
+          "frames": 147209,
+          "nsPerFrame": 9004.97718210164,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1325.6136860000001,
+              "cpuMs": 1497.58
+            }
+          ]
+        },
+        {
+          "round": 8,
+          "arm": 0,
+          "wallMs": 1327.855137,
+          "cpuMs": 1503.727,
+          "frames": 147209,
+          "nsPerFrame": 9020.20349978602,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1327.855137,
+              "cpuMs": 1503.727
+            }
+          ]
+        },
+        {
+          "round": 8,
+          "arm": 1,
+          "wallMs": 1329.136719,
+          "cpuMs": 1495.309,
+          "frames": 147209,
+          "nsPerFrame": 9028.909366954465,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1329.136719,
+              "cpuMs": 1495.309
+            }
+          ]
+        },
+        {
+          "round": 9,
+          "arm": 1,
+          "wallMs": 1338.7766250000004,
+          "cpuMs": 1513.845,
+          "frames": 147209,
+          "nsPerFrame": 9094.393854995282,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1338.7766250000004,
+              "cpuMs": 1513.845
+            }
+          ]
+        },
+        {
+          "round": 9,
+          "arm": 0,
+          "wallMs": 1352.511818,
+          "cpuMs": 1526.907,
+          "frames": 147209,
+          "nsPerFrame": 9187.697885319512,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1352.511818,
+              "cpuMs": 1526.907
+            }
+          ]
+        },
+        {
+          "round": 10,
+          "arm": 0,
+          "wallMs": 1352.4928619999996,
+          "cpuMs": 1619.898,
+          "frames": 147209,
+          "nsPerFrame": 9187.569116018718,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1352.4928619999996,
+              "cpuMs": 1619.898
+            }
+          ]
+        },
+        {
+          "round": 10,
+          "arm": 1,
+          "wallMs": 1330.5422800000006,
+          "cpuMs": 1505.405,
+          "frames": 147209,
+          "nsPerFrame": 9038.457431271188,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1330.5422800000006,
+              "cpuMs": 1505.405
+            }
+          ]
+        },
+        {
+          "round": 11,
+          "arm": 1,
+          "wallMs": 1319.5559870000002,
+          "cpuMs": 1498.55,
+          "frames": 147209,
+          "nsPerFrame": 8963.826851619127,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1319.5559870000002,
+              "cpuMs": 1498.55
+            }
+          ]
+        },
+        {
+          "round": 11,
+          "arm": 0,
+          "wallMs": 1343.0056759999998,
+          "cpuMs": 1614.952,
+          "frames": 147209,
+          "nsPerFrame": 9123.122064547682,
+          "measurements": [
+            {
+              "cell": 61,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1343.0056759999998,
+              "cpuMs": 1614.952
+            }
+          ]
+        }
+      ],
+      "decision": {
+        "n": 12,
+        "meanDeltaPct": -0.544183798642149,
+        "medianDeltaPct": -0.2544595033326719,
+        "intervalPct": [
+          -1.199740541919006,
+          0.03433575968685748
+        ],
+        "bootstrapSupportFaster": 0.96646,
+        "wins": 7,
+        "losses": 5,
+        "ties": 0,
+        "fasterSignP": 0.38720703125,
+        "twoSidedSignP": 0.7744140625,
+        "threshold": 0.95,
+        "resamples": 50000,
+        "verdict": "INCONCLUSIVE"
+      },
+      "cellDecisions": [
+        {
+          "cell": 61,
+          "decision": {
+            "n": 12,
+            "meanDeltaPct": -0.5441837986421404,
+            "medianDeltaPct": -0.25445950333266876,
+            "intervalPct": [
+              -1.199740541918999,
+              0.03433575968686548
+            ],
+            "bootstrapSupportFaster": 0.96646,
+            "wins": 7,
+            "losses": 5,
+            "ties": 0,
+            "fasterSignP": 0.38720703125,
+            "twoSidedSignP": 0.7744140625,
+            "threshold": 0.95,
+            "resamples": 50000,
+            "verdict": "INCONCLUSIVE"
+          }
+        }
+      ],
+      "regressionGuardPassed": true,
+      "control": false,
+      "controlPassed": null,
+      "performanceQualified": false
+    }
+  },
+  "studyFiles": {
+    "archive.py": {
+      "sha256": "64174ef40bae670abf82306a23735f0da24242ac6fc34ebeef695bb2d7e4fabb",
+      "text": "from pathlib import Path\nimport json,hashlib,gzip,base64,datetime\nr=Path('/tmp/engine-filter-inline-20261104');repo=Path('/home/holo/line')\ndef file(p):\n b=p.read_bytes();return {'sha256':hashlib.sha256(b).hexdigest(),'text':b.decode()}\ndef blob(p):\n b=p.read_bytes();return {'sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b),'gzipBase64':base64.b64encode(gzip.compress(b,mtime=0)).decode()}\nrun=json.loads((r/'screen/result.json').read_text());assert run['complete'] and run['decision']['verdict']=='INCONCLUSIVE'\nfiles={p.name:file(p) for p in sorted(r.iterdir()) if p.is_file() and p.suffix in {'.txt','.json','.log','.mts','.py','.rs'}}\nfor name in run['sourceChanges']:files['candidate/'+name]=file(r/'candidate'/name)\nresult={'schema':'line.engine-filter-inline-study.v1','updatedUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),\n 'status':'INCONCLUSIVE; candidate not adopted',\n 'reference':{'productionCommit':'144ae46c','sourceSha256':run['referenceSourceSha256'],'nativeSha256':run['artifacts'][0]['sha256'],'qualifiedMeanNs':9076.482994133059},\n 'decisions':['Inline the existing direction filter into the current shared point solver; only one inline attribute and its rationale change. No allocation/layout/arithmetic or cache change.',\n 'All27 Rust tests and independent33track native replay pass. Production binary94087->94540 bytes. Separate unstripped diagnostic lacks refresh_point_lines/cache_point_lines/collide_point symbols but retains query lookup; it is never timed.',\n 'Fixed screen12 full default compile:9047.154021->8997.061714ns, -0.544184% [-1.199741,+0.034336],7/12 wins,INCONCLUSIVE. Exact track/work in all measured compiles. Required KEEP fails.',\n 'No confirmation, extension, retry, tuning or adoption. Remaining full gates not run. Production144ae46c and open7000ns target unchanged.'],\n 'runs':{'screen':run},'studyFiles':files,'artifacts':{'candidate':blob(r/'candidate/scripts/lib/native_motion/engine.wasm')}}\nout=repo/'docs/research/engine-filter-inline-20261104.json';out.write_text(json.dumps(result,indent=2)+'\\n');print({'bytes':out.stat().st_size,'files':len(files)})\n"
+    },
+    "audit.json": {
+      "sha256": "b571b001b1ed97373208ea7c68d9529100c0ca643ccee3f7174a1b37194d13d8",
+      "text": "{\n  \"status\": \"PASS: decisions and exact work/output reproduced from raw pairs\",\n  \"runs\": [\n    {\n      \"name\": \"screen\",\n      \"means\": [\n        9047.154020813945,\n        8997.06171384449\n      ],\n      \"decision\": {\n        \"n\": 12,\n        \"meanDeltaPct\": -0.544183798642149,\n        \"medianDeltaPct\": -0.2544595033326719,\n        \"intervalPct\": [\n          -1.199740541919006,\n          0.03433575968685748\n        ],\n        \"bootstrapSupportFaster\": 0.96646,\n        \"wins\": 7,\n        \"losses\": 5,\n        \"ties\": 0,\n        \"fasterSignP\": 0.38720703125,\n        \"twoSidedSignP\": 0.7744140625,\n        \"threshold\": 0.95,\n        \"resamples\": 50000,\n        \"verdict\": \"INCONCLUSIVE\"\n      }\n    }\n  ]\n}\n"
+    },
+    "audit.log": {
+      "sha256": "ef6a28ab30745bb5622a1005cf3fae5da8c7e6519cfaf1580719228d68060886",
+      "text": "[\n  {\n    name: 'screen',\n    means: [ 9047.154020813945, 8997.06171384449 ],\n    decision: {\n      n: 12,\n      meanDeltaPct: -0.544183798642149,\n      medianDeltaPct: -0.2544595033326719,\n      intervalPct: [Array],\n      bootstrapSupportFaster: 0.96646,\n      wins: 7,\n      losses: 5,\n      ties: 0,\n      fasterSignP: 0.38720703125,\n      twoSidedSignP: 0.7744140625,\n      threshold: 0.95,\n      resamples: 50000,\n      verdict: 'INCONCLUSIVE'\n    }\n  }\n]\n"
+    },
+    "audit.mts": {
+      "sha256": "c7bb258bedc49aece52d68fec0cab87df3a13c15e08ec5a84d8148d00c2baec2",
+      "text": "import assert from 'node:assert/strict';\nimport {readFileSync,writeFileSync} from 'node:fs';\nimport {decide} from '/home/holo/line/tools/measure/engine_decision.ts';\nconst root='/tmp/engine-filter-inline-20261104',cells=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells;\nconst runs=[];\nfor(const name of ['screen']){\n const result=JSON.parse(readFileSync(root+'/'+name+'/result.json','utf8'));\n assert(result.complete);assert.equal(result.samples.length,24);\n const pairs=Array.from({length:12},(_,round)=>{\n  const a=result.samples.find((s:any)=>s.round===round&&s.arm===0),b=result.samples.find((s:any)=>s.round===round&&s.arm===1);\n  for(const sample of [a,b])for(const m of sample.measurements){assert.equal(m.trackHash,cells[m.cell].trackHash);assert.equal(m.physicalFrames,cells[m.cell].physicalFrames);}\n  return {base:a.nsPerFrame,candidate:b.nsPerFrame};\n });\n assert.deepEqual(result.decision,decide(pairs,result.protocol.threshold));\n runs.push({name,means:[pairs.reduce((n,p)=>n+p.base,0)/12,pairs.reduce((n,p)=>n+p.candidate,0)/12],decision:result.decision});\n}\nwriteFileSync(root+'/audit.json',JSON.stringify({status:'PASS: decisions and exact work/output reproduced from raw pairs',runs},null,2)+'\\n');\nconsole.log(runs);\n"
+    },
+    "build.log": {
+      "sha256": "e82e8defca92320b4e45958d24dcc6d64f215afa94e4a51475fc05b4e9c13c47",
+      "text": "   Compiling lr_engine v0.0.0 (/tmp/engine-filter-inline-20261104/candidate/scripts/lib/native_motion)\n    Finished `release` profile [optimized] target(s) in 1.33s\nPackaged compiler engine 5e4558e96f459f1d25a208453e564df64a3fbbb6da36e09d9b9a96055e2e188c\n"
+    },
+    "named-build.log": {
+      "sha256": "a20021d1a3ae3139e12267b32078d0847aff9f5cf0b68f2bae9522ec43c4b005",
+      "text": "   Compiling lr_engine v0.0.0 (/tmp/engine-filter-inline-20261104/candidate/scripts/lib/native_motion)\n    Finished `release` profile [optimized] target(s) in 1.32s\n"
+    },
+    "plan.txt": {
+      "sha256": "835dd8e74e9ac0e3d0156495fc94bf9f74b0e78f0a7211748b3a5917371ecc80",
+      "text": "Reference production144ae46c, source2041409c97bd0c0c56f703247853f85978f63e9664ad84b11a6673da177184f4/native36c2fc92bc5a4e0c4655819b278592a8107a7bbd347afc54c68206307e3fcaab. Goal<7000full-defaultns remains open.\nHypothesis: after qualified topology974e4d2e replaced10 monomorphized point solvers with one ordered point loop, the explicit never-inline boundary around refresh_point_lines still forces about1.6M filter calls/defaultcompile. Inline that one helper into the now-shared point loop, preserving all data, arithmetic, ordering, lifetime/invalidation and metered work. This is a compiler boundary experiment under the current smaller solver, not a change to engine algorithms, runtime/build flags, quality or benchmark. Update the stale rationale for the old monomorphized layout. No other prototype included.\nBefore timing Rust27 and exactnative33tracks; staticWASMinspect source/binary sizes and helper elimination. Fixed12full-defaultscreen KEEP then fresh24samefrozenconfirmation KEEP; no retry/tuning afterfailure. Nativeguard24 upper95<=+0.5%/noREJECT,largecompile8noREJECT;full63compiler33judge/fullJS/type/reach beforeadoption. No allocation/layout change, so memory reuse establishedbaseline only if source audit confirms. Timings alone CPU2 Node22.22.2 unchangedrunner/warmup/reps/denominator. Absolutegoal meanandupper95<7000. Failedspeedgate cannot be adopted justas cleanup.\n"
+    },
+    "prepare.mts": {
+      "sha256": "1663f9459b1316d627606f020e88d7dd3f53d2e08466f00ca6b3df751c193ef0",
+      "text": "import {readFileSync,writeFileSync,symlinkSync,cpSync} from 'node:fs';\nimport {snapshotSources} from '/home/holo/line/tools/measure/engine_sources.ts';\nconst root='/home/holo/line',study='/tmp/engine-filter-inline-20261104',cwd=study+'/candidate';\nsnapshotSources(root,study+'/reference',root);snapshotSources(root,cwd,root);\nconst path=cwd+'/scripts/lib/native_motion/src/kernel.rs';let s=readFileSync(path,'utf8');\nconst old=`    // Keep the uncommon list rebuild out of each monomorphized point solver.\n    #[inline(never)]\n    fn refresh_point_lines`;\nif(!s.includes(old))throw new Error('missing filter boundary');\ns=s.replace(old,`    // The ordered point loop shares this filter across all rider points.\n    #[inline(always)]\n    fn refresh_point_lines`);writeFileSync(path,s);\ncpSync(root+'/tests',cwd+'/tests',{recursive:true});cpSync(root+'/vitest.config.ts',cwd+'/vitest.config.ts');symlinkSync(root+'/node_modules',cwd+'/node_modules');\n"
+    },
+    "rust.log": {
+      "sha256": "efd924f3fa33f0af721a12845b1e3ed0870c7ad03d19cf6328b19ccbc7838883",
+      "text": "   Compiling lr_engine v0.0.0 (/tmp/engine-filter-inline-20261104/candidate/scripts/lib/native_motion)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.56s\n     Running unittests src/lib.rs (/tmp/engine-filter-inline-20261104/test-target/debug/deps/lr_engine-d2c531ed3f9af7b2)\n\nrunning 27 tests\ntest engine::ownership_tests::arena_scope_rejects_reentry_and_releases_its_borrow_after_unwind ... ok\ntest frame_states::tests::truncated_tail_is_not_readable - should panic ... ok\ntest history::tests::rollback_and_clone_keep_history_queries_local_to_their_prefix ... ok\ntest engine::ownership_tests::independently_owned_arenas_do_not_share_handles_or_reconciliation ... ok\ntest kernel::tests::direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates ... ok\ntest grid::tests::hash_int_pair_round_trips_grid_coords ... ok\ntest kernel::tests::flat_query_preserves_duplicates_and_survives_point_movement_during_sweep ... ok\ntest line::tests::push_line_keeps_one_entry_per_line_id_per_cell ... ok\ntest line::tests::push_line_orders_each_cell_by_descending_line_id ... ok\ntest line::tests::grid_and_surviving_entries_own_their_batch_after_other_references_drop ... ok\ntest line::tests::remove_line_drops_id_and_empties_cell ... ok\ntest line::tests::push_line_preserves_3x3_query_order_and_duplicates ... ok\ntest kernel::tests::shared_query_eviction_does_not_replace_a_points_cached_lines ... ok\ntest engine::ownership_tests::traces_belong_to_versions_and_pending_sibling_replay_is_visible ... ok\ntest kernel::tests::query_cache_invalidates_hits_misses_clones_and_epoch_wrap ... ok\ntest history::tests::snapshot_bounds_preserve_exact_predicates_and_reset_after_append ... ok\ntest frame_states::tests::fork_truncate_append_and_reset_preserve_every_retained_state ... ok\ntest engine::ownership_tests::event_output_keeps_every_record_past_the_former_capacity ... ok\ntest engine::ownership_tests::released_branches_preserve_live_descendants_and_cache_ancestry ... ok\ntest grid::tests::branch_floor_cell_coordinate_matches_rust_floor_cast ... ok\ntest kernel::tests::direction_compaction_handles_full_empty_and_growing_queries ... ok\ntest kernel::tests::point_cell_cache_matches_exact_grid_hash ... ok\ntest engine::ownership_tests::detached_prefixes_isolate_reads_edits_trace_eviction_and_released_sources ... ok\ntest history::tests::overlapping_neighborhood_queries_equal_an_exhaustive_history_scan ... ok\ntest history::tests::batch_neighborhood_reuse_matches_unfiltered_history ... ok\ntest line::tests::bucket_search_matches_linear_scan_under_churn ... ok\ntest cache::tests::batched_registration_matches_ordered_single_edits_and_future_replay ... ok\n\ntest result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s\n\n"
+    },
+    "screen.log": {
+      "sha256": "071bbf618ca140fe0ffd4b41843cee546c5eccf9be9fd42d658ab6c1b3919087",
+      "text": "pair 1/12: base 8929.7, candidate 9003.1 ns/frame\npair 2/12: base 8993.8, candidate 8963.5 ns/frame\npair 3/12: base 8958.8, candidate 8924.7 ns/frame\npair 4/12: base 9018.1, candidate 9002.6 ns/frame\npair 5/12: base 9176.4, candidate 8892.8 ns/frame\npair 6/12: base 8946.7, candidate 9020.0 ns/frame\npair 7/12: base 9018.8, candidate 9024.7 ns/frame\npair 8/12: base 9005.0, candidate 9007.8 ns/frame\npair 9/12: base 9020.2, candidate 9028.9 ns/frame\npair 10/12: base 9187.7, candidate 9094.4 ns/frame\npair 11/12: base 9187.6, candidate 9038.5 ns/frame\npair 12/12: base 9123.1, candidate 8963.8 ns/frame\n{\n  \"control\": false,\n  \"decision\": {\n    \"n\": 12,\n    \"meanDeltaPct\": -0.544183798642149,\n    \"medianDeltaPct\": -0.2544595033326719,\n    \"intervalPct\": [\n      -1.199740541919006,\n      0.03433575968685748\n    ],\n    \"bootstrapSupportFaster\": 0.96646,\n    \"wins\": 7,\n    \"losses\": 5,\n    \"ties\": 0,\n    \"fasterSignP\": 0.38720703125,\n    \"twoSidedSignP\": 0.7744140625,\n    \"threshold\": 0.95,\n    \"resamples\": 50000,\n    \"verdict\": \"INCONCLUSIVE\"\n  },\n  \"cellDecisions\": [\n    {\n      \"cell\": 61,\n      \"decision\": {\n        \"n\": 12,\n        \"meanDeltaPct\": -0.5441837986421404,\n        \"medianDeltaPct\": -0.25445950333266876,\n        \"intervalPct\": [\n          -1.199740541918999,\n          0.03433575968686548\n        ],\n        \"bootstrapSupportFaster\": 0.96646,\n        \"wins\": 7,\n        \"losses\": 5,\n        \"ties\": 0,\n        \"fasterSignP\": 0.38720703125,\n        \"twoSidedSignP\": 0.7744140625,\n        \"threshold\": 0.95,\n        \"resamples\": 50000,\n        \"verdict\": \"INCONCLUSIVE\"\n      }\n    }\n  ],\n  \"performanceQualified\": false\n}\n"
+    },
+    "static.json": {
+      "sha256": "b5e112d6cf777460712cf0cd8611c4fa1c0702e16c3803b401bbf91ea501346c",
+      "text": "{\n  \"referenceBytes\": 94087,\n  \"candidateBytes\": 94540,\n  \"referenceFunctions\": 105,\n  \"candidateFunctions\": 105,\n  \"referenceSha256\": \"36c2fc92bc5a4e0c4655819b278592a8107a7bbd347afc54c68206307e3fcaab\",\n  \"candidateSha256\": \"5e4558e96f459f1d25a208453e564df64a3fbbb6da36e09d9b9a96055e2e188c\",\n  \"namedDiagnosticContainsRefreshSymbol\": false,\n  \"namedDiagnosticSha256\": \"9707fc945aec899539f9ba6a7a47a8b8f2f2e869d231c8d423f2bba2cc2ef0ec\",\n  \"description\": \"One inline attribute and its comment change. Named diagnostic is built separately with stripping disabled solely to inspect helper presence; never timed.\"\n}\n"
+    },
+    "static.py": {
+      "sha256": "f983d7bc453260cc6500375b095cab5cb3e993c2e707afc9f88b0398ba839314",
+      "text": "import pathlib,json\nclass Reader:\n def __init__(self,b):self.b=b;self.i=0\n def byte(self):v=self.b[self.i];self.i+=1;return v\n def integer(self):\n  v=0;s=0\n  while True:\n   c=self.byte();v|=(c&127)<<s\n   if c<128:return v\n   s+=7\n def take(self,n):v=self.b[self.i:self.i+n];self.i+=n;return v\n def string(self):return self.take(self.integer()).decode()\ndef sections(p):\n r=Reader(pathlib.Path(p).read_bytes());r.take(8);out=[]\n while r.i<len(r.b):\n  k=r.byte();out.append((k,r.take(r.integer())))\n return out\n\nimport hashlib\nr=pathlib.Path('/tmp/engine-filter-inline-20261104')\ndef bodies(secs):\n reader=Reader(next(s for k,s in secs if k==10));return [reader.take(reader.integer()) for _ in range(reader.integer())]\na=r/'reference/scripts/lib/native_motion/engine.wasm';b=r/'candidate/scripts/lib/native_motion/engine.wasm'\nnamed=r/'named/wasm32-unknown-unknown/release/lr_engine.wasm'\nresult={'referenceBytes':a.stat().st_size,'candidateBytes':b.stat().st_size,'referenceFunctions':len(bodies(sections(a))),'candidateFunctions':len(bodies(sections(b))),\n 'referenceSha256':hashlib.sha256(a.read_bytes()).hexdigest(),'candidateSha256':hashlib.sha256(b.read_bytes()).hexdigest(),\n 'namedDiagnosticContainsRefreshSymbol':b'refresh_point_lines' in named.read_bytes(),'namedDiagnosticSha256':hashlib.sha256(named.read_bytes()).hexdigest(),\n 'description':'One inline attribute and its comment change. Named diagnostic is built separately with stripping disabled solely to inspect helper presence; never timed.'}\n(r/'static.json').write_text(json.dumps(result,indent=2)+'\\n');print(result)\n"
+    },
+    "verify.log": {
+      "sha256": "b7f07dfb8086f55e13629916ad63d8ba72db063d8973204ac0f98ae9aca951cc",
+      "text": "same  landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz\nsame  landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz\nsame  landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz\nsame  landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-single-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz\nsame  landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nPASS  33 tracks, 61115 frame states, 305336 ordered collisions\nPASS  61115 raw-frame, body-motion and cached-contact observations\n"
+    },
+    "candidate/scripts/lib/native_motion/manifest.json": {
+      "sha256": "52fc9faad793e972dba62d3354afcbffbd6b3496893e363585e70b71e44fdeca",
+      "text": "{\"schema\":\"line.planner-cache-backend.v1\",\"researchOnly\":false,\"implementation\":\"36a53b73d346c00e5ef3f337ce8cfc07ec00b8ba84738ef1bb26e50c83861cc9\",\"acceptedSources\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"f945fca16d45b5dfa36486eee95d44fbc043c4e2ffb8ef50c46563587d5a0512\",\"src/abi.rs\":\"095fc8fc62b35c5357c2d96e4356d5acdd0a14fdd6022bbc3198bd65e82f16ee\",\"src/engine.rs\":\"8d798d149bbe5421cc38c6d776846ee802b48d436cec577a363792fb4bf5d339\",\"src/frame.rs\":\"365ef290377c62fbf7b18b183d540f73f8e485d14423dfa46f3ce9fa1fb83285\",\"src/grid.rs\":\"6835bb65ca720a7bcc7becef36aeeb8c8f874a29342457252e52c801f7a8b1f5\",\"src/kernel.rs\":\"e1e0d402db1f63af868f8ba31766a29d8526114823c4c92f419524ac734a6b64\",\"src/lib.rs\":\"aade2692272c382c3086bf061340cf81207b472a0521b8cf31455e2d3641974d\",\"src/line.rs\":\"e053f3a59279bb7ba36444904872863143e5f093582a289b899afa71d1c56503\"},\"wrapperSource\":\"298600595ec3579f9cea75895ff821d30e6f4ded30c52343335d71c823526e2b\",\"generated\":{\"Cargo.lock\":\"f865a0b919323c50c8d06a1dcd46d1a5095a3f4232dbf9e577a8c7d885e8dc01\",\"Cargo.toml\":\"7e1f5c6369779c3ab9febafc03a4e321a5864b9055cd048837c596b2575e5afa\",\"engine.ts\":\"2ba9cf5eeaeca94e159f22119ae17474218b81c08094f1645374135438e900c2\",\"engine.wasm\":\"5e4558e96f459f1d25a208453e564df64a3fbbb6da36e09d9b9a96055e2e188c\",\"src/abi.rs\":\"6fe99c3490e1aa0deace922948b0fa2044d8c0e5f5ea88ffa67730d8c99b27c6\",\"src/cache.rs\":\"ea23b325f3bfb10aded4c2d6f906533fdee619c1d7152a23ed0f4d76464c97a9\",\"src/engine.rs\":\"057d5e84b6006a7cb1973eabcb194bbe17b1a6a9bb2759be5e358c8b5db734cd\",\"src/frame_states.rs\":\"ad2f215c133d2b58dd7d98b54c4b31289654657a8d555d40aae31ec5903ba279\",\"src/grid.rs\":\"bec42e87b0af353d072260c4e7c5543081a14e5a53ea5711e05b1175ebf4ea74\",\"src/history.rs\":\"3abad5694ce67350ba4040e2d11c29ebe2400bc4a2341cd18f01d3ec2e28b4a4\",\"src/kernel.rs\":\"efc45872c3481d250619a64645dd3007d839a9a790cfd17ef815c142db71f425\",\"src/lib.rs\":\"05e1d109c6252ee612ea464645c84eee7c914f9afbea12d542503c2ae63a1af3\",\"src/line.rs\":\"a8358b5a78454192dc734a2f04b241452c8b2acbaec0392095284d18e105a6bf\",\"wasm.ts\":\"dd848ff9607205155dd34cc194203d7f98f4291c4b8814f4bc368319270b9d40\"},\"capabilities\":[\"detached_prefix_cache\",\"metered_collision_trace\",\"cached_contact_positions\",\"owned_version_ancestry\"],\"note\":\"Computed-cache copies and collision observations only. Cached contact positions are read without stepping or replay. Final judging uses the unchanged benchmark engine.\",\"packagedFromManifestSha256\":\"6ecdf9ee2c6a3cb8cfdb0b0546ba814705207f967486041c0c1bfda5d7803f39\"}\n"
+    },
+    "candidate/scripts/lib/native_motion/manifest.json.sha256": {
+      "sha256": "94f8e31c890528706339be8018e9514ffbab0318dd216a46c1bfe397b3e21161",
+      "text": "52fc9faad793e972dba62d3354afcbffbd6b3496893e363585e70b71e44fdeca\n"
+    },
+    "candidate/scripts/lib/native_motion/src/kernel.rs": {
+      "sha256": "efc45872c3481d250619a64645dd3007d839a9a790cfd17ef815c142db71f425",
+      "text": "//! Per-frame solver \u2014 bit-faithful port of lr-core's states/index.js (Point.step,\n//! Binding) + constraints/index.js (Stick/RepelStick/BindStick/BindJoint) +\n//! lines/SolidLine.collide, driven in LineEngine._getNextFrame order:\n//!   step \u2192 6\u00d7(resolve 22 iterating, collide 10) \u2192 resolve 3 non-iterating.\n//!\n//! The arithmetic here is REUSED VERBATIM from the proven kernel (bit-identical on\n//! the committed tracks via verify:engine) \u2014 only the collision section is restructured\n//! to use center-cell history and line lookup indexes equivalent to lr-core's\n//! 3\u00d73 neighborhood queries.\n\n// Resolved positions belong to the collision that produced them, before later constraints.\npub(crate) type Collision = (u8, i32, i32, f64, f64);\n\nuse crate::history::CollisionHistory;\nuse crate::grid::{cell_cor_from_scaled, hash_int_pair, FlatIntMap, GRID_SIZE};\nuse crate::line::{Line, LineRef, MAX_FORCE_LENGTH};\nuse crate::{\n    COLLIDING_POINTS, BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITER, ITERATE, JOINTS, LFOOT, LHAND, NENT,\n    NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,\n};\n\n#[derive(Clone, Copy)]\nstruct PointCell {\n    key: i64,\n    min_x: f64,\n    max_x: f64,\n    min_y: f64,\n    max_y: f64,\n    valid: bool,\n    cell_x: i64,\n    cell_y: i64,\n    epoch: u32,\n}\n\nimpl PointCell {\n    const EMPTY: PointCell = PointCell {\n        key: 0,\n        min_x: 0.0,\n        max_x: 0.0,\n        min_y: 0.0,\n        max_y: 0.0,\n        valid: false,\n        cell_x: 0,\n        cell_y: 0,\n        epoch: 0,\n    };\n}\n\nconst QUERY_SLOTS: usize = 64;\n\nstruct QueryCache {\n    keys: [i64; QUERY_SLOTS],\n    lines: [Vec<*const Line>; QUERY_SLOTS],\n    epochs: [u32; QUERY_SLOTS],\n    current_epoch: u32,\n}\n\nimpl Default for QueryCache {\n    fn default() -> Self {\n        Self {\n            keys: [0; QUERY_SLOTS],\n            lines: std::array::from_fn(|_| Vec::new()),\n            epochs: [0; QUERY_SLOTS],\n            current_epoch: 1,\n        }\n    }\n}\n\nimpl QueryCache {\n    #[inline]\n    fn invalidate(&mut self) {\n        self.current_epoch = self.current_epoch.wrapping_add(1);\n        if self.current_epoch == 0 {\n            self.epochs.fill(0);\n            self.current_epoch = 1;\n        }\n    }\n\n    // Flatten only neighborhoods actually read. Buffers retain capacity across\n    // eviction and invalidation; cell order and cross-cell duplicates are kept.\n    #[inline]\n    fn lookup(&mut self, grid: &FlatIntMap<Vec<LineRef>>, key: i64, cx: i64, cy: i64) -> &[*const Line] {\n        let hash = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);\n        let slot = ((hash ^ (hash >> 32)) as usize) & (QUERY_SLOTS - 1);\n        if self.epochs[slot] != self.current_epoch || self.keys[slot] != key {\n            let lines = &mut self.lines[slot];\n            lines.clear();\n            for dx in -1..=1 {\n                for dy in -1..=1 {\n                    if let Some(bucket) = grid.get(&hash_int_pair(cx + dx, cy + dy)) {\n                        lines.extend(bucket.iter().map(|entry| &**entry as *const Line));\n                    }\n                }\n            }\n            self.keys[slot] = key;\n            self.epochs[slot] = self.current_epoch;\n        }\n        &self.lines[slot]\n    }\n}\n\npub(crate) struct LineCellCache {\n    point_cells: [PointCell; NENT],\n    point_lines: [Vec<*const Line>; NENT], // ordered lines passing this frame's direction predicate\n    queries: QueryCache,\n}\n\n// Queries borrow immutable lines owned by the grid. Edits invalidate all lists;\n// cache clones start empty and never copy borrowed pointers.\nimpl Clone for LineCellCache {\n    fn clone(&self) -> Self {\n        Self::default()\n    }\n}\n\nimpl Default for LineCellCache {\n    fn default() -> Self {\n        Self {\n            point_cells: [PointCell::EMPTY; NENT],\n            point_lines: std::array::from_fn(|_| Vec::new()),\n            queries: QueryCache::default(),\n        }\n    }\n}\n\nimpl LineCellCache {\n    // Velocity is constant through all six sweeps, but changes at each step.\n    // Refresh filtered point lists even when a replay reuses a frame index.\n    // The shared neighborhood queries remain valid until a grid edit.\n    #[inline]\n    fn begin_frame(&mut self) {\n        for point in &mut self.point_cells {\n            point.epoch = 0;\n        }\n    }\n\n    #[inline]\n    pub(crate) fn invalidate(&mut self) {\n        self.queries.invalidate();\n        if self.queries.current_epoch == 1 {\n            for point in &mut self.point_cells {\n                point.epoch = 0;\n            }\n        }\n    }\n\n    #[inline]\n    fn cache_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {\n        let point = &mut self.point_cells[index];\n        if point.epoch == self.queries.current_epoch {\n            return;\n        }\n        self.refresh_point_lines(grid, index, vx, vy);\n    }\n\n    // The ordered point loop shares this filter across all rider points.\n    #[inline(always)]\n    fn refresh_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {\n        let point = &mut self.point_cells[index];\n        let query = self.queries.lookup(grid, point.key, point.cell_x, point.cell_y);\n        let lines = &mut self.point_lines[index];\n        lines.clear();\n        // Reserve once for the largest possible result before filtering. Growing\n        // one pointer at a time fragments the WASM heap during long replays.\n        lines.reserve(query.len());\n        // Compact into the reserved buffer without Vec::push's capacity check\n        // or a direction-dependent branch for each candidate. Rejected entries\n        // overwrite the next unused slot; the accepted prefix stays ordered.\n        let output = lines.as_mut_ptr();\n        let mut count = 0;\n        for &ptr in query {\n            let line = unsafe { &*ptr };\n            let passes = line.normx * vx + line.normy * vy > 0.0;\n            // SAFETY: before input i, count <= i < query.len() <= capacity.\n            // Pointers are Copy and have no destructor. The Vec stays length 0\n            // until its fully initialized accepted prefix is published below.\n            unsafe { output.add(count).write(ptr); }\n            count += passes as usize;\n        }\n        // SAFETY: count <= query.len(), and every slot below count was written.\n        unsafe { lines.set_len(count); }\n        point.epoch = self.queries.current_epoch;\n    }\n\n    #[inline(always)]\n    fn point_cell(&mut self, index: usize, px: f64, py: f64) -> i64 {\n        Self::update_cell(&mut self.point_cells[index], px, py)\n    }\n\n    #[inline(always)]\n    fn update_cell(cached: &mut PointCell, px: f64, py: f64) -> i64 {\n        let scaled_x = px / GRID_SIZE;\n        let scaled_y = py / GRID_SIZE;\n        if cached.valid\n            && scaled_x >= cached.min_x\n            && scaled_x < cached.max_x\n            && scaled_y >= cached.min_y\n            && scaled_y < cached.max_y\n        {\n            return cached.key;\n        }\n\n        let cell_x = cell_cor_from_scaled(scaled_x);\n        let cell_y = cell_cor_from_scaled(scaled_y);\n        let min_x = cell_x as f64;\n        let max_x = cell_x.checked_add(1).map_or(min_x, |value| value as f64);\n        let min_y = cell_y as f64;\n        let max_y = cell_y.checked_add(1).map_or(min_y, |value| value as f64);\n        *cached = PointCell {\n            key: hash_int_pair(cell_x, cell_y),\n            min_x,\n            max_x,\n            min_y,\n            max_y,\n            valid: scaled_x.is_finite() && scaled_y.is_finite() && min_x < max_x && min_y < max_y,\n            cell_x,\n            cell_y,\n            epoch: 0,\n        };\n        cached.key\n    }\n}\n\n#[derive(Clone)]\npub(crate) struct State {\n    pub px: [f64; NENT],\n    pub py: [f64; NENT],\n    pub prevx: [f64; NENT],\n    pub prevy: [f64; NENT],\n    pub vx: [f64; NENT],\n    pub vy: [f64; NENT],\n    pub fsu: [i32; NENT],\n}\n\n#[inline]\nfn dist(ax: f64, ay: f64, bx: f64, by: f64) -> f64 {\n    let dx = bx - ax;\n    let dy = by - ay;\n    (dx * dx + dy * dy).sqrt()\n}\n\npub(crate) fn init_state(sx: f64, sy: f64, svx: f64, svy: f64) -> State {\n    let mut s = State {\n        px: [0.0; NENT],\n        py: [0.0; NENT],\n        prevx: [0.0; NENT],\n        prevy: [0.0; NENT],\n        vx: [0.0; NENT],\n        vy: [0.0; NENT],\n        fsu: [-1; NENT],\n    };\n    for i in 0..NENT {\n        if IS_POINT[i] {\n            s.px[i] = BASE[i].0 + sx;\n            s.py[i] = BASE[i].1 + sy;\n            s.prevx[i] = s.px[i] - svx;\n            s.prevy[i] = s.py[i] - svy;\n            s.vx[i] = svx;\n            s.vy[i] = svy;\n        }\n    }\n    s\n}\n\n/// Rest lengths belong to the fixed rider topology, not to a frame cache.\n/// Every solver call supplies a constant index, so release compilation folds\n/// this expression while preserving its original rounded arithmetic.\n#[inline(always)]\nfn rest_length(k: usize) -> f64 {\n    let (_, p1, p2, _, _, factor) = ITER[k];\n    dist(BASE[p1].0, BASE[p1].1, BASE[p2].0, BASE[p2].1) * factor\n}\n\n#[inline(always)]\nfn resolve_stick(s: &mut State, k: usize, p1: usize, p2: usize) {\n    let p1x = s.px[p1];\n    let p1y = s.py[p1];\n    let p2x = s.px[p2];\n    let p2y = s.py[p2];\n    let length = dist(p1x, p1y, p2x, p2y);\n    let gd = if length == 0.0 {\n        0.0\n    } else {\n        (length - rest_length(k)) / length\n    };\n    let diff = gd * 0.5;\n    let dx = (p1x - p2x) * diff;\n    let dy = (p1y - p2y) * diff;\n    s.px[p1] = p1x - dx;\n    s.py[p1] = p1y - dy;\n    s.px[p2] = p2x + dx;\n    s.py[p2] = p2y + dy;\n}\n\n#[inline(always)]\nfn resolve_repel(s: &mut State, k: usize, p1: usize, p2: usize) {\n    let p1x = s.px[p1];\n    let p1y = s.py[p1];\n    let p2x = s.px[p2];\n    let p2y = s.py[p2];\n    // Repels fire only when length < rest, which is rare (~2% \u2014 feet rarely closer\n    // to the shoulder than rest). Gate the sqrt on len_sq < rest\u00b2 so the common\n    // inactive case skips the sqrt entirely. Inside the gate, `length` and the\n    // applied math are byte-identical to the original (same len_sq, same sqrt, same\n    // `length < rest` branch). The ONLY semantic difference is the gate vs the\n    // original `length < rest` comparison, which can disagree in a ULP-wide band\n    // where round(rest\u00b2) rounds below rest\u00b2 \u2014 `verify`/`--diff` is the arbiter of\n    // whether that band ever occurs for these inputs.\n    let dx0 = p2x - p1x;\n    let dy0 = p2y - p1y;\n    let len_sq = dx0 * dx0 + dy0 * dy0;\n    let r = rest_length(k);\n    if len_sq < r * r {\n        let length = len_sq.sqrt();\n        if length < r {\n            let gd = if length == 0.0 {\n                0.0\n            } else {\n                (length - r) / length\n            };\n            let diff = gd * 0.5;\n            let dx = (p1x - p2x) * diff;\n            let dy = (p1y - p2y) * diff;\n            s.px[p1] = p1x - dx;\n            s.py[p1] = p1y - dy;\n            s.px[p2] = p2x + dx;\n            s.py[p2] = p2y + dy;\n        }\n    }\n}\n\n#[inline(always)]\nfn resolve_bind(\n    s: &mut State,\n    k: usize,\n    p1: usize,\n    p2: usize,\n    bind: usize,\n) {\n    let p1x = s.px[p1];\n    let p1y = s.py[p1];\n    let p2x = s.px[p2];\n    let p2y = s.py[p2];\n    // `length` (a sqrt) is only used on the intact branch (fsu == -1, ~97% of the\n    // time). Computing it lazily inside the branch skips the sqrt for the ~3%\n    // broken-bind calls where it was discarded \u2014 strictly bit-identical (the value,\n    // when used, is the same dist(); when unused it has no observable effect).\n    if s.fsu[bind] == -1 {\n        let length = dist(p1x, p1y, p2x, p2y);\n        let gd = if length == 0.0 {\n            0.0\n        } else {\n            (length - rest_length(k)) / length\n        };\n        let diff = gd * 0.5;\n        if diff > ITER[k].4 * rest_length(k) * 0.5 {\n            s.fsu[bind] = 0;\n        } else {\n            let dx = (p1x - p2x) * diff;\n            let dy = (p1y - p2y) * diff;\n            s.px[p1] = p1x - dx;\n            s.py[p1] = p1y - dy;\n            s.px[p2] = p2x + dx;\n            s.py[p2] = p2y + dy;\n        }\n    }\n}\n\n#[inline(always)]\nfn resolve_iter_constraints(s: &mut State) {\n    resolve_stick(s, 0, PEG, TAIL);\n    resolve_stick(s, 1, TAIL, NOSE);\n    resolve_stick(s, 2, NOSE, STRING);\n    resolve_stick(s, 3, STRING, PEG);\n    resolve_stick(s, 4, PEG, NOSE);\n    resolve_stick(s, 5, STRING, TAIL);\n    resolve_bind(s, 6, PEG, BUTT, RIDER_MOUNTED);\n    resolve_bind(s, 7, TAIL, BUTT, RIDER_MOUNTED);\n    resolve_bind(s, 8, NOSE, BUTT, RIDER_MOUNTED);\n    resolve_stick(s, 9, SHOULDER, BUTT);\n    resolve_stick(s, 10, SHOULDER, LHAND);\n    resolve_stick(s, 11, SHOULDER, RHAND);\n    resolve_stick(s, 12, BUTT, LFOOT);\n    resolve_stick(s, 13, BUTT, RFOOT);\n    resolve_stick(s, 14, SHOULDER, RHAND);\n    resolve_bind(s, 15, SHOULDER, PEG, RIDER_MOUNTED);\n    resolve_bind(s, 16, STRING, LHAND, RIDER_MOUNTED);\n    resolve_bind(s, 17, STRING, RHAND, RIDER_MOUNTED);\n    resolve_bind(s, 18, LFOOT, NOSE, RIDER_MOUNTED);\n    resolve_bind(s, 19, RFOOT, NOSE, RIDER_MOUNTED);\n    resolve_repel(s, 20, SHOULDER, LFOOT);\n    resolve_repel(s, 21, SHOULDER, RFOOT);\n}\n\n#[inline(always)]\n#[allow(clippy::too_many_arguments)]\nunsafe fn collide_point<const TRACK: bool>(\n    s: &mut State,\n    grid: &FlatIntMap<Vec<LineRef>>,\n    events: &mut Vec<Collision>,\n    frame_index: i32,\n    history: &mut CollisionHistory,\n    line_cache: &mut LineCellCache,\n    it: u8,\n    index: usize,\n    fric: f64,\n) {\n    let (mut pxi, mut pyi, vxi, vyi) = (\n        *s.px.get_unchecked(index),\n        *s.py.get_unchecked(index),\n        *s.vx.get_unchecked(index),\n        *s.vy.get_unchecked(index),\n    );\n    let center_cell = line_cache.point_cell(index, pxi, pyi);\n    // addToGrid (A): pre-collision snapshot.\n    if TRACK {\n        history.record_point(\n            center_cell,\n            frame_index,\n            pxi,\n            pyi,\n            vxi,\n            vyi,\n        );\n    }\n    line_cache.cache_point_lines(grid, index, vxi, vyi);\n    let lns = &line_cache.point_lines[index];\n    if !lns.is_empty() {\n        let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));\n        for &line in lns {\n            // Entries point into immutable batch geometry owned by the grid.\n            // Only point_cells is updated below; this query stays fixed during\n            // the sweep even when a collision moves the entity to another cell.\n            let l = &*line;\n            let ox = pxi - l.p1x;\n            let oy = pyi - l.p1y;\n            let perp_comp = l.normx * ox + l.normy * oy;\n            let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;\n            if perp_comp > 0.0\n                && perp_comp < MAX_FORCE_LENGTH\n                && line_pos >= l.left_bound\n                && line_pos <= l.right_bound\n            {\n                let tx = l.normx * perp_comp - pxi;\n                let ty = l.normy * perp_comp - pyi;\n                let posx = tx * -1.0;\n                let posy = ty * -1.0;\n                let (mut fvx, mut fvy) = if fric == 0.0 {\n                    (prevxi, prevyi)\n                } else {\n                    let mut fvx = (l.normy * fric) * perp_comp;\n                    let mut fvy = ((-l.normx) * fric) * perp_comp;\n                    if prevxi >= posx {\n                        fvx = fvx * -1.0;\n                    }\n                    if prevyi < posy {\n                        fvy = fvy * -1.0;\n                    }\n                    (fvx + prevxi, fvy + prevyi)\n                };\n                if l.is_acc {\n                    fvx = fvx + l.accx;\n                    fvy = fvy + l.accy;\n                }\n                *s.px.get_unchecked_mut(index) = posx;\n                *s.py.get_unchecked_mut(index) = posy;\n                *s.prevx.get_unchecked_mut(index) = fvx;\n                *s.prevy.get_unchecked_mut(index) = fvy;\n                pxi = posx;\n                pyi = posy;\n                prevxi = fvx;\n                prevyi = fvy;\n                events.push((it, l.id, index as i32, posx, posy));\n                // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.\n                if TRACK {\n                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[index], pxi, pyi);\n                    history.record_point(\n                        pcell,\n                        frame_index,\n                        pxi,\n                        pyi,\n                        vxi,\n                        vyi,\n                    );\n                    history.record_collision(l.id, frame_index);\n                }\n            }\n        }\n    }\n}\n\n/// One frame: step \u2192 6\u00d7(constraints, collision) \u2192 BindJoints. `events` collects\n/// (iteration, line_id, point_idx) per collision (for getUpdatesAtFrame). When\n/// `track`, point snapshots and line collisions are recorded in `history` at\n/// `frame_index`; recording is purely additive \u2014 it does not affect the physics.\n#[allow(clippy::too_many_arguments)]\n// Keep the large solver out of the frequently called cached-read path.\n#[inline(never)]\npub(crate) fn step_state<const TRACK: bool>(\n    s: &mut State,\n    grid: &FlatIntMap<Vec<LineRef>>,\n    events: &mut Vec<Collision>,\n    frame_index: i32,\n    history: &mut CollisionHistory,\n    line_cache: &mut LineCellCache,\n    mut trace: Option<&mut CollisionTrace>,\n) {\n    if TRACK { history.begin_frame(); }\n    line_cache.begin_frame();\n    // step\n    for i in 0..NENT {\n        if IS_POINT[i] {\n            let nvx = (s.px[i] - s.prevx[i]) * (1.0 - 0.0) + GRAVITY_X;\n            let nvy = (s.py[i] - s.prevy[i]) * (1.0 - 0.0) + GRAVITY_Y;\n            let nx = s.px[i] + nvx;\n            let ny = s.py[i] + nvy;\n            s.prevx[i] = s.px[i];\n            s.prevy[i] = s.py[i];\n            s.px[i] = nx;\n            s.py[i] = ny;\n            s.vx[i] = nvx;\n            s.vy[i] = nvy;\n        } else if s.fsu[i] != -1 {\n            s.fsu[i] += 1;\n        }\n    }\n\n    for it in 0..ITERATE {\n        unsafe {\n            resolve_iter_constraints(s);\n            if let Some(trace) = trace.as_deref_mut() { trace.record(s, it); }\n            let it = it as u8;\n            for &(index, friction) in &COLLIDING_POINTS {\n                collide_point::<TRACK>(s, grid, events, frame_index, history, line_cache, it, index, friction);\n            }\n        }\n    }\n\n    for &(p1, p2, q1, q2, bind) in JOINTS.iter() {\n        let ax = s.px[p2] - s.px[p1];\n        let ay = s.py[p2] - s.py[p1];\n        let bx = s.px[q2] - s.px[q1];\n        let by = s.py[q2] - s.py[q1];\n        let cross = ax * by - ay * bx;\n        if cross >= 0.0 {\n            // allow\n        } else if s.fsu[bind] == -1 {\n            s.fsu[bind] = 0;\n        }\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<LineRef>>, x: f64, y: f64) -> Vec<i32> {\n        cache.point_cell(PEG,x, y);\n        cache.cache_point_lines(grid, PEG, 0.0, 1.0);\n        cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()\n    }\n\n    #[test]\n    fn query_cache_invalidates_hits_misses_clones_and_epoch_wrap() {\n        use crate::line::{build_line, push_line, remove_line};\n        let mut grid = FlatIntMap::default();\n        let mut cache = LineCellCache::default();\n        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());\n        let line = build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0);\n        let cells = line.cells();\n        cache.invalidate();\n        push_line(&mut grid, &line, cells);\n        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);\n        let mut cloned = cache.clone();\n        let mut other = grid.clone();\n        remove_line(&mut other, 1, &cells);\n        assert!(ids(&mut cloned, &other, 1.0, 1.0).is_empty());\n        cache.invalidate();\n        remove_line(&mut grid, 1, &cells);\n        for key in 100..1000 { grid.get_or_insert_default(key); }\n        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());\n        assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());\n        cache.queries.current_epoch = u32::MAX;\n        cache.invalidate();\n        assert_eq!(cache.queries.current_epoch, 1);\n        assert!(cache.queries.epochs.iter().all(|&e| e == 0));\n        assert!(cache.point_cells.iter().all(|p| p.epoch == 0));\n        assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());\n    }\n\n    #[test]\n    fn flat_query_preserves_duplicates_and_survives_point_movement_during_sweep() {\n        use crate::line::{build_line, push_line, remove_line};\n        let mut grid = FlatIntMap::default();\n        let mut cache = LineCellCache::default();\n        for (id, cells) in [(1, vec![(-1, -1)]), (2, vec![(-1, 0)]), (3, vec![(-1, -1), (-1, 0)])] {\n            push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);\n        }\n        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![3, 1, 3, 2]);\n        let query = &cache.point_lines[PEG];\n        LineCellCache::update_cell(&mut cache.point_cells[PEG], 14.0, 1.0);\n        assert_eq!(query.iter().map(|&l| unsafe { (*l).id }).collect::<Vec<_>>(), vec![3, 1, 3, 2]);\n        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());\n        cache.invalidate();\n        push_line(&mut grid, &build_line(4, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(2, 0)]);\n        assert_eq!(ids(&mut cache, &grid, 14.0, 1.0), vec![4]);\n        cache.invalidate();\n        remove_line(&mut grid, 4, &[(2, 0)]);\n        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());\n    }\n\n    #[test]\n    fn shared_query_eviction_does_not_replace_a_points_cached_lines() {\n        use crate::line::{build_line, push_line};\n        let mut grid = FlatIntMap::default();\n        push_line(&mut grid, &build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0)]);\n        let mut cache = LineCellCache::default();\n        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);\n        for cx in 1..1024 {\n            cache.queries.lookup(&grid, hash_int_pair(cx, 100), cx, 100);\n        }\n        assert_ne!(cache.queries.keys[0], 0); // evicted the shared query for (0,0)\n        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);\n    }\n\n    #[test]\n    fn direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates() {\n        use crate::line::{build_line, push_line};\n        let mut grid = FlatIntMap::default();\n        push_line(&mut grid, &build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);\n        push_line(&mut grid, &build_line(2, 0.0, 5.0, 10.0, 5.0, 0, 1), &[(0, 0)]);\n        push_line(&mut grid, &build_line(3, 5.0, 0.0, 5.0, 10.0, 1, 0), &[(0, 0)]);\n        // A zero-length line has NaN normals and must never pass direction > 0.\n        push_line(&mut grid, &build_line(4, 0.0, 0.0, 0.0, 0.0, 0, 0), &[(0, 0)]);\n        let mut cache = LineCellCache::default();\n        for (vx, vy, expected) in [\n            (0.0, 1.0, vec![1, 1]),\n            (0.0, -1.0, vec![2]),\n            (-1.0, 1.0, vec![3, 1, 1]),\n            (1.0, -1.0, vec![2]),\n            (0.0, -0.0, vec![]),\n            (f64::NAN, 1.0, vec![]),\n            (0.0, f64::INFINITY, vec![1, 1]),\n            (0.0, 1.0, vec![1, 1]),\n        ] {\n            let query_epoch = cache.queries.current_epoch;\n            cache.begin_frame();\n            assert_eq!(cache.queries.current_epoch, query_epoch);\n            for _ in 0..6 {\n                cache.point_cell(PEG,1.0, 1.0);\n                cache.cache_point_lines(&grid, PEG, vx, vy);\n                let got: Vec<i32> = cache.point_lines[PEG].iter().map(|&p| unsafe { (*p).id }).collect();\n                assert_eq!(got, expected);\n            }\n        }\n    }\n\n    #[test]\n    fn direction_compaction_handles_full_empty_and_growing_queries() {\n        use crate::line::{build_line, push_line};\n        let mut cache = LineCellCache::default();\n        for count in [0, 1, 32, 4097, 3, 0, 65, 1] {\n            let mut grid = FlatIntMap::default();\n            for id in 0..count {\n                push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0), (0, 1)]);\n            }\n            cache.invalidate();\n            let one_cell: Vec<i32> = (0..count).rev().collect();\n            let expected: Vec<i32> = one_cell.iter().chain(one_cell.iter()).copied().collect();\n            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);\n            cache.begin_frame();\n            cache.cache_point_lines(&grid, PEG, 0.0, -1.0);\n            assert!(cache.point_lines[PEG].is_empty());\n            // The entirely rejected pass must not leave stale output entries.\n            cache.begin_frame();\n            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);\n        }\n    }\n\n    #[test]\n    fn point_cell_cache_matches_exact_grid_hash() {\n        let mut cache = LineCellCache::default();\n        let mut positions = Vec::new();\n        for cell in -256..=256 {\n            let boundary = cell as f64 * GRID_SIZE;\n            positions.extend([\n                (boundary - 1e-10, boundary + 1e-10),\n                (boundary, boundary),\n                (boundary + 1e-10, boundary - 1e-10),\n                (boundary + GRID_SIZE * 0.5, boundary + GRID_SIZE * 0.75),\n            ]);\n        }\n\n        let mut state = 0x6a09_e667_f3bc_c909_u64;\n        for _ in 0..100_000 {\n            state = state\n                .wrapping_mul(6_364_136_223_846_793_005)\n                .wrapping_add(1_442_695_040_888_963_407);\n            let x = ((state >> 11) as f64 / ((1_u64 << 53) as f64)) * 2e6 - 1e6;\n            state = state\n                .wrapping_mul(6_364_136_223_846_793_005)\n                .wrapping_add(1_442_695_040_888_963_407);\n            let y = ((state >> 11) as f64 / ((1_u64 << 53) as f64)) * 2e6 - 1e6;\n            positions.push((x, y));\n        }\n\n        for (x, y) in positions {\n            assert_eq!(cache.point_cell(PEG,x, y), crate::grid::cell_hash(x, y));\n        }\n    }\n}\n\n// A requested observation belongs to an engine version. The solver only writes\n// into the explicitly supplied trace, never global state or lazy history replay.\npub(crate) struct CollisionTrace {\n    pub frame: i32,\n    pub count: usize,\n    pub points: [f64; ITERATE * NENT * 6],\n}\n\nimpl CollisionTrace {\n    pub(crate) fn new(frame: i32) -> Self {\n        Self { frame, count: 0, points: [0.0; ITERATE * NENT * 6] }\n    }\n    pub(crate) fn reset(&mut self, frame: i32) {\n        self.frame = frame;\n        self.count = 0;\n    }\n    #[cold]\n    #[inline(never)]\n    fn record(&mut self, s: &State, iteration: usize) {\n        for i in 0..NENT {\n            let k = (iteration * NENT + i) * 6;\n            self.points[k] = s.px[i]; self.points[k + 1] = s.py[i];\n            self.points[k + 2] = s.prevx[i]; self.points[k + 3] = s.prevy[i];\n            self.points[k + 4] = s.vx[i]; self.points[k + 5] = s.vy[i];\n        }\n        self.count = iteration + 1;\n    }\n}\n"
+    }
+  },
+  "artifacts": {
+    "candidate": {
+      "sha256": "5e4558e96f459f1d25a208453e564df64a3fbbb6da36e09d9b9a96055e2e188c",
+      "bytes": 94540,
+      "gzipBase64": "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"
+    }
+  }
+}

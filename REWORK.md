@@ -83,6 +83,16 @@ are restored without reruns or confirmations. Exact track/work and native replay
 pass throughout. `docs/research/engine-under7k-followup-20261104.json` records the
 diagnostics, patches, artifacts, raw pairs and independent decision audit.
 
+Two further collision-loop prototypes also remain outside production. Conservative
+per-line position enclosures safely reject 96.16% of candidate visits, but their
+fixed direct screen12 is slower: +7.22% [6.64,7.79], 0/12 wins. Grouped direction
+extrema classify 33.76% of entries uniformly, yet their screen is also slower:
++2.76% [2.17,3.35], 0/12 wins. Shadow assertions, native tests and independent
+replay pass for both. Neither earns confirmation or retention; reducing arithmetic
+counts alone does not establish a speedup. Full code, binaries, raw pairs and
+decision audits are in `docs/research/engine-line-bounds-20261104.json` and
+`docs/research/engine-direction-blocks-20261104.json`.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

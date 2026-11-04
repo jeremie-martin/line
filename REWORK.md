@@ -93,6 +93,16 @@ counts alone does not establish a speedup. Full code, binaries, raw pairs and
 decision audits are in `docs/research/engine-line-bounds-20261104.json` and
 `docs/research/engine-direction-blocks-20261104.json`.
 
+Flat numeric support/guide paths pass 3,000 exact geometry comparisons and
+20 targeted tests, with an identical native binary, but their screen12 is
+inconclusive: −0.33% [−1.03,+0.42], 8/12 wins. A separate native constraint-phase
+working record removes 37 generated stores in each solver variant; safe indexing
+produces that same candidate binary. It passes 27 native tests and independent
+replay, but its screen12 is also inconclusive: +0.27% [−0.49,+1.03], 6/12 wins.
+Both required KEEP, so neither is retained or rerun. Their frozen evidence is in
+`docs/research/engine-packed-paths-20261104.json` and
+`docs/research/engine-constraint-phase-20261104.json`.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

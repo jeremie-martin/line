@@ -93,6 +93,16 @@ rows only as initial heap seeds preserves exhaustive stable retrieval and passes
 (`docs/research/engine-retrieval-seeds-20261104.json`). These trials leave the
 qualified 9,076 ns implementation unchanged.
 
+A separately declared explicit Vec2 primitive trial addresses the automatic
+layout's missing vector multiplication. It emits 88 `f64x2.mul` instructions
+and passes 27 Rust tests, native replay and 8,228,488 scalar-JavaScript numeric
+comparisons (exact non-NaN bits, including signed zero; NaN classification).
+Screen12 is still inconclusive: **−0.37% [−1.05,+0.36]**, 7/12 wins. It fails
+both KEEP and its stronger −2% upper-bound gate. No variant, confirmation or
+conditional ablation follows. The production solver retains scalar coordinate
+arrays; source, numeric probes and raw pairs are archived in
+`docs/research/engine-vector-operators-20261104.json`.
+
 ## November 4: qualify the simpler topology solver at 9,495 ns
 
 The new qualified checkpoint takes **9,495 ns per charged physics frame** for

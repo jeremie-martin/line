@@ -2,6 +2,13 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Indexed strike traversal and avoiding an empty-prefix continuation copy pass
+17 focused tests, typecheck and 23,061 frozen-reference comparisons. The fixed
+screen12 is inconclusive: **+0.45% [−0.36,+1.36]**, 5/12 wins. Required KEEP
+fails; no confirmation, retry or adoption follows. The qualified implementation
+and open 7,000 ns target remain unchanged. Full evidence is retained in
+`docs/research/engine-strike-iteration-20261104.json`.
+
 Full default automatic compilation now takes **9,076 ns per charged physics
 frame**, with an absolute 95% interval of **9,037–9,115**. Against qualified
 `974e4d2e`, screen12 passes at −4.36% [−5.10,−3.71], 12/12 wins; fresh confirm24

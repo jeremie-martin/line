@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Overwriting detector measurement suffixes before truncating preserves 15,120
+frozen-reference comparisons, four resume tests, typecheck and the complete
+default checkpoint. Fresh sampled `scanFrames` allocations nevertheless rise
+**54.37 → 64.49 MiB/compile**, failing the declared 25% reduction gate. No timing,
+tuning or adoption follows (`docs/research/engine-detector-overwrite-20261104.json`).
+
 Ordering learned-policy rows by their existing supervised proximity bounds
 reduces full distance calculations by **93.67%**. All 10,335 exact proposal
 comparisons, ten focused tests, typecheck and complete default checkpoint parity

@@ -70,6 +70,19 @@ solver copies failed their static instruction prerequisite. None remains as a
 production option. The final raw-sample audit independently reproduces every
 completed paired decision and checks each measured compile's exact work/hash.
 
+Follow-up probes leave this production checkpoint unchanged. There are no exact
+repeat feature queries across 195 construction-memory retrievals, so a result
+cache has no demonstrated opportunity. A shadow 64-slot history-list cache saves
+27.52% of map reads but hashes every query; the current slots avoid hashing on
+72.27% of queries. Retaining two neighborhoods instead saves only 0.422% of map
+reads. Neither cache is added. Direct fixed screen12 comparisons also fail to
+qualify a leading-edge bucket shortcut (+0.11%, interval [−0.54,+0.79]) or an
+owning line pointer (−0.45%, [−1.43,+0.57]). The latter also fails its stronger
+predeclared minimum 1% benefit condition for adding an unsafe invariant. Both
+are restored without reruns or confirmations. Exact track/work and native replay
+pass throughout. `docs/research/engine-under7k-followup-20261104.json` records the
+diagnostics, patches, artifacts, raw pairs and independent decision audit.
+
 ## November 3: reject inline native version slots; finish three experiments
 
 Third sequential experiment, against accepted `265545b6`: replace boxed versions

@@ -2,6 +2,12 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Preparing fold timing once per curve and reusing adjacent stations preserves
+165,280 numeric comparisons, 5,000 geometry comparisons, 15 focused tests,
+typecheck and the full default checkpoint. Fold exponentials fall 73.24%, but
+screen12 is **+0.18% [−0.78,+1.09]**, 6/12 wins, INCONCLUSIVE. No confirmation,
+tuning or adoption follows (`docs/research/engine-prepared-fold-time-20261104.json`).
+
 A fresh V8 optimization/deoptimization audit shows **6, 3, then 1** deoptimizations
 after the warmup, with exact work/output in every repetition. It does not establish
 persistent hot-loop churn. No shape rewrite or runtime-flag change follows

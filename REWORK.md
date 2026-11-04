@@ -1,5 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
+## November 4: distinguish observation allocation from addressable runtime cost
+
+The follow-up ownership/demand audit preserves the complete default checkpoint
+and its 147,209 charged frames. Across 5,592 native prefix/candidate windows,
+all 492,859 rows have their position, velocity, binding flags and contact-presence
+values read. Lazy whole-frame fields would not avoid those reads. However, the
+search copies 200,850 sled-point names and 277,625 line ids without reading their
+array elements. Contact presence and contact detail are distinct interface needs.
+The final replay still requires the full records and their exact contact order.
+
+This is an interface opportunity, not evidence for a large speedup. The existing
+CPU stacks attribute only **1.70%** of default application time to
+`getCachedRawFrames`, including its descendants. The detector shares vectors;
+strike observations use ten-point motion rather than the detector's six-point
+body velocity. Construction callbacks can invalidate native transport buffers.
+The ownership map therefore rejects both indiscriminate signal fusion and a
+borrowed buffer spanning an entire candidate evaluation. Do not launch a broad
+record-format migration solely from the large cumulative allocation figure.
+
+A separate conservative collision-packet shadow tests an algorithm with a larger
+potential runtime scope. Consecutive groups of eight direction-qualified lines
+bound the original rounded perpendicular expression. Every original collision
+test still executes, and every predicted packet miss is checked against its
+actual events. All 30 Rust tests and the exact default checkpoint pass, but only
+**28.05%** of 50,368,237 line visits can be excluded, below the predeclared 70%
+gate. Avoided visits per packet visit plus build are **1.462**, below 4. Close
+this mechanism without a bypass implementation, packet-size tuning or timing.
+
+Production stays unchanged. The next architecture investigation is candidate
+geometry registration and shared-lineage version switching: measure the actual
+reconciliation, grid, clone and history costs before choosing a rewrite. Full
+ownership findings, instrumented sources, corrected initial probe/build logs,
+shadow binary and counts are in
+`docs/research/engine-observation-boundaries-20261104.json`.
+
 ## November 4: profile whole candidate lifecycles before further optimization
 
 Fresh V8 Inspector CPU profiles of unchanged `214e38a8` cover one warmup and

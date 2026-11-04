@@ -2,6 +2,11 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Native history performs 498,884 immutable line-finiteness checks for 402,034
+constructed lines: **1.24 checks per line**, below the predeclared 3× reuse
+gate. Exact default track/work holds. No precomputed flag or performance trial
+follows (`docs/research/engine-line-finite-20261104.json`).
+
 Preparing fold timing once per curve and reusing adjacent stations preserves
 165,280 numeric comparisons, 5,000 geometry comparisons, 15 focused tests,
 typecheck and the full default checkpoint. Fold exponentials fall 73.24%, but

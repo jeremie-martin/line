@@ -2,6 +2,11 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+A fresh V8 optimization/deoptimization audit shows **6, 3, then 1** deoptimizations
+after the warmup, with exact work/output in every repetition. It does not establish
+persistent hot-loop churn. No shape rewrite or runtime-flag change follows
+(`docs/research/engine-deopt-audit-20261104.json`).
+
 A conservative grid-envelope diagnostic finds **23.28%** of ordinary ten-point
 collision sweeps wholly outside the registered geometry. Every predicted miss
 is checked while the complete original solver still runs; exact track/work

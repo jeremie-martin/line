@@ -2,6 +2,13 @@
 
 ## November 4: qualify scalar two-dimensional norms at 9,076 ns
 
+Ordering learned-policy rows by their existing supervised proximity bounds
+reduces full distance calculations by **93.67%**. All 10,335 exact proposal
+comparisons, ten focused tests, typecheck and complete default checkpoint parity
+pass. The fixed screen nevertheless reads **+0.56% [−0.18,+1.38]**, 5/12 wins,
+INCONCLUSIVE. Required KEEP and upper-bound gates fail; no confirmation, tuning
+or adoption follows (`docs/research/engine-policy-partition-order-20261104.json`).
+
 Deferring terminal rider-state materialization past trajectory/construction
 validation removes 1,985 cached full-state reads (5,592 → 3,607). The complete
 default compiler checkpoint is byte-identical, integrating reads and detailed

@@ -1,6 +1,14 @@
 import {expect, it} from 'vitest';
-import {decide, decideCompileCells, pairOrder} from '../tools/measure/engine_decision.ts';
+import {decide, decideCompileCells, pairOrder, summarizePairs} from '../tools/measure/engine_decision.ts';
 const constant = (delta: number, n = 12) => Array.from({length: n}, () => ({base: 100, candidate: 100 + delta}));
+it('describes partial pairs without inventing an inferential result', () => {
+  expect(summarizePairs([])).toEqual({n: 0, medianDeltaPct: null, fasterPairs: 0, slowerPairs: 0, tiedPairs: 0});
+  expect(summarizePairs([{base: 100, candidate: 90}, {base: 200, candidate: 220}, {base: 10, candidate: 10}]))
+    .toEqual({n: 3, medianDeltaPct: 0, fasterPairs: 1, slowerPairs: 1, tiedPairs: 1});
+  expect(summarizePairs([...constant(-4, 1), ...constant(-2, 1), ...constant(0, 1), ...constant(8, 1)]).medianDeltaPct).toBe(-1);
+  expect(summarizePairs(constant(-3)).medianDeltaPct).toBe(decide(constant(-3)).medianDeltaPct);
+  for (const invalid of [0, -1, NaN, Infinity]) expect(() => summarizePairs([{base: invalid, candidate: 1}])).toThrow();
+});
 it('uses one declared practical margin, including ties and boundary values', () => {
   expect(decide(constant(-3)).verdict).toBe('FASTER');
   expect(decide(constant(3)).verdict).toBe('SLOWER');

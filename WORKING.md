@@ -107,6 +107,10 @@ plan and its log.
   it is distinct from live allocations or process RSS.
   Paired protocol v3 uses a fixed, balanced randomized process-pair experiment,
   with every warmup retained and one exact median-change confidence interval.
+  Live medians and pair counts are descriptive. A losing trial may be abandoned
+  early with its partial evidence retained; it cannot qualify a candidate or be
+  presented as a completed verdict. Promising runs still need the declared full
+  experiment and fresh confirmation.
   Declare the practical speed/non-regression margin before measuring. An
   inconclusive interval is not equivalence. Null and injected-slowdown controls
   check the experiment; they cannot qualify a candidate. Separate fresh processes

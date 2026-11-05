@@ -19,14 +19,32 @@ export function pairOrder(rounds: number, seed: number): number[][] {
   return order.map(first => [first, 1 - first]);
 }
 
-export function decide(pairs: readonly {base: number; candidate: number}[], confidence = .95, marginPct = 2) {
+type Pair = {base: number; candidate: number};
+
+function pairedChanges(pairs: readonly Pair[]) {
+  assert(pairs.every(p => Number.isFinite(p.base) && p.base > 0 && Number.isFinite(p.candidate) && p.candidate > 0));
+  const deltas = pairs.map(p => 100 * (p.candidate - p.base) / p.base).sort((a, b) => a - b);
+  assert(deltas.every(Number.isFinite));
+  return deltas;
+}
+
+const median = (sorted: readonly number[]) => sorted.length % 2 ? sorted[sorted.length >> 1] :
+  (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+
+/** Descriptive progress only: no interval, probability or early verdict. */
+export function summarizePairs(pairs: readonly Pair[]) {
+  const deltas = pairedChanges(pairs);
+  return {n: deltas.length, medianDeltaPct: deltas.length ? median(deltas) : null,
+    fasterPairs: deltas.filter(d => d < 0).length, slowerPairs: deltas.filter(d => d > 0).length,
+    tiedPairs: deltas.filter(d => d === 0).length};
+}
+
+export function decide(pairs: readonly Pair[], confidence = .95, marginPct = 2) {
   const n = pairs.length;
   assert(Number.isInteger(n) && n >= 8 && n <= 256);
   assert(Number.isFinite(confidence) && confidence > .5 && confidence < 1);
   assert(Number.isFinite(marginPct) && marginPct > 0 && marginPct < 100);
-  assert(pairs.every(p => Number.isFinite(p.base) && p.base > 0 && Number.isFinite(p.candidate) && p.candidate > 0));
-  const deltas = pairs.map(p => 100 * (p.candidate - p.base) / p.base).sort((a, b) => a - b);
-  assert(deltas.every(Number.isFinite));
+  const deltas = pairedChanges(pairs);
   // P(W <= k) is one excluded tail. Select the narrowest conservative interval.
   let term = 2 ** -n, tail = 0, rank = -1, coverage = 0;
   for (let k = 0; k < Math.floor(n / 2); k++) {
@@ -39,7 +57,7 @@ export function decide(pairs: readonly {base: number; candidate: number}[], conf
   assert(rank >= 0, 'too few pairs for a finite interval at this confidence');
   const intervalPct: [number, number] = [deltas[rank], deltas[n - rank - 1]];
   const [lower, upper] = intervalPct;
-  const medianDeltaPct = n % 2 ? deltas[n >> 1] : (deltas[n / 2 - 1] + deltas[n / 2]) / 2;
+  const medianDeltaPct = median(deltas);
   const verdict = upper < -marginPct ? 'FASTER' : lower > marginPct ? 'SLOWER' :
     lower >= -marginPct && upper <= marginPct ? 'EQUIVALENT' : 'INCONCLUSIVE';
   return {n, medianDeltaPct, intervalPct, confidence, coverage, marginPct, verdict};

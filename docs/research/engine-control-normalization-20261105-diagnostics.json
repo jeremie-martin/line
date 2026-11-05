@@ -1,0 +1,654 @@
+{
+  "referenceCommit": "09220d44fd785545641de3243766df9813afe202",
+  "declaration": {
+    "referenceCommit": "09220d44fd785545641de3243766df9813afe202",
+    "hypothesis": "Resolve interval-invariant active control definitions once per search, retaining the canonical registry, independent candidate copies and dependent normalization order.",
+    "adoption": "Speedup required; fresh screen and confirmation must resolve >0.5% benefit on larger automatic compilation (62). Default 61 upper CI <=+2%; WASM capacity unchanged, process peak RSS <=+15%; exact physics/compiler parity and clean design mandatory.",
+    "protocol": {
+      "cpu": 2,
+      "screenPairs": 12,
+      "confirmationPairs": 24,
+      "defaultGuardPairs": 12,
+      "warmup": 5,
+      "repeats": 3,
+      "confidence": 0.95,
+      "marginPct": 0.5,
+      "screenSeed": 1729,
+      "confirmationSeed": 2718
+    }
+  },
+  "policyRevision": {
+    "recordedAt": "2026-11-05T11:13:32.019120+00:00",
+    "completedConfirmationPairs": 17,
+    "originalDeclaration": "declaration.json",
+    "ownerInstruction": "The earlier owner explicitly rejected a universal effect-size minimum and requested weighing evidence of probable benefit with simplicity.",
+    "reason": "The initial assistant declaration incorrectly made the new 0.5% practical comparison margin another hard adoption minimum. Correct that policy explicitly; do not alter or relabel the experiment. This is a revision after observing partial confirmation data, not a predeclared rule.",
+    "adoption": "Require the complete fixed fresh confirmation interval to be entirely below zero, default-workload upper bound <=+2%, unchanged WASM capacity, peak RSS <=+15%, exact correctness gates and a clean small implementation. Retain the original 0.5% timing verdict even if it is not FASTER. No extra pairs, restart, tuning or early adoption."
+  },
+  "adoption": {
+    "adopted": true,
+    "originalMarginQualified": false,
+    "reason": "Complete fresh confirmation supports a smaller positive benefit; separate default, resource, exact correctness and design gates pass under the explicitly revised owner-preference policy."
+  },
+  "frozenPerformanceFiles": {
+    "scripts/v0/optimizer/arc_evaluate.ts": "5b2579c45c183bc982cd81052f65ee55fbccaca5c4c8e5f647791cc4f9badcb4",
+    "scripts/v0/optimizer/arc_interval_state.ts": "4c878ad311a6f2496b4c45b57fbdaaa6781c53bb52830262ccb1db9c20c021c9",
+    "scripts/v0/optimizer/arc_motion_control.ts": "1f0355e178744eed20015ee8bf24c9b6a1e1c77e1f88c2a55871316f5a10d7d2",
+    "tests/arc_control_contract.test.ts": "18fd2ebaede16cff2113ec088b136082882a4a432d41ac441d2044fcdb68a9ba",
+    "tests/arc_single_rail.test.ts": "4f0227e9e0ae47185ae02e1a22bb27d558f7e4b8920b43ff644dfa4ad2fd8f76",
+    "tests/intentional_repertoire.test.ts": "bf169a74c82319f54f3a449bd28cbf045bd95e5c46f2b7ef9418c173fe1e732d",
+    "tests/repertoire_active_controls.test.ts": "66d412c732c98c96f0276b8428e5810c8e41cfb7db55ab80f34fb41180b3c274"
+  },
+  "validatedFiles": {
+    "scripts/v0/optimizer/arc_evaluate.ts": "5b2579c45c183bc982cd81052f65ee55fbccaca5c4c8e5f647791cc4f9badcb4",
+    "scripts/v0/optimizer/arc_interval_state.ts": "4c878ad311a6f2496b4c45b57fbdaaa6781c53bb52830262ccb1db9c20c021c9",
+    "scripts/v0/optimizer/arc_motion_control.ts": "1f0355e178744eed20015ee8bf24c9b6a1e1c77e1f88c2a55871316f5a10d7d2",
+    "tests/arc_control_contract.test.ts": "18fd2ebaede16cff2113ec088b136082882a4a432d41ac441d2044fcdb68a9ba",
+    "tests/arc_single_rail.test.ts": "4f0227e9e0ae47185ae02e1a22bb27d558f7e4b8920b43ff644dfa4ad2fd8f76",
+    "tests/engine_decision.test.ts": "3412d7ac17fd9da4259e697f3a0ac80c527bf548361e6d825d97a17247526c35",
+    "tests/engine_report.test.ts": "34c46f5e52d51269368f2539072edeb903f21ce162317408a02689f4a861fcf9",
+    "tests/intentional_repertoire.test.ts": "bf169a74c82319f54f3a449bd28cbf045bd95e5c46f2b7ef9418c173fe1e732d",
+    "tests/repertoire_active_controls.test.ts": "66d412c732c98c96f0276b8428e5810c8e41cfb7db55ab80f34fb41180b3c274",
+    "tools/measure/engine_ab.ts": "8e62a85ddb96a3e25acee7f8c6ae06692f2dafd0e7487c04ea2617f0d7b7e124",
+    "tools/measure/engine_decision.ts": "ca8bef3b93faf74ca4a95ebbd2e8e2873aee8a6514bdcf58c02f7fdcd190583e"
+  },
+  "performanceCandidatePatch": "diff --git a/scripts/v0/optimizer/arc_evaluate.ts b/scripts/v0/optimizer/arc_evaluate.ts\nindex 0fc25fb2..1f7232dc 100644\n--- a/scripts/v0/optimizer/arc_evaluate.ts\n+++ b/scripts/v0/optimizer/arc_evaluate.ts\n@@ -16,7 +16,7 @@ import { arcRailGroups } from './arc_guidance.ts';\n import {ArcObjectiveContinuation} from './arc_objective.ts';\n import { arcBoundaryCorrection } from './arc_boundary.ts';\n import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';\n-import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';\n+import { arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';\n import { inspectConstructionWindow } from './repertoire_candidate.ts';\n import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';\n import { constructionDeficit } from './repertoire_feasibility.ts';\n@@ -64,7 +64,7 @@ export function rememberNear(s: IntervalSearch, candidate: Near) {\n \n function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments) {\n   const {options, memo} = s, work = s.ctx.work;\n-  c = normalizeArcControl(c, s.controlContext);\n+  c = s.normalizeControl(c);\n   const key = arcControlMemoKey(c, options.channel) + (fragments ? '|fragments' : '');\n   work.samples++;\n   const saved = memo.get(key);\ndiff --git a/scripts/v0/optimizer/arc_interval_state.ts b/scripts/v0/optimizer/arc_interval_state.ts\nindex c5de5994..0a2cdff9 100644\n--- a/scripts/v0/optimizer/arc_interval_state.ts\n+++ b/scripts/v0/optimizer/arc_interval_state.ts\n@@ -7,6 +7,7 @@ import { getRiderMetered, getBallisticStateMetered, extractRawTrajectory, detect\n import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';\n import { CALIB, impactToRawPx, type AxisValues, type Gap } from '../types.ts';\n import { catchReceivers, type ArcMotionControl } from './arc_geometry.ts';\n+import { arcControlNormalizer } from './arc_motion_control.ts';\n import { arcPolicyArrival } from './arc_control_policy.ts';\n import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';\n import { arcSpanLoss } from './arc_boundary.ts';\n@@ -96,7 +97,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number,\n   const priorAxes = options.completeBoundary && priorGap\n     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;\n   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;\n-  const controlContext = {...options, observedReceiver: true, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};\n+  const normalizeControl = arcControlNormalizer({...options, observedReceiver: true, span: constructionSpan,\n+    releaseReserveFrames: options.impactSearch?.releaseFrames});\n \n   // These describe the immutable incoming prefix already measured above.\n   // Reusing them avoids a new physics read after committing the search budget.\n@@ -121,7 +123,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number,\n     beforeState, velocity, trace,\n     prefixRaw, detection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,\n     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,\n-    memo, priorGap, priorAxes, priorLoss, controlContext,\n+    memo, priorGap, priorAxes, priorLoss, normalizeControl,\n     inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,\n     /** Lowest optimization cost measured so far. */\n     best: null as EvaluatedCandidate | null,\ndiff --git a/scripts/v0/optimizer/arc_motion_control.ts b/scripts/v0/optimizer/arc_motion_control.ts\nindex 19037937..810c0dcb 100644\n--- a/scripts/v0/optimizer/arc_motion_control.ts\n+++ b/scripts/v0/optimizer/arc_motion_control.ts\n@@ -78,17 +78,26 @@ export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle)\n   return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');\n }\n \n-export function normalizeArcControl(control: ArcMotionControl, context: ArcControlContext): ArcMotionControl {\n-  const c = {...control};\n+/** Resolve the interval's active fields once; candidate values remain independent.\n+ * Registry order keeps support normalized before dependent turn timing. */\n+export function arcControlNormalizer(input: ArcControlContext): (control: ArcMotionControl) => ArcMotionControl {\n+  const context = {...input};\n+  const active: {key: ControlKey; definition: ControlDefinition}[] = [], inactive: ControlKey[] = [];\n   for (const key of ARC_CONTROL_KEYS) {\n-    const definition = ARC_CONTROL_DEFINITIONS[key];\n-    if(!arcControlActive(key,context.guides,context)){delete c[key];continue;}\n-    if(key==='foldBend'&&c[key]===undefined)c[key]=context.foldAngle??50;\n-    const value = c[key];\n-    if (value === undefined && definition.family !== 'core') continue;\n-    c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);\n+    if (arcControlActive(key, context.guides, context)) active.push({key, definition: ARC_CONTROL_DEFINITIONS[key]});\n+    else inactive.push(key);\n   }\n-  return c;\n+  return control => {\n+    const c = {...control};\n+    for (const key of inactive) delete c[key];\n+    for (const {key, definition} of active) {\n+      if (key === 'foldBend' && c[key] === undefined) c[key] = context.foldAngle ?? 50;\n+      const value = c[key];\n+      if (value === undefined && definition.family !== 'core') continue;\n+      c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);\n+    }\n+    return c;\n+  };\n }\n \n /** All other geometry inputs are fixed by the surrounding evaluation context.\ndiff --git a/tests/arc_control_contract.test.ts b/tests/arc_control_contract.test.ts\nindex 2040ca0a..e4e22827 100644\n--- a/tests/arc_control_contract.test.ts\n+++ b/tests/arc_control_contract.test.ts\n@@ -1,6 +1,6 @@\n import {expect, it} from 'vitest';\n import {motionArc, type ArcMotionControl} from '../scripts/v0/optimizer/arc_geometry.ts';\n-import {ARC_CONTROL_KEYS, ARC_CORE_KEYS, normalizeArcControl, arcControlMemoKey,\n+import {ARC_CONTROL_KEYS, ARC_CORE_KEYS, arcControlNormalizer, arcControlMemoKey,\n   arcControlValue, arcResponseKeys, arcControlStep} from '../scripts/v0/optimizer/arc_motion_control.ts';\n \n const control: ArcMotionControl = {entry: 5, turn: -20, exit: -10, support: 12, bias: 0, offset: .1};\n@@ -19,18 +19,34 @@ it('keeps every authored dimension, omitted topology and signed zero in evaluati\n \n it('normalizes against the actual interval without mutating or materializing optional geometry', () => {\n   const supplied = {...control, entry: 100, turn: 110, exit: -100, support: 100, bias: 4, offset: -5};\n-  const bounded = normalizeArcControl(supplied, {span: 20});\n+  const bounded = arcControlNormalizer({span: 20})(supplied);\n   expect(bounded).toEqual({...control, entry: 85, turn: 110, exit: -80, support: 16, bias: 2, offset: -2});\n   expect(supplied.support).toBe(100);\n   expect(Object.keys(bounded)).toEqual(Object.keys(control));\n-  expect(normalizeArcControl({...supplied, turn: -130}, {span: 20}).turn).toBe(-120);\n+  expect(arcControlNormalizer({span: 20})({...supplied, turn: -130}).turn).toBe(-120);\n+});\n+\n+it('reuses a fixed interval while preserving each candidate\u2019s omissions and dependent timing', () => {\n+  const context = {span: 220, releaseReserveFrames: 20, guides: false,\n+    profile: 'fold', profileStart: 0, independentGuide: true, foldAngle: 40};\n+  const normalize = arcControlNormalizer(context);\n+  context.span = 10;\n+  context.guides = true;\n+  context.foldAngle = -40;\n+  const supplied = {...control, support: 250, turnFraction: .001, clearance: 20, bend: 30, bias: -0};\n+  const first = normalize(supplied);\n+  expect(first).toEqual({...control, support: 200, turnFraction: .025, bias: -0, foldBend: 40});\n+  first.foldBend = -60;\n+  const second = normalize({...control, foldBend: undefined});\n+  expect(second).toEqual({...control, foldBend: 40});\n+  expect(Object.hasOwn(second, 'turnFraction')).toBe(false);\n+  expect(supplied.clearance).toBe(20);\n });\n \n it('lets explicit search timing represent the inherited long arc exactly', () => {\n   const long = {...control, support: 200};\n   const points = [{x: 0, y: 0}, {x: 1, y: 0}], velocity = {x: 6, y: 1};\n-  const explicit = normalizeArcControl({...long, turnFraction: arcControlValue(long, 'turnFraction')},\n-    {span: 220});\n+  const explicit = arcControlNormalizer({span: 220})({...long, turnFraction: arcControlValue(long, 'turnFraction')});\n   expect(motionArc(points, velocity, explicit, 1000, 12)).toEqual(motionArc(points, velocity, long, 1000, 12));\n   expect(arcControlValue(control, 'clearance')).toBe(12);\n   expect(arcControlValue(control, 'clearance', 0)).toBe(0);\ndiff --git a/tests/arc_single_rail.test.ts b/tests/arc_single_rail.test.ts\nindex 3d6e6762..c41a5ce4 100644\n--- a/tests/arc_single_rail.test.ts\n+++ b/tests/arc_single_rail.test.ts\n@@ -1,6 +1,6 @@\n import {it,expect} from 'vitest';\n import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';\n-import {normalizeArcControl,arcResponseKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';\n+import {arcControlNormalizer,arcResponseKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';\n import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';\n import type {Spec} from '../scripts/v0/types.ts';\n const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],velocity={x:9,y:2};\n@@ -14,8 +14,8 @@ it('enforces no guides even when proposals explicitly request full close guidanc\n   }\n });\n it('canonicalizes inactive guide variables and excludes their response probes',()=>{\n-  const a=normalizeArcControl({...control,clearance:8,guideStart:.2,guideEnd:.9,guideFlare:5},{span:40,guides:false});\n-  const b=normalizeArcControl({...control,clearance:26,guideStart:0,guideEnd:1,guideFlare:-12},{span:40,guides:false});\n+  const a=arcControlNormalizer({span:40,guides:false})({...control,clearance:8,guideStart:.2,guideEnd:.9,guideFlare:5});\n+  const b=arcControlNormalizer({span:40,guides:false})({...control,clearance:26,guideStart:0,guideEnd:1,guideFlare:-12});\n   expect(a).toEqual(control);expect(arcControlMemoKey(a,12)).toEqual(arcControlMemoKey(b,12));\n   const active=arcResponseKeys(false);\n   expect(active).toContain('bend');expect(active).toContain('turnFraction');\ndiff --git a/tests/intentional_repertoire.test.ts b/tests/intentional_repertoire.test.ts\nindex 52299a6c..e3b2bcae 100644\n--- a/tests/intentional_repertoire.test.ts\n+++ b/tests/intentional_repertoire.test.ts\n@@ -3,7 +3,7 @@ import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_rep\n import {constructions,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';\n import {inspectLayout} from '../scripts/v0/optimizer/repertoire_layout.ts';\n import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';\n-import {normalizeArcControl} from '../scripts/v0/optimizer/arc_motion_control.ts';\n+import {arcControlNormalizer} from '../scripts/v0/optimizer/arc_motion_control.ts';\n const spec={duration:12,contacts:Array.from({length:12},(_,i)=>({t:.7+i*.9,impact:.02})),axes:{speed:()=>.35}};\n describe('intentional arrangement',()=>{\n  it('binds the plan to authored targets and preserves frozen V1 requests',()=>{\n@@ -37,18 +37,18 @@ describe('independent guide geometry and deliberate transfer',()=>{\n   const split=old.findIndex((l,i)=>i>0&&(old[i-1].x2!==l.x1||old[i-1].y2!==l.y1));\n   expect(shortened.filter(l=>l.id>=old[split].id)).toEqual(old.slice(split));\n   expect(shortened.length).toBeLessThan(old.length);\n-  expect(normalizeArcControl({...c,guideTilt:10,mainEnd:.5},{span:30})).toEqual(c);\n+  expect(arcControlNormalizer({span:30})({...c,guideTilt:10,mainEnd:.5})).toEqual(c);\n  });\n  it('searches a folded face angle while preserving the declared default',()=>{\n   const style={profile:'fold' as const,profileStart:0,faces:3,foldAngle:30,independentGuide:true};\n   const implicit=motionArc(points,v,c,1000,12,0,4,style);\n-  const normalized=normalizeArcControl(c,{...style,span:30});\n+  const normalized=arcControlNormalizer({...style,span:30})(c);\n   expect(normalized.foldBend).toBe(30);\n   expect(motionArc(points,v,normalized,1000,12,0,4,style)).toEqual(implicit);\n   const other=motionArc(points,v,{...normalized,foldBend:-30},1000,12,0,4,style);\n   expect(other).not.toEqual(implicit);\n   expect(other.every(l=>l.type===0)).toBe(true);\n-  expect(normalizeArcControl({...c,foldBend:-30},{span:30})).toEqual(c);\n+  expect(arcControlNormalizer({span:30})({...c,foldBend:-30})).toEqual(c);\n  });\n  it('requires physical transfer and an absent lower floor, not an unused guide',()=>{\n   const main=[{id:1000,type:0,x1:-10,y1:0,x2:0,y2:0},{id:1001,type:0,x1:0,y1:0,x2:20,y2:0}];\ndiff --git a/tests/repertoire_active_controls.test.ts b/tests/repertoire_active_controls.test.ts\nindex 6bb8551a..9dad6264 100644\n--- a/tests/repertoire_active_controls.test.ts\n+++ b/tests/repertoire_active_controls.test.ts\n@@ -1,10 +1,10 @@\n import {it,expect} from 'vitest';\n import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';\n-import {normalizeArcControl,arcResponseKeys} from '../scripts/v0/optimizer/arc_motion_control.ts';\n+import {arcControlNormalizer,arcResponseKeys} from '../scripts/v0/optimizer/arc_motion_control.ts';\n it('removes a geometrically inactive full-fold coordinate without changing its linework',()=>{\n  const style={profile:'fold' as const,profileStart:0,profileStrength:1,faces:3,foldAngle:30};\n  const control={entry:10,turn:12,exit:20,support:12,bias:.2,offset:.1,bend:30};\n- const normalized=normalizeArcControl(control,{span:30,...style});\n+ const normalized=arcControlNormalizer({span:30,...style})(control);\n  expect(normalized.bend).toBeUndefined();\n  const points=[{x:0,y:0},{x:5,y:1},{x:10,y:-1}];\n  expect(motionArc(points,{x:8,y:2},normalized,1000,12,24,4,style))\n@@ -12,6 +12,6 @@ it('removes a geometrically inactive full-fold coordinate without changing its l\n  expect(arcResponseKeys(true,style)).not.toContain('bend');\n  for(const active of [{...style,profileStrength:.8},{...style,profileStart:.8},{profile:'serpentine'}]){\n   expect(arcResponseKeys(true,active)).toContain('bend');\n-  expect(normalizeArcControl(control,{span:30,...active}).bend).toBe(30);\n+  expect(arcControlNormalizer({span:30,...active})(control).bend).toBe(30);\n  }\n });\n",
+  "normalizationShadow": {
+    "contexts": 648,
+    "cases": 202176,
+    "equal": true
+  },
+  "checkpointFiles": {
+    "checkpoints/candidate/checkpoint-62.v8": {
+      "bytes": 687706,
+      "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507"
+    },
+    "checkpoints/candidate/checkpoint-61.v8": {
+      "bytes": 716360,
+      "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599"
+    },
+    "checkpoints/reference/checkpoint-62.v8": {
+      "bytes": 687706,
+      "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507"
+    },
+    "checkpoints/reference/checkpoint-61.v8": {
+      "bytes": 716360,
+      "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599"
+    }
+  },
+  "baselineProfiles": {
+    "61": {
+      "iterations": {
+        "cell": 61,
+        "profiling": true,
+        "node": "v22.22.2",
+        "iterations": [
+          {
+            "rep": -5,
+            "wallMs": 2368.3846599999997,
+            "cpuMs": 2368.534,
+            "nsPerFrame": 16088.586023952337,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": -4,
+            "wallMs": 1254.031215,
+            "cpuMs": 1253.075,
+            "nsPerFrame": 8518.712952333077,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": -3,
+            "wallMs": 1117.812707,
+            "cpuMs": 1116.885,
+            "nsPerFrame": 7593.372056056355,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": -2,
+            "wallMs": 1200.272567,
+            "cpuMs": 1200.028,
+            "nsPerFrame": 8153.527073752284,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": -1,
+            "wallMs": 1087.9740900000006,
+            "cpuMs": 1087.148,
+            "nsPerFrame": 7390.676453205991,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": 0,
+            "wallMs": 1219.813886,
+            "cpuMs": 1219.62,
+            "nsPerFrame": 8286.272483340013,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": 1,
+            "wallMs": 1145.5538219999999,
+            "cpuMs": 1144.675,
+            "nsPerFrame": 7781.819195837209,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          },
+          {
+            "rep": 2,
+            "wallMs": 1150.426519999999,
+            "cpuMs": 1149.635,
+            "nsPerFrame": 7814.919739961545,
+            "physicalFrames": 147209,
+            "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344"
+          }
+        ]
+      },
+      "sampledMicros": 3515725,
+      "topSelf": [
+        {
+          "name": "wasm-function[44]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 26.552019853657495
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "percent": 6.855940097703887
+        },
+        {
+          "name": "wasm-function[58]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 5.80270072317943
+        },
+        {
+          "name": "wasm-function[49]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 4.511786331411018
+        },
+        {
+          "name": "nearestControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 3.510314373280049
+        },
+        {
+          "name": "motionArcPaths",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+          "percent": 2.2810373393823467
+        },
+        {
+          "name": "wasm-function[53]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 2.245312133343763
+        },
+        {
+          "name": "evaluateCandidate",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 2.1444510022826018
+        },
+        {
+          "name": "arcControlProposals",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+          "percent": 1.6809335201132056
+        },
+        {
+          "name": "wasm-function[50]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 1.6438145759409508
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.3687646218063132
+        },
+        {
+          "name": "wasm-function[62]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 1.3422267099958045
+        },
+        {
+          "name": "getCachedRawFrames",
+          "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+          "percent": 1.2508657531519105
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+          "percent": 1.2500977749966222
+        },
+        {
+          "name": "normalizeArcControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.2051568310945822
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_lineage.ts",
+          "percent": 1.1273634883274433
+        },
+        {
+          "name": "wasm-function[32]",
+          "url": "wasm://wasm/00052e8a",
+          "percent": 1.0650150395722078
+        },
+        {
+          "name": "scanFrames",
+          "url": "file:///home/holo/line/scripts/lib/detector.ts",
+          "percent": 1.0064495943226504
+        },
+        {
+          "name": "set filename",
+          "url": "",
+          "percent": 0.916482375612427
+        },
+        {
+          "name": "inspectConstruction",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+          "percent": 0.8793349878047912
+        },
+        {
+          "name": "wasm-function[3]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 0.8367264220039963
+        },
+        {
+          "name": "pruneUntouchedGuides",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_finalize.ts",
+          "percent": 0.8334269602997959
+        },
+        {
+          "name": "wasm-function[15]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 0.8075716957384323
+        },
+        {
+          "name": "buildGeometry",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 0.7802942494080168
+        },
+        {
+          "name": "contact",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+          "percent": 0.7650769044791614
+        }
+      ],
+      "controlFunctions": [
+        {
+          "name": "proposeInitialControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+          "percent": 19.142623498709373
+        },
+        {
+          "name": "proposeControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 3.7400536162526934
+        },
+        {
+          "name": "nearestControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 3.568481607634272
+        },
+        {
+          "name": "arcControlProposals",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+          "percent": 1.853899266865298
+        },
+        {
+          "name": "arcControlMemoKey",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.7464107687603554
+        },
+        {
+          "name": "normalizeArcControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.2294476957099887
+        },
+        {
+          "name": "genericControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+          "percent": 0.32565118147750466
+        },
+        {
+          "name": "ArcControlMemory",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 0.11752910139444922
+        },
+        {
+          "name": "arcReferencedControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.0752049719474646
+        },
+        {
+          "name": "arcControlsSimilar",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.05006079827062697
+        },
+        {
+          "name": "validProfileControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/motion_profiles.ts",
+          "percent": 0.02596903910288774
+        },
+        {
+          "name": "rememberControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 0.00861842152045453
+        },
+        {
+          "name": "arcControlActive",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.007850443365166503
+        }
+      ]
+    },
+    "62": {
+      "iterations": {
+        "cell": 62,
+        "profiling": true,
+        "node": "v22.22.2",
+        "iterations": [
+          {
+            "rep": -5,
+            "wallMs": 7262.7006169999995,
+            "cpuMs": 7266.487,
+            "nsPerFrame": 9789.299148674621,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": -4,
+            "wallMs": 5529.018886,
+            "cpuMs": 5525.485,
+            "nsPerFrame": 7452.492224040372,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": -3,
+            "wallMs": 5336.652351000001,
+            "cpuMs": 5334.173,
+            "nsPerFrame": 7193.203888114604,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": -2,
+            "wallMs": 5291.530857000002,
+            "cpuMs": 5289.04,
+            "nsPerFrame": 7132.385216645866,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": -1,
+            "wallMs": 5325.334575000001,
+            "cpuMs": 5323.477,
+            "nsPerFrame": 7177.948805906981,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": 0,
+            "wallMs": 5743.078813,
+            "cpuMs": 5741.266,
+            "nsPerFrame": 7741.020799243027,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": 1,
+            "wallMs": 5646.191629000001,
+            "cpuMs": 5643.693,
+            "nsPerFrame": 7610.427831438655,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          },
+          {
+            "rep": 2,
+            "wallMs": 5624.240967999998,
+            "cpuMs": 5621.697,
+            "nsPerFrame": 7580.840822642341,
+            "physicalFrames": 741902,
+            "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c"
+          }
+        ]
+      },
+      "sampledMicros": 17014207,
+      "topSelf": [
+        {
+          "name": "wasm-function[44]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 28.769410175860678
+        },
+        {
+          "name": "(garbage collector)",
+          "url": "",
+          "percent": 8.352625544052685
+        },
+        {
+          "name": "wasm-function[58]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 5.5821173446402765
+        },
+        {
+          "name": "wasm-function[49]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 4.452614218223629
+        },
+        {
+          "name": "recordCandidate",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 3.960672395721999
+        },
+        {
+          "name": "wasm-function[53]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 2.5229445016156204
+        },
+        {
+          "name": "motionArcPaths",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+          "percent": 2.1030130878271316
+        },
+        {
+          "name": "nearestControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 2.04352162871887
+        },
+        {
+          "name": "evaluateCandidate",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 1.5817663438560492
+        },
+        {
+          "name": "scanFrames",
+          "url": "file:///home/holo/line/scripts/lib/detector.ts",
+          "percent": 1.3311640089955412
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+          "percent": 1.3158650297366195
+        },
+        {
+          "name": "wasm-function[62]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 1.1552169313562484
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.1400002362731334
+        },
+        {
+          "name": "wasm-function[50]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 1.0548948887244642
+        },
+        {
+          "name": "inspectConstruction",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+          "percent": 1.0198359523896705
+        },
+        {
+          "name": "accountContactImpacts",
+          "url": "file:///home/holo/line/scripts/lib/contact_impact.ts",
+          "percent": 1.0176612991719216
+        },
+        {
+          "name": "arcControlProposals",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+          "percent": 1.0071759441976933
+        },
+        {
+          "name": "normalizeArcControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.9773067883798522
+        },
+        {
+          "name": "wasm-function[15]",
+          "url": "wasm://wasm/0005d47e",
+          "percent": 0.9141536834481913
+        },
+        {
+          "name": "getCachedRawFrames",
+          "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+          "percent": 0.9061427311892937
+        },
+        {
+          "name": "",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_lineage.ts",
+          "percent": 0.9014642880505686
+        },
+        {
+          "name": "buildGeometry",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 0.7878709833493857
+        },
+        {
+          "name": "detectStrikes",
+          "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+          "percent": 0.7717432848912676
+        },
+        {
+          "name": "signedAngleDeg",
+          "url": "file:///home/holo/line/scripts/lib/detector.ts",
+          "percent": 0.7177296009152822
+        },
+        {
+          "name": "inspectTrajectory",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+          "percent": 0.6965237933216635
+        }
+      ],
+      "controlFunctions": [
+        {
+          "name": "proposeInitialControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+          "percent": 14.25114905443433
+        },
+        {
+          "name": "proposeControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 2.2846260187148304
+        },
+        {
+          "name": "nearestControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 2.127557281982052
+        },
+        {
+          "name": "arcControlMemoKey",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 1.4275187788652155
+        },
+        {
+          "name": "arcControlProposals",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+          "percent": 1.1085676811149647
+        },
+        {
+          "name": "normalizeArcControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.9933522026621634
+        },
+        {
+          "name": "genericControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+          "percent": 0.1571627757908435
+        },
+        {
+          "name": "arcReferencedControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.09921708369952241
+        },
+        {
+          "name": "arcControlsSimilar",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.05796332441470825
+        },
+        {
+          "name": "ArcControlMemory",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 0.05103382132355625
+        },
+        {
+          "name": "validProfileControls",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/motion_profiles.ts",
+          "percent": 0.027859070951705242
+        },
+        {
+          "name": "arcControlActive",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.012442542870202532
+        },
+        {
+          "name": "arcControlStep",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.008945465398416747
+        },
+        {
+          "name": "arcControlValue",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+          "percent": 0.0051721481935655305
+        },
+        {
+          "name": "rememberControl",
+          "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+          "percent": 0.0017867421032317287
+        }
+      ]
+    }
+  },
+  "validation": {
+    "command": "npm run check",
+    "exitCode": 0
+  },
+  "scripts": {
+    "profile.mts": "import assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/home/holo/line/benchmark/v6/model.ts';\nimport {policy} from '/home/holo/line/benchmark/v6/policy.ts';\nimport {caseSpec} from '/home/holo/line/benchmark/v4/model.ts';\nimport {compileHandoff} from '/home/holo/line/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-next-20261105';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=-5;rep<3;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n",
+    "candidate.mts": "import {serialize} from 'node:v8';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/home/holo/line/benchmark/v6/model.ts';\nimport {policy} from '/home/holo/line/benchmark/v6/policy.ts';\nimport {caseSpec} from '/home/holo/line/benchmark/v4/model.ts';\nimport {compileHandoff} from '/home/holo/line/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-next-20261105/checkpoints/candidate';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n writeFileSync(`${root}/checkpoint-${cellIndex}.v8`,serialize(checkpoint));\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n",
+    "reference.mts": "import {serialize} from 'node:v8';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-next-20261105/reference/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-next-20261105/reference/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-next-20261105/reference/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-next-20261105/reference/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-next-20261105/checkpoints/reference';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-next-20261105/reference/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n writeFileSync(`${root}/checkpoint-${cellIndex}.v8`,serialize(checkpoint));\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n",
+    "shadow.py": "import subprocess\nfrom pathlib import Path\nroot=Path('/tmp/engine-next-20261105')\nfor cell in [61,62]:\n for arm in ['reference','candidate']:\n  subprocess.run(['taskset','-c','2','node','--import','tsx',str(root/f'{arm}.mts'),str(cell)],cwd='/home/holo/line',check=True)\n subprocess.run(['node','--input-type=module','-e',f\"import assert from 'node:assert/strict';import {{deserialize}} from 'node:v8';import {{readFileSync}} from 'node:fs';assert.deepStrictEqual(deserialize(readFileSync('{root}/checkpoints/candidate/checkpoint-{cell}.v8')),deserialize(readFileSync('{root}/checkpoints/reference/checkpoint-{cell}.v8')));assert.equal(JSON.stringify(deserialize(readFileSync('{root}/checkpoints/candidate/checkpoint-{cell}.v8'))),JSON.stringify(deserialize(readFileSync('{root}/checkpoints/reference/checkpoint-{cell}.v8'))));console.log('Cell {cell}: complete checkpoints and JSON field order exactly equal');\"],check=True)\n",
+    "normalization-shadow.mts": "import assert from 'node:assert/strict';\nimport {writeFileSync} from 'node:fs';\nimport {normalizeArcControl as before} from './reference/scripts/v0/optimizer/arc_motion_control.ts';\nimport {arcControlNormalizer, ARC_CONTROL_KEYS} from '/home/holo/line/scripts/v0/optimizer/arc_motion_control.ts';\nconst base = {entry:5,turn:-20,exit:-10,support:12,bias:0,offset:.1};\nconst values = [undefined,-Infinity,-Number.MAX_VALUE,-100,-1e-200,-0,0,1e-200,1,100,Number.MAX_VALUE,Infinity,NaN];\nlet cases=0,contexts=0;\nfor(const guides of [undefined,false,true])for(const profile of [undefined,'fold'])\nfor(const railLayout of [undefined,'paired','transfer'] as const)for(const independentGuide of [false,true])\nfor(const observedReceiver of [false,true])for(const profileStrength of [undefined,.5,1])for(const profileStart of [undefined,0,.2]){\n const context={span: contexts%2?20:220, releaseReserveFrames:contexts%3?undefined:20,\n  foldAngle:contexts%2?undefined:-60,guides,profile,railLayout,independentGuide,observedReceiver,profileStrength,profileStart};\n const after=arcControlNormalizer(context);contexts++;\n for(const key of ARC_CONTROL_KEYS)for(const value of values){\n  const input={...base,[key]:value}, old=before(input,context), current=after(input);\n  assert.deepStrictEqual(current,old);assert.deepStrictEqual(Object.keys(current),Object.keys(old));cases++;\n }\n for(let index=0;index<values.length;index++){\n  const input={...base,...Object.fromEntries(ARC_CONTROL_KEYS.map((key,k)=>[key,values[(k+index)%values.length]]))};\n  const old=before(input,context), current=after(input);\n  assert.deepStrictEqual(current,old);assert.deepStrictEqual(Object.keys(current),Object.keys(old));cases++;\n }\n}\nconst result={contexts,cases,equal:true};console.log(result);\nwriteFileSync('/tmp/engine-next-20261105/normalization-shadow.json',JSON.stringify(result,null,2)+'\\n');\n",
+    "decision-shadow.mts": "import assert from 'node:assert/strict';\nimport {readFileSync,writeFileSync} from 'node:fs';\nimport {decide,decideCompileCells} from '/home/holo/line/tools/measure/engine_decision.ts';\nconst root='/tmp/engine-next-20261105';\nfor(const name of ['screen','default-guard','confirm']){\n const d=JSON.parse(readFileSync(`${root}/${name}/result.json`,'utf8'));\n const pairs=Array.from({length:d.protocol.rounds},(_,round)=>({\n  base:d.samples.find(s=>s.round===round&&s.arm===0).nsPerFrame,\n  candidate:d.samples.find(s=>s.round===round&&s.arm===1).nsPerFrame}));\n assert.deepStrictEqual(decide(pairs,d.protocol.confidence,d.protocol.marginPct),d.decision);\n const cells=decideCompileCells(d.samples,d.protocol.cells,d.protocol.confidence,d.protocol.marginPct);\n assert.deepStrictEqual(cells.decisions,d.cellDecisions);assert.equal(cells.regressionGuardPassed,d.regressionGuardPassed);\n console.log(`${name}: aggregate/cell decisions and guards exactly unchanged`);\n}\nwriteFileSync(`${root}/decision-shadow.json`,JSON.stringify({experiments:3,equal:true},null,2)+'\\n');\n",
+    "measure.py": "import json,subprocess\nfrom pathlib import Path\nroot=Path('/tmp/engine-next-20261105')\nreference=Path('/tmp/engine-next-20261105/reference')\ncommon=['taskset','-c','2','npm','run','perf:engine','--','--mode=compile',f'--reference={reference}/scripts/lib/native_motion/engine.wasm',f'--reference-root={reference}','--confirm-rounds=24','--warmup=5','--reps=3','--margin-pct=0.5']\ndef measure(name,cell,*flags):\n subprocess.run(common+[f'--cells={cell}',f'--out={root}/{name}',*flags],cwd='/home/holo/line',check=True)\n return json.loads((root/name/'result.json').read_text())\ndef resources_pass(result):\n for case in result['resources']:\n  a,b=[arm['resources'] for arm in case['arms']]\n  if a['wasmLinearMemoryBytes']!=b['wasmLinearMemoryBytes'] or b['processMaxRssBytes']>1.15*a['processMaxRssBytes']:return False\n return True\nscreen=measure('screen',62,'--rounds=12','--seed=1729')\nguard=measure('default-guard',61,'--rounds=12','--seed=1729')\nqualified=screen['decision']['verdict']=='FASTER' and guard['decision']['intervalPct'][1]<=2 and resources_pass(screen) and resources_pass(guard)\nif qualified:\n print('Screen and default/resource guards qualify; starting fresh 24-pair confirmation.',flush=True)\n confirm=measure('confirm',62,'--stage=confirm','--rounds=24','--seed=2718',f'--screen={root}/screen/result.json')\n print('Confirmation qualification:',confirm['performanceQualified'] and resources_pass(confirm),flush=True)\nelse:print('Screen/default/resource qualification failed; no confirmation or extra pairs.',flush=True)\n",
+    "validate.py": "import hashlib,json,subprocess\nfrom pathlib import Path\nroot=Path('/tmp/engine-next-20261105')\nrepo=Path('/home/holo/line')\nfrozen=json.loads((root/'validation-files.json').read_text())\nfor p,want in frozen.items():assert hashlib.sha256((repo/p).read_bytes()).hexdigest()==want,p\nwith (root/'final-check.log').open('w') as log:\n status=subprocess.call(['npm','run','check'],cwd=repo,stdout=log,stderr=subprocess.STDOUT)\n(root/'validation-exit.json').write_text(json.dumps({'command':'npm run check','exitCode':status},indent=2)+'\\n')\nprint('Full validation exit:',status,flush=True)\nfor p,want in frozen.items():assert hashlib.sha256((repo/p).read_bytes()).hexdigest()==want,p\nraise SystemExit(status)\n",
+    "archive.py": "import hashlib,json,shutil,statistics,subprocess\nfrom pathlib import Path\nroot=Path('/tmp/engine-next-20261105');dest=Path('/home/holo/line/docs/research');stem='engine-control-normalization-20261105'\nresults={name:json.loads((root/name/'result.json').read_text()) for name in ('screen','default-guard','confirm')}\nfor name,d in results.items():\n assert d['complete']\n for case in d['resources']:\n  a,b=[arm['resources'] for arm in case['arms']]\n  assert a['wasmLinearMemoryBytes']==b['wasmLinearMemoryBytes']\n  assert b['processMaxRssBytes']<=1.15*a['processMaxRssBytes']\n shutil.copyfile(root/name/'result.json',dest/f'{stem}-{name}.json')\nassert results['confirm']['decision']['intervalPct'][1]<0\nassert results['default-guard']['decision']['intervalPct'][1]<=2\nvalidation=json.loads((root/'validation-exit.json').read_text());assert validation['exitCode']==0\nfor file,want in json.loads((root/'validation-files.json').read_text()).items():assert hashlib.sha256(Path(file).read_bytes()).hexdigest()==want\nprofiles={}\nfor cell in (61,62):\n summary=json.loads((root/f'summary-{cell}.json').read_text())\n profiles[str(cell)]={'iterations':json.loads((root/f'profile-{cell}.json').read_text()),'sampledMicros':summary['totalMicros'],'topSelf':summary['self'][:25],\n  'controlFunctions':[entry for entry in summary['inclusive'] if 'Control' in entry['name']]}\nscripts=['profile.mts','candidate.mts','reference.mts','shadow.py','normalization-shadow.mts','decision-shadow.mts','measure.py','validate.py','archive.py']\nlogs=['shadow.log','normalization-shadow.log','decision-shadow.log','focused.log','final-check.log']\ndiagnostic={'referenceCommit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),\n 'declaration':json.loads((root/'declaration.json').read_text()),'policyRevision':json.loads((root/'adoption-policy-revision.json').read_text()),\n 'adoption':{'adopted':True,'originalMarginQualified':results['confirm']['performanceQualified'],\n  'reason':'Complete fresh confirmation supports a smaller positive benefit; separate default, resource, exact correctness and design gates pass under the explicitly revised owner-preference policy.'},\n 'frozenPerformanceFiles':json.loads((root/'frozen-files.json').read_text()),'validatedFiles':json.loads((root/'validation-files.json').read_text()),\n 'performanceCandidatePatch':(root/'candidate.patch').read_text(),'normalizationShadow':json.loads((root/'normalization-shadow.json').read_text()),\n 'checkpointFiles':{str(p.relative_to(root)):{'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()} for p in (root/'checkpoints').glob('*/*.v8')},\n 'baselineProfiles':profiles,'validation':validation,'scripts':{p:(root/p).read_text() for p in scripts},'logs':{p:(root/p).read_text() for p in logs},\n 'timingEvidenceSha256':{name:hashlib.sha256((root/name/'result.json').read_bytes()).hexdigest() for name in results}}\n(dest/f'{stem}-diagnostics.json').write_text(json.dumps(diagnostic,indent=2)+'\\n')\nfor name,d in results.items():\n a,b=[statistics.median(s['nsPerFrame'] for s in d['samples'] if s['arm']==i) for i in (0,1)]\n print(name,d['decision'],'armMedians',a,b)\nprint('Archive files:',[(p.name,p.stat().st_size) for p in dest.glob(stem+'*')])\n"
+  },
+  "logs": {
+    "shadow.log": "Finished baseline cell 61; exact track/work throughout\nFinished baseline cell 61; exact track/work throughout\nCell 61: complete checkpoints and JSON field order exactly equal\nFinished baseline cell 62; exact track/work throughout\nFinished baseline cell 62; exact track/work throughout\nCell 62: complete checkpoints and JSON field order exactly equal\n",
+    "normalization-shadow.log": "{ contexts: 648, cases: 202176, equal: true }\n",
+    "decision-shadow.log": "screen: aggregate/cell decisions and guards exactly unchanged\ndefault-guard: aggregate/cell decisions and guards exactly unchanged\nconfirm: aggregate/cell decisions and guards exactly unchanged\n",
+    "focused.log": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  4 passed (4)\n      Tests  16 passed (16)\n   Start at  11:20:43\n   Duration  1.16s (transform 254ms, setup 0ms, import 338ms, tests 543ms, environment 0ms)\n\n",
+    "final-check.log": "\n> line@0.0.0 check\n> npm run typecheck && npm run reach && npm test && cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml --target-dir generated/native-motion-tests && npm run check:physics && npm run verify:engine && npm run parity && npm run parity:judge\n\n\n> line@0.0.0 typecheck\n> tsc --noEmit -p .\n\n\n> line@0.0.0 reach\n> node tools/deps/reach.mjs\n\nentries 148  live 310 files / 35752 lines  unreachable 0 files / 0 lines\n\n> line@0.0.0 test\n> vitest run\n\n\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  102 passed (102)\n      Tests  448 passed (448)\n   Start at  12:26:31\n   Duration  71.31s (transform 1.27s, setup 0ms, import 3.74s, tests 60.60s, environment 6ms)\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (generated/native-motion-tests/debug/deps/lr_engine-d2c531ed3f9af7b2)\n\nrunning 29 tests\ntest engine::ownership_tests::arena_scope_rejects_reentry_and_releases_its_borrow_after_unwind ... ok\ntest engine::ownership_tests::independently_owned_arenas_do_not_share_handles_or_reconciliation ... ok\ntest history::tests::rollback_and_clone_keep_history_queries_local_to_their_prefix ... ok\ntest grid::tests::hash_int_pair_round_trips_grid_coords ... ok\ntest kernel::tests::direction_filter_refreshes_each_frame_and_preserves_order_and_duplicates ... ok\ntest kernel::tests::flat_query_preserves_duplicates_and_survives_point_movement_during_sweep ... ok\ntest kernel::tests::squared_repel_gate_is_conservative_at_both_fixed_rest_boundaries ... ok\ntest line::tests::grid_and_surviving_entries_own_their_batch_after_other_references_drop ... ok\ntest engine::ownership_tests::traces_belong_to_versions_and_pending_sibling_replay_is_visible ... ok\ntest line::tests::push_line_keeps_one_entry_per_line_id_per_cell ... ok\ntest line::tests::push_line_orders_each_cell_by_descending_line_id ... ok\ntest line::tests::push_line_preserves_3x3_query_order_and_duplicates ... ok\ntest kernel::tests::shared_query_eviction_does_not_replace_a_points_cached_lines ... ok\ntest line::tests::remove_line_drops_id_and_empties_cell ... ok\ntest kernel::tests::query_cache_invalidates_hits_misses_clones_and_epoch_wrap ... ok\ntest shared_prefix::tests::truncated_tail_is_not_readable - should panic ... ok\ntest engine::ownership_tests::released_branches_preserve_live_descendants_and_cache_ancestry ... ok\ntest engine::ownership_tests::event_output_keeps_every_record_past_the_former_capacity ... ok\ntest history::tests::snapshot_bounds_preserve_exact_predicates_and_reset_after_append ... ok\ntest grid::tests::branch_floor_cell_coordinate_matches_rust_floor_cast ... ok\ntest history::tests::shared_snapshot_chunks_preserve_source_after_branch_rollback_and_append ... ok\ntest shared_prefix::tests::fork_truncate_append_and_reset_preserve_every_retained_state ... ok\ntest engine::ownership_tests::detached_prefixes_isolate_reads_edits_trace_eviction_and_released_sources ... ok\ntest kernel::tests::direction_compaction_handles_full_empty_and_growing_queries ... ok\ntest kernel::tests::point_cell_cache_matches_exact_grid_hash ... ok\ntest history::tests::overlapping_neighborhood_queries_equal_an_exhaustive_history_scan ... ok\ntest history::tests::batch_neighborhood_reuse_matches_unfiltered_history ... ok\ntest line::tests::bucket_search_matches_linear_scan_under_churn ... ok\ntest cache::tests::batched_registration_matches_ordered_single_edits_and_future_replay ... ok\n\ntest result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s\n\n\n> line@0.0.0 check:physics\n> node --import tsx tools/parity/engine_quick.ts\n\nPASS  65 cases, 68827 exact frame states, 432018 ordered collisions (saved reference)\n\n> line@0.0.0 verify:engine\n> node --import tsx tools/parity/engine.ts\n\nsame  landing-canonical-bridge_frontier_dense_recovery-automatic-101.json.gz\nsame  landing-canonical-bridge_frontier_pickup_progression-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-arcs-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-automatic-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-paired-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-fold-transfer-202.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-scattered-paired-101.json.gz\nsame  landing-canonical-music_amor_na_praia_46s-terraces-transfer-101.json.gz\nsame  landing-canonical-music_amour_de_ma_vie_short_44s-automatic-404.json.gz\nsame  landing-canonical-music_luna_bala_44s-arcs-paired-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  landing-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scallops-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-scattered-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-serpentine-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-single-paired-303.json.gz\nsame  landing-canonical-music_luna_bala_44s-terraces-paired-404.json.gz\nsame  landing-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike2-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike2-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike2-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike2-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  strike3-canonical-music_luna_bala_44s-arcs-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-automatic-101.json.gz\nsame  strike3-canonical-music_luna_bala_44s-fold-paired-303.json.gz\nsame  strike3-canonical-music_luna_bala_44s-scattered-paired-404.json.gz\nsame  strike3-canonical-music_tiki_tiki_48s-automatic-202.json.gz\nsame  stress-1\nsame  stress-2\nsame  stress-3\nsame  stress-4\nsame  stress-5\nsame  stress-6\nsame  stress-7\nsame  stress-8\nsame  stress-9\nsame  stress-10\nsame  stress-11\nsame  stress-12\nsame  stress-13\nsame  stress-14\nsame  stress-15\nsame  stress-16\nsame  stress-17\nsame  stress-18\nsame  stress-19\nsame  stress-20\nsame  stress-21\nsame  stress-22\nsame  stress-23\nsame  stress-24\nsame  stress-25\nsame  stress-26\nsame  stress-27\nsame  stress-28\nsame  stress-29\nsame  stress-30\nsame  stress-31\nsame  stress-32\nPASS  65 cases, 68827 frame states, 432018 ordered collisions\nPASS  68827 raw-frame, body-motion and cached-contact observations\n\n> line@0.0.0 parity\n> LR_ENGINE=wasm node --import tsx tools/parity/parity.ts compile\n\nsame  landing canonical-music_luna_bala_44s-fold-paired #303  19s\nsame  landing canonical-music_luna_bala_44s-scattered-paired #303  19s\nsame  landing canonical-music_luna_bala_44s-scallops-paired #303  20s\nsame  landing canonical-music_luna_bala_44s-arcs-paired #101  20s\nsame  landing canonical-music_luna_bala_44s-single-paired #303  19s\nsame  landing canonical-music_luna_bala_44s-terraces-paired #404  19s\nsame  landing canonical-music_luna_bala_44s-serpentine-paired #303  20s\nsame  landing canonical-music_amor_na_praia_46s-arcs-transfer #202  21s\nsame  landing canonical-music_amor_na_praia_46s-fold-transfer #202  21s\nsame  landing canonical-music_amor_na_praia_46s-fold-paired #202  21s\nsame  landing canonical-music_amor_na_praia_46s-terraces-transfer #101  22s\nsame  landing canonical-music_amor_na_praia_46s-scattered-paired #101  20s\nsame  landing canonical-music_luna_bala_44s-automatic #101  18s\nsame  landing canonical-music_amor_na_praia_46s-automatic #101  19s\nsame  landing canonical-music_tiki_tiki_48s-automatic #202  19s\nsame  landing canonical-music_amour_de_ma_vie_short_44s-automatic #404  23s\nsame  strike canonical-music_luna_bala_44s-arcs-paired #303  23s\nsame  landing canonical-bridge_frontier_dense_recovery-automatic #101  27s\nsame  landing canonical-bridge_frontier_pickup_progression-automatic #101  27s\nsame  strike canonical-music_luna_bala_44s-fold-paired #303  23s\nsame  landing canonical-music_amor_na_praia_46s-fold-transfer #202 @150000  2s\nsame  landing canonical-music_amor_na_praia_46s-fold-transfer #202 @750000  7s\nsame  landing canonical-music_amor_na_praia_46s-arcs-transfer #202 @150000  2s\nsame  strike canonical-music_luna_bala_44s-automatic #101  22s\nsame  strike canonical-music_luna_bala_44s-scattered-paired #404  24s\nsame  landing canonical-music_amor_na_praia_46s-arcs-transfer #202 @750000  7s\nsame  strike canonical-music_tiki_tiki_48s-automatic #202  22s\nsame  landing canonical-music_luna_bala_44s-scattered-paired #303 @150000  2s\nsame  landing canonical-music_luna_bala_44s-serpentine-paired #303 @150000  2s\nsame  landing canonical-music_luna_bala_44s-automatic #101 @150000  2s\nsame  landing canonical-music_luna_bala_44s-scattered-paired #303 @750000  7s\nsame  landing canonical-music_tiki_tiki_48s-automatic #202 @150000  2s\nsame  landing canonical-music_luna_bala_44s-serpentine-paired #303 @750000  7s\nsame  strike canonical-music_luna_bala_44s-fold-paired #303 @150000  2s\nsame  landing canonical-music_luna_bala_44s-automatic #101 @750000  6s\nsame  strike canonical-music_amor_na_praia_46s-terraces-transfer #101 @150000  2s\nsame  landing canonical-music_tiki_tiki_48s-automatic #202 @750000  7s\nsame  strike canonical-music_luna_bala_44s-automatic #101 @150000  2s\nsame  strike canonical-music_luna_bala_44s-fold-paired #303 @750000  8s\nsame  strike canonical-music_amor_na_praia_46s-terraces-transfer #101 @750000  8s\nsame  strike canonical-music_luna_bala_44s-automatic #101 @750000  7s\nsame  strike2 canonical-music_luna_bala_44s-arcs-paired #303  22s\nsame  strike2 canonical-music_luna_bala_44s-fold-paired #303  23s\nsame  strike2 canonical-music_luna_bala_44s-scattered-paired #404  23s\nsame  strike2 canonical-music_luna_bala_44s-fold-paired #303 @150000  2s\nsame  strike2 canonical-music_luna_bala_44s-automatic #101  21s\nsame  strike2 canonical-music_amor_na_praia_46s-terraces-transfer #101 @150000  2s\nsame  strike2 canonical-music_luna_bala_44s-automatic #101 @150000  2s\nsame  strike2 canonical-music_luna_bala_44s-fold-paired #303 @750000  8s\nsame  strike2 canonical-music_amor_na_praia_46s-terraces-transfer #101 @750000  8s\nsame  strike2 canonical-music_luna_bala_44s-automatic #101 @750000  7s\nsame  strike2 canonical-music_tiki_tiki_48s-automatic #202  22s\nsame  strike3 canonical-music_luna_bala_44s-arcs-paired #303  23s\nsame  strike3 canonical-music_luna_bala_44s-fold-paired #303  23s\nsame  strike3 canonical-music_luna_bala_44s-scattered-paired #404  23s\nsame  strike3 canonical-music_luna_bala_44s-fold-paired #303 @150000  2s\nsame  strike3 canonical-music_amor_na_praia_46s-terraces-transfer #101 @150000  2s\nsame  strike3 canonical-music_luna_bala_44s-automatic #101  22s\nsame  strike3 canonical-music_luna_bala_44s-automatic #101 @150000  2s\nsame  strike3 canonical-music_luna_bala_44s-fold-paired #303 @750000  8s\nsame  strike3 canonical-music_amor_na_praia_46s-terraces-transfer #101 @750000  8s\nsame  strike3 canonical-music_luna_bala_44s-automatic #101 @750000  7s\nsame  strike3 canonical-music_tiki_tiki_48s-automatic #202  22s\nPASS  compile parity  (228s)\n\n> line@0.0.0 parity:judge\n> LR_ENGINE=wasm node --import tsx tools/parity/parity.ts judge\n\nPASS  judge parity  (33 tracks)\n"
+  },
+  "timingEvidenceSha256": {
+    "screen": "de6e26517eb4aa57baf1e4ddd06b88f24814c9939fc9951a54fbf309e90294ae",
+    "default-guard": "f567d95e8f53586f9b009959fb0b1d91774911aa9884eb2b9d6cbcc06f48b777",
+    "confirm": "04a9ab90aa105599f5d0606566d55f67eb87168d1b44c1c1d01a181f2cacc40b"
+  }
+}

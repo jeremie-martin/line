@@ -1,6 +1,6 @@
 import {it,expect} from 'vitest';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
-import {normalizeArcControl,arcResponseKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';
+import {arcControlNormalizer,arcResponseKeys,arcControlMemoKey} from '../scripts/v0/optimizer/arc_motion_control.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 const points=[{x:0,y:0},{x:12,y:1},{x:4,y:9}],velocity={x:9,y:2};
@@ -14,8 +14,8 @@ it('enforces no guides even when proposals explicitly request full close guidanc
   }
 });
 it('canonicalizes inactive guide variables and excludes their response probes',()=>{
-  const a=normalizeArcControl({...control,clearance:8,guideStart:.2,guideEnd:.9,guideFlare:5},{span:40,guides:false});
-  const b=normalizeArcControl({...control,clearance:26,guideStart:0,guideEnd:1,guideFlare:-12},{span:40,guides:false});
+  const a=arcControlNormalizer({span:40,guides:false})({...control,clearance:8,guideStart:.2,guideEnd:.9,guideFlare:5});
+  const b=arcControlNormalizer({span:40,guides:false})({...control,clearance:26,guideStart:0,guideEnd:1,guideFlare:-12});
   expect(a).toEqual(control);expect(arcControlMemoKey(a,12)).toEqual(arcControlMemoKey(b,12));
   const active=arcResponseKeys(false);
   expect(active).toContain('bend');expect(active).toContain('turnFraction');

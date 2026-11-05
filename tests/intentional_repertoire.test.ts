@@ -3,7 +3,7 @@ import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_rep
 import {constructions,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import {inspectLayout} from '../scripts/v0/optimizer/repertoire_layout.ts';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
-import {normalizeArcControl} from '../scripts/v0/optimizer/arc_motion_control.ts';
+import {arcControlNormalizer} from '../scripts/v0/optimizer/arc_motion_control.ts';
 const spec={duration:12,contacts:Array.from({length:12},(_,i)=>({t:.7+i*.9,impact:.02})),axes:{speed:()=>.35}};
 describe('intentional arrangement',()=>{
  it('binds the plan to authored targets and preserves frozen V1 requests',()=>{
@@ -37,18 +37,18 @@ describe('independent guide geometry and deliberate transfer',()=>{
   const split=old.findIndex((l,i)=>i>0&&(old[i-1].x2!==l.x1||old[i-1].y2!==l.y1));
   expect(shortened.filter(l=>l.id>=old[split].id)).toEqual(old.slice(split));
   expect(shortened.length).toBeLessThan(old.length);
-  expect(normalizeArcControl({...c,guideTilt:10,mainEnd:.5},{span:30})).toEqual(c);
+  expect(arcControlNormalizer({span:30})({...c,guideTilt:10,mainEnd:.5})).toEqual(c);
  });
  it('searches a folded face angle while preserving the declared default',()=>{
   const style={profile:'fold' as const,profileStart:0,faces:3,foldAngle:30,independentGuide:true};
   const implicit=motionArc(points,v,c,1000,12,0,4,style);
-  const normalized=normalizeArcControl(c,{...style,span:30});
+  const normalized=arcControlNormalizer({...style,span:30})(c);
   expect(normalized.foldBend).toBe(30);
   expect(motionArc(points,v,normalized,1000,12,0,4,style)).toEqual(implicit);
   const other=motionArc(points,v,{...normalized,foldBend:-30},1000,12,0,4,style);
   expect(other).not.toEqual(implicit);
   expect(other.every(l=>l.type===0)).toBe(true);
-  expect(normalizeArcControl({...c,foldBend:-30},{span:30})).toEqual(c);
+  expect(arcControlNormalizer({span:30})({...c,foldBend:-30})).toEqual(c);
  });
  it('requires physical transfer and an absent lower floor, not an unused guide',()=>{
   const main=[{id:1000,type:0,x1:-10,y1:0,x2:0,y2:0},{id:1001,type:0,x1:0,y1:0,x2:20,y2:0}];

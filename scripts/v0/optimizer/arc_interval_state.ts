@@ -7,6 +7,7 @@ import { getRiderMetered, getBallisticStateMetered, extractRawTrajectory, detect
 import { measureGapAxes, measureAmplitudePeakPx } from '../core/measure.ts';
 import { CALIB, impactToRawPx, type AxisValues, type Gap } from '../types.ts';
 import { catchReceivers, type ArcMotionControl } from './arc_geometry.ts';
+import { arcControlNormalizer } from './arc_motion_control.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
 import { arcSpanLoss } from './arc_boundary.ts';
@@ -96,7 +97,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
-  const controlContext = {...options, observedReceiver: true, span: constructionSpan, releaseReserveFrames: options.impactSearch?.releaseFrames};
+  const normalizeControl = arcControlNormalizer({...options, observedReceiver: true, span: constructionSpan,
+    releaseReserveFrames: options.impactSearch?.releaseFrames});
 
   // These describe the immutable incoming prefix already measured above.
   // Reusing them avoids a new physics read after committing the search budget.
@@ -121,7 +123,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     beforeState, velocity, trace,
     prefixRaw, detection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
-    memo, priorGap, priorAxes, priorLoss, controlContext,
+    memo, priorGap, priorAxes, priorLoss, normalizeControl,
     inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
     best: null as EvaluatedCandidate | null,

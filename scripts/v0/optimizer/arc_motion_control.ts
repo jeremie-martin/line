@@ -78,17 +78,26 @@ export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle)
   return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');
 }
 
-export function normalizeArcControl(control: ArcMotionControl, context: ArcControlContext): ArcMotionControl {
-  const c = {...control};
+/** Resolve the interval's active fields once; candidate values remain independent.
+ * Registry order keeps support normalized before dependent turn timing. */
+export function arcControlNormalizer(input: ArcControlContext): (control: ArcMotionControl) => ArcMotionControl {
+  const context = {...input};
+  const active: {key: ControlKey; definition: ControlDefinition}[] = [], inactive: ControlKey[] = [];
   for (const key of ARC_CONTROL_KEYS) {
-    const definition = ARC_CONTROL_DEFINITIONS[key];
-    if(!arcControlActive(key,context.guides,context)){delete c[key];continue;}
-    if(key==='foldBend'&&c[key]===undefined)c[key]=context.foldAngle??50;
-    const value = c[key];
-    if (value === undefined && definition.family !== 'core') continue;
-    c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
+    if (arcControlActive(key, context.guides, context)) active.push({key, definition: ARC_CONTROL_DEFINITIONS[key]});
+    else inactive.push(key);
   }
-  return c;
+  return control => {
+    const c = {...control};
+    for (const key of inactive) delete c[key];
+    for (const {key, definition} of active) {
+      if (key === 'foldBend' && c[key] === undefined) c[key] = context.foldAngle ?? 50;
+      const value = c[key];
+      if (value === undefined && definition.family !== 'core') continue;
+      c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
+    }
+    return c;
+  };
 }
 
 /** All other geometry inputs are fixed by the surrounding evaluation context.

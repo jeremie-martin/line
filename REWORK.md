@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 5: prepare control rules once and expose timing progress
+
+Prepare active control definitions once per interval, preserving the canonical
+registry, candidate ownership and exact normalization. A 202,176-case shadow
+and full compiler checkpoints agree. Frozen 12-pair screen: −0.981%
+[−1.353%, −0.707%]; separate default guard: −0.704% [−1.342%, −0.186%];
+fresh 24-pair confirmation: −0.660% [−0.840%, −0.434%]. The original 0.5%
+confirmation verdict is INCONCLUSIVE. Explicitly correct the assistant's hard
+0.5% adoption minimum after 17 confirmation pairs to honor the owner's earlier
+preference for supported smaller gains with simple code; preserve both policies
+and the unchanged verdict. Adopt with all correctness/resource guards passing.
+Default descriptive timing is 7,403 ns per charged frame; <7,000 remains open.
+
+After measurement, add descriptive running medians and pair counts, readable
+unfinished reports, and atomic evidence snapshots. Partial trials can be
+abandoned but cannot qualify a candidate; fixed-sample inference is unchanged.
+Evidence and validation: `docs/research/engine-control-normalization-20261105.md`.
+
 ## November 4: keep candidate facts minimal and measure geometry at reporting
 
 Trajectory workspace reuse also misses the 2% speed gate: screen −2.052%

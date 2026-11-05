@@ -87,6 +87,17 @@ with a per-iteration median profile. Fixed warmup defines a repeatable workload;
 it is **not a claim of steady state**. Cold and warmed timings must be identified
 separately. Changing warmup can change ns/frame without improving any code.
 
+Each completed pair prints the running median change and faster/slower/tied
+pair counts. These are descriptive observations, not probabilities or interim
+statistical verdicts. `npm run perf:engine -- --report=/path/to/result.json`
+also shows this progress for unfinished v3 runs; snapshots are replaced
+atomically so readers see complete JSON. Unfinished reports exit nonzero and
+cannot qualify a candidate or enter confirmation. An obviously losing trial may
+be stopped early and recorded as abandoned, preserving its partial evidence.
+Do not turn that partial record into a completed verdict, restart it until it
+passes, or stop a promising run early to claim a speedup. Adoption still requires
+the complete declared experiment and fresh confirmation.
+
 Within-process repeats are summed first. The inference unit is the process pair,
 not a frame, track or repeat. For each pair, compute `100 × (candidate/base − 1)`.
 Report its sample median and an exact, conservative order-statistic confidence

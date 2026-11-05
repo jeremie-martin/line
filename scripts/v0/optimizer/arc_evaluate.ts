@@ -16,7 +16,7 @@ import { arcRailGroups } from './arc_guidance.ts';
 import {ArcObjectiveContinuation} from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
-import { normalizeArcControl, arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
+import { arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';
 import { constructionDeficit } from './repertoire_feasibility.ts';
@@ -64,7 +64,7 @@ export function rememberNear(s: IntervalSearch, candidate: Near) {
 
 function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments) {
   const {options, memo} = s, work = s.ctx.work;
-  c = normalizeArcControl(c, s.controlContext);
+  c = s.normalizeControl(c);
   const key = arcControlMemoKey(c, options.channel) + (fragments ? '|fragments' : '');
   work.samples++;
   const saved = memo.get(key);

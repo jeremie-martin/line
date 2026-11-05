@@ -5,13 +5,13 @@
  * verdict, and a fresh confirmation of a frozen screening candidate.
  */
 import assert from 'node:assert/strict';
-import {copyFileSync, existsSync, readFileSync, symlinkSync, writeFileSync} from 'node:fs';
+import {copyFileSync, existsSync, readFileSync, renameSync, symlinkSync, writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {cpus, platform, release} from 'node:os';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {decide, decideCompileCells, pairOrder} from './engine_decision.ts';
+import {decide, decideCompileCells, pairOrder, summarizePairs} from './engine_decision.ts';
 import {snapshotSources, sourceOverlay} from './engine_sources.ts';
 
 const knownFlags = new Set(['reference', 'candidate', 'reference-root', 'out', 'mode', 'stage', 'rounds',
@@ -31,13 +31,34 @@ const sha = (data: Uint8Array | string) => createHash('sha256').update(data).dig
 const enginePath = 'scripts/lib/native_motion/engine.wasm';
 const schema = 'line.engine-ab.v3';
 type Protocol = {mode: string; stage: string; rounds: number; confirmRounds: number; reps: number; warmup: number; confidence: number; marginPct: number; seed: number; slowdownPct: number; cells: number[]};
+type TimingSample = {round: number; arm: number; nsPerFrame: number};
+
+/** Saved progress contains complete, consecutive process pairs in AB or BA order. */
+function completedPairs(samples: readonly TimingSample[]) {
+  assert(samples.length % 2 === 0, 'incomplete process pair');
+  return Array.from({length: samples.length / 2}, (_, round) => {
+    const pair = samples.slice(2 * round, 2 * round + 2).sort((a, b) => a.arm - b.arm);
+    assert(pair.every((s, arm) => s.round === round && s.arm === arm), 'one sample per arm and round required');
+    return {base: pair[0].nsPerFrame, candidate: pair[1].nsPerFrame};
+  });
+}
 
 /** Report saved evidence without rerunning or rewriting it. A failed null
  * control must also fail the CLI, so automation cannot silently bless it. */
 function report(result: any) {
   assert([schema, 'line.engine-ab.v2'].includes(result.schema), 'unsupported measurement version');
-  assert.equal(result.complete, true, 'measurement is incomplete');
-  console.log(JSON.stringify({schema: result.schema, control: result.control, controlPassed: result.controlPassed,
+  if (result.complete !== true) {
+    assert.equal(result.complete, false);
+    assert.equal(result.schema, schema, 'unfinished reports require v3');
+    const progress = summarizePairs(completedPairs(result.samples)), plannedPairs = result.protocol.rounds;
+    assert(Number.isInteger(plannedPairs) && plannedPairs >= 8 && plannedPairs <= 256 && plannedPairs % 2 === 0 && progress.n <= plannedPairs);
+    console.log(JSON.stringify({schema, complete: false, performanceQualified: false,
+      progress: {plannedPairs, ...progress},
+      interpretation: 'Descriptive observations only; no probability, confidence interval or verdict. An unfinished run cannot qualify a candidate.'}, null, 2));
+    process.exitCode = 1;
+    return;
+  }
+  console.log(JSON.stringify({schema: result.schema, complete: true, control: result.control, controlPassed: result.controlPassed,
     iterationProfile: result.iterationProfile, decision: result.decision, cellDecisions: result.cellDecisions, performanceQualified: result.performanceQualified}, null, 2));
   if (result.control && result.controlPassed !== true) process.exitCode = 1;
 }
@@ -114,10 +135,12 @@ if (process.argv.includes('--worker')) {
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
   --seed=1729                      balanced randomized AB/BA process pairs
   --slowdown-pct=5                 positive control, identical sources/WASM only
-  --report=<result.json>           read saved v2/v3 evidence without reinterpreting it
+  --report=<result.json>           read evidence, or descriptive progress for unfinished v3 runs
 
 Identical arms form an A/A control. Controls cannot qualify a candidate.
 Every iteration is retained. Fixed warmup defines a workload, not proof of steady state.
+Live medians and faster/slower counts are descriptive, not probabilities or early verdicts.
+Unfinished reports exit nonzero and cannot qualify a candidate.
 Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
 } else {
   const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -183,7 +206,10 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     controlScope: config.slowdownPct ? 'Candidate iterations add measured CPU work after compilation/run; control costs are recorded separately. This is calibration, not compiler performance.' : null,
     samples: []};
   if (screening) assert.deepEqual(result.machine, screening.machine, 'host, Node or CPU affinity changed since screening');
-  const save = () => writeFileSync(join(out, 'result.json'), JSON.stringify(result, null, 2) + '\n');
+  const save = () => {
+    writeFileSync(join(out, 'result.json.tmp'), JSON.stringify(result, null, 2) + '\n');
+    renameSync(join(out, 'result.json.tmp'), join(out, 'result.json'));
+  };
   save(); // Protocol and candidate are frozen before the first measurement.
   function measure(arm: number, label: string, verify = false, resourceCell?: number) {
     sources.activate(arm);
@@ -209,7 +235,9 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     const pair = result.samples.slice(-2).sort((a: any, b: any) => a.arm - b.arm);
     assert.equal(pair[0].frames, pair[1].frames, 'timed physics work changed');
     save();
-    console.log(`pair ${round + 1}/${config.rounds}: base ${pair[0].nsPerFrame.toFixed(1)}, candidate ${pair[1].nsPerFrame.toFixed(1)} ns/frame`);
+    const progress = summarizePairs(completedPairs(result.samples));
+    console.log(`pair ${round + 1}/${config.rounds}: base ${pair[0].nsPerFrame.toFixed(1)}, candidate ${pair[1].nsPerFrame.toFixed(1)} ns/frame; ` +
+      `running median ${progress.medianDeltaPct!.toFixed(3)}%; faster ${progress.fasterPairs}, slower ${progress.slowerPairs}, tied ${progress.tiedPairs} (descriptive)`);
   }
   // Descriptive warmup diagnostics, not an adaptive rule for discarding data.
   result.iterationProfile = [0, 1].map(arm => ({arm, iterations: Array.from({length: config.warmup + config.reps}, (_, i) => {
@@ -218,9 +246,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
       s.iterations.filter((m: any) => m.rep === rep).reduce((sum: number, m: any) => sum + (m.compileMs ?? m.wallMs), 0)).sort((a: number, b: number) => a - b);
     return {rep, warmup: rep < 0, medianWallMs: (values[values.length / 2 - 1] + values[values.length / 2]) / 2};
   })}));
-  result.decision = decide(Array.from({length: config.rounds}, (_, round) => ({
-    base: result.samples.find((s: any) => s.round === round && s.arm === 0).nsPerFrame,
-    candidate: result.samples.find((s: any) => s.round === round && s.arm === 1).nsPerFrame})), config.confidence, config.marginPct);
+  result.decision = decide(completedPairs(result.samples), config.confidence, config.marginPct);
   // Expose heterogeneous compile effects: an aggregate win must not conceal a
   // unresolved regression in an individual case. These are non-regression
   // bounds, not additional opportunities to claim an aggregate speedup.

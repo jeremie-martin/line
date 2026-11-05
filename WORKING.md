@@ -130,3 +130,6 @@ plan and its log.
   supported smaller improvement against simplicity and resource gains. Keep
   the fixed experiment and its reported verdict intact; record any owner-led
   change to the adoption policy explicitly.
+- Check both research narratives and JSON evidence for earlier trials of a
+  proposed mechanism. Declare resource bounds at a meaningful scale: WASM
+  capacity grows in 64 KiB pages and is distinct from live allocation size.

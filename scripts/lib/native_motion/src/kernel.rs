@@ -100,8 +100,12 @@ impl QueryCache {
 }
 
 pub(crate) struct LineCellCache {
-    point_cells: [PointCell; NENT],
-    point_lines: [Vec<*const Line>; NENT], // ordered lines passing this frame's direction predicate
+    // Conservative occupied-cell bounds. Removals may leave them wider; clones
+    // preserve geometry bounds while discarding borrowed neighborhood pointers.
+    bounds: [f64; 4],
+    // Point slots start at PEG; the first two entities only store binding status.
+    point_cells: [PointCell; NENT - PEG],
+    point_lines: [Vec<*const Line>; NENT - PEG], // ordered lines passing this frame's direction predicate
     queries: QueryCache,
 }
 
@@ -109,14 +113,15 @@ pub(crate) struct LineCellCache {
 // cache clones start empty and never copy borrowed pointers.
 impl Clone for LineCellCache {
     fn clone(&self) -> Self {
-        Self::default()
+        Self { bounds: self.bounds, ..Self::default() }
     }
 }
 
 impl Default for LineCellCache {
     fn default() -> Self {
         Self {
-            point_cells: [PointCell::EMPTY; NENT],
+            bounds: [f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY],
+            point_cells: [PointCell::EMPTY; NENT - PEG],
             point_lines: std::array::from_fn(|_| Vec::new()),
             queries: QueryCache::default(),
         }
@@ -124,6 +129,41 @@ impl Default for LineCellCache {
 }
 
 impl LineCellCache {
+    // Encoded coordinates, including neighboring cells, are at most 2^31 + 2.
+    // Their pairing fits i64, so distinct cells cannot alias through overflow.
+    const BOUNDED_CELL: i64 = 1 << 30;
+
+    pub(crate) fn include_cells(&mut self, cells: &[(i64, i64)]) {
+        for &(x, y) in cells {
+            if !(-Self::BOUNDED_CELL..=Self::BOUNDED_CELL).contains(&x)
+                || !(-Self::BOUNDED_CELL..=Self::BOUNDED_CELL).contains(&y) {
+                // An unbounded envelope cannot exclude a point. Further unions
+                // and copies preserve that conservative fallback automatically.
+                self.bounds = [f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY];
+                return;
+            }
+            self.bounds[0] = self.bounds[0].min((x as f64 - 2.0) * GRID_SIZE);
+            self.bounds[1] = self.bounds[1].max((x as f64 + 2.0) * GRID_SIZE);
+            self.bounds[2] = self.bounds[2].min((y as f64 - 2.0) * GRID_SIZE);
+            self.bounds[3] = self.bounds[3].max((y as f64 + 2.0) * GRID_SIZE);
+        }
+    }
+
+    /// Beyond a common face, every 3x3 point neighborhood is empty. The integer
+    /// boundaries and their products by 14 are exact. Monotone rounded division
+    /// keeps points beyond them at least two cells from any registered cell.
+    fn outside_grid(&self, s: &State) -> bool {
+        let mut faces = 15;
+        for &(i, _) in &COLLIDING_POINTS {
+            let (x, y) = (s.px[i], s.py[i]);
+            faces &= (x < self.bounds[0]) as u8 | ((x > self.bounds[1]) as u8) << 1
+                | ((y < self.bounds[2]) as u8) << 2 | ((y > self.bounds[3]) as u8) << 3;
+            if faces == 0 || !(x.abs() < Self::BOUNDED_CELL as f64 * GRID_SIZE
+                && y.abs() < Self::BOUNDED_CELL as f64 * GRID_SIZE) { return false; }
+        }
+        true
+    }
+
     // Velocity is constant through all six sweeps, but changes at each step.
     // Refresh filtered point lists even when a replay reuses a frame index.
     // The shared neighborhood queries remain valid until a grid edit.
@@ -146,7 +186,7 @@ impl LineCellCache {
 
     #[inline]
     fn cache_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {
-        let point = &mut self.point_cells[index];
+        let point = &mut self.point_cells[index - PEG];
         if point.epoch == self.queries.current_epoch {
             return;
         }
@@ -156,9 +196,9 @@ impl LineCellCache {
     // Keep the uncommon list rebuild out of each monomorphized point solver.
     #[inline(never)]
     fn refresh_point_lines(&mut self, grid: &FlatIntMap<Vec<LineRef>>, index: usize, vx: f64, vy: f64) {
-        let point = &mut self.point_cells[index];
+        let point = &mut self.point_cells[index - PEG];
         let query = self.queries.lookup(grid, point.key, point.cell_x, point.cell_y);
-        let lines = &mut self.point_lines[index];
+        let lines = &mut self.point_lines[index - PEG];
         lines.clear();
         // Reserve once for the largest possible result before filtering. Growing
         // one pointer at a time fragments the WASM heap during long replays.
@@ -184,7 +224,7 @@ impl LineCellCache {
 
     #[inline(always)]
     fn point_cell(&mut self, index: usize, px: f64, py: f64) -> i64 {
-        Self::update_cell(&mut self.point_cells[index], px, py)
+        Self::update_cell(&mut self.point_cells[index - PEG], px, py)
     }
 
     #[inline(always)]
@@ -419,7 +459,7 @@ unsafe fn collide_point<const TRACK: bool>(
         );
     }
     line_cache.cache_point_lines(grid, index, vxi, vyi);
-    let lns = &line_cache.point_lines[index];
+    let lns = &line_cache.point_lines[index - PEG];
     if !lns.is_empty() {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));
         for &line in lns {
@@ -468,7 +508,7 @@ unsafe fn collide_point<const TRACK: bool>(
                 events.push((it, l.id, index as i32, posx, posy));
                 // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
                 if TRACK {
-                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[index], pxi, pyi);
+                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[index - PEG], pxi, pyi);
                     history.record_point(
                         pcell,
                         frame_index,
@@ -525,8 +565,10 @@ pub(crate) fn step_state<const TRACK: bool>(
             resolve_iter_constraints(s);
             if let Some(trace) = trace.as_deref_mut() { trace.record(s, it); }
             let it = it as u8;
-            for &(index, friction) in &COLLIDING_POINTS {
-                collide_point::<TRACK>(s, grid, events, frame_index, history, line_cache, it, index, friction);
+            if TRACK || !line_cache.outside_grid(s) {
+                for &(index, friction) in &COLLIDING_POINTS {
+                    collide_point::<TRACK>(s, grid, events, frame_index, history, line_cache, it, index, friction);
+                }
             }
         }
     }
@@ -550,6 +592,55 @@ mod tests {
     use super::*;
 
     #[test]
+    fn whole_sweep_bounds_exclude_only_empty_neighborhoods() {
+        for (slot, &(entity, _)) in COLLIDING_POINTS.iter().enumerate() {
+            assert_eq!(entity, PEG + slot, "point slots follow the fixed rider topology");
+        }
+        let mut state = init_state(0.0, 0.0, 0.0, 0.0);
+        for cell in [-LineCellCache::BOUNDED_CELL, -100, -1, 0, 1, 100, LineCellCache::BOUNDED_CELL] {
+            let cells = [(cell, cell), (cell, (cell - 1).max(-LineCellCache::BOUNDED_CELL))];
+            let mut cache = LineCellCache::default();
+            cache.include_cells(&cells);
+            cache.invalidate();
+            let cloned = cache.clone();
+            for face in [cell - 3, cell - 2, cell - 1, cell, cell + 1, cell + 2, cell + 3] {
+                let boundary = face as f64 * GRID_SIZE;
+                for x in [boundary.next_down(), boundary, boundary.next_up()] {
+                  for swap in [false, true] {
+                    for &(i, _) in &COLLIDING_POINTS {
+                        let y = cell as f64 * GRID_SIZE;
+                        (state.px[i], state.py[i]) = if swap { (y, x) } else { (x, y) };
+                    }
+                    assert_eq!(cache.outside_grid(&state), cloned.outside_grid(&state));
+                    if cache.outside_grid(&state) {
+                        for &(i, _) in &COLLIDING_POINTS {
+                            let cx = cell_cor_from_scaled(state.px[i] / GRID_SIZE);
+                            let cy = cell_cor_from_scaled(state.py[i] / GRID_SIZE);
+                            for dx in -1..=1 { for dy in -1..=1 {
+                                assert!(cells.iter().all(|&(x,y)| hash_int_pair(x,y) != hash_int_pair(cx+dx,cy+dy)));
+                            }}
+                        }
+                    }
+                  }
+                }
+            }
+        }
+        let mut cache = LineCellCache::default();
+        cache.include_cells(&[(0,0)]);
+        for &(i, _) in &COLLIDING_POINTS { state.px[i] = 100.0; state.py[i] = 100.0; }
+        assert!(cache.outside_grid(&state));
+        state.px[PEG] = 0.0; state.py[PEG] = 0.0;
+        assert!(!cache.outside_grid(&state), "one overlapping point forbids skipping the sweep");
+        for x in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, f64::MAX] {
+            state.px[PEG] = x;
+            assert!(!cache.outside_grid(&state));
+        }
+        state.px[PEG] = 100.0; state.py[PEG] = 100.0;
+        cache.include_cells(&[(LineCellCache::BOUNDED_CELL + 1, 0)]);
+        assert!(!cache.outside_grid(&state), "overflowing cell domains need ordinary queries");
+    }
+
+    #[test]
     fn squared_repel_gate_is_conservative_at_both_fixed_rest_boundaries() {
         for p2 in [LFOOT, RFOOT] {
             let rest = rest_length(SHOULDER, p2, 0.5);
@@ -565,7 +656,7 @@ mod tests {
     fn ids(cache: &mut LineCellCache, grid: &FlatIntMap<Vec<LineRef>>, x: f64, y: f64) -> Vec<i32> {
         cache.point_cell(PEG,x, y);
         cache.cache_point_lines(grid, PEG, 0.0, 1.0);
-        cache.point_lines[PEG].iter().map(|&line| unsafe { (*line).id }).collect()
+        cache.point_lines[0].iter().map(|&line| unsafe { (*line).id }).collect()
     }
 
     #[test]
@@ -605,8 +696,8 @@ mod tests {
             push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);
         }
         assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![3, 1, 3, 2]);
-        let query = &cache.point_lines[PEG];
-        LineCellCache::update_cell(&mut cache.point_cells[PEG], 14.0, 1.0);
+        let query = &cache.point_lines[0];
+        LineCellCache::update_cell(&mut cache.point_cells[0], 14.0, 1.0);
         assert_eq!(query.iter().map(|&l| unsafe { (*l).id }).collect::<Vec<_>>(), vec![3, 1, 3, 2]);
         assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
         cache.invalidate();
@@ -657,7 +748,7 @@ mod tests {
             for _ in 0..6 {
                 cache.point_cell(PEG,1.0, 1.0);
                 cache.cache_point_lines(&grid, PEG, vx, vy);
-                let got: Vec<i32> = cache.point_lines[PEG].iter().map(|&p| unsafe { (*p).id }).collect();
+                let got: Vec<i32> = cache.point_lines[0].iter().map(|&p| unsafe { (*p).id }).collect();
                 assert_eq!(got, expected);
             }
         }
@@ -678,7 +769,7 @@ mod tests {
             assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
             cache.begin_frame();
             cache.cache_point_lines(&grid, PEG, 0.0, -1.0);
-            assert!(cache.point_lines[PEG].is_empty());
+            assert!(cache.point_lines[0].is_empty());
             // The entirely rejected pass must not leave stale output entries.
             cache.begin_frame();
             assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);

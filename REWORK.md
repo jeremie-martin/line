@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## November 5: omit provably empty collision sweeps
+
+Adopt a conservative whole-grid bound that skips all ten point queries only
+when every neighborhood is provably empty. Constraint arithmetic, traces,
+history snapshots, frame charging and search behavior remain exact. Per-point
+scratch now excludes the two binding-status entities. An exhaustive-query
+shadow validates 246,491 / 1,212,820 excluded sweeps and both full checkpoints.
+
+The initial version passed timing but failed its unchanged-capacity guard;
+close it without confirmation. The smaller representation saves 320 KiB of
+default WASM capacity while adding one 64 KiB page (0.19%) on the larger case.
+After untimed probes, before this version's timing, explicitly revise the
+resource allowance to one additional page, retaining the +15% RSS guard.
+This is assistant engineering judgment; preserve the original failed rule.
+
+Final fixed screen: −1.449% [−1.730%, −1.217%]. Default guard: −0.603%
+[−0.975%, +0.391%], bounding regression without establishing a speedup.
+Fresh 24-pair confirmation: −1.566% [−1.774%, −1.178%], all pairs faster.
+Use a zero speed margin prospectively; the CLI now supports it. All resource
+and correctness gates pass: 449 JS, 30 Rust, 65 physics, 63 compiler and 33
+judge cases, with types/reach clean. Default descriptive cost is 7,359 ns per
+charged frame; larger confirmation is 6,895 ns. Default <7,000 remains open.
+
+Retain the guide/heap abandoned screens, two slower cell-bound trials, and
+history-replay demand study alongside the successful algorithmic trial.
+[Evidence, proof and policy history](docs/research/engine-empty-sweeps-20261105.md).
+
 ## November 5: prepare control rules once and expose timing progress
 
 Prepare active control definitions once per interval, preserving the canonical

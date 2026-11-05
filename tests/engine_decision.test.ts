@@ -15,6 +15,13 @@ it('uses one declared practical margin, including ties and boundary values', () 
   for (const delta of [-2, 0, 2]) expect(decide(constant(delta)).verdict).toBe('EQUIVALENT');
   expect(decide(constant(0))).toMatchObject({medianDeltaPct: 0, intervalPct: [0, 0], confidence: .95});
 });
+it('allows a zero margin to test direction without a minimum benefit', () => {
+  expect(decide(constant(-.1), .95, 0).verdict).toBe('FASTER');
+  expect(decide(constant(.1), .95, 0).verdict).toBe('SLOWER');
+  expect(decide(constant(0), .95, 0).verdict).toBe('EQUIVALENT');
+  expect(decide([...constant(-1, 6), ...constant(1, 6)], .95, 0).verdict).toBe('INCONCLUSIVE');
+  for (const margin of [-1, NaN, Infinity, 100]) expect(() => decide(constant(0), .95, margin)).toThrow();
+});
 it('has exact conservative coverage under every possible sign pattern, without Monte Carlo', () => {
   // IID continuous observations with true median zero have equiprobable signs.
   for (const n of [8, 10, 12, 16]) {

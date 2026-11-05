@@ -122,6 +122,7 @@ impl FrameCache {
         }
         self.line_cache.invalidate();
         for line in lines.iter().filter(|line| line.collidable) {
+            self.line_cache.include_cells(line.cells());
             push_line(&mut self.cell_lines, line, line.cells());
             self.lines.insert(line.id, line.clone());
         }

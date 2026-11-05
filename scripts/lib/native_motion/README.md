@@ -112,6 +112,14 @@ duplicates and direction-predicate NaN behavior are preserved. A sweep retains
 its original list when a collision moves a point. These specializations remain
 because they improve measured performance while preserving parity.
 
+Ordinary collision sweeps can skip all ten point queries when every point is
+beyond one face of a conservative occupied-grid envelope. Exact integer-cell
+boundaries and monotone rounded division prove those neighborhoods empty.
+Bounds expand on insertion and remain conservative after removal; copies retain
+them. Unsupported coordinate ranges make the envelope unbounded, so ordinary
+queries remain in force. History-producing sweeps always record their snapshots.
+Only physical points need per-point query storage; binding-status entities do not.
+
 ## Build and verify
 
 `npm run build:native` uses locked Cargo release output for

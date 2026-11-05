@@ -1,0 +1,2829 @@
+{
+  "schema": "line.engine-ab.v3",
+  "complete": true,
+  "date": "2026-11-05T14:57:38.901Z",
+  "head": "b893beee4cb1b1acc64fb50c6974cb6194ad449d",
+  "machine": {
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+    "node": "v22.22.2",
+    "v8": "12.4.254.21-node.39",
+    "workerFlags": [
+      "--expose-gc",
+      "--import",
+      "tsx"
+    ],
+    "nodeOptions": "",
+    "platform": "linux",
+    "release": "7.0.0-38-generic",
+    "affinity": "2"
+  },
+  "sourceSha256": "5146902619ff1dfa64d02ed34dffab221064573a3fe95983b8fd258eef68b54b",
+  "referenceSourceSha256": "bb0dc43ad018c9bf4f48cd5eb8bd4253821edbf4aeab28619894ea5439fd2544",
+  "sourceChanges": [
+    "scripts/lib/native_motion/manifest.json",
+    "scripts/lib/native_motion/manifest.json.sha256",
+    "scripts/lib/native_motion/src/cache.rs",
+    "scripts/lib/native_motion/src/kernel.rs"
+  ],
+  "referenceRoot": "/tmp/engine-sweep-points-20261105/reference",
+  "artifacts": [
+    {
+      "path": "/tmp/engine-sweep-points-20261105/reference/scripts/lib/native_motion/engine.wasm",
+      "sha256": "b0fc5d3bd8da5e7c136607de11e347ce8823c88909da075b4f2cbe1471b7481c"
+    },
+    {
+      "path": "/home/holo/line/scripts/lib/native_motion/engine.wasm",
+      "sha256": "b8d5ed77ff61f7ba21cbaa4e96762fe8b53e7fe17aad684c4adc0f32716d43f1"
+    }
+  ],
+  "protocol": {
+    "mode": "compile",
+    "stage": "screen",
+    "rounds": 12,
+    "confirmRounds": 24,
+    "reps": 3,
+    "warmup": 5,
+    "confidence": 0.95,
+    "marginPct": 2,
+    "seed": 1729,
+    "slowdownPct": 0,
+    "cells": [
+      61
+    ]
+  },
+  "pairOrder": [
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ]
+  ],
+  "screening": null,
+  "interpretation": "Exact conservative confidence interval for the median paired percentage change. Fixed independent process pairs; no optional stopping. A timing verdict is not an adoption decision. Full correctness/design gates are separate.",
+  "timingScope": "CPU and wall clocks enclose compileHandoff only, with prepared inputs; hashing, output and resource sampling excluded.",
+  "resourceScope": "Compile resources use one fresh process per arm and cell, sampled after compilation without forced GC. WASM linear memory is a high-water capacity, heapUsed is a JS heap snapshot, rss is current process residency, processMaxRssBytes is lifetime process peak. These are not live allocation counts or timed samples.",
+  "controlScope": null,
+  "samples": [
+    {
+      "round": 0,
+      "arm": 1,
+      "wallMs": 3241.5593439999993,
+      "cpuMs": 3239.7039999999997,
+      "frames": 441627,
+      "nsPerFrame": 7340.0388653773425,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2368.4406080000003,
+          "cpuMs": 2331.525,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1285.8116640000003,
+          "cpuMs": 1284.974,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1157.8398960000004,
+          "cpuMs": 1157.639,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1140.4139530000002,
+          "cpuMs": 1139.336,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1089.3781559999998,
+          "cpuMs": 1088.635,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1118.7873220000001,
+          "cpuMs": 1118.547,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1043.657084999999,
+          "cpuMs": 1042.983,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1079.1149370000003,
+          "cpuMs": 1078.174,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 0,
+      "arm": 0,
+      "wallMs": 3265.189853,
+      "cpuMs": 3263.267,
+      "frames": 441627,
+      "nsPerFrame": 7393.546710232844,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2342.957788,
+          "cpuMs": 2342.968,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1307.5357519999998,
+          "cpuMs": 1306.751,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1217.3582569999999,
+          "cpuMs": 1216.652,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1145.9284429999998,
+          "cpuMs": 1145.622,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1129.873643,
+          "cpuMs": 1128.879,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1091.1052230000005,
+          "cpuMs": 1090.359,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1131.574462999999,
+          "cpuMs": 1131.135,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1042.5101670000004,
+          "cpuMs": 1041.773,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "arm": 0,
+      "wallMs": 3273.3700389999995,
+      "cpuMs": 3271.572,
+      "frames": 441627,
+      "nsPerFrame": 7412.069549642571,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2325.624186,
+          "cpuMs": 2325.728,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1307.9165739999999,
+          "cpuMs": 1307.664,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1204.4463859999996,
+          "cpuMs": 1203.65,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1136.5482469999997,
+          "cpuMs": 1135.768,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1138.9270999999999,
+          "cpuMs": 1138.714,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1108.6523780000007,
+          "cpuMs": 1107.882,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1124.612964,
+          "cpuMs": 1123.776,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1040.1046969999989,
+          "cpuMs": 1039.914,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "arm": 1,
+      "wallMs": 3254.304951000002,
+      "cpuMs": 3252.4359999999997,
+      "frames": 441627,
+      "nsPerFrame": 7368.899435496475,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2324.4117939999996,
+          "cpuMs": 2324.475,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1286.467303,
+          "cpuMs": 1285.694,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1160.4051209999998,
+          "cpuMs": 1160.226,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1141.7022160000006,
+          "cpuMs": 1140.847,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1088.952056000001,
+          "cpuMs": 1088.131,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1122.9102140000014,
+          "cpuMs": 1122.638,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1045.3058300000012,
+          "cpuMs": 1044.557,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1086.0889069999994,
+          "cpuMs": 1085.241,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "arm": 0,
+      "wallMs": 3268.617,
+      "cpuMs": 3266.6620000000003,
+      "frames": 441627,
+      "nsPerFrame": 7401.3069853066045,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2347.804075,
+          "cpuMs": 2347.78,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1311.6256490000005,
+          "cpuMs": 1310.872,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1224.5877420000006,
+          "cpuMs": 1223.781,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1140.5236839999998,
+          "cpuMs": 1140.3,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1134.0031099999997,
+          "cpuMs": 1133.025,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1100.4895730000007,
+          "cpuMs": 1099.699,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1124.095421,
+          "cpuMs": 1123.757,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1044.0320059999995,
+          "cpuMs": 1043.206,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "arm": 1,
+      "wallMs": 3248.211309999999,
+      "cpuMs": 3246.224,
+      "frames": 441627,
+      "nsPerFrame": 7355.101273246424,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2341.365199,
+          "cpuMs": 2341.315,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1279.3896280000004,
+          "cpuMs": 1279.107,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1162.1181580000002,
+          "cpuMs": 1161.311,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1161.531997,
+          "cpuMs": 1160.578,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1085.6394359999995,
+          "cpuMs": 1085.479,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1117.0043859999987,
+          "cpuMs": 1116.172,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1046.8472669999992,
+          "cpuMs": 1046.051,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1084.3596570000009,
+          "cpuMs": 1084.001,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "arm": 0,
+      "wallMs": 3222.041658000002,
+      "cpuMs": 3220.291,
+      "frames": 441627,
+      "nsPerFrame": 7295.843909000133,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2326.263297,
+          "cpuMs": 2326.389,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1292.1036850000005,
+          "cpuMs": 1291.208,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1200.8169979999993,
+          "cpuMs": 1200.564,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1134.4179569999997,
+          "cpuMs": 1133.64,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1110.380878,
+          "cpuMs": 1109.494,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1072.196145,
+          "cpuMs": 1072.03,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1117.7209760000005,
+          "cpuMs": 1116.88,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1032.1245370000015,
+          "cpuMs": 1031.381,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "arm": 1,
+      "wallMs": 3251.693653000002,
+      "cpuMs": 3249.7929999999997,
+      "frames": 441627,
+      "nsPerFrame": 7362.98653162058,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2326.108779,
+          "cpuMs": 2326.112,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1281.5622809999995,
+          "cpuMs": 1280.822,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1154.9074740000005,
+          "cpuMs": 1154.688,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1146.7729840000002,
+          "cpuMs": 1146.485,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1083.3103309999997,
+          "cpuMs": 1082.6,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1113.4105610000006,
+          "cpuMs": 1112.423,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1045.7147720000012,
+          "cpuMs": 1045.55,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1092.5683200000003,
+          "cpuMs": 1091.82,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "arm": 1,
+      "wallMs": 3276.8861449999986,
+      "cpuMs": 3275.4890000000005,
+      "frames": 441627,
+      "nsPerFrame": 7420.031259411219,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2330.1712039999998,
+          "cpuMs": 2330.277,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1309.0284840000004,
+          "cpuMs": 1308.179,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1161.3053929999996,
+          "cpuMs": 1160.535,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1155.1288050000003,
+          "cpuMs": 1154.867,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1099.191949000001,
+          "cpuMs": 1099.031,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1132.9944919999998,
+          "cpuMs": 1132.159,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1053.996346,
+          "cpuMs": 1053.815,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1089.8953069999989,
+          "cpuMs": 1089.515,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "arm": 0,
+      "wallMs": 3258.4193540000015,
+      "cpuMs": 3257.268,
+      "frames": 441627,
+      "nsPerFrame": 7378.215901654567,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2337.925822,
+          "cpuMs": 2337.523,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1303.249183,
+          "cpuMs": 1303.085,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1204.1573950000002,
+          "cpuMs": 1203.975,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1144.447908,
+          "cpuMs": 1143.442,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1128.6047879999996,
+          "cpuMs": 1128.342,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1086.9921920000015,
+          "cpuMs": 1086.822,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1130.6027269999995,
+          "cpuMs": 1129.809,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1040.8244350000004,
+          "cpuMs": 1040.637,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "arm": 1,
+      "wallMs": 3254.2367970000014,
+      "cpuMs": 3252.257,
+      "frames": 441627,
+      "nsPerFrame": 7368.745110692964,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2323.238652,
+          "cpuMs": 2323.254,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1292.0276700000004,
+          "cpuMs": 1291.329,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1158.9524600000004,
+          "cpuMs": 1158.752,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1142.2445010000001,
+          "cpuMs": 1142.074,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1087.7174429999995,
+          "cpuMs": 1086.946,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1121.1369599999998,
+          "cpuMs": 1120.872,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1045.390351,
+          "cpuMs": 1044.568,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1087.7094860000016,
+          "cpuMs": 1086.817,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "arm": 0,
+      "wallMs": 3256.058161000001,
+      "cpuMs": 3254.1780000000003,
+      "frames": 441627,
+      "nsPerFrame": 7372.869324112885,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2334.786138,
+          "cpuMs": 2334.764,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1286.5675869999995,
+          "cpuMs": 1285.793,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1197.9291870000006,
+          "cpuMs": 1197.175,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1135.724295,
+          "cpuMs": 1135.531,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1121.6142280000004,
+          "cpuMs": 1120.6,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1105.697059,
+          "cpuMs": 1104.935,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1112.2366220000004,
+          "cpuMs": 1111.852,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1038.1244800000004,
+          "cpuMs": 1037.391,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "arm": 1,
+      "wallMs": 3215.2296590000005,
+      "cpuMs": 3213.1040000000003,
+      "frames": 441627,
+      "nsPerFrame": 7280.419129718066,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2321.1605499999996,
+          "cpuMs": 2321.212,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1286.831314,
+          "cpuMs": 1286.531,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1149.7034540000004,
+          "cpuMs": 1148.922,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1137.7915540000004,
+          "cpuMs": 1136.855,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1071.0985929999997,
+          "cpuMs": 1070.902,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1101.8356999999996,
+          "cpuMs": 1100.961,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1037.832606,
+          "cpuMs": 1037.077,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1075.561353000001,
+          "cpuMs": 1075.066,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 6,
+      "arm": 0,
+      "wallMs": 3246.8870940000015,
+      "cpuMs": 3245.0190000000002,
+      "frames": 441627,
+      "nsPerFrame": 7352.102779042046,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2343.488561,
+          "cpuMs": 2343.551,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1294.1018559999998,
+          "cpuMs": 1293.278,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1218.4452929999998,
+          "cpuMs": 1218.273,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1161.6970929999998,
+          "cpuMs": 1160.848,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1132.8665120000005,
+          "cpuMs": 1131.957,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1080.5187530000003,
+          "cpuMs": 1080.332,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1126.9938520000014,
+          "cpuMs": 1126.098,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1039.3744889999998,
+          "cpuMs": 1038.589,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "arm": 0,
+      "wallMs": 3244.324709999997,
+      "cpuMs": 3242.3100000000004,
+      "frames": 441627,
+      "nsPerFrame": 7346.3006337927645,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2334.1370690000003,
+          "cpuMs": 2334.223,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1288.7170819999997,
+          "cpuMs": 1287.948,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1191.404216,
+          "cpuMs": 1190.635,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1129.9941040000003,
+          "cpuMs": 1129.791,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1129.0424050000001,
+          "cpuMs": 1128.143,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1101.588561999999,
+          "cpuMs": 1100.729,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1114.2071039999992,
+          "cpuMs": 1113.804,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1028.529043999999,
+          "cpuMs": 1027.777,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 7,
+      "arm": 1,
+      "wallMs": 3257.0140489999994,
+      "cpuMs": 3255.593,
+      "frames": 441627,
+      "nsPerFrame": 7375.033793223693,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2335.015333,
+          "cpuMs": 2335.095,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1290.2538639999998,
+          "cpuMs": 1289.967,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1167.4621269999998,
+          "cpuMs": 1166.687,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1159.654571,
+          "cpuMs": 1158.526,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1090.6422890000003,
+          "cpuMs": 1090.493,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1120.899802,
+          "cpuMs": 1120.033,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1049.9184800000003,
+          "cpuMs": 1049.748,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1086.1957669999993,
+          "cpuMs": 1085.812,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "arm": 1,
+      "wallMs": 3252.907421,
+      "cpuMs": 3251.584,
+      "frames": 441627,
+      "nsPerFrame": 7365.734932420346,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2331.427842,
+          "cpuMs": 2330.945,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1292.4322510000002,
+          "cpuMs": 1292.22,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1157.7190190000001,
+          "cpuMs": 1157.535,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1149.0547219999999,
+          "cpuMs": 1148.154,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1086.2311529999988,
+          "cpuMs": 1086.038,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1118.4796989999995,
+          "cpuMs": 1118.246,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1045.7960569999996,
+          "cpuMs": 1045.04,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1088.6316650000008,
+          "cpuMs": 1088.298,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 8,
+      "arm": 0,
+      "wallMs": 3248.444793999999,
+      "cpuMs": 3247.286,
+      "frames": 441627,
+      "nsPerFrame": 7355.629963747685,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2321.858993,
+          "cpuMs": 2321.895,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1280.3275560000002,
+          "cpuMs": 1279.521,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1207.9129670000002,
+          "cpuMs": 1207.635,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1144.7720250000002,
+          "cpuMs": 1144.637,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1146.4128339999997,
+          "cpuMs": 1145.502,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1105.552689,
+          "cpuMs": 1105.339,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1113.0405119999996,
+          "cpuMs": 1112.824,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1029.8515929999994,
+          "cpuMs": 1029.123,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "arm": 0,
+      "wallMs": 3273.937254999999,
+      "cpuMs": 3272.619,
+      "frames": 441627,
+      "nsPerFrame": 7413.353927635763,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2339.687026,
+          "cpuMs": 2339.724,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1301.5943689999995,
+          "cpuMs": 1300.863,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1205.5792000000001,
+          "cpuMs": 1204.774,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1134.127633,
+          "cpuMs": 1133.918,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1121.3150880000003,
+          "cpuMs": 1120.938,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1107.4595069999996,
+          "cpuMs": 1106.629,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1123.0005679999995,
+          "cpuMs": 1122.653,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1043.4771799999999,
+          "cpuMs": 1043.337,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 9,
+      "arm": 1,
+      "wallMs": 3240.939289,
+      "cpuMs": 3238.6119999999996,
+      "frames": 441627,
+      "nsPerFrame": 7338.634841166867,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2318.307913,
+          "cpuMs": 2317.692,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1284.2235369999999,
+          "cpuMs": 1284.041,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1152.9269589999994,
+          "cpuMs": 1152.092,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1136.907854,
+          "cpuMs": 1136.041,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1081.4416899999997,
+          "cpuMs": 1081.248,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1112.7027720000006,
+          "cpuMs": 1111.763,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1043.0950539999994,
+          "cpuMs": 1042.316,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1085.141463,
+          "cpuMs": 1084.533,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "arm": 0,
+      "wallMs": 3288.7860170000004,
+      "cpuMs": 3286.885,
+      "frames": 441627,
+      "nsPerFrame": 7446.976785839635,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2338.050196,
+          "cpuMs": 2338.166,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1309.2414510000003,
+          "cpuMs": 1308.462,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1207.8554789999998,
+          "cpuMs": 1207.657,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1137.0919320000003,
+          "cpuMs": 1136.34,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1135.6250479999999,
+          "cpuMs": 1134.734,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1114.1849750000001,
+          "cpuMs": 1113.983,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1128.2481289999996,
+          "cpuMs": 1127.314,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1046.3529130000006,
+          "cpuMs": 1045.588,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 10,
+      "arm": 1,
+      "wallMs": 3204.197569,
+      "cpuMs": 3202.2160000000003,
+      "frames": 441627,
+      "nsPerFrame": 7255.4385691997995,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2316.405773,
+          "cpuMs": 2316.494,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1266.8307139999997,
+          "cpuMs": 1266.073,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1157.0963659999998,
+          "cpuMs": 1156.338,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1144.2123119999997,
+          "cpuMs": 1143.977,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1063.7105950000005,
+          "cpuMs": 1062.895,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1093.719943,
+          "cpuMs": 1092.758,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1035.3277470000012,
+          "cpuMs": 1035.141,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1075.1498789999987,
+          "cpuMs": 1074.317,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "arm": 1,
+      "wallMs": 3228.3788920000006,
+      "cpuMs": 3226.999,
+      "frames": 441627,
+      "nsPerFrame": 7310.193652109134,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2329.528308,
+          "cpuMs": 2329.628,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1281.4595319999999,
+          "cpuMs": 1281.244,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1152.8249409999999,
+          "cpuMs": 1152.063,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1140.6136419999993,
+          "cpuMs": 1139.482,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1074.2191920000005,
+          "cpuMs": 1074.08,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1105.1221509999996,
+          "cpuMs": 1104.199,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1040.2559430000001,
+          "cpuMs": 1040.091,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1083.000798000001,
+          "cpuMs": 1082.709,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    },
+    {
+      "round": 11,
+      "arm": 0,
+      "wallMs": 3249.667668,
+      "cpuMs": 3248.474,
+      "frames": 441627,
+      "nsPerFrame": 7358.3989837577865,
+      "iterations": [
+        {
+          "rep": -5,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2324.143706,
+          "cpuMs": 2323.622,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -4,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1308.518255,
+          "cpuMs": 1308.219,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -3,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1209.422807,
+          "cpuMs": 1209.245,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1139.7009850000004,
+          "cpuMs": 1138.946,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": -1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1134.5695479999995,
+          "cpuMs": 1133.359,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1085.1465290000015,
+          "cpuMs": 1084.98,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 1,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1123.1138979999996,
+          "cpuMs": 1122.263,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        },
+        {
+          "rep": 2,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 1041.407240999999,
+          "cpuMs": 1041.231,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          }
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "cell": 61,
+      "arms": [
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2352.092823,
+          "cpuMs": 2351.635,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          },
+          "resources": {
+            "wasmLinearMemoryBytes": 18153472,
+            "rss": 374071296,
+            "heapTotal": 163729408,
+            "heapUsed": 129553496,
+            "external": 38840912,
+            "arrayBuffers": 1332039,
+            "processMaxRssBytes": 374652928
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 61,
+          "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+          "physicalFrames": 147209,
+          "compileMs": 2319.6981889999997,
+          "cpuMs": 2319.673,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          },
+          "resources": {
+            "wasmLinearMemoryBytes": 17825792,
+            "rss": 343863296,
+            "heapTotal": 161894400,
+            "heapUsed": 125752776,
+            "external": 38814320,
+            "arrayBuffers": 1332039,
+            "processMaxRssBytes": 345059328
+          }
+        }
+      ]
+    }
+  ],
+  "iterationProfile": [
+    {
+      "arm": 0,
+      "iterations": [
+        {
+          "rep": -5,
+          "warmup": true,
+          "medianWallMs": 2336.3559800000003
+        },
+        {
+          "rep": -4,
+          "warmup": true,
+          "medianWallMs": 1302.4217759999997
+        },
+        {
+          "rep": -3,
+          "warmup": true,
+          "medianWallMs": 1206.7173395
+        },
+        {
+          "rep": -2,
+          "warmup": true,
+          "medianWallMs": 1138.3964585000003
+        },
+        {
+          "rep": -1,
+          "warmup": true,
+          "medianWallMs": 1131.3700775000002
+        },
+        {
+          "rep": 0,
+          "warmup": false,
+          "medianWallMs": 1101.0390674999999
+        },
+        {
+          "rep": 1,
+          "warmup": false,
+          "medianWallMs": 1123.6046594999998
+        },
+        {
+          "rep": 2,
+          "warmup": false,
+          "medianWallMs": 1040.4645659999996
+        }
+      ]
+    },
+    {
+      "arm": 1,
+      "iterations": [
+        {
+          "rep": -5,
+          "warmup": true,
+          "medianWallMs": 2327.8185435
+        },
+        {
+          "rep": -4,
+          "warmup": true,
+          "medianWallMs": 1286.1394835
+        },
+        {
+          "rep": -3,
+          "warmup": true,
+          "medianWallMs": 1157.7794575000003
+        },
+        {
+          "rep": -2,
+          "warmup": true,
+          "medianWallMs": 1143.2284065
+        },
+        {
+          "rep": -1,
+          "warmup": true,
+          "medianWallMs": 1085.9352944999991
+        },
+        {
+          "rep": 0,
+          "warmup": false,
+          "medianWallMs": 1117.7420424999991
+        },
+        {
+          "rep": 1,
+          "warmup": false,
+          "medianWallMs": 1045.3480905000006
+        },
+        {
+          "rep": 2,
+          "warmup": false,
+          "medianWallMs": 1085.6151849999997
+        }
+      ]
+    }
+  ],
+  "decision": {
+    "n": 12,
+    "medianDeltaPct": -0.6033606090370145,
+    "intervalPct": [
+      -0.9750088033089215,
+      0.39112419792291575
+    ],
+    "confidence": 0.95,
+    "coverage": 0.96142578125,
+    "marginPct": 2,
+    "verdict": "EQUIVALENT"
+  },
+  "cellDecisions": [
+    {
+      "cell": 61,
+      "decision": {
+        "n": 12,
+        "medianDeltaPct": -0.6033606090370157,
+        "intervalPct": [
+          -0.9750088033089139,
+          0.3911241979229108
+        ],
+        "confidence": 0.95,
+        "coverage": 0.96142578125,
+        "marginPct": 2,
+        "verdict": "EQUIVALENT"
+      }
+    }
+  ],
+  "regressionGuardPassed": true,
+  "control": false,
+  "controlPassed": null,
+  "performanceQualified": false
+}

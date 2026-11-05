@@ -114,6 +114,12 @@ With the default practical margin of 2%:
 - **EQUIVALENT:** the entire interval lies within ±2%.
 - **INCONCLUSIVE:** the experiment does not resolve those alternatives.
 
+Use `--margin-pct=0` when the declared speed criterion is evidence of benefit
+without a minimum effect size: FASTER then requires the entire interval below
+zero. It does not supply a probability of benefit. At zero margin, EQUIVALENT
+requires an exactly zero interval, so use a positive tolerance for null controls
+and any separate non-regression check that permits a small slowdown.
+
 Only a fresh FASTER confirmation of the frozen screened candidate qualifies a
 speedup beyond the declared practical margin. Every declared compile cell must
 also have an upper bound no larger than the margin; uncertainty about harm does

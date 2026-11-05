@@ -43,7 +43,7 @@ export function decide(pairs: readonly Pair[], confidence = .95, marginPct = 2) 
   const n = pairs.length;
   assert(Number.isInteger(n) && n >= 8 && n <= 256);
   assert(Number.isFinite(confidence) && confidence > .5 && confidence < 1);
-  assert(Number.isFinite(marginPct) && marginPct > 0 && marginPct < 100);
+  assert(Number.isFinite(marginPct) && marginPct >= 0 && marginPct < 100);
   const deltas = pairedChanges(pairs);
   // P(W <= k) is one excluded tail. Select the narrowest conservative interval.
   let term = 2 ** -n, tail = 0, rank = -1, coverage = 0;

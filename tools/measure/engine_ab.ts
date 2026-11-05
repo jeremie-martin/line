@@ -133,6 +133,7 @@ if (process.argv.includes('--worker')) {
   --cells=61 --rounds=12 --confirm-rounds=24
   --warmup=5 --reps=3               compile defaults; engine defaults: 1, 2
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
+                                  margin 0 tests direction without a minimum benefit
   --seed=1729                      balanced randomized AB/BA process pairs
   --slowdown-pct=5                 positive control, identical sources/WASM only
   --report=<result.json>           read evidence, or descriptive progress for unfinished v3 runs

@@ -6,7 +6,7 @@
 
 use std::rc::Rc;
 
-use crate::grid::{append_classic_cells, hash_int_pair, FlatIntMap};
+use crate::grid::{append_classic_cells, hash_int_pair, LineGrid};
 
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
 pub(crate) const ACC: f64 = 0.1;
@@ -138,9 +138,9 @@ fn bucket_position(bucket: &[LineRef], id: i32) -> (usize, bool) {
     (pos, pos < bucket.len() && bucket[pos].id == id)
 }
 
-pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<LineRef>>, line: &LineRef, cells: &[(i64, i64)]) {
+pub(crate) fn push_line(grid: &mut LineGrid, line: &LineRef, cells: &[(i64, i64)]) {
     for &(cx, cy) in cells {
-        let bucket = grid.get_or_insert_default(hash_int_pair(cx, cy));
+        let bucket = grid.get_or_insert(hash_int_pair(cx, cy));
         let (pos, found) = bucket_position(bucket, line.id);
         if !found {
             bucket.insert(pos, line.clone());
@@ -148,13 +148,13 @@ pub(crate) fn push_line(grid: &mut FlatIntMap<Vec<LineRef>>, line: &LineRef, cel
     }
 }
 
-pub(crate) fn remove_line(grid: &mut FlatIntMap<Vec<LineRef>>, id: i32, cells: &[(i64, i64)]) {
+pub(crate) fn remove_line(grid: &mut LineGrid, id: i32, cells: &[(i64, i64)]) {
     for &(cx, cy) in cells {
         let key = hash_int_pair(cx, cy);
         if let Some(bucket) = grid.get_mut(&key) {
             let (pos, found) = bucket_position(bucket, id);
             if found { bucket.remove(pos); }
-            if bucket.is_empty() { grid.remove(&key); }
+            if bucket.is_empty() { grid.remove_empty(&key); }
         }
     }
 }
@@ -164,13 +164,39 @@ mod tests {
     use super::*;
 
     #[test]
+    fn retired_slots_reuse_buffers_without_retaining_line_owners() {
+        let mut grid = LineGrid::default();
+        let cell = (0, 0);
+        let key = hash_int_pair(cell.0, cell.1);
+        let line = test_line(7);
+        let owner = Rc::downgrade(&line.batch);
+        push_line(&mut grid, &line, &[cell]);
+        let buffer = grid.get(&key).unwrap().as_ptr();
+        let capacity = grid.get(&key).unwrap().capacity();
+        remove_line(&mut grid, 7, &[cell]);
+        assert!(grid.get(&key).is_none(), "a retired bucket is invisible to queries");
+        drop(line);
+        assert!(owner.upgrade().is_none(), "spare capacity keeps no geometry alive");
+        let mut clone = grid.clone();
+        assert_eq!(clone.get_or_insert(key).capacity(), 0, "clones do not copy spare allocations");
+        push_line(&mut grid, &test_line(8), &[cell]);
+        assert_eq!(grid.get(&key).unwrap().as_ptr(), buffer);
+        assert_eq!(grid.get(&key).unwrap().capacity(), capacity);
+        assert_eq!(grid.get(&key).unwrap()[0].id, 8);
+        assert!(clone.get(&key).unwrap().is_empty(), "clones own independent buckets");
+        // Rehashing after recycling preserves the surviving entry and its owner.
+        for x in 1..1000 { push_line(&mut grid, &test_line(x as i32 + 10), &[(x, 0)]); }
+        assert_eq!(grid.get(&key).unwrap()[0].id, 8);
+    }
+
+    #[test]
     fn grid_and_surviving_entries_own_their_batch_after_other_references_drop() {
         let mut batch = LineRef::batch(vec![
             Line::new(1, 0.0, 0.0, 14.0, 0.0, 0, 0),
             Line::new(2, 0.0, 2.0, 14.0, 2.0, 0, 0),
         ]);
         let survivor = batch.pop().unwrap();
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         push_line(&mut grid, &batch[0], &[(0, 0)]);
         drop(batch);
         assert!(collides_with(&survivor, 5.0, 3.0, 0.0, 1.0));
@@ -181,7 +207,7 @@ mod tests {
 
     fn center_group(dx: i64, dy: i64) -> u8 { ((dx + 1) * 3 + dy + 1) as u8 }
 
-    fn query(grid: &FlatIntMap<Vec<LineRef>>, cx: i64, cy: i64) -> Vec<(u8, i32)> {
+    fn query(grid: &LineGrid, cx: i64, cy: i64) -> Vec<(u8, i32)> {
         let mut out = Vec::new();
         for dx in -1..=1 {
             for dy in -1..=1 {
@@ -199,7 +225,7 @@ mod tests {
 
     #[test]
     fn push_line_orders_each_cell_by_descending_line_id() {
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1); // the original raster cell
         push_line(&mut grid, &test_line(10), &[cell]);
@@ -211,7 +237,7 @@ mod tests {
 
     #[test]
     fn push_line_keeps_one_entry_per_line_id_per_cell() {
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1);
         push_line(&mut grid, &test_line(10), &[cell, cell]);
@@ -221,7 +247,7 @@ mod tests {
 
     #[test]
     fn push_line_preserves_3x3_query_order_and_duplicates() {
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         let cell0 = (-1, -1);
         let cell1 = (-1, 0);
         push_line(&mut grid, &test_line(20), &[cell0]);
@@ -233,7 +259,7 @@ mod tests {
 
     #[test]
     fn remove_line_drops_id_and_empties_cell() {
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         let cell = (3, 5);
         let key = hash_int_pair(cell.0, cell.1);
         push_line(&mut grid, &test_line(10), &[cell]);
@@ -267,7 +293,7 @@ mod tests {
 
     #[test]
     fn bucket_search_matches_linear_scan_under_churn() {
-        let mut grid = FlatIntMap::default();
+        let mut grid = LineGrid::default();
         let mut reference: std::collections::HashMap<i64, Vec<(u8, i32)>> = Default::default();
         let mut live: Vec<(i32, Vec<(i64, i64)>)> = Vec::new();
         let mut seed = 0x2545F4914F6CDD1Du64;

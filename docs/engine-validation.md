@@ -86,6 +86,8 @@ repeats per process; engine defaults are one and two. All iterations are saved,
 with a per-iteration median profile. Fixed warmup defines a repeatable workload;
 it is **not a claim of steady state**. Cold and warmed timings must be identified
 separately. Changing warmup can change ns/frame without improving any code.
+Use `--warmup=0 --reps=1` for a cold compile in each fresh process; it is a
+separate workload from the default warmed experiment.
 
 Each completed pair prints the running median change and faster/slower/tied
 pair counts. These are descriptive observations, not probabilities or interim

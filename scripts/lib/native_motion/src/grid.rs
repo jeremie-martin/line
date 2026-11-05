@@ -2,29 +2,32 @@
 //!   - utils/hashNumberPair.js  (`hashIntPair`, Szudzik pair → signed fold)
 //!   - grids/getCellsFromLine.js (`classicCells` DDA float walk)
 //!   - grids/ClassicGrid.js `getCellsNearEntity` (the 3×3 neighborhood)
-//! Pure functions of geometry; no engine state. 14px cells.
+//! Rasterization and collision-bucket storage use 14px cells.
 
 use std::collections::HashMap;
+use crate::line::LineRef;
 use std::hash::{BuildHasher, Hasher};
 
 pub(crate) const GRID_SIZE: f64 = 14.0;
 
 pub(crate) type IntMap<K, V> = HashMap<K, V, IntBuildHasher>;
 
+/// Spatial hash slots retain empty bucket buffers across removals. Inactive
+/// buckets contain no line owners; cloning them copies no spare allocation.
 #[derive(Clone)]
-pub(crate) struct FlatIntMap<V> {
+pub(crate) struct LineGrid {
     keys: Vec<i64>,
-    values: Vec<Option<V>>,
+    buckets: Vec<Vec<LineRef>>,
     states: Vec<u8>, // 0 empty, 1 occupied, 2 tombstone
     len: usize,
     used: usize,
 }
 
-impl<V> Default for FlatIntMap<V> {
-    fn default() -> FlatIntMap<V> {
-        FlatIntMap {
+impl Default for LineGrid {
+    fn default() -> LineGrid {
+        LineGrid {
             keys: Vec::new(),
-            values: Vec::new(),
+            buckets: Vec::new(),
             states: Vec::new(),
             len: 0,
             used: 0,
@@ -32,7 +35,7 @@ impl<V> Default for FlatIntMap<V> {
     }
 }
 
-impl<V> FlatIntMap<V> {
+impl LineGrid {
     #[inline]
     fn hash(key: i64) -> usize {
         let x = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);
@@ -42,17 +45,17 @@ impl<V> FlatIntMap<V> {
     fn resize(&mut self, new_cap: usize) {
         let cap = new_cap.next_power_of_two().max(16);
         let old_keys = std::mem::replace(&mut self.keys, vec![0; cap]);
-        let old_values = std::mem::replace(&mut self.values, (0..cap).map(|_| None).collect());
+        let old_buckets = std::mem::replace(&mut self.buckets, (0..cap).map(|_| Vec::new()).collect());
         let old_states = std::mem::replace(&mut self.states, vec![0; cap]);
         self.len = 0;
         self.used = 0;
-        for ((key, value), state) in old_keys
+        for ((key, bucket), state) in old_keys
             .into_iter()
-            .zip(old_values.into_iter())
+            .zip(old_buckets.into_iter())
             .zip(old_states.into_iter())
         {
             if state == 1 {
-                self.insert(key, value.unwrap());
+                *self.get_or_insert(key) = bucket;
             }
         }
     }
@@ -102,58 +105,39 @@ impl<V> FlatIntMap<V> {
     }
 
     #[inline]
-    pub(crate) fn get(&self, key: &i64) -> Option<&V> {
-        self.find(*key).and_then(|i| self.values[i].as_ref())
+    pub(crate) fn get(&self, key: &i64) -> Option<&Vec<LineRef>> {
+        self.find(*key).map(|i| &self.buckets[i])
     }
 
     #[inline]
-    pub(crate) fn get_mut(&mut self, key: &i64) -> Option<&mut V> {
+    pub(crate) fn get_mut(&mut self, key: &i64) -> Option<&mut Vec<LineRef>> {
         let i = self.find(*key)?;
-        self.values[i].as_mut()
+        Some(&mut self.buckets[i])
     }
 
-    pub(crate) fn get_or_insert_default(&mut self, key: i64) -> &mut V
-    where
-        V: Default,
-    {
+    pub(crate) fn get_or_insert(&mut self, key: i64) -> &mut Vec<LineRef> {
         self.ensure_insert_capacity();
-        match self.find_insert_slot(key) {
-            Ok(i) => self.values[i].as_mut().unwrap(),
+        let i = match self.find_insert_slot(key) {
+            Ok(i) => i,
             Err(i) => {
-                if self.states[i] == 0 {
-                    self.used += 1;
-                }
+                if self.states[i] == 0 { self.used += 1; }
                 self.states[i] = 1;
                 self.keys[i] = key;
-                self.values[i] = Some(V::default());
                 self.len += 1;
-                self.values[i].as_mut().unwrap()
+                // Empty slots own empty buckets, possibly with reusable capacity.
+                debug_assert!(self.buckets[i].is_empty());
+                i
             }
-        }
+        };
+        &mut self.buckets[i]
     }
 
-    pub(crate) fn insert(&mut self, key: i64, value: V) -> Option<V> {
-        self.ensure_insert_capacity();
-        match self.find_insert_slot(key) {
-            Ok(i) => self.values[i].replace(value),
-            Err(i) => {
-                if self.states[i] == 0 {
-                    self.used += 1;
-                }
-                self.states[i] = 1;
-                self.keys[i] = key;
-                self.values[i] = Some(value);
-                self.len += 1;
-                None
-            }
+    pub(crate) fn remove_empty(&mut self, key: &i64) {
+        if let Some(i) = self.find(*key) {
+            assert!(self.buckets[i].is_empty(), "only empty grid buckets can be retired");
+            self.states[i] = 2;
+            self.len -= 1;
         }
-    }
-
-    pub(crate) fn remove(&mut self, key: &i64) -> Option<V> {
-        let i = self.find(*key)?;
-        self.states[i] = 2;
-        self.len -= 1;
-        self.values[i].take()
     }
 }
 
@@ -185,7 +169,7 @@ impl Hasher for IntHasher {
         // SIMD tag filter. Multiply by the golden-ratio odd constant (bijective on
         // u64, so no new key collisions) to spread entropy into both the tag and
         // bucket bits. Probe-order only; never affects key→value mapping or output.
-        // (cell_lines uses FlatIntMap, not this hasher.)
+        // (cell_lines uses LineGrid, not this hasher.)
         self.state.wrapping_mul(0x9E3779B97F4A7C15)
     }
 

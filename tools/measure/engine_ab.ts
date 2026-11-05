@@ -131,7 +131,7 @@ if (process.argv.includes('--worker')) {
   --reference-root=<checkout>       compare compiler/wrapper source too
   --stage=screen|confirm            confirm requires --screen=<result.json>
   --cells=61 --rounds=12 --confirm-rounds=24
-  --warmup=5 --reps=3               compile defaults; engine defaults: 1, 2
+  --warmup=5 --reps=3               compile defaults; engine defaults: 1, 2; warmup 0 measures cold
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
                                   margin 0 tests direction without a minimum benefit
   --seed=1729                      balanced randomized AB/BA process pairs
@@ -154,7 +154,8 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
   assert(['engine', 'compile'].includes(mode) && ['screen', 'confirm'].includes(stage));
   for (const n of [config.rounds, config.confirmRounds]) pairOrder(n, config.seed);
   const order = pairOrder(config.rounds, config.seed);
-  for (const n of [config.reps, config.warmup]) assert(Number.isInteger(n) && n >= 1 && n <= 100);
+  assert(Number.isInteger(config.reps) && config.reps >= 1 && config.reps <= 100);
+  assert(Number.isInteger(config.warmup) && config.warmup >= 0 && config.warmup <= 100);
   for (const n of [config.rounds, config.confirmRounds])
     decide(Array.from({length: n}, () => ({base: 1, candidate: 1})), config.confidence, config.marginPct);
   assert(Number.isFinite(config.slowdownPct) && config.slowdownPct >= 0 && config.slowdownPct <= 100);

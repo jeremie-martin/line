@@ -1,0 +1,161 @@
+{
+  "schema": "line.engine-ab.v3",
+  "complete": false,
+  "date": "2026-11-05T21:53:56.231Z",
+  "head": "c49b4da4b4e8f4f06a25f8359bd9a5b0c336f17b",
+  "machine": {
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12800H",
+    "node": "v22.22.2",
+    "v8": "12.4.254.21-node.39",
+    "workerFlags": [
+      "--expose-gc",
+      "--import",
+      "tsx"
+    ],
+    "nodeOptions": "",
+    "platform": "linux",
+    "release": "7.0.0-38-generic",
+    "affinity": "2"
+  },
+  "sourceSha256": "dc091a7ea7d1f0ab95a547c490bb967a8f534561dc7995ceb00c9590a55254d5",
+  "referenceSourceSha256": "9b76822055bc6353b5eb3aa055e417add2b2a26c0708c16808be750dfb440202",
+  "sourceChanges": [
+    "scripts/lib/native_motion/manifest.json",
+    "scripts/lib/native_motion/manifest.json.sha256",
+    "scripts/lib/native_motion/src/cache.rs",
+    "scripts/lib/native_motion/src/grid.rs",
+    "scripts/lib/native_motion/src/kernel.rs",
+    "scripts/lib/native_motion/src/line.rs"
+  ],
+  "referenceRoot": "/tmp/engine-default-20261105/reference",
+  "artifacts": [
+    {
+      "path": "/tmp/engine-default-20261105/reference/scripts/lib/native_motion/engine.wasm",
+      "sha256": "b8d5ed77ff61f7ba21cbaa4e96762fe8b53e7fe17aad684c4adc0f32716d43f1"
+    },
+    {
+      "path": "/home/holo/line/scripts/lib/native_motion/engine.wasm",
+      "sha256": "9a1d586dcad8bfc13e5a43093584b165845061fdf39d4e970d771f8eebf2bcc4"
+    }
+  ],
+  "protocol": {
+    "mode": "compile",
+    "stage": "screen",
+    "rounds": 12,
+    "confirmRounds": 24,
+    "reps": 3,
+    "warmup": 5,
+    "confidence": 0.95,
+    "marginPct": 2,
+    "seed": 1729,
+    "slowdownPct": 0,
+    "cells": [
+      62
+    ]
+  },
+  "pairOrder": [
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ]
+  ],
+  "screening": null,
+  "interpretation": "Exact conservative confidence interval for the median paired percentage change. Fixed independent process pairs; no optional stopping. A timing verdict is not an adoption decision. Full correctness/design gates are separate.",
+  "timingScope": "CPU and wall clocks enclose compileHandoff only, with prepared inputs; hashing, output and resource sampling excluded.",
+  "resourceScope": "Compile resources use one fresh process per arm and cell, sampled after compilation without forced GC. WASM linear memory is a high-water capacity, heapUsed is a JS heap snapshot, rss is current process residency, processMaxRssBytes is lifetime process peak. These are not live allocation counts or timed samples.",
+  "controlScope": null,
+  "samples": [],
+  "resources": [
+    {
+      "cell": 62,
+      "arms": [
+        {
+          "rep": 0,
+          "cell": 62,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+          "physicalFrames": 741902,
+          "compileMs": 7145.313631999999,
+          "cpuMs": 7120.09,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          },
+          "resources": {
+            "wasmLinearMemoryBytes": 34144256,
+            "rss": 568446976,
+            "heapTotal": 338595840,
+            "heapUsed": 137286016,
+            "external": 55786572,
+            "arrayBuffers": 2680131,
+            "processMaxRssBytes": 569782272
+          }
+        },
+        {
+          "rep": 0,
+          "cell": 62,
+          "trackHash": "d9c18c3bcc760a099b0ee0d9d63aa618516463a7bf812daf8e5afef9ed70901c",
+          "physicalFrames": 741902,
+          "compileMs": 7173.67477,
+          "cpuMs": 7171.045,
+          "control": {
+            "wallMs": 0,
+            "cpuMs": 0
+          },
+          "resources": {
+            "wasmLinearMemoryBytes": 34799616,
+            "rss": 538648576,
+            "heapTotal": 338079744,
+            "heapUsed": 151409824,
+            "external": 55729024,
+            "arrayBuffers": 1967223,
+            "processMaxRssBytes": 540057600
+          }
+        }
+      ]
+    }
+  ]
+}

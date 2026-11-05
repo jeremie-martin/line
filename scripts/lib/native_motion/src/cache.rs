@@ -2,7 +2,7 @@
 //! invalidate this cache in reference order; history is materialized only when
 //! an edit needs it. Copying the cache resets its borrowed query shortcuts.
 
-use crate::grid::{FlatIntMap, IntMap};
+use crate::grid::{LineGrid, IntMap};
 use crate::shared_prefix::SharedPrefix;
 use crate::history::CollisionHistory;
 use crate::kernel::{
@@ -39,7 +39,7 @@ pub(crate) struct FrameSummary {
 // ── the single shared cache per lineage (LineEngine.__computed__ + Frame.grid/collisions) ──
 #[derive(Clone)]
 pub(crate) struct FrameCache {
-    cell_lines: FlatIntMap<Vec<LineRef>>, // ClassicGrid cellLinesMap (collision lookup)
+    cell_lines: LineGrid, // ClassicGrid cellLinesMap (collision lookup)
     line_cache: LineCellCache,             // shortcut valid until the line grid changes
     lines: IntMap<i32, LineRef>, // id → shared geometry, including its removal footprint
     frames: SharedPrefix<State>,                        // frames[0] = initial; lazily extended
@@ -60,7 +60,7 @@ impl FrameCache {
         let mut contact_ids = Vec::new();
         let summary = Self::summarize_frame(&s, &[], &mut contact_ids);
         FrameCache {
-            cell_lines: FlatIntMap::default(),
+            cell_lines: LineGrid::default(),
             line_cache: LineCellCache::default(),
             lines: IntMap::default(),
             frames: SharedPrefix::new(s.clone()),

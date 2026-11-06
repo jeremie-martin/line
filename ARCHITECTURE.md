@@ -71,9 +71,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    Candidate scoring reuses its measured trajectory axes for residuals; only a
    targeted, capped amplitude needs a separate raw-peak read to preserve
    search pressure above the reporting cap. Reported axes remain capped.
-   A candidate that leaves its interval's prefix unchanged reuses the prefix
-   frames and resumes the prefix's detector state. One interval owns reusable
-   detector columns and a scalar checkpoint; candidate evaluation consumes the
+   Candidates reuse every prefix frame preserved by native invalidation and
+   read only the changed suffix. Receiver placement preserves the earliest
+   boundary across both geometry edits. Each interval owns reusable detector
+   columns and a checkpoint, moved earlier when necessary so contact lookahead
+   is recomputed from unchanged input. Candidate evaluation consumes the
    borrowed detection synchronously and retains only owned measurements. Detection
    rescans the short persistence boundary and candidate suffix, with the same
    result as scanning the whole ride.

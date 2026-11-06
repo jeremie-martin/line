@@ -4,7 +4,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * physical prefix; only a replay that meets every physical, musical and
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
-import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectory, extractRawTrajectoryWindow, detect, type Detection } from '../../lib/detector.ts';
+import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { AXIS_MEASURE, measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
@@ -81,9 +81,9 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   const {child} = built;
   const count = built.added ? built.added.length : built.paths.reduce((n, p) => n + Math.max(0, p.points.length - 1), 0);
   if (!count) return null;
-  const prefixReusable = child.getLastFrameIndex() >= s.frame - 1;
+  const prefixFrames = Math.min(built.prefixFrames, child.getLastFrameIndex() + 1);
   if (count >= 10000) throw new Error('arc geometry id range exhausted');
-  const replay = replayCandidate(s, child, prefixReusable);
+  const replay = replayCandidate(s, child, prefixFrames);
   if ('reason' in replay) return reject(replay.reason);
   const added = built.added ?? solidPathLines(built.paths);
   s.ctx.lineage.record(s.engine, child, added);
@@ -99,7 +99,14 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
     if ('reason' in measured) return reject(measured.reason);
     return recordCandidate(s, c, key, added, child, fragments, traced, measured);
   };
-  return prefixReusable ? s.detection.withDetection(replay.raw, consume) : consume(detect(replay.raw));
+  if (prefixFrames < s.detectionFrames) {
+    // Geometry can invalidate only part of the prefix. Move the checkpoint
+    // back to the unchanged boundary, including the detector's lookahead.
+    // Later candidates can keep this earlier checkpoint even if they preserve more.
+    s.detection = new DetectionContinuation({duration: prefixFrames - 1, frames: s.prefixRaw.frames.slice(0, prefixFrames)});
+    s.detectionFrames = prefixFrames;
+  }
+  return s.detection.withDetection(replay.raw, consume);
 }
 
 /** A memoized measurement competes again in this search; its engine is rebuilt
@@ -127,34 +134,36 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: Candida
 /** Support geometry for `c` on the interval's prefix engine: a connected arc,
  * explicit fragments, or (transfer layouts) a support plus a receiving curve
  * placed from the observed free flight. */
-function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): ({added: CandidateGeometry; paths?: never} | {added?: never; paths: SolidPath[]}) & {child: Engine} | Rejection {
+function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments): ({added: CandidateGeometry; paths?: never} | {added?: never; paths: SolidPath[]}) & {child: Engine; prefixFrames: number} | Rejection {
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
     const main = motionArc(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
     const supportEngine = add(engine, main), id = Math.max(...main.map(l => l.id)) + 1;
+    // Receiver placement simulates before adding its guide. Remember what the
+    // first edit preserved; the guide's later cache boundary cannot recover it.
+    const prefixFrames = Math.min(s.frame, supportEngine.getLastFrameIndex() + 1);
     const receiver = observedReceiver(supportEngine, main, s.frame, Math.min(s.horizon, ctx.duration), c, id, options, i === ctx.contacts.length - 1);
     if (!receiver) return {reason: 'receiver_no_window'};
     const added = [...main, ...receiver.guide], child = add(supportEngine, receiver.guide);
     const parent = prefixes.get(engine);
     if (parent) prefixes.set(child, {parent, lines: added});
-    return {added, child};
+    return {added, child, prefixFrames};
   }
-  if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines)};
+  if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines), prefixFrames: s.frame};
   const paths = motionArcPaths(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
-  return {paths, child: engine.addSolidPaths(paths)};
+  return {paths, child: engine.addSolidPaths(paths), prefixFrames: s.frame};
 }
 
 /** Check the prefix and replay to the interval horizon. A candidate whose
  * rider or sled comes apart stops there and is charged only that far. */
-function replayCandidate(s: IntervalSearch, child: Engine, prefixReusable: boolean) {
+function replayCandidate(s: IntervalSearch, child: Engine, prefixFrames: number) {
   const {frame, horizon} = s;
   if (!matchesBallisticStateMetered(child, frame - 1, s.beforeState)) return {reason: 'prefix'} as Rejection;
   if (!boundThroughMetered(child, horizon)) return {reason: 'binding'} as Rejection;
   const state = getBallisticStateMetered(child, horizon);
-  const raw = prefixReusable
-    ? {duration: horizon, frames: s.prefixRaw.frames.concat(extractRawTrajectoryWindow(child, frame, horizon).frames)}
-    : extractRawTrajectory(child, horizon);
+  const prefix = prefixFrames === frame ? s.prefixRaw.frames : s.prefixRaw.frames.slice(0, prefixFrames);
+  const raw = {duration: horizon, frames: prefix.concat(extractRawTrajectoryWindow(child, prefixFrames, horizon).frames)};
   return {state, raw};
 }
 

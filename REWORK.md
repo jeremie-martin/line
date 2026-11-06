@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: an exact angular shortcut misses confirmation
+
+A conservative kick-angle predicate removes 99.3% of `atan2` calls in two
+workloads, with exact complete checkpoints and full validation. Screening passes,
+but fresh confirmation is −0.379% [−0.869%, +0.082%], inconclusive at the declared
+zero margin. Remove the candidate; retain the evidence and numerical tests in
+the study archive. The last qualified default result remains 7,172.5 ns/frame.
+
+[Angular exclusion study](docs/research/engine-kick-gate-20261106.md).
+
 ## November 6: runtime probes and a rejected memory tradeoff
 
 Keep the pinned runtime after Node 24/26 feasibility probes. Exact duplicated

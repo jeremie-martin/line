@@ -60,7 +60,6 @@ it('retains exact frame-local speeds when reusing the preceding effective speed'
     for(const sample of samples){
       const incoming=frames[sample.frame].velocity;
       expect(sample.speedBefore).toBe(Math.hypot(incoming.x,incoming.y-NATIVE_GRAVITY));
-      expect(sample.speedAfter).toBe(Math.hypot(sample.effective.x,sample.effective.y));
     }
   }
 });

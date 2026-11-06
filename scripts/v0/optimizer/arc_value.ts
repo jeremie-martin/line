@@ -64,8 +64,9 @@ function flattenForest(trees: readonly ValueTree[]) {
 const forests = new WeakMap<ValueModel, ReturnType<typeof flattenForest>>();
 
 export function arcFutureValue(features: number[], artifact: any): number {
-  if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
-      features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
+  let valid = artifact.featureSchema === ARC_VALUE_FEATURE_SCHEMA && artifact.featureCount === features.length;
+  for (let k = 0; valid && k < features.length; k++) valid = Number.isFinite(features[k]);
+  if (!valid) throw new Error('arc future-value feature mismatch');
   const model: ValueModel = artifact.model;
   let forest = forests.get(model);
   if (!forest) forests.set(model, forest = flattenForest(model.trees));

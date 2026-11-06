@@ -111,21 +111,25 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const mainCount=main.length-1,clearance=c.clearance??channel;
   if(style?.guides!==false&&clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
     const vertices=main;
-    const roof=vertices.slice(2).map((p,i)=>{
-      const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
+    const roof:Array<{x:number;y:number}>=[],distances=[0];
+    for(let index=2;index<vertices.length;index++){
+      const i=index-2,p=vertices[index],prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
-      return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
-    });
-    const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
-    const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
+      roof.push({x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)});
+      if(i)distances.push(distances[i-1]+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
+    }
+    const length=distances[distances.length-1],from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
     // Every guide remains one substantial connected curve, including when its
     // endpoints move between subdivision vertices. Zero coverage is a single arc.
     if((c.guideStart===undefined&&c.guideEnd===undefined)||to-from>=24){
-      const clipped=roof.filter((_,i)=>distances[i]>=from&&distances[i]<=to);
-      const at=(distance:number)=>{let i=1;while(i<distances.length-1&&distances[i]<distance)i++;const t=(distance-distances[i-1])/Math.max(1e-12,distances[i]-distances[i-1]);return{x:lerp(roof[i-1].x,roof[i].x,t),y:lerp(roof[i-1].y,roof[i].y,t)};};
-      if(from>0&&!distances.includes(from))clipped.unshift(at(from));
-      if(to<length&&!distances.includes(to))clipped.push(at(to));
+      let clipped=roof;
+      if(from!==0||to!==length){
+        clipped=roof.filter((_,i)=>distances[i]>=from&&distances[i]<=to);
+        const at=(distance:number)=>{let i=1;while(i<distances.length-1&&distances[i]<distance)i++;const t=(distance-distances[i-1])/Math.max(1e-12,distances[i]-distances[i-1]);return{x:lerp(roof[i-1].x,roof[i].x,t),y:lerp(roof[i-1].y,roof[i].y,t)};};
+        if(from>0&&!distances.includes(from))clipped.unshift(at(from));
+        if(to<length&&!distances.includes(to))clipped.push(at(to));
+      }
       if(style?.independentGuide&&c.guideTilt){
         const pivot=clipped[Math.floor(clipped.length/2)],a=rad(c.guideTilt),co=Math.cos(a),si=Math.sin(a);
         for(const p of clipped){const x=p.x-pivot.x,y=p.y-pivot.y;p.x=pivot.x+co*x-si*y;p.y=pivot.y+si*x+co*y;}

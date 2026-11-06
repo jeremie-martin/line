@@ -7,11 +7,8 @@ import type {RawFrame, Vec2} from '../../lib/detector.ts';
 
 export const MOTION_OBSERVATION_VERSION='line.motion-observation.v1';
 export const NATIVE_GRAVITY=.175;
-const speed=(v:Vec2)=>hypot2(v.x,v.y);
-const direction=(a:Vec2,b:Vec2)=>Math.abs(Math.atan2(a.x*b.y-a.y*b.x,a.x*b.x+a.y*b.y));
 const BODY_POINT_IDS=['BUTT','SHOULDER','RHAND','LHAND','LFOOT','RFOOT'] as const;
-export type MotionSample={frame:number;incoming:Vec2;effective:Vec2;speedBefore:number;speedAfter:number;
-  gravityGain:number;solverGain:number;directionCorrection:number};
+export type MotionSample={frame:number;speedBefore:number;gravityGain:number;solverGain:number;directionCorrection:number};
 export function motionSamples(frames:readonly Pick<RawFrame,'frame'|'velocity'>[],from:number,to:number,terminalEffective?:Vec2):MotionSample[]{
   if(!Number.isSafeInteger(from)||!Number.isSafeInteger(to)||from<1||to<from)throw new Error('invalid motion observation window');
   const first=frames[0]?.frame,last=frames.at(-1)?.frame;
@@ -21,13 +18,12 @@ export function motionSamples(frames:readonly Pick<RawFrame,'frame'|'velocity'>[
   for(let frame=from;frame<=to;frame++){
     const row=frames[frame-first],next=frames[frame-first+1];
     if(row?.frame!==frame||next&&next.frame!==frame+1)throw new Error('motion samples require a contiguous native trajectory');
-    const incoming=row.velocity,effective=next?{x:next.velocity.x,y:next.velocity.y-NATIVE_GRAVITY}:terminalEffective!;
-    if(!Number.isFinite(incoming.x)||!Number.isFinite(incoming.y)||!Number.isFinite(effective.x)||!Number.isFinite(effective.y))throw new Error('nonfinite motion sample');
-    const speedBefore=previousSpeed??hypot2(incoming.x,incoming.y-NATIVE_GRAVITY),speedAfter=speed(effective),incomingSpeed=speed(incoming);
+    const {x,y}=row.velocity,effectiveX=next?next.velocity.x:terminalEffective!.x,effectiveY=next?next.velocity.y-NATIVE_GRAVITY:terminalEffective!.y;
+    if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(effectiveX)||!Number.isFinite(effectiveY))throw new Error('nonfinite motion sample');
+    const speedBefore=previousSpeed??hypot2(x,y-NATIVE_GRAVITY),speedAfter=hypot2(effectiveX,effectiveY),incomingSpeed=hypot2(x,y);
     previousSpeed=speedAfter;
-    samples.push({frame,incoming,effective,speedBefore,speedAfter,
-      gravityGain:incomingSpeed-speedBefore,solverGain:speedAfter-incomingSpeed,
-      directionCorrection:.5*(incomingSpeed+speedAfter)*direction(incoming,effective)});
+    samples.push({frame,speedBefore,gravityGain:incomingSpeed-speedBefore,solverGain:speedAfter-incomingSpeed,
+      directionCorrection:.5*(incomingSpeed+speedAfter)*Math.abs(Math.atan2(x*effectiveY-y*effectiveX,x*effectiveX+y*effectiveY))});
   }
   return samples;
 }

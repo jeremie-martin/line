@@ -17,8 +17,8 @@
  * round, categories interleaved, so a stopped run covers the panel evenly.
  * Ctrl-C keeps finished rides and prints a report labelled PARTIAL. */
 import assert from 'node:assert/strict';
-import {execFileSync, spawn} from 'node:child_process';
-import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
+import {execFileSync} from 'node:child_process';
+import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
@@ -291,8 +291,7 @@ function saveReport(s: Selection, lines: string[]) {
 }
 
 async function run() {
-  const s = await select(), jobs = Number(arg('jobs', String(defaultWorkerJobs()))), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
-  assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
+  const s = await select(), pool = new WorkerPool(workerJobs(arg('jobs'))), maxRounds = arg('rounds') ? Number(arg('rounds')) : Infinity;
   assert.ok(maxRounds === Infinity || (Number.isSafeInteger(maxRounds) && maxRounds >= 1), '--rounds must be a positive integer');
   const {cells, missing, notes} = loadState(s);
   for (const n of notes) console.log(n);
@@ -311,56 +310,42 @@ async function run() {
   const toCompile = {candidate: new Set(missing.candidate.map(m => m.id)), reference: new Set(missing.reference.map(m => m.id))};
   for (const r of rs) for (const c of r) for (const side of SIDES) if (toCompile[side].has(c.id)) queue.push({side, c});
   const announced = new Set<number>(coverage(s, cells).done);
-  let stopping = false, finished = 0;
-  const children = new Set<ReturnType<typeof spawn>>(), failures: string[] = [], began = performance.now();
+  let finished = 0;
+  const failures: string[] = [], began = performance.now();
   // Ctrl-C, or a termination signal from whoever started the run: stop
   // scheduling, stop the workers, keep finished rides, release the locks, report.
-  const stop = () => {if (!stopping) {stopping = true; console.log('\nstopping: finished rides are kept; writing a partial report…');} for (const ch of children) ch.kill('SIGINT');};
+  const stop = () => {if (!pool.stopped) console.log('\nstopping: finished rides are kept; writing a partial report…'); pool.stop();};
   process.on('SIGINT', stop); process.on('SIGTERM', stop);
-  console.log(`${queue.length} rides to compile (${rs.length < s.rounds.length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(jobs, queue.length)} at a time`);
+  console.log(`${queue.length} rides to compile (${rs.length < s.rounds.length ? `first ${rs.length} round(s)` : 'every round'}), ${Math.min(pool.jobs, queue.length)} at a time`);
   try {
-    let laneError: unknown;
-    await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
+    // Workers run detached, so Ctrl-C reaches them once, through the pool. An
+    // unexpected error stops them too, so none outlives the arm locks released below.
+    await pool.run(queue, async ({side, c}) => {
+      const arm = s.arms[side], pending = join(arm.dir, `pending-${c.id}.json`);
+      writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
       try {
-        while (queue.length && !stopping) {
-          const {side, c} = queue.shift()!, arm = s.arms[side], pending = join(arm.dir, `pending-${c.id}.json`);
-          writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
-          try {
-            await new Promise<void>((done, fail) => {
-              const child = spawn(process.execPath, [import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
-                {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit'], detached: true});
-              children.add(child);
-              child.once('error', fail); child.once('exit', (code, signal) => {children.delete(child); code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`));});
-            });
-          } catch (e) {
-            if (!stopping) {failures.push(`${side} ${c.id}: ${e}`); console.error(`FAILED ${side} ${c.id}: ${e}`);}
-            continue;
-          } finally {if (existsSync(pending)) unlinkSync(pending);}
-          cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
-          if (same) cells.reference.set(c.id, cells[side].get(c.id));
-          const cov = coverage(s, cells);
-          for (const k of cov.done) if (!announced.has(k)) {
-            announced.add(k);
-            console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
-              `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + [...evidenceLines(evidence(s, cells, cov.inComplete)),
-                ...(cov.complete >= MIN_BLOCKS ? uncertaintyLines(blockUncertainty(s, cells)) : [])].join('\n'));
-          }
-          if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
-        }
+        await pool.worker([import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`], {detached: true});
       } catch (e) {
-        // An unexpected error (not a failed ride): stop scheduling and stop the
-        // detached workers, so that none outlives the arm locks released below.
-        laneError ??= e; stopping = true;
-        for (const ch of children) ch.kill('SIGINT');
+        if (!pool.stopped) {failures.push(`${side} ${c.id}: ${e}`); console.error(`FAILED ${side} ${c.id}: ${e}`);}
+        return;
+      } finally {if (existsSync(pending)) unlinkSync(pending);}
+      cells[side].set(c.id, readJson(join(arm.dir, 'cells', c.id + '.json'))); finished++;
+      if (same) cells.reference.set(c.id, cells[side].get(c.id));
+      const cov = coverage(s, cells);
+      for (const k of cov.done) if (!announced.has(k)) {
+        announced.add(k);
+        console.log(`\nround ${k + 1}/${cov.rounds} complete (${cov.complete} of ${cov.rounds} now) · ${cov.matched.length}/${s.cases.length} matched pairs · ${((performance.now() - began) / 60000).toFixed(1)} min`,
+          `\n  coverage ${cov.byCat.join(' · ')}`, '\n' + [...evidenceLines(evidence(s, cells, cov.inComplete)),
+            ...(cov.complete >= MIN_BLOCKS ? uncertaintyLines(blockUncertainty(s, cells)) : [])].join('\n'));
       }
-    }));
-    if (laneError !== undefined) throw laneError;
+      if (finished % 10 === 0) console.log(`  ${finished} rides compiled this session; ${cov.matched.length}/${s.cases.length} matched pairs`);
+    });
   } finally {for (const r of releases) r();}
   const lines = report(s, cells, notes);
   console.log('\n' + summaryOf(lines).join('\n'));
   if (failures.length) console.log(`\n${failures.length} rides failed to compile (not results; fix and resume):\n${failures.join('\n')}`);
   console.log(`\nfull report (with the detail): ${saveReport(s, lines)}`);
-  if (stopping) process.exitCode = 130;
+  if (pool.stopped) process.exitCode = 130;
   else if (failures.length) process.exitCode = 1;
 }
 

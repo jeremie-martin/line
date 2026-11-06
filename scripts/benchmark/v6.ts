@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdirSync,readFileSync,writeFileSync,existsSync,openSync,closeSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {spawn} from 'node:child_process';
+import {WorkerPool,workerJobs} from '../lib/workers.ts';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {judgeIdentity} from '../../benchmark/v6/contract.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
@@ -66,25 +66,22 @@ if(command==='worker'){
  assert.ok(['canonical','confirmation'].includes(split));
  const cases=catalog.cases.filter(c=>c.split===split&&(!arg('ids')||arg('ids')!.split(',').includes(c.id)));
  const seeds=split==='canonical'?[...policy.seeds]:[...policy.confirmationSeeds];
- const compiler=galleryCompilerIdentity(compilerRoot),budget=Number(arg('budget',String(policy.budget))),jobs=Number(arg('jobs','8'));
- assert.ok(Number.isSafeInteger(jobs)&&jobs>0&&jobs<=24&&cases.length);
+ const compiler=galleryCompilerIdentity(compilerRoot),budget=Number(arg('budget',String(policy.budget))),jobs=workerJobs(arg('jobs'));
+ assert.ok(cases.length);
  const plan={schema:'line.benchmark-v6.run-plan.v1',compilerRoot,compiler,judge:frozen,executionSha256:sha(readFileSync(import.meta.filename)),
    ids:cases.map(c=>c.id),seeds,budget,split,profile:arg('ids')||budget!==policy.budget?'diagnostic':split};
  mkdirSync(out,{recursive:true});for(const d of ['cells','tracks','logs','construction'])mkdirSync(join(out,d),{recursive:true});
  if(existsSync(join(out,'plan.json')))assert.deepEqual(read(join(out,'plan.json')),plan,'cached V6 run identity mismatch');else writeGalleryJson(out,'plan.json',plan);
  const planHash=sha(readFileSync(join(out,'plan.json'))),queue=cases.flatMap(c=>seeds.map(seed=>({id:c.id,seed})));let completed=0;
- await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{
-   while(queue.length){
-     const {id,seed}=queue.shift()!,name=id+'-'+seed,cell=join(out,'cells',name+'.json');
-     if(existsSync(cell)){assert.equal(read(cell).planSha256,planHash);completed++;continue;}
-     const fd=openSync(join(out,'logs',name+'.log'),'w');
-     try{
-       const code=await new Promise<number|null>((done,reject)=>{const child=spawn(process.execPath,[import.meta.filename,'worker',`--out=${out}`,`--id=${id}`,`--seed=${seed}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd]});child.once('error',reject);child.once('exit',done);});
-       assert.equal(code,0,`V6 worker failed: ${name}`);
-     }finally{closeSync(fd);}
-     completed++;if(completed%8===0)console.log(JSON.stringify({completed,total:cases.length*seeds.length}));
-   }
- }));
+ const pool=new WorkerPool(jobs);
+ await pool.run(queue,async({id,seed})=>{
+   const name=id+'-'+seed,cell=join(out,'cells',name+'.json');
+   if(existsSync(cell)){assert.equal(read(cell).planSha256,planHash);completed++;return;}
+   const fd=openSync(join(out,'logs',name+'.log'),'w');
+   try{await pool.worker([import.meta.filename,'worker',`--out=${out}`,`--id=${id}`,`--seed=${seed}`],{stdio:['ignore',fd,fd]});}
+   finally{closeSync(fd);}
+   completed++;if(completed%8===0)console.log(JSON.stringify({completed,total:cases.length*seeds.length}));
+ });
  assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during V6 run');assert.deepEqual(judgeIdentity(),frozen);
  assert.equal(sha(readFileSync(import.meta.filename)),plan.executionSha256,'V6 runner changed during execution');
  const rows=cases.flatMap(c=>seeds.map(seed=>read(join(out,'cells',c.id+'-'+seed+'.json'))));
@@ -93,4 +90,4 @@ if(command==='worker'){
  const summary=cases.some(c=>c.panel==='fixed')&&cases.some(c=>c.panel==='automatic')?summarize(rows,cases,seeds):null;
  writeGalleryJson(out,'run.json',{schema:'line.benchmark-v6.run.v1',plan,summary,executionErrors,rows});
  console.log(JSON.stringify({out,summary,executionErrors}));
-}else throw new Error('Usage: v6.ts eval --out=DIR [--compiler-root=DIR] [--split=confirmation] [--jobs=8]');
+}else throw new Error('Usage: v6.ts eval --out=DIR [--compiler-root=DIR] [--split=confirmation] [--jobs=N]');

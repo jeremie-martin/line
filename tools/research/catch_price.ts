@@ -26,7 +26,7 @@ import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
 import {withArcStudy} from './arc_study.ts';
-import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
+import {defaultWorkerJobs} from '../../scripts/lib/workers.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
   'tiki_tiki_48s~v7-intense', 'tiki_tiki_48s~bench-pairs', 'amour_de_ma_vie_44s~bench-intense', 'luna_bala_44s~bench-breakdown'];

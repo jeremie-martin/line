@@ -8,8 +8,7 @@
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
-import {spawn} from 'node:child_process';
-import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
+import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
@@ -70,7 +69,7 @@ async function main() {
   if (command === 'worker') {assert.ok(arg('name') && arg('case')); await worker(runDir(arg('name')!), arg('case')!); return;}
   if ((command !== 'run' && command !== 'report') || !arg('name')) {console.error(USAGE); process.exitCode = 2; return;}
   if (command === 'run') {
-    const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = Number(arg('jobs', String(defaultWorkerJobs())));
+    const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = workerJobs(arg('jobs'));
     validateRunOptions(mode, budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
     const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
     const dir = runDir(arg('name')!), plan = await planFor(mode, budget, panelName, creative);
@@ -80,19 +79,13 @@ async function main() {
       if (existsSync(join(dir, 'run.json'))) assert.deepEqual(readPlan(dir), plan, 'run inputs or measurement code changed; choose a fresh directory');
       else atomicWrite(join(dir, 'run.json'), JSON.stringify(plan));
       const existing = readCells(dir, plan), queue = plan.panel.filter(c => !existing.has(c.id)), failures: string[] = [], began = performance.now();
-      await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
-        while (queue.length) {
-          const c = queue.shift()!;
-          try {
-            await new Promise<void>((done, fail) => {
-              const child = spawn(process.execPath, [import.meta.filename, 'worker', `--case=${c.id}`, `--name=${dir}`],
-                {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
-              child.once('error', fail); child.once('exit', (code, signal) => code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`)));
-            });
-            console.log(`done  ${c.id}`);
-          } catch (e) {failures.push(`${c.id}: ${e}`); console.error(`FAILED ${c.id}: ${e}`);}
-        }
-      }));
+      const pool = new WorkerPool(jobs);
+      await pool.run(queue, async c => {
+        try {
+          await pool.worker([import.meta.filename, 'worker', `--case=${c.id}`, `--name=${dir}`]);
+          console.log(`done  ${c.id}`);
+        } catch (e) {failures.push(`${c.id}: ${e}`); console.error(`FAILED ${c.id}: ${e}`);}
+      });
       assert.deepEqual(await planFor(mode, budget, panelName, creative), plan, 'inputs changed during run');
       if (failures.length) throw new Error(`${failures.length} workers failed; run is incomplete and cannot be reported. Resume the same plan after addressing the failures.\n${failures.join('\n')}`);
       assert.deepEqual(readPlan(dir), plan, 'saved run plan changed');

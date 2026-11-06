@@ -16,8 +16,7 @@ import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
 import {tmpdir} from 'node:os';
-import {spawn} from 'node:child_process';
-import {defaultWorkerJobs} from '../lib/worker_jobs.ts';
+import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
 import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
@@ -87,32 +86,27 @@ if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
 const command = process.argv[2];
 if (command === 'worker') await compileWorker(Number(arg('cell')), arg('out')!);
 else if (command === 'compile') {
-  const defaultJobs = defaultWorkerJobs();
-  const mode = arg('mode'), jobs = Number(arg('jobs', String(defaultJobs))), only = arg('ids')?.split(',');
-  if (!Number.isInteger(jobs) || jobs < 1 || jobs > 64) throw new Error('--jobs must be an integer from 1 to 64');
+  const mode = arg('mode'), pool = new WorkerPool(workerJobs(arg('jobs'))), only = arg('ids')?.split(',');
   const queue = doc.cells.map((c, i) => ({c, i})).filter(({c}) => (!mode || c.mode === mode) && (!only || only.includes(c.id)));
   if (!queue.length) throw new Error('No parity cells selected');
   const dir = mkdtempSync(join(tmpdir(), 'parity-')), failures: string[] = [], began = performance.now();
-  await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
-    while (queue.length) {
-      const {c, i} = queue.shift()!, out = join(dir, `${i}.json`);
-      const code = await new Promise<number | null>((done, reject) => {
-        const child = spawn(process.execPath, [import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`],
-          {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
-        child.once('error', reject); child.once('exit', done);
-      });
-      const name = `${c.mode} ${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
-      if (code !== 0 || !existsSync(out)) {failures.push(`${name}: worker exited ${code}`); continue;}
-      const r = JSON.parse(readFileSync(out, 'utf8'));
-      const diff = compare(c, r, ['trackHash', 'physicalFrames']);
-      if (flag('update') && (diff.length || c.trackHash === undefined)) {
-        Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
-        if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
-      }
-      console.log(`${diff.length ? 'DIFF' : 'same'}  ${name}  ${(r.compileMs / 1000).toFixed(0)}s${diff.length ? '  ' + diff.join('; ') : ''}`);
-      if (diff.length && !flag('update')) failures.push(`${name}: ${diff.join('; ')}`);
+  await pool.run(queue, async ({c, i}) => {
+    const out = join(dir, `${i}.json`), name = `${c.mode} ${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
+    try {
+      await pool.worker([import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`]);
+    } catch (error) {
+      failures.push(`${name}: ${error}`);
+      return;
     }
-  }));
+    const r = JSON.parse(readFileSync(out, 'utf8'));
+    const diff = compare(c, r, ['trackHash', 'physicalFrames']);
+    if (flag('update') && (diff.length || c.trackHash === undefined)) {
+      Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
+      if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
+    }
+    console.log(`${diff.length ? 'DIFF' : 'same'}  ${name}  ${(r.compileMs / 1000).toFixed(0)}s${diff.length ? '  ' + diff.join('; ') : ''}`);
+    if (diff.length && !flag('update')) failures.push(`${name}: ${diff.join('; ')}`);
+  });
   if (flag('update')) writeFileSync(cellsPath, JSON.stringify(doc, null, 1) + '\n');
   console.log(`${failures.length ? 'FAIL' : 'PASS'}  compile parity  (${((performance.now() - began) / 1000).toFixed(0)}s)`);
   for (const f of failures) console.log('  ' + f);

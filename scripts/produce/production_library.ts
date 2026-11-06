@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync,writeFileSync,openSync,closeSync} from 'node:fs';
 import {join,resolve,relative} from 'node:path';
-import {spawn} from 'node:child_process';
+import {WorkerPool,workerJobs} from '../lib/workers.ts';
 import {createHash} from 'node:crypto';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {repertoireSongs,validateAutomaticProductionRequest} from '../gallery/repertoire_catalog.ts';
@@ -13,8 +13,8 @@ import {resolveJoltMs} from './jolt.ts';
 import {loadMusicCase} from './music_artifacts.ts';
 import {musicSource,assertLibraryEntry} from './library_plan.ts';
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
-const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),jobs=Number(arg('jobs',phase==='render'?'1':'3'));
-if(!['compile','render','index'].includes(phase)||!Number.isSafeInteger(jobs)||jobs<1||jobs>12)throw new Error('invalid phase or jobs');
+const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),pool=new WorkerPool(workerJobs(arg('jobs',phase==='render'?'1':'')||undefined));
+if(!['compile','render','index'].includes(phase))throw new Error('invalid phase');
 mkdirSync(out,{recursive:true});
 const release=lockArtifacts(out);
 try {
@@ -58,7 +58,7 @@ try {
    writeGalleryJson(dir,'request.json',entry.request);
    const args=phase==='compile'?['scripts/produce/automatic.ts','--request='+join(dir,'request.json'),'--out='+dir,'--compiler-root='+plan.compilerRoot]:['scripts/produce/render_repertoire.ts','--study='+dir];
    const fd=openSync(join(dir,phase+'.log'),'a');
-   try{await new Promise<void>((done,fail)=>{const child=spawn(process.execPath,[...args],{env:{...process.env,LR_ENGINE:'wasm',LR_JOLT_OFFSET_MS:String(plan.jolt)},stdio:['ignore',fd,fd]});child.once('error',fail);child.once('exit',(code,signal)=>code===0?done():fail(new Error(`${phase} exited ${code??signal}; see preserved log`)));});
+   try{await pool.worker(args,{env:{LR_JOLT_OFFSET_MS:String(plan.jolt)},stdio:['ignore',fd,fd]});
    }catch(e){failures.push(entry.id+': '+String(e));writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}
    finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
   }
@@ -68,9 +68,7 @@ try {
    const mirror=phase==='render'?await ensureMirror():null;
    try{
     const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;
-    let next=0;const outcomes=await Promise.allSettled(Array.from({length:jobs},async()=>{while(next<queue.length)await run(queue[next++]);}));
-    const rejected=outcomes.filter((r):r is PromiseRejectedResult=>r.status==='rejected');
-    if(rejected.length)throw new AggregateError(rejected.map(r=>r.reason),'Production collection failed');
+    await pool.run(queue,run);
    }finally{mirror?.kill();}
   }
   index();

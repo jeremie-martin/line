@@ -85,7 +85,7 @@ paired timing protocol and interpretation of resource measurements.
 the complete structural gate: types, reachability, JavaScript and Rust tests,
 live physics verification, compiler parity and judge parity. Evaluation,
 comparison and parity use a conservative CPU/memory worker count; `--jobs=N`
-overrides it (four by default on this 16 GB host). `npm run perf:engine -- --help`
+overrides it (eight by default on this 16 GB host). `npm run perf:engine -- --help`
 shows the paired experiment options; `npm run bench:engine` is a workload diagnostic.
 
 Compiler throughput is full compile time per charged physics frame, including

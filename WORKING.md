@@ -92,8 +92,8 @@ plan and its log.
 
 - The earlier timing records used a 64-core, 62 GB host. Check the current
   machine before choosing concurrency or interpreting those timings.
-- Evaluation, comparison and parity share a default limited by available CPUs and roughly 4 GB per worker
-  (at most 23). On the November 3 laptop (20 threads, 16 GB), this is four
+- Evaluation, comparison and parity share a default limited by available CPUs and roughly 2 GB per worker
+  (at most 23). On the November 3 laptop (20 threads, 16 GB), this is eight
   workers; `--jobs=N` overrides it. Do not benchmark alongside
   parity or other heavy checks. Engine performance decisions use
   `npm run perf:engine`: fixed paired rounds, a frozen candidate, and fresh

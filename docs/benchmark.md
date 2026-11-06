@@ -60,7 +60,7 @@ npm run compare -- rides  --reference=main --candidate=<branch>          # most-
   leave a lock in its arm; the message names the PID to check first.
 - **Options:**
   - `--only=REGEX`: a subset of cases;
-  - `--jobs=N`: parallel rides (default 44);
+  - `--jobs=N`: parallel rides (default: available CPUs at about 2 GB each);
   - `--budget=standard*F` and `--creative=JSON`: both arms;
   - `--candidate-budget` and `--candidate-creative`: one arm.
 - **Agents:** run it as a tracked background task, so its end is noticed at

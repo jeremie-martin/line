@@ -11,8 +11,9 @@ that must not change what the compiler produces.
 - Gate: `npm run parity` (25 cells byte-identical) and `npm run parity:judge`.
 - Also: `npm test`, `npm run typecheck` (the count must not rise) and
   `npm run reach` (zero unreachable code).
-- `npm run check` combines these gates with native Rust tests and
-  `npm run verify:engine`. Rebuild with `npm run build:native` first when editing
+- `npm run check` combines these gates with native Rust tests,
+  `npm run verify:engine` and `npm run check:smoke`, which uses the real tools end
+  to end and needs local song audio and a Chromium. Rebuild with `npm run build:native` first when editing
   the packaged backend; stale source manifests fail the tests.
 - A structural commit that changes any track hash is a bug.
 

@@ -106,7 +106,8 @@ Chromium installation instead of Playwright's default browser.
 | `npm run check:physics` | fast saved-reference physics, including seeded stress cases |
 | `npm run verify:engine` | live independent physics and derived-observation parity |
 | `npm run parity` | structural changes leave 25 compiled reference cells byte-identical, chosen by measured coverage: every construction family, recovery, fallback, exhausted allowances and a failed ride |
-| `npm run check` | complete structural compiler/engine gate, including both parity suites |
+| `npm run check:smoke` | a timing comparison, a production compile and the review pages in real Chromium |
+| `npm run check` | complete structural gate, including both parity suites and the smoke check |
 | `npm run parity:judge` | the independent judge reproduces every stored score |
 | `npm test` | unit and integration tests |
 | `npm run typecheck` | TypeScript; the error count may only go down |

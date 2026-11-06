@@ -10,6 +10,7 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run verify:engine` | Live independent physics and wrapper/derived-observation comparison |
 | `npm run parity` | All 25 compiler tracks **and charged physics work**, exact |
 | `npm run parity:judge` | Independent judge results on the committed tracks |
+| `npm run check:smoke` | The real tools end to end: a small `perf:engine` comparison, a production compile, and the review pages in Chromium |
 | `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |

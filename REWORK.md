@@ -6,8 +6,9 @@ Running each documented workflow found what gates did not. `perf:engine --agains
 failed once audio existed locally, so snapshots now exclude everything git ignores.
 `production.html` kept a link to a removed stylesheet; a test now checks local page
 assets. `npm run measure` needed October data and is gone. In real Chromium, `?t=12.5`
-opens at 12.50 s and the retired `?review=` is ignored. Open gaps: `check` runs no
-page or timing smoke, and the review saved collection predates the compiler.
+opens at 12.50 s and the retired `?review=` is ignored. `npm run check:smoke`, now part
+of `check`, runs these workflows; it caught both page bugs when they were put back.
+The saved review collection still predates the compiler.
 
 ## November 6: one compiler, one ruler, one panel family
 

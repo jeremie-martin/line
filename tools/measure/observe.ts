@@ -3,7 +3,7 @@
  * detector's landing events with the frozen impact value, and the experimental
  * contact-impact evaluation. Output feeds tools/measure/measures.ts.
  *
- *   node --import tsx tools/measure/observe.ts [--sets=july,current,strike]
+ *   node tools/measure/observe.ts [--sets=july,current,strike]
  *
  * Writes generated/measure/observations/<set>~<song>~<seed>.json.gz
  * (+ an index.json listing the sources and their track hashes). */

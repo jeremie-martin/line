@@ -327,7 +327,7 @@ async function run() {
           writeFileSync(pending, JSON.stringify({case: c, root: arm.root, contentKey: arm.content.key, evaluator: s.evaluator, label: arm.label}));
           try {
             await new Promise<void>((done, fail) => {
-              const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
+              const child = spawn(process.execPath, [import.meta.filename, 'worker', `--arm=${arm.dir}`, `--pending=${pending}`],
                 {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit'], detached: true});
               children.add(child);
               child.once('error', fail); child.once('exit', (code, signal) => {children.delete(child); code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`));});

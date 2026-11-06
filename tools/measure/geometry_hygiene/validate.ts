@@ -1,5 +1,5 @@
 /** Known-case check of the pass-through detector in analyze.ts (research only).
- *   node --import tsx tools/measure/geometry_hygiene/validate.ts
+ *   node tools/measure/geometry_hygiene/validate.ts
  * Builds minimal tracks whose outcome follows from the collision rule and
  * checks that the detector reports exactly that. */
 import {analyze} from './analyze.ts';

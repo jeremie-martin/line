@@ -7,7 +7,7 @@
  *  3. The same on real rides: one compiler's 8 seeds split into two pretend
  *     arms (every split and pairing), so the true change is zero.
  *  4. A real comparison read at 4 and at 8 seeds.
- * node --import tsx tools/research/validate_uncertainty.ts NULL_ARM [CANDIDATE_ARM REFERENCE_ARM] */
+ * node tools/research/validate_uncertainty.ts NULL_ARM [CANDIDATE_ARM REFERENCE_ARM] */
 import {readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {readJson} from '../eval/records.ts';

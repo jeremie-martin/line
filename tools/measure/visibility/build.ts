@@ -4,7 +4,7 @@
  * judged moment at 1.0 s); the rides come from the tracks preserved in
  * labels/studies/sources, checked against the key's hashes.
  *
- *   node --import tsx tools/measure/visibility/build.ts --study=<id> [--jobs=8] */
+ *   node tools/measure/visibility/build.ts --study=<id> [--jobs=8] */
 import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';

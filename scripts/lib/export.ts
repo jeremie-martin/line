@@ -51,8 +51,11 @@ export type ExportOptions = {
 };
 
 export class MirrorUnreachableError extends Error {
-  constructor(public origin: string, cause: unknown) {
+  origin: string;
+
+  constructor(origin: string, cause: unknown) {
     super(`mirror origin unreachable: ${origin} (${String(cause)})`);
+    this.origin = origin;
     this.name = "MirrorUnreachableError";
   }
 }

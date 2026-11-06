@@ -3,7 +3,7 @@
  * the compiler built them (main line dark, upper rail red, the rider's path
  * dotted blue, the neighbouring gaps faint), and how much of the rides each
  * geometry takes. Report only.
- * node --import tsx tools/research/geometry_catalog.ts ARM_DIR */
+ * node tools/research/geometry_catalog.ts ARM_DIR */
 import {readdirSync, writeFileSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {readJson} from '../eval/records.ts';

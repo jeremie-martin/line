@@ -93,7 +93,7 @@ it('failed workers make the actual CLI fail, retaining a resumable plan but no s
   git('init', '-q');
   git('add', '--', 'scripts', 'tools', 'benchmark', 'engine-rs', 'package.json', 'package-lock.json', 'productions');
   git('commit', '-qm', 'Controlled evaluation inputs');
-  const args = ['--import', 'tsx', cli, 'run', `--name=${dir}`, '--budget=1', '--jobs=2'];
+  const args = [cli, 'run', `--name=${dir}`, '--budget=1', '--jobs=2'];
   const r = spawnSync(process.execPath, args, {cwd: root, env, encoding: 'utf8', maxBuffer: 2e6});
   expect(r.status).toBe(1); expect(r.stderr).toContain('24 workers failed');
   expect(r.stderr).toContain('budget');

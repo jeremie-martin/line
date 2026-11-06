@@ -3,7 +3,7 @@
  * points and lines touched in its first frames, the arc's contact side, the
  * velocity just before, timing, and the air/speed errors of the gaps around it.
  * Writes one JSON row per hit.
- * node --import tsx tools/research/upper_hits.ts ARM_DIR OUT.jsonl */
+ * node tools/research/upper_hits.ts ARM_DIR OUT.jsonl */
 import {readdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {gunzipSync} from 'node:zlib';

@@ -1,8 +1,8 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node --import tsx tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=N]
- *   node --import tsx tools/parity/parity.ts judge   [--all]
+ *   node tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=N]
+ *   node tools/parity/parity.ts judge   [--all]
  *
  * `compile` recompiles the committed cells in fresh processes.
  * `judge` re-scores the committed reference tracks; `--all` additionally
@@ -88,7 +88,7 @@ else if (command === 'compile') {
     while (queue.length) {
       const {c, i} = queue.shift()!, out = join(dir, `${i}.json`);
       const code = await new Promise<number | null>((done, reject) => {
-        const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`],
+        const child = spawn(process.execPath, [import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`],
           {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
         child.once('error', reject); child.once('exit', done);
       });

@@ -3,7 +3,7 @@
  * here feeds the compiler, the evaluation or any ruler, and nothing under
  * tools/eval imports it.
  *
- *   node --import tsx tools/measure/geometry_hygiene/analyze.ts OUT.json RIDE.json [RIDE.json ...]
+ *   node tools/measure/geometry_hygiene/analyze.ts OUT.json RIDE.json [RIDE.json ...]
  *        [--removal=N]   also replay N crossed-and-never-touched lines removed one at a time
  *
  * RIDE.json is a production result (`*-production.json` from npm run produce).

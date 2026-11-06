@@ -2,7 +2,7 @@
  * For each extra: section (and its family/guidance), which line it touched
  * (main chain or guide), which rider points, and its offset from the previous
  * and next beat. Report only; changes nothing.
- * node --import tsx tools/research/stray_hits.ts RUN [RUN...] */
+ * node tools/research/stray_hits.ts RUN [RUN...] */
 import {join} from 'node:path';
 import {readJson, readTrack, runDir} from '../eval/records.ts';
 import {resolveCase} from '../eval/inputs.ts';

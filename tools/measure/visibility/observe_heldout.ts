@@ -9,7 +9,7 @@
  *  - per frame: contact, inside an event, and the 2-frame whole-body change ÷ 7.55.
  * The saved compile-time v3 events must equal the replayed ones (asserted).
  *
- *   LR_ENGINE=wasm node --import tsx tools/measure/visibility/observe_heldout.ts \
+ *   LR_ENGINE=wasm node tools/measure/visibility/observe_heldout.ts \
  *       --rides=<dir of <song>-<seed>/ production outputs> --out=FILE.json.gz
  *
  * Lives in a subfolder: evaluatorIdentity hashes only top-level tools/measure files. */

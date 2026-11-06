@@ -1,7 +1,7 @@
 /** Coverage of a spec's landings against the song's measured events
  * (productions/<song>/events.json, built by tools/music/events.py).
  *
- *   node --import tsx tools/music/coverage.ts --song=trouble_50s [--variant=NAME] [--contacts-out=FILE.json]
+ *   node tools/music/coverage.ts --song=trouble_50s [--variant=NAME] [--contacts-out=FILE.json]
  *
  * Each flag asks the author for a decision, not a fix. The bar is the spec's own
  * choices, so no loudness threshold is assumed:

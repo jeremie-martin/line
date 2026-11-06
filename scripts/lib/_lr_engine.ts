@@ -4,7 +4,7 @@
 const backend = process.env.LR_ENGINE ?? 'wasm';
 if (!['wasm', 'js', 'official'].includes(backend)) throw new Error(`unknown LR_ENGINE: ${backend}`);
 
-// CJS under tsx has one default in the main thread and two in workers.
+// Normalize the CommonJS oracle exports and the native ES module.
 const module: any = backend === 'js'
   ? await import('../../vendor/lr-core/line-rider-engine/index.js')
   : backend === 'official'

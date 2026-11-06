@@ -4,7 +4,7 @@
  * horizontal) into a long line tilted β (degrees, descending to the right); the
  * incidence is θ − β. Ceilings: the rider rises into a line above it.
  *
- *   node --import tsx tools/measure/survival_envelope.ts [--out=FILE.json] */
+ *   node tools/measure/survival_envelope.ts [--out=FILE.json] */
 import {writeFileSync} from 'node:fs';
 import {observe} from './observe.ts';
 import {strikeMotionFrames, detectStrikes, STRIKE_V3_CONTRACT} from './strike.ts';

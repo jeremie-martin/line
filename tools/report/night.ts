@@ -3,7 +3,7 @@
  * against a reference run, requested-vs-achieved impact curves and per-song
  * rows. Run names are eval runs under generated/eval.
  *
- *   node --import tsx tools/report/night.ts --stages=evening:<run>,v3:<run>,final:<run>
+ *   node tools/report/night.ts --stages=evening:<run>,v3:<run>,final:<run>
  *       [--confirm=evening:<run>,final:<run>] [--out=generated/report/night/data.json] */
 import assert from 'node:assert/strict';
 import {mkdirSync, writeFileSync, readFileSync, copyFileSync} from 'node:fs';

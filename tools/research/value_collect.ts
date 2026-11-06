@@ -1,7 +1,7 @@
 /** exp/retrain-v3 research tool: collect labelled planning probes for the
  * arc future-value model from the production compiler under line.strike.v3.
  *
- *   node --import tsx tools/research/value_collect.ts run --out=DIR [--seeds=1] [--jobs=16] [--budget=standard|N] [--limit=N]
+ *   node tools/research/value_collect.ts run --out=DIR [--seeds=1] [--jobs=16] [--budget=standard|N] [--limit=N]
  *       [--catalog=v4|v6transfer] [--only=FILE]
  *
  * --only=FILE restricts the work to the `id~seed` compiles listed in FILE (a JSON
@@ -120,7 +120,7 @@ async function main(){
   const lengths=new Map(cases.map((c:any)=>[c.id,c.durationFrames]));queue.sort((a,b)=>lengths.get(b.id)!-lengths.get(a.id)!);
   const failures:string[]=[];let done=work.length-queue.length;
   await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{while(queue.length){const w=queue.shift()!;
-   try{await new Promise<void>((ok,fail)=>{const p=spawn(process.execPath,['--import','tsx',import.meta.filename,'worker',`--catalog=${catalog}`,`--case=${w.id}`,`--seed=${w.seed}`,`--out=${dir}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore','ignore','inherit']});
+   try{await new Promise<void>((ok,fail)=>{const p=spawn(process.execPath,[import.meta.filename,'worker',`--catalog=${catalog}`,`--case=${w.id}`,`--seed=${w.seed}`,`--out=${dir}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore','ignore','inherit']});
     p.once('error',fail);p.once('exit',(code,signal)=>code===0?ok():fail(Error(`worker exited ${code??signal}`)));});
     readCollectionCell(dir,plan,w);console.log(`${++done}/${work.length} ${w.id}~${w.seed}`);
    }catch(e){failures.push(`${w.id}~${w.seed}: ${e}`);}

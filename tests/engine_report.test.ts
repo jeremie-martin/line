@@ -10,7 +10,7 @@ function report(record: object) {
   const dir = mkdtempSync(join(tmpdir(), 'engine-report-')); directories.push(dir);
   const path = join(dir, 'result.json'), bytes = JSON.stringify(record);
   writeFileSync(path, bytes);
-  const process = spawnSync(globalThis.process.execPath, ['--import', 'tsx', 'tools/measure/engine_ab.ts', `--report=${path}`], {encoding: 'utf8'});
+  const process = spawnSync(globalThis.process.execPath, ['tools/measure/engine_ab.ts', `--report=${path}`], {encoding: 'utf8'});
   expect(readFileSync(path, 'utf8')).toBe(bytes); // reporting never rewrites evidence
   return process;
 }
@@ -62,12 +62,12 @@ it.each(['null', 'slowdown'])('v3 reports control failures without qualifying a 
 });
 
 it('rejects misspelled protocol flags before starting measurements', () => {
-  const r = spawnSync(process.execPath, ['--import', 'tsx', 'tools/measure/engine_ab.ts', '--confidnce=.99'], {encoding: 'utf8'});
+  const r = spawnSync(process.execPath, ['tools/measure/engine_ab.ts', '--confidnce=.99'], {encoding: 'utf8'});
   expect(r.status).not.toBe(0);
   expect(r.stderr).toContain('unknown option');
 });
 
 it.each([['--confidence'], ['--rounds=12', '--rounds=24'], ['--help=true']])('rejects ambiguous protocol options %j', (...args) => {
-  const r = spawnSync(process.execPath, ['--import', 'tsx', 'tools/measure/engine_ab.ts', ...args], {encoding: 'utf8'});
+  const r = spawnSync(process.execPath, ['tools/measure/engine_ab.ts', ...args], {encoding: 'utf8'});
   expect(r.status).not.toBe(0);
 });

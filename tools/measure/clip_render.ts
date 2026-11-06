@@ -34,7 +34,7 @@ export function verifyCachedRide(movie: string, input: unknown) {
 export async function renderRides(tracks: Map<string, {song: string; track: any}>, dir: string, jobs = 4) {
   mkdirSync(dir, {recursive: true});
   const run = (args: string[]) => new Promise<void>((done, fail) => {
-    const child = spawn(process.execPath, ['--import', 'tsx', ...args], {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
+    const child = spawn(process.execPath, [...args], {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
     child.once('error', fail);
     child.once('exit', code => code === 0 ? done() : fail(new Error(`${args[0]} exited ${code}`)));
   });

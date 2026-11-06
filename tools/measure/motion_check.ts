@@ -4,7 +4,7 @@
  * 100 ms burst excess, and the Luna/Tiki openings must stay within 1.35x the
  * ordinary reference's corrections.
  *
- *   node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR */
+ *   node tools/measure/motion_check.ts --library=DIR --previous=DIR */
 import {readFileSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';

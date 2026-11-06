@@ -5,7 +5,7 @@
  * "Middle" includes the rest of the launch ride: on a line, the rider's points
  * touch on alternate frames, so the first frame without contact is not yet the
  * takeoff. float_feasibility.ts says where the extra contact comes from.
- * node --import tsx tools/research/float_contacts.ts ARM_DIR [CELLS] */
+ * node tools/research/float_contacts.ts ARM_DIR [CELLS] */
 import {readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {readJson} from '../eval/records.ts';

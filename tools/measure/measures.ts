@@ -1,7 +1,7 @@
 /** Candidate impact measures, computed per authored beat on observed rides.
  * These are instruments for choosing a definition, not compiler objectives.
  *
- *   node --import tsx tools/measure/measures.ts      # writes generated/measure/beats.json + summary
+ *   node tools/measure/measures.ts      # writes generated/measure/beats.json + summary
  *
  * For each beat: the frozen landing impact (V6), line.contact-impact.v1, v1 with
  * the renewal fix (R1: a new strike needs a valley relative to the NEW peak only),

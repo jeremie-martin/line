@@ -95,7 +95,7 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      structural moments (the drop).
    - Write down every event deliberately not landed on, with its reason.
 6. **Resolve the coverage report.** Run
-   `node --import tsx tools/music/coverage.ts --song=<song> --contacts-out=generated/stems/<song>/contacts.json`.
+   `node tools/music/coverage.ts --song=<song> --contacts-out=generated/stems/<song>/contacts.json`.
    It flags:
    - unlanded events stronger than the weakest landing within 2 s;
    - landings beaten by a neighbour within 0.35 s;

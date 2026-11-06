@@ -79,7 +79,7 @@ if(command==='worker'){
      if(existsSync(cell)){assert.equal(read(cell).planSha256,planHash);completed++;continue;}
      const fd=openSync(join(out,'logs',name+'.log'),'w');
      try{
-       const code=await new Promise<number|null>((done,reject)=>{const child=spawn(process.execPath,['--import','tsx',import.meta.filename,'worker',`--out=${out}`,`--id=${id}`,`--seed=${seed}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd]});child.once('error',reject);child.once('exit',done);});
+       const code=await new Promise<number|null>((done,reject)=>{const child=spawn(process.execPath,[import.meta.filename,'worker',`--out=${out}`,`--id=${id}`,`--seed=${seed}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd]});child.once('error',reject);child.once('exit',done);});
        assert.equal(code,0,`V6 worker failed: ${name}`);
      }finally{closeSync(fd);}
      completed++;if(completed%8===0)console.log(JSON.stringify({completed,total:cases.length*seeds.length}));

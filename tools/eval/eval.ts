@@ -2,8 +2,8 @@
  * reports require the full panel. A failed worker is a failed run, resumable
  * after its cause is addressed; an incomplete ride is still a recorded result.
  *
- * node --import tsx tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=N] [--creative=JSON]
- * node --import tsx tools/eval/eval.ts report --name=DIR [--against=DIR]
+ * node tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=N] [--creative=JSON]
+ * node tools/eval/eval.ts report --name=DIR [--against=DIR]
  * Panels are listed in USAGE below (PANEL_HELP in inputs.ts). */
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync} from 'node:fs';
@@ -85,7 +85,7 @@ async function main() {
           const c = queue.shift()!;
           try {
             await new Promise<void>((done, fail) => {
-              const child = spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', `--case=${c.id}`, `--name=${dir}`],
+              const child = spawn(process.execPath, [import.meta.filename, 'worker', `--case=${c.id}`, `--name=${dir}`],
                 {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']});
               child.once('error', fail); child.once('exit', (code, signal) => code === 0 ? done() : fail(new Error(`worker exited ${code ?? signal}`)));
             });

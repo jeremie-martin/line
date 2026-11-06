@@ -12,7 +12,7 @@ it('retains an empty prefix engine across collection of temporary wrappers',()=>
     const after=engine.getRider(0).ballisticState();
     console.log(JSON.stringify({same:JSON.stringify(before)===JSON.stringify(after),frame:engine.getLastFrameIndex()}));
     dispose();`;
-  const result=JSON.parse(execFileSync(process.execPath,['--expose-gc','--import','tsx','--input-type=module','-e',script],{encoding:'utf8'}));
+  const result=JSON.parse(execFileSync(process.execPath,['--expose-gc','--input-type=module','-e',script],{encoding:'utf8'}));
   expect(result).toEqual({same:true,frame:0});
 });
 
@@ -44,7 +44,7 @@ it.each(['_lr_engine_wasm', 'native_motion/engine'])('preserves caller-owned %s 
       }
       console.log('owned engines preserved');
     }finally{dispose();}`;
-  expect(execFileSync(process.execPath,['--expose-gc','--import','tsx','--input-type=module','-e',script],
+  expect(execFileSync(process.execPath,['--expose-gc','--input-type=module','-e',script],
     {encoding:'utf8',env:{...process.env,LR_ENGINE:'wasm'}}).trim()).toBe('owned engines preserved');
 });
 

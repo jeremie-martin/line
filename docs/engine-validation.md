@@ -80,6 +80,14 @@ with fixed runner, reference engine, fixtures and dependencies. Source/binary
 identities, runtime, environment options and CPU affinity are recorded. Every
 warmup and measured compile must match its committed track and work count.
 
+CLI and measurement workers use the pinned Node runtime directly, with built-in
+TypeScript stripping. Runtime-loader changes are explicit performance treatments:
+qualify them with recorded flags for each arm, fixed paired measurements and fresh
+confirmation. Historical `tsx` measurements retain their original runtime policy.
+Source references must run under the current qualified runtime; compare incompatible
+historical runtimes through an explicit migration study, not an automatic loader
+fallback.
+
 Each pair contains two fresh processes. AB and BA order is balanced and shuffled
 with a recorded seed. Compile defaults are five warmups and three measured
 repeats per process; engine defaults are one and two. All iterations are saved,

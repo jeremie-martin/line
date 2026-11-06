@@ -198,7 +198,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
   const result: any = {schema, complete: false,
     date: new Date().toISOString(), head: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(),
     machine: {cpu: cpus()[0].model, node: process.version, v8: process.versions.v8,
-      workerFlags: ['--expose-gc', '--import', 'tsx'], nodeOptions: process.env.NODE_OPTIONS ?? '', platform: platform(), release: release(),
+      workerFlags: ['--expose-gc'], nodeOptions: process.env.NODE_OPTIONS ?? '', platform: platform(), release: release(),
       affinity: existsSync('/proc/self/status') ? readFileSync('/proc/self/status', 'utf8').match(/^Cpus_allowed_list:\s*(.*)$/m)?.[1] : null},
     sourceSha256, referenceSourceSha256, sourceChanges: sources.changed, referenceRoot: referenceRoot || null, artifacts, protocol: config, pairOrder: order, screening: arg('screen') || null,
     interpretation: 'Exact conservative confidence interval for the median paired percentage change. Fixed independent process pairs; no optional stopping. A timing verdict is not an adoption decision. Full correctness/design gates are separate.',
@@ -217,7 +217,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     sources.activate(arm);
     copyFileSync(snapshots[arm], join(sandbox, enginePath));
     const output = join(out, `${label}-${arm}.json`);
-    execFileSync(process.execPath, ['--expose-gc', '--import', 'tsx', 'tools/measure/engine_ab.ts', '--worker',
+    execFileSync(process.execPath, ['--expose-gc', 'tools/measure/engine_ab.ts', '--worker',
       `--config=${configPath}`, `--result=${output}`, `--verify=${verify}`,
       `--slowdown-pct=${arm === 1 && resourceCell === undefined && !verify ? config.slowdownPct : 0}`,
       ...(resourceCell === undefined ? [] : [`--resources-cell=${resourceCell}`])],

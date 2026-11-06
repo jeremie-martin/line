@@ -6,7 +6,7 @@
  * value as dots, and the error as the band between them — so this emits exactly
  * that shape as a static JSON the React component renders.
  *
- *   npx tsx scripts/make_overlay_data.ts \
+ *   node scripts/make_overlay_data.ts \
  *     --spec=scripts/v0/specs/believer_curves.ts \
  *     --report=generated/believer_curves_2m.report.json \
  *     --track=generated/believer_curves_2m.track.json \

@@ -3,7 +3,7 @@
  * tools/measure/survival_envelope.ts), each measured under line.strike.v3 with
  * survival, rendered as plain clips for the night report.
  *
- *   node --import tsx tools/report/scale_clips.ts [--out=generated/report/night] */
+ *   node tools/report/scale_clips.ts [--out=generated/report/night] */
 import {mkdirSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {execFileSync, spawn} from 'node:child_process';
@@ -32,7 +32,7 @@ try {
     const f20 = o.frames[Math.min(o.frames.length - 1, first + 20)], survived = o.terminus.frame >= first + 20 && f20.mounted && f20.intact;
     const trackPath = join(dir, `${n + 1}.track.json`), ride = join(dir, `${n + 1}.ride.mp4`), clip = join(dir, `${n + 1}.mp4`);
     writeFileSync(trackPath, JSON.stringify(t));
-    await new Promise<void>((done, fail) => spawn(process.execPath, ['--import', 'tsx', 'scripts/export.ts', `--track=${trackPath}`, '--zoom=12', '--res=1280x720', `--out=${ride}`],
+    await new Promise<void>((done, fail) => spawn(process.execPath, ['scripts/export.ts', `--track=${trackPath}`, '--zoom=12', '--res=1280x720', `--out=${ride}`],
       {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('exit', c => c === 0 ? done() : fail(new Error(`export exited ${c}`))));
     // The ride has no song; add silence so every clip has an audio track.
     execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', ride, '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo', '-shortest', '-c:v', 'copy', '-c:a', 'aac', ride + '.a.mp4']);

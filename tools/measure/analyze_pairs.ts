@@ -4,7 +4,7 @@
  * relative gap (smaller is better). Measures come from motion_change.ts and
  * impact_candidates.ts outputs, joined on ride and onset.
  *
- *   node --import tsx tools/measure/analyze_pairs.ts --studies=a,b --rows=changes.jsonl,candidates.jsonl
+ *   node tools/measure/analyze_pairs.ts --studies=a,b --rows=changes.jsonl,candidates.jsonl
  *       [--measures=strike,strength,c_arrive] */
 import {readFileSync, existsSync} from 'node:fs';
 

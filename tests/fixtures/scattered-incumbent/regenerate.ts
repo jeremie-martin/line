@@ -3,7 +3,7 @@
  * and stay; the incumbent (an offered scattered control) and its impact are
  * re-measured: the recorded control if it still realizes a scattered catch,
  * otherwise the best one the search finds on the same prefix.
- * node --import tsx tests/fixtures/scattered-incumbent/regenerate.ts */
+ * node tests/fixtures/scattered-incumbent/regenerate.ts */
 import {readFileSync, writeFileSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {repertoireSearchOptions} from '../../../scripts/v0/optimizer/repertoire_search.ts';

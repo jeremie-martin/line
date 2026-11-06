@@ -100,9 +100,6 @@ async function stage(name: string, step: string, runStep: () => void | Promise<v
   }
 }
 
-// node binary + tsx loader, so we don't depend on npx resolution for .ts scripts.
-const TSX = [process.execPath, "--import", "tsx"];
-
 /** Start the local linerider.com mirror on :8765 if it isn't already up. Returns the
  *  spawned child (kill it on exit) or null if one was already serving. */
 export async function ensureMirror(): Promise<{ kill: () => void } | null> {
@@ -230,7 +227,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
     let durationS = 0;
     const prepared = await Promise.allSettled([
       (async () => {
-        await stage(name, "[1/5] ride render", () => run(TSX[0], [...TSX.slice(1), "scripts/export.ts",
+        await stage(name, "[1/5] ride render", () => run(process.execPath, ["scripts/export.ts",
           `--track=${inp.trackPath}`, `--spec=${inp.specPath}`, "--zoom=action",
           `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${RIDE_QP}`, `--out=${ride}`], log),
           () => fileSizeLabel(ride));
@@ -241,7 +238,7 @@ export async function renderBundle(inp: RenderInput): Promise<string> {
           () => fileSizeLabel(source));
       })(),
       stage(name, "[3/5] overlay data", async () => {
-        await run(TSX[0], [...TSX.slice(1), "scripts/make_overlay_data.ts",
+        await run(process.execPath, ["scripts/make_overlay_data.ts",
           `--spec=${inp.specPath}`, `--report=${inp.reportPath}`, `--track=${inp.trackPath}`, `--out=${overlay}`], log);
         durationS = JSON.parse(readFileSync(overlay, "utf8")).durationS as number;
         copyFileSync(join(ROOT, "remotion", "public", inp.spectrumBase), join(renderPublic, inp.spectrumBase));

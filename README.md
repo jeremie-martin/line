@@ -63,7 +63,9 @@ open `motion-gallery/night.html`. The running log is `PROGRESS.md`.
 
 The qualified toolchain is Node 22.22.2 (`.nvmrc`) and Rust 1.95.0
 (`rust-toolchain.toml`). Runtime upgrades need fresh physics and compiler parity;
-floating-point equality is qualified against this Node/V8 version.
+floating-point equality is qualified against this Node/V8 version. CLI and worker
+scripts run directly with Node’s built-in TypeScript stripping. Typechecking
+enforces erasable syntax and explicit type imports; no runtime transpiler is needed.
 
 ```sh
 nvm use
@@ -109,7 +111,7 @@ Chromium installation instead of Playwright's default browser.
 | `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
 | `npm run eval -- --name=DIR [--panel=dev\|confirm\|bench\|bench-confirm\|bench-pairs8] [--mode=strike3\|strike2\|strike\|landing]` | behavioural evaluation (`sealed` and `heldout` need `--sealed` / `--heldout`; `npm run eval` with no `--name` lists the panels); `npm run eval:report -- --name=DIR [--against=DIR]` |
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
-| `node --import tsx tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
+| `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 
@@ -153,7 +155,7 @@ nonzero exit status. Reports refuse missing cells and comparisons with different
 inputs or measurement code. An incomplete *ride* remains a measured outcome.
 
 To remeasure saved tracks under current diagnostics, preserve the old directory
-and use `node --import tsx tools/eval/remeasure.ts --from=OLD --name=NEW
+and use `node tools/eval/remeasure.ts --from=OLD --name=NEW
 --jolt-ms=-15`. This does not recompile or alter tracks. It checks saved beat
 requests and frozen axis observations before accepting current authoring. Runs
 without saved tracks remain historical tables, not current comparable evidence.

@@ -79,9 +79,13 @@ type ObjectivePrefix = {
  * reductions survive a borrowed detection. Boundary impacts, open engagements
  * and unfinished supports are measured again; accumulation order is unchanged. */
 export class ArcObjectiveContinuation {
+  private readonly ctx: ArcCompileContext;
+  private readonly amplitudeWeight: number;
   private readonly prefix: ObjectivePrefix;
 
-  constructor(private readonly ctx: ArcCompileContext, raw: RawTrajectory, private readonly amplitudeWeight = 1 / 3) {
+  constructor(ctx: ArcCompileContext, raw: RawTrajectory, amplitudeWeight = 1 / 3) {
+    this.ctx = ctx;
+    this.amplitudeWeight = amplitudeWeight;
     this.prefix = {raw, axes: [], motionCosts: []};
   }
 

@@ -26,7 +26,7 @@ function checkout() {
   return dir;
 }
 const run = (cwd: string, ...args: string[]) => spawnSync(process.execPath,
-  ['--import', 'tsx', 'tools/parity/engine_quick.ts', ...args], {cwd, encoding: 'utf8'});
+  ['tools/parity/engine_quick.ts', ...args], {cwd, encoding: 'utf8'});
 
 it('checks saved physics with an absent or unusable local judge and preserves the fixture', () => {
   const dir = checkout(), fixture = join(dir, 'tools/parity/engine-reference.json'), before = readFileSync(fixture);

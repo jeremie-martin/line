@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: remove the compiler's runtime transpiler
+
+Run CLI and measurement workers directly on pinned Node 22.22.2. Explicit fields
+replace two parameter properties; erasable syntax and verbatim type imports are
+checked statically. No search/physics change or new production mode. Fresh
+24-pair confirmation is −3.530% [−3.764%, −2.995%], with a default median of
+7,172.5 ns per charged frame. Larger and cold guards, native null control, full
+structural validation and complete checkpoint equality pass. WASM capacity is
+unchanged; separate default/larger peak-RSS observations are lower.
+
+Preserve the loader policy as the explicit treatment, with a one-off recorded
+runner and exact lock metadata audit; the normal shared-input guard stays strict.
+The <7,000 ns target remains open. Earlier history reconstruction, version-owned
+bounds, insertion-capacity and exact-solver shortcut trials were rejected; their
+code is absent and their evidence is preserved.
+
+[Runtime qualification](docs/research/engine-node-types-20261106.md).
+[Algorithm and allocation studies](docs/research/engine-exploration-20261106.md).
+
+
 ## November 5: omit provably empty collision sweeps
 
 Adopt a conservative whole-grid bound that skips all ten point queries only

@@ -2,7 +2,7 @@
  * captures, measured on replayed rides of every era. Research only; nothing
  * here feeds the compiler or the scorecard.
  *
- *   node --import tsx tools/measure/blind_spots.ts [--sets=july,current,strike,strike2] [--runs=s3-base,s3-l1,s3-l9|NAME=DIR,...]
+ *   node tools/measure/blind_spots.ts [--sets=july,current,strike,strike2] [--runs=s3-base,s3-l1,s3-l9|NAME=DIR,...]
  *        [--rows=FILE.jsonl] [--list]
  *
  * Library sets come from `sources()` in observe.ts (strike2 = the v2 review

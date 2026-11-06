@@ -3,7 +3,7 @@
  * Each pair answers "which is the bigger impact?"; sides are randomized and
  * recorded only in the key.
  *
- *   node --import tsx tools/measure/select_pairs.ts --changes=FILE.jsonl --study=<id>
+ *   node tools/measure/select_pairs.ts --changes=FILE.jsonl --study=<id>
  *       [--plan='[["strike","strength",20]]'] [--checks=4] [--exclude=KEY.json,...] [--seed=20261004]
  *
  * --changes is tools/measure/motion_change.ts --out output. Each plan entry

@@ -7,7 +7,7 @@ const directories: string[] = [];
 const temporary = () => {const path = mkdtempSync(join(tmpdir(), 'catch-study-')); directories.push(path); return path;};
 afterEach(() => {for (const path of directories.splice(0)) rmSync(path, {recursive: true, force: true});});
 const run = (out: string, ...args: string[]) => spawnSync(process.execPath,
-  ['--import', 'tsx', 'tools/research/catch_price.ts', 'run', out, ...args], {encoding: 'utf8'});
+  ['tools/research/catch_price.ts', 'run', out, ...args], {encoding: 'utf8'});
 
 it('preserves existing evidence rather than mixing changed seeds or study policies on resume', () => {
   const out = temporary(), path = join(out, 'probes.jsonl');

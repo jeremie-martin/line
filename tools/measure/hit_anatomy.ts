@@ -3,7 +3,7 @@
  * much of the body's velocity change is into the line (a slam) rather than along
  * it (a glancing turn). Reads tools/measure/observe.ts output.
  *
- *   node --import tsx tools/measure/hit_anatomy.ts [--sets=july,current,strike] [--min=0.6] [--rows=FILE.jsonl] */
+ *   node tools/measure/hit_anatomy.ts [--sets=july,current,strike] [--min=0.6] [--rows=FILE.jsonl] */
 import {readFileSync, writeFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';

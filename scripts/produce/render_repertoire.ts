@@ -18,7 +18,7 @@ for(const source of sources){
  if(source===out||!pending().length||!existsSync(join(source,'manifest.json')))continue;
  const previous=read(join(source,'manifest.json'));
  if(!pending().some((c:any)=>previous.cells.some((p:any)=>p.caseId===c.caseId&&p.method===c.method&&p.trackHash===c.trackHash&&existsSync(join(source,p.id+'.video.json')))))continue;
- execFileSync(process.execPath,['--import','tsx','scripts/produce/reuse_musical_direction_videos.ts',`--study=${out}`,`--from=${source}`],{stdio:'inherit'});
+ execFileSync(process.execPath,['scripts/produce/reuse_musical_direction_videos.ts',`--study=${out}`,`--from=${source}`],{stdio:'inherit'});
 }
-execFileSync(process.execPath,['--import','tsx','scripts/produce/render_musical_direction.ts',`--study=${out}`,
+execFileSync(process.execPath,['scripts/produce/render_musical_direction.ts',`--study=${out}`,
  `--ids=${manifest.cells.filter((c:any)=>c.valid).map((c:any)=>c.id).join(',')}`],{stdio:'inherit'});

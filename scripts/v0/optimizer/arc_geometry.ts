@@ -9,7 +9,7 @@ const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 // Per-step helpers live at module scope: a closure created inside the step
-// loop is a fresh function (and, under tsx, a name definition) every step.
+// loop is a fresh function every step.
 const easing=(z:number,bias:number)=>bias>=0?Math.pow(z,1+bias):1-Math.pow(1-z,1-bias);
 const foldStation=(station:number,onset:number,amount:number,c:ArcMotionControl)=>station<=onset?station:lerp(station,
   onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.foldBias??c.bias,

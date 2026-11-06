@@ -20,7 +20,7 @@
  *   whole     = |impulse summed over the whole event (≤ 6 frames)| ÷ 7.55;
  *   sharpness = strength / whole (1: everything happened within the window).
  *
- *   node --import tsx tools/measure/motion_change.ts [--sets=july,current,strike] [--out=FILE.jsonl] */
+ *   node tools/measure/motion_change.ts [--sets=july,current,strike] [--out=FILE.jsonl] */
 import {readFileSync, writeFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';

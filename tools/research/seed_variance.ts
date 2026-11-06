@@ -4,8 +4,8 @@
  * category: design A holds the plan at seed 101 and varies the search seed;
  * design B holds the search at 101 and varies the plan seed. The plan is drawn
  * by the compiler's own planner and passed as an explicit plan.
- * node --import tsx tools/research/seed_variance.ts run OUT [--jobs=44]
- * node --import tsx tools/research/seed_variance.ts report OUT */
+ * node tools/research/seed_variance.ts run OUT [--jobs=44]
+ * node tools/research/seed_variance.ts report OUT */
 import {spawn} from 'node:child_process';
 import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -47,7 +47,7 @@ if (command === 'worker') {
   await Promise.all(Array.from({length: Math.min(Number(arg('jobs', '44')), queue.length)}, async () => {
     while (queue.length) {
       const [spec, plan, search] = queue.shift()!.split('|');
-      await new Promise<void>(done => spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', out, `--spec=${spec}`, `--plan=${plan}`, `--search=${search}`],
+      await new Promise<void>(done => spawn(process.execPath, [import.meta.filename, 'worker', out, `--spec=${spec}`, `--plan=${plan}`, `--search=${search}`],
         {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('exit', () => done()));
     }
   }));

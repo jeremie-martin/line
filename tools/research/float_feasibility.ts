@@ -7,7 +7,7 @@
  * relaunch into the next float, as speed x turn (px/frame; the impact ruler's
  * "very strong" is 7.55), next to the impact asked there. Also what the search
  * expected for the gap's air (gallery row) against what was measured.
- * node --import tsx tools/research/float_feasibility.ts ARM_DIR */
+ * node tools/research/float_feasibility.ts ARM_DIR */
 import {readdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {gunzipSync} from 'node:zlib';

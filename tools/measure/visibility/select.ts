@@ -3,7 +3,7 @@
  * clip is looked at. Writes the study key (every pair's measured values) to
  * labels/studies/<study>.key.json.
  *
- *   node --import tsx tools/measure/visibility/select.ts --observations=FILE.json.gz \
+ *   node tools/measure/visibility/select.ts --observations=FILE.json.gz \
  *       --study=<id> [--seed=20261031]
  *
  * Block A (visibility): a lit moment against a lit blank (plain riding).

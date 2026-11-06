@@ -3,7 +3,7 @@
  * selection is honest: the largest improvements, random strong beats, the worst
  * regression and one quiet beat, each labelled by why it was chosen.
  *
- *   node --import tsx tools/report/clips.ts --before=<run> --after=<run> [--out=generated/report/night] [--seed=7] */
+ *   node tools/report/clips.ts --before=<run> --after=<run> [--out=generated/report/night] [--seed=7] */
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';

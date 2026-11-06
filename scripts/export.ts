@@ -1,8 +1,8 @@
 /**
  * Thin CLI wrapper over `lib/export.ts:exportVideo`.
  *
- *   npx tsx scripts/export.ts --track=test.track.json --zoom=3 --1080p --hq
- *   npx tsx scripts/export.ts --track=test.track.json --out=shakedown/out.mp4
+ *   node scripts/export.ts --track=test.track.json --zoom=3 --1080p --hq
+ *   node scripts/export.ts --track=test.track.json --out=shakedown/out.mp4
  */
 import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";

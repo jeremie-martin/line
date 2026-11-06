@@ -1,6 +1,6 @@
 /** Agreement between candidate impact measures and the owner's blind labels.
  *
- *   node --import tsx tools/measure/analyze_labels.ts --study=impact-2026-10 [--split=design|holdout|all]
+ *   node tools/measure/analyze_labels.ts --study=impact-2026-10 [--split=design|holdout|all]
  *
  * Use the design split while developing a definition; read the holdout split
  * once, for the final decision. Reports Spearman rank correlation for ordinal

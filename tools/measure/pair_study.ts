@@ -2,7 +2,7 @@
  * landscape renders of each ride (spec camera, no overlay or beat punch), a
  * clip around each hit, and the manifest the labels API validates.
  *
- *   node --import tsx tools/measure/pair_study.ts --key=labels/studies/<study>.key.json --study=<study>
+ *   node tools/measure/pair_study.ts --key=labels/studies/<study>.key.json --study=<study>
  *       [--jobs=4] [--prompt=TEXT]
  *
  * The key lists pairs as {pair, left, right}, each side a hit {set, song, seed,

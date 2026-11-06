@@ -1,5 +1,5 @@
 /** Physics-only paired WASM benchmark. No compiler/search/quality scoring.
- * node --import tsx tools/measure/engine.ts --reference=before.wasm --candidate=after.wasm
+ * node tools/measure/engine.ts --reference=before.wasm --candidate=after.wasm
  * Both modules are warmed; order alternates; verification is outside timing.
  * Use a quiet machine and, on hybrid CPUs, pin the process to one core.
  */

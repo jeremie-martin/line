@@ -3,7 +3,7 @@
  * its arrival (speed, incidence against the first line touched, speed into the
  * surface, sled pitch against the surface).
  *
- *   node --import tsx tools/measure/strong_beats.ts --run=generated/eval/<name> [--min=0.6] [--max=1] */
+ *   node tools/measure/strong_beats.ts --run=generated/eval/<name> [--min=0.6] [--max=1] */
 import {readFileSync, readdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';

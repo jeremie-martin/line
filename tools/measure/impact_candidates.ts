@@ -35,8 +35,8 @@
  * stop ÷ the event's total contact impulse); spin; rotBefore / rotAfter (signed L/(N·R)
  * the frame before contact and at the event's end: a sign change is a reversal); mcOwn (motion_change's kernel clipped to the event's own frames).
  *
- *   node --import tsx tools/measure/impact_candidates.ts [--sets=july,current,strike] [--out=FILE.jsonl]
- *   node --import tsx tools/measure/impact_candidates.ts --probes      (hand-built tracks) */
+ *   node tools/measure/impact_candidates.ts [--sets=july,current,strike] [--out=FILE.jsonl]
+ *   node tools/measure/impact_candidates.ts --probes      (hand-built tracks) */
 import {readFileSync, writeFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';

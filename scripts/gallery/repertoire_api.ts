@@ -53,8 +53,8 @@ export function createRepertoireApi(root=process.cwd()){
   const dir=directory(job.id);
   try{let args:string[];
   if(item.render){
-   args=['--import','tsx','scripts/produce/render_repertoire.ts',`--study=${join(dir,'output')}`];job.render='rendering';job.renderError=undefined;
-  }else{job.identity=identity(job.request);args=['--import','tsx','scripts/produce/automatic.ts',`--request=${join(dir,'request.json')}`,`--out=${join(dir,'output')}`];job.status='compiling';}
+   args=['scripts/produce/render_repertoire.ts',`--study=${join(dir,'output')}`];job.render='rendering';job.renderError=undefined;
+  }else{job.identity=identity(job.request);args=['scripts/produce/automatic.ts',`--request=${join(dir,'request.json')}`,`--out=${join(dir,'output')}`];job.status='compiling';}
   persist(job);const fd=openSync(join(dir,item.render?'render.log':'compile.log'),'a');
   const child=spawn(process.execPath,args,{cwd:root,env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore',fd,fd],detached:true});closeSync(fd);
   active.set(item.render,{...item,child});let finished=false;

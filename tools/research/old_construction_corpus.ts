@@ -4,7 +4,7 @@
  * evaluation songs, so train_construction_v3.py can rebuild it.
  * Selection and keys follow archive scripts/benchmark/build_construction_examples.ts.
  *
- *   node --import tsx tools/research/old_construction_corpus.ts --provenance=FILE --out=DIR [--exclude-eval] */
+ *   node tools/research/old_construction_corpus.ts --provenance=FILE --out=DIR [--exclude-eval] */
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {gzipSync} from 'node:zlib';

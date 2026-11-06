@@ -58,7 +58,7 @@ try {
    writeGalleryJson(dir,'request.json',entry.request);
    const args=phase==='compile'?['scripts/produce/automatic.ts','--request='+join(dir,'request.json'),'--out='+dir,'--compiler-root='+plan.compilerRoot]:['scripts/produce/render_repertoire.ts','--study='+dir];
    const fd=openSync(join(dir,phase+'.log'),'a');
-   try{await new Promise<void>((done,fail)=>{const child=spawn(process.execPath,['--import','tsx',...args],{env:{...process.env,LR_ENGINE:'wasm',LR_JOLT_OFFSET_MS:String(plan.jolt)},stdio:['ignore',fd,fd]});child.once('error',fail);child.once('exit',(code,signal)=>code===0?done():fail(new Error(`${phase} exited ${code??signal}; see preserved log`)));});
+   try{await new Promise<void>((done,fail)=>{const child=spawn(process.execPath,[...args],{env:{...process.env,LR_ENGINE:'wasm',LR_JOLT_OFFSET_MS:String(plan.jolt)},stdio:['ignore',fd,fd]});child.once('error',fail);child.once('exit',(code,signal)=>code===0?done():fail(new Error(`${phase} exited ${code??signal}; see preserved log`)));});
    }catch(e){failures.push(entry.id+': '+String(e));writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}
    finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
   }

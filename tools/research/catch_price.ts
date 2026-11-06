@@ -12,8 +12,8 @@
  *               weighted learned estimate), minus the same for K;
  *   measured  = the next interval's lowest measured local cost after X, minus
  *               after K.
- * node --import tsx tools/research/catch_price.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,c~d]
- * node --import tsx tools/research/catch_price.ts report OUT [ARM_DIR] */
+ * node tools/research/catch_price.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,c~d]
+ * node tools/research/catch_price.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -89,7 +89,7 @@ else if (command === 'run') {
   await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
     while (queue.length) {
       const spec = queue.shift()!;
-      await new Promise<void>((resolve, reject) => spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`],
+      await new Promise<void>((resolve, reject) => spawn(process.execPath, [import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`],
         {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('error', reject).once('exit', code => code === 0 ? resolve() : reject(new Error(`worker failed: ${spec} (${code})`))));
     }
   }));

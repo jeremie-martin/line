@@ -3,8 +3,8 @@
  * candidates (`sequenceObserver`, arc_sequence.ts; tracks are unchanged). For
  * every catch asked >= 0.6 it keeps each viable candidate's catch strength and
  * cost terms, per parent prefix, and marks the candidate the final track kept.
- * node --import tsx tools/research/strong_catch_pool.ts run OUT [--jobs=8] [--seed=101] [--specs=a~b,c~d]
- * node --import tsx tools/research/strong_catch_pool.ts report OUT */
+ * node tools/research/strong_catch_pool.ts run OUT [--jobs=8] [--seed=101] [--specs=a~b,c~d]
+ * node tools/research/strong_catch_pool.ts report OUT */
 import {spawn} from 'node:child_process';
 import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -51,7 +51,7 @@ else if (command === 'run') {
   await Promise.all(Array.from({length: Math.min(Number(arg('jobs', '8')), queue.length)}, async () => {
     while (queue.length) {
       const spec = queue.shift()!;
-      await new Promise<void>(resolve => spawn(process.execPath, ['--import', 'tsx', import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${arg('seed', '101')}`],
+      await new Promise<void>(resolve => spawn(process.execPath, [import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${arg('seed', '101')}`],
         {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('exit', () => resolve()));
     }
   }));

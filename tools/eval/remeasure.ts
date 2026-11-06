@@ -5,7 +5,7 @@
  * geometry facts existed stay without them: the plan and the guide rails are
  * not in a saved track. --jolt-ms is mandatory for old evidence.
  *
- * node --import tsx tools/eval/remeasure.ts --from=OLD --name=NEW --jolt-ms=-15 */
+ * node tools/eval/remeasure.ts --from=OLD --name=NEW --jolt-ms=-15 */
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync, readdirSync} from 'node:fs';
 import {join} from 'node:path';

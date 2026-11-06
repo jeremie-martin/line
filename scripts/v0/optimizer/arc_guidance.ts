@@ -5,17 +5,16 @@ import type { TrackLine } from '../types.ts';
 import {arcRailGroups} from './arc_rail_groups.ts';
 export {arcRailGroups} from './arc_rail_groups.ts';
 
-export function trimUnusedArcGuides(lines: TrackLine[], engine: any, duration: number, fragmentSections:ReadonlySet<number>=new Set()) {
-  // Collision inspection must use an already metered complete replay.
-  if (engine.getLastFrameIndex() < duration) throw new Error('guidance reduction requires a metered full replay');
+/** `contacts` is the complete replay's all-point contact IDs, indexed from frame zero. */
+export function trimUnusedArcGuides(lines: TrackLine[], contacts: readonly (readonly number[])[], fragmentSections:ReadonlySet<number>=new Set()) {
   // Disconnected contact fragments have no guide rail to trim.
   const groups = arcRailGroups(lines.filter(l=>!fragmentSections.has(Math.floor((l.id-1000)/10000))));
   const roofs = [...groups].map(([id, chains]) => {
     return { id, lines: chains[1] ?? [] };
   });
   const roofIds = new Set(roofs.flatMap(g => g.lines.map(l => l.id))), touched = new Set<number>();
-  for (let f = 1; f <= duration; f++) for (const update of engine.getUpdatesAtFrame(f)) {
-    if (update.type === 'CollisionUpdate' && roofIds.has(update.id)) touched.add(update.id);
+  for (let f = 1; f < contacts.length; f++) for (const id of contacts[f]) {
+    if (roofIds.has(id)) touched.add(id);
   }
   const removed = new Set<number>(), spans: any[] = [];
   for (const roof of roofs) {

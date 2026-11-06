@@ -196,6 +196,20 @@ export class LineRiderEngine {
   getLastFrameIndex(): number {
     return ex.get_last_frame_index(this.h);
   }
+  /** Contact observations read a complete cached frame without stepping physics. */
+  private cachedEventCount(frame: number): number {
+    if (frame < 0 || frame !== (frame | 0)) throw new RangeError('frame must be a nonnegative 32-bit integer');
+    if (this.getLastFrameIndex() < frame) throw new Error('observation requires an already simulated frame');
+    return frame === 0 ? 0 : ex.get_updates(this.h, frame);
+  }
+  hasContactAtFrame(frame: number): boolean {
+    return this.cachedEventCount(frame) > 0;
+  }
+  getAllContactLineIdsAtFrame(frame: number): number[] {
+    const count = this.cachedEventCount(frame), values = events(), ids = new Set<number>();
+    for (let i = 0; i < count; i++) ids.add(values[i * 3 + 1]);
+    return [...ids];
+  }
   // deno-lint-ignore no-explicit-any
   private stateMapFrom(sc: Float64Array): Map<string, any> {
     const m = new Map<string, any>();

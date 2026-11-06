@@ -27,6 +27,9 @@ zero-length lines, grid boundaries and different starting velocities. Saved
 fingerprints cover every binary64 state value and ordered collision triple,
 including the collision iteration. They localize failures to 256-frame blocks;
 the live check compares individual frames and derived public observations.
+Both adapters' cached contact readers are checked against the judge's full
+ordered event stream, including contact presence and first-occurrence ID order.
+These observation reads must not extend the simulated trajectory.
 
 The saved reference separates its encoding `format` from historical `provenance`.
 `check:physics` checks the format, the complete case/input identities, and every

@@ -30,10 +30,12 @@ for (const {name: file, track} of cases) {
       const motion = bodyMotion({points});
       expectedMotion.push(motion.v.x, motion.v.y, motion.L, motion.R, events[1].length > 0 ? 1 : 0);
       assert.deepEqual(native.bodyMotionAt(f), motion, `${file}, frame ${f}: body motion`);
-      assert.equal(native.hasContactAtFrame(f), events[1].length > 0, `${file}, frame ${f}: contact presence`);
-      assert.deepEqual(native.getAllContactLineIdsAtFrame(f), [...new Set(events[1].map((e: any) => e[0]))],
-        `${file}, frame ${f}: contact ids`);
-      assert.equal(native.getLastFrameIndex(), f, `${file}, frame ${f}: observations cannot simulate`);
+      for (const engine of engines) {
+        assert.equal(engine.hasContactAtFrame(f), events[1].length > 0, `${file}, frame ${f}: contact presence`);
+        assert.deepEqual(engine.getAllContactLineIdsAtFrame(f), [...new Set(events[1].map((e: any) => e[0]))],
+          `${file}, frame ${f}: contact ids`);
+        assert.equal(engine.getLastFrameIndex(), f, `${file}, frame ${f}: observations cannot simulate`);
+      }
       collisions += events[0].length;
       frames++;
     }

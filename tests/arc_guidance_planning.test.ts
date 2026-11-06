@@ -35,8 +35,15 @@ it('removes redundant rails and replays the pruned track to the authored end',()
   }finally{disposeAllWasmEnginesForStudy();}
 });
 
-it('requires an already metered complete trajectory before inspecting collisions',()=>{
-  expect(()=>trimUnusedArcGuides([],{getLastFrameIndex:()=>0},20)).toThrow('metered full replay');
+it('trims from all-point contact snapshots, ignoring duplicate contacts and the initial frame',()=>{
+  const lines=motionArc([{x:0,y:0},{x:10,y:0}],{x:8,y:1},
+    {entry:5,turn:55,exit:20,support:18,bias:0,offset:.1},1000,12,24);
+  const roof=chains(lines)[1],id=roof[Math.floor(roof.length/2)].id;
+  const expected=trimUnusedArcGuides(lines,[[],[id],[]]);
+  expect(trimUnusedArcGuides(lines,[[roof[0].id],[id,id],[]])).toEqual(expected);
+  expect(expected.stats.removedSegments).toBeGreaterThan(0);
+  expect(expected.lines.some(l=>l.id===id)).toBe(true);
+  expect(trimUnusedArcGuides(lines,[[],[id],[]],new Set([0])).lines).toEqual(lines);
 });
 
 it('charges every retained prefix, carries a complete physical contract and reproduces selected geometry',()=>{

@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: consume cached contacts directly; confirm 6,724 ns
+
+Contact-only finalization and replay consumers no longer manufacture full
+constraint/update streams. The independent judge adapter exposes cached contact
+presence and IDs; guide pruning consumes a shared contact snapshot as a pure
+operation. Both physics binaries, search behavior and charged work are unchanged.
+
+Fresh 24-pair confirmation is **−4.419% [−4.552%, −3.983%]**, qualifying at the
+declared 0.5% margin. The candidate's separate arm median is **6,723.99 ns per
+charged frame**; the 6,500 ns target remains open. Larger and cold guards pass.
+All 800 measured/warmup/resource compiles are exact, and the full structural
+suite passes: 451 JS tests, 31 Rust tests, 65 physics cases, 63 compiler cases,
+33 judge tracks, zero type errors and zero unreachable files.
+
+[Design, measurements and validation](docs/research/engine-contact-readers-20261106.md).
+
 ## November 6: audit retrieval work and reject partition-bound machinery
 
 Full model queries never repeat, and alternate memo-key encoders are slower;

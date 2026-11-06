@@ -87,12 +87,14 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
  * would leave unfulfilled keeps its full guide. */
 function pruneUntouchedGuides(ctx: ArcCompileContext, lines: TrackLine[], coldEngine: Engine, raw: any) {
   const {options, end} = ctx;
+  if (coldEngine.getLastFrameIndex() < end) throw new Error('guidance reduction requires a metered full replay');
+  const collisions = raw.frames.map((f: {frame: number}) => coldEngine.getAllContactLineIdsAtFrame(f.frame));
   const fragments = new Set(Object.values(options.constructionRequests ?? {}).filter(r => r.construction === 'scattered').map(r => r.section));
-  const guidanceReduction = trimUnusedArcGuides(lines, coldEngine, end, fragments);
+  const guidanceReduction = trimUnusedArcGuides(lines, collisions, fragments);
   const requests = Object.values(options.constructionRequests ?? {}).filter(r => r.context || r.railLayout === 'transfer');
   if (requests.length) {
-    const contacts = raw.frames.map((f: {frame: number; position: {x: number; y: number}}) =>
-      ({position: f.position, contactLineIds: coldEngine.getAllContactLineIdsAtFrame(f.frame)}));
+    const contacts = raw.frames.map((f: {position: {x: number; y: number}}, i: number) =>
+      ({position: f.position, contactLineIds: collisions[i]}));
     const restore = new Set<number>();
     for (const request of requests) {
       if (request.construction === 'scattered') continue;

@@ -13,6 +13,7 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
+| `npm run perf:profile` | Where a real compile spends time or allocates, with native function names (`--cell`, `--kind=allocation`, `--top`) |
 
 After editing packaged native Rust or TypeScript, run `npm run build:native`
 before checking. The manifest test rejects stale packages. `npm run build:wasm`
@@ -66,19 +67,33 @@ policy. It cannot silently resume older probe results or a different seed.
 
 ## Timing protocol v3
 
+**Measure what production runs.** A real compile spends the standard allowance
+(about 2.7–2.9 M charged frames, 17 s) in one fresh process. Its profile differs
+from small-budget cells: at 150 k frames, fixed per-compile costs dominate and
+local search barely appears. Compile mode therefore defaults to cells 55 and 56
+(two songs, standard allowance), no warmup and one compile per process. The
+report also resolves each cell. Cells 61/62 (150 k/750 k, warmed) produced the
+November 3–6 ns/frame history; they remain useful only as explicit guards. A
+result on them says nothing about production speed: a 4.4% gain on cell 61 was
+0.6% at 750 k.
+
 Declare the workload, pair count, warmup, repeats, confidence and practical margin
 before collecting data. Work on a quiet machine; never overlap timings with
 builds, tests, parity or other substantial work. CPU affinity reduces migration;
 it does not isolate a core from interrupts, SMT siblings, temperature or frequency
-changes. On this laptop the established affinity is CPU 2.
+changes. V8 collects garbage and compiles on background threads: pinning to a
+single CPU moves that work onto the measured thread and makes a real compile
+about 8% slower. On this laptop use two performance cores, `taskset -c 4-7`. An A/A control
+there keeps eight of eight pairs within ±2%, with typical gaps under 1%.
 
 ```sh
-taskset -c 2 npm run perf:engine -- --mode=compile --cells=61 --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --rounds=12 --confirm-rounds=24 --out=generated/engine-ab/screen
-taskset -c 2 npm run perf:engine -- --mode=compile --cells=61 --reference=/tmp/before.wasm --candidate=/tmp/after.wasm --stage=confirm --rounds=24 --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
+taskset -c 4-7 npm run perf:engine -- --mode=compile --against=HEAD --margin-pct=0.5 --out=generated/engine-ab/screen
+taskset -c 4-7 npm run perf:engine -- --mode=compile --against=HEAD --margin-pct=0.5 --stage=confirm --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
 ```
 
-Add `--reference-root=/path/to/earlier-checkout` to both commands for compiler or
-wrapper changes. Both arms run frozen source in the same disposable directory,
+`--against=<git ref>` takes reference source and engine from that commit;
+`--reference=<wasm>` swaps only the engine, and `--reference-root=<checkout>` adds
+its source. Both arms run frozen source in the same disposable directory,
 with fixed runner, reference engine, fixtures and dependencies. Source/binary
 identities, runtime, environment options and CPU affinity are recorded. Every
 warmup and measured compile must match its committed track and work count.
@@ -92,13 +107,13 @@ historical runtimes through an explicit migration study, not an automatic loader
 fallback.
 
 Each pair contains two fresh processes. AB and BA order is balanced and shuffled
-with a recorded seed. Compile defaults are five warmups and three measured
-repeats per process; engine defaults are one and two. All iterations are saved,
+with a recorded seed. Compile defaults are no warmup and one compile per process;
+engine defaults are one warmup and two repeats. All iterations are saved,
 with a per-iteration median profile. Fixed warmup defines a repeatable workload;
 it is **not a claim of steady state**. Cold and warmed timings must be identified
 separately. Changing warmup can change ns/frame without improving any code.
-Use `--warmup=0 --reps=1` for a cold compile in each fresh process; it is a
-separate workload from the default warmed experiment.
+`--warmup=5 --reps=3` reproduces the warmed experiment of earlier records; it is a
+separate workload from the default cold one.
 
 Each completed pair prints the running median change and faster/slower/tied
 pair counts. These are descriptive observations, not probabilities or interim
@@ -136,9 +151,7 @@ and any separate non-regression check that permits a small slowdown.
 Only a fresh FASTER confirmation of the frozen screened candidate qualifies a
 speedup beyond the declared practical margin. Every declared compile cell must
 also have an upper bound no larger than the margin; uncertainty about harm does
-not pass that guard. Check default
-automatic construction (cell 61), and its larger budget (62) where relevant.
-Correctness, code design and the declared adoption policy are separate gates.
+not pass that guard. Correctness, code design and the declared adoption policy are separate gates.
 The margin describes effect size, not a probability of benefit. An interval
 entirely below zero can support a smaller improvement while remaining
 INCONCLUSIVE at 2%. That default is not a universal adoption minimum: weigh

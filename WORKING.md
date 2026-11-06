@@ -97,10 +97,9 @@ plan and its log.
   workers; `--jobs=N` overrides it. Do not benchmark alongside
   parity or other heavy checks. Engine performance decisions use
   `npm run perf:engine`: fixed paired rounds, a frozen candidate, and fresh
-  confirmation under the same protocol. `--mode=compile` checks actual compiler
-  time and exact track/work parity; `bench:engine` is a workload diagnostic.
-  Check default automatic construction as a separate compile workload before
-  adopting an engine change; an aggregate win must not hide a regression there.
+  confirmation under the same protocol. `--mode=compile` measures real compiles
+  at the standard allowance with exact track/work parity; `bench:engine` is a
+  workload diagnostic. `npm run perf:profile` shows where a real compile goes.
   When a change shifts work between registration and simulation, report isolated
   stepping cost alongside the combined workloads and compiler timings.
   For cache/allocation changes, also report WASM linear-memory high-water size;

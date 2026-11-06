@@ -37,16 +37,25 @@ function caseOf(cell: {id: string}) {
   return {c, music: catalog.music.find((m: any) => m.id === c.sourceId)!};
 }
 
-export async function compileWorker(index: number, out: string, collectResources = false) {
+/** The prepared inputs of one cell, shared by every timing and profiling boundary. */
+export async function prepareCell(index: number) {
   const cell = doc.cells[index], {c, music} = caseOf(cell), requested = c.plans[cell.seed];
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
   const spec = caseSpec(music), options = {budget: cell.budget ?? policy.budget,
     ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})};
+  return {cell, compile: () => compileHandoff(spec, cell.seed, options),
+    /** Whether a checkpoint reproduces the cell's committed track and charged work. */
+    exact: (checkpoint: ReturnType<typeof compileHandoff>) =>
+      sha(JSON.stringify(checkpoint.track)) === cell.trackHash && checkpoint.stats.sim_frames === cell.physicalFrames};
+}
+
+export async function compileWorker(index: number, out: string, collectResources = false) {
+  const {compile} = await prepareCell(index);
   // v2: both clocks enclose only compileHandoff. Input loading, hashing,
   // serialization and diagnostic resource sampling are outside this boundary.
   const cpu = process.cpuUsage(), began = performance.now();
-  const checkpoint = compileHandoff(spec, cell.seed, options);
+  const checkpoint = compile();
   const compileMs = performance.now() - began, used = process.cpuUsage(cpu);
   const resources = collectResources ? {
     wasmLinearMemoryBytes: (await import('../../scripts/lib/native_motion/wasm.ts')).wasm.memory.buffer.byteLength,

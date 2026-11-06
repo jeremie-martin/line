@@ -1,11 +1,12 @@
 /** Fixed-sample engine/compiler comparison.
- * Same disposable cwd/Node and fixed runner for both arms. By default swap only
- * WASM; --reference-root also compares a frozen earlier compiler/wrapper source.
- * Each arm gets a fresh warmed process. Fixed rounds, raw samples, no peeking
- * verdict, and a fresh confirmation of a frozen screening candidate.
+ * Same disposable cwd/Node and fixed runner for both arms. --against=<git ref>
+ * compares this checkout with that commit's source and engine; --reference
+ * alone swaps only WASM. Compile mode measures real production compiles: the
+ * standard allowance, one fresh process per compile. Fixed rounds, raw samples,
+ * no peeking verdict, and a fresh confirmation of a frozen screening candidate.
  */
 import assert from 'node:assert/strict';
-import {copyFileSync, existsSync, readFileSync, renameSync, symlinkSync, writeFileSync} from 'node:fs';
+import {copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, symlinkSync, writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {cpus, platform, release} from 'node:os';
@@ -14,7 +15,7 @@ import {fileURLToPath} from 'node:url';
 import {decide, decideCompileCells, pairOrder, summarizePairs} from './engine_decision.ts';
 import {snapshotSources, sourceOverlay} from './engine_sources.ts';
 
-const knownFlags = new Set(['reference', 'candidate', 'reference-root', 'out', 'mode', 'stage', 'rounds',
+const knownFlags = new Set(['against', 'reference', 'candidate', 'reference-root', 'out', 'mode', 'stage', 'rounds',
   'confirm-rounds', 'reps', 'warmup', 'confidence', 'margin-pct', 'seed', 'slowdown-pct', 'cells', 'screen',
   'report', 'help', 'worker', 'config', 'result', 'verify', 'resources-cell']);
 const seenFlags = new Set<string>();
@@ -127,11 +128,13 @@ if (process.argv.includes('--worker')) {
 } else if (arg('report')) {
   report(JSON.parse(readFileSync(arg('report'), 'utf8')));
 } else if (process.argv.includes('--help')) {
-  console.log(`perf:engine --reference=<wasm> --out=<new directory> [--mode=compile|engine]
-  --reference-root=<checkout>       compare compiler/wrapper source too
+  console.log(`perf:engine --mode=compile --against=<git ref> --out=<new directory>
+  --against=<git ref>               reference source and engine from that commit
+  --reference=<wasm>                or: swap only the engine (--reference-root=<checkout> adds source)
+  --mode=compile|engine             compile: whole compiles; engine: isolated workloads (default)
   --stage=screen|confirm            confirm requires --screen=<result.json>
-  --cells=61 --rounds=12 --confirm-rounds=24
-  --warmup=5 --reps=3               compile defaults; engine defaults: 1, 2; warmup 0 measures cold
+  --cells=55,56 --rounds=12 --confirm-rounds=24   production allowance, two songs
+  --warmup=0 --reps=1               compile defaults (a real compile); engine defaults: 1, 2
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
                                   margin 0 tests direction without a minimum benefit
   --seed=1729                      balanced randomized AB/BA process pairs
@@ -145,12 +148,12 @@ Unfinished reports exit nonzero and cannot qualify a candidate.
 Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
 } else {
   const root = fileURLToPath(new URL('../../', import.meta.url));
-  const stage = arg('stage', 'screen'), mode = arg('mode', 'engine');
+  const stage = arg('stage', 'screen'), mode = arg('mode', 'engine'), compile = mode === 'compile';
   const config: Protocol = {mode, stage, rounds: Number(arg('rounds', stage === 'confirm' ? '24' : '12')),
-    confirmRounds: Number(arg('confirm-rounds', '24')), reps: Number(arg('reps', mode === 'engine' ? '2' : '3')),
-    warmup: Number(arg('warmup', mode === 'engine' ? '1' : '5')), confidence: Number(arg('confidence', '.95')),
+    confirmRounds: Number(arg('confirm-rounds', '24')), reps: Number(arg('reps', compile ? '1' : '2')),
+    warmup: Number(arg('warmup', compile ? '0' : '1')), confidence: Number(arg('confidence', '.95')),
     marginPct: Number(arg('margin-pct', '2')), seed: Number(arg('seed', '1729')), slowdownPct: Number(arg('slowdown-pct', '0')),
-    cells: arg('cells', '61').split(',').map(Number)};
+    cells: arg('cells', '55,56').split(',').map(Number)};
   assert(['engine', 'compile'].includes(mode) && ['screen', 'confirm'].includes(stage));
   for (const n of [config.rounds, config.confirmRounds]) pairOrder(n, config.seed);
   const order = pairOrder(config.rounds, config.seed);
@@ -161,14 +164,23 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
   assert(Number.isFinite(config.slowdownPct) && config.slowdownPct >= 0 && config.slowdownPct <= 100);
   const cellCount = JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8')).cells.length;
   assert(config.cells.length && new Set(config.cells).size === config.cells.length && config.cells.every(c => Number.isInteger(c) && c >= 0 && c < cellCount));
-  const paths = [resolve(arg('reference')), resolve(arg('candidate', enginePath))];
-  assert(arg('reference') && arg('out'), '--reference=<wasm> and --out=<new directory> are required');
-  const binaries = paths.map(p => readFileSync(p)), artifacts = paths.map((path, i) => ({path, sha256: sha(binaries[i])}));
+  assert(arg('out'), '--out=<new directory> is required');
+  assert(!!arg('against') !== !!arg('reference'), 'exactly one of --against=<git ref> or --reference=<wasm> is required');
   const out = resolve(arg('out'));
   assert(!existsSync(out), 'output already exists; use a new run name (never overwrite evidence)');
+  mkdirSync(out, {recursive: true});
+  let referenceRoot = arg('reference-root'), against = '';
+  if (arg('against')) {
+    assert(!referenceRoot, '--against already supplies the reference source');
+    against = execFileSync('git', ['rev-parse', '--verify', `${arg('against')}^{commit}`], {cwd: root, encoding: 'utf8'}).trim();
+    referenceRoot = join(out, 'reference-commit');
+    mkdirSync(referenceRoot);
+    execFileSync('tar', ['-x', '-C', referenceRoot], {input: execFileSync('git', ['archive', against], {cwd: root, maxBuffer: 2 ** 31})});
+  }
+  const paths = [resolve(against ? join(referenceRoot, enginePath) : arg('reference')), resolve(arg('candidate', enginePath))];
+  const binaries = paths.map(p => readFileSync(p)), artifacts = paths.map((path, i) => ({path, sha256: sha(binaries[i])}));
   const sandbox = join(out, 'worktree');
   snapshotSources(root, sandbox, root);
-  const referenceRoot = arg('reference-root');
   const referenceSource = referenceRoot ? join(out, 'reference-source') : sandbox;
   if (referenceRoot) snapshotSources(resolve(referenceRoot), referenceSource, root);
   const sources = sourceOverlay(referenceSource, sandbox);
@@ -200,7 +212,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     machine: {cpu: cpus()[0].model, node: process.version, v8: process.versions.v8,
       workerFlags: ['--expose-gc'], nodeOptions: process.env.NODE_OPTIONS ?? '', platform: platform(), release: release(),
       affinity: existsSync('/proc/self/status') ? readFileSync('/proc/self/status', 'utf8').match(/^Cpus_allowed_list:\s*(.*)$/m)?.[1] : null},
-    sourceSha256, referenceSourceSha256, sourceChanges: sources.changed, referenceRoot: referenceRoot || null, artifacts, protocol: config, pairOrder: order, screening: arg('screen') || null,
+    sourceSha256, referenceSourceSha256, sourceChanges: sources.changed, referenceRoot: referenceRoot || null, against: against || null, artifacts, protocol: config, pairOrder: order, screening: arg('screen') || null,
     interpretation: 'Exact conservative confidence interval for the median paired percentage change. Fixed independent process pairs; no optional stopping. A timing verdict is not an adoption decision. Full correctness/design gates are separate.',
     timingScope: mode === 'compile' ? 'CPU and wall clocks enclose compileHandoff only, with prepared inputs; hashing, output and resource sampling excluded.' :
       'CPU and wall clocks enclose run(instance, workload); instance creation and GC excluded.',

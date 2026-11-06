@@ -4,7 +4,7 @@
  * field comes from one of four places:
  * - connectedArcOptions(): the base allocation, scaled by ride length and budget;
  * - repertoireSearchOptions(): intentional repertoire plans;
- * - impactSearchProfile(contract): only with an impact account;
+ * - IMPACT_SEARCH_PROFILE: the impact search preferences;
  * - constructionStyle(): the geometry style of each section.
  *
  * IntervalOverrides are set only inside the compiler, per interval search
@@ -78,7 +78,7 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
 
-  // --- impactSearchProfile(contract) (with an impact account only) --------------
+  // --- IMPACT_SEARCH_PROFILE ------------------------------------------------------
   impactSearch?: ImpactSearchOptions;
   /** Prepare physical contact before its authored response time. Musical
    * targets and construction requests remain at their original timestamps. */

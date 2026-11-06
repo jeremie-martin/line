@@ -15,7 +15,6 @@
  * node tools/research/catch_price.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,c~d]
  * node tools/research/catch_price.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {v7Cases, resolveCase} from '../eval/inputs.ts';
@@ -26,7 +25,7 @@ import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
 import {withArcStudy} from './arc_study.ts';
-import {defaultWorkerJobs} from '../../scripts/lib/workers.ts';
+import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
   'tiki_tiki_48s~v7-intense', 'tiki_tiki_48s~bench-pairs', 'amour_de_ma_vie_44s~bench-intense', 'luna_bala_44s~bench-breakdown'];
@@ -75,8 +74,7 @@ async function worker(id: string, seed: number) {
 
 if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')));
 else if (command === 'run') {
-  const jobs = Number(arg('jobs', String(defaultWorkerJobs()))), seed = Number(arg('seed', '101'));
-  assert(Number.isSafeInteger(jobs) && jobs > 0, '--jobs must be a positive integer');
+  const pool = new WorkerPool(workerJobs(arg('jobs', '') || undefined)), seed = Number(arg('seed', '101'));
   assert(Number.isSafeInteger(seed), '--seed must be an integer');
   const queue = arg('specs', DEFAULT_SPECS.join(',')).split(',');
   assert(queue.every(Boolean) && new Set(queue).size === queue.length, '--specs must contain unique cases');
@@ -86,13 +84,7 @@ else if (command === 'run') {
   writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.catch-price.v2', seed, specs: queue,
     preparation: 'owned context; cold prefix replayed through next entry frame outside the remaining search budget'}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await Promise.all(Array.from({length: Math.min(jobs, queue.length)}, async () => {
-    while (queue.length) {
-      const spec = queue.shift()!;
-      await new Promise<void>((resolve, reject) => spawn(process.execPath, [import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`],
-        {env: {...process.env, LR_ENGINE: 'wasm'}, stdio: ['ignore', 'ignore', 'inherit']}).once('error', reject).once('exit', code => code === 0 ? resolve() : reject(new Error(`worker failed: ${spec} (${code})`))));
-    }
-  }));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`]));
 } else {
   const studyPath = join(out, 'study.json');
   console.log(existsSync(studyPath) ? JSON.parse(readFileSync(studyPath, 'utf8')) : 'Legacy study: shared engine probes with state restoration.');

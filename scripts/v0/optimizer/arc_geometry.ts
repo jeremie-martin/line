@@ -111,15 +111,14 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const mainCount=main.length-1,clearance=c.clearance??channel;
   if(style?.guides!==false&&clearance>0&&(c.guideEnd??1)>(c.guideStart??0)){
     const vertices=main;
-    const roof:Array<{x:number;y:number}>=[],distances=[0];
-    for(let index=2;index<vertices.length;index++){
-      const i=index-2,p=vertices[index],prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
+    const roof=vertices.slice(2).map((p,i)=>{
+      const index=i+2,prev=vertices[index-1],next=vertices[Math.min(index+1,vertices.length-1)];
       const a=Math.atan2(next.y-prev.y,next.x-prev.x);
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
-      roof.push({x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)});
-      if(i)distances.push(distances[i-1]+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
-    }
-    const length=distances[distances.length-1],from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
+      return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
+    });
+    const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
+    const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
     // Every guide remains one substantial connected curve, including when its
     // endpoints move between subdivision vertices. Zero coverage is a single arc.
     if((c.guideStart===undefined&&c.guideEnd===undefined)||to-from>=24){

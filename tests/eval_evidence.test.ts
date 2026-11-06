@@ -63,9 +63,8 @@ it('pairs actual resolved inputs and measurement code, while permitting differen
   expect(() => assertPairedRuns(a, b)).toThrow(/measurement code/);
 });
 it('rejects invalid execution options before starting workers', () => {
-  for (const jobs of [0, -1, 1.5, NaN, Infinity, 65]) expect(() => validateRunOptions('1000', jobs, 'dev')).toThrow();
-  for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions(budget, 1, 'dev')).toThrow();
-  expect(() => validateRunOptions('standard', 1, 'dev')).toThrow();
+  for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions(budget, 'dev')).toThrow();
+  expect(() => validateRunOptions('standard', 'dev')).toThrow();
 });
 it('failed workers make the actual CLI fail, retaining a resumable plan but no successful report', () => {
   // Run the real CLI and compiler with tiny, entirely local authoring assets.

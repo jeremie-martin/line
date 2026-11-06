@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
-import { scoreObservations, type Observation } from '../scripts/lib/span_grade.ts';
+import { scoreObservations, type Observation } from '../scripts/gallery/span_grade.ts';
 import { caseGaps, caseSpec, targets, type Case } from '../scripts/lib/case.ts';
 import { effectiveAxes, validateSpec } from '../scripts/v0/core/substrate.ts';
 

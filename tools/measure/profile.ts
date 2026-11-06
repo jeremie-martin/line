@@ -1,6 +1,6 @@
 /** Where a real compile spends its time or allocates.
  *
- *   npm run perf:profile -- [--cell=3] [--kind=cpu|allocation] [--top=40] [--warmup=0]
+ *   npm run perf:profile -- [--cell=NAME] [--kind=cpu|allocation] [--top=40] [--warmup=0]
  *
  * The profile encloses exactly what perf:engine times: compileHandoff with
  * prepared inputs, default standard allowance, verified against the cell's
@@ -14,11 +14,13 @@ import {Session} from 'node:inspector/promises';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {prepareCell} from '../parity/parity.ts';
+import {cellIndices, PERF_CELLS} from './engine_decision.ts';
 
 const arg = (key: string, fallback: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const index = Number(arg('cell', '3')), kind = arg('kind', 'cpu'), top = Number(arg('top', '40')), warmup = Number(arg('warmup', '0'));
+const name = arg('cell', PERF_CELLS[0]), kind = arg('kind', 'cpu'), top = Number(arg('top', '40')), warmup = Number(arg('warmup', '0'));
 if (kind !== 'cpu' && kind !== 'allocation') throw new Error('--kind must be cpu or allocation');
+const index = cellIndices(JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8')).cells, [name])[0];
 
 type CallFrame = {functionName: string; url: string; lineNumber: number};
 type CpuNode = {id: number; callFrame: CallFrame; children?: number[]};
@@ -129,9 +131,9 @@ if (kind === 'cpu') {
 const began = performance.now(), checkpoint = compile(), ms = performance.now() - began;
 const {profile} = await session.post(kind === 'cpu' ? 'Profiler.stop' : 'HeapProfiler.stopSampling') as unknown as {profile: any};
 session.disconnect();
-if (!exact(checkpoint)) throw new Error(`cell ${index}: track or charged work differs from its parity record`);
-const directory = resolve(root, 'generated/profile'), path = join(directory, `cell-${index}.${kind === 'cpu' ? 'cpuprofile' : 'heapprofile'}`);
+if (!exact(checkpoint)) throw new Error(`${name}: track or charged work differs from its parity record`);
+const directory = resolve(root, 'generated/profile'), path = join(directory, `${name.replace(/\W+/g, '-')}.${kind === 'cpu' ? 'cpuprofile' : 'heapprofile'}`);
 mkdirSync(directory, {recursive: true});
 writeFileSync(path, JSON.stringify(profile));
-console.log(`cell ${index} ${cell.id} #${cell.seed}: ${(ms / 1000).toFixed(2)} s, ${cell.physicalFrames} charged frames, exact; profiler overhead included\n${path}`);
+console.log(`${name}: ${(ms / 1000).toFixed(2)} s, ${cell.physicalFrames} charged frames, exact; profiler overhead included\n${path}`);
 if (kind === 'cpu') reportCpu(profile); else reportAllocation(profile.head);

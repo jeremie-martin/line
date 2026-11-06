@@ -14,7 +14,6 @@
 import {readFileSync, writeFileSync, mkdtempSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
-import {pathToFileURL} from 'node:url';
 import {tmpdir} from 'node:os';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {caseSpec, sha} from '../../scripts/lib/case.ts';
@@ -49,9 +48,8 @@ async function specCase(cell: Cell) {
 
 async function specInputs(cell: Cell) {
   const [{productionBudget}, {compileOptions}] = await Promise.all([import('../../scripts/v0/optimizer/production_budget.ts'), import('../eval/compile.ts')]);
-  const {spec, musicCase: music} = await specCase(cell), {song, variant} = cell.spec!;
-  const windows = (await import(pathToFileURL(resolve('productions', song, 'variants', `${variant}.ts`)).href)).bench?.construction;
-  return {spec, options: await compileOptions('.', spec, cell.seed, cell.budget ?? productionBudget(spec.duration), {}, music, windows)};
+  const {spec, musicCase: music, bench} = await specCase(cell);
+  return {spec, options: await compileOptions('.', spec, cell.seed, cell.budget ?? productionBudget(spec.duration), {}, music, bench?.construction)};
 }
 
 async function cellInputs(cell: Cell) {
@@ -89,7 +87,7 @@ export async function compileWorker(index: number, out: string, collectResources
 async function judgeTrack(cell: Cell, track: any) {
   const [music, {replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([cell.spec ? specCase(cell).then(r => r.musicCase) : caseOf(cell).music,
     import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts')]);
-  const replay = replayGalleryTrack(track, music as any, true), impact = replay.impactEvaluation!;
+  const replay = replayGalleryTrack(track, music as any), impact = replay.impactEvaluation;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }
 

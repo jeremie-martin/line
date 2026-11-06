@@ -11,7 +11,6 @@ import {extractRawTrajectory,resetFrameCount,setPhysicsFrameLimit,getPhysicsFram
 import type {Spec} from '../types.ts';
 import {impactRuler} from './impact_accounts.ts';
 import {IMPACT_SEARCH_PROFILE} from './contact_impact_profile.ts';
-import {validRide} from './ride_validity.ts';
 const {LineRiderEngine:Judge,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../../lib/_lr_engine_wasm.ts?production-repertoire-audit',import.meta.url).href);
 export type RepertoireOptions={budget:number;creative?:CreativePreferences;plan?:ProductionPlan;phraseBoundaries?:number[]};
@@ -32,8 +31,8 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   const fragmentSections=plan.requests.filter(r=>r.construction==='scattered'&&r.section<result.rows.length).map(r=>r.section);
   const railGuides:Record<number,number[]>=Object.fromEntries(fragmentSections.map(i=>[i,result.rows[i].railGuides??[]]));
   const searchTotals={samples:result.samples,viable:result.stats.viable_candidate_samples,backtracks:result.backtracks,rebuilds:result.backtracks+2};
-  const work:Array<{stage:string;allowance:number;physicalFrames:number;complete:boolean}>=[{stage:'shared-search',allowance,physicalFrames,complete:validRide(result)}];
-  const constructionFailure=validRide(result)?null:result.failure?.reason??'incomplete';
+  const work:Array<{stage:string;allowance:number;physicalFrames:number;complete:boolean}>=[{stage:'shared-search',allowance,physicalFrames,complete:result.impactEvaluation.valid}];
+  const constructionFailure=result.impactEvaluation.valid?null:result.failure?.reason??'incomplete';
   const fragmented=new Set(fragmentSections);
   for(const [section,chains]of arcRailGroups(result.track.lines.filter(l=>!fragmented.has(Math.floor((l.id-1000)/10000)))))railGuides[section]=(chains[1]??[]).map(l=>l.id);
   // This independent physical check is compiler work, charged even on unsuccessful requests.
@@ -50,10 +49,10 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
       summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}))};
     const collisions=Array.from({length:end+1},(_,f)=>engine.getAllContactLineIdsAtFrame(f));
     realization=inspectRepertoire(plan,result.track.lines,railGuides,collisions,raw.frames.map(f=>f.position));
-    const frames=getPhysicsFrameCount();physicalFrames+=frames;work.push({stage:'realization-replay',allowance:replay,physicalFrames:frames,complete:validRide(result)});
+    const frames=getPhysicsFrameCount();physicalFrames+=frames;work.push({stage:'realization-replay',allowance:replay,physicalFrames:frames,complete:result.impactEvaluation.valid});
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
   return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
-    sectionFallbacks:result.sectionFallbacks,valid:validRide(result),qualified:validRide(result)&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
+    sectionFallbacks:result.sectionFallbacks,valid:result.impactEvaluation.valid,qualified:result.impactEvaluation.valid&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
     impactSearchProfile:IMPACT_SEARCH_PROFILE};
 }

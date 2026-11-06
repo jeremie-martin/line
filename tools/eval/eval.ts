@@ -28,7 +28,7 @@ Reports are stratified (completion first, then quality on
 cells complete in both arms, per-spec sign counts, strata weighted equally).
 The held-out songs (Trouble, Valhalla, Circus Minimus) are excluded from compiler decisions;
 --heldout is for decision points only.`;
-export function validateRunOptions(budget: string, jobs: number, panel: string, flags: {sealed?: boolean; heldout?: boolean} = {}) {
+export function validateRunOptions(budget: string, panel: string, flags: {sealed?: boolean; heldout?: boolean} = {}) {
   assert.ok(PANEL_NAMES.includes(panel), 'unknown evaluation panel');
   // Sealed and held-out specs are spent by every look: compile them only on an explicit decision.
   assert.equal(!!flags.sealed, panel === 'sealed', panel === 'sealed'
@@ -36,7 +36,6 @@ export function validateRunOptions(budget: string, jobs: number, panel: string, 
   assert.equal(!!flags.heldout, panel === 'heldout', panel === 'heldout'
     ? 'the heldout panel runs only with --heldout: these songs are held out from compiler decisions and run only at decision points'
     : '--heldout applies only to --panel=heldout');
-  assert.ok(Number.isSafeInteger(jobs) && jobs >= 1 && jobs <= 64, 'jobs must be an integer from 1 to 64');
   assert.ok(budget === 'standard' || /^standard\*(0|[1-9]\d*)(\.\d+)?$/.test(budget) && Number(budget.slice(9)) > 0 ||
     (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard, standard*FACTOR or a positive integer');
 }
@@ -69,7 +68,7 @@ async function main() {
   if ((command !== 'run' && command !== 'report') || !arg('name')) {console.error(USAGE); process.exitCode = 2; return;}
   if (command === 'run') {
     const budget = arg('budget', 'standard')!, panelName = arg('panel', 'v7')!, jobs = workerJobs(arg('jobs'));
-    validateRunOptions(budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
+    validateRunOptions(budget, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
     const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
     const dir = runDir(arg('name')!), plan = await planFor(budget, panelName, creative);
     mkdirSync(join(dir, 'cells'), {recursive: true});

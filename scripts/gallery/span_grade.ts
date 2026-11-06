@@ -1,11 +1,11 @@
 /** The judge's span observations of one ride: air, speed and amplitude against
  * their targets, with the ride's terminus. The headline's impact comes from the
  * impact account instead (scripts/gallery/contact_impact_grade.ts). */
-import type { Detection } from './detector.ts';
+import type { Detection } from '../lib/detector.ts';
 import { AXIS_MEASURE } from '../v0/core/measure.ts';
 import { contactRedirArcPxAtLanding, findAuthoredContactNearFrame, offBeatLandingEvents } from '../v0/core/substrate.ts';
 import { IMPACT_WINDOW, normImpact } from '../v0/types.ts';
-import { caseGaps, targets, type Case, type Axis } from './case.ts';
+import { caseGaps, targets, type Case, type Axis } from '../lib/case.ts';
 
 const AXIS_WEIGHTS = { air: .3, speed: .3, impact: .3, amplitude: .1 }, TOLERANCE = .25;
 

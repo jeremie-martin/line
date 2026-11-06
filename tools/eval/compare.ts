@@ -48,9 +48,9 @@ async function select(): Promise<Selection> {
   // --seeds=N: the first N seeds of the v7 sequence (default 4); more seeds reuse every saved ride.
   const seedCount = arg('seeds') ? Number(arg('seeds')) : undefined;
   const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
-  validateRunOptions(budget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  validateRunOptions(budget, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
   const candidateBudget = arg('candidate-budget', budget)!, candidateCreative = arg('candidate-creative') ? JSON.parse(arg('candidate-creative')!) : creative;
-  validateRunOptions(candidateBudget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  validateRunOptions(candidateBudget, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
   const settings: ArmSettings = {budget, ...(creative ? {creative} : {})};
   const candidateSettings: ArmSettings = {budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
   assert.ok(arg('reference'), '--reference=NAME is required (see `npm run compare -- reference list`)');
@@ -394,7 +394,7 @@ async function rides() {
       for (const key of ['specSha256', 'audioSha256', 'analysisSha256'] as const) assert.equal(musicCase[key], c.input[key], `${id}: ${key} changed since the ride was compared`);
       const plan = {schema: 'line.automatic-production.v1', kind: 'musical-direction', source: 'npm run compare (saved benchmark ride)',
         compiler: {contentKey: arm.content.key, commit: arm.content.clean ? arm.content.head : null, arm: arm.key}, judge: judgeIdentity(),
-        jolt: arm.jolt, impactContract: gallery.result.impactEvaluation?.contract, cases: [musicCase], seeds: [c.seed], budgets: [gallery.budget],
+        jolt: arm.jolt, impactContract: gallery.result.impactEvaluation.contract, cases: [musicCase], seeds: [c.seed], budgets: [gallery.budget],
         methods: ['production'], methodDetails: {production: {title: 'Automatic arrangement', description: 'A saved V7 benchmark ride.'}},
         request: {mode: 'production', song: c.song, ...(c.variant ? {variant: c.variant} : {}), seed: c.seed, budget: gallery.budget, creative: arm.settings.creative ?? {}}};
       const planSha256 = writeGalleryJson(out, 'plan.json', plan), production = gallery.production;

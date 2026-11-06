@@ -1,8 +1,8 @@
 /** The grade behind the V7 headline. Span observations retain their established units; the impact contribution is
  * the shared one-to-one account, including timing and unmatched-event energy. */
-import type {ImpactEvaluation as MusicalImpactEvaluation} from '../v0/optimizer/impact_accounts.ts';
-import type {evaluateDetection,Score,Observation} from '../lib/span_grade.ts';
-export function contactImpactGrade(historical:ReturnType<typeof evaluateDetection>,impact:MusicalImpactEvaluation){
+import type {ImpactEvaluation} from '../v0/optimizer/impact_accounts.ts';
+import type {evaluateDetection,Score,Observation} from './span_grade.ts';
+export function contactImpactGrade(historical:ReturnType<typeof evaluateDetection>,impact:ImpactEvaluation){
   const {events,targets,account}=impact;
   const observations:Observation[]=historical.observations.filter(o=>o.axis!=='impact');
   const contacts=targets.map((target,i)=>{

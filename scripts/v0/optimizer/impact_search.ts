@@ -1,47 +1,25 @@
-/** Adapter between the shared physical impact account and compiler search.
- * Contact reads never integrate physics; callers supply an already metered
- * trajectory and terminal state. Frozen historical reporting stays available. */
-import {CONTACT_IMPACT_CONTRACT, observeContactImpacts, detectContactImpacts, accountContactImpacts,
-  contactSpeedGains, type ContactImpactFrame, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
-import {effectiveBodyVelocity} from './motion_quality.ts';
-import type {RawFrame} from '../../lib/detector.ts';
+/** Adapter between the shared physical impact account and compiler search. */
+import {CONTACT_IMPACT_CONTRACT, contactSpeedGains, type ContactImpactFrame, type ContactImpactEvent, type accountContactImpacts} from '../../lib/contact_impact.ts';
 
 /** steepArrivalFrom: the centre of the smooth step over which the arrival into the
  * next catch takes on the steep, ask-driven heading and speed prior (as unguided
  * catches do): none 0.2 below it, all of it 0.2 above (arc_evaluate.ts steepArrival);
  * uprightArrival weighs a penalty on arriving head-down or backward at such a catch. */
-export type ImpactSearchOptions = {extraWeight?: number; timingWeight?: number; engagementGainWeight?: number; releaseFrames?:number;
-  steepArrivalFrom?: number; uprightArrival?: number};
+export type ImpactSearchOptions = {engagementGainWeight?: number; steepArrivalFrom?: number; uprightArrival?: number};
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['extraWeight','timingWeight','engagementGainWeight','releaseFrames','steepArrivalFrom','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
-      (key==='releaseFrames'&&(!Number.isSafeInteger(value)||value>6))||(key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
+    if(!['engagementGainWeight','steepArrivalFrom','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
+      (key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
   }
-}
-export type MusicalImpactEvaluation = ReturnType<typeof evaluateMusicalImpacts>;
-export function impactFrames(engine: any, frames: readonly RawFrame[], terminalState?: Parameters<typeof effectiveBodyVelocity>[0]) {
-  if (!frames.length) return [];
-  const last = frames.at(-1)!.frame;
-  if (engine.getLastFrameIndex() < last) throw new Error('impact observation requires a metered complete window');
-  return observeContactImpacts(frames, frame => engine.hasContactAtFrame(frame),
-    effectiveBodyVelocity(terminalState ?? engine.getRider(last).ballisticState()));
-}
-export function evaluateMusicalImpacts(observed: readonly ContactImpactFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean) {
-  const events = detectContactImpacts(observed).filter(e => e.onset <= duration);
-  const account = accountContactImpacts(events, targets);
-  return {contract: CONTACT_IMPACT_CONTRACT.id, events, targets, account,
-    valid: survived && account.complete && account.matches.every(m => events[m.event].complete),
-    speedGains: contactSpeedGains(observed.filter(f => f.frame <= duration))};
 }
 /** Additional local residuals supplement the first four musical coordinates;
  * response-memory layout remains stable. Targets/extra-event membership have
  * already been decided by the common one-to-one account. */
 export function impactSearchResiduals(events: readonly ContactImpactEvent[], account: ReturnType<typeof accountContactImpacts>,
-  currentTarget: number | undefined, from: number, to: number, options: ImpactSearchOptions = {}) {
-  const match = currentTarget === undefined ? undefined : account.matches.find(m => m.target === currentTarget);
-  const timing = match ? Math.sqrt(options.timingWeight ?? 1) * match.timingError : 0;
-  const extra = Math.sqrt((options.extraWeight ?? 1) * account.unmatchedEvents.reduce((sum, i) => {
+  match: ReturnType<typeof accountContactImpacts>['matches'][number] | undefined, from: number, to: number) {
+  const timing = match ? match.timingError : 0;
+  const extra = Math.sqrt(account.unmatchedEvents.reduce((sum, i) => {
     const e = events[i]; return sum + (e.onset >= from && e.onset < to ? (e.raw / CONTACT_IMPACT_CONTRACT.veryStrong) ** 2 : 0);
   }, 0));
   return [timing, extra];

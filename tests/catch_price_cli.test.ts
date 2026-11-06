@@ -23,12 +23,12 @@ it('records the new preparation policy and propagates a failed worker', () => {
   const result = run(out, '--jobs=1', '--specs=missing~spec');
   expect(result.status).not.toBe(0);
   expect(result.stderr).toContain('unknown study case');
-  expect(result.stderr).toContain('worker failed');
+  expect(result.stderr).toContain('worker exited 1');
   expect(JSON.parse(readFileSync(join(out, 'study.json'), 'utf8'))).toMatchObject({schema: 'line.catch-price.v2', seed: 101});
   expect(existsSync(join(out, 'rides.jsonl'))).toBe(false);
 });
 it('rejects zero workers before creating a misleading empty study', () => {
   const out = join(temporary(), 'new');
-  expect(run(out, '--jobs=0').stderr).toContain('--jobs must be a positive integer');
+  expect(run(out, '--jobs=0').stderr).toContain('--jobs must be an integer from 1 to 64');
   expect(existsSync(out)).toBe(false);
 });

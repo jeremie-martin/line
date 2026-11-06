@@ -1,14 +1,11 @@
 import { describe, expect, test } from "vitest";
 import {
-  axisTargetQuality,
   AXIS_QUALITY_TOLERANCE,
   MISSING_CONTACT_TOLERANCE,
   OFF_BEAT_TOLERANCE,
   SYNC_TOLERANCE,
   axisQualityForTargets,
-  runtimeMultiplier,
   scoreDriftReport,
-  scoreTimedDriftReport,
   shiftedGeometricMean,
 } from "../scripts/v0/score.ts";
 import type { ContactReport, DriftReport } from "../scripts/v0/types.ts";
@@ -52,13 +49,6 @@ function report(options: {
 }
 
 describe("v0 scoreDriftReport — smooth quality factors", () => {
-  test("single-axis target quality preserves zero asks and missing outcomes", () => {
-    expect(axisTargetQuality(undefined, null)).toBe(1);
-    expect(axisTargetQuality(0, null)).toBe(0);
-    expect(axisTargetQuality(0, 0)).toBe(1);
-    expect(axisTargetQuality(0, 0.1)).toBeLessThan(1);
-  });
-
   test("axis quality uses RMS, not L1 mean, of section errors", () => {
     const score = scoreDriftReport(report({ axisErrors: [0, AXIS_QUALITY_TOLERANCE] }));
 
@@ -219,39 +209,6 @@ describe("v0 scoreDriftReport — smooth quality factors", () => {
   test("survival_quality without totalFrames is binary on terminus.reason", () => {
     const dead = scoreDriftReport(report({ terminusReason: "fell", terminusFrame: 50 }));
     expect(dead.survival_quality).toBe(0);
-  });
-});
-
-describe("v0 runtime scoring", () => {
-  test("runtime multiplier is flat, then smooth, then zero", () => {
-    expect(runtimeMultiplier(10, 20, 40)).toBe(1);
-    expect(runtimeMultiplier(20, 20, 40)).toBe(1);
-    expect(runtimeMultiplier(30, 20, 40)).toBeCloseTo(0.5);
-    expect(runtimeMultiplier(40, 20, 40)).toBe(0);
-    expect(runtimeMultiplier(45, 20, 40)).toBe(0);
-    expect(() => runtimeMultiplier(10, 20, 20)).toThrow(/invalid runtime budget/);
-  });
-
-  test("timed row score is the smooth score times the runtime multiplier", () => {
-    const timed = scoreTimedDriftReport(report(), {
-      elapsed_ms: 30,
-      soft_ms: 20,
-      hard_ms: 40,
-    });
-    // clean contract: score_without_time ≈ 1000, time_multiplier = 0.5 → 500
-    expect(timed.score_without_time).toBeCloseTo(1000);
-    expect(timed.time_multiplier).toBeCloseTo(0.5);
-    expect(timed.score).toBeCloseTo(500);
-
-    // hard-gate violation still gets time-multiplied (no zero cliff)
-    const driftRow = scoreTimedDriftReport(
-      report({ contacts: [contact("drift", 2)] }),
-      { elapsed_ms: 10, soft_ms: 20, hard_ms: 40 },
-    );
-    expect(driftRow.time_multiplier).toBe(1);
-    expect(driftRow.score).toBeGreaterThan(0);
-    expect(driftRow.score).toBeLessThan(1000);
-    expect(driftRow.contract_passed).toBe(false);
   });
 });
 

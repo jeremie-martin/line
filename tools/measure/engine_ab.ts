@@ -12,7 +12,7 @@ import {createHash} from 'node:crypto';
 import {cpus, platform, release} from 'node:os';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {decide, decideCompileCells, pairOrder, summarizePairs} from './engine_decision.ts';
+import {cellIndices, decide, decideCompileCells, pairOrder, PERF_CELLS, summarizePairs} from './engine_decision.ts';
 import {snapshotSources, sourceOverlay} from './engine_sources.ts';
 
 const knownFlags = new Set(['against', 'reference', 'candidate', 'reference-root', 'out', 'mode', 'stage', 'rounds',
@@ -133,7 +133,7 @@ if (process.argv.includes('--worker')) {
   --reference=<wasm>                or: swap only the engine (--reference-root=<checkout> adds source)
   --mode=compile|engine             compile: whole compiles; engine: isolated workloads (default)
   --stage=screen|confirm            confirm requires --screen=<result.json>
-  --cells=3,4 --rounds=12 --confirm-rounds=24   production allowance, two songs
+  --cells=<names> --rounds=12 --confirm-rounds=24   default: two songs at the production allowance
   --warmup=0 --reps=1               compile defaults (a real compile); engine defaults: 1, 2
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
                                   margin 0 tests direction without a minimum benefit
@@ -153,7 +153,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     confirmRounds: Number(arg('confirm-rounds', '24')), reps: Number(arg('reps', compile ? '1' : '2')),
     warmup: Number(arg('warmup', compile ? '0' : '1')), confidence: Number(arg('confidence', '.95')),
     marginPct: Number(arg('margin-pct', '2')), seed: Number(arg('seed', '1729')), slowdownPct: Number(arg('slowdown-pct', '0')),
-    cells: arg('cells', '3,4').split(',').map(Number)};
+    cells: cellIndices(JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8')).cells, arg('cells', PERF_CELLS.join(',')).split(','))};
   assert(['engine', 'compile'].includes(mode) && ['screen', 'confirm'].includes(stage));
   for (const n of [config.rounds, config.confirmRounds]) pairOrder(n, config.seed);
   const order = pairOrder(config.rounds, config.seed);
@@ -162,8 +162,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
   for (const n of [config.rounds, config.confirmRounds])
     decide(Array.from({length: n}, () => ({base: 1, candidate: 1})), config.confidence, config.marginPct);
   assert(Number.isFinite(config.slowdownPct) && config.slowdownPct >= 0 && config.slowdownPct <= 100);
-  const cellCount = JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8')).cells.length;
-  assert(config.cells.length && new Set(config.cells).size === config.cells.length && config.cells.every(c => Number.isInteger(c) && c >= 0 && c < cellCount));
+  assert(new Set(config.cells).size === config.cells.length, 'cells must be unique');
   assert(arg('out'), '--out=<new directory> is required');
   assert(!!arg('against') !== !!arg('reference'), 'exactly one of --against=<git ref> or --reference=<wasm> is required');
   const out = resolve(arg('out'));

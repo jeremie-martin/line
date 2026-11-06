@@ -16,6 +16,9 @@ import { evaluationContext, type IntervalOptions, type IntervalOverrides } from 
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import type {ArcObjectiveContinuation} from './arc_objective.ts';
 
+/** A catch must have left the rail this many frames before the interval ends. */
+export const RELEASE_FRAMES = 6;
+
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
 
@@ -68,8 +71,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   getRiderMetered(engine, frame);
   const trace = catchReceivers(engine.readCollisionTrace()[0]);
   const prefixRaw = extractRawTrajectory(engine, frame - 1), detection = new DetectionContinuation(prefixRaw);
-  const prefixImpactFrames = impactRuler.observe(engine, prefixRaw.frames, beforeState);
-  const impactPrefix = impactRuler.prefix(prefixImpactFrames) as any;
+  const prefixImpactFrames = impactRuler.observe(engine, prefixRaw.frames);
+  const impactPrefix = impactRuler.prefix(prefixImpactFrames);
   const localImpactTargets = impactTargets.filter(t => t.frame >= frame - impactRuler.matchFrames && t.frame <= horizon + impactRuler.matchFrames);
   const currentImpactTarget = localImpactTargets.findIndex(t => t === impactTargets[gap]);
   const incoming = deg(Math.atan2(velocity.y, velocity.x)), pace = hypot2(velocity.x, velocity.y);
@@ -81,8 +84,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // has the existing physical survival horizon. Do not clamp a requested
   // shape to two frames just because its last impact is near the song end.
   const constructionSpan = options.constructionRequests && i === contacts.length - 1 ? horizon - frame : span;
-  const releaseFrames = options.impactSearch?.releaseFrames ?? 6;
-  const support = clamp((1 - (targets.air ?? .5)) * (constructionSpan + 1), 3, Math.max(3, constructionSpan - releaseFrames));
+  const support = clamp((1 - (targets.air ?? .5)) * (constructionSpan + 1), 3, Math.max(3, constructionSpan - RELEASE_FRAMES));
   const impact = gap >= 0 ? gaps[gap].targets.impact : undefined;
   if (impact !== undefined && options.motionQuality?.calmImpactMultiplier !== undefined)
     options.impactWeight = (options.impactWeight ?? 2) * (1 + (options.motionQuality.calmImpactMultiplier - 1) * Math.max(0, 1 - impact / .2));
@@ -94,8 +96,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
   const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
-  const normalizeControl = arcControlNormalizer({...options, observedReceiver: true, span: constructionSpan,
-    releaseReserveFrames: options.impactSearch?.releaseFrames});
+  const normalizeControl = arcControlNormalizer({...options, observedReceiver: true, span: constructionSpan});
 
   // These describe the immutable incoming prefix already measured above.
   // Reusing them avoids a new physics read after committing the search budget.
@@ -122,7 +123,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     detectionFrames: frame,
     /** Candidate trajectories borrow this array; its first `replayIntact` entries match the prefix. */
     replayFrames: prefixRaw.frames.slice(), replayIntact: prefixRaw.frames.length,
-    incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
+    incoming, pace, span, constructionSpan, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, normalizeControl,
     inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */

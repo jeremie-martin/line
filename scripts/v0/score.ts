@@ -73,10 +73,6 @@ export type V0ContractScore = {
    *  off-beat landings, survived through endOfSpec). Reporting only —
    *  does not gate the score. */
   contract_passed: boolean;
-  /** Back-compat alias of `contract_passed`. */
-  passed: boolean;
-  /** Back-compat alias of `contract_passed`. */
-  valid_contract: boolean;
   hard_failures: string[];
   contacts: number;
   hits: number;
@@ -102,17 +98,6 @@ export type V0ContractScore = {
   axis_quality: number;
   /** Back-compat alias of `axis_quality`. */
   axis_score: number;
-};
-
-export type RuntimeBudget = {
-  elapsed_ms: number;
-  soft_ms: number;
-  hard_ms: number;
-};
-
-export type V0TimedContractScore = V0ContractScore & RuntimeBudget & {
-  score_without_time: number;
-  time_multiplier: number;
 };
 
 export type ScoreOptions = {
@@ -179,31 +164,6 @@ export function axisErrorsForTargets(targets: AxisValues, achieved: AxisValues):
 
 export function axisQualityForTargets(targets: AxisValues, achieved: AxisValues): AxisQualitySummary {
   return axisQualityFromErrors(axisErrorsForTargets(targets, achieved));
-}
-
-/** Canonical scorer quality for one authored axis value. */
-export function axisTargetQuality(
-  target: number | undefined,
-  achieved: number | null | undefined,
-): number {
-  if (target === undefined) return 1;
-  if (achieved === null || achieved === undefined || !Number.isFinite(achieved)) {
-    return 0;
-  }
-  return axisQualityFromErrors([achieved - target]).axis_quality;
-}
-
-export function runtimeMultiplier(elapsedMs: number, softMs: number, hardMs: number): number {
-  if (!Number.isFinite(elapsedMs) || elapsedMs < 0) return 0;
-  if (!Number.isFinite(softMs) || !Number.isFinite(hardMs) || hardMs <= softMs) {
-    throw new Error(`invalid runtime budget: soft=${softMs} hard=${hardMs}`);
-  }
-  if (elapsedMs <= softMs) return 1;
-  if (elapsedMs >= hardMs) return 0;
-
-  const x = (elapsedMs - softMs) / (hardMs - softMs);
-  const smoothstep = x * x * (3 - 2 * x);
-  return 1 - smoothstep;
 }
 
 export function shiftedGeometricMean(values: number[], shift = 1): number {
@@ -287,8 +247,6 @@ export function scoreDriftReport(
   return {
     score,
     contract_passed,
-    passed: contract_passed,
-    valid_contract: contract_passed,
     hard_failures,
     contacts,
     hits,
@@ -303,24 +261,5 @@ export function scoreDriftReport(
     died,
     survival_quality,
     ...axisQuality,
-  };
-}
-
-export function scoreTimedDriftReport(
-  report: DriftReport,
-  budget: RuntimeBudget,
-  opts: ScoreOptions = {},
-): V0TimedContractScore {
-  const base = scoreDriftReport(report, opts);
-  const time_multiplier = runtimeMultiplier(budget.elapsed_ms, budget.soft_ms, budget.hard_ms);
-  const score_without_time = base.score;
-  return {
-    ...base,
-    score: score_without_time * time_multiplier,
-    score_without_time,
-    time_multiplier,
-    elapsed_ms: budget.elapsed_ms,
-    soft_ms: budget.soft_ms,
-    hard_ms: budget.hard_ms,
   };
 }

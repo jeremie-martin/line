@@ -2,18 +2,17 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {sha,type Case} from '../lib/case.ts';
-import {evaluateDetection} from '../lib/span_grade.ts';
+import {evaluateDetection} from './span_grade.ts';
 import {detect,extractRawTrajectory} from '../lib/detector.ts';
-import {compilerIdentity} from '../lib/compiler_identity.ts';
+import {compilerIdentity,ENGINE_PATH} from '../lib/compiler_identity.ts';
 import {impactRuler} from '../v0/optimizer/impact_accounts.ts';
 const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../lib/_lr_engine_wasm.ts?gallery-artifact-replay',import.meta.url).href);
 export const galleryCompilerIdentity=(root:string)=>compilerIdentity(root);
-const JUDGE_ENGINE='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
-const JUDGE_FILES=['scripts/lib/span_grade.ts','scripts/lib/case.ts','scripts/gallery/contact_impact_grade.ts','scripts/v0/optimizer/impact_accounts.ts','scripts/lib/strike_impact.ts','scripts/lib/contact_impact.ts',
+const JUDGE_FILES=['scripts/gallery/span_grade.ts','scripts/lib/case.ts','scripts/gallery/contact_impact_grade.ts','scripts/v0/optimizer/impact_accounts.ts','scripts/lib/strike_impact.ts','scripts/lib/contact_impact.ts',
   'scripts/v0/core/substrate.ts','scripts/v0/core/measure.ts','scripts/v0/types.ts','scripts/lib/_lr_engine_wasm.ts','scripts/lib/detector.ts'];
 /** Provenance of a saved result: which judge sources and engine produced it. */
-export const judgeIdentity=()=>({engineSha256:sha(readFileSync(JUDGE_ENGINE)),files:Object.fromEntries(JUDGE_FILES.map(p=>[p,sha(readFileSync(p))]))});
+export const judgeIdentity=()=>({engineSha256:sha(readFileSync(ENGINE_PATH)),files:galleryHarnessIdentity(JUDGE_FILES)});
 export const galleryHarnessIdentity=(paths:string[])=>Object.fromEntries(paths.map(p=>[p,sha(readFileSync(p))]));
 export function writeGalleryJson(out:string,name:string,value:unknown){
   const body=JSON.stringify(value)+'\n';writeFileSync(resolve(out,name),body);writeFileSync(resolve(out,name+'.sha256'),sha(body)+'\n');return sha(body);

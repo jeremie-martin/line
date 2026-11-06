@@ -5,6 +5,19 @@
  * https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/mediancl.htm */
 import assert from 'node:assert/strict';
 
+type CellIdentity = {id: string; seed: number; budget?: number};
+/** A parity cell's stable name: positions move when `cells.json` changes. */
+export const cellName = (c: CellIdentity) => `${c.id}#${c.seed}${c.budget ? `@${c.budget}` : ''}`;
+/** Real compiles: two songs at the standard allowance. */
+export const PERF_CELLS = ['canonical-music_luna_bala_44s-automatic#101', 'canonical-music_tiki_tiki_48s-automatic#202'];
+export function cellIndices(cells: readonly CellIdentity[], names: readonly string[]) {
+  return names.map(name => {
+    const index = cells.findIndex(c => cellName(c) === name);
+    assert(index >= 0, `unknown parity cell: ${name}`);
+    return index;
+  });
+}
+
 export function random(seed: number) {
   let state = seed >>> 0 || 1;
   return () => {state ^= state << 13; state ^= state >>> 17; state ^= state << 5; return (state >>> 0) / 4294967296;};

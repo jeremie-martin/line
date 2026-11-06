@@ -2,7 +2,6 @@
  * The production gallery artifacts store it alongside each track. */
 import {createHash} from 'node:crypto';
 import type {ArcMotionOptions} from './arc_options.ts';
-import {validRide} from './ride_validity.ts';
 
 type Outcome = {
   track: unknown; rows: any[]; failure: unknown; impactTrajectoryLoss: number; selectionLoss: number;
@@ -15,7 +14,7 @@ type Outcome = {
 
 export function arcAttemptTelemetry(result: Outcome, options: ArcMotionOptions) {
   const requests = options.constructionRequests;
-  const isComplete = validRide(result) && (!requests || (!result.failure && result.rows.length === Object.keys(requests).length));
+  const isComplete = result.impactEvaluation.valid && (!requests || (!result.failure && result.rows.length === Object.keys(requests).length));
   const record = {
     name: 'search' as const, selected: true, start: 0, constructionEnd: result.constructionFrames,
     end: result.stats.sim_frames, complete: isComplete, loss: result.impactTrajectoryLoss,

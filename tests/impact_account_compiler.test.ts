@@ -7,7 +7,7 @@ import type {Spec} from '../scripts/v0/types.ts';
 const spec:Spec={duration:3,preroll:5,contacts:[.6,1.2,1.8,2.4,3].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 it('uses the same impact account in automatic construction, replay and review without rerolling the arrangement',()=>{
   const checkpoint=compileHandoff(spec,101,{budget:180000,creative:{}}),r=checkpoint.repertoire!;
-  expect(r.result.impactEvaluation?.valid).toBe(true);
+  expect(r.result.impactEvaluation.valid).toBe(true);
   expect(r.realization.fulfilled).toBe(true);
   expect(r.result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(r.physicalFrames).toBe(r.work.reduce((n,w)=>n+w.physicalFrames,0));
@@ -18,9 +18,9 @@ it('uses the same impact account in automatic construction, replay and review wi
     samples:{speed:Array.from({length:121},(_,f)=>axesAtFrame(f,spec).speed)}} as any;
   const replay=replayGalleryTrack(r.result.track,c,true);
   expect(replay.impactEvaluation).toEqual(r.result.impactEvaluation);
-  const grade=contactImpactGrade(replay.grade,replay.impactEvaluation!);
+  const grade=contactImpactGrade(replay.grade,replay.impactEvaluation);
   expect(grade.score.valid).toBe(true);
-  expect(grade.score.weightedAxisRms).toBeCloseTo(Math.sqrt(r.result.impactTrajectoryLoss!),12);
+  expect(grade.score.weightedAxisRms).toBeCloseTo(Math.sqrt(r.result.impactTrajectoryLoss),12);
   expect(new Set(grade.contacts.map(c=>c.actualFrame)).size).toBe(contacts.length);
   const repeat=compileHandoff(spec,101,{budget:180000,creative:{}}).repertoire!;
   expect(repeat.result.track).toEqual(r.result.track);

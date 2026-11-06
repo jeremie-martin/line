@@ -70,10 +70,11 @@ policy. It cannot silently resume older probe results or a different seed.
 **Measure what production runs.** A real compile spends the standard allowance
 (about 2.7–2.9 M charged frames, 17 s) in one fresh process. Its profile differs
 from small-budget cells: at 150 k frames, fixed per-compile costs dominate and
-local search barely appears. Compile mode therefore defaults to cells 3 and 4
-(two songs, standard allowance), no warmup and one compile per process. The
-report also resolves each cell. Cells 9/10 (150 k/750 k) are the small-budget guards. A
-result on them says nothing about production speed: a 4.4% gain on cell 61 was
+local search barely appears. Compile mode therefore defaults to two named cells
+(`PERF_CELLS`: two songs, standard allowance), no warmup and one compile per process. The
+report also resolves each cell. Pass the `#101@150000` and `#101@750000` Luna cells with `--cells=` for small-budget
+guards. A
+result on them says nothing about production speed: a 4.4% gain at 150 k was
 0.6% at 750 k.
 
 Declare the workload, pair count, warmup, repeats, confidence and practical margin

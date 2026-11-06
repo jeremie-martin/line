@@ -13,7 +13,6 @@ import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 import {inspectRailContacts} from '../gallery/contacts.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
-import {validRide} from '../v0/optimizer/ride_validity.ts';
 import {applyJolt} from './jolt.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
@@ -31,7 +30,7 @@ export async function loadMusicSpec(definition:any,jolt:number){
   assert.ok(air.every(a=>Number.isFinite(a.target)),'music review requires authored air throughout');
   const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  return {spec,cfg,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
+  return {spec,cfg,bench:module.bench,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
 }
 export async function loadMusicCase(definition:any,jolt:number){
   const {spec,cfg,musicCase}=await loadMusicSpec(definition,jolt),hash=(p:string)=>sha(readFileSync(p));
@@ -54,7 +53,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
     const inspection=inspectRailContacts({railLayout,railGuides,track:result.track},collisionIds!);
     const usage=railLayout==='connected'?guideFootprint(result.track.lines):{supportSections:inspection.summary.supportSections!,guideSections:inspection.summary.guideSections,
       guideLength:result.track.lines.filter((l:any)=>inspection.guideIds.has(l.id)).reduce((sum:number,l:any)=>sum+Math.hypot(l.x2-l.x1,l.y2-l.y1),0)};
-    const valid=validRide({impactEvaluation});
+    const valid=impactEvaluation.valid;
     assert.equal(valid,grade.score.valid,'compiler and independent judge disagree');
     const loss=result.impactTrajectoryLoss;
     if(valid)assert.ok(Math.abs(Math.sqrt(loss)-grade.score.weightedAxisRms!)<1e-10,'target adapter changed the objective');

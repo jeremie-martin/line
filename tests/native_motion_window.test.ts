@@ -15,7 +15,7 @@ it('packed observations equal scalar observations without stepping', () => {
     expect(getPhysicsFrameCount()).toBe(0);
     const raw = extractRawTrajectory(engine, 60), work = getPhysicsFrameCount();
     const scalar = {getLastFrameIndex: () => engine.getLastFrameIndex(),
-      getRider: (f: number) => engine.getRider(f), bodyMotionAt: (f: number) => engine.bodyMotionAt(f),
+      getRider: (f: number) => engine.getRider(f),
       hasContactAtFrame: (f: number) => engine.hasContactAtFrame(f)};
     for (const from of [0, 1, 17, 60, 61]) {
       const frames = raw.frames.slice(from);

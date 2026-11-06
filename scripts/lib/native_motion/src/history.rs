@@ -9,7 +9,7 @@
 //!   - `Frame.grid` (center cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
 //!   - `Frame.collisions` (line id → frames) + addToCollisions + getIndexOfCollisionWithLine
 
-use crate::grid::{cell_cor_from_scaled, hash_int_pair, IntMap, GRID_SIZE};
+use crate::grid::{cell_cor, hash_int_pair, IntMap};
 use crate::line::{collides_with, Line, LineRef};
 use std::cell::OnceCell;
 use crate::shared_prefix::SharedPrefix;
@@ -303,7 +303,7 @@ impl CollisionHistory {
                 return;
             }
         }
-        let (cell_x, cell_y) = (cell_cor_from_scaled(px / GRID_SIZE), cell_cor_from_scaled(py / GRID_SIZE));
+        let (cell_x, cell_y) = (cell_cor(px), cell_cor(py));
         debug_assert_eq!(hash_int_pair(cell_x, cell_y), cell);
         let [min_x, max_x, min_y, max_y] = self.extent;
         self.extent = [min_x.min(cell_x), max_x.max(cell_x), min_y.min(cell_y), max_y.max(cell_y)];
@@ -524,7 +524,7 @@ mod tests {
         let mut history = CollisionHistory::new();
         for (frame, x) in [(1, 1.0), (2, 141.0)] {
             history.begin_frame();
-            history.record_point(hash_int_pair((x / 14.0_f64).floor() as i64, 0), frame, x, 1.0, 1.0, 1.0);
+            history.record_point(crate::grid::cell_hash(x, 1.0), frame, x, 1.0, 1.0, 1.0);
             history.finish_frame();
         }
         assert_eq!(history.first_for_added_lines(&[line(141.0, 1)], i32::MAX), Some(2));

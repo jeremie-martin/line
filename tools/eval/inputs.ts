@@ -60,11 +60,11 @@ export function benchMeta(module: any, where: string): BenchMeta {
 const variantPath = (root: string, song: string, variant: string) => resolve(root, 'productions', song, 'variants', `${variant}.ts`);
 const importBench = async (root: string, song: string, variant: string) =>
   benchMeta(await import(pathToFileURL(variantPath(root, song, variant)).href), `${song}/variants/${variant}.ts`);
-/** Every `productions/<song>/variants/<prefix>-*.ts`, sorted, with its bench metadata. */
-export async function discoverVariants(prefix: 'sealed', root = '.') {
+/** Every `productions/<song>/variants/sealed-*.ts`, sorted, with its bench metadata. */
+async function sealedVariants(root: string) {
   const songs = readdirSync(join(root, 'productions')).filter(s => existsSync(join(root, 'productions', s, 'variants'))).sort();
   const found = songs.flatMap(song => readdirSync(join(root, 'productions', song, 'variants'))
-    .filter(f => f.startsWith(prefix + '-') && f.endsWith('.ts')).sort().map(f => ({song, variant: f.slice(0, -3)})));
+    .filter(f => f.startsWith('sealed-') && f.endsWith('.ts')).sort().map(f => ({song, variant: f.slice(0, -3)})));
   return Promise.all(found.map(async v => ({...v, bench: await importBench(root, v.song, v.variant)})));
 }
 const stratified = (song: string, variant: string | null, seed: number, bench: BenchMeta): EvalCase =>
@@ -91,7 +91,7 @@ export async function panelCases(name: string, root = '.', seedCount?: number): 
   assert.ok(seedCount === undefined || name === 'v7', '--seeds applies to the v7 panel');
   if (name === 'heldout') return HELDOUT.flatMap(h => [101, 202, 303, 404].map(seed =>
     stratified(h.song, h.variant, seed, {stratum: 'H', pattern: h.variant ?? 'preferred', windows: []})));
-  if (name === 'sealed') return (await discoverVariants('sealed', root)).flatMap(v => [101, 202, 303].map(seed => stratified(v.song, v.variant, seed, v.bench)));
+  if (name === 'sealed') return (await sealedVariants(root)).flatMap(v => [101, 202, 303].map(seed => stratified(v.song, v.variant, seed, v.bench)));
   if (name === 'v7') {
     const n = seedCount ?? 4;
     assert.ok(Number.isSafeInteger(n) && n >= 1 && n <= 32, '--seeds is a whole number from 1 to 32');

@@ -15,8 +15,25 @@ import {pathToFileURL} from 'node:url';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory, detect} from '../../scripts/lib/detector.ts';
 import {contactRedirArcPxAtLanding} from '../../scripts/v0/core/substrate.ts';
-import {impactFrames, evaluateMusicalImpacts} from '../../scripts/v0/optimizer/impact_search.ts';
+import {observeContactImpacts, detectContactImpacts, accountContactImpacts, contactSpeedGains, CONTACT_IMPACT_CONTRACT, type ContactImpactFrame, type ImpactTarget} from '../../scripts/lib/contact_impact.ts';
+import {effectiveBodyVelocity} from '../../scripts/v0/optimizer/motion_quality.ts';
+import type {RawFrame} from '../../scripts/lib/detector.ts';
 
+/** The contact-impact predecessor of the strike account: a research diagnostic. */
+function impactFrames(engine: any, frames: readonly RawFrame[]) {
+  if (!frames.length) return [];
+  const last = frames.at(-1)!.frame;
+  if (engine.getLastFrameIndex() < last) throw new Error('impact observation requires a metered complete window');
+  return observeContactImpacts(frames, frame => engine.hasContactAtFrame(frame),
+    effectiveBodyVelocity(engine.getRider(last).ballisticState()));
+}
+function evaluateMusicalImpacts(observed: readonly ContactImpactFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean) {
+  const events = detectContactImpacts(observed).filter(e => e.onset <= duration);
+  const account = accountContactImpacts(events, targets);
+  return {contract: CONTACT_IMPACT_CONTRACT.id, events, targets, account,
+    valid: survived && account.complete && account.matches.every(m => events[m.event].complete),
+    speedGains: contactSpeedGains(observed.filter(f => f.frame <= duration))};
+}
 export const POINTS = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
 export const OUT = 'generated/measure/observations';
 export const SONGS = ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s'];

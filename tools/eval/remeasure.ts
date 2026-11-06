@@ -23,10 +23,9 @@ const old = readJson(join(source, 'run.json')), ids = old.panel.map((c: any) => 
 assert.deepEqual(readdirSync(join(source, 'cells')).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5)).sort(), ids, 'incomplete source run');
 assert.equal(new Set(ids).size, ids.length, 'duplicate source cases');
 const inputs = await Promise.all(old.panel.map((c: any) => resolveCase(c, jolt)));
-const plan: RunPlan = {schema: 'line.eval.v2', identity: old.identity, evaluator: evaluatorIdentity(), jolt,
-  ...(old.mode ? {mode: old.mode} : {}), budget: old.budget, panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
-  remeasuredFrom: {runSha256: digest(old), cellsSha256: digest(ids.map((id: string) => readJson(join(source, 'cells', id + '.json'))))}, ...(old.creative ? {creative: old.creative} : {}),
-  ...(old.adapter ? {adapter: old.adapter} : {})};
+// Everything else, including a retired `mode`, stays as the source run recorded it.
+const plan: RunPlan = {...old, evaluator: evaluatorIdentity(), jolt, panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
+  remeasuredFrom: {runSha256: digest(old), cellsSha256: digest(ids.map((id: string) => readJson(join(source, 'cells', id + '.json'))))}};
 // The saved case list defines this panel. Its name is a provenance label;
 // independently declared confirmation panels need not be CLI presets.
 // Preflight every input before producing any output. A declared offset alone is

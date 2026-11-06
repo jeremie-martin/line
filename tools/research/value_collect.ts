@@ -23,7 +23,7 @@ import {VALUE_COLLECTION} from './value_probes.ts';
 import {gzipSync,gunzipSync} from 'node:zlib';
 import {readFileSync, readdirSync, mkdirSync, existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
-import {spawn} from 'node:child_process';
+import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {createHash} from 'node:crypto';
 
 export const EVAL_GROUPS = ['luna_bala', 'amor_na_praia', 'tiki_tiki', 'amour_de_ma_vie'];
@@ -101,8 +101,7 @@ async function main(){
  const command=process.argv[2];
  if(command==='worker'){await worker(arg('case')!,Number(arg('seed')),arg('out')!);return;}
  assert.equal(command,'run','command is run or worker');assert.ok(arg('out'),'--out is required');
- const dir=resolve(arg('out')!),jobs=Number(arg('jobs','16')),seeds=Number(arg('seeds','1')),budget=arg('budget','standard')!;
- assert.ok(Number.isSafeInteger(jobs)&&jobs>=1&&jobs<=64,'invalid jobs');
+ const dir=resolve(arg('out')!),pool=new WorkerPool(workerJobs(arg('jobs','16'))),seeds=Number(arg('seeds','1')),budget=arg('budget','standard')!;
  assert.ok(Number.isSafeInteger(seeds)&&seeds>=1,'invalid seed count');
  assert.ok(budget==='standard'||Number.isSafeInteger(Number(budget))&&Number(budget)>0,'invalid budget');
  assert.ok(['v4','v6transfer'].includes(catalog),'unknown training catalog');
@@ -124,12 +123,11 @@ async function main(){
   const queue=work.filter(w=>{if(!existsSync(join(dir,`${w.id}~${w.seed}.json.gz`)))return true;readCollectionCell(dir,plan,w);return false;});
   const lengths=new Map(cases.map((c:any)=>[c.id,c.durationFrames]));queue.sort((a,b)=>lengths.get(b.id)!-lengths.get(a.id)!);
   const failures:string[]=[];let done=work.length-queue.length;
-  await Promise.all(Array.from({length:Math.min(jobs,queue.length)},async()=>{while(queue.length){const w=queue.shift()!;
-   try{await new Promise<void>((ok,fail)=>{const p=spawn(process.execPath,[import.meta.filename,'worker',`--catalog=${catalog}`,`--case=${w.id}`,`--seed=${w.seed}`,`--out=${dir}`],{env:{...process.env,LR_ENGINE:'wasm'},stdio:['ignore','ignore','inherit']});
-    p.once('error',fail);p.once('exit',(code,signal)=>code===0?ok():fail(Error(`worker exited ${code??signal}`)));});
+  await pool.run(queue,async w=>{
+   try{await pool.worker([import.meta.filename,'worker',`--catalog=${catalog}`,`--case=${w.id}`,`--seed=${w.seed}`,`--out=${dir}`]);
     readCollectionCell(dir,plan,w);console.log(`${++done}/${work.length} ${w.id}~${w.seed}`);
    }catch(e){failures.push(`${w.id}~${w.seed}: ${e}`);}
-  }}));
+  });
   assert.deepEqual(compilerIdentity('.'),plan.compiler);assert.equal(sourceIdentity(),plan.collector);
   assert.deepEqual(failures,[],'incomplete collection; resume after addressing worker failures');
   const records=work.map(w=>readCollectionCell(dir,plan,w)),probes=records.reduce((n,r)=>n+r.probes.length,0);

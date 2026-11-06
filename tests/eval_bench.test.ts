@@ -49,15 +49,15 @@ it('rejects a malformed bench export with the file named', async () => {
 });
 
 it('runs sealed and held-out panels only on their explicit flag', () => {
-  expect(() => validateRunOptions('standard', 1, 'sealed')).toThrow(/only with --sealed/);
-  expect(() => validateRunOptions('standard', 1, 'sealed', {sealed: true})).not.toThrow();
-  expect(() => validateRunOptions('standard', 1, 'heldout')).toThrow(/only with --heldout.*held out from compiler decisions/);
-  expect(() => validateRunOptions('standard', 1, 'heldout', {heldout: true})).not.toThrow();
-  expect(() => validateRunOptions('standard', 1, 'heldout', {sealed: true, heldout: true})).toThrow(/--sealed applies only/);
-  expect(() => validateRunOptions('standard', 1, 'v7', {heldout: true})).toThrow(/--heldout applies only/);
-  for (const p of ['v7', 'v7-confirm']) expect(() => validateRunOptions('standard', 1, p)).not.toThrow();
-  for (const p of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8']) expect(() => validateRunOptions('standard', 1, p)).toThrow(/unknown evaluation panel/);
-  expect(() => validateRunOptions('standard', 1, 'patterns')).toThrow(/unknown evaluation panel/);
+  expect(() => validateRunOptions('standard', 'sealed')).toThrow(/only with --sealed/);
+  expect(() => validateRunOptions('standard', 'sealed', {sealed: true})).not.toThrow();
+  expect(() => validateRunOptions('standard', 'heldout')).toThrow(/only with --heldout.*held out from compiler decisions/);
+  expect(() => validateRunOptions('standard', 'heldout', {heldout: true})).not.toThrow();
+  expect(() => validateRunOptions('standard', 'heldout', {sealed: true, heldout: true})).toThrow(/--sealed applies only/);
+  expect(() => validateRunOptions('standard', 'v7', {heldout: true})).toThrow(/--heldout applies only/);
+  for (const p of ['v7', 'v7-confirm']) expect(() => validateRunOptions('standard', p)).not.toThrow();
+  for (const p of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8']) expect(() => validateRunOptions('standard', p)).toThrow(/unknown evaluation panel/);
+  expect(() => validateRunOptions('standard', 'patterns')).toThrow(/unknown evaluation panel/);
 });
 
 // ---- synthetic runs for the report arithmetic ----

@@ -13,19 +13,19 @@ function row(frame: number, variant = 0): RawFrame {
     sledContacts: contact ? ['PEG'] : [], contactLineIds: contact ? [1] : [], sledBroken: false, riderEjected: false};
 }
 
-for (const motion of [false, true]) for (const account of ['landing', 'valid', 'invalid'] as const) for (const engagementGainWeight of [0, .64]) {
+for (const motion of [false, true]) for (const account of ['valid', 'invalid'] as const) for (const engagementGainWeight of [0, .64]) {
   it(`matches frozen full scoring across prefix boundaries (${motion ? 'motion' : 'axes'}, ${account}, gain ${engagementGainWeight})`, () => {
     const ctx = createArcCompileContext({duration: 5, preroll: 0,
       contacts: [1, 2, 3, 4].map(t => ({t, impact: .4})),
       axes: {air: () => .4, speed: () => .6, amplitude: () => .2}},
     {budget: 200_000, motionQuality: motion ? {burstWeight: .64, calmWeight: 1} : undefined,
       impactSearch: {engagementGainWeight}});
-    const impacts: ImpactAssessment | undefined = account === 'landing' ? undefined : {
+    const impacts: ImpactAssessment = {
       contract: 'line.strike.v3', events: [], targets: [], account: accountContactImpacts([], []), valid: account === 'valid'};
     const all = Array.from({length: 221}, (_, frame) => row(frame));
     const observe = (f: RawFrame, variant = 0): ImpactObservation => ({frame: f.frame, contact: !!f.sledContacts.length,
       solverGain: Math.sin(f.frame / 4 + variant), gravityGain: .1, speedBefore: 3});
-    const completeScore = (raw: RawTrajectory, physical: ImpactObservation[] | undefined) =>
+    const completeScore = (raw: RawTrajectory, physical: ImpactObservation[]) =>
       referenceSelection(ctx, raw, physical, referenceAxes(detect(raw), ctx.gaps, .37, impacts));
     for (const cut of [0, 1, 2, 10, 38, 39, 40, 41, 79, 80, 159, 160, 199, 200, 219, 220]) {
       const prefix: RawTrajectory = {duration: cut, frames: all.slice(0, cut + 1)};
@@ -42,7 +42,6 @@ for (const motion of [false, true]) for (const account of ['landing', 'valid', '
         // prefix cannot reuse completed engagement sums from the first stream.
         const replacedPhysical = physical.map(f => ({...f, contact: true, solverGain: .1}));
         expect(scorer.score(raw, detect(raw), replacedPhysical, impacts)).toStrictEqual(completeScore(raw, replacedPhysical));
-        expect(scorer.score(raw, detect(raw), undefined, impacts)).toStrictEqual(completeScore(raw, undefined));
         // A changed boundary cannot reuse the cached prefix; a later real
         // continuation must still see its original owned reductions.
         const replaced = {...raw, frames: raw.frames.map((f, i) => i <= cut ? row(i, 3) : f)};

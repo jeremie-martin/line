@@ -33,7 +33,7 @@ export function measureCell({c, track, spec, music, physicalFrames, compileMs, c
   // The production grade, as the ride page shows it and as the headline has
   // always been formed: 1000·exp(−rms/0.25) over air, speed and the impact
   // account, 0 for an invalid or incomplete ride.
-  const grade = impactEvaluation ? contactImpactGrade(frozen, impactEvaluation).score : undefined;
+  const grade = contactImpactGrade(frozen, impactEvaluation).score;
   const targets = music.contacts, observation = observe(track, music.durationFrames, targets);
   const strikes = detectStrikes(strikeFrames(observation)).filter(e => e.onset <= music.durationFrames);
   const strike = accountStrikes(strikes, targets);
@@ -67,12 +67,12 @@ export function measureCell({c, track, spec, music, physicalFrames, compileMs, c
   const guards = {strongInverted: strongPose.length ? strongPose.filter(Boolean).length / strongPose.length : NaN,
     dragSecondsPerMinute: dragFrames / 40 / (last / 40 / 60), offBeatKicks: kicks};
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
-  const beats = beatRows({id: c.id, set: 'strike3', song: c.song, seed: c.seed, durationFrames: music.durationFrames,
+  const beats = beatRows({id: c.id, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
   return {case: c,
     physicalFrames, compileMs, complete, fulfilled,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
-    ...(grade ? {score: {contract: impactRuler.id, valid: grade.valid, score: grade.score, rms: grade.weightedAxisRms}} : {}),
+    score: {contract: impactRuler.id, valid: grade.valid, score: grade.score, rms: grade.weightedAxisRms},
     // Per gap and axis (air, speed, amplitude): [gap, axis, target, achieved], signed errors recoverable.
     gaps: frozen.observations.filter((o: any) => o.axis !== 'impact').map((o: any) => [o.gap, o.axis, +o.target.toFixed(4), o.achieved === null ? null : +o.achieved.toFixed(4)]),
     contact: {loss: observation.contactAccount.loss, strengthMse: observation.contactAccount.strengthMse, timingMse: observation.contactAccount.timingMse, extraMse: observation.contactAccount.extraMse},

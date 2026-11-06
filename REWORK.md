@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: measure real compiles; −3.89% on the production workload
+
+The timing target used a warmed 150 k cell, 5% of a real compile, with a different
+profile. `perf:engine` now defaults to the standard allowance, cold, with
+`--against=<ref>`; `perf:profile` shows where a real compile goes. The 6,500 ns
+target is retired with its workload. Fresh twelve-pair comparison with `3b1e0ae0`:
+−3.89% [−4.10%, −3.39%], 12 of 12 faster, both songs individually; 17.2 → 16.5 s.
+All structural gates pass: 452 JS and 32 Rust tests, 65 physics cases, 63 compiler
+cases, 33 judge tracks. Worker defaults follow measured memory; parity takes 155 s.
+Sibling trajectory reuse and several other ideas are rejected with evidence.
+
+[Findings, rejected ideas and the remaining ceiling](docs/research/engine-real-workload-20261106.md).
+
 ## November 6: consume cached contacts directly; confirm 6,724 ns
 
 Contact-only finalization and replay consumers no longer manufacture full

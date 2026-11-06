@@ -147,6 +147,13 @@ and validation are in [music authoring](docs/music-authoring.md).
    per-frame motion objects. Pure body-motion values are
    memoized lazily per frame; this memo can be shared across detached snapshots
    without copying their simulation data, and follows frame rollback and reset.
+   The learned future value flattens its forest into one typed array per field,
+   once per model. Candidates borrow one reusable frame array per search, valid
+   until the next replay, like the detection they are read with. Registration
+   skips neighborhood cells outside the extent of recorded rider history; rollback
+   keeps that extent, which only has to contain the retained cells. A memoized
+   candidate still adds its lines: that add truncates the shared cache, so later
+   replays, and charged work, depend on it.
    Two-dimensional geometry and motion magnitudes share `lib/hypot2.ts`: a
    scalar normalized sum preserves the reference binary64 calculation without
    temporary argument storage. Zero and nonfinite behavior remain explicit;

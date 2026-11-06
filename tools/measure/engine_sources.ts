@@ -48,7 +48,7 @@ function identity(files: Map<string, Buffer>): string {
 }
 
 function sharedInput(name: string): boolean {
-  return name === 'package-lock.json' || name === 'tools/parity/cells.json' ||
+  return name === 'package-lock.json' || name === 'tools/parity/cells.json' || name === 'tools/parity/cases.json.gz' ||
     ['productions/', 'vendor/', 'tools/parity/tracks/', 'tools/parity/physics-tracks/', 'engine-rs/src/'].some(prefix => name.startsWith(prefix));
 }
 

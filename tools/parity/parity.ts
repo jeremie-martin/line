@@ -39,25 +39,25 @@ function caseOf(cell: {id: string}) {
   return {c, music: fixture.music[c.sourceId]};
 }
 
-/** A V7 specification: authored inputs and options as `compare` resolves them, without reading audio. */
+/** A V7 specification as `compare` compiles it, without reading audio. The default
+ * offset is pinned: the environment's LR_JOLT_OFFSET_MS must not move these hashes. */
+async function specCase(cell: Cell) {
+  const [{loadMusicSpec}, {JOLT_DEFAULT_MS}] = await Promise.all([import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/produce/jolt.ts')]);
+  const {song, variant} = cell.spec!;
+  return loadMusicSpec({song, title: song, moments: [], variant}, JOLT_DEFAULT_MS);
+}
+
 async function specInputs(cell: Cell) {
-  const [{loadMusicSpec}, {resolveJoltMs}, {productionBudget}, {explicitPlan}] = await Promise.all([
-    import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/produce/jolt.ts'),
-    import('../../scripts/v0/optimizer/production_budget.ts'), import('../eval/compile.ts')]);
-  const {song, variant} = cell.spec!, definition = {song, title: song, moments: [], variant};
-  const {spec, musicCase: music} = await loadMusicSpec(definition, resolveJoltMs());
-  const construction = (await import(pathToFileURL(resolve('productions', song, 'variants', `${variant}.ts`)).href)).bench?.construction;
-  const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);
-  const budget = cell.budget ?? productionBudget(spec.duration);
-  const options = construction ? {budget, constructionPlan: await explicitPlan('.', spec, cell.seed, {}, boundaries, construction)}
-    : {budget, creative: {}, phraseBoundaries: boundaries};
-  return {spec, music, options};
+  const [{productionBudget}, {compileOptions}] = await Promise.all([import('../../scripts/v0/optimizer/production_budget.ts'), import('../eval/compile.ts')]);
+  const {spec, musicCase: music} = await specCase(cell), {song, variant} = cell.spec!;
+  const windows = (await import(pathToFileURL(resolve('productions', song, 'variants', `${variant}.ts`)).href)).bench?.construction;
+  return {spec, options: await compileOptions('.', spec, cell.seed, cell.budget ?? productionBudget(spec.duration), {}, music, windows)};
 }
 
 async function cellInputs(cell: Cell) {
   if (cell.spec) return specInputs(cell);
   const {c, music} = caseOf(cell), requested = c.plans[cell.seed];
-  return {spec: caseSpec(music), music, options: {budget: cell.budget ?? FIXTURE_BUDGET,
+  return {spec: caseSpec(music), options: {budget: cell.budget ?? FIXTURE_BUDGET,
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})}};
 }
 
@@ -87,7 +87,7 @@ export async function compileWorker(index: number, out: string, collectResources
 }
 
 async function judgeTrack(cell: Cell, track: any) {
-  const [{music}, {replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([cellInputs(cell),
+  const [music, {replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([cell.spec ? specCase(cell).then(r => r.musicCase) : caseOf(cell).music,
     import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts')]);
   const replay = replayGalleryTrack(track, music as any, true), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
@@ -109,18 +109,17 @@ else if (command === 'compile') {
     const out = join(dir, `${i}.json`), name = `${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
     try {
       await pool.worker([import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`]);
+      const r = JSON.parse(readFileSync(out, 'utf8'));
+      const diff = compare(c, r, ['trackHash', 'physicalFrames']);
+      if (flag('update') && (diff.length || c.trackHash === undefined)) {
+        Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
+        if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
+      }
+      console.log(`${diff.length ? 'DIFF' : 'same'}  ${name}  ${(r.compileMs / 1000).toFixed(0)}s${diff.length ? '  ' + diff.join('; ') : ''}`);
+      if (diff.length && !flag('update')) failures.push(`${name}: ${diff.join('; ')}`);
     } catch (error) {
       failures.push(`${name}: ${error}`);
-      return;
     }
-    const r = JSON.parse(readFileSync(out, 'utf8'));
-    const diff = compare(c, r, ['trackHash', 'physicalFrames']);
-    if (flag('update') && (diff.length || c.trackHash === undefined)) {
-      Object.assign(c, {trackHash: r.trackHash, physicalFrames: r.physicalFrames}, c.budget ? {} : await judgeTrack(c, r.track));
-      if (!c.budget) writeFileSync(trackFile(c), gzipSync(JSON.stringify(r.track)));
-    }
-    console.log(`${diff.length ? 'DIFF' : 'same'}  ${name}  ${(r.compileMs / 1000).toFixed(0)}s${diff.length ? '  ' + diff.join('; ') : ''}`);
-    if (diff.length && !flag('update')) failures.push(`${name}: ${diff.join('; ')}`);
   });
   if (flag('update')) writeFileSync(cellsPath, JSON.stringify(doc, null, 1) + '\n');
   console.log(`${failures.length ? 'FAIL' : 'PASS'}  compile parity  (${((performance.now() - began) / 1000).toFixed(0)}s)`);

@@ -50,6 +50,10 @@ export function commitContent(commit: string, engineSha256: string) {
     && git('.', 'status', '--porcelain', '--', path).toString().trim() === '';
   for (const path of ['engine-rs/src', 'package-lock.json'])
     assert.ok(same(path), `${commit.slice(0, 8)} has another ${path} than this checkout's build; it cannot be compiled faithfully here (check out and build it, or compare within one build)`);
+  // Older compilers took the impact contract as an option and fall back to the landing
+  // objective without it: this adapter would silently compile the wrong objective.
+  assert.ok(!git('.', 'show', `${commit}:scripts/v0/optimizer/handoff.ts`).toString().includes('impactContract'),
+    `${commit.slice(0, 8)} predates the single impact ruler; it cannot be compiled by this adapter`);
   const trees = Object.fromEntries(COMPILER_PATHS.map(p => [p, git('.', 'rev-parse', `${commit}:${p}`).toString().trim()]));
   return {key: digest({trees, dirtySha256: EMPTY, engineSha256}), head: commit, clean: true, dirtySha256: EMPTY, engineSha256};
 }

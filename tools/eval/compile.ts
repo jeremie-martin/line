@@ -48,17 +48,20 @@ export async function explicitPlan(root: string, spec: any, seed: number, creati
   return validateProductionPlan(normalized, {...plan, requests, phrases});
 }
 
+/** The compile options of one ride: its automatic plan, or an explicit request. Parity shares this route. */
+export async function compileOptions(root: string, spec: any, seed: number, budget: number, creative: Record<string, unknown>, music: {phases: any[]}, windows?: any[]) {
+  const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);
+  return windows ? {budget, constructionPlan: await explicitPlan(root, spec, seed, creative, boundaries, windows)}
+    : {budget, creative, phraseBoundaries: boundaries};
+}
+
 export async function compileAndMeasure(root: string, c: PlannedCase, resolved: {spec: any; music: any}, settings: ArmSettings) {
   const [{compileHandoff}, {productionBudget}] = await Promise.all([
     import(pathToFileURL(join(root, 'scripts/v0/optimizer/handoff.ts')).href),
     import(pathToFileURL(join(root, 'scripts/v0/optimizer/production_budget.ts')).href),
   ]);
   const {spec, music} = resolved, budget = allowanceFor(settings.budget, spec.duration, productionBudget), began = performance.now();
-  const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite), creative = settings.creative ?? {};
-  const windows = c.bench?.construction;
-  const cp = compileHandoff(spec, c.seed, windows
-    ? {budget, constructionPlan: await explicitPlan(root, spec, c.seed, creative, boundaries, windows)}
-    : {budget, creative, phraseBoundaries: boundaries});
+  const cp = compileHandoff(spec, c.seed, await compileOptions(root, spec, c.seed, budget, settings.creative ?? {}, music, c.bench?.construction));
   const compileMs = performance.now() - began, r = cp.repertoire!;
   const cell = measureCell({c, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
     compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full, geometry: geometryFacts(r)});

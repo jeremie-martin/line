@@ -44,7 +44,7 @@ it('treats identical source as a control independently of the swapped binary', (
   expect(readFileSync(join(candidate, 'scripts/lib/native_motion/engine.wasm'), 'utf8')).toBe('new wasm');
 });
 
-it.each(['tools/parity/cells.json', 'tools/parity/tracks/track.json.gz', 'productions/a/input.json',
+it.each(['tools/parity/cells.json', 'tools/parity/cases.json.gz', 'tools/parity/tracks/track.json.gz', 'productions/a/input.json',
   'vendor/lr-core/kernel.js', 'engine-rs/src/kernel.rs', 'package-lock.json'])(
   'rejects changed measurement input %s', name => {
     const reference = directory(), candidate = directory();

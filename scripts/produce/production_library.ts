@@ -13,7 +13,7 @@ import {resolveJoltMs} from './jolt.ts';
 import {loadMusicCase} from './music_artifacts.ts';
 import {musicSource,assertLibraryEntry} from './library_plan.ts';
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
-const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),pool=new WorkerPool(workerJobs(arg('jobs',phase==='render'?'1':'')||undefined));
+const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),pool=new WorkerPool(workerJobs(arg('jobs',phase==='render'?'1':'3')));
 if(!['compile','render','index'].includes(phase))throw new Error('invalid phase');
 mkdirSync(out,{recursive:true});
 const release=lockArtifacts(out);
@@ -68,7 +68,8 @@ try {
    const mirror=phase==='render'?await ensureMirror():null;
    try{
     const queue=phase==='render'?[...entries].sort((a,b)=>a.request.seed-b.request.seed):entries;
-    await pool.run(queue,run);
+    // One entry's failure stays its own: the others finish and every outcome is recorded.
+    await pool.run(queue,(entry:any)=>run(entry).catch(e=>{failures.push(entry.id+': '+String(e));}));
    }finally{mirror?.kill();}
   }
   index();

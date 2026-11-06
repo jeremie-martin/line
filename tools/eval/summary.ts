@@ -121,7 +121,7 @@ export const specKey = (c: any) => `${c.song}~${c.variant ?? 'spec'}`;
 export function stratify(a: Run, b?: Run) {
   if (b) assertPairedRuns(a, b);
   const cases = a.run.panel as any[];
-  assert.ok(cases.every(c => c.bench), 'not a stratified run: use the legacy report');
+  assert.ok(cases.every(c => c.bench), 'this run predates the stratified panels; its report is at tag archive/pre-lean-foundation-2026-11');
   const strata = strataOf(cases);
   const done = (r: Run | undefined, id: string) => r ? r.cells.get(id).complete as boolean : true;
   const failures = (r: Run) => cases.filter(c => !r.cells.get(c.id).complete).map(c => ({id: c.id, ...failurePoint(r.cells.get(c.id))}));

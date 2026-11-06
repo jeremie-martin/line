@@ -24,7 +24,7 @@ assert.deepEqual(readdirSync(join(source, 'cells')).filter(f => f.endsWith('.jso
 assert.equal(new Set(ids).size, ids.length, 'duplicate source cases');
 const inputs = await Promise.all(old.panel.map((c: any) => resolveCase(c, jolt)));
 const plan: RunPlan = {schema: 'line.eval.v2', identity: old.identity, evaluator: evaluatorIdentity(), jolt,
-  budget: old.budget, panelName: old.panelName, panel: inputs.map(x => x.planned),
+  ...(old.mode ? {mode: old.mode} : {}), budget: old.budget, panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
   remeasuredFrom: {runSha256: digest(old), cellsSha256: digest(ids.map((id: string) => readJson(join(source, 'cells', id + '.json'))))}, ...(old.creative ? {creative: old.creative} : {}),
   ...(old.adapter ? {adapter: old.adapter} : {})};
 // The saved case list defines this panel. Its name is a provenance label;

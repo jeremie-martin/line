@@ -10,7 +10,7 @@ const {LineRiderEngine:Engine,disposeAllWasmEnginesForStudy:dispose}=
   await import(new URL('../lib/_lr_engine_wasm.ts?gallery-artifact-replay',import.meta.url).href);
 export const galleryCompilerIdentity=(root:string)=>compilerIdentity(root);
 const JUDGE_ENGINE='engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
-const JUDGE_FILES=['scripts/lib/span_grade.ts','scripts/lib/case.ts','scripts/gallery/contact_impact_grade.ts','scripts/lib/strike_impact.ts','scripts/lib/contact_impact.ts',
+const JUDGE_FILES=['scripts/lib/span_grade.ts','scripts/lib/case.ts','scripts/gallery/contact_impact_grade.ts','scripts/v0/optimizer/impact_accounts.ts','scripts/lib/strike_impact.ts','scripts/lib/contact_impact.ts',
   'scripts/v0/core/substrate.ts','scripts/v0/core/measure.ts','scripts/v0/types.ts','scripts/lib/_lr_engine_wasm.ts','scripts/lib/detector.ts'];
 /** Provenance of a saved result: which judge sources and engine produced it. */
 export const judgeIdentity=()=>({engineSha256:sha(readFileSync(JUDGE_ENGINE)),files:Object.fromEntries(JUDGE_FILES.map(p=>[p,sha(readFileSync(p))]))});

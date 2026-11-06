@@ -192,6 +192,6 @@ async function loadLibrary(){try{
  const filter=()=>{const query=$('filter-rides').value.trim().toLocaleLowerCase();let shown=0;for(const c of $('library').children){c.hidden=!c.textContent.toLocaleLowerCase().includes(query);if(!c.hidden)shown++;}$('collection-count').textContent=`${shown} of ${data.entries.length} rides${shown?'':' · No matching rides'}`;};
  $('filter-rides').oninput=filter;filter();
  const initial=params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
- if(initial){const at=Math.max(0,Number(params.get('t'))||0);$('comparison').checked=params.get('compare')==='previous';await openResult(initial,undefined?Math.round(at*40)/40:at);}
+ if(initial){const at=Math.max(0,Number(params.get('t'))||0);$('comparison').checked=params.get('compare')==='previous';await openResult(initial,undefined,at);}
  }catch(e){$('library').textContent=e.message;}}
 try{catalog=await api('catalog');names=Object.fromEntries(catalog.constructions.map(c=>[c.id,c.label]));$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const {id,label:name}of catalog.constructions){const label=el('label'),input=el('input');input.type='checkbox';input.value=id;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await Promise.all([loadLibrary(),refreshJobs()]);setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

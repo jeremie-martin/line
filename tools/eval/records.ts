@@ -8,6 +8,8 @@ import {digest, type resolveCase} from './inputs.ts';
 
 export type PlannedCase = Awaited<ReturnType<typeof resolveCase>>['planned'];
 export type RunPlan = {schema: 'line.eval.v2'; identity: any; evaluator: string; jolt: number; budget: string;
+  /** The compile mode of a run from before the single ruler: provenance only. */
+  mode?: string;
   panelName: string; panel: PlannedCase[]; remeasuredFrom?: {runSha256: string; cellsSha256: string};
   /** sha256 of the compile adapter (tools/eval/compile.ts) the run compiles with; absent on older runs. */
   adapter?: string;

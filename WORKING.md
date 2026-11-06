@@ -100,44 +100,19 @@ plan and its log.
 
 ## Compute
 
-- The earlier timing records used a 64-core, 62 GB host. Check the current
-  machine before choosing concurrency or interpreting those timings.
-- Evaluation, comparison and parity share a default limited by available CPUs and roughly 2 GB per worker
-  (at most 23). On the November 3 laptop (20 threads, 16 GB), this is eight
-  workers; `--jobs=N` overrides it. Do not benchmark alongside
-  parity or other heavy checks. Engine performance decisions use
-  `npm run perf:engine`: fixed paired rounds, a frozen candidate, and fresh
-  confirmation under the same protocol. `--mode=compile` measures real compiles
-  at the standard allowance with exact track/work parity; `bench:engine` is a
-  workload diagnostic. `npm run perf:profile` shows where a real compile goes.
-  When a change shifts work between registration and simulation, report isolated
-  stepping cost alongside the combined workloads and compiler timings.
-  For cache/allocation changes, also report WASM linear-memory high-water size;
-  it is distinct from live allocations or process RSS.
-  Paired protocol v3 uses a fixed, balanced randomized process-pair experiment,
-  with every warmup retained and one exact median-change confidence interval.
-  Live medians and pair counts are descriptive. A losing trial may be abandoned
-  early with its partial evidence retained; it cannot qualify a candidate or be
-  presented as a completed verdict. Promising runs still need the declared full
-  experiment and fresh confirmation.
-  Declare the practical speed/non-regression margin before measuring. An
-  inconclusive interval is not equivalence. Null and injected-slowdown controls
-  check the experiment; they cannot qualify a candidate. Separate fresh processes
-  collect resources. See `docs/engine-validation.md` for the current workflow.
-  Historical v1/v2 timing and decisions retain their original meanings; do not
-  compare different warmup policies as if they were code improvements. Quality
-  probabilities from V7 seed blocks are not performance evidence.
-- Use the pinned Node and Rust versions. Treat runtime/toolchain upgrades as
-  explicit requalification work, particularly for binary64 equality. Preserve
-  isolated workers for concurrent compiles; in-process compilation is synchronous
-  and rejects reentrancy. Borrowed observation callbacks return owned data.
-- Before a new optimization trial, declare whether adoption requires a speedup
-  or permits a resource tradeoff, with explicit regression bounds and separate
-  correctness/design gates. A timing verdict alone is not an adoption decision.
-  The tool's default 2% margin is not a universal minimum benefit: weigh a
-  supported smaller improvement against simplicity and resource gains. Keep
-  the fixed experiment and its reported verdict intact; record any owner-led
-  change to the adoption policy explicitly.
-- Check `REWORK.md` and `docs/research/` for earlier trials of a proposed
-  mechanism. Declare resource bounds at a meaningful scale: WASM
-  capacity grows in 64 KiB pages and is distinct from live allocation size.
+- Check the current machine before choosing concurrency or reading old timings.
+- Evaluation, comparison and parity share one worker pool: available CPUs at about
+  2 GB each, eight on this 20-thread, 16 GB laptop. `--jobs=N` overrides it.
+- Compiler speed decisions use `npm run perf:engine -- --mode=compile
+  --against=<ref>` on real compiles, and `npm run perf:profile` shows where a compile
+  goes. Never benchmark alongside other heavy work. Protocol and reading the
+  result: [docs/engine-validation.md](docs/engine-validation.md).
+- Before a trial, declare whether it needs a speedup or permits a resource tradeoff,
+  with its bounds. A timing verdict alone is not an adoption decision; weigh it against
+  simplicity. Keep a small gain only if the code stays clean: avoid odd optimizations
+  that would not survive a later redesign.
+- Use the pinned Node and Rust versions. Treat upgrades as explicit requalification,
+  particularly for binary64 equality.
+- A compile is sequential, in its own process, and in-process compilation rejects
+  reentrancy. Parallelism is across rides. Borrowed observation callbacks return owned data.
+- Check `REWORK.md` and `docs/research/` for earlier trials of a proposed mechanism.

@@ -1,8 +1,9 @@
+import {execFileSync} from 'node:child_process';
 import {afterEach, expect, it} from 'vitest';
 import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
-import {sourceOverlay} from '../tools/measure/engine_sources.ts';
+import {snapshotSources, sourceOverlay} from '../tools/measure/engine_sources.ts';
 const directories: string[] = [];
 function directory() { const dir = mkdtempSync(join(tmpdir(), 'engine-source-')); directories.push(dir); return dir; }
 function put(dir: string, name: string, value: string) {
@@ -51,3 +52,20 @@ it.each(['tools/parity/cells.json', 'tools/parity/cases.json.gz', 'tools/parity/
     put(reference, name, 'base'); put(candidate, name, 'different');
     expect(() => sourceOverlay(reference, candidate)).toThrow(`performance inputs differ: ${name}`);
   });
+
+it('snapshots what a commit contains, leaving ignored local data behind', () => {
+  const source = directory(), destination = join(directory(), 'snapshot'), git = (...args: string[]) => execFileSync('git', args, {cwd: source});
+  git('init', '-q');
+  put(source, '.gitignore', '*.mp3\n*_selection/\n');
+  put(source, 'productions/song/spec.ts', 'spec'); put(source, 'productions/song/audio.mp3', 'audio');
+  put(source, 'productions/song_selection/take.wav', 'take');
+  for (const dir of ['scripts', 'tools', 'vendor', 'engine-rs']) put(source, `${dir}/file.ts`, 'file');
+  for (const file of ['package.json', 'package-lock.json', 'tsconfig.json']) put(source, file, '{}');
+  const runner = directory();
+  for (const file of ['engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm', 'tools/measure/engine_ab.ts', 'tools/measure/engine_sources.ts', 'tools/measure/engine_decision.ts',
+    'tools/measure/engine_workload.ts', 'tools/parity/engine_corpus.ts', 'tools/parity/parity.ts', 'scripts/lib/workers.ts']) put(runner, file, 'runner');
+  snapshotSources(source, destination, runner);
+  expect(existsSync(join(destination, 'productions/song/spec.ts'))).toBe(true);
+  expect(existsSync(join(destination, 'productions/song/audio.mp3'))).toBe(false);
+  expect(existsSync(join(destination, 'productions/song_selection'))).toBe(false);
+});

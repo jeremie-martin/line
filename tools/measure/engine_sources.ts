@@ -2,6 +2,7 @@
  * cwd with the same runner, inputs and dependencies; only changed source files
  * are swapped between fresh processes, outside the measured interval. */
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {cpSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
 import {basename, dirname, join, relative} from 'node:path';
@@ -12,11 +13,23 @@ const runnerFiles = ['tools/measure/engine_ab.ts', 'tools/measure/engine_sources
   'tools/measure/engine_decision.ts', 'tools/measure/engine_workload.ts', 'tools/parity/engine_corpus.ts', 'tools/parity/parity.ts', 'scripts/lib/workers.ts'];
 const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 
+const SOURCE_DIRS = ['scripts', 'tools', 'productions', 'vendor', 'engine-rs'];
+
+/** What git ignores in a checkout: audio, renders and other local data. No compile
+ * reads them, and they are absent from a commit, so neither arm may contain them. */
+function ignoredPaths(root: string): Set<string> {
+  if (!existsSync(join(root, '.git'))) return new Set();
+  const listed = execFileSync('git', ['ls-files', '--others', '--ignored', '--exclude-standard', '--directory', '--', ...SOURCE_DIRS],
+    {cwd: root, encoding: 'utf8', maxBuffer: 2 ** 28});
+  return new Set(listed.split('\n').filter(Boolean).map(path => path.replace(/\/$/, '')));
+}
+
 export function snapshotSources(source: string, destination: string, runnerRoot: string): void {
   mkdirSync(destination, {recursive: true});
-  for (const dir of ['scripts', 'tools', 'productions', 'vendor', 'engine-rs'])
+  const ignored = ignoredPaths(source);
+  for (const dir of SOURCE_DIRS)
     cpSync(join(source, dir), join(destination, dir), {recursive: true,
-      filter: path => !['target', 'node_modules', '.cache', '__pycache__'].includes(basename(path))});
+      filter: path => !ignored.has(relative(source, path)) && !['target', 'node_modules', '.cache', '__pycache__'].includes(basename(path))});
   for (const file of ['package.json', 'package-lock.json', 'tsconfig.json'])
     copyFileSync(join(source, file), join(destination, file));
   for (const file of ['.nvmrc', 'rust-toolchain.toml'])

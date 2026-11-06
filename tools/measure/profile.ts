@@ -17,6 +17,10 @@ import {prepareCell} from '../parity/parity.ts';
 import {cellIndices, PERF_CELLS} from './engine_decision.ts';
 
 const arg = (key: string, fallback: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
+if (process.argv.includes('--help')) {
+  console.log('npm run perf:profile -- [--cell=NAME] [--kind=cpu|allocation] [--top=40] [--warmup=0]');
+  process.exit(0);
+}
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const name = arg('cell', PERF_CELLS[0]), kind = arg('kind', 'cpu'), top = Number(arg('top', '40')), warmup = Number(arg('warmup', '0'));
 if (kind !== 'cpu' && kind !== 'allocation') throw new Error('--kind must be cpu or allocation');

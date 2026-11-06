@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: using the tools as written
+
+Running each documented workflow found what gates did not. `perf:engine --against`
+failed once audio existed locally, so snapshots now exclude everything git ignores.
+`production.html` kept a link to a removed stylesheet; a test now checks local page
+assets. `npm run measure` needed October data and is gone. In real Chromium, `?t=12.5`
+opens at 12.50 s and the retired `?review=` is ignored. Open gaps: `check` runs no
+page or timing smoke, and the review saved collection predates the compiler.
+
 ## November 6: one compiler, one ruler, one panel family
 
 Owner decisions: retire landing, strike v1 and v2 as compile modes, the V3–V6

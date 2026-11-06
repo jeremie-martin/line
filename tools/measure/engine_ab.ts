@@ -6,7 +6,7 @@
  * no peeking verdict, and a fresh confirmation of a frozen screening candidate.
  */
 import assert from 'node:assert/strict';
-import {copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, symlinkSync, writeFileSync} from 'node:fs';
+import {copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, renameSync, symlinkSync, writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {cpus, platform, release} from 'node:os';
@@ -182,6 +182,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
   snapshotSources(root, sandbox, root);
   const referenceSource = referenceRoot ? join(out, 'reference-source') : sandbox;
   if (referenceRoot) snapshotSources(resolve(referenceRoot), referenceSource, root);
+  if (against) rmSync(referenceRoot, {recursive: true}); // Unpacked only to be snapshotted.
   const sources = sourceOverlay(referenceSource, sandbox);
   const [referenceSourceSha256, sourceSha256] = sources.sourceSha256;
   const identical = artifacts[0].sha256 === artifacts[1].sha256 && referenceSourceSha256 === sourceSha256;

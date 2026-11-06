@@ -57,7 +57,13 @@ export function commitContent(commit: string, engineSha256: string) {
   const trees = Object.fromEntries(COMPILER_PATHS.map(p => [p, git('.', 'rev-parse', `${commit}:${p}`).toString().trim()]));
   return {key: digest({trees, dirtySha256: EMPTY, engineSha256}), head: commit, clean: true, dirtySha256: EMPTY, engineSha256};
 }
-export const resolveCommit = (ref: string) => git('.', 'rev-parse', '--verify', `${ref}^{commit}`).toString().trim();
+export function resolveCommit(ref: string) {
+  try {
+    return git('.', 'rev-parse', '--verify', '--quiet', `${ref}^{commit}`).toString().trim();
+  } catch {
+    throw new Error(`${ref} is not a git commit. --candidate takes a commit or branch; saved references are for --reference`);
+  }
+}
 
 /** A checkout of `commit` the workers compile from. Only the compiler comes
  * from it: songs, audio and measurement come from this checkout. Ignored build

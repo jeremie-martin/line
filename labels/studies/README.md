@@ -19,7 +19,7 @@ method was retired for blind pairs, and its page and generator were removed on
 strike strength; sides in the key). Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=slam-2026-10`. The clips are plain
 landscape renders (no overlay), rebuilt by
-`node --import tsx tools/measure/pair_study.ts --key=labels/studies/slam-2026-10.key.json --study=slam-2026-10`.
+`node tools/measure/pair_study.ts --key=labels/studies/slam-2026-10.key.json --study=slam-2026-10`.
 
 `impact-pairs-2026-10` asks which of two hits is the bigger impact (24 pairs: 20
 where the strike strength and the candidate whole-body motion change of
@@ -44,7 +44,7 @@ change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 c
   (`motion-change-20261004.jsonl.gz` with the window fix,
   `impact-candidates-20261004.jsonl.gz`).
 
-Re-score with `node --import tsx tools/measure/analyze_pairs.ts --studies=impact-pairs-2026-10,impact-pairs-2026-10b,impact-pairs-2026-10c --rows=<the two tables, gunzipped>`.
+Re-score with `node tools/measure/analyze_pairs.ts --studies=impact-pairs-2026-10,impact-pairs-2026-10b,impact-pairs-2026-10c --rows=<the two tables, gunzipped>`.
 
 `night-pairs-2026-10-05` is the original overnight compiler study: 16 random strong
 beats and 6 posture contrasts sampled at impact onset. Only 5 of those 6 also
@@ -75,6 +75,6 @@ after a quiet touchdown or an anchor against a lit blank of plain riding; block 
 clean requested hits at a controlled v3 ratio. The key holds every pair's measured values and
 the pre-registered rules are in the report. The source tracks are
 `sources/heldout~<song>~<seed>.track.json.gz`. Rebuild with
-`node --import tsx tools/measure/visibility/build.ts --study=<fresh-id>` after copying the key
+`node tools/measure/visibility/build.ts --study=<fresh-id>` after copying the key
 to that id. Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-visibility-2026-11`.

@@ -20,8 +20,6 @@ Claude Code's October 3–5 foundations rework and overnight compiler campaign.
 
 Start the review server with `npm run serve`, then open:
 
-- **Latest compiler review:** http://127.0.0.1:8767/generated/report/quality-20261005/
-  — full-song comparisons, scorecards and counterexamples for the October 5–6 campaign.
 - **Production library:** http://127.0.0.1:8767/motion-gallery/production.html
   — saved October 5 rides and controls to generate a ride with the current compiler.
   The saved collection predates the latest compiler adoption.
@@ -38,23 +36,13 @@ chosen. Start with the latest review's full-song pairs and counterexamples.
 October 4–5 overnight campaign. The two reports use different baselines, so their
 percentage improvements should not be compared directly.
 
-## Latest results
+## Where things stand
 
-The October 5 evening compiler campaign has its own review at
-`generated/report/quality-20261005/`, with complete paired scorecards, strength
-curves, physical examples and a ledger in `docs/research/quality-20261005.json`.
-The selected compiler keeps multiple physically tested continuations and uses
-cached native contacts for scattered geometry. On a fresh 48-case panel, v3 impact
-loss falls 24.5% on authored inputs and 13.5% on perturbations; the 336-case catalog
-keeps 318 completions, with one recovery and one regression. Six matched production
-cases cost 6.9% more CPU; long supported rides can cost substantially more.
-Body-contact and individual-impact regressions remain visible in the review.
-See `docs/research/quality-20261005-decision.json` for the decision and limits.
-The earlier report, blind study and unanswered questions below are preserved.
-
-The overnight report of 2026-10-05 (the impact measure settled with the owner,
-compiler changes, evening → tonight on four panels) is
-`docs/research/overnight-20261005.md`. The running log is `PROGRESS.md`.
+The compiler optimizes one definition of a hit, `line.strike.v3`. Its baseline is
+the saved reference `lean-foundation`: V7 headline 782.3, explicit requests 766.5,
+all 112 rides finished. Compare any change with
+`npm run compare -- run --reference=lean-foundation`. `TODO.md` holds the next
+compiler work and open questions, and `REWORK.md` the decision log.
 
 ## Setup
 
@@ -107,7 +95,6 @@ Chromium installation instead of Playwright's default browser.
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
 | `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on the V7 panel ([docs/benchmark.md](docs/benchmark.md)) |
 | `npm run eval -- --name=DIR [--panel=v7\|v7-confirm]` | compile one panel with this checkout |
-| `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |

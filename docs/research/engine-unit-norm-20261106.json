@@ -1,0 +1,56 @@
+{
+  "files": {
+    "candidate.patch": "diff --git a/scripts/lib/hypot2.ts b/scripts/lib/hypot2.ts\nindex 725464e3..e3bb0dd0 100644\n--- a/scripts/lib/hypot2.ts\n+++ b/scripts/lib/hypot2.ts\n@@ -1,13 +1,14 @@\n /** Two-dimensional Euclidean norm without temporary argument storage.\n- * Scale before squaring to avoid overflow and underflow. Preserve input order:\n- * for two finite terms the compensated sum used by Math.hypot has zero initial\n- * compensation, so this is the same binary64 calculation. Nonfinite inputs\n- * retain the builtin's infinity and NaN behavior; the zero vector yields +0.\n+ * Scale before squaring to avoid overflow and underflow. For two finite terms,\n+ * Math.hypot's compensated sum has zero initial compensation. The larger scaled\n+ * magnitude is exactly one, and finite addition commutes, preserving the same\n+ * binary64 result in either input order. Nonfinite inputs retain the builtin's\n+ * infinity and NaN behavior; the zero vector yields +0.\n  */\n export function hypot2(x: number, y: number): number {\n   const ax = Math.abs(x), ay = Math.abs(y), scale = Math.max(ax, ay);\n   if (!Number.isFinite(scale)) return Math.hypot(x, y);\n   if (scale === 0) return 0;\n-  const nx = ax / scale, ny = ay / scale;\n-  return Math.sqrt(nx * nx + ny * ny) * scale;\n+  const small = Math.min(ax, ay) / scale;\n+  return Math.sqrt(1 + small * small) * scale;\n }\n",
+    "checkpoint62.log": "Finished baseline cell 62; exact track/work throughout\n",
+    "run-study.py": "import json, subprocess, pathlib, sys, os\nbase = pathlib.Path('/tmp/engine-unit-norm-20261106')\nroot = pathlib.Path('/home/holo/line')\nref = base / 'reference'\nwasm = 'scripts/lib/native_motion/engine.wasm'\ncommon = ['taskset', '-c', '2', 'node', str(root / 'tools/measure/engine_ab.ts'),\n          '--mode=compile', '--reference=' + str(ref / wasm),\n          '--candidate=' + str(root / wasm), '--reference-root=' + str(ref),\n          '--confidence=.95', '--confirm-rounds=24']\nenv = {**os.environ, 'NODE_OPTIONS': ''}\n\ndef run(name, args):\n    with (base / (name + '.log')).open('w') as log:\n        proc = subprocess.run(common + args + ['--out=' + str(base / name)],\n                              cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)\n    if proc.returncode:\n        sys.exit(f'{name} exited {proc.returncode}')\n    result = json.loads((base / name / 'result.json').read_text())\n    print(name, result['decision'], flush=True)\n    for cell in result['resources']:\n        reference, candidate = [arm['resources'] for arm in cell['arms']]\n        for key, bound in [('wasmLinearMemoryBytes', 1), ('processMaxRssBytes', 1.15)]:\n            if candidate[key] / reference[key] > bound:\n                sys.exit(f'{name} resource guard failed: {key}')\n    return result\n\nscreen = run('screen', ['--cells=61', '--rounds=12', '--warmup=5', '--reps=3', '--margin-pct=0', '--seed=1729'])\nif screen['decision']['verdict'] != 'FASTER':\n    sys.exit('Screen did not qualify; no confirmation')\nlarge = run('larger', ['--cells=62', '--rounds=12', '--warmup=5', '--reps=3', '--margin-pct=2', '--seed=1729'])\nif large['decision']['intervalPct'][1] > 2:\n    sys.exit('Larger regression guard failed')\ncold = run('cold', ['--cells=61', '--rounds=12', '--warmup=0', '--reps=1', '--margin-pct=5', '--seed=1729'])\nif cold['decision']['intervalPct'][1] > 5:\n    sys.exit('Cold regression guard failed')\nconfirm = run('confirm', ['--cells=61', '--stage=confirm', '--rounds=24', '--warmup=5', '--reps=3',\n                          '--margin-pct=0', '--seed=2718', '--screen=' + str(base / 'screen/result.json')])\nif not confirm['performanceQualified']:\n    sys.exit('Confirmation did not qualify')\n",
+    "prepare.mts": "import {snapshotSources} from '/home/holo/line/tools/measure/engine_sources.ts';\nimport {writeFileSync,readFileSync,symlinkSync,mkdirSync} from 'node:fs';\nimport {execFileSync} from 'node:child_process';\nconst base='/tmp/engine-unit-norm-20261106',root='/home/holo/line';\nconst plan=JSON.parse(readFileSync(base+'/plan.json','utf8'));\nplan.recordedAt=new Date().toISOString();plan.reference=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();\nwriteFileSync(base+'/plan.json',JSON.stringify(plan,null,2)+'\\n');\nsnapshotSources(root,base+'/reference',root);symlinkSync(root+'/node_modules',base+'/reference/node_modules');\nwriteFileSync(base+'/run-study.py',readFileSync('/tmp/engine-observation-equality-20261106/run-study.py','utf8').replaceAll('engine-observation-equality-20261106','engine-unit-norm-20261106').replace(\"('wasmLinearMemoryBytes', 1.05)\",\"('wasmLinearMemoryBytes', 1)\"));\nwriteFileSync(base+'/candidate-checkpoint.mts',readFileSync('/tmp/engine-partial-prefix-20261106/candidate-checkpoint.mts','utf8').replaceAll('engine-partial-prefix-20261106','engine-unit-norm-20261106'));mkdirSync(base+'/candidate');\n",
+    "checkpoint61.log": "Finished baseline cell 61; exact track/work throughout\n",
+    "candidate-checkpoint.mts": "import {serialize} from 'node:v8';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/home/holo/line/benchmark/v6/model.ts';\nimport {policy} from '/home/holo/line/benchmark/v6/policy.ts';\nimport {caseSpec} from '/home/holo/line/benchmark/v4/model.ts';\nimport {compileHandoff} from '/home/holo/line/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-unit-norm-20261106/candidate';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n writeFileSync(`${root}/checkpoint-${cellIndex}.v8`,serialize(checkpoint));\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n\n",
+    "plan.json": {
+      "hypothesis": "For finite nonzero scale=max(abs(x),abs(y)), one normalized magnitude is exactly1. Replace its division and squaring with that constant, retaining the smaller normalized magnitude, rounded addition and final scale. Commutativity of finite binary64 addition preserves both operand orders. Existing zero/nonfinite paths remain. This changes only the shared two-dimensional norm, not its callers, engine arithmetic or score definitions.",
+      "adoption": {
+        "kind": "supported speedup required; algebraically simpler code",
+        "screen": "fixed12 pairs cell61 at0% margin",
+        "confirm": "fresh24 pairs cell61 at0% margin",
+        "larger": "12 pairs cell62 upper interval<=+2%",
+        "cold": "12 pairs cell61 warmup0 reps1 upper interval<=+5%",
+        "warmup": 5,
+        "reps": 3,
+        "confidence": 0.95,
+        "cpu": 2,
+        "wasmCapacityRatio": 1,
+        "peakRssRatio": 1.15,
+        "correctness": "Existing800k+ Object.is numerical comparisons including random binary64, nearby magnitudes, zero/NaN/infinity/subnormal/extreme values, exact full checkpoints61/62, full npm run check before adoption. Frozen sources, no overlapping heavy work, no unchanged retries."
+      },
+      "recordedAt": "2026-11-06T10:19:09.973Z",
+      "reference": "a924203e03bf8d969ff23a5a8b134e99928f3e0f"
+    },
+    "numeric.log": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  1 passed (1)\n      Tests  3 passed (3)\n   Start at  11:19:10\n   Duration  346ms (transform 20ms, setup 0ms, import 27ms, tests 252ms, environment 0ms)\n\n"
+  },
+  "artifacts": [
+    {
+      "path": "generated/engine-unit-norm-20261106/checkpoint-62.v8",
+      "bytes": 687706,
+      "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507"
+    },
+    {
+      "path": "generated/engine-unit-norm-20261106/checkpoint-61.v8",
+      "bytes": 716360,
+      "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599"
+    }
+  ],
+  "correctness": "Existing numerical tests pass, including random binary64, near-equal magnitudes, zero, infinity, NaN and exponent extremes in both orders. Complete checkpoints61/62 deep-strict-equal. Native binary unchanged.",
+  "decision": {
+    "n": 12,
+    "medianDeltaPct": 0.5166839443040256,
+    "intervalPct": [
+      -0.10675717440340159,
+      0.7795832196015747
+    ],
+    "confidence": 0.95,
+    "coverage": 0.96142578125,
+    "marginPct": 0,
+    "verdict": "INCONCLUSIVE"
+  },
+  "outcome": "Reject; zero-margin speed screen failed. No larger/cold guards, confirmation or fullcheck. Shared norm restored exactly."
+}

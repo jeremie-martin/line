@@ -24,8 +24,7 @@ export function impactFrames(engine: any, frames: readonly RawFrame[], terminalS
   if (!frames.length) return [];
   const last = frames.at(-1)!.frame;
   if (engine.getLastFrameIndex() < last) throw new Error('impact observation requires a metered complete window');
-  return observeContactImpacts(frames, typeof engine.hasContactAtFrame === 'function' ?
-    frame => engine.hasContactAtFrame(frame) : frame => engine.getUpdatesAtFrame(frame).some((u: any) => u.type === 'CollisionUpdate'),
+  return observeContactImpacts(frames, frame => engine.hasContactAtFrame(frame),
     effectiveBodyVelocity(terminalState ?? engine.getRider(last).ballisticState()));
 }
 export function evaluateMusicalImpacts(observed: readonly ContactImpactFrame[], targets: readonly ImpactTarget[], duration: number, survived: boolean) {

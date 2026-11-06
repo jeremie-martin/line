@@ -126,6 +126,8 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: Candida
   // Never reuse saved wrappers: retainOnly may already have freed them.
   // Rebuild from validated geometry; subsequent simulations stay metered.
   // A measurement from an earlier search must compete in this search.
+  // Skipping this add for a losing hit would move charged frames: it truncates
+  // the shared cache, and later candidates replay from that boundary.
   const result = restoreCandidate(candidate, s.ctx.lineage.add(s.engine, saved.lines));
   if (!s.best || candidate.cost < s.best.candidate.cost) s.best = result;
   return result;

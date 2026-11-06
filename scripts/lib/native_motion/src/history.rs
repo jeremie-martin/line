@@ -9,7 +9,7 @@
 //!   - `Frame.grid` (center cell → CellFrameList) + addToGrid + getIndexOfCollisionInCell
 //!   - `Frame.collisions` (line id → frames) + addToCollisions + getIndexOfCollisionWithLine
 
-use crate::grid::{hash_int_pair, IntMap};
+use crate::grid::{cell_cor_from_scaled, hash_int_pair, IntMap, GRID_SIZE};
 use crate::line::{collides_with, Line, LineRef};
 use std::cell::OnceCell;
 use crate::shared_prefix::SharedPrefix;
@@ -205,7 +205,12 @@ pub(crate) struct CollisionHistory {
     active: ActiveCellCache,
     lines: Vec<i32>,
     line_ends: Vec<usize>,
+    /// Inclusive [min x, max x, min y, max y] center cells ever recorded. Rollback
+    /// keeps it: it only needs to contain every cell of the retained history.
+    extent: [i64; 4],
 }
+
+const EMPTY_EXTENT: [i64; 4] = [i64::MAX, i64::MIN, i64::MAX, i64::MIN];
 
 impl CollisionHistory {
     pub(crate) fn new() -> Self {
@@ -219,6 +224,7 @@ impl CollisionHistory {
             active: ActiveCellCache::default(),
             lines: Vec::new(),
             line_ends: vec![0, 0],
+            extent: EMPTY_EXTENT,
         }
     }
 
@@ -234,6 +240,7 @@ impl CollisionHistory {
         self.cells.clear();
         self.snaps.clear();
         self.lines.clear();
+        self.extent = EMPTY_EXTENT;
         for ends in [
             &mut self.cell_ends,
             &mut self.snap_ends,
@@ -296,6 +303,10 @@ impl CollisionHistory {
                 return;
             }
         }
+        let (cell_x, cell_y) = (cell_cor_from_scaled(px / GRID_SIZE), cell_cor_from_scaled(py / GRID_SIZE));
+        debug_assert_eq!(hash_int_pair(cell_x, cell_y), cell);
+        let [min_x, max_x, min_y, max_y] = self.extent;
+        self.extent = [min_x.min(cell_x), max_x.max(cell_x), min_y.min(cell_y), max_y.max(cell_y)];
         list.push(CellFrame {
             index: frame,
             first: snap,
@@ -324,6 +335,8 @@ impl CollisionHistory {
         let mut best = before;
         let mut query_cell = None;
         let mut lists: [Option<&[CellFrame]>; 9] = [None; 9];
+        // Candidate geometry mostly lies ahead of the rider, in cells no frame visited.
+        let [min_x, max_x, min_y, max_y] = self.extent;
         for line in lines.iter().filter(|line| line.collidable) {
             let mut previous: Option<(i64, i64)> = None;
             for &(gx, gy) in line.cells() {
@@ -335,6 +348,9 @@ impl CollisionHistory {
                     for dy in -1..=1 {
                         let cx = gx + dx;
                         let cy = gy + dy;
+                        if cx < min_x || cx > max_x || cy < min_y || cy > max_y {
+                            continue;
+                        }
                         if previous.is_some_and(|(px, py)| cx.abs_diff(px) <= 1 && cy.abs_diff(py) <= 1) {
                             continue;
                         }
@@ -440,7 +456,7 @@ mod tests {
         for frame in 1..=130 {
             source.begin_frame();
             for point in 0..70 {
-                source.record_point(cell, frame, point as f64, frame as f64, 0.0, 1.0);
+                source.record_point(cell, frame, point as f64 * 0.1, frame as f64 * 0.01, 0.0, 1.0);
             }
             source.finish_frame();
         }
@@ -456,7 +472,7 @@ mod tests {
             for frame in keep..keep + 3 {
                 branch.begin_frame();
                 for point in 0..100 {
-                    branch.record_point(cell, frame as i32, -(point as f64), -(frame as f64), -0.0, -1.0);
+                    branch.record_point(cell, frame as i32, point as f64 * 0.1 + 3.0, frame as f64 * 0.01 + 3.0, -0.0, -1.0);
                 }
                 branch.finish_frame();
             }
@@ -500,6 +516,26 @@ mod tests {
         append_snapshot(&mut frame, &mut links, Snap { px: 2.0, py: 1.0, vx: 0.0, vy: 1.0 });
         assert!(frame.bounds.get().is_none());
         assert!(frame.any_collides(&links, &line));
+    }
+
+    #[test]
+    fn invalidation_finds_history_at_the_edge_of_its_extent_and_after_rollback() {
+        let line = |x: f64, id| build_line(id, x - 5.0, 0.0, x + 5.0, 0.0, 0, 0);
+        let mut history = CollisionHistory::new();
+        for (frame, x) in [(1, 1.0), (2, 141.0)] {
+            history.begin_frame();
+            history.record_point(hash_int_pair((x / 14.0_f64).floor() as i64, 0), frame, x, 1.0, 1.0, 1.0);
+            history.finish_frame();
+        }
+        assert_eq!(history.first_for_added_lines(&[line(141.0, 1)], i32::MAX), Some(2));
+        assert_eq!(history.first_for_added_lines(&[line(201.0, 2)], i32::MAX), None);
+        // Rollback leaves a conservative extent, and new cells extend it.
+        history.truncate(2);
+        assert_eq!(history.first_for_added_lines(&[line(141.0, 3)], i32::MAX), None);
+        history.begin_frame();
+        history.record_point(hash_int_pair(14, 0), 2, 201.0, 1.0, 1.0, 1.0);
+        history.finish_frame();
+        assert_eq!(history.first_for_added_lines(&[line(201.0, 4)], i32::MAX), Some(2));
     }
 
     #[test]
@@ -591,7 +627,7 @@ mod tests {
         let far = build_line(8, 140.0, 140.0, 150.0, 140.0, 0, 0);
         let mut history = CollisionHistory::new();
         history.begin_frame();
-        history.record_point(hash_int_pair(0, 0), 1, -1.0, 1.0, 0.0, 1.0);
+        history.record_point(hash_int_pair(-1, 0), 1, -1.0, 1.0, 0.0, 1.0);
         history.record_point(hash_int_pair(0, 0), 1, 1.0, 1.0, 0.0, 1.0);
         history.record_collision(7, 1);
         history.record_collision(7, 1);

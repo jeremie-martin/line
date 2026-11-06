@@ -46,15 +46,16 @@ function strikeAccount(c: StrikeContract): ImpactAccount {
       if (!raw.length) return [];
       const first = raw[0].frame, last = raw.at(-1)!.frame;
       if (engine.getLastFrameIndex() < last) throw new Error('strike observation requires a metered complete window');
-      const contact = typeof engine.hasContactAtFrame === 'function' ? (f: number) => engine.hasContactAtFrame(f)
-        : (f: number) => engine.getUpdatesAtFrame(f).some((u: any) => u.type === 'CollisionUpdate');
+      const contact = (f: number) => engine.hasContactAtFrame(f);
       // Frame 0 is the authored start state: no solve precedes it, so nothing is measured there.
       const head: ImpactObservation[] = first === 0 ? [{frame: 0, contact: contact(0), J: 0, bend: 0, solverGain: 0, gravityGain: 0, speedBefore: 0,
         ...(motion ? {impulse: [0, 0, 0]} : {})} as any] : [];
       const from = Math.max(first, 1);
       if (from > last) return head;
-      if (typeof engine.readCachedMotionWindow === 'function')
-        return [...head, ...engine.readCachedMotionWindow(from - 1, last, (data: ArrayLike<number>) => observeMotionWindow(from, data, c))];
+      if (typeof engine.readCachedMotionWindow === 'function') {
+        const observed = engine.readCachedMotionWindow(from - 1, last, (data: ArrayLike<number>) => observeMotionWindow(from, data, c));
+        return head.length ? [...head, ...observed] : observed;
+      }
       if (motion) {
         const motions = [];
         // The native engine reads whole-body motion without allocating point states.

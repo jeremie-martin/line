@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: audit retrieval work and reject partition-bound machinery
+
+Full model queries never repeat, and alternate memo-key encoders are slower;
+retain neither cache nor encoder change. A global partition bound can exclude
+85.5%/80.8% of default/larger physical-distance calls, but the first implementation
+regresses and is abandoned after nine pairs. Profiles localize a shared-distance
+function cost increase; a scalar revision removes it but screens inconclusively
+at −0.410% [−0.802%, +0.072%]. Remove both versions and preserve their evidence.
+Repeated future-feature suffixes remain a static opportunity, not an adopted index.
+
+[Query-cost audit](docs/research/engine-query-cost-20261106.md).
+[Partition-bound experiments](docs/research/engine-partition-bound-20261106.md).
+
 ## November 6: an exact angular shortcut misses confirmation
 
 A conservative kick-angle predicate removes 99.3% of `atan2` calls in two

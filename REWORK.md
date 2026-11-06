@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: runtime probes and a rejected memory tradeoff
+
+Keep the pinned runtime after Node 24/26 feasibility probes. Exact duplicated
+model rows offer too little distance-reuse opportunity to justify a cache.
+An explicit 32 MiB V8 semi-space setting improves default and larger compiler
+timings, but raises larger cold-process peak RSS by 16.3%, exceeding its declared
+15% allowance. Reject it before confirmation and retain no runtime configuration
+change. The default screen's 6,997 ns/frame is not a qualified target result;
+7,172.5 ns remains the last qualified default measurement.
+
+[Runtime and retrieval probes](docs/research/engine-runtime-probes-20261106.md).
+[Nursery tradeoff and rejected evidence](docs/research/engine-nursery-20261106.md).
+
 ## November 6: remove the compiler's runtime transpiler
 
 Run CLI and measurement workers directly on pinned Node 22.22.2. Explicit fields

@@ -1,0 +1,3129 @@
+{
+  "reference": "8bfb6f9e",
+  "adopted": false,
+  "scope": "Exploratory runtime and exact-feature-reuse checks; no production change. CPU profiles include preparation, output and inspector overhead and are not timing qualification.",
+  "studies": {
+    "engine-node24-20261106": {
+      "files": {
+        "decision.json": {
+          "sha256": "9c5b7639d44586546d121d982e1f0642eb273d79383538f933157633d239b6b8",
+          "bytes": 295,
+          "data": {
+            "adopted": false,
+            "reason": "The four-process ABBA feasibility probe does not meet the predeclared 2% improvement gate. Node24 median 7118.17ns/frame versus Node22 median 7052.59ns/frame, ratio about 1.0093. No qualification, no target claim and no version-pin change; exact outputs throughout."
+          }
+        },
+        "diagnostic.json": {
+          "sha256": "ea0586ba909ef933d877996d32bc638d800ce79d519a7d226c77e4f0a58f8fe4",
+          "bytes": 497,
+          "data": {
+            "results": [
+              {
+                "sequence": 0,
+                "arm": 0,
+                "nsPerFrame": 6969.689260393956
+              },
+              {
+                "sequence": 1,
+                "arm": 1,
+                "nsPerFrame": 7112.843152705784
+              },
+              {
+                "sequence": 2,
+                "arm": 1,
+                "nsPerFrame": 7123.494901806275
+              },
+              {
+                "sequence": 3,
+                "arm": 0,
+                "nsPerFrame": 7135.487225645171
+              }
+            ],
+            "medians": [
+              7052.588243019563,
+              7118.16902725603
+            ],
+            "medianRatio": 1.0092988250521184,
+            "qualified": false
+          }
+        },
+        "plan.json": {
+          "sha256": "9f6fb986e4a1f3121f4991e47d3b10e38640fa1cdb227fa1f08fa52b380cf7be",
+          "bytes": 1212,
+          "data": {
+            "recordedAt": "2026-11-06T00:19:49.927022+00:00",
+            "reference": "8bfb6f9edd93e9395fa524a8ac3c672ca4362b7b",
+            "purpose": "Feasibility of a supported Node24 LTS runtime using native type stripping on both arms, identical source/dependency/WASM bytes. Existing compile worker and timing boundary; four fresh processes in ABBA order, CPU2, 5 warmups and 3 measured compiles. Every output must match saved track and charged work. This diagnostic does not qualify a candidate or establish the absolute target.",
+            "runtime": {
+              "version": "24.22.2",
+              "archiveUrl": "https://nodejs.org/dist/v24.22.2/node-v24.22.2-linux-x64.tar.xz",
+              "archiveSha256": "48cc0e21e048790e54c0cf5749c2725005313d652651c40b7a21feb9697aaf75",
+              "source": "https://nodejs.org/en/blog/release/v24.22.2"
+            },
+            "gate": "At least 2% exploratory improvement before undertaking full runtime requalification. No changes to equations, outputs or benchmark policy to accommodate the runtime. A promising diagnostic still needs full structural validation, exact checkpoints, frozen 12-pair screen/24-pair confirmation, larger12(+2%), cold12(+5%), same resource bounds (WASM1.05,RSS1.15), native null control. Reject if parity fails."
+          }
+        },
+        "probe-0-0.json": {
+          "sha256": "f491b944afe41f116864b2c9ad5919d09caaccf6df57e5c35bd7e047625850e9",
+          "bytes": 1728,
+          "data": {
+            "wallMs": 3078.0029590000013,
+            "cpuMs": 3076.0969999999998,
+            "frames": 441627,
+            "nsPerFrame": 6969.689260393956,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 2267.738911,
+                "cpuMs": 2267.965,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1269.1036870000003,
+                "cpuMs": 1268.335,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1158.8660869999994,
+                "cpuMs": 1158.109,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1088.200323,
+                "cpuMs": 1088.042,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1059.804,
+                "cpuMs": 1059.464,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1048.9171740000002,
+                "cpuMs": 1048.151,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1050.4531079999997,
+                "cpuMs": 1050.076,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 978.6326770000014,
+                "cpuMs": 977.87,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-1-1.json": {
+          "sha256": "aa71346f081dad0dd2da4c6bd0de9abbadaddea26f70c80cc81dbf4a8ff725e0",
+          "bytes": 1736,
+          "data": {
+            "wallMs": 3141.2235829999972,
+            "cpuMs": 3140.113,
+            "frames": 441627,
+            "nsPerFrame": 7112.843152705784,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1969.1021360000002,
+                "cpuMs": 1969.471,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1153.5681690000001,
+                "cpuMs": 1152.775,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1091.7491569999997,
+                "cpuMs": 1091.558,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1055.8741759999994,
+                "cpuMs": 1055.101,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1063.411467,
+                "cpuMs": 1062.664,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1049.1255339999989,
+                "cpuMs": 1048.955,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1064.6819639999994,
+                "cpuMs": 1063.888,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1027.416084999999,
+                "cpuMs": 1027.27,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-2-1.json": {
+          "sha256": "3ca458d153da8c6b6b63ad7e03600b2f8f6ea49d630cc9174389d01dc6fcfc8e",
+          "bytes": 1730,
+          "data": {
+            "wallMs": 3145.927683,
+            "cpuMs": 3144.197,
+            "frames": 441627,
+            "nsPerFrame": 7123.494901806275,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1957.043064,
+                "cpuMs": 1957.355,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1160.8457520000002,
+                "cpuMs": 1160.662,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1091.1994700000005,
+                "cpuMs": 1090.462,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1076.1087029999999,
+                "cpuMs": 1075.291,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1069.0284469999997,
+                "cpuMs": 1068.896,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1071.120773999999,
+                "cpuMs": 1070.361,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1055.4839250000005,
+                "cpuMs": 1055.273,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1019.3229840000004,
+                "cpuMs": 1018.563,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-3-0.json": {
+          "sha256": "0b3196124571629a8c783cb1039a5d94ee4f53c58e74732a26403059dfc82c30",
+          "bytes": 1720,
+          "data": {
+            "wallMs": 3151.223817,
+            "cpuMs": 3152.794,
+            "frames": 441627,
+            "nsPerFrame": 7135.487225645171,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 2304.920151,
+                "cpuMs": 2305.038,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1259.5988789999997,
+                "cpuMs": 1258.71,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1182.363144,
+                "cpuMs": 1181.633,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1100.7377619999997,
+                "cpuMs": 1100.569,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1076.0554789999997,
+                "cpuMs": 1075.728,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1065.8842860000004,
+                "cpuMs": 1065.087,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1088.0645699999986,
+                "cpuMs": 1091.275,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 997.274961000001,
+                "cpuMs": 996.432,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe.log": {
+          "sha256": "e8646c25d8012b762270df6040edfc5a429c3874507c71b03ff15d79c7adc494",
+          "bytes": 236,
+          "data": "{'sequence': 0, 'arm': 0, 'nsPerFrame': 6969.689260393956}\n{'sequence': 1, 'arm': 1, 'nsPerFrame': 7112.843152705784}\n{'sequence': 2, 'arm': 1, 'nsPerFrame': 7123.494901806275}\n{'sequence': 3, 'arm': 0, 'nsPerFrame': 7135.487225645171}\n"
+        },
+        "probe.py": {
+          "sha256": "d2dbbe3cbc8c9cb3d8af5c726a489ece554381303a10a14b909dafe5780e252b",
+          "bytes": 3225,
+          "data": "from pathlib import Path\nimport hashlib,json,subprocess,datetime,statistics,urllib.request,tarfile,sys\nbase=Path('/tmp/engine-node24-20261106');root=Path('/home/holo/line');version='24.22.2';archive=f'node-v{version}-linux-x64.tar.xz';url='https://nodejs.org/dist/v'+version+'/'+archive\nexpected='48cc0e21e048790e54c0cf5749c2725005313d652651c40b7a21feb9697aaf75'\nplan={'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'reference':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'purpose':'Feasibility of a supported Node24 LTS runtime using native type stripping on both arms, identical source/dependency/WASM bytes. Existing compile worker and timing boundary; four fresh processes in ABBA order, CPU2, 5 warmups and 3 measured compiles. Every output must match saved track and charged work. This diagnostic does not qualify a candidate or establish the absolute target.','runtime':{'version':version,'archiveUrl':url,'archiveSha256':expected,'source':'https://nodejs.org/en/blog/release/v24.22.2'},'gate':'At least 2% exploratory improvement before undertaking full runtime requalification. No changes to equations, outputs or benchmark policy to accommodate the runtime. A promising diagnostic still needs full structural validation, exact checkpoints, frozen 12-pair screen/24-pair confirmation, larger12(+2%), cold12(+5%), same resource bounds (WASM1.05,RSS1.15), native null control. Reject if parity fails.'}\nassert not (base/'plan.json').exists();(base/'plan.json').write_text(json.dumps(plan,indent=2)+'\\n')\nwith urllib.request.urlopen(url) as source,(base/archive).open('wb') as target:\n while data:=source.read(1024*1024):target.write(data)\nassert hashlib.sha256((base/archive).read_bytes()).hexdigest()==expected\nwith tarfile.open(base/archive,'r:xz') as tar:tar.extractall(base,filter='data')\nnew=base/f'node-v{version}-linux-x64/bin/node';old=Path('/usr/bin/node')\nruntimes=[]\nfor binary in [old,new]:\n info=json.loads(subprocess.check_output([str(binary),'-p','JSON.stringify({node:process.version,v8:process.versions.v8,execPath:process.execPath,lts:process.release.lts})'],text=True));info['binarySha256']=hashlib.sha256(binary.read_bytes()).hexdigest();runtimes.append(info)\n(base/'runtimes.json').write_text(json.dumps(runtimes,indent=2)+'\\n')\nconfig={'mode':'compile','stage':'screen','rounds':12,'confirmRounds':24,'reps':3,'warmup':5,'confidence':.95,'marginPct':0,'seed':1729,'slowdownPct':0,'cells':[61]};(base/'protocol.json').write_text(json.dumps(config,indent=2)+'\\n')\nresults=[]\nfor i,arm in enumerate([0,1,1,0]):\n out=base/f'probe-{i}-{arm}.json'\n subprocess.run(['taskset','-c','2',str([old,new][arm]),'--expose-gc',str(root/'tools/measure/engine_ab.ts'),'--worker','--config='+str(base/'protocol.json'),'--result='+str(out),'--verify=false'],cwd=root,check=True)\n r=json.loads(out.read_text());results.append({'sequence':i,'arm':arm,'nsPerFrame':r['nsPerFrame']});print(results[-1],flush=True)\nmedians=[statistics.median(r['nsPerFrame'] for r in results if r['arm']==a) for a in [0,1]]\n(base/'diagnostic.json').write_text(json.dumps({'results':results,'medians':medians,'medianRatio':medians[1]/medians[0],'qualified':False},indent=2)+'\\n')\n"
+        },
+        "protocol.json": {
+          "sha256": "ae0ed6cba24ca4f46dd3c794591fd663a1369dc25038774d280d058afc58f617",
+          "bytes": 213,
+          "data": {
+            "mode": "compile",
+            "stage": "screen",
+            "rounds": 12,
+            "confirmRounds": 24,
+            "reps": 3,
+            "warmup": 5,
+            "confidence": 0.95,
+            "marginPct": 0,
+            "seed": 1729,
+            "slowdownPct": 0,
+            "cells": [
+              61
+            ]
+          }
+        },
+        "runtimes.json": {
+          "sha256": "8266239783a3dfa9be524faa6e66b3b6443d3e50116e814042925508fde126c5",
+          "bytes": 462,
+          "data": [
+            {
+              "node": "v22.22.2",
+              "v8": "12.4.254.21-node.39",
+              "execPath": "/usr/bin/node",
+              "lts": "Jod",
+              "binarySha256": "81925c0995b5c1427b5d538e6a90ca2fdc4daffb786b09af749beaf7369d4e90"
+            },
+            {
+              "node": "v24.22.2",
+              "v8": "13.6.233.17-node.63",
+              "execPath": "/tmp/engine-node24-20261106/node-v24.22.2-linux-x64/bin/node",
+              "lts": "Krypton",
+              "binarySha256": "904a6d3484241d466989f9df9ba3aab822b1496191bdb28230eb491a55c32a52"
+            }
+          ]
+        }
+      },
+      "raw": {}
+    },
+    "engine-node26-20261106": {
+      "files": {
+        "decision.json": {
+          "sha256": "8e828593ae2a6a7b863b42d65b3e81124cb440fa935f7f051734c6b1228dd135",
+          "bytes": 263,
+          "data": {
+            "adopted": false,
+            "reason": "ABBA feasibility fails predeclared 2% improvement gate; no qualification or runtime-pin change. Exact outputs throughout.",
+            "medianRatio": 0.9969204783485409,
+            "medians": [
+              7027.594591136865,
+              7005.9529614357825
+            ]
+          }
+        },
+        "diagnostic.json": {
+          "sha256": "b1ccd80c2be6319802d99158a89c495a794988ad0a86f17ecb9bb0b7e7bda603",
+          "bytes": 497,
+          "data": {
+            "results": [
+              {
+                "sequence": 0,
+                "arm": 0,
+                "nsPerFrame": 6977.865746433077
+              },
+              {
+                "sequence": 1,
+                "arm": 1,
+                "nsPerFrame": 7071.444200648965
+              },
+              {
+                "sequence": 2,
+                "arm": 1,
+                "nsPerFrame": 6940.4617222226
+              },
+              {
+                "sequence": 3,
+                "arm": 0,
+                "nsPerFrame": 7077.323435840653
+              }
+            ],
+            "medians": [
+              7027.594591136865,
+              7005.9529614357825
+            ],
+            "medianRatio": 0.9969204783485409,
+            "qualified": false
+          }
+        },
+        "plan.json": {
+          "sha256": "8c664fc4bd72ff4d1ed1f69fc6a4f343a3680177c26ccd84f250117568420440",
+          "bytes": 1212,
+          "data": {
+            "recordedAt": "2026-11-06T00:22:22.895112+00:00",
+            "reference": "8bfb6f9edd93e9395fa524a8ac3c672ca4362b7b",
+            "purpose": "Feasibility of a supported Node26 LTS runtime using native type stripping on both arms, identical source/dependency/WASM bytes. Existing compile worker and timing boundary; four fresh processes in ABBA order, CPU2, 5 warmups and 3 measured compiles. Every output must match saved track and charged work. This diagnostic does not qualify a candidate or establish the absolute target.",
+            "runtime": {
+              "version": "26.13.0",
+              "archiveUrl": "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz",
+              "archiveSha256": "d28a96af6c38596f6d9d97c0ee531c13d238d757742387d1928de822d959e997",
+              "source": "https://nodejs.org/en/blog/release/v26.13.0"
+            },
+            "gate": "At least 2% exploratory improvement before undertaking full runtime requalification. No changes to equations, outputs or benchmark policy to accommodate the runtime. A promising diagnostic still needs full structural validation, exact checkpoints, frozen 12-pair screen/24-pair confirmation, larger12(+2%), cold12(+5%), same resource bounds (WASM1.05,RSS1.15), native null control. Reject if parity fails."
+          }
+        },
+        "probe-0-0.json": {
+          "sha256": "fa6804dd60a58f846019dcd60210d6ffb1a0a4e38f95fd096093ba6d664148ff",
+          "bytes": 1745,
+          "data": {
+            "wallMs": 3081.6139160000002,
+            "cpuMs": 3080.3140000000003,
+            "frames": 441627,
+            "nsPerFrame": 6977.865746433077,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 2241.4150959999997,
+                "cpuMs": 2241.45,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1231.5597349999998,
+                "cpuMs": 1231.374,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1163.8962700000002,
+                "cpuMs": 1163.048,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1088.8827540000002,
+                "cpuMs": 1088.092,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1058.6665570000005,
+                "cpuMs": 1070.654,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1041.331306,
+                "cpuMs": 1040.604,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1057.4469770000014,
+                "cpuMs": 1057.013,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 982.8356329999988,
+                "cpuMs": 982.697,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-1-1.json": {
+          "sha256": "b0d5806e8218046b29cb696441d715b027f586d3d45c4fa0b5206640f333329c",
+          "bytes": 1730,
+          "data": {
+            "wallMs": 3122.9406880000006,
+            "cpuMs": 3121.88,
+            "frames": 441627,
+            "nsPerFrame": 7071.444200648965,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1850.181253,
+                "cpuMs": 1850.589,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1187.920114,
+                "cpuMs": 1187.045,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1118.9526619999997,
+                "cpuMs": 1118.755,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1051.9550510000008,
+                "cpuMs": 1051.799,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1076.5379080000002,
+                "cpuMs": 1075.739,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1043.7940139999992,
+                "cpuMs": 1043.631,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1041.5652090000003,
+                "cpuMs": 1040.823,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1037.5814650000011,
+                "cpuMs": 1037.426,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-2-1.json": {
+          "sha256": "420ceca7ea5efc0e235f87d8b19cb8a8551052ccbd3a9a6406d87c6787881302",
+          "bytes": 1738,
+          "data": {
+            "wallMs": 3065.095289,
+            "cpuMs": 3063.3450000000003,
+            "frames": 441627,
+            "nsPerFrame": 6940.4617222226,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1883.401589,
+                "cpuMs": 1883.718,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1163.1140770000002,
+                "cpuMs": 1162.863,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1095.5303899999994,
+                "cpuMs": 1094.762,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1047.8059119999998,
+                "cpuMs": 1047.05,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1054.6881679999997,
+                "cpuMs": 1054.469,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1013.9989880000003,
+                "cpuMs": 1013.142,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1046.8435709999994,
+                "cpuMs": 1046.689,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1004.2527300000002,
+                "cpuMs": 1003.514,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe-3-0.json": {
+          "sha256": "6982dbb0d569b06ab609827b2b8958b39eb986d8c48a77b0a06bbd064cdde7d8",
+          "bytes": 1722,
+          "data": {
+            "wallMs": 3125.537117,
+            "cpuMs": 3123.716,
+            "frames": 441627,
+            "nsPerFrame": 7077.323435840653,
+            "iterations": [
+              {
+                "rep": -5,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 2304.3367519999997,
+                "cpuMs": 2304.342,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -4,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1251.2540540000005,
+                "cpuMs": 1250.461,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -3,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1151.6896290000004,
+                "cpuMs": 1150.948,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1088.5618540000005,
+                "cpuMs": 1088.385,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": -1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1072.9581519999992,
+                "cpuMs": 1071.991,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 0,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1050.499076,
+                "cpuMs": 1049.741,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 1,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 1088.158082,
+                "cpuMs": 1087.837,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              },
+              {
+                "rep": 2,
+                "cell": 61,
+                "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+                "physicalFrames": 147209,
+                "compileMs": 986.8799589999999,
+                "cpuMs": 986.138,
+                "control": {
+                  "wallMs": 0,
+                  "cpuMs": 0
+                }
+              }
+            ]
+          }
+        },
+        "probe.log": {
+          "sha256": "ec4e2a1c1830c7561f06a29b9a748c1e19773c2dc4f57b0e14f40f824aa107ca",
+          "bytes": 234,
+          "data": "{'sequence': 0, 'arm': 0, 'nsPerFrame': 6977.865746433077}\n{'sequence': 1, 'arm': 1, 'nsPerFrame': 7071.444200648965}\n{'sequence': 2, 'arm': 1, 'nsPerFrame': 6940.4617222226}\n{'sequence': 3, 'arm': 0, 'nsPerFrame': 7077.323435840653}\n"
+        },
+        "probe.py": {
+          "sha256": "870b4680b7885549f3651841af88b7732de679af05a66fd18bb8d22af7017c2c",
+          "bytes": 3225,
+          "data": "from pathlib import Path\nimport hashlib,json,subprocess,datetime,statistics,urllib.request,tarfile,sys\nbase=Path('/tmp/engine-node26-20261106');root=Path('/home/holo/line');version='26.13.0';archive=f'node-v{version}-linux-x64.tar.xz';url='https://nodejs.org/dist/v'+version+'/'+archive\nexpected='d28a96af6c38596f6d9d97c0ee531c13d238d757742387d1928de822d959e997'\nplan={'recordedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'reference':subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),'purpose':'Feasibility of a supported Node26 LTS runtime using native type stripping on both arms, identical source/dependency/WASM bytes. Existing compile worker and timing boundary; four fresh processes in ABBA order, CPU2, 5 warmups and 3 measured compiles. Every output must match saved track and charged work. This diagnostic does not qualify a candidate or establish the absolute target.','runtime':{'version':version,'archiveUrl':url,'archiveSha256':expected,'source':'https://nodejs.org/en/blog/release/v26.13.0'},'gate':'At least 2% exploratory improvement before undertaking full runtime requalification. No changes to equations, outputs or benchmark policy to accommodate the runtime. A promising diagnostic still needs full structural validation, exact checkpoints, frozen 12-pair screen/24-pair confirmation, larger12(+2%), cold12(+5%), same resource bounds (WASM1.05,RSS1.15), native null control. Reject if parity fails.'}\nassert not (base/'plan.json').exists();(base/'plan.json').write_text(json.dumps(plan,indent=2)+'\\n')\nwith urllib.request.urlopen(url) as source,(base/archive).open('wb') as target:\n while data:=source.read(1024*1024):target.write(data)\nassert hashlib.sha256((base/archive).read_bytes()).hexdigest()==expected\nwith tarfile.open(base/archive,'r:xz') as tar:tar.extractall(base,filter='data')\nnew=base/f'node-v{version}-linux-x64/bin/node';old=Path('/usr/bin/node')\nruntimes=[]\nfor binary in [old,new]:\n info=json.loads(subprocess.check_output([str(binary),'-p','JSON.stringify({node:process.version,v8:process.versions.v8,execPath:process.execPath,lts:process.release.lts})'],text=True));info['binarySha256']=hashlib.sha256(binary.read_bytes()).hexdigest();runtimes.append(info)\n(base/'runtimes.json').write_text(json.dumps(runtimes,indent=2)+'\\n')\nconfig={'mode':'compile','stage':'screen','rounds':12,'confirmRounds':24,'reps':3,'warmup':5,'confidence':.95,'marginPct':0,'seed':1729,'slowdownPct':0,'cells':[61]};(base/'protocol.json').write_text(json.dumps(config,indent=2)+'\\n')\nresults=[]\nfor i,arm in enumerate([0,1,1,0]):\n out=base/f'probe-{i}-{arm}.json'\n subprocess.run(['taskset','-c','2',str([old,new][arm]),'--expose-gc',str(root/'tools/measure/engine_ab.ts'),'--worker','--config='+str(base/'protocol.json'),'--result='+str(out),'--verify=false'],cwd=root,check=True)\n r=json.loads(out.read_text());results.append({'sequence':i,'arm':arm,'nsPerFrame':r['nsPerFrame']});print(results[-1],flush=True)\nmedians=[statistics.median(r['nsPerFrame'] for r in results if r['arm']==a) for a in [0,1]]\n(base/'diagnostic.json').write_text(json.dumps({'results':results,'medians':medians,'medianRatio':medians[1]/medians[0],'qualified':False},indent=2)+'\\n')\n"
+        },
+        "protocol.json": {
+          "sha256": "ae0ed6cba24ca4f46dd3c794591fd663a1369dc25038774d280d058afc58f617",
+          "bytes": 213,
+          "data": {
+            "mode": "compile",
+            "stage": "screen",
+            "rounds": 12,
+            "confirmRounds": 24,
+            "reps": 3,
+            "warmup": 5,
+            "confidence": 0.95,
+            "marginPct": 0,
+            "seed": 1729,
+            "slowdownPct": 0,
+            "cells": [
+              61
+            ]
+          }
+        },
+        "runtimes.json": {
+          "sha256": "133b96c7bfa5e170605d6a47db3f219067eb7927db7601070a121416429928d6",
+          "bytes": 462,
+          "data": [
+            {
+              "node": "v22.22.2",
+              "v8": "12.4.254.21-node.39",
+              "execPath": "/usr/bin/node",
+              "lts": "Jod",
+              "binarySha256": "81925c0995b5c1427b5d538e6a90ca2fdc4daffb786b09af749beaf7369d4e90"
+            },
+            {
+              "node": "v26.13.0",
+              "v8": "14.6.202.34-node.40",
+              "execPath": "/tmp/engine-node26-20261106/node-v26.13.0-linux-x64/bin/node",
+              "lts": "Lithium",
+              "binarySha256": "0adde40d1b7dfa57c8bc83cbc319758c3ec6ebba21363bb2fa752ea6b267ad1b"
+            }
+          ]
+        }
+      },
+      "raw": {}
+    },
+    "engine-feature-reuse-20261106": {
+      "files": {
+        "count.mts": {
+          "sha256": "76ff1ad143488b55986d90ceab9f61002c5c121793d924b8ac8d99bed77ce1b4",
+          "bytes": 1414,
+          "data": "import {writeFileSync} from 'node:fs';\nimport {loadConstructionArtifact} from '/home/holo/line/scripts/v0/optimizer/repertoire_search.ts';\nconst base='/tmp/engine-feature-reuse-20261106';\nwriteFileSync(base+'/plan.json',JSON.stringify({recordedAt:new Date().toISOString(),reference:'8bfb6f9e',purpose:'Static opportunity audit: can exact repeated model feature vectors share one distance while retaining every control and stable insertion order? Require at least30% duplicate rows in relevant groups before implementing. No production change or speed claim from counts.'},null,2)+'\\n');\nconst results=[];\nfor(const model of ['v6','v3'] as const){\n const data=loadConstructionArtifact(model);\n for(const [key,rows] of Object.entries(data.examples)){\n  const unique=new Set(rows.map(r=>JSON.stringify(r.features)));\n  const policy=data.policies[key] as any;\n  results.push({model,key,rows:rows.length,uniqueFeatures:unique.size,duplicateFraction:1-unique.size/rows.length,policyRows:policy?.exemplars?.length,policyHasWeights:!!policy?.featureWeights,policyTreeCount:policy?.proximityTrees?.length??0});\n }\n}\nwriteFileSync(base+'/counts.json',JSON.stringify(results,null,2)+'\\n');\nconsole.log(JSON.stringify(results.map(({model,rows,uniqueFeatures,duplicateFraction,policyRows,policyHasWeights,policyTreeCount})=>({model,rows,uniqueFeatures,duplicateFraction,policyRows,policyHasWeights,policyTreeCount})),null,2));\n"
+        },
+        "counts.json": {
+          "sha256": "867bf2e3914fefa8a8493a4d870bd33789aadd69687f57c4df195923d131f234",
+          "bytes": 5871,
+          "data": [
+            {
+              "model": "v6",
+              "key": "[true,null,null,null,null,null,null,null,null,true]",
+              "rows": 57,
+              "uniqueFeatures": 6,
+              "duplicateFraction": 0.8947368421052632,
+              "policyRows": 34,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[false,null,null,null,null,null,null,null,\"paired\",true]",
+              "rows": 3183,
+              "uniqueFeatures": 3131,
+              "duplicateFraction": 0.016336789192585632,
+              "policyRows": 1348,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]",
+              "rows": 413,
+              "uniqueFeatures": 412,
+              "duplicateFraction": 0.002421307506053294,
+              "policyRows": 206,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,null,null,null,null,null,null,null,\"paired\",true]",
+              "rows": 6050,
+              "uniqueFeatures": 6014,
+              "duplicateFraction": 0.005950413223140494,
+              "policyRows": 2602,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]",
+              "rows": 784,
+              "uniqueFeatures": 782,
+              "duplicateFraction": 0.0025510204081632404,
+              "policyRows": 364,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]",
+              "rows": 674,
+              "uniqueFeatures": 657,
+              "duplicateFraction": 0.02522255192878342,
+              "policyRows": 326,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]",
+              "rows": 746,
+              "uniqueFeatures": 744,
+              "duplicateFraction": 0.002680965147453085,
+              "policyRows": 363,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]",
+              "rows": 792,
+              "uniqueFeatures": 791,
+              "duplicateFraction": 0.0012626262626262985,
+              "policyRows": 326,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,null,null,null,null,null,null,null,\"transfer\",true]",
+              "rows": 541,
+              "uniqueFeatures": 540,
+              "duplicateFraction": 0.001848428835489857,
+              "policyRows": 192,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]",
+              "rows": 275,
+              "uniqueFeatures": 255,
+              "duplicateFraction": 0.07272727272727275,
+              "policyRows": 76,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"scallops\",1,0,1,null,null,null,\"transfer\",true]",
+              "rows": 564,
+              "uniqueFeatures": 563,
+              "duplicateFraction": 0.0017730496453900457,
+              "policyRows": 102,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v6",
+              "key": "[true,\"terraces\",0.8,0,null,null,null,null,\"transfer\",true]",
+              "rows": 261,
+              "uniqueFeatures": 258,
+              "duplicateFraction": 0.011494252873563204,
+              "policyRows": 74,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,null,null,null,null,null,null,null,null,true]",
+              "rows": 167,
+              "uniqueFeatures": 158,
+              "duplicateFraction": 0.053892215568862256,
+              "policyRows": 167,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]",
+              "rows": 2167,
+              "uniqueFeatures": 2166,
+              "duplicateFraction": 0.00046146746654363024,
+              "policyRows": 2167,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]",
+              "rows": 2008,
+              "uniqueFeatures": 2006,
+              "duplicateFraction": 0.0009960159362549792,
+              "policyRows": 2008,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[false,null,null,null,null,null,null,null,\"paired\",true]",
+              "rows": 5161,
+              "uniqueFeatures": 5161,
+              "duplicateFraction": 0,
+              "policyRows": 5161,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]",
+              "rows": 474,
+              "uniqueFeatures": 474,
+              "duplicateFraction": 0,
+              "policyRows": 474,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]",
+              "rows": 1857,
+              "uniqueFeatures": 1857,
+              "duplicateFraction": 0,
+              "policyRows": 1857,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,null,null,null,null,null,null,null,\"paired\",true]",
+              "rows": 5153,
+              "uniqueFeatures": 5135,
+              "duplicateFraction": 0.0034931108092373098,
+              "policyRows": 5153,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,null,null,null,null,null,null,null,\"transfer\",true]",
+              "rows": 30,
+              "uniqueFeatures": 30,
+              "duplicateFraction": 0,
+              "policyRows": 30,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]",
+              "rows": 30,
+              "uniqueFeatures": 30,
+              "duplicateFraction": 0,
+              "policyRows": 30,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            },
+            {
+              "model": "v3",
+              "key": "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]",
+              "rows": 30,
+              "uniqueFeatures": 30,
+              "duplicateFraction": 0,
+              "policyRows": 30,
+              "policyHasWeights": false,
+              "policyTreeCount": 32
+            }
+          ]
+        },
+        "decision.json": {
+          "sha256": "4b7c02d7de06414d36d5a2f067599c475635b81233f8c42c003cfacc38dd7bdd",
+          "bytes": 416,
+          "data": {
+            "adopted": false,
+            "summary": {
+              "v6": {
+                "rows": 14340,
+                "duplicateRows": 187
+              },
+              "v3": {
+                "rows": 17077,
+                "duplicateRows": 30
+              }
+            },
+            "decision": "No implementation. Only the tiny 57-row v6 group has substantial exact duplicates; the large groups have very few. Total duplicate fractions are far below the 30% opportunity gate. Do not add a feature-index/cache for this."
+          }
+        },
+        "plan.json": {
+          "sha256": "c04d7adc90f3f7082e1d081221610449d9ee3b08e0a6e1d9b72436295ff5edee",
+          "bytes": 358,
+          "data": {
+            "recordedAt": "2026-11-06T00:21:29.028Z",
+            "reference": "8bfb6f9e",
+            "purpose": "Static opportunity audit: can exact repeated model feature vectors share one distance while retaining every control and stable insertion order? Require at least30% duplicate rows in relevant groups before implementing. No production change or speed claim from counts."
+          }
+        }
+      },
+      "raw": {}
+    },
+    "engine-post-loader-20261106": {
+      "files": {
+        "archive.py": {
+          "sha256": "5fa17b77d053cb9f12efa55c92fba73b13c3a8eb3dc9aa7a86e43a0f432ffdf8",
+          "bytes": 1267,
+          "data": "from pathlib import Path\nimport json,hashlib,os\nroot=Path('/home/holo/line');dest=root/'generated/engine-runtime-probes-20261106';dest.mkdir(parents=True,exist_ok=True)\nstudies={}\nfor name in ['engine-node24-20261106','engine-node26-20261106','engine-feature-reuse-20261106','engine-post-loader-20261106']:\n base=Path('/tmp')/name;files={};raw={}\n for p in sorted(base.iterdir()):\n  if not p.is_file() or p.name in ['worker.json','last-compiler-worker.json'] or p.suffix not in ['.json','.log','.mts','.mjs','.py','.cpuprofile']:continue\n  data=p.read_bytes();entry={'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)};rel=p.name\n  if p.suffix=='.cpuprofile':\n   raw[rel]=entry;target=dest/name/rel;target.parent.mkdir(parents=True,exist_ok=True);target.exists() or os.link(p,target)\n  else:entry['data']=json.loads(data) if p.suffix=='.json' else data.decode();files[rel]=entry\n studies[name]={'files':files,'raw':raw}\n(root/'docs/research/engine-runtime-probes-20261106.json').write_text(json.dumps({'reference':'8bfb6f9e','adopted':False,'scope':'Exploratory runtime and exact-feature-reuse checks; no production change. CPU profiles include preparation, output and inspector overhead and are not timing qualification.','studies':studies},indent=2)+'\\n')\n"
+        },
+        "iterations.json": {
+          "sha256": "3d1f583ca89efe9c5708caf76c40342fe1c464fac73e5008338c3f1564b20b0b",
+          "bytes": 1618,
+          "data": [
+            {
+              "rep": -5,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 2271.63719,
+              "compileCpuMs": 2271.757
+            },
+            {
+              "rep": -4,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1248.8614500000003,
+              "compileCpuMs": 1248.072
+            },
+            {
+              "rep": -3,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1130.1657450000002,
+              "compileCpuMs": 1129.983
+            },
+            {
+              "rep": -2,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1082.580446,
+              "compileCpuMs": 1082.382
+            },
+            {
+              "rep": -1,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1079.623514,
+              "compileCpuMs": 1078.871
+            },
+            {
+              "rep": 0,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1198.4579439999998,
+              "compileCpuMs": 1198.253
+            },
+            {
+              "rep": 1,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1147.8338679999997,
+              "compileCpuMs": 1147.598
+            },
+            {
+              "rep": 2,
+              "trackHash": "6bd09e6f976ad7e438d5e86db49bfd7240e870330d1fb89494c68486ba02f344",
+              "physicalFrames": 147209,
+              "compileMs": 1059.4690620000001,
+              "compileCpuMs": 1058.719
+            }
+          ]
+        },
+        "profile.log": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "data": ""
+        },
+        "profile.mts": {
+          "sha256": "826bf27b9c4cdffee9f8a5cb39275b4322c04da13aa1dc9b61c3c08cb2d42878",
+          "bytes": 882,
+          "data": "import {Session} from 'node:inspector/promises';\nimport {readFileSync,writeFileSync} from 'node:fs';\nimport {compileWorker} from '/home/holo/line/tools/parity/parity.ts';\nconst base='/tmp/engine-post-loader-20261106',p=new Session();p.connect();\nawait p.post('Profiler.enable');await p.post('Profiler.setSamplingInterval',{interval:250});\nconst records=[];\nfor(let rep=-5;rep<3;rep++){\n if(rep>=0)await p.post('Profiler.start');\n await compileWorker(61,base+'/worker.json');\n if(rep>=0){const {profile}=await p.post('Profiler.stop');writeFileSync(base+`/compile-${rep}.cpuprofile`,JSON.stringify(profile));}\n const {trackHash,physicalFrames,compileMs,compileCpuMs}=JSON.parse(readFileSync(base+'/worker.json','utf8'));\n records.push({rep,trackHash,physicalFrames,compileMs,compileCpuMs});\n}\np.disconnect();writeFileSync(base+'/iterations.json',JSON.stringify(records,null,2)+'\\n');\n"
+        },
+        "summarize.py": {
+          "sha256": "37c5cf3b58b0bca1149fd03a09f6095106f9c4808b40ab568fa67db49d52e719",
+          "bytes": 1158,
+          "data": "from pathlib import Path\nimport json,collections\nbase=Path('/tmp/engine-post-loader-20261106');own=collections.Counter();total=0\nfor p in base.glob('*.cpuprofile'):\n d=json.loads(p.read_text());nodes={n['id']:n for n in d['nodes']}\n for n,t in zip(d['samples'],d['timeDeltas']):\n  f=nodes[n]['callFrame'];name=f['functionName'] or '<anonymous>';own[(name,f['url'])]+=t;total+=t\nrows=[{'function':name,'url':url,'selfMsPerCompile':v/3000,'sharePct':100*v/total} for (name,url),v in own.most_common()]\ncell=json.load(open('/home/holo/line/tools/parity/cells.json'))['cells'][61];records=json.loads((base/'iterations.json').read_text())\nassert all(r['trackHash']==cell['trackHash'] and r['physicalFrames']==cell['physicalFrames'] for r in records)\n(base/'summary.json').write_text(json.dumps({'profileMsPerCompile':total/3000,'scope':'Actual compileWorker, including its untimed hash/output in CPU profiles. Inspector post overhead is diagnostic, not compile time. Five warmups, three profiles at250us. All track/work checks exact.','functions':rows},indent=2)+'\\n')\nfor r in rows[:28]:print(r['function'],round(r['selfMsPerCompile'],2),round(r['sharePct'],2))\n"
+        },
+        "summary.json": {
+          "sha256": "e8040634a41624aee6b6ddf0d118df778a760a3caf63a45e869b34c1a22bfd09",
+          "bytes": 53166,
+          "data": {
+            "profileMsPerCompile": 1438.066,
+            "scope": "Actual compileWorker, including its untimed hash/output in CPU profiles. Inspector post overhead is diagnostic, not compile time. Five warmups, three profiles at250us. All track/work checks exact.",
+            "functions": [
+              {
+                "function": "wasm-function[44]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 307.7076666666667,
+                "sharePct": 21.39732576019923
+              },
+              {
+                "function": "(garbage collector)",
+                "url": "",
+                "selfMsPerCompile": 123.84766666666667,
+                "sharePct": 8.612098934726687
+              },
+              {
+                "function": "post",
+                "url": "node:inspector",
+                "selfMsPerCompile": 109.52633333333333,
+                "sharePct": 7.616224382840102
+              },
+              {
+                "function": "loadCatalog",
+                "url": "file:///home/holo/line/benchmark/v6/model.ts",
+                "selfMsPerCompile": 65.816,
+                "sharePct": 4.576702321033944
+              },
+              {
+                "function": "wasm-function[58]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 58.44233333333333,
+                "sharePct": 4.063953485676828
+              },
+              {
+                "function": "wasm-function[49]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 51.415333333333336,
+                "sharePct": 3.575311100695888
+              },
+              {
+                "function": "nearestControls",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 39.541333333333334,
+                "sharePct": 2.7496188167534266
+              },
+              {
+                "function": "toString",
+                "url": "node:buffer",
+                "selfMsPerCompile": 29.679,
+                "sharePct": 2.0638134828304127
+              },
+              {
+                "function": "motionArcPaths",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+                "selfMsPerCompile": 27.012333333333334,
+                "sharePct": 1.8783792491675162
+              },
+              {
+                "function": "wasm-function[53]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 25.143666666666668,
+                "sharePct": 1.7484362099282416
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+                "selfMsPerCompile": 23.290666666666667,
+                "sharePct": 1.6195825968117366
+              },
+              {
+                "function": "wasm-function[50]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 21.237333333333332,
+                "sharePct": 1.4767982368913064
+              },
+              {
+                "function": "arcControlProposals",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+                "selfMsPerCompile": 19.35033333333333,
+                "sharePct": 1.3455803372955992
+              },
+              {
+                "function": "getCachedRawFrames",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 16.361,
+                "sharePct": 1.1377085613594926
+              },
+              {
+                "function": "writeSync",
+                "url": "",
+                "selfMsPerCompile": 15.604666666666667,
+                "sharePct": 1.0851147768368536
+              },
+              {
+                "function": "update",
+                "url": "",
+                "selfMsPerCompile": 14.760666666666667,
+                "sharePct": 1.0264248418825468
+              },
+              {
+                "function": "scanFrames",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 14.588666666666667,
+                "sharePct": 1.01446433381129
+              },
+              {
+                "function": "wasm-function[62]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 14.325,
+                "sharePct": 0.9961295239578712
+              },
+              {
+                "function": "easing",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+                "selfMsPerCompile": 13.937666666666667,
+                "sharePct": 0.9691952015183355
+              },
+              {
+                "function": "pruneUntouchedGuides",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_finalize.ts",
+                "selfMsPerCompile": 12.360333333333333,
+                "sharePct": 0.8595108523067323
+              },
+              {
+                "function": "wasm-function[32]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 12.186666666666667,
+                "sharePct": 0.8474344478394362
+              },
+              {
+                "function": "inspectConstruction",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+                "selfMsPerCompile": 12.121,
+                "sharePct": 0.8428681298354874
+              },
+              {
+                "function": "detectStrikes",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 11.018,
+                "sharePct": 0.7661678949366719
+              },
+              {
+                "function": "evaluateCandidate",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 10.676333333333334,
+                "sharePct": 0.7424091337486133
+              },
+              {
+                "function": "prefixKey",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_lineage.ts",
+                "selfMsPerCompile": 10.376666666666667,
+                "sharePct": 0.7215709617407453
+              },
+              {
+                "function": "contact",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 9.779333333333334,
+                "sharePct": 0.6800336934002565
+              },
+              {
+                "function": "trimUnusedArcGuides",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_guidance.ts",
+                "selfMsPerCompile": 9.346,
+                "sharePct": 0.6499006304300359
+              },
+              {
+                "function": "signedAngleDeg",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 9.161,
+                "sharePct": 0.6370361304696724
+              },
+              {
+                "function": "buildGeometry",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 8.431333333333333,
+                "sharePct": 0.5862966882836624
+              },
+              {
+                "function": "wasm-function[15]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 8.301333333333334,
+                "sharePct": 0.5772567693925963
+              },
+              {
+                "function": "wasm-function[14]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 8.014666666666667,
+                "sharePct": 0.5573225892738349
+              },
+              {
+                "function": "strikeFrame",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 7.394,
+                "sharePct": 0.5141627713887957
+              },
+              {
+                "function": "accountContactImpacts",
+                "url": "file:///home/holo/line/scripts/lib/contact_impact.ts",
+                "selfMsPerCompile": 7.084333333333333,
+                "sharePct": 0.492629221004692
+              },
+              {
+                "function": "wasm-function[3]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 6.995666666666667,
+                "sharePct": 0.48646353273540066
+              },
+              {
+                "function": "addSolidPaths",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 6.732,
+                "sharePct": 0.46812872288198176
+              },
+              {
+                "function": "readCachedMotionWindow",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 6.642333333333333,
+                "sharePct": 0.46189349677506686
+              },
+              {
+                "function": "finalizeArcTrack",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_finalize.ts",
+                "selfMsPerCompile": 6.296333333333333,
+                "sharePct": 0.4378334049573061
+              },
+              {
+                "function": "_copyActual",
+                "url": "node:buffer",
+                "selfMsPerCompile": 5.996666666666667,
+                "sharePct": 0.41699523294943813
+              },
+              {
+                "function": "inspectConstructionWindow",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_candidate.ts",
+                "selfMsPerCompile": 5.878,
+                "sharePct": 0.40874340955143923
+              },
+              {
+                "function": "inspectTrajectory",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 5.592,
+                "sharePct": 0.3888555879910936
+              },
+              {
+                "function": "wasm-function[45]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 5.301333333333333,
+                "sharePct": 0.3686432565218379
+              },
+              {
+                "function": "wasm-function[40]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 5.122,
+                "sharePct": 0.35617280430800813
+              },
+              {
+                "function": "replayCandidate",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 4.798,
+                "sharePct": 0.3336425449179662
+              },
+              {
+                "function": "withDetection",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 4.794666666666667,
+                "sharePct": 0.3334107521258876
+              },
+              {
+                "function": "register",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 4.7796666666666665,
+                "sharePct": 0.3323676845615338
+              },
+              {
+                "function": "openInterval",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval_state.ts",
+                "selfMsPerCompile": 4.721333333333333,
+                "sharePct": 0.32831131070015795
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/production_repertoire.ts",
+                "selfMsPerCompile": 4.707333333333334,
+                "sharePct": 0.32733778097342775
+              },
+              {
+                "function": "arcControlMemoKey",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+                "selfMsPerCompile": 4.69,
+                "sharePct": 0.3261324584546189
+              },
+              {
+                "function": "wasm-function[79]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 4.677333333333333,
+                "sharePct": 0.32525164584472016
+              },
+              {
+                "function": "wasm-function[43]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 4.631333333333333,
+                "sharePct": 0.3220529053140352
+              },
+              {
+                "function": "wasm-function[23]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 4.405666666666667,
+                "sharePct": 0.3063605332903126
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_compile_context.ts",
+                "selfMsPerCompile": 4.025666666666667,
+                "sharePct": 0.27993615499334984
+              },
+              {
+                "function": "read",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 3.95,
+                "sharePct": 0.2746744586131652
+              },
+              {
+                "function": "wasm-function[8]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 3.8556666666666666,
+                "sharePct": 0.2681147225973402
+              },
+              {
+                "function": "wasm-function[5]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 3.8516666666666666,
+                "sharePct": 0.2678365712468459
+              },
+              {
+                "function": "compileWorker",
+                "url": "file:///home/holo/line/tools/parity/parity.ts",
+                "selfMsPerCompile": 3.707333333333333,
+                "sharePct": 0.25779994334984163
+              },
+              {
+                "function": "measureObjective",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 3.610333333333333,
+                "sharePct": 0.2510547731003538
+              },
+              {
+                "function": "guideProgress",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+                "selfMsPerCompile": 3.483,
+                "sharePct": 0.24220028844295047
+              },
+              {
+                "function": "wasm-function[16]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 3.381,
+                "sharePct": 0.23510742900534468
+              },
+              {
+                "function": "motionSamples",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_quality.ts",
+                "selfMsPerCompile": 3.2386666666666666,
+                "sharePct": 0.2252098767835876
+              },
+              {
+                "function": "getBallisticStateAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 3.1403333333333334,
+                "sharePct": 0.2183719894172683
+              },
+              {
+                "function": "finishDetection",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 2.969333333333333,
+                "sharePct": 0.20648101918363507
+              },
+              {
+                "function": "evaluate",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 2.8263333333333334,
+                "sharePct": 0.19653710840346225
+              },
+              {
+                "function": "scanSummary",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 2.8226666666666667,
+                "sharePct": 0.19628213633217576
+              },
+              {
+                "function": "heading",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/geometry_families.ts",
+                "selfMsPerCompile": 2.707666666666667,
+                "sharePct": 0.18828528500546335
+              },
+              {
+                "function": "wasm-function[57]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 2.6803333333333335,
+                "sharePct": 0.18638458411041867
+              },
+              {
+                "function": "consume",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 2.6746666666666665,
+                "sharePct": 0.18599053636388502
+              },
+              {
+                "function": "compileProductionRepertoire",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/production_repertoire.ts",
+                "selfMsPerCompile": 2.615666666666667,
+                "sharePct": 0.18188780394409343
+              },
+              {
+                "function": "searchInterval",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval.ts",
+                "selfMsPerCompile": 2.6056666666666666,
+                "sharePct": 0.18119242556785758
+              },
+              {
+                "function": "wasm-function[32]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 2.5973333333333333,
+                "sharePct": 0.18061294358766103
+              },
+              {
+                "function": "solidPathLines",
+                "url": "file:///home/holo/line/scripts/v0/arc.ts",
+                "selfMsPerCompile": 2.509,
+                "sharePct": 0.17447043459757758
+              },
+              {
+                "function": "partitionMatches",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_control_policy.ts",
+                "selfMsPerCompile": 2.5063333333333335,
+                "sharePct": 0.17428500036391467
+              },
+              {
+                "function": "wasm-function[37]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 2.504,
+                "sharePct": 0.17412274540945966
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+                "selfMsPerCompile": 2.4556666666666667,
+                "sharePct": 0.17076174992431967
+              },
+              {
+                "function": "intervalMotionSummary",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_objective.ts",
+                "selfMsPerCompile": 2.432,
+                "sharePct": 0.16911602110056145
+              },
+              {
+                "function": "wasm-function[39]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 2.431,
+                "sharePct": 0.16904648326293786
+              },
+              {
+                "function": "runIntervalSequence",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_sequence.ts",
+                "selfMsPerCompile": 2.425,
+                "sharePct": 0.16862925623719635
+              },
+              {
+                "function": "arcRailGroups",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_rail_groups.ts",
+                "selfMsPerCompile": 2.377,
+                "sharePct": 0.16529144003126423
+              },
+              {
+                "function": "DetectionContinuation",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 2.320333333333333,
+                "sharePct": 0.16135096256592765
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+                "selfMsPerCompile": 2.319,
+                "sharePct": 0.16125824544909623
+              },
+              {
+                "function": "release",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 2.288,
+                "sharePct": 0.15910257248276505
+              },
+              {
+                "function": "motionChange",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 2.216,
+                "sharePct": 0.15409584817386685
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_layout.ts",
+                "selfMsPerCompile": 2.1576666666666666,
+                "sharePct": 0.15003947431249098
+              },
+              {
+                "function": "inspectLayout",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_layout.ts",
+                "selfMsPerCompile": 2.127,
+                "sharePct": 0.14790698062536767
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 2.1006666666666667,
+                "sharePct": 0.14607581756794658
+              },
+              {
+                "function": "detect",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 2.098333333333333,
+                "sharePct": 0.14591356261349153
+              },
+              {
+                "function": "record",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_lineage.ts",
+                "selfMsPerCompile": 2.0833333333333335,
+                "sharePct": 0.14487049504913777
+              },
+              {
+                "function": "observe",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 2.074,
+                "sharePct": 0.14422147523131762
+              },
+              {
+                "function": "wasm-function[106]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 2.004,
+                "sharePct": 0.1393538265976666
+              },
+              {
+                "function": "wasm-function[1]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.9226666666666667,
+                "sharePct": 0.13369808247094825
+              },
+              {
+                "function": "receiverPoints",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+                "selfMsPerCompile": 1.9073333333333333,
+                "sharePct": 0.1326318356273866
+              },
+              {
+                "function": "motionBurst",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_quality.ts",
+                "selfMsPerCompile": 1.8736666666666666,
+                "sharePct": 0.13029072842739253
+              },
+              {
+                "function": "recordCandidate",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 1.833,
+                "sharePct": 0.12746285636403337
+              },
+              {
+                "function": "repertoireMusicHash",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_context.ts",
+                "selfMsPerCompile": 1.801,
+                "sharePct": 0.1252376455600786
+              },
+              {
+                "function": "get buffer",
+                "url": "",
+                "selfMsPerCompile": 1.7896666666666667,
+                "sharePct": 0.12444955006701129
+              },
+              {
+                "function": "arcAttemptTelemetry",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_attempts.ts",
+                "selfMsPerCompile": 1.7876666666666667,
+                "sharePct": 0.12431047439176413
+              },
+              {
+                "function": "genericControl",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+                "selfMsPerCompile": 1.7793333333333334,
+                "sharePct": 0.12373099241156757
+              },
+              {
+                "function": "extractRawTrajectoryWindow",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 1.757,
+                "sharePct": 0.12217798070464081
+              },
+              {
+                "function": "proposeInitialControls",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+                "selfMsPerCompile": 1.708,
+                "sharePct": 0.1187706266610851
+              },
+              {
+                "function": "reject",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 1.707,
+                "sharePct": 0.1187010888234615
+              },
+              {
+                "function": "proposeOpposingEntries",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+                "selfMsPerCompile": 1.7023333333333333,
+                "sharePct": 0.11837657891455144
+              },
+              {
+                "function": "median",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 1.6033333333333333,
+                "sharePct": 0.11149233298981641
+              },
+              {
+                "function": "readCollisionTrace",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.586,
+                "sharePct": 0.11028701047100758
+              },
+              {
+                "function": "addArrivalPriors",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 1.5053333333333334,
+                "sharePct": 0.10467762490270498
+              },
+              {
+                "function": "wasm-function[105]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.4793333333333334,
+                "sharePct": 0.10286964112449173
+              },
+              {
+                "function": "getUpdatesAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.4053333333333333,
+                "sharePct": 0.09772384114034637
+              },
+              {
+                "function": "wasm-function[77]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.3966666666666667,
+                "sharePct": 0.09712117988094195
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_finalize.ts",
+                "selfMsPerCompile": 1.378,
+                "sharePct": 0.09582314024530168
+              },
+              {
+                "function": "recoverInitialization",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+                "selfMsPerCompile": 1.3526666666666667,
+                "sharePct": 0.09406151502550417
+              },
+              {
+                "function": "contactFragments",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/contact_fragments.ts",
+                "selfMsPerCompile": 1.271,
+                "sharePct": 0.08838259161957795
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.253,
+                "sharePct": 0.0871309105423534
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_context.ts",
+                "selfMsPerCompile": 1.2206666666666666,
+                "sharePct": 0.0848825204591908
+              },
+              {
+                "function": "measureTrajectoryAxes",
+                "url": "file:///home/holo/line/scripts/v0/core/measure.ts",
+                "selfMsPerCompile": 1.2133333333333334,
+                "sharePct": 0.08437257631661783
+              },
+              {
+                "function": "matchesBallisticStateAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.2096666666666667,
+                "sharePct": 0.08411760424533135
+              },
+              {
+                "function": "getAllContactLineIdsAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.2066666666666668,
+                "sharePct": 0.08390899073246058
+              },
+              {
+                "function": "commitInterval",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_sequence.ts",
+                "selfMsPerCompile": 1.203,
+                "sharePct": 0.0836540186611741
+              },
+              {
+                "function": "ballisticState",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?production-repertoire-audit",
+                "selfMsPerCompile": 1.1976666666666667,
+                "sharePct": 0.08328315019384831
+              },
+              {
+                "function": "selectMemo",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval_state.ts",
+                "selfMsPerCompile": 1.1846666666666668,
+                "sharePct": 0.0823791583047417
+              },
+              {
+                "function": "getUpdatesAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?production-repertoire-audit",
+                "selfMsPerCompile": 1.1803333333333332,
+                "sharePct": 0.08207782767503949
+              },
+              {
+                "function": "ArcControlMemory",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 1.1743333333333332,
+                "sharePct": 0.08166060064929796
+              },
+              {
+                "function": "evaluationContext",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_options.ts",
+                "selfMsPerCompile": 1.1316666666666666,
+                "sharePct": 0.07869365291069162
+              },
+              {
+                "function": "arcControlNormalizer",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+                "selfMsPerCompile": 1.117,
+                "sharePct": 0.0776737646255457
+              },
+              {
+                "function": "arcFeatureDistance",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_value.ts",
+                "selfMsPerCompile": 1.116,
+                "sharePct": 0.07760422678792211
+              },
+              {
+                "function": "wasm-function[65]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.1123333333333334,
+                "sharePct": 0.07734925471663563
+              },
+              {
+                "function": "findAuthoredContactNearFrame",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 1.102,
+                "sharePct": 0.07663069706119191
+              },
+              {
+                "function": "retainOnly",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.0183333333333333,
+                "sharePct": 0.07081269798001853
+              },
+              {
+                "function": "wasm-function[47]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.0156666666666667,
+                "sharePct": 0.07062726374635564
+              },
+              {
+                "function": "wasm-function[76]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 1.01,
+                "sharePct": 0.07023321599982198
+              },
+              {
+                "function": "addBatch",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 1.0076666666666667,
+                "sharePct": 0.07007096104536695
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_candidate.ts",
+                "selfMsPerCompile": 1.0023333333333333,
+                "sharePct": 0.06970009257804116
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 1.0003333333333333,
+                "sharePct": 0.06956101690279398
+              },
+              {
+                "function": "extractRawFrame",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 0.9893333333333333,
+                "sharePct": 0.06879610068893453
+              },
+              {
+                "function": "resolveIntervalOptions",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval_state.ts",
+                "selfMsPerCompile": 0.941,
+                "sharePct": 0.06543510520379454
+              },
+              {
+                "function": "direction",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_quality.ts",
+                "selfMsPerCompile": 0.908,
+                "sharePct": 0.0631403565622162
+              },
+              {
+                "function": "getUpdatesAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?arc-compiler-replay",
+                "selfMsPerCompile": 0.9013333333333333,
+                "sharePct": 0.06267677097805896
+              },
+              {
+                "function": "fragmentInterval",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/contact_interval.ts",
+                "selfMsPerCompile": 0.899,
+                "sharePct": 0.06251451602360393
+              },
+              {
+                "function": "wasm-function[89]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.889,
+                "sharePct": 0.061819137647368065
+              },
+              {
+                "function": "arcReferencedControl",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+                "selfMsPerCompile": 0.8793333333333333,
+                "sharePct": 0.06114693855034006
+              },
+              {
+                "function": "wasm-function[71]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.815,
+                "sharePct": 0.05667333766322269
+              },
+              {
+                "function": "rawFrameFrom",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.8123333333333334,
+                "sharePct": 0.056487903429559796
+              },
+              {
+                "function": "getRider",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?arc-compiler-replay",
+                "selfMsPerCompile": 0.809,
+                "sharePct": 0.05625611063748117
+              },
+              {
+                "function": "processChunkSync",
+                "url": "node:zlib",
+                "selfMsPerCompile": 0.8003333333333333,
+                "sharePct": 0.05565344937807676
+              },
+              {
+                "function": "continueStrikes",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.7943333333333333,
+                "sharePct": 0.055236222352335246
+              },
+              {
+                "function": "bodyMotion",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.7823333333333333,
+                "sharePct": 0.05440176830085221
+              },
+              {
+                "function": "catchReceivers",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_geometry.ts",
+                "selfMsPerCompile": 0.753,
+                "sharePct": 0.05236199173056035
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 0.7296666666666667,
+                "sharePct": 0.05073944218601001
+              },
+              {
+                "function": "wasm-function[81]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.724,
+                "sharePct": 0.05034539443947635
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/tools/parity/parity.ts",
+                "selfMsPerCompile": 0.7153333333333334,
+                "sharePct": 0.04974273318007194
+              },
+              {
+                "function": "ballisticState",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?arc-compiler-replay",
+                "selfMsPerCompile": 0.706,
+                "sharePct": 0.0490937133622518
+              },
+              {
+                "function": "S",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.6996666666666667,
+                "sharePct": 0.048653307057302426
+              },
+              {
+                "function": "rememberNear",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 0.6983333333333334,
+                "sharePct": 0.04856058994047097
+              },
+              {
+                "function": "allocateArcProposalSlots",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 0.696,
+                "sharePct": 0.048398334986015944
+              },
+              {
+                "function": "length",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+                "selfMsPerCompile": 0.6936666666666667,
+                "sharePct": 0.04823608003156091
+              },
+              {
+                "function": "accountStrikes",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.682,
+                "sharePct": 0.04742480525928573
+              },
+              {
+                "function": "getRawFrameAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?arc-compiler-replay",
+                "selfMsPerCompile": 0.644,
+                "sharePct": 0.044782367429589465
+              },
+              {
+                "function": "update",
+                "url": "node:internal/crypto/hash",
+                "selfMsPerCompile": 0.642,
+                "sharePct": 0.04464329175434229
+              },
+              {
+                "function": "sectionOf",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_finalize.ts",
+                "selfMsPerCompile": 0.6393333333333333,
+                "sharePct": 0.04445785752067939
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 0.6316666666666667,
+                "sharePct": 0.04392473409889857
+              },
+              {
+                "function": "distinctCandidates",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_candidates.ts",
+                "selfMsPerCompile": 0.615,
+                "sharePct": 0.042765770138505466
+              },
+              {
+                "function": "engagementGainResiduals",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_search.ts",
+                "selfMsPerCompile": 0.614,
+                "sharePct": 0.042696232300881876
+              },
+              {
+                "function": "measureGrainFromLines",
+                "url": "file:///home/holo/line/scripts/v0/core/measure.ts",
+                "selfMsPerCompile": 0.6106666666666667,
+                "sharePct": 0.042464439508803256
+              },
+              {
+                "function": "Hash",
+                "url": "node:internal/crypto/hash",
+                "selfMsPerCompile": 0.6066666666666667,
+                "sharePct": 0.04218628815830892
+              },
+              {
+                "function": "concat",
+                "url": "node:buffer",
+                "selfMsPerCompile": 0.596,
+                "sharePct": 0.04144455122365733
+              },
+              {
+                "function": "coordinateSearch",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_local_search.ts",
+                "selfMsPerCompile": 0.5916666666666667,
+                "sharePct": 0.04114322059395512
+              },
+              {
+                "function": "wasm-function[15]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.5566666666666666,
+                "sharePct": 0.03870939627712961
+              },
+              {
+                "function": "getCachedContactPositions",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.548,
+                "sharePct": 0.03810673501772519
+              },
+              {
+                "function": "selectionObjective",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_objective.ts",
+                "selfMsPerCompile": 0.5403333333333333,
+                "sharePct": 0.03757361159594437
+              },
+              {
+                "function": "wasm-function[42]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.533,
+                "sharePct": 0.037063667453371404
+              },
+              {
+                "function": "trajectoryObjective",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_objective.ts",
+                "selfMsPerCompile": 0.5193333333333333,
+                "sharePct": 0.036113317005849056
+              },
+              {
+                "function": "add",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_lineage.ts",
+                "selfMsPerCompile": 0.5053333333333333,
+                "sharePct": 0.03513978727911885
+              },
+              {
+                "function": "wasm-function[103]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.505,
+                "sharePct": 0.03511660799991099
+              },
+              {
+                "function": "compileArcMotionOnce",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion.ts",
+                "selfMsPerCompile": 0.504,
+                "sharePct": 0.035047070162287405
+              },
+              {
+                "function": "motionResiduals",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_objective.ts",
+                "selfMsPerCompile": 0.49433333333333335,
+                "sharePct": 0.0343748710652594
+              },
+              {
+                "function": "observeMotion",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.49066666666666664,
+                "sharePct": 0.03411989899397292
+              },
+              {
+                "function": "Hash",
+                "url": "",
+                "selfMsPerCompile": 0.4553333333333333,
+                "sharePct": 0.031662895397939546
+              },
+              {
+                "function": "memoryFor",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_compile_context.ts",
+                "selfMsPerCompile": 0.44233333333333336,
+                "sharePct": 0.030758903508832928
+              },
+              {
+                "function": "wasm-function[54]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.407,
+                "sharePct": 0.028301899912799553
+              },
+              {
+                "function": "proposeControls",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 0.4066666666666667,
+                "sharePct": 0.02827872063359169
+              },
+              {
+                "function": "getRider",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.4053333333333333,
+                "sharePct": 0.02818600351676024
+              },
+              {
+                "function": "wasm-function[2]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.405,
+                "sharePct": 0.02816282423755238
+              },
+              {
+                "function": "wasm-function[10]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.4046666666666667,
+                "sharePct": 0.028139644958344517
+              },
+              {
+                "function": "createUnsafeBuffer",
+                "url": "node:internal/buffer",
+                "selfMsPerCompile": 0.4036666666666667,
+                "sharePct": 0.02807010712072093
+              },
+              {
+                "function": "strikePrefix",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.4026666666666667,
+                "sharePct": 0.028000569283097344
+              },
+              {
+                "function": "wasm-function[6]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.40166666666666667,
+                "sharePct": 0.02793103144547376
+              },
+              {
+                "function": "firstAt",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/repertoire_realization.ts",
+                "selfMsPerCompile": 0.4013333333333333,
+                "sharePct": 0.027907852166265897
+              },
+              {
+                "function": "wasm-function[21]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.3983333333333333,
+                "sharePct": 0.027699238653395138
+              },
+              {
+                "function": "wasm-function[75]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.392,
+                "sharePct": 0.02725883234844576
+              },
+              {
+                "function": "wasm-function[16]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.39166666666666666,
+                "sharePct": 0.0272356530692379
+              },
+              {
+                "function": "caseSpec",
+                "url": "file:///home/holo/line/benchmark/v3/model.ts",
+                "selfMsPerCompile": 0.3626666666666667,
+                "sharePct": 0.0252190557781539
+              },
+              {
+                "function": "score",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_objective.ts",
+                "selfMsPerCompile": 0.30966666666666665,
+                "sharePct": 0.021533550384103834
+              },
+              {
+                "function": "materialize",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_sequence.ts",
+                "selfMsPerCompile": 0.306,
+                "sharePct": 0.021278578312817355
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_options.ts",
+                "selfMsPerCompile": 0.30533333333333335,
+                "sharePct": 0.021232219754401628
+              },
+              {
+                "function": "wasm-function[0]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.30533333333333335,
+                "sharePct": 0.021232219754401628
+              },
+              {
+                "function": "startSummary",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 0.304,
+                "sharePct": 0.02113950263757018
+              },
+              {
+                "function": "allContacts",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 0.303,
+                "sharePct": 0.021069964799946595
+              },
+              {
+                "function": "getRider",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?production-repertoire-audit",
+                "selfMsPerCompile": 0.303,
+                "sharePct": 0.021069964799946595
+              },
+              {
+                "function": "wasm-function[18]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.30233333333333334,
+                "sharePct": 0.021023606241530872
+              },
+              {
+                "function": "wasm-function[34]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.302,
+                "sharePct": 0.02100042696232301
+              },
+              {
+                "function": "boundThroughMetered",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 0.30133333333333334,
+                "sharePct": 0.020954068403907285
+              },
+              {
+                "function": "createHash",
+                "url": "node:crypto",
+                "selfMsPerCompile": 0.3,
+                "sharePct": 0.020861351287075836
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 0.29133333333333333,
+                "sharePct": 0.020258690027671424
+              },
+              {
+                "function": "wasm-function[73]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.291,
+                "sharePct": 0.02023551074846356
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/wasm.ts",
+                "selfMsPerCompile": 0.29,
+                "sharePct": 0.020165972910839974
+              },
+              {
+                "function": "summarizeMotion",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_quality.ts",
+                "selfMsPerCompile": 0.287,
+                "sharePct": 0.019957359397969218
+              },
+              {
+                "function": "reuseMeasurement",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_evaluate.ts",
+                "selfMsPerCompile": 0.2623333333333333,
+                "sharePct": 0.018242092736587424
+              },
+              {
+                "function": "wasm-function[1]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.24433333333333335,
+                "sharePct": 0.016990411659362877
+              },
+              {
+                "function": "planIntentionalRepertoire",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/intentional_repertoire.ts",
+                "selfMsPerCompile": 0.24166666666666667,
+                "sharePct": 0.01680497742569998
+              },
+              {
+                "function": "impactFeasibilityBound",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 0.22166666666666668,
+                "sharePct": 0.015414220673228257
+              },
+              {
+                "function": "wasm-function[49]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.20533333333333334,
+                "sharePct": 0.014278435992043016
+              },
+              {
+                "function": "getRawFrameAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?production-repertoire-audit",
+                "selfMsPerCompile": 0.20433333333333334,
+                "sharePct": 0.014208898154419431
+              },
+              {
+                "function": "dispatch",
+                "url": "",
+                "selfMsPerCompile": 0.20433333333333334,
+                "sharePct": 0.014208898154419431
+              },
+              {
+                "function": "arcArrivalFeatures",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_value.ts",
+                "selfMsPerCompile": 0.204,
+                "sharePct": 0.014185718875211568
+              },
+              {
+                "function": "arcConstructionMemoryKey",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_memory.ts",
+                "selfMsPerCompile": 0.20366666666666666,
+                "sharePct": 0.014162539596003706
+              },
+              {
+                "function": "choose",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_sequence.ts",
+                "selfMsPerCompile": 0.20366666666666666,
+                "sharePct": 0.014162539596003706
+              },
+              {
+                "function": "get h",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.20333333333333334,
+                "sharePct": 0.014139360316795845
+              },
+              {
+                "function": "wrappedFn",
+                "url": "node:internal/errors",
+                "selfMsPerCompile": 0.203,
+                "sharePct": 0.014116181037587983
+              },
+              {
+                "function": "wasm-function[78]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.203,
+                "sharePct": 0.014116181037587983
+              },
+              {
+                "function": "withGrain",
+                "url": "file:///home/holo/line/scripts/v0/core/measure.ts",
+                "selfMsPerCompile": 0.203,
+                "sharePct": 0.014116181037587983
+              },
+              {
+                "function": "wasm-function[22]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.20266666666666666,
+                "sharePct": 0.01409300175838012
+              },
+              {
+                "function": "wasm-function[55]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.20266666666666666,
+                "sharePct": 0.01409300175838012
+              },
+              {
+                "function": "observeMotionWindow",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.20266666666666666,
+                "sharePct": 0.01409300175838012
+              },
+              {
+                "function": "structuredClone",
+                "url": "node:internal/worker/js_transferable",
+                "selfMsPerCompile": 0.20233333333333334,
+                "sharePct": 0.014069822479172258
+              },
+              {
+                "function": "validProfileControls",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_profiles.ts",
+                "selfMsPerCompile": 0.20233333333333334,
+                "sharePct": 0.014069822479172258
+              },
+              {
+                "function": "getRawFrameAtFrame",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.202,
+                "sharePct": 0.014046643199964397
+              },
+              {
+                "function": "wasm-function[88]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.20166666666666666,
+                "sharePct": 0.014023463920756535
+              },
+              {
+                "function": "fromHandle",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.20166666666666666,
+                "sharePct": 0.014023463920756535
+              },
+              {
+                "function": "normalize",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion_control.ts",
+                "selfMsPerCompile": 0.20133333333333334,
+                "sharePct": 0.014000284641548672
+              },
+              {
+                "function": "wasm-function[26]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.20133333333333334,
+                "sharePct": 0.014000284641548672
+              },
+              {
+                "function": "events",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?production-repertoire-audit",
+                "selfMsPerCompile": 0.20133333333333334,
+                "sharePct": 0.014000284641548672
+              },
+              {
+                "function": "wasm-function[52]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.201,
+                "sharePct": 0.01397710536234081
+              },
+              {
+                "function": "impactSearchResiduals",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_search.ts",
+                "selfMsPerCompile": 0.2,
+                "sharePct": 0.013907567524717224
+              },
+              {
+                "function": "buildContext",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_compile_context.ts",
+                "selfMsPerCompile": 0.195,
+                "sharePct": 0.013559878336599294
+              },
+              {
+                "function": "advanceWhileBound",
+                "url": "file:///home/holo/line/scripts/lib/native_motion/engine.ts",
+                "selfMsPerCompile": 0.192,
+                "sharePct": 0.013351264823728535
+              },
+              {
+                "function": "wasm-function[22]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.192,
+                "sharePct": 0.013351264823728535
+              },
+              {
+                "function": "frac",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_proposals.ts",
+                "selfMsPerCompile": 0.19,
+                "sharePct": 0.013212189148481364
+              },
+              {
+                "function": "evaluateStrikeEvents",
+                "url": "file:///home/holo/line/scripts/lib/strike_impact.ts",
+                "selfMsPerCompile": 0.18833333333333332,
+                "sharePct": 0.013096292752442054
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_guidance.ts",
+                "selfMsPerCompile": 0.17133333333333334,
+                "sharePct": 0.01191414951284109
+              },
+              {
+                "function": "futureFeatures",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_compile_context.ts",
+                "selfMsPerCompile": 0.171,
+                "sharePct": 0.011890970233633226
+              },
+              {
+                "function": "wasm-function[33]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.16666666666666666,
+                "sharePct": 0.01158963960393102
+              },
+              {
+                "function": "createUnsafeArrayBuffer",
+                "url": "",
+                "selfMsPerCompile": 0.13666666666666666,
+                "sharePct": 0.009503504475223436
+              },
+              {
+                "function": "evaluate",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 0.136,
+                "sharePct": 0.009457145916807713
+              },
+              {
+                "function": "wasm-function[70]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.122,
+                "sharePct": 0.008483616190077507
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval_state.ts",
+                "selfMsPerCompile": 0.11066666666666666,
+                "sharePct": 0.007695520697010198
+              },
+              {
+                "function": "owned",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_compile_context.ts",
+                "selfMsPerCompile": 0.10833333333333334,
+                "sharePct": 0.007533265742555163
+              },
+              {
+                "function": "normalizeCompilerTimeline",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/compiler_input.ts",
+                "selfMsPerCompile": 0.10466666666666667,
+                "sharePct": 0.007278293671268681
+              },
+              {
+                "function": "clampGapTargets",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 0.103,
+                "sharePct": 0.007162397275229371
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/benchmark/v3/model.ts",
+                "selfMsPerCompile": 0.10266666666666667,
+                "sharePct": 0.007139217996021508
+              },
+              {
+                "function": "profileHeading",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_profiles.ts",
+                "selfMsPerCompile": 0.10266666666666667,
+                "sharePct": 0.007139217996021508
+              },
+              {
+                "function": "getCachedHashId",
+                "url": "node:internal/crypto/util",
+                "selfMsPerCompile": 0.102,
+                "sharePct": 0.007092859437605784
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_search.ts",
+                "selfMsPerCompile": 0.102,
+                "sharePct": 0.007092859437605784
+              },
+              {
+                "function": "prefix",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_accounts.ts",
+                "selfMsPerCompile": 0.102,
+                "sharePct": 0.007092859437605784
+              },
+              {
+                "function": "startDetector",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 0.102,
+                "sharePct": 0.007092859437605784
+              },
+              {
+                "function": "compileArcMotion",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_motion.ts",
+                "selfMsPerCompile": 0.102,
+                "sharePct": 0.007092859437605784
+              },
+              {
+                "function": "reportedAxes",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_candidates.ts",
+                "selfMsPerCompile": 0.10166666666666667,
+                "sharePct": 0.0070696801583979224
+              },
+              {
+                "function": "writeFileSync",
+                "url": "node:fs",
+                "selfMsPerCompile": 0.10166666666666667,
+                "sharePct": 0.0070696801583979224
+              },
+              {
+                "function": "readMeteredFrame",
+                "url": "file:///home/holo/line/scripts/lib/detector.ts",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "wasm-function[37]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "wasm-function[19]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "validateImpactSearchOptions",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/impact_search.ts",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "digest",
+                "url": "node:internal/crypto/hash",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "wasm-function[83]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.10133333333333333,
+                "sharePct": 0.00704650087919006
+              },
+              {
+                "function": "subarray",
+                "url": "node:buffer",
+                "selfMsPerCompile": 0.101,
+                "sharePct": 0.007023321599982198
+              },
+              {
+                "function": "zlibBufferSync",
+                "url": "node:zlib",
+                "selfMsPerCompile": 0.101,
+                "sharePct": 0.007023321599982198
+              },
+              {
+                "function": "wasm-function[67]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.101,
+                "sharePct": 0.007023321599982198
+              },
+              {
+                "function": "foldTime",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/motion_profiles.ts",
+                "selfMsPerCompile": 0.101,
+                "sharePct": 0.007023321599982198
+              },
+              {
+                "function": "replaceWithFragments",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_interval.ts",
+                "selfMsPerCompile": 0.101,
+                "sharePct": 0.007023321599982198
+              },
+              {
+                "function": "effectiveAxes",
+                "url": "file:///home/holo/line/scripts/v0/core/substrate.ts",
+                "selfMsPerCompile": 0.10066666666666667,
+                "sharePct": 0.007000142320774336
+              },
+              {
+                "function": "wasm-function[31]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.10033333333333333,
+                "sharePct": 0.006976963041566474
+              },
+              {
+                "function": "wasm-function[55]",
+                "url": "wasm://wasm/00052e8a",
+                "selfMsPerCompile": 0.1,
+                "sharePct": 0.006953783762358612
+              },
+              {
+                "function": "observationContract",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_refinement.ts",
+                "selfMsPerCompile": 0.09966666666666667,
+                "sharePct": 0.00693060448315075
+              },
+              {
+                "function": "arcDetectedTrajectoryObjective",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_objective.ts",
+                "selfMsPerCompile": 0.09966666666666667,
+                "sharePct": 0.00693060448315075
+              },
+              {
+                "function": "wasm-function[20]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.098,
+                "sharePct": 0.00681470808711144
+              },
+              {
+                "function": "wasm-function[34]",
+                "url": "wasm://wasm/0005c6da",
+                "selfMsPerCompile": 0.09533333333333334,
+                "sharePct": 0.006629273853448543
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_sequence.ts",
+                "selfMsPerCompile": 0.08966666666666667,
+                "sharePct": 0.006235226106914889
+              },
+              {
+                "function": "getLastFrameIndex",
+                "url": "file:///home/holo/line/scripts/lib/_lr_engine_wasm.ts?arc-compiler-replay",
+                "selfMsPerCompile": 0.026333333333333334,
+                "sharePct": 0.0018311630574211013
+              },
+              {
+                "function": "<anonymous>",
+                "url": "file:///home/holo/line/scripts/v0/optimizer/arc_refinement.ts",
+                "selfMsPerCompile": 0.024,
+                "sharePct": 0.0016689081029660669
+              }
+            ]
+          }
+        }
+      },
+      "raw": {
+        "compile-0.cpuprofile": {
+          "sha256": "053c283a79cd7ac9bcf6ebbf5bd166f7cc0bca9454b44ed00a8ae88f2631cc8e",
+          "bytes": 230420
+        },
+        "compile-1.cpuprofile": {
+          "sha256": "c0b8ec2f5abbb83c84d7f77ff969ac8a2a6d0e53838e60a5866aba4ad194d160",
+          "bytes": 238846
+        },
+        "compile-2.cpuprofile": {
+          "sha256": "00732fed513fb6e4aba1798a5a619d23a0cf69d78898adefe18a3904d4f86771",
+          "bytes": 222805
+        }
+      }
+    }
+  }
+}

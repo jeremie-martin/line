@@ -4,7 +4,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * physical prefix; only a replay that meets every physical, musical and
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
-import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection } from '../../lib/detector.ts';
+import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection, type RawFrame } from '../../lib/detector.ts';
 import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { AXIS_MEASURE, measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
@@ -162,9 +162,19 @@ function replayCandidate(s: IntervalSearch, child: Engine, prefixFrames: number)
   if (!matchesBallisticStateMetered(child, frame - 1, s.beforeState)) return {reason: 'prefix'} as Rejection;
   if (!boundThroughMetered(child, horizon)) return {reason: 'binding'} as Rejection;
   const state = getBallisticStateMetered(child, horizon);
-  const prefix = prefixFrames === frame ? s.prefixRaw.frames : s.prefixRaw.frames.slice(0, prefixFrames);
-  const raw = {duration: horizon, frames: prefix.concat(extractRawTrajectoryWindow(child, prefixFrames, horizon).frames)};
+  const raw = {duration: horizon, frames: candidateFrames(s, prefixFrames, extractRawTrajectoryWindow(child, prefixFrames, horizon).frames)};
   return {state, raw};
+}
+
+/** The unchanged prefix followed by `suffix`, in the search's one reusable array.
+ * Borrowed like the detection: valid only until the next replay of this search. */
+function candidateFrames(s: IntervalSearch, prefixFrames: number, suffix: RawFrame[]) {
+  const {replayFrames: frames, prefixRaw} = s;
+  for (let k = s.replayIntact; k < prefixFrames; k++) frames[k] = prefixRaw.frames[k];
+  s.replayIntact = prefixFrames;
+  frames.length = prefixFrames;
+  for (let k = 0; k < suffix.length; k++) frames.push(suffix[k]);
+  return frames;
 }
 
 /** Validates the detected trajectory and observes its requested impact and

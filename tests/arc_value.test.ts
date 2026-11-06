@@ -12,6 +12,30 @@ it('matches independently exported Python model predictions', () => {
   expect(() => arcFutureValue(fixtures.cases[0].features.map(() => NaN), model)).toThrow('feature mismatch');
 });
 
+it('reproduces the reference tree walk bit for bit', () => {
+  const reference = (features: number[]) => {
+    let value = model.model.initial;
+    for (const tree of model.model.trees) {
+      let node = 0;
+      while (!tree.leaf[node]) node = features[tree.feature[node]] <= tree.threshold[node] ? tree.left[node] : tree.right[node];
+      value += tree.value[node];
+    }
+    return Math.max(0, Math.expm1(value) / 100);
+  };
+  let state = 0x9e3779b9;
+  const next = () => (state = Math.imul(state ^ state >>> 15, 0x2c1b3c6d) + 0x6d2b79f5 | 0, (state >>> 0) / 2 ** 32);
+  for (let k = 0; k < 2000; k++) {
+    const base = fixtures.cases[k % fixtures.cases.length].features;
+    const features = base.map(v => k % 3 ? v + (next() - .5) * 2 : v * (1 + next() - .5));
+    expect(Object.is(arcFutureValue(features, model), reference(features))).toBe(true);
+  }
+  // A threshold-equal feature takes the left branch.
+  const tree = {left: [1, 0, 0], right: [2, 0, 0], feature: [0, 0, 0], threshold: [.5, 0, 0], value: [0, 3, 5], leaf: [false, true, true]};
+  const artifact = {...model, featureCount: 1, model: {initial: 0, trees: [tree]}};
+  expect(arcFutureValue([.5], artifact)).toBe(Math.expm1(3) / 100);
+  expect(arcFutureValue([.6], artifact)).toBe(Math.expm1(5) / 100);
+});
+
 it('describes physical arrival independently of absolute track position', () => {
   const ids = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
   const state = { points: Object.fromEntries(ids.map((id, i) => [id, { x: 2 * i, y: -i, vx: 4 + i / 10, vy: 3 }])) };

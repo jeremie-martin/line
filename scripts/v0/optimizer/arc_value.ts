@@ -39,14 +39,43 @@ export function arcFeatureDistance(a: readonly number[], b: readonly number[], w
   return sum;
 }
 
+type ValueTree = {left: number[]; right: number[]; feature: number[]; threshold: number[]; value: number[]; leaf: boolean[]};
+type ValueModel = {initial: number; trees: readonly ValueTree[]};
+
+/** One contiguous forest: `split[n]` is a node's feature, or -1 at a leaf.
+ * Children are absolute node indices. Prepared once per immutable model. */
+function flattenForest(trees: readonly ValueTree[]) {
+  const nodes = trees.reduce((n, tree) => n + tree.leaf.length, 0);
+  const roots = new Int32Array(trees.length), split = new Int32Array(nodes), left = new Int32Array(nodes),
+    right = new Int32Array(nodes), threshold = new Float64Array(nodes), value = new Float64Array(nodes);
+  let base = 0;
+  trees.forEach((tree, t) => {
+    roots[t] = base;
+    for (let n = 0; n < tree.leaf.length; n++) {
+      const at = base + n;
+      split[at] = tree.leaf[n] ? -1 : tree.feature[n];
+      left[at] = base + tree.left[n]; right[at] = base + tree.right[n];
+      threshold[at] = tree.threshold[n]; value[at] = tree.value[n];
+    }
+    base += tree.leaf.length;
+  });
+  return {roots, split, left, right, threshold, value};
+}
+const forests = new WeakMap<ValueModel, ReturnType<typeof flattenForest>>();
+
 export function arcFutureValue(features: number[], artifact: any): number {
   if (artifact.featureSchema !== ARC_VALUE_FEATURE_SCHEMA || artifact.featureCount !== features.length ||
       features.some(v => !Number.isFinite(v))) throw new Error('arc future-value feature mismatch');
-  let value = artifact.model.initial;
-  for (const tree of artifact.model.trees) {
-    let node = 0;
-    while (!tree.leaf[node]) node = features[tree.feature[node]] <= tree.threshold[node] ? tree.left[node] : tree.right[node];
-    value += tree.value[node];
+  const model: ValueModel = artifact.model;
+  let forest = forests.get(model);
+  if (!forest) forests.set(model, forest = flattenForest(model.trees));
+  const {roots, split, left, right, threshold, value: leaves} = forest;
+  let value = model.initial;
+  for (let t = 0; t < roots.length; t++) {
+    let node = roots[t];
+    for (let feature = split[node]; feature >= 0; feature = split[node])
+      node = features[feature] <= threshold[node] ? left[node] : right[node];
+    value += leaves[node];
   }
   return Math.max(0, Math.expm1(value) / 100);
 }

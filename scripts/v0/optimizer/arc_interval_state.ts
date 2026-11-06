@@ -123,6 +123,8 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     beforeState, velocity, trace,
     prefixRaw, detection, prefixImpactFrames, impactPrefix, localImpactTargets, currentImpactTarget,
     detectionFrames: frame,
+    /** Candidate trajectories borrow this array; its first `replayIntact` entries match the prefix. */
+    replayFrames: prefixRaw.frames.slice(), replayIntact: prefixRaw.frames.length,
     incoming, pace, span, constructionSpan, releaseFrames, support, impact, turn,
     memo, priorGap, priorAxes, priorLoss, normalizeControl,
     inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,

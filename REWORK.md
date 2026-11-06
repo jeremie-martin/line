@@ -1,5 +1,11 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: one speed number
+
+`npm run perf:score` reports ns per charged frame on two real compiles, one at a time.
+Two runs gave 6,128 and 6,166. The goal is 5,000 with identical tracks
+([brief](docs/performance-goal.md)).
+
 ## November 6: using the tools as written
 
 Running each documented workflow found what gates did not. `perf:engine --against`

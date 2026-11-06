@@ -18,6 +18,7 @@
     "verify:engine:trace": "node --max-old-space-size=8192 scripts/v0/bench/sim_trace.ts",
     "bench:engine": "node tools/measure/engine.ts",
     "perf:engine": "node tools/measure/engine_ab.ts",
+    "perf:score": "node tools/measure/score.ts",
     "perf:profile": "LR_ENGINE=wasm node tools/measure/profile.ts",
     "build:native": "node tools/measure/build_native_engine.mjs",
     "gallery:renderer": "node scripts/gallery/build_renderer.mjs",

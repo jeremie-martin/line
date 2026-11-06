@@ -60,3 +60,12 @@ them before answering.
 - `night-pairs-2026-10-05-contact`: 22 pairs, the first-contact posture check.
 - `impact-visibility-2026-11`: 55 pairs, about 20 minutes (item 5 above).
 
+## Tooling friction noticed while using the repository
+
+- A compile takes about twice as long in an eight-worker panel as alone (33 s against
+  16 s). This does not affect `perf:score`, but panel throughput was never measured.
+- `perf:engine` ends with a long JSON report; a one-line verdict would be easier to read.
+- `perf:profile` has no rollup by stage, so stepping, registration, geometry and
+  measurement must be summed by hand.
+- `compare --candidate` takes commits, not saved reference names.
+

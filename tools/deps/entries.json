@@ -18,7 +18,7 @@
     "tools/deps/reach.mjs",
     "tools/eval/eval.ts", "tools/eval/compare.ts", "tools/eval/remeasure.ts",
     "tools/parity/parity.ts", "tools/parity/engine.ts", "tools/parity/engine_quick.ts",
-    "tools/measure/engine.ts", "tools/measure/engine_ab.ts", "tools/measure/profile.ts", "tools/measure/smoke.ts", "tools/measure/build_native_engine.mjs",
+    "tools/measure/engine.ts", "tools/measure/engine_ab.ts", "tools/measure/profile.ts", "tools/measure/smoke.ts", "tools/measure/score.ts", "tools/measure/build_native_engine.mjs",
     "tools/measure/analyze_labels.ts", "tools/measure/analyze_pairs.ts", "tools/measure/clip_render.ts", "tools/measure/pair_study.ts",
     "tools/measure/select_pairs.ts", "tools/measure/visibility/*.ts", "tools/measure/motion_check.ts", "tools/measure/survival_envelope.ts",
     "tools/measure/observe.ts", "tools/measure/measures.ts",

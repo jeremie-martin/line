@@ -1,6 +1,6 @@
 When launching general purpose agents, only launch Opus 5.5 agents at medium reasoning effort — never Fable 5 or Sonnet 5 (Jérémie, 2026-10-30, replacing the 2026-08-03 Opus 5 xhigh rule). Use subagents sparingly and purposefully, and tell them not to spawn further subagents (Jérémie, 2026-10-03).
 
-Read `WORKING.md` (rules), `ARCHITECTURE.md` (how it works) and the newest entries of `REWORK.md` (decisions, newest first) before changing anything. `TODO.md` holds the next work and open questions.
+Read `WORKING.md` (rules), `ARCHITECTURE.md` (how it works) and the newest entries of `REWORK.md` (decisions, newest first) before changing anything. `TODO.md` holds the next work and open questions; `docs/performance-goal.md` the speed goal.
 
 ## Rules that matter most
 

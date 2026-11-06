@@ -14,6 +14,7 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
+| `npm run perf:score` | The speed score: ns per charged frame on real compiles, one at a time |
 | `npm run perf:profile` | Where a real compile spends time or allocates, with native function names (`--cell`, `--kind=allocation`, `--top`) |
 
 After editing packaged native Rust or TypeScript, run `npm run build:native`

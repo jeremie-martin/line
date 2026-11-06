@@ -13,7 +13,7 @@ cells, recorded from the old code before any removal, make 25; all stay exact af
 it. They lose only the retired branches. Parity: 228 s this morning, 58 s now, with
 more coverage. Direct old/new timing of one real compile: unchanged, about 16.6 s.
 
-New baseline `lean-foundation` (4b969e8b), V7 at the standard allowance: headline
+New baseline `lean-foundation` (4ca23848, after review fixes), V7 at the standard allowance: headline
 782.3, explicit requests 766.5, 112 of 112 rides finished, 8 min 21 s. Open questions
 and unanswered blind studies are in `TODO.md`. Rename of `scripts/v0` deferred.
 

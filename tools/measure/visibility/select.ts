@@ -47,7 +47,7 @@ const CELLS = BASES.flatMap(([base, lo, hi]) => RATIOS.filter(r => lo * r / RATI
 
 // ---- sources: only the held-out seeds, never Trouble, never a ride named by an earlier study or report
 const earlier = readdirSync('labels/studies').filter(f => f.endsWith('.key.json')).map(f => readFileSync(`labels/studies/${f}`, 'utf8'))
-  .concat(['docs/research/unwanted-impacts-20261030.json', 'docs/research/u1-measure-study-20261031.json', 'docs/research/measure-step-back-20261031.json']
+  .concat(['generated/research-archive/unwanted-impacts-20261030.json', 'generated/research-archive/u1-measure-study-20261031.json', 'generated/research-archive/measure-step-back-20261031.json']
     .map(p => readFileSync(p, 'utf8')));
 for (const r of obs.rides) {
   assert.ok(r.seed >= 9101 && r.seed <= 9124 && r.song !== 'trouble_50s', `${r.ride} is not a held-out ride`);

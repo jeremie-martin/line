@@ -79,8 +79,20 @@ that must not change what the compiler produces.
   must be trained on data disjoint from what evaluates it.
 - Reusable research and report tools live in `tools/measure`, `tools/eval` and
   `tools/report` (entries of the reachability guard). One-off study scripts do
-  not: a study that matters becomes a dated document in `docs/research/` with
-  its evidence, and its code stays on its branch.
+  not: a study that matters becomes a short note, and its code stays on its branch.
+
+## Recording decisions
+
+A commit holds the change, its tests and a few lines of record. Never commit raw
+results, timing samples, logs, patches or study scripts.
+
+- **Record:** a short entry in `REWORK.md`: what was tried, the number with its
+  interval, and the verdict. Rejected ideas get a sentence too, so nobody retries
+  them.
+- **Longer findings:** one short note in `docs/research/`. Notes are text; a test
+  enforces this.
+- **Raw results:** stay under `generated/`, which is not committed. If a result
+  matters later, it can be measured again; that is what the tools are for.
 
 ## Documents
 
@@ -129,6 +141,6 @@ plan and its log.
   supported smaller improvement against simplicity and resource gains. Keep
   the fixed experiment and its reported verdict intact; record any owner-led
   change to the adoption policy explicitly.
-- Check both research narratives and JSON evidence for earlier trials of a
-  proposed mechanism. Declare resource bounds at a meaningful scale: WASM
+- Check `REWORK.md` and `docs/research/` for earlier trials of a proposed
+  mechanism. Declare resource bounds at a meaningful scale: WASM
   capacity grows in 64 KiB pages and is distinct from live allocation size.

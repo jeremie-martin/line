@@ -1,6 +1,12 @@
 # Research record
 
-Investigations whose findings the rework builds on, kept with their evidence.
+Investigations whose findings the rework builds on. Notes are text.
+
+Older notes link to raw data files that no longer live here. They were removed in
+November 2026 because every small change was committing thousands of lines.
+Nothing was lost: `git show 6c42dd38:docs/research/<file>` prints any of them, and
+`generated/research-archive/` holds a local copy.
+
 Links to documents that are no longer in the tree resolve at tag
 `archive/pre-rework-2026-10-03`.
 

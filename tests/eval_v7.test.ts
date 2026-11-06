@@ -47,7 +47,7 @@ it('has one headline: categories equal, specs equal within, explicit requests ap
 });
 
 it('makes a change to the compile adapter a different arm', () => {
-  const settings = {mode: 'strike3', budget: 'standard'};
+  const settings = {budget: 'standard'};
   expect(armKey('content', settings, -15, 'adapter-a')).not.toBe(armKey('content', settings, -15, 'adapter-b'));
   expect(armKey('content', settings, -15, 'adapter-a')).toBe(armKey('content', settings, -15, 'adapter-a'));
 });

@@ -1,5 +1,5 @@
 /** Motion check for a review library against the previous one, with the rules of
- * the October 1 motion qualification (benchmark/v6/policy.ts): burst burden must
+ * the October 1 motion qualification (production_qualification.ts): burst burden must
  * fall by half, the owner's three reported acceleration windows must have no
  * 100 ms burst excess, and the Luna/Tiki openings must stay within 1.35x the
  * ordinary reference's corrections.
@@ -10,8 +10,7 @@ import {join} from 'node:path';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory} from '../../scripts/lib/detector.ts';
 import {motionSamples, summarizeMotion} from '../../scripts/v0/optimizer/motion_quality.ts';
-import {productionSongs, productionSeeds, reportedWindows} from '../../benchmark/v6/production_qualification.ts';
-import {policy} from '../../benchmark/v6/policy.ts';
+import {productionSongs, productionSeeds, reportedWindows, QUALIFICATION} from './production_qualification.ts';
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
 const cell = (dir: string, song: string, seed: number, method: string) => {
@@ -38,7 +37,7 @@ for (const song of productionSongs) for (const seed of productionSeeds) {
 }
 let failures = 0;
 for (const frames of [1, 4, 10]) {
-  const before = burden(rows.old, frames), after = burden(rows.next, frames), passed = after <= before * (1 - policy.qualification.burstExcessReduction) + 1e-9;
+  const before = burden(rows.old, frames), after = burden(rows.next, frames), passed = after <= before * (1 - QUALIFICATION.burstExcessReduction) + 1e-9;
   failures += passed ? 0 : 1;
   console.log(`burst burden ${String(frames).padStart(2)}-frame: previous ${before.toFixed(5)} -> ${after.toFixed(5)} (ratio ${(after / before).toFixed(2)})  ${passed ? 'pass' : 'FAIL'}`);
 }
@@ -53,8 +52,8 @@ for (const song of ['luna_bala_44s', 'tiki_tiki_48s'])
     const mean = (xs: number[]) => xs.reduce((n, x) => n + x, 0) / xs.length;
     const ordinary = rows.ordinary.filter(r => r.song === song), next = rows.next.filter(r => r.song === song);
     if (!ordinary.length) {console.log(`opening ${song} ${metric}: no ordinary reference`); continue;}
-    const reference = mean(ordinary.map(opening)), actual = mean(next.map(opening)), passed = actual <= reference * policy.qualification.quietReferenceMultiplier + 1e-9;
+    const reference = mean(ordinary.map(opening)), actual = mean(next.map(opening)), passed = actual <= reference * QUALIFICATION.quietReferenceMultiplier + 1e-9;
     failures += passed ? 0 : 1;
-    console.log(`opening ${song} ${metric}: ordinary ${reference.toFixed(3)} new ${actual.toFixed(3)} (limit x${policy.qualification.quietReferenceMultiplier})  ${passed ? 'pass' : 'FAIL'}`);
+    console.log(`opening ${song} ${metric}: ordinary ${reference.toFixed(3)} new ${actual.toFixed(3)} (limit x${QUALIFICATION.quietReferenceMultiplier})  ${passed ? 'pass' : 'FAIL'}`);
   }
 console.log(failures ? `${failures} check(s) failed` : 'all motion checks pass');

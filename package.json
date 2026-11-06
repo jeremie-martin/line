@@ -9,7 +9,6 @@
     "library": "LR_ENGINE=wasm node scripts/produce/production_library.ts",
     "render": "LR_ENGINE=wasm node scripts/produce/render_repertoire.ts",
     "serve": "node scripts/serve.ts",
-    "sentinel": "LR_ENGINE=wasm node scripts/benchmark/v6.ts eval",
     "parity": "LR_ENGINE=wasm node tools/parity/parity.ts compile",
     "parity:judge": "LR_ENGINE=wasm node tools/parity/parity.ts judge",
     "reach": "node tools/deps/reach.mjs",

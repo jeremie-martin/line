@@ -5,7 +5,6 @@ import {hypot2} from '../../lib/hypot2.ts';
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection, type RawFrame } from '../../lib/detector.ts';
-import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { AXIS_MEASURE, measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
@@ -23,7 +22,7 @@ import { constructionDeficit } from './repertoire_feasibility.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
 import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
-import { impactAccount as impactAccountFor } from './impact_accounts.ts';
+import { impactRuler } from './impact_accounts.ts';
 import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
 import {restoreCandidate, type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
 
@@ -184,23 +183,18 @@ function candidateFrames(s: IntervalSearch, prefixFrames: number, suffix: RawFra
 function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: CandidateGeometry, child: Engine, fragments: Fragments | undefined,
   replay: Exclude<ReturnType<typeof replayCandidate>, Rejection>, det: Detection) {
   const {ctx, options, i, frame, horizon} = s;
-  const {contacts, duration, frames} = ctx;
+  const {contacts, duration} = ctx;
   const {state, raw} = replay;
   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;
-  if (!options.impactContract && i > 0 && !findAuthoredContactNearFrame(det, frame, 1, frame - contacts[i - 1].frame))
-    return {reason: 'missed'} as Rejection;
   if (i === 0 && !raw.frames.slice(1, 4).some(f => f.sledContacts.length)) return {reason: 'startup'} as Rejection;
-  if (!options.impactContract && det.events.some(e => e.type === 'landing' && !frames.some(f => Math.abs(e.frame - f) <= 1)))
-    return {reason: 'offbeat'} as Rejection;
   if (i < contacts.length - 1 && s.releaseFrames > 0 && !raw.frames.slice(-s.releaseFrames).every(f => f.sledContacts.length === 0))
     return {reason: 'late_release'} as Rejection;
-  const ruler = options.impactContract ? impactAccountFor(options.impactContract) : undefined;
-  const observedImpacts = ruler ? ruler.observe(child, raw.frames.slice(frame), state) : undefined;
-  const allImpactEvents = observedImpacts ? ruler!.continue(s.impactPrefix!, observedImpacts) : undefined;
-  const impactEvents = allImpactEvents?.filter(e => e.onset >= frame - ruler!.matchFrames && e.onset <= Math.min(duration, horizon));
-  const impactAccount = impactEvents ? ruler!.account(impactEvents, s.localImpactTargets) : undefined;
-  const impactMatch = impactAccount?.matches.find(m => m.target === s.currentImpactTarget);
-  if (options.impactContract && i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
+  const observedImpacts = impactRuler.observe(child, raw.frames.slice(frame), state);
+  const allImpactEvents = impactRuler.continue(s.impactPrefix, observedImpacts);
+  const impactEvents = allImpactEvents.filter(e => e.onset >= frame - impactRuler.matchFrames && e.onset <= Math.min(duration, horizon));
+  const impactAccount = impactRuler.account(impactEvents, s.localImpactTargets);
+  const impactMatch = impactAccount.matches.find(m => m.target === s.currentImpactTarget);
+  if (i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
   const request = options.constructionRequests?.[i];
   if (request && (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
     const guideIds = fragments?.guideIds ?? (arcRailGroups(added).get(i)![1] ?? []).map(l => l.id);
@@ -231,20 +225,17 @@ function measureObjective(s: IntervalSearch, added: CandidateGeometry, traced: T
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);
   let actualImpact: number | undefined;
   if (impact !== undefined) {
-    actualImpact = impactEvents && impactMatch ? impactEvents[impactMatch.event].strength
+    actualImpact = impactMatch ? impactEvents[impactMatch.event].strength
       : AXIS_MEASURE.impact({det, gap: gaps[gap], gapLines: added, rangeEndFrame: frame});
     if (actualImpact === undefined) return {reason: 'impact'} as Rejection;
     cost += (options.impactWeight ?? 2) * (actualImpact - impact) ** 2;
   }
   residuals.push(impact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact! - impact));
-  if (impactEvents && impactAccount) {
-    const extra = impactSearchResiduals(impactEvents, impactAccount, s.currentImpactTarget < 0 ? undefined : s.currentImpactTarget,
-      frame - impactAccountFor(options.impactContract!).matchFrames, i < contacts.length - 1 ? next - impactAccountFor(options.impactContract!).matchFrames : duration + 1,
-      options.impactSearch);
-    extra.push(...engagementGainResiduals([...s.impactPrefix!.pending, ...observedImpacts!] as any, frame, Math.min(duration, horizon), options.impactSearch));
-    residuals.push(...extra);
-    cost += extra.reduce((sum, r) => sum + r * r, 0);
-  }
+  const extra = impactSearchResiduals(impactEvents, impactAccount, s.currentImpactTarget < 0 ? undefined : s.currentImpactTarget,
+    frame - impactRuler.matchFrames, i < contacts.length - 1 ? next - impactRuler.matchFrames : duration + 1, options.impactSearch);
+  extra.push(...engagementGainResiduals([...s.impactPrefix.pending, ...observedImpacts] as any, frame, Math.min(duration, horizon), options.impactSearch));
+  residuals.push(...extra);
+  cost += extra.reduce((sum, r) => sum + r * r, 0);
   if (options.completeBoundary && s.priorGap) {
     const priorGap = s.priorGap;
     const actual = objectiveAxes(det, priorGap, priorGap.endFrame);
@@ -349,10 +340,8 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   const {achieved, actualImpact, residuals, cost, localCost, localResidualCount, motion, motionCost, finalVelocity, headingPrior} = measured;
   const tail = state.points.TAIL, nose = state.points.NOSE, dx = nose.x - tail.x, dy = nose.y - tail.y;
   const angularRate = (dx * (nose.vy - tail.vy) - dy * (nose.vx - tail.vx)) / Math.max(1, dx * dx + dy * dy);
-  const terminalPhysical = options.impactContract && i === contacts.length - 1
-    ? [...s.prefixImpactFrames!, ...observedImpacts!] : undefined;
-  const terminalImpacts = terminalPhysical
-    ? impactAccountFor(options.impactContract!).evaluateEvents(traced.allImpactEvents!, impactTargets, duration, true) : undefined;
+  const terminalPhysical = i === contacts.length - 1 ? [...s.prefixImpactFrames, ...observedImpacts] : undefined;
+  const terminalImpacts = terminalPhysical ? impactRuler.evaluateEvents(traced.allImpactEvents, impactTargets, duration, true) : undefined;
   const terminalLoss = i === contacts.length - 1
     ? (s.terminalObjective ??= new ArcObjectiveContinuation(ctx, s.prefixRaw, options.amplitudeWeight))
       .score(raw, det, terminalPhysical, terminalImpacts).loss : undefined;

@@ -9,7 +9,7 @@ import { createArcEngine } from './arc_engine.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
 import { arcWholeTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
-import { impactAccount } from './impact_accounts.ts';
+import {impactRuler} from './impact_accounts.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 
 // The frozen judge wrapper has an isolate-wide handle registry, not individual
@@ -42,28 +42,23 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const coldEngine = createArcEngine(start, lines);
   const raw = extractRawTrajectory(coldEngine, end);
   const guidanceReduction = pruneUntouchedGuides(ctx, lines, coldEngine, raw);
-  const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
-  const finalImpactFrames = ruler ? ruler.observe(coldEngine, raw.frames) : undefined;
+  const finalImpactFrames = impactRuler.observe(coldEngine, raw.frames);
   disposeSearch();
   try {
     const base = new Judge().setStart(start.position, start.velocity), judge = lines.length ? base.addLine(lines) : base;
     const replay = extractRawTrajectory(judge, end);
     if (JSON.stringify(replay) !== JSON.stringify(raw)) throw new Error('fixed-engine replay mismatch');
-    if (finalImpactFrames && JSON.stringify(ruler!.observe(judge, replay.frames)) !== JSON.stringify(finalImpactFrames))
+    if (JSON.stringify(impactRuler.observe(judge, replay.frames)) !== JSON.stringify(finalImpactFrames))
       throw new Error('fixed-engine impact observation mismatch');
   } finally {
     disposeJudge();
     setPhysicsFrameLimit(null);
   }
   const report = ctx.reportFor(raw, lines);
-  const impactEvaluation = finalImpactFrames
-    ? ruler!.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec') : undefined;
-  const trajectory = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight);
-  const trajectoryLoss = trajectory.loss;
-  const impactTrajectory = impactEvaluation
-    ? arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation) : undefined;
-  const impactTrajectoryLoss = impactTrajectory?.loss;
-  const selectionLoss = arcSelectionObjective(ctx, raw, finalImpactFrames, impactTrajectory ?? trajectory).loss;
+  const impactEvaluation = impactRuler.evaluate(finalImpactFrames, impactTargets, duration, report.terminus.reason === 'endOfSpec');
+  const impactTrajectory = arcWholeTrajectoryObjective(raw, report, gaps, options.amplitudeWeight, impactEvaluation);
+  const impactTrajectoryLoss = impactTrajectory.loss;
+  const selectionLoss = arcSelectionObjective(ctx, raw, finalImpactFrames, impactTrajectory).loss;
   return {
     track: buildTrackJson(lines, end, start), report,
     ...(ctx.hasFragments ? {fragmentStats: work.fragmentStats} : {}),
@@ -75,9 +70,9 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     failure, budget,
     searchBudgetExhausted: work.searchBudgetExhausted, budgetInterruptions: work.budgetInterruptions,
     candidateMemo: {hits: work.memoHits, rejectedHits: work.memoRejectedHits}, samples: work.samples, backtracks: work.backtracks,
-    trajectoryLoss, selectionLoss,
+    selectionLoss,
     planningDecisions: work.planningDecisions, sectionFallbacks: work.sectionFallbacks, refinementStats: work.refinementStats, terminalSelectionStats: work.terminalSelectionStats,
-    ...(impactEvaluation ? {impactEvaluation, impactTrajectoryLoss} : {}),
+    impactEvaluation, impactTrajectoryLoss,
     guidanceReduction: guidanceReduction.stats, constructionFrames,
   };
 }

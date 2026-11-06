@@ -22,8 +22,6 @@ Start the review server with `npm run serve`, then open:
 
 - **Latest compiler review:** http://127.0.0.1:8767/generated/report/quality-20261005/
   — full-song comparisons, scorecards and counterexamples for the October 5–6 campaign.
-- **Earlier overnight review:** http://127.0.0.1:8767/motion-gallery/night.html
-  — the preceding campaign, its blind study and unanswered questions.
 - **Production library:** http://127.0.0.1:8767/motion-gallery/production.html
   — saved October 5 rides and controls to generate a ride with the current compiler.
   The saved collection predates the latest compiler adoption.
@@ -56,8 +54,7 @@ The earlier report, blind study and unanswered questions below are preserved.
 
 The overnight report of 2026-10-05 (the impact measure settled with the owner,
 compiler changes, evening → tonight on four panels) is
-`docs/research/overnight-20261005.md`. Its dashboard: run `npm run serve`, then
-open `motion-gallery/night.html`. The running log is `PROGRESS.md`.
+`docs/research/overnight-20261005.md`. The running log is `PROGRESS.md`.
 
 ## Setup
 
@@ -104,13 +101,12 @@ Chromium installation instead of Playwright's default browser.
 | command | what it does |
 |---|---|
 | `npm run produce -- --song=luna_bala_44s --seed=101 --out=DIR` | compile one automatic arrangement of a production song (optimizing the strike impact account) |
-| `npm run produce -- … --impact-contract=landing` | same with the previous landing objective (kept temporarily for comparison) |
 | `npm run serve` | review server on http://127.0.0.1:8767/ (native playback with music); `HOST=0.0.0.0` to reach it from other machines |
 | `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
-| `npm run sentinel -- --out=DIR` | run the frozen V6 benchmark as a regression sentinel |
-| `npm run eval -- --name=DIR [--panel=dev\|confirm\|bench\|bench-confirm\|bench-pairs8] [--mode=strike3\|strike2\|strike\|landing]` | behavioural evaluation (`sealed` and `heldout` need `--sealed` / `--heldout`; `npm run eval` with no `--name` lists the panels); `npm run eval:report -- --name=DIR [--against=DIR]` |
+| `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on the V7 panel ([docs/benchmark.md](docs/benchmark.md)) |
+| `npm run eval -- --name=DIR [--panel=v7\|v7-confirm]` | compile one panel with this checkout |
 | `npm run measure` | replay reference rides and compute per-beat measures under every ruler |
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
@@ -122,9 +118,9 @@ Chromium installation instead of Playwright's default browser.
 |---|---|
 | `npm run check:physics` | fast saved-reference physics, including seeded stress cases |
 | `npm run verify:engine` | live independent physics and derived-observation parity |
-| `npm run parity` | structural changes leave 63 compiled reference cells byte-identical (all compile modes, plus 150k/750k budgets) |
+| `npm run parity` | structural changes leave 25 compiled reference cells byte-identical, chosen by measured coverage: every construction family, recovery, fallback, exhausted allowances and a failed ride |
 | `npm run check` | complete structural compiler/engine gate, including both parity suites |
-| `npm run parity:judge [-- --all]` | the V6 judge reproduces every stored score (this *is* the V6 freeze) |
+| `npm run parity:judge` | the independent judge reproduces every stored score |
 | `npm test` | unit and integration tests |
 | `npm run typecheck` | TypeScript; the error count may only go down |
 | `npm run reach` | no tracked code is unreachable from `tools/deps/entries.json` |
@@ -138,7 +134,6 @@ Chromium installation instead of Playwright's default browser.
 | `scripts/v0/` | spec types, measurement and scoring shared with the judge |
 | `scripts/produce/` | production CLI, music artifacts, video rendering |
 | `scripts/gallery/`, `motion-gallery/` | review server API and the native production player |
-| `benchmark/v6/` | frozen V6 judge (+ the V3–V5 modules it is built from) |
 | `productions/` | production songs: spec, measured events and analysis, render settings (the four evaluation songs, plus new music held out from compiler tuning) |
 | `labels/` | the owner's felt-impact labels and blind labelling studies (perceptual ground truth) |
 | `engine-rs/` | the Rust physics engine (judge); `vendor/lr-core` is the JS reference |

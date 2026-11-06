@@ -30,17 +30,22 @@ export const EVAL_GROUPS = ['luna_bala', 'amor_na_praia', 'tiki_tiki', 'amour_de
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 
 const catalog = arg('catalog', 'v4')!;
+/** Training inputs, frozen with their digests. Only retraining reads them. */
+function trainingData(name: string) {
+  const dir = new URL('./data/', import.meta.url), bytes = readFileSync(new URL(`${name}.json.gz`, dir));
+  const lock = JSON.parse(readFileSync(new URL(`${name}.lock.json`, dir), 'utf8')), raw = gunzipSync(bytes);
+  assert.equal(createHash('sha256').update(raw).digest('hex'), lock.sha256 ?? lock.specificationsSha256, `${name} checksum mismatch`);
+  return JSON.parse(raw.toString());
+}
 async function trainingCases(): Promise<any[]> {
   if (catalog === 'v6transfer') {
     // Explicit V6 plans with transfer rail layouts (rare in automatic plans), from non-evaluation music.
-    const {loadCatalog} = await import('../../benchmark/v6/model.ts');
-    const c = loadCatalog();
+    const c = trainingData('catalog-v6');
     return c.cases.filter((x: any) => x.layout === 'transfer' && ['arcs', 'fold', 'serpentine'].includes(x.family) && !/luna|amor|tiki|amour/i.test(x.sourceId))
       .map((x: any) => {const music = c.music.find((m: any) => m.id === x.sourceId)!;
         return {...music, id: x.id, group: `v6:${x.family}-transfer:${(music as any).group}`, plans: x.plans};});
   }
-  const {loadCases} = await import('../../benchmark/v4/model.ts');
-  return loadCases().filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
+  return trainingData('specifications-v4').filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
 }
 
 const digest=(x:unknown)=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
@@ -61,7 +66,7 @@ async function worker(id:string,seed:number,dir:string){
  assert.ok(w,'undeclared collection worker');assert.deepEqual(compilerIdentity('.'),plan.compiler);assert.equal(sourceIdentity(),plan.collector);
  const requested=plan.budget;
   const [{caseSpec}, {compileHandoff}, {productionBudget}, {collectFutureProbes}] = await Promise.all([
-    import('../../benchmark/v4/model.ts'), import('../../scripts/v0/optimizer/handoff.ts'),
+    import('../../scripts/lib/case.ts'), import('../../scripts/v0/optimizer/handoff.ts'),
     import('../../scripts/v0/optimizer/production_budget.ts'), import('./value_probes.ts'),
   ]);
   const c = (await trainingCases()).find((x: any) => x.id === id)!;
@@ -69,8 +74,8 @@ async function worker(id:string,seed:number,dir:string){
   const spec = caseSpec(c);
   const budget = requested === 'standard' ? productionBudget(spec.duration) : Number(requested);
   const began = performance.now();
-  const cp = c.plans ? compileHandoff(spec, seed, {budget, constructionPlan: c.plans[seed], impactContract: 'line.strike.v3'})
-    : compileHandoff(spec, seed, {budget, creative: {}, impactContract: 'line.strike.v3',
+  const cp = c.plans ? compileHandoff(spec, seed, {budget, constructionPlan: c.plans[seed]})
+    : compileHandoff(spec, seed, {budget, creative: {},
       phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
   // Construction demonstrations (as archive build_construction_examples.ts): fulfilled sections' committed controls.
   const [{arcConstructionMemoryKey}, {constructionStyle}, {repertoireSearchOptions}] = await Promise.all([
@@ -78,7 +83,7 @@ async function worker(id:string,seed:number,dir:string){
     import('../../scripts/v0/optimizer/repertoire_search.ts'),
   ]);
   const rep: any = cp.repertoire!;
-  const options = repertoireSearchOptions(spec, rep.plan, budget, 'line.strike.v3');
+  const options = repertoireSearchOptions(spec, rep.plan, budget);
   const construction = rep.result.rows.map((row: any, i: number) => {
     const request = rep.plan.requests[i], check = rep.realization?.sections?.[i];
     return {key: request ? arcConstructionMemoryKey({...options, ...constructionStyle(request)}) : null, context: !!request?.context,

@@ -14,7 +14,7 @@ const hash = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).
 
 export function snapshotSources(source: string, destination: string, runnerRoot: string): void {
   mkdirSync(destination, {recursive: true});
-  for (const dir of ['scripts', 'tools', 'benchmark', 'productions', 'vendor', 'engine-rs'])
+  for (const dir of ['scripts', 'tools', 'productions', 'vendor', 'engine-rs'])
     cpSync(join(source, dir), join(destination, dir), {recursive: true,
       filter: path => !['target', 'node_modules', '.cache', '__pycache__'].includes(basename(path))});
   for (const file of ['package.json', 'package-lock.json', 'tsconfig.json'])
@@ -49,7 +49,7 @@ function identity(files: Map<string, Buffer>): string {
 
 function sharedInput(name: string): boolean {
   return name === 'package-lock.json' || name === 'tools/parity/cells.json' ||
-    ['benchmark/', 'productions/', 'vendor/', 'tools/parity/tracks/', 'tools/parity/physics-tracks/', 'engine-rs/src/'].some(prefix => name.startsWith(prefix));
+    ['productions/', 'vendor/', 'tools/parity/tracks/', 'tools/parity/physics-tracks/', 'engine-rs/src/'].some(prefix => name.startsWith(prefix));
 }
 
 /** Freeze bytes before measurements. The candidate directory is also the common

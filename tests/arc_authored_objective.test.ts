@@ -31,7 +31,7 @@ it('measures the authored ending while physically validating the complete surviv
     impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3});
   expect(result.failure).toBeNull();
   expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
-  expect(result.report.off_beat_landings).toEqual([]);
+  expect(result.impactEvaluation.valid).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(65000);
   resetFrameCount();setPhysicsFrameLimit(null);
   try{

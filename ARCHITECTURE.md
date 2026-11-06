@@ -22,8 +22,8 @@ and validation are in [music authoring](docs/music-authoring.md).
 
 1. **Entry.** `compileHandoff` (`scripts/v0/optimizer/handoff.ts`) accepts a
    spec and either creative preferences (automatic arrangement) or an explicit
-   intentional construction plan (`line.repertoire-policy.v2`, as in the V6
-   fixed panel). Nothing else is supported.
+   intentional construction plan (`line.repertoire-policy.v2`). Nothing else is
+   supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
    `repertoire_policy.ts`) chooses a construction for each support section
    from the geometry families (below): an open arc, a shape or arc offered a
@@ -31,9 +31,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    Since 2026-11-01 a guide is offered, never required: the search uses it
    where it helps the catch (78% of such sections on the bench) instead of
    buying a forced touch. Automatic plans use paired rails only; explicit
-   plans (the V6 panel) may still require guides and later-receiver layouts. It is seeded and reproducible,
+   plans may still require guides and later-receiver layouts. It is seeded and reproducible,
    and it uses the requested impact and speed (for example, calm passages
-   favour open arcs). An explicit plan bypasses this step (V6 fixed panel).
+   favour open arcs). An explicit plan bypasses this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section
@@ -261,9 +261,6 @@ therefore a behavioural change, even though it touches only this module:
 
 - The automatic parity cells pin the six-family repertoire explicitly, so
   parity does not detect it. `npm run eval` uses the default repertoire.
-- `tests/benchmark_v6.test.ts` reproduces the frozen V6 automatic plans from
-  the default preferences. It fails until it plans from their stored
-  preferences, as the V6 runner does. That is the deliberate acknowledgement.
 - The review page checks its default form against the saved collection
   (`check_production_ui.mjs`), so the collection needs regenerating.
 
@@ -334,7 +331,7 @@ log):
   Its training groups exclude the four production evaluation songs.
 - **Construction policies:** v3's own, rebuilt under v3 on songs disjoint
   from the evaluation panel (`repertoire_policy_model_v3.json`; trainer in
-  `tools/research`). v1/v2 and landing keep the V6-era policies.
+  `tools/research`).
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 
@@ -346,14 +343,10 @@ Measured limits (docs/research/producing-impact-brief-20261004.md):
 - **The frontier past the adopted changes.** A slam at an angle costs speed,
   which the spec's speed target charges for, and sharper turns crash.
 
-Two other rulers remain on purpose:
-
-- **Frozen V6 landing impact** (`docs/research/impact_definition.md`).
-  - It is used only by the V6 judge (`benchmark/v6`).
-  - It is also used by the `landing` compile mode, which is the previous
-    objective, kept temporarily so the owner can compare.
-- **`line.contact-impact.v1`**, the strike account's predecessor. It is a
-  research diagnostic in `tools/measure` only.
+Line.strike.v3 is the only ruler the compiler optimizes (`impactRuler`,
+`impact_accounts.ts`). `strike_impact.ts` keeps the v1 and v2 definitions as report
+rows, so a change is visible under every ruler, and `line.contact-impact.v1`
+remains a research diagnostic in `tools/measure`.
 
 Known limits of the strike account:
 
@@ -364,30 +357,15 @@ Known limits of the strike account:
 
 ## Evaluation
 
-- **V6** (`benchmark/v6`, `npm run sentinel`) is a frozen regression sentinel.
-  - It has 460 canonical runs: a fixed-construction panel and an automatic
-    panel, with a fixed 3M-frame budget.
-  - It is frozen by outputs: `npm run parity:judge -- --all` must reproduce
-    every stored score.
-  - **It is not a target.** It is inversely related to measured hit clarity,
-    its gains were mostly completions, and all of its inputs were used to
-    train the learned models.
-  - It compiles in `landing` mode. Its 460-run regression check passed at the
-    end of Phase 2 (identical to the stored reference).
-- **`npm run eval`** (`tools/eval`) is the behavioural evaluation.
-  - Panels: `--panel=dev`, the one decisions were made on, and
-    `--panel=confirm`, with fresh seeds and perturbations, for checking that
-    an adopted change generalizes. Both are unchanged.
-  - Stratified panels (`docs/research/benchmark-audit-20261031.md`). A bench
+- **`npm run compare`** is the everyday evaluation; `npm run eval` compiles one
+  panel with this checkout. A panel is a fixed list of rides: specifications × seeds.
+  - Panels (`docs/research/benchmark-audit-20261031.md`). A bench
     spec is a variant `productions/<song>/variants/bench-<pattern>.ts`; a
     sealed sibling is `sealed-<pattern>.ts`. Each exports
     `bench = {stratum, pattern, windows}`: stratum `G` or `P1`–`P6`, and the
     `[t0, t1]` windows (authored seconds) where its pattern happens.
     `inputs.ts` discovers them by globbing, so adding a spec needs no code.
-    - `bench`: the four `spec.ts` as stratum G (no windows: the whole ride)
-      × 101, 202, plus every `bench-*` × 101, 202, 303. `bench-confirm`: the
-      same at 505, 606 (G) and 505, 606, 707. `bench-pairs8`: the P1 and P2
-      specs × 8 seeds, for completion claims.
+    - `v7` and `v7-confirm`: the frozen V7.0 suite (`docs/benchmark.md`).
     - `sealed` (every `sealed-*` × 3 seeds) runs only with `--sealed`, to
       confirm an adopted candidate.
     - `heldout`: the held-out songs' preferred specs (Trouble, Valhalla,
@@ -458,10 +436,6 @@ Known limits of the strike account:
   default in practice (`--panel=v7`). It is bookkeeping and evidence, with no
   verdict. Usage, how to read a report, and what makes rides comparable are in
   `docs/benchmark.md`; the V7 suite is in `docs/research/v7-design-20261101.md`.
-- **`tools/report`** builds the overnight results page
-  (`motion-gallery/night.html`): `night.ts` writes the data, `clips.ts`
-  cuts before/after clips, `scale_clips.ts` shows the strength scale
-  physically, `morning_study.ts` builds blind pair keys.
 - **`tools/measure`** holds the per-beat measures across rulers (`measures.ts`)
   and the motion check of a review library (`motion_check.ts`).
 - **`labels/studies`** holds the blind owner labels.
@@ -501,14 +475,8 @@ Known limits of the strike account:
     `scripts/lib/native_motion` (compiler facilities).
 - **Judge and compiler share files.** These are `types.ts`, `repertoire_layout.ts`
   and `motion_quality.ts`, and line-to-section attribution relies on the line-ID
-  numbering convention `floor((id − 1000) / 10000)`. Since V6 is frozen by its
-  outputs, these files can now be cleaned safely, provided `npm run parity:judge`
-  stays green. Their realization checks (with `repertoire_realization.ts`) are
+  numbering convention `floor((id − 1000) / 10000)`. Their realization checks (with `repertoire_realization.ts`) are
   the one per-family rule outside the geometry-family table.
-- **Comparison objectives.** Besides the product's v3, the `landing` compile
-  mode (the V6 sentinel) and `line.strike.v1`/`v2` remain comparison measurement accounts. They share
-  the current search; reproducing old compilers requires their recorded revisions. They go, with the landing-specific validity rules in
-  `arc_evaluate.ts`, once the owner is satisfied.
 
 Production collections declare their timing offset and resolved song identities.
 Every saved member must agree with the collection's compiler, request and input

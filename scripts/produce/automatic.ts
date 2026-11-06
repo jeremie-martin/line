@@ -7,19 +7,12 @@ import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {sha} from '../../benchmark/v3/model.ts';
-import {judgeIdentity} from '../../benchmark/v6/contract.ts';
+import {sha} from '../lib/case.ts';
 import {validateAutomaticProductionRequest,repertoireSongs} from '../gallery/repertoire_catalog.ts';
-import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
+import {galleryCompilerIdentity,galleryHarnessIdentity,judgeIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {loadMusicCase,saveMusicCell} from './music_artifacts.ts';
 import {resolveJoltMs} from './jolt.ts';
-import {IMPACT_ACCOUNT_IDS,DEFAULT_IMPACT_ACCOUNT,type ImpactAccountId} from '../v0/optimizer/impact_accounts.ts';
 const arg=(key:string,d?:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3)??d;
-// The product optimizes the strike account (v3 by default); 'landing' requests the previous landing
-// objective (frozen V6 ruler), kept temporarily for side-by-side review.
-const requestedContract=arg('impact-contract',DEFAULT_IMPACT_ACCOUNT)!;
-if(requestedContract!=='landing'&&!IMPACT_ACCOUNT_IDS.includes(requestedContract))throw new Error(`unknown impact contract; known: ${IMPACT_ACCOUNT_IDS.join(', ')}, landing`);
-const impactContract=requestedContract==='landing'?undefined:requestedContract as ImpactAccountId;
 if(!arg('out'))throw new Error('--out required; outputs are preserved rather than overwritten');
 const request=validateAutomaticProductionRequest(arg('request')?JSON.parse(readFileSync(resolve(arg('request')!),'utf8')):
  {mode:'production',song:arg('song','luna_bala_44s'),...(arg('variant')?{variant:arg('variant')}:{}),seed:Number(arg('seed','101')),...(arg('budget')?{budget:Number(arg('budget'))}:{}),
@@ -42,10 +35,10 @@ const [{compileHandoff},{spec,musicCase:c}]=await Promise.all([
  loadMusicCase({song,variant,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt),
 ]);
 const methodDetails={production:{title:'Automatic arrangement',description:'The same music with a seeded, repeated repertoire plan.'}};
-const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,impactContract,
+const plan={schema:'line.automatic-production.v1',kind:'musical-direction',compilerRoot,compiler,judge,harness,jolt,
  cases:[c],seeds:[seed],budgets:[budget],methods:['production'],methodDetails,request};
 const planSha256=writeGalleryJson(out,'plan.json',plan);
-const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,impactContract,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
+const began=performance.now(),checkpoint=compileHandoff(spec,seed,{budget,creative,phraseBoundaries:c.phases.map((p:any)=>p.t0??p.t??p.start).filter((t:any)=>Number.isFinite(t))}),compileMs=performance.now()-began;
 const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,

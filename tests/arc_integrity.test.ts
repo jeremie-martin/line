@@ -10,20 +10,18 @@ const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t
 const options={samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3};
 
 it('keeps completed intervals after every remaining backtracking alternative fails',()=>{
-  const input={...spec,duration:2.5,contacts:[.6,1.2,1.35,1.95].map(t=>({t,impact:.4}))};
-  const r=compileArcMotion(input,17,{...options,samples:16,budget:20000});
+  const input={...spec,duration:2.5,contacts:[.6,1.2,1.25,1.3,1.9].map(t=>({t,impact:.4}))};
+  const r=compileArcMotion(input,17,{...options,samples:16,budget:30000});
   expect(r.failure?.reason).toBe('no_arc');expect(r.backtracks).toBeGreaterThan(0);
-  expect(r.rows).toHaveLength(2);expect(r.report.contacts[0].status).toBe('hit');
-  expect(r.report.contacts.some(c=>c.status!=='hit')).toBe(true);
-  expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(20000);
+  expect(r.rows).toHaveLength(2);expect(r.impactEvaluation.valid).toBe(false);
+  expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(30000);
 });
 it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  // Strong asks leave repairs to accept: since ranking counts the arrival priors at half weight
-  // (2026-11-01) the coarse first search gets the 0.4 asks right, and nothing would exercise the synchronization.
-  const strong={...spec,contacts:spec.contacts.map(c=>({...c,impact:.8}))};
+  // Very strong asks leave repairs to accept, which is what exercises the synchronization.
+  const strong={...spec,contacts:spec.contacts.map(c=>({...c,impact:.9}))};
   const r=compileArcMotion(strong,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
   expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
-  expect(r.report.contacts.every(c=>c.status==='hit')).toBe(true);
+  expect(r.impactEvaluation.valid).toBe(true);
   expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);
   resetFrameCount();setPhysicsFrameLimit(null);
   try{for(let i=0;i<r.rows.length;i++){

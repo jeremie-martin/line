@@ -7,15 +7,12 @@
     "scripts/gallery/repertoire_api.ts",
     "scripts/gallery/build_renderer.mjs",
     "scripts/serve.ts",
-    "scripts/benchmark/v6.ts",
-    "benchmark/v6/*.ts",
     "motion-gallery/production.js",
     "scripts/gallery/check_production_ui.mjs",
     "motion-gallery/replay.js",
     "motion-gallery/contact-impact-review.js",
     "scripts/v0/bench/sim_trace.ts",
     "motion-gallery/pairs.js",
-    "motion-gallery/night.js",
     "spec-dashboard/main.js",
     "productions/*/spec.ts", "productions/*/variants/*.ts",
     "tools/deps/reach.mjs",
@@ -26,8 +23,7 @@
     "tools/measure/select_pairs.ts", "tools/measure/visibility/*.ts", "tools/measure/motion_check.ts", "tools/measure/survival_envelope.ts",
     "tools/measure/observe.ts", "tools/measure/measures.ts",
     "tools/music/*.ts",
-    "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts",
-    "tools/report/*.ts"
+    "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts"
   ],
   "assets": [
     "unpacked/**",

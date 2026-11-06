@@ -1,7 +1,7 @@
 /** Cold measurement of a saved track. Shared by compilation and remeasurement. */
 import {replayGalleryTrack} from '../../scripts/gallery/artifacts.ts';
 import {contactImpactGrade} from '../../scripts/gallery/contact_impact_grade.ts';
-import {DEFAULT_IMPACT_ACCOUNT} from '../../scripts/v0/optimizer/impact_accounts.ts';
+import {impactRuler} from '../../scripts/v0/optimizer/impact_accounts.ts';
 import {observe} from '../measure/observe.ts';
 import {beatRows} from '../measure/measures.ts';
 import {arrivalPose} from '../measure/arrival.ts';
@@ -28,8 +28,8 @@ export function geometryFacts({plan, realization, sectionFallbacks}: {plan: any;
       ...(s.transfer ? {engagedTurns: s.transfer.engagedTurns} : {})};
   })};
 }
-export function measureCell({c, mode, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion, geometry}: any) {
-  const {grade: frozen, impactEvaluation} = replayGalleryTrack(track, music, false, DEFAULT_IMPACT_ACCOUNT);
+export function measureCell({c, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion, geometry}: any) {
+  const {grade: frozen, impactEvaluation} = replayGalleryTrack(track, music);
   // The production grade, as the ride page shows it and as the headline has
   // always been formed: 1000·exp(−rms/0.25) over air, speed and the impact
   // account, 0 for an invalid or incomplete ride.
@@ -67,12 +67,12 @@ export function measureCell({c, mode, track, spec, music, physicalFrames, compil
   const guards = {strongInverted: strongPose.length ? strongPose.filter(Boolean).length / strongPose.length : NaN,
     dragSecondsPerMinute: dragFrames / 40 / (last / 40 / 60), offBeatKicks: kicks};
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
-  const beats = beatRows({id: c.id, set: mode, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
+  const beats = beatRows({id: c.id, set: 'strike3', song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});
-  return {case: c, mode,
+  return {case: c,
     physicalFrames, compileMs, complete, fulfilled,
     frozen: {valid: frozen.score.valid, score: frozen.score.score, axes: frozen.score.components},
-    ...(grade ? {score: {contract: DEFAULT_IMPACT_ACCOUNT, valid: grade.valid, score: grade.score, rms: grade.weightedAxisRms}} : {}),
+    ...(grade ? {score: {contract: impactRuler.id, valid: grade.valid, score: grade.score, rms: grade.weightedAxisRms}} : {}),
     // Per gap and axis (air, speed, amplitude): [gap, axis, target, achieved], signed errors recoverable.
     gaps: frozen.observations.filter((o: any) => o.axis !== 'impact').map((o: any) => [o.gap, o.axis, +o.target.toFixed(4), o.achieved === null ? null : +o.achieved.toFixed(4)]),
     contact: {loss: observation.contactAccount.loss, strengthMse: observation.contactAccount.strengthMse, timingMse: observation.contactAccount.timingMse, extraMse: observation.contactAccount.extraMse},

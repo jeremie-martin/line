@@ -3,7 +3,6 @@
 import type {Spec} from '../types.ts';
 import type {CompileCheckpoint} from './types.ts';
 import type {CreativePreferences, ProductionPlan} from './repertoire_policy.ts';
-import type {ImpactAccountId} from './impact_accounts.ts';
 import {compileProductionRepertoire} from './production_repertoire.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
 
@@ -12,11 +11,9 @@ export type ProductionCompileOptions = {
   creative?: CreativePreferences;
   constructionPlan?: ProductionPlan;
   phraseBoundaries?: number[];
-  /** Impact account to optimize; absent means the previous landing objective. */
-  impactContract?: ImpactAccountId;
 };
 export type ProductionCheckpoint = CompileCheckpoint & {repertoire: ReturnType<typeof compileProductionRepertoire>};
-const OPTIONS = ['budget', 'creative', 'constructionPlan', 'phraseBoundaries', 'impactContract'];
+const OPTIONS = ['budget', 'creative', 'constructionPlan', 'phraseBoundaries'];
 
 export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompileOptions): ProductionCheckpoint {
   const spec = normalizeCompilerTimeline(userSpec);
@@ -28,7 +25,7 @@ export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompile
   const unknown = Object.entries(opts).filter(([key, value]) => value !== undefined && !OPTIONS.includes(key)).map(([key]) => key);
   if (unknown.length) throw new Error(`unknown compile options: ${unknown.join(', ')}`);
   const repertoire = compileProductionRepertoire(spec, seed, {budget: opts.budget, creative: opts.creative, plan: opts.constructionPlan,
-    phraseBoundaries: opts.phraseBoundaries, impactContract: opts.impactContract});
+    phraseBoundaries: opts.phraseBoundaries});
   const {result, physicalFrames, searchTotals} = repertoire;
   const costs = result.report.gaps.map(g => Object.values(g.axes).reduce((n, a) => n + (a?.error ?? 0) ** 2, 0));
   return {

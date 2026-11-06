@@ -12,7 +12,7 @@ import type {Spec} from '../scripts/v0/types.ts';
 it('collects native continuation labels without any production planner hook',()=>{
  const spec:Spec={duration:2,preroll:5,contacts:[.6,1.2,1.8].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
  const options={budget:200000,samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,
-  impactContract:'line.strike.v3',impactPreparationFrames:2,completeBoundary:true};
+  impactPreparationFrames:2,completeBoundary:true};
  const compiled=compileArcMotion(spec,17,options),source=JSON.stringify(compiled.track);
  const caller=new Engine().setStart({x:444,y:777},{x:5,y:3});
  const snapshots=[0,72].map(frame=>JSON.stringify(caller.getRider(frame).ballisticState()));

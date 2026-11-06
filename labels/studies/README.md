@@ -54,7 +54,8 @@ key and existing answers are preserved under that ID.
 `night-pairs-2026-10-05-contact` corrects that sampling mismatch: 16 random strong
 beats and 6 posture contrasts using the exact first-contact observation saved by
 evaluation. Both groups compare the same song, seed and beat, with shuffled sides;
-clips remain centered on impact onset. Built by `tools/report/morning_study.ts`.
+clips remain centered on impact onset. Its key is saved here; the selection script
+retired with the night report (tag `archive/pre-lean-foundation-2026-11`).
 Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=night-pairs-2026-10-05-contact`.
 

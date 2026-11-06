@@ -1,9 +1,8 @@
+/** A musical case: the frame-level form of a specification that the judge reads. */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { gunzipSync } from 'node:zlib';
-import type { Spec, Gap, AxisValues } from '../../scripts/v0/types.ts';
-import { sliceTimeline } from '../../scripts/v0/core/substrate.ts';
+import type { Spec, Gap, AxisValues } from '../v0/types.ts';
+import { sliceTimeline } from '../v0/core/substrate.ts';
 
 export type SpanAxis = 'air' | 'speed' | 'amplitude';
 export type Axis = SpanAxis | 'impact';
@@ -17,13 +16,6 @@ export type Case = {
   air: Array<{ gap: number; airborneFrames: number; samples: number; requested: number; target: number; adjustment: 'quantization' | 'landing_floor' | 'contact_support_ceiling' }>;
 };
 export const sha = (b: Buffer | string) => createHash('sha256').update(b).digest('hex');
-export function loadCases(): Case[] {
-  const bytes = readFileSync(new URL('./specifications.json.gz', import.meta.url));
-  const lock = JSON.parse(readFileSync(new URL('./catalog.lock.json', import.meta.url), 'utf8'));
-  assert.equal(sha(bytes), lock.compressedSha256);
-  const raw = gunzipSync(bytes); assert.equal(sha(raw), lock.specificationsSha256);
-  return JSON.parse(raw.toString());
-}
 export function caseGaps(c: Case): Gap[] { return sliceTimeline(c.contacts.map(x => x.frame), c.durationFrames); }
 export function sampledCurve(values: Array<number | null>): (t: number) => number | undefined {
   return t => {

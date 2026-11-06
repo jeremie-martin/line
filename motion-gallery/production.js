@@ -6,7 +6,7 @@ import {createContactImpactReview} from './contact-impact-review.js';
 import {createMusic,displayTime} from '../shared/playback.js';
 const $=id=>document.getElementById(id),music=createMusic(),onScreen=displayTime();
 // Geometry-family labels by id, from the compiler's catalog.
-let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,libraryEntries=[],interactionReview;
+let names={},catalog,records=[],views=[],seconds=0,playing=false,opening=0,controller,currentJob,manifest,manifestUrl,previousUrl,pendingJob,libraryEntries=[];
 const audioCache=new Map();
 let scrubPlaying,selectedPath,pointerScrubbing=false;
 const playable=()=>libraryEntries.filter(e=>e.manifest);
@@ -46,11 +46,10 @@ async function start(){$('play').textContent='Pause';try{if(seconds>=+$('seek').
 function togglePlayback(){music.requested?pause():start();}
 
 function draw(){
- $('time').textContent=fmt(seconds,interactionReview?3:2)+' / '+fmt(+$('seek').max,1)+' s';$('seek').value=seconds;
+ $('time').textContent=fmt(seconds,2)+' / '+fmt(+$('seek').max,1)+' s';$('seek').value=seconds;
  ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production');
  entry.view.draw(canvas,{w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},seconds*40,$('inspect').checked);
  });
- interactionReview?.draw(seconds);
  impactReview.draw(seconds);
 }
 function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
@@ -107,7 +106,6 @@ async function loadMovie(m,url,signal,token){
   $('movie').src=src;$('movie').hidden=false;
 }
 async function openResult(path,job,initialTime=0){
- interactionReview?.clear();
  impactReview.clear();
  scrubPlaying=undefined;pointerScrubbing=false;selection(path);$('result-context').textContent='';
  const token=++opening;controller?.abort();controller=new AbortController();const {signal}=controller;pause();clearMovie();status('');currentJob=job;views=[];records=[];manifestUrl=undefined;seconds=0;$('result').hidden=false;$('play').disabled=true;$('seek').disabled=true;$('render').hidden=true;$('timeline').replaceChildren();$('observations').replaceChildren();$('review-moments').replaceChildren();$('motion-summary').textContent='';$('result-title').textContent='Loading saved track…';$('result-note').textContent='Verifying artifacts and native rider playback…';$('record-link').removeAttribute('href');
@@ -132,9 +130,8 @@ async function openResult(path,job,initialTime=0){
   $('production-metrics').textContent=`${scoreName(ride)} ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} constructions fulfilled · compiled in ${fmt(ride.compileMs/1000,1)} s`;
   if(!ride.impactContract)$('result-note').textContent='Previous landing objective, kept for comparison. '+$('result-note').textContent;
   impactReview.bind(data[0]);
-  interactionReview?.bind(data[0],cells[0].sha256,url);
-  $('seek').min=interactionReview?.range?.[0]??0;
-  $('seek').max=interactionReview?.range?.[1]??Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
+  $('seek').min=0;
+  $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
   const real=new Map(p.realization.sections.map(r=>[r.section,r]));
   $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${phrase.railLayout??'paired'} layout; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>jump(requests[0].frame/40-.3);return b;}));
   $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],`${r.guidance} / ${r.railLayout??'paired'}`,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
@@ -194,11 +191,7 @@ async function loadLibrary(){try{
  }));
  const filter=()=>{const query=$('filter-rides').value.trim().toLocaleLowerCase();let shown=0;for(const c of $('library').children){c.hidden=!c.textContent.toLocaleLowerCase().includes(query);if(!c.hidden)shown++;}$('collection-count').textContent=`${shown} of ${data.entries.length} rides${shown?'':' · No matching rides'}`;};
  $('filter-rides').oninput=filter;filter();
- if(params.has('review')){
-  const {createInteractionReview}=await import('./interaction-review.js');
-  interactionReview=await createInteractionReview({url:params.get('review'),checked,open:openResult,seek:t=>{pause();seek(Math.round(t*40)/40);},time:()=>seconds});
- }
- const initial=interactionReview?.initial.manifest??params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
- if(initial){const at=Math.max(0,Number(params.get('t'))||interactionReview?.initial.range[0]||0);$('comparison').checked=!interactionReview&&params.get('compare')==='previous';await openResult(initial,undefined,interactionReview?Math.round(at*40)/40:at);}
+ const initial=params.get('data')??data.entries.find(e=>e.manifest)?.manifest;
+ if(initial){const at=Math.max(0,Number(params.get('t'))||0);$('comparison').checked=params.get('compare')==='previous';await openResult(initial,undefined?Math.round(at*40)/40:at);}
  }catch(e){$('library').textContent=e.message;}}
 try{catalog=await api('catalog');names=Object.fromEntries(catalog.constructions.map(c=>[c.id,c.label]));$('song').replaceChildren(...catalog.songs.map(s=>{const o=el('option',s.title);o.value=s.id;return o;}));for(const {id,label:name}of catalog.constructions){const label=el('label'),input=el('input');input.type='checkbox';input.value=id;input.checked=true;label.append(input,document.createTextNode(name));$('repertoire').append(label);}await Promise.all([loadLibrary(),refreshJobs()]);setInterval(refreshJobs,4000);}catch(e){status(e.message,true);}

@@ -1,15 +1,10 @@
-/** Song-level summaries of eval runs, shared by the eval report and the night
- * report (tools/report): one cell's decision numbers, per-song means (optionally
- * paired differences against another run) and the song bootstrap; and the
- * stratified (bench, sealed, held-out) arithmetic: completion first, quality on
+/** The stratified arithmetic of eval runs: completion first, quality on
  * both-complete cells, per-spec sign counts, strata weighted equally. */
 import assert from 'node:assert/strict';
-import {makeRng} from '../../scripts/lib/rng.ts';
 import {GEOMETRY_FAMILIES} from '../../scripts/v0/optimizer/geometry_families.ts';
 
-import {SONGS, EXPLICIT} from './inputs.ts';
+import {EXPLICIT} from './inputs.ts';
 import {assertPairedRuns, type Run} from './records.ts';
-export {SONGS} from './inputs.ts';
 export {loadRun, type Run} from './records.ts';
 export const median = (xs: number[]) => {const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : NaN;};
 export const mean = (xs: number[]) => {const s = xs.filter(Number.isFinite); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : NaN;};
@@ -78,34 +73,6 @@ export function summarize(cell: any) {
     'physics frames (M)': cell.physicalFrames / 1e6, 'compile s': cell.compileMs / 1000,
   };
 }
-export function bootstrap(perSong: Map<string, number>, draws = 4000) {
-  const values = [...perSong.values()].filter(Number.isFinite), rng = makeRng(7), out: number[] = [];
-  if (!values.length) return [NaN, NaN, NaN];
-  for (let d = 0; d < draws; d++) {let s = 0; for (let i = 0; i < values.length; i++) s += values[Math.floor(rng() * values.length)]; out.push(s / values.length);}
-  out.sort((a, b) => a - b);
-  return [mean(values), out[Math.floor(.025 * draws)], out[Math.floor(.975 * draws)]];
-}
-
-
-/** Per-song mean of a metric over the cells passing `filter`; with `diff`, the
- * mean paired difference against the same cases of another run. */
-export function songValues(run: Run, metric: string, filter: (c: any) => boolean, diff?: Run) {
-  if (diff) assertPairedRuns(run, diff);
-  const m = new Map<string, number>();
-  for (const song of SONGS) {
-    const xs = [...run.cells.values()].filter(filter).filter((c: any) => c.case.song === song).map((c: any) => {
-      const value = summarize(c)[metric as keyof ReturnType<typeof summarize>] as number;
-      if (!diff) return value;
-      const other = diff.cells.get(c.case.id); return other ? value - (summarize(other)[metric as keyof ReturnType<typeof summarize>] as number) : NaN;
-    });
-    m.set(song, mean(xs));
-  }
-  return m;
-}
-
-/** The pattern windows of a stratified case as a frame test. Windows are in
- * authored seconds; contacts are compiled `-jolt` ms later, so shift by that. No
- * windows (G, held-out) means the whole ride. */
 export function windowTest(c: any) {
   const windows: Array<[number, number]> = c.bench?.windows ?? [], shift = -c.input.jolt / 1000;
   return (frame: number) => !windows.length || windows.some(([t0, t1]) => frame >= (t0 + shift) * 40 && frame <= (t1 + shift) * 40);

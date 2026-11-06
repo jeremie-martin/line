@@ -1,9 +1,9 @@
 import {it, expect} from 'vitest';
 import {LineRiderEngine as Engine, disposeEngines} from '../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory, resetFrameCount, getPhysicsFrameCount} from '../scripts/lib/detector.ts';
-import {impactAccount, IMPACT_ACCOUNT_IDS} from '../scripts/v0/optimizer/impact_accounts.ts';
+import {impactRuler} from '../scripts/v0/optimizer/impact_accounts.ts';
 
-it('packed observations equal scalar observations under every strike contract, without stepping', () => {
+it('packed observations equal scalar observations without stepping', () => {
   const engine = new Engine().setStart({x: 0, y: -15}, {x: 4, y: 0}).addLine([
     {id: 1, type: 0, x1: -50, y1: 10, x2: 120, y2: 10},
     {id: 2, type: 0, x1: 120, y1: 10, x2: 280, y2: -20},
@@ -17,9 +17,9 @@ it('packed observations equal scalar observations under every strike contract, w
     const scalar = {getLastFrameIndex: () => engine.getLastFrameIndex(),
       getRider: (f: number) => engine.getRider(f), bodyMotionAt: (f: number) => engine.bodyMotionAt(f),
       hasContactAtFrame: (f: number) => engine.hasContactAtFrame(f)};
-    for (const id of IMPACT_ACCOUNT_IDS) for (const from of [0, 1, 17, 60, 61]) {
-      const account = impactAccount(id), frames = raw.frames.slice(from);
-      expect(account.observe(engine, frames)).toEqual(account.observe(scalar, frames));
+    for (const from of [0, 1, 17, 60, 61]) {
+      const frames = raw.frames.slice(from);
+      expect(impactRuler.observe(engine, frames)).toEqual(impactRuler.observe(scalar, frames));
     }
     const saved = engine.readCachedMotionWindow(0, 60, values => Float64Array.from(values)).slice();
     expect(saved).toHaveLength(61 * 5);

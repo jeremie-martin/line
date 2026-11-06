@@ -68,7 +68,7 @@ async function worker(id: string, seed: number) {
     probes.push(row);
   };
   const {cell, track} = await withSequenceObserver(observe, () =>
-    compileAndMeasure('.', planned, {spec, music}, {mode: 'strike3', budget: 'standard'}));
+    compileAndMeasure('.', planned, {spec, music}, {budget: 'standard'}));
   for (const p of probes) appendFileSync(join(out, 'probes.jsonl'), JSON.stringify({spec: id, seed, ...p}) + '\n');
   appendFileSync(join(out, 'rides.jsonl'), JSON.stringify({spec: id, seed, complete: cell.complete, score: cell.score?.score ?? 0, trackHash: digest(track)}) + '\n');
 }

@@ -7,7 +7,7 @@ import {join, resolve} from 'node:path';
 import {digest, type resolveCase} from './inputs.ts';
 
 export type PlannedCase = Awaited<ReturnType<typeof resolveCase>>['planned'];
-export type RunPlan = {schema: 'line.eval.v2'; identity: any; evaluator: string; jolt: number; mode: string; budget: string;
+export type RunPlan = {schema: 'line.eval.v2'; identity: any; evaluator: string; jolt: number; budget: string;
   panelName: string; panel: PlannedCase[]; remeasuredFrom?: {runSha256: string; cellsSha256: string};
   /** sha256 of the compile adapter (tools/eval/compile.ts) the run compiles with; absent on older runs. */
   adapter?: string;
@@ -39,7 +39,6 @@ export function readCell(dir: string, plan: RunPlan, c: PlannedCase) {
   const cell = readJson(join(dir, 'cells', c.id + '.json'));
   assert.equal(cell.planSha256, digest(plan), `${c.id}: cell belongs to another run`);
   assert.deepEqual(cell.case, c, `${c.id}: inputs differ`);
-  assert.equal(cell.mode, plan.mode);
   assert.equal(typeof cell.complete, 'boolean'); assert.equal(typeof cell.fulfilled, 'boolean');
   assert.equal(cell.impact3.perBeat.length, c.targets.length);
   assert.deepEqual(cell.beats.map((b: any) => ({t: b.t, frame: b.frame, impact: b.requested})), c.targets);
@@ -55,7 +54,7 @@ export const compiledOutputs = (cell: any) => ({physicalFrames: cell.physicalFra
 export function saveCell(dir: string, plan: RunPlan, c: PlannedCase, cell: any, track: any) {
   const base = join(dir, 'cells', c.id);
   atomicWrite(base + '.track.json.gz', gzipSync(JSON.stringify(track)));
-  atomicWrite(base + '.json', JSON.stringify({...cell, case: c, mode: plan.mode, trackHash: digest(track), planSha256: digest(plan)}));
+  atomicWrite(base + '.json', JSON.stringify({...cell, case: c, trackHash: digest(track), planSha256: digest(plan)}));
 }
 /** Resume may have absent cells. Existing cells must still be exact and intact. */
 export function readCells(dir: string, plan: RunPlan) {

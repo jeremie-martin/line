@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {productionSongs,productionSeeds,reportedWindows,qualifyProductionMotion,type ProductionObservation} from '../benchmark/v6/production_qualification.ts';
+import {productionSongs,productionSeeds,reportedWindows,qualifyProductionMotion,type ProductionObservation} from '../tools/measure/production_qualification.ts';
 import {summarizeMotion} from '../scripts/v0/optimizer/motion_quality.ts';
 function fixture(){
  const rows=(method:string,old:boolean):ProductionObservation[]=>productionSongs.flatMap(song=>productionSeeds.map(seed=>{

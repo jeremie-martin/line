@@ -1,6 +1,6 @@
 /** Where a real compile spends its time or allocates.
  *
- *   npm run perf:profile -- [--cell=55] [--kind=cpu|allocation] [--top=40] [--warmup=0]
+ *   npm run perf:profile -- [--cell=3] [--kind=cpu|allocation] [--top=40] [--warmup=0]
  *
  * The profile encloses exactly what perf:engine times: compileHandoff with
  * prepared inputs, default standard allowance, verified against the cell's
@@ -17,7 +17,7 @@ import {prepareCell} from '../parity/parity.ts';
 
 const arg = (key: string, fallback: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3) ?? fallback;
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const index = Number(arg('cell', '55')), kind = arg('kind', 'cpu'), top = Number(arg('top', '40')), warmup = Number(arg('warmup', '0'));
+const index = Number(arg('cell', '3')), kind = arg('kind', 'cpu'), top = Number(arg('top', '40')), warmup = Number(arg('warmup', '0'));
 if (kind !== 'cpu' && kind !== 'allocation') throw new Error('--kind must be cpu or allocation');
 
 type CallFrame = {functionName: string; url: string; lineNumber: number};

@@ -45,7 +45,7 @@ it('treats identical source as a control independently of the swapped binary', (
 });
 
 it.each(['tools/parity/cells.json', 'tools/parity/tracks/track.json.gz', 'productions/a/input.json',
-  'benchmark/case.ts', 'vendor/lr-core/kernel.js', 'engine-rs/src/kernel.rs', 'package-lock.json'])(
+  'vendor/lr-core/kernel.js', 'engine-rs/src/kernel.rs', 'package-lock.json'])(
   'rejects changed measurement input %s', name => {
     const reference = directory(), candidate = directory();
     put(reference, name, 'base'); put(candidate, name, 'different');

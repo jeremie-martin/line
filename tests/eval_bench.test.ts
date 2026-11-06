@@ -4,7 +4,7 @@ import {afterEach, expect, it} from 'vitest';
 import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {panelCases, SONGS} from '../tools/eval/inputs.ts';
+import {panelCases} from '../tools/eval/inputs.ts';
 import {stratify, windowImpact, failurePoint, geometryOfCell, geometryStrata} from '../tools/eval/summary.ts';
 import {validateRunOptions, stratifiedReport, geometryReport} from '../tools/eval/eval.ts';
 import type {Run} from '../tools/eval/records.ts';
@@ -21,32 +21,19 @@ function productions(files: Record<string, string>) {
 }
 const variant = (bench: unknown, duration = 40) => `export const bench = ${JSON.stringify(bench)};\nexport default {duration: ${duration}, contacts: []};\n`;
 
-it('discovers bench and sealed variants into the declared panels', async () => {
+it('discovers sealed variants and declares the held-out panel', async () => {
   const root = productions({
     'tiki_tiki_48s/variants/bench-pairs.ts': variant({stratum: 'P1', pattern: 'kick-snare pairs', windows: [[10, 14], [20, 22.5]]}),
-    'luna_bala_44s/variants/bench-words.ts': variant({stratum: 'P2', pattern: 'voice intro', windows: [[0, 8.6]]}),
-    'luna_bala_44s/variants/bench-calm.ts': variant({stratum: 'P3', pattern: 'floats', windows: [[0, 9]]}),
     'amor_na_praia_46s/variants/sealed-pairs.ts': variant({stratum: 'P1', pattern: 'pairs', windows: [[5, 6]]}),
-    'amor_na_praia_46s/variants/pairs.ts': variant({stratum: 'P1', pattern: 'not a bench spec', windows: [[5, 6]]}),
+    'amor_na_praia_46s/variants/pairs.ts': variant({stratum: 'P1', pattern: 'not a sealed spec', windows: [[5, 6]]}),
   });
-  const bench = await panelCases('bench', root);
-  expect(bench).toHaveLength(4 * 2 + 3 * 3);
-  expect(bench.filter(c => c.bench!.stratum === 'G').map(c => c.id)).toEqual(SONGS.flatMap(s => [`${s}~spec~101`, `${s}~spec~202`]));
-  expect(bench.find(c => c.id === 'tiki_tiki_48s~bench-pairs~303')).toEqual({id: 'tiki_tiki_48s~bench-pairs~303', song: 'tiki_tiki_48s',
-    seed: 303, perturbation: null, variant: 'bench-pairs', bench: {stratum: 'P1', pattern: 'kick-snare pairs', windows: [[10, 14], [20, 22.5]]}});
-  expect(bench.every(c => !c.variant?.startsWith('sealed') && c.variant !== 'pairs')).toBe(true);
-  const confirm = await panelCases('bench-confirm', root);
-  expect([...new Set(confirm.map(c => c.seed))].sort()).toEqual([505, 606, 707]);
-  expect(confirm.filter(c => c.bench!.stratum === 'G').every(c => c.seed !== 707)).toBe(true);
-  const pairs8 = await panelCases('bench-pairs8', root);
-  expect(pairs8).toHaveLength(2 * 8);
-  expect(new Set(pairs8.map(c => c.bench!.stratum))).toEqual(new Set(['P1', 'P2']));
   expect((await panelCases('sealed', root)).map(c => c.id)).toEqual([101, 202, 303].map(s => `amor_na_praia_46s~sealed-pairs~${s}`));
   const heldout = await panelCases('heldout', root);
   expect(heldout).toHaveLength(20);
   expect(heldout.map(c => c.id)).toContain('circus_minimus_77s~pairs4~404');
   expect(heldout.map(c => c.id)).toContain('trouble_50s~spec~101');
-  expect((await panelCases('dev', root)).map(c => c.id)).toContain('luna_bala_44s~101~p1');
+  for (const retired of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8'])
+    await expect(panelCases(retired, root)).rejects.toThrow('unknown evaluation panel');
 });
 
 it('rejects a malformed bench export with the file named', async () => {
@@ -55,21 +42,22 @@ it('rejects a malformed bench export with the file named', async () => {
     [{stratum: 'P1', pattern: 'x', windows: [[2, 1]]}, /0 <= t0 < t1/], [{stratum: 'P1', pattern: 'x', windows: [[0, 41]]}, /duration/],
     [{stratum: 'P1', pattern: 'x', windows: [[3, 5], [4, 6]]}, /disjoint/]] as const) {
     const src = bench === undefined ? 'export default {duration: 40, contacts: []};\n' : variant(bench);
-    const root = productions({'luna_bala_44s/variants/bench-bad.ts': src});
-    await expect(panelCases('bench', root)).rejects.toThrow(/luna_bala_44s\/variants\/bench-bad\.ts/);
-    await expect(panelCases('bench', root)).rejects.toThrow(message);
+    const root = productions({'luna_bala_44s/variants/sealed-bad.ts': src});
+    await expect(panelCases('sealed', root)).rejects.toThrow(/luna_bala_44s\/variants\/sealed-bad\.ts/);
+    await expect(panelCases('sealed', root)).rejects.toThrow(message);
   }
 });
 
 it('runs sealed and held-out panels only on their explicit flag', () => {
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'sealed')).toThrow(/only with --sealed/);
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'sealed', {sealed: true})).not.toThrow();
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'heldout')).toThrow(/only with --heldout.*held out from compiler decisions/);
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'heldout', {heldout: true})).not.toThrow();
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'heldout', {sealed: true, heldout: true})).toThrow(/--sealed applies only/);
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'bench', {heldout: true})).toThrow(/--heldout applies only/);
-  for (const p of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8']) expect(() => validateRunOptions('strike3', 'standard', 1, p)).not.toThrow();
-  expect(() => validateRunOptions('strike3', 'standard', 1, 'patterns')).toThrow(/unknown evaluation panel/);
+  expect(() => validateRunOptions('standard', 1, 'sealed')).toThrow(/only with --sealed/);
+  expect(() => validateRunOptions('standard', 1, 'sealed', {sealed: true})).not.toThrow();
+  expect(() => validateRunOptions('standard', 1, 'heldout')).toThrow(/only with --heldout.*held out from compiler decisions/);
+  expect(() => validateRunOptions('standard', 1, 'heldout', {heldout: true})).not.toThrow();
+  expect(() => validateRunOptions('standard', 1, 'heldout', {sealed: true, heldout: true})).toThrow(/--sealed applies only/);
+  expect(() => validateRunOptions('standard', 1, 'v7', {heldout: true})).toThrow(/--heldout applies only/);
+  for (const p of ['v7', 'v7-confirm']) expect(() => validateRunOptions('standard', 1, p)).not.toThrow();
+  for (const p of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8']) expect(() => validateRunOptions('standard', 1, p)).toThrow(/unknown evaluation panel/);
+  expect(() => validateRunOptions('standard', 1, 'patterns')).toThrow(/unknown evaluation panel/);
 });
 
 // ---- synthetic runs for the report arithmetic ----
@@ -83,14 +71,14 @@ function planned(song: string, variant: string | null, seed: number, stratum: st
 function cell(c: any, {complete = true, loss = .1, strengths, extras = [], terminus = {frame: 2000, reason: 'endOfSpec'}}:
   {complete?: boolean; loss?: number; strengths?: Array<number | null>; extras?: any[]; terminus?: any} = {}) {
   const s = strengths ?? c.targets.map(() => .7);
-  return {case: c, mode: 'strike3', complete, fulfilled: complete, physicalFrames: 1e6, compileMs: 1000, terminus,
+  return {case: c, complete, fulfilled: complete, physicalFrames: 1e6, compileMs: 1000, terminus,
     frozen: {valid: true, score: 1, axes: {}}, contact: {loss: 0}, guards: {}, motion: {},
     impact3: {loss, strengthMse: loss, timingMse: 0, extraMse: 0, strongExtras: 0, reversals: [], beats: c.targets.length, extras,
       perBeat: c.targets.map((t: any, j: number) => ({requested: t.impact, hit: s[j] == null ? null : {strength: s[j], onset: t.frame, timingError: 0}}))},
     beats: c.targets.map((t: any) => ({requested: t.impact, r1: {strength: .5, peak: 1}, impulse: {competitor: 0, hit: 1}, extrasR1: [], hiddenBend: 0}))};
 }
 const run = (panel: any[], cells: any[]): Run => ({dir: '', cells: new Map(cells.map(x => [x.case.id, x])),
-  run: {schema: 'line.eval.v2', identity: {head: 'abcdef0123'}, evaluator: 'e'.repeat(64), jolt: JOLT, mode: 'strike3', budget: 'standard', panelName: 'bench', panel}});
+  run: {schema: 'line.eval.v2', identity: {head: 'abcdef0123'}, evaluator: 'e'.repeat(64), jolt: JOLT, budget: 'standard', panelName: 'bench', panel}});
 
 it('reports completion first and quality only on cells complete in both arms, strata weighted equally', () => {
   const T = [1, 2, 3];

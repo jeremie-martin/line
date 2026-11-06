@@ -1,14 +1,12 @@
 /** Telemetry for the compiler's single complete search attempt.
- * The record shape is kept stable for the V6 construction evidence and the
- * production gallery artifacts, which store it alongside each track. */
+ * The production gallery artifacts store it alongside each track. */
 import {createHash} from 'node:crypto';
-import type {DriftReport} from '../types.ts';
 import type {ArcMotionOptions} from './arc_options.ts';
 import {validRide} from './ride_validity.ts';
 
 type Outcome = {
-  track: unknown; rows: any[]; report: DriftReport; failure: unknown; trajectoryLoss?: number; selectionLoss?: number;
-  impactEvaluation?: {valid: boolean};
+  track: unknown; rows: any[]; failure: unknown; impactTrajectoryLoss: number; selectionLoss: number;
+  impactEvaluation: {valid: boolean};
   planningDecisions: unknown;
   constructionFrames: number; samples: number; searchBudgetExhausted: boolean;
   stats: {sim_frames: number; viable_candidate_samples: number; gap_commits: number};
@@ -20,8 +18,8 @@ export function arcAttemptTelemetry(result: Outcome, options: ArcMotionOptions) 
   const isComplete = validRide(result) && (!requests || (!result.failure && result.rows.length === Object.keys(requests).length));
   const record = {
     name: 'search' as const, selected: true, start: 0, constructionEnd: result.constructionFrames,
-    end: result.stats.sim_frames, complete: isComplete, loss: result.trajectoryLoss,
-    selectionLoss: result.selectionLoss ?? result.trajectoryLoss ?? Infinity, failure: result.failure,
+    end: result.stats.sim_frames, complete: isComplete, loss: result.impactTrajectoryLoss,
+    selectionLoss: result.selectionLoss, failure: result.failure,
     trackHash: createHash('sha256').update(JSON.stringify(result.track)).digest('hex'), gapCommits: result.stats.gap_commits,
     exhausted: result.searchBudgetExhausted, samples: result.samples, viableCandidates: result.stats.viable_candidate_samples,
     planning: result.planningDecisions,

@@ -2,7 +2,7 @@
  * reports require the full panel. A failed worker is a failed run, resumable
  * after its cause is addressed; an incomplete ride is still a recorded result.
  *
- * node tools/eval/eval.ts run --name=DIR [--mode=strike3] [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=N] [--creative=JSON]
+ * node tools/eval/eval.ts run --name=DIR [--budget=standard|standard*F|N] [--panel=NAME] [--sealed|--heldout] [--jobs=N] [--creative=JSON]
  * node tools/eval/eval.ts report --name=DIR [--against=DIR]
  * Panels are listed in USAGE below (PANEL_HELP in inputs.ts). */
 import assert from 'node:assert/strict';
@@ -14,22 +14,21 @@ import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
 import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
-import {summarize, bootstrap, songValues, stratify, geometryStrata, headline, type Run} from './summary.ts';
-import {ADAPTER_SHA256, CONTRACTS, compileAndMeasure} from './compile.ts';
+import {stratify, geometryStrata, headline, type Run} from './summary.ts';
+import {ADAPTER_SHA256, compileAndMeasure} from './compile.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
 export const USAGE = `usage:
-  npm run eval -- --name=DIR [--panel=NAME] [--mode=strike3] [--budget=standard|standard*F|N] [--jobs=N] [--sealed|--heldout] [--creative=JSON]
+  npm run eval -- --name=DIR [--panel=NAME] [--budget=standard|standard*F|N] [--jobs=N] [--sealed|--heldout] [--creative=JSON]
   npm run eval:report -- --name=DIR [--against=DIR]
 panels:
 ${Object.entries(PANEL_HELP).map(([k, v]) => `  ${k.padEnd(14)}${v}`).join('\n')}
-Bench, sealed and held-out runs get the stratified report (completion first, then quality on
+Reports are stratified (completion first, then quality on
 cells complete in both arms, per-spec sign counts, strata weighted equally).
 The held-out songs (Trouble, Valhalla, Circus Minimus) are excluded from compiler decisions;
 --heldout is for decision points only.`;
-export function validateRunOptions(mode: string, budget: string, jobs: number, panel: string, flags: {sealed?: boolean; heldout?: boolean} = {}) {
-  assert.ok(Object.hasOwn(CONTRACTS, mode), 'unknown compilation mode');
+export function validateRunOptions(budget: string, jobs: number, panel: string, flags: {sealed?: boolean; heldout?: boolean} = {}) {
   assert.ok(PANEL_NAMES.includes(panel), 'unknown evaluation panel');
   // Sealed and held-out specs are spent by every look: compile them only on an explicit decision.
   assert.equal(!!flags.sealed, panel === 'sealed', panel === 'sealed'
@@ -41,14 +40,14 @@ export function validateRunOptions(mode: string, budget: string, jobs: number, p
   assert.ok(budget === 'standard' || /^standard\*(0|[1-9]\d*)(\.\d+)?$/.test(budget) && Number(budget.slice(9)) > 0 ||
     (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard, standard*FACTOR or a positive integer');
 }
-async function planFor(mode: string, budget: string, panelName: string, creative?: Record<string, unknown>): Promise<RunPlan> {
+async function planFor(budget: string, panelName: string, creative?: Record<string, unknown>): Promise<RunPlan> {
   const identity = compilerIdentity('.'), evaluator = evaluatorIdentity(), jolt = resolveJoltMs();
   const cases = await panelCases(panelName);
   assert.ok(cases.length > 0, `panel ${panelName} declares no cases (no matching variant files found)`);
   const panel = await Promise.all(cases.map(async c => (await resolveCase(c, jolt)).planned));
   // The compile adapter (compile.ts) turns a case into compile options; neither the
   // compiler identity nor the evaluator identity covers it, so the plan pins it.
-  return {schema: 'line.eval.v2', identity, evaluator, adapter: ADAPTER_SHA256, jolt, mode, budget, panelName, panel, ...(creative ? {creative} : {})};
+  return {schema: 'line.eval.v2', identity, evaluator, adapter: ADAPTER_SHA256, jolt, budget, panelName, panel, ...(creative ? {creative} : {})};
 }
 async function worker(dir: string, id: string) {
   const plan = readPlan(dir), c = plan.panel.find(c => c.id === id);
@@ -69,10 +68,10 @@ async function main() {
   if (command === 'worker') {assert.ok(arg('name') && arg('case')); await worker(runDir(arg('name')!), arg('case')!); return;}
   if ((command !== 'run' && command !== 'report') || !arg('name')) {console.error(USAGE); process.exitCode = 2; return;}
   if (command === 'run') {
-    const budget = arg('budget', 'standard')!, mode = arg('mode', 'strike3')!, panelName = arg('panel', 'dev')!, jobs = workerJobs(arg('jobs'));
-    validateRunOptions(mode, budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
+    const budget = arg('budget', 'standard')!, panelName = arg('panel', 'v7')!, jobs = workerJobs(arg('jobs'));
+    validateRunOptions(budget, jobs, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
     const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
-    const dir = runDir(arg('name')!), plan = await planFor(mode, budget, panelName, creative);
+    const dir = runDir(arg('name')!), plan = await planFor(budget, panelName, creative);
     mkdirSync(join(dir, 'cells'), {recursive: true});
     const release = lockArtifacts(dir);
     try {
@@ -86,7 +85,7 @@ async function main() {
           console.log(`done  ${c.id}`);
         } catch (e) {failures.push(`${c.id}: ${e}`); console.error(`FAILED ${c.id}: ${e}`);}
       });
-      assert.deepEqual(await planFor(mode, budget, panelName, creative), plan, 'inputs changed during run');
+      assert.deepEqual(await planFor(budget, panelName, creative), plan, 'inputs changed during run');
       if (failures.length) throw new Error(`${failures.length} workers failed; run is incomplete and cannot be reported. Resume the same plan after addressing the failures.\n${failures.join('\n')}`);
       assert.deepEqual(readPlan(dir), plan, 'saved run plan changed');
       const result = loadRun(dir);
@@ -94,20 +93,13 @@ async function main() {
     } finally {release();}
   } else {
     const a = loadRun(arg('name')!), b = arg('against') ? loadRun(arg('against')!) : undefined;
-    if (a.run.panel.some((c: any) => c.bench)) {console.log(stratifiedReport(a, b, arg('name')!, arg('against')).join('\n')); return;}
-    for (const [title, filter] of [['authored', (c: any) => !c.case.perturbation], ['perturbed', (c: any) => !!c.case.perturbation]] as const) {
-      console.log(`\n${title} — ${arg('name')}${b ? ` vs ${arg('against')} (paired difference)` : ''}`);
-      for (const metric of Object.keys(summarize([...a.cells.values()][0]))) {
-        const values = songValues(a, metric, filter, b), [m, lo, hi] = bootstrap(values);
-        console.log(`${metric.padEnd(42)} ${m.toFixed(3)} [${lo.toFixed(3)}, ${hi.toFixed(3)}] n=${[...values.values()].filter(Number.isFinite).length} songs`);
-      }
-    }
+    console.log(stratifiedReport(a, b, arg('name')!, arg('against')).join('\n'));
   }
 }
 const num = (x: number, signed = false) => !Number.isFinite(x) ? '—' : (signed && x > 0 ? '+' : '') + x.toFixed(3);
 export const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(n);
 const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)}${r.run.creative ? `, creative ${JSON.stringify(r.run.creative)}` : ''})`;
-/** The stratified report (bench, sealed, held-out panels): completion, then
+/** The stratified report: completion, then
  * quality on both-complete cells, then per-spec detail with seed sign counts. */
 export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string): string[] {
   const r = stratify(a, b), out: string[] = [], paired = !!b, A = 'A', B = 'B';

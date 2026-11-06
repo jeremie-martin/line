@@ -1,15 +1,14 @@
 /** Structural-change safety net. Structural steps must leave every parity cell
  * byte-identical: same track hash, same physics-frame count, same judgment.
  *
- *   node tools/parity/parity.ts compile [--mode=landing|strike|strike2|strike3] [--jobs=N]
- *   node tools/parity/parity.ts judge   [--all]
+ *   node tools/parity/parity.ts compile [--ids=ID,...] [--jobs=N]
+ *   node tools/parity/parity.ts judge
  *
  * `compile` recompiles the committed cells in fresh processes.
- * `judge` re-scores the committed reference tracks; `--all` additionally
- * re-scores every stored V6 reference track under generated/ (local data).
- * Cells with a `budget` compile at that allowance instead of the V6 budget, where
- * budget-gated options take other values; they pin the track hash and frame
- * count only (no stored track, no judgment).
+ * `judge` re-scores the committed reference tracks.
+ * Cells were chosen by measured coverage: every construction family, recovery,
+ * section fallback, exhausted allowances and a ride that fails to finish. Cells with
+ * a `budget` pin the track hash and frame count only (no stored track or judgment).
  * Expected values come from tools/parity/cells.json. A deliberate behaviour
  * change updates them with `compile --update`, in its own commit. */
 import {readFileSync, writeFileSync, mkdtempSync} from 'node:fs';
@@ -18,25 +17,26 @@ import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {tmpdir} from 'node:os';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
-import {loadCatalog} from '../../benchmark/v6/model.ts';
-import {policy} from '../../benchmark/v6/policy.ts';
-import {caseSpec, sha} from '../../benchmark/v4/model.ts';
+import {caseSpec, sha} from '../../scripts/lib/case.ts';
 
-type Cell = {mode: 'landing' | 'strike' | 'strike2' | 'strike3'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
+type Cell = {id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
   /** A current V7 specification, compiled by the same route as evaluation. */
   spec?: {song: string; variant: string};
-  score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
+  quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
 const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
-const trackFile = (c: Cell) => join(root, c.mode === 'strike3' ? 'tracks' : 'physics-tracks', `${c.mode}-${c.id.replaceAll('/', '~')}-${c.seed}.json.gz`);
-const CONTRACTS: Record<string, string> = {strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'};
+const trackFile = (c: Cell) => join(root, 'tracks', `${c.id.replaceAll('/', '~')}-${c.seed}.json.gz`);
 
+/** Inputs of the cells that are not current specifications. */
+const fixture = JSON.parse(gunzipSync(readFileSync(join(root, 'cases.json.gz'))).toString());
+/** The allowance these fixed cases were recorded at. */
+const FIXTURE_BUDGET = 3_000_000;
 function caseOf(cell: {id: string}) {
-  const catalog = loadCatalog(), c = catalog.cases.find((c: any) => c.id === cell.id)!;
-  return {c, music: catalog.music.find((m: any) => m.id === c.sourceId)!};
+  const c = fixture.cases[cell.id];
+  return {c, music: fixture.music[c.sourceId]};
 }
 
 /** A V7 specification: authored inputs and options as `compare` resolves them, without reading audio. */
@@ -48,17 +48,16 @@ async function specInputs(cell: Cell) {
   const {spec, musicCase: music} = await loadMusicSpec(definition, resolveJoltMs());
   const construction = (await import(pathToFileURL(resolve('productions', song, 'variants', `${variant}.ts`)).href)).bench?.construction;
   const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);
-  const budget = cell.budget ?? productionBudget(spec.duration), impactContract = CONTRACTS.strike3 as any;
-  const options = construction ? {budget, impactContract, constructionPlan: await explicitPlan('.', spec, cell.seed, {}, boundaries, construction)}
-    : {budget, impactContract, creative: {}, phraseBoundaries: boundaries};
+  const budget = cell.budget ?? productionBudget(spec.duration);
+  const options = construction ? {budget, constructionPlan: await explicitPlan('.', spec, cell.seed, {}, boundaries, construction)}
+    : {budget, creative: {}, phraseBoundaries: boundaries};
   return {spec, music, options};
 }
 
 async function cellInputs(cell: Cell) {
   if (cell.spec) return specInputs(cell);
   const {c, music} = caseOf(cell), requested = c.plans[cell.seed];
-  return {spec: caseSpec(music), music, options: {budget: cell.budget ?? policy.budget,
-    ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
+  return {spec: caseSpec(music), music, options: {budget: cell.budget ?? FIXTURE_BUDGET,
     ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})}};
 }
 
@@ -88,16 +87,9 @@ export async function compileWorker(index: number, out: string, collectResources
 }
 
 async function judgeTrack(cell: Cell, track: any) {
-  if (cell.mode === 'landing') {
-    const {judgeV6Track} = await import('./v6_cell.ts');
-    const {c, music} = caseOf(cell), j = judgeV6Track(track, c, music, cell.seed);
-    return {score: j.score, musicalScore: j.musicalScore, valid: j.valid, fulfilled: j.fulfilled};
-  }
-  const {music} = await cellInputs(cell);
-  const [{replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([
-    import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts'),
-  ]);
-  const replay = replayGalleryTrack(track, music as any, true, CONTRACTS[cell.mode] as any), impact = replay.impactEvaluation!;
+  const [{music}, {replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([cellInputs(cell),
+    import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts')]);
+  const replay = replayGalleryTrack(track, music as any, true), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }
 
@@ -109,12 +101,12 @@ if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
 const command = process.argv[2];
 if (command === 'worker') await compileWorker(Number(arg('cell')), arg('out')!);
 else if (command === 'compile') {
-  const mode = arg('mode'), pool = new WorkerPool(workerJobs(arg('jobs'))), only = arg('ids')?.split(',');
-  const queue = doc.cells.map((c, i) => ({c, i})).filter(({c}) => (!mode || c.mode === mode) && (!only || only.includes(c.id)));
+  const pool = new WorkerPool(workerJobs(arg('jobs'))), only = arg('ids')?.split(',');
+  const queue = doc.cells.map((c, i) => ({c, i})).filter(({c}) => !only || only.includes(c.id));
   if (!queue.length) throw new Error('No parity cells selected');
   const dir = mkdtempSync(join(tmpdir(), 'parity-')), failures: string[] = [], began = performance.now();
   await pool.run(queue, async ({c, i}) => {
-    const out = join(dir, `${i}.json`), name = `${c.mode} ${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
+    const out = join(dir, `${i}.json`), name = `${c.id} #${c.seed}${c.budget ? ` @${c.budget}` : ''}`;
     try {
       await pool.worker([import.meta.filename, 'worker', `--cell=${i}`, `--out=${out}`]);
     } catch (error) {
@@ -138,22 +130,10 @@ else if (command === 'compile') {
   const failures: string[] = [];
   for (const cell of doc.cells.filter(c => !c.budget)) {
     const actual = await judgeTrack(cell, JSON.parse(gunzipSync(readFileSync(trackFile(cell))).toString()));
-    const diff = compare(cell, actual, ['score', 'musicalScore', 'valid', 'fulfilled', 'quality', 'loss']);
-    if (diff.length) failures.push(`${cell.mode} ${cell.id} #${cell.seed}: ${diff.join('; ')}`);
+    const diff = compare(cell, actual, ['quality', 'loss']);
+    if (diff.length) failures.push(`${cell.id} #${cell.seed}: ${diff.join('; ')}`);
   }
-  let checked = doc.cells.filter(c => !c.budget).length;
-  if (flag('all')) {
-    const ref = 'generated/intentional-motion/v6-candidate-8';
-    const run = JSON.parse(readFileSync(join(ref, 'run.json'), 'utf8'));
-    for (const row of run.rows) {
-      if (row.executionError) continue;
-      const cell = {mode: 'landing', id: row.id, seed: row.seed} as Cell;
-      const actual = await judgeTrack(cell, JSON.parse(readFileSync(join(ref, 'tracks', `${row.id}-${row.seed}.json`), 'utf8')));
-      const diff = compare(row, actual, ['score', 'musicalScore', 'valid', 'fulfilled']);
-      if (diff.length) failures.push(`stored ${row.id} #${row.seed}: ${diff.join('; ')}`);
-      checked++;
-    }
-  }
+  const checked = doc.cells.filter(c => !c.budget).length;
   console.log(`${failures.length ? 'FAIL' : 'PASS'}  judge parity  (${checked} tracks)`);
   for (const f of failures) console.log('  ' + f);
   process.exit(failures.length ? 1 : 0);

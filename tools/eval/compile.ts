@@ -12,8 +12,7 @@ import type {PlannedCase} from './records.ts';
  * boundaries, explicit plans), so it is part of what a saved ride depends on:
  * its bytes enter every arm's identity (arms.ts). */
 export const ADAPTER_SHA256 = createHash('sha256').update(readFileSync(import.meta.filename)).digest('hex');
-export const CONTRACTS = {landing: undefined, strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'} as const;
-export type ArmSettings = {mode: string; budget: string; creative?: Record<string, unknown>};
+export type ArmSettings = {budget: string; creative?: Record<string, unknown>};
 
 /** The allowance of one ride: standard is the production allowance for its
  * length, standard*F scales it (a budget study), N is a fixed allowance. */
@@ -56,19 +55,19 @@ export async function compileAndMeasure(root: string, c: PlannedCase, resolved: 
   ]);
   const {spec, music} = resolved, budget = allowanceFor(settings.budget, spec.duration, productionBudget), began = performance.now();
   const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite), creative = settings.creative ?? {};
-  const impactContract = CONTRACTS[settings.mode as keyof typeof CONTRACTS], windows = c.bench?.construction;
+  const windows = c.bench?.construction;
   const cp = compileHandoff(spec, c.seed, windows
-    ? {budget, impactContract, constructionPlan: await explicitPlan(root, spec, c.seed, creative, boundaries, windows)}
-    : {budget, creative, impactContract, phraseBoundaries: boundaries});
+    ? {budget, constructionPlan: await explicitPlan(root, spec, c.seed, creative, boundaries, windows)}
+    : {budget, creative, phraseBoundaries: boundaries});
   const compileMs = performance.now() - began, r = cp.repertoire!;
-  const cell = measureCell({c, mode: settings.mode, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
+  const cell = measureCell({c, track: cp.track, spec, music, physicalFrames: r.physicalFrames,
     compileMs, complete: r.valid, fulfilled: r.qualified, motion: r.motion.full, geometry: geometryFacts(r)});
   // The compile's own outputs that the gallery record is written from
   // (scripts/produce/music_artifacts.ts saveMusicCell), so a saved ride can be
   // shown on the dashboard exactly as compared, without compiling it again.
   const {result, ...production} = r, gallery = {budget, compileMs, physicalFrames: r.physicalFrames, production, work: cp.work,
     result: {track: result.track, report: result.report, rows: result.rows, stats: result.stats, attempts: result.attempts, failure: result.failure,
-      impactEvaluation: result.impactEvaluation, impactTrajectoryLoss: result.impactTrajectoryLoss, trajectoryLoss: result.trajectoryLoss,
+      impactEvaluation: result.impactEvaluation, impactTrajectoryLoss: result.impactTrajectoryLoss,
       opposingEntryWork: result.opposingEntryWork}};
   return {cell, track: cp.track, gallery};
 }

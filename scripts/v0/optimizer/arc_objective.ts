@@ -13,10 +13,10 @@ import type {ArcCompileContext} from './arc_compile_context.ts';
 
 /** Compiler objective over the whole authored timeline. Span axes represent
  * time; impacts represent events. No benchmark IDs or benchmark code are used. */
-export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts?:ImpactAssessment) {
+export function arcWholeTrajectoryObjective(raw:any, report:DriftReport, gaps:Gap[], amplitudeWeight=1/3, impacts:ImpactAssessment) {
   const regrets=Array(gaps.length+1).fill(0);
   // The account's survival flag comes from the caller, so survival is checked here too.
-  if(report.terminus.reason!=='endOfSpec'||!validRide({report,impactEvaluation:impacts}))return {loss:Infinity,regrets};
+  if(report.terminus.reason!=='endOfSpec'||!validRide({impactEvaluation:impacts}))return {loss:Infinity,regrets};
   return arcDetectedTrajectoryObjective(detect(raw),gaps,amplitudeWeight,impacts);
 }
 

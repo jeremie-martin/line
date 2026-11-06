@@ -5,7 +5,7 @@
  * point. It announces no winner; the decision is ours.
  *
  *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=bench] [--jobs=N] [--rounds=N]
- *                          [--mode=strike3] [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
+ *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
@@ -44,15 +44,15 @@ type Selection = {panel: string; reference: ReturnType<typeof getReference>; arm
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
-  const panel = arg('panel', 'v7')!, mode = arg('mode', 'strike3')!, budget = arg('budget', 'standard')!;
+  const panel = arg('panel', 'v7')!, budget = arg('budget', 'standard')!;
   // --seeds=N: the first N seeds of the v7 sequence (default 4); more seeds reuse every saved ride.
   const seedCount = arg('seeds') ? Number(arg('seeds')) : undefined;
   const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
-  validateRunOptions(mode, budget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  validateRunOptions(budget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
   const candidateBudget = arg('candidate-budget', budget)!, candidateCreative = arg('candidate-creative') ? JSON.parse(arg('candidate-creative')!) : creative;
-  validateRunOptions(mode, candidateBudget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
-  const settings: ArmSettings = {mode, budget, ...(creative ? {creative} : {})};
-  const candidateSettings: ArmSettings = {mode, budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
+  validateRunOptions(candidateBudget, 1, panel, {sealed: flag('sealed'), heldout: flag('heldout')});
+  const settings: ArmSettings = {budget, ...(creative ? {creative} : {})};
+  const candidateSettings: ArmSettings = {budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
   assert.ok(arg('reference'), '--reference=NAME is required (see `npm run compare -- reference list`)');
   const reference = getReference(arg('reference')!), jolt = resolveJoltMs(), here = compilerContent('.');
   const refContent = commitContent(reference.commit, here.engineSha256);
@@ -68,7 +68,6 @@ async function select(): Promise<Selection> {
   // --only=REGEX restricts the panel to matching case ids (a targeted look; coverage then refers to that subset).
   const only = arg('only') ? new RegExp(arg('only')!) : null, declared = (await panelCases(panel, '.', seedCount)).filter(c => !only || only.test(c.id));
   assert.ok(declared.length, `no case of ${panel} matches --only`);
-  assert.ok(declared.every(c => c.bench), `compare uses the stratified panels (bench, bench-confirm, bench-pairs8, sealed, heldout); ${panel} is a legacy panel`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
   const resolved = new Map(resolvedCases.map(r => [r.planned.id, {spec: r.spec, music: r.music}]));
   // Non-default settings are part of the default name, so they never collide with a standard comparison.
@@ -129,7 +128,7 @@ function loadState(s: Selection) {
 function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[]): Run {
   const arm = s.arms[side], wanted = new Set(ids), panel = s.cases.filter(c => wanted.has(c.id));
   const run: RunPlan = {schema: 'line.eval.v2', identity: {head: arm.content.clean ? arm.content.head : 'checkout', candidateFingerprint: arm.content.key},
-    evaluator: s.evaluator, jolt: arm.jolt, mode: arm.settings.mode, budget: arm.settings.budget, panelName: s.panel, panel,
+    evaluator: s.evaluator, jolt: arm.jolt, budget: arm.settings.budget, panelName: s.panel, panel,
     ...(arm.settings.creative ? {creative: arm.settings.creative} : {})};
   return {dir: arm.dir, run, cells: new Map(ids.map(id => [id, cells.get(id)]))};
 }
@@ -257,7 +256,7 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
     `  reference ${s.reference.name}: ${s.reference.commit.slice(0, 8)} "${subject(s.reference.commit)}"${s.reference.note ? ` (${s.reference.note})` : ''}`,
     `  candidate: ${ca.content.clean ? `${ca.content.head.slice(0, 8)} "${subject(ca.content.head)}"` : `${ca.content.head.slice(0, 8)} with uncommitted changes`}`,
     `  provenance: compiler content ${ca.content.key.slice(0, 12)} vs ${ra.content.key.slice(0, 12)}${ca.content.key === ra.content.key ? ' (THE SAME COMPILER)' : ''}; ` +
-    `engine ${ca.content.engineSha256.slice(0, 12)}; measurement ${s.evaluator.slice(0, 12)}; mode ${ca.settings.mode}; ` +
+    `engine ${ca.content.engineSha256.slice(0, 12)}; measurement ${s.evaluator.slice(0, 12)}; ` +
     `allowance ${ca.settings.budget === ra.settings.budget ? ca.settings.budget : `candidate ${ca.settings.budget}, reference ${ra.settings.budget}`}` +
     `${JSON.stringify(ca.settings.creative ?? {}) !== JSON.stringify(ra.settings.creative ?? {}) ? `; creative candidate ${JSON.stringify(ca.settings.creative ?? {})}, reference ${JSON.stringify(ra.settings.creative ?? {})}` : ''}`,
     ...notes.map(n => `  ${n}`),
@@ -358,7 +357,7 @@ async function worker() {
   assert.equal(ADAPTER_SHA256, meta.adapterSha256, 'tools/eval/compile.ts changed since this arm was opened');
   const {spec, music, planned} = await resolveCase(c, meta.jolt);
   assert.deepEqual(planned, c, 'resolved inputs changed');
-  const settings = {mode: meta.mode, budget: meta.budget, creative: meta.creative};
+  const settings = {budget: meta.budget, creative: meta.creative};
   const {cell, track, gallery} = await compileAndMeasure(p.root, c, {spec, music}, settings);
   assert.equal(compilerContent(p.root).key, p.contentKey, `the compiler at ${p.root} changed during this ride`);
   assert.equal(evaluatorIdentity(), p.evaluator, 'measurement code changed during this ride');
@@ -375,9 +374,8 @@ async function rides() {
   const s = await select(), {cells} = loadState(s), cov = coverage(s, cells);
   const ids = arg('cases') ? arg('cases')!.split(',') : movedMost(cov.matched, cells, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
-  const [{loadMusicCase, saveMusicCell}, {writeGalleryJson}, {judgeIdentity}] = await Promise.all([
+  const [{loadMusicCase, saveMusicCell}, {writeGalleryJson, judgeIdentity}] = await Promise.all([
     import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/gallery/artifacts.ts'),
-    import('../../benchmark/v6/contract.ts'),
   ]);
   const outRoot = resolve('generated/compare', s.name), entries: any[] = [];
   mkdirSync(outRoot, {recursive: true});

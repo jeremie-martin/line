@@ -1,28 +1,33 @@
 import {it, expect} from 'vitest';
 import {compileHandoff} from '../scripts/v0/optimizer/handoff.ts';
-import {impactAccount} from '../scripts/v0/optimizer/impact_accounts.ts';
-import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../scripts/lib/strike_impact.ts';
+import {impactRuler} from '../scripts/v0/optimizer/impact_accounts.ts';
+import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, detectStrikes, observeMotion, type StrikeContract} from '../scripts/lib/strike_impact.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {extractRawTrajectory} from '../scripts/lib/detector.ts';
 import {motionChanges} from './fixtures/motion_change.ts';
 import {POINTS} from '../tools/measure/observe.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 
+/** One ruler over a replay; v1 and v2 remain report rows, so their events stay checked here. */
+function strikeEvents(engine: any, last: number, c: StrikeContract) {
+  const motions = Array.from({length: last + 1}, (_, f) => engine.bodyMotionAt(f));
+  return detectStrikes(observeMotion(1, motions, f => engine.hasContactAtFrame(f), c), c);
+}
+
 const spec: Spec = {duration: 3, preroll: 5, contacts: [.6, 1.2, 1.8, 2.4, 3].map(t => ({t, impact: .4})), axes: {air: () => .5, speed: () => .5}};
 
-it('v2 sees nothing in free flight', () => {
+it('sees nothing in free flight', () => {
   const engine = createArcEngine({position: {x: 0, y: 0}, velocity: {x: 5, y: -4}}, []), raw = extractRawTrajectory(engine, 30);
-  const v2 = impactAccount(STRIKE_V2_CONTRACT.id), observed = v2.observe(engine, raw.frames) as any[];
-  expect(v2.evaluate(observed, [], 30, true).events).toEqual([]);
+  const observed = impactRuler.observe(engine, raw.frames) as any[];
+  expect(impactRuler.evaluate(observed, [], 30, true).events).toEqual([]);
   for (const f of observed) expect(Math.hypot(...f.impulse as [number, number, number])).toBeLessThan(.3);
 });
 
 it('v2 strengths equal the research measure the owner judged, with v1 events and timing', () => {
-  const track = compileHandoff(spec, 101, {budget: 180000, creative: {}, impactContract: STRIKE_V2_CONTRACT.id}).track;
+  const track = compileHandoff(spec, 101, {budget: 180000, creative: {}}).track;
   const engine = createArcEngine({position: track.startPosition, velocity: track.riders[0].startVelocity}, track.lines);
   const raw = extractRawTrajectory(engine, 140);
-  const v1 = impactAccount(STRIKE_CONTRACT.id), v2 = impactAccount(STRIKE_V2_CONTRACT.id);
-  const e1 = v1.evaluate(v1.observe(engine, raw.frames), [], 140, true).events, e2 = v2.evaluate(v2.observe(engine, raw.frames), [], 140, true).events;
+  const e1 = strikeEvents(engine, 140, STRIKE_CONTRACT), e2 = strikeEvents(engine, 140, STRIKE_V2_CONTRACT);
   expect(e2.length).toBeGreaterThan(2);
   expect(e2.map(e => [e.onset, e.end, e.peakFrame])).toEqual(e1.map(e => [e.onset, e.end, e.peakFrame]));
   // The research tool reads the same rider states as recorded observations.
@@ -60,26 +65,24 @@ it('v2/v3 incremental detection equals cold detection, across an opposite-push s
   expect(detectStrikes(all, V3).length).toBeGreaterThan(detectStrikes(all, V2).length);
 });
 
-it('accounts continued events exactly like a complete observation under every strike contract', () => {
+it('accounts continued events exactly like a complete observation', () => {
   const frames = Array.from({length: 36}, (_, frame) => ({frame, contact: frame % 12 < 9,
     J: Math.abs(Math.sin(frame)) * 2, bend: .2, solverGain: .1, gravityGain: 0, speedBefore: 5,
     impulse: [Math.sin(frame) * 2, Math.cos(frame), .1] as const}));
   const targets = [{frame: 3, impact: .4}, {frame: 14, impact: .6}, {frame: 27, impact: .2}];
-  for (const contract of [STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT]) {
-    const ruler = impactAccount(contract.id);
-    for (const duration of [20, 35]) for (const survived of [true, false]) {
-      const {speedGains: _gains, ...expected} = ruler.evaluate(frames, targets, duration, survived);
-      for (let cut = 0; cut <= frames.length; cut++) {
-        const events = ruler.continue(ruler.prefix(frames.slice(0, cut)), frames.slice(cut));
-        expect(ruler.evaluateEvents(events, targets, duration, survived)).toStrictEqual(expected);
-      }
+  const ruler = impactRuler;
+  for (const duration of [20, 35]) for (const survived of [true, false]) {
+    const {speedGains: _gains, ...expected} = ruler.evaluate(frames, targets, duration, survived);
+    for (let cut = 0; cut <= frames.length; cut++) {
+      const events = ruler.continue(ruler.prefix(frames.slice(0, cut)), frames.slice(cut));
+      expect(ruler.evaluateEvents(events, targets, duration, survived)).toStrictEqual(expected);
     }
   }
 });
 
 it('the native whole-body read equals bodyMotion over ballisticState exactly', async () => {
   const {bodyMotion} = await import('../scripts/lib/strike_impact.ts');
-  const track = compileHandoff(spec, 101, {budget: 180000, creative: {}, impactContract: STRIKE_V3_CONTRACT.id}).track;
+  const track = compileHandoff(spec, 101, {budget: 180000, creative: {}}).track;
   const engine = createArcEngine({position: track.startPosition, velocity: track.riders[0].startVelocity}, track.lines);
   extractRawTrajectory(engine, 120);
   for (let f = 0; f <= 120; f++) expect((engine as any).bodyMotionAt(f)).toEqual(bodyMotion(engine.getRider(f).ballisticState()));

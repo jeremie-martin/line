@@ -8,7 +8,7 @@ result in this repository can be trusted, compared and reproduced.
 **Structural** means refactoring, deleting, moving, tooling or performance work
 that must not change what the compiler produces.
 
-- Gate: `npm run parity` (63 cells byte-identical) and `npm run parity:judge`.
+- Gate: `npm run parity` (25 cells byte-identical) and `npm run parity:judge`.
 - Also: `npm test`, `npm run typecheck` (the count must not rise) and
   `npm run reach` (zero unreachable code).
 - `npm run check` combines these gates with native Rust tests and
@@ -31,10 +31,8 @@ that must not change what the compiler produces.
 
 ## Panels
 
-- `npm run eval -- --panel=bench` is the stratified dev panel; `bench-confirm`
-  re-runs it at fresh seeds; `bench-pairs8` re-runs the P1 and P2 specs at
-  8 seeds before any completion claim. `dev` and `confirm` stay runnable for
-  history. `npm run eval -- --name=X` with no `--panel` still runs `dev`.
+- `v7` is the development panel, and `v7-confirm` re-runs it at fresh seeds.
+  `npm run eval -- --name=X` compiles one panel with this checkout.
 - To compare a change: `npm run compare -- run --reference=main
   --candidate=<branch> --panel=v7` (`docs/benchmark.md`). Stop it once the
   evidence reads clearly; the same command resumes. Agents run it as a
@@ -77,8 +75,8 @@ that must not change what the compiler produces.
   and answers under their original IDs.
 - Every learned artifact needs its provenance, its size and an ablation, and it
   must be trained on data disjoint from what evaluates it.
-- Reusable research and report tools live in `tools/measure`, `tools/eval` and
-  `tools/report` (entries of the reachability guard). One-off study scripts do
+- Reusable research tools live in `tools/measure`, `tools/eval` and `tools/research`,
+  declared as entries of the reachability guard. One-off study scripts do
   not: a study that matters becomes a short note, and its code stays on its branch.
 
 ## Recording decisions
@@ -129,7 +127,6 @@ plan and its log.
   Historical v1/v2 timing and decisions retain their original meanings; do not
   compare different warmup policies as if they were code improvements. Quality
   probabilities from V7 seed blocks are not performance evidence.
-- Do not rerun the full sentinel for structural changes; parity is the gate.
 - Use the pinned Node and Rust versions. Treat runtime/toolchain upgrades as
   explicit requalification work, particularly for binary64 equality. Preserve
   isolated workers for concurrent compiles; in-process compilation is synchronous

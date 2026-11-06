@@ -10,7 +10,7 @@ it('improves a complete authored timeline inside a shared construction and repai
     guidance:'clearance',guidanceSamples:24,
     refineAttempts:4,refineSamples:24,refineGuidanceSamples:48,refineWidth:3});
   expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
-  expect(result.report.off_beat_landings).toEqual([]);expect(result.report.terminus.reason).toBe('endOfSpec');
+  expect(result.impactEvaluation.valid).toBe(true);expect(result.report.terminus.reason).toBe('endOfSpec');
   expect(result.stats.sim_frames).toBeLessThanOrEqual(120000);
   expect(result.refinementStats.frames).toBeGreaterThan(0);
   expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
@@ -30,8 +30,8 @@ it('preserves the physical prefix and replaces duplicate final-support trials wi
  expect(result.refinementStats.records.every((r:any)=>r.anchor>=before)).toBe(true);
  const prefix=(lines:any[])=>lines.filter(l=>Math.floor((l.id-1000)/10000)<before);
  expect(prefix(result.track.lines)).toEqual(prefix(first.track.lines));
- expect(result.trajectoryLoss).toBeLessThanOrEqual(first.trajectoryLoss!);
+ expect(result.selectionLoss).toBeLessThanOrEqual(first.selectionLoss);
  expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
- expect(result.report.off_beat_landings).toEqual([]);expect(result.report.terminus.reason).toBe('endOfSpec');
+ expect(result.impactEvaluation.valid).toBe(true);expect(result.report.terminus.reason).toBe('endOfSpec');
  expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
 });

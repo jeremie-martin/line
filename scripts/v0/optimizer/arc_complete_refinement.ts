@@ -8,7 +8,7 @@ import { refineArcTrack } from './arc_refinement.ts';
 import { arcWholeTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
-import { impactAccount } from './impact_accounts.ts';
+import {impactRuler} from './impact_accounts.ts';
 import { searchInterval } from './arc_interval.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
@@ -25,9 +25,8 @@ export function refineCommittedTrack(ctx: ArcCompileContext, seq: ArcSequence) {
     search: (engine, i, overrides, protectedEngines) => searchInterval(ctx, engine, i, overrides, protectedEngines),
     report: ctx.reportFor,
     objective: (raw, report, candidate) => {
-      const ruler = options.impactContract ? impactAccount(options.impactContract) : undefined;
-      const physical = ruler?.observe(candidate, raw.frames);
-      const impacts = physical ? ruler!.evaluate(physical, ctx.impactTargets, ctx.duration, report.terminus.reason === 'endOfSpec') : undefined;
+      const physical = impactRuler.observe(candidate, raw.frames);
+      const impacts = impactRuler.evaluate(physical, ctx.impactTargets, ctx.duration, report.terminus.reason === 'endOfSpec');
       return arcSelectionObjective(ctx, raw, physical, arcWholeTrajectoryObjective(raw, report, ctx.gaps, options.amplitudeWeight, impacts));
     },
     validate: requests.length ? constructionValidator(requests) : undefined,

@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
-const PATHS = ['scripts', 'benchmark', 'engine-rs/src', 'productions', 'package.json', 'package-lock.json', 'tsconfig.json'];
+const PATHS = ['scripts', 'engine-rs/src', 'productions', 'package.json', 'package-lock.json', 'tsconfig.json'];
 export const ENGINE_PATH = 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 

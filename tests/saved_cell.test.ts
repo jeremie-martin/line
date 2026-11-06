@@ -6,7 +6,7 @@ import {savedCell} from '../tools/eval/arms.ts';
 
 it('reads saved, missing and stale cells synchronously without resolving unused inputs', () => {
   const dir = mkdtempSync(join(tmpdir(), 'line-saved-cell-'));
-  const arm = {dir, settings: {mode: 'strike3'}} as any, c = {id: 'song~101', seed: 101} as any;
+  const arm = {dir, settings: {}} as any, c = {id: 'song~101', seed: 101} as any;
   const unused = () => {throw new Error('cached cells must not resolve inputs');};
   try {
     mkdirSync(join(dir, 'cells'));

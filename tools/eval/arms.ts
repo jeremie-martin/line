@@ -1,7 +1,7 @@
 /** Bookkeeping for `compare`: arms, their saved cells, and named references.
  *
  * An arm is one compiler (by content, not by commit) under one setting
- * (mode, allowance, creative preferences, jolt). Its cells live in
+ * (allowance, creative preferences, jolt). Its cells live in
  * generated/eval/arms/<key>/ and are reused by any panel that declares the
  * same resolved case. A saved cell is compatible when its resolved inputs
  * equal today's; when only the measurement code changed, its track is
@@ -75,7 +75,7 @@ export type Arm = {key: string; dir: string; root: string; label: string; conten
 /** An arm: the compiler's content, the compile adapter (tools/eval/compile.ts)
  * and the setting. A change to any of them is a different arm. */
 export function armKey(contentKey: string, settings: ArmSettings, jolt: number, adapter = ADAPTER_SHA256) {
-  return digest({contentKey, adapter, mode: settings.mode, budget: settings.budget, creative: settings.creative ?? {}, jolt}).slice(0, 16);
+  return digest({contentKey, adapter, budget: settings.budget, creative: settings.creative ?? {}, jolt}).slice(0, 16);
 }
 export function openArm(root: string, label: string, content: ReturnType<typeof compilerContent>, settings: ArmSettings, jolt: number): Arm {
   const key = armKey(content.key, settings, jolt), dir = resolve('generated/eval/arms', key);
@@ -83,7 +83,7 @@ export function openArm(root: string, label: string, content: ReturnType<typeof 
   // Several commits can share one compiler content (a documentation commit
   // changes nothing); the arm lists the ones it has seen, for provenance.
   const meta = {schema: 'line.eval-arm.v2', contentKey: content.key, adapterSha256: ADAPTER_SHA256,
-    engineSha256: content.engineSha256, mode: settings.mode, budget: settings.budget, creative: settings.creative ?? {}, jolt};
+    engineSha256: content.engineSha256, budget: settings.budget, creative: settings.creative ?? {}, jolt};
   const commit = content.clean ? content.head : 'uncommitted changes on ' + content.head;
   if (existsSync(join(dir, 'arm.json'))) {
     const {commits, ...saved} = readJson(join(dir, 'arm.json'));
@@ -100,7 +100,7 @@ export const readArmTrack = (arm: Pick<Arm, 'dir'>, id: string) => readTrack(arm
 export const readArmGallery = (arm: Pick<Arm, 'dir'>, id: string) => existsSync(galleryPath(arm, id)) ? readJsonGz(galleryPath(arm, id)) : null;
 type ArmTarget = Pick<Arm, 'dir' | 'settings'>;
 const writeArmCell = (arm: ArmTarget, c: PlannedCase, cell: any, trackHash: string, evaluator: string, provenance: any) =>
-  atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, mode: arm.settings.mode, trackHash, evaluator, provenance}));
+  atomicWrite(cellPath(arm, c.id), JSON.stringify({...cell, case: c, trackHash, evaluator, provenance}));
 export function saveArmCell(arm: ArmTarget, c: PlannedCase, cell: any, track: any, evaluator: string, provenance: any, gallery?: any) {
   atomicWrite(trackPath(arm, c.id), gzipSync(JSON.stringify(track)));
   if (gallery) atomicWrite(galleryPath(arm, c.id), gzipSync(JSON.stringify(gallery)));
@@ -120,7 +120,7 @@ export function savedCell(arm: Arm, c: PlannedCase, evaluator: string, resolved:
   const track = readArmTrack(arm, c.id);
   assert.equal(digest(track), cell.trackHash, `${cellPath(arm, c.id)}: saved track differs from its cell`);
   const {spec, music} = resolved();
-  const remeasured = measureCell({c, mode: arm.settings.mode, spec, music, track, ...compiledOutputs(cell)});
+  const remeasured = measureCell({c, spec, music, track, ...compiledOutputs(cell)});
   writeArmCell(arm, c, remeasured, cell.trackHash, evaluator, {...cell.provenance, remeasuredFrom: cell.evaluator});
   return {cell: readJson(cellPath(arm, c.id)), remeasured: true};
 }

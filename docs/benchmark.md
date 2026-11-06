@@ -29,7 +29,6 @@ The suite's design and its baseline are in
   - `heldout` (`--heldout`, decision points only) and `sealed` (`--sealed`,
     a small reserve that wears out with use) are as before.
 
-  The older `bench*` panels still run.
 - **Frozen:** the suite is exactly the list in `tools/eval/suites/v7.0.json`
   (git tag `v7.0`). A spec file that is not listed is not part of it,
   whatever its name. Changing the list makes a new version (V7.1), never a

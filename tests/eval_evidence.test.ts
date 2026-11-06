@@ -3,7 +3,7 @@ import {mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, copyFileSyn
 import {tmpdir} from 'node:os';
 import {join, dirname, resolve} from 'node:path';
 import {spawnSync, execFileSync} from 'node:child_process';
-import {digest, evaluatorIdentity, SONGS} from '../tools/eval/inputs.ts';
+import {digest, evaluatorIdentity} from '../tools/eval/inputs.ts';
 import {atomicWrite, saveCell, loadRun, readCells, readPlan, assertPairedRuns, type RunPlan} from '../tools/eval/records.ts';
 import {validateRunOptions} from '../tools/eval/eval.ts';
 
@@ -27,7 +27,7 @@ it('measurement identity follows indirect rules and both engine artifacts', () =
 function fixture(count = 2) {
   const dir = temporary(); mkdirSync(join(dir, 'cells'));
   const plan: RunPlan = {schema: 'line.eval.v2', identity: {head: 'compiler'}, evaluator: 'a'.repeat(64), jolt: -15,
-    mode: 'strike3', budget: '100000', panelName: 'dev', panel: Array.from({length: count}, (_, k) => ({id: `song~${k}`, song: 'song', seed: k,
+    budget: '100000', panelName: 'v7', panel: Array.from({length: count}, (_, k) => ({id: `song~${k}`, song: 'song', seed: k,
       perturbation: null, input: {jolt: -15, specSha256: 's', audioSha256: 'a', analysisSha256: 'b', resolvedSha256: 'c'},
       targets: [{frame: 40, t: 1, impact: .7}], authoredTargets: [{frame: 39, impact: .7}]}))};
   atomicWrite(join(dir, 'run.json'), JSON.stringify(plan));
@@ -63,16 +63,16 @@ it('pairs actual resolved inputs and measurement code, while permitting differen
   expect(() => assertPairedRuns(a, b)).toThrow(/measurement code/);
 });
 it('rejects invalid execution options before starting workers', () => {
-  for (const jobs of [0, -1, 1.5, NaN, Infinity, 65]) expect(() => validateRunOptions('strike3', '1000', jobs, 'dev')).toThrow();
-  for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions('strike3', budget, 1, 'dev')).toThrow();
-  expect(() => validateRunOptions('unknown', 'standard', 1, 'dev')).toThrow();
+  for (const jobs of [0, -1, 1.5, NaN, Infinity, 65]) expect(() => validateRunOptions('1000', jobs, 'dev')).toThrow();
+  for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions(budget, 1, 'dev')).toThrow();
+  expect(() => validateRunOptions('standard', 1, 'dev')).toThrow();
 });
 it('failed workers make the actual CLI fail, retaining a resumable plan but no successful report', () => {
   // Run the real CLI and compiler with tiny, entirely local authoring assets.
   // A separate git root keeps input identity/resume checks real without editing
   // production files or depending on untracked music downloads.
   const root = temporary(), dir = join(root, 'run'), cli = resolve('tools/eval/eval.ts');
-  for (const name of ['scripts', 'tools', 'benchmark', 'engine-rs', 'node_modules'])
+  for (const name of ['scripts', 'tools', 'engine-rs', 'node_modules'])
     symlinkSync(resolve(name), join(root, name), 'dir');
   for (const name of ['package.json', 'package-lock.json']) copyFileSync(name, join(root, name));
   const audio = Buffer.alloc(44 + 16000, 128); // two seconds of silent 8-bit PCM
@@ -81,8 +81,10 @@ it('failed workers make the actual CLI fail, retaining a resumable plan but no s
   audio.writeUInt32LE(8000, 24); audio.writeUInt32LE(8000, 28);
   audio.writeUInt16LE(1, 32); audio.writeUInt16LE(8, 34);
   audio.write('data', 36); audio.writeUInt32LE(16000, 40);
-  for (const song of SONGS) {
-    const songDir = join(root, 'productions', song); mkdirSync(songDir, {recursive: true});
+  for (const song of ['luna_bala_44s', 'amor_na_praia_46s', 'tiki_tiki_48s', 'amour_de_ma_vie_44s']) {
+    const songDir = join(root, 'productions', song); mkdirSync(join(songDir, 'variants'), {recursive: true});
+    writeFileSync(join(songDir, 'variants', 'sealed-fixture.ts'), `export const bench = {stratum: 'P1', pattern: 'fixture', windows: [[.5, 1.5]]};
+export default {duration:2,preroll:0,contacts:[{t:.6,impact:.4},{t:1.2,impact:.5}],axes:{air:()=>.5,speed:()=>.5}};`);
     writeFileSync(join(songDir, 'select.json'), JSON.stringify({audio: 'audio.wav'}));
     writeFileSync(join(songDir, 'audio.wav'), audio);
     writeFileSync(join(songDir, 'audio.json'), '{}');
@@ -91,16 +93,16 @@ it('failed workers make the actual CLI fail, retaining a resumable plan but no s
   const env = {...process.env, GIT_DIR: join(root, '.git'), GIT_WORK_TREE: root, GIT_INDEX_FILE: join(root, '.git/index')};
   const git = (...args: string[]) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', ...args], {cwd: root, env, stdio: 'pipe'});
   git('init', '-q');
-  git('add', '--', 'scripts', 'tools', 'benchmark', 'engine-rs', 'package.json', 'package-lock.json', 'productions');
+  git('add', '--', 'scripts', 'tools', 'engine-rs', 'package.json', 'package-lock.json', 'productions');
   git('commit', '-qm', 'Controlled evaluation inputs');
-  const args = [cli, 'run', `--name=${dir}`, '--budget=1', '--jobs=2'];
+  const args = [cli, 'run', `--name=${dir}`, '--panel=sealed', '--sealed', '--budget=1', '--jobs=2'];
   const r = spawnSync(process.execPath, args, {cwd: root, env, encoding: 'utf8', maxBuffer: 2e6});
-  expect(r.status).toBe(1); expect(r.stderr).toContain('24 workers failed');
+  expect(r.status).toBe(1); expect(r.stderr).toContain('12 workers failed');
   expect(r.stderr).toContain('budget');
   expect(r.stderr).not.toContain('ENOENT');
   expect(() => loadRun(dir)).toThrow(/incomplete evaluation/);
   const plan = readPlan(dir);
-  expect(plan.panel).toHaveLength(24);
+  expect(plan.panel).toHaveLength(12);
   expect(readCells(dir, plan).size).toBe(0);
   const resumed = spawnSync(process.execPath, args,
     {cwd: root, env: {...env, LR_JOLT_OFFSET_MS: String(plan.jolt + 100)}, encoding: 'utf8', maxBuffer: 2e6});

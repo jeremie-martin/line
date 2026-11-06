@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {existsSync,readFileSync,mkdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {join,resolve,relative} from 'node:path';
-import {sha} from '../../benchmark/v3/model.ts';
+import {sha} from '../lib/case.ts';
 import {writeGalleryJson} from '../gallery/artifacts.ts';
 const arg=(key:string)=>process.argv.find(a=>a.startsWith(`--${key}=`))?.slice(key.length+3);
 assert.ok(arg('study'),'--study required');

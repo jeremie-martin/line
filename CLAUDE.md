@@ -12,4 +12,3 @@ Read `REWORK.md` (plan and current phase), `ARCHITECTURE.md` (how it works) and 
   - results under every ruler, not only the one optimized.
 - **Never optimize an unvalidated measure.** Impact and sync measures must first agree with the owner's blind labels on held-out passages.
 - **Physics accounting.** Every native physics observation the compiler uses is charged to its frame allowance. A cost optimization must not move tracks, scores or frame counts; parity proves it.
-- **V6 is a regression sentinel, not a target.**

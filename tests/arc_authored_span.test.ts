@@ -11,7 +11,7 @@ it('replaces precisely the earlier span estimate when construction leads its bea
   axes:{air:t=>.45+.04*Math.sin(t),speed:t=>.55+.03*Math.cos(t)}};
  const options={budget:250_000,samples:64,channel:12,radius:24,guidance:'clearance' as const,guidanceSamples:32,
   impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,completeBoundary:true,
-  impactContract:'line.strike.v3' as const,impactPreparationFrames:2};
+  impactPreparationFrames:2};
  const result=compileArcMotion(spec,17,options);expect(result.failure).toBeNull();expect(result.rows).toHaveLength(7);
  const ctx=createArcCompileContext(spec,options);resetFrameCount();setPhysicsFrameLimit(null);
  try{for(let i=1;i<ctx.contacts.length;i++){

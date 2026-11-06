@@ -11,7 +11,7 @@ import { arcControlNormalizer } from './arc_motion_control.ts';
 import { arcPolicyArrival } from './arc_control_policy.ts';
 import { arcConstructionMemoryKey, type ArcControlMemory } from './arc_memory.ts';
 import { arcSpanLoss } from './arc_boundary.ts';
-import { impactAccount } from './impact_accounts.ts';
+import { impactRuler } from './impact_accounts.ts';
 import { evaluationContext, type IntervalOptions, type IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import type {ArcObjectiveContinuation} from './arc_objective.ts';
@@ -68,12 +68,9 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   getRiderMetered(engine, frame);
   const trace = catchReceivers(engine.readCollisionTrace()[0]);
   const prefixRaw = extractRawTrajectory(engine, frame - 1), detection = new DetectionContinuation(prefixRaw);
-  const account = options.impactContract ? impactAccount(options.impactContract) : undefined;
-  const prefixImpactFrames = account ? account.observe(engine, prefixRaw.frames, beforeState) : undefined;
-  const impactPrefix = account ? account.prefix(prefixImpactFrames!) as any : undefined;
-  const localImpactTargets = account
-    ? impactTargets.filter(t => t.frame >= frame - account.matchFrames && t.frame <= horizon + account.matchFrames)
-    : [];
+  const prefixImpactFrames = impactRuler.observe(engine, prefixRaw.frames, beforeState);
+  const impactPrefix = impactRuler.prefix(prefixImpactFrames) as any;
+  const localImpactTargets = impactTargets.filter(t => t.frame >= frame - impactRuler.matchFrames && t.frame <= horizon + impactRuler.matchFrames);
   const currentImpactTarget = localImpactTargets.findIndex(t => t === impactTargets[gap]);
   const incoming = deg(Math.atan2(velocity.y, velocity.x)), pace = hypot2(velocity.x, velocity.y);
 

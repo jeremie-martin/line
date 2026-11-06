@@ -8,8 +8,8 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run check:physics` | Fast exact saved-reference states and ordered collisions; no local judge, compiler or audio inputs |
 | `npm test` | Unit, ownership, failure, cache and generated-operation tests |
 | `npm run verify:engine` | Live independent physics and wrapper/derived-observation comparison |
-| `npm run parity` | All 63 compiler tracks **and charged physics work**, exact |
-| `npm run parity:judge` | Independent judge results on 33 committed tracks |
+| `npm run parity` | All 25 compiler tracks **and charged physics work**, exact |
+| `npm run parity:judge` | Independent judge results on the committed tracks |
 | `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
@@ -22,7 +22,7 @@ full gate. A native optimization does not require rebuilding that judge.
 
 ## Correctness layers
 
-Both physics checks cover 33 committed rides and 32 seeded stress cases with
+Both physics checks cover the 33 rides in `tools/parity/physics-tracks` and 32 seeded stress cases with
 normal, acceleration and scenery lines, extensions, reversed/flipped geometry,
 zero-length lines, grid boundaries and different starting velocities. Saved
 fingerprints cover every binary64 state value and ordered collision triple,
@@ -70,10 +70,9 @@ policy. It cannot silently resume older probe results or a different seed.
 **Measure what production runs.** A real compile spends the standard allowance
 (about 2.7–2.9 M charged frames, 17 s) in one fresh process. Its profile differs
 from small-budget cells: at 150 k frames, fixed per-compile costs dominate and
-local search barely appears. Compile mode therefore defaults to cells 55 and 56
+local search barely appears. Compile mode therefore defaults to cells 3 and 4
 (two songs, standard allowance), no warmup and one compile per process. The
-report also resolves each cell. Cells 61/62 (150 k/750 k, warmed) produced the
-November 3–6 ns/frame history; they remain useful only as explicit guards. A
+report also resolves each cell. Cells 9/10 (150 k/750 k) are the small-budget guards. A
 result on them says nothing about production speed: a 4.4% gain on cell 61 was
 0.6% at 750 k.
 

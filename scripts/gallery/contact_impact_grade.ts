@@ -1,8 +1,7 @@
-/** Experimental music-review grade. The frozen V3–V6 judges are unchanged.
- * Span observations retain their established units; the impact contribution is
+/** The grade behind the V7 headline. Span observations retain their established units; the impact contribution is
  * the shared one-to-one account, including timing and unmatched-event energy. */
 import type {ImpactEvaluation as MusicalImpactEvaluation} from '../v0/optimizer/impact_accounts.ts';
-import type {evaluateDetection,Score,Observation} from '../../benchmark/v3/evaluator.ts';
+import type {evaluateDetection,Score,Observation} from '../lib/span_grade.ts';
 export function contactImpactGrade(historical:ReturnType<typeof evaluateDetection>,impact:MusicalImpactEvaluation){
   const {events,targets,account}=impact;
   const observations:Observation[]=historical.observations.filter(o=>o.axis!=='impact');
@@ -32,5 +31,5 @@ export function contactImpactGrade(historical:ReturnType<typeof evaluateDetectio
     score:valid?Math.round(1000*Math.exp(-rms/.25)*10000)/10000:0};
   return {contract:impact.contract,score,observations,contacts,
     offBeat:account.unmatchedEvents.map(i=>events[i].onset),terminus:historical.terminus,
-    note:'Impact-account quality; not a frozen V6 headline. Impact loss includes strength, timing, missing targets and extra events.'};
+    note:'Impact-account quality. Impact loss includes strength, timing, missing targets and extra events.'};
 }

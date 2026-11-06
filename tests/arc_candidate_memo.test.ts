@@ -60,14 +60,19 @@ it('preserves full observations and owned facts when geometry invalidates part o
       const facts=structuredClone(first.candidate);
       Object.freeze(first.candidate);
       s.memo.clear();
-      // Moving between nearby supports invalidates the last prefix frame,
-      // while its boundary state still matches. Revisit detection's lookahead.
-      for(const delta of [-.125,.125,-.25,.25,-.5,.5,-1,1,-2,2]){
-        const changed=evaluate(s,{...control,offset:control.offset+delta});
+      // A support reaching back over the rider invalidates the last prefix frames,
+      // while the boundary state still matches. Revisit detection's lookahead.
+      // A deterministic spread of nearby and opposing supports, until one does.
+      for(let k=1;k<=400&&s.detectionFrames>=s.frame;k++){
+        const frac=(n:number)=>(k*n)%1;
+        s.memo.clear();
+        const changed=evaluate(s,{...control,entry:control.entry-60+120*frac(.61803398875),turn:control.turn-60+120*frac(.7548776662),
+          offset:control.offset-2+4*frac(.5698402910),support:control.support*(.5+frac(.3247179572)),contactSide:k%2?1:-1});
         if(changed)expect(observed).toStrictEqual({duration:s.horizon,frames:changed.child.getCachedRawFrames(0,s.horizon)});
       }
       expect(s.detectionFrames).toBeLessThan(s.frame);
       const checkpoint=s.detection;
+      s.memo.clear();
       const repeated=evaluate(s,control)!;
       expect(repeated).not.toBeNull();
       expect(s.detection).toBe(checkpoint);

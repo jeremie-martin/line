@@ -5,7 +5,7 @@ import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,join,relative} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {hostname} from 'node:os';
-import {sha} from '../../benchmark/v3/model.ts';
+import {sha} from '../lib/case.ts';
 import {writeGalleryJson,galleryHarnessIdentity} from '../gallery/artifacts.ts';
 import {ensureMirror,ensureSpectrum,renderBundle} from './render.ts';
 

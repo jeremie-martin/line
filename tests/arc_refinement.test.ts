@@ -17,9 +17,9 @@ it('retains a valid complete incumbent while charging every refinement proposal'
   expect(result.refinementStats.frames).toBeGreaterThan(0);
   expect(result.stats.sim_frames).toBeGreaterThan(initial.stats.sim_frames);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
-  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
-  expect(result.trajectoryLoss).toBeLessThanOrEqual(initial.trajectoryLoss);
-  expect(result.refinementStats.finalLoss).toBeCloseTo(result.trajectoryLoss, 12);
+  expect(Number.isFinite(result.selectionLoss)).toBe(true);
+  expect(result.selectionLoss).toBeLessThanOrEqual(initial.selectionLoss);
+  expect(result.refinementStats.finalLoss).toBeCloseTo(result.selectionLoss, 12);
   const repeated = compileArcMotion(spec, 17, options);
   expect(result.track).toEqual(repeated.track); expect(result.stats).toEqual(repeated.stats);
 });
@@ -28,7 +28,7 @@ it('reconstructs a continuation with the original curve controls and preserves t
   const result = compileArcMotion(spec, 18, {...base, refineAttempts: 4, refineWidth: 3});
   expect(result.refinementStats.counts.proposals).toBeGreaterThan(0);
   expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
-  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
+  expect(Number.isFinite(result.selectionLoss)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
 
@@ -56,13 +56,13 @@ it('allocates physical-prefix expansion from measured construction work within t
   const result = compileArcMotion(spec, 19, {...base,  });
   expect(result.planningDecisions.some(d => d.beamWidth > 1)).toBe(true);
   expect(result.planningDecisions.every(d => d.physicsFrames > 0)).toBe(true);
-  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
+  expect(Number.isFinite(result.selectionLoss)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
 });
 
 it('fits joint responses for expressive curves and validates proposals in the real engine', () => {
   const result = compileArcMotion(spec, 21, {...base, guidanceSamples: 96, responseSamples: 70});
-  expect(Number.isFinite(result.trajectoryLoss)).toBe(true);
+  expect(Number.isFinite(result.selectionLoss)).toBe(true);
   expect(result.stats.viable_candidate_samples).toBeGreaterThan(0);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(base.budget);
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);

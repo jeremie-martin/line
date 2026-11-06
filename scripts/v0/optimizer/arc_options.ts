@@ -15,7 +15,6 @@ import type { ConstructionRequest } from './repertoire_policy.ts';
 import type { MotionSearchOptions } from './motion_objective.ts';
 import { validProfileControls } from './motion_profiles.ts';
 import { arcMainSteps } from './arc_geometry.ts';
-import { impactAccount, type ImpactAccountId } from './impact_accounts.ts';
 import { validateImpactSearchOptions, type ImpactSearchOptions } from './impact_search.ts';
 
 /** Geometry style of one section: the fields constructionStyle() produces
@@ -80,8 +79,6 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionPolicies?: Readonly<Record<string, any>>;
 
   // --- impactSearchProfile(contract) (with an impact account only) --------------
-  /** Impact account the compiler optimizes; absent means the frozen landing ruler. */
-  impactContract?: ImpactAccountId;
   impactSearch?: ImpactSearchOptions;
   /** Prepare physical contact before its authored response time. Musical
    * targets and construction requests remain at their original timestamps. */
@@ -128,7 +125,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-  constructionRequests: 'keySection', motionQuality: 'key', impactContract: 'key', impactSearch: 'key',
+  constructionRequests: 'keySection', motionQuality: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
@@ -165,12 +162,10 @@ export function validateArcOptions(seed: number, options: ArcMotionOptions) {
     options.initialRecoverySamples < 0 || options.initialRecoverySamples > 320)) throw new Error('invalid initialization recovery allowance');
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0) throw new Error('invalid arc compiler input');
   if (!validProfileControls(options)) throw new Error('invalid profile controls');
-  if (options.impactContract !== undefined) impactAccount(options.impactContract);
   validateImpactSearchOptions(options.impactSearch);
-  if (options.impactSearch && !options.impactContract) throw new Error('impact search options require their measurement contract');
-  if (options.opposingEntryProposals !== undefined && (!options.impactContract || !Number.isSafeInteger(options.opposingEntryProposals) ||
+  if (options.opposingEntryProposals !== undefined && (!Number.isSafeInteger(options.opposingEntryProposals) ||
     options.opposingEntryProposals < 0 || options.opposingEntryProposals > 64)) throw new Error('invalid opposing-entry allowance');
-  if (options.impactPreparationFrames !== undefined && (!options.impactContract || !Number.isSafeInteger(options.impactPreparationFrames) ||
+  if (options.impactPreparationFrames !== undefined && (!Number.isSafeInteger(options.impactPreparationFrames) ||
     options.impactPreparationFrames < 0 || options.impactPreparationFrames > 2)) throw new Error('invalid impact preparation');
   arcMainSteps(1, undefined, options.faces);
 }

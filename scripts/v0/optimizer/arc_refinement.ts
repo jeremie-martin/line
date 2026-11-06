@@ -44,7 +44,7 @@ export function refineArcTrack(input: ArcRefinementInput) {
   // Body-only strikes may have no historical sled-landing measurement. The
   // shared account checks their authored targets independently.
   const observationContract = (r: DriftReport) => JSON.stringify(r.gaps.map(g => Object.entries(g.axes)
-    .filter(([axis]) => !options.impactContract || axis !== 'impact').map(([axis, value]) => [axis, value?.target])));
+    .filter(([axis]) => axis !== 'impact').map(([axis, value]) => [axis, value?.target])));
   const expectedObservations = observationContract(incumbent.report);
   const initialLoss = incumbent.loss, tries = contacts.map(() => 0), records: any[] = [];
   const counts: Record<string, number> = {proposals: 0, complete: 0, accepted: 0, prefixChanged: 0, failedContinuation: 0,

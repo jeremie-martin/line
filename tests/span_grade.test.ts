@@ -1,18 +1,19 @@
 import { describe, expect, test } from 'vitest';
-import { scoreObservations, summarize, type Observation } from '../benchmark/v3/evaluator.ts';
-import { loadCases, caseGaps, caseSpec, targets } from '../benchmark/v3/model.ts';
+import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+import { scoreObservations, type Observation } from '../scripts/lib/span_grade.ts';
+import { caseGaps, caseSpec, targets, type Case } from '../scripts/lib/case.ts';
 import { effectiveAxes, validateSpec } from '../scripts/v0/core/substrate.ts';
 
 const observation = (axis: Observation['axis'], frames: number, error: number, tail = false): Observation => ({ gap: tail ? 1 : 0, startFrame: 0, endFrame: frames, tail, axis, target: 0, achieved: error, error });
-describe('V3 explicit scoring contract', () => {
+describe('span scoring contract', () => {
   test('a long authored ending changes the span score without creating an impact target', () => {
     const rows = [observation('air', 40, 0), observation('air', 160, .5, true), observation('impact', 40, 0)];
-    const full = scoreObservations(rows, []), beat = scoreObservations(rows, [], 'contact_equal');
-    expect(beat.score).toBe(1000);
+    const full = scoreObservations(rows, []);
     expect(full.components.air!.weightSum).toBe(200);
     expect(full.components.impact!.observations).toBe(1);
     expect(full.weightedAxisRms).toBeCloseTo(Math.sqrt(.5 * .2));
-    expect(full.score).toBeLessThan(beat.score);
+    expect(full.score).toBeLessThan(1000);
   });
   test('span subdivision preserves time influence; impact remains event-weighted', () => {
     const a = scoreObservations([observation('speed', 200, .2), observation('speed', 40, .1)], []);
@@ -31,9 +32,9 @@ describe('V3 explicit scoring contract', () => {
     expect(s.components.amplitude).toBeUndefined();
     expect(s.score).toBeCloseTo(1000 * Math.exp(-.4), 3);
   });
-  test('catalog targets agree with the unchanged compiler input API, including tails', () => {
-    const cases = loadCases(); expect(cases).toHaveLength(88);
-    for (const c of cases) {
+  test('case targets agree with the compiler input API, including tails', () => {
+    const fixture = JSON.parse(gunzipSync(readFileSync('tools/parity/cases.json.gz')).toString());
+    for (const c of Object.values(fixture.music) as Case[]) {
       const spec = caseSpec(c);
       expect(() => validateSpec(spec)).not.toThrow();
       for (const gap of caseGaps(c)) {
@@ -41,14 +42,5 @@ describe('V3 explicit scoring contract', () => {
         if (!gap.endsWithContact) expect(targets(c, gap).impact).toBeUndefined();
       }
     }
-  });
-  test('incomplete panels and duplicate seed records cannot become headlines', () => {
-    const cases = loadCases();
-    expect(() => summarize([], cases, [16, 17])).toThrow(/incomplete/);
-    const score = scoreObservations([observation('air', 40, 0)], []);
-    const rows = cases.flatMap(c => [16, 17].map(seed => ({ sourceId: c.id, seed, score, trackHash: c.id })));
-    expect(summarize(rows, cases, [16, 17]).headline).toBe(1000);
-    rows[1].seed = 16;
-    expect(() => summarize(rows, cases, [16, 17])).toThrow(/duplicate/);
   });
 });

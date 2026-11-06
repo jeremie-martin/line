@@ -133,7 +133,7 @@ if (process.argv.includes('--worker')) {
   --reference=<wasm>                or: swap only the engine (--reference-root=<checkout> adds source)
   --mode=compile|engine             compile: whole compiles; engine: isolated workloads (default)
   --stage=screen|confirm            confirm requires --screen=<result.json>
-  --cells=55,56 --rounds=12 --confirm-rounds=24   production allowance, two songs
+  --cells=3,4 --rounds=12 --confirm-rounds=24   production allowance, two songs
   --warmup=0 --reps=1               compile defaults (a real compile); engine defaults: 1, 2
   --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
                                   margin 0 tests direction without a minimum benefit
@@ -153,7 +153,7 @@ Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
     confirmRounds: Number(arg('confirm-rounds', '24')), reps: Number(arg('reps', compile ? '1' : '2')),
     warmup: Number(arg('warmup', compile ? '0' : '1')), confidence: Number(arg('confidence', '.95')),
     marginPct: Number(arg('margin-pct', '2')), seed: Number(arg('seed', '1729')), slowdownPct: Number(arg('slowdown-pct', '0')),
-    cells: arg('cells', '55,56').split(',').map(Number)};
+    cells: arg('cells', '3,4').split(',').map(Number)};
   assert(['engine', 'compile'].includes(mode) && ['screen', 'confirm'].includes(stage));
   for (const n of [config.rounds, config.confirmRounds]) pairOrder(n, config.seed);
   const order = pairOrder(config.rounds, config.seed);

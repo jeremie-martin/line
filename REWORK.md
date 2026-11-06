@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: lean foundation, first pass
+
+Goal: a clean base for resuming headline work. Parallel compiles within a ride are
+ruled out: headline work is already parallel across rides. Raw evidence left the
+repository (`docs/research` 77 → 3.4 MB); see "Recording decisions" in WORKING.md.
+One `WorkerPool` replaces five spawn loops. `npm run reach` was wrong: comments and
+module specifiers made edges, and all of `tools/**` counted as entries. Rebuilt on
+the syntax tree, it found about 4,300 dead lines; deleting those and 62 unreferenced
+declarations takes live code from 35,991 to 30,100 lines, with `noUnusedLocals` on.
+Tests fall from 457 to 418 with the deleted code. Tracks, work and the engine binary
+are unchanged. The night page stays: it may hold unanswered owner questions.
+
 ## November 6: measure real compiles; −3.89% on the production workload
 
 The timing target used a warmed 150 k cell, 5% of a real compile, with a different

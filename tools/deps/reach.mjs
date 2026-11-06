@@ -3,9 +3,10 @@
 //   node tools/deps/reach.mjs              # summary + unreachable files
 //   node tools/deps/reach.mjs --tests      # also classify tests
 //
-// Entry points are declared in tools/deps/entries.json. Edges: static imports,
-// literal dynamic imports, new URL(..., import.meta.url), and string literals
-// naming a tracked script (spawned children). Anything unreachable is a
+// Entry points are declared in tools/deps/entries.json. Edges, from the syntax tree:
+// imports, literal dynamic imports, new URL(..., import.meta.url), and string
+// literals naming a tracked script (spawned children). A file reached only for
+// its types stays, but keeps nothing else alive. Anything unreachable is a
 // candidate for deletion; a test is live only if everything it imports is live.
 import {execSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
@@ -24,25 +25,47 @@ const resolveSpec = (spec, from) => spec.startsWith('.') || spec.startsWith('/')
   ? tryResolve(relative(ROOT, spec.startsWith('/') ? spec : resolve(ROOT, dirname(from), spec))) : null;
 
 const isTest = f => f.startsWith('tests/');
-const graph = {}, lines = {};
-for (const f of files) {
-  const src = readFileSync(join(ROOT, f), 'utf8'), out = new Set();
-  lines[f] = src.split('\n').length;
-  for (const imp of ts.preProcessFile(src, true, true).importedFiles) {const r = resolveSpec(imp.fileName, f); if (r) out.add(r);}
-  for (const re of [/import\(\s*["'`]([^"'`]+)["'`]/g, /new URL\(\s*["'`]([^"'`?]+)[^"'`]*["'`]\s*,\s*import\.meta\.url/g])
-    for (const m of src.matchAll(re)) {const r = resolveSpec(m[1], f); if (r) out.add(r);}
-  // String literals only (comments are skipped by the scanner), naming a tracked script.
-  const scanner = ts.createScanner(ts.ScriptTarget.Latest, true, ts.LanguageVariant.Standard, src);
-  for (let k = scanner.scan(); k !== ts.SyntaxKind.EndOfFileToken; k = scanner.scan()) {
-    if (k === ts.SyntaxKind.SlashToken || k === ts.SyntaxKind.SlashEqualsToken) {try {scanner.reScanSlashToken();} catch {}}
-    if (k !== ts.SyntaxKind.StringLiteral && k !== ts.SyntaxKind.NoSubstitutionTemplateLiteral && k !== ts.SyntaxKind.TemplateHead) continue;
-    for (const m of scanner.getTokenValue().matchAll(/([A-Za-z0-9_./-]+\.(?:ts|mts|mjs|js))(?![A-Za-z0-9])/g)) {
-      const bare = m[1].replace(/^\.\//, '');
-      const r = resolveSpec(m[1].startsWith('.') ? m[1] : './' + m[1], f) ?? (fileSet.has(bare) ? bare : null);
-      if (r && r !== f && (isTest(f) || !isTest(r))) out.add(r);
+const graph = {}, typeGraph = {}, lines = {};
+const importsOnlyTypes = clause => !!clause && (clause.isTypeOnly || clause.phaseModifier === ts.SyntaxKind.TypeKeyword ||
+  !clause.name && !!clause.namedBindings && ts.isNamedImports(clause.namedBindings) &&
+  clause.namedBindings.elements.length > 0 && clause.namedBindings.elements.every(e => e.isTypeOnly));
+const exportsOnlyTypes = node => node.isTypeOnly || node.exportClause && ts.isNamedExports(node.exportClause) &&
+  node.exportClause.elements.length > 0 && node.exportClause.elements.every(e => e.isTypeOnly);
+/** Real syntax, not tokens: comments create no edges, and an import that names only
+ * types keeps its target available without keeping that target's own imports alive. */
+function edges(f, src) {
+  const runtime = new Set(), types = new Set(), kind = f.endsWith('.ts') || f.endsWith('.mts') ? ts.ScriptKind.TS : ts.ScriptKind.JS;
+  const add = (set, spec) => {const r = resolveSpec(spec, f); if (r) set.add(r);};
+  const visit = node => {
+    // A module specifier is not a string naming a script: stop at these nodes.
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier))
+      return add(importsOnlyTypes(node.importClause) ? types : runtime, node.moduleSpecifier.text);
+    if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier))
+      return add(exportsOnlyTypes(node) ? types : runtime, node.moduleSpecifier.text);
+    if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument) && ts.isStringLiteral(node.argument.literal))
+      return add(types, node.argument.literal.text);
+    if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword && ts.isStringLiteralLike(node.arguments[0]))
+      add(runtime, node.arguments[0].text);
+    else if (ts.isNewExpression(node) && node.expression.getText() === 'URL' && node.arguments?.[0] && ts.isStringLiteralLike(node.arguments[0]) &&
+      node.arguments[1]?.getText() === 'import.meta.url') add(runtime, node.arguments[0].text.split('?')[0]);
+    else if (ts.isStringLiteralLike(node) || ts.isTemplateHead(node)) {
+      // A string naming a tracked script: a spawned child.
+      for (const m of node.text.matchAll(/([A-Za-z0-9_./-]+\.(?:ts|mts|mjs|js))(?![A-Za-z0-9])/g)) {
+        const bare = m[1].replace(/^\.\//, '');
+        const r = resolveSpec(m[1].startsWith('.') ? m[1] : './' + m[1], f) ?? (fileSet.has(bare) ? bare : null);
+        if (r && r !== f && (isTest(f) || !isTest(r))) runtime.add(r);
+      }
     }
-  }
-  graph[f] = [...out];
+    ts.forEachChild(node, visit);
+  };
+  visit(ts.createSourceFile(f, src, ts.ScriptTarget.Latest, true, kind));
+  return {runtime, types};
+}
+for (const f of files) {
+  const src = readFileSync(join(ROOT, f), 'utf8'), {runtime, types} = edges(f, src);
+  lines[f] = src.split('\n').length;
+  graph[f] = [...runtime];
+  typeGraph[f] = [...types].filter(t => !runtime.has(t));
 }
 const closure = entries => {
   const seen = new Set(), stack = [...entries];
@@ -54,12 +77,18 @@ const glob = p => {const re = new RegExp('^' + p.replace(/[.+^${}()|[\]\\]/g, '\
 const declared = JSON.parse(readFileSync(join(ROOT, 'tools/deps/entries.json'), 'utf8'));
 const entries = declared.entries.flatMap(glob), assets = new Set((declared.assets ?? []).flatMap(glob));
 const live = closure(entries);
+// Declarations a live file names; erased at runtime, so their own imports do not count.
+const typesOnly = new Set(), pending = [...live];
+while (pending.length) for (const t of typeGraph[pending.pop()] ?? []) if (!live.has(t) && !typesOnly.has(t)) {typesOnly.add(t); pending.push(t);}
 const sum = list => list.reduce((n, f) => n + (lines[f] ?? 0), 0);
 const code = files.filter(f => !isTest(f));
-const dead = code.filter(f => !live.has(f) && !assets.has(f));
+const dead = code.filter(f => !live.has(f) && !typesOnly.has(f) && !assets.has(f));
 console.log(`entries ${entries.length}  live ${code.filter(f => live.has(f)).length} files / ${sum(code.filter(f => live.has(f)))} lines  ` +
-  `unreachable ${dead.length} files / ${sum(dead)} lines`);
-if (process.argv.includes('--list')) for (const f of dead) console.log('dead  ' + f);
+  `types only ${typesOnly.size}  unreachable ${dead.length} files / ${sum(dead)} lines`);
+if (process.argv.includes('--list')) {
+  for (const f of dead) console.log('dead  ' + f);
+  for (const f of typesOnly) console.log('types ' + f);
+}
 if (process.argv.includes('--tests')) {
   for (const t of files.filter(f => isTest(f) && /\.test\.ts$/.test(f))) {
     const reach = [...closure([t])].filter(f => !isTest(f));

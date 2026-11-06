@@ -19,7 +19,6 @@
  */
 
 import type { Contact } from "../types.ts";
-import { impactEnvNum } from "../types.ts";
 import { clamp } from "./substrate.ts";
 
 /** A per-beat impact: a constant, or a function of (time s, index, beat count).
@@ -60,47 +59,4 @@ export function withImpact(contacts: Contact[], rule: ImpactRule): Contact[] {
     }
     return { ...c, impact: clamp(raw, 0, 1) };
   });
-}
-
-/**
- * Migrate an OLD-convention authored impact (the pre-2026 ruler, felt-"soft"≈0.2 under
- * legacy `redir/REDIR_CAP`) onto the current felt impact scale [0,1]:
- * `a_new = clamp01((a_old − SOFT_OLD)/SPAN_OLD)`.
- *
- * This is a pure, monotone, rank-preserving convention shift independent of
- * the current ruler anchors. The soft/span inputs remain study-overridable
- * while the small compatibility corpus is source-authored in the old convention.
- */
-export const LEGACY_IMPACT_AUTHORING_CONVERSION = Object.freeze({
-  soft: impactEnvNum("LR_IMPACT_MIGRATE_SOFT", 0.2),
-  // Guard against a degenerate study override, which would otherwise divide
-  // by zero and emit NaN targets while constructing a spec.
-  span: Math.max(1e-6, impactEnvNum("LR_IMPACT_MIGRATE_SPAN", 0.8)),
-});
-export const migrateImpact = (aOld: number): number =>
-  clamp(
-    (aOld - LEGACY_IMPACT_AUTHORING_CONVERSION.soft) /
-      LEGACY_IMPACT_AUTHORING_CONVERSION.span,
-    0,
-    1,
-  );
-
-/**
- * `withImpact` for explicitly pre-current-convention source values. The
- * conversion runs while the spec module constructs `Contact[]`; the scorer,
- * optimizer, and report receive only the resolved current-convention target.
- * Source literals remain unchanged. New specs use `withImpact` directly.
- *
- * This compatibility helper predates, and is independent of, the 2026-07-31
- * raw-metric promotion. That promotion does not migrate current-convention
- * `Contact.impact` targets.
- */
-export function withImpactLegacy(contacts: Contact[], rule: ImpactRule): Contact[] {
-  const migrated: ImpactRule = typeof rule === "function"
-    ? (t, i, count) => {
-        const r = rule(t, i, count);
-        return r === undefined || !Number.isFinite(r) ? r : migrateImpact(r);
-      }
-    : migrateImpact(rule);
-  return withImpact(contacts, migrated);
 }

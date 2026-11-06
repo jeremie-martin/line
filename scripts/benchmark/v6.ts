@@ -1,6 +1,6 @@
 /** One public compiler route, frozen independent judgment, complete preserved panels. */
 import assert from 'node:assert/strict';
-import {mkdirSync,readFileSync,writeFileSync,existsSync,openSync,closeSync} from 'node:fs';
+import {mkdirSync,readFileSync,existsSync,openSync,closeSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {WorkerPool,workerJobs} from '../lib/workers.ts';

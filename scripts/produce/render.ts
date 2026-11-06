@@ -140,13 +140,6 @@ export async function ensureSpectrum(audioPath: string, song: string, logPath: s
   return basename(out);
 }
 
-/** True if a bundle for (song, seed) already exists in this run dir (<outDir>/<song>/
- *  <song>-s<seed>). Cross-run / cross-machine dedup is handled by the persistent
- *  per-host seed cursor; this guards only within a single run dir. */
-export function bundleExistsForSeed(outDir: string, song: string, seed: number): boolean {
-  return existsSync(join(outDir, song, `${song}-s${seed}`));
-}
-
 export type RenderInput = {
   specPath: string;
   trackPath: string;

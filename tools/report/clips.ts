@@ -38,7 +38,7 @@ take([...beats.filter(x => x.requested < .15)].sort((p, q) => gain(q) - gain(p))
 
 const tracks = new Map<string, {song: string; track: any}>();
 // Renders are cached by run and case, so another pair of runs never reuses them.
-for (const p of picked) for (const [key, run] of [['before', before], ['after', after]]) {
+for (const p of picked) for (const run of [before, after]) {
   const rid = `${run}~${p.id}`;
   assertReviewSources(p.song, (run === before ? A : B).cells.get(p.id).case.input);
   if (!tracks.has(rid)) tracks.set(rid, {song: p.song, track: JSON.parse(gunzipSync(readFileSync(join('generated/eval', run, 'cells', p.id + '.track.json.gz'))).toString())});

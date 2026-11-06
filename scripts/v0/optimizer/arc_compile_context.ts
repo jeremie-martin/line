@@ -41,8 +41,6 @@ export function createSearchWork() {
   };
 }
 
-export type ArcSearchWork = ReturnType<typeof createSearchWork>;
-
 /** Timeline, start state, engine lineage, memory and accounting for a
  * normalized spec. Targets are read exactly as authored; the search is
  * deterministic, and a seed reaches the compiler only through the plan. */

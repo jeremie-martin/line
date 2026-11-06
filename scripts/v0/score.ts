@@ -35,8 +35,6 @@ import { AXES, type AxisValues, type ContactReport, type DriftReport, REPORT_ONL
  * axis-quality credit. Loss is computed as RMS(axis_error) / TOLERANCE.
  */
 export const AXIS_QUALITY_TOLERANCE = 0.25;
-/** Back-compat alias for older scripts; scoring no longer has zero-credit cutoff. */
-export const AXIS_ZERO_CREDIT_ERROR = AXIS_QUALITY_TOLERANCE;
 
 /** RMS landed-contact frame-error excess (beyond the ±1 frame tolerance) at
  *  which drift_quality decays to e^-1 ≈ 37%. Only contacts that actually
@@ -67,13 +65,6 @@ export type AxisQualitySummary = {
   axis_loss: number;
   axis_quality: number;
   axis_score: number;
-};
-
-export type WorstContact = {
-  t_target: number;
-  t_actual: number | null;
-  frame_error: number | null;
-  status: ContactReport["status"];
 };
 
 export type V0ContractScore = {
@@ -200,24 +191,6 @@ export function axisTargetQuality(
     return 0;
   }
   return axisQualityFromErrors([achieved - target]).axis_quality;
-}
-
-export function worstContacts(report: DriftReport, limit = 3): WorstContact[] {
-  return [...report.contacts]
-    .filter((c) => c.status !== "hit")
-    .sort((a, b) => contactSeverity(b) - contactSeverity(a))
-    .slice(0, limit)
-    .map((c) => ({
-      t_target: c.t_target,
-      t_actual: c.t_actual,
-      frame_error: c.frame_error,
-      status: c.status,
-    }));
-}
-
-function contactSeverity(c: ContactReport): number {
-  if (c.status === "missing") return Infinity;
-  return c.frame_error === null ? 0 : Math.abs(c.frame_error);
 }
 
 export function runtimeMultiplier(elapsedMs: number, softMs: number, hardMs: number): number {

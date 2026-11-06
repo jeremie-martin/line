@@ -19,14 +19,8 @@
 import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";
 import { detect, extractRawTrajectory, sledPoseDegFromRider } from "../../lib/detector.ts";
 import { computeRotationTrace, type RotationArc } from "../../lib/rotation.ts";
-import type { TrackJson } from "../../lib/primitive.ts";
+import type { TrackJson } from "../../lib/track.ts";
 import { FPS } from "../types.ts";
-
-/** Opt-in, default OFF. When unset, run.ts / trace tooling emit nothing and the
- *  compile + benchmark path is byte-identical. Read once at import. */
-export const TRACE_EMIT: boolean =
-  (globalThis as { process?: { env?: Record<string, string | undefined> } })
-    .process?.env?.LR_EMIT_TRACE === "1";
 
 export type TraceFrame = {
   frame: number;

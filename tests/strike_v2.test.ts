@@ -4,7 +4,7 @@ import {impactAccount} from '../scripts/v0/optimizer/impact_accounts.ts';
 import {STRIKE_CONTRACT, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../scripts/lib/strike_impact.ts';
 import {createArcEngine} from '../scripts/v0/optimizer/arc_engine.ts';
 import {extractRawTrajectory} from '../scripts/lib/detector.ts';
-import {motionChanges} from '../tools/measure/motion_change.ts';
+import {motionChanges} from './fixtures/motion_change.ts';
 import {POINTS} from '../tools/measure/observe.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 

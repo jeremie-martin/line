@@ -1,10 +1,10 @@
 /** Small local job queue for automatic production requests. Compilers run in isolated
  * child processes; their WASM ownership and work meters never overlap in-server. */
 import type {IncomingMessage,ServerResponse} from 'node:http';
-import {spawn,execFileSync,type ChildProcess} from 'node:child_process';
+import {spawn,type ChildProcess} from 'node:child_process';
 import {createHash,randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,readdirSync,writeFileSync,renameSync,openSync,closeSync} from 'node:fs';
-import {join,resolve,relative} from 'node:path';
+import {join,relative} from 'node:path';
 import {resolveJoltMs} from '../produce/jolt.ts';
 import {compilerIdentity} from '../lib/compiler_identity.ts';
 import {loadSelect} from '../produce/config.ts';

@@ -3,7 +3,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * This module only builds curves; it does not simulate or select candidates. */
 import {profileHeading,foldTime,validProfileControls,type MotionProfileControls} from './motion_profiles.ts';
 import { solidPathLines } from '../arc.ts';
-import type {SolidPath} from '../../lib/primitive.ts';
+import type {SolidPath} from '../../lib/track.ts';
 import type { TrackLine } from '../types.ts';
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const rad=(x:number)=>x*Math.PI/180;

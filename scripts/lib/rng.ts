@@ -24,11 +24,3 @@ export function jitter(rng: (() => number) | undefined, base: number, pct = 0.2)
   if (rng === undefined) return base;
   return base * (1 - pct + rng() * 2 * pct);
 }
-
-/**
- * Integer variant of `jitter` — clamps to integer with the same band.
- */
-export function jitterInt(rng: (() => number) | undefined, base: number, pct = 0.2): number {
-  if (rng === undefined) return base;
-  return Math.max(1, Math.round(base * (1 - pct + rng() * 2 * pct)));
-}

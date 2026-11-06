@@ -24,8 +24,8 @@
 import {readFileSync, writeFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
-import {OUT} from './observe.ts';
-import {strikeFrames, detectStrikes} from './strike.ts';
+import {OUT} from '../../tools/measure/observe.ts';
+import {strikeFrames, detectStrikes} from '../../tools/measure/strike.ts';
 
 const G = 0.175, VERY_STRONG = 7.55, N = 10;
 export const WINDOW = 2;

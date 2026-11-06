@@ -9,7 +9,7 @@
 import { scoreDriftReport } from "../v0/score.ts";
 import { computeStands } from "../lib/rotation.ts";
 import { FPS } from "../v0/types.ts";
-import type { TrackJson } from "../lib/primitive.ts";
+import type { TrackJson } from "../lib/track.ts";
 import type { Trace } from "../v0/core/trace.ts";
 
 /** The report type accepted by the scorer (DriftReport), pulled structurally so
@@ -80,14 +80,3 @@ export type Floors = {
   /** Minimum airborne revolutions (suggested 0 unless you want spinny tracks). */
   rotationsMin: number;
 };
-
-/** The production gate — pure. A seed qualifies (and only then is it worth
- *  rendering) iff it clears every floor. */
-export function passesGate(m: SeedMetrics, f: Floors): boolean {
-  if (f.reachedEnd && !m.reachedEnd) return false;
-  if (m.offBeat > f.maxOffBeat) return false;
-  if (m.score < f.score) return false;
-  if (m.standTimePct < f.standTimePctMin) return false;
-  if (m.rotations < f.rotationsMin) return false;
-  return true;
-}

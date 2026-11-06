@@ -2,7 +2,6 @@
  * v0 types — Spec, Contact, axis curves, Arc, DriftReport.
  */
 
-import type { TrackLine } from "../lib/primitive.ts";
 
 // ─────────── Spec (authoring surface) ───────────
 
@@ -226,8 +225,6 @@ export type AxisName = (typeof AXES)[number];
  * ignored while the grain axis is being removed from the compiler.
  */
 export const TARGET_AXES = ["air", "speed", "elevation", "amplitude"] as const satisfies readonly AxisName[];
-export type TargetAxisName = (typeof TARGET_AXES)[number];
-const TARGET_AXIS_SET: ReadonlySet<AxisName> = new Set<AxisName>(TARGET_AXES);
 
 /**
  * Axes that are MEASURED and surfaced in the drift report but EXCLUDED from the
@@ -254,89 +251,12 @@ export const AXIS_VALUE_MAX = {
   impact: 1,
 } as const satisfies Record<AxisName, number>;
 
-/** Axes whose achieved value can be measured over an arbitrary frame range. */
-export const FRAME_SPAN_AXES = ["air", "speed"] as const satisfies readonly AxisName[];
-export type FrameSpanAxisName = (typeof FRAME_SPAN_AXES)[number];
-
 /**
  * Resolved or measured per-axis scalar values for one gap (or one frame).
  * The numeric bag flowing through `gap.targets`, candidate `achieved`,
  * `axisCost`, and `clampGapTargets`.
  */
 export type AxisValues = Partial<Record<AxisName, number>>;
-
-export type AxisQualityStreamCounter = {
-  attempts: number;
-  successes: number;
-};
-
-/** Candidate sources that can be selected into the returned handoff prefix. */
-export const HANDOFF_CANDIDATE_SOURCES = ["pool", "reuse", "brake", "startup", "axisq"] as const;
-export type HandoffCandidateSourceName = (typeof HANDOFF_CANDIDATE_SOURCES)[number];
-export type HandoffCandidateSourceCounter = Partial<Record<HandoffCandidateSourceName, number>>;
-
-/** Handoff evaluation origins. These are diagnostics only: they say which path
- *  offered an output to the best-so-far register. */
-export const HANDOFF_EVALUATION_PHASES = [
-  "frontier",
-  "tail_completion",
-  "polish",
-] as const;
-export type HandoffEvaluationPhase = (typeof HANDOFF_EVALUATION_PHASES)[number];
-export type HandoffEvaluationPhaseCounter = Partial<Record<HandoffEvaluationPhase, number>>;
-export type HandoffContactCountCounter = Partial<Record<number, number>>;
-
-/** Compiler-owned candidate sampling streams. Normal is the main deterministic
- *  candidate prefix; extra streams must justify their sample budget separately. */
-export const CANDIDATE_SAMPLE_MODES = [
-  "normal",
-  "brake",
-  "startup_catch",
-] as const;
-export type CandidateSampleMode = (typeof CANDIDATE_SAMPLE_MODES)[number];
-
-export type ArcPlacementCounter = {
-  sampled: number;
-  preclear_rejected: number;
-  direct_attempted: number;
-  direct_landed: number;
-  direct_failed: number;
-  direct_survival_failed: number;
-  direct_landing_failed: number;
-  direct_offbeat_failed: number;
-  fallback_attempted: number;
-  fallback_landed: number;
-};
-
-export type ArcPlacementMode = "target_state";
-
-/**
- * True when the resolved target bag contains exactly this active target-axis
- * set. Axes outside TARGET_AXES are ignored even if a legacy caller supplies
- * them in the bag.
- */
-export function hasExactlyTargetAxes(
-  values: AxisValues,
-  requiredAxes: readonly AxisName[],
-): boolean {
-  for (const axis of requiredAxes) {
-    if (!TARGET_AXIS_SET.has(axis)) return false;
-  }
-  const required = new Set(requiredAxes);
-  for (const axis of TARGET_AXES) {
-    const hasTarget = values[axis] !== undefined;
-    if (hasTarget !== required.has(axis)) return false;
-  }
-  return true;
-}
-
-/** True when any active target axis in the provided category is targeted. */
-export function hasAnyTargetAxis(
-  values: AxisValues,
-  axes: readonly AxisName[],
-): boolean {
-  return axes.some((axis) => TARGET_AXIS_SET.has(axis) && values[axis] !== undefined);
-}
 
 /**
  * Authoring surface: an optional target curve per axis. An absent key means the
@@ -363,7 +283,7 @@ export type Arc = {
 
 // ─────────── Output ───────────
 
-export { type TrackLine } from "../lib/primitive.ts";
+export { type TrackLine } from "../lib/track.ts";
 
 export type DriftReport = {
   contacts: ContactReport[];
@@ -485,20 +405,6 @@ export function speedPxToAuthored(pxPerFrame: number): number {
   return (pxPerFrame - SPEED_RULER.MIN_PX_PER_FRAME) / SPEED_RULER.RANGE_PX_PER_FRAME;
 }
 
-export const SPEED_AXIS = {
-  /** Authored speed 0.0 maps to this physical velocity. */
-  MIN_PX_PER_FRAME: SPEED_RULER.MIN_PX_PER_FRAME,
-  /** Authored speed 1.0 maps to this physical velocity. */
-  MAX_PX_PER_FRAME: SPEED_RULER.MAX_PX_PER_FRAME,
-  RANGE_PX_PER_FRAME: SPEED_RULER.RANGE_PX_PER_FRAME,
-  /** No authored speed pressure at start: begin at the slowest meaningful pace. */
-  UNTARGETED_START_PX_PER_FRAME: SPEED_RULER.MIN_PX_PER_FRAME,
-  /** No authored speed pressure in reachability probes: use a moderate pace. */
-  UNTARGETED_REACHABILITY_PX_PER_FRAME: 6.6,
-  /** Physical high-speed boundary used by start-policy overshoot scoring. */
-  HIGH_START_PX_PER_FRAME: 9.0,
-} as const;
-
 /**
  * Elevation axis model (relative climb-effort). At a given entering speed and gap
  * length there is an achievable vertical-velocity *band*; the authored elevation
@@ -566,16 +472,6 @@ export function elevationBand(speedPx: number, frames: number): ElevationBand {
   const N = Math.max(1, frames);
   const cap = Math.min(g * N, ELEVATION.VERTICAL_FRACTION * Math.max(1, speedPx));
   return { vyClimb: -cap, vyLevel: -0.5 * g * N, vyPlunge: cap, g, frames: N };
-}
-
-/** Authored elevation [0,1] → launch vy (px/frame, up = −), resolved against the band. */
-export function elevationToLaunchVy(elevation: number, speedPx: number, frames: number): number {
-  const b = elevationBand(speedPx, frames);
-  const e = Math.max(0, Math.min(1, elevation));
-  const t = Math.abs(e - 0.5) / 0.5;
-  return e >= 0.5
-    ? b.vyLevel + (b.vyClimb - b.vyLevel) * t
-    : b.vyLevel + (b.vyPlunge - b.vyLevel) * t;
 }
 
 /**
@@ -805,9 +701,4 @@ export const PREROLL = {
 /** Convert seconds → frame index. */
 export function secToFrame(t: number): number {
   return Math.round(t * FPS);
-}
-
-/** Convert frame index → seconds. */
-export function frameToSec(f: number): number {
-  return f / FPS;
 }

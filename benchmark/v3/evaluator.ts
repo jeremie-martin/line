@@ -4,7 +4,7 @@ import { detect, extractRawTrajectory, type Detection } from '../../scripts/lib/
 import { AXIS_MEASURE } from '../../scripts/v0/core/measure.ts';
 import { contactRedirArcPxAtLanding, findAuthoredContactNearFrame, offBeatLandingEvents } from '../../scripts/v0/core/substrate.ts';
 import { IMPACT_WINDOW, normImpact } from '../../scripts/v0/types.ts';
-import type { TrackJson } from '../../scripts/lib/primitive.ts';
+import type { TrackJson } from '../../scripts/lib/track.ts';
 import { shiftedGeometricMean } from '../../scripts/v0/score.ts';
 import { caseGaps, targets, type Case, type Axis } from './model.ts';
 import { policy } from './policy.ts';

@@ -4,7 +4,7 @@
  * adapter is intentionally separate; it must not inherit compiler refactors. */
 import {wasm, views, ENTITY_IDS, NENT, POINT_STRIDE, RAW_FRAME_STRIDE, ADD_LINES_CAP, eventValues, windowValues, windowContacts} from './wasm.ts';
 import type {RawFrame} from '../detector.ts';
-import type {SolidPath} from '../primitive.ts';
+import type {SolidPath} from '../track.ts';
 
 // Capture hot native entry points once at the module boundary.
 const {get_last_frame_index, get_rider, get_raw_frame, get_state_map, get_body_motion, get_cached_events, has_contact, get_updates} = wasm;

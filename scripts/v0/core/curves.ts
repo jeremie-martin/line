@@ -18,7 +18,7 @@
  * but author ramps/keyframes at gap granularity, not finer.
  */
 
-import { AXES, type AxisCurves, type Curve, type AxisValues, type CurveMeta } from "../types.ts";
+import type { Curve, CurveMeta } from "../types.ts";
 
 /**
  * Easing for a keyframe segment. A point's ease governs the segment FROM that

@@ -7,14 +7,12 @@ import {hypot2} from '../../lib/hypot2.ts';
  * no compiler-only state.
  */
 
-import { LineRiderEngine, createLineFromJson } from "../../lib/_lr_engine.ts";
 import {
   MIN_LANDING_AIRBORNE_FRAMES, type Detection, type DetEvent,
 } from "../../lib/detector.ts";
-import type { TrackJson } from "../../lib/primitive.ts";
+import type { TrackJson } from "../../lib/track.ts";
 import {
   type Spec, type AxisName, type AxisValues,
-  type FrameSpanAxisName,
   type Arc, type TrackLine, type DriftReport, type Gap,
   type ContactReport, type GapAxisReport,
   AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
@@ -24,8 +22,6 @@ import {
 import {
   measureAmplitudePeakPx,
   measureGapAxes,
-  AXIS_MEASURE,
-  type GapMeasureCtx,
 } from "./measure.ts";
 
 export type ResolvedStart = {
@@ -99,67 +95,7 @@ export type GapFit = {
   ref?: { x: number; y: number };
 };
 
-type GapFitOptionalFields = Pick<
-  GapFit,
-  | "releaseSpeed"
-  | "contactFrameOffset"
-  | "aimed"
-  | "repairAuxStudyCertificate"
-  | "releaseVelocityY"
-  | "releaseGroundedFrames"
-  | "releaseAirborne"
-  | "ref"
->;
-
-export function copyOptionalGapFitFields(
-  fit: Partial<GapFitOptionalFields>,
-  opts: { cloneObjects?: boolean } = {},
-): Partial<GapFitOptionalFields> {
-  const cloneObjects = opts.cloneObjects === true;
-  const out: Partial<GapFitOptionalFields> = {};
-  if (fit.releaseSpeed !== undefined) out.releaseSpeed = fit.releaseSpeed;
-  if (fit.contactFrameOffset !== undefined) {
-    out.contactFrameOffset = fit.contactFrameOffset;
-  }
-  if (fit.aimed !== undefined) out.aimed = fit.aimed;
-  if (fit.repairAuxStudyCertificate !== undefined) {
-    const certificate = fit.repairAuxStudyCertificate;
-    out.repairAuxStudyCertificate = cloneObjects
-      ? {
-        ...certificate,
-        currentTargets: { ...certificate.currentTargets },
-        nextTargets: { ...certificate.nextTargets },
-        base: {
-          ...certificate.base,
-          achieved: { ...certificate.base.achieved },
-        },
-        candidate: {
-          ...certificate.candidate,
-          achieved: { ...certificate.candidate.achieved },
-        },
-      }
-      : certificate;
-  }
-  if (fit.releaseVelocityY !== undefined) out.releaseVelocityY = fit.releaseVelocityY;
-  if (fit.releaseGroundedFrames !== undefined) out.releaseGroundedFrames = fit.releaseGroundedFrames;
-  if (fit.releaseAirborne !== undefined) out.releaseAirborne = fit.releaseAirborne;
-  if (fit.ref !== undefined) out.ref = cloneObjects ? { ...fit.ref } : fit.ref;
-  return out;
-}
-
 type WindowDetection = Detection & { frameOffset?: number };
-
-// ─────────── Gap ownership / windowed measurement helpers ───────────
-
-/** Locate the index of the gap whose fit's `lines` contains the given id. */
-export function findGapOwning(lineId: number, fits: (GapFit | null)[]): number {
-  for (let i = 0; i < fits.length; i++) {
-    const fit = fits[i];
-    if (fit === null) continue;
-    if (fit.lines.some((l) => l.id === lineId)) return i;
-  }
-  return -1;
-}
 
 export function frameOffset(det: Detection): number {
   return (det as WindowDetection).frameOffset ?? 0;
@@ -171,11 +107,6 @@ export function measurementIndex(det: Detection, frame: number): number {
 
 export function measurementLastFrame(det: Detection): number {
   return frameOffset(det) + det.measurements.airborne.length - 1;
-}
-
-export function contactLineIdsAt(det: Detection, frame: number): readonly number[] {
-  const index = measurementIndex(det, frame);
-  return index >= 0 ? det.measurements.contactLineIds[index] ?? [] : [];
 }
 
 export function airborneAt(det: Detection, frame: number): boolean | undefined {
@@ -204,11 +135,6 @@ export function meanSpeedPxOverRange(det: Detection, f0: number, f1: number): nu
 export function velocityAt(det: Detection, frame: number): { x: number; y: number } | undefined {
   const index = measurementIndex(det, frame);
   return index >= 0 ? det.measurements.velocity[index] : undefined;
-}
-
-export function positionAt(det: Detection, frame: number): { x: number; y: number } | undefined {
-  const index = measurementIndex(det, frame);
-  return index >= 0 ? det.measurements.position[index] : undefined;
 }
 
 /** A persistent event that can satisfy an authored contact interval. Normal
@@ -286,132 +212,6 @@ export function contactRedirArcPxAtLanding(
     prev = v;
   }
   return arc;
-}
-
-export function addMissedContactRetryOwners(
-  owners: Set<number>,
-  det: Detection,
-  gaps: Gap[],
-  fits: (GapFit | null)[],
-  contactFrames: number[],
-): void {
-  for (let contactIndex = 0; contactIndex < contactFrames.length; contactIndex++) {
-    const frame = contactFrames[contactIndex];
-    const previousFrame = contactIndex === 0 ? 0 : contactFrames[contactIndex - 1];
-    const hasLanding = det.events.some((e) =>
-      isAuthoredContactEvent(e, frame - previousFrame) && Math.abs(e.frame - frame) <= 1
-    );
-    if (hasLanding) continue;
-
-    const before = owners.size;
-    addContactLineOwners(owners, det, fits, frame, 1);
-    if (owners.size > before) continue;
-
-    const nearest = nearestLanding(det, frame, 5);
-    if (nearest !== null) {
-      addContactLineOwners(owners, det, fits, nearest.frame, 0);
-      if (owners.size > before) continue;
-    }
-
-    const gapIndex = gaps.findIndex((gap) => gap.endsWithContact && gap.endFrame === frame);
-    if (gapIndex >= 0) owners.add(gapIndex);
-  }
-}
-
-export function addContactLineOwners(
-  owners: Set<number>,
-  det: Detection,
-  fits: (GapFit | null)[],
-  frame: number,
-  radius: number,
-): void {
-  for (let f = frame - radius; f <= frame + radius; f++) {
-    for (const lineId of contactLineIdsAt(det, f)) {
-      const owner = findGapOwning(lineId, fits);
-      if (owner >= 0) owners.add(owner);
-    }
-  }
-}
-
-export function nearestLanding(det: Detection, frame: number, radius: number): DetEvent | null {
-  let best: DetEvent | null = null;
-  let bestDistance = Infinity;
-  for (const event of det.events) {
-    if (event.type !== "landing") continue;
-    const distance = Math.abs(event.frame - frame);
-    if (distance > radius || distance >= bestDistance) continue;
-    best = event;
-    bestDistance = distance;
-  }
-  return best;
-}
-
-// ─────────── Engine construction / line conversion ───────────
-
-type EngineLineCacheEntry = {
-  id: number;
-  type: number;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-  flipped: boolean;
-  leftExtended: boolean;
-  rightExtended: boolean;
-  // deno-lint-ignore no-explicit-any
-  converted: any;
-};
-
-// lr-core Line objects snapshot TrackLine geometry at construction. The
-// compiler rebuilds engines repeatedly from the same TrackLine objects, so keep
-// the last converted geometry on the object without constructing a string key on
-// every cache hit. If polish mutates any geometry field, the snapshot misses and
-// is refreshed.
-const ENGINE_LINE_CACHE = Symbol("engineLineCache");
-type CachedTrackLine = TrackLine & { [ENGINE_LINE_CACHE]?: EngineLineCacheEntry };
-
-// deno-lint-ignore no-explicit-any
-export function engineLineFromTrackLine(line: TrackLine): any {
-  const flipped = !!line.flipped;
-  const leftExtended = !!line.leftExtended;
-  const rightExtended = !!line.rightExtended;
-  const cachedLine = line as CachedTrackLine;
-  const cached = cachedLine[ENGINE_LINE_CACHE];
-  if (
-    cached !== undefined &&
-    cached.id === line.id &&
-    cached.type === line.type &&
-    cached.x1 === line.x1 &&
-    cached.y1 === line.y1 &&
-    cached.x2 === line.x2 &&
-    cached.y2 === line.y2 &&
-    cached.flipped === flipped &&
-    cached.leftExtended === leftExtended &&
-    cached.rightExtended === rightExtended
-  ) {
-    return cached.converted;
-  }
-
-  const converted = createLineFromJson(line);
-  cachedLine[ENGINE_LINE_CACHE] = {
-    id: line.id,
-    type: line.type,
-    x1: line.x1,
-    y1: line.y1,
-    x2: line.x2,
-    y2: line.y2,
-    flipped,
-    leftExtended,
-    rightExtended,
-    converted,
-  };
-  return converted;
-}
-
-// deno-lint-ignore no-explicit-any
-export function makeBaseEngine(start: ResolvedStart): any {
-  // lr-core engines are immutable; setStart returns a new instance.
-  return new LineRiderEngine().setStart(start.position, start.velocity);
 }
 
 export function resolveStartState(spec: Spec): ResolvedStart {
@@ -789,22 +589,4 @@ export function buildDriftReport(
     off_beat_landings,
     terminus: { frame: det.terminus.frame, reason: det.terminus.reason },
   };
-}
-
-export function measureAxisOverRange(
-  det: Detection, f0: number, f1: number,
-  axis: FrameSpanAxisName,
-): number | null {
-  // Route through the single AXIS_MEASURE registry (measure.ts) rather than
-  // hand-inlining a third copy of the air/speed reductions. The span reductions
-  // read only `gap.startFrame` and `rangeEndFrame` and clamp the end to
-  // `measurementLastFrame` identically, so this is byte-identical to the former
-  // inline `if (axis === "air") … else speed` branch.
-  const ctx: GapMeasureCtx = {
-    det,
-    gap: { startFrame: f0 } as Gap,
-    gapLines: [],
-    rangeEndFrame: f1,
-  };
-  return AXIS_MEASURE[axis](ctx) ?? null;
 }

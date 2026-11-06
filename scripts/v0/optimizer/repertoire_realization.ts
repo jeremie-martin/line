@@ -2,7 +2,6 @@ import {hypot2} from '../../lib/hypot2.ts';
 /** Geometry and ordered physical-contact evidence, independent of search costs. */
 import type {TrackLine} from '../types.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
-export type SectionRealization=ReturnType<typeof inspectConstruction>;
 const length=(l:TrackLine)=>hypot2(l.x2-l.x1,l.y2-l.y1);
 const GUIDE_REACH=40,CELL=32,INDEXED_PAIRS=50_000;
 /** Progress along `shaped` of each guide midpoint's nearest shaped segment

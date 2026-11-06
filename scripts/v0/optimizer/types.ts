@@ -1,5 +1,5 @@
 /** The compiler's public output types. */
-import type {TrackJson} from '../../lib/primitive.ts';
+import type {TrackJson} from '../../lib/track.ts';
 import type {CompileStats, DriftReport, Spec} from '../types.ts';
 
 export type {CompileStats, DriftReport, Spec};

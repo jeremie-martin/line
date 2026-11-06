@@ -12,7 +12,7 @@
  * count only (no stored track, no judgment).
  * Expected values come from tools/parity/cells.json. A deliberate behaviour
  * change updates them with `compile --update`, in its own commit. */
-import {readFileSync, writeFileSync, mkdtempSync, existsSync} from 'node:fs';
+import {readFileSync, writeFileSync, mkdtempSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
 import {tmpdir} from 'node:os';

@@ -9,7 +9,7 @@ import { findAuthoredContactNearFrame } from '../core/substrate.ts';
 import { AXIS_MEASURE, measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
-import type {SolidPath} from '../../lib/primitive.ts';
+import type {SolidPath} from '../../lib/track.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';

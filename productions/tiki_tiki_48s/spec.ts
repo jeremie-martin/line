@@ -202,11 +202,6 @@ function isHalfBeatTransient(tr: RhythmTransient): boolean {
   return phase >= 0.48 && phase <= 0.56;
 }
 
-function isAnticipationTransient(tr: RhythmTransient): boolean {
-  const phase = tr.primary_interval.phase;
-  return phase >= 0.72 && phase <= 0.80;
-}
-
 function isSelectableTransient(tr: RhythmTransient): boolean {
   if (tr.t < TRANSIENT_START_S || tr.t >= TRANSIENT_END_S) return false;
   if (tr.body < TRANSIENT_BODY_SCORE) return false;

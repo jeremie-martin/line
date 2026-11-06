@@ -53,5 +53,3 @@ export function createArcLineage(start: StartState) {
 
   return {prefixes, memoContexts, prefixKey, record, add, detach, rebuild};
 }
-
-export type ArcLineage = ReturnType<typeof createArcLineage>;

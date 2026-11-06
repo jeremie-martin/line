@@ -1,6 +1,5 @@
 import {hypot2} from '../../lib/hypot2.ts';
 import type {TrackLine} from '../types.ts';
-import type {RawTrajectory} from '../../lib/detector.ts';
 /** Intervals on each observed collision plane. Merging overlaps prevents duplicate
 * coincident planes; disconnected footprints never get silently joined into an arc. */
 export function contactFragments(source: TrackLine[], footprints: Map<number, number[]>, width: number): TrackLine[] {
@@ -32,17 +31,4 @@ export function contactFragments(source: TrackLine[], footprints: Map<number, nu
         leftExtended: false, rightExtended: false });
   }
   return lines;
-}
-export function trajectoryDifference(reference: RawTrajectory, candidate: RawTrajectory) {
-  if (reference.frames.length !== candidate.frames.length)
-    return Infinity;
-  let maximum = 0;
-  for (let i = 0; i < reference.frames.length; i++) {
-    const a = reference.frames[i], b = candidate.frames[i];
-    if (a.riderEjected !== b.riderEjected || a.sledBroken !== b.sledBroken ||
-      Boolean(a.sledContacts.length) !== Boolean(b.sledContacts.length))
-      return Infinity;
-    maximum = Math.max(maximum, hypot2(a.position.x - b.position.x, a.position.y - b.position.y), hypot2(a.velocity.x - b.velocity.x, a.velocity.y - b.velocity.y));
-  }
-  return maximum;
 }

@@ -10,7 +10,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve, isAbsolute } from "node:path";
-import type { Floors, SeedMetrics } from "./measure.ts";
+import type { Floors } from "./measure.ts";
 
 export type RenderConfig = {
   /** Output resolution "WxH". */
@@ -95,70 +95,4 @@ export function stats(values: number[]): MetricStats {
     p75: percentile(sorted, 75), p90: percentile(sorted, 90),
     min: sorted[0], max: sorted[n - 1],
   };
-}
-
-const METRIC_KEYS = ["score", "standTimePct", "rotations", "flipCount"] as const;
-type MetricKey = typeof METRIC_KEYS[number];
-
-export type CharacterizationReport = {
-  spec: string;
-  budget: number;
-  gitSha: string;
-  host: string;
-  seeds: string;
-  /** Seeds attempted. */
-  n: number;
-  /** Which seeds the metric stats are computed over. */
-  basis: string;
-  /** Fraction of attempted seeds that reached the end with no off-beat landing. */
-  validityRate: number;
-  metrics: Record<MetricKey, MetricStats>;
-};
-
-/** Build the distribution report. Metric stats use VALID seeds only (reachedEnd ∧
- *  offBeat==0) so dead/garbage runs don't poison the percentiles; validityRate is
- *  over all attempted seeds. Falls back to all seeds if none are valid yet. */
-export function buildCharacterization(
-  all: SeedMetrics[],
-  meta: { spec: string; budget: number; gitSha: string; host: string; seeds: string },
-): CharacterizationReport {
-  const valid = all.filter((m) => m.reachedEnd && m.offBeat === 0);
-  const basisSet = valid.length > 0 ? valid : all;
-  const metrics = Object.fromEntries(
-    METRIC_KEYS.map((k) => [k, stats(basisSet.map((m) => m[k]))]),
-  ) as Record<MetricKey, MetricStats>;
-  return {
-    ...meta,
-    n: all.length,
-    basis: valid.length > 0 ? "valid-only (reachedEnd ∧ offBeat==0)" : "all (no valid seeds yet)",
-    validityRate: all.length ? valid.length / all.length : 0,
-    metrics,
-  };
-}
-
-/**
- * Starting floors. Philosophy: floors cut GARBAGE, they don't select among good
- * tracks. Validity (reachedEnd ∧ no off-beat) carries quality; the score floor is
- * the song's own MEDIAN — an above-average quality skim that adapts per song (a
- * shared absolute is wrong: luna's median ≈ 686 would yield ZERO tiki bundles).
- * The CREATIVE gates (stand-time, rotation) default to 0 = opt-in: you dial them
- * up per song by reading the distribution, so a stand-heavy seed is never dropped
- * for being mid-score by default. Rotation, if used, is an absolute minimum (e.g.
- * "≥1 revolution"), NEVER a percentile (a percentile floor rejected the best-stand
- * seeds in practice).
- */
-export function suggestFloors(c: CharacterizationReport): Floors {
-  return {
-    reachedEnd: true,
-    maxOffBeat: 0,
-    score: Math.round(c.metrics.score.median),
-    standTimePctMin: 0,
-    rotationsMin: 0,
-  };
-}
-
-/** The suggested select.json body. Omits spec/audio so they default to the
- *  co-located ./spec.ts and ./audio.mp3. */
-export function suggestedSelect(c: CharacterizationReport): { budget: number; floors: Floors; render: RenderConfig } {
-  return { budget: c.budget, floors: suggestFloors(c), render: DEFAULT_RENDER };
 }

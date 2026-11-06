@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 6: one compiler, one ruler, one panel family
+
+Owner decisions: retire landing, strike v1 and v2 as compile modes, the V3–V6
+lineage, the dev, confirm and bench panels, the night report and the October 2
+review study. V1 and v2 stay as report rows. `perturb` stays, because the unanswered
+night study's saved runs use it. `npm run eval` stays for one-checkout panels.
+
+Coverage over 114 runs chose the parity cells: 28 KB of search code (backtracking,
+budget failure, section fallback) had never run under parity. Fourteen new strike3
+cells, recorded from the old code before any removal, make 25; all stay exact after
+it. They lose only the retired branches. Parity: 228 s this morning, 58 s now, with
+more coverage. Direct old/new timing of one real compile: unchanged, about 16.6 s.
+
+New baseline `lean-foundation` (4b969e8b), V7 at the standard allowance: headline
+782.3, explicit requests 766.5, 112 of 112 rides finished, 8 min 21 s. Open questions
+and unanswered blind studies are in `TODO.md`. Rename of `scripts/v0` deferred.
+
 ## November 6: lean foundation, first pass
 
 Goal: a clean base for resuming headline work. Parallel compiles within a ride are

@@ -1,0 +1,689 @@
+{
+  "recordedAt": "2026-11-06T06:33:14.025438+00:00",
+  "reference": "c8f86498",
+  "adopted": false,
+  "targetReached": false,
+  "qualifiedDefaultNsPerChargedFrame": 7172.49588,
+  "studies": {
+    "engine-recent-seed-20261106": {
+      "files": {
+        "plan.json": {
+          "sha256": "87bc5dadb71d114ad25d757f9583ecdac3d887c208a019eedabe8e5b7877d036",
+          "data": {
+            "recordedAt": "2026-11-06T06:10:40.097128+00:00",
+            "reference": "c8f864984406e4e725c157e83f2c6e0c5b13bec3",
+            "hypothesis": "Seed the exact nearest-neighbor heap with the last page of model/local examples, then scan the earlier rows in original order. Recent local examples may tighten the existing distance cutoff sooner. Distances and stable original-index tie ordering remain unchanged; no additional index or cache.",
+            "opportunity": "Small traversal-order change. Prior audit found no repeated full queries; no prior recent-row heap seeding trial found in narratives or JSON. No gain presumed before measurement.",
+            "qualification": {
+              "screenPairs": 12,
+              "confirmationPairs": 24,
+              "warmup": 5,
+              "repeats": 3,
+              "cpu": 2,
+              "speedMarginPct": 0,
+              "confidence": 0.95,
+              "largerGuard": {
+                "cell": 62,
+                "pairs": 12,
+                "maxRegressionPct": 2
+              },
+              "coldGuard": {
+                "cell": 61,
+                "pairs": 12,
+                "maxRegressionPct": 5
+              },
+              "wasmMaxRatio": 1,
+              "peakRssMaxRatio": 1.15,
+              "correctness": "Full check, existing stable-sort differential tests through duplicates, overflow, malformed inputs and page expansion, and complete checkpoints61/62.",
+              "target": "Fresh default confirmation median<7000 ns/charged frame. Fixed candidate and unchanged timing boundary."
+            }
+          }
+        },
+        "candidate.patch": {
+          "sha256": "451ac3262c30181f68118f3ec9138b8777520cd029b867e675a4f6cf5f12da41",
+          "data": "diff --git a/scripts/v0/optimizer/arc_memory.ts b/scripts/v0/optimizer/arc_memory.ts\nindex 283801b5..a8ddb280 100644\n--- a/scripts/v0/optimizer/arc_memory.ts\n+++ b/scripts/v0/optimizer/arc_memory.ts\n@@ -106,12 +106,15 @@ export class ArcControlMemory {\n     }\n     let yielded = 0, page = Math.min(size, Number.isFinite(requested) ? Math.max(32, Math.ceil(requested)) : size);\n     while (yielded < size) {\n-      for (let i = 0; i < page; i++) {\n-        nearest[i] = i;\n+      // Recent examples seed the cutoff; original indices still break all ties.\n+      const start = size - page;\n+      for (let slot = 0; slot < page; slot++) {\n+        const i = start + slot;\n+        nearest[slot] = i;\n         if (i < modelCount) distances[i] = distance(controls[i].features, features);\n       }\n       for (let i = (page >>> 1) - 1; i >= 0; i--) siftFarthest(nearest, distances, i, page);\n-      for (let i = page; i < size; i++) {\n+      for (let i = 0; i < start; i++) {\n         const farthest = nearest[0];\n         if (i < modelCount) distances[i] = distance(controls[i].features, features, undefined, distances[farthest]);\n         if ((distances[i] - distances[farthest] || i - farthest) >= 0) continue;\n"
+        },
+        "prepare.mts": {
+          "sha256": "183ae5c86e5803c0d60548b34f4ca8e2f37c1b0195f9a31dfea4ff5313798d9c",
+          "data": "import {snapshotSources} from '/home/holo/line/tools/measure/engine_sources.ts';\nimport {symlinkSync,copyFileSync} from 'node:fs';\nconst root='/home/holo/line',base='/tmp/engine-recent-seed-20261106';\nsnapshotSources(root,base+'/reference',root);symlinkSync(root+'/node_modules',base+'/reference/node_modules');copyFileSync(root+'/scripts/v0/optimizer/arc_memory.ts',base+'/memory-before.ts');\n"
+        },
+        "run-study.py": {
+          "sha256": "d3803805b2d0bc11ca375734d504f89a8011167ce6df561f8b838aa54d3133aa",
+          "data": "import json, subprocess, pathlib, sys, os\nbase = pathlib.Path('/tmp/engine-recent-seed-20261106')\nroot = pathlib.Path('/home/holo/line')\nref = base / 'reference'\nwasm = 'scripts/lib/native_motion/engine.wasm'\ncommon = ['taskset', '-c', '2', 'node', str(root / 'tools/measure/engine_ab.ts'),\n          '--mode=compile', '--reference=' + str(ref / wasm),\n          '--candidate=' + str(root / wasm), '--reference-root=' + str(ref),\n          '--confidence=.95', '--confirm-rounds=24']\nenv = {**os.environ, 'NODE_OPTIONS': ''}\n\ndef run(name, args):\n    with (base / (name + '.log')).open('w') as log:\n        proc = subprocess.run(common + args + ['--out=' + str(base / name)],\n                              cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT)\n    if proc.returncode:\n        sys.exit(f'{name} exited {proc.returncode}')\n    result = json.loads((base / name / 'result.json').read_text())\n    print(name, result['decision'], flush=True)\n    for cell in result['resources']:\n        reference, candidate = [arm['resources'] for arm in cell['arms']]\n        for key, bound in [('wasmLinearMemoryBytes', 1), ('processMaxRssBytes', 1.15)]:\n            if candidate[key] / reference[key] > bound:\n                sys.exit(f'{name} resource guard failed: {key}')\n    return result\n\nscreen = run('screen', ['--cells=61', '--rounds=12', '--warmup=5', '--reps=3', '--margin-pct=0', '--seed=1729'])\nif screen['decision']['verdict'] != 'FASTER':\n    sys.exit('Screen did not qualify; no confirmation')\nlarge = run('larger', ['--cells=62', '--rounds=12', '--warmup=5', '--reps=3', '--margin-pct=2', '--seed=1729'])\nif large['decision']['intervalPct'][1] > 2:\n    sys.exit('Larger regression guard failed')\ncold = run('cold', ['--cells=61', '--rounds=12', '--warmup=0', '--reps=1', '--margin-pct=5', '--seed=1729'])\nif cold['decision']['intervalPct'][1] > 5:\n    sys.exit('Cold regression guard failed')\nconfirm = run('confirm', ['--cells=61', '--stage=confirm', '--rounds=24', '--warmup=5', '--reps=3',\n                          '--margin-pct=0', '--seed=2718', '--screen=' + str(base / 'screen/result.json')])\nif not confirm['performanceQualified']:\n    sys.exit('Confirmation did not qualify')\n"
+        },
+        "checkpoint-equality.json": {
+          "sha256": "8e65470aa36788ce5bab9adc12b7b090688dbed1ac56a9fed75d89add0bd4756",
+          "data": {
+            "cells": [
+              61,
+              62
+            ],
+            "completeCheckpointEquality": true
+          }
+        },
+        "focused-tests.log": {
+          "sha256": "f357396a7d2668fcba3cc62b19891b1cf7030a1b7341ebc3359833d7be2c00c2",
+          "data": "\n RUN  v4.1.7 /home/holo/line\n\n\n Test Files  3 passed (3)\n      Tests  21 passed (21)\n   Start at  07:10:50\n   Duration  1.62s (transform 396ms, setup 0ms, import 473ms, tests 950ms, environment 0ms)\n\n"
+        }
+      },
+      "localArtifacts": {
+        "candidate/checkpoint-62.v8": {
+          "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507",
+          "bytes": 687706
+        },
+        "candidate/checkpoint-61.v8": {
+          "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599",
+          "bytes": 716360
+        }
+      }
+    },
+    "engine-future-bound-20261106": {
+      "files": {
+        "audit-plan.json": {
+          "sha256": "c8ff8e01daa1f135adaf52eaa2273a5ecc085b732f159ed2e15a584abf81ac83",
+          "data": {
+            "recordedAt": "2026-11-06T06:13:19.327408+00:00",
+            "reference": "c8f86498",
+            "hypothesis": "Immutable model rows often share exact authored-future suffixes (indices47 onward). Computing a suffix-only nonnegative distance once per distinct suffix may cheaply reject rows before their full metric. This sum starts at zero, keeps suffix term order and is only a lower bound; never splice a cached sum into the exact metric. Preserve original row order, ties and mutable local rows.",
+            "opportunityGate": {
+              "minExcludedModelCallsFraction": 0.3,
+              "maxDistinctSuffixesPerModelRow": 0.25,
+              "cells": [
+                61,
+                62
+              ]
+            },
+            "correctness": "Shadow only; assert every excluded row has an exact full distance beyond the current cutoff, and compare complete checkpoints to accepted code. No speed claim from counts.",
+            "implementationGate": "Develop only if both actual default and larger workloads pass the opportunity gate. Then declare fixed timing/resource policy before implementation."
+          }
+        },
+        "probe.mts": {
+          "sha256": "60c9f52e287eb56f3fd2147738ed4ee1c33cd20c666160dc51c180d817e32ab1",
+          "data": "import {serialize} from 'node:v8';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/home/holo/line/benchmark/v6/model.ts';\nimport {policy} from '/home/holo/line/benchmark/v6/policy.ts';\nimport {caseSpec} from '/home/holo/line/benchmark/v4/model.ts';\nimport {compileHandoff} from '/home/holo/line/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-future-bound-20261106/probe';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/home/holo/line/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n writeFileSync(`${root}/checkpoint-${cellIndex}.v8`,serialize(checkpoint));\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n\n\nwriteFileSync(root+\"/opportunity-\"+cellIndex+\".json\",JSON.stringify((globalThis as any).__suffixProbe,null,2)+\"\\n\");\n"
+        },
+        "checkpoint-equality.json": {
+          "sha256": "8e65470aa36788ce5bab9adc12b7b090688dbed1ac56a9fed75d89add0bd4756",
+          "data": {
+            "cells": [
+              61,
+              62
+            ],
+            "completeCheckpointEquality": true
+          }
+        },
+        "probe/opportunity-61.json": {
+          "sha256": "4a8038814b2fb22deab418898504185cfe43127c05aafbb11593357f4977d549",
+          "data": {
+            "calls": 790403,
+            "excludable": 500998,
+            "uniqueSuffixCalls": 720792,
+            "queries": 195
+          }
+        },
+        "probe/opportunity-62.json": {
+          "sha256": "8cfd1f60b0003b53edbf351b5af3f41554308c1f713a31bd06074a0f564b447f",
+          "data": {
+            "calls": 2353774,
+            "excludable": 1582591,
+            "uniqueSuffixCalls": 2155588,
+            "queries": 600
+          }
+        },
+        "shadow.patch": {
+          "sha256": "a8ccacfb09c09ae37ccd4271c534694397060b0c16b11a7ee49189c006a39724",
+          "data": "--- /tmp/engine-future-bound-20261106/memory-before.ts\t2026-11-06 07:16:33.610948478 +0100\n+++ /tmp/engine-future-bound-20261106/memory-shadow.ts\t2026-11-06 07:13:19.327670211 +0100\n@@ -43,6 +43,7 @@\n   }\n   order[root] = value;\n }\n+const suffixProbe=(globalThis as any).__suffixProbe={calls:0,excludable:0,uniqueSuffixCalls:0,queries:0};\n const adapted = arcReferencedControl;\n const clamp = (value: number) => Math.max(-3, Math.min(3, value));\n \n@@ -104,6 +105,8 @@\n       for (const {i} of ordered) yield controls[i];\n       return;\n     }\n+    const suffixes=new Map<string,number>();\n+    suffixProbe.queries++;\n     let yielded = 0, page = Math.min(size, Number.isFinite(requested) ? Math.max(32, Math.ceil(requested)) : size);\n     while (yielded < size) {\n       for (let i = 0; i < page; i++) {\n@@ -113,7 +116,20 @@\n       for (let i = (page >>> 1) - 1; i >= 0; i--) siftFarthest(nearest, distances, i, page);\n       for (let i = page; i < size; i++) {\n         const farthest = nearest[0];\n-        if (i < modelCount) distances[i] = distance(controls[i].features, features, undefined, distances[farthest]);\n+        if (i < modelCount) {\n+          const a=controls[i].features, key=a.slice(47).join('|');\n+          let bound=suffixes.get(key);\n+          if(bound===undefined){\n+            bound=0;for(let k=47;k<a.length;k++)bound+=(a[k]-features[k])**2*4;\n+            suffixes.set(key,bound);suffixProbe.uniqueSuffixCalls++;\n+          }\n+          suffixProbe.calls++;\n+          if(bound>distances[farthest]){\n+            if(!(distance(a,features)>distances[farthest]))throw new Error('unsafe suffix lower bound');\n+            suffixProbe.excludable++;\n+          }\n+          distances[i] = distance(a, features, undefined, distances[farthest]);\n+        }\n         if ((distances[i] - distances[farthest] || i - farthest) >= 0) continue;\n         nearest[0] = i;\n         siftFarthest(nearest, distances, 0, page);\n"
+        }
+      },
+      "localArtifacts": {
+        "probe/checkpoint-62.v8": {
+          "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507",
+          "bytes": 687706
+        },
+        "probe/checkpoint-61.v8": {
+          "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599",
+          "bytes": 716360
+        }
+      }
+    },
+    "engine-axis-20261106": {
+      "files": {
+        "plan.json": {
+          "sha256": "d922860fa6eb05c1508a103dbf9c729cc1416e8a5b968a385222c4ee4427f47f",
+          "data": {
+            "recordedAt": "2026-11-06T06:20:40.323472+00:00",
+            "hypothesis": "Sorted one-axis model traversal, with exact nonnegative single-coordinate exclusion and unchanged full metric/tie order. Choose largest weighted model coordinate range, fixed at model construction. Scan outward from query coordinate until this term exceeds current heap cutoff. Read local examples afresh. Avoid multidimensional bounds/tree traversal overhead seen in previous rejected index.",
+            "diagnosticGate": {
+              "cells": [
+                61,
+                62
+              ],
+              "warmupBlocks": 3,
+              "pairedBlocks": 12,
+              "maxMedianLocalTimeRatio": 0.8,
+              "exactPages": "Compare every captured page to original stable-index heap selection.",
+              "timing": "Captured-query local timing is feasibility only; full compiler qualification will be declared before implementation if diagnostic gate passes."
+            },
+            "source": "Existing actual-query captures from engine-default-20261105. Structural changes since capture preserve identical compiler behavior."
+          }
+        },
+        "probe.mts": {
+          "sha256": "8d402f5c4541ae90894a24ad6cc02480c3bee5a4be56e1960b84c51b11a0edbc",
+          "data": "import {readFileSync,writeFileSync} from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {arcFeatureDistance as distance} from '/home/holo/line/scripts/v0/optimizer/arc_value.ts';\nconst root='/tmp/engine-axis-20261106',input='/tmp/engine-default-20261105';\nconst weight=(k:number)=>k<7?2:k<47?1:4;\ntype Index={axis:number;order:number[]};\nfunction build(rows:number[][]):Index{\n const width=rows[0].length,lo=Array(width).fill(Infinity),hi=Array(width).fill(-Infinity);\n for(const row of rows)for(let k=0;k<width;k++){lo[k]=Math.min(lo[k],row[k]);hi[k]=Math.max(hi[k],row[k]);}\n let axis=0;for(let k=1;k<width;k++)if((hi[k]-lo[k])**2*weight(k)>(hi[axis]-lo[axis])**2*weight(axis))axis=k;\n return {axis,order:rows.map((_,i)=>i).sort((a,b)=>rows[a][axis]-rows[b][axis]||a-b)};\n}\nlet calls=0,scanned=0;\nfunction page(model:number[][],locals:number[][],q:number[],size:number,index?:Index){\n const rows=[...model,...locals],n=rows.length,k=Math.min(size,n),ds=new Float64Array(n),heap=new Uint32Array(k);\n const worse=(a:number,b:number)=>(ds[a]-ds[b]||a-b)>0;\n function sift(root:number){const value=heap[root];for(let child=root*2+1;child<k;child=root*2+1){if(child+1<k&&worse(heap[child+1],heap[child]))child++;if(!worse(heap[child],value))break;heap[root]=heap[child];root=child;}heap[root]=value;}\n for(let i=0;i<k;i++){ds[i]=distance(rows[i],q);heap[i]=i;calls++;}for(let i=(k>>>1)-1;i>=0;i--)sift(i);\n function visit(i:number){if(i<k)return;calls++;ds[i]=distance(rows[i],q,undefined,ds[heap[0]]);if(!worse(heap[0],i))return;heap[0]=i;sift(0);}\n if(index){\n  for(let i=Math.max(k,model.length);i<n;i++)visit(i);\n  const {axis,order}=index,x=q[axis],w=weight(axis);\n  let low=0,high=order.length;\n  while(low<high){const mid=(low+high)>>>1;if(model[order[mid]][axis]<x)low=mid+1;else high=mid;}\n  let left=low-1,right=low;\n  while(left>=0||right<order.length){\n   const dl=left>=0?Math.abs(model[order[left]][axis]-x):Infinity;\n   const dr=right<order.length?Math.abs(model[order[right]][axis]-x):Infinity;\n   const takeLeft=left>=0&&(right===order.length||dl<=dr),delta=takeLeft?dl:dr;\n   scanned++;if(delta**2*w>ds[heap[0]])break;\n   visit(takeLeft?order[left--]:order[right++]);\n  }\n }else for(let i=k;i<n;i++)visit(i);\n return Array.from(heap).sort((a,b)=>ds[a]-ds[b]||a-b);\n}\nconst median=(a:number[])=>{a=[...a].sort((a,b)=>a-b);return (a[(a.length-1)>>>1]+a[a.length>>>1])/2;};\nfor(const cell of [61,62]){\n const {models,queries}=JSON.parse(readFileSync(`${input}/queries-${cell}.json`,'utf8'));\n const start=performance.now(),indexes=models.map(build),buildMs=performance.now()-start;\n calls=0;scanned=0;let pages=0;\n for(const query of queries)for(const k of query.pages??[32]){\n  assert.deepEqual(page(models[query.model],query.locals,query.features,k,indexes[query.model]),page(models[query.model],query.locals,query.features,k));pages++;\n }\n function run(indexed:boolean){calls=0;scanned=0;let checksum=0;const t=performance.now();for(const query of queries)for(const k of query.pages??[32])checksum+=page(models[query.model],query.locals,query.features,k,indexed?indexes[query.model]:undefined)[0];return {indexed,ms:performance.now()-t,calls,scanned,checksum};}\n for(let i=0;i<3;i++){run(false);run(true);}\n const timings=[];for(let i=0;i<12;i++)for(const indexed of i%2?[true,false]:[false,true])timings.push({pair:i,...run(indexed)});\n const originalMs=median(timings.filter(t=>!t.indexed).map(t=>t.ms)),indexedMs=median(timings.filter(t=>t.indexed).map(t=>t.ms));\n const result={cell,queries:queries.length,pages,buildMs,axes:indexes.map(i=>i.axis),originalMs,indexedMs,ratio:indexedMs/originalMs,timings};\n writeFileSync(`${root}/probe-${cell}.json`,JSON.stringify(result,null,2)+'\\n');console.log({cell,pages,buildMs,axes:result.axes,originalMs,indexedMs,ratio:result.ratio});\n}\n"
+        },
+        "probe-61.json": {
+          "sha256": "b3f146cd58b2291e09eb33ba3e6a999618245530df6c511d5d9a545770a6ed35",
+          "data": {
+            "cell": 61,
+            "queries": 195,
+            "pages": 195,
+            "buildMs": 12.32306699999998,
+            "axes": [
+              56,
+              47,
+              52,
+              47,
+              47,
+              47,
+              52
+            ],
+            "originalMs": 25.944728499999997,
+            "indexedMs": 30.964845499999967,
+            "ratio": 1.1934927551853152,
+            "timings": [
+              {
+                "pair": 0,
+                "indexed": false,
+                "ms": 25.781286000000023,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 0,
+                "indexed": true,
+                "ms": 31.111346000000026,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 1,
+                "indexed": true,
+                "ms": 30.448352,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 1,
+                "indexed": false,
+                "ms": 25.66546100000005,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 2,
+                "indexed": false,
+                "ms": 27.45671500000003,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 2,
+                "indexed": true,
+                "ms": 31.972782000000052,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 3,
+                "indexed": true,
+                "ms": 30.996191000000067,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 3,
+                "indexed": false,
+                "ms": 25.640607000000045,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 4,
+                "indexed": false,
+                "ms": 26.107807000000093,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 4,
+                "indexed": true,
+                "ms": 30.95720199999994,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 5,
+                "indexed": true,
+                "ms": 30.618184000000042,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 5,
+                "indexed": false,
+                "ms": 25.85277199999996,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 6,
+                "indexed": false,
+                "ms": 26.03213500000004,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 6,
+                "indexed": true,
+                "ms": 30.67121599999996,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 7,
+                "indexed": true,
+                "ms": 30.779609999999934,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 7,
+                "indexed": false,
+                "ms": 25.890716999999995,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 8,
+                "indexed": false,
+                "ms": 25.998739999999998,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 8,
+                "indexed": true,
+                "ms": 30.998714000000064,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 9,
+                "indexed": true,
+                "ms": 30.833282999999938,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 9,
+                "indexed": false,
+                "ms": 26.18891300000007,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 10,
+                "indexed": false,
+                "ms": 25.8080080000002,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              },
+              {
+                "pair": 10,
+                "indexed": true,
+                "ms": 30.972488999999996,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 11,
+                "indexed": true,
+                "ms": 31.00553500000001,
+                "calls": 754163,
+                "scanned": 749684,
+                "checksum": 394310
+              },
+              {
+                "pair": 11,
+                "indexed": false,
+                "ms": 26.113751000000093,
+                "calls": 801141,
+                "scanned": 0,
+                "checksum": 394310
+              }
+            ]
+          }
+        },
+        "probe-62.json": {
+          "sha256": "e42fb0d42c2c2f34db54770b68c04d0befb2c829bd6892103fb9ead1ce151798",
+          "data": {
+            "cell": 62,
+            "queries": 600,
+            "pages": 600,
+            "buildMs": 5.092280000000073,
+            "axes": [
+              56,
+              47,
+              52,
+              47,
+              47,
+              47,
+              52
+            ],
+            "originalMs": 79.38921550000009,
+            "indexedMs": 92.0037225000001,
+            "ratio": 1.1588944659618154,
+            "timings": [
+              {
+                "pair": 0,
+                "indexed": false,
+                "ms": 78.89426400000002,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 0,
+                "indexed": true,
+                "ms": 91.99515500000007,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 1,
+                "indexed": true,
+                "ms": 92.00550800000019,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 1,
+                "indexed": false,
+                "ms": 79.42694399999982,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 2,
+                "indexed": false,
+                "ms": 79.6778760000002,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 2,
+                "indexed": true,
+                "ms": 95.67752100000007,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 3,
+                "indexed": true,
+                "ms": 92.12670900000012,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 3,
+                "indexed": false,
+                "ms": 79.60709599999973,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 4,
+                "indexed": false,
+                "ms": 79.34009199999991,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 4,
+                "indexed": true,
+                "ms": 91.50415900000007,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 5,
+                "indexed": true,
+                "ms": 92.001937,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 5,
+                "indexed": false,
+                "ms": 79.41428900000028,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 6,
+                "indexed": false,
+                "ms": 78.97248900000022,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 6,
+                "indexed": true,
+                "ms": 92.12158299999965,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 7,
+                "indexed": true,
+                "ms": 91.67460799999981,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 7,
+                "indexed": false,
+                "ms": 79.22452299999986,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 8,
+                "indexed": false,
+                "ms": 79.21665200000007,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 8,
+                "indexed": true,
+                "ms": 96.14004000000023,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 9,
+                "indexed": true,
+                "ms": 92.21436999999969,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 9,
+                "indexed": false,
+                "ms": 79.48599699999977,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 10,
+                "indexed": false,
+                "ms": 79.3641419999999,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              },
+              {
+                "pair": 10,
+                "indexed": true,
+                "ms": 91.85660700000017,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 11,
+                "indexed": true,
+                "ms": 91.8593679999999,
+                "calls": 2263769,
+                "scanned": 2221926,
+                "checksum": 1403548
+              },
+              {
+                "pair": 11,
+                "indexed": false,
+                "ms": 79.6503689999995,
+                "calls": 2414734,
+                "scanned": 0,
+                "checksum": 1403548
+              }
+            ]
+          }
+        }
+      },
+      "localArtifacts": {}
+    },
+    "engine-direction-bound-20261106": {
+      "files": {
+        "audit-plan.json": {
+          "sha256": "4fe2c6e2b1fe42ca9d5167c0ae3d0683d05f20b998c73db6c2a9989fcf3d7368",
+          "data": {
+            "recordedAt": "2026-11-06T06:25:47.075Z",
+            "reference": "c8f86498",
+            "hypothesis": "Cache component-wise min/max of line normals per neighborhood. Exact monotone dot-product endpoint bounds can prove all direction predicates true or all false for a point velocity. Preserve original scalar predicate for mixed/uncertified queries, original line order and duplicates, invalidation and pointer ownership.",
+            "gate": {
+              "cells": [
+                61,
+                62
+              ],
+              "minimumExcludableDirectionTestsFraction": 0.5,
+              "maximumBoundsBuildLineVisitsPerFilterVisit": 0.25
+            },
+            "correctness": "Shadow instrumentation runs every original test and asserts all predicted predicates, then compares complete checkpoints. No timing claims from counts."
+          }
+        },
+        "prepare.mts": {
+          "sha256": "63c4fd2c564cdba25e55a2507911f2df7438b200dbeffc8804003e8e64135451",
+          "data": "import {snapshotSources} from '/home/holo/line/tools/measure/engine_sources.ts';\nimport {readFileSync,writeFileSync,symlinkSync} from 'node:fs';\nconst base='/tmp/engine-direction-bound-20261106',shadow=base+'/shadow',repo='/home/holo/line';\nwriteFileSync(base+'/audit-plan.json',JSON.stringify({recordedAt:new Date().toISOString(),reference:'c8f86498',hypothesis:'Cache component-wise min/max of line normals per neighborhood. Exact monotone dot-product endpoint bounds can prove all direction predicates true or all false for a point velocity. Preserve original scalar predicate for mixed/uncertified queries, original line order and duplicates, invalidation and pointer ownership.',gate:{cells:[61,62],minimumExcludableDirectionTestsFraction:.50,maximumBoundsBuildLineVisitsPerFilterVisit:.25},correctness:'Shadow instrumentation runs every original test and asserts all predicted predicates, then compares complete checkpoints. No timing claims from counts.'},null,2)+'\\n');\nsnapshotSources(repo,shadow,repo);symlinkSync(repo+'/node_modules',shadow+'/node_modules');\nconst path=shadow+'/scripts/lib/native_motion/src/kernel.rs';let s=readFileSync(path,'utf8');\ns=s.replace('            self.keys[slot] = key;', '            DIRECTION_WORK.with_borrow_mut(|c| { c[6] += lines.len() as u64; c[7] += 1; });\\n            self.keys[slot] = key;');\ns=s.replace('        let lines = &mut self.point_lines[index - PEG];','        direction_probe(query, vx, vy);\\n        let lines = &mut self.point_lines[index - PEG];');\ns+=`\nthread_local! { static DIRECTION_WORK: std::cell::RefCell<[u64;8]> = const { std::cell::RefCell::new([0;8]) }; }\nfn direction_probe(query:&[*const Line],vx:f64,vy:f64) {\n if query.is_empty() {return;}\n DIRECTION_WORK.with_borrow_mut(|c| { c[0]+=1;c[1]+=query.len() as u64; });\n if !vx.is_finite() || !vy.is_finite() { return; }\n let mut low=[f64::INFINITY;2];let mut high=[f64::NEG_INFINITY;2];\n for &ptr in query { let l=unsafe{&*ptr};if !l.normx.is_finite()||!l.normy.is_finite(){return;}\n  low[0]=low[0].min(l.normx);high[0]=high[0].max(l.normx);\n  low[1]=low[1].min(l.normy);high[1]=high[1].max(l.normy);\n }\n let (x0,x1)=if vx>=0.0 {(low[0],high[0])}else{(high[0],low[0])};\n let (y0,y1)=if vy>=0.0 {(low[1],high[1])}else{(high[1],low[1])};\n let min=x0*vx+y0*vy;let max=x1*vx+y1*vy;\n let all=if min>0.0 {Some(true)}else if max<=0.0 {Some(false)}else{None};\n if let Some(pass)=all {for &ptr in query {let l=unsafe{&*ptr};assert_eq!(l.normx*vx+l.normy*vy>0.0,pass);}\n  let slot=if pass{2}else{4};DIRECTION_WORK.with_borrow_mut(|c|{c[slot]+=1;c[slot+1]+=query.len() as u64;});\n }\n}\npub(crate) fn direction_work(i:usize)->f64 {DIRECTION_WORK.with_borrow(|c|c[i] as f64)}\n`;\nwriteFileSync(path,s);\nconst abi=shadow+'/scripts/lib/native_motion/src/abi.rs';writeFileSync(abi,readFileSync(abi,'utf8')+'\\n#[no_mangle]\\npub extern \"C\" fn direction_work(i:usize)->f64{crate::kernel::direction_work(i)}\\n');\nlet run=readFileSync('/tmp/engine-nursery-20261106/candidate-checkpoint.mts','utf8').replaceAll(repo,shadow).replace('/tmp/engine-nursery-20261106/candidate',base+'/probe');\nrun=`import {wasm} from '${shadow}/scripts/lib/native_motion/wasm.ts';\\n`+run+`\\nconst fields=['queries','tests','allPassQueries','allPassTests','allFailQueries','allFailTests','buildVisits','builds'];writeFileSync(root+'/counts-'+cellIndex+'.json',JSON.stringify(Object.fromEntries(fields.map((name,i)=>[name,(wasm as any).direction_work(i)])),null,2)+'\\\\n');\\n`;\nwriteFileSync(base+'/probe.mts',run);\n"
+        },
+        "probe.mts": {
+          "sha256": "2765a23016876164dab73a9d8e54e2cacffe007303b65a3954f075395e2313bf",
+          "data": "import {wasm} from '/tmp/engine-direction-bound-20261106/shadow/scripts/lib/native_motion/wasm.ts';\nimport {serialize} from 'node:v8';\nimport assert from 'node:assert/strict';\nimport {Session} from 'node:inspector/promises';\nimport {createHash} from 'node:crypto';\nimport {readFileSync, writeFileSync} from 'node:fs';\nimport {loadCatalog} from '/tmp/engine-direction-bound-20261106/shadow/benchmark/v6/model.ts';\nimport {policy} from '/tmp/engine-direction-bound-20261106/shadow/benchmark/v6/policy.ts';\nimport {caseSpec} from '/tmp/engine-direction-bound-20261106/shadow/benchmark/v4/model.ts';\nimport {compileHandoff} from '/tmp/engine-direction-bound-20261106/shadow/scripts/v0/optimizer/handoff.ts';\nconst root='/tmp/engine-direction-bound-20261106/probe';\nconst cellIndex=Number(process.argv[2]), profiling=process.argv.includes('--profile');\nconst cell=JSON.parse(readFileSync('/tmp/engine-direction-bound-20261106/shadow/tools/parity/cells.json','utf8')).cells[cellIndex];\nconst catalog=loadCatalog(), c=catalog.cases.find(c=>c.id===cell.id)!, music=catalog.music.find(m=>m.id===c.sourceId)!;\nconst requested=c.plans[cell.seed], spec=caseSpec(music);\nconst contracts={strike:'line.strike.v1',strike2:'line.strike.v2',strike3:'line.strike.v3'};\nconst options={budget:cell.budget??policy.budget, ...(contracts[cell.mode]?{impactContract:contracts[cell.mode]}:{}),\n  ...(c.panel==='automatic'?{creative:requested.preferences}:{constructionPlan:requested})};\nconst profiler=new Session();\nif(profiling){profiler.connect(); await profiler.post('Profiler.enable'); await profiler.post('Profiler.setSamplingInterval',{interval:250});}\nconst iterations=[];\nfor(let rep=0;rep<1;rep++){\n if(profiling&&rep>=0) await profiler.post('Profiler.start');\n const cpu=process.cpuUsage(),start=performance.now();\n const checkpoint=compileHandoff(spec,cell.seed,options);\n const wallMs=performance.now()-start,used=process.cpuUsage(cpu);\n if(profiling&&rep>=0){const {profile}=await profiler.post('Profiler.stop');writeFileSync(`${root}/cell-${cellIndex}-${rep}.cpuprofile`,JSON.stringify(profile));}\n writeFileSync(`${root}/checkpoint-${cellIndex}.v8`,serialize(checkpoint));\n const trackHash=createHash('sha256').update(JSON.stringify(checkpoint.track)).digest('hex');\n assert.equal(trackHash,cell.trackHash);assert.equal(checkpoint.stats.sim_frames,cell.physicalFrames);\n iterations.push({rep,wallMs,cpuMs:(used.user+used.system)/1000,nsPerFrame:wallMs*1e6/cell.physicalFrames,physicalFrames:cell.physicalFrames,trackHash});\n}\nif(profiling)profiler.disconnect();\nwriteFileSync(`${root}/${profiling?'profile':'baseline'}-${cellIndex}.json`,JSON.stringify({cell:cellIndex,profiling,node:process.version,iterations},null,2));\nconsole.log(`Finished ${profiling?'profile':'baseline'} cell ${cellIndex}; exact track/work throughout`);\n\n\nconst fields=['queries','tests','allPassQueries','allPassTests','allFailQueries','allFailTests','buildVisits','builds'];writeFileSync(root+'/counts-'+cellIndex+'.json',JSON.stringify(Object.fromEntries(fields.map((name,i)=>[name,(wasm as any).direction_work(i)])),null,2)+'\\n');\n"
+        },
+        "checkpoint-equality.json": {
+          "sha256": "8e65470aa36788ce5bab9adc12b7b090688dbed1ac56a9fed75d89add0bd4756",
+          "data": {
+            "cells": [
+              61,
+              62
+            ],
+            "completeCheckpointEquality": true
+          }
+        },
+        "probe/counts-61.json": {
+          "sha256": "792901daf6dc47562c0fd73f808e19ce5d7d1c7b22c63e1c3b31313d8f939fc6",
+          "data": {
+            "queries": 770066,
+            "tests": 15779285,
+            "allPassQueries": 162516,
+            "allPassTests": 2293564,
+            "allFailQueries": 49789,
+            "allFailTests": 575624,
+            "buildVisits": 2382623,
+            "builds": 207768
+          }
+        },
+        "probe/counts-62.json": {
+          "sha256": "1dd44c5573298529551942f41958e637a402796fe5cc5c6c2d39e785f010357a",
+          "data": {
+            "queries": 3968886,
+            "tests": 86040577,
+            "allPassQueries": 828680,
+            "allPassTests": 11892499,
+            "allFailQueries": 308029,
+            "allFailTests": 3744143,
+            "buildVisits": 12220091,
+            "builds": 978273
+          }
+        }
+      },
+      "localArtifacts": {
+        "probe/checkpoint-62.v8": {
+          "sha256": "2a885cc93d611b2b23c995db1350f12fb0e7f5e60923356d24dfb5f240044507",
+          "bytes": 687706
+        },
+        "probe/checkpoint-61.v8": {
+          "sha256": "1451572117dc3c574f6764cdfdaae11302c30c0f61586ad2a4d720ecfb50e599",
+          "bytes": 716360
+        }
+      }
+    }
+  },
+  "nurseryStartupCheck": {
+    "node": "22.22.2",
+    "defaultHeapLimitMiB": 4144,
+    "explicit16MiBHeapLimitMiB": 4144,
+    "explicit32MiBHeapLimitMiB": 4192,
+    "conclusion": "Default already16MiB semi-space; no smaller increase between default and earlier rejected32MiB treatment. No new runtime trial or configuration."
+  }
+}

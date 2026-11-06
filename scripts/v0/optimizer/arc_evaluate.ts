@@ -14,7 +14,7 @@ import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from
 import { arcRailGroups } from './arc_guidance.ts';
 import {ArcObjectiveContinuation} from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
-import { arcArrivalFeatures, arcFutureValue } from './arc_value.ts';
+import { arcArrivalFeatures } from './arc_value.ts';
 import { arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';
@@ -347,12 +347,11 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   ctx.work.viableCandidates++;
   const valueFeatures = options.futureValueModel
     ? arcArrivalFeatures(state, heading, endSpeed, pose, angularRate, horizon - (release ?? frame)).concat(s.valueFutureFeatures!) : undefined;
-  const predictedFuture = options.futureValueModel ? arcFutureValue(valueFeatures!, options.futureValueModel) : undefined;
   const contactPositions = !fragments && options.constructionRequests?.[i]?.construction === 'scattered'
     ? child.getCachedContactPositions(s.frame, s.horizon) : undefined;
   const candidate: MeasuredCandidate = {lines: added, c, cost, localCost, residuals, localResidualCount,
     trajectoryAxes: achieved, actualImpact, terminalLoss, release, railGuides: fragments?.guideIds, motion, motionCost,
-    contactPositions, headingPrior, heading, endSpeed, pose, valueFeatures, predictedFuture};
+    contactPositions, headingPrior, heading, endSpeed, pose, valueFeatures};
   s.candidates.push(candidate);
   // Interrupted evaluations never reach this cache insertion.
   s.memo.set(key, candidate);

@@ -48,7 +48,7 @@ export function collectFutureProbes(spec:Spec,seed:number,options:ArcMotionOptio
    const features=c.valueFeatures??arcArrivalFeatures(state,c.heading,c.endSpeed,c.pose,spin,found.horizon-(c.release??found.frame)).concat(ctx.futureValueFeatures(i));
    const future=continueFrom(branch,i+1,depth,[base]);
    rows.push({index:i,contacts:contacts.length,features:features.slice(0,57),geometry:features.slice(57),localCost:c.localCost,
-    pureFuture:future,depth,requestedDepth:depth,predictedFuture:c.predictedFuture??(options.futureValueModel?arcFutureValue(features,options.futureValueModel):null)});
+    pureFuture:future,depth,requestedDepth:depth,predictedFuture:options.futureValueModel?arcFutureValue(features,options.futureValueModel):null});
    Engine.retainOnly([base]);
   }
   Engine.retainOnly([]);

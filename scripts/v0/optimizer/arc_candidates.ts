@@ -6,6 +6,7 @@ import type {ArcMotionControl} from './arc_geometry.ts';
 import type {TrackLine, AxisValues} from '../types.ts';
 import type {intervalMotionSummary} from './motion_objective.ts';
 import {withGrain} from '../core/measure.ts';
+import {arcFutureValue} from './arc_value.ts';
 
 /** Geometry is immutable once it identifies a measured physical prefix. */
 export type CandidateGeometry = readonly Readonly<TrackLine>[];
@@ -22,7 +23,7 @@ export type MeasuredCandidate = Readonly<{
   railGuides?: number[]; motion?: Motion; motionCost: number;
   contactPositions?: Float64Array;
   headingPrior?: number; heading: number; endSpeed: number; pose: number;
-  valueFeatures?: number[]; predictedFuture?: number;
+  valueFeatures?: number[];
 }>;
 export type EvaluatedCandidate = Readonly<{candidate: MeasuredCandidate; child: Engine}>;
 export type CandidateMemo =
@@ -45,9 +46,20 @@ export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
  * (accessibility) prior and, in repair, the reference-arrival distance. Only
  * this ranking is reweighted; candidate `cost` (local search, refinement)
  * keeps every prior at full weight. */
-export function valueRank(options: ArcMotionOptions, c: Pick<MeasuredCandidate, 'localCost' | 'cost' | 'headingPrior' | 'predictedFuture'>) {
-  const heading = c.headingPrior ?? 0, cost = c.localCost + heading + .5 * (c.cost - c.localCost - heading);
-  return c.predictedFuture === undefined ? cost : cost + (options.valueWeight ?? .5) * c.predictedFuture;
+type Ranked = Pick<MeasuredCandidate, 'localCost' | 'cost' | 'headingPrior' | 'valueFeatures'>;
+const baseRank = (c: Ranked) => {
+  const heading = c.headingPrior ?? 0;
+  return c.localCost + heading + .5 * (c.cost - c.localCost - heading);
+};
+const predictions = new WeakMap<number[], number>();
+/** The learned future of a candidate, predicted once and only when a rank needs it. */
+function predictedFuture(options: ArcMotionOptions, features: number[]) {
+  let value = predictions.get(features);
+  if (value === undefined) predictions.set(features, value = arcFutureValue(features, options.futureValueModel));
+  return value;
+}
+export function valueRank(options: ArcMotionOptions, c: Ranked) {
+  return c.valueFeatures ? baseRank(c) + (options.valueWeight ?? .5) * predictedFuture(options, c.valueFeatures) : baseRank(c);
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */
@@ -56,12 +68,23 @@ export function distinctArrival(a: MeasuredCandidate, b: MeasuredCandidate) {
     Math.abs(a.pose - b.pose) > 7 || a.release !== undefined && b.release !== undefined && Math.abs(a.release - b.release) > 2;
 }
 
-/** Up to `width` best-ranked candidates whose arrivals are mutually distinct. */
+/** Up to `width` best-ranked candidates whose arrivals are mutually distinct.
+ * A prediction is never negative, so `baseRank` bounds each rank from below: only
+ * candidates that could still come next are ranked. Ties keep their original order. */
 export function distinctCandidates(options: ArcMotionOptions, candidates: readonly MeasuredCandidate[], width: number) {
-  const result: MeasuredCandidate[] = [];
-  for (const candidate of candidates.slice().sort((a, b) => valueRank(options, a) - valueRank(options, b))) {
+  const unranked = candidates.map((candidate, index) => ({candidate, index, bound: baseRank(candidate)})).sort((a, b) => a.bound - b.bound || a.index - b.index);
+  const ranked: Array<{candidate: MeasuredCandidate; index: number; rank: number}> = [], result: MeasuredCandidate[] = [];
+  const before = (a: {rank: number; index: number}, b: {rank: number; index: number}) => a.rank - b.rank || a.index - b.index;
+  let next = 0;
+  while (result.length < width && (ranked.length || next < unranked.length)) {
+    // The best ranked so far is final once every unranked candidate is bound above it.
+    while (next < unranked.length && (!ranked.length || unranked[next].bound <= ranked[0].rank)) {
+      const {candidate, index} = unranked[next++], item = {candidate, index, rank: valueRank(options, candidate)};
+      const place = ranked.findIndex(other => before(item, other) < 0);
+      ranked.splice(place < 0 ? ranked.length : place, 0, item);
+    }
+    const {candidate} = ranked.shift()!;
     if (result.every(a => distinctArrival(a, candidate))) result.push(candidate);
-    if (result.length >= width) break;
   }
   return result;
 }

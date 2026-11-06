@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: rank candidates lazily
+
+The future-value model ran for every viable candidate, though ranking needs only the
+best few. A prediction is never negative, so base rank bounds each candidate from
+below and most are never predicted; a 200-seed test matches the full sort. Paired on
+real compiles: −2.78% [−3.73%, −1.48%], 8 of 8 faster. V8 semi-space, Liftoff,
+Sparkplug and feedback settings stayed within noise, so the runtime needs no flags.
+
 ## November 7: one speed number
 
 `npm run perf:score` reports ns per charged frame on two real compiles, one at a time.

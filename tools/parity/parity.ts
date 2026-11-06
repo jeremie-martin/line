@@ -15,6 +15,7 @@
 import {readFileSync, writeFileSync, mkdtempSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {tmpdir} from 'node:os';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {loadCatalog} from '../../benchmark/v6/model.ts';
@@ -22,13 +23,15 @@ import {policy} from '../../benchmark/v6/policy.ts';
 import {caseSpec, sha} from '../../benchmark/v4/model.ts';
 
 type Cell = {mode: 'landing' | 'strike' | 'strike2' | 'strike3'; id: string; seed: number; panel: string; budget?: number; trackHash: string; physicalFrames: number;
+  /** A current V7 specification, compiled by the same route as evaluation. */
+  spec?: {song: string; variant: string};
   score?: number; musicalScore?: number; valid?: boolean; fulfilled?: number; quality?: number; loss?: number};
 const root = new URL('.', import.meta.url).pathname;
 const cellsPath = join(root, 'cells.json');
 const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const flag = (k: string) => process.argv.includes(`--${k}`);
-const trackFile = (c: Cell) => join(root, 'tracks', `${c.mode}-${c.id}-${c.seed}.json.gz`);
+const trackFile = (c: Cell) => join(root, c.mode === 'strike3' ? 'tracks' : 'physics-tracks', `${c.mode}-${c.id.replaceAll('/', '~')}-${c.seed}.json.gz`);
 const CONTRACTS: Record<string, string> = {strike: 'line.strike.v1', strike2: 'line.strike.v2', strike3: 'line.strike.v3'};
 
 function caseOf(cell: {id: string}) {
@@ -36,13 +39,33 @@ function caseOf(cell: {id: string}) {
   return {c, music: catalog.music.find((m: any) => m.id === c.sourceId)!};
 }
 
+/** A V7 specification: authored inputs and options as `compare` resolves them, without reading audio. */
+async function specInputs(cell: Cell) {
+  const [{loadMusicSpec}, {resolveJoltMs}, {productionBudget}, {explicitPlan}] = await Promise.all([
+    import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/produce/jolt.ts'),
+    import('../../scripts/v0/optimizer/production_budget.ts'), import('../eval/compile.ts')]);
+  const {song, variant} = cell.spec!, definition = {song, title: song, moments: [], variant};
+  const {spec, musicCase: music} = await loadMusicSpec(definition, resolveJoltMs());
+  const construction = (await import(pathToFileURL(resolve('productions', song, 'variants', `${variant}.ts`)).href)).bench?.construction;
+  const boundaries = music.phases.map((p: any) => p.t0 ?? p.t ?? p.start).filter(Number.isFinite);
+  const budget = cell.budget ?? productionBudget(spec.duration), impactContract = CONTRACTS.strike3 as any;
+  const options = construction ? {budget, impactContract, constructionPlan: await explicitPlan('.', spec, cell.seed, {}, boundaries, construction)}
+    : {budget, impactContract, creative: {}, phraseBoundaries: boundaries};
+  return {spec, music, options};
+}
+
+async function cellInputs(cell: Cell) {
+  if (cell.spec) return specInputs(cell);
+  const {c, music} = caseOf(cell), requested = c.plans[cell.seed];
+  return {spec: caseSpec(music), music, options: {budget: cell.budget ?? policy.budget,
+    ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
+    ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})}};
+}
+
 /** The prepared inputs of one cell, shared by every timing and profiling boundary. */
 export async function prepareCell(index: number) {
-  const cell = doc.cells[index], {c, music} = caseOf(cell), requested = c.plans[cell.seed];
+  const cell = doc.cells[index], {spec, options} = await cellInputs(cell);
   const {compileHandoff} = await import('../../scripts/v0/optimizer/handoff.ts');
-  const spec = caseSpec(music), options = {budget: cell.budget ?? policy.budget,
-    ...(CONTRACTS[cell.mode] ? {impactContract: CONTRACTS[cell.mode] as any} : {}),
-    ...(c.panel === 'automatic' ? {creative: requested.preferences} : {constructionPlan: requested})};
   return {cell, compile: () => compileHandoff(spec, cell.seed, options),
     /** Whether a checkpoint reproduces the cell's committed track and charged work. */
     exact: (checkpoint: ReturnType<typeof compileHandoff>) =>
@@ -65,16 +88,16 @@ export async function compileWorker(index: number, out: string, collectResources
 }
 
 async function judgeTrack(cell: Cell, track: any) {
-  const {c, music} = caseOf(cell);
   if (cell.mode === 'landing') {
     const {judgeV6Track} = await import('./v6_cell.ts');
-    const j = judgeV6Track(track, c, music, cell.seed);
+    const {c, music} = caseOf(cell), j = judgeV6Track(track, c, music, cell.seed);
     return {score: j.score, musicalScore: j.musicalScore, valid: j.valid, fulfilled: j.fulfilled};
   }
+  const {music} = await cellInputs(cell);
   const [{replayGalleryTrack}, {contactImpactGrade}] = await Promise.all([
     import('../../scripts/gallery/artifacts.ts'), import('../../scripts/gallery/contact_impact_grade.ts'),
   ]);
-  const replay = replayGalleryTrack(track, music, true, CONTRACTS[cell.mode] as any), impact = replay.impactEvaluation!;
+  const replay = replayGalleryTrack(track, music as any, true, CONTRACTS[cell.mode] as any), impact = replay.impactEvaluation!;
   return {quality: contactImpactGrade(replay.grade, impact).score.score, loss: impact.account.loss};
 }
 

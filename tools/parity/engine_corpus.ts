@@ -12,7 +12,7 @@ export type PhysicsTrack = {startPosition: Point; riders: {startVelocity: Point}
 export const sha256 = (bytes: Uint8Array | string) => createHash('sha256').update(bytes).digest('hex');
 
 export function savedEngineTracks() {
-  const directory = new URL('./tracks/', import.meta.url);
+  const directory = new URL('./physics-tracks/', import.meta.url);
   return readdirSync(directory).filter(name => name.endsWith('.json.gz')).sort().map(name => {
     const bytes = gunzipSync(readFileSync(new URL(name, directory)));
     return {name, inputSha256: sha256(bytes), track: JSON.parse(bytes.toString()) as PhysicsTrack};

@@ -34,3 +34,29 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Unwanted impacts (U2, U3; guide touches on beats).
    - The measure (visibility study).
    - Benchmark fitness.
+
+## Open questions kept from the retired night report (asked 2026-10-05)
+
+The compiler has changed since. Answer them against current rides.
+
+1. **Strength scale.** Isolated maximal hits can survive, while dense passages
+   deliver less. Keep the authored scale as stretch goals, or look at reachability
+   per passage before any remapping?
+2. **L'amour de ma vie.** Hits of 0.9 or more about 13 frames apart, an intro asking
+   for speed the start cannot give, low air with a strong hit on every beat in the
+   tail. Re-author, or keep as stretch goals?
+3. **Air against impact.** Weighting air 1.5× recovered air accuracy but gave back
+   about a third of the strong-beat gain. Which matters more?
+4. **Body drag.** The rider's body drags along rails more than before (about 1.6 to
+   2.1 s/min at the time). Is it visible or objectionable? If so, it becomes a guard.
+5. **Lines through the rider.** 6 to 8 per ride at the time. Worth fixing?
+
+## Blind studies with no saved answers
+
+Both stay in `labels/studies` and open on `motion-gallery/pairs.html?study=<id>`.
+Their clips live under `generated/` and are not on every machine: restore or rebuild
+them before answering.
+
+- `night-pairs-2026-10-05-contact`: 22 pairs, the first-contact posture check.
+- `impact-visibility-2026-11`: 55 pairs, about 20 minutes (item 5 above).
+

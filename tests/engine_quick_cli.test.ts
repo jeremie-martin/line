@@ -14,7 +14,7 @@ afterEach(() => {for (const path of directories.splice(0)) rmSync(path, {recursi
 function checkout() {
   const dir = mkdtempSync(join(tmpdir(), 'engine-quick-')); directories.push(dir);
   for (const file of ['package.json', 'tools/parity/engine_quick.ts', 'tools/parity/engine_fingerprints.ts',
-    'tools/parity/engine_corpus.ts', 'tools/parity/engine-reference.json', 'tools/parity/tracks',
+    'tools/parity/engine_corpus.ts', 'tools/parity/engine-reference.json', 'tools/parity/physics-tracks',
     'scripts/lib/rng.ts', 'scripts/lib/native_motion/engine.wasm']) {
     mkdirSync(dirname(join(dir, file)), {recursive: true});
     cpSync(join(root, file), join(dir, file), {recursive: true});

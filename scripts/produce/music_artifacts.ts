@@ -19,7 +19,8 @@ import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
-export async function loadMusicCase(definition:any,jolt:number){
+/** Everything a compile and its judgment need. Reads no audio. */
+export async function loadMusicSpec(definition:any,jolt:number){
   const cfg=loadSelect(join('productions',definition.song));
   if(definition.variant)cfg.spec=resolve('productions',definition.song,'variants',`${definition.variant}.ts`);
   const module=await import(pathToFileURL(cfg.spec).href);
@@ -30,11 +31,12 @@ export async function loadMusicCase(definition:any,jolt:number){
   assert.ok(air.every(a=>Number.isFinite(a.target)),'music review requires authored air throughout');
   const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  const hash=(p:string)=>sha(readFileSync(p));
-  const musicCase={...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[],
-    source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),audioSha256:hash(cfg.audio),
-    analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render};
-  return {spec,cfg,musicCase};
+  return {spec,cfg,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
+}
+export async function loadMusicCase(definition:any,jolt:number){
+  const {spec,cfg,musicCase}=await loadMusicSpec(definition,jolt),hash=(p:string)=>sha(readFileSync(p));
+  return {spec,cfg,musicCase:{...musicCase,source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),
+    audioSha256:hash(cfg.audio),analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render}};
 }
 /** Keep the established cell/manifest contract shared by both native and production renderers. */
 export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:string;seed:number;budget:number;allowance:number;

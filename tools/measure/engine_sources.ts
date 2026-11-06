@@ -49,7 +49,7 @@ function identity(files: Map<string, Buffer>): string {
 
 function sharedInput(name: string): boolean {
   return name === 'package-lock.json' || name === 'tools/parity/cells.json' ||
-    ['benchmark/', 'productions/', 'vendor/', 'tools/parity/tracks/', 'engine-rs/src/'].some(prefix => name.startsWith(prefix));
+    ['benchmark/', 'productions/', 'vendor/', 'tools/parity/tracks/', 'tools/parity/physics-tracks/', 'engine-rs/src/'].some(prefix => name.startsWith(prefix));
 }
 
 /** Freeze bytes before measurements. The candidate directory is also the common

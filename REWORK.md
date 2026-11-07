@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## Experiment names from November 7 on
+
+From now on experiments are named by what they change. The letters used
+earlier on November 7 map to:
+
+| letter | name |
+|---|---|
+| R | no forced flight before a catch (adopted) |
+| S | no curvature cap on catch lines |
+| T | supports may reach the next catch |
+| U | meet the line at the angle that gives the asked strength |
+| V | redirect within two frames |
+| Y | no steep-angle prior before strong catches (left to the owner's eye) |
+| Z | arrival speed counts twice |
+| AA | half-weight prediction in ranking (adopted) |
+| AC | each part of the prediction at its one-step worth |
+| ROOF | steering roof |
+| VW | stronger learned estimate |
+| LS | local search judges like ranking |
+| PP | measured continuations per parent |
+
 ## November 7: where the compiler predicts instead of measuring; hypotheses VW, LS and PP
 
 An inventory (an agent, read-only) of every prediction or fitted estimate the

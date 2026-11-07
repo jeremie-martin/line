@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: the steep-angle prior re-tested on the new main (kept)
+
+Removing the steep-angle prior before strong catches (Y, earlier a neutral
+trade left to the owner's eye) was re-tested on top of "local search judges
+like ranking".
+
+- V7.1, 4 seeds: **−5.7 [−20.9, +9.5], 0.16; 31 of 35 specs down**.
+- Every category is down (P6 −9.9, P4 −8.4, P1 −6.7, G −6.4).
+- Head-down or backward strong arrivals −16% and body drag −4%, but the
+  headline loss is broad.
+- Before, local search climbed toward this prior at full weight and ranking
+  discounted it. Weighed consistently, it pays.
+- **Closed: the prior stays.** The branch `exp/no-steep-angle` is kept for
+  the record.
+
 ## November 7: local search judges like ranking (adopted)
 
 The interval's best candidate (where local search starts and what it improves)

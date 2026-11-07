@@ -95,7 +95,7 @@ const DIMS = {
   shk: ['Hit part: shake', {today: 'Today’s (9 Hz, two axes, rotation)', blow: 'In the hit’s direction', thud: 'Thud (knock, then spring back)', kick: 'Held’s push', none: 'None'}],
   spl: ['Hit part: colour split', {today: 'Today’s (sideways)', dir: 'In the hit’s direction, same amount as today', half: 'Halfway between, same amount as today', blow: 'In the hit’s direction, unmatched', radial: 'Out from the impact', none: 'None'}],
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
-  flg: ['Rare flash opens at', {'82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
+  flg: ['Rare flash opens at', {'80': 'Strength 0.80 (chosen)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
@@ -105,26 +105,26 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', flg: '82'};
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80'}; // hit parts as chosen in R7–R9
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
     mix: {...base, size: 'today', place: 'official', ends: 'none', bg: 'white', ink: 'ink', music: 'bars', hit: 'today', bandY: 'low'}},
   // one plain look so that colour four-ups differ by colour alone
-  {id: 'swatch', name: 'Swatch', line: 'The plain look used to compare colours: the bars, Held hits, a steady zoom.', mix: {...base, music: 'redbars', hit: 'strong'}},
+  {id: 'swatch', name: 'Swatch', line: 'The plain look used to compare colours: the bars, the chosen hits, Follows direction.', mix: {...base, music: 'redbars', hit: 'parts'}},
   {id: 'ride', name: 'Ride', line: 'The ride alone: the baseline.', mix: {...base, bg: 'white', hit: 'none'}},
   {id: 'xray', name: 'X-ray', line: 'A test, not a look: the paper shows the intensity metric as loudly as possible.', mix: {...base, bg: 'xray'}},
   {id: 'paper', name: 'Paper', line: 'White, graphite and one red on the fork, Held hits, Night on the drop.',
-    mix: {...base, music: 'red', redBy: 'loud', night: 'on', hit: 'strong'}},
+    mix: {...base, music: 'red', redBy: 'loud', night: 'on', hit: 'parts'}},
   {id: 'hokusai', name: 'Hokusai', line: 'Indigo on washi, the bars, the sun, Held hits, easing out when quiet.',
-    mix: {...base, scheme: 'hokusai', hit: 'strong', music: 'redbars', tide: 'quietI', top: 'sun'}},
+    mix: {...base, scheme: 'hokusai', hit: 'parts', music: 'redbars', tide: 'quietI', top: 'sun'}},
   {id: 'lagoon', name: 'Lagoon', line: 'Sea-glass and teal, a little wider, a looser camera, Held hits and the song’s name on two lines.',
-    mix: {...base, scheme: 'lagoon', size: 's58', place: 'loose', hit: 'strong', music: 'redbars', top: 'title'}},
+    mix: {...base, scheme: 'lagoon', size: 's58', place: 'loose', hit: 'parts', music: 'redbars', top: 'title'}},
   {id: 'black', name: 'Black', line: 'In the dark: one accent on the fork, Held hits, a steady zoom, and each rail lights whole the moment the rider meets it.',
-    mix: {...base, scheme: 'black', music: 'red', redBy: 'loud', ink: 'rail', hit: 'strong'}},
-  {id: 'riso', name: 'Riso', line: 'A two-ink print: blue and fluorescent pink.', mix: {...base, scheme: 'riso', music: 'redbars', hit: 'strong'}},
-  {id: 'dune', name: 'Dune', line: 'Sand and rust, with its own low sun.', mix: {...base, scheme: 'dune', music: 'redbars', hit: 'strong', top: 'sun'}},
-  {id: 'plum', name: 'Plum', line: 'A second dark: plum and amber.', mix: {...base, scheme: 'plum', music: 'redbars', hit: 'strong'}},
+    mix: {...base, scheme: 'black', music: 'red', redBy: 'loud', ink: 'rail', hit: 'parts'}},
+  {id: 'riso', name: 'Riso', line: 'A two-ink print: blue and fluorescent pink.', mix: {...base, scheme: 'riso', music: 'redbars', hit: 'parts'}},
+  {id: 'dune', name: 'Dune', line: 'Sand and rust, with its own low sun.', mix: {...base, scheme: 'dune', music: 'redbars', hit: 'parts', top: 'sun'}},
+  {id: 'plum', name: 'Plum', line: 'A second dark: plum and amber.', mix: {...base, scheme: 'plum', music: 'redbars', hit: 'parts'}},
 ];
 const SONGS = {petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
 const plain = {...base, ends: 'none'};
@@ -494,7 +494,7 @@ function partsSplit(t, k, v) {
 // 'rare': only the hardest hits flash. The gate opens at strength 0.82 and is full at 0.94: about 1–10 flashes a minute
 // on the seven songs, none on most hits. A gate on the hit's own absolute strength, not a rank.
 // Round 9: the owner chose 'toward the paper' "by a wide margin" and asked whether it could open lower: three gates.
-const GATES = {'82': [0.82, 0.94], '76': [0.76, 0.9], '70': [0.7, 0.86]};
+const GATES = {'82': [0.82, 0.94], '80': [0.8, 0.93], '76': [0.76, 0.9], '70': [0.7, 0.86]}; // '80': the owner's choice (R9)
 const rareGate = e => {const [a, b] = GATES[mix.flg] ?? GATES['82']; return smoothstep((e - a) / (b - a));};
 function partsFlash(t, k, v) {
   const fl = drive(t, 'flash'); if (!fl.h || fl.m < 0.003 || mix.fls === 'none') return;
@@ -583,6 +583,11 @@ for (const [key, [label, b, o]] of Object.entries(VARIANTS)) {
   SCHEMES[key] = {...base, ...o, pencil: o.paper ? '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('') : base.pencil};
   DIMS.scheme[1][key] = `${DIMS.scheme[1][b]}: ${label}`;
 }
+// Round 9 decisions: Kraft takes the darker paper; Cyanotype and Rothko take "less colour"; the other liked papers stay as siblings.
+SCHEMES.kraft = {...SCHEMES['kraft~4']};
+SCHEMES.cyanotypeIndigo = {...SCHEMES['cyanotype~b']}; SCHEMES.cyanotypeDeep = {...SCHEMES['cyanotype~c']}; SCHEMES.cyanotype = {...SCHEMES['cyanotype~0']};
+SCHEMES.rothkoNeutral = {...SCHEMES['rothko~1']}; SCHEMES.rothko = {...SCHEMES['rothko~0']};
+Object.assign(DIMS.scheme[1], {cyanotypeIndigo: 'Cyanotype, indigo', cyanotypeDeep: 'Cyanotype, deep', rothkoNeutral: 'Rothko, neutral'});
 // the address was read before these existed: honour a variant asked for in ?m=
 for (const kv of (q.get('m') ?? '').split(',')) {const [k2, v2] = kv.split(':'); if (k2 === 'scheme' && v2?.includes('~') && SCHEMES[v2]) mix.scheme = v2;}
 const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);

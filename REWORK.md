@@ -39,6 +39,10 @@
   reached by riding or by 0–3-frame hops; long-gap categories about neutral.
 - **Risk.** Ride-in catches read weaker or as extras; the account should
   reject or price them.
+- **Result (V7.1, 4 seeds): not adopted.** −1.9 [−7.4, +3.7], 0.18; specs
+  split 17 up and 18 down. Strong extra impacts nearly double (0.22 against
+  0.12 per 100 beats). Removing the rejection (R) gave the flexibility that
+  pays; stretching supports to the catch does not.
 
 ## November 7: no forced flight before a catch (adopted)
 

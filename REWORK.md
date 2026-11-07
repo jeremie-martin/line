@@ -1,5 +1,34 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: the learned estimate is the part worth improving
+
+- **Dose and calibration together.**
+  - Ranking without its prediction loses 7.7.
+  - Halving the whole prediction gained 6.2 (AA).
+  - Setting each part to its one-step worth lost 1.2 (AC).
+  - So the prediction carries real information, but too much noise to be
+    trusted at full weight.
+- **Within-catch comparison of learned models** (`alternation_probe.ts
+  --mode=sample --any --alt-model=…`; current main; 1,953 alternatives in
+  344 catches):
+
+  | model | training rows | within-catch correlation with the measured next cost |
+  |---|---|---|
+  | current (October compiler) | 82,903 | 0.41 |
+  | model-1 (November 1 compiler) | 16,086 | 0.35 |
+  | arrival priors | — | 0.22 |
+
+  - Jointly: current 0.45 [0.24, 0.68], model-1 0.11 [0.01, 0.20], priors
+    0.08 [0.00, 0.22].
+  - The retrain failed for lack of data, not for the compiler it learned
+    from.
+- **Next.**
+  - A five-seed collection on today's main from its frozen worktree:
+    840 compiles of the training catalog, with songs disjoint from every
+    benchmark and held-out song.
+  - Train, then screen the model offline with this within-catch
+    correlation before any benchmark run.
+
 ## November 7: ROOF result; hypothesis AC, each part of the prediction at its measured worth
 
 **ROOF (steering roof as a construction option), V7.1, 4 seeds against the

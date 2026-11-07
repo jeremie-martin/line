@@ -12,7 +12,15 @@ The music library's 22 specs (14 songs) were split by song, never by spec.
 The new specs are dense one-minute songs with little time in long gaps, so V7.1
 does not add to V7's long-gap weight. All 13 development specs compile and
 finish (seed 101). `v7` stays V7.0 for the parity cells; `v7.1` is the default
-panel. A test checks that no held-out song is a development song, matched
+panel.
+
+Baselines at `main` = a3c845fd (the compiler of the perf merge):
+- **V7.1, 8 seeds:** headline **776.3**; G 694.1, P1 801.1, P2 835.7, P3 768.1,
+  P4 791.7, P5 795.4, P6 702.3, P7 822.2; explicit requests 763.2; 328 of 328
+  finished. G falls from 744.9 (V7.0's four songs) because the library songs are
+  harder, so dense real songs and the long ride are now the weakest categories.
+- **Held out, 13 specs × 4 seeds:** **703.4**; 52 of 52 finished. Per-song scores
+  stay unread (sealed). A test checks that no held-out song is a development song, matched
 across tempo versions. The other agent's earlier perf and visuals branches
 were fast-forwarded first (Node 26, `npm run check` all green on this machine).
 

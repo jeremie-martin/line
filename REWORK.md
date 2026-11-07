@@ -28,6 +28,24 @@
   - Headline up a little on V7.1, most on the dense strata.
 - **Risk.** Steepness may pay two catches ahead, beyond the one-step
   measure; ride-outs and floats may lose.
+- **Result: neutral headline, a trade; not adopted, left to the owner's eye**
+  (branch `exp/no-steep-angle`, before/after review rendered).
+
+  | panel | change | interval / support |
+  |---|---|---|
+  | V7.1, 8 seeds | +1.2 | [−2.2, +4.6], 0.78; 20 of 35 specs up |
+  | held out, 11 songs | −1.3 | [−11.4, +8.8], 0.36; 7 of 13 up |
+
+  - **Every ruler:** strong hits a little weaker (strong bias −0.005, very
+    strong −0.009, strength rms +0.003) against fewer extra hits (strong
+    extra hits −0.025 per beat, extra strikes −0.005).
+  - **Costs** (both panels): body drag −11% and −10%; strong extra impacts
+    −24% and −17%; head-down or backward strong arrivals −13% and −16%.
+  - **Reading.** The angle prior buys a little strength at the catch it
+    prepares, though not at the one after, and pays for it with more extras,
+    drag and head-down arrivals.
+  - The tiki ride-out ride at seed 303 that lost 121 points is fragile: four
+    other arms land near 660 on it too.
 
 ## November 7: the three structural options probed; the turning budget corrected (report only)
 

@@ -1,5 +1,81 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: what limits strength, studied three ways (report only)
+
+What follows describes today's compiler, not a physics limit. Seed 101; every
+studied ride is identical to `main`'s saved ride. Tools:
+- `tools/research/loss_attribution.ts`: each final catch matched to the pool
+  it was chosen from, and the ride's energy frame by frame;
+- `tools/research/catch_frontier.ts`: the same interval searched again with
+  10× the samples.
+
+**1. Why a catch misses its strength** (all V7.1, 3,445 catches; shares of
+the squared strength error; 95% of it is undershoot, 98% on G):
+- **no option** (31%; G 29%): the pool holds no candidate meaningfully
+  closer to the ask (by 0.05);
+- **the next catch would pay** (30%; G 32%): a closer candidate was cheaper
+  locally, but ranking expects the next interval to pay more:
+  - +0.072 ahead against 0.013 saved;
+  - calibrated by `catch_price`;
+  - in 20% of this class the beam's other lineages decided instead;
+- **it costs this span** (39%): mostly speed (20%), then air, timing and
+  extra hits.
+
+**2. Ten times the search changes little** (774 strong catches short by more
+than 0.08; ask 0.78, kept 0.63):
+- A candidate within 0.05 of the ask exists in 51% of pools, and in 60% with
+  10× the samples.
+- The cheapest candidate within 0.06 of the ask costs +0.09 apart from
+  strength in both pools, mostly span speed (−0.12). Closing a 0.15 shortfall
+  saves only about 0.02, so declining is right.
+- Surfaces above appear in half the pools, but their strongest candidate
+  averages 0.51.
+- Search is not the limit; this confirms the allowance diagnostics.
+
+**3. The state that decides the next catch is the arrival angle.** Within
+the same ask band (0.8 and up), the kept strength and the share of pools
+holding a near-ask candidate rise with the arrival's steepness:
+
+| arrival | kept strength | pools with a near-ask candidate |
+|---|---|---|
+| under 25° | 0.65 | 44% |
+| 25–40° | 0.73 | 64% |
+| 40–55° | 0.78 | 75% |
+| 55° or steeper | 0.80 | 80% |
+
+- Arrival speed matters less: 12–14 px/frame against 10–12 is about 0.04
+  less shortfall.
+- Close beats lose more: 0.15 short under 10 frames, against 0.07 over 20.
+- After a strong catch the next arrival is shallower: 33° after 0.6 and up,
+  against 42° after under 0.4.
+
+**Energy.** On G, catches dissipate 26 energy units per second; between
+catches the change is only −1. Rides descend 162 px/s to pay for it. The
+energy a strong catch loses does not show in the next span's speed residual
+(−0.009 to −0.016 across loss quartiles): the rides pay for it by descending.
+
+**Reading.**
+- A floor catch registers its strength best when the rider meets it
+  steeply.
+- A strong floor catch turns the rider up. Before the next beat only gravity
+  turns it back down: about 0.9° per frame at 11 px/frame, so under 20° in a
+  typical gap.
+- On dense strong passages the next arrival is therefore shallow, and the
+  next catch is weak or expensive. That one coupling explains both the "next
+  catch would pay" share and much of the "no option" share.
+- Neither more search nor reweighting changes it.
+- A structural fix makes steep arrivals cheap. Two candidates:
+  - **(a) alternating receivers:** the floor catch sends the rider up into a
+    surface above on the next beat. The rider meets it rising, which is
+    steep relative to that surface, and it turns the rider down, steep onto
+    the next floor. Each hit is a redirection, and the two cancel each
+    other's turn. This is the owner's upper/lower pairs, and why N (a prior
+    alone) could not produce them: the launch and the upper catch must be
+    planned together.
+  - **(b) steering down without a hit:** a surface above that turns the
+    rider down gently, with contact that never forms an impulse peak, so it
+    is not an event.
+
 ## November 7: re-tests after R, E (guide ends searched) and K′ (flush upper catches)
 
 - **Basis.** Both were null on the compiler before R, which forced 6

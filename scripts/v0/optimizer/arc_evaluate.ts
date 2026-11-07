@@ -183,7 +183,7 @@ function candidateFrames(s: IntervalSearch, prefixFrames: number, suffix: RawFra
 function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: CandidateGeometry, child: Engine, fragments: Fragments | undefined,
   replay: Exclude<ReturnType<typeof replayCandidate>, Rejection>, det: Detection) {
   const {ctx, options, i, frame, horizon} = s;
-  const {contacts, duration} = ctx;
+  const {duration} = ctx;
   const {state, raw} = replay;
   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;
   if (i === 0 && !raw.frames.slice(1, 4).some(f => f.sledContacts.length)) return {reason: 'startup'} as Rejection;

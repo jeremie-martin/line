@@ -1,0 +1,294 @@
+{
+ "title": "Concept films · round 2",
+ "groups": [
+  {
+   "id": "start",
+   "label": "Start here",
+   "description": "Today, the bare honest camera, and the calmest full treatment.",
+   "variants": [
+    "today",
+    "ride",
+    "graphite"
+   ]
+  },
+  {
+   "id": "all",
+   "label": "All treatments",
+   "description": "Switch at the same moment. Today is the real shipped film; the rest are drawn by the lab.",
+   "variants": [
+    "today",
+    "ride",
+    "graphite",
+    "refined",
+    "voltage",
+    "porcelain",
+    "weight",
+    "onered"
+   ]
+  },
+  {
+   "id": "energy",
+   "label": "Hit energy",
+   "description": "Today against the three most energetic treatments.",
+   "variants": [
+    "today",
+    "refined",
+    "voltage",
+    "weight"
+   ]
+  },
+  {
+   "id": "light",
+   "label": "Light and clean",
+   "description": "The three quietest looks.",
+   "variants": [
+    "graphite",
+    "porcelain",
+    "onered"
+   ]
+  },
+  {
+   "id": "other",
+   "label": "Other songs",
+   "description": "The camera on songs it was not tuned on (No Batidão, Let the World Burn, Montagem Coma). Pick one of those songs below.",
+   "variants": [
+    "ride",
+    "graphite"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: today’s camera, rainbow bars, shake, colour split and flash.",
+     "src": "../style-lab-v5/petrunko-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/petrunko-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/petrunko-graphite.mp4"
+    },
+    {
+     "id": "refined",
+     "label": "Today, refined",
+     "description": "Today’s spirit with a direction: kick into the line, split along the impact, flash. Director camera; three-colour bars.",
+     "src": "films2/petrunko-refined.mp4"
+    },
+    {
+     "id": "voltage",
+     "label": "Night voltage",
+     "description": "The drop turns to night. Trailing split and a line slice on hits; Iris; director camera.",
+     "src": "films2/petrunko-voltage.mp4"
+    },
+    {
+     "id": "porcelain",
+     "label": "Porcelain",
+     "description": "Section colours; zoom pulse and ink pressure on hits; blocks; builds through each section, releases on the downbeat.",
+     "src": "films2/petrunko-porcelain.mp4"
+    },
+    {
+     "id": "weight",
+     "label": "Weight",
+     "description": "Letterbox bars punch in with each blow, a slight roll, a kick; mirrored fork; section tones; frames every jump.",
+     "src": "films2/petrunko-weight.mp4"
+    },
+    {
+     "id": "onered",
+     "label": "One red",
+     "description": "Monochrome plus the scarf’s red. Band and accents drop out in quiet sections; the landing spot pre-inks; two locked-off shots.",
+     "src": "films2/petrunko-onered.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua",
+   "label": "Lua na Praça",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: today’s camera, rainbow bars, shake, colour split and flash.",
+     "src": "../style-lab-v5/lua-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/lua-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/lua-graphite.mp4"
+    },
+    {
+     "id": "refined",
+     "label": "Today, refined",
+     "description": "Today’s spirit with a direction: kick into the line, split along the impact, flash. Director camera; three-colour bars.",
+     "src": "films2/lua-refined.mp4"
+    },
+    {
+     "id": "voltage",
+     "label": "Night voltage",
+     "description": "The drop turns to night. Trailing split and a line slice on hits; Iris; director camera.",
+     "src": "films2/lua-voltage.mp4"
+    },
+    {
+     "id": "porcelain",
+     "label": "Porcelain",
+     "description": "Section colours; zoom pulse and ink pressure on hits; blocks; builds through each section, releases on the downbeat.",
+     "src": "films2/lua-porcelain.mp4"
+    },
+    {
+     "id": "weight",
+     "label": "Weight",
+     "description": "Letterbox bars punch in with each blow, a slight roll, a kick; mirrored fork; section tones; frames every jump.",
+     "src": "films2/lua-weight.mp4"
+    },
+    {
+     "id": "onered",
+     "label": "One red",
+     "description": "Monochrome plus the scarf’s red. Band and accents drop out in quiet sections; the landing spot pre-inks; two locked-off shots.",
+     "src": "films2/lua-onered.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: today’s camera, rainbow bars, shake, colour split and flash.",
+     "src": "../style-lab-v5/los-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/los-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/los-graphite.mp4"
+    },
+    {
+     "id": "refined",
+     "label": "Today, refined",
+     "description": "Today’s spirit with a direction: kick into the line, split along the impact, flash. Director camera; three-colour bars.",
+     "src": "films2/los-refined.mp4"
+    },
+    {
+     "id": "voltage",
+     "label": "Night voltage",
+     "description": "The drop turns to night. Trailing split and a line slice on hits; Iris; director camera.",
+     "src": "films2/los-voltage.mp4"
+    },
+    {
+     "id": "porcelain",
+     "label": "Porcelain",
+     "description": "Section colours; zoom pulse and ink pressure on hits; blocks; builds through each section, releases on the downbeat.",
+     "src": "films2/los-porcelain.mp4"
+    },
+    {
+     "id": "weight",
+     "label": "Weight",
+     "description": "Letterbox bars punch in with each blow, a slight roll, a kick; mirrored fork; section tones; frames every jump.",
+     "src": "films2/los-weight.mp4"
+    },
+    {
+     "id": "onered",
+     "label": "One red",
+     "description": "Monochrome plus the scarf’s red. Band and accents drop out in quiet sections; the landing spot pre-inks; two locked-off shots.",
+     "src": "films2/los-onered.mp4"
+    }
+   ]
+  },
+  {
+   "id": "batidao",
+   "label": "No Batidão",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Not one of the three reference songs: here to show the camera on a song it was not tuned on.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/batidao-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/batidao-graphite.mp4"
+    }
+   ]
+  },
+  {
+   "id": "burn",
+   "label": "Let the World Burn",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Not one of the three reference songs: here to show the camera on a song it was not tuned on.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/burn-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/burn-graphite.mp4"
+    }
+   ]
+  },
+  {
+   "id": "coma",
+   "label": "Montagem Coma",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Not one of the three reference songs: here to show the camera on a song it was not tuned on.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The honest camera, a little wider than round 1, pencil to ink. Nothing else: the baseline.",
+     "src": "films2/coma-ride.mp4"
+    },
+    {
+     "id": "graphite",
+     "label": "Graphite",
+     "description": "The camera breathes with the music; the ink presses at each hit with a small kick; tuning fork; whole-course opening and ending.",
+     "src": "films2/coma-graphite.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  },
+  {
+   "label": "Round 1 films",
+   "href": "/motion-gallery/video-compare.html?collection=/generated/concept-lab/round1/films.json"
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Concept lab</title>
+<link rel="stylesheet" href="./lab.css">
+</head>
+<body>
+<main>
+  <div id="stagewrap" class="stagewrap"><canvas id="stage"></canvas><div class="safezone" aria-hidden="true"><i class="b"></i><i class="r"></i></div><div id="status"></div></div>
+  <aside>
+    <div id="qprogress" class="qprogress"></div>
+    <div id="presets" class="presets"></div>
+    <div class="transport">
+      <button id="play" class="play">Play</button>
+      <button id="back" class="icon" aria-label="Back 5 seconds">−5</button>
+      <input id="seek" type="range" min="0" max="60" step="0.01" value="0" aria-label="Position">
+      <button id="fwd" class="icon" aria-label="Forward 5 seconds">+5</button>
+      <span id="time">0:00</span>
+    </div>
+    <h1 id="concept"></h1>
+    <p id="line"></p>
+    <div class="qbox">
+      <div class="qrow"><span>My pick</span><div id="qpick" class="seg"></div></div>
+      <textarea id="qnote" rows="2" placeholder="Anything else? (optional)"></textarea>
+      <textarea id="qsummary" rows="9" hidden></textarea>
+      <div class="qnav"><button id="qprev" class="tool">Back</button><button id="qcopy" class="tool" hidden>Copy answers</button><button id="qnext" class="play">Next question</button></div>
+    </div>
+    <div id="moments" class="moments"></div>
+    <div class="tools">
+      <div id="songs" class="songs"></div>
+      <span class="sep"></span>
+      <button id="loop" class="tool">Loop 4 s</button>
+      <button id="safe" class="tool">Shorts UI</button>
+      <button id="big" class="tool">Full height</button>
+    </div>
+    <button id="mixtoggle" class="mixtoggle">Mix the layers yourself</button>
+    <div id="mix" class="mix"></div>
+    <p class="hint">Tap the picture to play or pause; swipe it sideways to switch at the same moment. On a keyboard: Space, arrows, number keys.</p>
+  </aside>
+</main>
+<script type="module" src="./lab.js"></script>
+</body>
+</html>

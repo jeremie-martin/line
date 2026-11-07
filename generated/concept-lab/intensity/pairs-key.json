@@ -1,0 +1,277 @@
+[
+ {
+  "id": 1,
+  "kind": "split",
+  "both": "B",
+  "speed": "B",
+  "impact": "A",
+  "A": {
+   "song": "los",
+   "t": 4,
+   "both": 0.342,
+   "speed": 0.2676,
+   "impact": 0.41629999999999995
+  },
+  "B": {
+   "song": "los",
+   "t": 18,
+   "both": 0.3801,
+   "speed": 0.4373,
+   "impact": 0.3226
+  }
+ },
+ {
+  "id": 2,
+  "kind": "close",
+  "both": "A",
+  "speed": "A",
+  "impact": "A",
+  "A": {
+   "song": "burn",
+   "t": 10,
+   "both": 0.625,
+   "speed": 0.645,
+   "impact": 0.6051000000000001
+  },
+  "B": {
+   "song": "burn",
+   "t": 43,
+   "both": 0.3634,
+   "speed": 0.39069999999999994,
+   "impact": 0.3362
+  }
+ },
+ {
+  "id": 3,
+  "kind": "repeat",
+  "of": 7,
+  "both": "B",
+  "speed": "A",
+  "impact": "B",
+  "A": {
+   "song": "batidao",
+   "t": 37,
+   "both": 0.7545,
+   "speed": 0.6943,
+   "impact": 0.8144
+  },
+  "B": {
+   "song": "batidao",
+   "t": 25,
+   "both": 0.7555000000000001,
+   "speed": 0.6147,
+   "impact": 0.8964000000000001
+  }
+ },
+ {
+  "id": 4,
+  "kind": "clear",
+  "both": "B",
+  "speed": "B",
+  "impact": "B",
+  "A": {
+   "song": "petrunko",
+   "t": 7,
+   "both": 0.163,
+   "speed": 0.14320000000000002,
+   "impact": 0.1829
+  },
+  "B": {
+   "song": "petrunko",
+   "t": 33,
+   "both": 0.639,
+   "speed": 0.6822000000000001,
+   "impact": 0.5955
+  }
+ },
+ {
+  "id": 5,
+  "kind": "clear",
+  "both": "B",
+  "speed": "B",
+  "impact": "B",
+  "A": {
+   "song": "lua",
+   "t": 21,
+   "both": 0.10240000000000002,
+   "speed": 0.14070000000000002,
+   "impact": 0.0641
+  },
+  "B": {
+   "song": "lua",
+   "t": 4,
+   "both": 0.5197,
+   "speed": 0.42960000000000004,
+   "impact": 0.6102
+  }
+ },
+ {
+  "id": 6,
+  "kind": "across",
+  "both": "A",
+  "speed": "A",
+  "impact": "A",
+  "A": {
+   "song": "los",
+   "t": 34,
+   "both": 0.7581,
+   "speed": 0.6793000000000001,
+   "impact": 0.8366
+  },
+  "B": {
+   "song": "coma",
+   "t": 5,
+   "both": 0.4579000000000001,
+   "speed": 0.4010000000000001,
+   "impact": 0.5146999999999999
+  }
+ },
+ {
+  "id": 7,
+  "kind": "split",
+  "both": "A",
+  "speed": "B",
+  "impact": "A",
+  "A": {
+   "song": "batidao",
+   "t": 25,
+   "both": 0.7555000000000001,
+   "speed": 0.6147,
+   "impact": 0.8964000000000001
+  },
+  "B": {
+   "song": "batidao",
+   "t": 37,
+   "both": 0.7545,
+   "speed": 0.6943,
+   "impact": 0.8144
+  }
+ },
+ {
+  "id": 8,
+  "kind": "close",
+  "both": "A",
+  "speed": "A",
+  "impact": "A",
+  "A": {
+   "song": "lua",
+   "t": 13,
+   "both": 0.6085999999999999,
+   "speed": 0.5524000000000001,
+   "impact": 0.6647999999999998
+  },
+  "B": {
+   "song": "lua",
+   "t": 29,
+   "both": 0.429,
+   "speed": 0.32270000000000004,
+   "impact": 0.535
+  }
+ },
+ {
+  "id": 9,
+  "kind": "close",
+  "both": "A",
+  "speed": "A",
+  "impact": "A",
+  "A": {
+   "song": "batidao",
+   "t": 15,
+   "both": 0.7163999999999999,
+   "speed": 0.6128999999999999,
+   "impact": 0.8198000000000001
+  },
+  "B": {
+   "song": "batidao",
+   "t": 7,
+   "both": 0.4178,
+   "speed": 0.3047,
+   "impact": 0.5314
+  }
+ },
+ {
+  "id": 10,
+  "kind": "close",
+  "both": "A",
+  "speed": "A",
+  "impact": "A",
+  "A": {
+   "song": "coma",
+   "t": 18,
+   "both": 0.6048,
+   "speed": 0.5589,
+   "impact": 0.6502999999999999
+  },
+  "B": {
+   "song": "coma",
+   "t": 37,
+   "both": 0.3726999999999999,
+   "speed": 0.2965,
+   "impact": 0.4484
+  }
+ },
+ {
+  "id": 11,
+  "kind": "across",
+  "both": "B",
+  "speed": "B",
+  "impact": "B",
+  "A": {
+   "song": "burn",
+   "t": 24,
+   "both": 0.5678,
+   "speed": 0.6152000000000001,
+   "impact": 0.521
+  },
+  "B": {
+   "song": "lua",
+   "t": 38,
+   "both": 0.8182,
+   "speed": 0.6811,
+   "impact": 0.9551999999999999
+  }
+ },
+ {
+  "id": 12,
+  "kind": "close",
+  "both": "B",
+  "speed": "B",
+  "impact": "B",
+  "A": {
+   "song": "petrunko",
+   "t": 18,
+   "both": 0.4758,
+   "speed": 0.4732,
+   "impact": 0.47850000000000004
+  },
+  "B": {
+   "song": "petrunko",
+   "t": 43,
+   "both": 0.6734000000000001,
+   "speed": 0.7674999999999998,
+   "impact": 0.5785
+  }
+ },
+ {
+  "id": 13,
+  "kind": "repeat",
+  "of": 2,
+  "both": "B",
+  "speed": "B",
+  "impact": "B",
+  "A": {
+   "song": "burn",
+   "t": 43,
+   "both": 0.3634,
+   "speed": 0.39069999999999994,
+   "impact": 0.3362
+  },
+  "B": {
+   "song": "burn",
+   "t": 10,
+   "both": 0.625,
+   "speed": 0.645,
+   "impact": 0.6051000000000001
+  }
+ }
+]

@@ -1,0 +1,254 @@
+{
+ "title": "Concept films · round 3",
+ "groups": [
+  {
+   "id": "start",
+   "label": "Start here",
+   "description": "Today, the closest upgrade of it, and the look I would start from.",
+   "variants": [
+    "today",
+    "plus",
+    "scarf"
+   ]
+  },
+  {
+   "id": "all",
+   "label": "All looks",
+   "description": "Switch at the same moment. Today is the real shipped film.",
+   "variants": [
+    "today",
+    "ride",
+    "plus",
+    "scarf",
+    "ridge",
+    "night",
+    "shade"
+   ]
+  },
+  {
+   "id": "other",
+   "label": "Other songs",
+   "description": "Pick No Batidão, Let the World Burn or Montagem Coma below.",
+   "variants": [
+    "ride",
+    "scarf"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/petrunko-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/petrunko-ride.mp4"
+    },
+    {
+     "id": "plus",
+     "label": "Today+",
+     "description": "Today’s bars and refined hits, with pencil to ink, the Calm camera and whole-course ends.",
+     "src": "films3/petrunko-plus.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/petrunko-scarf.mp4"
+    },
+    {
+     "id": "ridge",
+     "label": "Ridge",
+     "description": "The course as a mountain that inks as you ride. Clean-rider hits, a tone following impact rate.",
+     "src": "films3/petrunko-ridge.mp4"
+    },
+    {
+     "id": "night",
+     "label": "Night",
+     "description": "The drop turns to night. Iris, held hits.",
+     "src": "films3/petrunko-night.mp4"
+    },
+    {
+     "id": "shade",
+     "label": "Shade",
+     "description": "On strong hits, everything beyond the struck line drops in tone. Red blocks on porcelain.",
+     "src": "films3/petrunko-shade.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua",
+   "label": "Lua na Praça",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/lua-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/lua-ride.mp4"
+    },
+    {
+     "id": "plus",
+     "label": "Today+",
+     "description": "Today’s bars and refined hits, with pencil to ink, the Calm camera and whole-course ends.",
+     "src": "films3/lua-plus.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/lua-scarf.mp4"
+    },
+    {
+     "id": "ridge",
+     "label": "Ridge",
+     "description": "The course as a mountain that inks as you ride. Clean-rider hits, a tone following impact rate.",
+     "src": "films3/lua-ridge.mp4"
+    },
+    {
+     "id": "night",
+     "label": "Night",
+     "description": "The drop turns to night. Iris, held hits.",
+     "src": "films3/lua-night.mp4"
+    },
+    {
+     "id": "shade",
+     "label": "Shade",
+     "description": "On strong hits, everything beyond the struck line drops in tone. Red blocks on porcelain.",
+     "src": "films3/lua-shade.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/los-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/los-ride.mp4"
+    },
+    {
+     "id": "plus",
+     "label": "Today+",
+     "description": "Today’s bars and refined hits, with pencil to ink, the Calm camera and whole-course ends.",
+     "src": "films3/los-plus.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/los-scarf.mp4"
+    },
+    {
+     "id": "ridge",
+     "label": "Ridge",
+     "description": "The course as a mountain that inks as you ride. Clean-rider hits, a tone following impact rate.",
+     "src": "films3/los-ridge.mp4"
+    },
+    {
+     "id": "night",
+     "label": "Night",
+     "description": "The drop turns to night. Iris, held hits.",
+     "src": "films3/los-night.mp4"
+    },
+    {
+     "id": "shade",
+     "label": "Shade",
+     "description": "On strong hits, everything beyond the struck line drops in tone. Red blocks on porcelain.",
+     "src": "films3/los-shade.mp4"
+    }
+   ]
+  },
+  {
+   "id": "batidao",
+   "label": "No Batidão",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Here to show the look on another song.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/batidao-ride.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/batidao-scarf.mp4"
+    }
+   ]
+  },
+  {
+   "id": "burn",
+   "label": "Let the World Burn",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Here to show the look on another song.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/burn-ride.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/burn-scarf.mp4"
+    }
+   ]
+  },
+  {
+   "id": "coma",
+   "label": "Montagem Coma",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music. Here to show the look on another song.",
+   "videos": [
+    {
+     "id": "ride",
+     "label": "Ride",
+     "description": "The Calm camera, 15 % closer, pencil to ink. Nothing else: the baseline.",
+     "src": "films3/coma-ride.mp4"
+    },
+    {
+     "id": "scarf",
+     "label": "Scarf",
+     "description": "One red on the tuning fork, standing until a clearly stronger hit moves it. Held hits. White.",
+     "src": "films3/coma-scarf.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  },
+  {
+   "label": "Round 2 films",
+   "href": "/motion-gallery/video-compare.html?collection=/generated/concept-lab/round2/films2.json"
+  }
+ ]
+}

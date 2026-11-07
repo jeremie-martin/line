@@ -26,7 +26,8 @@
     "tools/measure/select_pairs.ts", "tools/measure/visibility/*.ts", "tools/measure/motion_check.ts", "tools/measure/survival_envelope.ts",
     "tools/measure/observe.ts", "tools/measure/measures.ts",
     "tools/music/*.ts",
-    "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts"
+    "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts",
+    "generated/concept-lab/lab.js", "generated/concept-lab/round*/lab.js", "generated/concept-lab/*.mjs", "generated/concept-lab/intensity/*.mjs"
   ],
   "assets": [
     "unpacked/**",
@@ -34,7 +35,9 @@
     "remotion/src/**",
     "vendor/**",
     "vitest.config.ts",
-    "scripts/types/*.d.ts"
+    "scripts/types/*.d.ts",
+    "generated/concept-lab/dist/**",
+    "generated/concept-lab/agents/**"
   ],
   "assetsComment": "Loaded by path at runtime (browser bundle, Line Rider app mirror, Remotion compositions) or by tooling; not import-reachable."
 }

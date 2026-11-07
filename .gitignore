@@ -1,7 +1,9 @@
 node_modules
 
 # Derived artifacts (reproducible): compiler outputs, studies, renders, caches
-generated/
+generated/*
+# except the concept lab's source (pages, code, analyses, notes); its renders stay ignored by its own .gitignore
+!generated/concept-lab/
 shakedown/
 coverage/
 .cache/

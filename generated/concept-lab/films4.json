@@ -1,0 +1,333 @@
+{
+ "title": "Concept films · round 4",
+ "groups": [
+  {
+   "id": "looks",
+   "label": "The four looks",
+   "description": "Switch at the same moment. Watch at least one all the way through.",
+   "variants": [
+    "paper",
+    "hokusai",
+    "waterline",
+    "black"
+   ]
+  },
+  {
+   "id": "today",
+   "label": "Against today",
+   "description": "On Petrunko, Lua and Los Voltaje, the real shipped film is here too.",
+   "variants": [
+    "today",
+    "paper",
+    "hokusai",
+    "waterline",
+    "black"
+   ]
+  },
+  {
+   "id": "xray",
+   "label": "X-ray",
+   "description": "After the blind test: does the amber follow what you feel?",
+   "variants": [
+    "xray",
+    "paper"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/petrunko-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/petrunko-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/petrunko-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/petrunko-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/petrunko-black.mp4"
+    },
+    {
+     "id": "xray",
+     "label": "X-ray",
+     "description": "A test, not a look: amber is the intensity metric, and the curve on top is the whole song.",
+     "src": "films4/petrunko-xray.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua",
+   "label": "Lua na Praça",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/lua-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/lua-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/lua-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/lua-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/lua-black.mp4"
+    },
+    {
+     "id": "xray",
+     "label": "X-ray",
+     "description": "A test, not a look: amber is the intensity metric, and the curve on top is the whole song.",
+     "src": "films4/lua-xray.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/los-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/los-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/los-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/los-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/los-black.mp4"
+    },
+    {
+     "id": "xray",
+     "label": "X-ray",
+     "description": "A test, not a look: amber is the intensity metric, and the curve on top is the whole song.",
+     "src": "films4/los-xray.mp4"
+    }
+   ]
+  },
+  {
+   "id": "batidao",
+   "label": "No Batidão",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/batidao-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/batidao-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/batidao-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/batidao-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "burn",
+   "label": "Let the World Burn",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/burn-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/burn-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/burn-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/burn-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "coma",
+   "label": "Montagem Coma",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/coma-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/coma-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/coma-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/coma-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "tomada",
+   "label": "Tomada (super slowed)",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/tomada-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/tomada-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/tomada-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/tomada-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "seam",
+   "label": "The loop",
+   "description": "A Short replays by itself: the last 4 seconds of Los Voltaje running into its first 4. Does it read as a loop?",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "White, graphite and one red on the fork, Held, a whisper of tone, Night on the drop, a ring at the end.",
+     "src": "films4/seam-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, one accent on the bars, a sun that swells with intensity, the zoom easing out when quiet.",
+     "src": "films4/seam-hokusai.mp4"
+    },
+    {
+     "id": "waterline",
+     "label": "Waterline",
+     "description": "White and Klein blue, no visualiser: the mountain surfaces as the ride falls.",
+     "src": "films4/seam-waterline.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The first whole film in the dark, with one breath of zoom on songs that have a real quiet.",
+     "src": "films4/seam-black.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  },
+  {
+   "label": "Round 3 films",
+   "href": "/motion-gallery/video-compare.html?collection=/generated/concept-lab/films3.json"
+  }
+ ]
+}

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round two</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--accent:#2b59d6}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--accent:#8fa9ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+table{border-collapse:collapse;font-size:14px;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--soft);font-weight:500}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Visual direction · round two</p>
+  <h1>An honest camera, and a family of hits</h1>
+  <p class="lead">Built from your answers: pencil → ink and the whole-course bookends stay at the centre. The camera is rebuilt so it can never fake the rider’s motion, and then given real camera ideas on top. Hits get a family in today’s spirit, each with a direction. Nothing is ranked or capped by “top six”.</p>
+
+  <a class="card primary" href="./?q=1"><span class="go">→</span><b>Eight questions</b><span>About fifteen minutes, made for the phone. Several questions let you keep any number of options, since different songs may want different looks. Chips under the picture jump to other songs and moments. Copy the answers to me at the end.</span></a>
+  <a class="card" href="/motion-gallery/video-compare.html?collection=/generated/concept-lab/round2/films2.json"><span class="go">→</span><b>Watch the films</b><span>Seven full treatments on each of the three songs, plus the camera on three songs it was never tuned on. “Today” is the real shipped film. Start with the “Start here” group.</span></a>
+  <a class="card" href="./"><span class="go">→</span><b>Play freely</b><span>The live lab, now with six songs. Every layer is mixable; “Shorts UI” now matches your iPhone screenshots.</span></a>
+
+  <h2>What changed from your answers</h2>
+  <ul>
+    <li><strong>The fake climb is fixed at its cause.</strong> Round 1’s camera smoothed the path symmetrically in time, so it reacted to a landing before it happened and kept sinking after it. The rider slid up to 250 px up the screen while falling. The new camera is defined by where the rider sits on screen, under one rule: it may lag the rider, or stop, but never move against it.</li>
+    <li><strong>Today’s camera does it too, just smaller.</strong> Measured on all six songs, today’s shipped camera has 77–125 small fake slips a minute (up to about 130 px), round 1 had 99–153 (up to 270 px), and the new camera has none. The first question shows a looser “operator” camera next to the strict one, because only your eye can say where the threshold really is.</li>
+    <li><strong>Camera ideas, all automatic</strong> (the spec’s zoom keyframes are ignored). The camera can breathe with the music, build through a section and release on the downbeat, frame each jump so the landing shows, lean into strong hits, cut in on a drop, look back over the ink in quiet gaps, or hold a locked-off shot. Every song has 5–10 named sections in all 21 specs, so sections are reliable everywhere.</li>
+    <li><strong>Hits:</strong> stamps, bursts, the inversion and the top-six logic are gone. A shared strength scale drives everything, so a song full of strong hits gets many strong accents. Bundles in today’s spirit: <em>refined</em> (a kick into the line, a split along the impact, a flash), <em>graphite</em> (the ink presses), <em>voltage</em> (a trailing split, a line slice), <em>porcelain</em> (a zoom pulse), and <em>weight</em> (letterbox bars punch in, a roll).</li>
+    <li><strong>Lower band:</strong> Codex’s three-colour bars and blocks are back, the tuning fork is larger with a mirrored version, and all of them sit above the comment bubble.</li>
+    <li><strong>Background follows the song:</strong> tones, pale colours per section, or night for the song’s main drop (a cut on the downbeat).</li>
+    <li><strong>Opening and ending:</strong> the coloured dots are gone, the tiny rider gets a ring, and the ending draws the ride’s own path, so the course reads as one stroke. The dashed look in places is real geometry: those rails are separate short pieces, and today’s film shows them too.</li>
+  </ul>
+
+  <h2>From your earlier feedback</h2>
+  <p class="small" style="margin-top:0">At your suggestion, an agent re-read the whole Codex session for the intent behind your feedback, not its letter. Its summary: <em>rest clean, hit bold, recover fast</em>. Softness reads as a bug, you prefer contrast to darkness, the thin dark stroke belongs to the track, and what survives is built from the ride’s own data. Four ideas from it are prototyped (question 8 and “One red”):</p>
+  <ul>
+    <li><strong>Drop-outs:</strong> in quiet sections the band and accents leave, and they all return on the downbeat. Arrangers make a drop by removing parts first.</li>
+    <li><strong>The landing pre-inks:</strong> while the rider flies, the spot where it will land inks itself in.</li>
+    <li><strong>Locked-off shots:</strong> once or twice a song, the camera stops dead and the rider crosses a composed frame. This is the most honest camera there is.</li>
+    <li><strong>One red:</strong> monochrome plus the scarf’s red.</li>
+  </ul>
+  <details><summary>A likely cause of “slightly blurry”, tested</summary>
+    <p class="small">YouTube video stores colour at half resolution (4:2:0). Encoding a lab frame at a YouTube-like 3 Mbps, thin coloured strokes lose about 13 % of their colour from that alone, against about 1 % with full colour resolution. Black strokes are unaffected. That fits the colour themes reading as blurry and your wish for blacker lines. The rule that follows: fine detail in black, colour only in shapes at least about 4 px wide.</p>
+  </details>
+  <details><summary>Bigger ideas, not built yet</summary>
+    <ul class="small">
+      <li><strong>A visual score per song.</strong> The thing you loved in the specs (choosing a lead voice, setting up a pattern, then breaking it) has never reached the visuals: every round reacts the same way to every hit. A small hand-authored cue file per song could choose which source gets accents in each section, and where the pattern breaks.</li>
+      <li><strong>A window that changes shape.</strong> The ride is framed with a margin where the band lives, and goes full-bleed on the drop.</li>
+      <li><strong>Route-map bookends</strong> with section names along the course. This involves text, so it is parked.</li>
+    </ul>
+  </details>
+
+  <h2>How it was made</h2>
+  <p class="small">Three agents helped this round: one for camera and hit ideas (it independently found the same cause of the fake climb, and sharpened the honesty rule), one to re-read your Codex feedback, and one to review the whole thing at phone size. Their notes are in <code>generated/concept-lab/agents/</code>.</p>
+  <p class="small">Caveats: the lab is a browser canvas with the native rider artwork and replay, not Remotion, so a chosen look still needs porting. The honesty measure is my definition and has not been checked against your eye; question 1 is that check. Everything was checked muted, at phone size in a browser, not on your phone. Nothing in production has changed, and nothing is committed.</p>
+  <p class="small"><a href="../round1/morning.html">Round 1</a> is still available, unchanged.</p>
+</main>
+</body>
+</html>

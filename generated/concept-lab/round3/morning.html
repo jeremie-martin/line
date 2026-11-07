@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round three</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--surface:#fcfcfb}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--surface:#1a1a19}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:14px;font-weight:600;margin-bottom:2px}
+figure p{font-size:13px;color:var(--soft);margin:0 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--soft);margin:0 0 4px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+svg{display:block;width:100%;height:auto;touch-action:pan-y}
+svg text{font:12px system-ui,sans-serif;fill:var(--soft)}
+#tip{font-size:13px;color:var(--soft);min-height:1.5em;margin:4px 0 0;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;font-size:14px;width:100%;font-variant-numeric:tabular-nums;margin:6px 0}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--soft);font-weight:500}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Visual direction · round three</p>
+  <h1>The camera, from the official player outward</h1>
+  <p class="lead">Three things stood out in your answers: the camera is unsolved and the left-pinned rider feels wrong; visuals should follow the music and the ride, not section labels; and every idea has its own question of what drives it. This round starts from what the official player actually does.</p>
+
+  <a class="card primary" href="./?q=1"><span class="go">→</span><b>Eight questions</b><span>About fifteen minutes on the phone. Most are short, and each option is a real alternative. Copy the answers to me at the end.</span></a>
+  <a class="card" href="/motion-gallery/video-compare.html?collection=/generated/concept-lab/films3.json"><span class="go">→</span><b>Watch the films</b><span>Six looks plus the shipped film on three songs, and two looks on three other songs. Open on “Start here”.</span></a>
+  <a class="card" href="./"><span class="go">→</span><b>Play freely</b><span>The live lab: six songs, every layer mixable.</span></a>
+
+  <h2>What the official camera really does</h2>
+  <p>You remembered it well. It is a soft dead zone covering about 40 % of the frame: the camera barely moves while the rider is inside, and the rider pushes it along at the edge. So a fast rider sits right of centre, and lower when falling. Inside the zone you see the rider’s true motion, which is probably why it feels natural.</p>
+  <ul>
+    <li><strong>The rider’s width position hardly moves:</strong> 60–62 % of the frame, because speed is nearly the same everywhere (median 360–430 units/s across 22 rides). So speed can’t drive much on its own. What moves is the height.</li>
+    <li><strong>You were right about Operator.</strong> The rider climbed the screen in straight ramps, then dropped: a sawtooth. My slip count couldn’t see that, because it counts events, not shape. A return now curves and settles, which alone cut Tamed’s slips by about two thirds.</li>
+  </ul>
+  <figure>
+    <figcaption>Rider height on screen, Los Voltaje, 24–34 s</figcaption>
+    <p>Lower on the chart is lower in the frame. All but Today are 15 % closer.</p>
+    <div class="legend" aria-hidden="true"><span><i style="background:var(--s1)"></i>Operator (round 2)</span><span><i style="background:var(--s2)"></i>Today</span><span><i style="background:var(--s4)"></i>Tamed (new)</span><span><i style="background:var(--s3)"></i>Calm (new)</span></div>
+    <svg id="chart" viewBox="0 0 600 250" role="img" aria-label="Line chart of rider height on screen for three cameras. Operator shows a sawtooth between 33 and 40 percent of the height; Today moves between 37 and 47 percent; Tamed follows Today with softer edges; Calm stays between 38 and 42 percent."></svg>
+    <p id="tip">Move across the chart to read values.</p>
+    <details style="margin:8px 0 0;border:0;padding:0"><summary style="font-weight:500;font-size:13px;color:var(--soft)">As a table</summary>
+      <table id="tab"><thead><tr><th>Time</th><th>Operator</th><th>Today</th><th>Tamed</th><th>Calm</th></tr></thead><tbody></tbody></table></details>
+  </figure>
+
+  <h2>What changed</h2>
+  <ul>
+    <li><strong>New cameras:</strong> the rider sits right of centre. Moving with its real motion is free, so a fall looks like a fall, and the return is gentle. The looks use Calm, the stillest moving option; question 1 checks that choice.</li>
+    <li><strong>Zoom is a slow tide, or nothing.</strong> Impact rate only stops pumping at about 3 seconds of smoothing, which is why last round’s zooms felt too fast. Tides now move at most 4 % a second and never while airborne.</li>
+    <li><strong>Sections no longer drive anything.</strong> Tones follow a continuous signal, and you can compare the two: impact rate and loudness agree only partly (correlation 0.69).</li>
+    <li><strong>Opening and ending work with any camera.</strong> The view blends between the overview and the camera in a way that keeps the rider in frame by construction. The path line is gone.</li>
+    <li><strong>New to try:</strong> strength as duration (“Held”), a red that rests until a clearly stronger hit earns it (“Standing”), the Ridge (the course as a mountain, inking as you ride), and the Shade (a deliberate risk).</li>
+  </ul>
+
+  <details><summary>More detail</summary>
+    <ul class="small">
+      <li><strong>Night needs a human.</strong> Two automatic drop detectors failed across 22 rides, and both missed Petrunko’s real drop. So Night here is one cue per song, which I picked by hand from the spec’s own structure. That uses sections as an authoring aid, as you described. All six songs have one here to compare, but Petrunko’s, for example, has no rise in loudness, so whether a song deserves Night is a judgement call.</li>
+      <li><strong>Why strong hits don’t stand out enough:</strong> the kick was only 1.27× larger on a strong hit than a median one, and half the hits lost about 15 % of their peak to frame timing. “Held” fixes both, and nothing runs past 0.25 s.</li>
+      <li><strong>Gone:</strong> ink pressure, the zoom pulse, letterbox bars, pre-ink, section colours, the mirrored fork, drop-outs, locked-off shots and the director zooms.</li>
+      <li><strong>Remotion:</strong> noted. This canvas could become the renderer itself; we can decide that once the look settles.</li>
+    </ul>
+  </details>
+
+  <h2>How it was made</h2>
+  <p class="small">Two agents helped: one proposed the band, red and hit ideas, one reviewed everything at phone size before I rendered any films, and caught several problems. Their notes are in <code>generated/concept-lab/agents/</code>.</p>
+  <p class="small">Caveats: nothing has been checked on your phone or with sound on. Curves and counts are guardrails, not proof: the motion judgement is yours. Production is unchanged and nothing is committed.</p>
+  <p class="small"><a href="../round2/morning.html">Round 2</a> and <a href="../round1/morning.html">round 1</a> are still available, unchanged.</p>
+</main>
+<script>
+const D={"t":[24.0,24.05,24.1,24.15,24.2,24.25,24.3,24.35,24.4,24.45,24.5,24.55,24.6,24.65,24.7,24.75,24.8,24.85,24.9,24.95,25.0,25.05,25.1,25.15,25.2,25.25,25.3,25.35,25.4,25.45,25.5,25.55,25.6,25.65,25.7,25.75,25.8,25.85,25.9,25.95,26.0,26.05,26.1,26.15,26.2,26.25,26.3,26.35,26.4,26.45,26.5,26.55,26.6,26.65,26.7,26.75,26.8,26.85,26.9,26.95,27.0,27.05,27.1,27.15,27.2,27.25,27.3,27.35,27.4,27.45,27.5,27.55,27.6,27.65,27.7,27.75,27.8,27.85,27.9,27.95,28.0,28.05,28.1,28.15,28.2,28.25,28.3,28.35,28.4,28.45,28.5,28.55,28.6,28.65,28.7,28.75,28.8,28.85,28.9,28.95,29.0,29.05,29.1,29.15,29.2,29.25,29.3,29.35,29.4,29.45,29.5,29.55,29.6,29.65,29.7,29.75,29.8,29.85,29.9,29.95,30.0,30.05,30.1,30.15,30.2,30.25,30.3,30.35,30.4,30.45,30.5,30.55,30.6,30.65,30.7,30.75,30.8,30.85,30.9,30.95,31.0,31.05,31.1,31.15,31.2,31.25,31.3,31.35,31.4,31.45,31.5,31.55,31.6,31.65,31.7,31.75,31.8,31.85,31.9,31.95,32.0,32.05,32.1,32.15,32.2,32.25,32.3,32.35,32.4,32.45,32.5,32.55,32.6,32.65,32.7,32.75,32.8,32.85,32.9,32.95,33.0,33.05,33.1,33.15,33.2,33.25,33.3,33.35,33.4,33.45,33.5,33.55,33.6,33.65,33.7,33.75,33.8,33.85,33.9,33.95],"operator":[37.5,37.3,37.0,36.8,36.6,36.3,36.1,35.9,35.8,36.6,36.6,36.4,36.2,35.9,35.7,35.5,35.2,35.0,34.8,34.5,34.3,34.1,33.8,33.6,33.7,34.0,34.3,35.0,35.9,37.3,38.5,38.4,38.1,37.9,37.7,37.4,37.2,37.0,36.7,36.8,37.3,37.1,36.9,36.6,36.4,36.2,35.9,35.7,35.6,36.3,37.4,37.3,36.9,36.7,36.5,36.2,36.0,35.8,35.5,35.3,35.7,36.1,35.8,35.5,35.3,35.0,34.8,34.6,34.3,34.1,33.9,33.6,33.4,33.2,33.6,34.5,35.3,35.6,35.6,35.7,36.2,37.2,38.5,38.8,38.6,38.4,38.1,37.9,37.7,37.4,37.2,37.0,36.7,36.5,36.3,36.0,35.8,35.6,35.3,35.3,35.9,36.9,38.3,38.7,38.5,38.2,38.0,37.8,37.5,37.3,37.0,37.7,39.2,39.9,39.6,39.4,39.2,38.9,38.7,38.4,38.2,38.0,38.5,39.1,38.8,38.5,38.2,37.9,37.7,37.5,37.2,37.2,38.1,39.4,39.4,38.4,37.6,37.2,36.9,36.7,36.4,36.9,37.9,39.0,39.1,38.2,37.1,36.5,36.3,36.1,35.8,35.6,35.4,35.1,34.9,34.7,34.7,35.2,35.6,35.9,36.2,36.6,37.2,38.2,39.4,39.7,39.4,39.2,39.0,38.7,38.5,38.3,38.0,38.7,40.1,40.4,40.1,39.9,39.7,39.4,39.2,38.9,38.7,38.5,39.4,40.1,39.3,38.6,38.2,37.9,37.7,37.5,37.2,37.0,37.8,39.0,38.9,37.8,36.8,36.4],"today":[43.6,43.2,43.0,43.1,43.3,43.5,43.8,44.0,44.3,44.5,43.6,42.9,42.6,42.5,42.6,42.8,43.0,43.3,43.6,44.1,45.3,46.1,46.4,46.6,46.7,46.9,47.0,47.1,47.2,47.3,46.9,45.8,45.0,44.7,44.7,44.8,44.9,45.1,45.3,45.5,45.0,43.9,43.4,43.2,43.2,43.4,43.5,43.8,44.0,44.3,44.3,42.7,41.7,41.4,41.4,41.5,41.8,42.1,42.5,42.8,43.2,42.9,41.9,41.2,41.5,41.9,42.4,42.8,43.2,43.6,43.9,44.3,45.2,46.1,46.5,46.7,46.6,46.4,46.1,46.1,46.1,46.2,46.1,45.1,43.6,42.8,42.9,43.0,43.2,43.5,43.7,44.0,45.2,46.1,46.4,46.6,46.7,46.9,47.0,47.1,47.2,47.3,47.4,46.4,45.6,45.2,45.2,45.2,45.4,45.5,45.7,45.8,46.1,44.9,43.6,42.7,42.5,42.6,42.8,43.0,43.3,43.6,43.9,43.4,42.0,40.9,40.3,40.1,40.7,41.4,42.0,42.6,43.1,43.4,42.1,40.6,39.4,38.7,38.9,39.6,40.3,41.1,41.8,42.4,41.1,39.7,38.5,37.7,37.9,38.4,39.1,39.9,40.6,41.4,42.3,44.1,45.3,45.9,46.1,46.2,46.3,46.5,46.6,46.7,46.8,45.8,45.1,44.8,44.8,44.9,45.0,45.2,45.4,45.6,45.7,44.4,43.2,42.5,42.1,42.0,42.3,42.8,43.5,44.0,44.4,43.5,41.7,40.5,39.7,39.5,40.0,40.8,41.5,42.2,42.8,43.1,41.8,40.2,39.0,38.3],"tamed":[43.7,43.4,43.2,43.0,42.9,42.9,42.8,42.8,42.8,42.8,42.6,42.3,42.1,42.0,41.9,41.8,41.8,41.9,42.3,42.9,43.6,44.1,44.5,44.8,44.9,45.1,45.2,45.4,45.4,45.4,45.4,45.3,45.1,44.9,44.8,44.7,44.6,44.6,44.5,44.5,44.3,44.1,43.8,43.5,43.4,43.2,43.1,43.1,43.1,43.0,42.8,42.5,42.3,42.0,41.7,41.5,41.4,41.4,41.3,41.3,41.3,41.1,40.9,40.6,40.5,40.6,40.8,41.2,41.6,41.9,42.4,42.9,43.6,44.2,44.6,44.9,44.9,44.9,44.9,44.9,44.9,44.9,44.8,44.6,44.3,44.0,43.8,43.6,43.4,43.3,43.3,43.4,43.9,44.3,44.6,44.8,45.0,45.1,45.2,45.4,45.5,45.5,45.5,45.4,45.3,45.2,45.1,45.0,44.9,44.9,44.9,44.8,44.8,44.6,44.3,44.0,43.7,43.4,43.3,43.1,43.0,43.0,42.9,42.6,42.3,42.0,41.8,41.5,41.3,41.3,41.3,41.5,41.5,41.4,40.8,39.8,39.0,38.6,38.5,38.9,39.4,39.9,40.1,40.0,39.3,38.2,37.1,36.7,36.9,37.5,38.3,38.9,39.6,40.4,41.4,42.5,43.3,43.9,44.3,44.5,44.7,44.9,45.0,45.1,45.1,45.0,44.9,44.8,44.7,44.6,44.5,44.5,44.5,44.5,44.4,44.1,43.9,43.6,43.3,43.0,42.9,42.8,42.8,42.8,42.8,42.5,41.7,41.0,40.6,40.4,40.3,40.3,40.6,40.9,41.0,40.9,40.3,39.2,38.2,37.9],"calm":[41.6,41.5,41.4,41.3,41.3,41.3,41.2,41.2,41.2,41.2,41.1,41.0,41.0,40.9,40.8,40.8,40.8,40.8,40.9,41.2,41.5,41.7,41.9,42.0,42.1,42.1,42.2,42.3,42.3,42.3,42.3,42.2,42.2,42.1,42.1,42.0,42.0,42.0,42.0,41.9,41.9,41.8,41.7,41.6,41.5,41.5,41.4,41.4,41.4,41.3,41.3,41.1,41.0,40.8,40.8,40.7,40.6,40.6,40.6,40.6,40.6,40.5,40.4,40.3,40.3,40.2,40.3,40.4,40.6,40.7,40.9,41.2,41.5,41.7,41.9,42.0,42.1,42.1,42.1,42.1,42.0,42.0,42.0,41.9,41.8,41.7,41.6,41.5,41.5,41.4,41.4,41.4,41.6,41.8,41.9,42.0,42.1,42.1,42.2,42.3,42.3,42.3,42.3,42.3,42.2,42.2,42.2,42.1,42.1,42.1,42.1,42.1,42.0,42.0,41.8,41.7,41.6,41.5,41.4,41.4,41.3,41.3,41.2,41.1,41.0,40.8,40.7,40.6,40.5,40.5,40.5,40.5,40.6,40.5,40.0,39.0,38.3,38.1,38.4,38.8,39.3,39.6,39.8,39.7,39.0,38.2,37.7,37.6,38.0,38.4,38.9,39.2,39.6,40.0,40.4,40.9,41.3,41.6,41.8,41.9,42.0,42.0,42.1,42.1,42.1,42.1,42.1,42.0,42.0,42.0,41.9,41.9,41.9,41.9,41.9,41.8,41.6,41.5,41.4,41.3,41.2,41.2,41.2,41.2,41.1,41.0,40.2,39.5,39.2,39.2,39.3,39.6,39.9,40.1,40.2,40.2,39.6,38.6,38.0,37.9]};
+const svg=document.getElementById('chart'),NS='http://www.w3.org/2000/svg',X0=38,X1=566,Y0=14,Y1=222;
+const all=[...D.operator,...D.today,...D.tamed,...D.calm],lo=Math.floor(Math.min(...all)/5)*5,hi=Math.ceil(Math.max(...all)/5)*5;
+const x=t=>X0+(t-24)/10*(X1-X0),y=v=>Y0+(v-lo)/(hi-lo)*(Y1-Y0);
+const el=(n,a)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);svg.append(e);return e;};
+for(let v=lo;v<=hi;v+=5){el('line',{x1:X0,x2:X1,y1:y(v),y2:y(v),stroke:'var(--line)','stroke-width':1});el('text',{x:X0-6,y:y(v)+4,'text-anchor':'end'}).textContent=v+'%';}
+for(let t=24;t<=34;t+=2)el('text',{x:x(t),y:242,'text-anchor':'middle'}).textContent=t+' s';
+const S=[['operator','--s1','Operator'],['today','--s2','Today'],['tamed','--s4','Tamed'],['calm','--s3','Calm']];
+for(const [k,c] of S)el('path',{d:D[k].map((v,i)=>(i?'L':'M')+x(D.t[i]).toFixed(1)+' '+y(v).toFixed(1)).join(''),fill:'none',stroke:`var(${c})`,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'});
+const lab=[['operator',28.1,-9],['today',25.45,17],['calm',26.6,-9]];
+for(const [k,t,d] of lab){const i=Math.round((t-24)/0.05);el('text',{x:x(t),y:y(D[k][i])+d,'text-anchor':'middle'}).textContent=S.find(s=>s[0]===k)[2];}
+const cur=el('line',{x1:0,x2:0,y1:Y0,y2:Y1,stroke:'var(--soft)','stroke-width':1,opacity:0}),dots=S.map(([k,c])=>el('circle',{r:4,fill:`var(${c})`,stroke:'var(--surface)','stroke-width':2,opacity:0}));
+const tip=document.getElementById('tip'),show=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*600,i=Math.max(0,Math.min(D.t.length-1,Math.round((px-X0)/(X1-X0)*(D.t.length-1)))),t=D.t[i];
+  cur.setAttribute('x1',x(t));cur.setAttribute('x2',x(t));cur.setAttribute('opacity',.6);S.forEach(([k],j)=>{dots[j].setAttribute('cx',x(t));dots[j].setAttribute('cy',y(D[k][i]));dots[j].setAttribute('opacity',1);});
+  tip.textContent=`${t.toFixed(1)} s · Operator ${D.operator[i]}% · Today ${D.today[i]}% · Tamed ${D.tamed[i]}% · Calm ${D.calm[i]}%`;};
+svg.addEventListener('pointermove',show);svg.addEventListener('pointerdown',show);
+const b=document.querySelector('#tab tbody');for(let i=0;i<D.t.length;i+=20){const r=b.insertRow();[D.t[i]+' s',D.operator[i]+'%',D.today[i]+'%',D.tamed[i]+'%',D.calm[i]+'%'].forEach(v=>r.insertCell().textContent=v);}
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Renders, screenshots and regenerable data stay out of git. The source, analyses and notes are tracked.
+films*/
+!films*.json
+!films*.sh
+fourup/
+data/
+shots*/
+generated/
+node_modules/
+*.png
+*.npy
+!analysis/*.png
+!timing/*.png
+!agents/round4-ideas/stills/*.png
+agents/*/shots/
+agents/*/frames/
+# scratch from earlier rounds
+lab.v1.js
+dbg.mjs
+intensity/dump.json

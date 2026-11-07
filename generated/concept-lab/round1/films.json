@@ -1,0 +1,203 @@
+{
+ "title": "Concept films",
+ "groups": [
+  {
+   "id": "all",
+   "label": "All seven",
+   "description": "Switch at the same moment. Today is the real shipped film; the others are drawn by the concept lab.",
+   "variants": [
+    "today",
+    "ride",
+    "catch",
+    "score",
+    "iris",
+    "sections",
+    "together"
+   ]
+  },
+  {
+   "id": "pick",
+   "label": "Today vs my pick",
+   "description": "The shipped film against my current combination.",
+   "variants": [
+    "today",
+    "together"
+   ]
+  },
+  {
+   "id": "lower",
+   "label": "Lower half",
+   "description": "Same camera; only what fills the lower band changes.",
+   "variants": [
+    "ride",
+    "score",
+    "iris"
+   ]
+  },
+  {
+   "id": "camera",
+   "label": "Camera",
+   "description": "Steady look-ahead, the hand-held catch, and the camera reading the sections.",
+   "variants": [
+    "ride",
+    "catch",
+    "sections"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Full song, 1080 × 1920, 60 fps.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: current framing, rainbow bars, shake, colour split and flash.",
+     "src": "../../style-lab-v5/petrunko-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride first",
+     "description": "Nothing added. Closer, looking ahead and downhill toward the next landing.",
+     "src": "../films/petrunko-ride.mp4"
+    },
+    {
+     "id": "catch",
+     "label": "Catch",
+     "description": "Hits move the camera like a hand-held operator, with a short stamp at each contact; the six strongest hits flash.",
+     "src": "../films/petrunko-catch.mp4"
+    },
+    {
+     "id": "score",
+     "label": "Score",
+     "description": "Upcoming hits slide toward the rider and fill as it lands. Black is drums; colour is voice or another instrument.",
+     "src": "../films/petrunko-score.mp4"
+    },
+    {
+     "id": "iris",
+     "label": "Iris below",
+     "description": "The flowing contours you liked, with their real recent history, in the lower band.",
+     "src": "../films/petrunko-iris.mp4"
+    },
+    {
+     "id": "sections",
+     "label": "Sections",
+     "description": "The camera reads the song (wider when sparse, closer when dense) and the paper steps on each section downbeat.",
+     "src": "../films/petrunko-sections.mp4"
+    },
+    {
+     "id": "together",
+     "label": "Together",
+     "description": "My combination: whole-course opening and ending, pencil to ink, catch with stamps, sections camera, Iris below.",
+     "src": "../films/petrunko-together.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua",
+   "label": "Lua na Praça",
+   "description": "Full song, 1080 × 1920, 60 fps.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: current framing, rainbow bars, shake, colour split and flash.",
+     "src": "../../style-lab-v5/lua-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride first",
+     "description": "Nothing added. Closer, looking ahead and downhill toward the next landing.",
+     "src": "../films/lua-ride.mp4"
+    },
+    {
+     "id": "catch",
+     "label": "Catch",
+     "description": "Hits move the camera like a hand-held operator, with a short stamp at each contact; the six strongest hits flash.",
+     "src": "../films/lua-catch.mp4"
+    },
+    {
+     "id": "score",
+     "label": "Score",
+     "description": "Upcoming hits slide toward the rider and fill as it lands. Black is drums; colour is voice or another instrument.",
+     "src": "../films/lua-score.mp4"
+    },
+    {
+     "id": "iris",
+     "label": "Iris below",
+     "description": "The flowing contours you liked, with their real recent history, in the lower band.",
+     "src": "../films/lua-iris.mp4"
+    },
+    {
+     "id": "sections",
+     "label": "Sections",
+     "description": "The camera reads the song (wider when sparse, closer when dense) and the paper steps on each section downbeat.",
+     "src": "../films/lua-sections.mp4"
+    },
+    {
+     "id": "together",
+     "label": "Together",
+     "description": "My combination: whole-course opening and ending, pencil to ink, catch with stamps, sections camera, Iris below.",
+     "src": "../films/lua-together.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "Full song, 1080 × 1920, 60 fps.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film: current framing, rainbow bars, shake, colour split and flash.",
+     "src": "../../style-lab-v5/los-approved-full.mp4"
+    },
+    {
+     "id": "ride",
+     "label": "Ride first",
+     "description": "Nothing added. Closer, looking ahead and downhill toward the next landing.",
+     "src": "../films/los-ride.mp4"
+    },
+    {
+     "id": "catch",
+     "label": "Catch",
+     "description": "Hits move the camera like a hand-held operator, with a short stamp at each contact; the six strongest hits flash.",
+     "src": "../films/los-catch.mp4"
+    },
+    {
+     "id": "score",
+     "label": "Score",
+     "description": "Upcoming hits slide toward the rider and fill as it lands. Black is drums; colour is voice or another instrument.",
+     "src": "../films/los-score.mp4"
+    },
+    {
+     "id": "iris",
+     "label": "Iris below",
+     "description": "The flowing contours you liked, with their real recent history, in the lower band.",
+     "src": "../films/los-iris.mp4"
+    },
+    {
+     "id": "sections",
+     "label": "Sections",
+     "description": "The camera reads the song (wider when sparse, closer when dense) and the paper steps on each section downbeat.",
+     "src": "../films/los-sections.mp4"
+    },
+    {
+     "id": "together",
+     "label": "Together",
+     "description": "My combination: whole-course opening and ending, pencil to ink, catch with stamps, sections camera, Iris below.",
+     "src": "../films/los-together.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  }
+ ]
+}

@@ -1,0 +1,340 @@
+{
+ "title": "Concept films · round 5",
+ "groups": [
+  {
+   "id": "looks",
+   "label": "The four looks",
+   "description": "Switch at the same moment.",
+   "variants": [
+    "paper",
+    "hokusai",
+    "lagoon",
+    "black"
+   ]
+  },
+  {
+   "id": "today",
+   "label": "Against today",
+   "description": "On Los Voltaje, Petrunko and Lua, the real shipped film is here too.",
+   "variants": [
+    "today",
+    "paper",
+    "hokusai",
+    "lagoon",
+    "black"
+   ]
+  },
+  {
+   "id": "colours",
+   "label": "New colours",
+   "description": "On Los Voltaje, Petrunko and Lua.",
+   "variants": [
+    "lagoon",
+    "riso",
+    "dune",
+    "plum"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/los-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/los-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/los-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/los-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/los-black.mp4"
+    },
+    {
+     "id": "riso",
+     "label": "Riso",
+     "description": "Blue and fluorescent pink.",
+     "src": "films5/los-riso.mp4"
+    },
+    {
+     "id": "dune",
+     "label": "Dune",
+     "description": "Sand and rust, with its own sun.",
+     "src": "films5/los-dune.mp4"
+    },
+    {
+     "id": "plum",
+     "label": "Plum",
+     "description": "A second dark, plum and amber.",
+     "src": "films5/los-plum.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/petrunko-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/petrunko-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/petrunko-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/petrunko-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/petrunko-black.mp4"
+    },
+    {
+     "id": "riso",
+     "label": "Riso",
+     "description": "Blue and fluorescent pink.",
+     "src": "films5/petrunko-riso.mp4"
+    },
+    {
+     "id": "dune",
+     "label": "Dune",
+     "description": "Sand and rust, with its own sun.",
+     "src": "films5/petrunko-dune.mp4"
+    },
+    {
+     "id": "plum",
+     "label": "Plum",
+     "description": "A second dark, plum and amber.",
+     "src": "films5/petrunko-plum.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua",
+   "label": "Lua na Praça",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today (shipped)",
+     "description": "The real production film.",
+     "src": "../style-lab-v5/lua-approved-full.mp4"
+    },
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/lua-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/lua-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/lua-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/lua-black.mp4"
+    },
+    {
+     "id": "riso",
+     "label": "Riso",
+     "description": "Blue and fluorescent pink.",
+     "src": "films5/lua-riso.mp4"
+    },
+    {
+     "id": "dune",
+     "label": "Dune",
+     "description": "Sand and rust, with its own sun.",
+     "src": "films5/lua-dune.mp4"
+    },
+    {
+     "id": "plum",
+     "label": "Plum",
+     "description": "A second dark, plum and amber.",
+     "src": "films5/lua-plum.mp4"
+    }
+   ]
+  },
+  {
+   "id": "batidao",
+   "label": "No Batidão",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/batidao-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/batidao-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/batidao-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/batidao-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "burn",
+   "label": "Let the World Burn",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/burn-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/burn-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/burn-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/burn-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "coma",
+   "label": "Montagem Coma",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/coma-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/coma-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/coma-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/coma-black.mp4"
+    }
+   ]
+  },
+  {
+   "id": "tomada",
+   "label": "Tomada (super slowed)",
+   "description": "Full song, 1080 × 1920, 60 fps, with its music.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper",
+     "description": "Graphite and one red on the fork, Refined, Night on the drop.",
+     "src": "films5/tomada-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai",
+     "description": "Indigo on washi, the bars, the sun, Held.",
+     "src": "films5/tomada-hokusai.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "A new palette, wider, a looser camera, the title, the afterimage.",
+     "src": "films5/tomada-lagoon.mp4"
+    },
+    {
+     "id": "black",
+     "label": "Black",
+     "description": "The dark, the fork, each rail lighting whole.",
+     "src": "films5/tomada-black.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  },
+  {
+   "label": "Round 4 films",
+   "href": "/motion-gallery/video-compare.html?collection=/generated/concept-lab/films4.json"
+  }
+ ]
+}

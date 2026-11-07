@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A fresh look</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--accent:#2b59d6}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--accent:#8fa9ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Visual direction · overnight round</p>
+  <h1>A fresh look, from the ride outward</h1>
+  <p class="lead">The earlier rounds re-skinned one composition: a small rider above a bar chart. This round steps back and changes the bigger things instead: how large the ride is, what fills the lower half, what a hit does, how the camera follows the song, and how a video opens and ends. Everything is drawn from the real saved rides and music.</p>
+
+  <a class="card primary" href="./?q=1"><span class="go">→</span><b>Answer seven questions</b><span>About ten minutes, made for the phone. One decision at a time: flip the options at the same moment, pick one, add a word if you like. Copy the answers to me at the end.</span></a>
+  <a class="card" href="/motion-gallery/video-compare.html?collection=/generated/concept-lab/round1/films.json"><span class="go">→</span><b>Watch the films</b><span>Seven full treatments for each of the three songs, in the switching player. “Today” is the real shipped film.</span></a>
+  <p class="small" style="margin:4px 2px 14px">An honest note: the new treatments are deliberately sparse between hits. What fills the frame is the lower band (Iris, the tuning fork or the score), so judge the ride and the band together. A good first comparison in the films: <em>Today</em>, then <em>Ride first</em>, then <em>Iris below</em>.</p>
+  <a class="card" href="./"><span class="go">→</span><b>Play freely</b><span>The live lab: ten concepts, every layer mixable, any moment of any song.</span></a>
+
+  <h2>What I learned along the way</h2>
+  <ul>
+    <li><strong>Speed decides everything.</strong> Framed closer, the rider crosses about three screen widths per second. Anything left behind in the world (marks, trails, ghosts) is gone almost instantly, so the music and the “memory” belong in the frame itself, in the lower band.</li>
+    <li><strong>Half the track is scaffolding.</strong> Only about half the lines are ever touched. Drawn in pencil, they recede, and black ink comes to mean “the music touched here”.</li>
+    <li><strong>Four hits in five are drums.</strong> So drums stay black, and colour becomes an event: voice in blue, other instruments in vermilion.</li>
+    <li><strong>Speed hardly changes between sections, but density does.</strong> The “Sections” camera therefore follows how many hits a section has: wider when sparse, closer when dense.</li>
+    <li><strong>Accents fire at the touch.</strong> The drawn rider meets the line 25–75 ms before the measured strike time, so every accent uses the moment of contact.</li>
+  </ul>
+
+  <h2>How it was made</h2>
+  <p class="small">Two independent agents helped: one proposed ideas without seeing mine (it arrived at four of the same, and added the whole-course opening and the drums-in-ink idea), one critiqued the lab against your earlier feedback (it found the empty-frame problem and the timing offset). Their notes are in <code>generated/concept-lab/agents/</code>.</p>
+  <p class="small">Caveats: the lab draws in a browser canvas with the native rider artwork and replay, not through Remotion; its films are those drawings encoded at 1080 × 1920, 60 fps with the original music. Inside the lab, “Today” approximates the shipped shake, colour split and flash; the films use the real shipped video. Everything was checked muted, at phone size in a browser, not on your phone. Nothing in production has changed.</p>
+  <p class="small"><a href="/motion-gallery/style-review.html">Earlier style studies</a> remain available.</p>
+</main>
+</body>
+</html>

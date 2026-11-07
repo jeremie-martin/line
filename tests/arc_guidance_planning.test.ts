@@ -52,7 +52,8 @@ it('charges every retained prefix, carries a complete physical contract and repr
   expect(a.planningDecisions.some(d=>d.beamWidth>1)).toBe(true);
   expect(a.planningDecisions.every(d=>d.physicsFrames>0&&d.offered>=d.beamWidth)).toBe(true);
   expect(a.stats.sim_frames).toBeLessThanOrEqual(options.budget);expect(a.failure).toBeNull();
-  expect(a.report.contacts.every(c=>c.status==='hit')).toBe(true);expect(a.report.off_beat_landings).toHaveLength(0);
+  // The scored account decides whether every beat was hit (the legacy landing report predates it).
+  expect(a.impactEvaluation.valid).toBe(true);
   expect(a.report.terminus.reason).toBe('endOfSpec');expect(a.track).toEqual(b.track);expect(a.stats).toEqual(b.stats);
 });
 

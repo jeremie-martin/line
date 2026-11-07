@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: no forced flight before a catch (adopted)
+
+The `late_release` rejection is removed (`arc_evaluate.ts`). It rejected any
+candidate whose sled touched its line in the last 6 frames before the next
+catch. The scored account now decides alone whether a catch registers as its
+own hit. Hypothesis and basis: the entry below.
+
+| panel | change | interval / support |
+|---|---|---|
+| held out, 11 songs | **+33.6** | [+22.8, +44.5], > 0.99, every block positive; **13 of 13 specs up** (+2.5 to +181.8) |
+| V7.1, 8 seeds | **+5.1** | [+1.6, +8.5], > 0.99 |
+| explicit requests | −1.1 | |
+
+- **Dense categories gain:** G +19.3, P4 +22.1, P1 +10.1, P2 +4.7.
+- **Ride-outs and floats lose a little:** P7 −10.0, P3 −3.4, P6 −2.0.
+- No ride lost.
+- **Style:** catches still arrive from a flight. On the library songs, 17.8%
+  now come from a 3–5-frame hop instead of 6 or more frames, and 0.4% from
+  under 3 frames; 6.1% change on the other specs.
+- **Costs** (the comparison's guards line):
+  - body drag +10% (V7.1) and +18% (held out);
+  - strong extra impacts up but tiny (about 0.1 per 100 beats);
+  - head-down or backward strong arrivals +6%.
+- **Tests:**
+  - three synthetic tests asserted the legacy landing report's `hit` status;
+    they now assert the scored account's validity (every beat matched), which
+    is the product's measure;
+  - one budget scenario is re-derived (3100 → 3400).
+
+Parity references were refreshed.
+
 ## November 7: hypothesis R, no forced flight before a catch
 
 - **Basis.**

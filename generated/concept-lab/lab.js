@@ -239,6 +239,7 @@ const DIMS = {
   rsp: ['Split response', {lin: 'Straight from 0.2', zero40: 'Nothing below 0.4, then straight', ease30: 'Slow start from 0.3', soft30: 'Softer slow start from 0.3', ease40: 'Slow start from 0.4'}],
   rsh: ['Shake response', {lin: 'Straight to 24 px', lin20: 'Straight to 20 px', lin16: 'Straight to 16 px'}],
   rfl: ['Flash response', {r85: 'Shifted: 0.6 → 25 % at 0.85, gently on', r85s: 'Slower: 0.55 → 25 % at 0.85, gently on', r80: '25 % at 0.8, gently on to 30 % at 1.0', s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
+  pulse: ['Split pulse', {frame: 'The whole picture zooms with each split (R9–R17)', none: 'No pulse: only the colours split', ride: 'The ride alone zooms with each split'}],
   tsp: ['Split on the title and sun', {'1': 'Same as everywhere', '0.65': 'A little less', '0.5': 'A little less again', '0.4': 'Less'}],
   ampS: ['Shake size on its own', {'1.5': 'to 24 px', '1.75': 'to 28 px', '2': 'to 32 px'}],
   amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
@@ -252,7 +253,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'ease30', rfl: 'r80', tsp: '0.65', rsh: 'lin'}; // R16: title a little less, flash 25 % at 0.8 // R15: slow-start split, a rising flash, a little less on the title // R14: flash 0.55 → 25 % // hit parts as chosen in R7–R10
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'ease30', rfl: 'r85', tsp: '0.65', rsh: 'lin', pulse: 'frame'}; // hits as chosen through R17 (LEDGER.md: Hits)
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -324,18 +325,12 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'shakeless', ask: 'Less shake: how much less?', why: 'You found the ride moving too much. Each option is the same straight line from zero, to a lower top at 0.85, still growing past it. Varies: only the shake. Keep any number.',
+  {id: 'pulse', ask: 'The title moving: which split?', why: 'The title never shakes, but every colour split also zoomed the whole picture a little (about 3 % on a strong hit) to hide its edges, so the title in its corner jumped up to 15 px. Nobody designed that pulse. Here: as now; no pulse at all, so only the colours split; or no pulse on the picture while the ride alone keeps the same zoom around the rider. Varies: only the pulse. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['24 px (as now)', {...plain, music: 'redbars', hit: 'parts', rsh: 'lin'}, 'A median hit: 15 px.'],
-      ['20 px', {...plain, music: 'redbars', hit: 'parts', rsh: 'lin20'}, 'A median hit: 13 px.'],
-      ['16 px', {...plain, music: 'redbars', hit: 'parts', rsh: 'lin16'}, 'A median hit: 10 px, about today’s.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
-  {id: 'flash5', ask: 'The flash: 25 % at 0.85', why: 'Your pick, a little later or a little slower: both reach 25 % at 0.85 and keep rising gently after. One is the same curve shifted right (from 0.6); the other starts at 0.55 and climbs more slowly. Round 16’s is there for comparison. Varies: only the flash. Keep any number.',
-    song: 'petrunko', t: 33.6, len: 6, multi: true, opts: [
-      ['Shifted right', {...plain, music: 'redbars', hit: 'parts', rfl: 'r85'}, 'From 0.6: 9 % at 0.7, 22 % at 0.8, 25 % at 0.85.'],
-      ['Slower', {...plain, music: 'redbars', hit: 'parts', rfl: 'r85s'}, 'From 0.55, like round 16, but climbing more slowly: 6.5 % at 0.65, 18.5 % at 0.75, 25 % at 0.85.'],
-      ['Round 16’s', {...plain, music: 'redbars', hit: 'parts', rfl: 'r80'}, '25 % at 0.8.']],
-    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
+      ['As now', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'frame'}, 'The whole picture, title included, zooms with each split.'],
+      ['No pulse', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'none'}, 'Nothing moves but the colours.'],
+      ['The ride keeps its pulse', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'ride'}, 'The title, band and background stay still; the ride zooms around the rider as before.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['With the sun, on Dune', 36.5, 'tomada', {top: 'sun', scheme: 'dune'}], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -356,7 +351,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r17';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r18';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -634,6 +629,13 @@ function partsCamera(t) {
   return {dx: 0, dy: 0, rot: 0};
 }
 // As in production (remotion/src/fx.tsx), the split acts on the ride only: the band is a separate layer drawn after it.
+// R18 'ride': the zoom the overscan used to give the whole picture, now given to the ride alone, about the rider (2(a + 2)/W)
+function ridePulse(t) {
+  if (mix.hit !== 'parts' || mix.pulse !== 'ride' || mix.spl === 'none') return 0;
+  const sp = drive(t, 'split'); if (!sp.h || sp.m < 0.002) return 0;
+  const a = 14 * (respOn() ? Math.min(CAP.split, RESP.split[mix.rsp ?? 'lin'](hitStrength(sp.h))) : AMP()) * sp.m * (mix.spl === 'half' ? SPLIT_MATCH.half : mix.spl === 'dir' ? SPLIT_MATCH.dir : 1);
+  return a > 0.5 ? 2 * (Math.ceil(a) + 2) / W : 0;
+}
 function partsSplit(t, k, v) {
   const sp = drive(t, 'split');
   if (sp.h && sp.m > 0.002 && mix.spl !== 'none') {
@@ -985,8 +987,11 @@ const traumaW = (t, gain, dec, pw) => {let x = 0; for (const h of S.hits) {if (h
 const trauma = (t, c) => {const fs = forceE === null ? null : 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4); let x = 0; for (const h of S.hits) {if (h.t > t) break; const hs = fs ?? h.s; if (hs < c.min) continue; x += hs * c.gain * Math.exp(-(t - h.t) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
 const chan = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
 let lastSplit = null; // the last split of this frame: offset and overscan, so a region can be re-split smaller with the same framing
+// R18: the overscan m used to hide the split's edges also zooms the WHOLE picture by 2m px (about 3 % on a strong hit), so the
+// title in its corner jumped ~15 px on every hit: "the title was moving too much". pulse 'frame' keeps that (R9–R17); 'none' and
+// 'ride' fill the edges with the unshifted channel instead, so nothing moves but the colours ('ride' adds a zoom on the ride only).
 function channelSplit(ox, oy, mode = 'centre') {
-  const m = Math.ceil(Math.hypot(ox, oy)) + 2; lastSplit = {ox, oy, m, mode};
+  const m = (mix.pulse ?? 'frame') === 'frame' ? Math.ceil(Math.hypot(ox, oy)) + 2 : 0; lastSplit = {ox, oy, m, mode};
   splitInto(ctx, canvas, ox, oy, m, mode);
 }
 function splitInto(g0, from, ox, oy, m, mode = 'centre') {
@@ -994,6 +999,16 @@ function splitInto(g0, from, ox, oy, m, mode = 'centre') {
   const [src, ...rgb] = chan, w = canvas.width, h = canvas.height;
   for (const c of chan) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
   src.getContext('2d').drawImage(from, 0, 0);
+  if (m === 0) {
+    // no overscan: each channel is shifted inside its own canvas over an unshifted copy, so the strip it uncovers at the edge keeps
+    // the unshifted image; then the three are added in place, unscaled
+    const off = mode === 'trail' ? [[ox, oy], [ox / 2, oy / 2], [0, 0]] : [[ox, oy], [0, 0], [-ox, -oy]];
+    ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0); g.drawImage(src, off[i][0], off[i][1]);
+      g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
+    g0.setTransform(1, 0, 0, 1, 0, 0); g0.fillStyle = '#000'; g0.fillRect(0, 0, w, h); g0.globalCompositeOperation = 'lighter';
+    for (const c of rgb) g0.drawImage(c, 0, 0);
+    g0.globalCompositeOperation = 'source-over'; return;
+  }
   ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0);
     g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
   g0.setTransform(1, 0, 0, 1, 0, 0); g0.fillStyle = '#000'; g0.fillRect(0, 0, w, h); g0.globalCompositeOperation = 'lighter';
@@ -1048,7 +1063,7 @@ async function draw() {
   const splitAll = parts && mix.spw === 'all';
   if ((!parts || splitAll) && band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);
   // the punch scales about the rider's own screen point, so the rider stays put and the world closes in around it
-  const zp = 1 + (hitZoom(t) - 1) * (1 - v.over) ** 2, vz = zp === 1 ? v : {...v, z: v.z * zp, x: v.R.x, y: v.R.y, ax: v.rx, ay: v.ry};
+  const zp = 1 + (hitZoom(t) - 1 + ridePulse(t)) * (1 - v.over) ** 2, vz = zp === 1 ? v : {...v, z: v.z * zp, x: v.R.x, y: v.R.y, ax: v.rx, ay: v.ry};
   const cc = {...vz, ax: vz.ax + hc.dx, ay: vz.ay + hc.dy};
   const R = hc.rot ? new DOMMatrix().translate(canvas.width / 2, canvas.height / 2).rotate(hc.rot).translate(-canvas.width / 2, -canvas.height / 2) : null;
   const world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);

@@ -23,6 +23,13 @@
   - P3 +10.2, P1 +9.0, P2 +7.3, P6 +6.7, G +5.1 against P7 −15.2 (one
     fragile ride-out ride −148.7) and explicit requests −5.9.
   - Extended to 8 seeds.
+- **Second round at 8 seeds: not adopted.** +1.3 [−4.3, +7.0], 0.70; 24 of
+  35 specs up; blocks split 4 and 4. A second round of demonstrations from
+  an already retrained compiler adds little, as before (H2, H4).
+- **Pooled (4 seeds, 8 workers): inconclusive, promising.**
+  - +3.3 [−3.1, +9.7], 0.90; 27 of 35 specs up.
+  - P6 +13.4, G +7.1, P2 +6.3, P3 +5.3, P1 +4.0, E +3.8 against P7 −10.3.
+  - Extended to 8 seeds.
 - **Memory.** The pooled archive (260 MB uncompressed) is parsed by every
   compile worker. Run beside the second-round comparison at 22 workers each,
   free memory fell to 4 GB, and the pooled run was stopped before the system

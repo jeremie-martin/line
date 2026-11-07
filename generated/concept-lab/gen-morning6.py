@@ -1,4 +1,4 @@
-# Builds morning.html and films6.json for round 6.
+# Builds round6.html and films6.json for round 6. morning.html is only an index of rounds.
 import json, re
 style = re.search(r'<style>(.*?)</style>', open('round3/morning.html').read(), re.S).group(1)
 F = 'fourup/r6'
@@ -19,9 +19,12 @@ th,td{{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}}
 <p class="lead">Every film is on the rides recompiled with today’s compiler. The round is smaller on purpose: one comparison per open question, four questions, and the rest to look at when you like.</p>
 
 <a class="card primary" href="{F}/los-moment.mp4"><span class="go">→</span><b>Your two Los Voltaje moments</b><span>7 s on the old ride, 24.95 s and 28.58 s: Tamed, Follows direction, then each with a faint paper grain.</span></a>
-<a class="card" href="{F}/hits-tomada.mp4"><span class="go">→</span><b>The biggest hits, 4K</b><span>Held, + shake, + shake, split &amp; flash, and Today’s by strength. Tomada has many big hits; <a href="{F}/hits-los.mp4">Los Voltaje</a> has few, so it shows the calm case.</span></a>
-<a class="card" href="{F}/cam-los.mp4"><span class="go">→</span><b>The camera on whole songs, 4K</b><span>Tamed, Higher, Follows direction, and the same with grain. Also on <a href="{F}/cam-petrunko.mp4">Petrunko</a>.</span></a>
-<a class="card" href="{F}/colours-1.mp4"><span class="go">→</span><b>New colours, 4K</b><span>Slate, Olive, Mauve, Sumi. Then <a href="{F}/colours-2.mp4">Bauhaus, Riso with deeper ink, Lagoon, Plum</a>, the last two shown again as you asked.</span></a>
+<a class="card" href="{F}/hits-tomada.mp4"><span class="go">→</span><b>The biggest hits, 4K</b><span>Held, + shake, + shake, split &amp; flash, and Today’s by strength. Tomada has many big hits; Los Voltaje has few, so it shows the calm case.</span></a>
+<p class="small" style="margin:-4px 0 12px 18px">Also: <a href="{F}/hits-los.mp4">Los Voltaje</a></p>
+<a class="card" href="{F}/cam-los.mp4"><span class="go">→</span><b>The camera on whole songs, 4K</b><span>Tamed, Higher, Follows direction, and the same with grain. Also on Petrunko.</span></a>
+<p class="small" style="margin:-4px 0 12px 18px">Also: <a href="{F}/cam-petrunko.mp4">Petrunko</a></p>
+<a class="card" href="{F}/colours-1.mp4"><span class="go">→</span><b>New colours, 4K</b><span>Slate, Olive, Mauve, Sumi. Then Bauhaus, Riso with deeper ink, Lagoon, Plum, the last two shown again as you asked.</span></a>
+<p class="small" style="margin:-4px 0 12px 18px">Also: <a href="{F}/colours-2.mp4">Bauhaus, Riso with deeper ink, Lagoon, Plum</a></p>
 <a class="card" href="{F}/drop-petrunko.mp4"><span class="go">→</span><b>A scheme switch at the drop, 4K</b><span>Paper with Night, then Hokusai → Midnight, Dune → Espresso, Lagoon → Moss.</span></a>
 <a class="card" href="{F}/bands-petrunko.mp4"><span class="go">→</span><b>The band pool, 4K</b><span>Bars, fork, Iris, Three colours: back on screen as you asked. No question; tell me if one deserves a place.</span></a>
 <a class="card" href="./?q=1"><span class="go">→</span><b>Four questions</b><span>Hits, camera, colours, drop. Same format as before.</span></a>
@@ -75,7 +78,7 @@ th,td{{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}}
 <p class="small">Earlier rounds: <a href="round5/morning.html">5</a>, <a href="round4/morning.html">4</a>, <a href="round3/morning.html">3</a>, <a href="round2/morning.html">2</a>, <a href="round1/morning.html">1</a>. <a href="clarify.html">Clarifications</a>. <a href="./">Free lab</a>.</p>
 </main></body></html>
 '''
-open('morning.html', 'w').write(html)
+open('round6.html', 'w').write(html)
 
 def v(i, l, d, src): return {'id': i, 'label': l, 'description': d, 'src': src}
 P = []
@@ -99,5 +102,5 @@ P.append({'id': 'bands', 'label': 'Band pool · Petrunko', 'description': 'On Pa
     v('iris', 'Iris', '', 'films6/petrunko-b-iris.mp4'), v('bars3', 'Three colours', '', 'films6/petrunko-b-bars3.mp4')]})
 ids = sorted({x['id'] for p in P for x in p['videos']})
 json.dump({'title': 'Concept films · round 6', 'groups': [{'id': 'all', 'label': 'Every comparison', 'description': 'Pick a comparison, then switch between its films.', 'variants': ids}],
-           'passages': P, 'links': [{'label': 'Morning page', 'href': '/generated/concept-lab/morning.html'}, {'label': 'Round 5 films', 'href': '/motion-gallery/video-compare.html?collection=/generated/concept-lab/films5.json'}]},
+           'passages': P, 'links': [{'label': 'Round 6 page', 'href': '/generated/concept-lab/round6.html'}, {'label': 'Round 5 films', 'href': '/motion-gallery/video-compare.html?collection=/generated/concept-lab/films5.json'}]},
           open('films6.json', 'w'), ensure_ascii=False, indent=1)

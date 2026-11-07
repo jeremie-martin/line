@@ -28,30 +28,30 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Piece | Status | Owner's words and notes |
 |---|---|---|
 | Line: pencil → ink | settled | "Absolutely amazed" (R1). Inks as the rider passes, so no grey is left behind (R5). |
-| Line: whole rail, all ink | settled as alternatives | All three are good. Whole rail suits high contrast (R5). Any look, any mode (R6). |
+| Line: whole rail, all ink | settled as alternatives | All three are good. Whole rail suits high contrast (R5). Any look, any mode (R6). A thought, not a ruling: dark schemes may read better always inked (R6). |
 | Bookends: whole course at both ends | settled | "Fantastic" (R1). The band is there from frame 0 (R4). |
 | Bookend ring, larger rider | parked | Ring good at the end only. Larger rider "comically big" (R3), then out (R4). |
 | Camera placement: Tamed | settled | "Significantly stronger" than Calm (R3). |
-| Camera: rider higher | open (R6) | "Above the rider", "more about balance than space" (R6). |
-| Camera: steep descents | open (R6) | Los 24.95 and 28.58 s: generic, measurable, "super clean, easy, lean" (R6). Follows direction plus grain are tested. |
+| Camera: placement height | open | "Above the rider", "more about balance than space" (R6). It is its own setting, separate from Follows direction (R6). |
+| Camera: Follows direction | settled (R6) | Preferred: "great job". The rider's height follows the slope (sine squared), and the rider never climbs on screen while descending. It is independent of placement height, so test it at Tamed's height too. |
 | Zoom: Steady | settled default | Kept: Steady, Looser, Out when quiet (R4). Who decides per song: "not sure yet" (R6). |
 | Zoom: One breath, fitted, sections | parked | Not picked. |
 | Hits: Held | settled | Preferred over Refined in whole songs (R5). Less shaky. |
-| Hits: the "oh yeah" on the biggest | open (R6) | "Mostly the shake… all three together… only on the impact." Today's top-10 % gate was "a terrible idea" (R6). |
+| Hits: the "oh yeah" on the biggest | open | "Mostly the shake… all three together" (R6). More effects obviously feel stronger. The real questions: a better execution of each (shake, split, flash), a better combination, then the driver logic (R6). |
 | Hits: punch, recoil | parked | Built in R6. Not shown, because the owner pointed at the shake. |
 | Afterimage | parked | "Better implementation… adds clutter… park it" (R5). |
 | Rider less split | settled (R6) | The rider keeps half its clean image through the split (R4 remark). |
 | Band forms: bars, fork | settled | Bars over fork (R4). |
-| Band forms: Iris, Three colours | open (R6) | "Should stay" (R1–R2). Shown again in R6. |
+| Band forms: Iris, Three colours | settled, in the pool | The owner likes all four (R6). Bars with red emphasis are the strongest, then fork. Iris "crazy" in the dark drop. Three colours: the idea is fine, its colours aren't. |
 | Ridge, Score, blocks… | parked or gone | Ridge "promising" (R3), then out (R4). Score out (R4). |
 | Red accent logic: loudest or Heat | settled | Standing was the odd one out (R4). |
 | Band height: low-middle | settled | "Between Low and Middle" (R3). |
-| Top element: sun | settled where the scheme has one | Dune's sun "so inspired, so bold"; it balances the frame (R5). |
+| Top element: sun | settled where it fits | Dune's sun "so inspired, so bold"; it balances the frame (R5). The sun is an element, not part of a scheme: never judge a scheme by it (R6). Midnight's moon is bad (R6). |
 | Top element: title | settled, optional per look | Same colour as the line, "tremendous". At most two lines (R5). Optional per look (R6). Line-in-front: lab only. |
 | Background: plain or Whisper | settled | Tone by impact went too dark (R3). |
 | Night | settled | A hand-placed cue. "Night looks amazing" (R6). |
-| Drop scheme switch | open (R6) | "Try a scheme switch… not just invert… intentional, limited" (R5–R6). |
-| Grain (world-fixed paper texture) | open (R6) | A motion cue on plain paper. Untested after compression. |
+| Drop scheme switch | settled as an idea (R6) | Loved as a proof of concept. Dune→Espresso "very good". Lagoon→Moss quite good. Hokusai→Midnight: the moon is bad. How to choose the switch comes later. |
+| Grain (world-fixed paper texture) | gone (R6) | "I don't like the fine paper grain… will look bad with the YouTube encoding." |
 | Vignette | parked | Off by default (R4). |
 | Lyrics | parked | Deferred: "for now just the title" (R6). |
 
@@ -66,10 +66,16 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Plum | settled | 3.5, then "so freaking good… wouldn't change it too much" (R5). Shown again in R6. |
 | Lagoon | open | 4/5. Judged with the afterimage, so never seen alone. Ink deepened slightly (R6). |
 | Riso | open, as a test | 3.5, "less clear, more aggressive". R6 shows a deeper-ink version to test whether lightness was the cause. |
-| Slate, olive, mauve, sumi, bauhaus, midnight, espresso, moss | open (R6) | Lightness-first candidates (`agents/colour-r6`). The owner wants 10–20 hand-tuned schemes in all. |
+| Slate | liked (R6) | The mustard accent goes well with the blue. |
+| Mauve | promising (R6) | Better than Olive. Try a slightly desaturated, less pink paper. |
+| Sumi | liked (R6) | Mostly for the bars and red. The paper could be better. |
+| Midnight | half (R6) | The bars and accent are great. Its moon is bad (a sun issue, not a scheme issue). |
+| Olive | no (R6) | The orange/red accent doesn't sit with the olive bars. |
+| Bauhaus, Riso-deep, Espresso, Moss | no (R6) | Espresso's verdigris accent is "very bad", though Espresso works with Dune's accent at the drop. Moss: green paper disliked. |
+| All R6 candidates | | They felt homogeneous ("is the line always near-black on purpose?"): good, not coup de cœur. The metric-led approach narrowed them. Next: a creative approach from scratch. |
 | Klein, bottle, salmon | unshown | Klein and salmon fail the band-chroma check. |
 
-**Principle (R5):** clarity, "does it jump to my eyes". Lightness first is the working hypothesis. The measurement is a guide, not a goal.
+**Principle (R5):** clarity, "does it jump to my eyes". Lightness first was a weak hypothesis (7 ratings), and it made R6's candidates homogeneous. Use it to check, never to generate.
 
 ## Direction (per video)
 
@@ -87,3 +93,5 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 - Ask before building on a guess.
 - Push back in writing.
 - Commit and push always (R6).
+- Comparisons go in the lab's switcher: short labelled loops at the owner's moments, one variable at a time. 4K four-ups are only for showing finished looks (R6).
+- Number the round pages; never overwrite them (R6).

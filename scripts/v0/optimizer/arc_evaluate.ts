@@ -81,7 +81,9 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   const count = built.added ? built.added.length : built.paths.reduce((n, p) => n + Math.max(0, p.points.length - 1), 0);
   if (!count) return null;
   const prefixFrames = Math.min(built.prefixFrames, child.getLastFrameIndex() + 1);
-  if (count >= 10000) throw new Error('arc geometry id range exhausted');
+  // A section owns 10000 line ids. Geometry that would spill into the next section is not
+  // buildable: reject the candidate (before any simulation) rather than fail the compile.
+  if (count >= 10000) return reject('id_range');
   const replay = replayCandidate(s, child, prefixFrames);
   if ('reason' in replay) return reject(replay.reason);
   const added = built.added ?? solidPathLines(built.paths);

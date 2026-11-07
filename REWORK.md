@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: a candidate too long for its section's ids is rejected, not fatal
+
+- **Found by** the five-seed training collection. Two training compiles
+  failed with "contact interval exceeds its segment namespace":
+  `stretch_bridge_frontier_low_air_endurance_6s` seed 202, and
+  `stretch_supported_speed_change` seed 404 (the second in the collector's
+  probes).
+- **Cause.** A section owns 10000 line ids (1000 + 10000·i). In very long
+  intervals (gaps of several seconds), the scattered construction can split
+  a carrier into more than 10000 fragments, and ordinary geometry has the
+  same guard. Both guards threw, failing the whole compile.
+- **Age.** Present at least since this morning's main (4613abbc), on both
+  pre-afternoon mains, and on today's. Earlier collections used seed 101
+  only and never met it. No benchmark or held-out ride ever reached it.
+- **Fix.**
+  - Such a candidate is rejected (`id_range`) like any other unbuildable
+    geometry: `fragmentInterval` returns null, and the evaluator rejects
+    before simulating.
+  - The search continues; a shaped section that offers nothing already
+    falls back to plain arcs.
+  - Both compiles now finish, and both rides are valid.
+- **Structural:** compile and judge parity unchanged; `npm run check`
+  passes.
+- New test: `contact_interval_ids`.
+
 ## November 7: hypothesis, the response step solves with ranking's weights
 
 - **Basis.** "Local search judges like ranking" changed which candidate

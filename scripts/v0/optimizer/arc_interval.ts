@@ -75,6 +75,8 @@ function replaceWithFragments(s: IntervalSearch) {
       if (!proposal.contactPositions) throw new Error('scattered carrier lacks its evaluated contact positions');
       stats.probes++;
       const fragments = fragmentInterval(proposal.lines, proposal.contactPositions);
+      // Too many fragments for the section's line ids: this carrier cannot be built as fragments.
+      if (!fragments) {s.failures.id_range = (s.failures.id_range ?? 0) + 1; continue;}
       const began = getPhysicsFrameCount();
       evaluate(s, proposal.c, fragments);
       stats.replayFrames += getPhysicsFrameCount() - began;

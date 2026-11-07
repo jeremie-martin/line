@@ -24,7 +24,7 @@ import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactRuler } from './impact_accounts.ts';
 import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
-import {type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
+import {searchRank, type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -128,7 +128,7 @@ function reuseMeasurement(s: IntervalSearch, c: ArcMotionControl, saved: Candida
   // Skipping this add for a losing hit would move charged frames: it truncates
   // the shared cache, and later candidates replay from that boundary.
   const result = {candidate, child: s.ctx.lineage.add(s.engine, saved.lines)};
-  if (!s.best || candidate.cost < s.best.candidate.cost) s.best = result;
+  if (!s.best || searchRank(candidate) < searchRank(s.best.candidate)) s.best = result;
   return result;
 }
 
@@ -354,6 +354,6 @@ function recordCandidate(s: IntervalSearch, c: ArcMotionControl, key: string, ad
   // Interrupted evaluations never reach this cache insertion.
   s.memo.set(key, candidate);
   const result = {candidate, child};
-  if (!s.best || cost < s.best.candidate.cost) s.best = result;
+  if (!s.best || searchRank(candidate) < searchRank(s.best.candidate)) s.best = result;
   return result;
 }

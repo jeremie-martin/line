@@ -54,6 +54,8 @@ const baseRank = (c: Ranked) => {
   const heading = c.headingPrior ?? 0;
   return c.localCost + FUTURE * (heading + .5 * (c.cost - c.localCost - heading));
 };
+/** What local search compares: ranking's weighting of the priors, without the learned estimate. */
+export const searchRank = (c: Ranked) => baseRank(c);
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
   return c.valueFeatures ? baseRank(c) + FUTURE * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
 }

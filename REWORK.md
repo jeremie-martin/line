@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis S, no fixed curvature cap on catch lines
+
+- **Basis.**
+  - After R, the rejection reasons show no other big pre-filter. 85% of
+    rejected proposals are crashes (`binding`), which is physics, and the
+    rest are construction checks the owner wants kept.
+  - The geometry has one hard limit left: a catch line may not bend more
+    sharply than a fixed radius of 24 px (`radius: 24`, which clamps each
+    segment's angle to the previous ± v·dt/24).
+  - A sharp catch is what a strong hit needs. In the V4 era the cap was
+    binding on arcs holding about half the largest strength misses; only
+    tightening it was tried, never removing it.
+- **Change.** `radius: 0` in the production options: no curvature clamp.
+  Angular folds were already exempt. Crashes, extras and the scored account
+  decide what is rideable.
+- **Hypothesis.**
+  - Sharper catches become possible where they pay: strength on strong asks
+    rises, most on dense songs; headline up.
+  - Fewer viable smooth candidates is unlikely, since nothing is removed.
+- **Risk.** Kinked lines give harsher rides, more extras or body drag. The
+  guards line watches extras and drag.
+
 ## November 7: no forced flight before a catch (adopted)
 
 The `late_release` rejection is removed (`arc_evaluate.ts`). It rejected any

@@ -2,8 +2,9 @@
 
 **Score:** 5,460 ns per charged frame, from `taskset -c 4-7 npm run perf:score` on Node 26
 on the i7-12800H laptop (November 7, 2026; it began at 6,150).
-**Goal:** 5,000 ns, with byte-identical tracks. The owner counts 5,460 as a success: what
-remains needs measurement in Rust, a redesign rather than tuning (`REWORK.md`).
+**Goal:** closed. The owner accepted this score on November 7, 2026, rather than the
+5,000 ns first aimed for: what remained needed measurement in Rust, a redesign rather
+than tuning. Keep this brief's rules for any later speed work.
 
 Make the compiler faster without changing what it produces: same tracks, same scores,
 same charged frames. Keep the codebase simple, lean, well designed and maintainable.

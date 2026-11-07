@@ -1,5 +1,10 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: owner decisions
+
+The speed goal closes at 5,460 ns. The `Math.pow` rebaseline is accepted: track quality
+should not depend on how `pow` rounds. Bun's memory saving matters, for soon rather than now.
+
 ## November 7: a compiler review, and where cleverness stays
 
 Removed: my `predictions` memo (−0.06%, no cost), `restoreCandidate`, the identity checks

@@ -18,6 +18,15 @@
   - The archive exceeds GitHub's 100 MB file limit. The branch stays local,
     and adopting it would need another encoding (brotli: −24%) or storage
     outside git, the owner's call.
+- **Second-round result (V7.1, 4 seeds): inconclusive.**
+  - +2.7 [−4.7, +10.1], 0.84; 21 of 35 specs up.
+  - P3 +10.2, P1 +9.0, P2 +7.3, P6 +6.7, G +5.1 against P7 −15.2 (one
+    fragile ride-out ride −148.7) and explicit requests −5.9.
+  - Extended to 8 seeds.
+- **Memory.** The pooled archive (260 MB uncompressed) is parsed by every
+  compile worker. Run beside the second-round comparison at 22 workers each,
+  free memory fell to 4 GB, and the pooled run was stopped before the system
+  stopped anything. It is re-run alone at 8 workers.
 
 ## November 7 (night): hypothesis, twice the proposals for the policies
 

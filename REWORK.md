@@ -1,5 +1,37 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: construction policies from today's compiler (adopted)
+
+`repertoire_policy_model_v3.json(.gz)` is replaced. It holds 79,778
+demonstrations: today's five-seed collection on main 6e815a57 (838 compiles
+of the training catalog, songs disjoint from every benchmark and held-out
+song), pooled with the two earlier transfer-layout collections. Hypothesis
+and basis: the entry on construction policies from today's compiler.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | **+8.3** | [+4.5, +12.1], > 0.99; **32 of 35 specs up**; all 8 seed blocks positive (G +15.6, P1 +12.5, P2 +9.6, P3 +7.0, P4 +10.4, P5 +12.3, P6 −14.5, P7 +13.4) |
+| held out, 11 songs | **+12.8** | [+5.4, +20.2], > 0.99; **11 of 13 specs up**; all 4 blocks positive (lowest lua_na_praca −1.7, highest petrunko +37.6) |
+| explicit requests | +10.4 | |
+
+- **No ride lost**; physics frames unchanged.
+- **Every ruler** (V7.1, 8 seeds):
+  - strong catches fall less short: strong bias +0.006, very strong +0.008
+    (+0.014 on the library songs, +0.027 on intense passages);
+  - air and speed errors lower except on long floats (P6, a single spec);
+  - head-down or backward strong arrivals −0.015.
+- **Costs.**
+  - body drag +14% (V7.1) and +12% (held out);
+  - strong extra impacts −16% and −12%;
+  - head-down or backward strong arrivals −10% and −17%.
+- **Archive:** 49.7 MB, against 22.6 MB before, just under GitHub's 50 MB
+  warning. Pruning it (fewer, deduplicated demonstrations) is a follow-up
+  for the owner.
+- **Reading.** Policies learned from the compiler they serve matter more
+  than anything about ranking. They decide which catches are ever proposed,
+  and the short hops and the new local search changed that.
+- Parity references were refreshed.
+
 ## November 7: hypothesis, construction policies from today's compiler
 
 - **Basis.** The inventory found the construction policies collected

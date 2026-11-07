@@ -110,8 +110,8 @@ pub extern "C" fn get_body_motion(h: u32, f: i32) -> i32 {
     with_arena(|arena| arena.body_motion_into(h, f, out)) as i32
 }
 
-// Rider summary at the head of SCRATCH (avg pos.x/y, avg vel.x/y, RIDER_MOUNTED fsu,
-// SLED_INTACT fsu), then the sled points.
+// Rider summary at the head of SCRATCH: avg pos.x/y, avg vel.x/y, RIDER_MOUNTED fsu,
+// SLED_INTACT fsu.
 #[no_mangle]
 pub extern "C" fn get_rider(h: u32, f: i32) {
     let out = unsafe { &mut *&raw mut SCRATCH };

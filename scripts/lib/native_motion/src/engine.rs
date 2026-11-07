@@ -8,7 +8,7 @@ use crate::kernel::CollisionTrace;
 #[cfg(test)]
 use crate::line::build_line;
 use crate::line::LineRef;
-use crate::{NENT, NOSE, PEG, STRING, TAIL};
+use crate::NENT;
 use std::{cell::RefCell, rc::Rc};
 
 pub(crate) const RAW_FRAME_STRIDE: usize = 13;
@@ -400,7 +400,7 @@ impl EngineArena {
         let Some(cache) = self.cached_frame_cache(handle, frame) else {
             return false;
         };
-        out[..4].copy_from_slice(cache.body_motion(frame as usize));
+        out[..4].copy_from_slice(&cache.body_motion(frame as usize));
         true
     }
 
@@ -421,7 +421,7 @@ impl EngineArena {
         out.clear();
         out.reserve((end - start + 1) as usize * 5);
         for frame in start as usize..=end as usize {
-            out.extend_from_slice(cache.body_motion(frame));
+            out.extend_from_slice(&cache.body_motion(frame));
             out.push((!cache.events_at(frame).is_empty()) as u8 as f64);
         }
         true
@@ -476,34 +476,20 @@ impl EngineArena {
     }
 
     /// getRider, computed in Rust to avoid rebuilding the JS stateMap.
-    /// Writes the summary, then the sled points. The summary: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
+    /// Writes avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
     /// — bit-identical to Rider.getBody), then the RIDER_MOUNTED and SLED_INTACT fsu
     /// (the only two bindings the detector reads via rider.get(id).isBinded()).
     pub(crate) fn rider_into(&mut self, h: u32, f: i32, out: &mut [f64]) {
         let Some(cache) = self.frame_cache(h, f) else {
             return;
         };
-        let f = f as usize;
-        let s = cache.frame(f);
-        let summary = cache.summary(f);
+        let summary = cache.summary(f as usize);
         out[0] = summary.body_px;
         out[1] = summary.body_py;
         out[2] = summary.body_vx;
         out[3] = summary.body_vy;
         out[4] = summary.rider_fsu as f64;
         out[5] = summary.sled_fsu as f64;
-        // Slots 6..29: PEG/TAIL/NOSE/STRING point states as 4 × [px,py,prevx,prevy,vx,vy].
-        // These are the only point ids the compiler probes through getRider on the WASM
-        // path; keeping them in the lean payload avoids the cold full-stateMap fallback.
-        for (k, &i) in [PEG, TAIL, NOSE, STRING].iter().enumerate() {
-            let o = 6 + k * 6;
-            out[o] = s.px[i];
-            out[o + 1] = s.py[i];
-            out[o + 2] = s.prevx[i];
-            out[o + 3] = s.prevy[i];
-            out[o + 4] = s.vx[i];
-            out[o + 5] = s.vy[i];
-        }
     }
 
     /// Read all ordered collisions; the transport buffer retains its allocation.

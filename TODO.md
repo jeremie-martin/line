@@ -71,6 +71,8 @@ Note friction here as it happens; fix what is tiny.
 - `compare` compiles both arms with this checkout's built engine, so nothing may be rebuilt
   during a 15-minute panel. Separate work happens in another worktree, and a
   `node_modules` symlink there once replaced the real directory on cherry-pick (now ignored).
+- `compare` keeps one worktree per compared commit in `generated/eval/worktrees/` and never
+  prunes them; it could drop those no saved run needs.
 - Eight-round paired timings resolve about 2%, so changes meant to be neutral come back
   unclear. Accepted: about 8 minutes a run is the right cost.
 
@@ -81,10 +83,8 @@ Each is a simplification to try, kept only if a paired compile and parity allow 
 - Make one `advance` the only call that simulates, with every reader cached only. Every
   compile now fails if it simulates a frame it did not charge; this would make such a
   frame impossible to write, not only caught.
-- Reduce `getRider` to what production reads, and drop the constraint padding in
-  `getUpdatesAtFrame` if `artifacts.ts` and `observe.ts` confirm no one reads it.
-- Ablate `outside_grid` and its bounds now that near lines make empty sweeps cheap, and
-  the `motion` memo, which has no recorded gain.
+- Drop the constraint padding in `getUpdatesAtFrame` if `artifacts.ts` and `observe.ts`
+  confirm no one reads it.
 - Try `IntMap` with a pool of spare buckets in place of `LineGrid`'s own table.
 - When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
 - Try Bun soon: 35% less memory at equal speed matters to the owner, but not yet. It

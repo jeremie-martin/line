@@ -35,9 +35,7 @@ observing or extending it. Live descendants and the current cache retain the
 ancestry they need; unused branches are reclaimed, with handle slots reserved
 until lineage death. Detached lineages share a cache snapshot until a write.
 Cached reads do not copy it; releasing the source transfers ownership directly.
-Body motion is a pure, lazy per-frame observation stored in a `OnceCell`. Shared
-snapshots may fill that memo without copying simulation data. Copies preserve
-valid observations; rollback and reset discard them with their frames.
+Body motion is computed from a frame's saved state when an observer asks for it.
 Saved states and collision-history snapshots share immutable 64-entry chunks
 across cache copies through the same append-only prefix store. Truncation changes the
 visible prefix; appending copies only a shared partial tail. Up to 63 hidden tail
@@ -109,16 +107,10 @@ The neighborhood cache builds ordered 3×3 queries on demand and retains a
 filtered list per point. Velocity is fixed across the six sweeps; filters refresh
 at a frame boundary or cell change. Original cell order, descending line ids,
 duplicates and direction-predicate NaN behavior are preserved. A sweep retains
-its original list when a collision moves a point. These specializations remain
-because they improve measured performance while preserving parity.
-
-Ordinary collision sweeps can skip all ten point queries when every point is
-beyond one face of a conservative occupied-grid envelope. Exact integer-cell
-boundaries and monotone rounded division prove those neighborhoods empty.
-Bounds expand on insertion and remain conservative after removal; copies retain
-them. Unsupported coordinate ranges make the envelope unbounded, so ordinary
-queries remain in force. History-producing sweeps always record their snapshots.
-Only physical points need per-point query storage; binding-status entities do not.
+its original list when a collision moves a point. Of that list, a point tests only
+the lines it can reach from within two pixels of where its near lines were chosen,
+and the full rest of the list after a hit. These specializations remain because
+they improve measured performance while preserving parity. Only physical points need per-point query storage; binding-status entities do not.
 
 ## Build and verify
 

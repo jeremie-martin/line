@@ -13,7 +13,6 @@ use crate::{
     BUTT, LFOOT, LHAND, NENT, NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, SLED_INTACT,
     STRING, TAIL,
 };
-use std::cell::OnceCell;
 
 // parts.BODY in lr-core order — the entities getRider averages (sum in this order
 // then /6, matching Rider.getBody's averageVectors so the result is bit-identical).
@@ -31,7 +30,6 @@ pub(crate) struct FrameSummary {
     pub(crate) sled_fsu: i32,
     pub(crate) sled_points: [u8; 4], // first-contact order
     pub(crate) sled_count: u8,
-    motion: OnceCell<[f64; 4]>, // pure observation; shared snapshots may fill it without copying
     pub(crate) contact_offset: usize,
     pub(crate) contact_count: usize,
 }
@@ -111,7 +109,6 @@ impl FrameCache {
         }
         self.line_cache.invalidate();
         for line in lines.iter().filter(|line| line.collidable) {
-            self.line_cache.include_cells(line.cells());
             push_line(&mut self.cell_lines, line, line.cells());
             self.lines.insert(line.id, line.clone());
         }
@@ -254,10 +251,9 @@ impl FrameCache {
         &self.contact_ids[start..end]
     }
 
-    /// Derived once per immutable frame, only when an observer asks for it.
-    /// Clone preserves valid memo values; reset and rollback discard old frames.
-    pub(crate) fn body_motion(&self, frame: usize) -> &[f64; 4] {
-        self.summaries[frame].motion.get_or_init(|| {
+    /// Whole-body motion at a frame, derived when an observer asks for it.
+    pub(crate) fn body_motion(&self, frame: usize) -> [f64; 4] {
+        {
             let s = self.frame(frame);
             let (mut cx, mut cy, mut vx, mut vy) = (0.0, 0.0, 0.0, 0.0);
             for i in 2..NENT {
@@ -278,7 +274,7 @@ impl FrameCache {
                 radius2 += rx * rx + ry * ry;
             }
             [vx, vy, momentum, (radius2 / 10.0).sqrt()]
-        })
+        }
     }
 
     fn summarize_frame(s: &State, events: &[Event], contact_ids: &mut Vec<f64>) -> FrameSummary {
@@ -325,7 +321,6 @@ impl FrameCache {
             sled_fsu: s.fsu[SLED_INTACT],
             sled_points,
             sled_count: sled_count as u8,
-            motion: OnceCell::new(),
             contact_offset,
             contact_count: contact_ids.len() - contact_offset,
         }

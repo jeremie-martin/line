@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: three more removals, timed with `--candidate`
+
+Each measured against its parent commit, with the checkout untouched: the motion memo,
+−0.0% [−0.8, +2.2] and 26 MB less memory; the whole-sweep bounds, +1.0% [−0.7, +2.5],
+about 60 lines of bit faces and overflow limits whose gain near lines had absorbed; and
+`getRider`'s 24 copied sled values, which only tools read, −0.4% [−0.8, +1.4].
+4.7 GB of old-format timing runs and eight stale `/tmp` worktrees are gone too.
+
 ## November 7: every simulated frame is charged, or the compile fails
 
 The engine counts every frame it simulates, and `compileHandoff` compares the count with

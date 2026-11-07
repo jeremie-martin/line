@@ -18,8 +18,6 @@ const sameStateNumber = (a: number, b: number) => a === b || !Number.isFinite(a)
 type LineData = {id?: number; type?: number; x1: number; y1: number; x2: number; y2: number;
   flipped?: boolean; leftExtended?: boolean; rightExtended?: boolean};
 const RIDER_POINT_IDS = ENTITY_IDS.slice(2);
-const RIDER_SLED_POINTS = RIDER_POINT_IDS.slice(0, 4);
-const RIDER_SLED_OFFSET = 6;
 const EMPTY_SLED_CONTACTS = Object.freeze([]) as unknown as string[];
 const EMPTY_CONTACT_LINE_IDS = Object.freeze([]) as unknown as number[];
 
@@ -377,28 +375,11 @@ export class LineRiderEngine {
   }
 
   getRider(frame: number): any {
-    // Lean path: the kernel computes the BODY average + the two binding fsu in
-    // Rust at the head of SCRATCH, without rebuilding the 12-entity stateMap. position/velocity are summed in
-    // BODY order in Rust → bit-identical to Rider.getBody. get(id) serves the two
-    // bindings and four ordinary sled probes. `ballisticState()` lazily copies
-    // all ten point/previous-point states from this same already-computed frame;
-    // other point reads retain the cold full-stateMap fallback.
+    // The body average and both binding counters come from Rust, summed in BODY order
+    // like Rider.getBody. Other points read the full state map.
     get_rider(this.h, frameIndex(frame));
     const sc = views().scratch;
     const fsuRider = sc[4], fsuSled = sc[5];
-    const peg = RIDER_SLED_OFFSET;
-    const tail = peg + POINT_STRIDE;
-    const nose = tail + POINT_STRIDE;
-    const stringPoint = nose + POINT_STRIDE;
-    const pegPx = sc[peg], pegPy = sc[peg + 1];
-    const pegPrevx = sc[peg + 2], pegPrevy = sc[peg + 3], pegVx = sc[peg + 4], pegVy = sc[peg + 5];
-    const tailPx = sc[tail], tailPy = sc[tail + 1];
-    const tailPrevx = sc[tail + 2], tailPrevy = sc[tail + 3], tailVx = sc[tail + 4], tailVy = sc[tail + 5];
-    const nosePx = sc[nose], nosePy = sc[nose + 1];
-    const nosePrevx = sc[nose + 2], nosePrevy = sc[nose + 3], noseVx = sc[nose + 4], noseVy = sc[nose + 5];
-    const stringPx = sc[stringPoint], stringPy = sc[stringPoint + 1];
-    const stringPrevx = sc[stringPoint + 2], stringPrevy = sc[stringPoint + 3];
-    const stringVx = sc[stringPoint + 4], stringVy = sc[stringPoint + 5];
     let stateMap: Map<string, any> | undefined;
     return {
       position: { x: sc[0], y: sc[1] },
@@ -407,10 +388,6 @@ export class LineRiderEngine {
       get: (id: string): any => {
         if (id === "RIDER_MOUNTED") return { framesSinceUnbind: fsuRider, isBinded: () => fsuRider === -1 };
         if (id === "SLED_INTACT") return { framesSinceUnbind: fsuSled, isBinded: () => fsuSled === -1 };
-        if (id === RIDER_SLED_POINTS[0]) return pointStateFrom(pegPx, pegPy, pegPrevx, pegPrevy, pegVx, pegVy);
-        if (id === RIDER_SLED_POINTS[1]) return pointStateFrom(tailPx, tailPy, tailPrevx, tailPrevy, tailVx, tailVy);
-        if (id === RIDER_SLED_POINTS[2]) return pointStateFrom(nosePx, nosePy, nosePrevx, nosePrevy, noseVx, noseVy);
-        if (id === RIDER_SLED_POINTS[3]) return pointStateFrom(stringPx, stringPy, stringPrevx, stringPrevy, stringVx, stringVy);
         stateMap ??= this.getStateMapAtFrame(frame);
         return stateMap.get(id);
       },

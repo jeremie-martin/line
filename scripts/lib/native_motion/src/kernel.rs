@@ -94,9 +94,6 @@ impl QueryCache {
 }
 
 pub(crate) struct LineCellCache {
-    // Conservative occupied-cell bounds. Removals may leave them wider; clones
-    // preserve geometry bounds while discarding borrowed neighborhood pointers.
-    bounds: [f64; 4],
     // Point slots start at PEG; the first two entities only store binding status.
     point_cells: [PointCell; NENT - PEG],
     point_lines: [Vec<*const Line>; NENT - PEG], // ordered lines passing this frame's direction predicate
@@ -108,14 +105,13 @@ pub(crate) struct LineCellCache {
 // cache clones start empty and never copy borrowed pointers.
 impl Clone for LineCellCache {
     fn clone(&self) -> Self {
-        Self { bounds: self.bounds, ..Self::default() }
+        Self::default()
     }
 }
 
 impl Default for LineCellCache {
     fn default() -> Self {
         Self {
-            bounds: [f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY],
             point_cells: [PointCell::EMPTY; NENT - PEG],
             point_lines: std::array::from_fn(|_| Vec::new()),
             point_near: std::array::from_fn(|_| Vec::new()),
@@ -125,41 +121,6 @@ impl Default for LineCellCache {
 }
 
 impl LineCellCache {
-    // Encoded coordinates, including neighboring cells, are at most 2^31 + 2.
-    // Their pairing fits i64, so distinct cells cannot alias through overflow.
-    const BOUNDED_CELL: i64 = 1 << 30;
-
-    pub(crate) fn include_cells(&mut self, cells: &[(i64, i64)]) {
-        for &(x, y) in cells {
-            if !(-Self::BOUNDED_CELL..=Self::BOUNDED_CELL).contains(&x)
-                || !(-Self::BOUNDED_CELL..=Self::BOUNDED_CELL).contains(&y) {
-                // An unbounded envelope cannot exclude a point. Further unions
-                // and copies preserve that conservative fallback automatically.
-                self.bounds = [f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY];
-                return;
-            }
-            self.bounds[0] = self.bounds[0].min((x as f64 - 2.0) * GRID_SIZE);
-            self.bounds[1] = self.bounds[1].max((x as f64 + 2.0) * GRID_SIZE);
-            self.bounds[2] = self.bounds[2].min((y as f64 - 2.0) * GRID_SIZE);
-            self.bounds[3] = self.bounds[3].max((y as f64 + 2.0) * GRID_SIZE);
-        }
-    }
-
-    /// Beyond a common face, every 3x3 point neighborhood is empty. The integer
-    /// boundaries and their products by 14 are exact. Monotone rounded division
-    /// keeps points beyond them at least two cells from any registered cell.
-    fn outside_grid(&self, s: &State) -> bool {
-        let mut faces = 15;
-        for &(i, _) in &COLLIDING_POINTS {
-            let (x, y) = (s.px[i], s.py[i]);
-            faces &= (x < self.bounds[0]) as u8 | ((x > self.bounds[1]) as u8) << 1
-                | ((y < self.bounds[2]) as u8) << 2 | ((y > self.bounds[3]) as u8) << 3;
-            if faces == 0 || !(x.abs() < Self::BOUNDED_CELL as f64 * GRID_SIZE
-                && y.abs() < Self::BOUNDED_CELL as f64 * GRID_SIZE) { return false; }
-        }
-        true
-    }
-
     // Velocity is constant through all six sweeps, but changes at each step.
     // Refresh filtered point lists even when a replay reuses a frame index.
     // The shared neighborhood queries remain valid until a grid edit.
@@ -576,10 +537,8 @@ pub(crate) fn step_state<const TRACK: bool>(
             resolve_iter_constraints(s);
             if let Some(trace) = trace.as_deref_mut() { trace.record(s, it); }
             let it = it as u8;
-            if TRACK || !line_cache.outside_grid(s) {
-                for &(index, friction) in &COLLIDING_POINTS {
-                    collide_point::<TRACK>(s, grid, events, history, line_cache, it, index, friction);
-                }
+            for &(index, friction) in &COLLIDING_POINTS {
+                collide_point::<TRACK>(s, grid, events, history, line_cache, it, index, friction);
             }
         }
     }
@@ -633,55 +592,6 @@ mod tests {
             }
         }
         assert!(excluded > 50_000 && kept > 50_000, "{excluded} {kept}");
-    }
-
-    #[test]
-    fn whole_sweep_bounds_exclude_only_empty_neighborhoods() {
-        for (slot, &(entity, _)) in COLLIDING_POINTS.iter().enumerate() {
-            assert_eq!(entity, PEG + slot, "point slots follow the fixed rider topology");
-        }
-        let mut state = init_state(0.0, 0.0, 0.0, 0.0);
-        for cell in [-LineCellCache::BOUNDED_CELL, -100, -1, 0, 1, 100, LineCellCache::BOUNDED_CELL] {
-            let cells = [(cell, cell), (cell, (cell - 1).max(-LineCellCache::BOUNDED_CELL))];
-            let mut cache = LineCellCache::default();
-            cache.include_cells(&cells);
-            cache.invalidate();
-            let cloned = cache.clone();
-            for face in [cell - 3, cell - 2, cell - 1, cell, cell + 1, cell + 2, cell + 3] {
-                let boundary = face as f64 * GRID_SIZE;
-                for x in [boundary.next_down(), boundary, boundary.next_up()] {
-                  for swap in [false, true] {
-                    for &(i, _) in &COLLIDING_POINTS {
-                        let y = cell as f64 * GRID_SIZE;
-                        (state.px[i], state.py[i]) = if swap { (y, x) } else { (x, y) };
-                    }
-                    assert_eq!(cache.outside_grid(&state), cloned.outside_grid(&state));
-                    if cache.outside_grid(&state) {
-                        for &(i, _) in &COLLIDING_POINTS {
-                            let cx = cell_cor_from_scaled(state.px[i] / GRID_SIZE);
-                            let cy = cell_cor_from_scaled(state.py[i] / GRID_SIZE);
-                            for dx in -1..=1 { for dy in -1..=1 {
-                                assert!(cells.iter().all(|&(x,y)| hash_int_pair(x,y) != hash_int_pair(cx+dx,cy+dy)));
-                            }}
-                        }
-                    }
-                  }
-                }
-            }
-        }
-        let mut cache = LineCellCache::default();
-        cache.include_cells(&[(0,0)]);
-        for &(i, _) in &COLLIDING_POINTS { state.px[i] = 100.0; state.py[i] = 100.0; }
-        assert!(cache.outside_grid(&state));
-        state.px[PEG] = 0.0; state.py[PEG] = 0.0;
-        assert!(!cache.outside_grid(&state), "one overlapping point forbids skipping the sweep");
-        for x in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, f64::MAX] {
-            state.px[PEG] = x;
-            assert!(!cache.outside_grid(&state));
-        }
-        state.px[PEG] = 100.0; state.py[PEG] = 100.0;
-        cache.include_cells(&[(LineCellCache::BOUNDED_CELL + 1, 0)]);
-        assert!(!cache.outside_grid(&state), "overflowing cell domains need ordinary queries");
     }
 
     #[test]

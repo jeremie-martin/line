@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round twelve</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--surface:#fcfcfb;--grid:#e6e8ec;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#6250d6;--ref:#8a9099;--ref2:#b5bac2;--bar:#c9ced6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--surface:#1a1a19;--grid:#2a2d32;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#9085e9;--ref:#8b929c;--ref2:#5a6069;--bar:#3a3f46}}
+:root[data-theme="dark"]{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--surface:#1a1a19;--grid:#2a2d32;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#9085e9;--ref:#8b929c;--ref2:#5a6069;--bar:#3a3f46}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:660px;margin:0 auto;padding:28px 16px 64px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0 0 8px} li{margin:0 0 6px}
+a{color:var(--s1)}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--ink);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card b{display:block;font-size:18px;margin-bottom:2px} a.card span{color:var(--soft);font-size:15px} a.card .go{float:right;color:var(--soft)}
+.small{font-size:14px;color:var(--soft)}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px}
+figcaption{font-size:15px;font-weight:600;margin:0 0 2px}
+figure p{font-size:13px;color:var(--soft);margin:0 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--soft);margin:4px 0 12px}
+.legend i{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+svg{display:block;width:100%;height:auto;touch-action:pan-y;overflow:visible}
+svg text{font:17px system-ui,sans-serif;fill:var(--soft)}
+svg .hit{cursor:crosshair}
+svg .lab{font-weight:600}
+.tip{font-size:13px;color:var(--soft);min-height:1.4em;margin:2px 0 4px;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body><main>
+<p class="kicker">Round seventeen · 7 November</p>
+<h1>Less shake, and a later flash</h1>
+<p class="lead">Two short questions. Your round-16 picks are the defaults: a little less split on the title, and the flash reaching 25 % at 0.8, then rising gently.</p>
+
+<a class="card" href="./?q=1"><span class="go">→</span><b>Two questions</b><span>The shake at 24, 20 or 16 px, and the flash reaching 25 % at 0.85.</span></a>
+
+<h2>Notes</h2>
+<ul>
+<li><strong>Shake:</strong> you meant less shake, the ride moving too much. Every option is the same straight line from zero, still growing past 0.85, just lower.</li>
+<li><strong>Flash:</strong> one is shifted right (it starts at 0.6), the other starts at 0.55 like before but climbs more slowly. Both reach 25 % at 0.85, then rise gently (about 29 % at 1.0).</li>
+<li><strong>The split:</strong> you skipped it, so it stays on the slow start from 0.3. Say if you want the softer one back.</li>
+</ul>
+
+<figure>
+<figcaption>Where real hits fall</figcaption>
+<p>Measured strength runs along the bottom of every chart. 716 hits across the seven songs. The median hit is 0.62; nine in ten are below 0.76.</p>
+<svg id="hist" viewBox="0 0 600 120" role="img" aria-label="Histogram of measured hit strength"></svg>
+</figure>
+
+<figure>
+<figcaption>Shake: the thud’s first swing</figcaption>
+<div class="legend" id="legend"></div>
+<p>Pixels on a 1080-wide frame, for a single hit. The same straight line from zero, to three tops.</p>
+<div class="tip" id="tip-shake">Touch or hover the chart to read values.</div>
+<svg id="shake" viewBox="0 0 600 260" role="img" aria-label="Shake size against measured strength"></svg>
+</figure>
+
+
+<div class="legend" id="legend2"></div>
+<figure>
+<figcaption>Flash toward the paper</figcaption>
+<p>Peak opacity. The flash no longer depends on the shake’s size.</p>
+<div class="tip" id="tip-flash">Touch or hover the chart to read values.</div>
+<svg id="flash" viewBox="0 0 600 260" role="img" aria-label="Flash opacity against measured strength"></svg>
+</figure>
+
+<h2>Filed from round 16</h2>
+<ul>
+<li><strong>Title:</strong> a little less.</li>
+<li><strong>Flash:</strong> 25 % at 0.8, rising gently on. Better, “but a little slower, or a little to the right”. That’s question 2.</li>
+<li><strong>Shake:</strong> less. That’s question 1.</li>
+</ul>
+
+<p class="small"><a href="morning.html">All rounds</a> · <a href="round16.html">Round 16</a> · <a href="./">Free lab</a></p>
+</main>
+<script>
+// Exactly the formulas in lab.js (drive, SIZE, AMP, rareGate, partsCamera thud, partsSplit) and scripts/fx_recipe.ts (today's).
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x)), ss = x => {x = clamp(x, 0, 1); return x * x * (3 - 2 * x);};
+const E = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4), Wx = e => Math.pow(e, 2.2);
+const SIZE = {w: e => 0.35 + 0.65 * Wx(e), mid: e => 0.4 + 0.6 * Math.pow(e, 1.5), e: e => 0.45 + 0.55 * e};
+const gate = e => ss((e - 0.8) / 0.13), lin = s => clamp((s - 0.2) / 0.65, 0, 1);
+const SERIES_OLD = [
+  {id: 'today', name: 'Today’s', css: 'var(--ref)', dash: '5 4',
+   shake: s => s >= 0.22 ? 10 * Math.pow(Math.min(1, 1.6 * s), 1.5) : 0, split: s => s >= 0.25 ? 100 * Math.pow(Math.min(1, 2 * s), 1.4) : 0, flash: s => s >= 0.3 ? 30 * Math.min(1, 1.8 * s) : 0},
+  ...[['w', '×1.5 (your favourite)', 'var(--s1)'], ['mid', 'Between ×1.5', 'var(--s2)'], ['e', 'Fuller ×1.5', 'var(--s3)']].map(([k, name, css]) => ({id: k, name, css,
+    shake: s => 16 * 1.5 * SIZE[k](E(s)), split: s => 100 * 1.5 * SIZE[k](E(s)), flash: s => 30 * SIZE[k](E(s)) * gate(E(s))}))];
+const X0 = 0.2, X1 = 1.0, L = 62, R = 150, T = 12, B = 36, VW = 600;
+const sx = (s, w) => L + (s - X0) / (X1 - X0) * (w - L - R);
+const ns = 'http://www.w3.org/2000/svg', el = (n, a, p) => {const e = document.createElementNS(ns, n); for (const k in a) e.setAttribute(k, a[k]); p && p.append(e); return e;};
+const SERIES = [SERIES_OLD[0],
+  ];
+const L0 = (s, a, b) => Math.max(0, (s - a) / (b - a)), RISE = (s, a, b) => {const x = (s - a) / (b - a); return x <= 0 ? 0 : x <= 1 ? x * x : 2 * x - 1;};
+const PW = (s, a, b, p) => {const x = (s - a) / (b - a); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, p) : 1 + p * (x - 1);}, PX = 14 * 1.5 * 0.61;
+SERIES[0] = {...SERIES[0], split: s => s >= 0.25 ? 14 * Math.pow(Math.min(1, 2 * s), 1.4) : 0};
+SERIES.push({id: 'e30', name: 'Slow start, 0.3', css: 'var(--s1)', shake: s => 24 * L0(s, 0.2, 0.85), split: s => PX * PW(s, 0.3, 0.85, 2)},
+  {id: 's30', name: 'Softer slow start', css: 'var(--s2)', shake: s => 24 * L0(s, 0.2, 0.85), split: s => PX * PW(s, 0.3, 0.85, 1.5)},
+  {id: 'z40', name: 'Nothing below 0.4', css: 'var(--s3)', shake: s => 24 * L0(s, 0.2, 0.85), split: s => PX * L0(s, 0.4, 0.85)});
+const FLASH = [{id: 'r85', name: 'Shifted right', css: 'var(--s1)', flash: s => s <= 0.85 ? 25 * ss((s - 0.6) / 0.25) : 25 + 25 * (s - 0.85)},
+  {id: 'r85s', name: 'Slower', css: 'var(--s2)', flash: s => s <= 0.85 ? 25 * ss((s - 0.55) / 0.3) : 25 + 25 * (s - 0.85)},
+  {id: 'r80', name: 'Round 16', css: 'var(--ref)', dash: '5 4', flash: s => s <= 0.8 ? 25 * ss((s - 0.55) / 0.25) : 25 + 25 * (s - 0.8)}];
+const legendFor = id => document.getElementById(id).replaceChildren(...SERIES.map(S => {const s = document.createElement('span'); s.innerHTML = `<i style="border-top-color:${S.css};${S.dash ? 'border-top-style:dashed' : ''}"></i>${S.name}`; return s;}));
+legendFor('legend');
+if (false) document.getElementById('legend').append(...SERIES.map(S => {const s = document.createElement('span'); s.innerHTML = `<i style="border-top-color:${S.css};${S.dash ? 'border-top-style:dashed' : ''}"></i>${S.name}`; return s;}));
+function chart(id, key, yMax, unit, ticks) {
+  const SERIES_HERE = [...SERIES];
+  const svg = document.getElementById(id), H = 260, ph = H - T - B, sy = v => T + ph * (1 - v / yMax);
+  for (const v of ticks) {el('line', {x1: L, x2: VW - R, y1: sy(v), y2: sy(v), stroke: 'var(--grid)', 'stroke-width': 1}, svg); el('text', {x: L - 6, y: sy(v) + 4, 'text-anchor': 'end'}, svg).textContent = v + unit;}
+  for (const s of [0.2, 0.4, 0.6, 0.8, 1.0]) el('text', {x: sx(s, VW), y: H - 8, 'text-anchor': 'middle'}, svg).textContent = s.toFixed(1);
+  
+  const ends = [];
+  for (const S of SERIES_HERE) {
+    let d = ''; for (let i = 0; i <= 140; i++) {const s = X0 + (X1 - X0) * i / 140; d += (i ? 'L' : 'M') + sx(s, VW).toFixed(1) + ',' + sy(S[key](s)).toFixed(1);}
+    el('path', {d, fill: 'none', stroke: S.css, 'stroke-width': 2, 'stroke-dasharray': S.dash ?? '', 'stroke-linejoin': 'round'}, svg);
+    ends.push({S, y: sy(S[key](X1))});
+  }
+  // direct labels at the right end, nudged apart so they never collide
+  ends.sort((a, b) => a.y - b.y); for (let i = 1; i < ends.length; i++) ends[i].y = Math.max(ends[i].y, ends[i - 1].y + 19);
+  for (const {S, y} of ends) el('text', {x: VW - R + 6, y: y + 4, class: 'lab', fill: S.css, style: `fill:${S.css}`}, svg).textContent = S.name;
+  // crosshair + readout
+  const cross = el('line', {y1: T, y2: H - B, stroke: 'var(--soft)', 'stroke-width': 1, opacity: 0, 'pointer-events': 'none'}, svg), dots = SERIES_HERE.map(S => el('circle', {r: 5, fill: S.css, stroke: 'var(--surface)', 'stroke-width': 2, opacity: 0, 'pointer-events': 'none'}, svg));
+  const tip = document.getElementById('tip-' + id), hit = el('rect', {x: L, y: T, width: VW - L - R, height: ph, fill: 'transparent'}, svg);
+  const move = ev => {const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width * VW, s = clamp(X0 + (x - L) / (VW - L - R) * (X1 - X0), X0, X1);
+    cross.setAttribute('x1', sx(s, VW)); cross.setAttribute('x2', sx(s, VW)); cross.setAttribute('opacity', 0.5);
+    SERIES_HERE.forEach((S, i) => {dots[i].setAttribute('cx', sx(s, VW)); dots[i].setAttribute('cy', sy(S[key](s))); dots[i].setAttribute('opacity', 1);});
+    tip.textContent = `strength ${s.toFixed(2)} · ` + SERIES_HERE.map(S => `${S.name} ${S[key](s).toFixed(key === 'shake' ? 1 : 0)}${unit}`).join(' · ');};
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move); hit.setAttribute('class', 'hit');
+}
+const SPLITS = SERIES.slice();
+SERIES.splice(0, SERIES.length, SPLITS[0], {...SPLITS[1], name: '24 px (now)', css: 'var(--s1)', shake: s => 24 * L0(s, 0.2, 0.85)},
+  {...SPLITS[1], id: 'k20', name: '20 px', css: 'var(--s2)', shake: s => 20 * L0(s, 0.2, 0.85)}, {...SPLITS[1], id: 'k16', name: '16 px', css: 'var(--s3)', shake: s => 16 * L0(s, 0.2, 0.85)});
+legendFor('legend');
+chart('shake', 'shake', 32, ' px', [0, 8, 16, 24, 32]);
+
+SERIES.splice(0, SERIES.length, ...FLASH); legendFor('legend2');
+chart('flash', 'flash', 32, '%', [0, 10, 20, 30]);
+// where the hits fall (bins of 0.05 from 0 to 1, 716 hits on the recompiled rides)
+{const bins = [0, 0, 0, 2, 6, 16, 25, 50, 63, 56, 50, 65, 95, 102, 99, 72, 12, 3, 0, 0], svg = document.getElementById('hist'), H = 120, ph = H - 8 - 30, mx = Math.max(...bins);
+  bins.forEach((c, i) => {const s0 = i * 0.05; if (s0 < X0 - 1e-9 || s0 >= X1) return; const x0 = sx(s0, VW) + 1, x1 = sx(s0 + 0.05, VW) - 1, h = ph * c / mx;
+    el('rect', {x: x0, y: 8 + ph - h, width: x1 - x0, height: h, rx: 2, fill: 'var(--bar)'}, svg).append(Object.assign(document.createElementNS(ns, 'title'), {textContent: `${s0.toFixed(2)}–${(s0 + 0.05).toFixed(2)}: ${c} hits`}));});
+  for (const s of [0.2, 0.4, 0.6, 0.8, 1.0]) el('text', {x: sx(s, VW), y: H - 8, 'text-anchor': 'middle'}, svg).textContent = s.toFixed(1);
+  el('line', {x1: sx(0.615, VW), x2: sx(0.615, VW), y1: 4, y2: 8 + ph, stroke: 'var(--soft)', 'stroke-dasharray': '3 3'}, svg);
+  el('text', {x: sx(0.615, VW) + 5, y: 20}, svg).textContent = 'median';}
+</script>
+</body></html>

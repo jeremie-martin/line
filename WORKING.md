@@ -106,7 +106,7 @@ plan and its log.
   2 GB each, eight on this 20-thread, 16 GB laptop. `--jobs=N` overrides it.
 - The speed goal is in [docs/performance-goal.md](docs/performance-goal.md), and
   `npm run perf:score` is its number. Speed decisions use `npm run perf:engine --
-  --mode=compile --against=<ref>` on real compiles, and `npm run perf:profile` shows
+  --against=<ref>` on real compiles, and `npm run perf:profile` shows
   where a compile goes. Never benchmark alongside other heavy work. Protocol and reading the
   result: [docs/engine-validation.md](docs/engine-validation.md).
 - Before a trial, declare whether it needs a speedup or permits a resource tradeoff,

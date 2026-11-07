@@ -69,14 +69,13 @@ paired timing protocol and interpretation of resource measurements.
 the complete structural gate: types, reachability, JavaScript and Rust tests,
 live physics verification, compiler parity and judge parity. Evaluation,
 comparison and parity use a conservative CPU/memory worker count; `--jobs=N`
-overrides it (eight by default on this 16 GB host). `npm run perf:engine -- --help`
-shows the paired experiment options, `npm run perf:profile` shows where a real
-compile spends its time, and `npm run bench:engine` is a workload diagnostic.
+overrides it (eight by default on this 16 GB host). `npm run perf:engine` answers
+whether a change is faster, `npm run perf:profile` shows where a real compile spends
+its time, and `npm run bench:engine` is a workload diagnostic.
 
 Compiler throughput is full compile time per charged physics frame, including
 search and observation work. It is distinct from isolated solver time. Structural
-optimizations preserve exact output and charged work; an absolute speed target
-also requires fresh confirmation and the declared regression guards.
+optimizations preserve exact output and charged work.
 
 With `npm run serve` running, `node tests/browser/async-loading.mjs` checks
 concurrent gallery loading, cancellation, and audio-failure recovery using

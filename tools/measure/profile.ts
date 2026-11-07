@@ -86,28 +86,44 @@ const label = ({functionName, url, lineNumber}: CallFrame) => {
   if (native) return `${names.get(Number(native[1])) ?? functionName} [native]`;
   return `${functionName || '(anonymous)'} ${url.split('/').at(-1)}${lineNumber >= 0 ? `:${lineNumber + 1}` : ''}`;
 };
-const show = (title: string, rows: Map<string, number>, total: number, unit: string, scale: number) => {
+const show = (title: string, rows: Map<string, number>, total: number, unit: string, scale: number, count = top) => {
   console.log(`\n${title}`);
-  for (const [name, value] of [...rows].sort((a, b) => b[1] - a[1]).slice(0, top))
+  for (const [name, value] of [...rows].sort((a, b) => b[1] - a[1]).slice(0, count))
     console.log(`${(value / scale).toFixed(unit === 'ms' ? 0 : 1).padStart(9)} ${unit} ${(100 * value / total).toFixed(1).padStart(5)}%  ${name}`);
 };
 const add = (rows: Map<string, number>, key: string, value: number) => rows.set(key, (rows.get(key) ?? 0) + value);
+
+/** Where a profile node's own time belongs: a native module, a source file or the GC. */
+function area({functionName, url}: CallFrame) {
+  const native = /^wasm-function\[(\d+)\]$/.exec(functionName);
+  if (native) {
+    const name = names.get(Number(native[1])) ?? '';
+    return {kind: 'native', file: /^[a-z_]+::/.test(name) ? `${name.split('::')[0]} [native]` : 'other [native]'};
+  }
+  if (functionName === '(garbage collector)') return {kind: 'GC', file: 'garbage collector'};
+  return url ? {kind: 'JS', file: url.split('/').at(-1)!} : {kind: 'other', file: functionName || '(other)'};
+}
 
 function reportCpu(profile: {nodes: CpuNode[]; samples: number[]; timeDeltas: number[]}) {
   const byId = new Map(profile.nodes.map(n => [n.id, n])), parents = new Map<number, number>(), own = new Map<number, number>();
   for (const node of profile.nodes) for (const child of node.children ?? []) parents.set(child, node.id);
   profile.samples.forEach((id, i) => own.set(id, (own.get(id) ?? 0) + profile.timeDeltas[i]));
-  const self = new Map<string, number>(), inclusive = new Map<string, number>();
+  const self = new Map<string, number>(), inclusive = new Map<string, number>(), kinds = new Map<string, number>(), files = new Map<string, number>();
   let total = 0;
   for (const [id, micros] of own) {
     total += micros;
-    add(self, label(byId.get(id)!.callFrame), micros);
+    const frame = byId.get(id)!.callFrame, {kind, file} = area(frame);
+    add(self, label(frame), micros);
+    add(kinds, kind, micros);
+    add(files, file, micros);
     const seen = new Set<string>();
     for (let at: number | undefined = id; at !== undefined; at = parents.get(at)) {
       const name = label(byId.get(at)!.callFrame);
       if (!seen.has(name)) {seen.add(name); add(inclusive, name, micros);}
     }
   }
+  console.log(`\n${['native', 'JS', 'GC', 'other'].map(kind => `${kind} ${((kinds.get(kind) ?? 0) / 1e6).toFixed(1)} s`).join('  ')}`);
+  show('By file', files, total, 'ms', 1e3, 15);
   show('Self time', self, total, 'ms', 1e3);
   show('Inclusive time', inclusive, total, 'ms', 1e3);
 }

@@ -16,7 +16,7 @@ import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright';
 
 const root = fileURLToPath(new URL('../../', import.meta.url)), out = join(root, 'generated/smoke'), BUDGET = 150000;
-const CELL = `canonical-music_luna_bala_44s-automatic#101@${BUDGET}`, PORT = 8791, base = `http://127.0.0.1:${PORT}`;
+const timing = join(root, 'generated/engine-ab/smoke'), CELL = `canonical-music_luna_bala_44s-automatic#101@${BUDGET}`, PORT = 8791, base = `http://127.0.0.1:${PORT}`;
 const run = (...args: string[]) => execFileSync(process.execPath, args, {cwd: root, stdio: ['ignore', 'ignore', 'inherit'], env: {...process.env, LR_ENGINE: 'wasm'}});
 
 /** The newest Chromium Playwright downloaded, when its pinned build is not the installed one. */
@@ -27,11 +27,11 @@ function chromiumPath() {
   return builds.map(name => join(cache, name, 'chrome-linux64/chrome')).find(existsSync);
 }
 
-/** Identical sources, unless this checkout has changes: the wide margin keeps timing
- * noise out of the question, which is whether the workflow still completes. */
+/** The question here is whether the workflow completes, not what it finds. */
 function timingWorkflow() {
-  run('tools/measure/engine_ab.ts', '--against=HEAD', `--cells=${CELL}`, '--rounds=8', '--confirm-rounds=8', '--margin-pct=50', `--out=${join(out, 'timing')}`);
-  const result = JSON.parse(readFileSync(join(out, 'timing/result.json'), 'utf8'));
+  rmSync(timing, {recursive: true, force: true});
+  run('tools/measure/engine_ab.ts', '--against=HEAD', `--cells=${CELL}`, '--name=smoke');
+  const result = JSON.parse(readFileSync(join(timing, 'result.json'), 'utf8'));
   assert.equal(result.complete, true, 'timing comparison did not complete');
   assert.equal(result.samples.length, 16, 'timing comparison lost samples');
 }

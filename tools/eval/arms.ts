@@ -57,11 +57,14 @@ export function commitContent(commit: string, engineSha256: string) {
   const trees = Object.fromEntries(COMPILER_PATHS.map(p => [p, git('.', 'rev-parse', `${commit}:${p}`).toString().trim()]));
   return {key: digest({trees, dirtySha256: EMPTY, engineSha256}), head: commit, clean: true, dirtySha256: EMPTY, engineSha256};
 }
+/** A commit, branch or saved reference name. */
 export function resolveCommit(ref: string) {
   try {
     return git('.', 'rev-parse', '--verify', '--quiet', `${ref}^{commit}`).toString().trim();
   } catch {
-    throw new Error(`${ref} is not a git commit. --candidate takes a commit or branch; saved references are for --reference`);
+    const saved = listReferences().find(r => r.name === ref);
+    if (saved) return saved.commit;
+    throw new Error(`${ref} is neither a git commit nor a saved reference`);
   }
 }
 

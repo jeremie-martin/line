@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {decide, decideCompileCells, pairOrder, summarizePairs} from '../tools/measure/engine_decision.ts';
+import {decide, measuredPairs, pairOrder, summarizePairs} from '../tools/measure/engine_decision.ts';
 const constant = (delta: number, n = 12) => Array.from({length: n}, () => ({base: 100, candidate: 100 + delta}));
 it('describes partial pairs without inventing an inferential result', () => {
   expect(summarizePairs([])).toEqual({n: 0, medianDeltaPct: null, fasterPairs: 0, slowerPairs: 0, tiedPairs: 0});
@@ -10,9 +10,9 @@ it('describes partial pairs without inventing an inferential result', () => {
   for (const invalid of [0, -1, NaN, Infinity]) expect(() => summarizePairs([{base: invalid, candidate: 1}])).toThrow();
 });
 it('uses one declared practical margin, including ties and boundary values', () => {
-  expect(decide(constant(-3)).verdict).toBe('FASTER');
-  expect(decide(constant(3)).verdict).toBe('SLOWER');
-  for (const delta of [-2, 0, 2]) expect(decide(constant(delta)).verdict).toBe('EQUIVALENT');
+  expect(decide(constant(-3), .95, 2).verdict).toBe('FASTER');
+  expect(decide(constant(3), .95, 2).verdict).toBe('SLOWER');
+  for (const delta of [-2, 0, 2]) expect(decide(constant(delta), .95, 2).verdict).toBe('EQUIVALENT');
   expect(decide(constant(0))).toMatchObject({medianDeltaPct: 0, intervalPct: [0, 0], confidence: .95});
 });
 it('allows a zero margin to test direction without a minimum benefit', () => {
@@ -43,17 +43,15 @@ it('does not let favorable outliers rescue an uncertain median', () => {
   for (const invalid of [0, -1, NaN, Infinity]) expect(() => decide([{base: invalid, candidate: 1}, ...pairs])).toThrow();
   expect(() => decide(constant(0, 8), .999)).toThrow('too few pairs');
 });
-it('requires a bounded regression in every cell, not merely a failure to detect harm', () => {
-  const samples = Array.from({length: 12}, (_, round) => [0, 1].map(arm => ({round, arm,
-    iterations: [{rep: 0, cell: 57, compileMs: arm ? 90 : 100}, {rep: 0, cell: 61, compileMs: arm ? 103 : 100}]}))).flat();
-  expect(decide(constant(-3.5)).verdict).toBe('FASTER');
-  expect(decideCompileCells(samples, [57, 61]).regressionGuardPassed).toBe(false);
-  samples.forEach(s => {if (s.arm) s.iterations[1].compileMs = s.round % 2 ? 103 : 97;});
-  expect(decideCompileCells(samples, [57, 61]).regressionGuardPassed).toBe(false);
-  expect(() => decideCompileCells(samples.slice(1), [57, 61])).toThrow('one sample per arm and round');
-  expect(() => decideCompileCells(samples, [57, 57])).toThrow('unique cells');
-  expect(() => decideCompileCells(samples, [62])).toThrow('nonempty cell');
+it('pairs only rounds finished in both arms, by cell or across cells', () => {
+  const sample = (round: number, cell: string, arm: number, nsPerFrame: number) => ({round, cell, arm, nsPerFrame});
+  const samples = [sample(0, 'a', 1, 90), sample(0, 'a', 0, 100), sample(0, 'b', 0, 200), sample(0, 'b', 1, 220),
+    sample(1, 'a', 0, 100), sample(1, 'a', 1, 100), sample(1, 'b', 0, 200)];
+  expect(measuredPairs(samples)).toEqual([{base: 150, candidate: 155}]);
+  expect(measuredPairs(samples, 'a')).toEqual([{base: 100, candidate: 90}, {base: 100, candidate: 100}]);
+  expect(measuredPairs([])).toEqual([]);
 });
+
 it('precommits reproducible, balanced random process ordering', () => {
   const orders = pairOrder(24, 1729);
   expect(orders.filter(p => p[0] === 0)).toHaveLength(12);

@@ -4,7 +4,7 @@
  * cell, reports the evidence after each round, and stops and resumes at any
  * point. It announces no winner; the decision is ours.
  *
- *   npm run compare -- run --reference=NAME [--candidate=.|REF] [--panel=v7] [--jobs=N] [--rounds=N]
+ *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v7] [--jobs=N] [--rounds=N]
  *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids

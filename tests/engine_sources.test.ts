@@ -1,9 +1,9 @@
 import {execFileSync} from 'node:child_process';
 import {afterEach, expect, it} from 'vitest';
-import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
-import {snapshotSources, sourceOverlay} from '../tools/measure/engine_sources.ts';
+import {changedSources, enginePath, snapshotSources} from '../tools/measure/engine_sources.ts';
 const directories: string[] = [];
 function directory() { const dir = mkdtempSync(join(tmpdir(), 'engine-source-')); directories.push(dir); return dir; }
 function put(dir: string, name: string, value: string) {
@@ -11,47 +11,28 @@ function put(dir: string, name: string, value: string) {
 }
 afterEach(() => { for (const dir of directories.splice(0)) rmSync(dir, {recursive: true, force: true}); });
 
-it('replays frozen additions, removals and changes in one cwd without rereading live sources', () => {
+it('lists additions, removals and changes, ignoring the engine binary each arm carries', () => {
   const reference = directory(), candidate = directory();
   put(reference, 'old/module.ts', 'old'); put(reference, 'wrapper.ts', 'reference');
   put(candidate, 'new/module.ts', 'new'); put(candidate, 'wrapper.ts', 'candidate');
   put(reference, 'stable.ts', 'same'); put(candidate, 'stable.ts', 'same');
-  const overlay = sourceOverlay(reference, candidate);
-  expect(overlay.sourceSha256[0]).not.toBe(overlay.sourceSha256[1]);
-  expect(overlay.changed).toEqual(['new/module.ts', 'old/module.ts', 'wrapper.ts']);
-  put(reference, 'wrapper.ts', 'changed after freeze');
-  for (let i = 0; i < 2; i++) {
-    overlay.activate(0);
-    expect(readFileSync(join(candidate, 'wrapper.ts'), 'utf8')).toBe('reference');
-    expect(existsSync(join(candidate, 'new/module.ts'))).toBe(false);
-    expect(readFileSync(join(candidate, 'old/module.ts'), 'utf8')).toBe('old');
-    overlay.activate(1);
-    expect(readFileSync(join(candidate, 'wrapper.ts'), 'utf8')).toBe('candidate');
-    expect(existsSync(join(candidate, 'old/module.ts'))).toBe(false);
-    expect(readFileSync(join(candidate, 'new/module.ts'), 'utf8')).toBe('new');
-    expect(readFileSync(join(candidate, 'stable.ts'), 'utf8')).toBe('same');
-  }
-});
-
-it('treats identical source as a control independently of the swapped binary', () => {
-  const reference = directory(), candidate = directory();
-  for (const dir of [reference, candidate]) put(dir, 'wrapper.ts', 'same');
-  put(reference, 'scripts/lib/native_motion/engine.wasm', 'base wasm');
-  put(candidate, 'scripts/lib/native_motion/engine.wasm', 'new wasm');
-  const overlay = sourceOverlay(reference, candidate);
-  expect(overlay.changed).toEqual([]);
-  expect(overlay.sourceSha256[0]).toBe(overlay.sourceSha256[1]);
-  overlay.activate(0);
-  expect(readFileSync(join(candidate, 'scripts/lib/native_motion/engine.wasm'), 'utf8')).toBe('new wasm');
+  put(reference, enginePath, 'base wasm'); put(candidate, enginePath, 'new wasm');
+  expect(changedSources(reference, candidate)).toEqual(['new/module.ts', 'old/module.ts', 'wrapper.ts']);
 });
 
 it.each(['tools/parity/cells.json', 'tools/parity/cases.json.gz', 'tools/parity/tracks/track.json.gz', 'productions/a/input.json',
-  'vendor/lr-core/kernel.js', 'engine-rs/src/kernel.rs', 'package-lock.json'])(
+  'vendor/lr-core/kernel.js', 'engine-rs/src/kernel.rs'])(
   'rejects changed measurement input %s', name => {
     const reference = directory(), candidate = directory();
     put(reference, name, 'base'); put(candidate, name, 'different');
-    expect(() => sourceOverlay(reference, candidate)).toThrow(`performance inputs differ: ${name}`);
+    expect(() => changedSources(reference, candidate)).toThrow(`performance inputs differ: ${name}`);
   });
+
+it('allows a lockfile change: both arms run the same node_modules', () => {
+  const reference = directory(), candidate = directory();
+  put(reference, 'package-lock.json', 'old'); put(candidate, 'package-lock.json', 'new');
+  expect(changedSources(reference, candidate)).toEqual(['package-lock.json']);
+});
 
 it('snapshots what a commit contains, leaving ignored local data behind', () => {
   const source = directory(), destination = join(directory(), 'snapshot'), git = (...args: string[]) => execFileSync('git', args, {cwd: source});
@@ -62,8 +43,7 @@ it('snapshots what a commit contains, leaving ignored local data behind', () => 
   for (const dir of ['scripts', 'tools', 'vendor', 'engine-rs']) put(source, `${dir}/file.ts`, 'file');
   for (const file of ['package.json', 'package-lock.json', 'tsconfig.json']) put(source, file, '{}');
   const runner = directory();
-  for (const file of ['engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm', 'tools/measure/engine_ab.ts', 'tools/measure/engine_sources.ts', 'tools/measure/engine_decision.ts',
-    'tools/measure/engine_workload.ts', 'tools/parity/engine_corpus.ts', 'tools/parity/parity.ts', 'scripts/lib/workers.ts']) put(runner, file, 'runner');
+  for (const file of ['tools/parity/parity.ts', 'scripts/lib/workers.ts', 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm']) put(runner, file, 'runner');
   snapshotSources(source, destination, runner);
   expect(existsSync(join(destination, 'productions/song/spec.ts'))).toBe(true);
   expect(existsSync(join(destination, 'productions/song/audio.mp3'))).toBe(false);

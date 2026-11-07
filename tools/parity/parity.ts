@@ -70,17 +70,17 @@ export async function prepareCell(index: number) {
       sha(JSON.stringify(checkpoint.track)) === cell.trackHash && checkpoint.stats.sim_frames === cell.physicalFrames};
 }
 
-export async function compileWorker(index: number, out: string, collectResources = false) {
+export async function compileWorker(index: number, out: string) {
   const {compile} = await prepareCell(index);
   // v2: both clocks enclose only compileHandoff. Input loading, hashing,
   // serialization and diagnostic resource sampling are outside this boundary.
   const cpu = process.cpuUsage(), began = performance.now();
   const checkpoint = compile();
   const compileMs = performance.now() - began, used = process.cpuUsage(cpu);
-  const resources = collectResources ? {
+  const resources = {
     wasmLinearMemoryBytes: (await import('../../scripts/lib/native_motion/wasm.ts')).wasm.memory.buffer.byteLength,
-    ...process.memoryUsage(), processMaxRssBytes: process.resourceUsage().maxRSS * 1024,
-  } : undefined;
+    processMaxRssBytes: process.resourceUsage().maxRSS * 1024,
+  };
   writeFileSync(out, JSON.stringify({trackHash: sha(JSON.stringify(checkpoint.track)), physicalFrames: checkpoint.stats.sim_frames,
     compileMs, compileCpuMs: (used.user + used.system) / 1000, resources, track: checkpoint.track}));
 }

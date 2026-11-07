@@ -62,12 +62,17 @@ them before answering.
 
 ## Tooling friction noticed while using the repository
 
+Note friction here as it happens; fix what is tiny.
+
 - A compile takes about twice as long in an eight-worker panel as alone (33 s against
-  16 s). This does not affect `perf:score`, but panel throughput was never measured.
-- `perf:engine` ends with a long JSON report; a one-line verdict would be easier to read.
-- `perf:profile` has no rollup by stage, so stepping, registration, geometry and
-  measurement must be summed by hand.
-- `compare --candidate` takes commits, not saved reference names.
+  16 s). Expected with shared memory bandwidth; panel throughput was never measured.
+- A compile loads the independent judge at import, through `core/trace.ts` and
+  `_lr_engine.ts`, though it never runs it. So compiling needs `npm run build:wasm` first.
+- `compare` compiles both arms with this checkout's built engine, so nothing may be rebuilt
+  during a 15-minute panel. Separate work happens in another worktree, and a
+  `node_modules` symlink there once replaced the real directory on cherry-pick (now ignored).
+- Eight-round paired timings resolve about 2%, so changes meant to be neutral come back
+  unclear. Accepted: about 8 minutes a run is the right cost.
 
 ## From the November 7 engine and tooling review
 
@@ -84,8 +89,6 @@ Each is a simplification to try, kept only if a paired compile and parity allow 
 - Ablate `outside_grid` and its bounds now that near lines make empty sweeps cheap, and
   the `motion` memo, which has no recorded gain.
 - Try `IntMap` with a pool of spare buckets in place of `LineGrid`'s own table.
-- Slim `perf:engine`: `--mode=engine` repeats `bench:engine`, and warmup and the slowdown
-  control serve older workflows. Cwd per arm would remove file swapping.
 - When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
 - Try Bun soon: 35% less memory at equal speed matters to the owner, but not yet. It
   means a track rebaseline and moving the toolchain.

@@ -29,7 +29,7 @@
     "compare": "node tools/eval/compare.ts",
     "check:physics": "node tools/parity/engine_quick.ts",
     "check:smoke": "node tools/measure/smoke.ts",
-    "check": "npm run typecheck && npm run reach && npm test && cargo test --locked --manifest-path scripts/lib/native_motion/Cargo.toml --target-dir generated/native-motion-tests && npm run check:physics && npm run verify:engine && npm run parity && npm run parity:judge && npm run check:smoke"
+    "check": "node tools/check.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

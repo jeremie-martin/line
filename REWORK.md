@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: tools that answer in a line
+
+`perf:engine` ends with one line per run, and with no options lists the latest runs, so
+comparing runs needs no script. It measures whole compiles only, in one frozen directory
+per arm, and keeps just `result.json` (16 KB, where runs held gigabytes of source copies).
+It reads memory from the timed compiles, accepts a lockfile change, measures a commit with
+`--candidate`, and drops the confirmation stage, controls and warmup: a result that
+matters gets a second run, as plain guidance. 278 lines to 146. An identical-arms run:
++0.3% [−1.3, +4.2]. `perf:profile` opens with native, JS and GC totals and time by file.
+`npm run check` prints one line per step, keeps logs, stops at the first failure and
+refuses a Node older than 26. `compare --candidate` accepts saved reference names.
+
 ## November 7: owner decisions
 
 The speed goal closes at 5,460 ns. The `Math.pow` rebaseline is accepted: track quality

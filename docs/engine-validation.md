@@ -13,11 +13,11 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run parity` | All 25 compiler tracks **and charged physics work**, exact |
 | `npm run parity:judge` | Independent judge results on the committed tracks |
 | `npm run check:smoke` | The real tools end to end: a small `perf:engine` comparison, a production compile, and the review pages in Chromium |
-| `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
+| `npm run check` | Complete structural gate, one line per step; logs in `generated/check/` |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
-| `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
+| `npm run perf:engine` | Is a change faster? Paired real compiles, one line per run |
 | `npm run perf:score` | The speed score: ns per charged frame on real compiles, one at a time, on the cores it is given |
-| `npm run perf:profile` | Where a real compile spends time or allocates, with native function names (`--cell`, `--kind=allocation`, `--top`) |
+| `npm run perf:profile` | Where a real compile spends time or allocates: native, JS and GC, by file and by function |
 
 After editing packaged native Rust or TypeScript, run `npm run build:native`
 before checking. The manifest test rejects stale packages. `npm run build:wasm`
@@ -69,124 +69,49 @@ require identical compiler tracks and complete statistics with and without studi
 `catch_price.ts run` requires a fresh output directory and records its preparation
 policy. It cannot silently resume older probe results or a different seed.
 
-## Timing protocol v3
+## Timing
 
-**Measure what production runs.** `--mode=compile` is the default. A real compile spends the standard allowance
-(about 2.7–2.9 M charged frames, 17 s) in one fresh process. Its profile differs
-from small-budget cells: at 150 k frames, fixed per-compile costs dominate and
-local search barely appears. Compile mode therefore defaults to two named cells
-(`PERF_CELLS`: two songs, standard allowance), no warmup and one compile per process. The
-report also resolves each cell. Pass the `#101@150000` and `#101@750000` Luna cells with `--cells=` for small-budget
-guards. A
-result on them says nothing about production speed: a 4.4% gain at 150 k was
-0.6% at 750 k.
-
-Declare the workload, pair count, warmup, repeats, confidence and practical margin
-before collecting data. Work on a quiet machine; never overlap timings with
-builds, tests, parity or other substantial work. CPU affinity reduces migration;
-it does not isolate a core from interrupts, SMT siblings, temperature or frequency
-changes. V8 collects garbage and compiles on background threads: pinning to a
-single CPU moves that work onto the measured thread and makes a real compile
-about 8% slower. Give timings two performance cores; on this laptop, `taskset -c 4-7`. An A/A control
-there keeps eight of eight pairs within ±2%, with typical gaps under 1%.
+**Measure what production runs.** A real compile spends the standard allowance (about
+2.8 M charged frames, 15 s) in one fresh process. Small budgets measure something else:
+at 150 k frames, fixed per-compile costs dominate, and a 4.4% gain there was 0.6% at
+750 k. `PERF_CELLS` are two songs at the standard allowance.
 
 ```sh
-taskset -c 4-7 npm run perf:engine -- --against=HEAD --out=generated/engine-ab/screen
-taskset -c 4-7 npm run perf:engine -- --against=HEAD --stage=confirm --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
+taskset -c 4-7 npm run perf:engine -- --against=HEAD --name=my-idea
+npm run perf:engine                       # the latest runs, one line each
+npm run perf:engine -- --report=a,b       # these runs
 ```
 
-`--against=<git ref>` takes reference source and engine from that commit;
-`--reference=<wasm>` swaps only the engine, and `--reference-root=<checkout>` adds
-its source. Both arms run frozen source in the same disposable directory,
-with fixed runner, reference engine, fixtures and dependencies. Source/binary
-identities, runtime, environment options and CPU affinity are recorded. Every
-warmup and measured compile must match its committed track and work count.
+It ends with one line per run, and one per song when there are several:
 
-CLI and measurement workers use the pinned Node runtime directly, with built-in
-TypeScript stripping. Runtime-loader changes are explicit performance treatments:
-qualify them with recorded flags for each arm, fixed paired measurements and fresh
-confirmation. Historical `tsx` measurements retain their original runtime policy.
-Source references must run under the current qualified runtime; compare incompatible
-historical runtimes through an explicit migration study, not an automatic loader
-fallback.
+```
+my-idea  FASTER  -2.9% [-4.3, -1.2]  8 faster, 0 slower  5460 -> 5301 ns  memory +0 MB
+```
 
-Each pair contains two fresh processes. AB and BA order is balanced and shuffled
-with a recorded seed. Compile defaults are no warmup and one compile per process;
-engine defaults are one warmup and two repeats. All iterations are saved,
-with a per-iteration median profile. Fixed warmup defines a repeatable workload;
-it is **not a claim of steady state**. Cold and warmed timings must be identified
-separately. Changing warmup can change ns/frame without improving any code.
-`--warmup=5 --reps=3` reproduces the warmed experiment of earlier records; it is a
-separate workload from the default cold one.
+`--candidate=<ref>` measures a commit instead of the checkout, and `--reference=<wasm>`
+swaps only the engine. Each arm is a frozen copy of its source, run with the same Node,
+`node_modules`, measuring runner and judge. Measurement inputs (parity cells, fixtures,
+productions, vendored engines) must be identical, and every compile must reproduce its
+committed track and charged work. Only `result.json` stays, with every sample.
 
-Each completed pair prints the running median change and faster/slower/tied
-pair counts. These are descriptive observations, not probabilities or interim
-statistical verdicts. `npm run perf:engine -- --report=/path/to/result.json`
-also shows this progress for unfinished v3 runs; snapshots are replaced
-atomically so readers see complete JSON. Unfinished reports exit nonzero and
-cannot qualify a candidate or enter confirmation. An obviously losing trial may
-be stopped early and recorded as abandoned, preserving its partial evidence.
-Do not turn that partial record into a completed verdict, restart it until it
-passes, or stop a promising run early to claim a speedup. Adoption still requires
-the complete declared experiment and fresh confirmation.
+**Reading it.** Each round compiles every cell once per arm, in balanced AB or BA order.
+For each round the change is `100 × (candidate/base − 1)`; the run reports its median and
+an exact order-statistic interval at 95% (the sign test's binomial interval: independent
+pairs, no assumption about the shape of the distribution). With the default margin of
+0.5%, FASTER means the interval lies entirely below −0.5%, SLOWER entirely above +0.5%,
+EQUIVALENT within ±0.5%, and unclear otherwise. Eight rounds, the default, are the fewest
+with a 95% interval; on this laptop they resolve about 2% and take about 8 minutes.
 
-Within-process repeats are summed first. The inference unit is the process pair,
-not a frame, track or repeat. For each pair, compute `100 × (candidate/base − 1)`.
-Report its sample median and an exact, conservative order-statistic confidence
-interval for the population median. This is the binomial sign interval; it assumes
-independent pairs with a common median and tolerates asymmetric distributions.
-Ties are conservative. Actual discrete coverage is reported (96.14% for 12 pairs
-requested at 95%). Temporal dependence or changing machine conditions can still
-invalidate the interpretation. No bootstrap support or posterior is reported.
+**Habits that keep it honest.** Run on a quiet machine, never alongside builds, tests or
+other timings. Give it two performance cores: V8 collects garbage and compiles on
+background threads, and pinning to one CPU makes a real compile about 8% slower. On this
+laptop, `taskset -c 4-7` keeps an identical-arms run within ±2% per pair, typically under
+1%. Decide the rounds before starting and read the run when it ends; do not stop a run
+because it looks good, or rerun an unchanged one until it does. A result that matters
+deserves a second, fresh run. An unclear interval entirely below zero can still support a
+small gain: weigh it with the design, not as a verdict.
 
-With the default practical margin of 0.5%:
-
-- **FASTER:** the entire interval is below −0.5%.
-- **SLOWER:** the entire interval is above +0.5%.
-- **EQUIVALENT:** the entire interval lies within ±0.5%.
-- **INCONCLUSIVE:** the experiment does not resolve those alternatives.
-
-Use `--margin-pct=0` when the declared speed criterion is evidence of benefit
-without a minimum effect size: FASTER then requires the entire interval below
-zero. It does not supply a probability of benefit. At zero margin, EQUIVALENT
-requires an exactly zero interval, so use a positive tolerance for null controls
-and any separate non-regression check that permits a small slowdown.
-
-Only a fresh FASTER confirmation of the frozen screened candidate qualifies a
-speedup beyond the declared practical margin. Every declared compile cell must
-also have an upper bound no larger than the margin; uncertainty about harm does
-not pass that guard. Correctness, code design and the declared adoption policy are separate gates.
-The margin describes effect size, not a probability of benefit. An interval
-entirely below zero can support a smaller improvement while remaining
-INCONCLUSIVE at 0.5%. That default is not a universal adoption minimum: weigh
-the interval, simpler design and resource changes under the stated policy.
-Record an owner-led policy revision explicitly without relabeling the experiment.
-For a memory/CPU tradeoff, predeclare the allowed regression and resource goal;
-do not reinterpret an inconclusive speed result as equivalence. Never extend or
-restart an unchanged experiment until it passes. There is no intermediate verdict.
-
-CPU and wall clocks enclose `compileHandoff` with prepared inputs, excluding
-loading, hashing and output. Resources use separate fresh processes per arm/cell:
-WASM high-water capacity, post-compile heap/RSS, and lifetime process peak RSS.
-Heap snapshots are not retained-live allocation counts; WASM capacity is not RSS.
-When work shifts between registration and stepping, inspect both workload costs.
-Full compile ns per charged frame includes search and observations, not just the
-solver. Relative speed evidence alone cannot establish an absolute ns target.
-
-Identical sources and binaries automatically form an A/A control. Add
-`--slowdown-pct=5` for a positive control: actual measured extra CPU work after
-each operation, recorded separately. Null controls require EQUIVALENT; slowdown
-controls require SLOWER. Failed or inconclusive controls exit nonzero. Neither
-can qualify a candidate or enter confirmation. These are checks of this experiment,
-not proof that all future measurements are calibrated.
-
-`npm run perf:engine -- --report=/path/to/result.json` reads saved v2/v3 evidence
-without recomputing decisions or rewriting it. V2 used a different decision rule
-and warmup policy; v1 also used different CPU timing boundaries. Historical
-records in `docs/research/` retain their original meaning and are not current
-machine baselines.
-
-Method references: [NIST median confidence limits](https://www.itl.nist.gov/div898/software/dataplot/refman1/auxillar/mediancl.htm),
-[Google Benchmark warmup](https://github.com/google/benchmark/blob/main/docs/user_guide.md),
-[random interleaving](https://github.com/google/benchmark/blob/main/docs/random_interleaving.md),
-[pyperf system guidance](https://pyperf.readthedocs.io/en/stable/system.html).
+CPU and wall clocks enclose `compileHandoff` with prepared inputs, excluding loading,
+hashing and output. Memory is each compile's peak process RSS. Full ns per charged frame
+includes search and observations, not only the solver. Records in `docs/research/` keep
+their original protocols and are not current baselines.

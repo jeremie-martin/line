@@ -14,8 +14,8 @@ leave it out.
 
 Understand before optimizing: `npm run perf:profile` shows where a compile goes (add
 `--kind=allocation` for memory traffic). Check `REWORK.md` and `docs/research/` for
-earlier trials. Compare with `taskset -c 4-7 npm run perf:engine -- --against=<ref>
---out=generated/engine-ab/<name>`; `perf:score` tracks
+earlier trials. Compare with `taskset -c 4-7 npm run perf:engine -- --against=<ref> --name=<idea>`;
+`perf:score` tracks
 the absolute number, but only this paired comparison shows a small change helped. Run
 timings alone on a quiet machine, one compile at a time. Run `npm run check` before every
 commit, and after native edits `npm run build:native` first.
@@ -23,3 +23,5 @@ commit, and after native edits `npm run build:native` first.
 Commit each adopted change with a few lines of record in `REWORK.md`, including rejected
 ideas. Never commit raw results. `WORKING.md` has the rules, and
 `docs/engine-validation.md` the timing protocol.
+
+Note any friction with the tools in `TODO.md` as you go, and fix what is tiny.

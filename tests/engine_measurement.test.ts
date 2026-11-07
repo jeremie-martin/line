@@ -22,14 +22,12 @@ it('measures compile CPU and wall time before hashing, serialization and resourc
   clock.ms = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => clock.ms);
   vi.spyOn(process, 'cpuUsage').mockImplementation(previous => ({user: clock.ms * 1000 - (previous?.user ?? 0), system: 0}));
-  await compileWorker(9, out, true);
+  await compileWorker(9, out);
   const result = JSON.parse(readFileSync(out, 'utf8'));
   expect(result.compileMs).toBe(40);
   expect(result.compileCpuMs).toBe(40);
   expect(result.physicalFrames).toBe(100);
   expect(clock.ms).toBeGreaterThan(1000);
   expect(result.resources.wasmLinearMemoryBytes).toBeGreaterThan(0);
-  expect(result.resources.heapUsed).toBeGreaterThan(0);
-  expect(result.resources.rss).toBeGreaterThan(0);
   expect(result.resources.processMaxRssBytes).toBeGreaterThan(0);
 });

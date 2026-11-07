@@ -33,6 +33,21 @@ export function pairOrder(rounds: number, seed: number): number[][] {
 }
 
 type Pair = {base: number; candidate: number};
+type Sample = {round: number; arm: number; cell: string; nsPerFrame: number};
+
+/** Each complete round as a pair: of one cell, or of every cell's mean. A round's
+ * cells must have finished in both arms before it counts. */
+export function measuredPairs(samples: readonly Sample[], cell?: string): Pair[] {
+  const chosen = samples.filter(s => cell === undefined || s.cell === cell);
+  const cells = new Set(chosen.map(s => s.cell)).size, pairs: Pair[] = [];
+  for (const round of [...new Set(chosen.map(s => s.round))].sort((a, b) => a - b)) {
+    const inRound = chosen.filter(s => s.round === round), [base, candidate] = [0, 1].map(arm => inRound.filter(s => s.arm === arm));
+    if (base.length !== cells || candidate.length !== cells) continue;
+    const total = (arm: Sample[]) => arm.reduce((sum, s) => sum + s.nsPerFrame, 0) / cells;
+    pairs.push({base: total(base), candidate: total(candidate)});
+  }
+  return pairs;
+}
 
 function pairedChanges(pairs: readonly Pair[]) {
   assert(pairs.every(p => Number.isFinite(p.base) && p.base > 0 && Number.isFinite(p.candidate) && p.candidate > 0));
@@ -52,7 +67,7 @@ export function summarizePairs(pairs: readonly Pair[]) {
     tiedPairs: deltas.filter(d => d === 0).length};
 }
 
-export function decide(pairs: readonly Pair[], confidence = .95, marginPct = 2) {
+export function decide(pairs: readonly Pair[], confidence = .95, marginPct = .5) {
   const n = pairs.length;
   assert(Number.isInteger(n) && n >= 8 && n <= 256);
   assert(Number.isFinite(confidence) && confidence > .5 && confidence < 1);
@@ -74,22 +89,4 @@ export function decide(pairs: readonly Pair[], confidence = .95, marginPct = 2) 
   const verdict = upper < -marginPct ? 'FASTER' : lower > marginPct ? 'SLOWER' :
     lower >= -marginPct && upper <= marginPct ? 'EQUIVALENT' : 'INCONCLUSIVE';
   return {n, medianDeltaPct, intervalPct, confidence, coverage, marginPct, verdict};
-}
-
-type CompileSample = {round: number; arm: number; iterations: {rep: number; cell: number; compileMs: number}[]};
-export function decideCompileCells(samples: readonly CompileSample[], cells: readonly number[], confidence = .95, marginPct = 2) {
-  assert(cells.length > 0 && new Set(cells).size === cells.length, 'unique cells required');
-  const rounds = [...new Set(samples.map(s => s.round))];
-  for (const round of rounds) for (const arm of [0, 1]) {
-    assert.equal(samples.filter(s => s.round === round && s.arm === arm).length, 1, 'one sample per arm and round required');
-  }
-  const decisions = cells.map(cell => ({cell, decision: decide(rounds.map(round => {
-    const observations = [0, 1].map(arm => samples.find(s => s.round === round && s.arm === arm)!.iterations.filter(m => m.rep >= 0 && m.cell === cell));
-    assert(observations[0].length > 0 && observations[0].length === observations[1].length, 'equal nonempty cell replicates required');
-    const values = observations.map(ms => ms.reduce((sum, m) => sum + m.compileMs, 0));
-    return {base: values[0], candidate: values[1]};
-  }), confidence, marginPct)}));
-  // Inconclusive harm is not evidence of non-regression. Every declared cell
-  // must bound its median slowdown by the predeclared practical margin.
-  return {decisions, regressionGuardPassed: decisions.every(c => c.decision.intervalPct[1] <= marginPct)};
 }

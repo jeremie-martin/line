@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How the pieces fit</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--accent:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--accent:#3987e5}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:660px;margin:0 auto;padding:28px 16px 64px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+h2{font-size:19px;margin:34px 0 8px}
+ul,ol{padding-left:20px;margin:0 0 10px}
+li{margin:0 0 7px}
+a{color:var(--accent)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:12px 0}
+.box h3{font-size:15px;margin:0 0 4px}
+.box p{margin:0 0 6px;font-size:15px}
+.layers{display:grid;gap:10px;margin:14px 0}
+.layer{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.layer b{display:block;font-size:16px}
+.layer span{color:var(--soft);font-size:14px}
+.small{font-size:14px;color:var(--soft)}
+code{font-size:14px}
+</style>
+</head>
+<body><main>
+<p class="kicker">Thinking out loud · 7 November</p>
+<h1>How the pieces fit</h1>
+<p class="lead">You asked whether we should start thinking properly about what a scheme, a style or a processing step is, because we sometimes confuse what we are working on. My answer: yes, a little, now. Not a system yet, just enough shared words that your feedback always lands on the right piece. Then a sketch of where intent would live later, with what I don’t know.</p>
+
+<h2>Where the confusion comes from</h2>
+<p>Every film we watch is a whole video. When you react to it, your reaction is about one piece, but the film changes several at once. In round 5, “not a fan of the Lua scheme” was about Riso’s colours, and I filed it under the song. Lagoon carried the afterimage, so the film was judged on the afterimage, and Lagoon the palette never had a fair look. Your earlier rejections of the ring and the larger rider were rejections of an execution, but they were easy to read as rejections of the idea. In every case the film was fine. What was missing was a label saying what varied in it.</p>
+
+<h2>Four kinds of things</h2>
+<div class="layers">
+<div class="layer"><b>1. Signals: what is true about this ride and this song</b><span>Hit strength, speed, direction, the intensity curve, the spectrum, the drop cue you place by hand. They are measured, not designed, and they are validated against your judgement (the blind test). Nothing about how a video looks lives here.</span></div>
+<div class="layer"><b>2. Elements: the instruments</b><span>The band, the line’s inking, the hit accents, the camera, the top element (sun, title), Night, grain. Each has an idea, a driver (which signal it listens to) and an execution, the separation you keep insisting on. Each can be on or off, and each has a few settings. An element should work with any scheme.</span></div>
+<div class="layer"><b>3. Schemes: the colours</b><span>Paper, ink, pencil, band, accent, maybe a sun, maybe a drop partner. Nothing else. A scheme is judged on a plain, fixed look (the Swatch films this round), so it is never confused with an element.</span></div>
+<div class="layer"><b>4. Direction: the choices for one video</b><span>Which scheme, which elements with which settings, and what happens over time: the drop switch, Night, the zoom’s behaviour. This is where intent lives. Today a direction is one of our looks (Paper, Hokusai…); later it could come from a hand, a rule, weights or chance. A look is only a saved direction, a preset, never a concept the system is built around. That is the lock-in you were worried about.</span></div>
+</div>
+<p>In the lab this already almost exists: the <code>mix</code> object behind every film is a direction. What is missing is discipline in how we test and how we file your answers.</p>
+
+<h2>What I’d change now, in how we work</h2>
+<ol>
+<li><strong>Every comparison names its layer and changes only that.</strong> “Varies: the scheme. Fixed: everything else.” Round 6 mostly does this already (Swatch for colours, Paper for hits). From now on each card says it in words.</li>
+<li><strong>Your verdicts are filed per piece, not per look.</strong> A short ledger: each element, scheme and signal, with its status (settled, open, parked) and your words about it. “Lagoon” the palette and “Lagoon” the look become two different lines. I keep it, it lives in the repo, and you can read it whenever you like.</li>
+<li><strong>Whole films still decide.</strong> Pieces are tested in isolation, but you keep judging whole videos, because combinations are what people see. When a whole film disappoints, the ledger tells us which piece to suspect first.</li>
+</ol>
+
+<h2>Later: building good videos every time</h2>
+<p>You put it well: not pure constraint solving, and not pure chance. Intent, with the right bricks underneath. My current picture is three layers of rules of different strength. This is a sketch, not a proposal to build now.</p>
+<div class="box"><h3>Never: compatibility</h3><p>Things that are simply wrong together. A thin rail lit whole on a low-contrast scheme, or an accent with the same lightness as the band. These are measurable, like the colour check and the camera’s “never climb while descending”. They are floors, never goals.</p></div>
+<div class="box"><h3>Usually: taste</h3><p>Your preferences, as weights: favourite schemes more often, Night on songs with a real drop, the title on some videos. Learned from your verdicts in the ledger, not invented.</p></div>
+<div class="box"><h3>This time: intent</h3><p>The few things worth deciding per video, ideally by your hand in the spec as a hint, and otherwise picked: brighter or darker, calm or punchy, what happens at the drop. A handful of choices, not a full specification, so the spec never dictates the visuals.</p></div>
+<p>One thing we haven’t discussed and I think will matter: <strong>the channel, not just the video.</strong> The system makes many videos, so variety across consecutive uploads is part of quality. Two Hokusais in a row is a different problem from one bad Hokusai. Your “handcrafted rotation” may be exactly the right tool.</p>
+
+<h2>What I don’t know</h2>
+<ul>
+<li>Whether zoom is an element (a setting) or part of the direction (how a song breathes over time). You weren’t sure either, and I don’t think we should force it yet.</li>
+<li>How many hand choices per song is right. One (the drop cue) works today. Three might be ideal; ten would be a spec that dictates.</li>
+<li>Whether taste weights can be learned from a few dozen verdicts. Probably only roughly, which may be enough.</li>
+</ul>
+
+<h2>Why I didn’t hand this to a helper</h2>
+<p>You were right to worry. A fresh helper would likely propose a generic combination engine, because that is the textbook answer. What makes this project different is in six rounds of your words: separate idea, driver and execution, absolute values over ranks, whole films over loops, a few hints rather than a spec, cohesion over randomness. Those belong in the design from day one, and they are easier to keep in mind from inside the conversation. I’d use a helper later to critique a concrete proposal, not to write it.</p>
+
+<p class="small"><a href="morning.html">Round 6 morning page</a> · <a href="./">Lab</a></p>
+</main></body></html>

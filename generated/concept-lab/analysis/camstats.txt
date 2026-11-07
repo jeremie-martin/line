@@ -1,0 +1,59 @@
+# Camera telemetry, recompiled rides (2026-11-07)
+song      camera   y p5   p50   p95 | activity px/s | false climb s/min | against s/min | steep − normal (H) | drops>5%/min
+los       today   0.330 0.441 0.468 |      199 |       6.24 |     0.60 |    0.019 | 14.5
+los       tamed   0.341 0.435 0.453 |       99 |       2.07 |     0.23 |    0.007 | 7.3
+los       high    0.291 0.385 0.403 |       99 |       2.07 |     0.23 |    0.007 | 7.3
+los       dive    0.343 0.386 0.431 |       46 |       4.48 |     1.79 |    0.021 | 3.1
+los       follow  0.340 0.383 0.424 |       66 |       0.00 |     0.00 |    0.011 | 7.3
+petrunko  today   0.354 0.429 0.463 |      199 |       3.12 |     0.42 |    0.021 | 19.8
+petrunko  tamed   0.363 0.422 0.450 |      113 |       1.51 |     0.30 |    0.011 | 8.9
+petrunko  high    0.313 0.372 0.400 |      113 |       1.51 |     0.30 |    0.011 | 8.9
+petrunko  dive    0.349 0.371 0.397 |       22 |       1.21 |     0.55 |    0.015 | 1.0
+petrunko  follow  0.341 0.359 0.407 |       53 |       0.00 |     0.00 |    0.017 | 3.0
+lua       today   0.314 0.442 0.467 |      171 |       5.74 |     0.91 |    0.020 | 9.1
+lua       tamed   0.338 0.435 0.451 |       85 |       2.03 |     0.29 |    0.009 | 4.6
+lua       high    0.287 0.385 0.401 |       85 |       2.03 |     0.29 |    0.009 | 4.6
+lua       dive    0.331 0.385 0.412 |       39 |       3.03 |     0.60 |    0.014 | 0.0
+lua       follow  0.338 0.384 0.422 |       61 |       0.00 |     0.00 |    0.012 | 3.4
+batidao   today   0.395 0.446 0.469 |      168 |       6.97 |     0.82 |    0.021 | 13.0
+batidao   tamed   0.397 0.438 0.453 |       77 |       2.07 |     0.17 |    0.008 | 4.0
+batidao   high    0.347 0.388 0.403 |       77 |       2.07 |     0.17 |    0.008 | 4.0
+batidao   dive    0.359 0.388 0.421 |       47 |       5.30 |     1.15 |    0.012 | 2.0
+batidao   follow  0.348 0.390 0.430 |       65 |       0.00 |     0.00 |    0.012 | 8.0
+burn      today   0.336 0.439 0.466 |      174 |       4.54 |     0.73 |    0.022 | 11.1
+burn      tamed   0.353 0.432 0.451 |       92 |       1.69 |     0.30 |    0.010 | 6.0
+burn      high    0.303 0.382 0.401 |       92 |       1.69 |     0.30 |    0.010 | 6.0
+burn      dive    0.343 0.380 0.405 |       28 |       1.41 |     0.30 |    0.020 | 1.0
+burn      follow  0.340 0.372 0.425 |       52 |       0.00 |     0.00 |    0.018 | 4.0
+coma      today   0.381 0.442 0.467 |      177 |       6.20 |     0.55 |    0.019 | 10.1
+coma      tamed   0.384 0.435 0.451 |       86 |       1.99 |     0.05 |    0.008 | 8.1
+coma      high    0.334 0.385 0.401 |       86 |       1.99 |     0.05 |    0.008 | 8.1
+coma      dive    0.357 0.384 0.415 |       42 |       3.88 |     1.08 |    0.013 | 1.0
+coma      follow  0.345 0.382 0.416 |       63 |       0.00 |     0.00 |    0.011 | 8.1
+tomada    today   0.322 0.432 0.466 |      188 |       2.95 |     0.72 |    0.022 | 13.9
+tomada    tamed   0.344 0.424 0.450 |      102 |       1.14 |     0.30 |    0.011 | 9.9
+tomada    high    0.294 0.374 0.400 |      102 |       1.14 |     0.30 |    0.011 | 9.9
+tomada    dive    0.340 0.372 0.403 |       28 |       1.81 |     0.50 |    0.020 | 2.0
+tomada    follow  0.340 0.361 0.423 |       56 |       0.00 |     0.10 |    0.020 | 5.0
+
+mean over songs
+today   y50 0.439  activity 182  false climb 5.11  against 0.68  steep 0.020  drops 13.1
+tamed   y50 0.431  activity 94  false climb 1.79  against 0.23  steep 0.009  drops 7.0
+high    y50 0.381  activity 94  false climb 1.79  against 0.23  steep 0.009  drops 7.0
+dive    y50 0.381  activity 36  false climb 3.02  against 0.85  steep 0.017  drops 1.4
+follow  y50 0.376  activity 59  false climb 0.00  against 0.01  steep 0.015  drops 5.5
+
+# Los Voltaje, old ride (round 5)
+song      camera   y p5   p50   p95 | activity px/s | false climb s/min | against s/min | steep − normal (H) | drops>5%/min
+los       today   0.356 0.439 0.468 |      180 |       5.93 |     0.47 |    0.021 | 13.5
+los       tamed   0.363 0.432 0.452 |       96 |       1.89 |     0.13 |    0.009 | 7.3
+los       high    0.313 0.382 0.402 |       96 |       1.89 |     0.13 |    0.009 | 7.3
+los       dive    0.343 0.386 0.435 |       50 |       5.23 |     2.30 |    0.024 | 5.2
+los       follow  0.341 0.385 0.419 |       69 |       0.00 |     0.00 |    0.012 | 6.2
+
+mean over songs
+today   y50 0.439  activity 180  false climb 5.93  against 0.47  steep 0.021  drops 13.5
+tamed   y50 0.432  activity 96  false climb 1.89  against 0.13  steep 0.009  drops 7.3
+high    y50 0.382  activity 96  false climb 1.89  against 0.13  steep 0.009  drops 7.3
+dive    y50 0.386  activity 50  false climb 5.23  against 2.30  steep 0.024  drops 5.2
+follow  y50 0.385  activity 69  false climb 0.00  against 0.00  steep 0.012  drops 6.2

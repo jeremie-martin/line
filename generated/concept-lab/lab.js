@@ -21,7 +21,7 @@ const SCHEMES = {
   bottle: {paper: '#f3f1e4', ink: '#0e2e27', pencil: '#b0b9a8', mass: '#14604c', accent: '#c96805', nightPaper: '#0a2a23', nightInk: '#f6efcf'},
   salmon: {paper: '#fce6d9', ink: '#3a1024', pencil: '#cfb3a8', mass: '#7a1438', accent: '#007a78', nightPaper: '#2b0a1a', nightInk: '#fce6d9'},
   black: {paper: '#101216', ink: '#eef1f5', pencil: '#4c535f', mass: '#c9ced6', accent: '#ff4d3d', nightPaper: '#101216', nightInk: '#eef1f5'},
-  lagoon: {paper: '#e6f1ef', ink: '#0b3540', pencil: '#a9c3c1', mass: '#0e6f78', accent: '#f4623a', nightPaper: '#06262e', nightInk: '#e6f1ef'},
+  lagoon: {paper: '#e6f1ef', ink: '#052b35', pencil: '#a9c3c1', mass: '#0e6f78', accent: '#f4623a', nightPaper: '#06262e', nightInk: '#e6f1ef'},
   riso: {paper: '#f7f3e9', ink: '#1a2f9c', pencil: '#b9b7cf', mass: '#2a47c9', accent: '#ff3d7f', nightPaper: '#14206e', nightInk: '#f7f3e9'},
   dune: {paper: '#efe2cd', ink: '#3a2115', pencil: '#c4b197', mass: '#8c3a1c', accent: '#e39a1b', sun: '#d8622a', nightPaper: '#2a160d', nightInk: '#efe2cd'},
   plum: {paper: '#1c1025', ink: '#f5e9fb', pencil: '#5c4a6a', mass: '#cfb2e6', accent: '#ffb000', nightPaper: '#1c1025', nightInk: '#f5e9fb'},
@@ -50,21 +50,22 @@ const SCHEMES = {
 const DIMS = {
   scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)'}],
   size: ['Size', {today: 'Today', s58: '7 % closer', s62: '15 % closer', s68: '25 % closer'}],
-  place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Tamed, higher, dives drop'}],
+  place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Higher, follows direction'}],
   tide: ['Zoom over time', {steady: 'Steady', quietI: 'Out when quiet', breath: 'One breath', fit: 'Fitted to the song'}],
   drive: ['Intensity from', {both: 'Speed + impact', speed: 'Speed only', impact: 'Impact only'}],
   ends: ['Opening & ending', {none: 'None', overture: 'Whole course at both ends', closing: 'Whole course at the end only'}],
   bandIn: ['Band at the opening', {present: 'There from the first frame', quick: 'Faint, then quickly in', fade: 'Arrives with the zoom'}],
   bg: ['Paper', {white: 'Plain', whisper: 'Whisper', xray: 'X-ray (test)'}],
-  night: ['Night for the drop', {off: 'Off', on: 'On'}],
+  grain: ['Paper grain', {off: 'None', on: 'Faint, fixed to the world'}],
+  night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   music: ['Lower band', {none: 'None', bars: 'Today’s bars', bars3: 'Bars · three colours', blocks: 'Blocks', stems: 'Tuning fork', iris: 'Iris', red: 'One accent · fork', redbars: 'One accent · bars', redblocks: 'One accent · blocks'}],
   redBy: ['What takes the accent', {heat: 'Heat', loud: 'Loudest three', standing: 'Standing', level: 'Follows intensity'}],
   bandY: ['Band height', {low: 'Low', lowmid: 'Low-middle', mid: 'Middle', high: 'Today’s height'}],
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
-  hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
+  hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'tamed', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none'};
+const base = {scheme: 'graphite', size: 's62', place: 'tamed', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off'};
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -89,30 +90,39 @@ const SONGS = {petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', b
 const plain = {...base, ends: 'none'};
 // Each option: [label, mix, note shown when tapped].
 const QUESTIONS = [
-  {id: 'big', ask: 'The biggest hits: which gives you the “oh yeah”?', why: 'All four are Held. Each addition grows with the hit’s real strength, squared: full on the hardest hits, a fifth at strength 0.7, invisible below 0.5. No ranking, so a calm song simply gets less. Keep any number.',
-    song: 'petrunko', t: 21.5, len: 4, multi: true, opts: [
+  {id: 'big', ask: 'The biggest hits: which gives you the “oh yeah”?', why: 'You said it was mostly the shake, really all three together, on the impact only. Each option grows with the hit’s real strength, squared, so a calm song gets less. Today’s version here uses today’s execution, but on real strength instead of a top-10 % gate. Keep any number.',
+    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
       ['Held', {...plain, music: 'redbars', hit: 'strong'}, 'As you chose it.'],
-      ['+ punch', {...plain, music: 'redbars', hit: 'punch'}, 'The frame closes in on the blow, up to 4.5 %, around the rider, then lets go.'],
-      ['+ recoil', {...plain, music: 'redbars', hit: 'recoil'}, 'The blow lands, then the frame rebounds once past rest. One swing back, 0.2 s.'],
-      ['+ shake', {...plain, music: 'redbars', hit: 'shake'}, 'Today’s shake, refined: three quick swings along the blow, 0.27 s, on the hardest hits only.']],
-    moments: [['Petrunko 22 s (strongest)', 21.5], ['Los Voltaje 48 s', 47.5, 'los'], ['Burn 35 s', 34.8, 'burn'], ['Batidão 15 s', 14.6, 'batidao']]},
-  {id: 'cam', ask: 'Where should the rider sit, and should a steep ride drop?', why: 'Tamed sat the rider at 43 % of the height and pinned it at its floor on every descending stretch, so Los Voltaje’s dive had nowhere to go. That dive is a 60° ride at ordinary speed: its angle sets it apart, not its speed. Higher: Tamed raised 5 %. Steep rides drop: also higher, a little calmer vertically, and riding a line steeper than 40° drops the rider up to 12 %. It happens five times in Los Voltaje and never in the other songs here, whose courses have no steep rides.',
-    song: 'los', t: 27.5, len: 3.5, opts: [
+      ['+ shake', {...plain, music: 'redbars', hit: 'shake'}, 'Three quick swings along the blow, 0.27 s, on the hardest hits.'],
+      ['+ shake, split & flash', {...plain, music: 'redbars', hit: 'impact'}, 'All three together: a longer shake, and the split and flash grow too, only on the hardest hits.'],
+      ['Today’s, by strength', {...plain, music: 'redbars', hit: 'todayW'}, 'Today’s shake, split and flash, without Held, on real strength.']],
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 49 s', 48.2, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
+  {id: 'cam', ask: 'The camera on steep rides: which reads best?', why: 'Your two moments are clips on the old ride (on the page). Follows direction is one generic rule: the rider’s height on screen follows the slope it rides, and it may never climb on screen while descending. Measured on seven songs, it makes the rider rise while going down 0 s per minute (Tamed 1.8, today’s camera 5.1). Grain: a faint paper texture fixed to the world, so the paper itself moves past the rider.',
+    song: 'los', t: 23.5, len: 6, opts: [
       ['Tamed', {...plain, music: 'redbars', hit: 'strong'}, 'As now.'],
-      ['Higher', {...plain, music: 'redbars', hit: 'strong', place: 'high'}, 'Raised only.'],
-      ['Higher, steep rides drop', {...plain, music: 'redbars', hit: 'strong', place: 'dive'}, 'Raised, and a real dive shows as a drop.']],
-    moments: [['Los Voltaje 28.9 s (your dive)', 27.5], ['Los Voltaje 48 s', 46.8], ['Los Voltaje 25 s', 24.2], ['Petrunko, no dives', 30, 'petrunko']]},
-  {id: 'colours', ask: 'Which new colours join the set?', why: 'Eight candidates built lightness-first: near-black ink on calm paper, colour kept for the band, the accent and the sun. Your five-star schemes all share that; Riso doesn’t. Keep any number.',
+      ['Higher', {...plain, music: 'redbars', hit: 'strong', place: 'high'}, 'Raised 5 %, nothing else.'],
+      ['Follows direction', {...plain, music: 'redbars', hit: 'strong', place: 'follow'}, 'Same median height as Higher.'],
+      ['Follows direction + grain', {...plain, music: 'redbars', hit: 'strong', place: 'follow', grain: 'on'}, 'The same, on a paper that moves.']],
+    moments: [['Los Voltaje 24 s', 23.5], ['Los Voltaje 31 s', 30.8], ['Los Voltaje 51 s', 50.8], ['Petrunko 30 s', 29, 'petrunko']]},
+  {id: 'colours', ask: 'Which new colours join the set?', why: 'Built lightness-first: near-black ink on calm paper, colour kept for the band, the accent and the sun. Your five-star schemes all share that; Riso doesn’t, and its deeper-ink version tests whether that was the problem. Keep any number.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
       ['Slate', {...plain, music: 'redbars', hit: 'strong', scheme: 'slate'}, 'Fog over a harbour: blue-grey, slate, one mustard bar.'],
       ['Olive', {...plain, music: 'redbars', hit: 'strong', scheme: 'olive', top: 'sun'}, 'A 1970s print: linen, olive, a tomato bar, an ochre sun.'],
-      ['Mauve', {...plain, music: 'redbars', hit: 'strong', scheme: 'mauve'}, 'Dusk, and Plum’s daytime side: mauve, dusty violet, apricot.'],
+      ['Mauve', {...plain, music: 'redbars', hit: 'strong', scheme: 'mauve'}, 'Dusk, Plum’s daytime side: mauve, dusty violet, apricot.'],
       ['Sumi', {...plain, music: 'redbars', hit: 'strong', scheme: 'sumi'}, 'Brush and seal: warm white, a pale grey band, a vermilion stamp.'],
       ['Bauhaus', {...plain, music: 'redbars', hit: 'strong', scheme: 'bauhaus'}, 'Bold by contrast, not colour: bone, black bars, one cobalt.'],
+      ['Riso, deeper ink', {...plain, music: 'redbars', hit: 'strong', scheme: 'risoDeep'}, 'Riso with a darker ink and a quieter band.'],
       ['Midnight', {...plain, music: 'redbars', hit: 'strong', scheme: 'midnight', top: 'sun'}, 'Navy and steel, an amber bar, a pale moon.'],
       ['Espresso', {...plain, music: 'redbars', hit: 'strong', scheme: 'espresso'}, 'Coffee and latte, one verdigris bar.'],
       ['Moss', {...plain, music: 'redbars', hit: 'strong', scheme: 'moss'}, 'Forest at night: green-black, sage, pale coral.']],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+  {id: 'drop', ask: 'At the drop: Night, or a switch to another scheme?', why: 'At the hand-placed drop cue, a scheme can cut to a darker partner from the same family instead of its Night. The accent carries over, and the sun too, unless the partner has its own (Midnight’s moon). Keep any number.',
+    song: 'petrunko', t: 20.5, len: 5, multi: true, opts: [
+      ['Paper, Night', {...plain, music: 'red', redBy: 'loud', hit: 'strong', night: 'on'}, 'As now.'],
+      ['Hokusai → Midnight', {...plain, music: 'redbars', hit: 'strong', scheme: 'hokusai', top: 'sun', night: 'switch'}, 'Washi to navy; the red sun becomes a pale moon.'],
+      ['Dune → Espresso', {...plain, music: 'redbars', hit: 'strong', scheme: 'dune', top: 'sun', night: 'switch'}, 'Sand to coffee; Dune’s sun stays.'],
+      ['Lagoon → Moss', {...plain, music: 'redbars', hit: 'strong', scheme: 'lagoon', night: 'switch'}, 'Sea-glass to forest; the coral stays.']],
+    moments: [['Petrunko 22 s (the drop)', 20.5], ['Los Voltaje 24 s', 22.5, 'los'], ['Lua 30 s', 28.2, 'lua']]},
 ];
 
 // ── state ──────────────────────────────────────────────────────────────────
@@ -304,6 +314,8 @@ const BUNDLES = {
   recoil: {kick: 1, split: 1, flash: 1, held: 1, recoil: 1},    // the blow lands, then the camera rebounds once
   big: {kick: 1, split: 1, flash: 1, held: 1, punch: 1, recoil: 1},
   shake: {kick: 1, split: 1, flash: 1, held: 1, shake: 1},     // today's shake, refined: strongest hits only, short, along the blow
+  impact: {kick: 1, split: 1, flash: 1, held: 1, shake: 1.4, impact: 1}, // all three together on the hardest hits: shake, split, flash
+  todayW: {todayW: 1},                                          // today's execution, but gated by real strength (w²) like the rest
 };
 const big = w => w * w;
 /** Zoom factor from the punch: up to +4.5 % on the hardest hits, held like the kick, eased out over 0.35 s. */
@@ -327,8 +339,8 @@ const into = h => ({x: -h.nrm.x, y: -h.nrm.y});
 /** Camera-level response to hits: a screen offset (px). */
 function hitCamera(t) {
   const A = acc(); let dx = 0, dy = 0;
-  if (A.today) {
-    const m = trauma(t, {min: 0.22, gain: 1.6, decay: 7, power: 1.5}), w = 2 * Math.PI * 9;
+  if (A.today || A.todayW) {
+    const m = A.todayW ? traumaW(t, 1.6, 7, 1.5) : trauma(t, {min: 0.22, gain: 1.6, decay: 7, power: 1.5}), w = 2 * Math.PI * 9;
     return {dx: 10 * m * Math.sin(w * t), dy: 10 * m * Math.sin(w * 1.37 * t + 1.7)};
   }
   for (const {h, age, e} of activeHits(t, 0.6)) {
@@ -340,7 +352,7 @@ function hitCamera(t) {
     if (A.recoil && age < 0.2) {const a = 30 * big(w) * Math.exp(-age / 0.13) * Math.sin(2 * Math.PI * 5 * age); dx += i.x * a; dy += i.y * a;}
     // three quick swings (11 Hz, gone in about 0.27 s), mostly along the blow with a little across it: today's spirit,
     // but only on the hardest hits (w², like punch and recoil) and never as a rattle on ordinary ones
-    if (A.shake && age < 3 / 11) {const a = 16 * big(w) * Math.exp(-age / 0.1), ph = 2 * Math.PI * 11 * age; dx += a * (i.x * Math.sin(ph) - 0.45 * i.y * Math.sin(1.37 * ph + 1.7)); dy += a * (i.y * Math.sin(ph) + 0.45 * i.x * Math.sin(1.37 * ph + 1.7));}
+    if (A.shake && age < (A.impact ? 4 : 3) / 11) {const a = 16 * A.shake * big(w) * Math.exp(-age / (A.impact ? 0.13 : 0.1)), ph = 2 * Math.PI * 11 * age; dx += a * (i.x * Math.sin(ph) - 0.45 * i.y * Math.sin(1.37 * ph + 1.7)); dy += a * (i.y * Math.sin(ph) + 0.45 * i.x * Math.sin(1.37 * ph + 1.7));}
   }
   const n = Math.hypot(dx, dy), cap = A.recoil || A.shake ? 56 : A.held ? 36 : 28; if (n > cap) {dx *= cap / n; dy *= cap / n;}
   return {dx, dy};
@@ -352,9 +364,18 @@ const mixHex = (a, b, t) => {const A = hex(a), B = hex(b); return '#' + A.map((v
 const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
 const colourOf = h => SRC[h.src] ?? SRC.other;
 
+// The drop switch: during the hand-placed Night cue, a scheme can hand over to its 'drop' partner (a cut on the cue), a darker
+// scheme of the same family, instead of Night's dark version of itself.
+const DROPS = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', lagoon: 'moss', slate: 'midnight', mauve: 'plum', olive: 'moss', sumi: 'black', bauhaus: 'black'};
+// The accent (and the sun, unless the partner has its own, like Midnight's moon) carries over, so the switch keeps one thread.
+const dropScheme = {}, schemeAt = t => {
+  const o = SCHEMES[mix.scheme], d = DROPS[mix.scheme];
+  if (!(mix.night === 'switch' && S?.night && t >= S.night[0] && t < S.night[1] && d)) return o;
+  return dropScheme[mix.scheme] ??= {...SCHEMES[d], accent: o.accent, sun: SCHEMES[d].sun ?? o.sun ?? o.accent};
+};
 // Paper: plain, or answering the intensity metric; night is one optional hand-placed cue on top of either.
 function themeAt(t) {
-  const p = SCHEMES[mix.scheme], lit = bg => ({bg, ink: p.ink, pencil: p.pencil, dark: 0});
+  const p = schemeAt(t), lit = bg => ({bg, ink: p.ink, pencil: p.pencil, dark: 0});
   if (mix.night === 'on' && S.night && t >= S.night[0] && t < S.night[1]) return {bg: p.nightPaper, ink: p.nightInk, pencil: mixHex(p.nightPaper, p.nightInk, 0.38), dark: 1};
   if (mix.bg === 'porcelain') return lit(mixHex(p.paper, p.mass, 0.05));
   if (mix.bg === 'whisper') return lit(mixHex(p.paper, p.tone ?? p.mass, (p.tone ? 1 : 0.055) * intensityAt(t)));
@@ -364,7 +385,7 @@ function themeAt(t) {
 }
 // The top of the frame, behind the ride. The sun is a mass, not a line: it stays colour on a phone.
 function drawTop(t, alpha, th) {
-  const p = SCHEMES[mix.scheme]; ctx.save(); ctx.globalAlpha = alpha;
+  const p = schemeAt(t); ctx.save(); ctx.globalAlpha = alpha;
   if (mix.top === 'vignette') {
     // still and faint: fainter at the top than the bottom, eased so that no edge shows
     const c = hex(th.dark ? '#ffffff' : p.ink).join(','), fade = (y0, y1, o) => {const l = ctx.createLinearGradient(0, y0, 0, y1); for (let i = 0; i <= 8; i++) l.addColorStop(i / 8, `rgba(${c},${o * (1 - i / 8) ** 2})`); ctx.fillStyle = l; ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0));};
@@ -428,7 +449,7 @@ function riderCamera(v, ox, oy, k) {
 // frame is crossed in about half a second, so usually the camera, not the fade, takes it away.
 function drawGhosts(sheet, t, v, hc, k, th) {
   if (overlay.width !== canvas.width || overlay.height !== canvas.height) {overlay.width = canvas.width; overlay.height = canvas.height;}
-  const p = SCHEMES[mix.scheme];
+  const p = schemeAt(t);
   for (const {h, age, e} of activeHits(t, 1.2)) {
     const life = 0.5 + 0.7 * excess(e); if (age > life) continue;
     paint(octx, riderCamera(v, hc.dx, hc.dy, k), sheet, riderAt(S.frames, h.tc * FPS), h.tc * FPS);
@@ -467,7 +488,7 @@ function drawSpectrum(t, form, alpha, th) {
   const gain = mix.bandBy === 'level' ? 0.7 + 0.42 * intensityAt(t) : 1, row = spectrumRow(t).map(v => Math.min(1, v * gain)), n = row.length, step = W / n, lit = c => th.dark ? mixHex(c, '#ffffff', 0.62 * th.dark) : c;
   ctx.globalAlpha = alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const third = i => Math.min(2, Math.floor(i / n * 3));
-  const p = SCHEMES[mix.scheme], RED = p.accent, graphite = th.dark ? p.nightInk : p.mass;
+  const p = schemeAt(t), RED = p.accent, graphite = th.dark ? p.nightInk : p.mass;
   if (form === 'red') {
     // One red: graphite stems; the chosen logic turns a few dots the scarf's red (solid, ≥ 4 px: colour survives only in masses)
     const base = 0.825 * H, hgt = 0.15 * H, r = 7, hot = redAt(t, row);
@@ -528,6 +549,8 @@ function drawSpectrum(t, form, alpha, th) {
   ctx.restore();
 }
 // Today's shipped accents, from scripts/fx_recipe.ts LOCKED_FX, keyed like production (overlay hit time).
+// today's trauma, but each hit contributes w² (its real strength, like every round-6 accent) instead of passing a threshold
+const traumaW = (t, gain, dec, pw) => {let x = 0; for (const h of S.hits) {if (h.tc > t) break; x += big(excess(forceE ?? h.I)) * gain * Math.exp(-(t - h.tc) * dec);} return Math.pow(Math.min(1, x), pw);};
 const trauma = (t, c) => {const fs = forceE === null ? null : 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4); let x = 0; for (const h of S.hits) {if (h.t > t) break; const hs = fs ?? h.s; if (hs < c.min) continue; x += hs * c.gain * Math.exp(-(t - h.t) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
 const chan = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
 function channelSplit(ox, oy, mode = 'centre') {
@@ -546,17 +569,17 @@ function channelSplit(ox, oy, mode = 'centre') {
 function worldSplit(t, k) {
   const A = acc(); if (!A.split) return;
   let ox = 0, oy = 0;
-  for (const {h, age, e} of activeHits(t, 0.6)) {const w = excess(e), a = (A.held ? (2 + 16 * w) * held(age, w) : (2 + 12 * e) * decay(age, 0.06, e)), i = into(h); ox += i.x * a; oy += i.y * a;}
-  const n = Math.hypot(ox, oy), cap = A.held ? 18 : 14; if (n > cap) {ox *= cap / n; oy *= cap / n;}
+  for (const {h, age, e} of activeHits(t, 0.6)) {const w = excess(e), a = (A.held ? (2 + 16 * w + (A.impact ? 12 * big(w) : 0)) * held(age, w) : (2 + 12 * e) * decay(age, 0.06, e)), i = into(h); ox += i.x * a; oy += i.y * a;}
+  const n = Math.hypot(ox, oy), cap = A.impact ? 28 : A.held ? 18 : 14; if (n > cap) {ox *= cap / n; oy *= cap / n;}
   if (Math.hypot(ox, oy) * k > 1) {channelSplit(ox * k, oy * k); return true;}
   return false;
 }
 function postAccents(t, k, v, ox, oy) {
   const A = acc();
-  if (A.today) {
-    const split = 14 * trauma(t, {min: 0.25, gain: 2.0, decay: 7, power: 1.4}) * k;
+  if (A.today || A.todayW) {
+    const split = 14 * (A.todayW ? traumaW(t, 2.0, 7, 1.4) : trauma(t, {min: 0.25, gain: 2.0, decay: 7, power: 1.4})) * k;
     if (split > 0.5) channelSplit(split, 0);
-    const flash = 0.3 * trauma(t, {min: 0.3, gain: 1.8, decay: 12, power: 1});
+    const flash = 0.3 * (A.todayW ? traumaW(t, 1.8, 12, 1) : trauma(t, {min: 0.3, gain: 1.8, decay: 12, power: 1}));
     if (flash > 0.003) {ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = flash; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1;}
     return;
   }
@@ -564,7 +587,7 @@ function postAccents(t, k, v, ox, oy) {
   if (worldSplit(t, k) && A.held) {ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(overlay, 0, 0); ctx.restore();}
   const hits = Object.keys(A).length ? activeHits(t, 0.6) : [];
   if (A.flash) {
-    let f = 0; for (const {age, e} of hits) {const w = excess(e); f = Math.max(f, A.held ? (0.1 + 0.2 * w) * held(age, w) : A.flash * (0.1 + 0.18 * e) * decay(age, 0.05, e));}
+    let f = 0; for (const {age, e} of hits) {const w = excess(e); f = Math.max(f, A.held ? (0.1 + 0.2 * w + (A.impact ? 0.15 * big(w) : 0)) * held(age, w) : A.flash * (0.1 + 0.18 * e) * decay(age, 0.05, e));}
     f *= 1 - 0.6 * darkNow; // on night the flash would only grey the black
     // the flash lifts the ink toward the paper, on any paper; a white flash would tint a coloured one
     if (f > 0.004) {ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = f; ctx.fillStyle = darkNow ? '#fff' : paperNow; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1;}
@@ -577,6 +600,7 @@ async function draw() {
   overNow = v.over; darkNow = th.dark; paperNow = th.bg;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
   ctx.fillStyle = th.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (mix.grain === 'on') drawGrain(v, k, th);
   ctx.setTransform(k, 0, 0, k, 0, 0);
   if (mix.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) drawTop(t, a, th);}
   const band = v.ending ? (1 - v.over) ** 2 : mix.bandIn === 'present' ? 1 : mix.bandIn === 'quick' ? 0.3 + 0.7 * smoothstep(t / 0.5) : (1 - v.over) ** 2;
@@ -594,13 +618,30 @@ async function draw() {
   if (mix.bg === 'xray') {ctx.setTransform(k, 0, 0, k, 0, 0); drawGauge(t, th);}
 }
 
+// Paper grain: a faint fibre texture fixed to the WORLD, so the paper itself moves past the rider. On a plain paper with an
+// overhead line, nothing else on screen tells a dive from standing still. Fixed seed, about 2 px specks on screen.
+const grainTiles = {};
+function drawGrain(v, k, th) {
+  const lum = hex(th.bg).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0) / 255, dark = lum < 0.45; // dark schemes are lit themes too
+  const col = dark ? '#fff' : '#000';
+  if (!grainTiles[col]) {
+    const tile = grainTiles[col] = document.createElement('canvas'); tile.width = tile.height = 512; const g = tile.getContext('2d');
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 2600; i++) {g.globalAlpha = 0.25 + 0.75 * rnd(); g.fillStyle = col; const r = 0.6 + 1.6 * rnd(); g.beginPath(); g.ellipse(512 * rnd(), 512 * rnd(), r * (1 + 2 * rnd()), r, Math.PI * rnd(), 0, 2 * Math.PI); g.fill();}
+  }
+  const z = v.z * k, ox = (v.ax - v.x * v.z) * k, oy = (v.ay - v.y * v.z) * k, s = 2.2 * k / z; // one tile texel ≈ 2.2 screen px
+  ctx.save(); ctx.globalAlpha = dark ? 0.07 : 0.055;
+  const pat = ctx.createPattern(grainTiles[col], 'repeat'); pat.setTransform(new DOMMatrix([s, 0, 0, s, 0, 0]));
+  ctx.setTransform(z, 0, 0, z, ox, oy); ctx.fillStyle = pat; ctx.fillRect((-ox) / z, (-oy) / z, canvas.width / z, canvas.height / z); ctx.restore();
+}
+
 // ── loading, transport, UI ─────────────────────────────────────────────────
 const cache = new Map();
 async function loadSong(key) {
   const id = ++loadId; song = key; S = null; status('Loading ' + SONGS[key] + '…');
   if (cache.has(key)) {const c = cache.get(key); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return; S = c;}
   else {
-    const data = await (await fetch(`./data/${key}.json`)).json();
+    const data = await (await fetch(`./${q.get('rides') === 'old' ? 'data-r5' : 'data'}/${key}.json`)).json(); // ?rides=old: round 1–5 rides
     const [native] = await Promise.all([replay(data.track, data.trace), shot ? null : music.load(data.audio).catch(() => null)]);
     if (id !== loadId) return;
     S = prepare(data, native); cache.set(key, S);

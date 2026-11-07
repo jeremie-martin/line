@@ -1,0 +1,320 @@
+{
+ "title": "Concept films · round 6",
+ "groups": [
+  {
+   "id": "all",
+   "label": "Every comparison",
+   "description": "Pick a comparison, then switch between its films.",
+   "variants": [
+    "bars3",
+    "bauhaus",
+    "dune",
+    "follow",
+    "follow-grain",
+    "high",
+    "hokusai",
+    "impact",
+    "iris",
+    "lagoon",
+    "mauve",
+    "olive",
+    "paper",
+    "plum",
+    "red",
+    "redbars",
+    "risoDeep",
+    "shake",
+    "slate",
+    "strong",
+    "sumi",
+    "tamed",
+    "tamed-grain",
+    "todayW"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "hits-tomada",
+   "label": "Biggest hits · Tomada",
+   "description": "Full song on the recompiled ride.",
+   "videos": [
+    {
+     "id": "strong",
+     "label": "Held",
+     "description": "As you chose it.",
+     "src": "films6/tomada-h-strong.mp4"
+    },
+    {
+     "id": "shake",
+     "label": "+ shake",
+     "description": "On the hardest hits.",
+     "src": "films6/tomada-h-shake.mp4"
+    },
+    {
+     "id": "impact",
+     "label": "+ shake, split & flash",
+     "description": "All three together.",
+     "src": "films6/tomada-h-impact.mp4"
+    },
+    {
+     "id": "todayW",
+     "label": "Today’s, by strength",
+     "description": "Today’s execution, real strength.",
+     "src": "films6/tomada-h-todayW.mp4"
+    }
+   ]
+  },
+  {
+   "id": "hits-los",
+   "label": "Biggest hits · Los Voltaje",
+   "description": "Full song on the recompiled ride.",
+   "videos": [
+    {
+     "id": "strong",
+     "label": "Held",
+     "description": "As you chose it.",
+     "src": "films6/los-h-strong.mp4"
+    },
+    {
+     "id": "shake",
+     "label": "+ shake",
+     "description": "On the hardest hits.",
+     "src": "films6/los-h-shake.mp4"
+    },
+    {
+     "id": "impact",
+     "label": "+ shake, split & flash",
+     "description": "All three together.",
+     "src": "films6/los-h-impact.mp4"
+    },
+    {
+     "id": "todayW",
+     "label": "Today’s, by strength",
+     "description": "Today’s execution, real strength.",
+     "src": "films6/los-h-todayW.mp4"
+    }
+   ]
+  },
+  {
+   "id": "moment",
+   "label": "Your moments · Los Voltaje, old ride",
+   "description": "23.5–30.5 s.",
+   "videos": [
+    {
+     "id": "tamed",
+     "label": "Tamed",
+     "description": "",
+     "src": "films6/moment/los-tamed.mp4"
+    },
+    {
+     "id": "follow",
+     "label": "Follows direction",
+     "description": "",
+     "src": "films6/moment/los-follow.mp4"
+    },
+    {
+     "id": "tamed-grain",
+     "label": "Tamed + grain",
+     "description": "",
+     "src": "films6/moment/los-tamed-grain.mp4"
+    },
+    {
+     "id": "follow-grain",
+     "label": "Follows direction + grain",
+     "description": "",
+     "src": "films6/moment/los-follow-grain.mp4"
+    }
+   ]
+  },
+  {
+   "id": "cam-los",
+   "label": "Camera · Los Voltaje",
+   "description": "Full song on the recompiled ride.",
+   "videos": [
+    {
+     "id": "tamed",
+     "label": "Tamed",
+     "description": "",
+     "src": "films6/los-p-tamed.mp4"
+    },
+    {
+     "id": "high",
+     "label": "Higher",
+     "description": "",
+     "src": "films6/los-p-high.mp4"
+    },
+    {
+     "id": "follow",
+     "label": "Follows direction",
+     "description": "",
+     "src": "films6/los-p-follow.mp4"
+    },
+    {
+     "id": "follow-grain",
+     "label": "Follows direction + grain",
+     "description": "",
+     "src": "films6/los-p-follow-grain.mp4"
+    }
+   ]
+  },
+  {
+   "id": "cam-petrunko",
+   "label": "Camera · Petrunko",
+   "description": "Full song on the recompiled ride.",
+   "videos": [
+    {
+     "id": "tamed",
+     "label": "Tamed",
+     "description": "",
+     "src": "films6/petrunko-p-tamed.mp4"
+    },
+    {
+     "id": "high",
+     "label": "Higher",
+     "description": "",
+     "src": "films6/petrunko-p-high.mp4"
+    },
+    {
+     "id": "follow",
+     "label": "Follows direction",
+     "description": "",
+     "src": "films6/petrunko-p-follow.mp4"
+    },
+    {
+     "id": "follow-grain",
+     "label": "Follows direction + grain",
+     "description": "",
+     "src": "films6/petrunko-p-follow-grain.mp4"
+    }
+   ]
+  },
+  {
+   "id": "colours",
+   "label": "Colours · Lua",
+   "description": "One plain look, colour only.",
+   "videos": [
+    {
+     "id": "slate",
+     "label": "Slate",
+     "description": "",
+     "src": "films6/lua-c-slate.mp4"
+    },
+    {
+     "id": "olive",
+     "label": "Olive",
+     "description": "",
+     "src": "films6/lua-c-olive.mp4"
+    },
+    {
+     "id": "mauve",
+     "label": "Mauve",
+     "description": "",
+     "src": "films6/lua-c-mauve.mp4"
+    },
+    {
+     "id": "sumi",
+     "label": "Sumi",
+     "description": "",
+     "src": "films6/lua-c-sumi.mp4"
+    },
+    {
+     "id": "bauhaus",
+     "label": "Bauhaus",
+     "description": "",
+     "src": "films6/lua-c-bauhaus.mp4"
+    },
+    {
+     "id": "risoDeep",
+     "label": "Riso, deeper ink",
+     "description": "",
+     "src": "films6/lua-c-risoDeep.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon",
+     "description": "",
+     "src": "films6/lua-c-lagoon.mp4"
+    },
+    {
+     "id": "plum",
+     "label": "Plum",
+     "description": "",
+     "src": "films6/lua-c-plum.mp4"
+    }
+   ]
+  },
+  {
+   "id": "drop",
+   "label": "Drop switch · Petrunko",
+   "description": "The cue is at 22.4 s.",
+   "videos": [
+    {
+     "id": "paper",
+     "label": "Paper, Night",
+     "description": "",
+     "src": "films6/petrunko-d-paper.mp4"
+    },
+    {
+     "id": "hokusai",
+     "label": "Hokusai → Midnight",
+     "description": "",
+     "src": "films6/petrunko-d-hokusai.mp4"
+    },
+    {
+     "id": "dune",
+     "label": "Dune → Espresso",
+     "description": "",
+     "src": "films6/petrunko-d-dune.mp4"
+    },
+    {
+     "id": "lagoon",
+     "label": "Lagoon → Moss",
+     "description": "",
+     "src": "films6/petrunko-d-lagoon.mp4"
+    }
+   ]
+  },
+  {
+   "id": "bands",
+   "label": "Band pool · Petrunko",
+   "description": "On Paper.",
+   "videos": [
+    {
+     "id": "redbars",
+     "label": "Bars",
+     "description": "",
+     "src": "films6/petrunko-b-redbars.mp4"
+    },
+    {
+     "id": "red",
+     "label": "Fork",
+     "description": "",
+     "src": "films6/petrunko-b-red.mp4"
+    },
+    {
+     "id": "iris",
+     "label": "Iris",
+     "description": "",
+     "src": "films6/petrunko-b-iris.mp4"
+    },
+    {
+     "id": "bars3",
+     "label": "Three colours",
+     "description": "",
+     "src": "films6/petrunko-b-bars3.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Morning page",
+   "href": "/generated/concept-lab/morning.html"
+  },
+  {
+   "label": "Round 5 films",
+   "href": "/motion-gallery/video-compare.html?collection=/generated/concept-lab/films5.json"
+  }
+ ]
+}

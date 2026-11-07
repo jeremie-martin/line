@@ -1,5 +1,49 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: where the compiler predicts instead of measuring; hypotheses VW, LS and PP
+
+An inventory (an agent, read-only) of every prediction or fitted estimate the
+compiler uses found 12.
+- **Reliable:** control memory (learned within the compile) and effort
+  pacing (grounded in measured cost).
+- **Stale:**
+  - the learned future estimate (Oct 5 compiler; its flight-length feature
+    never saw the 3–5-frame hops R allowed);
+  - the construction policies (collected before R and AA);
+  - hand-set seeding and allocation formulas.
+- **Inconsistent:** ranking counts the arrival priors at 0.25, but the
+  interval's best candidate and local search's improving check still use
+  them at full weight.
+- **Already tested:** the leftover 6-frame clamp in proposal centring (T,
+  −1.9).
+
+Three single-change hypotheses (V7.1, 4 seeds; held out at decisions):
+
+**VW: the learned estimate at 0.4.**
+- **Basis.** Its within-catch one-step worth is 0.57 [0.41, 0.77], against
+  0.225 used since AA, and it is the informative part of the prediction.
+  Heading prior and arrival priors stay at AA's weights.
+- **Hypothesis.** Better choices where the estimate discriminates; V7.1 up
+  over AA.
+- **Risk.** It is stale (Oct 5 compiler), so more weight may amplify its
+  errors on the short hops.
+
+**LS: local search judges candidates as ranking does.**
+- **Change.** The interval's best candidate (the origin of local search) and
+  the response search's improving check use ranking's weighting of the
+  priors (heading 0.5, other arrival priors 0.25), not their full weight.
+  The learned estimate stays out of local search, as before.
+- **Hypothesis.** Local search stops climbing toward steepness and speed that
+  ranking then discounts. Its effort goes to what ranking values; V7.1 up,
+  fewer extras.
+
+**PP: two of each parent's eight continuations by measured cost.**
+- **Change.** The per-parent cut (`distinctCandidates`, 8 by rank) keeps 6
+  by rank, then up to 2 more by lowest measured local cost with distinct
+  arrivals.
+- **Hypothesis.** As the beam's measured slot (B) did, measurement recovers
+  continuations the prediction drops; V7.1 up a little, dense strata most.
+
 ## November 7: the learned estimate is the part worth improving
 
 - **Dose and calibration together.**

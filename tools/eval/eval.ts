@@ -67,7 +67,7 @@ async function main() {
   if (command === 'worker') {assert.ok(arg('name') && arg('case')); await worker(runDir(arg('name')!), arg('case')!); return;}
   if ((command !== 'run' && command !== 'report') || !arg('name')) {console.error(USAGE); process.exitCode = 2; return;}
   if (command === 'run') {
-    const budget = arg('budget', 'standard')!, panelName = arg('panel', 'v7')!, jobs = workerJobs(arg('jobs'));
+    const budget = arg('budget', 'standard')!, panelName = arg('panel', 'v7.1')!, jobs = workerJobs(arg('jobs'));
     validateRunOptions(budget, panelName, {sealed: flag('sealed'), heldout: flag('heldout')});
     const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
     const dir = runDir(arg('name')!), plan = await planFor(budget, panelName, creative);

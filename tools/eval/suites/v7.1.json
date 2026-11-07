@@ -1,0 +1,219 @@
+{
+ "name": "V7.1",
+ "frozen": "2026-11-07",
+ "gitTag": "v7.1",
+ "extends": "V7.0 (tools/eval/suites/v7.0.json, unchanged)",
+ "design": "docs/benchmark.md (V7.1)",
+ "seeds": {
+  "sequence": "101 x k for k = 1, 2, 3, ...",
+  "default": 4
+ },
+ "note": "The suite is exactly this list: V7.0 plus 13 music-library song specs (stratum G) on development songs. Songs are split by song, not by spec: Amor na Praia and Luna Bala were already development songs; songs with several tempo versions (Passo Bem Solto, Los Voltaje, Montagem Tomada, Funk do Bounce) joined development; single-version songs went to the held-out panel. Changing the list makes a new version.",
+ "specs": [
+  {
+   "song": "luna_bala_44s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "bench-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "bench-restart",
+   "stratum": "P5"
+  },
+  {
+   "song": "amour_de_ma_vie_108s",
+   "variant": "bench-long",
+   "stratum": "P6"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-pairs",
+   "stratum": "P1"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "bench-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "bench-breakdown",
+   "stratum": "P5"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "bench-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-pairs",
+   "stratum": "P1"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "bench-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-explicit-handover",
+   "stratum": "E"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-explicit-sweep",
+   "stratum": "E"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v7-words",
+   "stratum": "P2"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-breaks",
+   "stratum": "P5"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-calm",
+   "stratum": "P3"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v7-explicit-terraces",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-explicit-fold",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-explicit-scattered",
+   "stratum": "E"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-explicit-ripples",
+   "stratum": "E"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-intense",
+   "stratum": "P4"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v7-rideout",
+   "stratum": "P7"
+  },
+  {
+   "song": "amor_na_praia_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "luna_bala_original_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "luna_bala_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "passo_bem_solto_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "passo_bem_solto_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "passo_bem_solto_super_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "los_voltaje_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "los_voltaje_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "los_voltaje_ultra_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "montagem_tomada_extended_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "montagem_tomada_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "montagem_tomada_super_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  },
+  {
+   "song": "funk_do_bounce_super_slowed_selection",
+   "variant": null,
+   "stratum": "G"
+  }
+ ]
+}

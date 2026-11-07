@@ -26,12 +26,17 @@ export const HELDOUT: Array<{song: string; variant: string | null}> = [
   {song: 'trouble_50s', variant: null}, {song: 'valhalla_40s', variant: null},
   {song: 'circus_minimus_77s', variant: null}, {song: 'circus_minimus_77s', variant: 'pairs4'},
   // The voice-and-drums hook (2026-11-01): fast words, a hard ride for the compiler.
-  {song: 'circus_minimus_77s', variant: 'voice-drums'}];
+  {song: 'circus_minimus_77s', variant: 'voice-drums'},
+  // Music-library songs with a single version (2026-11-07), held out by song.
+  ...['bones', 'derniere_danse_coral', 'funk_estranho_super_slowed', 'let_the_world_burn', 'lua_na_praca', 'montagem_coma',
+    'no_batidao', 'petrunko'].map(song => ({song: `${song}_selection`, variant: null}))];
 export const PANEL_HELP: Record<string, string> = {
   v7: 'V7.0 (tools/eval/suites/v7.0.json): its 28 specs x the first N seeds of 101, 202, 303, ... (N = 4 unless --seeds=N)',
   'v7-confirm': 'V7.0 at seeds 505, 606, 707, 808 (seeds 5 to 8 of the sequence)',
+  'v7.1': 'V7.1 (tools/eval/suites/v7.1.json): V7.0 plus 13 music-library song specs, 41 specs x the first N seeds (N = 4 unless --seeds=N)',
+  'v7.1-confirm': 'V7.1 at seeds 505, 606, 707, 808',
   sealed: 'every sealed-* variant x 101, 202, 303; only with --sealed, to confirm an adopted candidate',
-  heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 and voice-drums x 101-404; only with --heldout. '
+  heldout: 'Trouble, Valhalla, Circus preferred specs + Circus pairs4 and voice-drums + 8 single-version music-library songs x 101-404; only with --heldout. '
     + 'These songs are held out from compiler decisions: run them only at decision points, never to tune',
 };
 export const PANEL_NAMES = Object.keys(PANEL_HELP);
@@ -71,16 +76,18 @@ const stratified = (song: string, variant: string | null, seed: number, bench: B
   ({id: `${song}~${variant ?? 'spec'}~${seed}`, song, seed, perturbation: null, variant, bench});
 const GROOVE: BenchMeta = {stratum: 'G', pattern: 'groove', windows: []};
 
-/** The frozen V7 suite: exactly the specs its file lists (docs/benchmark.md). */
+/** The frozen V7 suites: exactly the specs their files list (docs/benchmark.md).
+ * V7.1 extends V7.0; `v7` stays V7.0, which the parity cells resolve. */
 export const V7_SUITE = 'tools/eval/suites/v7.0.json';
+export const V71_SUITE = 'tools/eval/suites/v7.1.json';
 /** Seed k (1-based) of every V7 sequence: 101, 202, 303, ... */
 export const v7Seed = (k: number) => 101 * k;
-export async function v7Cases(seeds: number[], root = '.'): Promise<EvalCase[]> {
-  const suite = JSON.parse(readFileSync(join(root, V7_SUITE), 'utf8'));
+export async function v7Cases(seeds: number[], root = '.', suitePath = V7_SUITE): Promise<EvalCase[]> {
+  const suite = JSON.parse(readFileSync(join(root, suitePath), 'utf8'));
   const specs = await Promise.all(suite.specs.map(async (s: {song: string; variant: string | null; stratum: string}) => {
-    if (s.variant === null) {assert.equal(s.stratum, 'G', `${V7_SUITE}: a song's spec.ts is stratum G`); return {...s, bench: GROOVE};}
+    if (s.variant === null) {assert.equal(s.stratum, 'G', `${suitePath}: a song's spec.ts is stratum G`); return {...s, bench: GROOVE};}
     const bench = await importBench(root, s.song, s.variant);
-    assert.equal(bench.stratum, s.stratum, `${V7_SUITE}: ${s.song}/${s.variant} is stratum ${bench.stratum} in its file`);
+    assert.equal(bench.stratum, s.stratum, `${suitePath}: ${s.song}/${s.variant} is stratum ${bench.stratum} in its file`);
     return {...s, bench};
   }));
   return specs.flatMap(s => seeds.map(seed => stratified(s.song, s.variant, seed, s.bench)));
@@ -88,16 +95,17 @@ export async function v7Cases(seeds: number[], root = '.'): Promise<EvalCase[]> 
 /** The declared cases of a panel. Sealed specs are discovered from their variant files. */
 export async function panelCases(name: string, root = '.', seedCount?: number): Promise<EvalCase[]> {
   assert.ok(PANEL_NAMES.includes(name), `unknown evaluation panel ${name}`);
-  assert.ok(seedCount === undefined || name === 'v7', '--seeds applies to the v7 panel');
+  assert.ok(seedCount === undefined || name === 'v7' || name === 'v7.1', '--seeds applies to the v7 and v7.1 panels');
   if (name === 'heldout') return HELDOUT.flatMap(h => [101, 202, 303, 404].map(seed =>
     stratified(h.song, h.variant, seed, {stratum: 'H', pattern: h.variant ?? 'preferred', windows: []})));
   if (name === 'sealed') return (await sealedVariants(root)).flatMap(v => [101, 202, 303].map(seed => stratified(v.song, v.variant, seed, v.bench)));
-  if (name === 'v7') {
+  const suitePath = name.startsWith('v7.1') ? V71_SUITE : V7_SUITE;
+  if (name === 'v7' || name === 'v7.1') {
     const n = seedCount ?? 4;
     assert.ok(Number.isSafeInteger(n) && n >= 1 && n <= 32, '--seeds is a whole number from 1 to 32');
-    return v7Cases(Array.from({length: n}, (_, k) => v7Seed(k + 1)), root);
+    return v7Cases(Array.from({length: n}, (_, k) => v7Seed(k + 1)), root, suitePath);
   }
-  return v7Cases([5, 6, 7, 8].map(v7Seed), root);
+  return v7Cases([5, 6, 7, 8].map(v7Seed), root, suitePath);
 }
 
 export function perturb(spec: any, p: number) {

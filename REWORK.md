@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: V7.1 and eight more held-out songs
+
+The music library's 22 specs (14 songs) were split by song, never by spec.
+- **Development (V7.1 = V7.0 plus 13 specs, stratum G):** Amor na Praia and
+  Luna Bala, already development songs, and the songs with several tempo
+  versions (Passo Bem Solto, Los Voltaje, Montagem Tomada, Funk do Bounce).
+- **Held out:** the eight single-version songs. With Trouble, Valhalla and
+  Circus that makes 11 songs, sealed from compiler decisions.
+
+The new specs are dense one-minute songs with little time in long gaps, so V7.1
+does not add to V7's long-gap weight. All 13 development specs compile and
+finish (seed 101). `v7` stays V7.0 for the parity cells; `v7.1` is the default
+panel. A test checks that no held-out song is a development song, matched
+across tempo versions. The other agent's earlier perf and visuals branches
+were fast-forwarded first (Node 26, `npm run check` all green on this machine).
+
 ## November 7: not done, on purpose
 
 Making one `advance` the only call that simulates: the detector serves the native engine,

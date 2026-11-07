@@ -5,7 +5,8 @@ import {afterEach, expect, it} from 'vitest';
 import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {panelCases, V7_SUITE} from '../tools/eval/inputs.ts';
+import {panelCases, V7_SUITE, V71_SUITE, HELDOUT} from '../tools/eval/inputs.ts';
+import {readFileSync} from 'node:fs';
 import {headline} from '../tools/eval/summary.ts';
 import {armKey} from '../tools/eval/arms.ts';
 import {seedBlocks, studentTQuantile} from '../tools/eval/uncertainty.ts';
@@ -60,4 +61,15 @@ it('computes seed-block uncertainty as a t interval and directional support', ()
   expect(u.interval[0]).toBeCloseTo(2 - 4.303 / Math.sqrt(3), 3);
   expect(u.support).toBeCloseTo(0.9629, 4);   // P(t₂ < 2√3)
   expect('unavailable' in seedBlocks([1, 2])).toBe(true);
+});
+
+// A song is the same song at any tempo or length: its production directory less
+// the version suffixes (luna_bala_44s, luna_bala_slowed_selection -> luna_bala).
+const songOf = (dir: string) => dir.replace(/_selection$/, '').replace(/_(original|extended|slowed|super_slowed|ultra_slowed)$/, '').replace(/_\d+s$/, '');
+it('V7.1 extends V7.0 exactly, and no held-out song is a development song', () => {
+  const v70 = JSON.parse(readFileSync(V7_SUITE, 'utf8')).specs, v71 = JSON.parse(readFileSync(V71_SUITE, 'utf8')).specs;
+  expect(v71.slice(0, v70.length)).toEqual(v70);
+  const development = new Set(v71.map((s: {song: string}) => songOf(s.song)));
+  expect(HELDOUT.map(h => songOf(h.song)).filter(song => development.has(song))).toEqual([]);
+  expect(songOf('luna_bala_slowed_selection')).toBe(songOf('luna_bala_44s'));
 });

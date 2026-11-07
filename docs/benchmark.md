@@ -6,11 +6,12 @@ The suite's design and its baseline are in
 `docs/research/v7-design-20261101.md`; the words are in
 `docs/geometry-catalog.md`.
 
-## The suite (V7.0)
+## The suite (V7.1, extending V7.0)
 
 - **Automatic arrangements** (the plan chooses the geometry, as in
-  production). There are 22 specs in 8 categories:
-  - G: groove;
+  production). There are 35 specs in 8 categories:
+  - G: groove, a song's whole spec (17 specs: V7.0's four, and 13
+    music-library specs added in V7.1);
   - P1: short pairs;
   - P2: voice and words;
   - P3: calm floats into a slam;
@@ -20,19 +21,45 @@ The suite's design and its baseline are in
   - P7: ride-outs.
 
   Their mean, with categories weighted equally, is **the V7 headline**.
+  Within a category each spec weighs equally.
 - **Explicit requests** (stratum E): 6 specs where a few gaps ask for one
   geometry. They are reported on their own line, never in the headline.
 - **Panels:**
-  - `v7` (the default of `compare`): every spec × the first N seeds of
-    101, 202, 303, …; N = 4 unless `--seeds=N`;
-  - `v7-confirm`: seeds 505–808, the sequence's seeds 5–8;
+  - `v7.1` (the default of `compare` and `eval`): every spec × the first N
+    seeds of 101, 202, 303, …; N = 4 unless `--seeds=N`;
+  - `v7.1-confirm`: seeds 505–808, the sequence's seeds 5–8;
+  - `v7` and `v7-confirm`: V7.0 itself, kept for history and for the parity
+    cells that resolve it;
   - `heldout` (`--heldout`, decision points only) and `sealed` (`--sealed`,
-    a small reserve that wears out with use) are as before.
+    a small reserve that wears out with use).
+- **Frozen:** each suite is exactly its list, `tools/eval/suites/v7.0.json`
+  (git tag `v7.0`) and `tools/eval/suites/v7.1.json` (git tag `v7.1`). A spec
+  file that is not listed is not part of it, whatever its name. Changing a
+  list makes a new version, never a silent edit.
 
-- **Frozen:** the suite is exactly the list in `tools/eval/suites/v7.0.json`
-  (git tag `v7.0`). A spec file that is not listed is not part of it,
-  whatever its name. Changing the list makes a new version (V7.1), never a
-  silent edit.
+### V7.1 and the held-out songs (2026-11-07)
+
+The music library brought 22 listening specs on 14 songs. They were split by
+**song**, never by spec, so a song and its slowed versions stay together:
+- **Development (V7.1, stratum G):**
+  - Amor na Praia and Luna Bala, which were already development songs;
+  - the songs with several tempo versions: Passo Bem Solto, Los Voltaje,
+    Montagem Tomada and Funk do Bounce.
+
+  Versions of one song are near-duplicates, useful for development (the same
+  music at other gaps) but they would count one song several times as
+  held-out evidence.
+- **Held out (`heldout`, 4 seeds):** the eight single-version songs, Bones,
+  Dernière Danse (coral), Funk Estranho, Let the World Burn, Lua na Praça,
+  Montagem Coma, No Batidão and Petrunko. That makes 11 independent songs with
+  Trouble, Valhalla and Circus. They are sealed from compiler decisions.
+- **Long gaps:** the new specs are one-minute songs, denser than V7.0 (mean
+  gap 16–26 frames). They spend 0–8% of their time in gaps of 100+ frames,
+  against 13–24% for V7.0's float and long-ride specs. So V7.1 does not add
+  weight to long gaps (see the open question below).
+- **A test guards the split:** no held-out song may appear in a development
+  suite, matched by song across tempo and length versions
+  (`tests/eval_v7.test.ts`).
 
 ## Comparing a change
 
@@ -43,7 +70,7 @@ npm run compare -- report --reference=main --candidate=<branch>          # saved
 npm run compare -- rides  --reference=main --candidate=<branch>          # most-moved rides, side by side on the dashboard
 ```
 
-- The panel is V7 unless `--panel=…` says otherwise.
+- The panel is V7.1 unless `--panel=…` says otherwise.
 - **A comparison has a name** (by default the candidate, the reference and its
   commit, and the panel) and keeps its configuration under it. Running it
   again with more seeds extends it; changing anything else needs `--name=…`.
@@ -169,7 +196,8 @@ A reference names a commit; it changes only when we decide.
 
 ## Open questions
 
-- **V7 may over-weight long gaps (raised 2026-11-01, undecided).**
+- **V7 may over-weight long gaps (raised 2026-11-01, undecided).** V7.1 does
+  not add to it: its 13 new specs are dense songs.
   - Categories weigh equally, so the single long-ride spec (Amour
     bench-long, P6) is 1/8 of the headline. The float (P3) and ride-out (P7)
     categories also favour long gaps.

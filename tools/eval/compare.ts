@@ -4,7 +4,7 @@
  * cell, reports the evidence after each round, and stops and resumes at any
  * point. It announces no winner; the decision is ours.
  *
- *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v7] [--jobs=N] [--rounds=N]
+ *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v7.1] [--jobs=N] [--rounds=N]
  *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
@@ -44,7 +44,7 @@ type Selection = {panel: string; reference: ReturnType<typeof getReference>; arm
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
-  const panel = arg('panel', 'v7')!, budget = arg('budget', 'standard')!;
+  const panel = arg('panel', 'v7.1')!, budget = arg('budget', 'standard')!;
   // --seeds=N: the first N seeds of the v7 sequence (default 4); more seeds reuse every saved ride.
   const seedCount = arg('seeds') ? Number(arg('seeds')) : undefined;
   const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;

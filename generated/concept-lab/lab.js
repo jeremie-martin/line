@@ -137,12 +137,30 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'titlepulse', ask: 'The title: a little less pulse?', why: 'Everything keeps its split and pulse exactly as you love them: the ride, the band and the sun. Only the title moves less. It also keeps its “a little less” split from round 16, which no longer touches the sun. Varies: only how much the title moves. Keep any number.',
-    song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Same as everywhere', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '1'}, 'The title moves with the picture.'],
-      ['A little less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '0.7'}, 'The title moves about two-thirds as much.'],
-      ['Less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '0.45'}, 'The title moves under half as much.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}], ['Lua 36 s, on Seashell', 35.5, 'lua', {scheme: 'w2Seashell'}]]},
+  {id: 'sunrider', ask: 'With a sun, should the rider sit lower?', why: 'You liked the sun where it is and suggested lowering the rider when there is one. The camera behaves exactly the same; the whole view just sits a little lower. Varies: only that. Moments switch to Dune and Celadon. Keep any number.',
+    song: 'circus', t: 18, len: 6, multi: true, opts: [
+      ['As now', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunRider: '0'}, 'The rider at its usual height.'],
+      ['A little lower', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunRider: '0.025'}, '2.5 % of the screen lower (48 px).'],
+      ['Lower', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunRider: '0.05'}, '5 % lower (96 px).']],
+    moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['On Dune', 18, 'circus', {scheme: 'dune'}], ['On Celadon', 43, 'circus', {scheme: 'w2Celadon'}]]},
+  {id: 'sunheight', ask: 'And the sun: where it is, or a few pixels higher?', why: 'You said you didn’t want to move the sun, “maybe by a few pixels above”. Varies: only the sun’s height. Keep any number.',
+    song: 'circus', t: 18, len: 6, multi: true, opts: [
+      ['Where it is', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunY: '0.17'}, 'As now.'],
+      ['A few pixels higher', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunY: '0.16'}, '19 px higher.'],
+      ['Higher', {...plain, music: 'redbars', scheme: 'hokusai', top: 'sun', sunY: '0.15'}, '38 px higher.']],
+    moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['On Dune', 18, 'circus', {scheme: 'dune'}], ['On Celadon', 43, 'circus', {scheme: 'w2Celadon'}]]},
+  {id: 'bandy', ask: 'The band’s height, now that the rider sits higher', why: 'Low-middle was chosen in round 3, when the rider sat at about 43 % of the height. It sits at 38 % now and the band was never re-checked. Varies: only the band’s height. Keep any number.',
+    song: 'circus', t: 18, len: 6, multi: true, opts: [
+      ['Low', {...plain, music: 'redbars', bandY: 'low'}, 'Lower than now.'],
+      ['Low-middle (as now)', {...plain, music: 'redbars', bandY: 'lowmid'}, 'As chosen in round 3.'],
+      ['Middle', {...plain, music: 'redbars', bandY: 'mid'}, 'Higher, closer to the rider.']],
+    moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['On Old Rose', 43, 'circus', {scheme: 'wOldRose', ink: 'ink'}], ['With the title', 18, 'circus', {top: 'title'}]]},
+  {id: 'darkink2', ask: 'Dark palettes: inked from the start?', why: 'Old Rose went all ink, “definitely”, but you weren’t sure about all dark palettes. Varies: only how the line appears. The moments go through the dark palettes of round 20: say per palette in a note if it differs.',
+    song: 'circus', t: 43, len: 6, multi: true, opts: [
+      ['Pencil → ink', {...plain, music: 'redbars', scheme: 'black', ink: 'inking'}, 'The line inks as the rider passes.'],
+      ['Whole rail', {...plain, music: 'redbars', scheme: 'black', ink: 'rail'}, 'A rail lights whole when the rider meets it.'],
+      ['All ink', {...plain, music: 'redbars', scheme: 'black', ink: 'ink'}, 'The whole course inked from the start.']],
+    moments: [['Black', 43], ['Ultramarine', 43, 'circus', {scheme: 'wUltramarine'}], ['Aconite', 43, 'circus', {scheme: 'w2Aconite'}], ['Plum', 43, 'circus', {scheme: 'plum'}], ['Aubergine’s night', 43, 'circus', {scheme: 'w2AubergineNight'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -163,7 +181,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r19';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r21';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();

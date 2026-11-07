@@ -136,7 +136,8 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 
 ## Open items, in one place
 
-1. Where Night ends, song by song (R4).
+1. Where Night ends, song by song (R4). Rule since R20: cues are placed by hand from the spec's sections (Circus Minimus: the HOOK's first impact at 38.5 s to the RE-ENTRY hit at 51.3 s).
+1b. With a sun: the rider a little lower, and the sun a few pixels higher (R20 remark, R21 question).
 2. The band height against the rider at 38 % (R3, R12 audit).
 3. Whether all dark palettes should be inked (R12).
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).

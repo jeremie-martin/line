@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis R, no forced flight before a catch
+
+- **Basis.**
+  - Every candidate whose sled touches its line in the last 6 frames before
+    the next catch is rejected (`late_release`, `RELEASE_FRAMES = 6`).
+  - On gaps under 15 frames this is 27% of all rejections on the library songs
+    (33 per interval), against 5–7% on longer gaps.
+  - Strength on dense strong songs is V7.1's largest loss.
+  - The rule predates the scored account. The account now rejects any candidate
+    whose catch does not register as its own hit (`missed_impact`), so the
+    reserve is a hard threshold on top of a measurement.
+- **Change.** Remove the `late_release` rejection. The account decides. The
+  nominal support stays clamped as before (it only centres proposals).
+- **Hypothesis.** On short gaps, more candidates survive: the rider can ride
+  into a catch, or leave later. Strength and timing improve on dense songs
+  (library, P1, P4); the headline is up, most in G. Long-gap categories are
+  about neutral.
+- **Risk.** Catches reached by sliding read weaker or blur into the previous
+  hit. The account should reject or price these, but extras or contested beats
+  could rise. October's test of a 3-frame reserve, on V7.0 with no dense
+  library songs, was null.
+
 ## November 7: hypothesis H4, a third round of demonstrations
 
 - **Basis.** The construction policies have been the most productive lever:

@@ -26,3 +26,5 @@ agents/review-r6/pos-*.json
 analysis/sig-*.json
 films*.out
 agents/wada/mock/
+rides-r6/
+data-r19/

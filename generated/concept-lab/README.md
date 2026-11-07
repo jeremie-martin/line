@@ -1,4 +1,4 @@
-# Concept lab (round 19, November 7, 2026)
+# Concept lab (after round 19 and the R20 cleanup, November 7, 2026)
 
 A live browser lab for the finished videos' visual direction. It plays real rides with their music.
 - The native Line Rider rider artwork and the replay worker are reused unchanged.
@@ -86,31 +86,46 @@ frame, so every blend does, for any camera. `ends: closing` drops the opening, a
 
 ## Layers
 
-| Layer | Options |
-|---|---|
-| Colour | graphite, Hokusai, Black, Lagoon, Riso, Dune, Plum, Klein, Bottle (whole print identities, `SCHEMES`) |
-| Size | today; 7 %, 15 % (default), 25 % closer |
-| Rider in the frame | official; looser; tamed |
-| Zoom over time | steady; out when quiet; one breath; fitted |
-| Intensity from | speed + impact; speed; impact; meter |
-| Paper | plain; whisper; X-ray (test) |
-| Night | off; on (hand-placed cue) |
-| Top of the frame | nothing; vignette; sun; title |
-| Line | pencil → ink; whole rail on first touch; all ink |
-| Lower band | today's bars; three-colour bars; blocks; tuning fork; Iris; one accent (fork, bars, blocks) |
-| What takes the accent | heat; loudest; standing; follows intensity |
-| Band | height: low, low-middle, middle, today's; size: steady or follows intensity; opening: arrives or there from frame 0 |
-| On each hit | today (approximated); refined; held; refined + afterimage; held + afterimage |
+The settled defaults are in `v1.js`; every option is a chip in the free lab (`DIMS` in `lab.js`). The reasons for each choice are in `LEDGER.md`.
 
-"Held" sets amplitude and duration from w = e^2.2, holds the peak at least one 60 fps frame, and
-ends by 0.25 s at most.
+| Layer | v1 | Other options kept |
+|---|---|---|
+| Colour (`palettes.js`) | per look; library tiers in `LIBRARY` | about 90 schemes: our own, Wada pass 1 (`w*`) and pass 2 (`w2*`), paper and theme variants (`name~x`) |
+| Rider in the frame (`cam.js`) | Follows direction, about 38 % | Tamed, Higher, steep-ride drop, Looser, official |
+| Zoom over time | steady | out when quiet; one breath; fitted |
+| Size | 15 % closer | today; 7 %; 25 % |
+| Line | pencil → ink | whole rail; all ink |
+| Lower band | per look (bars with the loudest in red in the questions) | fork, Iris, Three colours, blocks, today's bars |
+| Paper | Whisper | plain; X-ray (test); grain (gone) |
+| Top of the frame | per look | title (line in front: lab only), sun, vignette |
+| Night | per look | on; a scheme switch at the drop |
+| On each hit | by parts (below) | today's (approximated), Refined, Held, afterimage, punch, recoil, … |
+
+## Hits (v1)
+
+Driven by each hit's measured strength s and onset, each hit on its own (`drive`, driver `held`), with no rank. Each part has its own response to s and no ceiling (`RESP`, with `resp: 'r15'`):
+- **shake:** a thud, straight from 0 at s 0.2 to 24 px at 0.85, then on.
+- **split:** halfway between sideways and the hit's direction, slow start from 0.3 to 12.8 px at 0.85, over the whole picture with its zoom pulse.
+- **flash:** toward the paper, S-curve from 0.6 to 25 % at 0.85, then gently on.
+
+The title gets a little less split (`tsp`) and less pulse (`tpl`). The rider keeps half its clean image. The hold-and-fade timing follows w = e^2.2. The older hit controls (`crv`, `amp`, `ampS`, `flg`) only act with `resp: 'old'`. The response curves are drawn on `round12.html`–`round17.html`.
 
 ## Files
 
-- `prepare.py`: `data/<song>.json` from the saved record, composition and spectrum.
-- `cam.js`: camera, placements (`follow`: the vertical offset follows the slope, and the rider never climbs on screen while descending), tides, measures. `camcheck.mjs`, `camdump.mjs` (song, tag, data dir): measurement. `camstats.mjs`: camera telemetry, saved to `analysis/camstats.txt`.
-- `lab.js`, `index.html`, `lab.css`: the lab. `build.mjs`, `src/native.js`: the vendored bundle.
-- `shoot.mjs`, `strip.mjs`: stills and frame strips. `render.mjs`, `films5.sh`, `films6.sh`: films (`rides=old`, `from=`, `to=`).
-- `recompile.sh`, `rides/`: the lab's rides from the current compiler. `data-r5/`: the old rides.
-- `check.mjs`, `qcheck.mjs`: phone-size checks.
-- `agents/`: notes from idea, critique, transcript-mining, review and step-back agents.
+- **`v1.js`:** the settled defaults (one source of truth). **`palettes.js`:** every scheme, its variants, `LIBRARY` and `DROPS`.
+- **`lab.js`, `index.html`, `lab.css`:** the lab. `build.mjs` and `src/native.js` are the vendored bundle.
+- **`cam.js`:** camera, placements, tides, measures. `camdump.mjs` (song, tag, data dir) and `camstats.mjs` measure it (`analysis/camstats.txt`).
+- **Data:**
+  - `prepare.py` builds `data/<song>.json` from the saved record, composition and spectrum.
+  - `recompile.sh` builds `rides/` from the current compiler: eight songs, including Circus Minimus, which has no composition, so it gets one section and no hit sources.
+  - Older data: `data-r5/` (rounds 1–5), `data-r19/` (rounds 6–19). Older rides: `rides-r6/`.
+- **Stills and films:** `shoot.mjs`, `strip.mjs` for stills and frame strips. `render.mjs` (`rides=old`, `from=`, `to=`), `films*.sh` and `fourup.sh` for films.
+- **Checks:**
+  - `uicheck.mjs`: 82 interaction checks on a frozen question set, `?qtest=1`.
+  - `qcheck.mjs`: walks the live questions.
+  - `check.mjs`: phone size.
+  - `splitmeasure.mjs`: the visible split fringe.
+- **Reasons and history:**
+  - `LEDGER.md` (current state) and `ledger-history/` (earlier ledgers).
+  - Round pages: `morning.html` (index), `round1/`–`round5/`, `round6.html`–`round19.html`, `clarify.html`, `system.html`.
+  - `agents/`: the notes and reports of every helper (ideas, critiques, audits, palettes, Wada).

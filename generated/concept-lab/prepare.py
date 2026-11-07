@@ -16,6 +16,7 @@ SONGS = {
     'burn': ('let_the_world_burn_selection', 'let_the_world_burn_selection-s202', 'Let the World Burn'),
     'coma': ('montagem_coma_selection', 'montagem_coma_selection-s202', 'Montagem Coma'),
     'tomada': ('montagem_tomada_super_slowed_selection', 'montagem_tomada_super_slowed_selection-s202', 'Montagem Tomada (super slowed)'),
+    'circus': ('circus_minimus_77s', None, 'Circus Minimus'),  # R20: only from the recompiled rides
 }
 FPS = 40
 
@@ -42,7 +43,7 @@ def build(key):
     song, ride, title = SONGS[key]
     # round 6: the rides recompiled with the current compiler (recompile.sh); before that, the music-library round-2 rides
     fresh = glob.glob(os.path.join(ROOT, f'generated/concept-lab/rides/{key}/*-production.json'))
-    rec_path = fresh[0] if fresh else glob.glob(os.path.join(ROOT, f'generated/music-library-round2/rides/{ride}/*-production.json'))[0]
+    rec_path = fresh[0] if fresh or ride is None else glob.glob(os.path.join(ROOT, f'generated/music-library-round2/rides/{ride}/*-production.json'))[0]
     with open(rec_path) as f:
         rec = json.load(f)
     contacts = record_contacts(rec)
@@ -53,7 +54,9 @@ def build(key):
             subprocess.run([sys.executable, os.path.join(ROOT, 'scripts/make_spectrum.py'), f'--audio={ROOT}/productions/{song}/audio.mp3',
                             f'--out={spec_path}'], check=True)
     spectrum = load(spec_path)
-    comp = load(f'productions/{song}/composition.json')
+    # some songs (Circus Minimus) have no composition.json: no hit sources and a single section; neither drives the v1 looks
+    comp_path = os.path.join(ROOT, f'productions/{song}/composition.json')
+    comp = load(f'productions/{song}/composition.json') if os.path.exists(comp_path) else {'groups': [], 'phases': []}
     sources = sorted(((t, g['source']) for g in comp['groups'] for t in g['times']))
 
     def source_at(t):
@@ -69,7 +72,7 @@ def build(key):
                      'ask': c.get('impactTarget'), 'src': source_at(c['t'])})
     dur = rec['track']['duration'] / FPS
     phases = [{'name': p['name'], 't0': p['t'], 't1': (comp['phases'][i + 1]['t'] if i + 1 < len(comp['phases']) else dur),
-               'air': p['air'], 'speed': p['speed']} for i, p in enumerate(comp['phases'])]
+               'air': p['air'], 'speed': p['speed']} for i, p in enumerate(comp['phases'])] or [{'name': 'all', 't0': 0, 't1': dur, 'air': 0, 'speed': 0}]
     out = {
         'key': key, 'title': title, 'duration': dur,
         'audio': f'/productions/{song}/audio.mp3',

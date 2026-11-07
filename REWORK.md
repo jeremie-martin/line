@@ -18,6 +18,18 @@
   rise (body contact with surfaces above).
 - **Risk.** Steering arrivals upward where the next interval finds no good
   surface above loses those catches.
+- **Result (V7.1, 4 seeds): null; closed.** −0.7 [−1.9, +0.6], 0.09; 11 of 35
+  specs unchanged. The search almost never generates a steep rising arrival,
+  so a prior indifferent to direction has nothing to accept. Alternating
+  floor and ceiling hits would need the launch and the catch above proposed
+  together: a construction change, for the geometry discussion with the owner.
+- **Re-tests on V7.1 (4 seeds):**
+  - J (strong-catch effort): +3.3 [−1.8, +8.3], 0.93; +0.34M physics frames
+    (+11%).
+  - B (beam slot): +3.2 [+1.5, +4.9], > 0.99, but split (17 of 35 specs up).
+    The gain sits in P6 and P7 (+10.8, +6.2), with groove −3.1.
+  - H3 (pooled policies): +3.7 [−1.8, +9.3], 0.94. Held out on the 11 songs:
+    +1.0 [−8.2, +10.2], 10 of 13 specs up.
 
 ## November 7: where V7.1 loses, and the next experiments
 

@@ -18,7 +18,11 @@
   `memorySamples: 16`, so `connected_arcs.ts`'s value never reaches a
   production compile.
 - **Re-run on the real setting:** `policySamples` 16 → 32 in
-  `repertoire_search.ts`, same hypothesis.
+  `repertoire_search.ts`, same hypothesis (branch
+  `exp/policy-proposals-x2`).
+- **Result (V7.1, 4 seeds): not adopted.** +0.7 [−1.7, +3.0], 0.78; 18 of
+  35 specs up. The policies' gain comes from what they propose, not from
+  proposing more.
 
 ## November 7 (night): hypothesis, a smaller policy archive
 

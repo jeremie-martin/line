@@ -24,6 +24,11 @@
 - **Risks.**
   - Sharper bends crash more (`binding`).
   - The start may not matter (U), giving a null result.
+- **Result (V7.1, 4 seeds): not adopted.** −0.9 [−7.5, +5.8], 0.35; 18
+  specs up, 17 down; strong-ask strength unchanged (G very strong bias
+  +0.005). With U, this closes the starting shape as a lever: the search
+  reaches the same catches from either start. Strong extra impacts halve
+  (0.06 against 0.12 per 100 beats), but they are rare either way.
 
 ## November 7: why strong catches fall short on dense songs (study, report only)
 

@@ -41,7 +41,7 @@ const QMOMENTS_FLASH = ['Petrunko 34 s', 'Tomada 37 s', 'On Dune', 'On Café (da
 try {
   // ── 1. question mode at phone size: layout, picks, overrides ───────────────────────────────────────────────
   await run('Question mode, phone: layout and options', async () => {
-    const p = await open('?q=2');
+    const p = await open('?qtest=1&q=2');
     await p.evaluate(() => localStorage.clear()); await p.reload(); await settled(p);
     check(await p.locator('#qprogress').textContent().then(t => t.startsWith('Question 2')), 'opens on question 2');
     // nothing covers the picture or the controls: every control's centre hits that control
@@ -109,7 +109,7 @@ try {
 
   // ── 2. persistence: reload mid-question, prev/next, legacy saves, URL ─────────────────────────────────────
   await run('Question mode: persistence and address', async () => {
-    const p = await open('?q=2');
+    const p = await open('?qtest=1&q=2');
     await p.evaluate(() => localStorage.clear()); await p.reload(); await settled(p);
     await tap(p, '#qpick button', 1); await tap(p, '#qpick button', 2);
     await p.locator('#qnote').fill('flash note, with a comma');
@@ -129,18 +129,18 @@ try {
     await tap(p, '#qprev'); await settled(p);
     check(JSON.stringify(await onLabels(p)) === '["B","C"]' && await p.locator('#qnote').inputValue() === 'flash note, with a comma', 'back keeps picks and note');
     // legacy saves (one joined string) are read back
-    await p.evaluate(() => localStorage.setItem('concept-lab-answers-r8', JSON.stringify({flash: {pick: 'Toward the paper, hardest only, White, hardest only', note: 'old'}, split: {pick: 'none', note: ''}, shake: {pick: 'Today’s + Thud', note: ''}})));
-    await p.goto(BASE + '?q=2'); await settled(p);
+    await p.evaluate(() => localStorage.setItem('concept-lab-answers-test', JSON.stringify({flash: {pick: 'Toward the paper, hardest only, White, hardest only', note: 'old'}, split: {pick: 'none', note: ''}, shake: {pick: 'Today’s + Thud', note: ''}})));
+    await p.goto(BASE + '?qtest=1&q=2'); await settled(p);
     check(JSON.stringify(await onLabels(p)) === '["B","C"]', 'a legacy comma-joined save restores B and C', JSON.stringify(await onLabels(p)));
-    await p.goto(BASE + '?q=1'); await settled(p);
+    await p.goto(BASE + '?qtest=1&q=1'); await settled(p);
     check(JSON.stringify(await onLabels(p)) === '["None of these"]', 'a legacy "none" save restores None of these', JSON.stringify(await onLabels(p)));
-    await p.goto(BASE + '?q=3'); await settled(p);
+    await p.goto(BASE + '?qtest=1&q=3'); await settled(p);
     check(JSON.stringify(await onLabels(p)) === '["A","C"]', 'a legacy " + "-joined save restores A and C', JSON.stringify(await onLabels(p)));
     await p.context().close();
   });
 
   await run('Question mode: summary', async () => {
-    const p = await open('?q=1');
+    const p = await open('?qtest=1&q=1');
     await p.evaluate(() => localStorage.clear()); await p.reload(); await settled(p);
     await tap(p, '#qpick button', 3); // D · None (an option called None)
     await p.locator('#qnote').fill('split note');
@@ -166,7 +166,7 @@ try {
   await run('Question mode: races while loading', async () => {
     // slow every ride's data so loads overlap
     const slow = async p => p.route(/\/data\/\w+\.json$/, async r => {await new Promise(res => setTimeout(res, 900)); await r.continue();});
-    let p = await open('?q=1', PHONE, {before: slow});
+    let p = await open('?qtest=1&q=1', PHONE, {before: slow});
     await settled(p);
     // moments on three songs tapped in quick succession: the last one wins, consistently
     await tap(p, '#moments button', 1); await tap(p, '#moments button', 2); await tap(p, '#moments button', 3);
@@ -195,7 +195,7 @@ try {
 
   // ── 4. the shake viewing aid ─────────────────────────────────────────────────────────────────────────────────
   await run('Exaggerate (shake question)', async () => {
-    const p = await open('?q=3');
+    const p = await open('?qtest=1&q=3');
     await settled(p);
     check(await p.locator('#exag').isVisible(), 'the slider shows on the shake question');
     check((await p.locator('#exag').textContent()).includes('Temporary viewing aid'), 'it says it is a temporary viewing aid');
@@ -212,7 +212,7 @@ try {
     check((await st(p)).shakeX === 1 && await p.locator('#exag').isHidden(), 'the next question resets it to ×1 and hides it');
     await tap(p, '#qprev'); await settled(p);
     check((await st(p)).shakeX === 1 && !(await p.locator('#optflag').textContent()).includes('×'), 'back on the shake question it is ×1 again');
-    await p.goto(BASE + '?q=1'); await settled(p);
+    await p.goto(BASE + '?qtest=1&q=1'); await settled(p);
     check(await p.locator('#exag').isHidden(), 'hidden on other questions');
     await p.context().close();
     // renders: shot mode ignores it unless asked; ×1 is byte-identical
@@ -228,7 +228,7 @@ try {
   // ── 5. the bench (no question uses it today: injected into the shake question for the test) ─────────────────
   await run('Bench (injected)', async () => {
     const inject = async p => p.route(/\/concept-lab\/lab\.js$/, async r => {const res = await r.fetch(); await r.fulfill({response: res, body: (await res.text()).replace('exaggerate: true,', 'exaggerate: true, bench: true,')});});
-    const p = await open('?q=2', PHONE, {before: inject});
+    const p = await open('?qtest=1&q=2', PHONE, {before: inject});
     await settled(p);
     check(await p.locator('#bench').isHidden(), 'bench hidden on a question without it');
     await tap(p, '#qnext'); await settled(p);
@@ -251,7 +251,7 @@ try {
 
   // ── 6. desktop keyboard ─────────────────────────────────────────────────────────────────────────────────────
   await run('Question mode, desktop keyboard', async () => {
-    const p = await open('?q=2', DESK);
+    const p = await open('?qtest=1&q=2', DESK);
     await p.evaluate(() => localStorage.clear()); await p.reload(); await settled(p);
     await p.locator('#qpick button').nth(1).click();
     await p.keyboard.press('Space'); await p.waitForTimeout(200);

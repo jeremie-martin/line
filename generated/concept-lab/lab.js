@@ -95,6 +95,7 @@ const DIMS = {
   shk: ['Hit part: shake', {today: 'Today’s (9 Hz, two axes, rotation)', blow: 'In the hit’s direction', thud: 'Thud (knock, then spring back)', kick: 'Held’s push', none: 'None'}],
   spl: ['Hit part: colour split', {today: 'Today’s (sideways)', dir: 'In the hit’s direction, same amount as today', half: 'Halfway between, same amount as today', blow: 'In the hit’s direction, unmatched', radial: 'Out from the impact', none: 'None'}],
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
+  flg: ['Rare flash opens at', {'82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
@@ -104,7 +105,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma'};
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', flg: '82'};
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -128,7 +129,9 @@ const PRESETS = [
 const SONGS = {petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
 const plain = {...base, ends: 'none'};
 // Each option: [label, mix, note shown when tapped].
-const QUESTIONS = [
+// A frozen copy of round 8's questions, used only by uicheck.mjs (?qtest=1): the interaction suite tests the machinery
+// (multi picks with commas, moment overrides, old rides, exaggerate) without depending on whatever the current round asks.
+const TEST_QUESTIONS = [
   {id: 'split', ask: 'The colour split, compared fairly', why: 'Varies: only the split’s direction. Fixed: shake in the hit’s direction, no flash, each hit on its own (your pick). You were right that the hit-direction split looked stronger: today’s goes sideways, mostly along the lines, where it hides; the hit’s direction crosses them. The split now touches the ride only, as in production, not the band. Measured on four songs, all three now show the same amount of split on average. Keep any number.',
     song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
       ['Today’s, sideways', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'today'}, 'Sideways, as shipped.'],
@@ -174,6 +177,54 @@ const QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
 ];
 
+const QUESTIONS = [
+  {id: 'split', ask: 'The colour split, compared fairly', why: 'Asked again: last time B and C could not be selected (now fixed), and Halfway put red at the bottom (fixed too: red now stays on the hit’s side). Varies: only the split’s direction. Fixed: shake in the hit’s direction, no flash, each hit on its own. All three show the same amount of split on average, measured on four songs. As in production, the split touches the ride, not the band. Keep any number.',
+    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
+      ['Today’s, sideways', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'today'}, 'Sideways, as shipped.'],
+      ['In the hit’s direction', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'dir'}, 'Scaled to show the same amount as today’s, on average.'],
+      ['Halfway between', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'half'}, 'Between sideways and the hit’s direction, the same amount.'],
+      ['None', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'none'}, 'No split, for reference.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
+  {id: 'flashgate', ask: 'The flash toward the paper: how often?', why: 'Your pick, by a wide margin. It follows each hit’s own strength twice: the gate decides which hits flash at all, and inside it a stronger hit flashes brighter and longer. Varies: only where the gate opens. Fixed: shake in the hit’s direction, today’s split, each hit on its own.',
+    song: 'petrunko', t: 33.6, len: 6, opts: [
+      ['Rarest (from 0.82)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '82'}, 'About 1–11 flashes a minute, as in round 8.'],
+      ['More often (from 0.76)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '76'}, 'About 11–18 a minute.'],
+      ['Often (from 0.70)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '70'}, 'About 20–28 a minute.']],
+    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Dune', 33.6, 'petrunko', {scheme: 'dune'}]]},
+  {id: 'shake', ask: 'The shake, now that each hit is on its own', why: 'Varies: only the shake. Fixed: today’s split, no flash, each hit on its own. Use the exaggerate slider to see the differences more easily; it is only a viewing aid and resets on the next question. Keep any number.',
+    song: 'tomada', t: 36.5, len: 5, multi: true, exaggerate: true, opts: [
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'today'}, 'Two axes, 9 Hz, slight rotation.'],
+      ['In the hit’s direction', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'blow'}, 'The same 9 Hz, starting with the hit and along its direction.'],
+      ['Thud', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'thud'}, 'Knocked along the hit’s direction, then springing back.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
+  {id: 'kraft9', ask: 'Kraft as a whole theme', why: 'You liked the darker paper best and said the lighter one needs different bars: “it’s the entire theme as a whole”. In every scheme you love, the bars carry more colour than the paper; Kraft’s are the other way round. Here the bars carry the colour, and the lighter paper gets lighter bars and a dark accent. Keep any number.',
+    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
+      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft'}, 'For reference.'],
+      ['Darker paper', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~4'}, 'Your favourite in round 8.'],
+      ['Darker paper, richer bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~b'}, 'The bars carry the colour.'],
+      ['As designed, richer bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~a'}, 'The original paper with the richer bars.'],
+      ['Lighter paper, lighter bars, dark accent', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~c'}, 'The lighter paper with bars and accent re-tuned for it.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+  {id: 'cyan9', ask: 'Cyanotype: a little more colour?', why: 'You preferred “less colour” by far, and asked for something with a bit more colour but integrated as cleanly, plus a better darker one. All keep the paper less colourful than the bars. Keep any number.',
+    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
+      ['Less colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~0'}, 'Your favourite in round 8.'],
+      ['A little more colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~a'}, 'Between “less colour” and the original, still quieter than the bars.'],
+      ['A little more, toward indigo', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~b'}, 'The same amount, the hue moved toward indigo.'],
+      ['Darker, quieter', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~c'}, 'Darker and calmer than round 8’s darker.'],
+      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype'}, 'For reference.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+  {id: 'rothko9', ask: 'Rothko: can the original paper work?', why: 'You liked less colour, almost neutral and darker, and wondered whether the original paper could work with a better integration. Two tries keep the original paper and change the bars. Keep any number.',
+    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
+      ['Less colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~0'}, 'Liked in round 8.'],
+      ['Almost neutral', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~1'}, 'Liked in round 8: “very elegant, especially with the bars”.'],
+      ['Darker', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~2'}, 'Liked in round 8.'],
+      ['As designed, dusty-rose bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~a'}, 'The original paper; the bars move toward its own red, lighter and softer.'],
+      ['As designed, peach bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~b'}, 'The original paper; the bars move toward peach.'],
+      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko'}, 'For reference.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+];
+if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
+
 // ── state ──────────────────────────────────────────────────────────────────
 const q = new URLSearchParams(location.search);
 const shot = q.has('shot');
@@ -191,7 +242,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = 'concept-lab-answers-r8';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r9';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -442,7 +493,9 @@ function partsSplit(t, k, v) {
 }
 // 'rare': only the hardest hits flash. The gate opens at strength 0.82 and is full at 0.94: about 1–10 flashes a minute
 // on the seven songs, none on most hits. A gate on the hit's own absolute strength, not a rank.
-const rareGate = e => smoothstep((e - 0.82) / 0.12);
+// Round 9: the owner chose 'toward the paper' "by a wide margin" and asked whether it could open lower: three gates.
+const GATES = {'82': [0.82, 0.94], '76': [0.76, 0.9], '70': [0.7, 0.86]};
+const rareGate = e => {const [a, b] = GATES[mix.flg] ?? GATES['82']; return smoothstep((e - a) / (b - a));};
 function partsFlash(t, k, v) {
   const fl = drive(t, 'flash'); if (!fl.h || fl.m < 0.003 || mix.fls === 'none') return;
   if (mix.fls === 'paperRare' || mix.fls === 'todayRare') {
@@ -514,6 +567,22 @@ for (const [b, vs] of Object.entries(BG_STUDY)) vs.forEach(([, paper], i) => {
   const o = SCHEMES[b], d = hex(o.pencil).map((c, j) => c - hex(o.paper)[j]), pencil = '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('');
   SCHEMES[`${b}~${i}`] = {...o, paper, pencil}; DIMS.scheme[1][`${b}~${i}`] = `${DIMS.scheme[1][b]}, paper ${vs[i][0]}`;
 });
+// Round 9: whole-theme variants (agents/palettes-r9/variants.js): in every loved scheme the bars carry more colour than the paper.
+const VARIANTS = {
+  'kraft~a': ['As designed, richer bars', 'kraft', {mass: '#5d3414'}],
+  'kraft~b': ['Darker paper, richer bars', 'kraft', {paper: '#bb9e79', mass: '#552c0a'}],
+  'kraft~c': ['Lighter paper, lighter bars, dark accent', 'kraft', {paper: '#e4ccad', mass: '#8b6a4d', accent: '#1a140e'}],
+  'cyanotype~a': ['A little more colour than “less”', 'cyanotype', {paper: '#304b71'}],
+  'cyanotype~b': ['A little more colour, toward indigo', 'cyanotype', {paper: '#3b456c'}],
+  'cyanotype~c': ['Darker, quieter', 'cyanotype', {paper: '#21334f'}],
+  'rothko~a': ['As designed, dusty-rose bars', 'rothko', {mass: '#b0696c'}],
+  'rothko~b': ['As designed, peach bars', 'rothko', {mass: '#c78669'}],
+};
+for (const [key, [label, b, o]] of Object.entries(VARIANTS)) {
+  const base = SCHEMES[b], paper = o.paper ?? base.paper, d = hex(base.pencil).map((c, j) => c - hex(base.paper)[j]);
+  SCHEMES[key] = {...base, ...o, pencil: o.paper ? '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('') : base.pencil};
+  DIMS.scheme[1][key] = `${DIMS.scheme[1][b]}: ${label}`;
+}
 // the address was read before these existed: honour a variant asked for in ?m=
 for (const kv of (q.get('m') ?? '').split(',')) {const [k2, v2] = kv.split(':'); if (k2 === 'scheme' && v2?.includes('~') && SCHEMES[v2]) mix.scheme = v2;}
 const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);

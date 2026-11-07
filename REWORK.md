@@ -1,5 +1,41 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis U, meet the line at the angle that gives the asked strength
+
+- **Basis** (an audit of fixed limits in construction, read-only).
+  - The proposal centre still follows the turn-sum strength of September:
+    it meets the line almost along the travel (`entry: incoming − 0.5`) and
+    asks the line to turn by impulse ÷ speed over its first 5 frames.
+  - The scored account (v3) counts the whole-body impulse over 2 frames.
+    A bend spread over 5 frames counts about 40% of itself, while meeting
+    the line at an angle α gives speed × sin α at once (a head-on stop counts
+    fully).
+  - The generic samples cap that angle at 32° (`min(32, turn + 10)`), which
+    sits at the boundary of strong asks (about 33° for 0.8 at 11 px/frame).
+  - Strong asks on the dense library songs fall 0.12 short; the learned
+    policies learned from this compiler's own choices, so they inherit the
+    centre's bias.
+  - Not tested: the `unusable_arrival` gate (0.4% of rejections on four
+    dense songs) is too rare to matter.
+- **Change** (`arc_proposals.ts`).
+  - α = asin(min(0.95, impulse ÷ speed)), the angle whose head-on component
+    is the asked impulse.
+  - The centre meets the line at α, and the line then turns only by what α
+    leaves, max(0, turn − α); its exit is unchanged. The guided centre's
+    rising-rider case is unchanged.
+  - The generic samples' approach range is 2 + frac·(α + 10), with no
+    fixed cap. The guided samples that graze the line (−1 to 5°) stay.
+  - Ranking, rejections and the learned policies are unchanged.
+- **Hypothesis.**
+  - Strength on strong asks rises, most on the dense library songs
+    (G, P1, P4).
+  - Headline up on V7.1.
+  - Physics frames about the same.
+- **Risks.**
+  - Steeper meetings crash more (`binding`) or make extra hits.
+  - Body drag may rise.
+  - Ride-outs and floats may lose where a grazing catch was right.
+
 ## November 7: hypothesis S, no fixed curvature cap on catch lines
 
 - **Basis.**

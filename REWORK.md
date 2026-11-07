@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis H4, a third round of demonstrations
+
+- **Basis.** The construction policies have been the most productive lever:
+  retrained +15.5, and pooling two rounds added more on held-out music. Round
+  3 collects demonstrations from today's compiler, which now runs BJH (same
+  catalogs, frozen worktree at 2fc98a94).
+- **Two arms:**
+  - **H4a:** rounds 2 and 3 pooled. About the archive size of today (22.6 MB),
+    dropping the oldest compiler's demonstrations.
+  - **H4b:** rounds 1, 2 and 3 pooled. About 51k demonstrations; the archive
+    grows to roughly 34 MB.
+- **Hypothesis.** Fresher and more demonstrations make proposals closer to
+  what today's compiler keeps: a further gain over `main` on V7.1 and held
+  out, smaller than BJH's. H4b ≥ H4a if quantity matters more than recency.
+  Each must show its gain against its size; H4b's larger archive needs a
+  clear margin.
+
 ## November 7: beam slot, strong-catch effort and pooled policies, together (adopted)
 
 Three mechanisms parked on November 1–2 as small and unconfirmed, adopted

@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis, construction policies from today's compiler
+
+- **Basis.** The inventory found the construction policies collected
+  before two of today's changes (no forced flight, half-weight prediction),
+  so every demonstration had a flight of six frames or more. The last
+  retrain on a current compiler was the largest single gain of the period
+  (+15.5, November 1).
+- **Data.** The construction demonstrations of today's five-seed
+  collection (main 6e815a57, 838 compiles of the training catalog), pooled
+  with the two earlier transfer-layout collections (rounds 1 and 2), which
+  today's collection lacks.
+  - 79,778 demonstrations (the adopted pooled policies: about 34,000).
+  - The archive grows to 50 MB from 22.6 MB.
+- **Change.** `repertoire_policy_model_v3.json(.gz)` replaced; nothing else.
+- **Hypothesis.** Proposals that match how today's compiler catches (short
+  hops, the new ranking and local search). V7.1 up, most on the dense
+  strata; held out up.
+- **Risks.**
+  - Demonstrations echo the compiler that produced them (diminishing
+    returns from more rounds: H2, H4).
+  - The archive size is a repository question for the owner if it wins.
+
 ## November 7: hypothesis, the learned estimate retrained on today's compiler
 
 - **Data.** `value_collect.ts` from main's frozen worktree (6e815a57):

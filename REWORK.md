@@ -15,6 +15,13 @@
   - K′: timelier and stronger hits from above on mid and strong asks, a
     small headline gain.
   - The null before R is the likeliest outcome for both.
+- **Results (V7.1, 4 seeds): neither adopted; both stay closed.**
+  - **E:** −5.0 [−12.7, +2.7], 0.07; 10 of 35 specs up. Losses in P1
+    (−13.3), P6 (−10.4) and P4 (−9.2).
+  - **K′:** +0.3 [−7.0, +7.7], 0.55; 21 of 35 specs up. Calm and ride-outs
+    gain (P3 +9.2, P7 +4.8) while pairs and intense passages lose (P1
+    −10.6, P4 −6.7). Strong extra impacts fall 27%.
+  - R did not change either verdict.
 
 ## November 7: hypothesis V, redirect within two frames
 

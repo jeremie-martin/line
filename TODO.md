@@ -66,8 +66,8 @@ Note friction here as it happens; fix what is tiny.
 
 - A compile takes about twice as long in an eight-worker panel as alone (33 s against
   16 s). Expected with shared memory bandwidth; panel throughput was never measured.
-- A compile loads the independent judge at import, through `core/trace.ts` and
-  `_lr_engine.ts`, though it never runs it. So compiling needs `npm run build:wasm` first.
+- A compile needs the independent judge (`npm run build:wasm`): it replays the final
+  track on it twice, as its own check.
 - `compare` compiles both arms with this checkout's built engine, so nothing may be rebuilt
   during a 15-minute panel. Separate work happens in another worktree, and a
   `node_modules` symlink there once replaced the real directory on cherry-pick (now ignored).
@@ -78,12 +78,9 @@ Note friction here as it happens; fix what is tiny.
 
 Each is a simplification to try, kept only if a paired compile and parity allow it.
 
-- Make one `advance` the only call that simulates, with every reader cached only.
-  `rider.get()` and `ballisticState()` can still fall back to computing, so an eviction
-  could replay physics uncharged. Nothing does today; this would make it impossible.
-  The owner would welcome a safeguard. A direct one: count native steps during search
-  and have parity compare them with charged frames. History replay and cold verification
-  are legitimately uncharged, so scope it to search.
+- Make one `advance` the only call that simulates, with every reader cached only. Every
+  compile now fails if it simulates a frame it did not charge; this would make such a
+  frame impossible to write, not only caught.
 - Reduce `getRider` to what production reads, and drop the constraint padding in
   `getUpdatesAtFrame` if `artifacts.ts` and `observe.ts` confirm no one reads it.
 - Ablate `outside_grid` and its bounds now that near lines make empty sweeps cheap, and

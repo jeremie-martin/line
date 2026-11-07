@@ -44,6 +44,8 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const guidanceReduction = pruneUntouchedGuides(ctx, lines, coldEngine, raw);
   const finalImpactFrames = impactRuler.observe(coldEngine, raw.frames);
   disposeSearch();
+  const beforeJudge = getPhysicsFrameCount();
+  let judgeFrames = 0;
   try {
     const base = new Judge().setStart(start.position, start.velocity), judge = lines.length ? base.addLine(lines) : base;
     const replay = extractRawTrajectory(judge, end);
@@ -51,6 +53,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     if (JSON.stringify(impactRuler.observe(judge, replay.frames)) !== JSON.stringify(finalImpactFrames))
       throw new Error('fixed-engine impact observation mismatch');
   } finally {
+    judgeFrames = getPhysicsFrameCount() - beforeJudge;
     disposeJudge();
     setPhysicsFrameLimit(null);
   }
@@ -63,6 +66,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     track: buildTrackJson(lines, end, start), report,
     ...(ctx.hasFragments ? {fragmentStats: work.fragmentStats} : {}),
     ...(options.initialRecoverySamples ? {initializationRecovery: work.initializationRecovery} : {}),
+    judgeFrames, // charged, but simulated by the independent judge
     stats: {viable_candidate_samples: work.viableCandidates, sim_frames: getPhysicsFrameCount(),
       gap_commits: report.contacts.filter(c => c.status === 'hit').length},
     rows, initialProposalWork: work.initialProposalWork, observedReceiverWork: work.observedReceiverWork,

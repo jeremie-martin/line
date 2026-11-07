@@ -7,7 +7,7 @@ import {cpSync, copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, 
 import {basename, dirname, join, relative} from 'node:path';
 
 export const enginePath = 'scripts/lib/native_motion/engine.wasm';
-/** Fixed in both arms. `core/trace.ts` loads the judge at import, though compiles never run it. */
+/** Fixed in both arms. A compile replays its final track on the judge as its own check. */
 const runnerFiles = ['tools/parity/parity.ts', 'scripts/lib/workers.ts', 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm'];
 
 const SOURCE_DIRS = ['scripts', 'tools', 'productions', 'vendor', 'engine-rs'];

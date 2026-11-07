@@ -195,3 +195,16 @@ pub extern "C" fn get_contact_positions(h: u32, start: i32, end: i32) -> i32 {
 pub extern "C" fn contact_positions_ptr() -> u32 {
     unsafe { (&*&raw const CONTACT_POSITIONS).as_ptr() as u32 }
 }
+
+// Every frame the compiler engine has simulated, in any lineage. Parity checks that the
+// compiler charged each one: an uncharged simulation would make this exceed the meter.
+static STEPS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+pub(crate) fn count_steps(frames: usize) {
+    STEPS.fetch_add(frames as u64, std::sync::atomic::Ordering::Relaxed);
+}
+
+#[no_mangle]
+pub extern "C" fn simulated_frames() -> f64 {
+    STEPS.load(std::sync::atomic::Ordering::Relaxed) as f64
+}

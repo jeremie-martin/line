@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: every simulated frame is charged, or the compile fails
+
+The engine counts every frame it simulates, and `compileHandoff` compares the count with
+the frames it charged, less those charged on the independent judge (its two replays of
+the final track). A metered read charges whatever a cache grows by, so a leak inside a
+read was always charged; one outside them now fails the compile, which a test checks by
+simulating 40 frames when lines are added. No parity cell trips it, and in the four
+checked the counts are exactly equal. It costs
+one counter add per extension and needs no tool to remember it.
+
 ## November 7: tools that answer in a line
 
 `perf:engine` ends with one line per run, and with no options lists the latest runs, so

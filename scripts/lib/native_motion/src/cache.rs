@@ -197,6 +197,7 @@ impl FrameCache {
     /// _computeFrame: lazily extend the cache to include frame `frame`.
     pub(crate) fn compute_to(&mut self, frame: usize, mut trace: Option<&mut CollisionTrace>) {
         if self.frames.len() > frame { return; }
+        crate::abi::count_steps(frame + 1 - self.frames.len());
         let mut s = self.frames[self.frames.len() - 1].clone();
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;

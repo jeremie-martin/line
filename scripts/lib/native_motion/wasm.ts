@@ -21,6 +21,7 @@ interface NativeExports {
   get_body_motion(handle: number, frame: number): number;
   get_rider(handle: number, frame: number): void;
   advance_while_bound(handle: number, frame: number): number;
+  simulated_frames(): number;
   get_updates(handle: number, frame: number): number;
   get_cached_events(handle: number, frame: number): number;
   has_contact(handle: number, frame: number): number;

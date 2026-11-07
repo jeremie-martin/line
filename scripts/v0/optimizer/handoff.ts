@@ -5,6 +5,7 @@ import type {CompileCheckpoint} from './types.ts';
 import type {CreativePreferences, ProductionPlan} from './repertoire_policy.ts';
 import {compileProductionRepertoire} from './production_repertoire.ts';
 import {normalizeCompilerTimeline} from './compiler_input.ts';
+import {wasm} from '../../lib/native_motion/wasm.ts';
 
 export type ProductionCompileOptions = {
   budget: number;
@@ -24,9 +25,15 @@ export function compileHandoff(userSpec: Spec, seed = 0, opts: ProductionCompile
   if (Object.keys(spec.axes).some(axis => !['air', 'speed', 'amplitude'].includes(axis))) throw new Error('the compiler supports air, speed and amplitude axes');
   const unknown = Object.entries(opts).filter(([key, value]) => value !== undefined && !OPTIONS.includes(key)).map(([key]) => key);
   if (unknown.length) throw new Error(`unknown compile options: ${unknown.join(', ')}`);
+  const simulated = wasm.simulated_frames();
   const repertoire = compileProductionRepertoire(spec, seed, {budget: opts.budget, creative: opts.creative, plan: opts.constructionPlan,
     phraseBoundaries: opts.phraseBoundaries});
-  const {result, physicalFrames, searchTotals} = repertoire;
+  const {result, physicalFrames, searchTotals, judgeFrames} = repertoire;
+  // Every frame the compiler simulates must be charged. The judge's replays are charged
+  // too, but simulated outside this engine. A budget refusal may charge frames it never
+  // simulates, so only an excess is an error.
+  const uncharged = wasm.simulated_frames() - simulated - (physicalFrames - judgeFrames);
+  if (uncharged > 0) throw new Error(`the compiler simulated ${uncharged} frames it did not charge`);
   const costs = result.report.gaps.map(g => Object.values(g.axes).reduce((n, a) => n + (a?.error ?? 0) ** 2, 0));
   return {
     budget: opts.budget, track: result.track, report: result.report, repertoire,

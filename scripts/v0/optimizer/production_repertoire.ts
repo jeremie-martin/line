@@ -53,6 +53,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');
   return {result:{...result,budget,stats:{...result.stats,sim_frames:physicalFrames}},plan,styles,fragmentSections,railGuides,realization,motion,
+    judgeFrames:result.judgeFrames+work.filter(w=>w.stage==='realization-replay').reduce((n,w)=>n+w.physicalFrames,0),
     sectionFallbacks:result.sectionFallbacks,valid:result.impactEvaluation.valid,qualified:result.impactEvaluation.valid&&realization.fulfilled,constructionFailure,physicalFrames,budget,work,searchTotals,
     impactSearchProfile:IMPACT_SEARCH_PROFILE};
 }

@@ -35,6 +35,18 @@
   - Steeper meetings crash more (`binding`) or make extra hits.
   - Body drag may rise.
   - Ride-outs and floats may lose where a grazing catch was right.
+- **Result (V7.1, 4 seeds): not adopted.** −2.7 [−8.1, +2.7], 0.10; 15
+  specs up, 20 down; P1 −12.0, P6 −10.9. Very strong bias does not move
+  (+0.000 on G). The starting shape is not what keeps strong catches short:
+  the search finds its way regardless of where it starts.
+- **Calibration re-measured after R** (`catch_price`, fixed: research
+  probes no longer trip the accounting check; 16 rides, seeds 101 and 102,
+  every probed seed-101 ride identical to `main`'s). Ranking still charges
+  what the next interval pays: closest-to-ask +0.053 charged against +0.061
+  measured; lowest-cost +0.019 against +0.020. The closest-to-ask candidate
+  is stronger (0.724 against 0.677 kept, ask 0.757) but costs +0.061 locally
+  and as much again in the next interval: stronger catches exist in the
+  pools, and what they cost is the rest of the ride's shape.
 
 ## November 7: hypothesis S, no fixed curvature cap on catch lines
 

@@ -8,9 +8,9 @@
 </head>
 <body>
 <main>
-  <a class="homelink" href="./morning.html">← All rounds</a>
   <div id="stagewrap" class="stagewrap"><canvas id="stage"></canvas><div class="safezone" aria-hidden="true"><i class="sl"></i><i class="sr"></i><i class="c"></i><i class="b"></i><i class="r"></i><i class="t"></i></div><div id="status"></div><div id="optflag" class="optflag" hidden></div></div>
   <aside>
+    <a class="homelink" href="./morning.html">← All rounds</a>
     <div id="qprogress" class="qprogress"></div>
     <div id="presets" class="presets"></div>
     <div id="moments" class="moments"></div>
@@ -20,6 +20,11 @@
       <input id="seek" type="range" min="0" max="60" step="0.01" value="0" aria-label="Position">
       <button id="fwd" class="icon" aria-label="Forward 5 seconds">+5</button>
       <span id="time">0:00</span>
+    </div>
+    <div id="exag" class="exag" hidden>
+      <label for="exagx">Exaggerate the shake <output id="exagval">×1.0</output></label>
+      <input id="exagx" type="range" min="1" max="4" step="0.5" value="1">
+      <small>Temporary viewing aid: multiplies every option’s shake alike, so the differences are easier to see. It is not part of any option, is not saved, and resets on the next question.</small>
     </div>
     <h1 id="concept"></h1>
     <p id="line"></p>

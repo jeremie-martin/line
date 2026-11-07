@@ -39,7 +39,7 @@ body.shot aside{display:none}
 body.shot .stagewrap{width:1080px;height:1920px;border-radius:0;box-shadow:none}
 .moments,.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .moment,.tool{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:4px 10px;font-size:13px;color:var(--soft)}
-.tool.on{background:var(--on);color:var(--onText);border-color:var(--on)}
+.tool.on,.moment.on{background:var(--on);color:var(--onText);border-color:var(--on)}
 .sep{flex:1}
 .stagewrap{touch-action:pan-y;cursor:pointer}
 .safezone{position:absolute;inset:0;pointer-events:none;display:none}
@@ -89,13 +89,28 @@ body.feelmode #presets, body.feelmode #moments, body.feelmode .transport, body.f
 .benchhist i {flex: 1; background: var(--muted, #99a); opacity: .45; min-height: 1px;}
 .presets[hidden], .qrow[hidden] {display: none;}
 
-.homelink {position: fixed; left: 10px; top: 8px; z-index: 5; font-size: 13px; color: var(--soft, #667); text-decoration: none; background: var(--bg, #f2f3f5); padding: 3px 8px; border-radius: 8px;}
+/* the link sits in the controls' flow: fixed on top of the page it covered the picture's corner and, once scrolled, whatever chip
+   was under it, so a tap meant for an option left the lab */
+.homelink {align-self: flex-start; font-size: 13px; color: var(--soft, #667); text-decoration: none; padding: 6px 0;}
 body.shot .homelink {display: none;}
 .feelnav {display: flex; gap: 8px;}
 .feelnav .play {flex: 1;}
 .feel #feelnote {width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;}
 .feelnav button[hidden], #feelnote[hidden] {display: none;}
-.feelpick .opt.on {background: var(--ink, #15181d); color: #fff;}
+.feelpick .opt.on {background: var(--on); color: var(--onText);} /* was white on --ink: invisible in dark mode */
 /* what you are looking at, on the picture itself (question mode only; never in films) */
 .optflag {position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); font: 600 14px/1.25 system-ui, sans-serif; background: rgba(21,24,29,.82); color: #fff; padding: 6px 10px; border-radius: 8px; pointer-events: none;}
 body.shot .optflag {display: none;}
+
+/* interaction guards (agents/ui-audit): no double-tap zoom on controls; 16 px text fields so iOS does not zoom in on focus and stay
+   zoomed; answer buttons and moment chips big enough for a thumb; the progress line can never wrap and push the answers down */
+button, input[type=range] {touch-action: manipulation;}
+textarea {font-size: 16px;}
+body.qmode #qpick .opt {min-width: 44px; min-height: 40px; font-size: 15px;}
+body.qmode .moment, body.qmode .qnav .tool {min-height: 36px;}
+body.qmode .qprogress {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.exag {display: grid; gap: 4px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; font-size: 13px; color: var(--soft);}
+.exag[hidden] {display: none;}
+.exag label {display: flex; justify-content: space-between; color: var(--ink); font-weight: 600;}
+.exag input {width: 100%; height: 32px; accent-color: var(--ink);}
+.exag small {font-size: 12px; line-height: 1.35;}

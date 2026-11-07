@@ -39,9 +39,10 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Hits: Held | settled | Preferred over Refined in whole songs (R5). Less shaky. |
 | Hits: today's recipe (reference) | read in R7 | `scripts/fx_recipe.ts`: not a top-10 % gate. Almost every hit adds to a decaying, capped trauma, so an ordinary hit reaches full force and dense passages pile up. Shake ±10 px at 9 Hz on two axes plus 0.4° rotation; split 14 px sideways on the ride only; flash white 0.3. |
 | Hits: driver | settled (R7) | Each hit on its own (Held's logic), not piling up. |
-| Hits: shake | open (R8) | In the hit's direction, or Thud (R7). Re-compared under the new driver. |
-| Hits: split | open (R8) | The hit-direction split looked "way more prominent" (R7): it crosses the lines, while today's mostly runs along them. Now matched to today's average visible fringe (`splitmeasure.mjs`, ±10 % on four songs), plus a halfway option. Splits the ride only, as in production. |
-| Hits: flash | open (R8) | Favourites: none, then toward the paper. Bloom disliked. "Most of the time it should not be there": a gate on absolute strength (0.82 to 0.94) gives about 1–10 a minute (R7). |
+| Hits: shake | open (R9) | Can't tell them apart at today's size. The owner asked for a temporary ×1–×4 viewing multiplier (R8). |
+| Hits: split | open (R9) | R8: halfway was mis-signed (red at the bottom); fixed. The owner asked whether the split used to touch the band and title: yes, the lab split everything until R8; production splits the ride only. |
+| Hits: split (history) | | | The hit-direction split looked "way more prominent" (R7): it crosses the lines, while today's mostly runs along them. Now matched to today's average visible fringe (`splitmeasure.mjs`, ±10 % on four songs), plus a halfway option. Splits the ride only, as in production. |
+| Hits: flash | settled direction (R8) | Toward the paper on the hardest hits, "by a wide margin… way better than everything else". It could open lower than 0.82. Its size also follows the hit's strength (R8). |
 | Hits: punch, recoil | parked | Built in R6. Not shown, because the owner pointed at the shake. |
 | Afterimage | parked | "Better implementation… adds clutter… park it" (R5). |
 | Rider less split | settled (R6) | The rider keeps half its clean image through the split (R4 remark). |
@@ -82,10 +83,11 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Ravilious | very good (R7) | The background and bars could pair better. |
 | Kintsugi | very good (R7) | "Would be amazing for a drop." |
 | Cahier | good (R7) | The background and bars could pair better. |
-| Kraft | good (R7) | Bars, accent and line "awesome". The background could be "a bit different" (R8 paper study). |
+| Kraft | good (R7) | Bars, accent and line "awesome" (R7). Papers (R8): darker preferred ("much more aesthetic"); as designed and lighter also OK; less colour, almost neutral and lighter-less-colour not liked. With the lighter paper the bars are too contrasted and the white accent works less: "it's the entire theme as a whole". |
 | Vegas | weaker (R7) | Like Kraft, but the background is worse. |
-| Cyanotype | bars only (R7) | Great bars, bad background (R8 paper study). |
-| Rothko | maybe for a drop (R7) | Good bars; the background isn't loved (R8 paper study). |
+| Cyanotype | promising (R8) | Less colour is "way better" than as designed: lovely bar integration, accent yellow. Almost neutral very bad, lighter hated, darker "something to it". Wants handcrafted papers with a bit more colour, but integrated like less colour (R8). |
+| Rothko | promising (R8) | Less colour great. Almost neutral "very elegant, especially with the bars". Darker good. Darker-less-colour too much contrast. Lighter disliked. "There is a world where the as-designed background works… how do we integrate it with the rest" (R8). |
+| Backgrounds: emerging pattern (R8) | hypothesis | The paper should sit with the bars rather than fight them: quieter in colour than the bars, at a moderate lightness distance from them. Not a rule; it predicts the R8 picks and gets tested in R9. |
 | Toile | no (R7) | Not enough contrast between the background and the bars. |
 | Backgrounds in general | open (R7) | "We need to work on backgrounds and figure out what works to my eyes." R8 keeps a palette's line, bars and accent and moves only the paper. |
 | Klein, bottle, salmon | unshown | Klein and salmon fail the band-chroma check. |
@@ -112,3 +114,4 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 - Number the round pages; never overwrite them (R6).
 - Comparisons must be fair: match the amounts when comparing directions or styles, otherwise the bigger one wins (R7).
 - No jargon in questions ("blow") (R7).
+- Never store a list as a joined string: picks with commas broke voting for four rounds (R8).

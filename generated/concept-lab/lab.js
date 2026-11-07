@@ -143,7 +143,7 @@ const QUESTIONS = [
       ['White, hardest only', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'todayRare'}, 'Today’s white flash, only on the hardest hits.']],
     moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Dune', 33.6, 'petrunko', {scheme: 'dune'}], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Hokusai', 33.6, 'petrunko', {scheme: 'hokusai'}]]},
   {id: 'shake', ask: 'The shake, now that each hit is on its own', why: 'Varies: only the shake. Fixed: today’s split, no flash, each hit on its own. You kept two shakes when hits were piling up; with each hit on its own they feel different, so here they are again, with today’s for reference. Keep any number.',
-    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
+    song: 'tomada', t: 36.5, len: 5, multi: true, exaggerate: true, opts: [
       ['Today’s', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'today'}, 'Two axes, 9 Hz, slight rotation.'],
       ['In the hit’s direction', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'blow'}, 'The same 9 Hz, starting with the hit and along its direction.'],
       ['Thud', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'thud'}, 'Knocked along the hit’s direction, then springing back.']],
@@ -184,8 +184,13 @@ let preset = PRESETS.find(p => p.id === q.get('c')) ?? PRESETS[0];
 let mix = {...preset.mix};
 for (const kv of (q.get('m') ?? '').split(',').filter(Boolean)) {const [k, v] = kv.split(':'); if (DIMS[k]?.[1][v]) mix[k] = v;}
 let seconds = +(q.get('t') ?? 0) || 0, playing = false, S = null, loadId = 0;
-const qmode = q.has('q');
+const qmode = q.has('q'), feelmode = q.has('feel');
 let qi = Math.max(0, Math.min(QUESTIONS.length, +(q.get('q') || 1) - 1)), qopt = 0;
+// A temporary viewing aid: multiplies the hit parts' shake. Always ×1 unless the viewer moves the slider or the URL asks (?shakeX=).
+let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
+// Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
+// instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
+let navId = 0, qmoment = null, loopHome = null;
 const STORE = 'concept-lab-answers-r8';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
@@ -471,7 +476,10 @@ function radialSplit(cx, cy, px) {
 }
 /** Camera-level response to hits: a screen offset (px). */
 function hitCamera(t) {
-  if (mix.hit === 'parts') return partsCamera(t);
+  if (mix.hit === 'parts') {
+    // the 'exaggerate' viewing aid (question mode slider, or ?shakeX=): ×1 returns the shake untouched, so renders never change
+    const c = partsCamera(t); return shakeX === 1 ? c : {dx: c.dx * shakeX, dy: c.dy * shakeX, rot: c.rot * shakeX};
+  }
   const A = acc(); let dx = 0, dy = 0;
   if (A.today || A.todayW) {
     const m = A.todayW ? traumaW(t, 1.6, 7, 1.5) : trauma(t, {min: 0.22, gain: 1.6, decay: 7, power: 1.5}), w = 2 * Math.PI * 9;
@@ -743,7 +751,9 @@ function postAccents(t, k, v, ox, oy) {
 }
 async function draw() {
   if (!S || !canvas.width || !canvas.height) return;
-  const sheet = await sheetPromise, t = seconds, at = clamp(t * FPS, 0, S.frames.length - 1), k = canvas.width / W;
+  const sheet = await sheetPromise;
+  if (!S) return; // a song load may have begun while this frame waited for the sprite sheet (it used to throw on S.frames)
+  const t = seconds, at = clamp(t * FPS, 0, S.frames.length - 1), k = canvas.width / W;
   const th = themeAt(t), v = bookend(t, cameraAt(mix, at), at), hc = hitCamera(t);
   overNow = v.over; darkNow = th.dark; paperNow = th.bg;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
@@ -797,11 +807,12 @@ let momentExtra = null, momentLabel = '';
 async function loadSong(key) {
   const id = ++loadId; song = key; S = null; loadedOld = ridesOld; status('Loading ' + SONGS[key] + (ridesOld ? ' (round-5 ride)' : '') + '…');
   const ck = key + (ridesOld ? ':old' : '');
-  if (cache.has(ck)) {const c = cache.get(ck); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return; S = c;}
+  // returns false when a newer load superseded this one, so callers stop instead of applying their now-stale state
+  if (cache.has(ck)) {const c = cache.get(ck); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return false; S = c;}
   else {
     const data = await (await fetch(`./${ridesOld ? 'data-r5' : 'data'}/${key}.json`)).json();
     const [native] = await Promise.all([replay(data.track, data.trace), shot ? null : music.load(data.audio).catch(() => null)]);
-    if (id !== loadId) return;
+    if (id !== loadId) {if (!cache.has(ck)) cache.set(ck, prepare(data, native)); return false;}
     S = prepare(data, native); cache.set(ck, S);
   }
   $('seek').max = S.duration; seconds = Math.min(seconds, S.duration);
@@ -821,6 +832,7 @@ async function loadSong(key) {
       return {chains: chains.size, lines: S.lines.length, inkedShare: +(inked / total).toFixed(3), staleUnits: Object.fromEntries(Object.entries(stale).map(([k, v]) => [k, Math.round(v)])), touchedChainsWithGreyTail: chainTail, tailShareHist_lt10_lt25_lt50_rest: tailHist, totalUnits: Math.round(total)};
     };
     window.__renderAt = async t => {seconds = t; await draw(); return canvas.toDataURL('image/png');};}
+  return true;
 }
 function moments() {
   const dens = S.R.sect.filter(s => s.t1 - s.t0 > 2);
@@ -834,7 +846,16 @@ function status(text) {const s = $('status'); if (s) s.textContent = text;}
 function fmt(t) {return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;}
 function sync() {
   $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(S?.duration ?? 0);
-  const url = new URL(location.href); if (qmode) {url.searchParams.set('q', String(qi + 1)); history.replaceState(null, '', url); return;} url.searchParams.set('song', song); url.searchParams.set('c', preset.id); url.searchParams.set('t', seconds.toFixed(2));
+  if (feelmode) return; // the blind test's address must not carry (or leak) the free lab's look
+  const url = new URL(location.href);
+  if (qmode) {
+    // the option and moment ride in the address too, so a reload mid-question comes back to exactly what was on screen
+    url.searchParams.set('q', String(qi + 1));
+    qi < QUESTIONS.length && qopt ? url.searchParams.set('opt', LETTERS[qopt]) : url.searchParams.delete('opt');
+    qi < QUESTIONS.length && qmoment !== null ? url.searchParams.set('mo', String(qmoment + 1)) : url.searchParams.delete('mo');
+    history.replaceState(null, '', url); return;
+  }
+  url.searchParams.set('song', song); url.searchParams.set('c', preset.id); url.searchParams.set('t', seconds.toFixed(2));
   const diff = Object.keys(mix).filter(d => mix[d] !== preset.mix[d]).map(d => d + ':' + mix[d]);
   diff.length ? url.searchParams.set('m', diff.join(',')) : url.searchParams.delete('m');
   history.replaceState(null, '', url);
@@ -852,25 +873,64 @@ function qStart(question) {
   if (question.t === 'strongest') {const big = S.hits.reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.tc - 1.6);}
   return 0;
 }
-async function goQuestion(i) {
-  pause(); qi = i; qopt = 0; momentExtra = null; momentLabel = ''; scrollTo(0, 0);
+// What is drawn in question mode is ALWAYS the chosen option plus the chosen moment's override, built in this one place.
+// (Swipes and arrow keys used to rebuild the option alone and silently drop 'On Dune' while the label still said it.)
+function applyOption() {const Q = QUESTIONS[qi]; if (Q?.opts) mix = {...Q.opts[qopt][1], ...(momentExtra ?? {})};}
+function setOption(i) {qopt = i; applyOption(); renderQuestion(); draw();}
+function setShakeX(x) {shakeX = x; $('exagx').value = String(x); $('exagval').textContent = '×' + (+x).toFixed(1); renderQuestion(); draw();}
+async function goQuestion(i, restore = null) {
+  const nav = ++navId;
+  pause(); qi = i; qopt = 0; momentExtra = null; momentLabel = ''; qmoment = null; scrollTo(0, 0);
+  $('qcopy').textContent = 'Copy answers';
+  // the viewing aid never follows the viewer into another question (it would silently exaggerate options there)
+  if (!restore && shakeX !== 1) setShakeX(1);
+  setBench(false);
   if (qi >= QUESTIONS.length) {renderQuestion(); return;}
-  const Q = QUESTIONS[qi]; mix = {...Q.opts[0][1]}; setBench(!!Q.bench);
-  ridesOld = Q.rides === 'old';
-  if (song !== Q.song || ridesOld !== loadedOld) {await loadSong(Q.song);}
-  loop = qStart(Q); loopLen = Q.len ?? 4; $('loop').classList.add('on'); $('loop').textContent = `Loop ${loopLen} s`; seek(loop); renderQuestion(); draw();
+  const Q = QUESTIONS[qi];
+  if (restore && restore.opt > 0 && restore.opt < Q.opts.length) qopt = restore.opt;
+  applyOption(); ridesOld = Q.rides === 'old';
+  renderQuestion();
+  if ((song !== Q.song || ridesOld !== loadedOld) && !await loadSong(Q.song)) return;
+  if (nav !== navId) return; // the viewer moved on while this question's song loaded
+  setBench(!!Q.bench); // after the load: the bench's histogram is the NEW song's hits
+  loop = loopHome = qStart(Q); loopLen = Q.len ?? 4; $('loop').classList.add('on'); $('loop').textContent = `Loop ${loopLen} s`; seek(loop); renderQuestion(); draw();
+  if (restore && Q.moments?.[restore.mo]) await goMoment(restore.mo);
+}
+async function goMoment(j) {
+  const Q = QUESTIONS[qi], [label, at, sg, extra, rides] = Q.moments[j], nav = ++navId;
+  const was = playing; pause(); ridesOld = rides === 'old'; momentExtra = extra ?? null; qmoment = j;
+  momentLabel = extra || rides === 'old' ? label : '';
+  applyOption(); renderQuestion();
+  if (((sg ?? Q.song) !== song || ridesOld !== loadedOld) && !await loadSong(sg ?? Q.song)) return;
+  if (nav !== navId) return;
+  loop = loopHome = at === 'end' ? Math.max(0, S.duration - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
+  $('loop').classList.add('on'); seek(loop); renderQuestion(); draw(); if (was) play();
+}
+// Answers: picks are a LIST of option labels plus a separate 'none' flag. Older saves kept one joined string ('A, B' or 'A + B');
+// read it back by matching whole labels, so a label that contains a comma still comes back.
+function answerOf(Q) {
+  const a = answers[Q.id] ??= {pick: null, note: ''}, labels = Q.opts.map(o => o[0]);
+  if (!Array.isArray(a.picks)) {
+    const s = a.pick && a.pick !== 'none' ? a.pick : '', wrap = sep => sep + s.split(' + ').join(sep) + sep;
+    a.picks = s ? labels.filter(l => l === s || wrap(', ').includes(', ' + l + ', ') || wrap(' + ').includes(' + ' + l + ' + ')) : [];
+  }
+  if (a.none === undefined) a.none = a.pick === 'none';
+  a.picks = labels.filter(l => a.picks.includes(l)); // current labels only, in option order
+  return a;
+}
+function pickText(Q, a) {
+  if (a.none) return 'None of these';
+  return a.picks.map(l => `${LETTERS[Q.opts.findIndex(o => o[0] === l)]} · ${l}`).join(' + ');
 }
 const LETTERS = 'ABCDEFGHIJKLMNOP';
 function renderQuestion() {
   document.body.classList.add('qmode');
   const done = qi >= QUESTIONS.length, Q = QUESTIONS[qi];
-  $('moments').replaceChildren(...(!done && Q.moments ? Q.moments.map(([label, at, sg, extra, rides]) => chip(label, false, async () => {
-    const was = playing; pause(); ridesOld = rides === 'old'; momentExtra = extra ?? null; momentLabel = extra ? label : '';
-    if ((sg ?? Q.song) !== song || ridesOld !== loadedOld) await loadSong(sg ?? Q.song);
-    mix = {...Q.opts[qopt][1], ...(momentExtra ?? {})};
-    loop = at === 'end' ? Math.max(0, S.duration - (Q.len ?? 4)) : qStart({t: at}); seek(loop); renderQuestion(); if (was) play();
-  }, 'moment')) : []));
-  $('optflag').hidden = done || !!Q?.open; if (!done && !Q.open) $('optflag').textContent = `${LETTERS[qopt]} · ${Q.opts[qopt][0]}${momentExtra ? ' · ' + momentLabel : ''}`;
+  $('moments').replaceChildren(...(!done && Q.moments ? Q.moments.map(([label], j) => chip(label, j === qmoment, () => goMoment(j), 'moment')) : []));
+  // the viewing aid shows only on questions that ask for it, and says what it is
+  $('exag').hidden = done || !Q?.exaggerate;
+  $('optflag').hidden = done || !!Q?.open;
+  if (!done && !Q.open) $('optflag').textContent = `${LETTERS[qopt]} · ${Q.opts[qopt][0]}${momentLabel ? ' · ' + momentLabel : ''}${shakeX !== 1 && mix.hit === 'parts' ? ` · shake ×${shakeX.toFixed(1)} (exaggerated)` : ''}`;
   $('qprogress').textContent = done ? 'All done' : `Question ${qi + 1} of ${QUESTIONS.length} · ${SONGS[song]}`;
   $('concept').textContent = done ? 'Thank you.' : Q.ask;
   $('line').textContent = done ? 'Copy your answers and paste them to me in the chat. They are also kept in this browser.' : Q.why;
@@ -882,21 +942,27 @@ function renderQuestion() {
     let h = 0; for (const [i, o] of Q.opts.entries()) {probe.textContent = LETTERS[i] + ': ' + (o[2] ?? ''); probe.style.width = b.offsetWidth + 'px'; h = Math.max(h, probe.offsetHeight);}
     probe.remove(); b.style.minHeight = h + 'px';
   }
-  $('presets').replaceChildren(...(done ? [] : Q.opts.map(([label, m], i) => chip(`${LETTERS[i]} · ${label}`, i === qopt, () => {qopt = i; mix = {...m, ...(momentExtra ?? {})}; renderQuestion(); draw();}))));
-  const a = done ? null : (answers[Q.id] ??= {pick: null, note: ''});
+  $('presets').replaceChildren(...(done ? [] : Q.opts.map(([label], i) => chip(`${LETTERS[i]} · ${label}`, i === qopt, () => setOption(i)))));
+  const a = done ? null : answerOf(Q);
   $('presets').hidden = !done && !!Q.open; document.querySelector('.qrow').hidden = !done && !!Q.open;
   // Picks are kept as a LIST. They used to be one comma-joined string split on ', ', so any option whose own name contained a
   // comma ('Toward the paper, hardest only') fell apart and could never be selected (rounds 5–8).
-  const picks = Q?.multi ? (a?.picks ?? []) : [];
-  const toggle = label => {if (Q.multi) {const s = new Set(picks); s.has(label) ? s.delete(label) : s.add(label); a.picks = Q.opts.map(o => o[0]).filter(l => s.has(l)); a.pick = a.picks.join(' + ');} else a.pick = label; saveAnswers(); renderQuestion();};
-  $('qpick').replaceChildren(...(done ? [] : [...Q.opts.map(([label], i) => chip(LETTERS[i], Q.multi ? picks.includes(label) : a.pick === label, () => toggle(label), 'opt')),
-    chip('None of these', a.pick === 'none', () => {a.pick = 'none'; a.picks = []; saveAnswers(); renderQuestion();}, 'opt')]));
+  const toggle = label => {
+    if (Q.multi) {const s = new Set(a.picks); s.has(label) ? s.delete(label) : s.add(label); a.picks = Q.opts.map(o => o[0]).filter(l => s.has(l));}
+    else a.picks = [label];
+    a.none = false; a.pick = pickText(Q, a); saveAnswers(); renderQuestion();
+  };
+  // 'None of these' is its own flag, never a label: an option may itself be called 'None' (the split question's D)
+  const none = () => {a.none = !a.none; a.picks = []; a.pick = a.none ? 'none' : ''; saveAnswers(); renderQuestion();};
+  $('qpick').replaceChildren(...(done ? [] : [...Q.opts.map(([label], i) => chip(LETTERS[i], !a.none && a.picks.includes(label), () => toggle(label), 'opt')),
+    chip('None of these', a.none, none, 'opt')]));
   $('qnote').rows = Q?.open ? 7 : 2; $('qpicklabel').textContent = Q?.multi ? 'Keep (any number)' : 'My pick';
   $('qnote').hidden = done; $('qnote').value = a?.note ?? ''; $('qnote').oninput = () => {a.note = $('qnote').value; saveAnswers();};
   $('qprev').disabled = qi === 0; $('qnext').textContent = done ? 'Start again' : qi === QUESTIONS.length - 1 ? 'Finish' : 'Next question';
   $('qnext').className = done ? 'tool' : 'play'; $('qcopy').className = done ? 'play' : 'tool';
   $('qsummary').hidden = !done;
-  if (done) $('qsummary').value = QUESTIONS.map((Q, i) => {const a = answers[Q.id] ?? {}; return Q.open ? `${i + 1}. ${Q.ask}: ${a.note || '(skipped)'}` : `${i + 1}. ${Q.ask} → ${a.pick || '(skipped)'}${a.note ? ` — ${a.note}` : ''}`;}).join('\n');
+  // the summary names each pick by letter AND label, and 'None of these' in words, so 'D · None' and 'None of these' never read alike
+  if (done) $('qsummary').value = QUESTIONS.map((Q, i) => {const a = answerOf(Q); return Q.open ? `${i + 1}. ${Q.ask}: ${a.note || '(skipped)'}` : `${i + 1}. ${Q.ask} → ${pickText(Q, a) || '(skipped)'}${a.note ? ` — ${a.note}` : ''}`;}).join('\n');
   $('qcopy').hidden = !done;
   sync();
 }
@@ -909,7 +975,7 @@ function renderUI() {
   const songs = $('songs'); songs.replaceChildren(...Object.entries(SONGS).map(([k, v]) => chip(v, k === song, () => {if (k !== song) {pause(); loadSong(k);}}, 'song')));
   const pres = $('presets'); pres.replaceChildren(...PRESETS.map((p, i) => chip(`${i + 1} · ${p.name}`, p === preset, () => choosePreset(p))));
   const custom = Object.keys(mix).some(d => mix[d] !== preset.mix[d]);
-  $('concept').textContent = preset.name + (custom ? ' · adjusted' : ''); $('line').textContent = preset.line;
+  $('concept').textContent = preset.name + (custom ? ' · adjusted' : '') + (shakeX !== 1 ? ` · shake ×${shakeX.toFixed(1)} (?shakeX)` : ''); $('line').textContent = preset.line;
   $('mix').replaceChildren(...Object.entries(DIMS).map(([d, [label, opts]]) => {
     const row = document.createElement('div'); row.className = 'row';
     const name = document.createElement('span'); name.textContent = label;
@@ -930,22 +996,27 @@ function tick(ts) {
   if (playing && S) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loop + loopLen) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= S.duration) {pause(); seconds = S.duration;} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(S.duration);}
   requestAnimationFrame(tick);
 }
-function cycleOption(dir) {const o = QUESTIONS[qi].opts; qopt = (qopt + dir + o.length) % o.length; mix = {...o[qopt][1]}; renderQuestion(); draw();}
+function cycleOption(dir) {const o = QUESTIONS[qi]?.opts; if (o) setOption((qopt + dir + o.length) % o.length);}
 if (shot) document.body.classList.add('shot');
 else {
-  $('play').onclick = () => {if (slowmo) {slowRun = !slowRun; $('play').textContent = slowRun ? 'Pause' : 'Play'; return;} playing ? pause() : play();};
+  // one toggle for the button, Space and a tap on the picture: in the bench's slow motion Space and taps used to start the music at
+  // full speed on top of the slow clock
+  const togglePlay = () => {if (slowmo) {slowRun = !slowRun; $('play').textContent = slowRun ? 'Pause' : 'Play'; return;} playing ? pause() : play();};
+  $('play').onclick = togglePlay;
   $('seek').oninput = () => seek(+$('seek').value);
   $('back').onclick = () => seek(seconds - 5); $('fwd').onclick = () => seek(seconds + 5);
   addEventListener('keydown', e => {
     if (e.target.closest?.('input,textarea')) return;
+    if (feelmode) return; // the blind test is driven by its own buttons; keys used to switch it to a preset's look mid-test
     const i = PRESETS.indexOf(preset);
-    if (e.code === 'Space') {e.preventDefault(); playing ? pause() : play();}
+    if (e.code === 'Space') {e.preventDefault(); togglePlay();}
     else if (e.key === 'ArrowRight' && e.shiftKey) seek(seconds + 2);
     else if (e.key === 'ArrowLeft' && e.shiftKey) seek(seconds - 2);
     else if (qmode && (e.key === 'ArrowRight' || e.key === 'ArrowLeft') && qi < QUESTIONS.length) cycleOption(e.key === 'ArrowRight' ? 1 : -1);
     else if (!qmode && (e.key === 'ArrowRight' || e.key === 'ArrowDown')) {e.preventDefault(); choosePreset(PRESETS[(i + 1) % PRESETS.length]);}
     else if (!qmode && (e.key === 'ArrowLeft' || e.key === 'ArrowUp')) {e.preventDefault(); choosePreset(PRESETS[(i + PRESETS.length - 1) % PRESETS.length]);}
     else if (!qmode && /^[1-9]$/.test(e.key) && PRESETS[+e.key - 1]) choosePreset(PRESETS[+e.key - 1]);
+    else if (qmode && /^[1-9]$/.test(e.key) && QUESTIONS[qi]?.opts?.[+e.key - 1]) setOption(+e.key - 1); // as the hint promises
   });
   $('mixtoggle').onclick = () => document.body.classList.toggle('mixing');
   $('qprev').onclick = () => goQuestion(Math.max(0, qi - 1));
@@ -958,17 +1029,25 @@ else {
   };
   $('safe').onclick = () => $('safe').classList.toggle('on', document.body.classList.toggle('safe'));
   $('big').onclick = () => {$('big').classList.toggle('on', document.body.classList.toggle('big')); fit();};
-  $('loop').onclick = () => {loop = loop === null ? seconds : null; loopLen = 4; $('loop').classList.toggle('on', loop !== null);};
+  $('loop').onclick = () => {
+    // in a question, looping again returns to the moment's own passage and length (it used to loop 4 s from wherever the
+    // playhead was, under a label still reading the question's length)
+    if (qmode && qi < QUESTIONS.length && loop === null && loopHome !== null) {loop = loopHome; loopLen = QUESTIONS[qi].len ?? 4; seek(loop);}
+    else {loop = loop === null ? seconds : null; loopLen = 4;}
+    $('loop').classList.toggle('on', loop !== null); $('loop').textContent = `Loop ${loopLen} s`;
+  };
   let touch = null;
   $('stagewrap').addEventListener('pointerdown', e => {touch = {x: e.clientX, y: e.clientY};});
+  $('stagewrap').addEventListener('pointercancel', () => {touch = null;}); // a scroll that began on the picture is not a tap
   $('stagewrap').addEventListener('pointerup', e => {
     if (!touch) return; const dx = e.clientX - touch.x, dy = e.clientY - touch.y; touch = null;
+    if (feelmode) return; // a swipe used to load a preset's look (hits, colour) into the blind test
     const i = PRESETS.indexOf(preset);
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
       if (qmode && qi < QUESTIONS.length) cycleOption(dx < 0 ? 1 : -1);
       else if (!qmode) choosePreset(PRESETS[(i + (dx < 0 ? 1 : PRESETS.length - 1)) % PRESETS.length]);
     }
-    else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) playing ? pause() : play();
+    else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) togglePlay();
   });
   addEventListener('resize', fit); new ResizeObserver(fit).observe(canvas);
   requestAnimationFrame(tick);
@@ -977,7 +1056,8 @@ fit();
 // ── the hit bench: one strength for every hit, played at any speed ──────────
 function setBench(on) {
   $('bench').hidden = !on; if (on) return renderBench();
-  forceE = null; slowmo = slowRun = false;
+  // leaving the bench also leaves its slow motion, and the Play button must say so (it could stay on 'Pause')
+  forceE = null; slowmo = slowRun = false; $('play').textContent = playing ? 'Pause' : 'Play';
 }
 function renderBench() {
   const list = S.hits.map(h => h.I), bins = new Array(24).fill(0); list.forEach(e => bins[Math.min(23, Math.floor(e * 24))]++);
@@ -987,12 +1067,14 @@ function renderBench() {
   $('benchreal').classList.toggle('on', forceE === null); $('benchslow').classList.toggle('on', slowmo);
 }
 if (!shot) {
+  $('exagx').value = String(shakeX); $('exagval').textContent = '×' + shakeX.toFixed(1);
+  $('exagx').oninput = () => setShakeX(+$('exagx').value);
   $('benchstrength').oninput = () => {forceE = +$('benchstrength').value; renderBench(); draw();};
   $('benchreal').onclick = () => {forceE = null; renderBench(); draw();};
   $('benchslow').onclick = () => {const on = !slowmo; pause(); slowmo = on; slowRun = on; $('play').textContent = on ? 'Pause' : 'Play'; renderBench();};
 }
 // ── the blind test: passages in pairs, with nothing on screen to say what is being measured ─────
-const feelmode = q.has('feel'), FEEL = 'concept-lab-feel-r4';
+const FEEL = 'concept-lab-feel-r4';
 async function runFeel() {
   document.body.classList.add('feelmode'); $('feel').hidden = false; mix = {...base, ends: 'none', bg: 'white', hit: 'none'}; loop = null;
   const pairs = await (await fetch('./intensity/pairs.json')).json();
@@ -1029,5 +1111,12 @@ async function runFeel() {
   show();
 }
 if (feelmode) {song = 'los'; mix = {...base, ends: 'none', bg: 'white', hit: 'none'}; seconds = 4; loadSong(song).then(runFeel).catch(e => status('Could not load: ' + e.message));}
-else if (qmode) {song = QUESTIONS[Math.min(qi, QUESTIONS.length - 1)].song; loadSong(song).then(() => goQuestion(qi)).catch(e => status('Could not load: ' + e.message));}
+else if (qmode) {
+  song = QUESTIONS[Math.min(qi, QUESTIONS.length - 1)].song;
+  const restore = {opt: LETTERS.indexOf(q.get('opt') ?? 'A'), mo: (+q.get('mo') || 0) - 1};
+  loadSong(song).then(() => goQuestion(qi, restore)).catch(e => status('Could not load: ' + e.message));
+}
 else loadSong(song).catch(e => status('Could not load: ' + e.message));
+// Read-only state for uicheck.mjs: lets the interaction suite assert what is drawn, not just that nothing threw.
+window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, song, loaded: S?.key ?? null, ridesOld, loadedOld,
+  loop, loopLen, seconds, playing, slowmo, slowRun, forceE, shakeX, scheme: S ? schemeAt(seconds) : null});

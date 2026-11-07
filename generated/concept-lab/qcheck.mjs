@@ -6,7 +6,8 @@ try {
   const p = await (await b.newContext({viewport: {width: 390, height: 844}, deviceScaleFactor: 3})).newPage();
   p.on('pageerror', e => errors.push(e.message));
   await p.goto('http://127.0.0.1:8770/generated/concept-lab/?q=1');
-  for (let i = 0; i < 5; i++) {
+  const total = +(await (async () => {await p.waitForFunction(() => /of \d+/.test(document.getElementById('qprogress').textContent), null, {timeout: 60000}); return (await p.locator('#qprogress').textContent()).match(/of (\d+)/)[1];})());
+  for (let i = 0; i < total; i++) {
     await p.waitForFunction(n => document.getElementById('qprogress').textContent.startsWith(`Question ${n}`) && !document.getElementById('status').textContent, i + 1, {timeout: 60000});
     await p.locator('#play').click(); await p.waitForTimeout(300);
     const n = await p.locator('#presets button').count();

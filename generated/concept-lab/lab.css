@@ -96,3 +96,6 @@ body.shot .homelink {display: none;}
 .feel #feelnote {width: 100%; box-sizing: border-box; font: inherit; font-size: 15px;}
 .feelnav button[hidden], #feelnote[hidden] {display: none;}
 .feelpick .opt.on {background: var(--ink, #15181d); color: #fff;}
+/* what you are looking at, on the picture itself (question mode only; never in films) */
+.optflag {position: absolute; left: 10px; bottom: 10px; max-width: calc(100% - 20px); font: 600 14px/1.25 system-ui, sans-serif; background: rgba(21,24,29,.82); color: #fff; padding: 6px 10px; border-radius: 8px; pointer-events: none;}
+body.shot .optflag {display: none;}

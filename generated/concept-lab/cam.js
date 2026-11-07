@@ -186,6 +186,9 @@ export const PLACEMENTS = {
   // below 150 u/s so a slow rider rests), not each axis' speed: a 60° ride sits lower than a 35° one at any speed, and a
   // descending stretch no longer saturates. Same asymmetric response as Tamed; its median height matches 'high'.
   follow: {rest: [0.5, 0.34], rx: 0.15, ry: 0.17, dir: 150, back: 110, settle: 1.6, backDown: 45, sm: 0.25, shape: 2},
+  // Round 7: Follows direction is chosen; its height is a separate setting. Same behaviour, the whole placement shifted.
+  followMid: {rest: [0.5, 0.365], rx: 0.15, ry: 0.17, dir: 150, back: 110, settle: 1.6, backDown: 45, sm: 0.25, shape: 2},
+  followLow: {rest: [0.5, 0.39], rx: 0.15, ry: 0.17, dir: 150, back: 110, settle: 1.6, backDown: 45, sm: 0.25, shape: 2},
 };
 function placed(Rs, zs, P) {
   // sm: extra smoothing of the velocity the target reads (s), so a direction flip does not swing the target

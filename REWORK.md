@@ -44,6 +44,17 @@ Three single-change hypotheses (V7.1, 4 seeds; held out at decisions):
 - **Hypothesis.** As the beam's measured slot (B) did, measurement recovers
   continuations the prediction drops; V7.1 up a little, dense strata most.
 
+**Results (V7.1, 4 seeds, against the AA main):**
+
+| | change | interval / support | specs up | notes |
+|---|---|---|---|---|
+| VW | +1.0 | [−9.5, +11.5], 0.61 | 17 of 35 | null; not adopted |
+| **LS** | **+11.3** | [−5.0, +27.7], 0.94 | **29 of 35** | every category up: P6 +25.5, P7 +17.5, P3 +16.9, P5 +13.1; body drag −11%; strong extra impacts −46% |
+| PP | +4.4 | [−3.1, +11.8], 0.92 | 22 of 35 | P6 +21.4, P7 +9.5; P2 −4.8; strong extra impacts −48% |
+
+LS goes to 8 seeds, then held out. PP is retested on top of LS if LS is
+adopted.
+
 ## November 7: the learned estimate is the part worth improving
 
 - **Dose and calibration together.**

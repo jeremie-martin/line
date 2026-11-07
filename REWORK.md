@@ -13,6 +13,12 @@
   compiler catches well; V7.1 up, most on the dense strata.
 - **Risk.** Fewer generic samples means less coverage of novel situations;
   floats or explicit requests may lose.
+- **Result: no change at all** (every ride identical). Production overrides
+  this value: `repertoire_search.ts` sets `policySamples: 16` and
+  `memorySamples: 16`, so `connected_arcs.ts`'s value never reaches a
+  production compile.
+- **Re-run on the real setting:** `policySamples` 16 → 32 in
+  `repertoire_search.ts`, same hypothesis.
 
 ## November 7 (night): hypothesis, a smaller policy archive
 

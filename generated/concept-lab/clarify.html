@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Before round six</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--accent:#2a78d6;--on:#1b1f25;--onink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--accent:#3987e5;--on:#e9ebee;--onink:#141619}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 64px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0 0 6px}
+li{margin:0 0 6px}
+a{color:var(--accent)}
+.small{font-size:14px;color:var(--soft)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 12px}
+.q h3{font-size:17px;margin:0 0 6px;line-height:1.3}
+.q .read{color:var(--soft);font-size:15px;margin:0 0 10px}
+.q .read b{color:var(--ink);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.chips button{font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;min-height:36px}
+.chips button.on{background:var(--on);color:var(--onink);border-color:var(--on)}
+textarea{width:100%;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--ink);resize:vertical}
+img{display:block;max-width:100%;border-radius:10px;margin:4px 0 10px}
+.v1{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:0 0 12px}
+.v1 h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:0 0 6px}
+.bar{position:sticky;bottom:0;background:var(--bg);padding:12px 0 4px;border-top:1px solid var(--line);margin-top:24px;display:flex;gap:10px;align-items:center}
+.bar button{font:inherit;font-weight:600;white-space:nowrap;border:0;border-radius:10px;padding:10px 16px;background:var(--on);color:var(--onink);cursor:pointer}
+#copied{font-size:14px;color:var(--soft)}
+</style>
+</head>
+<body><main>
+<p class="kicker">Before round six · 7 November</p>
+<h1>A few things to clarify first</h1>
+<p class="lead">Before rendering a whole new round, here is how I read the points that were unclear, conflicting, or that I may have got wrong. Most need one tap. Then the list you asked about: what is settled for a first version, and what isn’t.</p>
+
+<h2>One change first: fresh rides</h2>
+<p>All seven lab songs are recompiled with today’s compiler, with the same songs and seeds. All are complete and valid, and they’re very different tracks: Los Voltaje went from 5,911 lines to 7,804. The next films will use them. The old rides stay in round 5.</p>
+<p>One consequence already: the new tracks have many more steep rides. The “steep rides drop” camera I built for Los Voltaje’s dive would fire 5 to 10 times per song now, not just a few times. That is part of question 4.</p>
+
+<div id="qs"></div>
+
+<h2>v1: settled, open, later</h2>
+<p class="small">You asked whether we’re a few iterations away. I think yes, about two: this round (strong hits, camera, colours), then one on the fresh rides with a real phone and YouTube check. Then v1 can be ported to production. Here is how I’d file everything:</p>
+<div class="v1"><h3>Settled for v1</h3><ul>
+<li><b>Looks:</b> Paper, Hokusai and Black, the three you’d post. Dune and Plum too. Lagoon needs a re-watch without the afterimage.</li>
+<li><b>Camera:</b> Tamed placement, 15 % closer, a steady zoom by default. The opening and ending show the whole course, and the band is there from frame 0.</li>
+<li><b>Line:</b> pencil → ink, inked as the rider passes. Whole rail and All ink are the alternatives.</li>
+<li><b>Hits:</b> Held, driven by the hit’s real strength, never a rank or a top-N.</li>
+<li><b>Band:</b> bars or fork, low-middle, with red on the loudest bars (or Heat).</li>
+<li><b>Background:</b> plain or Whisper. Night is the hand-placed drop cue. The intensity metric drives only light things.</li>
+<li><b>Title:</b> the song’s name, in the line’s colour, at most two lines, behind the line.</li>
+</ul></div>
+<div class="v1"><h3>Open: this round and next</h3><ul>
+<li>The “oh yeah” on the biggest hits.</li>
+<li>Rider height, and whether a steep ride should drop.</li>
+<li>Growing the colours to 10–20: which candidates join.</li>
+<li>Zoom beyond steady, and who chooses it.</li>
+<li>Everything re-checked on the fresh rides.</li>
+<li>A real delivery check: a phone, sound, YouTube’s compression.</li>
+</ul></div>
+<div class="v1"><h3>Later: production</h3><ul>
+<li>How a song gets its look: hand hints, favourite weights, cohesion. Also a colour change at the drop.</li>
+<li>A small per-song hint sheet: the Night cue, maybe zoom, maybe tone.</li>
+<li>The port to the production renderer.</li>
+<li>The compiler’s timing jolt (the other agent’s track).</li>
+</ul></div>
+<div class="v1"><h3>Parked, not dead</h3><ul>
+<li>Afterimage, the ending ring, the larger rider, Ridge, Score, hits by source, the vignette.</li>
+<li>Iris and Three colours (question 9).</li>
+</ul></div>
+<div class="q"><h3>Is anything misfiled above?</h3><textarea data-id="v1" rows="3" placeholder="Optional"></textarea></div>
+
+<div class="bar"><button id="copy">Copy my answers</button><span id="copied">Saved on this device as you type.</span></div>
+<p class="small"><a href="morning.html">Round 5 morning page</a> · <a href="./">Lab</a></p>
+</main>
+<script>
+const Q = [
+  {id: 'ohyeah', h: '1. What gave the “oh yeah” on today’s big hits?',
+   read: 'I guessed <b>the shake itself</b>: the frame rattling, more than the colour split or the white flash. This round tests a refined shake on the hardest hits only, next to a punch (the frame closes in) and a recoil (one swing back). If it was something else, I’d rather know before rendering.',
+   links: [['Today, Petrunko 21 s', '../style-lab-v5/petrunko-approved-full.mp4#t=21'], ['Held, same moment', 'films5/petrunko-hokusai.mp4#t=21']],
+   chips: ['The shake', 'The colour split', 'The flash', 'All three together', 'Not sure']},
+  {id: 'calm', h: '2. A calm song may get no strong-hit effect at all. Right?',
+   read: 'Because effects follow the real strength, not a ranking, a song whose hardest hit is moderate gets almost nothing extra, and only Held. That is how I read “the top 20 % of a calm song could be very small”.',
+   chips: ['Yes, that’s right', 'No, every song should get some', 'Depends']},
+  {id: 'space', h: '3. Which space felt empty?',
+   read: 'I read it as <b>the space above the rider</b>, so I raised the rider 5 % (right) from where it sat (left). Raising it also leaves more room below, between the rider and the band.',
+   img: 'clarify/height.jpg',
+   chips: ['Above the rider', 'Between the rider and the band', 'Both', 'More about balance than space']},
+  {id: 'dive', h: '4. Los Voltaje ~28.5 s: is this the moment, and what was wrong?',
+   read: 'I took it as <b>the steep ride just after the landing at 28.6 s</b>: about 60° down, but the rider stays put on screen while the line slides up, so it doesn’t feel like a drop. My fix drops the rider on screen on any steep ride. On the fresh rides that would happen 5–10 times a song. Is that welcome, or should it stay rare?',
+   links: [['Round 5, Los Voltaje 27.5 s', 'films5/los-paper.mp4#t=27.5']],
+   chips: ['Yes, that moment', 'No, something else', 'Drops on every steep ride', 'Keep it rare', 'Rider higher is enough']},
+  {id: 'zoom', h: '5. Zoom: who decides?',
+   read: 'You said specs shouldn’t say which camera, but also “maybe handcrafting the zoom”. My reading: <b>Steady by default, plus an optional hand hint per song</b> picking one of a few calm behaviours you kept (Steady, Out when quiet, Looser), like Night’s cue. No automatic rule like “intense means zoom in”.',
+   chips: ['Yes', 'I’d rather draw zoom curves per song', 'Automatic only', 'Not sure yet']},
+  {id: 'drop', h: '6. A colour change at the drop: beyond Night?',
+   read: 'Night already changes the colours at the drop, to dark. Did you mean <b>switching to another scheme</b> (for example Slate to Midnight, keeping the accent), or is Night itself that change?',
+   chips: ['Night is enough', 'Try a scheme switch', 'Either, song by song']},
+  {id: 'title', h: '7. The title: on every video?',
+   read: 'You said “maybe not all the time”. My reading: <b>the title is one optional part of a look</b>, not on every video. I’ve left “line in front” as a lab option and dropped the question: your point was the two lines.',
+   chips: ['Optional, per look', 'On every video', 'Other']},
+  {id: 'lines', h: '8. Line modes: tied to a look, or free?',
+   read: 'All three stay. You said Whole rail suits high-contrast looks like Black. Should <b>each look keep its own mode</b>, or can any look take any of the three?',
+   chips: ['Each look its own', 'Any look, any mode', 'Not sure']},
+  {id: 'pool', h: '9. Iris and Three colours: back on screen?',
+   read: 'You asked whether bars and fork were the only two. They aren’t, but nothing else has been on screen since round 3. One four-up on a single song would show them again in whole films.',
+   chips: ['Yes, one four-up', 'Not now']},
+  {id: 'plum', h: '10. Plum and Lagoon',
+   read: 'Plum: I now count it with your favourites, unchanged. Lagoon: without the afterimage, does it join the ones you’d post, or stay a notch below? Say so after the next films if you can’t tell yet.',
+   chips: ['Plum unchanged, yes', 'Lagoon: re-judge it next round']},
+  {id: 'phone', h: '11. A real delivery check?',
+   read: 'Every round I’ve written “not checked on a phone, with sound, through YouTube”. The thin-line colour loss is only simulated. Would you upload one film unlisted, watch it on your phone with sound, and maybe show it to the friend cold?',
+   chips: ['Yes, next round', 'Later', 'Not needed']},
+  {id: 'admin', h: '12. Three quick yes/no items',
+   read: '(a) The compiler timing jolt: I’ll leave it to the other agent. (b) One line of lyrics needs the text from you: still wanted? (c) Push <code>visual-lab</code> after this round?',
+   chips: ['(a) yes', '(b) lyrics still wanted', '(b) drop lyrics', '(c) push']},
+];
+const KEY = 'concept-lab-clarify-r6';
+let A = {}; try {A = JSON.parse(localStorage.getItem(KEY) ?? '{}');} catch {}
+const save = () => {try {localStorage.setItem(KEY, JSON.stringify(A));} catch {}};
+const root = document.getElementById('qs');
+for (const q of Q) {
+  const d = document.createElement('div'); d.className = 'q';
+  d.innerHTML = `<h3>${q.h}</h3><p class="read">${q.read}</p>` + (q.img ? `<img src="${q.img}" alt="Rider position: Tamed on the left, raised 5 % on the right">` : '') +
+    (q.links ? `<p class="small">${q.links.map(([l, u]) => `<a href="${u}">${l}</a>`).join(' · ')}</p>` : '');
+  const chips = document.createElement('div'); chips.className = 'chips';
+  const a = A[q.id] ??= {picks: [], note: ''};
+  for (const c of q.chips) {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = c; b.classList.toggle('on', a.picks.includes(c));
+    b.onclick = () => {a.picks = a.picks.includes(c) ? a.picks.filter(x => x !== c) : [...a.picks, c]; b.classList.toggle('on'); save();};
+    chips.append(b);
+  }
+  const t = document.createElement('textarea'); t.rows = 2; t.placeholder = 'Anything to add (optional)'; t.value = a.note; t.oninput = () => {a.note = t.value; save();};
+  d.append(chips, t); root.append(d);
+}
+const v1 = document.querySelector('[data-id="v1"]'); v1.value = A.v1?.note ?? ''; v1.oninput = () => {A.v1 = {picks: [], note: v1.value}; save();};
+document.getElementById('copy').onclick = async () => {
+  const txt = [...Q.map(q => {const a = A[q.id] ?? {picks: [], note: ''}; return `${q.h} → ${a.picks.join(', ') || '(no pick)'}${a.note ? ' — ' + a.note : ''}`;}),
+    `v1 list → ${A.v1?.note || '(nothing misfiled)'}`].join('\n');
+  try {await navigator.clipboard.writeText(txt); document.getElementById('copied').textContent = 'Copied. Paste it into the chat.';}
+  catch {const ta = document.createElement('textarea'); ta.value = txt; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); document.getElementById('copied').textContent = 'Copied.';}
+};
+</script>
+</body></html>

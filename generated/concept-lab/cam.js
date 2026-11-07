@@ -174,13 +174,24 @@ export const PLACEMENTS = {
   loose: {rest: [0.5, 0.36], rx: 0.19, ry: 0.15, back: 170, settle: 2.2},           // between Tamed and the official follower
   tamed: {rest: [0.5, 0.36], rx: 0.15, ry: 0.11, back: 110, settle: 1.6},           // the official shape, returning gently
   calm: {rest: [0.52, 0.38], rx: 0.09, ry: 0.05, back: 60, settle: 1.2},            // a smaller, quieter version
+  // Round 6. Tamed sat the rider at 0.43 H (median, 3 songs) and pinned it near its 0.46 floor through every descending
+  // stretch, so a real dive (Los 28.5 s) had nowhere left to go on screen. 'high' only raises the rest point.
+  high: {rest: [0.5, 0.31], rx: 0.15, ry: 0.11, back: 110, settle: 1.6},
+  // 'dive' also splits the vertical answer. The stretch's own fall (a gaussian of vy, σ 1 s) moves the rider less than Tamed
+  // does (0.08 against 0.11), so a descending stretch no longer pins it at its floor. Then riding a line STEEPER than 40°
+  // drops the rider by up to 12 % more (full at 65°), and it climbs back gently afterwards. Los 28.6–29.1 s is a 60° ride
+  // at ordinary vertical speed: its angle, not its speed, is what sets it apart. Falls in the air after a jump are excluded.
+  dive: {rest: [0.5, 0.33], rx: 0.15, ry: 0.08, ryFast: 0.12, slow: 1, back: 110, settle: 1.6},
 };
 function placed(Rs, zs, P) {
   const n = Rs.n, sm = a => gauss1(Rs.R.map((_, f) => Rs.vel[f][a]), 2), vx = sm('x'), vy = sm('y'), out = new Array(n);
   const reach = (v, v0) => v / Math.sqrt(1 + (v / v0) ** 2) / v0; // saturates at ±1, roughly linear below v0
-  const p = {x: (P.rest[0] + P.rx * reach(vx[0], 260)) * W, y: (P.rest[1] + P.ry * reach(vy[0], 220)) * H};
+  const vs = P.slow ? gauss1(Array.from(vy), P.slow * FPS) : null, ground = P.slow ? gauss1(Rs.air.map(a => a ? 0 : 1), 0.15 * FPS) : null;
+  const steep = f => smoothstep((Math.atan2(vy[f], Math.abs(vx[f])) * 180 / Math.PI - 40) / 25);
+  const ty = f => vs ? P.rest[1] + P.ry * reach(vs[f], 220) + P.ryFast * ground[f] * steep(f) : P.rest[1] + P.ry * reach(vy[f], 220);
+  const p = {x: (P.rest[0] + P.rx * reach(vx[0], 260)) * W, y: ty(0) * H};
   for (let f = 0; f < n; f++) {
-    const z = zs[f], T = {x: (P.rest[0] + P.rx * reach(vx[f], 260)) * W, y: (P.rest[1] + P.ry * reach(vy[f], 220)) * H};
+    const z = zs[f], T = {x: (P.rest[0] + P.rx * reach(vx[f], 260)) * W, y: ty(f) * H};
     for (const a of ['x', 'y']) {
       // with the motion: quick. Against it: proportional to the distance left, so the return curves and settles;
       // a fixed-rate return is a straight ramp, which reads as the rider climbing (round 2's sawtooth).

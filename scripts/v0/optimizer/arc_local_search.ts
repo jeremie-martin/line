@@ -2,7 +2,7 @@
  * coordinate steps on the core controls, a broad-then-coordinate search over
  * guide and shape controls, and damped finite-difference response steps.
  * Every step is an ordinary measured evaluation. */
-import type {MeasuredCandidate} from './arc_candidates.ts';
+import {searchRank, type MeasuredCandidate} from './arc_candidates.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
 import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, arcControlValue, arcControlStep, arcResponseKeys, arcControlActive } from './arc_motion_control.ts';
@@ -121,7 +121,7 @@ function responseSearch(s: IntervalSearch, responseKeys: ControlKey[], responseA
       }
       responseUsed++;
     }
-    const improving = s.best!.candidate.cost < origin.cost - 1e-12;
+    const improving = searchRank(s.best!.candidate) < searchRank(origin) - 1e-12;
     if (!improving) trust *= .5;
     retainSearch(s);
   }

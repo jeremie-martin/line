@@ -72,6 +72,9 @@ own hit. Hypothesis and basis: the entry below.
     they now assert the scored account's validity (every beat matched), which
     is the product's measure;
   - one budget scenario is re-derived (3100 → 3400).
+- **Owner review (November 7):** the owner watched the before/after passages
+  that differ most (`npm run compare -- review`) and found the after
+  "completely fine". Style approved.
 
 Parity references were refreshed.
 

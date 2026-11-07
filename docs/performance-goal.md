@@ -12,8 +12,8 @@ leave it out.
 
 Understand before optimizing: `npm run perf:profile` shows where a compile goes (add
 `--kind=allocation` for memory traffic). Check `REWORK.md` and `docs/research/` for
-earlier trials. Compare with `taskset -c 4-7 npm run perf:engine -- --mode=compile
---against=<ref> --margin-pct=0.5 --out=generated/engine-ab/<name>`; `perf:score` tracks
+earlier trials. Compare with `taskset -c 4-7 npm run perf:engine -- --against=<ref>
+--out=generated/engine-ab/<name>`; `perf:score` tracks
 the absolute number, but only this paired comparison shows a small change helped. Run
 timings alone on a quiet machine, one compile at a time. Run `npm run check` before every
 commit, and after native edits `npm run build:native` first.

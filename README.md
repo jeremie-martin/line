@@ -46,8 +46,8 @@ compiler work and open questions, and `REWORK.md` the decision log.
 
 ## Setup
 
-Use Node 26 (`.nvmrc`; `engines` allows newer) and Rust 1.95.0
-(`rust-toolchain.toml`). `npm run check` proves a runtime: parity compares every track.
+Use Node 26 (`.nvmrc`; `engines` allows newer), Rust 1.95.0
+(`rust-toolchain.toml`, through rustup) and ffmpeg. `npm run check` proves a runtime: parity compares every track.
 CLI and worker
 scripts run directly with Node’s built-in TypeScript stripping. Typechecking
 enforces erasable syntax and explicit type imports; no runtime transpiler is needed.

@@ -475,8 +475,8 @@ impl EngineArena {
         }
     }
 
-    /// getRider, computed in Rust to avoid rebuilding the JS stateMap on the hot path.
-    /// Writes 6 f64: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
+    /// getRider, computed in Rust to avoid rebuilding the JS stateMap.
+    /// Writes the summary, then the sled points. The summary: avg BODY pos.x/y, avg BODY vel.x/y (summed in BODY order then /6
     /// — bit-identical to Rider.getBody), then the RIDER_MOUNTED and SLED_INTACT fsu
     /// (the only two bindings the detector reads via rider.get(id).isBinded()).
     pub(crate) fn rider_into(&mut self, h: u32, f: i32, out: &mut [f64]) {

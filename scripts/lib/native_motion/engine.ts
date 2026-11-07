@@ -378,8 +378,7 @@ export class LineRiderEngine {
 
   getRider(frame: number): any {
     // Lean path: the kernel computes the BODY average + the two binding fsu in
-    // Rust (get_rider writes 6 f64 to the head of SCRATCH), so the hot detector
-    // loop never rebuilds the 12-entity stateMap. position/velocity are summed in
+    // Rust at the head of SCRATCH, without rebuilding the 12-entity stateMap. position/velocity are summed in
     // BODY order in Rust → bit-identical to Rider.getBody. get(id) serves the two
     // bindings and four ordinary sled probes. `ballisticState()` lazily copies
     // all ten point/previous-point states from this same already-computed frame;

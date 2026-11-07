@@ -51,15 +51,8 @@ const baseRank = (c: Ranked) => {
   const heading = c.headingPrior ?? 0;
   return c.localCost + heading + .5 * (c.cost - c.localCost - heading);
 };
-const predictions = new WeakMap<number[], number>();
-/** The learned future of a candidate, predicted once and only when a rank needs it. */
-function predictedFuture(options: ArcMotionOptions, features: number[]) {
-  let value = predictions.get(features);
-  if (value === undefined) predictions.set(features, value = arcFutureValue(features, options.futureValueModel));
-  return value;
-}
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
-  return c.valueFeatures ? baseRank(c) + (options.valueWeight ?? .5) * predictedFuture(options, c.valueFeatures) : baseRank(c);
+  return c.valueFeatures ? baseRank(c) + (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */
@@ -87,11 +80,4 @@ export function distinctCandidates(options: ArcMotionOptions, candidates: readon
     if (result.every(a => distinctArrival(a, candidate))) result.push(candidate);
   }
   return result;
-}
-
-/** A selected continuation must carry its own measured residuals and motion,
- * not inherit those of the previously preferred local geometry. Engine
- * wrappers are rebuilt separately because search cleanup can free them. */
-export function restoreCandidate(candidate: MeasuredCandidate, child: Engine): EvaluatedCandidate {
-  return {candidate, child};
 }

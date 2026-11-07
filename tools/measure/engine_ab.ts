@@ -128,14 +128,14 @@ if (process.argv.includes('--worker')) {
 } else if (arg('report')) {
   report(JSON.parse(readFileSync(arg('report'), 'utf8')));
 } else if (process.argv.includes('--help')) {
-  console.log(`perf:engine --mode=compile --against=<git ref> --out=<new directory>
+  console.log(`perf:engine --against=<git ref> --out=<new directory>
   --against=<git ref>               reference source and engine from that commit
   --reference=<wasm>                or: swap only the engine (--reference-root=<checkout> adds source)
-  --mode=compile|engine             compile: whole compiles; engine: isolated workloads (default)
+  --mode=compile|engine             compile: whole compiles (default); engine: isolated workloads
   --stage=screen|confirm            confirm requires --screen=<result.json>
   --cells=<names> --rounds=12 --confirm-rounds=24   default: two songs at the production allowance
   --warmup=0 --reps=1               compile defaults (a real compile); engine defaults: 1, 2
-  --confidence=.95 --margin-pct=2   interval and practical effect/non-regression bound
+  --confidence=.95 --margin-pct=.5  interval and practical effect/non-regression bound
                                   margin 0 tests direction without a minimum benefit
   --seed=1729                      balanced randomized AB/BA process pairs
   --slowdown-pct=5                 positive control, identical sources/WASM only
@@ -148,11 +148,11 @@ Unfinished reports exit nonzero and cannot qualify a candidate.
 Do not benchmark alongside other heavy work. See docs/engine-validation.md.`);
 } else {
   const root = fileURLToPath(new URL('../../', import.meta.url));
-  const stage = arg('stage', 'screen'), mode = arg('mode', 'engine'), compile = mode === 'compile';
+  const stage = arg('stage', 'screen'), mode = arg('mode', 'compile'), compile = mode === 'compile';
   const config: Protocol = {mode, stage, rounds: Number(arg('rounds', stage === 'confirm' ? '24' : '12')),
     confirmRounds: Number(arg('confirm-rounds', '24')), reps: Number(arg('reps', compile ? '1' : '2')),
     warmup: Number(arg('warmup', compile ? '0' : '1')), confidence: Number(arg('confidence', '.95')),
-    marginPct: Number(arg('margin-pct', '2')), seed: Number(arg('seed', '1729')), slowdownPct: Number(arg('slowdown-pct', '0')),
+    marginPct: Number(arg('margin-pct', '.5')), seed: Number(arg('seed', '1729')), slowdownPct: Number(arg('slowdown-pct', '0')),
     cells: cellIndices(JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8')).cells, arg('cells', PERF_CELLS.join(',')).split(','))};
   assert(['engine', 'compile'].includes(mode) && ['screen', 'confirm'].includes(stage));
   for (const n of [config.rounds, config.confirmRounds]) pairOrder(n, config.seed);

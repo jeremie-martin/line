@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: a compiler review, and where cleverness stays
+
+Removed: my `predictions` memo (−0.06%, no cost), `restoreCandidate`, the identity checks
+in the policy index. Measured and kept: the top-k heap in control retrieval, since a plain
+sort cost +4.1% [+2.8%, +5.1%], or +5.2% with typed indices; and the partial-distance
+bound, whose removal cost +1.2% [+0.1%, +2.8%]. The line drawn: raw pointers and hidden
+state must earn a lot, while a pure, local, tested function may stay for a clear gain.
+`perf:engine` now defaults to what it is used for: whole compiles, margin 0.5%.
+
 ## November 7: an engine with less scaffolding
 
 An independent review of the engine found the core sound and the waste in leftovers.

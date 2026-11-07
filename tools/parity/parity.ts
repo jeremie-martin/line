@@ -15,6 +15,7 @@ import {readFileSync, writeFileSync, mkdtempSync} from 'node:fs';
 import {gunzipSync, gzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
 import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {caseSpec, sha} from '../../scripts/lib/case.ts';
 
@@ -22,7 +23,7 @@ type Cell = {id: string; seed: number; panel: string; budget?: number; trackHash
   /** A current V7 specification, compiled by the same route as evaluation. */
   spec?: {song: string; variant: string};
   quality?: number; loss?: number};
-const root = new URL('.', import.meta.url).pathname;
+const root = fileURLToPath(new URL('.', import.meta.url));
 const cellsPath = join(root, 'cells.json');
 const doc = JSON.parse(readFileSync(cellsPath, 'utf8')) as {cells: Cell[]};
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;

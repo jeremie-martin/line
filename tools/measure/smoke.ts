@@ -23,14 +23,14 @@ const run = (...args: string[]) => execFileSync(process.execPath, args, {cwd: ro
 function chromiumPath() {
   if (process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE) return process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
   const cache = join(homedir(), '.cache/ms-playwright');
-  const builds = existsSync(cache) ? readdirSync(cache).filter(name => /^chromium-\d+$/.test(name)).sort().reverse() : [];
+  const builds = existsSync(cache) ? readdirSync(cache).filter(name => /^chromium-\d+$/.test(name)).sort((a, b) => Number(b.slice(9)) - Number(a.slice(9))) : [];
   return builds.map(name => join(cache, name, 'chrome-linux64/chrome')).find(existsSync);
 }
 
 /** Identical sources, unless this checkout has changes: the wide margin keeps timing
  * noise out of the question, which is whether the workflow still completes. */
 function timingWorkflow() {
-  run('tools/measure/engine_ab.ts', '--mode=compile', '--against=HEAD', `--cells=${CELL}`, '--rounds=8', '--confirm-rounds=8', '--margin-pct=50', `--out=${join(out, 'timing')}`);
+  run('tools/measure/engine_ab.ts', '--against=HEAD', `--cells=${CELL}`, '--rounds=8', '--confirm-rounds=8', '--margin-pct=50', `--out=${join(out, 'timing')}`);
   const result = JSON.parse(readFileSync(join(out, 'timing/result.json'), 'utf8'));
   assert.equal(result.complete, true, 'timing comparison did not complete');
   assert.equal(result.samples.length, 16, 'timing comparison lost samples');

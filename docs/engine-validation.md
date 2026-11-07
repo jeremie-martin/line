@@ -71,7 +71,7 @@ policy. It cannot silently resume older probe results or a different seed.
 
 ## Timing protocol v3
 
-**Measure what production runs.** A real compile spends the standard allowance
+**Measure what production runs.** `--mode=compile` is the default. A real compile spends the standard allowance
 (about 2.7–2.9 M charged frames, 17 s) in one fresh process. Its profile differs
 from small-budget cells: at 150 k frames, fixed per-compile costs dominate and
 local search barely appears. Compile mode therefore defaults to two named cells
@@ -91,8 +91,8 @@ about 8% slower. Give timings two performance cores; on this laptop, `taskset -c
 there keeps eight of eight pairs within ±2%, with typical gaps under 1%.
 
 ```sh
-taskset -c 4-7 npm run perf:engine -- --mode=compile --against=HEAD --margin-pct=0.5 --out=generated/engine-ab/screen
-taskset -c 4-7 npm run perf:engine -- --mode=compile --against=HEAD --margin-pct=0.5 --stage=confirm --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
+taskset -c 4-7 npm run perf:engine -- --against=HEAD --out=generated/engine-ab/screen
+taskset -c 4-7 npm run perf:engine -- --against=HEAD --stage=confirm --screen=generated/engine-ab/screen/result.json --out=generated/engine-ab/confirm
 ```
 
 `--against=<git ref>` takes reference source and engine from that commit;
@@ -139,11 +139,11 @@ Ties are conservative. Actual discrete coverage is reported (96.14% for 12 pairs
 requested at 95%). Temporal dependence or changing machine conditions can still
 invalidate the interpretation. No bootstrap support or posterior is reported.
 
-With the default practical margin of 2%:
+With the default practical margin of 0.5%:
 
-- **FASTER:** the entire interval is below −2%.
-- **SLOWER:** the entire interval is above +2%.
-- **EQUIVALENT:** the entire interval lies within ±2%.
+- **FASTER:** the entire interval is below −0.5%.
+- **SLOWER:** the entire interval is above +0.5%.
+- **EQUIVALENT:** the entire interval lies within ±0.5%.
 - **INCONCLUSIVE:** the experiment does not resolve those alternatives.
 
 Use `--margin-pct=0` when the declared speed criterion is evidence of benefit
@@ -158,7 +158,7 @@ also have an upper bound no larger than the margin; uncertainty about harm does
 not pass that guard. Correctness, code design and the declared adoption policy are separate gates.
 The margin describes effect size, not a probability of benefit. An interval
 entirely below zero can support a smaller improvement while remaining
-INCONCLUSIVE at 2%. That default is not a universal adoption minimum: weigh
+INCONCLUSIVE at 0.5%. That default is not a universal adoption minimum: weigh
 the interval, simpler design and resource changes under the stated policy.
 Record an owner-led policy revision explicitly without relabeling the experiment.
 For a memory/CPU tradeoff, predeclare the allowed regression and resource goal;

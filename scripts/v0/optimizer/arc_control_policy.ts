@@ -6,12 +6,12 @@ export const ARC_POLICY_SCHEMA='line.arc-control-policy-features.v1';
 import {arcReferencedControl, arcControlsSimilar} from './arc_motion_control.ts';
 export {arcReferencedControl} from './arc_motion_control.ts';
 export const ARC_HORIZON_POLICY_SCHEMA='line.arc-horizon-control-policy-features.v1';
-// Loaded model artifacts stay immutable during compilation. Index their leaf
-// memberships once; replacing either source array rebuilds the index.
-const partitionIndices=new WeakMap<object,{exemplars:any[];trees:any[];buckets:Map<number,number[]>[]}>();
+// Loaded model artifacts stay immutable during compilation: index their leaf
+// memberships once.
+const partitionIndices=new WeakMap<object,Map<number,number[]>[]>();
 function partitionMatches(model:any,leaves:number[]):Uint32Array{
   let index=partitionIndices.get(model);
-  if(!index||index.exemplars!==model.exemplars||index.trees!==model.proximityTrees){
+  if(!index){
     const buckets=leaves.map(()=>new Map<number,number[]>());
     for(let row=0;row<model.exemplars.length;row++){
       const memberships=model.exemplars[row].proximityLeaves;
@@ -21,10 +21,10 @@ function partitionMatches(model:any,leaves:number[]):Uint32Array{
         if(members)members.push(row);else buckets[tree].set(leaf,[row]);
       }
     }
-    index={exemplars:model.exemplars,trees:model.proximityTrees,buckets};partitionIndices.set(model,index);
+    partitionIndices.set(model,index=buckets);
   }
   const counts=new Uint32Array(model.exemplars.length);
-  for(let tree=0;tree<leaves.length;tree++)for(const row of index.buckets[tree].get(leaves[tree])??[])counts[row]++;
+  for(let tree=0;tree<leaves.length;tree++)for(const row of index[tree].get(leaves[tree])??[])counts[row]++;
   return counts;
 }
 export function arcPolicyArrival(state:any,velocity:{x:number;y:number}):number[]{

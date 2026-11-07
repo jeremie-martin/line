@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import { distinctArrival, distinctCandidates, valueRank, restoreCandidate, reportedAxes, type MeasuredCandidate, type EvaluatedCandidate } from './arc_candidates.ts';
+import { distinctArrival, distinctCandidates, valueRank, reportedAxes, type MeasuredCandidate, type EvaluatedCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
 
@@ -65,7 +65,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
         failure: null};
       const child = ctx.lineage.add(parentEngine, proposal.candidate.lines);
       commitInterval(ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
-        restoreCandidate(proposal.candidate, child), [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
+        {candidate: proposal.candidate, child}, [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
       nodes.push({seq: nextSeq, localCost: proposal.localCost});
     }
     return nodes;

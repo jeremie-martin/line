@@ -115,3 +115,4 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 - Comparisons must be fair: match the amounts when comparing directions or styles, otherwise the bigger one wins (R7).
 - No jargon in questions ("blow") (R7).
 - Never store a list as a joined string: picks with commas broke voting for four rounds (R8).
+- Before a round goes out: `uicheck.mjs` (interaction suite, frozen questions) and `qcheck.mjs` (live questions) must pass (R9).

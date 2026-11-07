@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis, the learned estimate retrained on today's compiler
+
+- **Data.** `value_collect.ts` from main's frozen worktree (6e815a57):
+  - the training catalog (benchmark/v4 groups, disjoint from every
+    benchmark and held-out song), 5 seeds, 838 of 840 compiles. Two were
+    excluded and named in the provenance: they failed on the id-range bug
+    fixed above;
+  - 80,353 probe rows (the October model: 82,903);
+  - 16 workers (40 ran out of memory).
+- **Training** (`train_value_v3.py`, unchanged target and hyper-parameters;
+  validation holds out whole groups):
+  - Spearman 0.68 against the October model's 0.63;
+  - mean absolute error 0.066 against 0.073;
+  - mean regret 0.054 against 0.054.
+- **Screen** (within-catch, today's main, 1,946 alternatives in 344
+  catches, correlation with the measured next interval's cost):
+  - new model 0.37;
+  - October model 0.30 (0.41 on the half-weight main: it no longer matches
+    how local search now searches);
+  - jointly: new 0.27 [0.18, 0.34], October 0.16 [0.04, 0.29].
+- **Change.** `arc_value_model.json` replaced by the new model. Its weight
+  in ranking is unchanged (0.225).
+- **Hypothesis.** Better future discrimination gives better choices: V7.1
+  up, held out up, most where the next catch is costly (dense strong G, P1,
+  P4).
+- **Risk.** Last time a retrain lost (−4.8) despite equal regret. That
+  model had a fifth of the data and was never screened within a catch.
+
 ## November 7: a candidate too long for its section's ids is rejected, not fatal
 
 - **Found by** the five-seed training collection. Two training compiles

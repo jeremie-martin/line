@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: current tools, no machine in the repo
+
+TypeScript 7 typechecks in 0.35 s, from 1.9 s, with no source change beyond declaring
+`types: ["node"]`. Also vitest 5, Playwright 1.65, @types/node 26 and esbuild 0.28.2. `reach` keeps the
+TypeScript 6 compatibility package for now, since 7 has no parser API until 7.1.
+`engines` is now a range and `.nvmrc` a major, because parity, not a pin, proves a
+runtime. `perf:score` no longer refuses another Node or assumes this laptop's cores:
+it inherits affinity and names its CPU and Node. Bun 1.4.4 runs the compiler unchanged
+with 35% less memory, but at equal speed (5,431 and 5,487 ns against 5,463 and 5,587,
+four alternating runs), with different tracks, since its exp, log and atan2 are not
+V8's. Node stays; memory is the case for revisiting it.
+
 ## November 7: where the clean gains stop
 
 At 5,465 the goal of 5,000 needs 1.3 s more from a 15 s compile. Measured on Node 26 and

@@ -1,6 +1,6 @@
 # Engine and compiler validation
 
-Use the pinned Node (`nvm use`) and Rust versions. Commits before the Node 26 change
+Use Node 26 and the pinned Rust. Commits before the Node 26 change
 used `Math.pow`, so under Node 26 they cannot serve as a `perf:engine` reference: their
 tracks differ. Compare against later commits. The engine kernel, compiler
 search and judge are different contracts; passing one does not imply the others.
@@ -16,7 +16,7 @@ search and judge are different contracts; passing one does not imply the others.
 | `npm run check` | Complete structural gate, including types, reachability, JS/Rust tests and all checks above |
 | `npm run bench:engine` | Registration, stepping and branch workload diagnostics |
 | `npm run perf:engine -- --help` | Paired engine/compiler timing and resource comparisons |
-| `npm run perf:score` | The speed score: ns per charged frame on real compiles, one at a time |
+| `npm run perf:score` | The speed score: ns per charged frame on real compiles, one at a time, on the cores it is given |
 | `npm run perf:profile` | Where a real compile spends time or allocates, with native function names (`--cell`, `--kind=allocation`, `--top`) |
 
 After editing packaged native Rust or TypeScript, run `npm run build:native`
@@ -87,7 +87,7 @@ builds, tests, parity or other substantial work. CPU affinity reduces migration;
 it does not isolate a core from interrupts, SMT siblings, temperature or frequency
 changes. V8 collects garbage and compiles on background threads: pinning to a
 single CPU moves that work onto the measured thread and makes a real compile
-about 8% slower. On this laptop use two performance cores, `taskset -c 4-7`. An A/A control
+about 8% slower. Give timings two performance cores; on this laptop, `taskset -c 4-7`. An A/A control
 there keeps eight of eight pairs within ±2%, with typical gaps under 1%.
 
 ```sh

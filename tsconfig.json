@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "allowJs": false,
     "noEmit": true,
+    "types": ["node"],
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true
@@ -17,7 +18,6 @@
   "include": [
     "scripts/**/*.ts",
     "productions/**/*.ts",
-    "benchmark/**/*.ts",
     "tools/**/*.ts",
     "tests/contracts/**/*.ts"
   ],

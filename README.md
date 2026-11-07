@@ -46,14 +46,13 @@ compiler work and open questions, and `REWORK.md` the decision log.
 
 ## Setup
 
-The qualified toolchain is Node 26.13.0 (`.nvmrc`) and Rust 1.95.0
-(`rust-toolchain.toml`). Runtime upgrades need fresh physics and compiler parity.
+Use Node 26 (`.nvmrc`; `engines` allows newer) and Rust 1.95.0
+(`rust-toolchain.toml`). `npm run check` proves a runtime: parity compares every track.
 `Math.pow` varies between Node versions, so the compiler uses `exactPow`. CLI and worker
 scripts run directly with Node’s built-in TypeScript stripping. Typechecking
 enforces erasable syntax and explicit type imports; no runtime transpiler is needed.
 
 ```sh
-nvm use
 npm ci
 npm run check:physics  # packaged engine vs saved physics; no judge build needed
 npm run build:wasm     # independent judge for live/full checks (cargo + wasm-opt)

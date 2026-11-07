@@ -1,6 +1,6 @@
 # Compiler performance goal
 
-**Score:** 5,465 ns per charged frame, from `npm run perf:score` on Node 26 (November 7,
+**Score:** 5,465 ns per charged frame, from `taskset -c 4-7 npm run perf:score` on Node 26 on the i7-12800H laptop (November 7,
 2026; it began at 6,150).
 **Goal:** 5,000 ns, with byte-identical tracks.
 

@@ -9,7 +9,7 @@ result in this repository can be trusted, compared and reproduced.
 that must not change what the compiler produces.
 
 - Gate: `npm run parity` (25 cells byte-identical) and `npm run parity:judge`.
-- Also: `npm test`, `npm run typecheck` (the count must not rise) and
+- Also: `npm test`, `npm run typecheck` (no errors) and
   `npm run reach` (zero unreachable code).
 - `npm run check` combines these gates with native Rust tests,
   `npm run verify:engine` and `npm run check:smoke`, which uses the real tools end

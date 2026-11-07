@@ -21,6 +21,13 @@
 - **Hypothesis.** Response steps land nearer what ranking keeps. A small
   V7.1 gain over the new main, the same direction as the last change.
 - **Risk.** Little: the response step is one part of local search.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −1.9 [−11.3, +7.5], 0.29; 18 of 35 specs up.
+  - G +4.0, but P7 −9.5 and P1 −7.1.
+  - Strong extra impacts double (0.10 against 0.05 per 100 beats).
+- **Reading.** Aiming the step at the full priors helps the search even
+  though ranking discounts them: the response step needs the strong pull to
+  move at all.
 
 ## November 7: the steep-angle prior re-tested on the new main (kept)
 

@@ -15,6 +15,9 @@ that probes alone had judged are now tested as compiler changes.
 - **Hypothesis.** Faster arrivals at strong catches; strength on strong asks
   up; headline up a little. Risk: speed overshoot on dense passages (F's
   failure mode).
+- **Result (V7.1, 4 seeds): not adopted.** −4.4 [−13.0, +4.2], 0.10; 15 of
+  35 specs up; P1 −14.6, P6 −10.1, P4 −9.0. The benchmark agrees with the
+  band-by-band view, not the regression: the speed price was right.
 
 **AA: ranking leans half as much on its prediction of the future.**
 - **Basis.** Within a catch, ranking's future charge (valueRank minus the

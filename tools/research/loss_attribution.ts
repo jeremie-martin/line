@@ -55,7 +55,7 @@ async function worker(id: string, seed: number) {
       const at = where.get(row.control);
       const pool = at ? pools[at[0]] : null;
       return {i, frame: row.frame, next: row.next, ask: asks[i] ?? null, kept: at ? at[1] : null,
-        strength: r4(beats[i - 1]?.hit?.strength), pool: pool?.map(t => t.map(v => Number.isNaN(v) ? null : v)) ?? null};
+        strength: r4(beats[i - 1]?.hit?.strength), failures: row.failures ?? null, pool: pool?.map(t => t.map(v => Number.isNaN(v) ? null : v)) ?? null};
     });
     // Energy per frame: body-point mean of ½|v|² − g·y (y down), v from the point's previous position.
     const obs = observe(track, music.durationFrames, music.contacts);

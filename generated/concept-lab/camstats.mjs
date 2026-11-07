@@ -2,7 +2,7 @@
 // node generated/concept-lab/camstats.mjs [tag]   (reads analysis/pos-<song><tag>.json written by camdump.mjs)
 import {readFileSync, existsSync} from 'node:fs';
 const tag = process.argv[2] ?? '', FPS = 40, W = 1080, H = 1920;
-const SONGS = ['los', 'petrunko', 'lua', 'batidao', 'burn', 'coma', 'tomada'], CAMS = ['today', 'tamed', 'high', 'dive', 'follow'];
+const SONGS = ['los', 'petrunko', 'lua', 'batidao', 'burn', 'coma', 'tomada'], CAMS = ['today', 'tamed', 'high', 'dive', 'follow', 'followMid', 'followLow'];
 const q = (a, p) => {const s = [...a].sort((x, y) => x - y); return s[Math.floor(p * (s.length - 1))];};
 const rows = [];
 for (const song of SONGS) {

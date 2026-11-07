@@ -85,22 +85,26 @@ const SCHEMES = {
 const DIMS = {
   scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
   size: ['Size', {today: 'Today', s58: '7 % closer', s62: '15 % closer', s68: '25 % closer'}],
-  place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Higher, follows direction'}],
+  place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Follows direction, higher', followMid: 'Follows direction, between', followLow: 'Follows direction, at Tamed’s height'}],
   tide: ['Zoom over time', {steady: 'Steady', quietI: 'Out when quiet', breath: 'One breath', fit: 'Fitted to the song'}],
   drive: ['Intensity from', {both: 'Speed + impact', speed: 'Speed only', impact: 'Impact only'}],
   ends: ['Opening & ending', {none: 'None', overture: 'Whole course at both ends', closing: 'Whole course at the end only'}],
   bandIn: ['Band at the opening', {present: 'There from the first frame', quick: 'Faint, then quickly in', fade: 'Arrives with the zoom'}],
   bg: ['Paper', {white: 'Plain', whisper: 'Whisper', xray: 'X-ray (test)'}],
   grain: ['Paper grain', {off: 'None', on: 'Faint, fixed to the world'}],
+  shk: ['Hit part: shake', {today: 'Today’s (9 Hz, two axes, rotation)', blow: 'Along the blow', thud: 'Thud (knock, then spring back)', kick: 'Held’s push', none: 'None'}],
+  spl: ['Hit part: colour split', {today: 'Today’s (horizontal)', blow: 'Along the blow', radial: 'Out from the impact', none: 'None'}],
+  fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', bloom: 'Bloom at the impact', none: 'None'}],
+  drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   music: ['Lower band', {none: 'None', bars: 'Today’s bars', bars3: 'Bars · three colours', blocks: 'Blocks', stems: 'Tuning fork', iris: 'Iris', red: 'One accent · fork', redbars: 'One accent · bars', redblocks: 'One accent · blocks'}],
   redBy: ['What takes the accent', {heat: 'Heat', loud: 'Loudest three', standing: 'Standing', level: 'Follows intensity'}],
   bandY: ['Band height', {low: 'Low', lowmid: 'Low-middle', mid: 'Middle', high: 'Today’s height'}],
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
-  hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
+  hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'tamed', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off'};
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma'};
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -125,39 +129,53 @@ const SONGS = {petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', b
 const plain = {...base, ends: 'none'};
 // Each option: [label, mix, note shown when tapped].
 const QUESTIONS = [
-  {id: 'big', ask: 'The biggest hits: which gives you the “oh yeah”?', why: 'You said it was mostly the shake, really all three together, on the impact only. Each option grows with the hit’s real strength, squared, so a calm song gets less. Today’s version here uses today’s execution, but on real strength instead of a top-10 % gate. Keep any number.',
+  {id: 'shake', ask: 'Hits, part 1 of 4: the shake', why: 'Varies: only the shake. Fixed: today’s split and flash, and today’s driver (every hit, piling up). Today’s shake wobbles on two axes at 9 Hz with a slight rotation, whatever the blow’s direction. Keep any number.',
     song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
-      ['Held', {...plain, music: 'redbars', hit: 'strong'}, 'As you chose it.'],
-      ['+ shake', {...plain, music: 'redbars', hit: 'shake'}, 'Three quick swings along the blow, 0.27 s, on the hardest hits.'],
-      ['+ shake, split & flash', {...plain, music: 'redbars', hit: 'impact'}, 'All three together: a longer shake, and the split and flash grow too, only on the hardest hits.'],
-      ['Today’s, by strength', {...plain, music: 'redbars', hit: 'todayW'}, 'Today’s shake, split and flash, without Held, on real strength.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 49 s', 48.2, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
-  {id: 'cam', ask: 'The camera on steep rides: which reads best?', why: 'Your two moments are clips on the old ride (on the page). Follows direction is one generic rule: the rider’s height on screen follows the slope it rides, and it may never climb on screen while descending. Measured on seven songs, it makes the rider rise while going down 0 s per minute (Tamed 1.8, today’s camera 5.1). Grain: a faint paper texture fixed to the world, so the paper itself moves past the rider.',
-    song: 'los', t: 23.5, len: 6, opts: [
-      ['Tamed', {...plain, music: 'redbars', hit: 'strong'}, 'As now.'],
-      ['Higher', {...plain, music: 'redbars', hit: 'strong', place: 'high'}, 'Raised 5 %, nothing else.'],
-      ['Follows direction', {...plain, music: 'redbars', hit: 'strong', place: 'follow'}, 'Same median height as Higher.'],
-      ['Follows direction + grain', {...plain, music: 'redbars', hit: 'strong', place: 'follow', grain: 'on'}, 'The same, on a paper that moves.']],
-    moments: [['Los Voltaje 24 s', 23.5], ['Los Voltaje 31 s', 30.8], ['Los Voltaje 51 s', 50.8], ['Petrunko 30 s', 29, 'petrunko']]},
-  {id: 'colours', ask: 'Which new colours join the set?', why: 'Built lightness-first: near-black ink on calm paper, colour kept for the band, the accent and the sun. Your five-star schemes all share that; Riso doesn’t, and its deeper-ink version tests whether that was the problem. Keep any number.',
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today'}, 'Two axes, 9 Hz, slight rotation, free-running.'],
+      ['Along the blow', {...plain, music: 'redbars', hit: 'parts', shk: 'blow'}, 'The same 9 Hz, but starting with the hit and going along its direction.'],
+      ['Thud', {...plain, music: 'redbars', hit: 'parts', shk: 'thud'}, 'Knocked along the blow at once, then springing back through rest, slower (6 Hz).'],
+      ['Held’s push', {...plain, music: 'redbars', hit: 'parts', shk: 'kick'}, 'One push along the blow, no wobble.']],
+    moments: [['Tomada 37 s (dense, big hits)', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
+  {id: 'split', ask: 'Hits, part 2 of 4: the colour split', why: 'Varies: only the split. Fixed: today’s shake and flash, today’s driver. Today’s splits red and blue sideways by up to 14 px, whatever the blow’s direction. Keep any number.',
+    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', spl: 'today'}, 'Sideways, up to 14 px.'],
+      ['Along the blow', {...plain, music: 'redbars', hit: 'parts', spl: 'blow'}, 'The same amount, along the hit’s direction.'],
+      ['Out from the impact', {...plain, music: 'redbars', hit: 'parts', spl: 'radial'}, 'The colours spread outward from the rider, like a ripple.'],
+      ['None', {...plain, music: 'redbars', hit: 'parts', spl: 'none'}, 'No split, to see what it adds.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
+  {id: 'flash', ask: 'Hits, part 3 of 4: the flash', why: 'Varies: only the flash. Fixed: today’s shake and split, today’s driver. Today’s flash whitens the whole screen, up to 30 %. Keep any number.',
+    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', fls: 'today'}, 'The whole screen whitens.'],
+      ['Toward the paper', {...plain, music: 'redbars', hit: 'parts', fls: 'paper'}, 'The same, but toward the paper’s own colour (matters on coloured papers).'],
+      ['Bloom at the impact', {...plain, music: 'redbars', hit: 'parts', fls: 'bloom'}, 'The light comes from the hit: a soft glow around the rider.'],
+      ['None', {...plain, music: 'redbars', hit: 'parts', fls: 'none'}, 'No flash, to see what it adds.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['On Dune', 36.5, null, {scheme: 'dune'}]]},
+  {id: 'drive', ask: 'Hits, part 4 of 4: what drives them', why: 'Varies: only the logic. Fixed: today’s shake, split and flash. Today’s logic is not a top 10 %: almost every hit counts, and an ordinary one already reaches full force, so strength barely shows, and dense passages pile up into a long shake. Keep any number.',
+    song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', drv: 'trauma'}, 'Almost every hit at full force; they pile up.'],
+      ['Real strength, piling up', {...plain, music: 'redbars', hit: 'parts', drv: 'graded'}, 'Hits still pile up, but each counts by its real strength: weak ones barely, the hardest fully.'],
+      ['Each hit alone', {...plain, music: 'redbars', hit: 'parts', drv: 'held'}, 'Like Held: each hit on its own, its strength setting size and length; nothing piles up.']],
+    moments: [['Tomada 37 s (dense)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['Lua 36 s', 35.5, 'lua']]},
+  {id: 'height', ask: 'Follows direction: at what height?', why: 'Varies: only the rider’s height. Fixed: Follows direction, which you chose. The behaviour is identical; the whole placement shifts. The first two moments are your Los Voltaje moments, on the old ride where you saw them.',
+    song: 'los', t: 23.8, len: 6, rides: 'old', opts: [
+      ['Higher (38 %)', {...plain, music: 'redbars', hit: 'strong', place: 'follow'}, 'Median height 38 % of the screen, as in round 6.'],
+      ['Between (40 %)', {...plain, music: 'redbars', hit: 'strong', place: 'followMid'}, 'Median 40 %.'],
+      ['Tamed’s height (43 %)', {...plain, music: 'redbars', hit: 'strong', place: 'followLow'}, 'Median 43 %, where Tamed sat.']],
+    moments: [['Your moment, 25.0 s (old ride)', 23.8, 'los', null, 'old'], ['Your moment, 28.6 s (old ride)', 27.4, 'los', null, 'old'], ['Los Voltaje 31 s (new ride)', 30.8, 'los'], ['Petrunko 30 s', 29, 'petrunko']]},
+  {id: 'palettes', ask: 'New palettes: which have a place?', why: 'Varies: only the colours. Designed from scratch, by hand, each from a real source, and not from a measure. Lines are not always near-black any more. Hokusai is there for comparison. No sun: it’s a separate element. Keep any number.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Slate', {...plain, music: 'redbars', hit: 'strong', scheme: 'slate'}, 'Fog over a harbour: blue-grey, slate, one mustard bar.'],
-      ['Olive', {...plain, music: 'redbars', hit: 'strong', scheme: 'olive', top: 'sun'}, 'A 1970s print: linen, olive, a tomato bar, an ochre sun.'],
-      ['Mauve', {...plain, music: 'redbars', hit: 'strong', scheme: 'mauve'}, 'Dusk, Plum’s daytime side: mauve, dusty violet, apricot.'],
-      ['Sumi', {...plain, music: 'redbars', hit: 'strong', scheme: 'sumi'}, 'Brush and seal: warm white, a pale grey band, a vermilion stamp.'],
-      ['Bauhaus', {...plain, music: 'redbars', hit: 'strong', scheme: 'bauhaus'}, 'Bold by contrast, not colour: bone, black bars, one cobalt.'],
-      ['Riso, deeper ink', {...plain, music: 'redbars', hit: 'strong', scheme: 'risoDeep'}, 'Riso with a darker ink and a quieter band.'],
-      ['Midnight', {...plain, music: 'redbars', hit: 'strong', scheme: 'midnight', top: 'sun'}, 'Navy and steel, an amber bar, a pale moon.'],
-      ['Espresso', {...plain, music: 'redbars', hit: 'strong', scheme: 'espresso'}, 'Coffee and latte, one verdigris bar.'],
-      ['Moss', {...plain, music: 'redbars', hit: 'strong', scheme: 'moss'}, 'Forest at night: green-black, sage, pale coral.']],
+      ['Hokusai (yours)', {...plain, music: 'redbars', hit: 'strong', scheme: 'hokusai'}, 'For reference.'],
+      ['Cahier', {...plain, music: 'redbars', hit: 'strong', scheme: 'cahier'}, 'The French exercise book: blue-black ink, pale ruled-blue bars, the red margin.'],
+      ['Toile', {...plain, music: 'redbars', hit: 'strong', scheme: 'toile'}, 'Toile de Jouy: cream, an oxblood line, faded-red bars, the loudest in full oxblood.'],
+      ['Ravilious', {...plain, music: 'redbars', hit: 'strong', scheme: 'ravilious'}, 'Eric Ravilious’ chalk downs: green-black line, sage bars, one ochre.'],
+      ['Lavender', {...plain, music: 'redbars', hit: 'strong', scheme: 'lavender'}, 'Mauve made less pink, as you suggested: grey lilac, violet bars, apricot.'],
+      ['Kraft', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft'}, 'Screenprint on brown kraft: black line, umber bars, the loudest in white ink.'],
+      ['Vegas', {...plain, music: 'redbars', hit: 'strong', scheme: 'vegas'}, 'Blade Runner 2049’s orange haze: the boldest light one.'],
+      ['Cyanotype', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype'}, 'Anna Atkins’ blueprints: Prussian blue, a paper-white line, one yellow.'],
+      ['Kintsugi', {...plain, music: 'redbars', hit: 'strong', scheme: 'kintsugi'}, 'Gold repair on black lacquer: the ridden line turns gold, lacquer-red bars.'],
+      ['Rothko', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko'}, 'The Seagram murals: maroon, a peach-cream line, brick bars, candle gold.'],
+      ['Café', {...plain, music: 'redbars', hit: 'strong', scheme: 'cafe'}, 'Espresso with the amber you liked at the drop, and darker bars.']],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
-  {id: 'drop', ask: 'At the drop: Night, or a switch to another scheme?', why: 'At the hand-placed drop cue, a scheme can cut to a darker partner from the same family instead of its Night. The accent carries over, and the sun too, unless the partner has its own (Midnight’s moon). Keep any number.',
-    song: 'petrunko', t: 20.5, len: 5, multi: true, opts: [
-      ['Paper, Night', {...plain, music: 'red', redBy: 'loud', hit: 'strong', night: 'on'}, 'As now.'],
-      ['Hokusai → Midnight', {...plain, music: 'redbars', hit: 'strong', scheme: 'hokusai', top: 'sun', night: 'switch'}, 'Washi to navy; the red sun becomes a pale moon.'],
-      ['Dune → Espresso', {...plain, music: 'redbars', hit: 'strong', scheme: 'dune', top: 'sun', night: 'switch'}, 'Sand to coffee; Dune’s sun stays.'],
-      ['Lagoon → Moss', {...plain, music: 'redbars', hit: 'strong', scheme: 'lagoon', night: 'switch'}, 'Sea-glass to forest; the coral stays.']],
-    moments: [['Petrunko 22 s (the drop)', 20.5], ['Los Voltaje 24 s', 22.5, 'los'], ['Lua 30 s', 28.2, 'lua']]},
 ];
 
 // ── state ──────────────────────────────────────────────────────────────────
@@ -172,7 +190,7 @@ for (const kv of (q.get('m') ?? '').split(',').filter(Boolean)) {const [k, v] = 
 let seconds = +(q.get('t') ?? 0) || 0, playing = false, S = null, loadId = 0;
 const qmode = q.has('q');
 let qi = Math.max(0, Math.min(QUESTIONS.length, +(q.get('q') || 1) - 1)), qopt = 0;
-const STORE = 'concept-lab-answers-r6';
+const STORE = 'concept-lab-answers-r7';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -371,8 +389,74 @@ function activeHits(t, span) {
   return out;
 }
 const into = h => ({x: -h.nrm.x, y: -h.nrm.y});
+
+// ── hits as separate parts (round 7) ───────────────────────────────────────
+// Today's shipped recipe (scripts/fx_recipe.ts, remotion/src/fx.tsx) is NOT a top-10 % gate: every hit above 0.22–0.3 adds
+// strength × gain to a decaying "trauma", clamped at 1, so an ordinary hit (0.6 × 1.6) already reaches full force and dense
+// passages pile up. Its shake oscillates (±10 px at 9 Hz on two axes, 0.4° rotation), its split is 14 px horizontal over the
+// whole frame, its flash is white at 0.3. Here each part (shake, split, flash) and the driver are chosen separately, so one
+// can be compared while the others stay at today's.
+const TODAY = {shake: {min: 0.22, gain: 1.6, decay: 7, power: 1.5}, split: {min: 0.25, gain: 2.0, decay: 7, power: 1.4}, flash: {min: 0.3, gain: 1.8, decay: 12, power: 1}};
+/** Envelope 0..1 of one part at time t, with the hit that last fed it (for direction and phase). */
+function drive(t, part) {
+  const c = TODAY[part], d = mix.drv ?? 'trauma'; let x = 0, last = null;
+  for (const h of S.hits) {
+    if (h.tc > t + 0.001) break; const age = t - h.tc;
+    if (d === 'held') {const w = excess(forceE ?? h.I), v = (0.35 + 0.65 * w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
+    const s = forceE !== null ? 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4) : h.s;
+    if (d === 'trauma' && s < c.min) continue;
+    const add = (d === 'graded' ? (forceE ?? h.I) : s) * c.gain * Math.exp(-age * c.decay); // graded: the absolute strength curve, no threshold
+    if (add > 0.002) last = h; x += add;
+  }
+  return d === 'held' ? {m: x, h: last} : {m: Math.pow(Math.min(1, x), c.power), h: last};
+}
+function partsCamera(t) {
+  const {m, h} = drive(t, 'shake'); if (!h || m < 0.002 || mix.shk === 'none') return {dx: 0, dy: 0, rot: 0};
+  const i = into(h), age = t - h.tc, W9 = 2 * Math.PI * 9;
+  if (mix.shk === 'today') return {dx: 10 * m * Math.sin(W9 * t), dy: 10 * m * Math.sin(W9 * 1.37 * t + 1.7), rot: 0.4 * m * Math.sin(W9 * 0.9 * t + 3.1)};
+  // along the blow: the same 9 Hz, but locked to the hit (the first swing goes INTO the blow) and along its direction
+  if (mix.shk === 'blow') {const a = 12 * m * Math.sin(W9 * age), b = 3 * m * Math.sin(W9 * 1.37 * age + 1.7); return {dx: a * i.x - b * i.y, dy: a * i.y + b * i.x, rot: 0};}
+  // thud: the frame is knocked along the blow at once, then springs back through rest (6 Hz) as the energy drains
+  if (mix.shk === 'thud') {const a = 16 * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
+  // Held's push, without oscillation, for reference
+  if (mix.shk === 'kick') return {dx: 18 * m * i.x, dy: 18 * m * i.y, rot: 0};
+  return {dx: 0, dy: 0, rot: 0};
+}
+function partsPost(t, k, v) {
+  const sp = drive(t, 'split');
+  if (sp.h && sp.m > 0.002 && mix.spl !== 'none') {
+    const a = 14 * sp.m * k, i = into(sp.h);
+    if (mix.spl === 'today' && a > 0.5) channelSplit(a, 0);
+    else if (mix.spl === 'blow' && a > 0.5) channelSplit(a * i.x, a * i.y);
+    else if (mix.spl === 'radial' && a > 0.5) radialSplit(v.rx * k, v.ry * k, a);
+  }
+  const fl = drive(t, 'flash'); if (!fl.h || fl.m < 0.003 || mix.fls === 'none') return;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (mix.fls === 'today') {ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = 0.3 * fl.m; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);}
+  // the same lift, toward the paper's own colour (white would tint a coloured paper)
+  else if (mix.fls === 'paper') {ctx.globalAlpha = 0.3 * fl.m; ctx.fillStyle = darkNow ? '#fff' : paperNow; ctx.fillRect(0, 0, canvas.width, canvas.height);}
+  // bloom: the light comes from the impact, a soft disc around the rider instead of the whole screen
+  else if (mix.fls === 'bloom') {
+    const cx = v.rx * k, cy = v.ry * k, r = 0.5 * canvas.width, g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.45)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = 0.6 * fl.m; ctx.fillStyle = g; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.restore();
+}
+// red scaled up and blue scaled down about a point: the colours spread out from the impact
+function radialSplit(cx, cy, px) {
+  const [src, ...rgb] = chan, w = canvas.width, h = canvas.height;
+  for (const c of chan) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
+  src.getContext('2d').drawImage(canvas, 0, 0);
+  ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
+  // blue at 1, green at 1 + f, red at 1 + 2f: every channel covers the frame (no coloured border), at the cost of a ≤ 2 % swell
+  const f = px / (0.7 * w), o = (c, s) => ctx.drawImage(c, cx - cx * s, cy - cy * s, w * s, h * s);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = 'lighter';
+  o(rgb[0], 1 + 2 * f); o(rgb[1], 1 + f); o(rgb[2], 1); ctx.globalCompositeOperation = 'source-over';
+}
 /** Camera-level response to hits: a screen offset (px). */
 function hitCamera(t) {
+  if (mix.hit === 'parts') return partsCamera(t);
   const A = acc(); let dx = 0, dy = 0;
   if (A.today || A.todayW) {
     const m = A.todayW ? traumaW(t, 1.6, 7, 1.5) : trauma(t, {min: 0.22, gain: 1.6, decay: 7, power: 1.5}), w = 2 * Math.PI * 9;
@@ -610,6 +694,7 @@ function worldSplit(t, k) {
   return false;
 }
 function postAccents(t, k, v, ox, oy) {
+  if (mix.hit === 'parts') return partsPost(t, k, v);
   const A = acc();
   if (A.today || A.todayW) {
     const split = 14 * (A.todayW ? traumaW(t, 2.0, 7, 1.4) : trauma(t, {min: 0.25, gain: 2.0, decay: 7, power: 1.4})) * k;
@@ -643,10 +728,12 @@ async function draw() {
   // the punch scales about the rider's own screen point, so the rider stays put and the world closes in around it
   const zp = 1 + (hitZoom(t) - 1) * (1 - v.over) ** 2, vz = zp === 1 ? v : {...v, z: v.z * zp, x: v.R.x, y: v.R.y, ax: v.rx, ay: v.ry};
   const cc = {...vz, ax: vz.ax + hc.dx, ay: vz.ay + hc.dy};
-  ctx.setTransform(cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k);
+  const R = hc.rot ? new DOMMatrix().translate(canvas.width / 2, canvas.height / 2).rotate(hc.rot).translate(-canvas.width / 2, -canvas.height / 2) : null;
+  const world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
+  ctx.setTransform(R ? R.multiply(world) : world);
   drawLines(visibleLines(cc), at, cc.z, th);
   if (acc().ghost) drawGhosts(sheet, t, v, hc, k, th);
-  drawRider(sheet, riderCamera(vz, hc.dx, hc.dy, k), at);
+  drawRider(sheet, riderCamera(vz, hc.dx, hc.dy, k), at, R ? [R.a, R.b, R.c, R.d, R.e, R.f] : undefined);
   ctx.setTransform(k, 0, 0, k, 0, 0);
   if (mix.music === 'bars' && band > 0.003) drawBars(t, band);
   postAccents(t, k, v, hc.dx, hc.dy);
@@ -672,14 +759,17 @@ function drawGrain(v, k, th) {
 
 // ── loading, transport, UI ─────────────────────────────────────────────────
 const cache = new Map();
+// ?rides=old (or a question moment marked 'old') plays the round 1–5 rides; the cache keeps both
+let ridesOld = q.get('rides') === 'old', loadedOld = null;
 async function loadSong(key) {
-  const id = ++loadId; song = key; S = null; status('Loading ' + SONGS[key] + '…');
-  if (cache.has(key)) {const c = cache.get(key); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return; S = c;}
+  const id = ++loadId; song = key; S = null; loadedOld = ridesOld; status('Loading ' + SONGS[key] + (ridesOld ? ' (round-5 ride)' : '') + '…');
+  const ck = key + (ridesOld ? ':old' : '');
+  if (cache.has(ck)) {const c = cache.get(ck); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return; S = c;}
   else {
-    const data = await (await fetch(`./${q.get('rides') === 'old' ? 'data-r5' : 'data'}/${key}.json`)).json(); // ?rides=old: round 1–5 rides
+    const data = await (await fetch(`./${ridesOld ? 'data-r5' : 'data'}/${key}.json`)).json();
     const [native] = await Promise.all([replay(data.track, data.trace), shot ? null : music.load(data.audio).catch(() => null)]);
     if (id !== loadId) return;
-    S = prepare(data, native); cache.set(key, S);
+    S = prepare(data, native); cache.set(ck, S);
   }
   $('seek').max = S.duration; seconds = Math.min(seconds, S.duration);
   status(''); renderUI(); await draw();
@@ -733,19 +823,21 @@ async function goQuestion(i) {
   pause(); qi = i; qopt = 0; scrollTo(0, 0);
   if (qi >= QUESTIONS.length) {renderQuestion(); return;}
   const Q = QUESTIONS[qi]; mix = {...Q.opts[0][1]}; setBench(!!Q.bench);
-  if (song !== Q.song) {await loadSong(Q.song);}
+  ridesOld = Q.rides === 'old';
+  if (song !== Q.song || ridesOld !== loadedOld) {await loadSong(Q.song);}
   loop = qStart(Q); loopLen = Q.len ?? 4; $('loop').classList.add('on'); $('loop').textContent = `Loop ${loopLen} s`; seek(loop); renderQuestion(); draw();
 }
-const LETTERS = 'ABCDEFGHIJ';
+const LETTERS = 'ABCDEFGHIJKLMNOP';
 function renderQuestion() {
   document.body.classList.add('qmode');
   const done = qi >= QUESTIONS.length, Q = QUESTIONS[qi];
-  $('moments').replaceChildren(...(!done && Q.moments ? Q.moments.map(([label, at, sg, extra]) => chip(label, false, async () => {
-    const was = playing; pause();
-    if ((sg ?? Q.song) !== song) await loadSong(sg ?? Q.song);
+  $('moments').replaceChildren(...(!done && Q.moments ? Q.moments.map(([label, at, sg, extra, rides]) => chip(label, false, async () => {
+    const was = playing; pause(); ridesOld = rides === 'old';
+    if ((sg ?? Q.song) !== song || ridesOld !== loadedOld) await loadSong(sg ?? Q.song);
     if (extra) mix = {...mix, ...extra}; else mix = {...Q.opts[qopt][1]};
     loop = at === 'end' ? Math.max(0, S.duration - (Q.len ?? 4)) : qStart({t: at}); seek(loop); renderQuestion(); if (was) play();
   }, 'moment')) : []));
+  $('optflag').hidden = done || !!Q?.open; if (!done && !Q.open) $('optflag').textContent = `${LETTERS[qopt]} · ${Q.opts[qopt][0]}`;
   $('qprogress').textContent = done ? 'All done' : `Question ${qi + 1} of ${QUESTIONS.length} · ${SONGS[song]}`;
   $('concept').textContent = done ? 'Thank you.' : Q.ask;
   $('line').textContent = done ? 'Copy your answers and paste them to me in the chat. They are also kept in this browser.' : Q.why;

@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: where the clean gains stop
+
+At 5,465 the goal of 5,000 needs 1.3 s more from a 15 s compile. Measured on Node 26 and
+rejected: a SIMD engine build (no gain), V8 inlining budgets, earlier tier-up and tiering
+settings (all within drift, and the same command moved from 14.5 to 15.1 s within one
+session), and `x * x` for `x ** 2` (equal once optimized). History scans find nothing in 91%
+of 158 k calls, but caching their cell lookups is worth under 1%, which this machine cannot
+resolve. Next by size, each still to be designed and neither started: an overlay for
+candidate lines, perhaps 0.5 s of registration, and measurement in Rust, perhaps 1 s of a
+6.4 s JS share. Both add real structure, so they need an owner's decision.
+
 ## November 7: Node 26, and a `pow` of our own
 
 V8 14 runs the same compile 6% faster than V8 12, native and JS alike, with no source

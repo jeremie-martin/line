@@ -235,8 +235,9 @@ const DIMS = {
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
   spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
   crv: ['Hit size follows strength', {lin: 'In a straight line from zero', w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
+  ampS: ['Shake size on its own', {'1.5': 'to 24 px', '1.75': 'to 28 px', '2': 'to 32 px'}],
   amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
-  flg: ['Rare flash opens at', {s50: 'Gently from 0.5 to 0.85', s60: 'Gently from 0.6 to 0.85', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
+  flg: ['Rare flash opens at', {s60: 'Gently from 0.6, to 30 % (chosen)', s55: 'Gently from 0.55, to 25 %', s50l: 'Gently from 0.5, to 20 %', s70: 'Gently from 0.7, to 30 %', s50: 'Gently from 0.5, to 30 %', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
@@ -246,7 +247,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80', spw: 'all', crv: 'w', amp: '1.5'}; // hit parts as chosen in R7–R10
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's60', spw: 'all', crv: 'lin', amp: '1.5'}; // R13: straight to 24 px, gentle flash from 0.6 // hit parts as chosen in R7–R10
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -318,20 +319,20 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'linear', ask: 'Shake and split growing in a straight line', why: 'As you described: zero for the faintest hit, growing early and steadily, nothing fancy. Each option is a straight line from 0 at strength 0.2 to its top at 0.85; the page before this draws them. The split follows the same line. Varies: only the slope. Keep any number.',
+  {id: 'bigshake', ask: 'A bigger shake for the ride only?', why: 'Straight to 24 px is now the default. You wondered about 28 or 32 px for the track and rider, unsure how the band would look. The shake only ever moves the ride; the band, title and sun never shake. So here the shake grows while the split, the one effect that reaches the band, stays at its 24 px level, except in the last option. Varies: only the size. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Straight, to 15 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '0.94'}, 'A median hit (0.6): 9 px, close to today’s typical shake.'],
-      ['Straight, to 20 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25'}, 'A median hit: 12 px.'],
-      ['Straight, to 24 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.5'}, 'A median hit: 15 px. The top matches ×1.5.'],
-      ['Round 12’s ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'w', amp: '1.5'}, 'The steep curve, for reference.'],
-      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}], ['On Seashell (light)', 36.5, 'tomada', {scheme: 'w2Seashell'}]]},
-  {id: 'softflash', ask: 'The flash rising gently', why: 'You found the rise too sharp: a slow start from about 0.5, then an S-curve. Two gentle versions, and round 9’s sharp one for reference. The size options no longer touch the flash. Varies: only the flash. Keep any number.',
+      ['24 px (chosen)', {...plain, music: 'redbars', hit: 'parts'}, 'As now.'],
+      ['Shake to 28 px', {...plain, music: 'redbars', hit: 'parts', ampS: '1.75'}, 'The ride shakes more; the split stays.'],
+      ['Shake to 32 px', {...plain, music: 'redbars', hit: 'parts', ampS: '2'}, 'The ride shakes more still; the split stays.'],
+      ['Shake and split to 28 px', {...plain, music: 'redbars', hit: 'parts', amp: '1.75'}, 'Both grow, so the band splits more too.']],
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['With the title', 36.5, 'tomada', {top: 'title'}], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
+  {id: 'flash3', ask: 'The gentle flash: how early, how strong?', why: 'You preferred from 0.6 to 30 %, and suggested 0.55 to 25 % and 0.5 to 20 %. Worth knowing: the median hit is 0.62, so a gentle flash from 0.6 touches many hits: faintly about 39 times a minute, clearly about 20 (round 9’s sharp one: about 3 clear a minute). Earlier starts flash on more hits, more softly. Since you once said most of the time it should not be there, one rarer gentle option is added: from 0.7. Varies: only the flash. Keep any number.',
     song: 'petrunko', t: 33.6, len: 6, multi: true, opts: [
-      ['Gently from 0.5', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: 's50'}, 'Starts at 0.5, full at 0.85.'],
-      ['Gently from 0.6', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: 's60'}, 'Starts at 0.6, full at 0.85: rarer.'],
-      ['Sharp from 0.80 (round 9)', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: '80'}, 'For reference.'],
-      ['None', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', fls: 'none'}, 'No flash.']],
+      ['From 0.6, to 30 % (chosen)', {...plain, music: 'redbars', hit: 'parts'}, 'As now: faint on about 39 hits a minute, clear on 20.'],
+      ['From 0.55, to 25 %', {...plain, music: 'redbars', hit: 'parts', flg: 's55'}, 'A little earlier, a little softer: faint on about 46 hits a minute, clear on 22.'],
+      ['From 0.5, to 20 %', {...plain, music: 'redbars', hit: 'parts', flg: 's50l'}, 'Earlier still, softer still: faint on about 53 hits a minute, clear on 17.'],
+      ['From 0.7, to 30 %', {...plain, music: 'redbars', hit: 'parts', flg: 's70'}, 'Added: gentle, but rarer: faint on about 16 hits a minute, clear on 7.'],
+      ['None', {...plain, music: 'redbars', hit: 'parts', fls: 'none'}, 'No flash.']],
     moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
@@ -353,7 +354,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r13';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r14';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -583,6 +584,9 @@ const SIZE = {w: (e, w) => 0.35 + 0.65 * w, e: e => 0.45 + 0.55 * e, mid: e => 0
 const strengthOf = e => 0.2 + 0.65 * Math.pow(e, 1 / 1.4); // back from e to the measured strength
 // R11: an overall size for the chosen shake and split (the owner: "stronger… also stronger split"); flash untouched
 const AMP = () => +(mix.amp ?? 1) || 1;
+// R14: the shake can grow on its own. The shake moves only the ride (track and rider); the split also reaches the band, title and
+// sun, which the owner wanted to keep at the 24 px level while trying a bigger shake. ampS defaults to amp.
+const AMP_SHAKE = () => +(mix.ampS ?? mix.amp ?? 1) || 1;
 const SPLIT_MATCH = {dir: 0.53, half: 0.61}; // fitted on Tomada and Los Voltaje (splitmeasure.mjs)
 function partsCamera(t) {
   const {m, h} = drive(t, 'shake'); if (!h || m < 0.002 || mix.shk === 'none') return {dx: 0, dy: 0, rot: 0};
@@ -591,7 +595,7 @@ function partsCamera(t) {
   // along the blow: the same 9 Hz, but locked to the hit (the first swing goes INTO the blow) and along its direction
   if (mix.shk === 'blow') {const a = 12 * m * Math.sin(W9 * age), b = 3 * m * Math.sin(W9 * 1.37 * age + 1.7); return {dx: a * i.x - b * i.y, dy: a * i.y + b * i.x, rot: 0};}
   // thud: the frame is knocked along the blow at once, then springs back through rest (6 Hz) as the energy drains
-  if (mix.shk === 'thud') {const a = 16 * AMP() * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
+  if (mix.shk === 'thud') {const a = 16 * AMP_SHAKE() * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
   // Held's push, without oscillation, for reference
   if (mix.shk === 'kick') return {dx: 18 * m * i.x, dy: 18 * m * i.y, rot: 0};
   return {dx: 0, dy: 0, rot: 0};
@@ -620,7 +624,9 @@ function partsSplit(t, k, v) {
 // on the seven songs, none on most hits. A gate on the hit's own absolute strength, not a rank.
 // Round 9: the owner chose 'toward the paper' "by a wide margin" and asked whether it could open lower: three gates.
 const GATES = {'82': [0.82, 0.94], '80': [0.8, 0.93], '76': [0.76, 0.9], '70': [0.7, 0.86]}; // '80': the owner's choice (R9)
-const SOFT = {s50: s => smoothstep((s - 0.5) / 0.35), s60: s => smoothstep((s - 0.6) / 0.25)};
+// [from, full, peak]: the S-curve starts at 'from', is full at 'full' (measured strength), and peaks at 'peak' opacity
+const SOFTS = {s50: [0.5, 0.85, 0.3], s60: [0.6, 0.85, 0.3], s55: [0.55, 0.85, 0.25], s50l: [0.5, 0.85, 0.2], s70: [0.7, 0.85, 0.3]};
+const SOFT = Object.fromEntries(Object.entries(SOFTS).map(([k, [a, b, pk]]) => [k, s => (pk / 0.3) * smoothstep((s - a) / (b - a))]));
 const rareGate = e => {const [a, b] = GATES[mix.flg] ?? GATES['82']; return smoothstep((e - a) / (b - a));};
 function partsFlash(t, k, v) {
   const fl = drive(t, 'flash'); if (!fl.h || fl.m < 0.003 || mix.fls === 'none') return;

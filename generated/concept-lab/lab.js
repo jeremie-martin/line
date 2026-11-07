@@ -136,7 +136,7 @@ const SCHEMES = {
   // Etruscan — Wada no. 152 (Etruscan Red, Hay's Russet, Light Glaucous Blue).
   //   paper Light Glaucous Blue · bars Hay's Russet · accent Etruscan Red · ink made · adjusted: paper L 0.81→0.95, C 0.039→0.018; accent L 0.587→0.72, C 0.149→0.15
   //   Ice-blue paper, an oxblood-russet band, one salmon-red bar: warm earth under a cold sky.
-  w2Etruscan: {paper: '#e2f2f6', ink: '#301813', pencil: '#adb1b2', mass: '#793327', accent: '#f47c6d', nightPaper: '#210d0a', nightInk: '#e2f2f6'},
+  w2Etruscan: {paper: '#e2f2f6', ink: '#301813', pencil: '#adb1b2', mass: '#793327', accent: '#d15d50', nightPaper: '#210d0a', nightInk: '#e2f2f6'},
   // Peony — Wada no. 204 (Rosolanc Purple, Cinnamon Rufous, Light Glaucous Blue).
   //   paper Light Glaucous Blue · bars Rosolanc Purple · accent Cinnamon Rufous · ink made · adjusted: paper L 0.81→0.95, C 0.039→0.018; accent L 0.636→0.74
   //   Ice-blue paper, a magenta band, one apricot bar: Magenta in daylight.
@@ -156,7 +156,7 @@ const SCHEMES = {
   // Camellia — Wada no. 260 (Old Rose, Vinaceous Cinnamon, Glaucous Green, Sea Green).
   //   paper Glaucous Green · bars Old Rose · accent Sea Green · ink made · adjusted: paper L 0.826→0.95, C 0.031→0.016; mass L 0.657→0.58; accent L 0.689→0.72
   //   Celadon paper, an old-rose band, one sea-green bar: soft, the accent the only cool note.
-  w2Camellia: {paper: '#e5f2ec', ink: '#30171a', pencil: '#afb0ad', mass: '#ba5664', accent: '#21bea5', nightPaper: '#210d0f', nightInk: '#e5f2ec'},
+  w2Camellia: {paper: '#e5f2ec', ink: '#30171a', pencil: '#afb0ad', mass: '#ba5664', accent: '#eea78c', nightPaper: '#210d0f', nightInk: '#e5f2ec'},
   // Blush — Wada no. 264 (Corinthian Pink, Red Orange, Dark Greenish Glaucous, Cerulian Blue).
   //   paper Corinthian Pink · bars Cerulian Blue · accent Red Orange · ink made · adjusted: paper L 0.838→0.95, C 0.077→0.018; mass L 0.608→0.52; accent L 0.6→0.66
   //   Blush paper, a cerulean band, one red-orange bar: the warm paper Lagoon never had.
@@ -213,11 +213,15 @@ const SCHEMES = {
   //   paper Cotinga Purple · bars Carmine · accent Grayish Lavender - A · ink made · adjusted: paper L 0.311→0.19, C 0.11→0.04; mass L 0.54→0.56; accent L 0.777→0.82, C 0.055→0.07
   //   Drop partner of Aubergine (no. 307): aubergine black, a carmine band, a lavender bar. Drop partner: w2Aubergine.
   w2AubergineNight: {paper: '#1f0c1b', ink: '#f4ecf1', pencil: '#5f4f5b', mass: '#d31f3c', accent: '#c3bdef', nightPaper: '#1f0c1b', nightInk: '#f4ecf1'},
+  // R12 accent fixes, from each combination's own colours: Etruscan's salmon (a lightened Etruscan Red) → a deeper Etruscan Red;
+  // Camellia's sea-green ("not well integrated") → Vinaceous Cinnamon, the fourth colour of Wada no. 260.
+  w2EtruscanR11: {paper: '#e2f2f6', ink: '#301813', pencil: '#adb1b2', mass: '#793327', accent: '#f47c6d', nightPaper: '#210d0a', nightInk: '#e2f2f6'},
+  w2CamelliaR11: {paper: '#e5f2ec', ink: '#30171a', pencil: '#afb0ad', mass: '#ba5664', accent: '#21bea5', nightPaper: '#210d0f', nightInk: '#e5f2ec'},
   // a lab-only test: Riso with darker ink and a quieter band. If it reads as clearly as Hokusai, lightness was Riso's problem.
   risoDeep: {paper: '#f7f3e9', ink: '#0d2063', pencil: '#b9b7cf', mass: '#304d99', accent: '#ff3d7f', nightPaper: '#14206e', nightInk: '#f7f3e9'},
 };
 const DIMS = {
-  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', w2Etruscan: 'Etruscan (Wada)', w2Peony: 'Peony (Wada)', w2Umber: 'Umber (Wada)', w2Hydrangea: 'Hydrangea (Wada)', w2Celadon: 'Celadon (Wada)', w2Camellia: 'Camellia (Wada)', w2Blush: 'Blush (Wada)', w2Heather: 'Heather (Wada)', w2Aubergine: 'Aubergine (Wada)', w2Wisteria: 'Wisteria (Wada)', w2Cobalt: 'Cobalt (Wada)', w2Seashell: 'Seashell (Wada)', w2Carmine: 'Carmine (Wada)', w2Aconite: 'Aconite (Wada)', w2Apricot: 'Apricot (Wada)', w2Grenadine: 'Grenadine (Wada)', w2Pansy: 'Pansy (Wada)', w2Saxe: 'Saxe (Wada)', w2HeatherNight: 'Heather Night (Wada)', w2AubergineNight: 'Aubergine Night (Wada)', wBrick10: 'Brick, round 10', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
+  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', w2Etruscan: 'Etruscan (Wada)', w2Peony: 'Peony (Wada)', w2Umber: 'Umber (Wada)', w2Hydrangea: 'Hydrangea (Wada)', w2Celadon: 'Celadon (Wada)', w2Camellia: 'Camellia (Wada)', w2Blush: 'Blush (Wada)', w2Heather: 'Heather (Wada)', w2Aubergine: 'Aubergine (Wada)', w2Wisteria: 'Wisteria (Wada)', w2Cobalt: 'Cobalt (Wada)', w2Seashell: 'Seashell (Wada)', w2Carmine: 'Carmine (Wada)', w2Aconite: 'Aconite (Wada)', w2Apricot: 'Apricot (Wada)', w2Grenadine: 'Grenadine (Wada)', w2Pansy: 'Pansy (Wada)', w2Saxe: 'Saxe (Wada)', w2HeatherNight: 'Heather Night (Wada)', w2AubergineNight: 'Aubergine Night (Wada)', wBrick10: 'Brick, round 10', w2EtruscanR11: 'Etruscan, round 11', w2CamelliaR11: 'Camellia, round 11', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
   size: ['Size', {today: 'Today', s58: '7 % closer', s62: '15 % closer', s68: '25 % closer'}],
   place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Follows direction, higher', followMid: 'Follows direction, between', followLow: 'Follows direction, at Tamed’s height'}],
   tide: ['Zoom over time', {steady: 'Steady', quietI: 'Out when quiet', breath: 'One breath', fit: 'Fitted to the song'}],
@@ -230,7 +234,7 @@ const DIMS = {
   spl: ['Hit part: colour split', {today: 'Today’s (sideways)', dir: 'In the hit’s direction, same amount as today', half: 'Halfway between, same amount as today', blow: 'In the hit’s direction, unmatched', radial: 'Out from the impact', none: 'None'}],
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
   spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
-  crv: ['Hit size follows strength', {w: 'Steeply (R7–R10)', e: 'More fully (ordinary hits stronger)'}],
+  crv: ['Hit size follows strength', {w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
   amp: ['Shake and split size', {'1': '×1', '1.5': '×1.5', '2': '×2'}],
   flg: ['Rare flash opens at', {'80': 'Strength 0.80 (chosen)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
@@ -242,7 +246,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80', spw: 'all', crv: 'w', amp: '1'}; // hit parts as chosen in R7–R10
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80', spw: 'all', crv: 'w', amp: '1.5'}; // hit parts as chosen in R7–R10
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -255,11 +259,10 @@ const PRESETS = [
     mix: {...base, music: 'red', redBy: 'loud', night: 'on', hit: 'parts'}},
   {id: 'hokusai', name: 'Hokusai', line: 'Indigo on washi, the bars, the sun, Held hits, easing out when quiet.',
     mix: {...base, scheme: 'hokusai', hit: 'parts', music: 'redbars', tide: 'quietI', top: 'sun'}},
-  {id: 'lagoon', name: 'Lagoon', line: 'Sea-glass and teal, a little wider, a looser camera, Held hits and the song’s name on two lines.',
-    mix: {...base, scheme: 'lagoon', size: 's58', place: 'loose', hit: 'parts', music: 'redbars', top: 'title'}},
+  {id: 'lagoon', name: 'Lagoon', line: 'Sea-glass and teal, the bars, and the song’s name on two lines.',
+    mix: {...base, scheme: 'lagoon', hit: 'parts', music: 'redbars', top: 'title'}}, // R12: the settled camera, not R4's looser/wider one
   {id: 'black', name: 'Black', line: 'In the dark: one accent on the fork, Held hits, a steady zoom, and each rail lights whole the moment the rider meets it.',
     mix: {...base, scheme: 'black', music: 'red', redBy: 'loud', ink: 'rail', hit: 'parts'}},
-  {id: 'riso', name: 'Riso', line: 'A two-ink print: blue and fluorescent pink.', mix: {...base, scheme: 'riso', music: 'redbars', hit: 'parts'}},
   {id: 'dune', name: 'Dune', line: 'Sand and rust, with its own low sun.', mix: {...base, scheme: 'dune', music: 'redbars', hit: 'parts', top: 'sun'}},
   {id: 'plum', name: 'Plum', line: 'A second dark: plum and amber.', mix: {...base, scheme: 'plum', music: 'redbars', hit: 'parts'}},
 ];
@@ -315,49 +318,26 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'splitall', ask: 'Should the colour split catch the band?', why: 'You said you preferred the split over everything, as the lab did before round 8; production only splits the ride. The title and the sun sit behind the ride, so they split in both versions here; what changes is the band. Varies: only that. Everything else is your set.',
-    song: 'tomada', t: 36.5, len: 5, opts: [
-      ['The band too', {...plain, music: 'redbars', hit: 'parts', spw: 'all'}, 'The band splits with the ride, title and sun.'],
-      ['Band stays clean', {...plain, music: 'redbars', hit: 'parts', spw: 'ride'}, 'The band stays clean, as in production.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Dune', 36.5, 'tomada', {scheme: 'dune'}], ['On Ultramarine (dark)', 36.5, 'tomada', {scheme: 'wUltramarine'}]]},
-  {id: 'strength', ask: 'Stronger hits: how?', why: 'Today’s reaches nearly full force from strength 0.45, so a typical hit already shakes fully. Ours grows steeply with strength: a median hit (0.58 on Tomada) gets about half of today’s split and an 8 px thud, and only the hardest hits match today. “Fuller” lifts ordinary hits and keeps the hardest the same; “×1.5” makes everything half as big again. Varies: only the size of the shake and split. The flash is unchanged. Keep any number.',
+  {id: 'size', ask: 'Hit size: ×1.5, between, or fuller?', why: 'Your favourite was ×1.5, and you were curious about something between it and fuller ×1.5. The page before this one draws each as a curve against the hit’s measured strength. Varies: only how the size follows strength. Everything else is your set, with the split over the whole picture. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Your set', {...plain, music: 'redbars', hit: 'parts'}, 'As now: steep, ordinary hits modest.'],
-      ['Fuller', {...plain, music: 'redbars', hit: 'parts', crv: 'e'}, 'Ordinary hits stronger (a 0.6 hit: 12 px instead of 8), the hardest unchanged.'],
-      ['×1.5', {...plain, music: 'redbars', hit: 'parts', amp: '1.5'}, 'Everything half as big again (the hardest: 24 px).'],
-      ['Fuller, ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'e', amp: '1.5'}, 'Both: a 0.6 hit gets 17.5 px, the hardest 24 px.'],
-      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference: the shipped recipe.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose'}], ['On Prussian (light)', 36.5, 'tomada', {scheme: 'wPrussian'}]]},
-  {id: 'wada2light', ask: 'More Wada, light: other papers', why: 'You asked for light papers other than cream: pale blue, and more. Wada’s own light colours are mostly creams and yellows, so these papers come from a combination’s own blues, greens and roses, made pale. The lesson that made it work: the paper must differ in hue from the bars (warm bars on ice blue or celadon, cool bars on blush). A paper in the bars’ own hue looked weak. Varies: only the colours. Keep any number.',
+      ['×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'w', amp: '1.5'}, 'Steep: ordinary hits modest, the hardest grow most (a 0.6 hit: 12 px).'],
+      ['Between ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'mid', amp: '1.5'}, 'New: a 0.6 hit gets 15 px.'],
+      ['Fuller ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'e', amp: '1.5'}, 'Ordinary hits strong: a 0.6 hit gets 17.5 px.'],
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference.']],
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose'}], ['On Seashell (light)', 36.5, 'tomada', {scheme: 'w2Seashell'}]]},
+  {id: 'accents', ask: 'Two accents, before and after', why: 'You liked Etruscan’s paper and bars but not its accent, and Camellia’s sea-green bar was not integrated. Both now come from their own Wada combination: Etruscan takes a deeper Etruscan Red, and Camellia takes Vinaceous Cinnamon, its combination’s fourth colour. Keep any number.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Prussian (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wPrussian'}, 'For reference: “super elegant”.'],
-      ['Etruscan', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Etruscan'}, 'Wada 152. Ice-blue paper, an oxblood band, a salmon bar.'],
-      ['Peony', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Peony'}, 'Wada 204. Ice-blue paper, a magenta band, an apricot bar.'],
-      ['Umber', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Umber'}, 'Wada 234. Pale sky paper, a raw-umber band, a buff bar.'],
-      ['Hydrangea', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Hydrangea'}, 'Wada 142. Periwinkle paper, a rose-red band, a mustard bar.'],
-      ['Celadon', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Celadon'}, 'Wada 171. Celadon paper, a maroon band, a marigold bar.'],
-      ['Camellia', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Camellia'}, 'Wada 260. Celadon paper, an old-rose band, a sea-green bar.'],
-      ['Blush', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Blush'}, 'Wada 264. Blush paper, a cerulean band, a red-orange bar.'],
-      ['Heather', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Heather'}, 'Wada 338. Mauve-blush paper, a dusky-green band, an orange-yellow bar.'],
-      ['Aubergine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Aubergine'}, 'Wada 307. Lilac paper, an aubergine band, a carmine bar.'],
-      ['Wisteria', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Wisteria'}, 'Wada 197. Near-white cool grey, a violet band, a pink bar.'],
-      ['Cobalt', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Cobalt'}, 'Wada 333. Mint-white paper, a pure blue band, a sienna bar.'],
-      ['Seashell', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Seashell'}, 'Wada 194. Peach paper, a slate-blue band, a red bar (close to Hokusai).'],
-      ['Brick, accent fixed', {...plain, music: 'redbars', hit: 'parts', scheme: 'wBrick'}, 'Wada 325. The accent you found too close to the paper, deepened.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
-  {id: 'wada2dark', ask: 'More Wada, dark', why: 'Six new darks and two drop partners taken from their light schemes’ own combinations. Your Ultramarine and Old Rose are there for comparison. Varies: only the colours. Keep any number.',
+      ['Etruscan, before', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2EtruscanR11'}, 'Round 11: a salmon accent.'],
+      ['Etruscan, after', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Etruscan'}, 'A deeper Etruscan Red.'],
+      ['Camellia, before', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2CamelliaR11'}, 'Round 11: a sea-green accent.'],
+      ['Camellia, after', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Camellia'}, 'Vinaceous Cinnamon.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+  {id: 'darkink', ask: 'On dark palettes: should the line be inked from the start?', why: 'In round 6 you wondered whether dark palettes would read more clearly with the line always inked, as a thought, not a rule. It was never tried. Varies: only how the line appears. Moments switch palettes.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Ultramarine (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wUltramarine'}, 'For reference: “so cool, love it”.'],
-      ['Old Rose (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose'}, 'For reference: “so freaking elegant”.'],
-      ['Carmine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Carmine'}, 'Wada 232. Deep indigo paper, a carmine band.'],
-      ['Aconite', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Aconite'}, 'Wada 344. Midnight paper, an aconite-violet band.'],
-      ['Apricot', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Apricot'}, 'Wada 253. Blue-black paper, an apricot band.'],
-      ['Grenadine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Grenadine'}, 'Wada 166. Green-black paper, a grenadine band; could be Brick’s night.'],
-      ['Pansy', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Pansy'}, 'Wada 157. Wine-black paper, a pansy-blue band.'],
-      ['Saxe', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Saxe'}, 'Wada 186. Brown-black paper, a saxe-blue band.'],
-      ['Heather’s night', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2HeatherNight'}, 'The darker partner from Heather’s own combination, for the drop.'],
-      ['Aubergine’s night', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2AubergineNight'}, 'The darker partner from Aubergine’s own combination, for the drop.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
+      ['Pencil → ink', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'inking'}, 'As now: the ridden line inks as the rider passes.'],
+      ['Whole rail', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'rail'}, 'A rail lights up whole when the rider meets it.'],
+      ['All ink', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'ink'}, 'The whole course inked from the start.']],
+    moments: [['Old Rose', 36.5], ['Aconite', 36.5, 'lua', {scheme: 'w2Aconite'}], ['Ultramarine, Los Voltaje', 45, 'los', {scheme: 'wUltramarine'}], ['Black, Petrunko', 28, 'petrunko', {scheme: 'black'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -378,7 +358,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r11';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r12';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -592,7 +572,7 @@ function drive(t, part) {
     if (h.tc > t + 0.001) break; const age = t - h.tc;
     // each hit alone. Its size: 'w' (R7–R10) = 0.35 + 0.65·e^2.2, steep, so an ordinary hit (strength 0.6, e 0.51) gets 0.50 of full;
     // 'e' (R11) = 0.45 + 0.55·e, fuller, the same hit gets 0.73. Its length always follows e^2.2 (held).
-    if (d === 'held') {const e = forceE ?? h.I, w = excess(e), v = (mix.crv === 'e' ? 0.45 + 0.55 * e : 0.35 + 0.65 * w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
+    if (d === 'held') {const e = forceE ?? h.I, w = excess(e), v = SIZE[mix.crv ?? 'w'](e, w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
     const s = forceE !== null ? 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4) : h.s;
     if (d === 'trauma' && s < c.min) continue;
     const add = (d === 'graded' ? (forceE ?? h.I) : s) * c.gain * Math.exp(-age * c.decay); // graded: the absolute strength curve, no threshold
@@ -600,6 +580,9 @@ function drive(t, part) {
   }
   return d === 'held' ? {m: x, h: last} : {m: Math.pow(Math.min(1, x), c.power), h: last};
 }
+// How big each hit is, from its measured strength (e: 0 at 0.2, 1 at 0.85). 'w' steep (R7–R10); 'e' fuller (R11); 'mid' (R12):
+// between the two, as the owner asked ("something fuller, but not as much"). Its length always follows w = e^2.2.
+const SIZE = {w: (e, w) => 0.35 + 0.65 * w, e: e => 0.45 + 0.55 * e, mid: e => 0.4 + 0.6 * Math.pow(e, 1.5)};
 // R11: an overall size for the chosen shake and split (the owner: "stronger… also stronger split"); flash untouched
 const AMP = () => +(mix.amp ?? 1) || 1;
 const SPLIT_MATCH = {dir: 0.53, half: 0.61}; // fitted on Tomada and Los Voltaje (splitmeasure.mjs)
@@ -629,6 +612,10 @@ function partsSplit(t, k, v) {
     // (it used to flip the hit instead, which put red at the bottom where neither neighbour ever did)
     else if (mix.spl === 'half' && a > 0.5) {const hx = i.x + (i.x < 0 ? -1 : 1), hy = i.y, n = Math.hypot(hx, hy) || 1, f = SPLIT_MATCH.half; channelSplit(f * a * hx / n, f * a * hy / n);}
     else if (mix.spl === 'radial' && a > 0.5) radialSplit(v.rx * k, v.ry * k, a);
+    else return;
+    // the rider keeps half of its own clean image through the split (R4 "slightly less split", settled R6; it was lost when
+    // the hits moved to parts in R9). The overlay still holds this frame's rider, drawn just before.
+    if (a > 0.5) {ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(overlay, 0, 0); ctx.restore();}
   }
 }
 // 'rare': only the hardest hits flash. The gate opens at strength 0.82 and is full at 0.94: about 1–10 flashes a minute
@@ -729,6 +716,14 @@ SCHEMES.kraft = {...SCHEMES['kraft~4']};
 SCHEMES.cyanotypeIndigo = {...SCHEMES['cyanotype~b']}; SCHEMES.cyanotypeDeep = {...SCHEMES['cyanotype~c']}; SCHEMES.cyanotype = {...SCHEMES['cyanotype~0']};
 SCHEMES.rothkoNeutral = {...SCHEMES['rothko~1']}; SCHEMES.rothko = {...SCHEMES['rothko~0']};
 Object.assign(DIMS.scheme[1], {cyanotypeIndigo: 'Cyanotype, indigo', cyanotypeDeep: 'Cyanotype, deep', rothkoNeutral: 'Rothko, neutral'});
+// The palette library (R12): the owner's latest verdict per scheme, for future sampling and weighting. 'love' = a favourite,
+// 'good' = keep, 'works' = good enough but not a favourite, 'out' = not to be used. LEDGER.md has the words behind each.
+const LIBRARY = {
+  love: ['graphite', 'hokusai', 'black', 'dune', 'plum', 'lavender', 'wPrussian', 'wMagenta', 'wUltramarine', 'wOldRose', 'w2Celadon', 'w2Aubergine', 'w2Wisteria', 'w2Seashell', 'w2Aconite'],
+  good: ['cafe', 'kraft', 'cyanotype', 'cyanotypeIndigo', 'cyanotypeDeep', 'rothko', 'rothkoNeutral', 'lagoon', 'slate', 'sumi', 'ravilious', 'cahier', 'kintsugi', 'wBrick', 'wOrchid', 'wRusset', 'wGilt', 'w2Etruscan', 'w2Peony', 'w2Umber', 'w2Hydrangea', 'w2Heather', 'w2Cobalt', 'w2Carmine', 'w2Apricot', 'w2Grenadine', 'w2AubergineNight'],
+  works: ['wVerdigris', 'wDenim', 'wViridian', 'wIndigoTeal', 'w2Camellia', 'w2Blush', 'w2Pansy', 'w2Saxe', 'w2HeatherNight', 'mauve', 'midnight', 'vegas'],
+  out: ['riso', 'risoDeep', 'olive', 'bauhaus', 'espresso', 'moss', 'toile', 'klein', 'bottle', 'salmon', 'cyanotype~a'],
+};
 // the address was read before these existed: honour a variant asked for in ?m=
 for (const kv of (q.get('m') ?? '').split(',')) {const [k2, v2] = kv.split(':'); if (k2 === 'scheme' && v2?.includes('~') && SCHEMES[v2]) mix.scheme = v2;}
 const easeOut = x => 1 - Math.pow(1 - clamp(x, 0, 1), 3);
@@ -741,7 +736,7 @@ const DROPS = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', lagoon:
 const dropScheme = {}, schemeAt = t => {
   const o = SCHEMES[mix.scheme], d = DROPS[mix.scheme];
   if (!(mix.night === 'switch' && S?.night && t >= S.night[0] && t < S.night[1] && d)) return o;
-  return dropScheme[mix.scheme] ??= {...SCHEMES[d], accent: o.accent, sun: SCHEMES[d].sun ?? o.sun ?? o.accent};
+  return dropScheme[mix.scheme] ??= {...SCHEMES[d], accent: o.accent, sun: o.sun ?? o.accent}; // R12: the original's sun carries over (Midnight's moon was "bad", R6)
 };
 // Paper: plain, or answering the intensity metric; night is one optional hand-placed cue on top of either.
 function themeAt(t) {

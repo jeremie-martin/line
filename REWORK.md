@@ -21,6 +21,24 @@
   - Fewer viable smooth candidates is unlikely, since nothing is removed.
 - **Risk.** Kinked lines give harsher rides, more extras or body drag. The
   guards line watches extras and drag.
+- **Result (V7.1, 4 seeds): not adopted.** −1.7 [−9.7, +6.3], 0.28; 21 of 35
+  specs down; very strong bias −0.007. The cap is not what limits strong
+  catches.
+
+## November 7: hypothesis T, supports may reach the next catch
+
+- **Basis.** After R nothing rejects a late release, but the geometry still
+  builds one in. A support is clamped to end 4 frames before the next catch
+  (`span − 4` in the control's normalization), and the nominal support 6
+  frames before it (`span − RELEASE_FRAMES`). R's gain came from shorter hops
+  on dense songs.
+- **Change.** Both clamps are lifted, so a support may run to the next catch.
+  The scored account decides whether a catch reached that way registers as
+  its own hit.
+- **Hypothesis.** Further gains on dense songs (G, P1, P4) from catches
+  reached by riding or by 0–3-frame hops; long-gap categories about neutral.
+- **Risk.** Ride-in catches read weaker or as extras; the account should
+  reject or price them.
 
 ## November 7: no forced flight before a catch (adopted)
 

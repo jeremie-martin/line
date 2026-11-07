@@ -1,5 +1,48 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: why strong catches fall short on dense songs (study, report only)
+
+What follows describes today's compiler, not a physics limit.
+
+- **Where the loss is.** On `main`, strength is 62% of G's squared error;
+  speed is 13%, air 13%, timing 6% and extra hits 6%. P6 is the exception:
+  air 40%.
+- **What a stronger catch costs** (`catch_price`, which now records each
+  candidate's cost parts, its signed residuals, its controls and its
+  mechanical energy; 8 rides, seed 101, 246 strong catches).
+  - The pool's candidate closest to the ask is stronger (0.728 against 0.677
+    kept; ask 0.756) but costs +0.057 locally:
+    - speed +0.024 (span speed −0.088 against −0.022 kept);
+    - extra hits +0.012;
+    - the preceding span's correction +0.012;
+    - timing +0.009;
+    - air +0.009;
+    - against −0.009 gained on strength.
+  - The next interval then pays as much again (+0.066). Ranking already
+    charges that price (+0.059), so ranking is not the lever.
+- **Energy.** A catch dissipates energy (½v² − g·y per unit mass, body
+  mean, 3 frames before to 4 after the contact). The loss is about 1.24 ×
+  ½J² at the median, J being the registered impulse in px/frame: roughly an
+  inelastic stop. At 11 px/frame a 0.8 catch removes about a quarter of the
+  kinetic energy, and only a descent of about 100 px gives it back.
+  - The spread is wide: 0.79 at p10, 1.67 at p90.
+  - The most efficient quarter (0.73) meets the line nearly along the travel
+    (7°) and bends it hard (turn −19°), redirecting the rider.
+  - The lossiest quarter (1.68) meets it at 17° and bends only −9.5°,
+    stopping the rider.
+  - U pushed the start toward stopping, which fits its loss.
+- **What this means for the compiler.**
+  - The search already varies when the bend happens (`turnFraction`, in the
+    broad sweep and the policies), and it keeps efficient catches when they
+    cost less.
+  - The arrival prior already asks for the extra arrival speed a stop
+    dissipates.
+  - So the trade between strength and the spec's speed is priced
+    consistently. Closing the gap needs constructions that register strength
+    with less dissipation: redirections, or more hits that also climb.
+  - That is the construction discussion with the owner. Neither the
+    starting shape (U) nor the weights are the lever.
+
 ## November 7: hypothesis U, meet the line at the angle that gives the asked strength
 
 - **Basis** (an audit of fixed limits in construction, read-only).

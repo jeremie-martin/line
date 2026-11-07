@@ -12,6 +12,8 @@
  *               weighted learned estimate), minus the same for K;
  *   measured  = the next interval's lowest measured local cost after X, minus
  *               after K.
+ * Each arm also records its local cost by part, its signed span residuals, its
+ * controls, and the mechanical energy lost through the catch and after it.
  * node tools/research/catch_price.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,c~d]
  * node tools/research/catch_price.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
@@ -25,6 +27,7 @@ import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
 import {withArcStudy} from './arc_study.ts';
+import {getBallisticStateMetered} from '../../scripts/lib/detector.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
 const DEFAULT_SPECS = ['luna_bala_44s~spec', 'tiki_tiki_48s~spec', 'amor_na_praia_46s~spec', 'amour_de_ma_vie_44s~spec',
@@ -52,7 +55,21 @@ async function worker(id: string, seed: number) {
       if (same !== name) {row.arms[name] = {same}; continue;}
       // What ranking charges beyond the measured local cost: the ranking's own formula (valueRank).
       const entry: any = {imp: r4(x.actualImpact), local: r4(x.localCost), ahead: r4(valueRank(ctx.options, x) - x.localCost)};
+      // The local cost's parts: the span axes, the impact, its timing and unmatched hits (the first six residuals),
+      // motion quality, and the rest (engagement gain and the preceding span's correction).
+      const sq = (k: number) => (x.residuals[k] ?? 0) ** 2, [air, speed, amplitude, impact] = [0, 1, 2, 3].map(sq);
+      const [timing, extra] = [4, 5].map(sq);
+      entry.parts = {air: r4(air), speed: r4(speed), amplitude: r4(amplitude), impact: r4(impact), timing: r4(timing), extra: r4(extra),
+        motion: r4(x.motionCost ?? 0), rest: r4(x.localCost - air - speed - amplitude - impact - timing - extra - (x.motionCost ?? 0))};
+      entry.control = {...x.c, incoming: r4(kept.interval.incoming), pace: r4(kept.interval.pace)};
+      entry.signed = {air: r4(x.residuals[0]), speed: r4(x.residuals[1]), timing: r4(x.residuals[4])};
       withArcStudy(ctx, [...kept.parent.seq.lines, ...x.lines], i + 1, (study, child) => {
+        // Mechanical energy per unit mass (½v² − g·y, y down), body-point mean: before the catch, after it, and at
+        // the next catch's entry. A loss through the hit is dissipated; one after it is drag or friction.
+        const energy = (f: number) => {const ps = Object.values(getBallisticStateMetered(child, Math.max(0, f)).points);
+          return ps.reduce((n, p) => n + .5 * (p.vx * p.vx + p.vy * p.vy) - .175 * p.y, 0) / ps.length;};
+        const at = ctx.contacts[i].frame, end = ctx.contacts[i + 1].frame - 1;
+        entry.energy = {hit: r4(energy(at + 4) - energy(at - 3)), after: r4(energy(end) - energy(at + 4))};
         try {
           const next = searchInterval(study, child, i + 1, {}, [child]);
           const cs = next?.candidates ?? [];
@@ -111,6 +128,15 @@ else if (command === 'run') {
     console.log(`  this catch: strength ${mean(v.map(r => r.arms[name].imp)).toFixed(3)} vs ${mean(v.map(r => r.arms.K.imp)).toFixed(3)} (ask ${mean(v.map(r => r.ask)).toFixed(3)}); measured local cost change ${mean(now).toFixed(4)}`);
     console.log(`  next interval: future charged by ranking ${mean(predicted).toFixed(4)}; measured change in its best local cost ${mean(next).toFixed(4)} (median ${[...next].sort((a, b) => a - b)[next.length >> 1].toFixed(4)})`);
     console.log(`  correlation, charged vs measured: ${corr(predicted, next).toFixed(2)}`);
+    const signed = v.filter(r => r.arms[name].signed && r.arms.K.signed);
+    if (signed.length) console.log(`  signed residuals (measured − asked), candidate vs kept: ${Object.keys(signed[0].arms.K.signed)
+      .map(k => `${k} ${mean(signed.map(r => r.arms[name].signed[k])).toFixed(3)} vs ${mean(signed.map(r => r.arms.K.signed[k])).toFixed(3)}`).join(', ')}`);
+    const en = v.filter(r => r.arms[name].energy && r.arms.K.energy);
+    if (en.length) console.log(`  energy change (½v² − g·y per unit mass), candidate vs kept: through the hit ${mean(en.map(r => r.arms[name].energy.hit)).toFixed(2)} vs ${
+      mean(en.map(r => r.arms.K.energy.hit)).toFixed(2)}; after it, to the next catch ${mean(en.map(r => r.arms[name].energy.after)).toFixed(2)} vs ${mean(en.map(r => r.arms.K.energy.after)).toFixed(2)}`);
+    const withParts = v.filter(r => r.arms[name].parts && r.arms.K.parts);
+    if (withParts.length) console.log(`  this catch's local cost change by part: ${Object.keys(withParts[0].arms.K.parts)
+      .map(k => `${k} ${mean(withParts.map(r => r.arms[name].parts[k] - r.arms.K.parts[k])).toFixed(4)}`).join(', ')}`);
     console.log(`  two steps measured (this + next): ${mean(net).toFixed(4)}; better than kept in ${(net.filter(x => x < 0).length / v.length * 100).toFixed(0)}% of probes`);
     console.log(`  next catch strength (best-cost candidate) ${mean(v.map(r => r.arms[name].next.imp)).toFixed(3)} vs ${mean(v.map(r => r.arms.K.next.imp)).toFixed(3)} (next ask ${mean(v.map(r => r.nextAsk ?? 0)).toFixed(3)}); ` +
       `next pool's closest to its ask ${mean(v.map(r => r.arms[name].next.nearImp)).toFixed(3)} vs ${mean(v.map(r => r.arms.K.next.nearImp)).toFixed(3)}`);

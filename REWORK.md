@@ -16,6 +16,21 @@
   out, smaller than BJH's. H4b ≥ H4a if quantity matters more than recency.
   Each must show its gain against its size; H4b's larger archive needs a
   clear margin.
+- **Result: not adopted; the demonstration-rounds line is closed.**
+  - H4a (rounds 2 and 3): V7.1 +2.3 [−3.4, +8.1], 0.86.
+  - H4b (rounds 1 to 3): V7.1 +3.1 [+1.8, +4.5], > 0.99, 22 of 35 specs up,
+    body drag +8%; held out +3.9 [−12.7, +20.4], 0.74, 7 of 13 specs up,
+    one block (+18.6) carrying it. Its archive would grow by 11 MB, to 33.7.
+  - Each round still helps a little, but less each time.
+
+## November 7: hypothesis J2, the dose of strong-catch effort
+
+J scales an interval's local search by 1 + 0.3 × the steep-arrival step of its
+catch's ask. The 0.3 came from October's lookahead and was never re-derived.
+J2 uses 0.6.
+- **Hypothesis.** If effort at strong catches is still underspent, J2 gains
+  over `main` (V7.1 +2 or more, strength on strong asks up). If not, 0.3 is
+  near where it stops paying, and J2 is about neutral for more frames.
 
 ## November 7: beam slot, strong-catch effort and pooled policies, together (adopted)
 

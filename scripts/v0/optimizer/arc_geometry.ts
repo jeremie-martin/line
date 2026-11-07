@@ -23,7 +23,10 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   contactSide?:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
-  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
+  receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number;
+  /** Steering roof: the guide continues past the support over the predicted flight for `steerFrames`
+   * frames, closing toward the rider by ½·steer·t² (px, t in frames) to turn it down without a hit. */
+  steer?:number;steerFrames?:number};
 
 /** Explicit timing must be able to represent the inherited five-frame turn. */
 export function normalizeArcTurnFraction(fraction:number,support:number):number{
@@ -150,6 +153,17 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       else{retained.push({x:lerp(from.x,to.x,remaining/length),y:lerp(from.y,to.y,remaining/length)});break;}
     }
     main=retained;
+  }
+  // The steering roof continues the guide over the nominal ballistic flight from the support's end, as
+  // part of the same connected guide curve (the guide runs against the travel, so it is prepended).
+  if(style?.guides!==false&&clearance>0&&(c.steer??0)>0&&(c.steerFrames??0)>=2&&style?.railLayout!=="transfer"&&(c.guideEnd??1)>=1){
+    const end=main.at(-1)!,vx=Math.cos(previousAngle)*v,vy=Math.sin(previousAngle)*v,roof:Array<{x:number;y:number}>=[];
+    for(let t=guide.length?1:0;t<=c.steerFrames!;t++){
+      const px=end.x+vx*t,py=end.y+vy*t+.0875*t*t,a=Math.atan2(vy+.175*t,vx);
+      const separation=clearance-.5*c.steer!*t*t;
+      roof.push({x:px+side*separation*Math.sin(a),y:py-side*separation*Math.cos(a)});
+    }
+    guide=[...roof.reverse(),...guide];
   }
   if(side===-1){main.reverse();guide.reverse();}
   // Guide ids retain the original full-main offset even when a transfer

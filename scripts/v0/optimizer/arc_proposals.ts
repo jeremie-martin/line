@@ -199,3 +199,17 @@ export function recoverInitialization(s: IntervalSearch) {
     record.failures = {...s.failures};
   }
 }
+
+/** A steering roof after the best candidate's support: the guide continues over the flight and
+ * closes toward the rider, turning it down before the next catch. Offered at three strengths;
+ * measured like every other proposal, so contact that registers as a hit, a crash or worse spans
+ * cost what they cost. */
+export function proposeSteering(s: IntervalSearch) {
+  const {options, i, ctx} = s;
+  if (!s.best || options.guides === false || !options.channel || options.railLayout === 'transfer' || i >= ctx.contacts.length - 1) return;
+  const base = s.best.candidate.c;
+  if (base.receiverFlight !== undefined) return;
+  const flight = Math.floor(s.span - base.support - 4);
+  if (flight < 6) return;
+  for (const steer of [.1, .2, .35]) evaluate(s, {...base, steer, steerFrames: flight});
+}

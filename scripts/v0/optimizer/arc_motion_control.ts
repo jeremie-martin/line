@@ -56,6 +56,9 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   receiverTurn: {family:'guide',min:-90,max:90,tolerance:4,coordinate:10,response:6},
   receiverExit: {family:'guide',min:-100,max:100,tolerance:4,coordinate:10,response:6},
   receiverDuration: {family:'guide',min:.1,max:1,tolerance:.05,coordinate:.15,response:.08,searchDefault:()=>.65},
+  // Set only by the steering proposals (no response step, not in the coordinate key lists).
+  steer: {family:'guide',min:0,max:1,tolerance:.02,coordinate:.05},
+  steerFrames: {family:'guide',min:0,max:80,tolerance:1,coordinate:2},
 };
 export const ARC_CONTROL_KEYS = Object.keys(ARC_CONTROL_DEFINITIONS) as readonly ControlKey[];
 export const ARC_CORE_KEYS = ARC_CONTROL_KEYS.filter(key => ARC_CONTROL_DEFINITIONS[key].family === 'core');

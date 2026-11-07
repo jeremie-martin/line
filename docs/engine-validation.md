@@ -1,6 +1,8 @@
 # Engine and compiler validation
 
-Use the pinned Node (`nvm use`) and Rust versions. The engine kernel, compiler
+Use the pinned Node (`nvm use`) and Rust versions. Commits before the Node 26 change
+used `Math.pow`, so under Node 26 they cannot serve as a `perf:engine` reference: their
+tracks differ. Compare against later commits. The engine kernel, compiler
 search and judge are different contracts; passing one does not imply the others.
 
 | Command | Purpose |

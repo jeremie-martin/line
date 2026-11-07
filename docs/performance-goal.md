@@ -1,6 +1,7 @@
 # Compiler performance goal
 
-**Score:** 6,150 ns per charged frame, from `npm run perf:score` (November 7, 2026).
+**Score:** 5,465 ns per charged frame, from `npm run perf:score` on Node 26 (November 7,
+2026; it began at 6,150).
 **Goal:** 5,000 ns, with byte-identical tracks.
 
 Make the compiler faster without changing what it produces: same tracks, same scores,

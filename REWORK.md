@@ -9,7 +9,9 @@ system libm, which rounds 9% of results differently. `exactPow` reproduces the N
 routine, 45 million samples exact, so tracks are byte-identical on both Nodes and no
 longer depend on a machine's libm. It costs 60 ns more per call. Other Math functions
 match. All 25 cells and 10 judged tracks are exact on 26.13.0. Node 26 is the newest
-LTS; Node 24 timed the same.
+LTS; Node 24 timed the same. Score 5,465. Larger young generations stay within noise on
+V8 14 too. Rejected: `pow` in the engine binary, about 1.6%, because a math helper does
+not belong to the physics contract and `--reference` engines would need its export.
 
 ## November 7: what stepping is made of
 

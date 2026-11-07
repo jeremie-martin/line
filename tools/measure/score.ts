@@ -4,8 +4,9 @@
  *   npm run perf:score
  *
  * Compiles PERF_CELLS three times each and reports the median of each, then their
- * mean. Every compile must reproduce its committed track and charged work. Run it
- * alone on a quiet machine. Use perf:engine to decide whether a change helped: only
+ * mean. Every compile must reproduce its committed track and charged work, on the
+ * pinned Node, since a score from another runtime compares nothing. Run it alone on a
+ * quiet machine. Use perf:engine to decide whether a change helped: only
  * a paired comparison can separate a small gain from this machine's drift. */
 import {execFileSync} from 'node:child_process';
 import {mkdtempSync, readFileSync, rmSync} from 'node:fs';
@@ -19,6 +20,8 @@ const REPEATS = 3;
 const AFFINITY = '4-7';
 const root = fileURLToPath(new URL('../../', import.meta.url)), dir = mkdtempSync(join(tmpdir(), 'perf-score-'));
 const {cells} = JSON.parse(readFileSync(join(root, 'tools/parity/cells.json'), 'utf8'));
+const pinned = readFileSync(join(root, '.nvmrc'), 'utf8').trim();
+if (process.version !== `v${pinned}`) throw new Error(`perf:score needs Node ${pinned} (.nvmrc), not ${process.version}`);
 const median = (values: number[]) => [...values].sort((a, b) => a - b)[values.length >> 1];
 try {
   const results = cellIndices(cells, PERF_CELLS).map((index, i) => {

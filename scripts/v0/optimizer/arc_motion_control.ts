@@ -34,7 +34,7 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   exit: {family: 'core', min: -80, max: 85, tolerance: 4, coordinate: 10, response: 6},
   support: {family: 'core', min: 2, max: Infinity, tolerance: 1,
     coordinate: s => Math.max(1, s * .18), response: s => Math.max(.6, s * .1),
-    normalize: (v, _c, context) => clamp(v, 2, Math.max(2, context.span - (context.releaseReserveFrames??4)))},
+    normalize: (v, _c, context) => clamp(v, 2, Math.max(2, context.span - (context.releaseReserveFrames??0)))},
   bias: {family: 'core', min: -2, max: 2, tolerance: .3, coordinate: .5, response: .25},
   offset: {family: 'core', min: -2, max: 3, tolerance: .2, coordinate: .4, response: .2},
   clearance: {family: 'guide', min: 6, max: 30, tolerance: 1, coordinate: 2, response: 1.5,

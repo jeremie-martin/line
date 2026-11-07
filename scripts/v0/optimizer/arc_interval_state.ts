@@ -17,7 +17,6 @@ import type { ArcCompileContext } from './arc_compile_context.ts';
 import type {ArcObjectiveContinuation} from './arc_objective.ts';
 
 /** A catch must have left the rail this many frames before the interval ends. */
-export const RELEASE_FRAMES = 6;
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 const deg = (x: number) => x * 180 / Math.PI;
@@ -84,7 +83,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // has the existing physical survival horizon. Do not clamp a requested
   // shape to two frames just because its last impact is near the song end.
   const constructionSpan = options.constructionRequests && i === contacts.length - 1 ? horizon - frame : span;
-  const support = clamp((1 - (targets.air ?? .5)) * (constructionSpan + 1), 3, Math.max(3, constructionSpan - RELEASE_FRAMES));
+  const support = clamp((1 - (targets.air ?? .5)) * (constructionSpan + 1), 3, Math.max(3, constructionSpan));
   const impact = gap >= 0 ? gaps[gap].targets.impact : undefined;
   if (impact !== undefined && options.motionQuality?.calmImpactMultiplier !== undefined)
     options.impactWeight = (options.impactWeight ?? 2) * (1 + (options.motionQuality.calmImpactMultiplier - 1) * Math.max(0, 1 - impact / .2));

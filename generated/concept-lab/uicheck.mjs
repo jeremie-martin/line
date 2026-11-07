@@ -286,7 +286,8 @@ try {
     await p.reload(); await settled(p); let s = await st(p);
     check(s.mix.scheme === 'hokusai' && s.mix.night === 'on' && (await p.locator('#concept').textContent()) === 'Hokusai · adjusted', 'reload restores preset and adjustments');
     // rapid song switching
-    await tap(p, '#songs button', 1); await tap(p, '#songs button', 2); await tap(p, '#songs button', 4);
+    // by name, not position, so adding a song never breaks the check
+    for (const name of ['Lua na Praça', 'Los Voltaje', 'Let the World Burn']) await p.locator('#songs button', {hasText: name}).tap();
     await settled(p); await p.waitForTimeout(1200); s = await st(p);
     check(s.song === 'burn' && s.loaded === 'burn' && (await p.locator('#songs button.on').textContent()) === 'Let the World Burn', 'rapid song taps end on the last song', `${s.song} ${s.loaded}`);
     check(s.mix.scheme === 'hokusai' && s.mix.night === 'on', 'switching songs keeps the look');

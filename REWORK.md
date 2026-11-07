@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: what stepping is made of
+
+Splitting `step_state` for one profile: the rider's constraint solver takes 2.9 s of a
+15.5 s compile, its 120 square roots and divisions per frame cannot be skipped or reordered
+exactly, and sweeps, near lines and registration are 1.7, 1.6 and 1.9 s. Bucket searches
+chased two pointers for each line id, so a reference now carries its id: −0.8%, within
+noise, and simpler to read. Rejected, each measured: comparing positions instead of
+dividing per sweep (−0.2%), `wasm-opt -O3` (no change), compact retained candidate
+geometry (scavenges 810 to 750 ms, not worth a new type). V8 is healthy: 172 deopts,
+controls keep fast properties, mark-compact costs 23 ms. Of 160 k candidates, 106 k pass
+every check, so measurement is not wasted on losers.
+
 ## November 7: test only the lines a point can reach
 
 A collision sweep tested about 360 lines per frame, and 90% were out of reach of any

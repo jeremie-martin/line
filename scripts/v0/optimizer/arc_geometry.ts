@@ -104,8 +104,9 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
     if(radius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
     previousAngle=a;
-    v=Math.max(1,v+.175*Math.sin(a)*dt);
-    const xx=x+Math.cos(a)*v*dt, yy=y+Math.sin(a)*v*dt;
+    const sine=Math.sin(a);
+    v=Math.max(1,v+.175*sine*dt);
+    const xx=x+Math.cos(a)*v*dt, yy=y+sine*v*dt;
     main.push({x:xx,y:yy});x=xx;y=yy;
   }
   const mainCount=main.length-1,clearance=c.clearance??channel;

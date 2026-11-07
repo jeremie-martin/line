@@ -85,10 +85,12 @@ impl Line {
 
 /// A line reference keeps its immutable batch alive. Geometry is contiguous;
 /// grid edits and detached caches clone ownership, never the line payloads.
+/// The id is copied here because bucket searches read nothing else.
 #[derive(Clone)]
 pub(crate) struct LineRef {
+    pub id: i32,
+    line: *const Line, // into `batch`, which is never modified once shared
     batch: Rc<LineBatch>,
-    index: usize,
 }
 
 struct LineBatch {
@@ -107,7 +109,7 @@ impl LineRef {
             line.cell_range = start..cells.len();
         }
         let batch = Rc::new(LineBatch { lines, cells });
-        (0..batch.lines.len()).map(|index| Self { batch: batch.clone(), index }).collect()
+        batch.lines.iter().map(|line| Self { id: line.id, line, batch: batch.clone() }).collect()
     }
 
     pub(crate) fn cells(&self) -> &[(i64, i64)] {
@@ -118,7 +120,10 @@ impl LineRef {
 impl std::ops::Deref for LineRef {
     type Target = Line;
     #[inline]
-    fn deref(&self) -> &Line { &self.batch.lines[self.index] }
+    fn deref(&self) -> &Line {
+        // SAFETY: `batch` owns the line and outlives this reference.
+        unsafe { &*self.line }
+    }
 }
 
 #[cfg(test)]

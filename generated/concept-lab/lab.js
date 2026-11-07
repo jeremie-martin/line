@@ -79,11 +79,62 @@ const SCHEMES = {
   // Café (Espresso refined, after the owner's verdict that Dune's amber suited it): coffee, cream line, darker latte bars, amber.
   // Character: Black's warm sibling; the latte bars are darkened so the amber stands apart in lightness (7 / 93 / 49 / 77).
   cafe: {paper: '#1e130e', ink: '#f4ead9', pencil: '#584d45', mass: '#8a6f58', accent: '#ffb000', nightPaper: '#1e130e', nightInk: '#f4ead9'},
+  // Round 10: from Sanzo Wada's Dictionary of Color Combinations (agents/wada): each a proven combination, assigned to our roles
+  // with the rules learned from the owner's verdicts (bars carry more colour than the paper; paper and bars in one family, etc.).
+
+  // Prussian — Wada no. 343 (Burnt Sienna, Ivory Buff, Deep Grayish Olive, Vandar Poel's Blue).
+  //   paper Ivory Buff · bars Vandar Poel's Blue · accent Burnt Sienna · ink made · adjusted: paper L 0.875→0.935, C 0.069→0.026; accent L 0.546→0.63
+  //   Hokusai's sea-green cousin: ivory, a deep Prussian teal band, one burnt-sienna bar.
+  wPrussian: {paper: '#f2e9d6', ink: '#0b2532', pencil: '#adaea5', mass: '#064f6e', accent: '#ca6b3f', nightPaper: '#041620', nightInk: '#f2e9d6'},
+  // Brick — Wada no. 325 (Eugenia Red | B, Naples Yellow, Yellow Ocher, Deep Slate Green).
+  //   paper Naples Yellow · bars Eugenia Red | B · accent Yellow Ocher · ink Deep Slate Green · adjusted: paper L 0.926→0.945, C 0.091→0.03, h 93.367→85; mass L 0.622→0.54, C 0.17→0.16; ink L 0.281→0.24; night paper L 0.281→0.21, C 0.036→0.025
+  //   Naples-yellow cream, a rose-brick band, one ochre bar, the line in Wada's deep slate green; its night is Gilt.
+  wBrick: {paper: '#f6ecd7', ink: '#062522', pencil: '#aeb0a1', mass: '#b93c48', accent: '#e2b540', nightPaper: '#091c1a', nightInk: '#fbe6a0'},
+  // Orchid — Wada no. 315 (Grenadine Pink, Sulpher Yellow, Golden Yellow, Eupatorium Purple).
+  //   paper Sulpher Yellow · bars Eupatorium Purple · accent Golden Yellow · ink made · adjusted: paper L 0.94→0.95, C 0.055→0.018; mass L 0.605→0.55
+  //   Cream, an orchid band, a marigold bar: Lavender's warmer, pinker sister.
+  wOrchid: {paper: '#f2efe1', ink: '#2d1723', pencil: '#b7aea8', mass: '#ac4781', accent: '#f3a257', nightPaper: '#1f0d17', nightInk: '#f2efe1'},
+  // Verdigris — Wada no. 266 (Spectrum Red, Ivory Buff, Rainette Green, Benzol Green).
+  //   paper Ivory Buff · bars Benzol Green · accent Spectrum Red · ink made · adjusted: paper L 0.875→0.935, C 0.069→0.026; mass L 0.609→0.52; accent L 0.586→0.66
+  //   Ivory, a verdigris band, one vermilion bar: a cooler band on a warm page.
+  wVerdigris: {paper: '#f2e9d6', ink: '#072522', pencil: '#acaea0', mass: '#027971', accent: '#fe423f', nightPaper: '#001816', nightInk: '#f2e9d6'},
+  // Denim — Wada no. 279 (Raw Sienna, Vinaceous Cinnamon, Ecru, Dark Tyrian Blue).
+  //   paper Ecru · bars Dark Tyrian Blue · accent Vinaceous Cinnamon · ink made · adjusted: paper L 0.761→0.74, C 0.044→0.052; accent L 0.79→0.88
+  //   Kraft's blue twin: ecru card, a navy band, one pale cinnamon bar like white ink.
+  wDenim: {paper: '#bea787', ink: '#061825', pencil: '#877c6a', mass: '#12354e', accent: '#ffcab6', nightPaper: '#0a151e', nightInk: '#bea787'},
+  // Russet — Wada no. 249 (Hay's Russet, Ecru, Olive Ocher, Dark Medici Blue).
+  //   paper Ecru · bars Hay's Russet · accent Olive Ocher · ink made · adjusted: paper L 0.761→0.74; accent L 0.779→0.82
+  //   Ecru card, an oxblood-russet band, one ochre-gold bar: Kraft dressed warmer.
+  wRusset: {paper: '#bba78d', ink: '#22110d', pencil: '#8d7a67', mass: '#793327', accent: '#e3c14d', nightPaper: '#210d0a', nightInk: '#bba78d'},
+  // Magenta — Wada no. 144 (Rosolanc Purple, Orange, Black).
+  //   paper Black · bars Rosolanc Purple · accent Orange · ink made · adjusted: paper L 0.185→0.18, C 0.004→0.014, h 229.03→357; accent L 0.698→0.74
+  //   A near-black page, a deep magenta band, one orange bar: Plum turned up.
+  wMagenta: {paper: '#170f12', ink: '#f8ebee', pencil: '#5b5154', mass: '#b73f74', accent: '#ff833a', nightPaper: '#170f12', nightInk: '#f8ebee'},
+  // Viridian — Wada no. 256 (Vinaceous Cinnamon, Orange, Dull Viridian Green, Black).
+  //   paper Black · bars Dull Viridian Green · accent Vinaceous Cinnamon · ink made · adjusted: paper L 0.185→0.18, C 0.004→0.014, h 229.03→162; mass L 0.589→0.56
+  //   Green-black, a viridian band, one pale cinnamon bar: a night garden.
+  wViridian: {paper: '#0c1410', ink: '#e8f1ec', pencil: '#4e5652', mass: '#078a5e', accent: '#eea78c', nightPaper: '#0c1410', nightInk: '#e8f1ec'},
+  // Ultramarine — Wada no. 295 (Cream Yellow, Yellow, Blue, Dull Violet Black).
+  //   paper Dull Violet Black · bars Blue · accent Cream Yellow · ink made · adjusted: paper L 0.221→0.2, C 0.088→0.04
+  //   Violet-black, a pure blue band, one cream-yellow bar: deep and clear.
+  wUltramarine: {paper: '#171226', ink: '#eaeef9', pencil: '#565465', mass: '#006eb8', accent: '#fdbf68', nightPaper: '#171226', nightInk: '#eaeef9'},
+  // Old Rose — Wada no. 265 (Old Rose, Apricot Yellow, Olive Yellow, Dull Violet Black).
+  //   paper Dull Violet Black · bars Old Rose · accent Apricot Yellow · ink made · adjusted: paper L 0.221→0.2, C 0.088→0.04; mass L 0.657→0.62; accent L 0.899→0.88, C 0.186→0.15, h 97.857→88
+  //   Violet-black, an old-rose band, one yellow bar: dusk in a velvet room.
+  wOldRose: {paper: '#171226', ink: '#f8ebeb', pencil: '#5b5361', mass: '#c7626f', accent: '#ffd15a', nightPaper: '#171226', nightInk: '#f8ebeb'},
+  // Indigo Teal — Wada no. 155 (Jasper Red, Benzol Green, Deep Indigo).
+  //   paper Deep Indigo · bars Benzol Green · accent Jasper Red · ink made · adjusted: paper L 0.192→0.19, C 0.063→0.035; mass L 0.609→0.57; accent L 0.643→0.74
+  //   Deep indigo, a teal band, one coral bar: Midnight with the sea in it.
+  wIndigoTeal: {paper: '#0b1323', ink: '#e7f0f5', pencil: '#4d5562', mass: '#078a81', accent: '#ff815d', nightPaper: '#0b1323', nightInk: '#e7f0f5'},
+  // Gilt — Wada no. 325 (Eugenia Red | B, Naples Yellow, Yellow Ocher, Deep Slate Green).
+  //   paper Deep Slate Green · bars Yellow Ocher · accent Eugenia Red | B · ink Naples Yellow · adjusted: paper L 0.281→0.21, C 0.036→0.025; mass L 0.793→0.72; accent L 0.622→0.56
+  //   Bottle-green black, an ochre-gold band, a rose-red bar, the line in Naples yellow.
+  wGilt: {paper: '#091c1a', ink: '#fbe6a0', pencil: '#525942', mass: '#ca9e1f', accent: '#c43d4b', nightPaper: '#091c1a', nightInk: '#fbe6a0'},
   // a lab-only test: Riso with darker ink and a quieter band. If it reads as clearly as Hokusai, lightness was Riso's problem.
   risoDeep: {paper: '#f7f3e9', ink: '#0d2063', pencil: '#b9b7cf', mass: '#304d99', accent: '#ff3d7f', nightPaper: '#14206e', nightInk: '#f7f3e9'},
 };
 const DIMS = {
-  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
+  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
   size: ['Size', {today: 'Today', s58: '7 % closer', s62: '15 % closer', s68: '25 % closer'}],
   place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Follows direction, higher', followMid: 'Follows direction, between', followLow: 'Follows direction, at Tamed’s height'}],
   tide: ['Zoom over time', {steady: 'Steady', quietI: 'Out when quiet', breath: 'One breath', fit: 'Fitted to the song'}],
@@ -178,50 +229,34 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'split', ask: 'The colour split, compared fairly', why: 'Asked again: last time B and C could not be selected (now fixed), and Halfway put red at the bottom (fixed too: red now stays on the hit’s side). Varies: only the split’s direction. Fixed: shake in the hit’s direction, no flash, each hit on its own. All three show the same amount of split on average, measured on four songs. As in production, the split touches the ride, not the band. Keep any number.',
-    song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
-      ['Today’s, sideways', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'today'}, 'Sideways, as shipped.'],
-      ['In the hit’s direction', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'dir'}, 'Scaled to show the same amount as today’s, on average.'],
-      ['Halfway between', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'half'}, 'Between sideways and the hit’s direction, the same amount.'],
-      ['None', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', fls: 'none', spl: 'none'}, 'No split, for reference.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
-  {id: 'flashgate', ask: 'The flash toward the paper: how often?', why: 'Your pick, by a wide margin. It follows each hit’s own strength twice: the gate decides which hits flash at all, and inside it a stronger hit flashes brighter and longer. Varies: only where the gate opens. Fixed: shake in the hit’s direction, today’s split, each hit on its own.',
-    song: 'petrunko', t: 33.6, len: 6, opts: [
-      ['Rarest (from 0.82)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '82'}, 'About 1–11 flashes a minute, as in round 8.'],
-      ['More often (from 0.76)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '76'}, 'About 11–18 a minute.'],
-      ['Often (from 0.70)', {...plain, music: 'redbars', hit: 'parts', drv: 'held', shk: 'blow', spl: 'today', fls: 'paperRare', flg: '70'}, 'About 20–28 a minute.']],
-    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Dune', 33.6, 'petrunko', {scheme: 'dune'}]]},
-  {id: 'shake', ask: 'The shake, now that each hit is on its own', why: 'Varies: only the shake. Fixed: today’s split, no flash, each hit on its own. Use the exaggerate slider to see the differences more easily; it is only a viewing aid and resets on the next question. Keep any number.',
-    song: 'tomada', t: 36.5, len: 5, multi: true, exaggerate: true, opts: [
-      ['Today’s', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'today'}, 'Two axes, 9 Hz, slight rotation.'],
-      ['In the hit’s direction', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'blow'}, 'The same 9 Hz, starting with the hit and along its direction.'],
-      ['Thud', {...plain, music: 'redbars', hit: 'parts', drv: 'held', spl: 'today', fls: 'none', shk: 'thud'}, 'Knocked along the hit’s direction, then springing back.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
-  {id: 'kraft9', ask: 'Kraft as a whole theme', why: 'You liked the darker paper best and said the lighter one needs different bars: “it’s the entire theme as a whole”. In every scheme you love, the bars carry more colour than the paper; Kraft’s are the other way round. Here the bars carry the colour, and the lighter paper gets lighter bars and a dark accent. Keep any number.',
+  {id: 'wada', ask: 'Palettes from Wada’s dictionary: which have a place?', why: 'Following your idea of not reinventing the wheel: every palette comes from one of the 348 hand-made colour combinations in Sanzo Wada’s Dictionary of Color Combinations (1933), a classic designers still use. The work was to give each colour a role (paper, line, bars, accent) with what your verdicts taught: the bars carry more colour than the paper, the paper and bars sit in one family, and a dark paper may be near-neutral but a mid-tone one may not. Varies: only the colours. Your Hokusai and Café are there for comparison. Keep any number.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft'}, 'For reference.'],
-      ['Darker paper', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~4'}, 'Your favourite in round 8.'],
-      ['Darker paper, richer bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~b'}, 'The bars carry the colour.'],
-      ['As designed, richer bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~a'}, 'The original paper with the richer bars.'],
-      ['Lighter paper, lighter bars, dark accent', {...plain, music: 'redbars', hit: 'strong', scheme: 'kraft~c'}, 'The lighter paper with bars and accent re-tuned for it.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
-  {id: 'cyan9', ask: 'Cyanotype: a little more colour?', why: 'You preferred “less colour” by far, and asked for something with a bit more colour but integrated as cleanly, plus a better darker one. All keep the paper less colourful than the bars. Keep any number.',
+      ['Hokusai (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'hokusai'}, 'For reference: loved.'],
+      ['Prussian', {...plain, music: 'redbars', hit: 'parts', scheme: 'wPrussian'}, 'Wada 343. Ivory, a deep Prussian-teal band, one burnt-sienna bar: Hokusai’s sea-green cousin.'],
+      ['Brick', {...plain, music: 'redbars', hit: 'parts', scheme: 'wBrick'}, 'Wada 325. Cream, a rose-brick band, an ochre bar, the line in deep slate green.'],
+      ['Orchid', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOrchid'}, 'Wada 315. Cream, an orchid band, a marigold bar: a warmer, pinker Lavender.'],
+      ['Verdigris', {...plain, music: 'redbars', hit: 'parts', scheme: 'wVerdigris'}, 'Wada 266. Ivory, a verdigris band, one vermilion bar.'],
+      ['Denim', {...plain, music: 'redbars', hit: 'parts', scheme: 'wDenim'}, 'Wada 279. Ecru, a navy band, a pale cinnamon bar: a Kraft sibling.'],
+      ['Russet', {...plain, music: 'redbars', hit: 'parts', scheme: 'wRusset'}, 'Wada 249. Ecru, a russet band, an ochre-gold bar: a Kraft sibling.'],
+      ['Magenta', {...plain, music: 'redbars', hit: 'parts', scheme: 'wMagenta'}, 'Wada 144. Near-black, a magenta band, an orange bar: Plum turned up.'],
+      ['Viridian', {...plain, music: 'redbars', hit: 'parts', scheme: 'wViridian'}, 'Wada 256. Green-black, a viridian band, a pale cinnamon bar.'],
+      ['Ultramarine', {...plain, music: 'redbars', hit: 'parts', scheme: 'wUltramarine'}, 'Wada 295. Violet-black, a pure blue band, a cream-yellow bar.'],
+      ['Old Rose', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose'}, 'Wada 265. Violet-black, an old-rose band, a yellow bar: soft and elegant.'],
+      ['Indigo Teal', {...plain, music: 'redbars', hit: 'parts', scheme: 'wIndigoTeal'}, 'Wada 155. Deep indigo, a teal band, a coral bar.'],
+      ['Gilt', {...plain, music: 'redbars', hit: 'parts', scheme: 'wGilt'}, 'Wada 325. Bottle-green black, a gold band, a rose-red bar, the line in Naples yellow.'],
+      ['Café (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'cafe'}, 'For reference: “extremely tasteful”.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
+  {id: 'kraftred', ask: 'Kraft’s lighter paper with a red accent?', why: 'You chose the darker paper, and said the lighter one was correct but its accent questionable: “maybe something red-ish?”. Varies: only the accent, on the lighter version. Keep any number.',
     song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Less colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~0'}, 'Your favourite in round 8.'],
-      ['A little more colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~a'}, 'Between “less colour” and the original, still quieter than the bars.'],
-      ['A little more, toward indigo', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~b'}, 'The same amount, the hue moved toward indigo.'],
-      ['Darker, quieter', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype~c'}, 'Darker and calmer than round 8’s darker.'],
-      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'cyanotype'}, 'For reference.']],
+      ['Darker paper (chosen)', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft'}, 'Your pick in round 9.'],
+      ['Lighter, dark accent', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft~c'}, 'As in round 9.'],
+      ['Lighter, red accent', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft~d'}, 'The same, with a brick-red accent.']],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
-  {id: 'rothko9', ask: 'Rothko: can the original paper work?', why: 'You liked less colour, almost neutral and darker, and wondered whether the original paper could work with a better integration. Two tries keep the original paper and change the bars. Keep any number.',
-    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Less colour', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~0'}, 'Liked in round 8.'],
-      ['Almost neutral', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~1'}, 'Liked in round 8: “very elegant, especially with the bars”.'],
-      ['Darker', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~2'}, 'Liked in round 8.'],
-      ['As designed, dusty-rose bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~a'}, 'The original paper; the bars move toward its own red, lighter and softer.'],
-      ['As designed, peach bars', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko~b'}, 'The original paper; the bars move toward peach.'],
-      ['As designed', {...plain, music: 'redbars', hit: 'strong', scheme: 'rothko'}, 'For reference.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
+  {id: 'together', ask: 'The hits you chose, all together', why: 'You chose each part on its own: thud, halfway split, flash toward the paper from 0.80, each hit on its own. This checks them together against today’s full set. Varies: the whole hit treatment. Keep any number.',
+    song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma'}, 'The shipped recipe: every hit piling up, wobble, sideways split, white flash.'],
+      ['Your set', {...plain, music: 'redbars', hit: 'parts'}, 'Thud, halfway split, flash toward the paper on the hardest hits, each hit on its own.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['On Café (dark)', 36.5, 'tomada', {scheme: 'cafe'}], ['On Hokusai', 36.5, 'tomada', {scheme: 'hokusai'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -242,7 +277,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r9';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r10';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -572,6 +607,7 @@ const VARIANTS = {
   'kraft~a': ['As designed, richer bars', 'kraft', {mass: '#5d3414'}],
   'kraft~b': ['Darker paper, richer bars', 'kraft', {paper: '#bb9e79', mass: '#552c0a'}],
   'kraft~c': ['Lighter paper, lighter bars, dark accent', 'kraft', {paper: '#e4ccad', mass: '#8b6a4d', accent: '#1a140e'}],
+  'kraft~d': ['Lighter paper, lighter bars, red accent', 'kraft', {paper: '#e4ccad', mass: '#8b6a4d', accent: '#b23a2a'}], // R10: "maybe something red-ish?"
   'cyanotype~a': ['A little more colour than “less”', 'cyanotype', {paper: '#304b71'}],
   'cyanotype~b': ['A little more colour, toward indigo', 'cyanotype', {paper: '#3b456c'}],
   'cyanotype~c': ['Darker, quieter', 'cyanotype', {paper: '#21334f'}],

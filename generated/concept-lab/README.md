@@ -1,4 +1,4 @@
-# Concept lab (round 9, November 7, 2026)
+# Concept lab (round 10, November 7, 2026)
 
 A live browser lab for the finished videos' visual direction. It plays real rides with their music.
 - The native Line Rider rider artwork and the replay worker are reused unchanged.
@@ -17,12 +17,12 @@ Start at `morning.html` (served by `npm run serve`):
 
 | Entry | What it is |
 |---|---|
-| `morning.html` | Index of all rounds. Round 9 is `round9.html` (split re-asked, flash gates `flg`, shake with `?shakeX`, whole-theme `VARIANTS`); round 8 `round8.html` (fair split, rare flash, paper study); round 7 `round7.html`: questions in the lab, no films. Round 6 is `round6.html` (`gen-morning6.py`, `films6.json`). |
+| `morning.html` | Index of all rounds. Round 10 is `round10.html` (Wada palettes `w*`, from `agents/wada`); round 9 `round9.html` (split re-asked, flash gates `flg`, shake with `?shakeX`, whole-theme `VARIANTS`); round 8 `round8.html` (fair split, rare flash, paper study); round 7 `round7.html`: questions in the lab, no films. Round 6 is `round6.html` (`gen-morning6.py`, `films6.json`). |
 | `fourup/r6/` | 4K four-ups: the owner's Los Voltaje moments on the old ride, biggest hits, camera, colours, drop switch, band pool. Built by `films6.sh` and `fourup.sh` (set `DIR=films6`). |
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |
 | `LEDGER.md` | Every piece by layer, with its status and the owner's words. Verdicts are filed per piece, never per look. |
 | `clarify.html` | The clarification round before round 6. Answers in `agents/clarify-answers-r6.md`. |
-| `?q=1` | Six questions. Stored in localStorage as `concept-lab-answers-r9`. `uicheck.mjs` (82 interaction checks, on a frozen question set via `?qtest=1`) must pass before a round goes out; `qcheck.mjs` walks the live questions. `splitmeasure.mjs` measures visible split fringe per option; `SPLIT_MATCH` holds the fitted factors; `BG_STUDY` the paper variants. Hits are built by parts (`hit: 'parts'`, `shk`, `spl`, `fls`, `drv`) with today's recipe as the reference. |
+| `?q=1` | Six questions. Stored in localStorage as `concept-lab-answers-r10`. `uicheck.mjs` (82 interaction checks, on a frozen question set via `?qtest=1`) must pass before a round goes out; `qcheck.mjs` walks the live questions. `splitmeasure.mjs` measures visible split fringe per option; `SPLIT_MATCH` holds the fitted factors; `BG_STUDY` the paper variants. Hits are built by parts (`hit: 'parts'`, `shk`, `spl`, `fls`, `drv`) with today's recipe as the reference. |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab. |
 

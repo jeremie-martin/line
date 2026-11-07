@@ -1,0 +1,2503 @@
+[
+ {
+  "combo": 323,
+  "colours": [
+   "Cinnamon Buff #fdc57e",
+   "Citron Yellow #b2b73e",
+   "Madder Brown #762c19",
+   "Black #111314"
+  ],
+  "score": 3.367,
+  "why": [],
+  "notes": [
+   "ink = Cinnamon Buff"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Black",
+    "hex": "#111314",
+    "L": 0.18494630690866123,
+    "C": 0.003787760485369878,
+    "h": 229.03015535381425
+   },
+   "mass": {
+    "name": "Citron Yellow",
+    "hex": "#b2b73e",
+    "L": 0.7528720778115349,
+    "C": 0.14141343902506084,
+    "h": 111.63696108176134
+   },
+   "accent": {
+    "name": "Madder Brown",
+    "hex": "#762c19",
+    "L": 0.39726689426667866,
+    "C": 0.10866165190225414,
+    "h": 35.427114345568555
+   }
+  },
+  "scheme": {
+   "paper": "#111314",
+   "ink": "#fdc57e",
+   "pencil": "#584834",
+   "mass": "#b2b73e",
+   "accent": "#762c19",
+   "nightPaper": "#111314",
+   "nightInk": "#fdc57e"
+  },
+  "names": {
+   "paper": "Black",
+   "mass": "Citron Yellow",
+   "accent": "Madder Brown",
+   "ink": "Cinnamon Buff"
+  },
+  "metrics": {
+   "paperC": 0.004,
+   "massC": 0.141,
+   "dL_paper_bars": 0.568,
+   "dL_bars_accent": 0.356
+  }
+ },
+ {
+  "combo": 144,
+  "colours": [
+   "Rosolanc Purple #b73f74",
+   "Orange #f37420",
+   "Black #111314"
+  ],
+  "score": 3.178,
+  "why": [],
+  "notes": [
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Black",
+    "hex": "#111314",
+    "L": 0.18494630690866123,
+    "C": 0.003787760485369878,
+    "h": 229.03015535381425
+   },
+   "mass": {
+    "name": "Rosolanc Purple",
+    "hex": "#b73f74",
+    "L": 0.5512687568572534,
+    "C": 0.16249920308789373,
+    "h": 356.54231925614556
+   },
+   "accent": {
+    "name": "Orange",
+    "hex": "#f37420",
+    "L": 0.6981304451934759,
+    "C": 0.17853226639793382,
+    "h": 48.00920226412302
+   }
+  },
+  "scheme": {
+   "paper": "#111314",
+   "ink": "#fbe9ef",
+   "pencil": "#575356",
+   "mass": "#b73f74",
+   "accent": "#f37420",
+   "nightPaper": "#111314",
+   "nightInk": "#fbe9ef"
+  },
+  "names": {
+   "paper": "Black",
+   "mass": "Rosolanc Purple",
+   "accent": "Orange",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.004,
+   "massC": 0.162,
+   "dL_paper_bars": 0.366,
+   "dL_bars_accent": 0.147
+  }
+ },
+ {
+  "combo": 256,
+  "colours": [
+   "Vinaceous Cinnamon #eea78c",
+   "Orange #f37420",
+   "Dull Viridian Green #009465",
+   "Black #111314"
+  ],
+  "score": 3.048,
+  "why": [],
+  "notes": [
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Black",
+    "hex": "#111314",
+    "L": 0.18494630690866123,
+    "C": 0.003787760485369878,
+    "h": 229.03015535381425
+   },
+   "mass": {
+    "name": "Dull Viridian Green",
+    "hex": "#009465",
+    "L": 0.5891620119119219,
+    "C": 0.12901735118287277,
+    "h": 162.1001425687747
+   },
+   "accent": {
+    "name": "Vinaceous Cinnamon",
+    "hex": "#eea78c",
+    "L": 0.7900289392159718,
+    "C": 0.09248413176411668,
+    "h": 41.66521528428632
+   }
+  },
+  "scheme": {
+   "paper": "#111314",
+   "ink": "#e3f3ea",
+   "pencil": "#505654",
+   "mass": "#009465",
+   "accent": "#eea78c",
+   "nightPaper": "#111314",
+   "nightInk": "#e3f3ea"
+  },
+  "names": {
+   "paper": "Black",
+   "mass": "Dull Viridian Green",
+   "accent": "Vinaceous Cinnamon",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.004,
+   "massC": 0.129,
+   "dL_paper_bars": 0.404,
+   "dL_bars_accent": 0.201
+  }
+ },
+ {
+  "combo": 295,
+  "colours": [
+   "Cream Yellow #fdbf68",
+   "Yellow #fff200",
+   "Blue #006eb8",
+   "Dull Violet Black #1e0e3f"
+  ],
+  "score": 2.872,
+  "why": [],
+  "notes": [
+   "paper chroma 0.088→0.035",
+   "bars L 0.526→0.541",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Dull Violet Black",
+    "hex": "#1e0e3f",
+    "L": 0.22134094182445524,
+    "C": 0.035,
+    "h": 292.7591759922245
+   },
+   "mass": {
+    "name": "Blue",
+    "hex": "#006eb8",
+    "L": 0.5413409418244552,
+    "C": 0.14259947551133395,
+    "h": 248.28241234680664
+   },
+   "accent": {
+    "name": "Cream Yellow",
+    "hex": "#fdbf68",
+    "L": 0.8442591015211753,
+    "C": 0.12620994403156396,
+    "h": 73.9333949087374
+   }
+  },
+  "scheme": {
+   "paper": "#1b182a",
+   "ink": "#e4f0fc",
+   "pencil": "#575969",
+   "mass": "#0c73bd",
+   "accent": "#fdbf68",
+   "nightPaper": "#1b182a",
+   "nightInk": "#e4f0fc"
+  },
+  "names": {
+   "paper": "Dull Violet Black",
+   "mass": "Blue",
+   "accent": "Cream Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.143,
+   "dL_paper_bars": 0.32,
+   "dL_bars_accent": 0.303
+  }
+ },
+ {
+  "combo": 307,
+  "colours": [
+   "Carmine #cc1236",
+   "Grayish Lavender - A #b5b1d8",
+   "Aconite Violet #a36aa5",
+   "Cotinga Purple #501345"
+  ],
+  "score": 2.85,
+  "why": [],
+  "notes": [
+   "paper chroma 0.055→0.055",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Grayish Lavender - A",
+    "hex": "#b5b1d8",
+    "L": 0.776665235736522,
+    "C": 0.05490530991755713,
+    "h": 289.7480022680166
+   },
+   "mass": {
+    "name": "Cotinga Purple",
+    "hex": "#501345",
+    "L": 0.3107640429201083,
+    "C": 0.10981061983511425,
+    "h": 336.0457276846963
+   },
+   "accent": {
+    "name": "Carmine",
+    "hex": "#cc1236",
+    "L": 0.5397039606217364,
+    "C": 0.20962890129152176,
+    "h": 20.401500256048564
+   }
+  },
+  "scheme": {
+   "paper": "#b5b1d8",
+   "ink": "#2b1826",
+   "pencil": "#8c83a3",
+   "mass": "#501345",
+   "accent": "#cc1236",
+   "nightPaper": "#1c0e19",
+   "nightInk": "#b5b1d8"
+  },
+  "names": {
+   "paper": "Grayish Lavender - A",
+   "mass": "Cotinga Purple",
+   "accent": "Carmine",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.055,
+   "massC": 0.11,
+   "dL_paper_bars": 0.466,
+   "dL_bars_accent": 0.229
+  }
+ },
+ {
+  "combo": 344,
+  "colours": [
+   "Cinnamon Buff #fdc57e",
+   "Deep Lyons Blue #1c4286",
+   "Aconite Violet #a36aa5",
+   "Black #111314"
+  ],
+  "score": 2.803,
+  "why": [],
+  "notes": [
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Black",
+    "hex": "#111314",
+    "L": 0.18494630690866123,
+    "C": 0.003787760485369878,
+    "h": 229.03015535381425
+   },
+   "mass": {
+    "name": "Aconite Violet",
+    "hex": "#a36aa5",
+    "L": 0.6056672081425475,
+    "C": 0.10856921298993012,
+    "h": 325.6432617437218
+   },
+   "accent": {
+    "name": "Cinnamon Buff",
+    "hex": "#fdc57e",
+    "L": 0.85854525128674,
+    "C": 0.10912573636318973,
+    "h": 72.11295092447455
+   }
+  },
+  "scheme": {
+   "paper": "#111314",
+   "ink": "#f6eaf6",
+   "pencil": "#565458",
+   "mass": "#a36aa5",
+   "accent": "#fdc57e",
+   "nightPaper": "#111314",
+   "nightInk": "#f6eaf6"
+  },
+  "names": {
+   "paper": "Black",
+   "mass": "Aconite Violet",
+   "accent": "Cinnamon Buff",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.004,
+   "massC": 0.109,
+   "dL_paper_bars": 0.421,
+   "dL_bars_accent": 0.253
+  }
+ },
+ {
+  "combo": 216,
+  "colours": [
+   "Jasper Red #eb5324",
+   "Green #489b6e",
+   "Black #111314"
+  ],
+  "score": 2.581,
+  "why": [],
+  "notes": [
+   "accent L 0.643→0.775",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Black",
+    "hex": "#111314",
+    "L": 0.18494630690866123,
+    "C": 0.003787760485369878,
+    "h": 229.03015535381425
+   },
+   "mass": {
+    "name": "Green",
+    "hex": "#489b6e",
+    "L": 0.625165459639065,
+    "C": 0.10679013628305338,
+    "h": 157.4796998390002
+   },
+   "accent": {
+    "name": "Jasper Red",
+    "hex": "#eb5324",
+    "L": 0.775165459639065,
+    "C": 0.19623125725367624,
+    "h": 36.63997313702282
+   }
+  },
+  "scheme": {
+   "paper": "#111314",
+   "ink": "#e4f3e9",
+   "pencil": "#505654",
+   "mass": "#489b6e",
+   "accent": "#ff9577",
+   "nightPaper": "#111314",
+   "nightInk": "#e4f3e9"
+  },
+  "names": {
+   "paper": "Black",
+   "mass": "Green",
+   "accent": "Jasper Red",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.004,
+   "massC": 0.107,
+   "dL_paper_bars": 0.44,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 262,
+  "colours": [
+   "Eugenia Red | B #da525d",
+   "Ivory Buff #ebd3a2",
+   "Citrine #b09f36",
+   "Cossack Green #437742"
+  ],
+  "score": 1.786,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.069→0.03",
+   "paper L 0.875→0.92",
+   "bars L 0.622→0.54",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Ivory Buff",
+    "hex": "#ebd3a2",
+    "L": 0.92,
+    "C": 0.03,
+    "h": 84.83374445557575
+   },
+   "mass": {
+    "name": "Eugenia Red | B",
+    "hex": "#da525d",
+    "L": 0.54,
+    "C": 0.17028003721505647,
+    "h": 18.82796100817677
+   },
+   "accent": {
+    "name": "Citrine",
+    "hex": "#b09f36",
+    "L": 0.6979522364478362,
+    "C": 0.12407400808764085,
+    "h": 99.93850095369896
+   }
+  },
+  "scheme": {
+   "paper": "#eee4cf",
+   "ink": "#301718",
+   "pencil": "#b5a798",
+   "mass": "#bd3746",
+   "accent": "#b09f36",
+   "nightPaper": "#200e0e",
+   "nightInk": "#eee4cf"
+  },
+  "names": {
+   "paper": "Ivory Buff",
+   "mass": "Eugenia Red | B",
+   "accent": "Citrine",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.03,
+   "massC": 0.17,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.158
+  }
+ },
+ {
+  "combo": 271,
+  "colours": [
+   "Pomegranite Purple #b71f57",
+   "Cobalt Green #96d1aa",
+   "Green Blue #099197",
+   "Deep Slate Green #112f2c"
+  ],
+  "score": 1.676,
+  "why": [],
+  "notes": [
+   "paper chroma 0.036→0.035",
+   "paper L 0.281→0.22",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Deep Slate Green",
+    "hex": "#112f2c",
+    "L": 0.22,
+    "C": 0.035,
+    "h": 186.61132278433
+   },
+   "mass": {
+    "name": "Cobalt Green",
+    "hex": "#96d1aa",
+    "L": 0.8095737267720375,
+    "C": 0.08198353522433499,
+    "h": 155.20350267776382
+   },
+   "accent": {
+    "name": "Pomegranite Purple",
+    "hex": "#b71f57",
+    "L": 0.5140023410742031,
+    "C": 0.18738098772672962,
+    "h": 5.8062184651457756
+   }
+  },
+  "scheme": {
+   "paper": "#03201d",
+   "ink": "#e5f3e9",
+   "pencil": "#475f5a",
+   "mass": "#96d1aa",
+   "accent": "#b71f57",
+   "nightPaper": "#03201d",
+   "nightInk": "#e5f3e9"
+  },
+  "names": {
+   "paper": "Deep Slate Green",
+   "mass": "Cobalt Green",
+   "accent": "Pomegranite Purple",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.082,
+   "dL_paper_bars": 0.59,
+   "dL_bars_accent": 0.296
+  }
+ },
+ {
+  "combo": 155,
+  "colours": [
+   "Jasper Red #eb5324",
+   "Benzol Green #00978d",
+   "Deep Indigo #051230"
+  ],
+  "score": 1.642,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.063→0.035",
+   "accent L 0.643→0.759",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Deep Indigo",
+    "hex": "#051230",
+    "L": 0.1919107264625682,
+    "C": 0.035,
+    "h": 262.9823108676926
+   },
+   "mass": {
+    "name": "Benzol Green",
+    "hex": "#00978d",
+    "L": 0.6088590321554218,
+    "C": 0.10650371095294657,
+    "h": 186.5922328685387
+   },
+   "accent": {
+    "name": "Jasper Red",
+    "hex": "#eb5324",
+    "L": 0.7588590321554218,
+    "C": 0.19623125725367624,
+    "h": 36.63997313702282
+   }
+  },
+  "scheme": {
+   "paper": "#0c1424",
+   "ink": "#e0f3f0",
+   "pencil": "#4c5761",
+   "mass": "#00978d",
+   "accent": "#ff8c6c",
+   "nightPaper": "#0c1424",
+   "nightInk": "#e0f3f0"
+  },
+  "names": {
+   "paper": "Deep Indigo",
+   "mass": "Benzol Green",
+   "accent": "Jasper Red",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.107,
+   "dL_paper_bars": 0.417,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 249,
+  "colours": [
+   "Hay's Russet #793327",
+   "Ecru #c2ae93",
+   "Olive Ocher #d6b43e",
+   "Dark Medici Blue #547076"
+  ],
+  "score": 1.526,
+  "why": [],
+  "notes": [
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Ecru",
+    "hex": "#c2ae93",
+    "L": 0.7608607678750695,
+    "C": 0.043769112705106625,
+    "h": 75.28869448461398
+   },
+   "mass": {
+    "name": "Hay's Russet",
+    "hex": "#793327",
+    "L": 0.41498827796891535,
+    "C": 0.1008585897038396,
+    "h": 31.574453103202416
+   },
+   "accent": {
+    "name": "Olive Ocher",
+    "hex": "#d6b43e",
+    "L": 0.7791597964604063,
+    "C": 0.1376279040313961,
+    "h": 92.51463498196995
+   }
+  },
+  "scheme": {
+   "paper": "#c2ae93",
+   "ink": "#301813",
+   "pencil": "#96816d",
+   "mass": "#793327",
+   "accent": "#d6b43e",
+   "nightPaper": "#1f0e0b",
+   "nightInk": "#c2ae93"
+  },
+  "names": {
+   "paper": "Ecru",
+   "mass": "Hay's Russet",
+   "accent": "Olive Ocher",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.044,
+   "massC": 0.101,
+   "dL_paper_bars": 0.346,
+   "dL_bars_accent": 0.364
+  }
+ },
+ {
+  "combo": 265,
+  "colours": [
+   "Old Rose #d46d7a",
+   "Apricot Yellow #ffdd00",
+   "Olive Yellow #a6a159",
+   "Dull Violet Black #1e0e3f"
+  ],
+  "score": 1.477,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.088→0.035",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Dull Violet Black",
+    "hex": "#1e0e3f",
+    "L": 0.22134094182445524,
+    "C": 0.035,
+    "h": 292.7591759922245
+   },
+   "mass": {
+    "name": "Old Rose",
+    "hex": "#d46d7a",
+    "L": 0.6571528802163682,
+    "C": 0.129688278141025,
+    "h": 13.360704197063797
+   },
+   "accent": {
+    "name": "Apricot Yellow",
+    "hex": "#ffdd00",
+    "L": 0.8986935674781459,
+    "C": 0.18566745897507492,
+    "h": 97.85731698839817
+   }
+  },
+  "scheme": {
+   "paper": "#1b182a",
+   "ink": "#fce9ea",
+   "pencil": "#5f5764",
+   "mass": "#d46d7a",
+   "accent": "#ffdd00",
+   "nightPaper": "#1b182a",
+   "nightInk": "#fce9ea"
+  },
+  "names": {
+   "paper": "Dull Violet Black",
+   "mass": "Old Rose",
+   "accent": "Apricot Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.13,
+   "dL_paper_bars": 0.436,
+   "dL_bars_accent": 0.242
+  }
+ },
+ {
+  "combo": 194,
+  "colours": [
+   "Jasper Red #eb5324",
+   "Seashell Pink #fdd4bd",
+   "Olympic Blue #5a82b3"
+  ],
+  "score": 1.468,
+  "why": [],
+  "notes": [
+   "paper chroma 0.056→0.03",
+   "paper L 0.899→0.92",
+   "bars L 0.643→0.54",
+   "accent L 0.598→0.69",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Seashell Pink",
+    "hex": "#fdd4bd",
+    "L": 0.92,
+    "C": 0.03,
+    "h": 50.97399730684549
+   },
+   "mass": {
+    "name": "Jasper Red",
+    "hex": "#eb5324",
+    "L": 0.54,
+    "C": 0.19623125725367624,
+    "h": 36.63997313702282
+   },
+   "accent": {
+    "name": "Olympic Blue",
+    "hex": "#5a82b3",
+    "L": 0.6900000000000001,
+    "C": 0.08769746922704882,
+    "h": 254.06611720122032
+   }
+  },
+  "scheme": {
+   "paper": "#f6dfd3",
+   "ink": "#2f1811",
+   "pencil": "#baa399",
+   "mass": "#c13700",
+   "accent": "#759ed1",
+   "nightPaper": "#1f0f0a",
+   "nightInk": "#f6dfd3"
+  },
+  "names": {
+   "paper": "Seashell Pink",
+   "mass": "Jasper Red",
+   "accent": "Olympic Blue",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.03,
+   "massC": 0.196,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 304,
+  "colours": [
+   "Hay's Russet #793327",
+   "Cream Yellow #fdbf68",
+   "Dark Citrine #8b835b",
+   "Benzol Green #00978d"
+  ],
+  "score": 1.364,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.057→0.05",
+   "bars L 0.415→0.307",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Dark Citrine",
+    "hex": "#8b835b",
+    "L": 0.6068375295613492,
+    "C": 0.0504292948519198,
+    "h": 98.21034644212318
+   },
+   "mass": {
+    "name": "Hay's Russet",
+    "hex": "#793327",
+    "L": 0.3068375295613492,
+    "C": 0.1008585897038396,
+    "h": 31.574453103202416
+   },
+   "accent": {
+    "name": "Cream Yellow",
+    "hex": "#fdbf68",
+    "L": 0.8442591015211753,
+    "C": 0.12620994403156396,
+    "h": 73.9333949087374
+   }
+  },
+  "scheme": {
+   "paper": "#8a8360",
+   "ink": "#301813",
+   "pencil": "#6f6349",
+   "mass": "#58140a",
+   "accent": "#fdbf68",
+   "nightPaper": "#1f0e0b",
+   "nightInk": "#8a8360"
+  },
+  "names": {
+   "paper": "Dark Citrine",
+   "mass": "Hay's Russet",
+   "accent": "Cream Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.05,
+   "massC": 0.101,
+   "dL_paper_bars": 0.3,
+   "dL_bars_accent": 0.537
+  }
+ },
+ {
+  "combo": 308,
+  "colours": [
+   "Fawn #d1b0a7",
+   "Scarlet #cb2f43",
+   "English Red #d96629",
+   "Cobalt Green #96d1aa"
+  ],
+  "score": 1.281,
+  "why": [],
+  "notes": [
+   "bars L 0.557→0.484",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Fawn",
+    "hex": "#d1b0a7",
+    "L": 0.7836691704339283,
+    "C": 0.04060490850343519,
+    "h": 35.71670276033012
+   },
+   "mass": {
+    "name": "Scarlet",
+    "hex": "#cb2f43",
+    "L": 0.48366917043392826,
+    "C": 0.1909196019552974,
+    "h": 19.552272527462605
+   },
+   "accent": {
+    "name": "English Red",
+    "hex": "#d96629",
+    "L": 0.6406222882452831,
+    "C": 0.16116503759939246,
+    "h": 45.107354180608354
+   }
+  },
+  "scheme": {
+   "paper": "#d1b0a7",
+   "ink": "#301717",
+   "pencil": "#a1827c",
+   "mass": "#b1072f",
+   "accent": "#d96629",
+   "nightPaper": "#200e0e",
+   "nightInk": "#d1b0a7"
+  },
+  "names": {
+   "paper": "Fawn",
+   "mass": "Scarlet",
+   "accent": "English Red",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.041,
+   "massC": 0.191,
+   "dL_paper_bars": 0.3,
+   "dL_bars_accent": 0.157
+  }
+ },
+ {
+  "combo": 293,
+  "colours": [
+   "Raw Sienna #bb7125",
+   "Turquoise Green #b5decc",
+   "Artemesia Green #709390",
+   "Green #489b6e"
+  ],
+  "score": 1.186,
+  "why": [],
+  "notes": [
+   "paper chroma 0.05→0.02",
+   "paper L 0.866→0.92",
+   "bars L 0.625→0.54",
+   "accent L 0.617→0.69",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Turquoise Green",
+    "hex": "#b5decc",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 166.71396694617283
+   },
+   "mass": {
+    "name": "Green",
+    "hex": "#489b6e",
+    "L": 0.54,
+    "C": 0.10679013628305338,
+    "h": 157.4796998390002
+   },
+   "accent": {
+    "name": "Raw Sienna",
+    "hex": "#bb7125",
+    "L": 0.6900000000000001,
+    "C": 0.12720053730983816,
+    "h": 61.37007720750108
+   }
+  },
+  "scheme": {
+   "paper": "#d9e9e2",
+   "ink": "#0d2518",
+   "pencil": "#9caea5",
+   "mass": "#2b8156",
+   "accent": "#d3873f",
+   "nightPaper": "#07180e",
+   "nightInk": "#d9e9e2"
+  },
+  "names": {
+   "paper": "Turquoise Green",
+   "mass": "Green",
+   "accent": "Raw Sienna",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.107,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 277,
+  "colours": [
+   "Spinel Red #f27291",
+   "Rosolanc Purple #b73f74",
+   "Olive #837e31",
+   "Dull Violet Black #1e0e3f"
+  ],
+  "score": 0.988,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.088→0.035",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Dull Violet Black",
+    "hex": "#1e0e3f",
+    "L": 0.22134094182445524,
+    "C": 0.035,
+    "h": 292.7591759922245
+   },
+   "mass": {
+    "name": "Spinel Red",
+    "hex": "#f27291",
+    "L": 0.7111239007781472,
+    "C": 0.15946014847082077,
+    "h": 6.810517606282417
+   },
+   "accent": {
+    "name": "Olive",
+    "hex": "#837e31",
+    "L": 0.5815810855461812,
+    "C": 0.09858179516549699,
+    "h": 105.57252899954744
+   }
+  },
+  "scheme": {
+   "paper": "#1b182a",
+   "ink": "#fbe9ec",
+   "pencil": "#5e5764",
+   "mass": "#f27291",
+   "accent": "#837e31",
+   "nightPaper": "#1b182a",
+   "nightInk": "#fbe9ec"
+  },
+  "names": {
+   "paper": "Dull Violet Black",
+   "mass": "Spinel Red",
+   "accent": "Olive",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.159,
+   "dL_paper_bars": 0.49,
+   "dL_bars_accent": 0.13
+  }
+ },
+ {
+  "combo": 302,
+  "colours": [
+   "Cream Yellow #fdbf68",
+   "Ecru #c2ae93",
+   "Nile Blue #bce4e5",
+   "Antwarp Blue #007190"
+  ],
+  "score": 0.942,
+  "why": [],
+  "notes": [
+   "paper chroma 0.042→0.02",
+   "paper L 0.891→0.92",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Nile Blue",
+    "hex": "#bce4e5",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 198.3048226349245
+   },
+   "mass": {
+    "name": "Antwarp Blue",
+    "hex": "#007190",
+    "L": 0.5105435275524904,
+    "C": 0.09700009571240933,
+    "h": 225.30660281780743
+   },
+   "accent": {
+    "name": "Cream Yellow",
+    "hex": "#fdbf68",
+    "L": 0.8442591015211753,
+    "C": 0.12620994403156396,
+    "h": 73.9333949087374
+   }
+  },
+  "scheme": {
+   "paper": "#d6e9e9",
+   "ink": "#06232d",
+   "pencil": "#98aeb1",
+   "mass": "#007190",
+   "accent": "#fdbf68",
+   "nightPaper": "#04161e",
+   "nightInk": "#d6e9e9"
+  },
+  "names": {
+   "paper": "Nile Blue",
+   "mass": "Antwarp Blue",
+   "accent": "Cream Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.097,
+   "dL_paper_bars": 0.409,
+   "dL_bars_accent": 0.334
+  }
+ },
+ {
+  "combo": 217,
+  "colours": [
+   "Pale Burnt Lake #802626",
+   "Ochraceous Salmon #d8a37b",
+   "Diamine Green #1a7444"
+  ],
+  "score": 0.94,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.083→0.056",
+   "bars L 0.495→0.456",
+   "accent L 0.409→0.306",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Ochraceous Salmon",
+    "hex": "#d8a37b",
+    "L": 0.7556711937687046,
+    "C": 0.0561563743257401,
+    "h": 58.133102029425515
+   },
+   "mass": {
+    "name": "Diamine Green",
+    "hex": "#1a7444",
+    "L": 0.45567119376870463,
+    "C": 0.1123127486514802,
+    "h": 154.62599573214152
+   },
+   "accent": {
+    "name": "Pale Burnt Lake",
+    "hex": "#802626",
+    "L": 0.30567119376870466,
+    "C": 0.12407550606595874,
+    "h": 24.46714296873631
+   }
+  },
+  "scheme": {
+   "paper": "#cca88d",
+   "ink": "#0e2517",
+   "pencil": "#93816a",
+   "mass": "#036839",
+   "accent": "#5f000a",
+   "nightPaper": "#08180e",
+   "nightInk": "#cca88d"
+  },
+  "names": {
+   "paper": "Ochraceous Salmon",
+   "mass": "Diamine Green",
+   "accent": "Pale Burnt Lake",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.056,
+   "massC": 0.112,
+   "dL_paper_bars": 0.3,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 303,
+  "colours": [
+   "Naples Yellow #fbe6a0",
+   "Peach Red #f15a30",
+   "Deep Slate Olive #253122",
+   "Neutral Gray #b6bfc1"
+  ],
+  "score": 0.865,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.091→0.03",
+   "bars L 0.661→0.546",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Naples Yellow",
+    "hex": "#fbe6a0",
+    "L": 0.9260799607670223,
+    "C": 0.03,
+    "h": 93.36714497860822
+   },
+   "mass": {
+    "name": "Peach Red",
+    "hex": "#f15a30",
+    "L": 0.5460799607670223,
+    "C": 0.19405690452863616,
+    "h": 35.98054567465391
+   },
+   "accent": {
+    "name": "Deep Slate Olive",
+    "hex": "#253122",
+    "L": 0.2971008373500928,
+    "C": 0.031127141449592773,
+    "h": 139.43884786414412
+   }
+  },
+  "scheme": {
+   "paper": "#ede7d1",
+   "ink": "#301812",
+   "pencil": "#b4a998",
+   "mass": "#c53602",
+   "accent": "#253122",
+   "nightPaper": "#1f0f0a",
+   "nightInk": "#ede7d1"
+  },
+  "names": {
+   "paper": "Naples Yellow",
+   "mass": "Peach Red",
+   "accent": "Deep Slate Olive",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.03,
+   "massC": 0.194,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.249
+  }
+ },
+ {
+  "combo": 149,
+  "colours": [
+   "Olive Ocher #d6b43e",
+   "Orange #f37420",
+   "Deep Slate Green #112f2c"
+  ],
+  "score": 0.821,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.036→0.035",
+   "paper L 0.281→0.22",
+   "accent L 0.698→0.629",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Deep Slate Green",
+    "hex": "#112f2c",
+    "L": 0.22,
+    "C": 0.035,
+    "h": 186.61132278433
+   },
+   "mass": {
+    "name": "Olive Ocher",
+    "hex": "#d6b43e",
+    "L": 0.7791597964604063,
+    "C": 0.1376279040313961,
+    "h": 92.51463498196995
+   },
+   "accent": {
+    "name": "Orange",
+    "hex": "#f37420",
+    "L": 0.6291597964604063,
+    "C": 0.17853226639793382,
+    "h": 48.00920226412302
+   }
+  },
+  "scheme": {
+   "paper": "#03201d",
+   "ink": "#f3eee0",
+   "pencil": "#4b5e58",
+   "mass": "#d6b43e",
+   "accent": "#d86103",
+   "nightPaper": "#03201d",
+   "nightInk": "#f3eee0"
+  },
+  "names": {
+   "paper": "Deep Slate Green",
+   "mass": "Olive Ocher",
+   "accent": "Orange",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.138,
+   "dL_paper_bars": 0.559,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 163,
+  "colours": [
+   "Apricot Yellow #ffdd00",
+   "Turquoise Green #b5decc",
+   "Antwarp Blue #007190"
+  ],
+  "score": 0.65,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.05→0.02",
+   "paper L 0.866→0.92",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Turquoise Green",
+    "hex": "#b5decc",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 166.71396694617283
+   },
+   "mass": {
+    "name": "Antwarp Blue",
+    "hex": "#007190",
+    "L": 0.5105435275524904,
+    "C": 0.09700009571240933,
+    "h": 225.30660281780743
+   },
+   "accent": {
+    "name": "Apricot Yellow",
+    "hex": "#ffdd00",
+    "L": 0.8986935674781459,
+    "C": 0.18566745897507492,
+    "h": 97.85731698839817
+   }
+  },
+  "scheme": {
+   "paper": "#d9e9e2",
+   "ink": "#06232d",
+   "pencil": "#9aaeac",
+   "mass": "#007190",
+   "accent": "#ffdd00",
+   "nightPaper": "#04161e",
+   "nightInk": "#d9e9e2"
+  },
+  "names": {
+   "paper": "Turquoise Green",
+   "mass": "Antwarp Blue",
+   "accent": "Apricot Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.097,
+   "dL_paper_bars": 0.409,
+   "dL_bars_accent": 0.388
+  }
+ },
+ {
+  "combo": 193,
+  "colours": [
+   "Grenadine Pink #f48067",
+   "Naples Yellow #fbe6a0",
+   "Light Porcelain Green #00908a"
+  ],
+  "score": 0.574,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.091→0.03",
+   "bars L 0.589→0.546",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Naples Yellow",
+    "hex": "#fbe6a0",
+    "L": 0.9260799607670223,
+    "C": 0.03,
+    "h": 93.36714497860822
+   },
+   "mass": {
+    "name": "Light Porcelain Green",
+    "hex": "#00908a",
+    "L": 0.5460799607670223,
+    "C": 0.10190265736768105,
+    "h": 189.60268665256666
+   },
+   "accent": {
+    "name": "Grenadine Pink",
+    "hex": "#f48067",
+    "L": 0.7250607629603552,
+    "C": 0.1475267835562413,
+    "h": 33.36601795742462
+   }
+  },
+  "scheme": {
+   "paper": "#ede7d1",
+   "ink": "#022523",
+   "pencil": "#a7ad9d",
+   "mass": "#03827c",
+   "accent": "#f48067",
+   "nightPaper": "#021817",
+   "nightInk": "#ede7d1"
+  },
+  "names": {
+   "paper": "Naples Yellow",
+   "mass": "Light Porcelain Green",
+   "accent": "Grenadine Pink",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.03,
+   "massC": 0.102,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.179
+  }
+ },
+ {
+  "combo": 270,
+  "colours": [
+   "Eugenia Red | B #da525d",
+   "Sulpher Yellow #f5ecc2",
+   "Olive Green #6b7140",
+   "Cossack Green #437742"
+  ],
+  "score": 0.506,
+  "why": [],
+  "notes": [
+   "paper chroma 0.055→0.02",
+   "accent L 0.622→0.669",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Sulpher Yellow",
+    "hex": "#f5ecc2",
+    "L": 0.9396730743136393,
+    "C": 0.02,
+    "h": 97.27542509009959
+   },
+   "mass": {
+    "name": "Cossack Green",
+    "hex": "#437742",
+    "L": 0.5186748092062781,
+    "C": 0.09862299314851206,
+    "h": 143.60409067068082
+   },
+   "accent": {
+    "name": "Eugenia Red | B",
+    "hex": "#da525d",
+    "L": 0.6686748092062781,
+    "C": 0.17028003721505647,
+    "h": 18.82796100817677
+   }
+  },
+  "scheme": {
+   "paper": "#eeebdd",
+   "ink": "#132413",
+   "pencil": "#acafa0",
+   "mass": "#437742",
+   "accent": "#eb616b",
+   "nightPaper": "#0b170b",
+   "nightInk": "#eeebdd"
+  },
+  "names": {
+   "paper": "Sulpher Yellow",
+   "mass": "Cossack Green",
+   "accent": "Eugenia Red | B",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.099,
+   "dL_paper_bars": 0.421,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 124,
+  "colours": [
+   "Pale Burnt Lake #802626",
+   "Yellow Ocher #e2b540",
+   "Olive Yellow #a6a159"
+  ],
+  "score": 0.468,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.094→0.062",
+   "bars L 0.409→0.397",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Olive Yellow",
+    "hex": "#a6a159",
+    "L": 0.6971381579230986,
+    "C": 0.06203775303297937,
+    "h": 105.07259043829004
+   },
+   "mass": {
+    "name": "Pale Burnt Lake",
+    "hex": "#802626",
+    "L": 0.39713815792309864,
+    "C": 0.12407550606595874,
+    "h": 24.46714296873631
+   },
+   "accent": {
+    "name": "Yellow Ocher",
+    "hex": "#e2b540",
+    "L": 0.7932826186249838,
+    "C": 0.13977493135345198,
+    "h": 87.11158399262308
+   }
+  },
+  "scheme": {
+   "paper": "#a3a073",
+   "ink": "#301716",
+   "pencil": "#817757",
+   "mass": "#7c2223",
+   "accent": "#e2b540",
+   "nightPaper": "#200e0d",
+   "nightInk": "#a3a073"
+  },
+  "names": {
+   "paper": "Olive Yellow",
+   "mass": "Pale Burnt Lake",
+   "accent": "Yellow Ocher",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.062,
+   "massC": 0.124,
+   "dL_paper_bars": 0.3,
+   "dL_bars_accent": 0.396
+  }
+ },
+ {
+  "combo": 294,
+  "colours": [
+   "Sulpher Yellow #f5ecc2",
+   "Cream Yellow #fdbf68",
+   "Cossack Green #437742",
+   "Salvia Blue #97acc8"
+  ],
+  "score": 0.467,
+  "why": [],
+  "notes": [
+   "paper chroma 0.055→0.02",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Sulpher Yellow",
+    "hex": "#f5ecc2",
+    "L": 0.9396730743136393,
+    "C": 0.02,
+    "h": 97.27542509009959
+   },
+   "mass": {
+    "name": "Cossack Green",
+    "hex": "#437742",
+    "L": 0.5186748092062781,
+    "C": 0.09862299314851206,
+    "h": 143.60409067068082
+   },
+   "accent": {
+    "name": "Cream Yellow",
+    "hex": "#fdbf68",
+    "L": 0.8442591015211753,
+    "C": 0.12620994403156396,
+    "h": 73.9333949087374
+   }
+  },
+  "scheme": {
+   "paper": "#eeebdd",
+   "ink": "#132413",
+   "pencil": "#acafa0",
+   "mass": "#437742",
+   "accent": "#fdbf68",
+   "nightPaper": "#0b170b",
+   "nightInk": "#eeebdd"
+  },
+  "names": {
+   "paper": "Sulpher Yellow",
+   "mass": "Cossack Green",
+   "accent": "Cream Yellow",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.099,
+   "dL_paper_bars": 0.421,
+   "dL_bars_accent": 0.326
+  }
+ },
+ {
+  "combo": 325,
+  "colours": [
+   "Eugenia Red | B #da525d",
+   "Naples Yellow #fbe6a0",
+   "Yellow Ocher #e2b540",
+   "Deep Slate Green #112f2c"
+  ],
+  "score": 0.427,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.036→0.035",
+   "paper L 0.281→0.22",
+   "ink = Naples Yellow"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Deep Slate Green",
+    "hex": "#112f2c",
+    "L": 0.22,
+    "C": 0.035,
+    "h": 186.61132278433
+   },
+   "mass": {
+    "name": "Yellow Ocher",
+    "hex": "#e2b540",
+    "L": 0.7932826186249838,
+    "C": 0.13977493135345198,
+    "h": 87.11158399262308
+   },
+   "accent": {
+    "name": "Eugenia Red | B",
+    "hex": "#da525d",
+    "L": 0.6221443582821429,
+    "C": 0.17028003721505647,
+    "h": 18.82796100817677
+   }
+  },
+  "scheme": {
+   "paper": "#03201d",
+   "ink": "#fbe6a0",
+   "pencil": "#4d5b44",
+   "mass": "#e2b540",
+   "accent": "#da525d",
+   "nightPaper": "#03201d",
+   "nightInk": "#fbe6a0"
+  },
+  "names": {
+   "paper": "Deep Slate Green",
+   "mass": "Yellow Ocher",
+   "accent": "Eugenia Red | B",
+   "ink": "Naples Yellow"
+  },
+  "metrics": {
+   "paperC": 0.035,
+   "massC": 0.14,
+   "dL_paper_bars": 0.573,
+   "dL_bars_accent": 0.171
+  }
+ },
+ {
+  "combo": 345,
+  "colours": [
+   "Hay's Russet #793327",
+   "Nile Blue #bce4e5",
+   "Venice Green #62c6bf",
+   "Blue Violet #6450a1"
+  ],
+  "score": 0.424,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.042→0.02",
+   "paper L 0.891→0.92",
+   "accent L 0.415→0.341",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Nile Blue",
+    "hex": "#bce4e5",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 198.3048226349245
+   },
+   "mass": {
+    "name": "Blue Violet",
+    "hex": "#6450a1",
+    "L": 0.49074190409403046,
+    "C": 0.12613515474016976,
+    "h": 292.50355538250307
+   },
+   "accent": {
+    "name": "Hay's Russet",
+    "hex": "#793327",
+    "L": 0.3407419040940305,
+    "C": 0.1008585897038396,
+    "h": 31.574453103202416
+   }
+  },
+  "scheme": {
+   "paper": "#d6e9e9",
+   "ink": "#201b31",
+   "pencil": "#9fabb2",
+   "mass": "#6450a1",
+   "accent": "#621e13",
+   "nightPaper": "#141120",
+   "nightInk": "#d6e9e9"
+  },
+  "names": {
+   "paper": "Nile Blue",
+   "mass": "Blue Violet",
+   "accent": "Hay's Russet",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.126,
+   "dL_paper_bars": 0.429,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 336,
+  "colours": [
+   "Eosine Pink #f37f94",
+   "Hay's Russet #793327",
+   "Pale Lemon Yellow #ffefae",
+   "Blackish Olive #42533e"
+  ],
+  "score": 0.272,
+  "why": [],
+  "notes": [
+   "paper chroma 0.084→0.016",
+   "accent L 0.415→0.271",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Pale Lemon Yellow",
+    "hex": "#ffefae",
+    "L": 0.9497954932099812,
+    "C": 0.01606826964654696,
+    "h": 95.94738955863079
+   },
+   "mass": {
+    "name": "Blackish Olive",
+    "hex": "#42533e",
+    "L": 0.4212598594531676,
+    "C": 0.040170674116367405,
+    "h": 139.7119942949377
+   },
+   "accent": {
+    "name": "Hay's Russet",
+    "hex": "#793327",
+    "L": 0.27125985945316755,
+    "C": 0.1008585897038396,
+    "h": 31.574453103202416
+   }
+  },
+  "scheme": {
+   "paper": "#f1efe3",
+   "ink": "#1b211a",
+   "pencil": "#b1b1a7",
+   "mass": "#42533e",
+   "accent": "#4d0801",
+   "nightPaper": "#10160f",
+   "nightInk": "#f1efe3"
+  },
+  "names": {
+   "paper": "Pale Lemon Yellow",
+   "mass": "Blackish Olive",
+   "accent": "Hay's Russet",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.016,
+   "massC": 0.04,
+   "dL_paper_bars": 0.529,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 273,
+  "colours": [
+   "Hermosa Pink #f9c1ce",
+   "Pansy Purple #7d133a",
+   "Sudan Brown #a36752",
+   "Neutral Gray #b6bfc1"
+  ],
+  "score": 0.154,
+  "why": [],
+  "notes": [
+   "paper chroma 0.066→0.02",
+   "paper L 0.864→0.92",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Hermosa Pink",
+    "hex": "#f9c1ce",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 3.1033612763719134
+   },
+   "mass": {
+    "name": "Pansy Purple",
+    "hex": "#7d133a",
+    "L": 0.38996022437170397,
+    "C": 0.1409173100778355,
+    "h": 5.535766315297792
+   },
+   "accent": {
+    "name": "Sudan Brown",
+    "hex": "#a36752",
+    "L": 0.5738120328037741,
+    "C": 0.08400890677248057,
+    "h": 40.031979162511675
+   }
+  },
+  "scheme": {
+   "paper": "#f1dfe3",
+   "ink": "#2f171c",
+   "pencil": "#b7a3a7",
+   "mass": "#7d133a",
+   "accent": "#a36752",
+   "nightPaper": "#1f0e12",
+   "nightInk": "#f1dfe3"
+  },
+  "names": {
+   "paper": "Hermosa Pink",
+   "mass": "Pansy Purple",
+   "accent": "Sudan Brown",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.141,
+   "dL_paper_bars": 0.53,
+   "dL_bars_accent": 0.184
+  }
+ },
+ {
+  "combo": 134,
+  "colours": [
+   "Eosine Pink #f37f94",
+   "Light Mauve #9a72aa",
+   "Red Violet #59256a"
+  ],
+  "score": 0.086,
+  "why": [],
+  "notes": [
+   "paper chroma 0.094→0.062",
+   "bars L 0.371→0.312",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": true,
+  "roles": {
+   "paper": {
+    "name": "Light Mauve",
+    "hex": "#9a72aa",
+    "L": 0.6122631971104053,
+    "C": 0.06175832403276362,
+    "h": 316.03763550218684
+   },
+   "mass": {
+    "name": "Red Violet",
+    "hex": "#59256a",
+    "L": 0.31226319711040534,
+    "C": 0.12351664806552724,
+    "h": 316.93662723305835
+   },
+   "accent": {
+    "name": "Eosine Pink",
+    "hex": "#f37f94",
+    "L": 0.7318532885135983,
+    "C": 0.1429268292464124,
+    "h": 9.783979201604382
+   }
+  },
+  "scheme": {
+   "paper": "#93799d",
+   "ink": "#27192c",
+   "pencil": "#735c7b",
+   "mass": "#491459",
+   "accent": "#f37f94",
+   "nightPaper": "#190f1d",
+   "nightInk": "#93799d"
+  },
+  "names": {
+   "paper": "Light Mauve",
+   "mass": "Red Violet",
+   "accent": "Eosine Pink",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.062,
+   "massC": 0.124,
+   "dL_paper_bars": 0.3,
+   "dL_bars_accent": 0.42
+  }
+ },
+ {
+  "combo": 319,
+  "colours": [
+   "Raw Sienna #bb7125",
+   "Apricot Yellow #ffdd00",
+   "Yellow Orange #f99d1b",
+   "Cossack Green #437742"
+  ],
+  "score": 0.054,
+  "why": [],
+  "notes": [
+   "paper chroma 0.186→0.02",
+   "paper L 0.899→0.92",
+   "accent L 0.617→0.669",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Apricot Yellow",
+    "hex": "#ffdd00",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 97.85731698839817
+   },
+   "mass": {
+    "name": "Cossack Green",
+    "hex": "#437742",
+    "L": 0.5186748092062781,
+    "C": 0.09862299314851206,
+    "h": 143.60409067068082
+   },
+   "accent": {
+    "name": "Raw Sienna",
+    "hex": "#bb7125",
+    "L": 0.6686748092062781,
+    "C": 0.12720053730983816,
+    "h": 61.37007720750108
+   }
+  },
+  "scheme": {
+   "paper": "#e8e5d6",
+   "ink": "#132413",
+   "pencil": "#a8ab9c",
+   "mass": "#437742",
+   "accent": "#cc8138",
+   "nightPaper": "#0b170b",
+   "nightInk": "#e8e5d6"
+  },
+  "names": {
+   "paper": "Apricot Yellow",
+   "mass": "Cossack Green",
+   "accent": "Raw Sienna",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.099,
+   "dL_paper_bars": 0.401,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 343,
+  "colours": [
+   "Burnt Sienna #ae5224",
+   "Ivory Buff #ebd3a2",
+   "Deep Grayish Olive #635a3a",
+   "Vandar Poel's Blue #064f6e"
+  ],
+  "score": -0.112,
+  "why": [],
+  "notes": [
+   "paper chroma 0.069→0.02",
+   "paper L 0.875→0.92",
+   "accent L 0.546→0.618",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Ivory Buff",
+    "hex": "#ebd3a2",
+    "L": 0.92,
+    "C": 0.019571864228614497,
+    "h": 84.83374445557575
+   },
+   "mass": {
+    "name": "Deep Grayish Olive",
+    "hex": "#635a3a",
+    "L": 0.46778584206674967,
+    "C": 0.04892966057153624,
+    "h": 94.26133006287483
+   },
+   "accent": {
+    "name": "Burnt Sienna",
+    "hex": "#ae5224",
+    "L": 0.6177858420667497,
+    "C": 0.1337735967095592,
+    "h": 44.53953932448741
+   }
+  },
+  "scheme": {
+   "paper": "#ebe4d6",
+   "ink": "#221f15",
+   "pencil": "#afa99c",
+   "mass": "#635a3a",
+   "accent": "#c6683b",
+   "nightPaper": "#17140a",
+   "nightInk": "#ebe4d6"
+  },
+  "names": {
+   "paper": "Ivory Buff",
+   "mass": "Deep Grayish Olive",
+   "accent": "Burnt Sienna",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.049,
+   "dL_paper_bars": 0.452,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 198,
+  "colours": [
+   "Burnt Sienna #ae5224",
+   "Apricot Yellow #ffdd00",
+   "Green #489b6e"
+  ],
+  "score": -0.129,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.186→0.02",
+   "paper L 0.899→0.92",
+   "bars L 0.625→0.54",
+   "accent L 0.546→0.69",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Apricot Yellow",
+    "hex": "#ffdd00",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 97.85731698839817
+   },
+   "mass": {
+    "name": "Green",
+    "hex": "#489b6e",
+    "L": 0.54,
+    "C": 0.10679013628305338,
+    "h": 157.4796998390002
+   },
+   "accent": {
+    "name": "Burnt Sienna",
+    "hex": "#ae5224",
+    "L": 0.6900000000000001,
+    "C": 0.1337735967095592,
+    "h": 44.53953932448741
+   }
+  },
+  "scheme": {
+   "paper": "#e8e5d6",
+   "ink": "#0d2518",
+   "pencil": "#a6ab9d",
+   "mass": "#2b8156",
+   "accent": "#df7e51",
+   "nightPaper": "#07180e",
+   "nightInk": "#e8e5d6"
+  },
+  "names": {
+   "paper": "Apricot Yellow",
+   "mass": "Green",
+   "accent": "Burnt Sienna",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.107,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 306,
+  "colours": [
+   "Lemon Yellow #f8ed43",
+   "Benzol Green #00978d",
+   "Dull Viridian Green #009465",
+   "Nile Blue #bce4e5"
+  ],
+  "score": -0.311,
+  "why": [],
+  "notes": [
+   "paper chroma 0.042→0.02",
+   "paper L 0.891→0.92",
+   "bars L 0.589→0.54",
+   "accent L 0.609→0.69",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Nile Blue",
+    "hex": "#bce4e5",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 198.3048226349245
+   },
+   "mass": {
+    "name": "Dull Viridian Green",
+    "hex": "#009465",
+    "L": 0.54,
+    "C": 0.12901735118287277,
+    "h": 162.1001425687747
+   },
+   "accent": {
+    "name": "Benzol Green",
+    "hex": "#00978d",
+    "L": 0.6900000000000001,
+    "C": 0.10650371095294657,
+    "h": 186.5922328685387
+   }
+  },
+  "scheme": {
+   "paper": "#d6e9e9",
+   "ink": "#0a2519",
+   "pencil": "#99aeab",
+   "mass": "#058359",
+   "accent": "#36b0a6",
+   "nightPaper": "#061810",
+   "nightInk": "#d6e9e9"
+  },
+  "names": {
+   "paper": "Nile Blue",
+   "mass": "Dull Viridian Green",
+   "accent": "Benzol Green",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.129,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 247,
+  "colours": [
+   "Raw Sienna #bb7125",
+   "Apricot Yellow #ffdd00",
+   "Benzol Green #00978d",
+   "Deep Lyons Blue #1c4286"
+  ],
+  "score": -0.458,
+  "why": [],
+  "notes": [
+   "paper chroma 0.186→0.02",
+   "paper L 0.899→0.92",
+   "bars L 0.617→0.54",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Apricot Yellow",
+    "hex": "#ffdd00",
+    "L": 0.92,
+    "C": 0.02,
+    "h": 97.85731698839817
+   },
+   "mass": {
+    "name": "Raw Sienna",
+    "hex": "#bb7125",
+    "L": 0.54,
+    "C": 0.12720053730983816,
+    "h": 61.37007720750108
+   },
+   "accent": {
+    "name": "Deep Lyons Blue",
+    "hex": "#1c4286",
+    "L": 0.39264892964919057,
+    "C": 0.12218006386636945,
+    "h": 260.96797574423067
+   }
+  },
+  "scheme": {
+   "paper": "#e8e5d6",
+   "ink": "#2d1b0a",
+   "pencil": "#b0a899",
+   "mass": "#a05b05",
+   "accent": "#1c4286",
+   "nightPaper": "#1d1006",
+   "nightInk": "#e8e5d6"
+  },
+  "names": {
+   "paper": "Apricot Yellow",
+   "mass": "Raw Sienna",
+   "accent": "Deep Lyons Blue",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.127,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.147
+  }
+ },
+ {
+  "combo": 139,
+  "colours": [
+   "Salvia Blue #97acc8",
+   "Deep Indigo #051230",
+   "Neutral Gray #b6bfc1"
+  ],
+  "score": -0.459,
+  "why": [],
+  "notes": [
+   "paper chroma 0.063→0.023",
+   "accent L 0.798→0.888",
+   "ink made: near-white toward the bars"
+  ],
+  "dark": true,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Deep Indigo",
+    "hex": "#051230",
+    "L": 0.1919107264625682,
+    "C": 0.02347582877112258,
+    "h": 262.9823108676926
+   },
+   "mass": {
+    "name": "Salvia Blue",
+    "hex": "#97acc8",
+    "L": 0.7378122020986576,
+    "C": 0.04695165754224516,
+    "h": 255.67002826474305
+   },
+   "accent": {
+    "name": "Neutral Gray",
+    "hex": "#b6bfc1",
+    "L": 0.8878122020986576,
+    "C": 0.010393873618823123,
+    "h": 212.52635213599345
+   }
+  },
+  "scheme": {
+   "paper": "#0f141f",
+   "ink": "#e8eff8",
+   "pencil": "#505660",
+   "mass": "#97acc8",
+   "accent": "#d3dcde",
+   "nightPaper": "#0f141f",
+   "nightInk": "#e8eff8"
+  },
+  "names": {
+   "paper": "Deep Indigo",
+   "mass": "Salvia Blue",
+   "accent": "Neutral Gray",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.023,
+   "massC": 0.047,
+   "dL_paper_bars": 0.546,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 315,
+  "colours": [
+   "Grenadine Pink #f48067",
+   "Sulpher Yellow #f5ecc2",
+   "Golden Yellow #f3a257",
+   "Eupatorium Purple #bf5892"
+  ],
+  "score": -0.459,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.055→0.02",
+   "bars L 0.605→0.56",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Sulpher Yellow",
+    "hex": "#f5ecc2",
+    "L": 0.9396730743136393,
+    "C": 0.02,
+    "h": 97.27542509009959
+   },
+   "mass": {
+    "name": "Eupatorium Purple",
+    "hex": "#bf5892",
+    "L": 0.5596730743136393,
+    "C": 0.14777691655272263,
+    "h": 347.5047607662046
+   },
+   "accent": {
+    "name": "Grenadine Pink",
+    "hex": "#f48067",
+    "L": 0.7250607629603552,
+    "C": 0.1475267835562413,
+    "h": 33.36601795742462
+   }
+  },
+  "scheme": {
+   "paper": "#eeebdd",
+   "ink": "#2d1723",
+   "pencil": "#b4aba5",
+   "mass": "#b04a84",
+   "accent": "#f48067",
+   "nightPaper": "#1e0e16",
+   "nightInk": "#eeebdd"
+  },
+  "names": {
+   "paper": "Sulpher Yellow",
+   "mass": "Eupatorium Purple",
+   "accent": "Grenadine Pink",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.02,
+   "massC": 0.148,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.165
+  }
+ },
+ {
+  "combo": 266,
+  "colours": [
+   "Spectrum Red #e31f26",
+   "Ivory Buff #ebd3a2",
+   "Rainette Green #8fa071",
+   "Benzol Green #00978d"
+  ],
+  "score": -0.671,
+  "why": [
+   "paper hue off the bars"
+  ],
+  "notes": [
+   "paper chroma 0.069→0.03",
+   "paper L 0.875→0.92",
+   "bars L 0.609→0.54",
+   "accent L 0.586→0.69",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Ivory Buff",
+    "hex": "#ebd3a2",
+    "L": 0.92,
+    "C": 0.03,
+    "h": 84.83374445557575
+   },
+   "mass": {
+    "name": "Benzol Green",
+    "hex": "#00978d",
+    "L": 0.54,
+    "C": 0.10650371095294657,
+    "h": 186.5922328685387
+   },
+   "accent": {
+    "name": "Spectrum Red",
+    "hex": "#e31f26",
+    "L": 0.6900000000000001,
+    "C": 0.2248290157723006,
+    "h": 26.67867984966125
+   }
+  },
+  "scheme": {
+   "paper": "#eee4cf",
+   "ink": "#022522",
+   "pencil": "#a7ab9b",
+   "mass": "#008077",
+   "accent": "#ff5d54",
+   "nightPaper": "#021816",
+   "nightInk": "#eee4cf"
+  },
+  "names": {
+   "paper": "Ivory Buff",
+   "mass": "Benzol Green",
+   "accent": "Spectrum Red",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.03,
+   "massC": 0.107,
+   "dL_paper_bars": 0.38,
+   "dL_bars_accent": 0.15
+  }
+ },
+ {
+  "combo": 263,
+  "colours": [
+   "Burnt Sienna #ae5224",
+   "Pinkish Cinnamon #eeb480",
+   "Turquoise Green #b5decc",
+   "Slate Color #34454c"
+  ],
+  "score": -0.786,
+  "why": [],
+  "notes": [
+   "paper chroma 0.05→0.01",
+   "paper L 0.866→0.92",
+   "ink made: near-black toward the bars"
+  ],
+  "dark": false,
+  "mid": false,
+  "roles": {
+   "paper": {
+    "name": "Turquoise Green",
+    "hex": "#b5decc",
+    "L": 0.92,
+    "C": 0.009890602436199505,
+    "h": 166.71396694617283
+   },
+   "mass": {
+    "name": "Slate Color",
+    "hex": "#34454c",
+    "L": 0.37859181884230286,
+    "C": 0.024726506090498764,
+    "h": 225.0259687339291
+   },
+   "accent": {
+    "name": "Burnt Sienna",
+    "hex": "#ae5224",
+    "L": 0.5462279195332792,
+    "C": 0.1337735967095592,
+    "h": 44.53953932448741
+   }
+  },
+  "scheme": {
+   "paper": "#dfe7e3",
+   "ink": "#1a2023",
+   "pencil": "#a4aba9",
+   "mass": "#34454c",
+   "accent": "#ae5224",
+   "nightPaper": "#0f1517",
+   "nightInk": "#dfe7e3"
+  },
+  "names": {
+   "paper": "Turquoise Green",
+   "mass": "Slate Color",
+   "accent": "Burnt Sienna",
+   "ink": null
+  },
+  "metrics": {
+   "paperC": 0.01,
+   "massC": 0.025,
+   "dL_paper_bars": 0.541,
+   "dL_bars_accent": 0.168
+  }
+ }
+]

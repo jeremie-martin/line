@@ -92,7 +92,15 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
         }, protectedEngines);
         searched++;
         if (!interval?.best) continue;
-        const candidates = i === contacts.length - 1 ? interval.candidates : distinctCandidates(options, interval.candidates, 8);
+        // Six continuations by rank, then up to two by lowest measured local cost with distinct arrivals.
+        const candidates = i === contacts.length - 1 ? interval.candidates : (() => {
+          const kept = distinctCandidates(options, interval.candidates, 6);
+          for (const x of [...interval.candidates].sort((a, b) => a.localCost - b.localCost)) {
+            if (kept.length >= 8) break;
+            if (kept.every(k => k !== x && distinctArrival(k, x))) kept.push(x);
+          }
+          return kept;
+        })();
         for (const candidate of candidates) offered.push({parent, interval, candidate,
           localCost: parent.localCost + candidate.localCost,
           rank: i === contacts.length - 1 ? candidate.terminalLoss! : parent.localCost + valueRank(options, candidate)});

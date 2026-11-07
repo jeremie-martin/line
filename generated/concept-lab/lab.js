@@ -429,7 +429,9 @@ function partsSplit(t, k, v) {
     // matched: the same visible fringe on the ride as today's on average (splitmeasure.mjs, Tomada and Los Voltaje). Across a line
     // a split shows fully; along it, it hides; today's sideways split mostly runs along the lines, the hit's direction across them.
     else if (mix.spl === 'dir' && a > 0.5) {const f = SPLIT_MATCH.dir; channelSplit(f * a * i.x, f * a * i.y);}
-    else if (mix.spl === 'half' && a > 0.5) {const u = i.x < 0 ? {x: -i.x, y: -i.y} : i, hx = 1 + u.x, hy = u.y, n = Math.hypot(hx, hy) || 1, f = SPLIT_MATCH.half; channelSplit(f * a * hx / n, f * a * hy / n);}
+    // halfway: the hit's direction plus a sideways unit on the same side as the hit's own x, so red stays on the hit's side
+    // (it used to flip the hit instead, which put red at the bottom where neither neighbour ever did)
+    else if (mix.spl === 'half' && a > 0.5) {const hx = i.x + (i.x < 0 ? -1 : 1), hy = i.y, n = Math.hypot(hx, hy) || 1, f = SPLIT_MATCH.half; channelSplit(f * a * hx / n, f * a * hy / n);}
     else if (mix.spl === 'radial' && a > 0.5) radialSplit(v.rx * k, v.ry * k, a);
   }
 }
@@ -883,10 +885,12 @@ function renderQuestion() {
   $('presets').replaceChildren(...(done ? [] : Q.opts.map(([label, m], i) => chip(`${LETTERS[i]} · ${label}`, i === qopt, () => {qopt = i; mix = {...m, ...(momentExtra ?? {})}; renderQuestion(); draw();}))));
   const a = done ? null : (answers[Q.id] ??= {pick: null, note: ''});
   $('presets').hidden = !done && !!Q.open; document.querySelector('.qrow').hidden = !done && !!Q.open;
-  const picks = Q?.multi ? (a?.pick ?? '').split(', ').filter(Boolean) : [];
-  const toggle = label => {if (Q.multi) {const s = new Set(picks); s.has(label) ? s.delete(label) : s.add(label); a.pick = Q.opts.map(o => o[0]).filter(l => s.has(l)).join(', ');} else a.pick = label; saveAnswers(); renderQuestion();};
+  // Picks are kept as a LIST. They used to be one comma-joined string split on ', ', so any option whose own name contained a
+  // comma ('Toward the paper, hardest only') fell apart and could never be selected (rounds 5–8).
+  const picks = Q?.multi ? (a?.picks ?? []) : [];
+  const toggle = label => {if (Q.multi) {const s = new Set(picks); s.has(label) ? s.delete(label) : s.add(label); a.picks = Q.opts.map(o => o[0]).filter(l => s.has(l)); a.pick = a.picks.join(' + ');} else a.pick = label; saveAnswers(); renderQuestion();};
   $('qpick').replaceChildren(...(done ? [] : [...Q.opts.map(([label], i) => chip(LETTERS[i], Q.multi ? picks.includes(label) : a.pick === label, () => toggle(label), 'opt')),
-    chip('None of these', a.pick === 'none', () => {a.pick = 'none'; saveAnswers(); renderQuestion();}, 'opt')]));
+    chip('None of these', a.pick === 'none', () => {a.pick = 'none'; a.picks = []; saveAnswers(); renderQuestion();}, 'opt')]));
   $('qnote').rows = Q?.open ? 7 : 2; $('qpicklabel').textContent = Q?.multi ? 'Keep (any number)' : 'My pick';
   $('qnote').hidden = done; $('qnote').value = a?.note ?? ''; $('qnote').oninput = () => {a.note = $('qnote').value; saveAnswers();};
   $('qprev').disabled = qi === 0; $('qnext').textContent = done ? 'Start again' : qi === QUESTIONS.length - 1 ? 'Finish' : 'Next question';

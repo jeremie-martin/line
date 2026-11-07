@@ -1,5 +1,34 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis Y, no steep-angle prior before strong catches
+
+- **Basis** (`alternation_probe.ts --mode=sample`, now recording what ranking
+  charges each alternative for the future; 1,317 alternatives in 226
+  catches; within-catch regression, bootstrap 95% intervals):
+
+  | per alternative | ranking charges ahead | measured next interval (cheapest local cost) |
+  |---|---|---|
+  | +10° steeper arrival | −0.029 [−0.061, −0.006] | +0.004 [−0.023, +0.036] |
+  | +1 px/frame faster | −0.016 [−0.046, +0.012] | −0.031 [−0.054, −0.010] |
+  | +10° more nose-down | −0.002 | −0.001 |
+
+  Ranking rewards steep arrivals that buy nothing measurable at the next
+  catch, and rewards arrival speed about half as much as it is worth. The
+  angle term of the arrival prior (`addArrivalPriors`, r1) asks for a steep
+  arrival whenever the next ask is strong (`steep`), on the premise that a
+  steep arrival makes a strong catch possible. The intervention tests in the
+  entry below show that premise does not hold.
+- **Change** (`arc_evaluate.ts`). The angle term applies only to unpowered
+  arrivals (`passiveArrival`), whose construction needs it, and no longer
+  scales with the next ask's strength. The arrival speed term, the heading
+  prior and everything else are unchanged.
+- **Hypothesis.**
+  - Ranking stops trading span quality for steepness before strong catches.
+  - Strength on strong asks unchanged or up; span errors down a little.
+  - Headline up a little on V7.1, most on the dense strata.
+- **Risk.** Steepness may pay two catches ahead, beyond the one-step
+  measure; ride-outs and floats may lose.
+
 ## November 7: the three structural options probed; the turning budget corrected (report only)
 
 **Correction.** The turning-budget reading in the two entries below is not

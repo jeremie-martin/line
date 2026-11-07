@@ -23,7 +23,8 @@ import {compileAndMeasure} from '../eval/compile.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
-import type {MeasuredCandidate} from '../../scripts/v0/optimizer/arc_candidates.ts';
+import {valueRank, type MeasuredCandidate} from '../../scripts/v0/optimizer/arc_candidates.ts';
+let OPTIONS: Parameters<typeof valueRank>[0] | undefined;
 import type {ArcCompileContext} from '../../scripts/v0/optimizer/arc_compile_context.ts';
 import {withArcStudy} from './arc_study.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
@@ -34,9 +35,10 @@ const MODE = process.argv.find(a => a.startsWith('--mode='))?.slice(7) ?? 'risin
 /** --width=N searches every next interval with N times the samples (1: the production search). */
 const WIDTH = Number(process.argv.find(a => a.startsWith('--width='))?.slice(8) ?? 1);
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
-/** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed, sled pose] */
+/** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed, sled pose,
+ * what ranking charges for the future (valueRank minus the local cost)] */
 const summary = (x: MeasuredCandidate) => [r4(x.actualImpact), r4(x.localCost), r4(x.localCost - (x.residuals[3] ?? 0) ** 2), r4(x.residuals[1]),
-  x.c.contactSide ?? 1, r4(x.heading), r4(x.endSpeed), r4(x.pose)];
+  x.c.contactSide ?? 1, r4(x.heading), r4(x.endSpeed), r4(x.pose), r4(valueRank(OPTIONS!, x) - x.localCost)];
 
 /** The next interval's own search after `lines`; its whole pool, summarized. */
 function nextPool(ctx: ArcCompileContext, lines: any[], i: number) {
@@ -55,6 +57,7 @@ async function worker(id: string, seed: number, perRide: number) {
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const probes: any[] = [];
   await withSequenceObserver((i, offered, chosen, ctx) => {
+    OPTIONS ??= ctx.options;
     if (probes.length >= perRide || !chosen.length || i + 2 >= ctx.contacts.length) return;
     if (!((asks[i] ?? 0) >= .6 && (asks[i + 1] ?? 0) >= .6)) return;
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, K = kept.candidate, prefix = kept.parent.seq.lines;

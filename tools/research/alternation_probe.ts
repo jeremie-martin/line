@@ -10,7 +10,10 @@
  * For each next search it records the cheapest, the strongest and the closest-to-ask
  * candidates per contact side, their cost apart from strength, and their arrival
  * heading into catch i+2.
- *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--specs=a~b,...]
+ * With --mode=steeper the alternatives are instead candidates arriving at least 10° steeper than K; with
+ * --mode=noseup, candidates arriving within 6° of K's heading with the sled at least 15° more nose-up; with
+ * --mode=sample, the six cheapest other candidates with distinct arrivals (for within-catch comparisons).
+ *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--mode=rising|steeper|noseup|sample] [--width=1] [--specs=a~b,...]
  *   node tools/research/alternation_probe.ts report OUT */
 import assert from 'node:assert/strict';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -27,15 +30,20 @@ import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
 const SUITE = 'tools/eval/suites/v7.1.json';
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
+const MODE = process.argv.find(a => a.startsWith('--mode='))?.slice(7) ?? 'rising';
+/** --width=N searches every next interval with N times the samples (1: the production search). */
+const WIDTH = Number(process.argv.find(a => a.startsWith('--width='))?.slice(8) ?? 1);
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
-/** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed] */
+/** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed, sled pose] */
 const summary = (x: MeasuredCandidate) => [r4(x.actualImpact), r4(x.localCost), r4(x.localCost - (x.residuals[3] ?? 0) ** 2), r4(x.residuals[1]),
-  x.c.contactSide ?? 1, r4(x.heading), r4(x.endSpeed)];
+  x.c.contactSide ?? 1, r4(x.heading), r4(x.endSpeed), r4(x.pose)];
 
 /** The next interval's own search after `lines`; its whole pool, summarized. */
 function nextPool(ctx: ArcCompileContext, lines: any[], i: number) {
   return withArcStudy(ctx, lines, i + 1, (study, child) => {
-    try {return searchInterval(study, child, i + 1, {}, [child])?.candidates.map(summary) ?? [];}
+    const o = ctx.options, wide = WIDTH === 1 ? {} : {samples: WIDTH * (o.samples ?? 80), guidanceSamples: WIDTH * (o.guidanceSamples ?? 0),
+      responseSamples: WIDTH * (o.responseSamples ?? 0)};
+    try {return searchInterval(study, child, i + 1, wide, [child])?.candidates.map(summary) ?? [];}
     catch (error) {return {error: String(error).slice(0, 160)};}
   });
 }
@@ -52,7 +60,20 @@ async function worker(id: string, seed: number, perRide: number) {
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, K = kept.candidate, prefix = kept.parent.seq.lines;
     // Candidates of this very pool whose support sends the rider up (arrival heading under −5°):
     // the search's own viable shapes, cheapest first.
-    const rising = kept.interval.candidates.filter(x => x.heading < -5).sort((a, b) => a.localCost - b.localCost).slice(0, 3);
+    // --mode=steeper: candidates arriving at least 10° steeper than K instead (a test of the arrival angle alone).
+    // --mode=noseup: the same arrival heading (within 6°) with the sled at least 15° more nose-up (a test of attitude alone).
+    const wrap = (a: number) => ((a + 180) % 360 + 360) % 360 - 180;
+    const select = MODE === 'steeper' ? (x: MeasuredCandidate) => x.heading >= K.heading + 10
+      : MODE === 'noseup' ? (x: MeasuredCandidate) => Math.abs(x.heading - K.heading) <= 6 && wrap(x.pose - K.pose) <= -15
+      : (x: MeasuredCandidate) => x.heading < -5;
+    // --mode=sample: the six cheapest candidates other than K with distinct arrivals (heading 3°, pose 8° apart),
+    // for comparisons among alternatives within one catch, free of the ranking's selection of K.
+    const distinct = (picked: MeasuredCandidate[], x: MeasuredCandidate) =>
+      picked.every(y => Math.abs(y.heading - x.heading) > 3 || Math.abs(wrap(y.pose - x.pose)) > 8);
+    const rising = MODE === 'sample'
+      ? kept.interval.candidates.filter(x => x !== K).sort((a, b) => a.localCost - b.localCost)
+        .reduce((picked: MeasuredCandidate[], x) => picked.length < 6 && distinct(picked, x) ? [...picked, x] : picked, [])
+      : kept.interval.candidates.filter(select).sort((a, b) => a.localCost - b.localCost).slice(0, 3);
     if (!rising.length) return;
     const row: any = {i, ask: asks[i], nextAsk: asks[i + 1], gap: ctx.contacts[i + 1].frame - ctx.contacts[i].frame,
       kept: summary(K), keptNext: nextPool(ctx, [...prefix, ...K.lines], i), rising: []};
@@ -66,6 +87,7 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.le
 const fmt = (x: number) => Number.isFinite(x) ? x.toFixed(3) : '—';
 
 function report(dir: string) {
+  const mode = JSON.parse(readFileSync(join(dir, 'study.json'), 'utf8')).mode ?? 'rising';
   const rows = readFileSync(join(dir, 'probes.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
   const pool = (p: any) => Array.isArray(p) ? p.filter((t: any) => t[0] !== null) : [];
   console.log(`${rows.length} strong catches followed by a strong ask (ask ${fmt(mean(rows.map(r => r.ask)))}, next ${fmt(mean(rows.map(r => r.nextAsk)))}, ` +
@@ -73,7 +95,7 @@ function report(dir: string) {
   console.log(`kept: strength ${fmt(mean(rows.map(r => r.kept[0])))}, arrival at the next catch ${mean(rows.map(r => r.kept[5])).toFixed(1)}° (positive descending)`);
   const variants = rows.flatMap(r => r.rising.map((v: any) => ({...v, r})));
   const viable = variants.filter(v => v.viable);
-  console.log(`rising candidates: ${viable.length}; strength ${fmt(mean(viable.map(v => v.self[0])))}, ` +
+  console.log(`${mode} candidates: ${viable.length}; strength ${fmt(mean(viable.map(v => v.self[0])))}, ` +
     `cost apart from strength ${fmt(mean(viable.map(v => v.self[2])))} (kept ${fmt(mean(rows.map(r => r.kept[2])))}), arrival ${mean(viable.map(v => v.self[5])).toFixed(1)}°`);
   const reasons: Record<string, number> = {};
   for (const v of variants.filter(v => !v.viable)) reasons[v.reason ?? v.error ?? 'unknown'] = (reasons[v.reason ?? v.error ?? 'unknown'] ?? 0) + 1;
@@ -95,10 +117,10 @@ function report(dir: string) {
   };
   console.log('\nThe next catch, after the kept candidate:');
   describe('after kept', rows.map(r => ({p: pool(r.keptNext), ask: r.nextAsk})));
-  console.log('\nThe next catch, after rising candidates (by arrival heading):');
-  for (const [lo, hi] of [[-90, -30], [-30, -15], [-15, -5]]) {
+  console.log(`\nThe next catch, after ${mode} candidates (by arrival heading):`);
+  for (const [lo, hi] of mode === 'rising' ? [[-90, -30], [-30, -15], [-15, -5]] : [[-90, 30], [30, 45], [45, 90]]) {
     const vs = viable.filter(v => v.self[5] >= lo && v.self[5] < hi);
-    describe(`rising ${lo}..${hi}° (${vs.length})`, vs.map(v => ({p: pool(v.next), ask: v.r.nextAsk})));
+    describe(`${mode} ${lo}..${hi}° (${vs.length})`, vs.map(v => ({p: pool(v.next), ask: v.r.nextAsk})));
   }
   // Best pair per catch: kept-then-next against the best rising-then-next, two steps of local cost.
   let better = 0, n = 0; const gains: number[] = [];
@@ -109,7 +131,7 @@ function report(dir: string) {
     if (!alts.length) continue;
     n++; const best = Math.min(...alts); gains.push(base - best); if (best < base) better++;
   }
-  console.log(`\nTwo steps (this catch + the next's cheapest), best rising variant against kept: better in ${better}/${n}; mean saving ${fmt(mean(gains))}`);
+  console.log(`\nTwo steps (this catch + the next's cheapest), best alternative against kept: better in ${better}/${n}; mean saving ${fmt(mean(gains))}`);
 }
 
 if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')), Number(arg('per-ride', '8')));
@@ -121,7 +143,7 @@ else if (command === 'run') {
   assert(out && !existsSync(out), 'a new study requires a fresh output directory');
   mkdirSync(dirname(out), {recursive: true});
   mkdirSync(out);
-  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.alternation-probe.v1', seed, perRide, suite: SUITE, specs: queue}, null, 2) + '\n');
+  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.alternation-probe.v1', seed, perRide, mode: MODE, width: WIDTH, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`, `--mode=${MODE}`, `--width=${WIDTH}`]));
 } else report(out);

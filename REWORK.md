@@ -1,5 +1,77 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: the three structural options probed; the turning budget corrected (report only)
+
+**Correction.** The turning-budget reading in the two entries below is not
+supported. Intervening on the arrival does not reproduce the correlation it
+rested on:
+- **Steeper alternatives** from the kept catch's own pool (arriving 58°
+  against 33°): the next catch's strongest candidate is 0.733 against 0.733.
+  With 10× the next search it is 0.791 against 0.801.
+- **Nose-up alternatives** (the same arrival angle within 6°, the sled at
+  least 15° more nose-up): 0.71 against 0.73.
+- **The roof** (below) steepens arrivals by 4–15° without strengthening the
+  next catch.
+- These comparisons are biased toward the kept catch, which ranking chose for
+  its future using everything it sees. The sound design compares
+  alternatives with one another within the same catch.
+
+**Within-catch comparison** (`alternation_probe.ts --mode=sample`; 1,317
+alternatives in 226 strong catches followed by a strong ask; the six
+cheapest other candidates with distinct arrivals; regression on differences
+within each catch, bootstrap 95% intervals over catches):
+
+| arrival feature | strongest next candidate | cheapest next: strength | cheapest next: cost | a candidate within 0.06 of the ask |
+|---|---|---|---|---|
+| +10° steeper | +0.024 [−0.001, +0.046] | +0.013 | +0.004 | +7.8% [+1.5, +15.8] |
+| +10° more nose-down | −0.005 [−0.009, −0.001] | −0.000 | −0.001 | −1.5% |
+| +1 px/frame faster | +0.027 [−0.003, +0.053] | **+0.052 [+0.027, +0.079]** | **−0.031 [−0.056, −0.013]** | +13% [+3, +23] |
+| +0.1 own strength | −0.009 [−0.038, +0.017] | +0.004 | −0.002 | +4% |
+
+- Arrival speed is the one clear causal lever. Steepness helps modestly,
+  about a sixth of what the raw correlation suggested.
+- A stronger catch does not by itself weaken the next one.
+- The cross-sectional association with steepness came from what steep
+  arrivals come with in the compiler's own choices.
+
+**Option 1, steering down from above without a hit**
+(`tools/research/roof_probe.ts`; 191 strong catches followed by a strong ask):
+- A roof is traced over the rider's free flight, 2 px above its top point,
+  deviating toward it by ½·a·t², from 2 frames after the support to 4 before
+  the next catch.
+- Results by push a (0.15 / 0.3 / 0.5 px/frame²):
+  - arrival 37° / 42° / 48° against 33°;
+  - the rider stays intact 97% / 96% / 78%;
+  - the contact registers a hit in 79% / 99% / 98% of rides (strongest
+    0.08 / 0.14 / 0.21);
+  - the roof touches mostly the shoulder, the sled's front top point and the
+    hands;
+  - the next catch's strongest candidate is 0.751 / 0.752 / 0.727 against
+    0.761, and its cheapest costs more.
+- **Not viable:** the steering registers as hits, and the steeper arrival it
+  buys is worth little (see the table above).
+
+**Option 2, hits from above.**
+- After a rising arrival, the strongest candidate from a surface above
+  averages 0.32–0.45 (alternation probe).
+- Across all strong catches, with 10× the samples, it averages 0.51.
+- K and K′ (flush with the rider's top edge or outline) were null before.
+- Hits from above build over about 4 frames as the shoulder, hands and the
+  sled's top point meet the surface in turn. **Not available with today's
+  constructions.**
+
+**Option 3, strength from spin** (379 hits of 0.4 and up on the library
+songs, by spin's share of the 2-frame impulse):
+- the most-spin quarter (27% spin) is weaker (0.565 against 0.651);
+- it dissipates more for its strength (1.31 against 1.12 × ½J²).
+- **Not a way around the energy cost.**
+
+**What remains true.**
+- Strong catches dissipate energy, about ½J² each, and the arrival speed
+  the next catch needs comes from that same energy.
+- The levers are energy-efficient catches (the efficient quarter loses 0.73
+  against 1.68) and arrival speed; neither weights nor search add any.
+
 ## November 7: alternation probed; the turning budget (report only)
 
 **Probe** (`tools/research/alternation_probe.ts`, seed 101, 206 strong catches
@@ -20,7 +92,7 @@ followed by a strong ask, 21.7 frames apart):
 library songs), spin is 8.5% of the square: median 3.9%, p90 24%.
 Strength today is almost all a change of travel.
 
-**Reading: a turning budget.**
+**Reading: a turning budget** (superseded: see the correction above).
 - A floor catch registers strength by turning the rider: about J/v, so
   roughly 24° for 0.64 at 11.5 px/frame.
 - Between catches only gravity turns the rider back down: about
@@ -78,7 +150,7 @@ than 0.08; ask 0.78, kept 0.63):
   averages 0.51.
 - Search is not the limit; this confirms the allowance diagnostics.
 
-**3. The state that decides the next catch is the arrival angle.** Within
+**3. The arrival angle predicts the next catch** (an association; the intervention tests above show it is mostly not causal). Within
 the same ask band (0.8 and up), the kept strength and the share of pools
 holding a near-ask candidate rise with the arrival's steepness:
 

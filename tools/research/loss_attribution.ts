@@ -25,9 +25,10 @@ const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => pr
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 /** One candidate: strength, local cost, signed air and speed residuals, then the squared parts
  * (amplitude, strength, timing, unmatched hits, motion, rest), contact side, ranking value, and
- * its arrival at the next catch: heading (degrees, positive descending) and speed (px/frame). */
+ * its arrival at the next catch: heading (degrees, positive descending), speed (px/frame) and the sled's
+ * tail-to-nose angle (degrees). */
 const FIELDS = ['imp', 'local', 'air', 'speed', 'amplitude2', 'impact2', 'timing2', 'extra2', 'motion', 'rest', 'side', 'rank',
-  'heading', 'endSpeed'] as const;
+  'heading', 'endSpeed', 'pose'] as const;
 
 async function worker(id: string, seed: number) {
   const c = (await v7Cases([seed], '.', SUITE)).find(x => `${x.song}~${x.variant ?? 'spec'}` === id);
@@ -42,7 +43,7 @@ async function worker(id: string, seed: number) {
         const r = x.residuals, sq = (j: number) => (r[j] ?? 0) ** 2, motion = x.motionCost ?? 0;
         const rest = x.localCost - sq(0) - sq(1) - sq(2) - sq(3) - sq(4) - sq(5) - motion;
         return [x.actualImpact ?? NaN, x.localCost, r[0], r[1], sq(2), sq(3), sq(4), sq(5), motion, rest, x.c.contactSide ?? 1,
-          valueRank(ctx.options, x), x.heading, x.endSpeed].map(v => r4(v) ?? NaN);
+          valueRank(ctx.options, x), x.heading, x.endSpeed, x.pose].map(v => r4(v) ?? NaN);
       }));
     }
   }, async () => {

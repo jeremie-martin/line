@@ -89,7 +89,8 @@ const SCHEMES = {
   // Brick — Wada no. 325 (Eugenia Red | B, Naples Yellow, Yellow Ocher, Deep Slate Green).
   //   paper Naples Yellow · bars Eugenia Red | B · accent Yellow Ocher · ink Deep Slate Green · adjusted: paper L 0.926→0.945, C 0.091→0.03, h 93.367→85; mass L 0.622→0.54, C 0.17→0.16; ink L 0.281→0.24; night paper L 0.281→0.21, C 0.036→0.025
   //   Naples-yellow cream, a rose-brick band, one ochre bar, the line in Wada's deep slate green; its night is Gilt.
-  wBrick: {paper: '#f6ecd7', ink: '#062522', pencil: '#aeb0a1', mass: '#b93c48', accent: '#e2b540', nightPaper: '#091c1a', nightInk: '#fbe6a0'},
+  wBrick10: {paper: '#f6ecd7', ink: '#062522', pencil: '#aeb0a1', mass: '#b93c48', accent: '#e2b540', nightPaper: '#091c1a', nightInk: '#fbe6a0'},
+  wBrick: {paper: '#f6ecd7', ink: '#062522', pencil: '#aeb0a1', mass: '#b93c48', accent: '#cd9205', nightPaper: '#091c1a', nightInk: '#fbe6a0'},  // R11: accent deepened (L .79 → .70) so it parts from the cream paper
   // Orchid — Wada no. 315 (Grenadine Pink, Sulpher Yellow, Golden Yellow, Eupatorium Purple).
   //   paper Sulpher Yellow · bars Eupatorium Purple · accent Golden Yellow · ink made · adjusted: paper L 0.94→0.95, C 0.055→0.018; mass L 0.605→0.55
   //   Cream, an orchid band, a marigold bar: Lavender's warmer, pinker sister.
@@ -130,11 +131,93 @@ const SCHEMES = {
   //   paper Deep Slate Green · bars Yellow Ocher · accent Eugenia Red | B · ink Naples Yellow · adjusted: paper L 0.281→0.21, C 0.036→0.025; mass L 0.793→0.72; accent L 0.622→0.56
   //   Bottle-green black, an ochre-gold band, a rose-red bar, the line in Naples yellow.
   wGilt: {paper: '#091c1a', ink: '#fbe6a0', pencil: '#525942', mass: '#ca9e1f', accent: '#c43d4b', nightPaper: '#091c1a', nightInk: '#fbe6a0'},
+  // Round 11: Wada pass 2 (agents/wada/pass2): light papers in other hues, each differing in hue from its bars
+
+  // Etruscan — Wada no. 152 (Etruscan Red, Hay's Russet, Light Glaucous Blue).
+  //   paper Light Glaucous Blue · bars Hay's Russet · accent Etruscan Red · ink made · adjusted: paper L 0.81→0.95, C 0.039→0.018; accent L 0.587→0.72, C 0.149→0.15
+  //   Ice-blue paper, an oxblood-russet band, one salmon-red bar: warm earth under a cold sky.
+  w2Etruscan: {paper: '#e2f2f6', ink: '#301813', pencil: '#adb1b2', mass: '#793327', accent: '#f47c6d', nightPaper: '#210d0a', nightInk: '#e2f2f6'},
+  // Peony — Wada no. 204 (Rosolanc Purple, Cinnamon Rufous, Light Glaucous Blue).
+  //   paper Light Glaucous Blue · bars Rosolanc Purple · accent Cinnamon Rufous · ink made · adjusted: paper L 0.81→0.95, C 0.039→0.018; accent L 0.636→0.74
+  //   Ice-blue paper, a magenta band, one apricot bar: Magenta in daylight.
+  w2Peony: {paper: '#e2f2f6', ink: '#2e171f', pencil: '#acb0b6', mass: '#b73f74', accent: '#e59564', nightPaper: '#200d14', nightInk: '#e2f2f6'},
+  // Umber — Wada no. 234 (Cinnamon Buff, Pale Raw Umber, Pale King's Blue).
+  //   paper Pale King's Blue · bars Pale Raw Umber · accent Cinnamon Buff · ink made · adjusted: paper L 0.843→0.95, C 0.052→0.018; accent L 0.859→0.78, C 0.109→0.13
+  //   Pale sky paper, a raw-umber band, one buff-gold bar: coffee and air, the quietest.
+  w2Umber: {paper: '#e2f2f7', ink: '#271a0d', pencil: '#aab1b1', mass: '#71502f', accent: '#eaa950', nightPaper: '#1c1107', nightInk: '#e2f2f7'},
+  // Hydrangea — Wada no. 142 (Hydrangea Red, Sulphine Yellow, Salvia Blue).
+  //   paper Salvia Blue · bars Hydrangea Red · accent Sulphine Yellow · ink made · adjusted: paper L 0.738→0.95, C 0.047→0.018; accent L 0.714→0.75
+  //   Periwinkle-grey paper, a rose-red band, one mustard bar: Brick on a cool page.
+  w2Hydrangea: {paper: '#e7effb', ink: '#301719', pencil: '#b0aeb7', mass: '#a94151', accent: '#cdaa3b', nightPaper: '#210d0f', nightInk: '#e7effb'},
+  // Celadon — Wada no. 171 (Pale Burnt Lake, Yellow Orange, Glaucous Green).
+  //   paper Glaucous Green · bars Pale Burnt Lake · accent Yellow Orange · ink made · adjusted: paper L 0.826→0.95, C 0.031→0.016; mass L 0.409→0.45
+  //   Celadon paper, a maroon band, one marigold bar: glaze and lacquer.
+  w2Celadon: {paper: '#e5f2ec', ink: '#2d1514', pencil: '#aeb0ab', mass: '#8d3331', accent: '#f99d1b', nightPaper: '#210d0c', nightInk: '#e5f2ec'},
+  // Camellia — Wada no. 260 (Old Rose, Vinaceous Cinnamon, Glaucous Green, Sea Green).
+  //   paper Glaucous Green · bars Old Rose · accent Sea Green · ink made · adjusted: paper L 0.826→0.95, C 0.031→0.016; mass L 0.657→0.58; accent L 0.689→0.72
+  //   Celadon paper, an old-rose band, one sea-green bar: soft, the accent the only cool note.
+  w2Camellia: {paper: '#e5f2ec', ink: '#30171a', pencil: '#afb0ad', mass: '#ba5664', accent: '#21bea5', nightPaper: '#210d0f', nightInk: '#e5f2ec'},
+  // Blush — Wada no. 264 (Corinthian Pink, Red Orange, Dark Greenish Glaucous, Cerulian Blue).
+  //   paper Corinthian Pink · bars Cerulian Blue · accent Red Orange · ink made · adjusted: paper L 0.838→0.95, C 0.077→0.018; mass L 0.608→0.52; accent L 0.6→0.66
+  //   Blush paper, a cerulean band, one red-orange bar: the warm paper Lagoon never had.
+  w2Blush: {paper: '#faeaeb', ink: '#02212a', pencil: '#b0aeb1', mass: '#047685', accent: '#f3553c', nightPaper: '#00181c', nightInk: '#faeaeb'},
+  // Heather — Wada no. 338 (Carmine Red, Orange Yellow, Dusky Green, Grayish Lavender - B).
+  //   paper Grayish Lavender - B · bars Dusky Green · accent Orange Yellow · ink made · adjusted: paper L 0.758→0.95, C 0.03→0.016; mass L 0.384→0.42; accent L 0.815→0.78
+  //   Mauve-blush paper, a dusky green band, one orange-yellow bar; its night is Heather Night. Drop partner: w2HeatherNight.
+  w2Heather: {paper: '#f8eaf0', ink: '#06221e', pencil: '#afaeb1', mass: '#125950', accent: '#efa800', nightPaper: '#041815', nightInk: '#f8eaf0'},
+  // Aubergine — Wada no. 307 (Carmine, Grayish Lavender - A, Aconite Violet, Cotinga Purple).
+  //   paper Grayish Lavender - A · bars Cotinga Purple · accent Carmine · ink made · adjusted: paper L 0.777→0.95, C 0.055→0.016; mass L 0.311→0.4; accent L 0.54→0.6
+  //   Lilac paper, an aubergine band, one carmine bar; its night is Aubergine Night. Drop partner: w2AubergineNight.
+  w2Aubergine: {paper: '#eeedf9', ink: '#261322', pencil: '#b2acb9', mass: '#6b2d5e', accent: '#e23247', nightPaper: '#1d0d1a', nightInk: '#eeedf9'},
+  // Wisteria — Wada no. 197 (Eosine Pink, Dark Soft Violet, Neutral Gray).
+  //   paper Neutral Gray · bars Dark Soft Violet · accent Eosine Pink · ink made · adjusted: paper L 0.798→0.955, C 0.01→0.008
+  //   Near-white cool grey, a soft violet band, one eosine-pink bar: the whitest page.
+  w2Wisteria: {paper: '#eaf2f3', ink: '#1b1a2f', pencil: '#acb1b8', mass: '#66629c', accent: '#f37f94', nightPaper: '#131123', nightInk: '#eaf2f3'},
+  // Cobalt — Wada no. 333 (Burnt Sienna, Lemon Yellow, Cobalt Green, Blue).
+  //   paper Cobalt Green · bars Blue · accent Burnt Sienna · ink made · adjusted: paper L 0.81→0.95, C 0.082→0.016; accent L 0.546→0.65
+  //   Mint-white paper, a pure blue band, one burnt-sienna bar: Klein in spring.
+  w2Cobalt: {paper: '#e7f2ea', ink: '#0c1e2f', pencil: '#a5b2b2', mass: '#006eb8', accent: '#d17145', nightPaper: '#061523', nightInk: '#e7f2ea'},
+  // Seashell — Wada no. 194 (Jasper Red, Seashell Pink, Olympic Blue).
+  //   paper Seashell Pink · bars Olympic Blue · accent Jasper Red · ink made · adjusted: paper L 0.899→0.95, C 0.056→0.02; mass L 0.598→0.5; accent L 0.643→0.66
+  //   Peach-shell paper, a slate-blue band, one jasper-red bar: Hokusai on a pinker page.
+  w2Seashell: {paper: '#faebe3', ink: '#0f1e2f', pencil: '#b4aead', mass: '#3e6594', accent: '#f1592b', nightPaper: '#081423', nightInk: '#faebe3'},
+  // Carmine — Wada no. 232 (Carmine, Pinkish Cinnamon, Deep Indigo).
+  //   paper Deep Indigo · bars Carmine · accent Pinkish Cinnamon · ink made · adjusted: paper L 0.192→0.19, C 0.063→0.035
+  //   Deep indigo, a carmine band, one pale cinnamon bar: red velvet at night.
+  w2Carmine: {paper: '#0b1323', ink: '#f7ebeb', pencil: '#52545f', mass: '#cc1236', accent: '#eeb480', nightPaper: '#0b1323', nightInk: '#f7ebeb'},
+  // Aconite — Wada no. 344 (Cinnamon Buff, Deep Lyons Blue, Aconite Violet, Black).
+  //   paper Deep Lyons Blue · bars Aconite Violet · accent Cinnamon Buff · ink made · adjusted: paper L 0.393→0.19, C 0.122→0.04
+  //   Navy-violet black, an orchid band, one buff bar: Old Rose's cooler sister.
+  w2Aconite: {paper: '#091326', ink: '#f4ebf4', pencil: '#505464', mass: '#a36aa5', accent: '#fdc57e', nightPaper: '#091326', nightInk: '#f4ebf4'},
+  // Apricot — Wada no. 253 (Lemon Yellow, Apricot Orange, Cotinga Purple, Slate Color).
+  //   paper Slate Color · bars Apricot Orange · accent Lemon Yellow · ink made · adjusted: paper L 0.379→0.2, C 0.025→0.02; mass L 0.743→0.66
+  //   Slate black, an apricot band, one lemon bar: the brightest dark.
+  w2Apricot: {paper: '#0c181d', ink: '#f6ece8', pencil: '#52585a', mass: '#d97234', accent: '#f8ed43', nightPaper: '#0c181d', nightInk: '#f6ece8'},
+  // Grenadine — Wada no. 166 (Grenadine Pink, Naples Yellow, Deep Slate Green).
+  //   paper Deep Slate Green · bars Grenadine Pink · accent Naples Yellow · ink made · adjusted: paper L 0.281→0.21, C 0.036→0.025; mass L 0.725→0.64
+  //   Bottle-green black, a coral band, one Naples-yellow bar: Gilt's pink twin.
+  w2Grenadine: {paper: '#091c1a', ink: '#f6ece9', pencil: '#505a58', mass: '#d6654e', accent: '#fbe6a0', nightPaper: '#091c1a', nightInk: '#f6ece9'},
+  // Pansy — Wada no. 157 (Pansy Purple, Olive Ocher, Olympic Blue).
+  //   paper Pansy Purple · bars Olympic Blue · accent Olive Ocher · ink made · adjusted: paper L 0.39→0.19, C 0.141→0.04
+  //   Wine black, an Olympic-blue band, one gold bar: blue on red-black, unexpected and calm.
+  w2Pansy: {paper: '#220b11', ink: '#e9eff7', pencil: '#5e4f56', mass: '#5a82b3', accent: '#d6b43e', nightPaper: '#220b11', nightInk: '#e9eff7'},
+  // Saxe — Wada no. 186 (Hay's Russet, Ochraceous Salmon, Blue).
+  //   paper Hay's Russet · bars Blue · accent Ochraceous Salmon · ink made · adjusted: paper L 0.415→0.19, C 0.101→0.035; mass L 0.526→0.55
+  //   Russet-brown black, a pure blue band, one salmon bar: Café with a blue band.
+  w2Saxe: {paper: '#210d0a', ink: '#f5ede7', pencil: '#61504c', mass: '#1275c0', accent: '#d8a37b', nightPaper: '#210d0a', nightInk: '#f5ede7'},
+  // Heather Night — Wada no. 338 (Carmine Red, Orange Yellow, Dusky Green, Grayish Lavender - B).
+  //   paper Dusky Green · bars Carmine Red · accent Orange Yellow · ink made · adjusted: paper L 0.384→0.2, C 0.069→0.03; mass L 0.486→0.56
+  //   Drop partner of Heather (no. 338): dusky-green black, a carmine band, the same orange-yellow bar. Drop partner: w2Heather.
+  w2HeatherNight: {paper: '#041a17', ink: '#f7ebeb', pencil: '#4d5957', mass: '#bf444b', accent: '#fcb315', nightPaper: '#041a17', nightInk: '#f7ebeb'},
+  // Aubergine Night — Wada no. 307 (Carmine, Grayish Lavender - A, Aconite Violet, Cotinga Purple).
+  //   paper Cotinga Purple · bars Carmine · accent Grayish Lavender - A · ink made · adjusted: paper L 0.311→0.19, C 0.11→0.04; mass L 0.54→0.56; accent L 0.777→0.82, C 0.055→0.07
+  //   Drop partner of Aubergine (no. 307): aubergine black, a carmine band, a lavender bar. Drop partner: w2Aubergine.
+  w2AubergineNight: {paper: '#1f0c1b', ink: '#f4ecf1', pencil: '#5f4f5b', mass: '#d31f3c', accent: '#c3bdef', nightPaper: '#1f0c1b', nightInk: '#f4ecf1'},
   // a lab-only test: Riso with darker ink and a quieter band. If it reads as clearly as Hokusai, lightness was Riso's problem.
   risoDeep: {paper: '#f7f3e9', ink: '#0d2063', pencil: '#b9b7cf', mass: '#304d99', accent: '#ff3d7f', nightPaper: '#14206e', nightInk: '#f7f3e9'},
 };
 const DIMS = {
-  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
+  scheme: ['Colour', {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', w2Etruscan: 'Etruscan (Wada)', w2Peony: 'Peony (Wada)', w2Umber: 'Umber (Wada)', w2Hydrangea: 'Hydrangea (Wada)', w2Celadon: 'Celadon (Wada)', w2Camellia: 'Camellia (Wada)', w2Blush: 'Blush (Wada)', w2Heather: 'Heather (Wada)', w2Aubergine: 'Aubergine (Wada)', w2Wisteria: 'Wisteria (Wada)', w2Cobalt: 'Cobalt (Wada)', w2Seashell: 'Seashell (Wada)', w2Carmine: 'Carmine (Wada)', w2Aconite: 'Aconite (Wada)', w2Apricot: 'Apricot (Wada)', w2Grenadine: 'Grenadine (Wada)', w2Pansy: 'Pansy (Wada)', w2Saxe: 'Saxe (Wada)', w2HeatherNight: 'Heather Night (Wada)', w2AubergineNight: 'Aubergine Night (Wada)', wBrick10: 'Brick, round 10', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café'}],
   size: ['Size', {today: 'Today', s58: '7 % closer', s62: '15 % closer', s68: '25 % closer'}],
   place: ['Rider in the frame', {official: 'Official follower', loose: 'Looser', tamed: 'Tamed', high: 'Tamed, higher', dive: 'Higher, steep rides drop', follow: 'Follows direction, higher', followMid: 'Follows direction, between', followLow: 'Follows direction, at Tamed’s height'}],
   tide: ['Zoom over time', {steady: 'Steady', quietI: 'Out when quiet', breath: 'One breath', fit: 'Fitted to the song'}],
@@ -245,6 +328,36 @@ const QUESTIONS = [
       ['Fuller, ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'e', amp: '1.5'}, 'Both: a 0.6 hit gets 17.5 px, the hardest 24 px.'],
       ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference: the shipped recipe.']],
     moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose'}], ['On Prussian (light)', 36.5, 'tomada', {scheme: 'wPrussian'}]]},
+  {id: 'wada2light', ask: 'More Wada, light: other papers', why: 'You asked for light papers other than cream: pale blue, and more. Wada’s own light colours are mostly creams and yellows, so these papers come from a combination’s own blues, greens and roses, made pale. The lesson that made it work: the paper must differ in hue from the bars (warm bars on ice blue or celadon, cool bars on blush). A paper in the bars’ own hue looked weak. Varies: only the colours. Keep any number.',
+    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
+      ['Prussian (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wPrussian'}, 'For reference: “super elegant”.'],
+      ['Etruscan', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Etruscan'}, 'Wada 152. Ice-blue paper, an oxblood band, a salmon bar.'],
+      ['Peony', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Peony'}, 'Wada 204. Ice-blue paper, a magenta band, an apricot bar.'],
+      ['Umber', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Umber'}, 'Wada 234. Pale sky paper, a raw-umber band, a buff bar.'],
+      ['Hydrangea', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Hydrangea'}, 'Wada 142. Periwinkle paper, a rose-red band, a mustard bar.'],
+      ['Celadon', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Celadon'}, 'Wada 171. Celadon paper, a maroon band, a marigold bar.'],
+      ['Camellia', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Camellia'}, 'Wada 260. Celadon paper, an old-rose band, a sea-green bar.'],
+      ['Blush', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Blush'}, 'Wada 264. Blush paper, a cerulean band, a red-orange bar.'],
+      ['Heather', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Heather'}, 'Wada 338. Mauve-blush paper, a dusky-green band, an orange-yellow bar.'],
+      ['Aubergine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Aubergine'}, 'Wada 307. Lilac paper, an aubergine band, a carmine bar.'],
+      ['Wisteria', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Wisteria'}, 'Wada 197. Near-white cool grey, a violet band, a pink bar.'],
+      ['Cobalt', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Cobalt'}, 'Wada 333. Mint-white paper, a pure blue band, a sienna bar.'],
+      ['Seashell', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Seashell'}, 'Wada 194. Peach paper, a slate-blue band, a red bar (close to Hokusai).'],
+      ['Brick, accent fixed', {...plain, music: 'redbars', hit: 'parts', scheme: 'wBrick'}, 'Wada 325. The accent you found too close to the paper, deepened.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
+  {id: 'wada2dark', ask: 'More Wada, dark', why: 'Six new darks and two drop partners taken from their light schemes’ own combinations. Your Ultramarine and Old Rose are there for comparison. Varies: only the colours. Keep any number.',
+    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
+      ['Ultramarine (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wUltramarine'}, 'For reference: “so cool, love it”.'],
+      ['Old Rose (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose'}, 'For reference: “so freaking elegant”.'],
+      ['Carmine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Carmine'}, 'Wada 232. Deep indigo paper, a carmine band.'],
+      ['Aconite', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Aconite'}, 'Wada 344. Midnight paper, an aconite-violet band.'],
+      ['Apricot', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Apricot'}, 'Wada 253. Blue-black paper, an apricot band.'],
+      ['Grenadine', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Grenadine'}, 'Wada 166. Green-black paper, a grenadine band; could be Brick’s night.'],
+      ['Pansy', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Pansy'}, 'Wada 157. Wine-black paper, a pansy-blue band.'],
+      ['Saxe', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Saxe'}, 'Wada 186. Brown-black paper, a saxe-blue band.'],
+      ['Heather’s night', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2HeatherNight'}, 'The darker partner from Heather’s own combination, for the drop.'],
+      ['Aubergine’s night', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2AubergineNight'}, 'The darker partner from Aubergine’s own combination, for the drop.']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 

@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis ROOF, a steering roof as a construction option
+
+- **Basis.** Option 1 of the structural study was judged on probes alone
+  (`roof_probe.ts`). Only the benchmark decides, so it is now offered to the
+  search as a real construction.
+- **Change** (branch `exp/steering-roof`).
+  - Two guide controls: `steer`, a push in px/frame², and `steerFrames`.
+  - The guide continues past the support over the nominal ballistic flight
+    from the support's end, part of the same connected guide curve. It
+    closes toward the rider by ½·steer·t².
+  - Applied only where the guide reaches the support's end, outside transfer
+    layouts.
+  - A last proposal stage, after local search, offers the interval's best
+    candidate again with steer 0.1, 0.2 and 0.35, the roof ending 4 frames
+    before the next catch.
+  - Each is measured like every proposal: a crash rejects it, and contact
+    that registers counts as an extra hit. Ranking chooses.
+  - Without `steer` the geometry is unchanged.
+- **Check** (one ride, `amour_de_ma_vie_44s~spec`): 305 viable roof
+  candidates; ranking put one first at 5 steps; 2 of 86 intervals in the
+  final ride.
+- **Hypothesis.** Where steering pays, ranking takes it: a little more
+  strength on dense strong passages and a small headline gain.
+- **Expected outcome (from the probe):** null. A steeper arrival bought this
+  way measured worth little, and the contact often registers. Body drag
+  will rise if roofs are chosen.
+
 ## November 7: hypotheses Z and AA, tested on the benchmark
 
 The probes above choose what to test; only the benchmark decides. Two levers

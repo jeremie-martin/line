@@ -68,6 +68,7 @@ npm run compare -- run --reference=main --candidate=<branch>             # 4 see
 npm run compare -- run --reference=main --candidate=<branch> --seeds=8   # extend: compiles only the missing pairs
 npm run compare -- report --reference=main --candidate=<branch>          # saved rides only, compiles nothing
 npm run compare -- rides  --reference=main --candidate=<branch>          # most-moved rides, side by side on the dashboard
+npm run compare -- review --reference=main --candidate=<branch>          # the passages that differ most, before above after
 ```
 
 - The panel is V7.1 unless `--panel=…` says otherwise.
@@ -97,6 +98,17 @@ npm run compare -- rides  --reference=main --candidate=<branch>          # most-
   `node_modules`. A commit with another engine source or lockfile is refused
   rather than compiled with the wrong build.
 - Several comparisons against the same saved reference can run at once.
+- **Review by eye** (`review`): from the saved rides that moved most, the
+  `--passages=6` windows of 4 s (1.5 s before a beat) where the scored
+  quantities changed most. A window's change is the sum, over its beats, its
+  unasked hits and the share of its gaps' air and speed inside it, of
+  |after − before| squared error, as the accounts count them; a ride that did
+  not finish counts its end and nothing after. One passage per spec, then per
+  ride, before repeating. Each is one plain clip, reference above candidate,
+  same time window, the reference's sound, the largest change tagged; the
+  `video-compare` collection lists what changed with the numbers. Library songs
+  (`*_selection`) are left out unless `--all-songs`. Whole rides are rendered
+  once (`review-rides/`, reused) and cut; `--jobs=N` renders at a time (4).
 
 ## Reading a report
 

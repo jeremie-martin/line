@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: test only the lines a point can reach
+
+A collision sweep tested about 360 lines per frame, and 90% were out of reach of any
+point within two pixels of where the frame began. Each point now keeps those near lines,
+chooses again if it moves further, and falls back to its full list after a hit, so the
+order of tests that can matter is unchanged. Paired on real compiles: −2.92% [−4.29%,
+−1.24%], 8 of 8 faster. Rejected: one combined pass in place of the direction and reach
+passes, −0.6% and inconclusive, because the branchless direction pass is what pays.
+
 ## November 7: rank candidates lazily
 
 The future-value model ran for every viable candidate, though ranking needs only the

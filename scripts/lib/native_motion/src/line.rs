@@ -11,6 +11,15 @@ use crate::grid::{append_classic_cells, hash_int_pair, LineGrid};
 pub(crate) const MAX_FORCE_LENGTH: f64 = 10.0;
 pub(crate) const ACC: f64 = 0.1;
 
+/// A point stays within POINT_MARGIN on each axis of where its near lines were
+/// chosen. That moves it at most √2 × POINT_MARGIN in any direction; LINE_REACH
+/// leaves the rest for rounding, which is far smaller at the distances may_reach
+/// accepts.
+pub(crate) const POINT_MARGIN: f64 = 2.0;
+const LINE_REACH: f64 = 3.0;
+/// Beyond this distance from a line's origin, rounding is no longer negligible.
+const CERTAIN_DISTANCE: f64 = 1e7;
+
 /// Shared immutable geometry and its raster footprint, constructed once.
 pub(crate) struct Line {
     pub id: i32,
@@ -27,6 +36,8 @@ pub(crate) struct Line {
     pub accx: f64,
     pub accy: f64,
     pub collidable: bool,
+    /// LINE_REACH along the segment, in units of its length.
+    along_reach: f64,
     cell_range: std::ops::Range<usize>,
 }
 
@@ -66,6 +77,7 @@ impl Line {
             accx,
             accy,
             collidable,
+            along_reach: LINE_REACH * inv_length,
             cell_range: 0..0,
         }
     }
@@ -128,6 +140,19 @@ pub(crate) fn collides_with(l: &Line, px: f64, py: f64, vx: f64, vy: f64) -> boo
         && perp < MAX_FORCE_LENGTH
         && line_pos >= l.left_bound
         && line_pos <= l.right_bound
+}
+
+/// False only when no position within POINT_MARGIN of (px, py) can satisfy the
+/// position tests of `collides_with`. Nonfinite values stay in reach.
+#[inline]
+pub(crate) fn may_reach(l: &Line, px: f64, py: f64) -> bool {
+    let ox = px - l.p1x;
+    let oy = py - l.p1y;
+    if !(ox.abs() < CERTAIN_DISTANCE && oy.abs() < CERTAIN_DISTANCE) { return true; }
+    let perp = l.normx * ox + l.normy * oy;
+    let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+    !(perp <= -LINE_REACH || perp >= MAX_FORCE_LENGTH + LINE_REACH
+        || line_pos < l.left_bound - l.along_reach || line_pos > l.right_bound + l.along_reach)
 }
 
 // Original raster cells keep line ids in descending order. Neighborhood

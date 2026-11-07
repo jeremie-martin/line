@@ -13,7 +13,7 @@ pub(crate) type Collision = (u8, i32, i32, f64, f64);
 
 use crate::history::CollisionHistory;
 use crate::grid::{cell_cor_from_scaled, hash_int_pair, LineGrid, GRID_SIZE};
-use crate::line::{Line, MAX_FORCE_LENGTH};
+use crate::line::{may_reach, Line, MAX_FORCE_LENGTH, POINT_MARGIN};
 use crate::{
     COLLIDING_POINTS, BASE, BUTT, GRAVITY_X, GRAVITY_Y, IS_POINT, ITERATE, JOINTS, LFOOT, LHAND, NENT,
     NOSE, PEG, RFOOT, RHAND, RIDER_MOUNTED, SHOULDER, STRING, TAIL,
@@ -30,6 +30,9 @@ struct PointCell {
     cell_x: i64,
     cell_y: i64,
     epoch: u32,
+    // Where this point's near lines were chosen.
+    near_x: f64,
+    near_y: f64,
 }
 
 impl PointCell {
@@ -43,6 +46,8 @@ impl PointCell {
         cell_x: 0,
         cell_y: 0,
         epoch: 0,
+        near_x: 0.0,
+        near_y: 0.0,
     };
 }
 
@@ -106,6 +111,7 @@ pub(crate) struct LineCellCache {
     // Point slots start at PEG; the first two entities only store binding status.
     point_cells: [PointCell; NENT - PEG],
     point_lines: [Vec<*const Line>; NENT - PEG], // ordered lines passing this frame's direction predicate
+    point_near: [Vec<u32>; NENT - PEG], // positions in point_lines of the lines this point can reach
     queries: QueryCache,
 }
 
@@ -123,6 +129,7 @@ impl Default for LineCellCache {
             bounds: [f64::INFINITY, f64::NEG_INFINITY, f64::INFINITY, f64::NEG_INFINITY],
             point_cells: [PointCell::EMPTY; NENT - PEG],
             point_lines: std::array::from_fn(|_| Vec::new()),
+            point_near: std::array::from_fn(|_| Vec::new()),
             queries: QueryCache::default(),
         }
     }
@@ -185,12 +192,14 @@ impl LineCellCache {
     }
 
     #[inline]
-    fn cache_point_lines(&mut self, grid: &LineGrid, index: usize, vx: f64, vy: f64) {
-        let point = &mut self.point_cells[index - PEG];
-        if point.epoch == self.queries.current_epoch {
-            return;
+    fn cache_point_lines(&mut self, grid: &LineGrid, index: usize, px: f64, py: f64, vx: f64, vy: f64) {
+        let point = &self.point_cells[index - PEG];
+        if point.epoch != self.queries.current_epoch {
+            self.refresh_point_lines(grid, index, vx, vy);
+            self.choose_near_lines(index, px, py);
+        } else if (px - point.near_x).abs() > POINT_MARGIN || (py - point.near_y).abs() > POINT_MARGIN {
+            self.choose_near_lines(index, px, py);
         }
-        self.refresh_point_lines(grid, index, vx, vy);
     }
 
     // Keep the uncommon list rebuild out of each monomorphized point solver.
@@ -219,6 +228,22 @@ impl LineCellCache {
         }
         // SAFETY: count <= query.len(), and every slot below count was written.
         unsafe { lines.set_len(count); }
+    }
+
+    // Most lines facing a point are beyond its reach, and a point moves little
+    // within a frame. Sweeps test only the ones it can still reach.
+    #[inline(never)]
+    fn choose_near_lines(&mut self, index: usize, px: f64, py: f64) {
+        let lines = &self.point_lines[index - PEG];
+        let near = &mut self.point_near[index - PEG];
+        near.clear();
+        near.reserve(lines.len());
+        for (position, &line) in lines.iter().enumerate() {
+            if may_reach(unsafe { &*line }, px, py) { near.push(position as u32); }
+        }
+        let point = &mut self.point_cells[index - PEG];
+        point.near_x = px;
+        point.near_y = py;
         point.epoch = self.queries.current_epoch;
     }
 
@@ -256,6 +281,8 @@ impl LineCellCache {
             cell_x,
             cell_y,
             epoch: 0,
+            near_x: 0.0,
+            near_y: 0.0,
         };
         cached.key
     }
@@ -458,15 +485,28 @@ unsafe fn collide_point<const TRACK: bool>(
             vyi,
         );
     }
-    line_cache.cache_point_lines(grid, index, vxi, vyi);
+    line_cache.cache_point_lines(grid, index, pxi, pyi, vxi, vyi);
     let lns = &line_cache.point_lines[index - PEG];
-    if !lns.is_empty() {
+    let near = &line_cache.point_near[index - PEG];
+    if !near.is_empty() {
         let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));
-        for &line in lns {
+        // A collision can move the point out of its margin, so the rest of this
+        // sweep tests every remaining line, in the same order.
+        let (mut narrow, mut cursor) = (true, 0);
+        loop {
+            let position = if narrow {
+                let Some(&position) = near.get(cursor) else { break };
+                position as usize
+            } else if cursor < lns.len() {
+                cursor
+            } else {
+                break;
+            };
+            cursor += 1;
             // Entries point into immutable batch geometry owned by the grid.
             // Only point_cells is updated below; this query stays fixed during
             // the sweep even when a collision moves the entity to another cell.
-            let l = &*line;
+            let l = &**lns.get_unchecked(position);
             let ox = pxi - l.p1x;
             let oy = pyi - l.p1y;
             let perp_comp = l.normx * ox + l.normy * oy;
@@ -518,6 +558,10 @@ unsafe fn collide_point<const TRACK: bool>(
                         vyi,
                     );
                     history.record_collision(l.id, frame_index);
+                }
+                if narrow {
+                    narrow = false;
+                    cursor = position + 1;
                 }
             }
         }
@@ -590,6 +634,39 @@ pub(crate) fn step_state<const TRACK: bool>(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::line::{build_line, collides_with};
+
+    #[test]
+    fn lines_out_of_reach_cannot_collide_anywhere_within_the_margin() {
+        let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+        let mut next = || {
+            state = state.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1_442_695_040_888_963_407);
+            (state >> 11) as f64 / (1u64 << 53) as f64
+        };
+        let (mut excluded, mut kept) = (0, 0);
+        for id in 0..400_000 {
+            // Near-tangent placements, short and long lines, and all extensions.
+            let (x1, y1) = (next() * 4000.0 - 2000.0, next() * 4000.0 - 2000.0);
+            let length = 10f64.powf(next() * 6.0 - 3.0);
+            let angle = next() * std::f64::consts::TAU;
+            let (x2, y2) = (x1 + length * angle.cos(), y1 + length * angle.sin());
+            let line = build_line(id, x1, y1, x2, y2, 0, (next() * 8.0) as i64);
+            let along = -0.3 + next() * 1.6;
+            let across = next() * 24.0 - 6.0;
+            let px = x1 + (x2 - x1) * along + line.normx * across;
+            let py = y1 + (y2 - y1) * along + line.normy * across;
+            let reach = may_reach(&line, px, py);
+            if reach { kept += 1; } else { excluded += 1; }
+            if reach { continue; }
+            for corner in 0..64 {
+                // The box's corners and edges are where a miss would first appear.
+                let dx = if corner < 8 { [-1.0, 1.0][corner & 1] } else { next() * 2.0 - 1.0 } * POINT_MARGIN;
+                let dy = if corner < 8 { [-1.0, 1.0][corner >> 1 & 1] } else { next() * 2.0 - 1.0 } * POINT_MARGIN;
+                assert!(!collides_with(&line, px + dx, py + dy, line.normx, line.normy));
+            }
+        }
+        assert!(excluded > 50_000 && kept > 50_000, "{excluded} {kept}");
+    }
 
     #[test]
     fn whole_sweep_bounds_exclude_only_empty_neighborhoods() {
@@ -654,9 +731,13 @@ mod tests {
     }
 
     fn ids(cache: &mut LineCellCache, grid: &LineGrid, x: f64, y: f64) -> Vec<i32> {
-        cache.point_cell(PEG,x, y);
-        cache.cache_point_lines(grid, PEG, 0.0, 1.0);
-        cache.point_lines[0].iter().map(|&line| unsafe { (*line).id }).collect()
+        near_ids(cache, grid, x, y, 0.0, 1.0)
+    }
+
+    fn near_ids(cache: &mut LineCellCache, grid: &LineGrid, x: f64, y: f64, vx: f64, vy: f64) -> Vec<i32> {
+        cache.point_cell(PEG, x, y);
+        cache.cache_point_lines(grid, PEG, x, y, vx, vy);
+        cache.point_near[0].iter().map(|&position| unsafe { (*cache.point_lines[0][position as usize]).id }).collect()
     }
 
     #[test]
@@ -664,12 +745,12 @@ mod tests {
         use crate::line::{build_line, push_line, remove_line};
         let mut grid = LineGrid::default();
         let mut cache = LineCellCache::default();
-        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());
+        assert!(ids(&mut cache, &grid, 1.0, 6.0).is_empty());
         let line = build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0);
         let cells = line.cells();
         cache.invalidate();
         push_line(&mut grid, &line, cells);
-        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
+        assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), vec![1]);
         let mut cloned = cache.clone();
         let mut other = grid.clone();
         remove_line(&mut other, 1, &cells);
@@ -677,7 +758,7 @@ mod tests {
         cache.invalidate();
         remove_line(&mut grid, 1, &cells);
         for key in 100..1000 { grid.get_or_insert(key); }
-        assert!(ids(&mut cache, &grid, 1.0, 1.0).is_empty());
+        assert!(ids(&mut cache, &grid, 1.0, 6.0).is_empty());
         assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());
         cache.queries.current_epoch = u32::MAX;
         cache.invalidate();
@@ -695,17 +776,17 @@ mod tests {
         for (id, cells) in [(1, vec![(-1, -1)]), (2, vec![(-1, 0)]), (3, vec![(-1, -1), (-1, 0)])] {
             push_line(&mut grid, &build_line(id, 0.0, 5.0, 10.0, 5.0, 0, 0), &cells);
         }
-        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![3, 1, 3, 2]);
-        let query = &cache.point_lines[0];
+        assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), vec![3, 1, 3, 2]);
+        let near = cache.point_near[0].clone();
         LineCellCache::update_cell(&mut cache.point_cells[0], 14.0, 1.0);
-        assert_eq!(query.iter().map(|&l| unsafe { (*l).id }).collect::<Vec<_>>(), vec![3, 1, 3, 2]);
-        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
+        assert_eq!(cache.point_near[0], near);
+        assert!(ids(&mut cache, &grid, 14.0, 6.0).is_empty());
         cache.invalidate();
-        push_line(&mut grid, &build_line(4, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(2, 0)]);
-        assert_eq!(ids(&mut cache, &grid, 14.0, 1.0), vec![4]);
+        push_line(&mut grid, &build_line(4, 10.0, 5.0, 20.0, 5.0, 0, 0), &[(2, 0)]);
+        assert_eq!(ids(&mut cache, &grid, 14.0, 6.0), vec![4]);
         cache.invalidate();
         remove_line(&mut grid, 4, &[(2, 0)]);
-        assert!(ids(&mut cache, &grid, 14.0, 1.0).is_empty());
+        assert!(ids(&mut cache, &grid, 14.0, 6.0).is_empty());
     }
 
     #[test]
@@ -714,12 +795,12 @@ mod tests {
         let mut grid = LineGrid::default();
         push_line(&mut grid, &build_line(1, 0.0, 5.0, 10.0, 5.0, 0, 0), &[(0, 0)]);
         let mut cache = LineCellCache::default();
-        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
+        assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), vec![1]);
         for cx in 1..1024 {
             cache.queries.lookup(&grid, hash_int_pair(cx, 100), cx, 100);
         }
         assert_ne!(cache.queries.keys[0], 0); // evicted the shared query for (0,0)
-        assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), vec![1]);
+        assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), vec![1]);
     }
 
     #[test]
@@ -746,10 +827,7 @@ mod tests {
             cache.begin_frame();
             assert_eq!(cache.queries.current_epoch, query_epoch);
             for _ in 0..6 {
-                cache.point_cell(PEG,1.0, 1.0);
-                cache.cache_point_lines(&grid, PEG, vx, vy);
-                let got: Vec<i32> = cache.point_lines[0].iter().map(|&p| unsafe { (*p).id }).collect();
-                assert_eq!(got, expected);
+                assert_eq!(near_ids(&mut cache, &grid, 1.0, 6.0, vx, vy), expected);
             }
         }
     }
@@ -766,13 +844,12 @@ mod tests {
             cache.invalidate();
             let one_cell: Vec<i32> = (0..count).rev().collect();
             let expected: Vec<i32> = one_cell.iter().chain(one_cell.iter()).copied().collect();
-            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
+            assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), expected);
             cache.begin_frame();
-            cache.cache_point_lines(&grid, PEG, 0.0, -1.0);
-            assert!(cache.point_lines[0].is_empty());
+            assert!(near_ids(&mut cache, &grid, 1.0, 6.0, 0.0, -1.0).is_empty());
             // The entirely rejected pass must not leave stale output entries.
             cache.begin_frame();
-            assert_eq!(ids(&mut cache, &grid, 1.0, 1.0), expected);
+            assert_eq!(ids(&mut cache, &grid, 1.0, 6.0), expected);
         }
     }
 

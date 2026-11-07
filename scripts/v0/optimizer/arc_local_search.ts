@@ -2,7 +2,6 @@
  * coordinate steps on the core controls, a broad-then-coordinate search over
  * guide and shape controls, and damped finite-difference response steps.
  * Every step is an ordinary measured evaluation. */
-import {exactPow} from '../../lib/exact_pow.ts';
 import type {MeasuredCandidate} from './arc_candidates.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
@@ -24,7 +23,7 @@ export function coordinateSearch(s: IntervalSearch) {
     // Evaluation can replace the best, but never clears it during refinement.
     const best = s.best!.candidate;
     const candidate = {...best.c, [key]: best.c[key]! + sign * arcControlStep(key, 'coordinate', best.c.support) *
-      exactPow(.65, Math.floor(round / 2))};
+      Math.pow(.65, Math.floor(round / 2))};
     evaluate(s, candidate);
     if (k % 10 === 9) retainSearch(s);
   }
@@ -77,7 +76,7 @@ function guideShapeSearch(s: IntervalSearch, origin: MeasuredCandidate, keys: Co
       const key = keys[Math.floor(k / 2) % keys.length];
       const step = arcControlStep(key, 'coordinate', best.c.support);
       c = {...best.c, [key]: arcControlValue(best.c, key, options.channel) +
-        (k % 2 === 0 ? -1 : 1) * step * exactPow(.6, Math.floor((k - broad) / (keys.length * 4)))};
+        (k % 2 === 0 ? -1 : 1) * step * Math.pow(.6, Math.floor((k - broad) / (keys.length * 4)))};
     }
     evaluate(s, c);
     if (k % 8 === 7) retainSearch(s);

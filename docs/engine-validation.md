@@ -1,8 +1,8 @@
 # Engine and compiler validation
 
-Use Node 26 and the pinned Rust. Commits before the Node 26 change
-used `Math.pow`, so under Node 26 they cannot serve as a `perf:engine` reference: their
-tracks differ. Compare against later commits. The engine kernel, compiler
+Use Node 26 and the pinned Rust. `perf:engine` compares commits with the same tracks,
+so a commit before the latest change of parity references cannot serve as its reference.
+The engine kernel, compiler
 search and judge are different contracts; passing one does not imply the others.
 
 | Command | Purpose |

@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: Math.pow, and `exactPow` removed
+
+This replaces the `exactPow` entry below: rebuilding an old V8 routine to keep tracks
+still was the wrong trade. Math.pow from Node 24 on calls the system libm, and that is
+stable: Node 26 and Bun, and glibc 2.39 and Arch's 2.44, give identical bits over
+3 million samples. It is also the fastest, at 14 ns against 92, and it is no code of ours.
+Only `pow` in the compiler reaches libm. A Mac or a musl system may round differently,
+and parity would say so.
+
+Tracks change, once. Stated first: no systematic change in quality. V7, 112 paired rides:
+headline 780.8 against 782.3, −1.6 [−5.3, +2.2]; 10 specs up, 12 down, by up to 13;
+112 of 112 finished both ways; explicit requests 763.8 against 766.5, 216 of 216 gaps
+realized both ways; physics 2.98 M against 2.99 M frames. That is a new draw of the same
+compiler, on tracks earlier decisions were never tuned to. References updated here.
+
 ## November 7: current tools, no machine in the repo
 
 TypeScript 7 typechecks in 0.35 s, from 1.9 s, with no source change beyond declaring
@@ -23,7 +38,7 @@ of 158 k calls, but a per-batch cache of their cell lists gave −0.3%, within n
 candidate lines, perhaps 0.5 s of registration, and measurement in Rust, perhaps 1 s of a
 6.4 s JS share. Both add real structure, so they need an owner's decision.
 
-## November 7: Node 26, and a `pow` of our own
+## November 7: Node 26, and a `pow` of our own (superseded above)
 
 V8 14 runs the same compile 6% faster than V8 12, native and JS alike, with no source
 change. Maglev alone on Node 22 was slower. Tracks moved at first, and the cause was

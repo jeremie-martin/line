@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 
 # Derived artifacts (reproducible): compiler outputs, studies, renders, caches
 generated/

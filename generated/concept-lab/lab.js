@@ -714,7 +714,14 @@ function renderQuestion() {
   $('qprogress').textContent = done ? 'All done' : `Question ${qi + 1} of ${QUESTIONS.length} · ${SONGS[song]}`;
   $('concept').textContent = done ? 'Thank you.' : Q.ask;
   $('line').textContent = done ? 'Copy your answers and paste them to me in the chat. They are also kept in this browser.' : Q.why;
-  if (!done && !Q.open && Q.opts[qopt][2]) {const b = document.createElement('b'); b.textContent = ' ' + LETTERS[qopt] + ': ' + Q.opts[qopt][2]; b.style.fontWeight = '500'; b.style.color = 'var(--ink)'; $('line').append(document.createElement('br'), b);}
+  // The chosen option's note sits in a block of FIXED height (the longest note of this question), so the answer buttons below never
+  // move when the viewer switches options; a 1- vs 2-line note used to shift them and taps landed on the neighbour.
+  if (!done && !Q.open) {
+    const b = document.createElement('b'); b.textContent = Q.opts[qopt][2] ? LETTERS[qopt] + ': ' + Q.opts[qopt][2] : ''; b.style.cssText = 'display:block;font-weight:500;color:var(--ink);margin-top:6px';
+    const probe = document.createElement('b'); probe.style.cssText = b.style.cssText + ';visibility:hidden;position:absolute;left:0;right:0'; $('line').append(b, probe);
+    let h = 0; for (const [i, o] of Q.opts.entries()) {probe.textContent = LETTERS[i] + ': ' + (o[2] ?? ''); probe.style.width = b.offsetWidth + 'px'; h = Math.max(h, probe.offsetHeight);}
+    probe.remove(); b.style.minHeight = h + 'px';
+  }
   $('presets').replaceChildren(...(done ? [] : Q.opts.map(([label, m], i) => chip(`${LETTERS[i]} · ${label}`, i === qopt, () => {qopt = i; mix = {...m}; renderQuestion(); draw();}))));
   const a = done ? null : (answers[Q.id] ??= {pick: null, note: ''});
   $('presets').hidden = !done && !!Q.open; document.querySelector('.qrow').hidden = !done && !!Q.open;

@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: where V7.1 loses, and the next experiments
+
+On the library songs (G, 678 against 745 for V7.0's songs), strength is 55% of
+the loss. Strong asks fall short: 0.6–0.8 at −0.12 and 0.8+ at −0.12, with 32%
+of each more than 0.15 short (V7.0's songs: about 5%). These songs ask for
+strong hits on 58–76% of beats, densely: the close-strong-beats coupling found
+on November 1. Next, each with its hypothesis stated before running (paired
+V7.1 at 4, then 8 seeds; held out at decisions):
+- re-tests on V7.1 of the parked H3 (pooled policies), B (beam slot) and J
+  (strong-catch effort). Same hypotheses as before; V7.1's dense strong songs
+  and the 11-song held-out panel may resolve them;
+- then new mechanisms aimed at dense strong passages.
+
 ## November 7: V7.1 and eight more held-out songs
 
 The music library's 22 specs (14 songs) were split by song, never by spec.

@@ -27,6 +27,21 @@
   P4).
 - **Risk.** Last time a retrain lost (−4.8) despite equal regret. That
   model had a fifth of the data and was never screened within a catch.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −3.6 [−15.2, +8.0], 0.20; 15 of 35 specs up.
+  - G +3.3, but P1 −13.1, P5 −9.9 and P4 −5.0.
+  - Strong extra impacts +56%, body drag +6%, head-down or backward
+    arrivals −15%.
+- **Reading.**
+  - A better one-step, within-catch screen did not carry to whole rides.
+    Twice today (here and the per-part calibration), one-step measures
+    ranked a change correctly as a hypothesis but not as an outcome.
+  - The October model's errors may be partly absorbed by the weights tuned
+    with it, half-weight prediction included.
+  - The new model and its data are kept (`generated/value-v4/
+    model-local-search`, `collect-local-search`) for a later, joint test:
+    for example, the new model with its weight re-chosen on the benchmark,
+    or retrained construction policies from the same collection.
 
 ## November 7: a candidate too long for its section's ids is rejected, not fatal
 

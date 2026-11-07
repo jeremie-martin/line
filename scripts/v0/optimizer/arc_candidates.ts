@@ -49,10 +49,10 @@ export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
 type Ranked = Pick<MeasuredCandidate, 'localCost' | 'cost' | 'headingPrior' | 'valueFeatures'>;
 const baseRank = (c: Ranked) => {
   const heading = c.headingPrior ?? 0;
-  return c.localCost + heading + .5 * (c.cost - c.localCost - heading);
+  return c.localCost + .5 * (heading + .5 * (c.cost - c.localCost - heading));
 };
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
-  return c.valueFeatures ? baseRank(c) + (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
+  return c.valueFeatures ? baseRank(c) + .5 * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */

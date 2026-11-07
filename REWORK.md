@@ -31,6 +31,11 @@ J2 uses 0.6.
 - **Hypothesis.** If effort at strong catches is still underspent, J2 gains
   over `main` (V7.1 +2 or more, strength on strong asks up). If not, 0.3 is
   near where it stops paying, and J2 is about neutral for more frames.
+- **Result (V7.1, 4 seeds): not adopted.** +2.2 [−2.8, +7.2], 0.87. Specs split
+  17 up and 18 down, and the gain sits in the single long-ride spec (P6 +17.7),
+  the pattern the long-gap question warns about. Physics frames +1%. The
+  allowance's pacing absorbs most of the extra local effort, and 0.3 is near
+  where effort at strong catches stops paying.
 
 ## November 7: beam slot, strong-catch effort and pooled policies, together (adopted)
 

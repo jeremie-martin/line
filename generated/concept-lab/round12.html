@@ -117,7 +117,7 @@ function chart(id, key, yMax, unit, ticks) {
   const svg = document.getElementById(id), H = 260, ph = H - T - B, sy = v => T + ph * (1 - v / yMax);
   for (const v of ticks) {el('line', {x1: L, x2: VW - R, y1: sy(v), y2: sy(v), stroke: 'var(--grid)', 'stroke-width': 1}, svg); el('text', {x: L - 6, y: sy(v) + 4, 'text-anchor': 'end'}, svg).textContent = v + unit;}
   for (const s of [0.2, 0.4, 0.6, 0.8]) el('text', {x: sx(s, VW), y: H - 8, 'text-anchor': 'middle'}, svg).textContent = s.toFixed(1);
-  el('text', {x: VW - R, y: H - 8, 'text-anchor': 'end'}, svg).textContent = 'strength →';
+  el('text', {x: VW - R + 6, y: H - 8, 'text-anchor': 'start'}, svg).textContent = 'strength →';
   const ends = [];
   for (const S of SERIES) {
     let d = ''; for (let i = 0; i <= 140; i++) {const s = X0 + (X1 - X0) * i / 140; d += (i ? 'L' : 'M') + sx(s, VW).toFixed(1) + ',' + sy(S[key](s)).toFixed(1);}

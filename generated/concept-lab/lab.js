@@ -234,9 +234,9 @@ const DIMS = {
   spl: ['Hit part: colour split', {today: 'Today’s (sideways)', dir: 'In the hit’s direction, same amount as today', half: 'Halfway between, same amount as today', blow: 'In the hit’s direction, unmatched', radial: 'Out from the impact', none: 'None'}],
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
   spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
-  crv: ['Hit size follows strength', {w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
-  amp: ['Shake and split size', {'1': '×1', '1.5': '×1.5', '2': '×2'}],
-  flg: ['Rare flash opens at', {'80': 'Strength 0.80 (chosen)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
+  crv: ['Hit size follows strength', {lin: 'In a straight line from zero', w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
+  amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
+  flg: ['Rare flash opens at', {s50: 'Gently from 0.5 to 0.85', s60: 'Gently from 0.6 to 0.85', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
   ink: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
@@ -318,26 +318,21 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'size', ask: 'Hit size: ×1.5, between, or fuller?', why: 'Your favourite was ×1.5, and you were curious about something between it and fuller ×1.5. The page before this one draws each as a curve against the hit’s measured strength. Varies: only how the size follows strength. Everything else is your set, with the split over the whole picture. Keep any number.',
+  {id: 'linear', ask: 'Shake and split growing in a straight line', why: 'As you described: zero for the faintest hit, growing early and steadily, nothing fancy. Each option is a straight line from 0 at strength 0.2 to its top at 0.85; the page before this draws them. The split follows the same line. Varies: only the slope. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'w', amp: '1.5'}, 'Steep: ordinary hits modest, the hardest grow most (a 0.6 hit: 12 px).'],
-      ['Between ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'mid', amp: '1.5'}, 'New: a 0.6 hit gets 15 px.'],
-      ['Fuller ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'e', amp: '1.5'}, 'Ordinary hits strong: a 0.6 hit gets 17.5 px.'],
+      ['Straight, to 15 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '0.94'}, 'A median hit (0.6): 9 px, close to today’s typical shake.'],
+      ['Straight, to 20 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25'}, 'A median hit: 12 px.'],
+      ['Straight, to 24 px', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.5'}, 'A median hit: 15 px. The top matches ×1.5.'],
+      ['Round 12’s ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'w', amp: '1.5'}, 'The steep curve, for reference.'],
       ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose'}], ['On Seashell (light)', 36.5, 'tomada', {scheme: 'w2Seashell'}]]},
-  {id: 'accents', ask: 'Two accents, before and after', why: 'You liked Etruscan’s paper and bars but not its accent, and Camellia’s sea-green bar was not integrated. Both now come from their own Wada combination: Etruscan takes a deeper Etruscan Red, and Camellia takes Vinaceous Cinnamon, its combination’s fourth colour. Keep any number.',
-    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Etruscan, before', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2EtruscanR11'}, 'Round 11: a salmon accent.'],
-      ['Etruscan, after', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Etruscan'}, 'A deeper Etruscan Red.'],
-      ['Camellia, before', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2CamelliaR11'}, 'Round 11: a sea-green accent.'],
-      ['Camellia, after', {...plain, music: 'redbars', hit: 'parts', scheme: 'w2Camellia'}, 'Vinaceous Cinnamon.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
-  {id: 'darkink', ask: 'On dark palettes: should the line be inked from the start?', why: 'In round 6 you wondered whether dark palettes would read more clearly with the line always inked, as a thought, not a rule. It was never tried. Varies: only how the line appears. Moments switch palettes.',
-    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Pencil → ink', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'inking'}, 'As now: the ridden line inks as the rider passes.'],
-      ['Whole rail', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'rail'}, 'A rail lights up whole when the rider meets it.'],
-      ['All ink', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose', ink: 'ink'}, 'The whole course inked from the start.']],
-    moments: [['Old Rose', 36.5], ['Aconite', 36.5, 'lua', {scheme: 'w2Aconite'}], ['Ultramarine, Los Voltaje', 45, 'los', {scheme: 'wUltramarine'}], ['Black, Petrunko', 28, 'petrunko', {scheme: 'black'}]]},
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}], ['On Seashell (light)', 36.5, 'tomada', {scheme: 'w2Seashell'}]]},
+  {id: 'softflash', ask: 'The flash rising gently', why: 'You found the rise too sharp: a slow start from about 0.5, then an S-curve. Two gentle versions, and round 9’s sharp one for reference. The size options no longer touch the flash. Varies: only the flash. Keep any number.',
+    song: 'petrunko', t: 33.6, len: 6, multi: true, opts: [
+      ['Gently from 0.5', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: 's50'}, 'Starts at 0.5, full at 0.85.'],
+      ['Gently from 0.6', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: 's60'}, 'Starts at 0.6, full at 0.85: rarer.'],
+      ['Sharp from 0.80 (round 9)', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', flg: '80'}, 'For reference.'],
+      ['None', {...plain, music: 'redbars', hit: 'parts', crv: 'lin', amp: '1.25', fls: 'none'}, 'No flash.']],
+    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -358,7 +353,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r12';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r13';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -582,7 +577,10 @@ function drive(t, part) {
 }
 // How big each hit is, from its measured strength (e: 0 at 0.2, 1 at 0.85). 'w' steep (R7–R10); 'e' fuller (R11); 'mid' (R12):
 // between the two, as the owner asked ("something fuller, but not as much"). Its length always follows w = e^2.2.
-const SIZE = {w: (e, w) => 0.35 + 0.65 * w, e: e => 0.45 + 0.55 * e, mid: e => 0.4 + 0.6 * Math.pow(e, 1.5)};
+// 'lin' (R13, the owner: "start from zero… some shake quite soon… something simple, linear"): straight from 0 at strength 0.2
+// to 1 at 0.85, i.e. the measured strength itself, rescaled. No floor, no curve.
+const SIZE = {w: (e, w) => 0.35 + 0.65 * w, e: e => 0.45 + 0.55 * e, mid: e => 0.4 + 0.6 * Math.pow(e, 1.5), lin: e => Math.pow(e, 1 / 1.4)};
+const strengthOf = e => 0.2 + 0.65 * Math.pow(e, 1 / 1.4); // back from e to the measured strength
 // R11: an overall size for the chosen shake and split (the owner: "stronger… also stronger split"); flash untouched
 const AMP = () => +(mix.amp ?? 1) || 1;
 const SPLIT_MATCH = {dir: 0.53, half: 0.61}; // fitted on Tomada and Los Voltaje (splitmeasure.mjs)
@@ -622,12 +620,17 @@ function partsSplit(t, k, v) {
 // on the seven songs, none on most hits. A gate on the hit's own absolute strength, not a rank.
 // Round 9: the owner chose 'toward the paper' "by a wide margin" and asked whether it could open lower: three gates.
 const GATES = {'82': [0.82, 0.94], '80': [0.8, 0.93], '76': [0.76, 0.9], '70': [0.7, 0.86]}; // '80': the owner's choice (R9)
+const SOFT = {s50: s => smoothstep((s - 0.5) / 0.35), s60: s => smoothstep((s - 0.6) / 0.25)};
 const rareGate = e => {const [a, b] = GATES[mix.flg] ?? GATES['82']; return smoothstep((e - a) / (b - a));};
 function partsFlash(t, k, v) {
   const fl = drive(t, 'flash'); if (!fl.h || fl.m < 0.003 || mix.fls === 'none') return;
   if (mix.fls === 'paperRare' || mix.fls === 'todayRare') {
-    const g = rareGate(forceE ?? fl.h.I); if (g < 0.01) return;
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * fl.m * g;
+    // R13 soft gates: a gentle S-curve on the measured strength itself (from 0.5 or 0.6 to 0.85), peak 30 %; the size options
+    // no longer touch it (the owner saw no difference between them). The hold-and-fade timing is unchanged.
+    const e = forceE ?? fl.h.I, soft = SOFT[mix.flg];
+    const g = soft ? soft(strengthOf(e)) : rareGate(e); if (g < 0.01) return;
+    const m = soft ? held(t - fl.h.tc, excess(e)) : fl.m;
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * m * g;
     if (mix.fls === 'todayRare') {ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = '#fff';} else ctx.fillStyle = darkNow ? '#fff' : paperNow;
     ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore(); return;
   }

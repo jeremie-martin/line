@@ -39,13 +39,13 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Hits: Held | settled | Preferred over Refined in whole songs (R5). Less shaky. |
 | Hits: today's recipe (reference) | read in R7 | `scripts/fx_recipe.ts`: not a top-10 % gate. Almost every hit adds to a decaying, capped trauma, so an ordinary hit reaches full force and dense passages pile up. Shake ±10 px at 9 Hz on two axes plus 0.4° rotation; split 14 px sideways on the ride only; flash white 0.3. |
 | Hits: driver | settled (R7) | Each hit on its own (Held's logic), not piling up. |
-| Hits: size | ×1.5 chosen (R11); curve open (R12) | Favourite: ×1.5. Curious about something between it and fuller ×1.5. Asked for response curves (R12 page). Default now ×1.5, steep curve. Earlier: | Your set preferred over today's, but should be stronger, the split too (R10). Driven by realised impacts, confirmed. R11 tests a fuller curve and ×1.5. |
+| Hits: size | open (R13): straight lines | R12 curves: "start from zero… grow, some shake quite soon… something simple, linear… same for the split". R13 offers straight lines to 15, 20 or 24 px. Earlier: ×1.5 chosen (R11), curve open (R12). Favourite: ×1.5. Curious about something between it and fuller ×1.5. Asked for response curves (R12 page). Default now ×1.5, steep curve. Earlier: | Your set preferred over today's, but should be stronger, the split too (R10). Driven by realised impacts, confirmed. R11 tests a fuller curve and ×1.5. |
 | Hits: split coverage | settled (R11): the band too | Earlier: | The owner preferred the split over the whole UI, band, title and sun, well integrated (R10). |
 | Hits: the chosen set | settled (R9) | Thud shake, halfway split, flash toward the paper from strength 0.80, each hit on its own. The default in every look since R9. |
 | Hits: shake | settled (R9) | Thud. Chosen with the ×1–×4 viewing aid. |
 | Hits: split | settled (R9) | Halfway between sideways and the hit's direction, matched to today's average amount. Earlier: | R8: halfway was mis-signed (red at the bottom); fixed. The owner asked whether the split used to touch the band and title: yes, the lab split everything until R8; production splits the ride only. |
 | Hits: split (history) | | | The hit-direction split looked "way more prominent" (R7): it crosses the lines, while today's mostly runs along them. Now matched to today's average visible fringe (`splitmeasure.mjs`, ±10 % on four songs), plus a halfway option. Splits the ride only, as in production. |
-| Hits: flash | settled (R9) | Toward the paper, opening at strength 0.80 ("let's go for 0.8"). Earlier: | Toward the paper on the hardest hits, "by a wide margin… way better than everything else". It could open lower than 0.82. Its size also follows the hit's strength (R8). |
+| Hits: flash | open (R13): gentle | R12 curves: the rise is too sharp; "from about 0.5 a slow rise, then basically a sigmoid". R13 offers 0.5→0.85 and 0.6→0.85. Earlier: settled (R9), Toward the paper, opening at strength 0.80 ("let's go for 0.8"). Earlier: | Toward the paper on the hardest hits, "by a wide margin… way better than everything else". It could open lower than 0.82. Its size also follows the hit's strength (R8). |
 | Hits: punch, recoil | parked | Built in R6. Not shown, because the owner pointed at the shake. |
 | Afterimage | parked | "Better implementation… adds clutter… park it" (R5). |
 | Rider less split | settled (R6), restored (R12) | Lost when the hits moved to parts in R9; restored after the R12 defaults audit. Earlier: | The rider keeps half its clean image through the split (R4 remark). |
@@ -104,12 +104,13 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 - **When Night ends:** "I'm not entirely convinced when the night was removed… for all the music" (R4). The end times of `NIGHTS` were never reviewed song by song.
 - **Timing (jolt):** "Later felt too late, no fixed offsets" (R4); "we probably want to at least work on this, calibrate… characterise" (R6). This is the compiler track's work; the brief is `agents/jolt-brief.md`.
 - **Band height against the new rider height:** low-middle was chosen in R3 to balance Tamed at about 43 %. The rider now sits at 38 %, and the pair hasn't been re-checked.
-- **Dark palettes always inked:** a thought in R6. Asked in R12.
+- **Dark palettes always inked:** a thought in R6. R12: Old Rose "definitely" all ink, but not sure about all dark palettes. Recorded per palette.
 
 ## Palette library (R12)
 
 The owner's latest verdict per scheme, for sampling and weighting later. It mirrors `LIBRARY` in `lab.js`. Rows above give the words.
 
+- **Per-palette line mode:** wOldRose → all ink (R12).
 - **love:** graphite, hokusai, black, dune, plum, lavender, wPrussian, wMagenta, wUltramarine, wOldRose, w2Celadon, w2Aubergine, w2Wisteria, w2Seashell, w2Aconite
 - **good:** cafe, kraft, cyanotype, cyanotypeIndigo, cyanotypeDeep, rothko, rothkoNeutral, lagoon, slate, sumi, ravilious, cahier, kintsugi, wBrick, wOrchid, wRusset, wGilt, w2Etruscan, w2Peony, w2Umber, w2Hydrangea, w2Heather, w2Cobalt, w2Carmine, w2Apricot, w2Grenadine, w2AubergineNight
 - **works:** wVerdigris, wDenim, wViridian, wIndigoTeal, w2Camellia, w2Blush, w2Pansy, w2Saxe, w2HeatherNight, mauve, midnight, vegas

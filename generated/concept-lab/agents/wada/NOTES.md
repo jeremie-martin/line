@@ -34,3 +34,25 @@
 - **Viridian and Indigo Teal** are both cool dark green/teal schemes; one may be enough.
 - **Magenta and Old Rose** are both rose-on-dark. Old Rose is the softer and more elegant of the two.
 - **Light schemes' night:** the scorer makes a dark at the bars' hue. Only Brick has a Wada night: Gilt's paper and Naples Yellow ink from the same combination no. 325, so Brick → Gilt is a natural drop pair.
+
+## Pass 2 (round 10 verdicts → more variety, light papers in other hues)
+Files in `pass2/`: `curate2.mjs` (every candidate tried, the finalists in `FINAL`, the Brick fix tries; `node curate2.mjs all` writes every candidate for rendering), `schemes.js` (`WADA2` 20 entries, `WADA2_NAMES`, `WADA2_DROPS`, `WADA_FIX.wBrick`), `sheet.png` (light first, Brick old vs fixed, then dark and the two drop partners), `montage.py` / `crops.py` (sheet and band close-ups), `shots/` (all renders). `mock/lab.js` was refreshed from `../../lab.js` (current hit treatment, schemes) and also loads `pass2/schemes.js` (`wBrickFix` = the fixed Brick).
+
+**Brick fix.** Yellow Ocher L .79 on paper .945 read as background. Tried L .72 / .68 (h 78) / .64 (h 72) / .70 (C .16, h 80). Lower than .66 drifts to mustard-brown; .70 deeper and slightly warmer is still ochre-gold and is parted .25 from the paper and .16 from the bars. Picked that one.
+
+**Method.** 49 hand-written candidates (26 light on non-cream papers, 3 mid, 17 dark, Brick tries), all rendered at lua, then a band close-up per candidate to judge the accent. 18 finalists + 2 drop partners kept.
+
+**Lessons on light papers**
+- **A pale paper in a hue *other* than the bars' works.** Raising one of the combination's own light/mid colours (Light Glaucous Blue, Pale King's Blue, Salvia Blue, Glaucous Green, Turquoise Green, Cobalt Green, Corinthian/Seashell Pink, both Grayish Lavenders, Neutral Gray) to L .95, C .016–.02 gives ice blue, periwinkle, celadon, mint, blush, peach, mauve and lilac pages that read as *paper*, not as tinted card, as long as the bars sit in a warm or clearly different hue (russet, magenta, rose, maroon on blue/green; cerulean, dusky green on blush). This confirms pass 1's note in reverse: the problem was paper and bars in one hue, not pale colour itself.
+- **C .016–.02 is the ceiling for cool pale papers** (blue, green, lilac); the warm cap .03 would read as tinted. Wisteria's Neutral Gray at C .009 is the nearest to white that still has a temperature.
+- **Light accents fail on light papers.** Wada often pairs a pale paper with another pale colour (Lemon/Pale Lemon Yellow, Cream Yellow, Light Green Yellow, Light Glaucous Blue): on a .95 page these vanish. Combinations whose only accent candidate is pale were dropped (173, 228, 195, 227, 346), as were accents that were the bars' hue one step lighter (339a salmon on English Red, 128 mauve on teal, 324 lilac on crimson).
+- **Citron / pyrite / tan accents still read as khaki** on any paper (196, 250, 212).
+- **Ice-blue paper is the most versatile:** russet, magenta and umber all sit well on it. Etruscan, Peony and Umber therefore share one paper (#e2f2f6); if only one is kept, Peony or Etruscan.
+- **Mid-tone pinkish papers (Fawn, Light Brown Drab) read as muddy card**, unlike Ecru: rejected all three mid candidates (191, 125, 308). Kraft-like mids seem to need a yellow-brown hue (h ≈ 60–80).
+- **White:** Wada's White appears only in no. 55 (with Old Rose alone), so there is no accent; Wisteria is the white-ish answer.
+
+**Dark lessons.** Wada's deep colours (Deep Indigo, Deep Lyons Blue, Cotinga Purple, Pansy Purple, Hay's Russet, Slate, Deep Slate Green) darkened to L .19–.21, C .02–.04 all make good rooms, so the dark set no longer needs Wada's plain Black. Killed: near-duplicates of round-1 schemes (314 ≈ Ultramarine, 136 ≈ Viridian, 161 ≈ Saxe, 179/164/332 ≈ Carmine), muddy green-on-wine (348), low-chroma bars (236 Purple Drab), and 181/297 whose accent hue sat too close to the bars.
+
+**Drop partners.** Only two combinations give both a light finalist and a good dark: Heather → Heather Night (338) and Aubergine → Aubergine Night (307), recorded in `WADA2_DROPS`. Grenadine (166) shares Brick's Naples Yellow and Deep Slate Green and could be Brick's alternative drop (Gilt stays its natural one).
+
+**Weak points.** Seashell is close to Hokusai in spirit (blue band, red bar) on a pinker page. Celadon and the killed 147 (maroon on mint, pink accent) are close; 147 has a good dark (Vandyke Red paper, Spinel bars, mint accent) if the owner prefers it. Umber is the quietest and may read as dull.

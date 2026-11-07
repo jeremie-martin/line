@@ -32,7 +32,7 @@ it('can finish through a measured arrival beyond the first recovery batch', () =
   graph.frames = 0;
   graph.finalAttempts.length = 0;
   const work = {backtracks: 0, planningDecisions: [] as {beamWidth: number}[], budgetInterruptions: []};
-  const ctx = {contacts: [0, 10, 20].map(frame => ({frame})), end: 30,
+  const ctx = {contacts: [0, 10, 20].map(frame => ({frame, gap: -1})), gaps: [], end: 30,
     budget: 1_000_000, options: {samples: 80}, work,
     lineage: {rebuild: (lines: unknown[]) => ({lines}),
       add: (engine: {lines: unknown[]}, lines: unknown[]) => ({lines: [...engine.lines, ...lines]}),

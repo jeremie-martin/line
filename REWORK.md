@@ -1,5 +1,41 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: beam slot, strong-catch effort and pooled policies, together (adopted)
+
+Three mechanisms parked on November 1–2 as small and unconfirmed, adopted
+together:
+- **B:** when the beam has room for two, one slot keeps the continuation with
+  the lowest measured cost (`arc_sequence.ts`).
+- **J:** an interval's local search is scaled by 1 + 0.3 × the steep-arrival
+  step of its catch's ask (`arc_sequence.ts`).
+- **H3:** construction policies trained on both collection rounds pooled
+  (34,125 demonstrations, `repertoire_policy_model_v3.json`).
+
+Each alone on V7.1 gave +3.2 to +3.7, and +1.0 to +2.5 held out. The stated
+hypothesis was that, as different mechanisms, they add.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | **+9.7** | [+7.6, +11.8], > 0.99, every block positive; 31 of 35 specs up, every category up (G +12.0) |
+| held out, 11 songs | **+8.6** | [+0.3, +16.9], 0.98; 11 of 13 specs up |
+| explicit requests | +9.9 | |
+
+- B and J without H3: V7.1 +7.2 (4 seeds), held out +4.8. The pooled
+  policies add the rest.
+- No ride lost.
+- Strong-ask bias +0.005, very strong +0.006; air rms −0.002, speed rms
+  −0.002.
+- Costs:
+  - physics frames +0.34M per ride (+11%, from J), within an allowance
+    that rides used to about 45%;
+  - body drag +0.47 s/min;
+  - the policy archive grows from 10.3 to 22.6 MB.
+- **Tests re-derived:** the terminal-selection scenario's allowance (180000 →
+  200000, its ride had one off-beat landing), and the recovery test's mocked
+  context gains the `gaps` the effort scaling reads.
+
+Parity references were refreshed.
+
 ## November 7: hypothesis N, a steep arrival either way
 
 - **Basis.** Dense strong beats are V7.1's largest loss. A strong floor hit

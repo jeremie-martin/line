@@ -118,6 +118,17 @@ Three single-change hypotheses (V7.1, 4 seeds; held out at decisions):
 LS goes to 8 seeds, then held out. PP is retested on top of LS if LS is
 adopted.
 
+**PP (measured continuations per parent) on top of LS: not adopted.**
+- −2.8 [−12.8, +7.3], 0.22; 19 of 35 specs up.
+- P6 −10.0, P5 −8.9.
+- Local search judging like ranking absorbs its earlier gain.
+
+**VW (stronger learned estimate): not adopted (null).**
+
+Review of local search judging like ranking (before above after, the six
+passages that differ most):
+`/motion-gallery/video-compare.html?collection=/generated/compare/exp_search-as-ranking-vs-pre-search-as-ranking@b679799e-v7.1/review.json`.
+
 ## November 7: the learned estimate is the part worth improving
 
 - **Dose and calibration together.**

@@ -16,6 +16,7 @@ import {hypot2} from './hypot2.ts';
  */
 
 import type {LineRiderEngine, BallisticState} from './native_motion/engine.ts';
+import {wasm} from './native_motion/wasm.ts';
 import { COLLISION_UPDATE_TYPE } from "./update_types.ts";
 
 // ────────── Pinned constants (PROBLEM.md §Definitions) ──────────
@@ -626,17 +627,28 @@ export function resetFrameCount(): void {
   _physicsFrames = 0;
 }
 
+let _probeDepth = 0, _probedNativeFrames = 0;
+
+/** Native frames simulated inside research probes, which the compile's
+ * accounting check (handoff.ts) excludes. Production never adds to it. */
+export function probedNativeFrames(): number {
+  return _probedNativeFrames;
+}
+
 /** Research-only counterfactual work. Restore both counters and the limit on
- * every exit. The caller must separately isolate its search state and engines;
- * production search never uses this exemption from its work budget. */
+ * every exit, and record the native frames it simulated as probed. The caller
+ * must separately isolate its search state and engines; production search
+ * never uses this exemption from its work budget. */
 export function withPhysicsFrameProbe<T>(run: () => T & (T extends PromiseLike<unknown> ? never : unknown)): T {
-  const reads = _frameCount, frames = _physicsFrames, limit = _physicsFrameLimit;
+  const reads = _frameCount, frames = _physicsFrames, limit = _physicsFrameLimit, native = wasm.simulated_frames();
+  _probeDepth++;
   try {
     const result = run();
     if (result && typeof (result as {then?: unknown}).then === 'function')
       throw new TypeError('physics probes must be synchronous');
     return result;
   } finally {
+    if (--_probeDepth === 0) _probedNativeFrames += wasm.simulated_frames() - native;
     _frameCount = reads;
     _physicsFrames = frames;
     _physicsFrameLimit = limit;

@@ -64,11 +64,6 @@ them before answering.
 
 Note friction here as it happens; fix what is tiny.
 
-- `tools/research/catch_price.ts` (same-state probes of what a stronger catch
-  costs the next) now fails: its probes simulate inside the compile's engine,
-  and `compileHandoff` rightly refuses frames it did not charge. Rebuild it to
-  probe outside the compile's accounting before using it again (2026-11-07).
-
 - A compile takes about twice as long in an eight-worker panel as alone (33 s against
   16 s). Expected with shared memory bandwidth; panel throughput was never measured.
 - A compile needs the independent judge (`npm run build:wasm`): it replays the final

@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: an engine with less scaffolding
+
+An independent review of the engine found the core sound and the waste in leftovers.
+Removed: `cur` and `cur_dirty`, whose reason (repeated truncation) ended when batches
+truncated once; the epochs of `QueryCache` and `PointCell`, now plain flags; the
+`ActiveCellCache` of raw pointers into the history map; the `frame_index` argument,
+always `history.len()`; every collision frame but a line's first, the only one read;
+and `getSledPointPositionsAtFrame`. This also undoes two of my own November 7 choices:
+the raw pointer in `LineRef`, whose −0.8% was noise, and the `narrow`/`cursor` state
+machine, now two plain loops. Paired on real compiles, all together: +1.8% [+0.2%, +4.9%],
+8 pairs, about 200 lines fewer in the engine. No part alone was distinguishable from
+noise. Accepted: a percent or two is not worth that structure.
+
 ## November 7: Math.pow, and `exactPow` removed
 
 This replaces the `exactPow` entry below: rebuilding an old V8 routine to keep tracks
@@ -14,6 +27,8 @@ headline 780.8 against 782.3, −1.6 [−5.3, +2.2]; 10 specs up, 12 down, by up
 112 of 112 finished both ways; explicit requests 763.8 against 766.5, 216 of 216 gaps
 realized both ways; physics 2.98 M against 2.99 M frames. That is a new draw of the same
 compiler, on tracks earlier decisions were never tuned to. References updated here.
+Three compiles under Arch's glibc 2.44 match them exactly. Parity's reach barely moved:
+four small branches, 381 bytes, are no longer visited.
 
 ## November 7: current tools, no machine in the repo
 

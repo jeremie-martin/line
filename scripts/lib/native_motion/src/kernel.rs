@@ -29,7 +29,7 @@ struct PointCell {
     valid: bool,
     cell_x: i64,
     cell_y: i64,
-    epoch: u32,
+    filtered: bool, // this frame's direction pass has run
     // Where this point's near lines were chosen.
     near_x: f64,
     near_y: f64,
@@ -45,7 +45,7 @@ impl PointCell {
         valid: false,
         cell_x: 0,
         cell_y: 0,
-        epoch: 0,
+        filtered: false,
         near_x: 0.0,
         near_y: 0.0,
     };
@@ -56,8 +56,7 @@ const QUERY_SLOTS: usize = 64;
 struct QueryCache {
     keys: [i64; QUERY_SLOTS],
     lines: [Vec<*const Line>; QUERY_SLOTS],
-    epochs: [u32; QUERY_SLOTS],
-    current_epoch: u32,
+    filled: [bool; QUERY_SLOTS],
 }
 
 impl Default for QueryCache {
@@ -65,29 +64,19 @@ impl Default for QueryCache {
         Self {
             keys: [0; QUERY_SLOTS],
             lines: std::array::from_fn(|_| Vec::new()),
-            epochs: [0; QUERY_SLOTS],
-            current_epoch: 1,
+            filled: [false; QUERY_SLOTS],
         }
     }
 }
 
 impl QueryCache {
-    #[inline]
-    fn invalidate(&mut self) {
-        self.current_epoch = self.current_epoch.wrapping_add(1);
-        if self.current_epoch == 0 {
-            self.epochs.fill(0);
-            self.current_epoch = 1;
-        }
-    }
-
     // Flatten only neighborhoods actually read. Buffers retain capacity across
     // eviction and invalidation; cell order and cross-cell duplicates are kept.
     #[inline]
     fn lookup(&mut self, grid: &LineGrid, key: i64, cx: i64, cy: i64) -> &[*const Line] {
         let hash = (key as u64).wrapping_mul(0x9E3779B97F4A7C15);
         let slot = ((hash ^ (hash >> 32)) as usize) & (QUERY_SLOTS - 1);
-        if self.epochs[slot] != self.current_epoch || self.keys[slot] != key {
+        if !self.filled[slot] || self.keys[slot] != key {
             let lines = &mut self.lines[slot];
             lines.clear();
             for dx in -1..=1 {
@@ -98,7 +87,7 @@ impl QueryCache {
                 }
             }
             self.keys[slot] = key;
-            self.epochs[slot] = self.current_epoch;
+            self.filled[slot] = true;
         }
         &self.lines[slot]
     }
@@ -177,24 +166,19 @@ impl LineCellCache {
     #[inline]
     fn begin_frame(&mut self) {
         for point in &mut self.point_cells {
-            point.epoch = 0;
+            point.filtered = false;
         }
     }
 
-    #[inline]
     pub(crate) fn invalidate(&mut self) {
-        self.queries.invalidate();
-        if self.queries.current_epoch == 1 {
-            for point in &mut self.point_cells {
-                point.epoch = 0;
-            }
-        }
+        self.queries.filled = [false; QUERY_SLOTS];
+        self.begin_frame();
     }
 
     #[inline]
     fn cache_point_lines(&mut self, grid: &LineGrid, index: usize, px: f64, py: f64, vx: f64, vy: f64) {
         let point = &self.point_cells[index - PEG];
-        if point.epoch != self.queries.current_epoch {
+        if !point.filtered {
             self.refresh_point_lines(grid, index, vx, vy);
             self.choose_near_lines(index, px, py);
         } else if (px - point.near_x).abs() > POINT_MARGIN || (py - point.near_y).abs() > POINT_MARGIN {
@@ -244,7 +228,7 @@ impl LineCellCache {
         let point = &mut self.point_cells[index - PEG];
         point.near_x = px;
         point.near_y = py;
-        point.epoch = self.queries.current_epoch;
+        point.filtered = true;
     }
 
     #[inline(always)]
@@ -280,7 +264,7 @@ impl LineCellCache {
             valid: scaled_x.is_finite() && scaled_y.is_finite() && min_x < max_x && min_y < max_y,
             cell_x,
             cell_y,
-            epoch: 0,
+            filtered: false,
             near_x: 0.0,
             near_y: 0.0,
         };
@@ -460,7 +444,6 @@ unsafe fn collide_point<const TRACK: bool>(
     s: &mut State,
     grid: &LineGrid,
     events: &mut Vec<Collision>,
-    frame_index: i32,
     history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
     it: u8,
@@ -478,7 +461,6 @@ unsafe fn collide_point<const TRACK: bool>(
     if TRACK {
         history.record_point(
             center_cell,
-            frame_index,
             pxi,
             pyi,
             vxi,
@@ -486,84 +468,71 @@ unsafe fn collide_point<const TRACK: bool>(
         );
     }
     line_cache.cache_point_lines(grid, index, pxi, pyi, vxi, vyi);
-    let lns = &line_cache.point_lines[index - PEG];
+    let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));
+    let lines = &line_cache.point_lines[index - PEG];
     let near = &line_cache.point_near[index - PEG];
-    if !near.is_empty() {
-        let (mut prevxi, mut prevyi) = (*s.prevx.get_unchecked(index), *s.prevy.get_unchecked(index));
-        // A collision can move the point out of its margin, so the rest of this
-        // sweep tests every remaining line, in the same order.
-        let (mut narrow, mut cursor) = (true, 0);
-        loop {
-            let position = if narrow {
-                let Some(&position) = near.get(cursor) else { break };
-                position as usize
-            } else if cursor < lns.len() {
-                cursor
-            } else {
-                break;
-            };
-            cursor += 1;
-            // Entries point into immutable batch geometry owned by the grid.
-            // Only point_cells is updated below; this query stays fixed during
-            // the sweep even when a collision moves the entity to another cell.
-            let l = &**lns.get_unchecked(position);
-            let ox = pxi - l.p1x;
-            let oy = pyi - l.p1y;
-            let perp_comp = l.normx * ox + l.normy * oy;
-            let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
-            if perp_comp > 0.0
-                && perp_comp < MAX_FORCE_LENGTH
-                && line_pos >= l.left_bound
-                && line_pos <= l.right_bound
-            {
-                let tx = l.normx * perp_comp - pxi;
-                let ty = l.normy * perp_comp - pyi;
-                let posx = tx * -1.0;
-                let posy = ty * -1.0;
-                let (mut fvx, mut fvy) = if fric == 0.0 {
-                    (prevxi, prevyi)
-                } else {
-                    let mut fvx = (l.normy * fric) * perp_comp;
-                    let mut fvy = ((-l.normx) * fric) * perp_comp;
-                    if prevxi >= posx {
-                        fvx = fvx * -1.0;
-                    }
-                    if prevyi < posy {
-                        fvy = fvy * -1.0;
-                    }
-                    (fvx + prevxi, fvy + prevyi)
-                };
-                if l.is_acc {
-                    fvx = fvx + l.accx;
-                    fvy = fvy + l.accy;
-                }
-                *s.px.get_unchecked_mut(index) = posx;
-                *s.py.get_unchecked_mut(index) = posy;
-                *s.prevx.get_unchecked_mut(index) = fvx;
-                *s.prevy.get_unchecked_mut(index) = fvy;
-                pxi = posx;
-                pyi = posy;
-                prevxi = fvx;
-                prevyi = fvy;
-                events.push((it, l.id, index as i32, posx, posy));
-                // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
-                if TRACK {
-                    let pcell = LineCellCache::update_cell(&mut line_cache.point_cells[index - PEG], pxi, pyi);
-                    history.record_point(
-                        pcell,
-                        frame_index,
-                        pxi,
-                        pyi,
-                        vxi,
-                        vyi,
-                    );
-                    history.record_collision(l.id, frame_index);
-                }
-                if narrow {
-                    narrow = false;
-                    cursor = position + 1;
-                }
+    let point_cell = &mut line_cache.point_cells[index - PEG];
+    // Entries point into immutable batch geometry owned by the grid. Only the point's
+    // cell is updated here; this query stays fixed during the sweep even when a
+    // collision moves the entity to another cell.
+    let mut collide = |l: &Line| {
+        let ox = pxi - l.p1x;
+        let oy = pyi - l.p1y;
+        let perp_comp = l.normx * ox + l.normy * oy;
+        let line_pos = (l.vecx * ox + l.vecy * oy) * l.inv_len_sq;
+        if !(perp_comp > 0.0
+            && perp_comp < MAX_FORCE_LENGTH
+            && line_pos >= l.left_bound
+            && line_pos <= l.right_bound)
+        {
+            return false;
+        }
+        let tx = l.normx * perp_comp - pxi;
+        let ty = l.normy * perp_comp - pyi;
+        let posx = tx * -1.0;
+        let posy = ty * -1.0;
+        let (mut fvx, mut fvy) = if fric == 0.0 {
+            (prevxi, prevyi)
+        } else {
+            let mut fvx = (l.normy * fric) * perp_comp;
+            let mut fvy = ((-l.normx) * fric) * perp_comp;
+            if prevxi >= posx {
+                fvx = fvx * -1.0;
             }
+            if prevyi < posy {
+                fvy = fvy * -1.0;
+            }
+            (fvx + prevxi, fvy + prevyi)
+        };
+        if l.is_acc {
+            fvx = fvx + l.accx;
+            fvy = fvy + l.accy;
+        }
+        *s.px.get_unchecked_mut(index) = posx;
+        *s.py.get_unchecked_mut(index) = posy;
+        *s.prevx.get_unchecked_mut(index) = fvx;
+        *s.prevy.get_unchecked_mut(index) = fvy;
+        pxi = posx;
+        pyi = posy;
+        prevxi = fvx;
+        prevyi = fvy;
+        events.push((it, l.id, index as i32, posx, posy));
+        // addToGrid (B) + addToCollisions: post-collision, centered on the MOVED entity.
+        if TRACK {
+            let pcell = LineCellCache::update_cell(point_cell, pxi, pyi);
+            history.record_point(pcell, pxi, pyi, vxi, vyi);
+            history.record_collision(l.id);
+        }
+        true
+    };
+    // A collision can move the point out of its margin, so after the first hit this
+    // sweep tests every remaining line, in the same order.
+    for &position in near {
+        if collide(&*lines[position as usize]) {
+            for &line in &lines[position as usize + 1..] {
+                collide(&*line);
+            }
+            break;
         }
     }
 }
@@ -571,7 +540,7 @@ unsafe fn collide_point<const TRACK: bool>(
 /// One frame: step → 6×(constraints, collision) → BindJoints. `events` collects
 /// (iteration, line_id, point_idx) per collision (for getUpdatesAtFrame). When
 /// `track`, point snapshots and line collisions are recorded in `history` at
-/// `frame_index`; recording is purely additive — it does not affect the physics.
+/// the frame the history is at; recording is purely additive — it does not affect the physics.
 #[allow(clippy::too_many_arguments)]
 // Keep the large solver out of the frequently called cached-read path.
 #[inline(never)]
@@ -579,18 +548,16 @@ pub(crate) fn step_state<const TRACK: bool>(
     s: &mut State,
     grid: &LineGrid,
     events: &mut Vec<Collision>,
-    frame_index: i32,
     history: &mut CollisionHistory,
     line_cache: &mut LineCellCache,
     mut trace: Option<&mut CollisionTrace>,
 ) {
-    if TRACK { history.begin_frame(); }
     line_cache.begin_frame();
     // step
     for i in 0..NENT {
         if IS_POINT[i] {
-            let nvx = (s.px[i] - s.prevx[i]) * (1.0 - 0.0) + GRAVITY_X;
-            let nvy = (s.py[i] - s.prevy[i]) * (1.0 - 0.0) + GRAVITY_Y;
+            let nvx = (s.px[i] - s.prevx[i]) + GRAVITY_X;
+            let nvy = (s.py[i] - s.prevy[i]) + GRAVITY_Y;
             let nx = s.px[i] + nvx;
             let ny = s.py[i] + nvy;
             s.prevx[i] = s.px[i];
@@ -611,7 +578,7 @@ pub(crate) fn step_state<const TRACK: bool>(
             let it = it as u8;
             if TRACK || !line_cache.outside_grid(s) {
                 for &(index, friction) in &COLLIDING_POINTS {
-                    collide_point::<TRACK>(s, grid, events, frame_index, history, line_cache, it, index, friction);
+                    collide_point::<TRACK>(s, grid, events, history, line_cache, it, index, friction);
                 }
             }
         }
@@ -760,11 +727,9 @@ mod tests {
         for key in 100..1000 { grid.get_or_insert(key); }
         assert!(ids(&mut cache, &grid, 1.0, 6.0).is_empty());
         assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());
-        cache.queries.current_epoch = u32::MAX;
         cache.invalidate();
-        assert_eq!(cache.queries.current_epoch, 1);
-        assert!(cache.queries.epochs.iter().all(|&e| e == 0));
-        assert!(cache.point_cells.iter().all(|p| p.epoch == 0));
+        assert!(cache.queries.filled.iter().all(|&filled| !filled));
+        assert!(cache.point_cells.iter().all(|p| !p.filtered));
         assert!(ids(&mut cache, &grid, 1400.0, -1400.0).is_empty());
     }
 
@@ -823,9 +788,7 @@ mod tests {
             (0.0, f64::INFINITY, vec![1, 1]),
             (0.0, 1.0, vec![1, 1]),
         ] {
-            let query_epoch = cache.queries.current_epoch;
             cache.begin_frame();
-            assert_eq!(cache.queries.current_epoch, query_epoch);
             for _ in 0..6 {
                 assert_eq!(near_ids(&mut cache, &grid, 1.0, 6.0, vx, vy), expected);
             }

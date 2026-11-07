@@ -225,7 +225,7 @@ pub(crate) fn hash_int_pair(a: i64, b: i64) -> i64 {
 // Retained as the inverse of hash_int_pair for the round-trip property test; the hot
 // paths now carry cell coords directly (the classic raster walk emits them) so no production
 // code unhashes a stored cell any more.
-#[allow(dead_code)]
+#[cfg(test)]
 pub(crate) fn unhash_int_pair(n: i64) -> (i64, i64) {
     let c = if n >= 0 { n * 2 } else { -(n + 1) * 2 + 1 };
     let x = (c as f64).sqrt() as i64;

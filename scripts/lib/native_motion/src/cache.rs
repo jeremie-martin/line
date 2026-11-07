@@ -49,9 +49,6 @@ pub(crate) struct FrameCache {
     contact_ids: Vec<f64>,        // flat per-frame sled contact line ids used by raw-frame reads
     // Invalidation indexes are materialized lazily, without recharging frames.
     history: CollisionHistory,
-    history_events: Vec<Event>, // scratch for lazy history replay
-    cur: State,                 // == frames.last() when !cur_dirty; working state for stepping
-    cur_dirty: bool, // set on truncation: `cur` is stale, resync from frames.last() before next step
 }
 
 impl FrameCache {
@@ -63,15 +60,12 @@ impl FrameCache {
             cell_lines: LineGrid::default(),
             line_cache: LineCellCache::default(),
             lines: IntMap::default(),
-            frames: SharedPrefix::new(s.clone()),
+            frames: SharedPrefix::new(s),
             events: Vec::new(),
             event_offsets: vec![0, 0],
             summaries: vec![summary],
             contact_ids,
             history: CollisionHistory::new(),
-            history_events: Vec::new(),
-            cur: s,
-            cur_dirty: false,
         }
     }
 
@@ -104,11 +98,6 @@ impl FrameCache {
                 .truncate(self.summaries[len].contact_offset);
             self.summaries.truncate(len);
         }
-        // Defer the `cur = frames[len-1].clone()` resync: a multi-line arc add
-        // truncates many times in a row with no intervening step, so an eager clone
-        // here is overwritten by the next truncation before it is ever stepped.
-        // Mark stale instead; compute_to resyncs once, only when about to step.
-        self.cur_dirty = true;
     }
 
     /// Geometry registration never simulates between lines. Their invalidations
@@ -172,17 +161,14 @@ impl FrameCache {
         let s = init_state(px, py, vx, vy);
         self.history.clear();
         self.frames.clear();
-        self.frames.push(s.clone());
+        self.frames.push(s);
         self.events.clear();
         self.event_offsets.clear();
         self.event_offsets.extend_from_slice(&[0, 0]);
         self.summaries.clear();
         self.contact_ids.clear();
-        let summary = Self::summarize_frame(&s, &[], &mut self.contact_ids);
+        let summary = Self::summarize_frame(&self.frames[0], &[], &mut self.contact_ids);
         self.summaries.push(summary);
-        self.history_events.clear();
-        self.cur = s;
-        self.cur_dirty = false;
     }
 
     fn ensure_history(&mut self) {
@@ -193,14 +179,13 @@ impl FrameCache {
         // cache was already produced during the read; this pass fills just the
         // invalidation side indexes without changing simulated-frame accounting.
         let mut s = self.frames[self.history.len() - 1].clone();
+        let mut events = Vec::new();
         while self.history.len() < self.frames.len() {
-            let fi = self.history.len() as i32;
-            self.history_events.clear();
+            events.clear();
             step_state::<true>(
                 &mut s,
                 &self.cell_lines,
-                &mut self.history_events,
-                fi,
+                &mut events,
                 &mut self.history,
                 &mut self.line_cache,
                 None,
@@ -211,29 +196,24 @@ impl FrameCache {
 
     /// _computeFrame: lazily extend the cache to include frame `frame`.
     pub(crate) fn compute_to(&mut self, frame: usize, mut trace: Option<&mut CollisionTrace>) {
-        // Resync `cur` from the (possibly truncated) tail once, only when we are
-        // actually about to step — see set_frames_length's deferred-resync note.
-        if self.frames.len() <= frame && self.cur_dirty {
-            self.cur = self.frames[self.frames.len() - 1].clone();
-            self.cur_dirty = false;
-        }
+        if self.frames.len() > frame { return; }
+        let mut s = self.frames[self.frames.len() - 1].clone();
         while self.frames.len() <= frame {
             let fi = self.frames.len() as i32;
             step_state::<false>(
-                &mut self.cur,
+                &mut s,
                 &self.cell_lines,
                 &mut self.events,
-                fi,
                 &mut self.history,
                 &mut self.line_cache,
                 trace.as_deref_mut().filter(|trace| trace.frame == fi),
             );
             let summary = Self::summarize_frame(
-                &self.cur,
+                &s,
                 &self.events[self.event_offsets[fi as usize]..],
                 &mut self.contact_ids,
             );
-            self.frames.push(self.cur.clone());
+            self.frames.push(s.clone());
             self.event_offsets.push(self.events.len());
             self.summaries.push(summary);
         }

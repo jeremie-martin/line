@@ -289,7 +289,9 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
     const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
     const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
-    const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
+    // Steepness either way: a steep descent onto a floor or a steep rise into a
+    // surface above both carry a strong hit (heading in degrees, + = descending).
+    const r1 = angled > 0 ? weight * Math.sqrt(angled) * (Math.abs(deg(Math.atan2(finalVelocity.y, finalVelocity.x))) - desiredArrival) / 45 : 0;
     const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail
     // axis past vertical, or pointing against the travel (uprightArrival).

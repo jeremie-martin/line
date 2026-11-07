@@ -235,6 +235,10 @@ const DIMS = {
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
   spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
   crv: ['Hit size follows strength', {lin: 'In a straight line from zero', w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
+  resp: ['Hit responses', {r15: 'Each part on its own curve, no ceiling (R15)', old: 'Size × curve (R7–R14)'}],
+  rsp: ['Split response', {lin: 'Straight from 0.2', zero40: 'Nothing below 0.4, then straight', ease30: 'Slow start from 0.3', ease40: 'Slow start from 0.4'}],
+  rfl: ['Flash response', {s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
+  tsp: ['Split on the title and sun', {'1': 'Same as everywhere', '0.65': 'A little less', '0.4': 'Less'}],
   ampS: ['Shake size on its own', {'1.5': 'to 24 px', '1.75': 'to 28 px', '2': 'to 32 px'}],
   amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
   flg: ['Rare flash opens at', {s60: 'Gently from 0.6, to 30 % (chosen)', s55: 'Gently from 0.55, to 25 %', s50l: 'Gently from 0.5, to 20 %', s70: 'Gently from 0.7, to 30 %', s50: 'Gently from 0.5, to 30 %', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
@@ -247,7 +251,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's60', spw: 'all', crv: 'lin', amp: '1.5'}; // R13: straight to 24 px, gentle flash from 0.6 // hit parts as chosen in R7–R10
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'lin', rfl: 's55', tsp: '1'}; // R14: flash 0.55 → 25 % // hit parts as chosen in R7–R10
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -319,21 +323,24 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'bigshake', ask: 'A bigger shake for the ride only?', why: 'Straight to 24 px is now the default. You wondered about 28 or 32 px for the track and rider, unsure how the band would look. The shake only ever moves the ride; the band, title and sun never shake. So here the shake grows while the split, the one effect that reaches the band, stays at its 24 px level, except in the last option. Varies: only the size. Keep any number.',
+  {id: 'splitshape', ask: 'The split: almost nothing on weak hits?', why: 'You want little or no split below about 0.4, and no ceiling: every option reaches today’s chosen level (the 24 px split) at 0.85 and keeps growing for a rarer, harder hit. The page before this draws each one. Varies: only the split’s curve. Shake and flash as chosen. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['24 px (chosen)', {...plain, music: 'redbars', hit: 'parts'}, 'As now.'],
-      ['Shake to 28 px', {...plain, music: 'redbars', hit: 'parts', ampS: '1.75'}, 'The ride shakes more; the split stays.'],
-      ['Shake to 32 px', {...plain, music: 'redbars', hit: 'parts', ampS: '2'}, 'The ride shakes more still; the split stays.'],
-      ['Shake and split to 28 px', {...plain, music: 'redbars', hit: 'parts', amp: '1.75'}, 'Both grow, so the band splits more too.']],
-    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['With the title', 36.5, 'tomada', {top: 'title'}], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
-  {id: 'flash3', ask: 'The gentle flash: how early, how strong?', why: 'You preferred from 0.6 to 30 %, and suggested 0.55 to 25 % and 0.5 to 20 %. Worth knowing: the median hit is 0.62, so a gentle flash from 0.6 touches many hits: faintly about 39 times a minute, clearly about 20 (round 9’s sharp one: about 3 clear a minute). Earlier starts flash on more hits, more softly. Since you once said most of the time it should not be there, one rarer gentle option is added: from 0.7. Varies: only the flash. Keep any number.',
+      ['Straight from 0.2 (as now)', {...plain, music: 'redbars', hit: 'parts', rsp: 'lin'}, 'The current line, now without a ceiling.'],
+      ['Nothing below 0.4, then straight', {...plain, music: 'redbars', hit: 'parts', rsp: 'zero40'}, 'Zero up to 0.4, then a straight line.'],
+      ['Slow start from 0.3', {...plain, music: 'redbars', hit: 'parts', rsp: 'ease30'}, 'Close to zero just above 0.3, growing faster and faster.'],
+      ['Slow start from 0.4', {...plain, music: 'redbars', hit: 'parts', rsp: 'ease40'}, 'The same, starting at 0.4: the calmest on ordinary hits.']],
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
+  {id: 'titlesplit', ask: 'The split on the title and the sun: a little less?', why: 'You found the split a bit destructive on the title, but asked for “a little less”, not half, to keep it consistent. Here the title and sun keep part of the split, faded softly at their edges; everything else is unchanged. Varies: only that. Keep any number.',
+    song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
+      ['Same as everywhere', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '1'}, 'As now.'],
+      ['A little less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.65'}, 'The title keeps about two thirds of the split.'],
+      ['Less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.4'}, 'The title keeps less than half.']],
+    moments: [['Tomada 37 s, title', 36.5], ['Petrunko 34 s, title', 33.8, 'petrunko'], ['With the sun, on Dune', 36.5, 'tomada', {top: 'sun', scheme: 'dune'}], ['With the sun, on Hokusai', 33.8, 'petrunko', {top: 'sun', scheme: 'hokusai'}]]},
+  {id: 'flashrise', ask: 'The flash: the S-curve, or one that keeps rising?', why: 'Your pick, from 0.55 to 25 %, is an S-curve: it flattens at 0.85, which is the ceiling you don’t want. The other keeps rising for rarer, harder hits, but starts more slowly. Varies: only the flash. Keep any number.',
     song: 'petrunko', t: 33.6, len: 6, multi: true, opts: [
-      ['From 0.6, to 30 % (chosen)', {...plain, music: 'redbars', hit: 'parts'}, 'As now: faint on about 39 hits a minute, clear on 20.'],
-      ['From 0.55, to 25 %', {...plain, music: 'redbars', hit: 'parts', flg: 's55'}, 'A little earlier, a little softer: faint on about 46 hits a minute, clear on 22.'],
-      ['From 0.5, to 20 %', {...plain, music: 'redbars', hit: 'parts', flg: 's50l'}, 'Earlier still, softer still: faint on about 53 hits a minute, clear on 17.'],
-      ['From 0.7, to 30 %', {...plain, music: 'redbars', hit: 'parts', flg: 's70'}, 'Added: gentle, but rarer: faint on about 16 hits a minute, clear on 7.'],
-      ['None', {...plain, music: 'redbars', hit: 'parts', fls: 'none'}, 'No flash.']],
-    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
+      ['S-curve, 0.55 → 25 % (chosen)', {...plain, music: 'redbars', hit: 'parts', rfl: 's55'}, 'Stops growing at 0.85.'],
+      ['Keeps rising from 0.55', {...plain, music: 'redbars', hit: 'parts', rfl: 'rise55'}, 'Slower at first; 25 % at 0.85, then on up.']],
+    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -354,7 +361,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r14';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r15';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -563,17 +570,23 @@ const into = h => ({x: -h.nrm.x, y: -h.nrm.y});
 const TODAY = {shake: {min: 0.22, gain: 1.6, decay: 7, power: 1.5}, split: {min: 0.25, gain: 2.0, decay: 7, power: 1.4}, flash: {min: 0.3, gain: 1.8, decay: 12, power: 1}};
 /** Envelope 0..1 of one part at time t, with the hit that last fed it (for direction and phase). */
 function drive(t, part) {
-  const c = TODAY[part], d = mix.drv ?? 'trauma'; let x = 0, last = null;
+  const c = TODAY[part], d = mix.drv ?? 'trauma'; let x = 0, last = null, lastEnv = 0;
   for (const h of S.hits) {
     if (h.tc > t + 0.001) break; const age = t - h.tc;
     // each hit alone. Its size: 'w' (R7–R10) = 0.35 + 0.65·e^2.2, steep, so an ordinary hit (strength 0.6, e 0.51) gets 0.50 of full;
     // 'e' (R11) = 0.45 + 0.55·e, fuller, the same hit gets 0.73. Its length always follows e^2.2 (held).
-    if (d === 'held') {const e = forceE ?? h.I, w = excess(e), v = SIZE[mix.crv ?? 'w'](e, w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
+    if (d === 'held') {
+      const e = forceE ?? h.I, w = excess(e);
+      // R15: the envelope only (0..1); each part applies its own response to the hit's strength. The strongest live hit wins.
+      if (respOn()) {const env = held(age, w), v = env * (0.01 + hitStrength(h)); if (v > x) {x = v; last = h; lastEnv = env;} continue;}
+      const v = SIZE[mix.crv ?? 'w'](e, w) * held(age, w); if (v > x) {x = v; last = h;} continue;
+    }
     const s = forceE !== null ? 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4) : h.s;
     if (d === 'trauma' && s < c.min) continue;
     const add = (d === 'graded' ? (forceE ?? h.I) : s) * c.gain * Math.exp(-age * c.decay); // graded: the absolute strength curve, no threshold
     if (add > 0.002) last = h; x += add;
   }
+  if (d === 'held' && respOn()) return {m: last ? lastEnv : 0, h: last};
   return d === 'held' ? {m: x, h: last} : {m: Math.pow(Math.min(1, x), c.power), h: last};
 }
 // How big each hit is, from its measured strength (e: 0 at 0.2, 1 at 0.85). 'w' steep (R7–R10); 'e' fuller (R11); 'mid' (R12):
@@ -582,6 +595,22 @@ function drive(t, part) {
 // to 1 at 0.85, i.e. the measured strength itself, rescaled. No floor, no curve.
 const SIZE = {w: (e, w) => 0.35 + 0.65 * w, e: e => 0.45 + 0.55 * e, mid: e => 0.4 + 0.6 * Math.pow(e, 1.5), lin: e => Math.pow(e, 1 / 1.4)};
 const strengthOf = e => 0.2 + 0.65 * Math.pow(e, 1 / 1.4); // back from e to the measured strength
+// R15: each part answers the measured strength s on its own simple curve, with NO ceiling: the owner wants a rare hit beyond 0.85
+// to be stronger still ("I don't want this plateau"). lin = a straight line through 0 at `from`; rise = a slow start (x²) up to
+// `full`, then straight on with the slope it reached. The values at 0.85 are the ones already chosen (24 px, the 24 px split
+// level, a 25 % flash). CAP is only a safety net at twice those values.
+const ramp = (s, from, full) => (s - from) / (full - from);
+const linR = (s, from, full) => Math.max(0, ramp(s, from, full));
+const riseR = (s, from, full) => {const x = ramp(s, from, full); return x <= 0 ? 0 : x <= 1 ? x * x : 2 * x - 1;};
+const RESP = {
+  shake: {lin: s => 24 * linR(s, 0.2, 0.85)},                                                    // px
+  split: {lin: s => 1.5 * linR(s, 0.2, 0.85), zero40: s => 1.5 * linR(s, 0.4, 0.85),             // × today's full split
+          ease30: s => 1.5 * riseR(s, 0.3, 0.85), ease40: s => 1.5 * riseR(s, 0.4, 0.85)},
+  flash: {s55: s => 0.25 * smoothstep(ramp(s, 0.55, 0.85)), rise55: s => 0.25 * riseR(s, 0.55, 0.85)}, // opacity
+};
+const CAP = {shake: 48, split: 3, flash: 0.5};
+const respOn = () => mix.resp === 'r15';
+const hitStrength = h => forceE !== null ? strengthOf(forceE) : h.s;
 // R11: an overall size for the chosen shake and split (the owner: "stronger… also stronger split"); flash untouched
 const AMP = () => +(mix.amp ?? 1) || 1;
 // R14: the shake can grow on its own. The shake moves only the ride (track and rider); the split also reaches the band, title and
@@ -595,7 +624,10 @@ function partsCamera(t) {
   // along the blow: the same 9 Hz, but locked to the hit (the first swing goes INTO the blow) and along its direction
   if (mix.shk === 'blow') {const a = 12 * m * Math.sin(W9 * age), b = 3 * m * Math.sin(W9 * 1.37 * age + 1.7); return {dx: a * i.x - b * i.y, dy: a * i.y + b * i.x, rot: 0};}
   // thud: the frame is knocked along the blow at once, then springs back through rest (6 Hz) as the energy drains
-  if (mix.shk === 'thud') {const a = 16 * AMP_SHAKE() * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
+  if (mix.shk === 'thud') {
+    const size = respOn() ? Math.min(CAP.shake, RESP.shake[mix.rsh ?? 'lin'](hitStrength(h))) : 16 * AMP_SHAKE();
+    const a = size * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};
+  }
   // Held's push, without oscillation, for reference
   if (mix.shk === 'kick') return {dx: 18 * m * i.x, dy: 18 * m * i.y, rot: 0};
   return {dx: 0, dy: 0, rot: 0};
@@ -604,7 +636,8 @@ function partsCamera(t) {
 function partsSplit(t, k, v) {
   const sp = drive(t, 'split');
   if (sp.h && sp.m > 0.002 && mix.spl !== 'none') {
-    const a = 14 * AMP() * sp.m * k, i = into(sp.h);
+    const a = 14 * (respOn() ? Math.min(CAP.split, RESP.split[mix.rsp ?? 'lin'](hitStrength(sp.h))) : AMP()) * sp.m * k, i = into(sp.h);
+    keepTitle(k, true); lastSplit = null;
     if (mix.spl === 'today' && a > 0.5) channelSplit(a, 0);
     else if (mix.spl === 'blow' && a > 0.5) channelSplit(a * i.x, a * i.y);
     // matched: the same visible fringe on the ride as today's on average (splitmeasure.mjs, Tomada and Los Voltaje). Across a line
@@ -618,7 +651,27 @@ function partsSplit(t, k, v) {
     // the rider keeps half of its own clean image through the split (R4 "slightly less split", settled R6; it was lost when
     // the hits moved to parts in R9). The overlay still holds this frame's rider, drawn just before.
     if (a > 0.5) {ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(overlay, 0, 0); ctx.restore();}
+    keepTitle(k, false);
   }
+}
+// R15: the split a little less prominent on the title and the sun (the owner: "a bit too destructive… not twice less, we want
+// consistency, but a little less"). Before the split the clean frame is kept; after it, that frame is split again by tsp × the
+// offset (same overscan, so nothing moves) and laid over the title's and sun's area through a feathered mask. A smaller split, not
+// a blend: blending two splits looked grey and doubled.
+const preCanvas = document.createElement('canvas'), maskCanvas = document.createElement('canvas'), smallCanvas = document.createElement('canvas');
+function keepTitle(k, before) {
+  const keep = +(mix.tsp ?? 1); if (keep >= 1 || mix.top === 'none' || (!titleBox && !sunDisc)) return;
+  const w = canvas.width, h = canvas.height;
+  if (before) {if (preCanvas.width !== w || preCanvas.height !== h) {preCanvas.width = w; preCanvas.height = h;} preCanvas.getContext('2d').drawImage(canvas, 0, 0); return;}
+  if (!lastSplit) return;
+  for (const c of [maskCanvas, smallCanvas]) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
+  splitInto(smallCanvas.getContext('2d'), preCanvas, lastSplit.ox * keep, lastSplit.oy * keep, lastSplit.m, lastSplit.mode);
+  const g = maskCanvas.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h);
+  g.filter = `blur(${Math.round(14 * k)}px)`; g.fillStyle = '#000';
+  if ((mix.top === 'title' || mix.top === 'titleCut') && titleBox) {const [x, y, bw, bh] = titleBox; g.fillRect((x - 10) * k, (y - 10) * k, (bw + 20) * k, (bh + 20) * k);}
+  if (mix.top === 'sun' && sunDisc) {const [cx, cy, r] = sunDisc; g.beginPath(); g.arc(cx * k, cy * k, (r + 12) * k, 0, 2 * Math.PI); g.fill();}
+  g.filter = 'none'; g.globalCompositeOperation = 'source-in'; g.drawImage(smallCanvas, 0, 0);
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(maskCanvas, 0, 0); ctx.restore();
 }
 // 'rare': only the hardest hits flash. The gate opens at strength 0.82 and is full at 0.94: about 1–10 flashes a minute
 // on the seven songs, none on most hits. A gate on the hit's own absolute strength, not a rank.
@@ -634,8 +687,11 @@ function partsFlash(t, k, v) {
     // R13 soft gates: a gentle S-curve on the measured strength itself (from 0.5 or 0.6 to 0.85), peak 30 %; the size options
     // no longer touch it (the owner saw no difference between them). The hold-and-fade timing is unchanged.
     const e = forceE ?? fl.h.I, soft = SOFT[mix.flg];
-    const g = soft ? soft(strengthOf(e)) : rareGate(e); if (g < 0.01) return;
-    const m = soft ? held(t - fl.h.tc, excess(e)) : fl.m;
+    // R15: the flash's own response (no ceiling), times the hold-and-fade envelope
+    const op = respOn() ? Math.min(CAP.flash, RESP.flash[mix.rfl ?? 's55'](hitStrength(fl.h))) * fl.m : null;
+    if (op !== null && op < 0.003) return;
+    const g = op !== null ? 1 : soft ? soft(strengthOf(e)) : rareGate(e); if (g < 0.01) return;
+    const m = op !== null ? op / 0.3 : soft ? held(t - fl.h.tc, excess(e)) : fl.m;
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * m * g;
     if (mix.fls === 'todayRare') {ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = '#fff';} else ctx.fillStyle = darkNow ? '#fff' : paperNow;
     ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore(); return;
@@ -765,7 +821,7 @@ function drawTop(t, alpha, th) {
     const c = hex(th.dark ? '#ffffff' : p.ink).join(','), fade = (y0, y1, o) => {const l = ctx.createLinearGradient(0, y0, 0, y1); for (let i = 0; i <= 8; i++) l.addColorStop(i / 8, `rgba(${c},${o * (1 - i / 8) ** 2})`); ctx.fillStyle = l; ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0));};
     fade(0, 0.18 * H, 0.025); fade(H, 0.74 * H, 0.05); // the most it should ever be
   }
-  if (mix.top === 'sun') {ctx.fillStyle = th.dark ? p.nightInk : p.sun ?? p.accent; ctx.beginPath(); ctx.arc(0.74 * W, 0.17 * H, W * (0.1 + 0.09 * intensityAt(t)), 0, 2 * Math.PI); ctx.fill();}
+  if (mix.top === 'sun') {const r = W * (0.1 + 0.09 * intensityAt(t)); sunDisc = [0.74 * W, 0.17 * H, r]; ctx.fillStyle = th.dark ? p.nightInk : p.sun ?? p.accent; ctx.beginPath(); ctx.arc(0.74 * W, 0.17 * H, r, 0, 2 * Math.PI); ctx.fill();}
   if (mix.top === 'title' || mix.top === 'titleCut') {
     // at most two lines, broken where the two are most even, never wider than 62 % of the frame (smaller type if needed)
     const words = SONGS[song].replace(/\s*\(.*\)/, '').toUpperCase().split(' '), font = px => `800 ${px}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
@@ -808,7 +864,7 @@ function drawLines(lines, at, z, th) {
 // 'line in front': the inked line carries a thin rim of paper, so where it crosses the title it visibly passes
 // in front; on bare paper the rim is invisible.
 // Clipped to the title's box, so it never cuts the pencil line ahead of the rider or the band.
-let titleBox = null;
+let titleBox = null, sunDisc = null;
 function cut(ink, z, th, rebuild) {
   if (mix.top !== 'titleCut' || !titleBox || overNow > 0.99) return;
   const m = ctx.getTransform(), k = canvas.width / W; ctx.save(); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.beginPath(); ctx.rect(...titleBox); ctx.clip();
@@ -927,18 +983,23 @@ function drawSpectrum(t, form, alpha, th) {
 const traumaW = (t, gain, dec, pw) => {let x = 0; for (const h of S.hits) {if (h.tc > t) break; x += big(excess(forceE ?? h.I)) * gain * Math.exp(-(t - h.tc) * dec);} return Math.pow(Math.min(1, x), pw);};
 const trauma = (t, c) => {const fs = forceE === null ? null : 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4); let x = 0; for (const h of S.hits) {if (h.t > t) break; const hs = fs ?? h.s; if (hs < c.min) continue; x += hs * c.gain * Math.exp(-(t - h.t) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
 const chan = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
+let lastSplit = null; // the last split of this frame: offset and overscan, so a region can be re-split smaller with the same framing
 function channelSplit(ox, oy, mode = 'centre') {
-  // red one way, blue the other, green in place ('trail': red at d, green at d/2, blue in place); overscan hides the edges
+  const m = Math.ceil(Math.hypot(ox, oy)) + 2; lastSplit = {ox, oy, m, mode};
+  splitInto(ctx, canvas, ox, oy, m, mode);
+}
+function splitInto(g0, from, ox, oy, m, mode = 'centre') {
+  // red one way, blue the other, green in place ('trail': red at d, green at d/2, blue in place); overscan m hides the edges
   const [src, ...rgb] = chan, w = canvas.width, h = canvas.height;
   for (const c of chan) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
-  src.getContext('2d').drawImage(canvas, 0, 0);
+  src.getContext('2d').drawImage(from, 0, 0);
   ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0);
     g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h); ctx.globalCompositeOperation = 'lighter';
-  const m = Math.ceil(Math.hypot(ox, oy)) + 2, o = (c, dx, dy) => ctx.drawImage(c, dx - m, dy - m * h / w, w + 2 * m, h + 2 * m * h / w);
+  g0.setTransform(1, 0, 0, 1, 0, 0); g0.fillStyle = '#000'; g0.fillRect(0, 0, w, h); g0.globalCompositeOperation = 'lighter';
+  const o = (c, dx, dy) => g0.drawImage(c, dx - m, dy - m * h / w, w + 2 * m, h + 2 * m * h / w);
   if (mode === 'trail') {o(rgb[0], ox, oy); o(rgb[1], ox / 2, oy / 2); o(rgb[2], 0, 0);}
   else {o(rgb[0], ox, oy); o(rgb[1], 0, 0); o(rgb[2], -ox, -oy);}
-  ctx.globalCompositeOperation = 'source-over';
+  g0.globalCompositeOperation = 'source-over';
 }
 function worldSplit(t, k) {
   const A = acc(); if (!A.split) return;

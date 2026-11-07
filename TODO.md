@@ -80,12 +80,8 @@ Note friction here as it happens; fix what is tiny.
 
 Each is a simplification to try, kept only if a paired compile and parity allow it.
 
-- Make one `advance` the only call that simulates, with every reader cached only. Every
-  compile now fails if it simulates a frame it did not charge; this would make such a
-  frame impossible to write, not only caught.
 - Drop the constraint padding in `getUpdatesAtFrame` if `artifacts.ts` and `observe.ts`
   confirm no one reads it.
-- Try `IntMap` with a pool of spare buckets in place of `LineGrid`'s own table.
 - When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
 - Try Bun soon: 35% less memory at equal speed matters to the owner, but not yet. It
   means a track rebaseline and moving the toolchain.

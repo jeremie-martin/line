@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: not done, on purpose
+
+Making one `advance` the only call that simulates: the detector serves the native engine,
+the fixed judge and the JavaScript references, and the other two simulate when read, so
+it would need a second path, and tools would need explicit advances or convenience
+reads that simulate again. The charge check already fails any compile that simulates
+uncharged; this would only move the failure from run time to writing time. Replacing
+`LineGrid`'s table with `IntMap` and a bucket pool: its −0.7% is measured and the
+rewrite would risk more than it saves.
+
 ## November 7: three more removals, timed with `--candidate`
 
 Each measured against its parent commit, with the checkout untouched: the motion memo,

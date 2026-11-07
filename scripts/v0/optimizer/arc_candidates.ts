@@ -55,7 +55,7 @@ const baseRank = (c: Ranked) => {
   return c.localCost + FUTURE * (heading + .5 * (c.cost - c.localCost - heading));
 };
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
-  return c.valueFeatures ? baseRank(c) + FUTURE * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
+  return c.valueFeatures ? baseRank(c) + (.4 / .45) * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */

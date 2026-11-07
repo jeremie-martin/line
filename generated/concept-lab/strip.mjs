@@ -7,7 +7,7 @@ const tmp = `/tmp/claude-1000/strip-${process.pid}`; mkdirSync(tmp, {recursive: 
 const b = await chromium.launch({args: ['--mute-audio']});
 try {
   const p = await b.newPage({viewport: {width: 1080, height: 1920}});
-  await p.goto(`http://127.0.0.1:8770/generated/concept-lab/?shot=1&song=${a.song ?? 'los'}&c=${a.c ?? 'ride'}&t=0${a.m ? '&m=' + a.m : ''}`);
+  await p.goto(`http://127.0.0.1:8770/generated/concept-lab/?shot=1&song=${a.song ?? 'los'}&c=${a.c ?? 'ride'}&t=0${a.m ? '&m=' + a.m : ''}${a.rides ? '&rides=' + a.rides : ''}`);
   await p.waitForFunction(() => window.__ready === true, null, {timeout: 60000});
   const n = +(a.n ?? 12), step = +(a.step ?? 1), files = [];
   for (let i = 0; i < n; i++) {

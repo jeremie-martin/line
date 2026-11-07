@@ -182,22 +182,33 @@ export const PLACEMENTS = {
   // drops the rider by up to 12 % more (full at 65°), and it climbs back gently afterwards. Los 28.6–29.1 s is a 60° ride
   // at ordinary vertical speed: its angle, not its speed, is what sets it apart. Falls in the air after a jump are excluded.
   dive: {rest: [0.5, 0.33], rx: 0.15, ry: 0.08, ryFast: 0.12, slow: 1, back: 110, settle: 1.6},
+  // 'follow': one generic rule instead of a niche one. The offset follows the DIRECTION of travel (the unit velocity, faded in
+  // below 150 u/s so a slow rider rests), not each axis' speed: a 60° ride sits lower than a 35° one at any speed, and a
+  // descending stretch no longer saturates. Same asymmetric response as Tamed; its median height matches 'high'.
+  follow: {rest: [0.5, 0.34], rx: 0.15, ry: 0.17, dir: 150, back: 110, settle: 1.6, backDown: 45, sm: 0.25, shape: 2},
 };
 function placed(Rs, zs, P) {
-  const n = Rs.n, sm = a => gauss1(Rs.R.map((_, f) => Rs.vel[f][a]), 2), vx = sm('x'), vy = sm('y'), out = new Array(n);
+  // sm: extra smoothing of the velocity the target reads (s), so a direction flip does not swing the target
+  const n = Rs.n, sm = a => gauss1(Rs.R.map((_, f) => Rs.vel[f][a]), (P.sm ?? 0.05) * FPS), vx = sm('x'), vy = sm('y'), out = new Array(n);
   const reach = (v, v0) => v / Math.sqrt(1 + (v / v0) ** 2) / v0; // saturates at ±1, roughly linear below v0
   const vs = P.slow ? gauss1(Array.from(vy), P.slow * FPS) : null, ground = P.slow ? gauss1(Rs.air.map(a => a ? 0 : 1), 0.15 * FPS) : null;
   const steep = f => smoothstep((Math.atan2(vy[f], Math.abs(vx[f])) * 180 / Math.PI - 40) / 25);
-  const ty = f => vs ? P.rest[1] + P.ry * reach(vs[f], 220) + P.ryFast * ground[f] * steep(f) : P.rest[1] + P.ry * reach(vy[f], 220);
-  const p = {x: (P.rest[0] + P.rx * reach(vx[0], 260)) * W, y: ty(0) * H};
+  const unit = (f, a) => {const v = Math.hypot(vx[f], vy[f]); return (a === 'x' ? vx[f] : vy[f]) / Math.sqrt(v * v + P.dir * P.dir);};
+  // shape 2: the vertical offset grows as the slope's sine squared (sign kept), so steep rides stand out from ordinary ones
+  const shaped = u => P.shape === 2 ? u * Math.abs(u) : u;
+  const ty = f => P.dir ? P.rest[1] + P.ry * shaped(unit(f, 'y')) : vs ? P.rest[1] + P.ry * reach(vs[f], 220) + P.ryFast * ground[f] * steep(f) : P.rest[1] + P.ry * reach(vy[f], 220);
+  const tx = f => P.rest[0] + P.rx * (P.dir ? unit(f, 'x') : reach(vx[f], 260));
+  const p = {x: tx(0) * W, y: ty(0) * H};
   for (let f = 0; f < n; f++) {
-    const z = zs[f], T = {x: (P.rest[0] + P.rx * reach(vx[f], 260)) * W, y: ty(f) * H};
+    const z = zs[f], T = {x: tx(f) * W, y: ty(f) * H};
     for (const a of ['x', 'y']) {
       // with the motion: quick. Against it: proportional to the distance left, so the return curves and settles;
       // a fixed-rate return is a straight ramp, which reads as the rider climbing (round 2's sawtooth).
       const u = z * Rs.vel[f][a], gap = T[a] - p[a], withMotion = u * gap > 0 && Math.abs(u) > 150;
       const want = withMotion ? gap / DT * 0.22 : gap * P.settle;
-      const [lo, hi] = u > 150 ? [-P.back, u] : u < -150 ? [u, P.back] : [-P.back, P.back];
+      // backDown: while the rider descends, it may rise on screen only this slowly (px/s), so it never seems to climb
+      const up = a === 'y' && u > 150 && P.backDown != null ? P.backDown : P.back;
+      const [lo, hi] = u > 150 ? [-up, u] : u < -150 ? [u, P.back] : [-P.back, P.back];
       p[a] += clamp(want, lo, hi) * DT;
     }
     out[f] = {z, ax: p.x, ay: p.y, x: Rs.R[f].x, y: Rs.R[f].y};

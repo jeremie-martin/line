@@ -30,6 +30,17 @@
     The gain sits in P6 and P7 (+10.8, +6.2), with groove −3.1.
   - H3 (pooled policies): +3.7 [−1.8, +9.3], 0.94. Held out on the 11 songs:
     +1.0 [−8.2, +10.2], 10 of 13 specs up.
+- **Held out (11 songs, 4 seeds):**
+  - B: +1.8 [−5.1, +8.8], 10 of 13 specs up;
+  - J: +2.5 [−5.0, +10.1], 10 of 13 specs up.
+
+  All three are small and positive on both panels, but none is established on
+  held-out alone.
+- **Hypothesis BJ, then BJH.** The three are different mechanisms (what the
+  beam keeps, search effort at strong catches, what the policies propose), so
+  their gains add. B+J, then B+J+H3: V7.1 about +6 to +10, and held out
+  clearly positive. If they don't add, they share one small gain and stay
+  parked.
 
 ## November 7: where V7.1 loses, and the next experiments
 

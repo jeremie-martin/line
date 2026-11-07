@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis, the response step solves with ranking's weights
+
+- **Basis.** "Local search judges like ranking" changed which candidate
+  local search starts from and what counts as an improvement. The response
+  step (a damped Gauss–Newton step from measured sensitivities) still
+  solves for the residual vector with every prior at full weight, so its
+  steps still aim at arrivals that ranking discounts. Refinement is already
+  consistent: it turns the arrival and heading priors off and judges
+  complete revisions.
+- **Change** (`arc_local_search.ts`, response search only). Each prior row
+  of the residual vector and of the Jacobian is scaled by the square root of
+  its ranking weight:
+  - arrival rows by √0.25;
+  - the heading row by √0.5;
+  - repair's reference rows by √0.25.
+
+  The step solves the same weighted problem ranking judges. Nothing else
+  changes.
+- **Hypothesis.** Response steps land nearer what ranking keeps. A small
+  V7.1 gain over the new main, the same direction as the last change.
+- **Risk.** Little: the response step is one part of local search.
+
 ## November 7: the steep-angle prior re-tested on the new main (kept)
 
 Removing the steep-angle prior before strong catches (Y, earlier a neutral

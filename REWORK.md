@@ -10,6 +10,12 @@
 - **Hypothesis.** No headline loss against the full archive (within
   noise). If so, the smaller archive replaces it for the repository's sake.
 - **Risk.** A loss means demonstration count still matters at this size.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −5.3 [−12.1, +1.4], 0.04; 11 of 35 specs up; every block negative.
+  - P6 −23.0, P7 −13.7; strong extra impacts triple.
+  - Demonstration count matters: the full archive stays. The repository
+    size has to be solved another way (storage outside git, or a denser
+    encoding), not by fewer demonstrations.
 
 ## November 7: construction policies from today's compiler (adopted)
 

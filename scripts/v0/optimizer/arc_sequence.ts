@@ -142,6 +142,23 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const minimumScale = Math.max(.05, 12 / Math.max(12, options.samples ?? 80));
     const width = clamp(Math.floor(remainingRate / Math.max(1, observedRate * minimumScale * 1.1)), 1, 8);
     const chosen = choose(offered, i === contacts.length - 1 ? 1 : width);
+    // When the beam has room for two, one slot keeps the continuation with the
+    // lowest measured cost (accumulated local cost: no arrival prior, no
+    // prediction), so what its arrival costs the next catch is measured by the
+    // next interval's search rather than predicted.
+    if (width >= 2 && i < contacts.length - 1) {
+      let measured: Offer | undefined;
+      for (const {parent, interval} of new Map(offered.map(o => [o.interval, o])).values())
+        for (const candidate of interval.candidates) {
+          const localCost = parent.localCost + candidate.localCost;
+          if (!measured || localCost < measured.localCost)
+            measured = {parent, interval, candidate, localCost, rank: parent.localCost + valueRank(options, candidate)};
+        }
+      if (measured && chosen.every(o => o.candidate !== measured!.candidate && distinctArrival(o.candidate, measured!.candidate))) {
+        if (chosen.length >= width) chosen.pop();
+        chosen.push(measured);
+      }
+    }
     sequenceObserver?.(i, offered, chosen, ctx, protectedEngines);
     if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
       finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};

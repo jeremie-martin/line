@@ -119,7 +119,7 @@ The title gets a little less split (`tsp`) and less pulse (`tpl`). The rider kee
   - `prepare.py` builds `data/<song>.json` from the saved record, composition and spectrum.
   - `recompile.sh` builds `rides/` from the current compiler: eight songs, including Circus Minimus, which has no composition, so it gets one section and no hit sources.
   - Older data: `data-r5/` (rounds 1–5), `data-r19/` (rounds 6–19). Older rides: `rides-r6/`.
-- **Stills and films:** `shoot.mjs`, `strip.mjs` for stills and frame strips. `render.mjs` (`rides=old`, `from=`, `to=`), `films*.sh` and `fourup.sh` for films.
+- **Stills and films:** `shoot.mjs`, `strip.mjs` for stills and frame strips. `render.mjs` (`rides=old`, `from=`, `to=`), `films*.sh` and `fourup.sh` for films. `grid12.sh` assembles twelve films into a 6×2 4K grid with names (`fourup/frame12.png`, `fourup/grid12.txt`).
 - **Checks:**
   - `uicheck.mjs`: 82 interaction checks on a frozen question set, `?qtest=1`.
   - `qcheck.mjs`: walks the live questions.
@@ -127,5 +127,5 @@ The title gets a little less split (`tsp`) and less pulse (`tpl`). The rider kee
   - `splitmeasure.mjs`: the visible split fringe.
 - **Reasons and history:**
   - `LEDGER.md` (current state) and `ledger-history/` (earlier ledgers).
-  - Round pages: `morning.html` (index), `round1/`–`round5/`, `round6.html`–`round19.html`, `clarify.html`, `system.html`.
+  - Round pages: `morning.html` (index), `round1/`–`round5/`, `round6.html`–`round20.html`, `clarify.html`, `system.html`.
   - `agents/`: the notes and reports of every helper (ideas, critiques, audits, palettes, Wada).

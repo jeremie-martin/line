@@ -11,7 +11,7 @@ const W = 1080, H = 1920, FPS = 40;
 const Z0 = 5.4; // today's vertical zoom
 const SIZE_Z = {s58: 5.8, s62: 6.2, s68: 6.8};
 // One optional, hand-placed cue per song: a drop is a musical judgement, and no detector found it reliably.
-const NIGHTS = {petrunko: [22.4, 40.5], los: [23.9, 40.5], lua: [29.7, 49.6], batidao: [15.2, 29.5], burn: [4.5, 24.5], coma: [19.1, 33.6], tomada: [37.0, 50.0]};
+const NIGHTS = {circus: [37.6, 49.6], petrunko: [22.4, 40.5], los: [23.9, 40.5], lua: [29.7, 49.6], batidao: [15.2, 29.5], burn: [4.5, 24.5], coma: [19.1, 33.6], tomada: [37.0, 50.0]};
 
 const DIMS = {
   scheme: ['Colour', SCHEME_NAMES],
@@ -67,8 +67,22 @@ const PRESETS = [
     mix: {...base, scheme: 'black', music: 'red', redBy: 'loud', ink: 'rail', hit: 'parts'}},
   {id: 'dune', name: 'Dune', line: 'Sand and rust, with its own low sun.', mix: {...base, scheme: 'dune', music: 'redbars', hit: 'parts', top: 'sun'}},
   {id: 'plum', name: 'Plum', line: 'A second dark: plum and amber.', mix: {...base, scheme: 'plum', music: 'redbars', hit: 'parts'}},
+  // ── R20 themes demo: twelve complete directions on the settled v1 (camera, hits), each choosing a palette, band, top element,
+  // line mode and what happens at the drop so that they belong together. A showcase toward a theme generator, not settled looks.
+  {id: 't-paper', name: 'Paper Night', line: 'Graphite, the fork with the loudest in red, the title, Night at the drop.', mix: {...base, music: 'red', redBy: 'loud', top: 'title', night: 'on'}},
+  {id: 't-hokusai', name: 'Hokusai', line: 'Washi and indigo, the bars, the sun, easing out when quiet.', mix: {...base, scheme: 'hokusai', music: 'redbars', top: 'sun', tide: 'quietI'}},
+  {id: 't-dune', name: 'Dune to Espresso', line: 'Sand and rust with its sun; at the drop it cuts to coffee, the sun staying.', mix: {...base, scheme: 'dune', music: 'redbars', top: 'sun', night: 'switch'}},
+  {id: 't-prussian', name: 'Prussian', line: 'Wada 343: ivory, a deep Prussian-teal band, the title.', mix: {...base, scheme: 'wPrussian', music: 'redbars', top: 'title'}},
+  {id: 't-celadon', name: 'Celadon', line: 'Wada 171: celadon paper, a maroon band, a marigold sun.', mix: {...base, scheme: 'w2Celadon', music: 'redbars', top: 'sun'}},
+  {id: 't-aubergine', name: 'Aubergine', line: 'Wada 307: lilac paper and an aubergine band; at the drop, its own night.', mix: {...base, scheme: 'w2Aubergine', music: 'redbars', night: 'switch'}},
+  {id: 't-wisteria', name: 'Wisteria', line: 'Wada 197: near-white grey, a violet fork, plain paper.', mix: {...base, scheme: 'w2Wisteria', music: 'red', redBy: 'loud', bg: 'white'}},
+  {id: 't-black', name: 'Black Iris', line: 'Black, the Iris band, each rail lighting whole as the rider meets it.', mix: {...base, scheme: 'black', music: 'iris', ink: 'rail'}},
+  {id: 't-plum', name: 'Plum', line: 'Plum and amber, the bars, the whole course inked, the title.', mix: {...base, scheme: 'plum', music: 'redbars', ink: 'ink', top: 'title'}},
+  {id: 't-oldrose', name: 'Old Rose', line: 'Wada 265: violet-black, an old-rose band, all ink, the title.', mix: {...base, scheme: 'wOldRose', music: 'redbars', ink: 'ink', top: 'title'}},
+  {id: 't-ultramarine', name: 'Ultramarine', line: 'Wada 295: violet-black, a pure blue band, each rail lighting whole.', mix: {...base, scheme: 'wUltramarine', music: 'redbars', ink: 'rail'}},
+  {id: 't-aconite', name: 'Aconite', line: 'Wada 344: midnight paper, an aconite band, all ink.', mix: {...base, scheme: 'w2Aconite', music: 'redbars', ink: 'ink'}},
 ];
-const SONGS = {petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
+const SONGS = {circus: 'Circus Minimus', petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
 const plain = {...base, ends: 'none'};
 // Each option: [label, mix, note shown when tapped].
 // A frozen copy of round 8's questions, used only by uicheck.mjs (?qtest=1): the interaction suite tests the machinery

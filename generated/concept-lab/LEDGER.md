@@ -131,6 +131,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | How a song gets its look | open | No full random. Cohesive, weighted toward favourites (the library), a few hand hints. Never biased automatically from sound analysis (R5). |
 | Per-song hints | open | The drop cue today; maybe zoom and tone. The spec must not dictate (R5). |
 | Variety across uploads | open | Raised in `system.html`. |
+| Themes demo (R20) | shown | Twelve complete directions on Circus Minimus (`t-*` looks, `films7.sh`, `grid12.sh`, `fourup/r20/circus-themes.mp4`): a showcase toward a theme generator, not settled looks. Circus Minimus's drop cue (37.6–49.6 s) is a guess from the music's energy. |
 | Zoom per song | open | "Not sure yet" (R6). |
 
 ## Open items, in one place

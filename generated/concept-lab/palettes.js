@@ -258,6 +258,8 @@ const LIBRARY = {
 
 // The drop switch: during the hand-placed Night cue, a scheme can hand over to its 'drop' partner (a cut on the cue), a darker
 // scheme of the same family, instead of Night's dark version of itself.
-const DROPS = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', lagoon: 'moss', slate: 'midnight', mauve: 'plum', olive: 'moss', sumi: 'black', bauhaus: 'black'};
+const DROPS = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', lagoon: 'moss', slate: 'midnight', mauve: 'plum', olive: 'moss', sumi: 'black', bauhaus: 'black',
+  // R20: Wada drop partners from each scheme's own combination (agents/wada/pass2)
+  w2Aubergine: 'w2AubergineNight', w2Heather: 'w2HeatherNight', wBrick: 'wGilt'};
 
 export {LIBRARY, DROPS};

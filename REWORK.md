@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: Node 26, and a `pow` of our own
+
+V8 14 runs the same compile 6% faster than V8 12, native and JS alike, with no source
+change. Maglev alone on Node 22 was slower. Tracks moved at first, and the cause was
+one function: Math.pow in Node 22 is V8's fdlibm routine, and from Node 24 it is the
+system libm, which rounds 9% of results differently. `exactPow` reproduces the Node 22
+routine, 45 million samples exact, so tracks are byte-identical on both Nodes and no
+longer depend on a machine's libm. It costs 60 ns more per call. Other Math functions
+match. All 25 cells and 10 judged tracks are exact on 26.13.0. Node 26 is the newest
+LTS; Node 24 timed the same.
+
 ## November 7: what stepping is made of
 
 Splitting `step_state` for one profile: the rider's constraint solver takes 2.9 s of a

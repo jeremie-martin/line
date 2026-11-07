@@ -3,6 +3,7 @@
  * generic samples, and construction-specific families (opposing entries,
  * compact folds, observed receivers). Every proposal is measured by the
  * ordinary evaluator; none is accepted on its own authority. */
+import {exactPow} from '../../lib/exact_pow.ts';
 import { getPhysicsFrameCount } from '../../lib/detector.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
@@ -53,7 +54,7 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
     control.guideTilt = -18 + 36 * frac(.5698402910);
     control.turnFraction = .15 + .65 * frac(.2718281828);
     if (options.railLayout === 'transfer' && k % 3 === 1)
-      control.support = 2 * Math.pow(Math.max(1, (constructionSpan - 4) / 2), frac(.4384471872));
+      control.support = 2 * exactPow(Math.max(1, (constructionSpan - 4) / 2), frac(.4384471872));
     if (options.profile === 'fold') {
       control.foldBend = (k % 2 ? 1 : -1) * (20 + 35 * frac(.3247179572));
       if (options.railLayout === 'transfer') control.foldTiming = k % 2 ? 1 : frac(.6931471806);
@@ -186,7 +187,7 @@ export function recoverInitialization(s: IntervalSearch) {
         const keys = arcResponseKeys(options.guides, {...options, observedReceiver: true});
         const trial = Math.floor(k * 2 / 3), key = keys[Math.floor(trial / 2) % keys.length];
         const anchor = s.near[Math.floor(trial / (2 * keys.length)) % Math.min(4, s.near.length)].c;
-        const step = arcControlStep(key, 'coordinate', anchor.support) * Math.pow(.65, Math.floor(trial / (6 * keys.length)));
+        const step = arcControlStep(key, 'coordinate', anchor.support) * exactPow(.65, Math.floor(trial / (6 * keys.length)));
         proposal = {...anchor, [key]: arcControlValue(anchor, key, options.channel) + (trial % 2 ? -1 : 1) * step};
       }
       record.proposals++;

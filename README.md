@@ -46,9 +46,9 @@ compiler work and open questions, and `REWORK.md` the decision log.
 
 ## Setup
 
-The qualified toolchain is Node 22.22.2 (`.nvmrc`) and Rust 1.95.0
-(`rust-toolchain.toml`). Runtime upgrades need fresh physics and compiler parity;
-floating-point equality is qualified against this Node/V8 version. CLI and worker
+The qualified toolchain is Node 26.13.0 (`.nvmrc`) and Rust 1.95.0
+(`rust-toolchain.toml`). Runtime upgrades need fresh physics and compiler parity.
+`Math.pow` varies between Node versions, so the compiler uses `exactPow`. CLI and worker
 scripts run directly with Node’s built-in TypeScript stripping. Typechecking
 enforces erasable syntax and explicit type imports; no runtime transpiler is needed.
 

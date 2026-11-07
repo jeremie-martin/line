@@ -240,7 +240,8 @@ const DIMS = {
   rsh: ['Shake response', {lin: 'Straight to 24 px', lin20: 'Straight to 20 px', lin16: 'Straight to 16 px'}],
   rfl: ['Flash response', {r85: 'Shifted: 0.6 → 25 % at 0.85, gently on', r85s: 'Slower: 0.55 → 25 % at 0.85, gently on', r80: '25 % at 0.8, gently on to 30 % at 1.0', s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
   pulse: ['Split pulse', {frame: 'The whole picture zooms with each split (R9–R17)', none: 'No pulse: only the colours split', ride: 'The ride alone zooms with each split'}],
-  tsp: ['Split on the title and sun', {'1': 'Same as everywhere', '0.65': 'A little less', '0.5': 'A little less again', '0.4': 'Less'}],
+  tpl: ['Pulse on the title', {'1': 'Same as everywhere', '0.7': 'A little less', '0.45': 'Less'}],
+  tsp: ['Split on the title', {'1': 'Same as everywhere', '0.65': 'A little less', '0.5': 'A little less again', '0.4': 'Less'}],
   ampS: ['Shake size on its own', {'1.5': 'to 24 px', '1.75': 'to 28 px', '2': 'to 32 px'}],
   amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
   flg: ['Rare flash opens at', {s60: 'Gently from 0.6, to 30 % (chosen)', s55: 'Gently from 0.55, to 25 %', s50l: 'Gently from 0.5, to 20 %', s70: 'Gently from 0.7, to 30 %', s50: 'Gently from 0.5, to 30 %', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
@@ -253,7 +254,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'ease30', rfl: 'r85', tsp: '0.65', rsh: 'lin', pulse: 'frame'}; // hits as chosen through R17 (LEDGER.md: Hits)
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'ease30', rfl: 'r85', tsp: '0.65', rsh: 'lin', pulse: 'frame', tpl: '1'}; // hits as chosen through R17 (LEDGER.md: Hits)
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -325,12 +326,12 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'pulse', ask: 'The title moving: which split?', why: 'The title never shakes, but every colour split also zoomed the whole picture a little (about 3 % on a strong hit) to hide its edges, so the title in its corner jumped up to 15 px. Nobody designed that pulse. Here: as now; no pulse at all, so only the colours split; or no pulse on the picture while the ride alone keeps the same zoom around the rider. Varies: only the pulse. Keep any number.',
+  {id: 'titlepulse', ask: 'The title: a little less pulse?', why: 'Everything keeps its split and pulse exactly as you love them: the ride, the band and the sun. Only the title moves less. It also keeps its “a little less” split from round 16, which no longer touches the sun. Varies: only how much the title moves. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['As now', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'frame'}, 'The whole picture, title included, zooms with each split.'],
-      ['No pulse', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'none'}, 'Nothing moves but the colours.'],
-      ['The ride keeps its pulse', {...plain, music: 'redbars', hit: 'parts', top: 'title', pulse: 'ride'}, 'The title, band and background stay still; the ride zooms around the rider as before.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['With the sun, on Dune', 36.5, 'tomada', {top: 'sun', scheme: 'dune'}], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
+      ['Same as everywhere', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '1'}, 'The title moves with the picture.'],
+      ['A little less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '0.7'}, 'The title moves about two-thirds as much.'],
+      ['Less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tpl: '0.45'}, 'The title moves under half as much.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}], ['Lua 36 s, on Seashell', 35.5, 'lua', {scheme: 'w2Seashell'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -351,7 +352,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r18';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r19';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -663,16 +664,18 @@ function partsSplit(t, k, v) {
 // a blend: blending two splits looked grey and doubled.
 const preCanvas = document.createElement('canvas'), maskCanvas = document.createElement('canvas'), smallCanvas = document.createElement('canvas');
 function keepTitle(k, before) {
-  const keep = +(mix.tsp ?? 1); if (keep >= 1 || mix.top === 'none' || (!titleBox && !sunDisc)) return;
+  // R19: the title only. The sun keeps exactly what everything else gets ("the sun should not change at all"). The title gets
+  // tsp of the split and tpl of the pulse: re-split with a smaller overscan, so the zoom moves it less.
+  const keep = +(mix.tsp ?? 1), tpl = +(mix.tpl ?? 1), isTitle = (mix.top === 'title' || mix.top === 'titleCut') && titleBox;
+  if (!isTitle || (keep >= 1 && tpl >= 1)) return;
   const w = canvas.width, h = canvas.height;
   if (before) {if (preCanvas.width !== w || preCanvas.height !== h) {preCanvas.width = w; preCanvas.height = h;} preCanvas.getContext('2d').drawImage(canvas, 0, 0); return;}
   if (!lastSplit) return;
   for (const c of [maskCanvas, smallCanvas]) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
-  splitInto(smallCanvas.getContext('2d'), preCanvas, lastSplit.ox * keep, lastSplit.oy * keep, lastSplit.m, lastSplit.mode);
+  splitInto(smallCanvas.getContext('2d'), preCanvas, lastSplit.ox * keep, lastSplit.oy * keep, lastSplit.m > 0 ? Math.max(1, Math.round(lastSplit.m * tpl)) : 0, lastSplit.mode);
   const g = maskCanvas.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h);
   g.filter = `blur(${Math.round(14 * k)}px)`; g.fillStyle = '#000';
   if ((mix.top === 'title' || mix.top === 'titleCut') && titleBox) {const [x, y, bw, bh] = titleBox; g.fillRect((x - 10) * k, (y - 10) * k, (bw + 20) * k, (bh + 20) * k);}
-  if (mix.top === 'sun' && sunDisc) {const [cx, cy, r] = sunDisc; g.beginPath(); g.arc(cx * k, cy * k, (r + 12) * k, 0, 2 * Math.PI); g.fill();}
   g.filter = 'none'; g.globalCompositeOperation = 'source-in'; g.drawImage(smallCanvas, 0, 0);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(maskCanvas, 0, 0); ctx.restore();
 }

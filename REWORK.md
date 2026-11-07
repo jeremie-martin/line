@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: re-tests after R, E (guide ends searched) and K′ (flush upper catches)
+
+- **Basis.** Both were null on the compiler before R, which forced 6
+  frames of flight before every catch. After R, 18% of library catches come
+  from 3–5-frame hops, and dense passages changed most. Both mechanisms act
+  on dense passages: E on the guide's holding job, K′ on hits from a surface
+  above, which the owner likes.
+- **Change.** The original commits re-applied on today's main (eafced45; K
+  then K′, c3aeae8a and 86208baa).
+- **Hypotheses** (as originally stated):
+  - E: fewer extras in guided sections, more partial upper rails, headline
+    +1 to +4;
+  - K′: timelier and stronger hits from above on mid and strong asks, a
+    small headline gain.
+  - The null before R is the likeliest outcome for both.
+
 ## November 7: hypothesis V, redirect within two frames
 
 - **Basis** (the study below). The catches that lose the least energy for

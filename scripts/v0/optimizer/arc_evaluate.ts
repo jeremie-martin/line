@@ -23,7 +23,7 @@ import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
 import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactRuler } from './impact_accounts.ts';
-import { RELEASE_FRAMES, objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
+import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
 import {type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -187,8 +187,6 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
   const {state, raw} = replay;
   if (det.terminus.reason !== 'endOfSpec') return {reason: det.terminus.reason} as Rejection;
   if (i === 0 && !raw.frames.slice(1, 4).some(f => f.sledContacts.length)) return {reason: 'startup'} as Rejection;
-  if (i < contacts.length - 1 && !raw.frames.slice(-RELEASE_FRAMES).every(f => f.sledContacts.length === 0))
-    return {reason: 'late_release'} as Rejection;
   const observedImpacts = impactRuler.observe(child, raw.frames.slice(frame));
   const allImpactEvents = impactRuler.continue(s.impactPrefix, observedImpacts);
   const impactEvents = allImpactEvents.filter(e => e.onset >= frame - impactRuler.matchFrames && e.onset <= Math.min(duration, horizon));

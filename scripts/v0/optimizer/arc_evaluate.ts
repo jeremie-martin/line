@@ -286,7 +286,9 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const kinetic = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden' ? 1 : steep;
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
     const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
-    const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
+    // The angle term serves unpowered arrivals only: before a strong catch, a steeper arrival measured
+    // no cheaper next interval (within-catch comparisons, REWORK.md, November 7).
+    const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : 0;
     const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail

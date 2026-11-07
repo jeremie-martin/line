@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): hypothesis, a learned estimate matched to today's policies
+
+- **Data.** The second collection (main 9d065738, today's policies): 840
+  compiles, 80,548 probes.
+- **Training.** Same trainer and target. Held-out-group regret 0.0426
+  against the October model's 0.0423.
+- **Change.** `arc_value_model.json` replaced; weight unchanged.
+- **Hypothesis.** The earlier retrain (−3.6) learned from a compiler whose
+  policies were then replaced. A model learned from the compiler it serves
+  should do better: V7.1 up.
+- **Risk.** The same as before: a one-step-better model need not make
+  better rides.
+
 ## November 8 (night): hypotheses, second-round and pooled policies
 
 - **Data.** A second five-seed collection on the new main (9d065738: the

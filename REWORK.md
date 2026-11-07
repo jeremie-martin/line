@@ -1,5 +1,66 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: the two energy levers checked (report only)
+
+Within-catch comparisons (`alternation_probe.ts`, seed 101, 226 strong catches
+followed by a strong ask; bootstrap 95% intervals over catches).
+
+**1. Ranking's price of arrival speed is about right** (`--mode=sample`,
+1,317 alternatives).
+- The regression gap (charged −0.016 per px/frame against measured −0.031)
+  comes from speed moving with steepness. By speed relative to the arrival
+  prior's own target, ranking's charge tracks the measured next interval:
+
+  | arrival against the prior's target | n | measured next cost | charged |
+  |---|---|---|---|
+  | −1.9 px/frame | 187 | +0.009 | +0.005 |
+  | −1.0 | 693 | −0.003 | −0.002 |
+  | −0.2 | 409 | −0.003 | −0.004 |
+  | +0.7 | 19 | +0.038 | +0.044 |
+
+- Ranking's charge split by part, per +1 px/frame:
+  - arrival priors at ranking weight −0.023;
+  - learned estimate +0.007;
+  - heading prior 0.
+
+  Per +10° steeper: priors −0.021, learned estimate −0.008, measured
+  +0.004.
+- The mispricing is the steepness reward (Y), not speed. Almost every
+  alternative arrives below the target, where the price is right.
+
+**2. Efficiency at equal strength is not a lever** (`--mode=peer`: K and
+up to six cheapest candidates within 0.04 of its strength, each with the
+energy it loses through the catch; 1,516 candidates).
+- Within a catch, equal-strength candidates differ by only 2.7 energy units
+  (median 1.7) out of about 15.5 lost.
+- The wide spread across catches (0.73 to 1.68 × ½J²) belongs to the
+  situations, not to the choices within one.
+- Per 5 more units lost:
+  - span speed residual −0.035 [−0.054, −0.024];
+  - arrival −0.22 px/frame;
+  - this span's cost −0.001;
+  - next interval +0.007;
+  - two steps +0.006 [−0.010, +0.032].
+- The most efficient peer saves 1.2 units against the kept catch, and is
+  worse over two steps in 74% of catches (+0.028).
+
+**Where this leaves strength on dense songs.**
+- Every lever reached from the search's side has now been measured:
+  - search breadth (×10);
+  - the starting shape (U, V);
+  - the price of the future (calibrated, `catch_price`);
+  - the arrival's angle, attitude and speed;
+  - steering from above;
+  - hits from above;
+  - spin;
+  - efficiency.
+- Each is either already used or null.
+- What remains is the trade the specs ask for: strong hits dissipate the
+  energy the asked speed needs. Today's compiler sits near its frontier for
+  that trade. Moving it needs new kinds of construction that none of these
+  probes found.
+- The one actionable item is Y, a neutral trade left to the owner.
+
 ## November 7: hypothesis Y, no steep-angle prior before strong catches
 
 - **Basis** (`alternation_probe.ts --mode=sample`, now recording what ranking

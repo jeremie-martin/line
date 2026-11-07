@@ -1,5 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: the dose of ranking's prediction, and what each part is worth
+
+**Dose** (V7.1, 4 seeds, against the new main at weight 0.5):
+
+| weight | headline | specs up | where |
+|---|---|---|---|
+| 0 (local cost only) | **−7.7 [−10.6, −4.9], < 0.01** | 6 of 35 | P1 −26.4, G −14.4, P4 −10.0; head-down or backward strong arrivals +44% |
+| 0.25 | +3.3 [−6.0, +12.6], 0.83 | 23 of 35 | P6 +10.7, P3 +8.5, P7 +7.8, E +5.3; P4 −6.2, P1 −1.5 |
+| 0.5 (main) | | | |
+| 1 (before AA) | −6.2 (8 seeds) | | |
+
+- The prediction is clearly worth having, about 8 points over local cost
+  alone.
+- A single weight is a compromise between contexts: dense strong passages
+  want more of it, floats and ride-outs want less. The parts of the
+  prediction differ in quality.
+
+**What each part is worth within a catch** (`--mode=sample`, 1,317
+alternatives in 226 strong catches followed by a strong ask, on the compiler
+before AA; regression of the measured next interval's cheapest cost on the
+three parts, bootstrap 95% intervals):
+
+| part | one-step worth per unit | ranking's weight before AA | after AA |
+|---|---|---|---|
+| other arrival priors | 0.14 [0.07, 0.29] | 0.5 | 0.25 |
+| learned estimate | 0.56 [0.35, 0.82] | 0.45 | 0.225 |
+| heading prior | not identified (spread 0.0004: inactive before strong asks) | 1 | 0.5 |
+
+- After AA the arrival priors are still counted about twice their measured
+  worth, and the learned estimate at about 40% of it.
+- This sample covers strong-then-strong catches only. A sample over all
+  catches (every third catch of every V7.1 spec, current main) is running to
+  calibrate the three parts on representative data, the heading prior
+  included.
+
 ## November 7: ranking leans half as much on its prediction of the future (adopted)
 
 `valueRank` (`arc_candidates.ts`) counts everything beyond the local cost at

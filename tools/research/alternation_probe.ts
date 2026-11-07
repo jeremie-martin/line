@@ -14,7 +14,7 @@
  * --mode=noseup, candidates arriving within 6° of K's heading with the sled at least 15° more nose-up; with
  * --mode=sample, the six cheapest other candidates with distinct arrivals (for within-catch comparisons); with
  * --mode=peer, K and up to six cheapest candidates within 0.04 of its strength, each with the energy lost through the catch.
- *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--mode=rising|steeper|noseup|sample|peer] [--width=1] [--specs=a~b,...]
+ *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--mode=rising|steeper|noseup|sample|peer] [--width=1] [--any] [--specs=a~b,...]
  *   node tools/research/alternation_probe.ts report OUT */
 import assert from 'node:assert/strict';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -35,6 +35,7 @@ const SUITE = 'tools/eval/suites/v7.1.json';
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const MODE = process.argv.find(a => a.startsWith('--mode='))?.slice(7) ?? 'rising';
 /** --width=N searches every next interval with N times the samples (1: the production search). */
+const ANY = process.argv.includes('--any');
 const WIDTH = Number(process.argv.find(a => a.startsWith('--width='))?.slice(8) ?? 1);
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 /** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed, sled pose,
@@ -74,7 +75,8 @@ async function worker(id: string, seed: number, perRide: number) {
   await withSequenceObserver((i, offered, chosen, ctx) => {
     OPTIONS ??= ctx.options;
     if (probes.length >= perRide || !chosen.length || i + 2 >= ctx.contacts.length) return;
-    if (!((asks[i] ?? 0) >= .6 && (asks[i + 1] ?? 0) >= .6)) return;
+    // --any: every catch, not only a strong catch followed by a strong ask (a sample probed every third catch).
+    if (ANY ? i % 3 !== 0 : !((asks[i] ?? 0) >= .6 && (asks[i + 1] ?? 0) >= .6)) return;
     const kept = offered.find(o => o.candidate === chosen[0].candidate)!, K = kept.candidate, prefix = kept.parent.seq.lines;
     // Candidates of this very pool whose support sends the rider up (arrival heading under −5°):
     // the search's own viable shapes, cheapest first.
@@ -168,7 +170,7 @@ else if (command === 'run') {
   assert(out && !existsSync(out), 'a new study requires a fresh output directory');
   mkdirSync(dirname(out), {recursive: true});
   mkdirSync(out);
-  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.alternation-probe.v1', seed, perRide, mode: MODE, width: WIDTH, suite: SUITE, specs: queue}, null, 2) + '\n');
+  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.alternation-probe.v1', seed, perRide, mode: MODE, width: WIDTH, any: ANY, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`, `--mode=${MODE}`, `--width=${WIDTH}`]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`, `--mode=${MODE}`, `--width=${WIDTH}`, ...(ANY ? ['--any'] : [])]));
 } else report(out);

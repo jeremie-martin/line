@@ -6,7 +6,7 @@ import {spawn, execFileSync} from 'node:child_process';
 import {videoRequest} from './produce/video_request.ts';
 import {readVerifiedJson, verifiedVideoCell} from './produce/video_input.ts';
 import {ensureSpectrum, renderVideo} from './produce/render.ts';
-import {sha} from '../benchmark/v3/model.ts';
+import {sha} from './lib/case.ts';
 
 async function main() {
 if (process.argv.includes('--help')) {

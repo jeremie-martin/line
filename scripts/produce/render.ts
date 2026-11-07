@@ -5,10 +5,8 @@
  */
 import { spawn } from "node:child_process";
 import {createHash,randomUUID} from "node:crypto";
-import { appendFileSync, openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync, statSync } from "node:fs";
+import { openSync, closeSync, existsSync, mkdirSync, rmSync, copyFileSync, writeFileSync, readFileSync, renameSync, statSync } from "node:fs";
 import { resolve, join, dirname, basename, relative } from "node:path";
-import { exportVideo } from "../lib/export.ts";
-import { resolveVideoOptions } from "../lib/video_options.ts";
 import type { RenderConfig } from "./config.ts";
 import { LOCKED_FX } from "../fx_recipe.ts";
 
@@ -199,14 +197,12 @@ export async function renderVideo(inp: VideoInput): Promise<string> {
       ? ["--beat-punch", `--beat-punch-pct=${inp.render.beatPunchPct}`, "--zoom-ease=cubic", `--jolt-ms=${inp.jolt}`]
       : [];
     const rideAndAudio = async () => {
-      await stage(name, `[1/${steps}] ride`, async () => {
-        const logLine = (message: unknown) => appendFileSync(log, String(message) + "\n");
-        const options = await resolveVideoOptions([
-          `--track=${inp.trackPath}`, ...(inp.specPath ? [`--spec=${inp.specPath}`, "--zoom=action"] : []),
-          `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${qp}`, `--out=${ride}`,
-        ], {log: logLine, warn: logLine, error: logLine});
-        await exportVideo({...options, log: logLine});
-      }, () => fileSizeLabel(ride));
+      // The ride runs as its own process (scripts/export.ts: the shared option resolver and native exporter),
+      // so a failure, its browser and its encoder stay contained while the presentation data is prepared.
+      await stage(name, `[1/${steps}] ride`, () => run(process.execPath, ["scripts/export.ts",
+        `--track=${inp.trackPath}`, ...(inp.specPath ? [`--spec=${inp.specPath}`, "--zoom=action"] : []),
+        `--zoom-mult=${inp.render.zoomMult}`, ...bp, `--res=${inp.render.res}`, `--qp=${qp}`, `--out=${ride}`], log),
+        () => fileSizeLabel(ride));
 
       // 2. mux song.
       if (inp.audioPath) await stage(name, `[2/${steps}] audio`, () => run("ffmpeg", ["-y", "-i", ride, "-i", inp.audioPath!, "-map", "0:v:0", "-map", "1:a:0",

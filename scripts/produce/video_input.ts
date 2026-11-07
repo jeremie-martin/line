@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync, existsSync} from 'node:fs';
 import {join} from 'node:path';
-import {sha} from '../../benchmark/v3/model.ts';
+import {sha} from '../lib/case.ts';
 export function readVerifiedJson(path: string): any {
   const bytes = readFileSync(path);
   assert.equal(sha(bytes), readFileSync(path + '.sha256', 'utf8').trim(), `Changed artifact: ${path}`);

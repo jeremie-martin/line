@@ -69,3 +69,19 @@ them before answering.
   measurement must be summed by hand.
 - `compare --candidate` takes commits, not saved reference names.
 
+## From the November 7 engine and tooling review
+
+Each is a simplification to try, kept only if a paired compile and parity allow it.
+
+- Make one `advance` the only call that simulates, with every reader cached only.
+  `rider.get()` and `ballisticState()` can still fall back to computing, so an eviction
+  could replay physics uncharged. Nothing does today; this would make it impossible.
+- Reduce `getRider` to what production reads, and drop the constraint padding in
+  `getUpdatesAtFrame` if `artifacts.ts` and `observe.ts` confirm no one reads it.
+- Ablate `outside_grid` and its bounds now that near lines make empty sweeps cheap, and
+  the `motion` memo, which has no recorded gain.
+- Try `IntMap` with a pool of spare buckets in place of `LineGrid`'s own table.
+- Slim `perf:engine`: `--mode=engine` repeats `bench:engine`, and warmup and the slowdown
+  control serve older workflows. Cwd per arm would remove file swapping.
+- When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
+- Bun uses 35% less memory at equal speed. Worth revisiting if panel throughput matters.

@@ -28,3 +28,5 @@ films*.out
 agents/wada/mock/
 rides-r6/
 data-r19/
+rides-variants/
+rides-variants-*.log

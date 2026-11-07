@@ -48,7 +48,7 @@ th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
 <h1>Twelve themes, on a clean foundation</h1>
 <p class="lead">First the housekeeping you asked for, then a showcase: twelve complete themes on Circus Minimus in one 4K film. This one is to watch, not to answer.</p>
 
-<a class="card primary" href="fourup/r20/circus-themes.mp4"><span class="go">→</span><b>Twelve themes, 4K</b><span>Circus Minimus, the whole song, each theme named under its panel.</span></a>
+<a class="card primary" href="fourup/r20/circus-themes.mp4"><span class="go">→</span><b>Twelve themes, 4K</b><span>Circus Minimus (its voice-drums spec), the whole song, each theme named under its panel.</span></a>
 <a class="card" href="./?c=t-paper&song=circus"><span class="go">→</span><b>The themes in the lab</b><span>Each theme is a look in the free lab (t-paper, t-hokusai, …), to open one at full size.</span></a>
 
 <h2>The twelve</h2>
@@ -87,7 +87,8 @@ th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
 <tr><td>Let the World Burn</td><td>783.9</td><td>771.5</td><td>+12.4</td></tr>
 <tr><td>Montagem Coma</td><td>735.2</td><td>705.8</td><td>+29.4</td></tr>
 <tr><td>Montagem Tomada</td><td>707.7</td><td>714.6</td><td>−6.9</td></tr>
-<tr><td>Circus Minimus</td><td>821.4</td><td>(new)</td><td></td></tr></table>
+<tr><td>Circus Minimus, voice-drums</td><td>764.2</td><td>(new)</td><td></td></tr></table>
+<p class="small">Circus Minimus uses its latest spec, <strong>voice-drums</strong> (1 November, the accepted voice-and-drums hook: 48 hits in the voice part). The song’s default, <code>spec.ts</code>, still points to the older pairs3 (821.4), which I used first by mistake. Its film is kept as <code>fourup/r20/circus-themes-pairs3.mp4</code>. Different specs ask for different things, so their scores don’t compare.</p>
 <p>Over the seven songs, the mean is 709.2 (standard deviation 50.1), against 693.1 (67.0) in round 6. The mean change is +16.2 (standard deviation 25.0), 4 songs up and 3 within about 1 % down: Lua gains a lot, and the spread between songs is narrower.</p>
 <table><tr><th>Ride</th><th>Hits a minute</th><th>Mean strength</th><th>Spread (sd)</th><th>90th percentile</th><th>Mean strength miss</th></tr>
 <tr><td>Petrunko</td><td>78</td><td>0.62</td><td>0.14</td><td>0.79</td><td>0.073</td></tr>
@@ -97,8 +98,8 @@ th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
 <tr><td>Let the World Burn</td><td>93</td><td>0.58</td><td>0.15</td><td>0.77</td><td>0.057</td></tr>
 <tr><td>Montagem Coma</td><td>127</td><td>0.58</td><td>0.16</td><td>0.75</td><td>0.076</td></tr>
 <tr><td>Montagem Tomada</td><td>88</td><td>0.56</td><td>0.17</td><td>0.77</td><td>0.084</td></tr>
-<tr><td>Circus Minimus</td><td>104</td><td>0.50</td><td>0.14</td><td>0.67</td><td>0.033</td></tr></table>
-<p class="small">The strength miss is the gap between the strength each hit achieved and what the spec asked for. All 850 planned hits across the eight rides were realised. 784 (92 %) landed on the exact 25 ms physics frame asked; the other 66 landed one frame (25 ms) away: 32 early, 34 late, none further. Circus Minimus is a calmer song (mean strength 0.50), matched very closely.</p>
+<tr><td>Circus Minimus, voice-drums</td><td>124</td><td>0.50</td><td>0.13</td><td>0.66</td><td>0.057</td></tr></table>
+<p class="small">The strength miss is the gap between the strength each hit achieved and what the spec asked for. All planned hits were realised: 716 on the seven songs and 160 on Circus Minimus. On the seven songs, 654 (91 %) landed on the exact 25 ms physics frame asked, and 62 one frame (25 ms) away. On Circus Minimus, 153 of 160 were exact, and 7 one frame away. None was further off. Circus Minimus is a calmer song (mean strength 0.50).</p>
 
 <p class="small"><a href="morning.html">All rounds</a> · <a href="system.html">How the pieces fit</a> · <a href="https://github.com/jeremie-martin/line/blob/visual-lab/generated/concept-lab/LEDGER.md">Ledger</a> · <a href="./">Free lab</a></p>
 </main></body></html>

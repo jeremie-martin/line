@@ -16,7 +16,7 @@ SONGS = {
     'burn': ('let_the_world_burn_selection', 'let_the_world_burn_selection-s202', 'Let the World Burn'),
     'coma': ('montagem_coma_selection', 'montagem_coma_selection-s202', 'Montagem Coma'),
     'tomada': ('montagem_tomada_super_slowed_selection', 'montagem_tomada_super_slowed_selection-s202', 'Montagem Tomada (super slowed)'),
-    'circus': ('circus_minimus_77s', None, 'Circus Minimus'),  # R20: only from the recompiled rides
+    'circus': ('circus_minimus_77s', None, 'Circus Minimus'),  # R20: only from the recompiled rides; the voice-drums spec (recompile.sh)
 }
 FPS = 40
 

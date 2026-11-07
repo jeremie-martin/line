@@ -146,6 +146,9 @@ const DIMS = {
   shk: ['Hit part: shake', {today: 'Today’s (9 Hz, two axes, rotation)', blow: 'In the hit’s direction', thud: 'Thud (knock, then spring back)', kick: 'Held’s push', none: 'None'}],
   spl: ['Hit part: colour split', {today: 'Today’s (sideways)', dir: 'In the hit’s direction, same amount as today', half: 'Halfway between, same amount as today', blow: 'In the hit’s direction, unmatched', radial: 'Out from the impact', none: 'None'}],
   fls: ['Hit part: flash', {today: 'Today’s (white)', paper: 'Toward the paper', paperRare: 'Toward the paper, hardest hits only', todayRare: 'White, hardest hits only', bloom: 'Bloom at the impact', none: 'None'}],
+  spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
+  crv: ['Hit size follows strength', {w: 'Steeply (R7–R10)', e: 'More fully (ordinary hits stronger)'}],
+  amp: ['Shake and split size', {'1': '×1', '1.5': '×1.5', '2': '×2'}],
   flg: ['Rare flash opens at', {'80': 'Strength 0.80 (chosen)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
   drv: ['Hit parts driven by', {trauma: 'Today’s (every hit, piling up)', graded: 'Real strength, piling up', held: 'Each hit alone (Held)'}],
   night: ['Night for the drop', {off: 'Off', on: 'On', switch: 'Switch scheme for the drop'}],
@@ -156,7 +159,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80'}; // hit parts as chosen in R7–R9
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'refined', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: '80', spw: 'all', crv: 'w', amp: '1'}; // hit parts as chosen in R7–R10
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -229,34 +232,19 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'wada', ask: 'Palettes from Wada’s dictionary: which have a place?', why: 'Following your idea of not reinventing the wheel: every palette comes from one of the 348 hand-made colour combinations in Sanzo Wada’s Dictionary of Color Combinations (1933), a classic designers still use. The work was to give each colour a role (paper, line, bars, accent) with what your verdicts taught: the bars carry more colour than the paper, the paper and bars sit in one family, and a dark paper may be near-neutral but a mid-tone one may not. Varies: only the colours. Your Hokusai and Café are there for comparison. Keep any number.',
-    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Hokusai (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'hokusai'}, 'For reference: loved.'],
-      ['Prussian', {...plain, music: 'redbars', hit: 'parts', scheme: 'wPrussian'}, 'Wada 343. Ivory, a deep Prussian-teal band, one burnt-sienna bar: Hokusai’s sea-green cousin.'],
-      ['Brick', {...plain, music: 'redbars', hit: 'parts', scheme: 'wBrick'}, 'Wada 325. Cream, a rose-brick band, an ochre bar, the line in deep slate green.'],
-      ['Orchid', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOrchid'}, 'Wada 315. Cream, an orchid band, a marigold bar: a warmer, pinker Lavender.'],
-      ['Verdigris', {...plain, music: 'redbars', hit: 'parts', scheme: 'wVerdigris'}, 'Wada 266. Ivory, a verdigris band, one vermilion bar.'],
-      ['Denim', {...plain, music: 'redbars', hit: 'parts', scheme: 'wDenim'}, 'Wada 279. Ecru, a navy band, a pale cinnamon bar: a Kraft sibling.'],
-      ['Russet', {...plain, music: 'redbars', hit: 'parts', scheme: 'wRusset'}, 'Wada 249. Ecru, a russet band, an ochre-gold bar: a Kraft sibling.'],
-      ['Magenta', {...plain, music: 'redbars', hit: 'parts', scheme: 'wMagenta'}, 'Wada 144. Near-black, a magenta band, an orange bar: Plum turned up.'],
-      ['Viridian', {...plain, music: 'redbars', hit: 'parts', scheme: 'wViridian'}, 'Wada 256. Green-black, a viridian band, a pale cinnamon bar.'],
-      ['Ultramarine', {...plain, music: 'redbars', hit: 'parts', scheme: 'wUltramarine'}, 'Wada 295. Violet-black, a pure blue band, a cream-yellow bar.'],
-      ['Old Rose', {...plain, music: 'redbars', hit: 'parts', scheme: 'wOldRose'}, 'Wada 265. Violet-black, an old-rose band, a yellow bar: soft and elegant.'],
-      ['Indigo Teal', {...plain, music: 'redbars', hit: 'parts', scheme: 'wIndigoTeal'}, 'Wada 155. Deep indigo, a teal band, a coral bar.'],
-      ['Gilt', {...plain, music: 'redbars', hit: 'parts', scheme: 'wGilt'}, 'Wada 325. Bottle-green black, a gold band, a rose-red bar, the line in Naples yellow.'],
-      ['Café (yours)', {...plain, music: 'redbars', hit: 'parts', scheme: 'cafe'}, 'For reference: “extremely tasteful”.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko'], ['Tomada 37 s (big hits)', 36.5, 'tomada']]},
-  {id: 'kraftred', ask: 'Kraft’s lighter paper with a red accent?', why: 'You chose the darker paper, and said the lighter one was correct but its accent questionable: “maybe something red-ish?”. Varies: only the accent, on the lighter version. Keep any number.',
-    song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['Darker paper (chosen)', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft'}, 'Your pick in round 9.'],
-      ['Lighter, dark accent', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft~c'}, 'As in round 9.'],
-      ['Lighter, red accent', {...plain, music: 'redbars', hit: 'parts', scheme: 'kraft~d'}, 'The same, with a brick-red accent.']],
-    moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]},
-  {id: 'together', ask: 'The hits you chose, all together', why: 'You chose each part on its own: thud, halfway split, flash toward the paper from 0.80, each hit on its own. This checks them together against today’s full set. Varies: the whole hit treatment. Keep any number.',
+  {id: 'splitall', ask: 'Should the colour split catch the band?', why: 'You said you preferred the split over everything, as the lab did before round 8; production only splits the ride. The title and the sun sit behind the ride, so they split in both versions here; what changes is the band. Varies: only that. Everything else is your set.',
+    song: 'tomada', t: 36.5, len: 5, opts: [
+      ['The band too', {...plain, music: 'redbars', hit: 'parts', spw: 'all'}, 'The band splits with the ride, title and sun.'],
+      ['Band stays clean', {...plain, music: 'redbars', hit: 'parts', spw: 'ride'}, 'The band stays clean, as in production.']],
+    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Dune', 36.5, 'tomada', {scheme: 'dune'}], ['On Ultramarine (dark)', 36.5, 'tomada', {scheme: 'wUltramarine'}]]},
+  {id: 'strength', ask: 'Stronger hits: how?', why: 'Today’s reaches nearly full force from strength 0.45, so a typical hit already shakes fully. Ours grows steeply with strength: a median hit (0.58 on Tomada) gets about half of today’s split and an 8 px thud, and only the hardest hits match today. “Fuller” lifts ordinary hits and keeps the hardest the same; “×1.5” makes everything half as big again. Varies: only the size of the shake and split. The flash is unchanged. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma'}, 'The shipped recipe: every hit piling up, wobble, sideways split, white flash.'],
-      ['Your set', {...plain, music: 'redbars', hit: 'parts'}, 'Thud, halfway split, flash toward the paper on the hardest hits, each hit on its own.']],
-    moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['On Café (dark)', 36.5, 'tomada', {scheme: 'cafe'}], ['On Hokusai', 36.5, 'tomada', {scheme: 'hokusai'}]]},
+      ['Your set', {...plain, music: 'redbars', hit: 'parts'}, 'As now: steep, ordinary hits modest.'],
+      ['Fuller', {...plain, music: 'redbars', hit: 'parts', crv: 'e'}, 'Ordinary hits stronger (a 0.6 hit: 12 px instead of 8), the hardest unchanged.'],
+      ['×1.5', {...plain, music: 'redbars', hit: 'parts', amp: '1.5'}, 'Everything half as big again (the hardest: 24 px).'],
+      ['Fuller, ×1.5', {...plain, music: 'redbars', hit: 'parts', crv: 'e', amp: '1.5'}, 'Both: a 0.6 hit gets 17.5 px, the hardest 24 px.'],
+      ['Today’s', {...plain, music: 'redbars', hit: 'parts', shk: 'today', spl: 'today', fls: 'today', drv: 'trauma', spw: 'ride'}, 'For reference: the shipped recipe.']],
+    moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose'}], ['On Prussian (light)', 36.5, 'tomada', {scheme: 'wPrussian'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 
@@ -277,7 +265,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r10';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r11';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -489,7 +477,9 @@ function drive(t, part) {
   const c = TODAY[part], d = mix.drv ?? 'trauma'; let x = 0, last = null;
   for (const h of S.hits) {
     if (h.tc > t + 0.001) break; const age = t - h.tc;
-    if (d === 'held') {const w = excess(forceE ?? h.I), v = (0.35 + 0.65 * w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
+    // each hit alone. Its size: 'w' (R7–R10) = 0.35 + 0.65·e^2.2, steep, so an ordinary hit (strength 0.6, e 0.51) gets 0.50 of full;
+    // 'e' (R11) = 0.45 + 0.55·e, fuller, the same hit gets 0.73. Its length always follows e^2.2 (held).
+    if (d === 'held') {const e = forceE ?? h.I, w = excess(e), v = (mix.crv === 'e' ? 0.45 + 0.55 * e : 0.35 + 0.65 * w) * held(age, w); if (v > x) {x = v; last = h;} continue;}
     const s = forceE !== null ? 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4) : h.s;
     if (d === 'trauma' && s < c.min) continue;
     const add = (d === 'graded' ? (forceE ?? h.I) : s) * c.gain * Math.exp(-age * c.decay); // graded: the absolute strength curve, no threshold
@@ -497,6 +487,8 @@ function drive(t, part) {
   }
   return d === 'held' ? {m: x, h: last} : {m: Math.pow(Math.min(1, x), c.power), h: last};
 }
+// R11: an overall size for the chosen shake and split (the owner: "stronger… also stronger split"); flash untouched
+const AMP = () => +(mix.amp ?? 1) || 1;
 const SPLIT_MATCH = {dir: 0.53, half: 0.61}; // fitted on Tomada and Los Voltaje (splitmeasure.mjs)
 function partsCamera(t) {
   const {m, h} = drive(t, 'shake'); if (!h || m < 0.002 || mix.shk === 'none') return {dx: 0, dy: 0, rot: 0};
@@ -505,7 +497,7 @@ function partsCamera(t) {
   // along the blow: the same 9 Hz, but locked to the hit (the first swing goes INTO the blow) and along its direction
   if (mix.shk === 'blow') {const a = 12 * m * Math.sin(W9 * age), b = 3 * m * Math.sin(W9 * 1.37 * age + 1.7); return {dx: a * i.x - b * i.y, dy: a * i.y + b * i.x, rot: 0};}
   // thud: the frame is knocked along the blow at once, then springs back through rest (6 Hz) as the energy drains
-  if (mix.shk === 'thud') {const a = 16 * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
+  if (mix.shk === 'thud') {const a = 16 * AMP() * m * Math.cos(2 * Math.PI * 6 * age); return {dx: a * i.x, dy: a * i.y, rot: 0};}
   // Held's push, without oscillation, for reference
   if (mix.shk === 'kick') return {dx: 18 * m * i.x, dy: 18 * m * i.y, rot: 0};
   return {dx: 0, dy: 0, rot: 0};
@@ -514,7 +506,7 @@ function partsCamera(t) {
 function partsSplit(t, k, v) {
   const sp = drive(t, 'split');
   if (sp.h && sp.m > 0.002 && mix.spl !== 'none') {
-    const a = 14 * sp.m * k, i = into(sp.h);
+    const a = 14 * AMP() * sp.m * k, i = into(sp.h);
     if (mix.spl === 'today' && a > 0.5) channelSplit(a, 0);
     else if (mix.spl === 'blow' && a > 0.5) channelSplit(a * i.x, a * i.y);
     // matched: the same visible fringe on the ride as today's on average (splitmeasure.mjs, Tomada and Los Voltaje). Across a line
@@ -873,7 +865,9 @@ async function draw() {
   if (mix.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) drawTop(t, a, th);}
   const band = v.ending ? (1 - v.over) ** 2 : mix.bandIn === 'present' ? 1 : mix.bandIn === 'quick' ? 0.3 + 0.7 * smoothstep(t / 0.5) : (1 - v.over) ** 2;
   const BANDS = ['red', 'redblocks', 'redbars', 'stems', 'iris', 'slits', 'bars3', 'blocks'], parts = mix.hit === 'parts';
-  if (!parts && band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);
+  // 'all' (R11, the owner's preference): the band is drawn before the ride, so the split catches it with the title and sun
+  const splitAll = parts && mix.spw === 'all';
+  if ((!parts || splitAll) && band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);
   // the punch scales about the rider's own screen point, so the rider stays put and the world closes in around it
   const zp = 1 + (hitZoom(t) - 1) * (1 - v.over) ** 2, vz = zp === 1 ? v : {...v, z: v.z * zp, x: v.R.x, y: v.R.y, ax: v.rx, ay: v.ry};
   const cc = {...vz, ax: vz.ax + hc.dx, ay: vz.ay + hc.dy};
@@ -885,7 +879,7 @@ async function draw() {
   drawRider(sheet, riderCamera(vz, hc.dx, hc.dy, k), at, R ? [R.a, R.b, R.c, R.d, R.e, R.f] : undefined);
   ctx.setTransform(k, 0, 0, k, 0, 0);
   // parts: split the ride, then lay the band over it unsplit, as production composites its overlay above the ride video
-  if (parts) {partsSplit(t, k, v); ctx.setTransform(k, 0, 0, k, 0, 0); if (band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);}
+  if (parts) {partsSplit(t, k, v); ctx.setTransform(k, 0, 0, k, 0, 0); if (!splitAll && band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);}
   if (mix.music === 'bars' && band > 0.003) drawBars(t, band);
   postAccents(t, k, v, hc.dx, hc.dy);
   if (mix.bg === 'xray') {ctx.setTransform(k, 0, 0, k, 0, 0); drawGauge(t, th);}

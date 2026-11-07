@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7 (night): hypothesis, twice the proposals for the policies
+
+- **Basis.** The policies from today's compiler gained +8.3 and +12.8
+  through the proposals they make, but they still get the share sized for
+  the older ones: `policySamples` = 32·(guide allowance)/160, at most 32 of
+  each interval's initial proposals, with the rest generic samples.
+- **Change** (`connected_arcs.ts`). `policySamples` doubles (64 at the
+  standard allowance), the same law ×2. The proposal total is unchanged:
+  the policies take the share from generic samples.
+- **Hypothesis.** More of each interval's search starts where today's
+  compiler catches well; V7.1 up, most on the dense strata.
+- **Risk.** Fewer generic samples means less coverage of novel situations;
+  floats or explicit requests may lose.
+
 ## November 7 (night): hypothesis, a smaller policy archive
 
 - **Basis.** The adopted policies are a 49.7 MB archive (79,778

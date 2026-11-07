@@ -1,5 +1,37 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: ROOF result; hypothesis AC, each part of the prediction at its measured worth
+
+**ROOF (steering roof as a construction option), V7.1, 4 seeds against the
+AA main: not adopted.**
+- +0.5 [−6.8, +7.9], 0.58; 18 of 35 specs up.
+- P3 +9.8 and P7 +9.5 against P6 −7.3 and P2 −4.1.
+- Strong extra impacts −28%; body drag +2%.
+- Option 1 is now closed on the benchmark, not only on the probe.
+
+**Calibration over all catches** (`--mode=sample --any`: every third catch of
+every V7.1 spec, current main; 2,770 alternatives in 488 catches):
+
+| part | one-step worth per unit | ranking's weight now |
+|---|---|---|
+| other arrival priors | 0.10 [0.05, 0.20] | 0.25 |
+| learned estimate | 0.57 [0.41, 0.77] | 0.225 |
+| heading prior | 0.01 [−0.31, +1.16] (not identified) | 0.5 |
+
+It agrees with the strong-catch sample (0.14 and 0.56).
+
+**Hypothesis AC.**
+- **Change.** Ranking counts the other arrival priors at 0.1 and the
+  learned estimate at 0.57, their measured one-step worth. The heading
+  prior stays at 0.5: one step cannot value it, and D showed it prices
+  extras two catches ahead.
+- **Hypothesis.** Better choices where AA's uniform halving under-counted
+  the learned estimate; V7.1 up over AA, most on dense strong strata, and no
+  category losing much.
+- **Risk.** What the arrival priors buy beyond one step (strength at the
+  catch they prepare, as Y showed) is under-counted, and very strong asks may
+  lose a little.
+
 ## November 7: the dose of ranking's prediction, and what each part is worth
 
 **Dose** (V7.1, 4 seeds, against the new main at weight 0.5):

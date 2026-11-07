@@ -28,7 +28,7 @@ import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
 import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
-import {headline, headlineScore, specKey, mean, strataOf} from './summary.ts';
+import {headline, headlineScore, specKey, mean, strataOf, summarize} from './summary.ts';
 import {validateRunOptions, stratifiedReport, pad} from './eval.ts';
 import {seedBlocks, formatSupport, MIN_BLOCKS} from './uncertainty.ts';
 
@@ -160,7 +160,10 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
   return {pairs: ids.length, strata, explicit, diversity, delta: ha.strata - hb.strata, perStratum: Object.fromEntries(strata.map(st => [st, ha.perStratum[st] - hb.perStratum[st]])),
     candidate: ha.strata, reference: hb.strata, gained, lost, specs,
     frames: [perRide('candidate', c => c.physicalFrames), perRide('reference', c => c.physicalFrames)],
-    compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)]};
+    compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)],
+    // Costs and guards that no headline counts, per ride, with the same
+    // definitions as the detail section (summary.ts `summarize`).
+    guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key])))};
 }
 /** How different the rides of different random starts are, within one arm:
  * for every spec and every pair of its seeds, the share of gaps whose realized
@@ -234,10 +237,20 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
       `requested gaps realized (the compiler's own shape check) ${e.explicit.realized[0][0]}/${e.explicit.realized[0][1]} vs ${e.explicit.realized[1][0]}/${e.explicit.realized[1][1]}`] : []),
     ...(e.diversity[0].specs ? [`  between random starts (reported, never a target): geometry differs in ${(100 * e.diversity[0].geometry).toFixed(0)}% vs ` +
       `${(100 * e.diversity[1].geometry).toFixed(0)}% of gaps; airtime differs by ${e.diversity[0].airtime.toFixed(3)} vs ${e.diversity[1].airtime.toFixed(3)} per gap`] : []),
-    `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M); ` +
-    `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`];
+    `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M, ${relative(e.frames[0], e.frames[1])}); ` +
+    `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`,
+    `  costs and guards per ride (not in any headline): ` + GUARDS.map(([, label, digits, unit, scale], k) =>
+      `${label} ${(scale * e.guards[k][0]).toFixed(digits)} vs ${(scale * e.guards[k][1]).toFixed(digits)}${unit} (${relative(e.guards[k][0], e.guards[k][1])})`).join('; ')];
 }
 
+/** The guards the summary shows: [summarize() key, label, decimals, unit, scale]. */
+const GUARDS: Array<[keyof ReturnType<typeof summarize>, string, number, string, number]> = [
+  ['body drag s/min', 'body drag', 2, ' s/min', 1],
+  ['strong extra impacts / beat (v3)', 'strong extra impacts', 2, ' per 100 beats', 100],
+  ['strong arrivals inverted/backward', 'strong arrivals head-down or backward', 1, '%', 100],
+];
+/** Candidate against reference as a relative change, or "same". */
+const relative = (a: number, b: number) => !Number.isFinite(a) || !Number.isFinite(b) ? '—' : a === b ? 'same' : b === 0 ? 'from 0' : `${a > b ? '+' : ''}${(100 * (a - b) / Math.abs(b)).toFixed(0)}%`;
 /** Coverage: matched pairs overall, per category, complete rounds, outstanding work. */
 export function coverage(s: Pick<Selection, 'cases'> & Partial<Pick<Selection, 'rounds'>>, cells: Record<Side, Map<string, any>>) {
   const matched = s.cases.filter(c => cells.candidate.has(c.id) && cells.reference.has(c.id)).map(c => c.id), isMatched = new Set(matched);

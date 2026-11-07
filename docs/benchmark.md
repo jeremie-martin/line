@@ -119,7 +119,11 @@ The console shows the summary (items 1–3) and the path of the full report,
      the share of gaps whose geometry differs (family, and whether the upper
      rail was touched) and the mean per-gap airtime difference. This is a
      property of the generator to watch, never a target;
-   - physics frames and compile seconds per ride;
+   - physics frames and compile seconds per ride, with the relative change;
+   - costs and guards that no headline counts: body drag, strong extra
+     impacts per 100 beats, and the share of strong arrivals head-down or
+     backward. Both arms' values and the relative change are shown, with the
+     detail section's definitions;
    - the uncertainty line (below).
 
    On a PARTIAL run, the evidence on complete rounds (the suite evenly) comes

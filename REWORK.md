@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis N, a steep arrival either way
+
+- **Basis.** Dense strong beats are V7.1's largest loss. A strong floor hit
+  turns the rider up, and before the next catch only gravity turns it back
+  down: about 10° in 20 frames, against the 25–30° a strong hit spends. A
+  surface above can turn the rider down, and a hit from above on the next beat
+  is the upper/lower pair the owner loved (Trouble). But the steep-arrival
+  prior asks only for descending arrivals (20–70° down), and no beat is ever
+  hit by a rising rider (0.14%).
+- **Change.** The prior's angle term measures steepness either way: the
+  arrival's |heading| against the desired angle, instead of its signed descent.
+  The search can then prepare a steep rising arrival into a surface above as
+  readily as a steep descent onto a floor. Nothing else changes.
+- **Hypothesis.** More on-beat hits from above in dense strong passages;
+  strong-ask strength up on V7.1's library songs; headline up. Body drag may
+  rise (body contact with surfaces above).
+- **Risk.** Steering arrivals upward where the next interval finds no good
+  surface above loses those catches.
+
 ## November 7: where V7.1 loses, and the next experiments
 
 On the library songs (G, 678 against 745 for V7.0's songs), strength is 55% of

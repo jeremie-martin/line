@@ -42,7 +42,9 @@ it('preserves full observations and owned facts when geometry invalidates part o
   expect(compiled.failure).toBeNull();
   resetFrameCount();setPhysicsFrameLimit(null);
   withEngineScope(()=>{
-    const ctx=createArcCompileContext(spec,options),index=1;
+    // Interval 2: since local search judges like ranking (2026-11-07), interval 1 of this ride no longer
+    // admits a support that invalidates part of its prefix within the deterministic spread below.
+    const ctx=createArcCompileContext(spec,options),index=2;
     const engine=ctx.lineage.rebuild(compiled.track.lines.filter(l=>Math.floor((l.id-1000)/10000)<index));
     const s=openInterval(ctx,engine,index,resolveIntervalOptions(ctx,index,{}),ctx.memoryFor(index),[])!;
     const prefix=structuredClone(s.prefixRaw),control=compiled.rows[index].control;

@@ -1,5 +1,47 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: local search judges like ranking (adopted)
+
+The interval's best candidate (where local search starts and what it improves)
+and the response step's improvement check compare candidates with ranking's
+weighting of the priors (`searchRank` in `arc_candidates.ts`): heading prior
+at 0.5, other arrival priors at 0.25, no learned estimate. Before, they used
+the candidate cost with every prior at full weight. Local search climbed
+toward arrivals that ranking then discounted. The response step's residuals
+and refinement keep the full cost. Hypothesis: LS in the entry on the
+inventory of predictions.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | **+8.3** | [+1.5, +15.0], 0.99; **29 of 35 specs up**; every category up (G +2.5, P1 +2.4, P2 +4.4, P3 +9.9, P4 +5.0, P5 +8.9, P6 +16.5, P7 +16.5) |
+| held out, 11 songs | **+5.7** | [−3.2, +14.6], 0.93; 9 of 13 specs up (valhalla +31.4; lowest petrunko −16.2) |
+| explicit requests | +1.5 | |
+
+- **No ride lost**; physics frames unchanged.
+- **Every ruler** (V7.1, 8 seeds):
+  - air errors fall most: air rms −0.004, −0.015 on long floats;
+  - strong extra hits −0.018 per beat;
+  - strength about even: strong strength rms −0.001, very strong bias
+    −0.002, the older R1 strength rms +0.005.
+- **Costs:**
+  - body drag −10% (V7.1) and −4% (held out);
+  - strong extra impacts −11% and −66%;
+  - **head-down or backward strong arrivals +11% (10.9% against 9.8%) and
+    +21% (10.9% against 9.0%).**
+
+  That last one is a rendering of the owner's eye, never validated. A
+  before/after review is rendered for his judgment.
+- **Tests:**
+  - two more legacy landing-report assertions now use the scored account:
+    validity, and no unmatched touch strong enough to read as a hit (under
+    0.15). The landing the legacy report flagged off the beat is a 0.09
+    touch in the account;
+  - the memo scenario moves to interval 2 (interval 1 no longer admits a
+    prefix-invalidating support within its 400-step spread);
+  - two budget scenarios are re-derived (2000 → 1850; 2100 → 1925, each the
+    middle of the band where the scenario holds).
+- Parity references were refreshed.
+
 ## Experiment names from November 7 on
 
 From now on experiments are named by what they change. The letters used

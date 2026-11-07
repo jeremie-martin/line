@@ -42,19 +42,23 @@ export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
  * (what they charge for the next catch measured about twice its real cost),
  * and the weighted learned estimate. Within a catch, that whole prediction
  * varied about 2.5 times more than the next interval measured, so ranking
- * counts it at half (REWORK.md, November 7: AA; V7.1 +6.2, held out +2.9).
- * "Other priors" is everything measureObjective adds after `localCost`
- * except the heading prior: the arrival speed/angle/upright terms, the small
- * backward-velocity (accessibility) prior and, in repair, the
- * reference-arrival distance. Only this ranking is reweighted; candidate
- * `cost` (local search, refinement) keeps every prior at full weight. */
+ * counts it at half (REWORK.md, November 7: half-weight prediction; V7.1
+ * +6.2, held out +2.9). "Other priors" is everything measureObjective adds
+ * after `localCost` except the heading prior: the arrival speed/angle/upright
+ * terms, the small backward-velocity (accessibility) prior and, in repair,
+ * the reference-arrival distance. Local search judges candidates with the
+ * same weighting of the priors (`searchRank`, without the learned estimate;
+ * November 7: local search judges like ranking, V7.1 +8.3, held out +5.7).
+ * Candidate `cost` keeps every prior at full weight for the response step's
+ * residuals and for refinement. */
 type Ranked = Pick<MeasuredCandidate, 'localCost' | 'cost' | 'headingPrior' | 'valueFeatures'>;
 const FUTURE = .5;
 const baseRank = (c: Ranked) => {
   const heading = c.headingPrior ?? 0;
   return c.localCost + FUTURE * (heading + .5 * (c.cost - c.localCost - heading));
 };
-/** What local search compares: ranking's weighting of the priors, without the learned estimate. */
+/** What local search compares (the interval's best candidate, a response step's improvement):
+ * ranking's weighting of the priors, without the learned estimate. */
 export const searchRank = (c: Ranked) => baseRank(c);
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
   return c.valueFeatures ? baseRank(c) + FUTURE * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);

@@ -10,10 +10,10 @@ const options = { samples: 32, channel: 12, radius: 24,
   arrivalWeight: .3, headingWeight: .3, };
 
 it('keeps the physically validated final curve when another proposal hits the frame limit', () => {
-  // 2000: the allowance that runs out while the last support is being searched, after a valid curve was found
-  // (re-derived when ranking's prediction of the future was halved, 2026-11-07: 1825-2150 hold; it was 3400,
-  // and 3100 before the forced flight before a catch was removed).
-  const result = compileArcMotion(spec, 17, {...options, budget: 2000});
+  // 1850: the allowance that runs out while the last support is being searched, after a valid curve was found
+  // (re-derived when local search began judging like ranking, 2026-11-07: 1750-1950 hold; it was 2000 after the
+  // prediction was halved, 3400 after the forced flight before a catch was removed, and 3100 before).
+  const result = compileArcMotion(spec, 17, {...options, budget: 1850});
   expect(result.searchBudgetExhausted).toBe(true);
   expect(result.budgetInterruptions.at(-1)).toMatchObject({index: 6, retained: true});
   expect(result.budgetInterruptions.at(-1)!.viable).toBeGreaterThan(0);
@@ -21,7 +21,7 @@ it('keeps the physically validated final curve when another proposal hits the fr
   expect(result.impactEvaluation.valid).toBe(true);
   expect(result.report.terminus.reason).toBe('endOfSpec');
   expect(result.track.lines.every(l => l.type === 0)).toBe(true);
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(2000);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(1850);
 });
 
 it('does not invent a usable curve when the first proposal cannot finish', () => {
@@ -33,13 +33,14 @@ it('does not invent a usable curve when the first proposal cannot finish', () =>
 });
 
 it('commits a validated final curve without spending another frame to remember its arrival', () => {
-  const result = compileArcMotion(spec, 17, {...options, memorySamples: 4, budget: 2100});
+  // 1925: re-derived when local search began judging like ranking, 2026-11-07 (1850-2025 hold; it was 2100).
+  const result = compileArcMotion(spec, 17, {...options, memorySamples: 4, budget: 1925});
   expect(result.failure).toBeNull();
   expect(result.rows).toHaveLength(spec.contacts.length + 1);
   expect(result.budgetInterruptions.at(-1)).toMatchObject({index: 6, retained: true});
   expect(result.impactEvaluation.valid).toBe(true);
   expect(result.report.terminus.reason).toBe('endOfSpec');
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(2100);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(1925);
 });
 
 it('propagates non-budget evaluation errors', () => {

@@ -63,6 +63,9 @@ it('bounds retained prefixes by available work and reserves the complete replay'
  expect(result.planningDecisions.every(d=>d.beamWidth>=1&&d.beamWidth<=8&&d.localScale>0&&d.localScale<=1)).toBe(true);
  expect(result.planningDecisions.reduce((sum,d)=>sum+d.physicsFrames,0)).toBeLessThanOrEqual(result.stats.sim_frames);
  expect(result.stats.sim_frames).toBeLessThanOrEqual(budget);
- expect(result.failure).toBeNull();expect(result.report.contacts.every(c=>c.status==='hit')).toBe(true);
- expect(result.report.off_beat_landings).toHaveLength(0);
+ // The scored account decides whether every beat was hit (the legacy landing report predates it).
+ expect(result.failure).toBeNull();expect(result.impactEvaluation.valid).toBe(true);
+ // No unmatched event reads as a hit: every off-beat touch stays quiet (below 0.15) in the scored account.
+ const {events,account}=result.impactEvaluation;
+ expect(account.unmatchedEvents.every(i=>events[i].strength<.15)).toBe(true);
 });

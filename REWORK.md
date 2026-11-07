@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): hypotheses, second-round and pooled policies
+
+- **Data.** A second five-seed collection on the new main (9d065738: the
+  policies from today's compiler).
+  - All 840 compiles finished, now that the id-range fix is in; 80,548
+    probes.
+- **Second-round policies.** That collection plus the transfer
+  collections: 79,919 demonstrations, 52.1 MB.
+  - **Hypothesis.** Demonstrations from a compiler that already proposes
+    well; a gain over main if recency still pays, null if rounds saturate
+    (H2 and H4 diminished before).
+- **Pooled policies.** Both of today's collections plus the transfer
+  collections: 156,009 demonstrations, 100.2 MB.
+  - **Hypothesis.** Demonstration count matters (three seeds instead of
+    five lost 5.3), so twice the demonstrations gains over main.
+  - The archive exceeds GitHub's 100 MB file limit. The branch stays local,
+    and adopting it would need another encoding (brotli: −24%) or storage
+    outside git, the owner's call.
+
 ## November 7 (night): hypothesis, twice the proposals for the policies
 
 - **Basis.** The policies from today's compiler gained +8.3 and +12.8

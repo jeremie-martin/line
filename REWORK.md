@@ -1,5 +1,39 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: ranking leans half as much on its prediction of the future (adopted)
+
+`valueRank` (`arc_candidates.ts`) counts everything beyond the local cost at
+half: the heading prior, the other arrival priors (already at half), and the
+weighted learned estimate. Candidate cost and local search are unchanged.
+Hypothesis and basis: AA in the entry on hypotheses Z and AA.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | **+6.2** | [+0.7, +11.8], 0.98; **32 of 35 specs up**; every category up (G +4.5, P1 +2.9, P2 +7.9, P3 +5.2, P4 +4.6, P5 +5.5, P6 +10.3, P7 +8.9) |
+| held out, 11 songs | +2.9 | [−9.1, +15.0], 0.75; **11 of 13 specs up** (lowest lua_na_praca −31.9) |
+| explicit requests | +3.2 | |
+
+- **No ride lost**; physics frames unchanged.
+- **Every ruler.**
+  - Span errors down: air rms −0.002, speed rms −0.001.
+  - Strong extra hits −29% (V7.1).
+  - The older strength rulers move slightly the other way: R1 strength rms
+    +0.003, very strong bias −0.004.
+- **Costs.**
+  - V7.1: body drag −1%; strong extra impacts 0.07 against 0.10 per 100
+    beats; head-down or backward arrivals +5%.
+  - Held out: body drag −7%; strong extra impacts 0.15 against 0.11;
+    head-down or backward arrivals −6%.
+- **Reading.** Ranking had over-trusted its prediction of the future: within
+  a catch it varied 2.5 times more than the next interval measured. A
+  calibration across catches (`catch_price`) could not see this, because it
+  compares averages across catches, not differences within one.
+- **Test.** The budget scenario in `arc_budget_interruptions` is re-derived
+  (3400 → 2000; 1825–2150 hold).
+- Parity references were refreshed.
+- **Next.** The dose (0.25, and local cost alone) shows how much the current
+  prediction is worth. A better future estimate may be the structural lever.
+
 ## November 7: hypothesis ROOF, a steering roof as a construction option
 
 - **Basis.** Option 1 of the structural study was judged on probes alone

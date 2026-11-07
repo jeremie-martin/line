@@ -36,23 +36,26 @@ export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
   return withGrain(candidate.trajectoryAxes, candidate.lines);
 }
 
-/** Native candidate cost plus a weighted future estimate. The arrival priors
- * count half: what they charge for the next catch measured about twice its
- * real cost. The heading prior counts fully: it prices a cost two catches
- * ahead (extras in long floats) that the next interval alone does not show
- * (docs/research/compiler-ideas-20261101.md). "Half" applies to everything
- * measureObjective adds after `localCost` except the heading prior: the arrival
- * speed/angle/upright terms, and also the small backward-velocity
- * (accessibility) prior and, in repair, the reference-arrival distance. Only
- * this ranking is reweighted; candidate `cost` (local search, refinement)
- * keeps every prior at full weight. */
+/** Native candidate cost plus half of what is predicted for the future.
+ * The prediction is the heading prior (which prices extras two catches ahead
+ * in long floats), the other arrival priors at half their candidate weight
+ * (what they charge for the next catch measured about twice its real cost),
+ * and the weighted learned estimate. Within a catch, that whole prediction
+ * varied about 2.5 times more than the next interval measured, so ranking
+ * counts it at half (REWORK.md, November 7: AA; V7.1 +6.2, held out +2.9).
+ * "Other priors" is everything measureObjective adds after `localCost`
+ * except the heading prior: the arrival speed/angle/upright terms, the small
+ * backward-velocity (accessibility) prior and, in repair, the
+ * reference-arrival distance. Only this ranking is reweighted; candidate
+ * `cost` (local search, refinement) keeps every prior at full weight. */
 type Ranked = Pick<MeasuredCandidate, 'localCost' | 'cost' | 'headingPrior' | 'valueFeatures'>;
+const FUTURE = .5;
 const baseRank = (c: Ranked) => {
   const heading = c.headingPrior ?? 0;
-  return c.localCost + .5 * (heading + .5 * (c.cost - c.localCost - heading));
+  return c.localCost + FUTURE * (heading + .5 * (c.cost - c.localCost - heading));
 };
 export function valueRank(options: ArcMotionOptions, c: Ranked) {
-  return c.valueFeatures ? baseRank(c) + .5 * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
+  return c.valueFeatures ? baseRank(c) + FUTURE * (options.valueWeight ?? .5) * arcFutureValue(c.valueFeatures, options.futureValueModel) : baseRank(c);
 }
 
 /** Arrivals that differ in heading, speed, pose or release frame. */

@@ -1,5 +1,51 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: alternation probed; the turning budget (report only)
+
+**Probe** (`tools/research/alternation_probe.ts`, seed 101, 206 strong catches
+followed by a strong ask, 21.7 frames apart):
+- From each catch's own pool, up to three candidates that send the rider up
+  (arrival under −5°; 307 in all) are followed by the next interval's own
+  search, which proposes surfaces above as usual.
+- **Result: no.** The rising candidates cost 0.20 apart from strength
+  (kept: 0.007).
+- After them, the strongest catch averages 0.32–0.45 from a surface above
+  and 0.26–0.44 from below (ask 0.74). After the kept candidate it averages
+  0.73 from below and 0.47 from above.
+- Over two steps, rising never beats the kept catch (0 of 204).
+- Hits from a surface above stay weak even when the rider rises into them;
+  with today's constructions, alternation is not available.
+
+**Spin.** Of strong hits' 2-frame impulse (strength ≥ 0.5, 379 hits on the
+library songs), spin is 8.5% of the square: median 3.9%, p90 24%.
+Strength today is almost all a change of travel.
+
+**Reading: a turning budget.**
+- A floor catch registers strength by turning the rider: about J/v, so
+  roughly 24° for 0.64 at 11.5 px/frame.
+- Between catches only gravity turns the rider back down: about
+  0.9°·cos(heading) per frame, so roughly 17° over the 21.7 frames between
+  strong catches. A support line cannot turn the rider down faster, or the
+  rider leaves it.
+- So on dense strong passages, catches spend more turning than gravity
+  returns. Arrivals flatten (33° after a strong catch, 42° after a weak one),
+  and the next catch is weaker or costs speed.
+- That matches every measurement above:
+  - arrival angle predicts strength;
+  - close beats lose most;
+  - a stronger catch makes the next weaker;
+  - more search does not help.
+- **Ways around it, all construction questions for the owner:**
+  - **turning down between catches without a hit:** a surface above the
+    rider whose contact never forms an impulse peak (steering, free in the
+    account). It touches the rider from above: lines over the rider, body
+    drag;
+  - **stronger hits from above:** today they stay under 0.5 even when the
+    rider rises into them;
+  - **strength from spin,** which turns nothing: rocking or rotating hits;
+  - **spec authoring:** tell the author (a tool's report, not a rule) where
+    dense strong asks exceed the turning budget at the asked speed.
+
 ## November 7: what limits strength, studied three ways (report only)
 
 What follows describes today's compiler, not a physics limit. Seed 101; every

@@ -16,6 +16,8 @@ export const V1 = {
 
   // ── background ── Whisper: the paper tints very slightly with the intensity metric (R3–R4). No grain (R6).
   bg: 'whisper', drive: 'both', grain: 'off', night: 'off', top: 'none', scheme: 'graphite',
+  // with a sun: the rider's height and the sun's own height (R21 question; as before until decided)
+  sunRider: '0', sunY: '0.17',
 
   // ── hits ── by parts, each hit on its own, driven by what the ride actually did (measured strength s and onset), never by a
   // rank (R7–R10). Each part answers s on its own curve with no ceiling (R15):

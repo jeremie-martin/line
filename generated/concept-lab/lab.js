@@ -11,7 +11,8 @@ const W = 1080, H = 1920, FPS = 40;
 const Z0 = 5.4; // today's vertical zoom
 const SIZE_Z = {s58: 5.8, s62: 6.2, s68: 6.8};
 // One optional, hand-placed cue per song: a drop is a musical judgement, and no detector found it reliably.
-const NIGHTS = {circus: [37.6, 49.6], petrunko: [22.4, 40.5], los: [23.9, 40.5], lua: [29.7, 49.6], batidao: [15.2, 29.5], burn: [4.5, 24.5], coma: [19.1, 33.6], tomada: [37.0, 50.0]};
+const NIGHTS = {circus: [38.5, 51.3], // circus: from the spec's HOOK (its first measured impact) to the RE-ENTRY hit (R20)
+   petrunko: [22.4, 40.5], los: [23.9, 40.5], lua: [29.7, 49.6], batidao: [15.2, 29.5], burn: [4.5, 24.5], coma: [19.1, 33.6], tomada: [37.0, 50.0]};
 
 const DIMS = {
   scheme: ['Colour', SCHEME_NAMES],
@@ -32,6 +33,8 @@ const DIMS = {
   rsp: ['Split response', {lin: 'Straight from 0.2', zero40: 'Nothing below 0.4, then straight', ease30: 'Slow start from 0.3 (v1)', soft30: 'Softer slow start from 0.3', ease40: 'Slow start from 0.4'}],
   rsh: ['Shake response', {lin: 'Straight to 24 px (v1)', lin20: 'Straight to 20 px', lin16: 'Straight to 16 px'}],
   rfl: ['Flash response', {r85: 'Shifted: 0.6 → 25 % at 0.85, gently on (v1)', r85s: 'Slower: 0.55 → 25 % at 0.85, gently on', r80: '25 % at 0.8, gently on to 30 % at 1.0', s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
+  sunRider: ['With a sun, the rider sits', {'0': 'As without a sun', '0.025': 'A little lower', '0.05': 'Lower'}],
+  sunY: ['The sun’s height', {'0.17': 'As now', '0.16': 'A few pixels higher', '0.15': 'Higher'}],
   pulse: ['Split pulse', {frame: 'The whole picture zooms with each split (v1)', none: 'No pulse: only the colours split', ride: 'The ride alone zooms with each split'}],
   tpl: ['Pulse on the title', {'1': 'Same as everywhere', '0.7': 'A little less', '0.45': 'Less (v1)'}],
   tsp: ['Split on the title', {'1': 'Same as everywhere', '0.65': 'A little less (v1)', '0.5': 'A little less again', '0.4': 'Less'}],
@@ -302,7 +305,10 @@ function camFrames(m) {
 function cameraAt(m, at) {
   const cam = camFrames(m), i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
   const l = (p, q) => p + (q - p) * u;
-  return {z: l(a.z, b.z), ax: l(a.ax, b.ax), ay: l(a.ay, b.ay), x: l(a.x, b.x), y: l(a.y, b.y)};
+  // R21: with a sun, the whole view can sit a little lower (the owner: "when there's a sun, the rider should be a bit below"); the
+  // camera's behaviour is unchanged, only translated down by sunRider × H
+  const dy = m.top === 'sun' ? (+(m.sunRider ?? 0) || 0) * H : 0;
+  return {z: l(a.z, b.z), ax: l(a.ax, b.ax), ay: l(a.ay, b.ay) + dy, x: l(a.x, b.x), y: l(a.y, b.y)};
 }
 const riderPoint = at => {const c = S.centres, i = clamp(Math.floor(at), 0, c.length - 1), j = Math.min(i + 1, c.length - 1), u = clamp(at - i, 0, 1); return {x: c[i].x + (c[j].x - c[i].x) * u, y: c[i].y + (c[j].y - c[i].y) * u};};
 // Whole-course opening and ending, for ANY camera: a view is (the rider's screen point, ln zoom). The overview and the
@@ -587,7 +593,7 @@ function drawTop(t, alpha, th) {
     const c = hex(th.dark ? '#ffffff' : p.ink).join(','), fade = (y0, y1, o) => {const l = ctx.createLinearGradient(0, y0, 0, y1); for (let i = 0; i <= 8; i++) l.addColorStop(i / 8, `rgba(${c},${o * (1 - i / 8) ** 2})`); ctx.fillStyle = l; ctx.fillRect(0, Math.min(y0, y1), W, Math.abs(y1 - y0));};
     fade(0, 0.18 * H, 0.025); fade(H, 0.74 * H, 0.05); // the most it should ever be
   }
-  if (mix.top === 'sun') {const r = W * (0.1 + 0.09 * intensityAt(t)); sunDisc = [0.74 * W, 0.17 * H, r]; ctx.fillStyle = th.dark ? p.nightInk : p.sun ?? p.accent; ctx.beginPath(); ctx.arc(0.74 * W, 0.17 * H, r, 0, 2 * Math.PI); ctx.fill();}
+  if (mix.top === 'sun') {const r = W * (0.1 + 0.09 * intensityAt(t)), sy = (+(mix.sunY ?? 0.17) || 0.17) * H; sunDisc = [0.74 * W, sy, r]; ctx.fillStyle = th.dark ? p.nightInk : p.sun ?? p.accent; ctx.beginPath(); ctx.arc(0.74 * W, sy, r, 0, 2 * Math.PI); ctx.fill();}
   if (mix.top === 'title' || mix.top === 'titleCut') {
     // at most two lines, broken where the two are most even, never wider than 62 % of the frame (smaller type if needed)
     const words = SONGS[song].replace(/\s*\(.*\)/, '').toUpperCase().split(' '), font = px => `800 ${px}px "Helvetica Neue", Helvetica, Arial, sans-serif`;

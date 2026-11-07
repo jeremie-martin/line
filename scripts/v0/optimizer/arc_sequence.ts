@@ -78,7 +78,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     const localScale = clamp(rate / (Math.max(nominal * .7, observedRate || nominal) * beam.length * 1.1), .05, 1);
     // A strong catch gets more local search, phased in with the steep arrival
     // (ask 0.4 none, 0.8 all): its strength is decided here.
-    const effort = 1 + .3 * (i > 0 ? steepArrival(ctx.gaps[contacts[i].gap]?.targets.impact ?? 0, options.impactSearch) : 0);
+    const effort = 1 + .6 * (i > 0 ? steepArrival(ctx.gaps[contacts[i].gap]?.targets.impact ?? 0, options.impactSearch) : 0);
     const protectedEngines = beam.map(b => b.seq.engine);
     const offered: Offer[] = [];
     const began = getPhysicsFrameCount();

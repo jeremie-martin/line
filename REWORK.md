@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7 (night): hypothesis, a smaller policy archive
+
+- **Basis.** The adopted policies are a 49.7 MB archive (79,778
+  demonstrations), just under GitHub's 50 MB warning.
+- **Change.** The same training, on 3 of the 5 seeds of today's collection
+  (101, 202, 303) plus the same transfer collections: 49,306
+  demonstrations, 32.6 MB.
+- **Hypothesis.** No headline loss against the full archive (within
+  noise). If so, the smaller archive replaces it for the repository's sake.
+- **Risk.** A loss means demonstration count still matters at this size.
+
 ## November 7: construction policies from today's compiler (adopted)
 
 `repertoire_policy_model_v3.json(.gz)` is replaced. It holds 79,778

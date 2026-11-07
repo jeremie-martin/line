@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round eight</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--surface:#fcfcfb}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--surface:#1a1a19}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:14px;font-weight:600;margin-bottom:2px}
+figure p{font-size:13px;color:var(--soft);margin:0 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--soft);margin:0 0 4px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+svg{display:block;width:100%;height:auto;touch-action:pan-y}
+svg text{font:12px system-ui,sans-serif;fill:var(--soft)}
+#tip{font-size:13px;color:var(--soft);min-height:1.5em;margin:4px 0 0;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;font-size:14px;width:100%;font-variant-numeric:tabular-nums;margin:6px 0}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--soft);font-weight:500}
+</style>
+</head>
+<body><main>
+<p class="kicker">Round eight · 7 November</p>
+<h1>A fair split, a rare flash, and backgrounds</h1>
+<p class="lead">Six questions in the lab, each changing one thing. The hits now follow your picks: each hit on its own, the shake in the hit’s direction. Everything else stays at today’s unless the question is about it.</p>
+
+<a class="card primary" href="./?q=1"><span class="go">→</span><b>Six questions</b><span>Split, flash and shake, then one paper question each for Kraft, Cyanotype and Rothko.</span></a>
+
+<h2>You were right about the split</h2>
+<p>The split in the hit’s direction did show more, and two things explain it:</p>
+<ul>
+<li><strong>Direction.</strong> A split shows fully across a line and hides along it. Today’s goes sideways, mostly along the lines; the hit’s direction mostly crosses them.</li>
+<li><strong>My lab copy wasn’t faithful.</strong> In production the split touches only the ride; the band is a separate layer on top. My lab split the band too, where today’s sideways split lit up every vertical bar. It now splits the ride only, as production does.</li>
+</ul>
+<p>Then I measured the colour fringe a viewer sees on every hit of four songs, and scaled the hit-direction split, and a halfway one as you suggested, to match today’s on average, within about ±10 % on each song:</p>
+<table><tr><th>Average fringe</th><th>Today’s</th><th>Hit’s direction</th><th>Halfway</th></tr>
+<tr><td>Before matching</td><td>1.0</td><td>1.7</td><td>1.5</td></tr>
+<tr><td>After matching</td><td>1.0</td><td>1.0</td><td>1.0</td></tr></table>
+<p class="small">One song, Lua, was held out of the fitting and matches too. Tool: <code>splitmeasure.mjs</code>.</p>
+
+<h2>A flash, but rare</h2>
+<p>You said most of the time there should be none. The gate opens on each hit’s own strength, from 0.82 to full at 0.94, never by ranking. That gives about 1 to 10 flashes a minute depending on the song, and none on most hits. You can try it on Dune, Café and Hokusai: the moment now stays while you switch options, which fixes the bug you hit.</p>
+
+<h2>Backgrounds</h2>
+<p>You said the bars and lines were great but the backgrounds weren’t, and that it’s hard to put a finger on. So each paper question keeps a palette’s line, bars and accent exactly, and moves only the paper in plain directions: less colour, almost neutral, lighter, darker. Your picks across the three should show what your eye wants, more than any measure could.</p>
+
+<h2>Filed from round 7</h2>
+<ul>
+<li><strong>Each hit on its own:</strong> chosen. Shake: in the hit’s direction, or the thud. Both are compared again under the new logic.</li>
+<li><strong>Height:</strong> skipped, so Follows direction stays at 38 %. Tell me if you want to revisit it.</li>
+<li><strong>Palettes:</strong> I went by your notes, which say more than the ticks. Loved: Hokusai, Lavender, Café (“extremely tasteful”). Very good: Ravilious, and Kintsugi (“amazing for a drop”). Good: Cahier and Kraft. Toile’s bars sit too close to its paper. Rothko could work for a drop. Vegas and Cyanotype: great bars, weaker backgrounds.</li>
+<li><strong>Wording:</strong> “blow” is gone; it was my jargon.</li>
+</ul>
+
+<details><summary>Not checked</summary>
+<ul>
+<li>The matching is on average. Single hits still differ by direction, which is the point.</li>
+<li>Splitting the ride only also puts the band over the line where they cross, as in production. It only shows at the bottom.</li>
+<li>I’ve looked at frames, not at motion with sound.</li>
+</ul></details>
+
+<p class="small"><a href="morning.html">All rounds</a> · <a href="system.html">How the pieces fit</a> · <a href="./">Free lab</a></p>
+</main></body></html>

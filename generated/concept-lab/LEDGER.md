@@ -32,12 +32,16 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Bookends: whole course at both ends | settled | "Fantastic" (R1). The band is there from frame 0 (R4). |
 | Bookend ring, larger rider | parked | Ring good at the end only. Larger rider "comically big" (R3), then out (R4). |
 | Camera placement: Tamed | settled | "Significantly stronger" than Calm (R3). |
-| Camera: placement height | open | "Above the rider", "more about balance than space" (R6). It is its own setting, separate from Follows direction (R6). |
+| Camera: placement height | open, parked | "Above the rider", "more about balance than space" (R6). It is its own setting (R6). Skipped in R7, so it stays at 38 %. |
 | Camera: Follows direction | settled (R6) | Preferred: "great job". The rider's height follows the slope (sine squared), and the rider never climbs on screen while descending. It is independent of placement height, so test it at Tamed's height too. |
 | Zoom: Steady | settled default | Kept: Steady, Looser, Out when quiet (R4). Who decides per song: "not sure yet" (R6). |
 | Zoom: One breath, fitted, sections | parked | Not picked. |
 | Hits: Held | settled | Preferred over Refined in whole songs (R5). Less shaky. |
-| Hits: the "oh yeah" on the biggest | open | "Mostly the shake… all three together" (R6). More effects obviously feel stronger. The real questions: a better execution of each (shake, split, flash), a better combination, then the driver logic (R6). |
+| Hits: today's recipe (reference) | read in R7 | `scripts/fx_recipe.ts`: not a top-10 % gate. Almost every hit adds to a decaying, capped trauma, so an ordinary hit reaches full force and dense passages pile up. Shake ±10 px at 9 Hz on two axes plus 0.4° rotation; split 14 px sideways on the ride only; flash white 0.3. |
+| Hits: driver | settled (R7) | Each hit on its own (Held's logic), not piling up. |
+| Hits: shake | open (R8) | In the hit's direction, or Thud (R7). Re-compared under the new driver. |
+| Hits: split | open (R8) | The hit-direction split looked "way more prominent" (R7): it crosses the lines, while today's mostly runs along them. Now matched to today's average visible fringe (`splitmeasure.mjs`, ±10 % on four songs), plus a halfway option. Splits the ride only, as in production. |
+| Hits: flash | open (R8) | Favourites: none, then toward the paper. Bloom disliked. "Most of the time it should not be there": a gate on absolute strength (0.82 to 0.94) gives about 1–10 a minute (R7). |
 | Hits: punch, recoil | parked | Built in R6. Not shown, because the owner pointed at the shake. |
 | Afterimage | parked | "Better implementation… adds clutter… park it" (R5). |
 | Rider less split | settled (R6) | The rider keeps half its clean image through the split (R4 remark). |
@@ -73,6 +77,17 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 | Olive | no (R6) | The orange/red accent doesn't sit with the olive bars. |
 | Bauhaus, Riso-deep, Espresso, Moss | no (R6) | Espresso's verdigris accent is "very bad", though Espresso works with Dune's accent at the drop. Moss: green paper disliked. |
 | All R6 candidates | | They felt homogeneous ("is the line always near-black on purpose?"): good, not coup de cœur. The metric-led approach narrowed them. Next: a creative approach from scratch. |
+| Lavender | loved (R7) | "Love it." |
+| Café | loved (R7) | "Love it, extremely tasteful." |
+| Ravilious | very good (R7) | The background and bars could pair better. |
+| Kintsugi | very good (R7) | "Would be amazing for a drop." |
+| Cahier | good (R7) | The background and bars could pair better. |
+| Kraft | good (R7) | Bars, accent and line "awesome". The background could be "a bit different" (R8 paper study). |
+| Vegas | weaker (R7) | Like Kraft, but the background is worse. |
+| Cyanotype | bars only (R7) | Great bars, bad background (R8 paper study). |
+| Rothko | maybe for a drop (R7) | Good bars; the background isn't loved (R8 paper study). |
+| Toile | no (R7) | Not enough contrast between the background and the bars. |
+| Backgrounds in general | open (R7) | "We need to work on backgrounds and figure out what works to my eyes." R8 keeps a palette's line, bars and accent and moves only the paper. |
 | Klein, bottle, salmon | unshown | Klein and salmon fail the band-chroma check. |
 
 **Principle (R5):** clarity, "does it jump to my eyes". Lightness first was a weak hypothesis (7 ratings), and it made R6's candidates homogeneous. Use it to check, never to generate.
@@ -95,3 +110,5 @@ Round numbers (R1–R6) say when the owner said it. Quotes are the owner's words
 - Commit and push always (R6).
 - Comparisons go in the lab's switcher: short labelled loops at the owner's moments, one variable at a time. 4K four-ups are only for showing finished looks (R6).
 - Number the round pages; never overwrite them (R6).
+- Comparisons must be fair: match the amounts when comparing directions or styles, otherwise the bigger one wins (R7).
+- No jargon in questions ("blow") (R7).

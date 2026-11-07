@@ -24,6 +24,7 @@ from sklearn.model_selection import GroupKFold
 
 p = argparse.ArgumentParser(); p.add_argument('--inputs', required=True); p.add_argument('--out', required=True)
 p.add_argument('--features', choices=['base', 'geometry'], default='geometry')
+p.add_argument('--exclude', default='', help='declared compiles absent on purpose, as id~seed,...; recorded in provenance')
 args = p.parse_args()
 out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
 EVAL_SONGS = ('luna', 'amor', 'tiki', 'amour')
@@ -47,7 +48,9 @@ for root in args.inputs.split(','):
     declared = {f"{w['id']}~{w['seed']}.json.gz": w for w in plan['work']}
     assert len(declared) == len(plan['work']) > 0, 'duplicate or empty collection'
     paths = sorted(Path(root).glob('*.json.gz'))
-    assert {path.name for path in paths} == set(declared), 'incomplete or undeclared collection records'
+    excluded = {f'{x}.json.gz' for x in args.exclude.split(',') if x}
+    assert excluded <= set(declared), 'excluded compiles must be declared by the plan'
+    assert {path.name for path in paths} == set(declared) - excluded, 'incomplete or undeclared collection records'
     assert plan['search']['depth'] == 2, 'trainer target requires two-interval probes'
     plans.append({'sha256': hashlib.sha256(plan_bytes).hexdigest(), 'plan': plan})
     for path in paths:
@@ -111,7 +114,7 @@ artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.a
     'provenance': {'trainer': 'tools/research/train_value_v3.py', 'trainerSha256': hashlib.sha256(trainer).hexdigest(),
         'collector': 'tools/research/value_collect.ts', 'catalog': 'benchmark/v4 (excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie)',
         'evalPanelDisjoint': True, 'impactContract': 'line.strike.v3', 'rows': len(rows), 'omittedShorterNonterminalHorizons': omitted,
-        'collectionPlans': plans, 'records': records, 'note': 'Native continuation probes from saved compiler prefixes, with a separate meter. Prefixes and probe proposals use the recorded compiler policy; labels exclude learned leaf values. Interrupted probes are omitted, physical dead ends retained.'}}
+        'collectionPlans': plans, 'records': records, 'excludedCompiles': sorted(x for x in args.exclude.split(',') if x), 'note': 'Native continuation probes from saved compiler prefixes, with a separate meter. Prefixes and probe proposals use the recorded compiler policy; labels exclude learned leaf values. Interrupted probes are omitted, physical dead ends retained.'}}
 body = json.dumps(artifact, separators=(',', ':'), allow_nan=False) + '\n'
 (out / 'arc_value_model.json').write_text(body)
 idx = np.linspace(0, len(X) - 1, 32, dtype=int)

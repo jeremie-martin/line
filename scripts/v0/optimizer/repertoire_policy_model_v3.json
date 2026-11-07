@@ -2,13 +2,13 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "d366d550fa9213e222aa931b3a8b173f7b1268dde4e41cb87fe1979a33043699",
-  "sha256": "5c19247fbb9169cf350a2a08a76dbc44efec6e7f97ff99c0e456feeed698425b",
-  "uncompressedBytes": 56649249,
+  "compressedSha256": "76c70e4bcea8b40d492473b208f8042b5d62b64f9e1a9310a034114686c0492f",
+  "sha256": "1312334fa1ad660ecd2e2713c63cb12acce6a181fad7b368a5c8e6a80acf3f44",
+  "uncompressedBytes": 56605070,
   "provenance": {
     "policyTraining": "tools/research/train_construction_v3.py",
     "collector": "tools/research/value_collect.ts",
-    "data": "two collection rounds pooled (compilers fc9a428a and 4198dcb6), benchmark/v4 without eval songs plus V6 transfer plans",
-    "evidence": "REWORK.md 2026-11-07 (H3 re-test on V7.1)"
+    "data": "rounds 2 and 3 pooled (compilers 4198dcb6 and 2fc98a94), benchmark/v4 without eval songs plus V6 transfer plans",
+    "evidence": "REWORK.md 2026-11-07 (H4a)"
   }
 }

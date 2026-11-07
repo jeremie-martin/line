@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypothesis V, redirect within two frames
+
+- **Basis** (the study below). The catches that lose the least energy for
+  their strength meet the line nearly along the travel and bend it hard.
+  The scored strength is a 2-frame impulse, so a bend completed within 2
+  frames registers fully as a redirection, without the inelastic stop's
+  loss.
+  - The centre already meets the line along the travel, but by default it
+    spreads its bend over min(5, support/2) frames.
+  - The generic samples outside independent guides never set when the bend
+    happens.
+- **Change** (`arc_proposals.ts`).
+  - The centre completes its bend in 2 frames: `turnFraction` =
+    clamp(2 / support, 0.1, 0.5).
+  - One generic sample in four does the same, scaled by 0.75–1.25.
+  - Nothing else changes: the search, the policies and the guide sweep
+    already vary `turnFraction`.
+- **Hypothesis.**
+  - Strength on strong asks rises on the dense songs (G), with span speed
+    no worse.
+  - The headline rises a little.
+- **Risks.**
+  - Sharper bends crash more (`binding`).
+  - The start may not matter (U), giving a null result.
+
 ## November 7: why strong catches fall short on dense songs (study, report only)
 
 What follows describes today's compiler, not a physics limit.

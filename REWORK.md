@@ -31,6 +31,11 @@ It agrees with the strong-catch sample (0.14 and 0.56).
 - **Risk.** What the arrival priors buy beyond one step (strength at the
   catch they prepare, as Y showed) is under-counted, and very strong asks may
   lose a little.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −1.2 [−5.9, +3.4], 0.23; 11 of 35 specs up.
+  - G −3.9, P2 −5.5, P4 −5.6 against P7 +10.0.
+- **Lesson.** One-step measurements under-value what the arrival priors buy
+  at the catch they prepare. They can rank hypotheses, but not set weights.
 
 ## November 7: the dose of ranking's prediction, and what each part is worth
 

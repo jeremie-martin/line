@@ -14,7 +14,7 @@
  * --mode=noseup, candidates arriving within 6° of K's heading with the sled at least 15° more nose-up; with
  * --mode=sample, the six cheapest other candidates with distinct arrivals (for within-catch comparisons); with
  * --mode=peer, K and up to six cheapest candidates within 0.04 of its strength, each with the energy lost through the catch.
- *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--mode=rising|steeper|noseup|sample|peer] [--width=1] [--any] [--specs=a~b,...]
+ *   node tools/research/alternation_probe.ts run OUT [--jobs=N] [--seed=101] [--per-ride=8] [--mode=rising|steeper|noseup|sample|peer] [--width=1] [--any] [--alt-model=PATH] [--specs=a~b,...]
  *   node tools/research/alternation_probe.ts report OUT */
 import assert from 'node:assert/strict';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -28,6 +28,7 @@ import {valueRank, type MeasuredCandidate} from '../../scripts/v0/optimizer/arc_
 let OPTIONS: Parameters<typeof valueRank>[0] | undefined;
 import type {ArcCompileContext} from '../../scripts/v0/optimizer/arc_compile_context.ts';
 import {withArcStudy} from './arc_study.ts';
+import {arcFutureValue} from '../../scripts/v0/optimizer/arc_value.ts';
 import {getBallisticStateMetered} from '../../scripts/lib/detector.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
@@ -36,15 +37,21 @@ const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => pr
 const MODE = process.argv.find(a => a.startsWith('--mode='))?.slice(7) ?? 'rising';
 /** --width=N searches every next interval with N times the samples (1: the production search). */
 const ANY = process.argv.includes('--any');
+/** --alt-model=PATH: also record each alternative's raw learned estimate under another future-value model. */
+const ALT_PATH = process.argv.find(a => a.startsWith('--alt-model='))?.slice(12);
+const ALT_MODEL = ALT_PATH ? JSON.parse(readFileSync(ALT_PATH, 'utf8')) : undefined;
 const WIDTH = Number(process.argv.find(a => a.startsWith('--width='))?.slice(8) ?? 1);
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 /** [strength, local cost, cost apart from strength, signed speed residual, side, arrival heading, arrival speed, sled pose,
  * what ranking charges for the future (valueRank minus the local cost), the arrival priors at full weight apart from
- * the heading prior, the heading prior, and the arrival priors' first two residuals (angle, then speed)] */
+ * the heading prior, the heading prior, the arrival priors' first two residuals (angle, then speed), the raw learned
+ * estimate under the compiler's model, and under --alt-model] */
 const summary = (x: MeasuredCandidate) => [r4(x.actualImpact), r4(x.localCost), r4(x.localCost - (x.residuals[3] ?? 0) ** 2), r4(x.residuals[1]),
   x.c.contactSide ?? 1, r4(x.heading), r4(x.endSpeed), r4(x.pose), r4(valueRank(OPTIONS!, x) - x.localCost),
   r4(x.cost - x.localCost - (x.headingPrior ?? 0)), r4(x.headingPrior ?? 0), r4(x.residuals[x.localResidualCount] ?? null),
-  r4(x.residuals[x.localResidualCount + 1] ?? null)];
+  r4(x.residuals[x.localResidualCount + 1] ?? null),
+  x.valueFeatures ? r4(arcFutureValue(x.valueFeatures, OPTIONS!.futureValueModel)) : null,
+  x.valueFeatures && ALT_MODEL ? r4(arcFutureValue(x.valueFeatures, ALT_MODEL)) : null];
 
 /** The next interval's own search after `lines`; its whole pool, summarized. */
 function nextPool(ctx: ArcCompileContext, lines: any[], i: number) {
@@ -172,5 +179,5 @@ else if (command === 'run') {
   mkdirSync(out);
   writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.alternation-probe.v1', seed, perRide, mode: MODE, width: WIDTH, any: ANY, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`, `--mode=${MODE}`, `--width=${WIDTH}`, ...(ANY ? ['--any'] : [])]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--per-ride=${perRide}`, `--mode=${MODE}`, `--width=${WIDTH}`, ...(ANY ? ['--any'] : []), ...(ALT_PATH ? [`--alt-model=${ALT_PATH}`] : [])]));
 } else report(out);

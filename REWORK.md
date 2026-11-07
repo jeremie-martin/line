@@ -1,5 +1,34 @@
 # Foundations rework (started 2026-10-03)
 
+## November 7: hypotheses Z and AA, tested on the benchmark
+
+The probes above choose what to test; only the benchmark decides. Two levers
+that probes alone had judged are now tested as compiler changes.
+
+**Z: arrival speed counts twice in the arrival prior.**
+- **Basis.** Within-catch regression: ranking charges −0.016 per px/frame of
+  arrival speed, and the next interval measures −0.031. A breakdown by speed
+  relative to the target suggested the price was about right, so this is a
+  direct test.
+- **Change.** The speed residual r2 is multiplied by √2 (its cost doubles);
+  nothing else changes.
+- **Hypothesis.** Faster arrivals at strong catches; strength on strong asks
+  up; headline up a little. Risk: speed overshoot on dense passages (F's
+  failure mode).
+
+**AA: ranking leans half as much on its prediction of the future.**
+- **Basis.** Within a catch, ranking's future charge (valueRank minus the
+  local cost) varies about 2.5 times more than the measured next cost
+  (slope 0.40, correlation 0.38). Ranking may be choosing on prediction
+  noise. `catch_price`'s average agreement is a different measure: it
+  compares means across catches, not differences within one.
+- **Change.** In `valueRank`, everything beyond the local cost (heading
+  prior, other priors at ½, the learned estimate) is multiplied by 0.5.
+  Candidate cost and local search are unchanged.
+- **Hypothesis.** Better local choices; strength and span errors down;
+  headline up. Risk: what the future estimate prices beyond one step
+  (D: extras in long floats) comes back; ride-outs and floats may lose.
+
 ## November 7: the two energy levers checked (report only)
 
 Within-catch comparisons (`alternation_probe.ts`, seed 101, 226 strong catches

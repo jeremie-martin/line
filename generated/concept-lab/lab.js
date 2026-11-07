@@ -236,9 +236,9 @@ const DIMS = {
   spw: ['Colour split covers', {all: 'Everything, the band too', ride: 'All but the band (as production)'}],
   crv: ['Hit size follows strength', {lin: 'In a straight line from zero', w: 'Steeply (R7–R10)', mid: 'Between', e: 'More fully (ordinary hits stronger)'}],
   resp: ['Hit responses', {r15: 'Each part on its own curve, no ceiling (R15)', old: 'Size × curve (R7–R14)'}],
-  rsp: ['Split response', {lin: 'Straight from 0.2', zero40: 'Nothing below 0.4, then straight', ease30: 'Slow start from 0.3', ease40: 'Slow start from 0.4'}],
-  rfl: ['Flash response', {s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
-  tsp: ['Split on the title and sun', {'1': 'Same as everywhere', '0.65': 'A little less', '0.4': 'Less'}],
+  rsp: ['Split response', {lin: 'Straight from 0.2', zero40: 'Nothing below 0.4, then straight', ease30: 'Slow start from 0.3', soft30: 'Softer slow start from 0.3', ease40: 'Slow start from 0.4'}],
+  rfl: ['Flash response', {r80: '25 % at 0.8, gently on to 30 % at 1.0', s55: 'S-curve 0.55 → 0.85 (stops at 25 %)', rise55: 'Slow start from 0.55, keeps rising'}],
+  tsp: ['Split on the title and sun', {'1': 'Same as everywhere', '0.65': 'A little less', '0.5': 'A little less again', '0.4': 'Less'}],
   ampS: ['Shake size on its own', {'1.5': 'to 24 px', '1.75': 'to 28 px', '2': 'to 32 px'}],
   amp: ['Shake and split size', {'0.94': 'to 15 px', '1': '×1', '1.25': 'to 20 px', '1.5': '×1.5 (to 24 px)', '2': '×2'}],
   flg: ['Rare flash opens at', {s60: 'Gently from 0.6, to 30 % (chosen)', s55: 'Gently from 0.55, to 25 %', s50l: 'Gently from 0.5, to 20 %', s70: 'Gently from 0.7, to 30 %', s50: 'Gently from 0.5, to 30 %', '80': 'Strength 0.80 (R9)', '82': 'Strength 0.82 (about 1–11 a minute)', '76': 'Strength 0.76 (about 11–18 a minute)', '70': 'Strength 0.70 (about 20–28 a minute)'}],
@@ -251,7 +251,7 @@ const DIMS = {
   top: ['Top of the frame', {none: 'Nothing', vignette: 'Faint vignette', sun: 'Sun', title: 'Song title', titleCut: 'Song title, line in front'}],
   hit: ['On each hit', {none: 'Nothing', today: 'Today’s shake & split', refined: 'Refined', strong: 'Held', parts: 'By parts (below)', punch: 'Held + punch', recoil: 'Held + recoil', shake: 'Held + shake on the strongest', impact: 'Held + shake, split & flash on the strongest', todayW: 'Today’s shake, split & flash, by real strength', big: 'Held + punch + recoil', ghost: 'Refined + afterimage', heldGhost: 'Held + afterimage'}],
 };
-const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'lin', rfl: 's55', tsp: '1'}; // R14: flash 0.55 → 25 % // hit parts as chosen in R7–R10
+const base = {scheme: 'graphite', size: 's62', place: 'follow', tide: 'steady', drive: 'both', ends: 'overture', bandIn: 'present', bg: 'whisper', night: 'off', ink: 'inking', music: 'none', redBy: 'heat', bandY: 'lowmid', hit: 'parts', top: 'none', grain: 'off', shk: 'thud', spl: 'half', fls: 'paperRare', drv: 'held', flg: 's55', spw: 'all', crv: 'lin', amp: '1.5', resp: 'r15', rsp: 'ease30', rfl: 'rise55', tsp: '0.65'}; // R15: slow-start split, a rising flash, a little less on the title // R14: flash 0.55 → 25 % // hit parts as chosen in R7–R10
 const PRESETS = [
 
   {id: 'today', name: 'Today', line: 'Today’s camera, bars, shake, colour split and flash (approximated here; the real film is in the player).',
@@ -323,23 +323,21 @@ const TEST_QUESTIONS = [
 ];
 
 const QUESTIONS = [
-  {id: 'splitshape', ask: 'The split: almost nothing on weak hits?', why: 'You want little or no split below about 0.4, and no ceiling: every option reaches today’s chosen level (the 24 px split) at 0.85 and keeps growing for a rarer, harder hit. The page before this draws each one. Varies: only the split’s curve. Shake and flash as chosen. Keep any number.',
+  {id: 'splitpx', ask: 'The split: a slow start with more in the middle?', why: 'In pixels now, as before: the size of the red-and-blue offset. You liked the slow start from 0.3 but wanted more split between 0.4 and 0.6. The softer slow start gives that: about 3 px at 0.5 and 5 px at 0.6, against 2 and 4. All reach 12.8 px at 0.85 and keep growing. Varies: only the split’s curve. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Straight from 0.2 (as now)', {...plain, music: 'redbars', hit: 'parts', rsp: 'lin'}, 'The current line, now without a ceiling.'],
-      ['Nothing below 0.4, then straight', {...plain, music: 'redbars', hit: 'parts', rsp: 'zero40'}, 'Zero up to 0.4, then a straight line.'],
-      ['Slow start from 0.3', {...plain, music: 'redbars', hit: 'parts', rsp: 'ease30'}, 'Close to zero just above 0.3, growing faster and faster.'],
-      ['Slow start from 0.4', {...plain, music: 'redbars', hit: 'parts', rsp: 'ease40'}, 'The same, starting at 0.4: the calmest on ordinary hits.']],
+      ['Slow start from 0.3', {...plain, music: 'redbars', hit: 'parts', rsp: 'ease30'}, 'Your pick: 2 px at 0.5, 4 px at 0.6, 7 px at 0.7.'],
+      ['Softer slow start from 0.3', {...plain, music: 'redbars', hit: 'parts', rsp: 'soft30'}, 'New: 3 px at 0.5, 5 px at 0.6, 8 px at 0.7.'],
+      ['Nothing below 0.4, then straight', {...plain, music: 'redbars', hit: 'parts', rsp: 'zero40'}, '3 px at 0.5, 6 px at 0.6, 8.5 px at 0.7.']],
     moments: [['Tomada 37 s (many big hits)', 36.5], ['Los Voltaje 20 s (calmer)', 19.5, 'los'], ['Petrunko 34 s', 33.8, 'petrunko'], ['On Old Rose (dark)', 36.5, 'tomada', {scheme: 'wOldRose', ink: 'ink'}]]},
-  {id: 'titlesplit', ask: 'The split on the title and the sun: a little less?', why: 'You found the split a bit destructive on the title, but asked for “a little less”, not half, to keep it consistent. Here the title and sun keep part of the split, faded softly at their edges; everything else is unchanged. Varies: only that. Keep any number.',
+  {id: 'title2', ask: 'The title’s split: a little less, or a little less again?', why: 'You kept “a little less”, and I read “a little less of impact” as trying one notch further. “A little less” keeps two-thirds of the split; “again” keeps half. If you meant something else, say so. Varies: only the title and sun. Keep any number.',
     song: 'tomada', t: 36.5, len: 6, multi: true, opts: [
-      ['Same as everywhere', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '1'}, 'As now.'],
-      ['A little less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.65'}, 'The title keeps about two thirds of the split.'],
-      ['Less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.4'}, 'The title keeps less than half.']],
-    moments: [['Tomada 37 s, title', 36.5], ['Petrunko 34 s, title', 33.8, 'petrunko'], ['With the sun, on Dune', 36.5, 'tomada', {top: 'sun', scheme: 'dune'}], ['With the sun, on Hokusai', 33.8, 'petrunko', {top: 'sun', scheme: 'hokusai'}]]},
-  {id: 'flashrise', ask: 'The flash: the S-curve, or one that keeps rising?', why: 'Your pick, from 0.55 to 25 %, is an S-curve: it flattens at 0.85, which is the ceiling you don’t want. The other keeps rising for rarer, harder hits, but starts more slowly. Varies: only the flash. Keep any number.',
+      ['A little less', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.65'}, 'Two-thirds of the split.'],
+      ['A little less again', {...plain, music: 'redbars', hit: 'parts', top: 'title', tsp: '0.5'}, 'Half of the split.']],
+    moments: [['Tomada 37 s, title', 36.5], ['Petrunko 34 s, title', 33.8, 'petrunko'], ['With the sun, on Dune', 36.5, 'tomada', {top: 'sun', scheme: 'dune'}]]},
+  {id: 'flash4', ask: 'The flash: 25 % at 0.8, then gently on', why: 'As you described: a slow start, about 25 % at 0.8, still rising after that but gently, to 30 % at strength 1.0, never 50 %. Round 15’s rising flash is there for comparison. Varies: only the flash. Keep any number.',
     song: 'petrunko', t: 33.6, len: 6, multi: true, opts: [
-      ['S-curve, 0.55 → 25 % (chosen)', {...plain, music: 'redbars', hit: 'parts', rfl: 's55'}, 'Stops growing at 0.85.'],
-      ['Keeps rising from 0.55', {...plain, music: 'redbars', hit: 'parts', rfl: 'rise55'}, 'Slower at first; 25 % at 0.85, then on up.']],
+      ['25 % at 0.8, gently on', {...plain, music: 'redbars', hit: 'parts', rfl: 'r80'}, 'New: 16 % at 0.7, 25 % at 0.8, 27.5 % at 0.9, 30 % at 1.0.'],
+      ['Round 15’s rising flash', {...plain, music: 'redbars', hit: 'parts', rfl: 'rise55'}, '25 % at 0.85, then steeply on (50 % at 1.0).']],
     moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Celadon (light)', 33.6, 'petrunko', {scheme: 'w2Celadon'}]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
@@ -361,7 +359,7 @@ let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r15';
+const STORE = new URLSearchParams(location.search).has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r16';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -601,12 +599,15 @@ const strengthOf = e => 0.2 + 0.65 * Math.pow(e, 1 / 1.4); // back from e to the
 // level, a 25 % flash). CAP is only a safety net at twice those values.
 const ramp = (s, from, full) => (s - from) / (full - from);
 const linR = (s, from, full) => Math.max(0, ramp(s, from, full));
-const riseR = (s, from, full) => {const x = ramp(s, from, full); return x <= 0 ? 0 : x <= 1 ? x * x : 2 * x - 1;};
+const riseR = (s, from, full, p = 2) => {const x = ramp(s, from, full); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, p) : 1 + p * (x - 1);};
 const RESP = {
   shake: {lin: s => 24 * linR(s, 0.2, 0.85)},                                                    // px
   split: {lin: s => 1.5 * linR(s, 0.2, 0.85), zero40: s => 1.5 * linR(s, 0.4, 0.85),             // × today's full split
-          ease30: s => 1.5 * riseR(s, 0.3, 0.85), ease40: s => 1.5 * riseR(s, 0.4, 0.85)},
-  flash: {s55: s => 0.25 * smoothstep(ramp(s, 0.55, 0.85)), rise55: s => 0.25 * riseR(s, 0.55, 0.85)}, // opacity
+          ease30: s => 1.5 * riseR(s, 0.3, 0.85), ease40: s => 1.5 * riseR(s, 0.4, 0.85),
+          soft30: s => 1.5 * riseR(s, 0.3, 0.85, 1.5)}, // R16: a softer slow start, more split between 0.4 and 0.6
+  flash: {s55: s => 0.25 * smoothstep(ramp(s, 0.55, 0.85)), rise55: s => 0.25 * riseR(s, 0.55, 0.85),
+          // R16: an S-curve to 25 % at 0.8, then still rising, gently (30 % at 1.0): no ceiling, no 50 %
+          r80: s => s <= 0.8 ? 0.25 * smoothstep(ramp(s, 0.55, 0.8)) : 0.25 + 0.25 * (s - 0.8)}, // opacity
 };
 const CAP = {shake: 48, split: 3, flash: 0.5};
 const respOn = () => mix.resp === 'r15';

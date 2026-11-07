@@ -1,7 +1,7 @@
 #!/bin/bash
 # fourup.sh SONG OUT LOOK1 LOOK2 LOOK3 LOOK4: four films side by side, 4K, 60 fps, no text.
 cd /home/holo/prog/line-side-task/generated/concept-lab
-s=$1; out=$2; f=films5/$s; shift 2
+s=$1; out=$2; f=${DIR:-films5}/$s; shift 2
 ffmpeg -v error -y -i $f-$1.mp4 -i $f-$2.mp4 -i $f-$3.mp4 -i $f-$4.mp4 -loop 1 -framerate 60 -i fourup/frame.png -filter_complex "
 color=c=0x808080:s=3840x2160:r=60,format=yuv420p[bg];
 [0:v]scale=900:1600:flags=lanczos[a];[1:v]scale=900:1600:flags=lanczos[b];[2:v]scale=900:1600:flags=lanczos[c];[3:v]scale=900:1600:flags=lanczos[d];

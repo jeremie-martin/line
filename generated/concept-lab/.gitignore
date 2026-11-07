@@ -18,3 +18,10 @@ agents/*/frames/
 lab.v1.js
 dbg.mjs
 intensity/dump.json
+rides/
+rides-*.log
+data-r5/
+agents/*/mock/
+agents/review-r6/pos-*.json
+analysis/sig-*.json
+films*.out

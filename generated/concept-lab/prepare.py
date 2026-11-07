@@ -40,7 +40,9 @@ def load(path):
 
 def build(key):
     song, ride, title = SONGS[key]
-    rec_path = glob.glob(os.path.join(ROOT, f'generated/music-library-round2/rides/{ride}/*-production.json'))[0]
+    # round 6: the rides recompiled with the current compiler (recompile.sh); before that, the music-library round-2 rides
+    fresh = glob.glob(os.path.join(ROOT, f'generated/concept-lab/rides/{key}/*-production.json'))
+    rec_path = fresh[0] if fresh else glob.glob(os.path.join(ROOT, f'generated/music-library-round2/rides/{ride}/*-production.json'))[0]
     with open(rec_path) as f:
         rec = json.load(f)
     contacts = record_contacts(rec)

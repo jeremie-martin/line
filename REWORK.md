@@ -101,6 +101,59 @@ point.
   finishes the arc. A committed arc is not a copy of a demonstration; it
   starts near one. The sweep and the centre almost never win against them.
 
+### What the lost points are made of (report only)
+
+- **Why.** The owner could accept about 20 points for a much simpler,
+  readable candidate source, but not 70. Before designing one, find out what
+  the archive's points buy.
+- **Instrument.** `tools/research/loss_parts.py` reads saved compare arms
+  (V7.1, 4 seeds, 164 rides, each against main).
+  - It splits each ride's score difference over the grade's parts (air,
+    speed, impact strength, timing, extra hits) at the midpoint loss. The
+    remainder is under 2 points in every arm.
+  - Rides combine as in the headline.
+  - It also splits by the family of the arc that owns the gap, and splits
+    impact strength by requested level and direction.
+- **Result** (headline points against main):
+
+  | arm | headline | strong beats too soft | rest of strength | speed | timing | extra hits | air |
+  |---|---|---|---|---|---|---|---|
+  | none | −70.6 | −23.7 | −6.7 | −16.0 | −10.0 | −5.0 | −7.4 |
+  | 16 representatives | −38.6 | −15.5 | −3.8 | −7.9 | −3.5 | −5.7 | −1.9 |
+  | 32 prototypes | −33.1 | −14.7 | −3.8 | −6.9 | −2.4 | −4.7 | −0.5 |
+  | 64 representatives | −27.7 | −11.5 | −2.5 | −5.5 | −1.9 | −4.2 | −2.1 |
+  | multiple-choice network | −25.9 | −11.9 | −1.0 | −7.5 | −1.8 | −2.4 | −1.4 |
+  | network | −25.1 | −12.0 | −1.9 | −7.7 | −2.5 | −0.9 | +0.1 |
+  | network, self-trained | −25.3 | −14.0 | −2.1 | −8.0 | −2.4 | +1.0 | +0.2 |
+  | network, pooled | −22.2 | −12.6 | −1.3 | −7.0 | −2.2 | −0.8 | +2.1 |
+  | memory lookup only | −8.0 | −3.4 | −0.7 | −2.5 | −0.8 | −0.9 | +0.1 |
+  | policy lookup only | −6.7 | −3.8 | +1.4 | −3.3 | −1.1 | −0.8 | +0.8 |
+
+  - Strong beats are those requested at 0.6 or more. Strong hits that are
+    too hard, and quiet beats in either direction, cost under 1 point in
+    every arm.
+  - The everyday-song stratum (G) carries the most strength loss: −25 for
+    the pooled network, against −4 to −8 for P1 to P3. The long ride (P6)
+    gains air (+23) in the network arms.
+  - Per family (air, speed and strength, pooled network): unguided arcs
+    −5.9, fold −4.4, arcs −4.0, serpentine −2.4, scallops −1.5, terraces
+    −0.9, scattered +0.3.
+- **Reading.**
+  - The archive's points are mostly one thing: **hitting strong beats hard
+    enough**. In every reduced arm, about half the loss is strong beats too
+    soft, and about 7 more is gap speed (likely the same catches: hard hits
+    need arrival speed, see November 7).
+  - The rest (timing, extra hits, air) is small once any learned proposals
+    exist. Timing and extra hits go wrong only with no archive at all.
+  - So a readable candidate source does not need to know everything the
+    archive knows. It needs to know how to set up a strong catch: the
+    arrival speed and the controls that turn it into a hard hit.
+- **Next (report only).** On strong beats, compare what the archive
+  proposes and commits with what the compact sources do: arrival speed,
+  entry steepness, controls, and the arc before. If strong catches have a
+  recognisable recipe, a short explicit rule may hold most of the 12 to 15
+  points.
+
 ### Step 2, first reading: variety of the moves, with and without the archive (report only)
 
 - **Instrument.** `tools/research/move_variety.py` reads one

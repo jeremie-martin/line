@@ -136,6 +136,11 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 
 ## Open items, in one place
 
+0. **Parked for later: rework the three hit effects** (owner, 8 November). "We have three levers: the camera shake, the split and the flash."
+   - **Shake versus pulse:** when the owner spoke of shake, they often meant the **pulse**, the zoom. "The shake makes everything a bit less readable, while a punch, a zoom in or out, may be clearer. We could use both."
+   - **Flash:** "play with the vibrance, the saturation, some other effect than the literal flash to the background, or a combination."
+   - Plan: rework the flash, the shake and the pulse later, with the curve-first method of R12–R17.
+
 1. Where Night ends, song by song (R4). Rule since R20: cues are placed by hand from the spec's sections (Circus Minimus: the HOOK's first impact at 38.5 s to the RE-ENTRY hit at 51.3 s).
 1b. With a sun: the rider a little lower, and the sun a few pixels higher (R20 remark, R21 question).
 2. The band height against the rider at 38 % (R3, R12 audit).

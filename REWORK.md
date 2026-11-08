@@ -191,14 +191,9 @@ point.
   letters).
   - "The differences are a bit subtle … maybe they're not so bad." The
     owner was unsure in each case.
-  - Preferred, revealed afterwards:
-    - amour de ma vie 108 s: the archive;
-    - tiki tiki: the compact network;
-    - luna bala: the compact network.
-  - Never the no-archive version. Two of the three picks are the version
-    with the fewest catches in the computer's lookalike groups.
-  - Three unsure picks are not evidence for a measure. They do say the
-    variety differences between the three versions are small to the eye.
+  - Three rides looked at, briefly and unsure. The owner: no conclusion
+    should be drawn from which versions were picked. What stands is that
+    the variety differences are small to the eye.
 - **The owner's position on the trade-off** (not a decision, "we are not
   there yet").
   - A drop of about 20 points (say 780 against 800) is significant but not

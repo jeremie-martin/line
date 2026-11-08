@@ -12,8 +12,9 @@ export const OPTIONS = {
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
   bandHeight: ['Band height', {low: 'Low', lowmid: 'Low-middle', mid: 'Middle'}],
   top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title'}],
+  riderLower: ['The rider sits lower by', {'0': 'Nothing (v1)', '8': '8 px', '16': '16 px'}],
   sunRider: ['With a sun, the rider sits lower by', {'0': 'Nothing', '32': '32 px (v1)', '48': '48 px', '96': '96 px'}],
-  sunLift: ['The sun sits higher by', {'0': 'Nothing', '16': '16 px (v1)', '19.2': '19 px', '38.4': '38 px'}],
+  sunLift: ['The sun sits higher by', {'0': 'Nothing', '16': '16 px (v1)', '19.2': '19 px', '32': '32 px', '38.4': '38 px'}],
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
@@ -30,8 +31,9 @@ export const V1 = {
   band: 'none', accent: 'heat', bandHeight: 'lowmid',
   // paper: Whisper (R3–R4); nothing at the top unless a theme asks; no drop treatment unless a theme asks
   scheme: 'graphite', paper: 'whisper', top: 'none', drop: 'off',
-  // with a sun, the rider sits 32 px lower and the sun 16 px higher (design pixels of 1080 × 1920; R21)
-  sunRider: '32', sunLift: '16',
+  // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
+  // higher (R21). The layout as a whole is round 22's question.
+  riderLower: '0', sunRider: '32', sunLift: '16',
   // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19)
   hits: 'v1',
 };

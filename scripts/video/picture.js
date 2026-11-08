@@ -142,8 +142,8 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (!cams.has(look.zoom)) cams.set(look.zoom, followCamera(R, {base: ZOOM, tide: look.zoom, level: f => level[clamp(Math.round(f / FPS * I.FS), 0, level.length - 1)]}));
     const cam = cams.get(look.zoom), i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
     const l = (p, q) => p + (q - p) * u;
-    // with a sun, the whole view sits a little lower (design px; the camera's behaviour is unchanged, only translated)
-    const dy = look.top === 'sun' ? +look.sunRider : 0;
+    // the whole view can sit a little lower, a little more with a sun (design px; the camera's behaviour is unchanged, only translated)
+    const dy = +look.riderLower + (look.top === 'sun' ? +look.sunRider : 0);
     return {z: l(a.z, b.z), ax: l(a.ax, b.ax), ay: l(a.ay, b.ay) + dy, x: l(a.x, b.x), y: l(a.y, b.y)};
   }
   const riderPoint = at => {const c = centres, i = clamp(Math.floor(at), 0, c.length - 1), j = Math.min(i + 1, c.length - 1), u = clamp(at - i, 0, 1); return {x: c[i].x + (c[j].x - c[i].x) * u, y: c[i].y + (c[j].y - c[i].y) * u};};

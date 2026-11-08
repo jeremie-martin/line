@@ -70,7 +70,7 @@ and data), the round pages.
 |---|---|
 | `generated/renderer/` | The bundle (A) |
 | `generated/spectrum/` | Cached spectra, one per recording |
-| `generated/concept-lab/` (ignored parts) | `data/`, `data-compiled/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`; all regenerable |
+| `generated/concept-lab/` (ignored parts) | `data/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`; all regenerable |
 | `generated/style-lab*`, `style-study`, `style-review`, `video-workflow-audit` | The Codex-era style labs and their films (rounds 1–6 linked some); their code was deleted on 8 November |
 | Repository root: `2026-11-02-*.md` | The owner's conversation exports (rounds 1–6 and earlier context) |
 

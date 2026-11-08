@@ -85,7 +85,7 @@ reliably (`night.py`), so each song's drop is placed by hand (`scripts/video/dro
 ## Files
 
 - **Data:** `recompile.sh` (rides), `prepare.mjs` (scenes).
-- **Films and stills:** `film.mjs` (`song=`, `c=` a look, `m=` options, `from=`, `to=`, `rides=compiled|old`, `width=`) writes through the
+- **Films and stills:** `film.mjs` (`song=`, `c=` a look, `m=` options, `from=`, `to=`, `rides=old`, `width=`) writes through the
   production writer; `films7.sh` writes the round-20 themes. `fourup.sh` and `grid12.sh` assemble films.
   `shoot.mjs` and `strip.mjs` capture stills and frame strips from the lab's shot mode.
 - **Checks:**

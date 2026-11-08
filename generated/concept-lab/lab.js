@@ -546,13 +546,14 @@ function partsFlash(t, k, v) {
     const g = op !== null ? 1 : soft ? soft(strengthOf(e)) : rareGate(e); if (g < 0.01) return;
     const m = op !== null ? op / 0.3 : soft ? held(t - fl.h.tc, excess(e)) : fl.m;
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * m * g;
-    if (mix.fls === 'todayRare') {ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = '#fff';} else ctx.fillStyle = darkNow ? '#fff' : paperNow;
+    // toward the paper actually on screen, Night included: a white flash over the black drop was "very bad" (R21 review)
+    if (mix.fls === 'todayRare') {ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = '#fff';} else ctx.fillStyle = paperNow;
     ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore(); return;
   }
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (mix.fls === 'today') {ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = 0.3 * fl.m; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);}
   // the same lift, toward the paper's own colour (white would tint a coloured paper)
-  else if (mix.fls === 'paper') {ctx.globalAlpha = 0.3 * fl.m; ctx.fillStyle = darkNow ? '#fff' : paperNow; ctx.fillRect(0, 0, canvas.width, canvas.height);}
+  else if (mix.fls === 'paper') {ctx.globalAlpha = 0.3 * fl.m; ctx.fillStyle = paperNow; ctx.fillRect(0, 0, canvas.width, canvas.height);}
   // bloom: the light comes from the impact, a soft disc around the rider instead of the whole screen
   else if (mix.fls === 'bloom') {
     const cx = v.rx * k, cy = v.ry * k, r = 0.5 * canvas.width, g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);

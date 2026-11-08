@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): measurement, the ending refinement on today's main
+
+- **Question.** On the November 1 compiler, removing the ending refinement
+  (R0) cost −0.2, uniform across specs; its deletion waits for the owner.
+  The compiler has changed since. What is it worth today?
+- **Run.** `refineAttempts: 0` (no refinement; `arc_motion.ts` skips the
+  stage) against main, V7.1, 4 seeds. This is information for the owner's
+  decision, not a change to adopt.
+- **Hypothesis.** About the same as before: a small loss, uniform.
+
 ## November 8 (night): hypothesis, strength-seeking response steps
 
 - **Basis.** The largest share of strength loss (39% on G) is "no

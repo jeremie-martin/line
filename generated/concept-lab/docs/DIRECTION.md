@@ -13,9 +13,9 @@ The Line Rider videos now have a settled first version of their visual language 
 - **Line:** pencil → ink, inked as the rider passes. Whole rail and all ink are alternatives.
 - **Band:** low-middle, bars with the loudest in red. Fork, Iris and Three colours stay in the pool.
 - **Hits:** driven only by what the ride actually did, each hit on its own, with no ceilings.
-  - **Shake:** a thud, straight up to 24 px.
+  - **No camera motion, but on strong hits:** the shake (the frame knocked along the hit) only from strength 0.6, reaching 24 px at 0.85 (R26). The clarity was "a complete game changer" (R25).
   - **Split:** halfway between sideways and the hit's direction, starting slowly from strength 0.3. It covers the whole picture with its zoom pulse, a little less on the title.
-  - **Flash:** toward the paper, about 25 % at strength 0.85.
+  - **Colour boost:** what is drawn on the paper gets more saturated and contrasted for an instant; the paper does not change. It replaced the flash (R24–R26).
 - **Colour:** palettes from Sanzo Wada's *Dictionary of Color Combinations*, plus our own. A tiered library holds about 15 favourites and 27 keepers.
 - **Top of the frame:** an optional title, or a sun where it fits. Night or a scheme switch at a hand-placed drop.
 

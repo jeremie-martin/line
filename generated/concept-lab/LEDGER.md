@@ -28,9 +28,9 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Line | Pencil → ink, inked as the rider passes | R1, R5 |
 | Band | Low-middle. Bars with the loudest in red (heat logic) in the questions; looks choose their form | R3–R6 |
 | Hits: driver | Each hit on its own, from what the ride actually did (measured strength and onset); no rank, no top-N | R7–R10 |
-| Hits: shake | The thud, straight from 0 at strength 0.2 to 24 px at 0.85, and on (no ceiling) | R9, R13, R15 |
+| Hits: shake | Strong hits only: nothing below strength 0.6, then an S-curve (like the old flash's) to 24 px at 0.85, and gently on; no camera motion otherwise | R26 (R9–R17 before: on every hit) |
 | Hits: split | Halfway between sideways and the hit's direction. A slow start from 0.3 to 12.8 px at 0.85, and on. Over the whole picture, the band too, with its zoom pulse | R8–R18 |
-| Hits: flash | Toward the paper: an S-curve from 0.6 to 25 % at 0.85, then gently on (about 29 % at 1.0) | R8–R17 |
+| Hits: colour boost | Instead of the flash: what is drawn on the paper gets more saturated and more contrasted for an instant, the paper unchanged; from 0.35, full at 0.85 (saturation +45 %, contrast +38 %), gently on | R24–R26 |
 | Hits: title | A little less split, and less pulse. The sun keeps everything | R15–R19 |
 | Hits: rider | Keeps half its clean image through the split | R4, R12 |
 | Background | Whisper (a faint tint with intensity) | R3–R4 |
@@ -83,11 +83,11 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Piece | Status | Notes |
 |---|---|---|
 | By parts, each hit on its own | v1 | Today's shipped recipe was read in R7: almost every hit at full force, piling up. That is not a top-10 % gate. The owner chose each hit on its own (R7). |
-| Shake: thud, straight to 24 px, no ceiling | v1 | Chosen with the ×1–×4 viewing aid (R9). Straight from zero (R13). "The shake of the rider was great" (R17). 28/32 px tried, not picked (R14). |
+| Shake: strong hits only, from 0.6 | v1 (R26) | "I really like what I'm seeing… shake from 0.6" (R26). Before: on every hit, straight from 0.2 to 24 px, chosen with the ×1–×4 viewing aid (R9–R17). No camera motion was "a complete game changer" for clarity (R25); today's shake still felt better on the strongest hit, hence the shake kept for strong hits. From 0.7 was offered, not chosen. |
 | Split: halfway, slow start from 0.3, no ceiling | v1 | Halfway (R9), matched to today's average fringe (R8, `splitmeasure.mjs`). In pixels, not as a percentage of today's (R15). The slow start from 0.3 liked, with a wish for a little more between 0.4 and 0.6; the softer slow start was offered in R16, skipped. **Open, minor.** |
 | Split over everything, with its pulse | v1 | "I love the effect on the band… on everything except the title… I love it on the sun" (R18). |
 | Title: a little less split, less pulse | v1 | "A little less" (R16); "less" pulse (R19). The sun is untouched (R19). |
-| Flash: toward the paper, 25 % at 0.85, gently on | v1 | Toward the paper "by a wide margin" (R8). No ceiling, but not 50 %: about 25 % at 0.8–0.85, around 30 % at 1.0 (R15–R17). "Shifted right" (R17). |
+| Colour boost instead of the flash | v1 (R26) | "I also like the color boost, really" (R26). The flash toward the paper (R8–R17) is deleted; the boost spares the paper (a whole-frame saturation turned cream paper yellow, R24). |
 | Rider half-clean through the split | v1 | "Slightly less split" (R4), restored in R12. |
 | Today's recipe, Held, Refined, the hit bench | kept as options | References and earlier rounds. |
 | Punch, recoil, bloom, radial split | parked | Built R6–R8, not chosen. The punch's successor, the zoom (R24–R25), rejected: deleted. |
@@ -136,7 +136,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 
 ## Open items, in one place
 
-0. **The hit effects, rethought (rounds 24–26, open).** One table, `picture.js` RECIPES, `look.hits`: `v1` (today: shake, split, flash), `noMotion` (split, colour boost; the frame never moves), `shakeFrom60` and `shakeFrom70` (the same, with the shake on strong hits only, on the flash's S-curve from 0.6 to 24 px at 0.85, or from 0.7 to 24 px at 0.9). Plain names: **shake**, **split**, **flash** (toward the paper), **colour boost** (what is drawn on the paper more saturated and contrasted; the paper unchanged). R25: no camera motion is "a complete game changer" for clarity, and wins on Circus "by a wide margin"; but on the strongest hit today's feels better. **The zoom is rejected (twice: the punch R6–R8, the zoom R24–R25): "I hate seeing the rider become bigger and then smaller… all the geometry".** Round 26 asks whether the strongest hits keep a shake, and from what strength. The lab's "Exaggerate the hit effects" slider is a viewing aid (×1–×4, never in a look). The owner's words that led there (8 November, "should come somewhat soon"): "We have three levers: the camera shake, the split and the flash."
+0. ~~The hit effects, rethought~~ (R24–R26, answered): no camera motion but a shake on strong hits (from 0.6), the split, the colour boost instead of the flash. The zoom is rejected (twice: the punch R6–R8, the zoom R24–R25). Plain names only: shake, split, colour boost. The lab's "Exaggerate the hit effects" slider stays as a viewing aid. The owner's words that led there (8 November, "should come somewhat soon"): "We have three levers: the camera shake, the split and the flash."
    - **Shake versus pulse:** when the owner spoke of shake, they often meant the **pulse**, the zoom. "The shake makes everything a bit less readable, while a punch, a zoom in or out, may be clearer. We could use both."
    - **Flash:** "play with the vibrance, the saturation, some other effect than the literal flash to the background, or a combination."
    - Plan: rework the flash, the shake and the pulse later, with the curve-first method of R12–R17.

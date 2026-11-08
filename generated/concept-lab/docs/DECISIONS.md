@@ -17,9 +17,9 @@
 ## Hits
 
 - **Agreed:** each hit on its own, at its strongest frame (R23), driven by its measured strength (never the spec's ask, never a rank).
-  - **Shake:** a thud, straight from 0 at strength 0.2 to 24 px at 0.85, with no ceiling.
+  - **Shake:** nothing below strength 0.6, then an S-curve (like the old flash's) to 24 px at 0.85, and gently on; no camera motion otherwise (R26; before, a shake on every hit, straight from 0.2).
   - **Split:** halfway between sideways and the hit's direction, a slow start from 0.3 to 12.8 px at 0.85, no ceiling, over the whole picture with its zoom pulse. The title gets a little less split and less pulse; the sun gets everything.
-  - **Flash:** toward the paper, an S-curve from 0.6 to 25 % at 0.85, then gently on.
+  - **Colour boost:** what is drawn on the paper gets more saturated and more contrasted for an instant, the paper unchanged; from 0.35, full at 0.85 (saturation +45 %, contrast +38 %), gently on. It replaced the flash toward the paper (R24–R26).
   - **The rider** keeps half its clean image through the split.
 - **How we got there:**
   - **The old approach was capped:** a top-N strongest-hits rule was rejected early (R1). The owner wants effects to "adapt to the actual values" (R5).

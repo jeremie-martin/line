@@ -12,9 +12,9 @@
 //
 // Two clocks (timing.js, docs/TIMING-DESIGN.md): the ride (rider, camera, line inking, the intensity metric, and everything a hit
 // triggers) is drawn at ride time r = t + offset; the song (the band, the drop's cue, the title, the sun's place, the opening and
-// the ending) at song time t. A hit happens at its strongest frame (round 23): its shake, split, flash and accent heat start
-// there, on their own, sized by its measured strength (never a rank, never the spec's request), and pushed along the line struck
-// at its onset. Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
+// the ending) at song time t. A hit happens at its strongest frame (round 23): its split, colour boost, accent heat and (on
+// strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
+// pushed along the line struck at its onset. Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
 import {W, H, smoothstep, rideSignals, followCamera} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import * as I from './intensity.js';
@@ -45,29 +45,21 @@ export function riderAt(frames, at) {
 }
 
 // ── hits: each effect answering the hit's measured strength s on its own curve, with no ceiling ──────
-// (R13–R17: "if there's a very rare, very powerful hit, let's go for it"). CAP is only a safety net at twice the chosen values.
-const ramp = (s, from, full) => (s - from) / (full - from);
-const linR = (s, from, full) => Math.max(0, ramp(s, from, full));
-const riseR = (s, from, full, p = 2) => {const x = ramp(s, from, full); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, p) : 1 + p * (x - 1);};
-const SHAKE = s => Math.min(48, 24 * linR(s, 0.2, 0.85)); // px: straight from 0 at 0.2 to 24 px at 0.85 (R13, R17)
-const SPLIT = s => 14 * Math.min(3, 1.5 * riseR(s, 0.3, 0.85)); // px before the direction's match: a slow start from 0.3 (R15)
-const FLASH = s => Math.min(0.5, s <= 0.85 ? 0.25 * smoothstep(ramp(s, 0.6, 0.85)) : 0.25 + 0.25 * (s - 0.85)); // 0.6 → 25 % at 0.85, gently on (R17)
-// The ways a hit can be felt (look.hits), compared in rounds 24–26. Plain names, one meaning each:
-//   shake — the whole frame is knocked along the hit's direction and springs back;
+// (R13–R17: "if there's a very rare, very powerful hit, let's go for it"); the caps are only safety nets.
+// v1 since round 26: no camera motion but on strong hits. Plain names, one meaning each:
+//   shake — the whole frame is knocked along the hit's direction and springs back; strong hits only;
 //   split — the red and blue channels pull apart for an instant;
-//   flash — the picture fades toward the paper colour for an instant;
 //   colour boost — what is drawn on the paper gets more saturated and more contrasted for an instant; the paper does not change.
-// A recipe lists its effects, each as a curve of the hit's measured strength. (A zoom on the rider was tried twice, R6–R8 and
-// R24–R25, and rejected: "I hate seeing the rider become bigger and then smaller… all the geometry".)
-const BOOST = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on
-/** The shake kept for strong hits: nothing below `from`, then the flash's S-curve to today's 24 px at `full`, then gently on. */
-const strongShake = (from, full) => s => Math.min(48, s <= full ? 24 * smoothstep(ramp(s, from, full)) : 24 + 40 * (s - full));
-/** Exported for the round pages' curves, so a chart shows exactly what is drawn. */
+// Tried and set aside: a shake on every hit and a flash toward the paper (v1 of R7–R19), a shake from strength 0.7 (R26), and a
+// zoom on the rider, twice (R6–R8, R24–R25: "I hate seeing the rider become bigger and then smaller… all the geometry").
+const ramp = (s, from, full) => (s - from) / (full - from);
+const riseR = (s, from, full, p = 2) => {const x = ramp(s, from, full); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, p) : 1 + p * (x - 1);};
+const SHAKE = s => Math.min(48, s <= 0.85 ? 24 * smoothstep(ramp(s, 0.6, 0.85)) : 24 + 40 * (s - 0.85)); // px: nothing below 0.6, an S-curve to 24 px at 0.85, gently on (R26)
+const SPLIT = s => 14 * Math.min(3, 1.5 * riseR(s, 0.3, 0.85)); // px before the direction's match: a slow start from 0.3 (R15)
+const BOOST = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
+/** The ways a hit can be felt (look.hits), each its effects as curves of strength; exported for the round pages' curves. */
 export const RECIPES = {
-  v1: {shake: SHAKE, split: SPLIT, flash: FLASH}, // today: shake, split, flash (R7–R19)
-  noMotion: {split: SPLIT, boost: BOOST}, // no camera motion: the split and the colour boost carry the hit (R25: "a game changer")
-  shakeFrom60: {shake: strongShake(0.6, 0.85), split: SPLIT, boost: BOOST}, // and the shake on strong hits, from strength 0.6
-  shakeFrom70: {shake: strongShake(0.7, 0.9), split: SPLIT, boost: BOOST}, // and the shake on the strongest, from strength 0.7
+  v1: {shake: SHAKE, split: SPLIT, boost: BOOST}, // R26: "I can be very happy with that"
 };
 const HALF = 0.61; // the halfway split shows the same fringe as the sideways one, on average (fitted on Tomada and Los Voltaje, R8)
 const TITLE_SPLIT = 0.65, TITLE_PULSE = 0.45; // the title gets a little less split (R16) and less of its zoom pulse (R19)
@@ -265,15 +257,6 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     g.drawImage(featherCanvas, 0, 0); g.globalCompositeOperation = 'source-in'; g.drawImage(smallCanvas, 0, 0);
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(maskCanvas, 0, 0); ctx.restore();
   }
-  // the flash lifts the picture toward the paper actually on screen (Night's included: a white flash over a black drop was
-  // "very bad", R21), only on strong hits
-  function flash({m, h}, paper, curve) {
-    if (!h || m < 0.003) return;
-    const op = curve(h.s) * m; if (op < 0.003) return;
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * (op / 0.3); ctx.fillStyle = paper;
-    ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
-  }
-
   // the colour boost: everything drawn on the paper (ink, line, rider, band, sun, title) gets more saturated and more contrasted for
   // an instant, while the paper stays exactly the paper: the frame's content is drawn on a clear canvas and laid on the paper
   // through the filter. It reads on any palette, a dark drop included.
@@ -422,7 +405,6 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (boosting > 0.01) layBoosted(boosting, th.bg);
     if (fx) {
       split(k, hit, fx.split); ctx.setTransform(k, 0, 0, k, 0, 0);
-      if (fx.flash) flash(hit, th.bg, fx.flash);
     }
     return world;
   }

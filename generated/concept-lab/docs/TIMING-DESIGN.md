@@ -48,7 +48,7 @@ matched hit, offset out of range). Nothing is ever tuned by hand.
 | Ride time (`r = s + offset`) | Song time (`s`) |
 |---|---|
 | rider pose, camera, line inking, contacts | audio, spectrum band, sections, the drop's cue, the title, the sun's position, the opening and the ending (they read the song span) |
-| every hit and what it triggers: shake, colour split, flash, the band's accent heat, each from the hit's strongest frame | the drop's ends snap to the strongest hit near each cue, and the opening ends on the first hit after 1.3 s: these convert each hit's strongest frame once, to `peak / 40 − offset` |
+| every hit and what it triggers: colour split, colour boost, shake (strong hits), the band's accent heat, each from the hit's strongest frame | the drop's ends snap to the strongest hit near each cue, and the opening ends on the first hit after 1.3 s: these convert each hit's strongest frame once, to `peak / 40 − offset` |
 | the intensity metric: the ride's speed and each hit's strength at its strongest frame, read at `r` (so the paper's tint, the sun's size and the quiet zoom follow the ride) | |
 
 **A hit happens at its strongest frame, everywhere** (owner, round 23: of today's timing, effects at the first touch, at the

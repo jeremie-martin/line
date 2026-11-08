@@ -18,7 +18,7 @@ export const OPTIONS = {
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
-  hits: ['On each hit', {v1: 'Shake, split, flash (v1)', noMotion: 'No camera motion: split, colour boost', shakeFrom60: 'Split, colour boost, shake from strength 0.6', shakeFrom70: 'Split, colour boost, shake from strength 0.7', none: 'Nothing'}],
+  hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing'}],
 };
 
 export const V1 = {
@@ -34,8 +34,8 @@ export const V1 = {
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
   // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',
-  // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19), starting at its strongest
-  // frame (R23)
+  // hits: each on its own, driven by what the ride did, from its strongest frame (R23): the split and the colour boost, and a shake
+  // on strong hits only; no camera motion otherwise (R26; picture.js has the curves)
   hits: 'v1',
 };
 

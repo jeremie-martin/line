@@ -41,7 +41,7 @@ compiler's review look. The reasons for each choice are in `LEDGER.md`.
 | At the drop | per theme | Night; a switch to the scheme's drop partner |
 | Zoom over time | steady | out when quiet |
 | Opening and ending | the whole course at both ends | none |
-| On each hit | shake, colour split and flash (below) | nothing |
+| On each hit | split, colour boost, and a shake on strong hits (below) | nothing |
 
 The camera is Follows direction (`camera.js`): the rider's resting point follows the direction of travel, its height the
 slope's sine squared, and it never rises on screen while descending (R6–R7). Zoom 6.2, 15 % closer than the first videos.
@@ -49,10 +49,11 @@ slope's sine squared, and it never rises on screen while descending (R6–R7). Z
 ## Hits (v1)
 
 Each hit on its own, from its strongest frame (R23), sized by its measured strength s, with no rank and no ceiling (`picture.js`):
-- **shake:** a thud, straight from 0 at s 0.2 to 24 px at 0.85, then on.
+- **shake** (the whole frame knocked along the hit, springing back): nothing below strength 0.6, then an S-curve (like the old flash's) to 24 px at 0.85, and gently on; no camera motion otherwise (R26).
 - **split:** halfway between sideways and the hit's direction, slow start from 0.3 to 12.8 px at 0.85, over the whole picture
   with its zoom pulse.
-- **flash:** toward the paper on screen (Night's included), S-curve from 0.6 to 25 % at 0.85, then gently on.
+- **colour boost:** what is drawn on the paper gets more saturated and more contrasted for an instant, the paper unchanged; from 0.35, full at 0.85 (saturation +45 %, contrast +38 %), gently on (R24–R26).
+- Set aside: a shake on every hit and the flash toward the paper (R7–R19), and the zoom on the rider (R24–R25).
 
 The title gets a little less split and less pulse; the sun gets everything. The rider keeps half its clean image. The
 hold-and-fade timing follows w = e^2.2. The rework of the three levers is parked (LEDGER.md, item 0).

@@ -261,7 +261,8 @@ and validation are in [music authoring](docs/music-authoring.md).
      that ends before the span it is shown with.
    - `picture.js` draws the frame at song time t for a look: the ride at r, the
      "Follows direction" camera (`camera.js`), the line, the band, the top element,
-     the drop, and each hit's shake, colour split and flash. **A hit happens at its
+     the drop, and each hit's colour split, colour boost and (strong hits only)
+     shake. **A hit happens at its
      strongest frame** (round 23), so everything it triggers is on ride time; it
      is sized by its measured strength and pushed along the line struck at its
      onset. The intensity metric (`intensity.js`) is built on ride time from the

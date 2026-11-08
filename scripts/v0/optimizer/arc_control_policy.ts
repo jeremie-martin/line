@@ -55,6 +55,7 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;
     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
   }
+  if(model.catalogue)return catalogueProposals(model.catalogue,features,incoming,span,count);
   if(model.exemplars){
     const input=model.proximityTrees?features.map(Math.fround):undefined;
     const queryLeaves=model.proximityTrees?.map((tree:any)=>{
@@ -117,4 +118,34 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
   const vectors=[mean(leaves),mean(leaves.filter((_:any,i:number)=>i%2===0)),mean(leaves.filter((_:any,i:number)=>i%2===1)),...leaves];
   return vectors.slice(0,count).map(v=>({entry:incoming+30*v[0],turn:60*v[1],exit:incoming+60*v[2],
     support:span*v[3],bias:v[4],offset:v[5],clearance:12*v[6],turnFraction:v[7],bend:30*v[8],guideFlare:8*v[9]}));
+}
+
+/** A readable move catalogue (research). Per contact side, a smooth table over the
+ * requested strength of the beat this arc lands on and the arrival heading gives the
+ * typical entry, turn and exit relative to the arrival (bilinear on a small grid).
+ * Each style is a real demonstration: its residual from that table and its free
+ * fields (support relative to the span, bias, offset, guide and shape fields). */
+function catalogueProposals(cat:any,features:number[],incoming:number,span:number,count:number):ArcMotionControl[]{
+  const ask=Math.max(0,features[48]),heading=Math.atan2(features[0],features[1])*180/Math.PI;
+  const cell=(axis:number[],x:number)=>{
+    const v=Math.min(axis.at(-1)!,Math.max(axis[0],x));let i=0;
+    while(i<axis.length-2&&v>axis[i+1])i++;
+    return [i,(v-axis[i])/(axis[i+1]-axis[i])];
+  };
+  const [i,u]=cell(cat.ask,ask),[j,v]=cell(cat.heading,heading),n=cat.heading.length;
+  const core=(side:number)=>{
+    const t=cat.cores[String(side)];if(!t)return undefined;
+    return [0,1,2].map(o=>(1-u)*(1-v)*t[i*n+j][o]+(1-u)*v*t[i*n+j+1][o]+u*(1-v)*t[(i+1)*n+j][o]+u*v*t[(i+1)*n+j+1][o]);
+  };
+  const cores=new Map<number,number[]|undefined>();
+  const selected:ArcMotionControl[]=[];
+  for(const style of cat.styles){
+    if(!cores.has(style.side))cores.set(style.side,core(style.side));
+    const c0=cores.get(style.side);if(!c0)continue;
+    const {support,...free}=style.control;
+    const c={...free,entry:incoming+c0[0]+style.residual[0],turn:c0[1]+style.residual[1],exit:incoming+c0[2]+style.residual[2],support:span*support} as ArcMotionControl;
+    if(selected.some(p=>arcControlsSimilar(c,p)))continue;
+    selected.push(c);if(selected.length>=count)break;
+  }
+  return selected;
 }

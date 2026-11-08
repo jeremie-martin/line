@@ -5,6 +5,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection, type RawFrame } from '../../lib/detector.ts';
+import { carryOrigin } from './arc_origin.ts';
 import { measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
@@ -62,8 +63,8 @@ export function rememberNear(s: IntervalSearch, candidate: Near) {
 }
 
 function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments) {
-  const {options, memo} = s, work = s.ctx.work;
-  c = s.normalizeControl(c);
+  const {options, memo} = s, work = s.ctx.work, input = c;
+  c = carryOrigin(s.normalizeControl(c), input);
   const key = arcControlMemoKey(c, options.channel) + (fragments ? '|fragments' : '');
   work.samples++;
   const saved = memo.get(key);

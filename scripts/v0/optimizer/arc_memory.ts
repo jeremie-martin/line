@@ -1,5 +1,6 @@
 /** Reuse measured controls and local responses as proposals, never as validation. */
 import type { ArcMotionControl } from './arc_geometry.ts';
+import { arcOrigins, tagOrigin } from './arc_origin.ts';
 import type {ArcGeometryStyle} from './arc_geometry.ts';
 import {arcControlsSimilar, arcReferencedControl, type ArcControlReference} from './arc_motion_control.ts';
 import { arcResponseStep } from './arc_response.ts';
@@ -130,7 +131,9 @@ export class ArcControlMemory {
     for (const m of this.nearestControls(features, count)) {
       // A construction can keep its demonstrated duration while its following
       // flight grows. Offer both hypotheses; native evaluation decides.
-      const proposals=[adapted(m,incoming,span),...(duration==='both'?[adapted(m,incoming,m.span)]:[])];
+      // Report-only label: a stored demonstration, or a control committed earlier in this ride.
+      const source=arcOrigins.enabled?(this.controls.indexOf(m)<this.modelCount?'memory-archive':'memory-ride'):'';
+      const proposals=[adapted(m,incoming,span),...(duration==='both'?[adapted(m,incoming,m.span)]:[])].map(c=>tagOrigin(c,source));
       for(const control of proposals){
         if (selected.some(p => arcControlsSimilar(control, p))) continue;
         selected.push(control);

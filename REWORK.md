@@ -34,6 +34,45 @@ repetition. Every measure is report-only, never a target.
 The self-training round on the compact model continues as a comparison
 point.
 
+### Step 1: where the committed arcs come from (report only)
+
+- **Instrument.**
+  - `scripts/v0/optimizer/arc_origin.ts` labels every proposal with its
+    root source. Each refinement step appends its stage, and the label
+    keeps a copy of the proposal as first made.
+  - Labels are off unless a research tool enables them, and the compiler
+    never reads one. `npm run check` passes (parity identical).
+  - `tools/research/candidate_origins.ts` compiles V7.1 rides with labels
+    on. All 41 rides (seed 101) are identical to main's saved arm.
+- **Root source of the 3,508 committed arcs** (V7.1, seed 101, main):
+
+  | source | share of initial proposals | share of committed arcs |
+  |---|---|---|
+  | archive, policy lookup | 33% | **46%** |
+  | archive, memory's stored demonstrations | 33% (memory, both kinds) | **27%** |
+  | memory, arcs committed earlier in this ride | (in the 33%) | 7% |
+  | response proposals (this ride's response steps) | 8% | 17% |
+  | generic sweep | 23% | **1%** |
+  | hand-made centre | 2% | 1% |
+  | warm start, opposing entries, recovery | — | 2% |
+
+  - 73% of committed arcs start from an archive demonstration. Most of the
+    rest (responses and this ride's own arcs) descend from earlier arcs of
+    the same ride, which mostly started from the archive.
+  - The generic sweep makes a quarter of the proposals and starts 1 arc in
+    100.
+  - The shares are the same in every family and every stratum. Transfer
+    arcs (9) are the exception, starting from responses and this ride's
+    memory.
+- **Refinement.** 97% of committed arcs were refined after being proposed
+  (53% coordinate then response steps, 27% coordinate, shape, then
+  response). Refinement moved them a median 0.57 of the committed arcs'
+  spread from their proposal (quartiles 0.36–0.85). The rare winners from
+  the sweep moved 1.1.
+- **Reading.** The archive chooses the neighbourhood and local search
+  finishes the arc. A committed arc is not a copy of a demonstration; it
+  starts near one. The sweep and the centre almost never win against them.
+
 ## November 8: step back on the policy archive, what it is worth
 
 - **Why.** The owner does not want a 50–100 MB archive that grows git

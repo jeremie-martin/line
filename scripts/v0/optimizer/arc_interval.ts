@@ -2,6 +2,7 @@
  * start, propose connected arc geometry, measure every proposal natively and
  * refine locally around the best. All work is charged to the shared meter. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
+import { tagOrigin } from './arc_origin.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
@@ -25,7 +26,7 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
   if (!s) return null;
   try {
     if (options.directControls) {
-      for (const control of options.directControls) evaluate(s, control);
+      for (const control of options.directControls) evaluate(s, tagOrigin(control, 'direct'));
     } else {
       proposeInitialControls(s);
       proposeOpposingEntries(s);

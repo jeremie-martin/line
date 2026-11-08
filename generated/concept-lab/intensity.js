@@ -4,7 +4,8 @@
 // Everything is offline: the whole ride is known, so lag is a design choice here, not a cost.
 export const FS = 10; // Hz: nothing here needs more
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-export const strength = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4); // same curve as cam.js
+/** The shared, absolute strength curve: the same for every song, no ranks. cam.js re-exports this one. */
+export const strength = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4);
 
 /** Zero-phase gaussian, edges held. σ in seconds. No overshoot, so it cannot ring or blink. */
 export function gaussian(a, sigma) {
@@ -19,7 +20,7 @@ export function median(a, seconds) {const h = Math.round(seconds * FS / 2), n = 
 export function envelope(a, rise, fall) {const o = new Float64Array(a.length); o[0] = a[0]; for (let f = 1; f < a.length; f++) {const x = a[f], y = o[f - 1], tau = x > y ? rise : fall; o[f] = y + (x - y) * (1 - Math.exp(-1 / (tau * FS)));} return o;}
 /** Hard ceiling on change, per second, without lag: forward and backward passes, averaged. */
 export function slew(a, rate) {
-  const lim = (src, dir) => {const o = Float64Array.from(src), d = rate / FS, n = o.length, [i0, i1, st] = dir > 0 ? [1, n, 1] : [n - 2, -1, -1]; for (let f = i0; f !== i1; f += st) o[f] = clamp(o[f], o[f - st] - d, o[f - st] + d); return o;};
+  const lim = (src, dir) => {const o = Float64Array.from(src), d = rate / FS, n = o.length, [i0, i1, st] = dir > 0 ? [1, n, 1] : [n - 2, -1, -1]; for (let f = i0; st > 0 ? f < i1 : f > i1; f += st) o[f] = clamp(o[f], o[f - st] - d, o[f - st] + d); return o;};
   const u = lim(a, 1), v = lim(a, -1); return Float64Array.from(u, (x, f) => (x + v[f]) / 2);
 }
 const quantile = (a, q) => {const s = Float64Array.from(a).sort(); return s[Math.floor(q * (s.length - 1))];};

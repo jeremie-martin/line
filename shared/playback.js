@@ -22,6 +22,8 @@ export function outputClock() {
   return {
     read({contextTime, performanceTime}) {
       if (!performanceTime) return;  // not playing out yet
+      // a stalled output (suspended or interrupted context) repeats one reading: it adds nothing, and kept it grew the list every frame
+      if (readings.length && readings[readings.length - 1][0] === performanceTime) return;
       readings.push([performanceTime, contextTime - performanceTime / 1000]);
       while (performanceTime - readings[0][0] > 1000) readings.shift();
     },

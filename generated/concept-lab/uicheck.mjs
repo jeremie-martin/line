@@ -291,8 +291,9 @@ try {
     await settled(p); await p.waitForTimeout(1200); s = await st(p);
     check(s.song === 'burn' && s.loaded === 'burn' && (await p.locator('#songs button.on').textContent()) === 'Let the World Burn', 'rapid song taps end on the last song', `${s.song} ${s.loaded}`);
     check(s.mix.scheme === 'hokusai' && s.mix.night === 'on', 'switching songs keeps the look');
-    await tap(p, '#moments button', 4); s = await st(p);
-    check(s.seconds > 0, 'a moment chip seeks', String(s.seconds));
+    // 'Ending' seeks to 4 s before the end. The page opened at 12 s, so the old test (seconds > 0) passed even if the chip did nothing.
+    await tap(p, '#moments button', 5); s = await st(p); const dur = await p.evaluate(() => +document.getElementById('seek').max);
+    check(dur > 20 && Math.abs(s.seconds - (dur - 4)) < 0.01, 'a moment chip seeks', `${s.seconds} of ${dur}`);
     check(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'no horizontal overflow');
     await p.context().close();
   });

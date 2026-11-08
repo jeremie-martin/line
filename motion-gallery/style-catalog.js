@@ -78,7 +78,9 @@ async function playLoops() {
     for (const v of activeVideos) {v.currentTime = resumeTime; v.classList.add('ready');}
     $('status').textContent = ''; sync();
   } catch (error) {
-    if (ticket !== generation) return;
+    // Pausing (or hiding the tab) while the loops were starting rejects their play() with AbortError: that is the viewer's choice,
+    // not a failure, and it must not reset the view
+    if (ticket !== generation || !running) return;
     render(); $('status').textContent = error.message;
   } finally {clearTimeout(timer);}
 }

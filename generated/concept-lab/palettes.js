@@ -221,9 +221,11 @@ const BG_STUDY = {
   cyanotype: [['less colour', '#384c69'], ['almost neutral', '#454c54'], ['darker', '#0f305d'], ['darker, less colour', '#223247'], ['lighter', '#305b99']],
   rothko: [['less colour', '#221314'], ['almost neutral', '#1b1617'], ['darker', '#120103'], ['darker, less colour', '#0c0304'], ['lighter', '#3b1a1e']],
 };
+// A new paper for scheme o, its pencil keeping the same offset from the paper (used by both variant families below)
+const pencilFor = (o, paper) => {const d = hex(o.pencil).map((c, j) => c - hex(o.paper)[j]); return '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('');};
 for (const [b, vs] of Object.entries(BG_STUDY)) vs.forEach(([, paper], i) => {
-  const o = SCHEMES[b], d = hex(o.pencil).map((c, j) => c - hex(o.paper)[j]), pencil = '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('');
-  SCHEMES[`${b}~${i}`] = {...o, paper, pencil}; DIMS.scheme[1][`${b}~${i}`] = `${DIMS.scheme[1][b]}, paper ${vs[i][0]}`;
+  const o = SCHEMES[b];
+  SCHEMES[`${b}~${i}`] = {...o, paper, pencil: pencilFor(o, paper)}; DIMS.scheme[1][`${b}~${i}`] = `${DIMS.scheme[1][b]}, paper ${vs[i][0]}`;
 });
 // Round 9: whole-theme variants (agents/palettes-r9/variants.js): in every loved scheme the bars carry more colour than the paper.
 const VARIANTS = {
@@ -238,8 +240,8 @@ const VARIANTS = {
   'rothko~b': ['As designed, peach bars', 'rothko', {mass: '#c78669'}],
 };
 for (const [key, [label, b, o]] of Object.entries(VARIANTS)) {
-  const base = SCHEMES[b], paper = o.paper ?? base.paper, d = hex(base.pencil).map((c, j) => c - hex(base.paper)[j]);
-  SCHEMES[key] = {...base, ...o, pencil: o.paper ? '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('') : base.pencil};
+  const base = SCHEMES[b];
+  SCHEMES[key] = {...base, ...o, pencil: o.paper ? pencilFor(base, o.paper) : base.pencil};
   DIMS.scheme[1][key] = `${DIMS.scheme[1][b]}: ${label}`;
 }
 // Round 9 decisions: Kraft takes the darker paper; Cyanotype and Rothko take "less colour"; the other liked papers stay as siblings.

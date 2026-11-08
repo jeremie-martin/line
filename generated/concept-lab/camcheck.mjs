@@ -2,7 +2,9 @@
 import {chromium} from 'playwright';
 const songs = process.argv.slice(2).length ? process.argv.slice(2) : ['petrunko', 'lua', 'los', 'batidao', 'burn', 'coma'];
 const Z0 = 5.4;
-const configs = process.env.TIDES ? ['steady', 'busyWide', 'busyClose', 'calmOut', 'arc'].map(t => ({name: t, base: 6.2, place: 'tamed', tide: t})) : [{name: 'today', kind: 'today'}, ...['pinnedLeft', 'pinnedRight', 'tamed', 'calm'].map(p => ({name: p, base: 6.2, place: p}))];
+// TIDES: the zoom tides that need no intensity level (cam.js TIDES; 'busyWide', 'busyClose' and 'arc' no longer exist, and quietI
+// and breath need the lab's intensity metric, which this page does not compute)
+const configs = process.env.TIDES ? ['steady', 'calmOut', 'fit'].map(t => ({name: t, base: 6.2, place: 'tamed', tide: t})) : [{name: 'today', kind: 'today'}, ...['pinnedLeft', 'pinnedRight', 'tamed', 'calm'].map(p => ({name: p, base: 6.2, place: p}))];
 const b = await chromium.launch({args: ['--mute-audio']});
 try {
   const p = await b.newPage(); p.on('pageerror', e => console.error('pageerror', e.message));

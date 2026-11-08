@@ -74,7 +74,8 @@ th,td{{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}}
 <p class="small">Earlier rounds: <a href="round4/morning.html">4</a>, <a href="round3/morning.html">3</a>, <a href="round2/morning.html">2</a>, <a href="round1/morning.html">1</a>.</p>
 </main></body></html>
 '''
-open('morning.html', 'w').write(html)
+# Round 5 is frozen in round5/morning.html, and morning.html is now the index of every round (gen-morning6.py): never write over it.
+print('round 5 is frozen in round5/: its page is not rewritten (films5.json is)')
 LOOKS = [('paper', 'Paper', 'Graphite and one red on the fork, Refined, Night on the drop.'), ('hokusai', 'Hokusai', 'Indigo on washi, the bars, the sun, Held.'),
          ('lagoon', 'Lagoon', 'A new palette, wider, a looser camera, the title, the afterimage.'), ('black', 'Black', 'The dark, the fork, each rail lighting whole.')]
 EXTRA = [('riso', 'Riso', 'Blue and fluorescent pink.'), ('dune', 'Dune', 'Sand and rust, with its own sun.'), ('plum', 'Plum', 'A second dark, plum and amber.')]

@@ -24,6 +24,7 @@ try {
   }
   await p.waitForFunction(() => !document.getElementById('qsummary').hidden);
   console.log(await p.locator('#qsummary').inputValue());
-  console.log('overflow', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth));
+  const overflow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  console.log('overflow', overflow); if (overflow) errors.push('horizontal overflow at 390 px'); // a layout break must fail the check, not only print
 } finally {await b.close();}
 if (errors.length) {console.error(errors); process.exit(1);}

@@ -98,7 +98,8 @@ async function select(index) {
     // Keep the outgoing video visible and audible while preparing the next one.
     // Only a decoded frame at the matching time is allowed to replace it.
     let shorter = false, needsPlay = false;
-    for (let attempt = 0; attempt < 4; attempt++) {
+    // A fifth attempt exists only for a pause during the fourth: it re-seeks the paused picture exactly (see the break below).
+    for (let attempt = 0; attempt < 5; attempt++) {
       if (signal.aborted) throw abortError();
       const time = previous?.currentTime ?? 0;
       shorter = time >= next.duration;
@@ -125,8 +126,10 @@ async function select(index) {
         }
         next.playbackRate = previous?.playbackRate ?? savedRate;
       }
-      if (!previous || !playing || shorter || Math.abs(clockDifference(previous, next)) < .05) break;
-      if (attempt === 3) throw new Error('Could not align the videos yet. Try again.');
+      // Paused while catching up: not aligned yet, so the next attempt seeks the paused incoming video to the outgoing one's frame
+      // (breaking on !playing used to hand off at a different moment from the paused picture).
+      if (!previous || shorter || Math.abs(clockDifference(previous, next)) < .05) break;
+      if (attempt >= 3 && playing) throw new Error('Could not align the videos yet. Try again.');
     }
     if (signal.aborted) throw abortError();
     if (!playing || shorter) next.pause();
@@ -152,7 +155,8 @@ async function select(index) {
   } catch (error) {
     if (signal.aborted) return;
     next.pause(); next.muted = true; wanted = active >= 0 ? active : index;
-    if (active < 0) playing = false;
+    // nothing replaced the previous passage's still picture: drop it rather than show the old song under the new controls
+    if (active < 0) {playing = false; frameHold.hidden = true;}
     styleId = entries[wanted]?.id ?? styleId; controls();
     status.textContent = error.message;
   } finally {
@@ -230,8 +234,10 @@ $('fullscreen').onclick = async () => {
 };
 $('seek').oninput = () => {
   if (active < 0) return;
-  pending?.abort(); wanted = active;
-  videos.forEach((v, i) => {if (i !== active) {v.pause(); v.muted = true;}});
+  // Seeking abandons a pending switch: the shown version is the selection again, and the abandoned one stops loading (it used to
+  // stay the remembered style, so the next passage opened it, and its source kept buffering beside the active one).
+  pending?.abort(); wanted = active; styleId = entries[active].id;
+  videos.forEach((v, i) => {if (i !== active) release(v);});
   videos[active].currentTime = Number($('seek').value); status.textContent = ''; controls();
 };
 document.addEventListener('keydown', event => {

@@ -7,7 +7,7 @@ import * as I from './intensity.js';
 import {SCHEMES, SCHEME_NAMES, LIBRARY, DROPS} from './palettes.js';
 import {V1} from './v1.js';
 
-const W = 1080, H = 1920, FPS = 40;
+const {W, H, FPS} = C; // one frame size and physics rate (cam.js)
 const Z0 = 5.4; // today's vertical zoom
 const SIZE_Z = {s58: 5.8, s62: 6.2, s68: 6.8};
 // One optional, hand-placed cue per song: a drop is a musical judgement, and no detector found it reliably.
@@ -175,7 +175,7 @@ let mix = {...preset.mix};
 for (const kv of (q.get('m') ?? '').split(',').filter(Boolean)) {const [k, v] = kv.split(':'); if (DIMS[k]?.[1][v]) mix[k] = v;}
 let seconds = +(q.get('t') ?? 0) || 0, playing = false, S = null, loadId = 0;
 const qmode = q.has('q'), feelmode = q.has('feel');
-let qi = Math.max(0, Math.min(QUESTIONS.length, +(q.get('q') || 1) - 1)), qopt = 0;
+let qi = Math.max(0, Math.min(QUESTIONS.length, (parseInt(q.get('q'), 10) || 1) - 1)), qopt = 0; // ?q=abc or ?q=1.5 must not give NaN
 // A temporary viewing aid: multiplies the hit parts' shake. Always ×1 unless the viewer moves the slider or the URL asks (?shakeX=).
 let shakeX = Math.max(1, Math.min(4, +(q.get('shakeX') ?? 1) || 1));
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
@@ -188,6 +188,7 @@ const sheetPromise = N.loadSheet();
 const paint = N.riderPainter();
 const canvas = $('stage'), ctx = canvas.getContext('2d');
 const overlay = document.createElement('canvas'), octx = overlay.getContext('2d');
+let riderM = [1, 0, 0, 1, 0, 0]; // this frame's transform for the overlay holding the rider (today's shake rotates it)
 
 // ── data preparation ───────────────────────────────────────────────────────
 function replay(track, trace) {
@@ -217,6 +218,7 @@ function prepare(data, native) {
   const lines = data.track.lines.map(l => ({id: l.id, x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, touch: Infinity}));
   const byId = new Map(lines.map(l => [l.id, l]));
   native.contacts.forEach((ids, f) => {for (const id of ids) {const l = byId.get(id); if (l && f < l.touch) l.touch = f;}});
+  const centres = data.trace.frames.map(centreOf);
   // connected rails: a rail inks up to the furthest point touched so far, so a used rail is solid behind the rider
   {
     const parent = lines.map((_, i) => i), find = i => {while (parent[i] !== i) i = parent[i] = parent[parent[i]]; return i;};
@@ -231,7 +233,7 @@ function prepare(data, native) {
     const chains = new Map(); lines.forEach((l, i) => {const r = find(i); l.chain = r; if (!chains.has(r)) chains.set(r, []); chains.get(r).push(l);});
     // A rail inks as the rider passes it, not only where a contact was recorded: on five songs 8–17 % of the course stayed pencil
     // behind the rider, about 90 % of it within 14 units of the body, and a third of used rails ended in a grey tail.
-    const cs = data.trace.frames.map(centreOf), reach = []; {let m = -Infinity; for (const c of cs) reach.push(m = Math.max(m, c.x));}
+    const cs = centres, reach = []; {let m = -Infinity; for (const c of cs) reach.push(m = Math.max(m, c.x));}
     const firstAt = x => {let a = 0, b = reach.length - 1; while (a < b) {const c = (a + b) >> 1; if (reach[c] >= x) b = c; else a = c + 1;} return reach[a] >= x ? a : Infinity;};
     const near = l => {const dx = l.x2 - l.x1, dy = l.y2 - l.y1, L = dx * dx + dy * dy || 1, a = firstAt(Math.min(l.x1, l.x2) - 30), b = Math.min(cs.length - 1, firstAt(Math.max(l.x1, l.x2) + 30)); if (a === Infinity) return false; for (let f = a; f <= b; f++) {const c = cs[f], u = clamp(((c.x - l.x1) * dx + (c.y - l.y1) * dy) / L, 0, 1); if (Math.hypot(c.x - l.x1 - u * dx, c.y - l.y1 - u * dy) < 14) return true;} return false;};
     for (const chain of chains.values()) {
@@ -248,7 +250,6 @@ function prepare(data, native) {
         const k = gx + ',' + gy; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(l);
       }
   }
-  const centres = data.trace.frames.map(centreOf);
   // where each hit happened: the touched line nearest the body, its normal on the rider's side
   const hits = data.hits.map(h => {
     const f0 = Math.round(h.t * FPS); let pos = null, ang = 0, line = null, nrm = {x: 0, y: -1}, best = Infinity;
@@ -270,7 +271,7 @@ function prepare(data, native) {
     }
     let fc = null;
     for (let f = f0 + 1; f >= f0 - 6; f--) {if (native.contacts[f]?.length) fc = f; else if (fc !== null) break;}
-    const ca = centres[Math.max(0, f0 - 2)], cb = centres[Math.min(centres.length - 1, f0)];
+    const ca = centres[clamp(f0 - 2, 0, centres.length - 1)], cb = centres[Math.min(centres.length - 1, f0)];
     return {...h, tc: fc === null ? h.t : Math.min(h.t, fc / FPS), pos: pos ?? centres[Math.min(f0, centres.length - 1)], ang, nrm, chain: line?.chain, I: power(h.s), vel: {x: cb.x - ca.x, y: cb.y - ca.y}};
   });
   const R = C.rideSignals(centres, native.contacts, hits, data.phases, data.duration);
@@ -314,7 +315,9 @@ function camFrames(m) {
   const key = m.size + '|' + m.place + '|' + m.tide + '|' + m.drive;
   if (!S.cams.has(key)) {
     const z = m.size === 'today' ? Z0 : SIZE_Z[m.size]; let cam;
-    if (m.size === 'today' || m.place === 'official') cam = S.centres.map((_, f) => {const c = S.follow({w: W, h: H, z}, f); return {z, ax: W / 2, ay: 0.35 * H, x: c.x, y: c.y};});
+    // only the placement picks the official follower; 'Today' as a size is today's zoom for any placement (it used to force the
+    // official follower too, so round 5's "Today's width" option, asked with Tamed, actually showed the official camera)
+    if (m.place === 'official') cam = S.centres.map((_, f) => {const c = S.follow({w: W, h: H, z}, f); return {z, ax: W / 2, ay: 0.35 * H, x: c.x, y: c.y};});
     else cam = C.buildPlaced(S.R, {base: z, place: m.place, tide: m.tide, level: f => {const y = S.drives[m.drive]; return y[clamp(Math.round(f / FPS * I.FS), 0, y.length - 1)];}});
     S.cams.set(key, cam);
   }
@@ -405,7 +408,7 @@ function drive(t, part) {
       if (respOn()) {const env = held(age, w), v = env * (0.01 + hitStrength(h)); if (v > x) {x = v; last = h; lastEnv = env;} continue;}
       const v = SIZE[mix.crv ?? 'w'](e, w) * held(age, w); if (v > x) {x = v; last = h;} continue;
     }
-    const s = forceE !== null ? 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4) : h.s;
+    const s = forceE !== null ? strengthOf(forceE) : h.s;
     if (d === 'trauma' && s < c.min) continue;
     const add = (d === 'graded' ? (forceE ?? h.I) : s) * c.gain * Math.exp(-age * c.decay); // graded: the absolute strength curve, no threshold
     if (add > 0.002) last = h; x += add;
@@ -447,6 +450,8 @@ const AMP = () => +(mix.amp ?? 1) || 1;
 // sun, which the owner wanted to keep at the 24 px level while trying a bigger shake. ampS defaults to amp.
 const AMP_SHAKE = () => +(mix.ampS ?? mix.amp ?? 1) || 1;
 const SPLIT_MATCH = {dir: 0.53, half: 0.61}; // fitted on Tomada and Los Voltaje (splitmeasure.mjs)
+// The split's size in px before the direction's match factor: one formula for the split and for the R18 ride pulse that follows it.
+const splitPx = h => 14 * (respOn() ? Math.min(CAP.split, RESP.split[mix.rsp ?? 'lin'](hitStrength(h))) : AMP());
 function partsCamera(t) {
   const {m, h} = drive(t, 'shake'); if (!h || m < 0.002 || mix.shk === 'none') return {dx: 0, dy: 0, rot: 0};
   const i = into(h), age = t - h.tc, W9 = 2 * Math.PI * 9;
@@ -468,13 +473,13 @@ function partsCamera(t) {
 function ridePulse(t) {
   if (mix.hit !== 'parts' || mix.pulse !== 'ride' || mix.spl === 'none') return 0;
   const sp = drive(t, 'split'); if (!sp.h || sp.m < 0.002) return 0;
-  const a = 14 * (respOn() ? Math.min(CAP.split, RESP.split[mix.rsp ?? 'lin'](hitStrength(sp.h))) : AMP()) * sp.m * (mix.spl === 'half' ? SPLIT_MATCH.half : mix.spl === 'dir' ? SPLIT_MATCH.dir : 1);
+  const a = splitPx(sp.h) * sp.m * (mix.spl === 'half' ? SPLIT_MATCH.half : mix.spl === 'dir' ? SPLIT_MATCH.dir : 1);
   return a > 0.5 ? 2 * (Math.ceil(a) + 2) / W : 0;
 }
 function partsSplit(t, k, v) {
   const sp = drive(t, 'split');
   if (sp.h && sp.m > 0.002 && mix.spl !== 'none') {
-    const a = 14 * (respOn() ? Math.min(CAP.split, RESP.split[mix.rsp ?? 'lin'](hitStrength(sp.h))) : AMP()) * sp.m * k, i = into(sp.h);
+    const a = splitPx(sp.h) * sp.m * k, i = into(sp.h);
     keepTitle(k, true); lastSplit = null;
     if (mix.spl === 'today' && a > 0.5) channelSplit(a, 0);
     else if (mix.spl === 'blow' && a > 0.5) channelSplit(a * i.x, a * i.y);
@@ -488,7 +493,8 @@ function partsSplit(t, k, v) {
     else return;
     // the rider keeps half of its own clean image through the split (R4 "slightly less split", settled R6; it was lost when
     // the hits moved to parts in R9). The overlay still holds this frame's rider, drawn just before.
-    if (a > 0.5) {ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(overlay, 0, 0); ctx.restore();}
+    // through the same transform the rider was drawn with: today's shake rotates the frame, and an unrotated copy doubled the rider
+    if (a > 0.5) {ctx.save(); ctx.setTransform(...riderM); ctx.globalAlpha = 0.5; ctx.drawImage(overlay, 0, 0); ctx.restore();}
     keepTitle(k, false);
   }
 }
@@ -497,6 +503,9 @@ function partsSplit(t, k, v) {
 // title's area through a feathered mask. A smaller split, not a blend: blending two splits looked grey and doubled. The sun is
 // not touched (R19).
 const preCanvas = document.createElement('canvas'), maskCanvas = document.createElement('canvas'), smallCanvas = document.createElement('canvas');
+// The feathered title mask depends only on the frame size and the title's box, so its blur (the costliest step here) runs once per
+// title, not on every split frame
+const featherCanvas = document.createElement('canvas'); let featherKey = '';
 function keepTitle(k, before) {
   // R19: the title only. The sun keeps exactly what everything else gets ("the sun should not change at all"). The title gets
   // tsp of the split and tpl of the pulse: re-split with a smaller overscan, so the zoom moves it less.
@@ -507,10 +516,15 @@ function keepTitle(k, before) {
   if (!lastSplit) return;
   for (const c of [maskCanvas, smallCanvas]) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
   splitInto(smallCanvas.getContext('2d'), preCanvas, lastSplit.ox * keep, lastSplit.oy * keep, lastSplit.m > 0 ? Math.max(1, Math.round(lastSplit.m * tpl)) : 0, lastSplit.mode);
+  const key = `${w}x${h}|${k}|${titleBox.join(',')}`;
+  if (key !== featherKey) {
+    featherKey = key; if (featherCanvas.width !== w || featherCanvas.height !== h) {featherCanvas.width = w; featherCanvas.height = h;}
+    const f = featherCanvas.getContext('2d'); f.setTransform(1, 0, 0, 1, 0, 0); f.globalCompositeOperation = 'source-over'; f.clearRect(0, 0, w, h);
+    f.filter = `blur(${Math.round(14 * k)}px)`; f.fillStyle = '#000';
+    const [x, y, bw, bh] = titleBox; f.fillRect((x - 10) * k, (y - 10) * k, (bw + 20) * k, (bh + 20) * k); f.filter = 'none';
+  }
   const g = maskCanvas.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, w, h);
-  g.filter = `blur(${Math.round(14 * k)}px)`; g.fillStyle = '#000';
-  if ((mix.top === 'title' || mix.top === 'titleCut') && titleBox) {const [x, y, bw, bh] = titleBox; g.fillRect((x - 10) * k, (y - 10) * k, (bw + 20) * k, (bh + 20) * k);}
-  g.filter = 'none'; g.globalCompositeOperation = 'source-in'; g.drawImage(smallCanvas, 0, 0);
+  g.drawImage(featherCanvas, 0, 0); g.globalCompositeOperation = 'source-in'; g.drawImage(smallCanvas, 0, 0);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(maskCanvas, 0, 0); ctx.restore();
 }
 // Older flash gates (responses 'old', R8–R14). v1 shapes the flash with RESP.flash instead. 'rare' opened at 0.82 (about
@@ -566,7 +580,7 @@ function hitCamera(t) {
   }
   const A = acc(); let dx = 0, dy = 0;
   if (A.today || A.todayW) {
-    const m = A.todayW ? traumaW(t, 1.6, 7, 1.5) : trauma(t, {min: 0.22, gain: 1.6, decay: 7, power: 1.5}), w = 2 * Math.PI * 9;
+    const m = A.todayW ? traumaW(t, TODAY.shake) : trauma(t, TODAY.shake), w = 2 * Math.PI * 9;
     return {dx: 10 * m * Math.sin(w * t), dy: 10 * m * Math.sin(w * 1.37 * t + 1.7)};
   }
   for (const {h, age, e} of activeHits(t, 0.6)) {
@@ -597,9 +611,7 @@ const dropScheme = {}, schemeAt = t => {
 function themeAt(t) {
   const p = schemeAt(t), lit = bg => ({bg, ink: p.ink, pencil: p.pencil, dark: 0});
   if (mix.night === 'on' && S.night && t >= S.night[0] && t < S.night[1]) return {bg: p.nightPaper, ink: p.nightInk, pencil: mixHex(p.nightPaper, p.nightInk, 0.38), dark: 1};
-  if (mix.bg === 'porcelain') return lit(mixHex(p.paper, p.mass, 0.05));
   if (mix.bg === 'whisper') return lit(mixHex(p.paper, p.tone ?? p.mass, (p.tone ? 1 : 0.055) * intensityAt(t)));
-  if (mix.bg === 'late') return lit(mixHex(p.paper, p.tone ?? p.mass, (p.tone ? 1 : 0.055) * smoothstep((intensityAt(t) - 0.5) / 0.3)));
   if (mix.bg === 'xray') return lit(mixHex('#ffffff', '#ffb000', intensityAt(t)));
   return lit(p.paper);
 }
@@ -705,7 +717,7 @@ function smoothPath(pts) {
 const bandShift = () => ({low: 0, lowmid: -0.015 * H, mid: -0.03 * H, high: -0.07 * H}[mix.bandY] ?? 0);
 function drawSpectrum(t, form, alpha, th) {
   ctx.save(); ctx.translate(0, bandShift());
-  const gain = mix.bandBy === 'level' ? 0.7 + 0.42 * intensityAt(t) : 1, row = spectrumRow(t).map(v => Math.min(1, v * gain)), n = row.length, step = W / n, lit = c => th.dark ? mixHex(c, '#ffffff', 0.62 * th.dark) : c;
+  const row = spectrumRow(t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => th.dark ? mixHex(c, '#ffffff', 0.62 * th.dark) : c;
   ctx.globalAlpha = alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
   const third = i => Math.min(2, Math.floor(i / n * 3));
   const p = schemeAt(t), RED = p.accent, graphite = th.dark ? p.nightInk : p.mass;
@@ -770,8 +782,9 @@ function drawSpectrum(t, form, alpha, th) {
 }
 // Today's shipped accents, from scripts/fx_recipe.ts LOCKED_FX, keyed like production (overlay hit time).
 // today's trauma, but each hit contributes w² (its real strength, like every round-6 accent) instead of passing a threshold
-const traumaW = (t, gain, dec, pw) => {let x = 0; for (const h of S.hits) {if (h.tc > t) break; x += big(excess(forceE ?? h.I)) * gain * Math.exp(-(t - h.tc) * dec);} return Math.pow(Math.min(1, x), pw);};
-const trauma = (t, c) => {const fs = forceE === null ? null : 0.2 + 0.65 * Math.pow(forceE, 1 / 1.4); let x = 0; for (const h of S.hits) {if (h.t > t) break; const hs = fs ?? h.s; if (hs < c.min) continue; x += hs * c.gain * Math.exp(-(t - h.t) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
+// c is one part of TODAY (the numbers of scripts/fx_recipe.ts LOCKED_FX), so both 'today' paths read the recipe from one place
+const traumaW = (t, c) => {let x = 0; for (const h of S.hits) {if (h.tc > t) break; x += big(excess(forceE ?? h.I)) * c.gain * Math.exp(-(t - h.tc) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
+const trauma = (t, c) => {const fs = forceE === null ? null : strengthOf(forceE); let x = 0; for (const h of S.hits) {if (h.t > t) break; const hs = fs ?? h.s; if (hs < c.min) continue; x += hs * c.gain * Math.exp(-(t - h.t) * c.decay);} return Math.pow(Math.min(1, x), c.power);};
 const chan = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
 let lastSplit = null; // the last split of this frame: offset and overscan, so a region can be re-split smaller with the same framing
 // R18: the overscan m used to hide the split's edges also zooms the WHOLE picture by 2m px (about 3 % on a strong hit), so the
@@ -783,20 +796,20 @@ function channelSplit(ox, oy, mode = 'centre') {
 }
 function splitInto(g0, from, ox, oy, m, mode = 'centre') {
   // red one way, blue the other, green in place ('trail': red at d, green at d/2, blue in place); overscan m hides the edges
-  const [src, ...rgb] = chan, w = canvas.width, h = canvas.height;
-  for (const c of chan) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
-  src.getContext('2d').drawImage(from, 0, 0);
+  // the channels are built from `from` itself: it is opaque and untouched until g0 is cleared below, so no copy of it is needed
+  const [, ...rgb] = chan, w = canvas.width, h = canvas.height;
+  for (const c of rgb) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}
   if (m === 0) {
     // no overscan: each channel is shifted inside its own canvas over an unshifted copy, so the strip it uncovers at the edge keeps
     // the unshifted image; then the three are added in place, unscaled
     const off = mode === 'trail' ? [[ox, oy], [ox / 2, oy / 2], [0, 0]] : [[ox, oy], [0, 0], [-ox, -oy]];
-    ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0); g.drawImage(src, off[i][0], off[i][1]);
+    ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.drawImage(from, 0, 0); g.drawImage(from, off[i][0], off[i][1]);
       g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
     g0.setTransform(1, 0, 0, 1, 0, 0); g0.fillStyle = '#000'; g0.fillRect(0, 0, w, h); g0.globalCompositeOperation = 'lighter';
     for (const c of rgb) g0.drawImage(c, 0, 0);
     g0.globalCompositeOperation = 'source-over'; return;
   }
-  ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.globalCompositeOperation = 'source-over'; g.drawImage(src, 0, 0);
+  ['#ff0000', '#00ff00', '#0000ff'].forEach((col, i) => {const g = rgb[i].getContext('2d'); g.globalCompositeOperation = 'source-over'; g.drawImage(from, 0, 0);
     g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, w, h);});
   g0.setTransform(1, 0, 0, 1, 0, 0); g0.fillStyle = '#000'; g0.fillRect(0, 0, w, h); g0.globalCompositeOperation = 'lighter';
   const o = (c, dx, dy) => g0.drawImage(c, dx - m, dy - m * h / w, w + 2 * m, h + 2 * m * h / w);
@@ -816,9 +829,9 @@ function postAccents(t, k, v, ox, oy) {
   if (mix.hit === 'parts') return partsFlash(t, k, v);
   const A = acc();
   if (A.today || A.todayW) {
-    const split = 14 * (A.todayW ? traumaW(t, 2.0, 7, 1.4) : trauma(t, {min: 0.25, gain: 2.0, decay: 7, power: 1.4})) * k;
+    const split = 14 * (A.todayW ? traumaW(t, TODAY.split) : trauma(t, TODAY.split)) * k;
     if (split > 0.5) channelSplit(split, 0);
-    const flash = 0.3 * (A.todayW ? traumaW(t, 1.8, 12, 1) : trauma(t, {min: 0.3, gain: 1.8, decay: 12, power: 1}));
+    const flash = 0.3 * (A.todayW ? traumaW(t, TODAY.flash) : trauma(t, TODAY.flash));
     if (flash > 0.003) {ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = flash; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.globalAlpha = 1;}
     return;
   }
@@ -857,7 +870,8 @@ async function draw() {
   ctx.setTransform(R ? R.multiply(world) : world);
   drawLines(visibleLines(cc), at, cc.z, th);
   if (acc().ghost) drawGhosts(sheet, t, v, hc, k, th);
-  drawRider(sheet, riderCamera(vz, hc.dx, hc.dy, k), at, R ? [R.a, R.b, R.c, R.d, R.e, R.f] : undefined);
+  riderM = R ? [R.a, R.b, R.c, R.d, R.e, R.f] : [1, 0, 0, 1, 0, 0];
+  drawRider(sheet, riderCamera(vz, hc.dx, hc.dy, k), at, riderM);
   ctx.setTransform(k, 0, 0, k, 0, 0);
   // parts: split the ride, then lay the band over it unsplit, as production composites its overlay above the ride video
   if (parts) {partsSplit(t, k, v); ctx.setTransform(k, 0, 0, k, 0, 0); if (!splitAll && band > 0.003 && BANDS.includes(mix.music)) drawSpectrum(t, mix.music, band, th);}
@@ -892,13 +906,23 @@ let momentExtra = null, momentLabel = '';
 async function loadSong(key) {
   const id = ++loadId; song = key; S = null; loadedOld = ridesOld; status('Loading ' + SONGS[key] + (ridesOld ? ' (round-5 ride)' : '') + '…');
   const ck = key + (ridesOld ? ':old' : '');
-  // returns false when a newer load superseded this one, so callers stop instead of applying their now-stale state
-  if (cache.has(ck)) {const c = cache.get(ck); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return false; S = c;}
-  else {
-    const data = await (await fetch(`./${ridesOld ? 'data-r5' : 'data'}/${key}.json`)).json();
-    const [native] = await Promise.all([replay(data.track, data.trace), shot ? null : music.load(data.audio).catch(() => null)]);
-    if (id !== loadId) {if (!cache.has(ck)) cache.set(ck, prepare(data, native)); return false;}
-    S = prepare(data, native); cache.set(ck, S);
+  // returns false when a newer load superseded this one, or when it failed, so callers stop instead of applying their state
+  try {
+    if (cache.has(ck)) {const c = cache.get(ck); if (!shot) await music.load(c.audio).catch(() => null); if (id !== loadId) return false; S = c;}
+    else {
+      const res = await fetch(`./${ridesOld ? 'data-r5' : 'data'}/${key}.json`);
+      if (!res.ok) throw new Error(`no ${ridesOld ? 'round-5 ' : ''}ride data (HTTP ${res.status})`);
+      const data = await res.json();
+      // a newer load may have started while the data arrived: this song's music must not replace the newer song's
+      const stale = id !== loadId;
+      const [native] = await Promise.all([replay(data.track, data.trace), shot || stale ? null : music.load(data.audio).catch(() => null)]);
+      if (id !== loadId) {if (!cache.has(ck)) cache.set(ck, prepare(data, native)); return false;}
+      S = prepare(data, native); cache.set(ck, S);
+    }
+  } catch (e) {
+    // a failed load used to leave 'Loading…' on screen and no ride, with nothing to say why; the next tap retries (S is null)
+    if (id === loadId) {status(`Could not load ${SONGS[key]}: ${e.message}`); if (shot) window.__loadError = e.message;}
+    return false;
   }
   $('seek').max = S.duration; seconds = Math.min(seconds, S.duration);
   status(''); renderUI(); await draw();
@@ -945,14 +969,18 @@ function sync() {
   diff.length ? url.searchParams.set('m', diff.join(',')) : url.searchParams.delete('m');
   history.replaceState(null, '', url);
 }
+// A play waits for the audio context to resume (long on a phone's first tap); a newer play or a pause supersedes it, and a superseded
+// play must not touch the state afterwards (it used to reset the button to 'Play' over the newer play's music).
+let playTicket = 0;
 async function play() {
   if (!S) return; if (seconds >= S.duration - 0.05) seconds = 0;
+  const n = ++playTicket;
   $('play').textContent = 'Pause'; $('play').classList.add('on');
-  try {await music.play(seconds, 1); playing = music.playing;} catch {playing = false;}
+  try {await music.play(seconds, 1); if (n !== playTicket) return; playing = music.playing;} catch {if (n !== playTicket) return; playing = false;}
   if (!playing) {$('play').textContent = 'Play'; $('play').classList.remove('on');}
 }
-function pause() {if (playing) seconds = music.pause(); else music.pause(); playing = false; $('play').textContent = 'Play'; $('play').classList.remove('on'); sync();}
-function seek(t) {const resume = playing; if (resume) pause(); seconds = clamp(t, 0, S?.duration ?? 0); draw(); sync(); if (resume) play();}
+function pause() {playTicket++; if (playing) seconds = music.pause(); else music.pause(); playing = false; $('play').textContent = 'Play'; $('play').classList.remove('on'); sync();}
+function seek(t) {const resume = playing || music.requested; if (resume) pause(); seconds = clamp(t, 0, S?.duration ?? 0); draw(); sync(); if (resume) play();}
 function qStart(question) {
   if (typeof question.t === 'number') return question.t;
   if (question.t === 'strongest') {const big = S.hits.reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.tc - 1.6);}
@@ -975,7 +1003,9 @@ async function goQuestion(i, restore = null) {
   if (restore && restore.opt > 0 && restore.opt < Q.opts.length) qopt = restore.opt;
   applyOption(); ridesOld = Q.rides === 'old';
   renderQuestion();
-  if ((song !== Q.song || ridesOld !== loadedOld) && !await loadSong(Q.song)) return;
+  // !S: `song` names the song being loaded before its ride is ready, so a second tap during a load must load again (it used to
+  // carry on with no ride, seek to 0 and drop the moment)
+  if ((song !== Q.song || ridesOld !== loadedOld || !S) && !await loadSong(Q.song)) return;
   if (nav !== navId) return; // the viewer moved on while this question's song loaded
   setBench(!!Q.bench); // after the load: the bench's histogram is the NEW song's hits
   loop = loopHome = qStart(Q); loopLen = Q.len ?? 4; $('loop').classList.add('on'); $('loop').textContent = `Loop ${loopLen} s`; seek(loop); renderQuestion(); draw();
@@ -986,7 +1016,7 @@ async function goMoment(j) {
   const was = playing; pause(); ridesOld = rides === 'old'; momentExtra = extra ?? null; qmoment = j;
   momentLabel = extra || rides === 'old' ? label : '';
   applyOption(); renderQuestion();
-  if (((sg ?? Q.song) !== song || ridesOld !== loadedOld) && !await loadSong(sg ?? Q.song)) return;
+  if (((sg ?? Q.song) !== song || ridesOld !== loadedOld || !S) && !await loadSong(sg ?? Q.song)) return;
   if (nav !== navId) return;
   loop = loopHome = at === 'end' ? Math.max(0, S.duration - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
   $('loop').classList.add('on'); seek(loop); renderQuestion(); draw(); if (was) play();
@@ -1056,8 +1086,9 @@ function chip(label, on, click, cls = 'chip') {const b = document.createElement(
 function renderUI() {
   if (shot || feelmode) return;
   if (qmode) return renderQuestion();
-  $('moments').replaceChildren(...moments().map(([label, at]) => chip(label, false, () => {if (loop !== null) loop = at; seek(at);}, 'moment')));
-  const songs = $('songs'); songs.replaceChildren(...Object.entries(SONGS).map(([k, v]) => chip(v, k === song, () => {if (k !== song) {pause(); loadSong(k);}}, 'song')));
+  // during a load there is no ride to find moments in (choosing a look then used to throw here and leave the panel stale)
+  $('moments').replaceChildren(...(S ? moments() : []).map(([label, at]) => chip(label, false, () => {if (loop !== null) loop = at; seek(at);}, 'moment')));
+  const songs = $('songs'); songs.replaceChildren(...Object.entries(SONGS).map(([k, v]) => chip(v, k === song, () => {if (k !== song || !S) {pause(); loadSong(k);}}, 'song')));
   const pres = $('presets'); pres.replaceChildren(...PRESETS.map((p, i) => chip(`${i + 1} · ${p.name}`, p === preset, () => choosePreset(p))));
   const custom = Object.keys(mix).some(d => mix[d] !== preset.mix[d]);
   $('concept').textContent = preset.name + (custom ? ' · adjusted' : '') + (shakeX !== 1 ? ` · shake ×${shakeX.toFixed(1)} (?shakeX)` : ''); $('line').textContent = preset.line;
@@ -1075,10 +1106,12 @@ function fit() {
   const w = shot ? W : Math.round(box.width * r), h = shot ? H : Math.round(box.height * r);
   if (canvas.width !== w || canvas.height !== h) {canvas.width = w; canvas.height = h; draw();}
 }
+// a loop that would run past the song's end wraps at the end (it used to stop there, and the next Play started from 0:00)
+const loopEnd = () => Math.min(loop + loopLen, S.duration);
 function tick(ts) {
-  if (slowmo && slowRun && S) {seconds += (ts - lastTs) / 1000 * 0.25; if (loop !== null && seconds >= loop + loopLen) seconds = loop; draw(); $('seek').value = seconds;}
+  if (slowmo && slowRun && S) {seconds += (ts - lastTs) / 1000 * 0.25; if (loop !== null && seconds >= loopEnd()) seconds = loop; draw(); $('seek').value = seconds;}
   lastTs = ts;
-  if (playing && S) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loop + loopLen) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= S.duration) {pause(); seconds = S.duration;} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(S.duration);}
+  if (playing && S) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loopEnd()) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= S.duration) {pause(); seconds = S.duration;} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(S.duration);}
   requestAnimationFrame(tick);
 }
 function cycleOption(dir) {const o = QUESTIONS[qi]?.opts; if (o) setOption((qopt + dir + o.length) % o.length);}
@@ -1086,7 +1119,8 @@ if (shot) document.body.classList.add('shot');
 else {
   // one toggle for the button, Space and a tap on the picture: in the bench's slow motion Space and taps used to start the music at
   // full speed on top of the slow clock
-  const togglePlay = () => {if (slowmo) {slowRun = !slowRun; $('play').textContent = slowRun ? 'Pause' : 'Play'; return;} playing ? pause() : play();};
+  // a play still waiting for the audio context counts as playing: the second tap pauses it instead of starting it again
+  const togglePlay = () => {if (slowmo) {slowRun = !slowRun; $('play').textContent = slowRun ? 'Pause' : 'Play'; return;} playing || music.requested ? pause() : play();};
   $('play').onclick = togglePlay;
   $('seek').oninput = () => seek(+$('seek').value);
   $('back').onclick = () => seek(seconds - 5); $('fwd').onclick = () => seek(seconds + 5);
@@ -1177,10 +1211,15 @@ async function runFeel() {
     pick.forEach(b => b.classList.toggle('on', !done && got[id] === b.dataset.v)); if (!done) $('feelnote').value = notes[id] ?? '';
     if (done) $('feelsummary').value = 'Blind pairs: ' + pairs.map(p => `${p.id}:${got[p.id] ?? '-'}`).join(' ') + pairs.filter(p => notes[p.id]).map(p => `\n${p.id}: ${notes[p.id]}`).join('');
   };
-  const stop = () => {run++; if (playing) pause(); flag.hidden = true; $('feelplay').textContent = 'Play A, then B';};
+  // pause() even when nothing plays yet: it also cancels a play still waiting for the audio context, which used to start anyway
+  // and run the song on behind the next pair
+  const stop = () => {run++; pause(); flag.hidden = true; $('feelplay').textContent = 'Play A, then B';};
   const clip = async (c, name, me) => {
-    if (song !== c.song || !S) await loadSong(c.song); if (me !== run) return; flag.textContent = name; flag.hidden = false; seconds = c.t; await draw();
-    await music.play(c.t, 1); playing = music.playing; if (!playing) throw new Error('Sound did not start. Tap again.');
+    if (song !== c.song || !S) await loadSong(c.song); if (me !== run) return;
+    if (!S) throw new Error('This passage did not load. Tap again.');
+    flag.textContent = name; flag.hidden = false; seconds = c.t; await draw();
+    await music.play(c.t, 1); if (me !== run) return; // superseded by a newer tap: not a failure to report
+    playing = music.playing; if (!playing) throw new Error('Sound did not start. Tap again.');
     await new Promise(res => {const end = c.t + 5, f = () => {if (seconds >= end || !playing || me !== run) {res(); return;} requestAnimationFrame(f);}; f();});
     if (me === run) {pause(); flag.hidden = true;}
   };
@@ -1199,9 +1238,10 @@ if (feelmode) {song = 'los'; mix = {...base, ends: 'none', bg: 'white', hit: 'no
 else if (qmode) {
   song = QUESTIONS[Math.min(qi, QUESTIONS.length - 1)].song;
   const restore = {opt: LETTERS.indexOf(q.get('opt') ?? 'A'), mo: (+q.get('mo') || 0) - 1};
-  loadSong(song).then(() => goQuestion(qi, restore)).catch(e => status('Could not load: ' + e.message));
+  // false: a navigation during this first load superseded it and set up its own question (or the load failed and says so)
+  loadSong(song).then(ok => {if (ok) return goQuestion(qi, restore);}).catch(e => status('Could not load: ' + e.message));
 }
 else loadSong(song).catch(e => status('Could not load: ' + e.message));
 // Read-only state for uicheck.mjs: lets the interaction suite assert what is drawn, not just that nothing threw.
-window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, song, loaded: S?.key ?? null, ridesOld, loadedOld,
+window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, preset: preset.id, song, loaded: S?.key ?? null, ridesOld, loadedOld,
   loop, loopLen, seconds, playing, slowmo, slowRun, forceE, shakeX, scheme: S ? schemeAt(seconds) : null});

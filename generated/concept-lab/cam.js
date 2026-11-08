@@ -32,8 +32,9 @@ function filtfilt(arr, tau) {
 }
 const diff = (p, f) => {const a = p[Math.max(0, f - 1)], b = p[Math.min(p.length - 1, f + 1)], k = Math.min(p.length - 1, f + 1) - Math.max(0, f - 1) || 1;
   return {x: (b.x - a.x) / k * FPS, y: (b.y - a.y) / k * FPS};};
-/** The shared, absolute strength curve: the same for every song, no ranks. */
-export const strength = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4);
+/** The shared, absolute strength curve (intensity.js): one definition, so hit sizes and the intensity metric cannot disagree. */
+import {strength} from './intensity.js';
+export {strength};
 
 /** Per-ride signals shared by every camera. hits need {t, s, tc?}. */
 export function rideSignals(centres, contacts, hits, phases, duration) {
@@ -244,7 +245,7 @@ export const TIDES = {
     return Float64Array.from({length: n}, (_, f) => -0.12 * Math.min(smoothstep((f - a0 + R) / R), smoothstep((a1 + R - f) / R)));
   },
   // no motion at all: each song gets the zoom that gives it the same on-screen speed
-  fit(Rs) {const v = pct(Rs.vel.map(p => p.x), 0.5); return new Float64Array(Rs.n).fill(Math.log(360 / v));},
+  fit(Rs) {const v = pct(Rs.vel.map(p => p.x), 0.5); return new Float64Array(Rs.n).fill(v > 0 ? Math.log(360 / v) : 0);}, // a ride not moving right: steady, not a NaN zoom
 };
 const SMOOTH = new Set(['quietI', 'breath']);
 /** Placement + tide: the round-3 camera. */

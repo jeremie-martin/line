@@ -22,7 +22,7 @@ Start at `morning.html` (served by `npm run serve`):
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |
 | `LEDGER.md` | Every piece by layer, with its status and the owner's words. Verdicts are filed per piece, never per look. |
 | `clarify.html` | The clarification round before round 6. Answers in `agents/clarify-answers-r6.md`. |
-| `?q=1` | Six questions. Stored in localStorage as `concept-lab-answers-r19`. `uicheck.mjs` (82 interaction checks, on a frozen question set via `?qtest=1`) must pass before a round goes out; `qcheck.mjs` walks the live questions. `splitmeasure.mjs` measures visible split fringe per option; `SPLIT_MATCH` holds the fitted factors; `BG_STUDY` the paper variants. Hits are built by parts (`hit: 'parts'`, `shk`, `spl`, `fls`, `drv`) with today's recipe as the reference. |
+| `?q=1` | The current round's questions (round 21: four). Stored in localStorage as `concept-lab-answers-r21` (`STORE` in `lab.js`). `uicheck.mjs` (82 interaction checks, on a frozen question set via `?qtest=1`) must pass before a round goes out; `qcheck.mjs` walks the live questions. `splitmeasure.mjs` measures visible split fringe per option; `SPLIT_MATCH` (`lab.js`) holds the fitted factors; `BG_STUDY` (`palettes.js`) the paper variants. Hits are built by parts (`hit: 'parts'`, `shk`, `spl`, `fls`, `drv`) with today's recipe as the reference. |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab. |
 

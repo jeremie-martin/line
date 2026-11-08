@@ -142,7 +142,7 @@ The lab's own checks are separate (A).
 | What | Size | What it is |
 |---|---|---|
 | `generated/style-lab`, `-v2` … `-v5`, `style-study`, `style-review`, `video-workflow-audit` | about 2 GB | The Codex-era style labs: check scripts, pages, about 280 films. `style-lab-v5` holds the "Today (shipped)" films linked from rounds 1–6 |
-| `generated/concept-lab/` (ignored parts) | about 6 GB | `data/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`, `analysis/pos-*.json`; all regenerable |
+| `generated/concept-lab/` (ignored parts) | about 6 GB | `data/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`; all regenerable. (The nine `analysis/pos-*.json` camera dumps, about 3 MB, are regenerable with `camdump.mjs` but tracked: the lab's `.gitignore` covers only `agents/review-r6/pos-*.json`.) |
 | `generated/motion-gallery-renderer/` | – | Build output (D) |
 | Repository root: `2026-11-02-video-post-processing-dashboard-rethink.md`, `2026-11-02-style-post-processing-context.md` | – | The owner's conversation exports (rounds 1–6 and earlier context) |
 | Claude's memory notes, this session's transcript | – | Outside the repository |

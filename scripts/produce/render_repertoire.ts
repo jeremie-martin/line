@@ -20,5 +20,8 @@ for(const source of sources){
  if(!pending().some((c:any)=>previous.cells.some((p:any)=>p.caseId===c.caseId&&p.method===c.method&&p.trackHash===c.trackHash&&existsSync(join(source,p.id+'.video.json')))))continue;
  execFileSync(process.execPath,['scripts/produce/reuse_musical_direction_videos.ts',`--study=${out}`,`--from=${source}`],{stdio:'inherit'});
 }
-execFileSync(process.execPath,['scripts/produce/render_musical_direction.ts',`--study=${out}`,
- `--ids=${manifest.cells.filter((c:any)=>c.valid).map((c:any)=>c.id).join(',')}`],{stdio:'inherit'});
+// A study with no valid ride ('Incomplete' in the library index) has nothing to render; passing an empty --ids used to fail
+// render_musical_direction's argument check and count the entry as a failed render job.
+const valid=manifest.cells.filter((c:any)=>c.valid).map((c:any)=>c.id);
+if(valid.length)execFileSync(process.execPath,['scripts/produce/render_musical_direction.ts',`--study=${out}`,`--ids=${valid.join(',')}`],{stdio:'inherit'});
+else console.log('no valid rides to render');

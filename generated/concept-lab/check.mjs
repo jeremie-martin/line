@@ -17,7 +17,8 @@ try {
     console.log((await p.locator('#presets button').nth(i).textContent()).padEnd(18), 'median', gaps[60].toFixed(1), 'ms  p95', gaps[114].toFixed(1), 'ms  time', await p.locator('#time').textContent());
   }
   await p.locator('#mixtoggle').click();
-  console.log('overflow', await p.evaluate(() => document.documentElement.scrollWidth > innerWidth));
+  const overflow = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth);
+  console.log('overflow', overflow); if (overflow) errors.push('horizontal overflow at 390 px'); // a layout break must fail the check, not only print
   await p.screenshot({path: 'generated/concept-lab/phone.png', fullPage: true});
 } finally {await b.close();}
 if (errors.length) {console.error(errors); process.exit(1);}

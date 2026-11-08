@@ -30,7 +30,11 @@ for(const cell of manifest.cells){
   if(!source)continue;
   const {record:original,cell:sourceCell,sourceRoot}=source;
   const trackSha256=hash(join(root,cell.trackPath)),reportSha256=hash(join(root,cell.reportPath));
-  if(original.identity.impactSha256)assert.equal(hash(join(root,cell.id,'contact-impacts.json')),original.identity.impactSha256);
+  // Both ways: a video rendered without the impact account is not this cell's video when the cell has one (that direction used to
+  // pass), and a source with an account is not reusable for a cell without it. Like an older pipeline, a mismatch is an ineligible
+  // source, not a failure.
+  const impact=join(root,cell.id,'contact-impacts.json');
+  if((existsSync(impact)?hash(impact):undefined)!==original.identity.impactSha256)continue;
   assert.equal(trackSha256,original.identity.trackSha256);assert.equal(reportSha256,original.identity.reportSha256);
   const {seed:_sourceSeed,...sourceMetrics}=sourceCell.metrics,{seed:_targetSeed,...targetMetrics}=cell.metrics;
   assert.deepEqual(sourceMetrics,targetMetrics);

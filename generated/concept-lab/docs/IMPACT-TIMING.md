@@ -62,7 +62,13 @@ move to knob 1, to put the chosen alignment where it belongs, by design rather t
   is the principled version, and the heaviest: it changes what the search optimises, needs the usual paired comparisons, and the
   peak is less predictable than the onset.
 
-## Proposed exploration (for round 22, by ear)
+## Direction (owner, 8 November)
+
+Decide analytically, not by a sweep: shift the music (and with it the rider's aim) so that, on average, the beat falls on the most
+forceful frame, with the offset derived from the measured distribution above, possibly per song or per ride. Everything defined,
+and the reason known. Still open: whether the effects follow each hit's own peak or the beat.
+
+## Earlier proposal (kept for reference): exploration by ear
 
 Same rides, same songs, picture and sound now in sync. Vary one knob at a time:
 

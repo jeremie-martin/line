@@ -42,8 +42,8 @@ const TEST_QUESTIONS = [
 ];
 
 // A round of theme candidates (candidates.json): their schemes join the palettes in this page's memory only, so versions not yet in
-// the code can be compared live. Round 29: two improvements from round 28, its four unanswered drafts and ten new ones, each
-// in its visibly different versions; a grade per version.
+// the code can be compared live. Round 29: two improvements from round 28, its four unanswered drafts, twenty new ones (references,
+// a generator, colour tools: docs/COLOUR-TOOLS.md) and the tools' raw output, each in its visibly different versions; a grade per version.
 const CANDIDATES = await fetch('./candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
 if (CANDIDATES) {Object.assign(SCHEMES, CANDIDATES.schemes); Object.assign(DROP_SCHEMES, CANDIDATES.drops);}
 const DRAFT_MOMENTS = [['Verse, 18 s', 18], ['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Later, 59.5 s', 59.5]];

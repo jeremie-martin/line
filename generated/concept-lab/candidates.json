@@ -460,6 +460,279 @@
    "sun": "#4b54c2",
    "nightPaper": "#090f0e",
    "nightInk": "#f2f6f5"
+  },
+  "hctVioletPetrol_asis": {
+   "paper": "#f9f2f3",
+   "ink": "#252023",
+   "pencil": "#b0afaf",
+   "mass": "#00545b",
+   "accent": "#a262b5",
+   "sun": "#a262b5",
+   "nightPaper": "#1d151b",
+   "nightInk": "#f9f2f3"
+  },
+  "hctVioletPetrol_wada": {
+   "paper": "#eeebdd",
+   "ink": "#252023",
+   "pencil": "#b0afaf",
+   "mass": "#18485a",
+   "accent": "#83613f",
+   "sun": "#71502f",
+   "nightPaper": "#1d151b",
+   "nightInk": "#f9f2f3"
+  },
+  "hctViridianSienna_asis": {
+   "paper": "#f0f5f2",
+   "ink": "#202222",
+   "pencil": "#b1b0af",
+   "mass": "#89410c",
+   "accent": "#00976f",
+   "sun": "#00976f",
+   "nightPaper": "#101917",
+   "nightInk": "#f0f5f2"
+  },
+  "hctViridianSienna_asisDrop": {
+   "paper": "#101917",
+   "ink": "#e2e4e2",
+   "pencil": "#474645",
+   "mass": "#b35c21",
+   "accent": "#34bf91",
+   "sun": "#34bf91",
+   "nightPaper": "#101917",
+   "nightInk": "#e2e4e2"
+  },
+  "hctViridianSienna_wada": {
+   "paper": "#eeebdd",
+   "ink": "#202222",
+   "pencil": "#b1b0af",
+   "mass": "#6b7140",
+   "accent": "#70a56e",
+   "sun": "#437742",
+   "nightPaper": "#101917",
+   "nightInk": "#f0f5f2"
+  },
+  "hctViridianSienna_wadaDrop": {
+   "paper": "#0d1417",
+   "ink": "#e2e4e2",
+   "pencil": "#474645",
+   "mass": "#bb7125",
+   "accent": "#78cdd0",
+   "sun": "#78cdd0",
+   "nightPaper": "#101917",
+   "nightInk": "#e2e4e2"
+  },
+  "hctAmberPurple_asis": {
+   "paper": "#f9f3ec",
+   "ink": "#24211d",
+   "pencil": "#b1afae",
+   "mass": "#5d3976",
+   "accent": "#e39a1b",
+   "sun": "#e39a1b",
+   "nightPaper": "#1c170c",
+   "nightInk": "#f9f3ec"
+  },
+  "hctAmberPurple_wada": {
+   "paper": "#eeebdd",
+   "ink": "#24211d",
+   "pencil": "#b1afae",
+   "mass": "#064f6e",
+   "accent": "#f99d1b",
+   "sun": "#f99d1b",
+   "nightPaper": "#1c170c",
+   "nightInk": "#f9f3ec"
+  },
+  "hctMadderOlive_asis": {
+   "paper": "#201514",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#7d9343",
+   "accent": "#c34268",
+   "sun": "#c34268",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctMadderOlive_wada": {
+   "paper": "#1c172c",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#837e31",
+   "accent": "#f275a7",
+   "sun": "#b73f74",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctMadderOlive_tuned": {
+   "paper": "#201514",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#7d9343",
+   "accent": "#ff81a3",
+   "sun": "#c34268",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctCeruleanBronze_asis": {
+   "paper": "#0f191f",
+   "ink": "#e3e4e6",
+   "pencil": "#474646",
+   "mass": "#a26100",
+   "accent": "#399dcd",
+   "sun": "#399dcd",
+   "nightPaper": "#0f191f",
+   "nightInk": "#e3e4e6"
+  },
+  "hctCeruleanBronze_wada": {
+   "paper": "#0d1417",
+   "ink": "#e3e4e6",
+   "pencil": "#474646",
+   "mass": "#bb7125",
+   "accent": "#78cdd0",
+   "sun": "#78cdd0",
+   "nightPaper": "#0f191f",
+   "nightInk": "#e3e4e6"
+  },
+  "mlGiltRedLead_asis": {
+   "paper": "#2e2a1b",
+   "ink": "#f3edd9",
+   "pencil": "#5e5b51",
+   "mass": "#9cb5be",
+   "accent": "#d65f1c",
+   "nightPaper": "#2e2a1b",
+   "nightInk": "#f3edd9"
+  },
+  "mlGiltRedLead_wada": {
+   "paper": "#253122",
+   "ink": "#f3edd9",
+   "pencil": "#5e5b51",
+   "mass": "#86cad8",
+   "accent": "#f15a30",
+   "nightPaper": "#2e2a1b",
+   "nightInk": "#f3edd9"
+  },
+  "mlBuffLapis_asis": {
+   "paper": "#ebe1cb",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#6fa3a0",
+   "accent": "#5446ae",
+   "sun": "#5446ae",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlBuffLapis_wada": {
+   "paper": "#cddfe0",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#005752",
+   "accent": "#7562b5",
+   "sun": "#6450a1",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlBuffLapis_tuned": {
+   "paper": "#ebe1cc",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#085a57",
+   "accent": "#6e63ce",
+   "sun": "#5446ae",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlChromeMadder_asis": {
+   "paper": "#e3e8ef",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#c8911a",
+   "accent": "#b0341f",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlChromeMadder_wada": {
+   "paper": "#dfd5c0",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#544300",
+   "accent": "#da525d",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlChromeMadder_tuned": {
+   "paper": "#e3e8ef",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#784500",
+   "accent": "#c94c36",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlRoseGreyJade_asis": {
+   "paper": "#efe3e1",
+   "ink": "#1b2a31",
+   "pencil": "#aeaaa8",
+   "mass": "#355a6b",
+   "accent": "#1aae78",
+   "nightPaper": "#1b2a31",
+   "nightInk": "#efe3e1"
+  },
+  "mlRoseGreyJade_wada": {
+   "paper": "#eeebdd",
+   "ink": "#1b2a31",
+   "pencil": "#aeaaa8",
+   "mass": "#007190",
+   "accent": "#2ba1a7",
+   "nightPaper": "#1b2a31",
+   "nightInk": "#efe3e1"
+  },
+  "mlForestGold_asis": {
+   "paper": "#1f3229",
+   "ink": "#f3ead6",
+   "pencil": "#56605a",
+   "mass": "#b9786a",
+   "accent": "#e0ab2c",
+   "sun": "#e0ab2c",
+   "nightPaper": "#1f3229",
+   "nightInk": "#f3ead6"
+  },
+  "mlForestGold_wada": {
+   "paper": "#112f2c",
+   "ink": "#f3ead6",
+   "pencil": "#56605a",
+   "mass": "#da525d",
+   "accent": "#e2b540",
+   "sun": "#e2b540",
+   "nightPaper": "#1f3229",
+   "nightInk": "#f3ead6"
+  },
+  "rawMaterial": {
+   "paper": "#fff8f6",
+   "ink": "#261815",
+   "pencil": "#e2beb8",
+   "mass": "#b12814",
+   "accent": "#00638e",
+   "sun": "#007db2",
+   "nightPaper": "#1d100d",
+   "nightInk": "#f8ddd8"
+  },
+  "rawHuemint": {
+   "paper": "#f5efda",
+   "ink": "#000507",
+   "pencil": "#98968a",
+   "mass": "#0c1994",
+   "accent": "#cf6019",
+   "sun": "#ff1a0b",
+   "nightPaper": "#000507",
+   "nightInk": "#f5efda"
+  },
+  "rawColormind": {
+   "paper": "#e3d0ac",
+   "ink": "#45636f",
+   "pencil": "#a7a795",
+   "mass": "#666252",
+   "accent": "#5f569c",
+   "nightPaper": "#45636f",
+   "nightInk": "#e3d0ac",
+   "sun": "#a1b3a6"
   }
  },
  "drops": {
@@ -470,7 +743,9 @@
   "vertigo_asis": "vertigo_asisDrop",
   "vertigo_wada": "vertigo_wadaDrop",
   "theoryCoralandGreen_asis": "theoryCoralandGreen_asisDrop",
-  "theoryCoralandGreen_wada": "theoryCoralandGreen_wadaDrop"
+  "theoryCoralandGreen_wada": "theoryCoralandGreen_wadaDrop",
+  "hctViridianSienna_asis": "hctViridianSienna_asisDrop",
+  "hctViridianSienna_wada": "hctViridianSienna_wadaDrop"
  },
  "drafts": [
   {
@@ -951,6 +1226,316 @@
       "drop": "off"
      },
      "note": "The electric violet brought down to a pigment (#4b54c2)."
+    }
+   ]
+  },
+  {
+   "id": "hctVioletPetrol",
+   "name": "Violet and Petrol",
+   "line": "A rose-white page, petrol-teal bars, a cobalt-violet bar and sun; Night at the drop.",
+   "source": "Tools: Google\u2019s Material Color Utilities proposed the hue pairing, Adobe Leonardo set the contrasts, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "hctVioletPetrol_asis",
+      "band": "bars",
+      "top": "sun",
+      "drop": "night"
+     },
+     "note": "As the designer drew it."
+    }
+   ]
+  },
+  {
+   "id": "hctViridianSienna",
+   "name": "Viridian and Sienna",
+   "line": "A green-white page, burnt-sienna bars, a viridian bar and sun; at the drop the page goes green-black, the bars lighter.",
+   "source": "Tools: Google\u2019s Material Color Utilities proposed the hue pairing, Adobe Leonardo set the contrasts, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "hctViridianSienna_asis",
+      "band": "bars",
+      "top": "sun",
+      "drop": "switch"
+     },
+     "note": "As the designer drew it."
+    }
+   ]
+  },
+  {
+   "id": "hctAmberPurple",
+   "name": "Amber and Purple",
+   "line": "A warm white page, deep purple bars, Dune\u2019s amber in a bar and the sun; Night at the drop.",
+   "source": "Tools: Google\u2019s Material Color Utilities proposed the hue pairing, Adobe Leonardo set the contrasts, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "hctAmberPurple_asis",
+      "band": "bars",
+      "top": "sun",
+      "drop": "night"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 151",
+     "look": {
+      "scheme": "hctAmberPurple_wada",
+      "band": "bars",
+      "top": "sun",
+      "drop": "night"
+     },
+     "note": "Nearest combination in the book: paper Sulpher Yellow, mass Vandar Poel's Blue, accent Yellow Orange."
+    }
+   ]
+  },
+  {
+   "id": "hctMadderOlive",
+   "name": "Madder and Olive",
+   "line": "A brown-black page, olive bars, a madder-rose bar and sun, all ink.",
+   "source": "Tools: Google\u2019s Material Color Utilities proposed the hue pairing, Adobe Leonardo set the contrasts, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "hctMadderOlive_asis",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 277",
+     "look": {
+      "scheme": "hctMadderOlive_wada",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "Nearest combination in the book: paper Dull Violet Black, mass Olive, accent Rosolanc Purple."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "hctMadderOlive_tuned",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "hctCeruleanBronze",
+   "name": "Cerulean and Bronze",
+   "line": "A blue-black page, bronze bars, a cerulean bar and sun, all ink, plain paper.",
+   "source": "Tools: Google\u2019s Material Color Utilities proposed the hue pairing, Adobe Leonardo set the contrasts, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "hctCeruleanBronze_asis",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain"
+     },
+     "note": "As the designer drew it."
+    }
+   ]
+  },
+  {
+   "id": "mlGiltRedLead",
+   "name": "Gilt and Red Lead",
+   "line": "An illuminated initial: dark gilt-olive page, grey-blue bars, one red-lead bar, the title in vellum.",
+   "source": "Tools: colours sampled from a public-domain artwork (clustered in OKLab), Colormind for some fills, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "mlGiltRedLead_asis",
+      "band": "bars",
+      "line": "ink",
+      "top": "title"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 303",
+     "look": {
+      "scheme": "mlGiltRedLead_wada",
+      "band": "bars",
+      "line": "ink",
+      "top": "title"
+     },
+     "note": "Nearest combination in the book: paper Deep Slate Olive, mass Neutral Gray, accent Peach Red."
+    }
+   ]
+  },
+  {
+   "id": "mlBuffLapis",
+   "name": "Buff and Lapis",
+   "line": "A Persian page: buff paper, celadon bars, a lapis bar and a lapis sun.",
+   "source": "Tools: colours sampled from a public-domain artwork (clustered in OKLab), Colormind for some fills, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "mlBuffLapis_asis",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 345",
+     "look": {
+      "scheme": "mlBuffLapis_wada",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "Nearest combination in the book: paper Nile Blue, mass Venice Green, accent Blue Violet."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "mlBuffLapis_tuned",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "mlChromeMadder",
+   "name": "Chrome Yellow and Madder",
+   "line": "Van Gogh\u2019s bedroom: a pale wall-blue page, chrome-yellow bars, one madder-red bar; Night turns the page Prussian, the line and bars pale chrome.",
+   "source": "Tools: colours sampled from a public-domain artwork (clustered in OKLab), Colormind for some fills, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "mlChromeMadder_asis",
+      "band": "bars",
+      "drop": "night"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 262",
+     "look": {
+      "scheme": "mlChromeMadder_wada",
+      "band": "bars",
+      "drop": "night"
+     },
+     "note": "Nearest combination in the book: paper Ivory Buff, mass Citrine, accent Eugenia Red | B."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "mlChromeMadder_tuned",
+      "band": "bars",
+      "drop": "night"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "mlRoseGreyJade",
+   "name": "Rose Grey and Jade",
+   "line": "Matisse\u2019s aquarium: a rose-grey page, blue-slate bars, one jade bar; Night at the drop.",
+   "source": "Tools: colours sampled from a public-domain artwork (clustered in OKLab), Colormind for some fills, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "mlRoseGreyJade_asis",
+      "band": "bars",
+      "drop": "night"
+     },
+     "note": "As the designer drew it."
+    }
+   ]
+  },
+  {
+   "id": "mlForestGold",
+   "name": "Forest Green and Gold",
+   "line": "Gauguin\u2019s forest: deep green page, terracotta-pink bars, a gold bar and a gold sun, all ink.",
+   "source": "Tools: colours sampled from a public-domain artwork (clustered in OKLab), Colormind for some fills, then edited by eye",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "mlForestGold_asis",
+      "band": "bars",
+      "line": "ink",
+      "top": "sun"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 325",
+     "look": {
+      "scheme": "mlForestGold_wada",
+      "band": "bars",
+      "line": "ink",
+      "top": "sun"
+     },
+     "note": "Nearest combination in the book: paper Deep Slate Green, mass Eugenia Red | B, accent Yellow Ocher."
+    }
+   ]
+  },
+  {
+   "id": "rawtools",
+   "name": "The tools, raw",
+   "source": "Three colour tools as they come, with no editing",
+   "line": "For you to see what the tools give before any taste is applied; the drafts above all needed editing by eye.",
+   "variants": [
+    {
+     "label": "Material Color Utilities",
+     "look": {
+      "band": "bars",
+      "top": "sun",
+      "scheme": "rawMaterial"
+     },
+     "note": "Google\u2019s engine (Fidelity) seeded with Hokusai\u2019s vermilion; its roles mapped as designed."
+    },
+    {
+     "label": "Huemint",
+     "look": {
+      "band": "bars",
+      "top": "sun",
+      "scheme": "rawHuemint",
+      "line": "inking"
+     },
+     "note": "Its transformer model, given the roles and the illuminated initial\u2019s colours."
+    },
+    {
+     "label": "Colormind",
+     "look": {
+      "band": "bars",
+      "top": "sun",
+      "scheme": "rawColormind",
+      "line": "inking"
+     },
+     "note": "Its default model (trained on films and art), given the Persian page\u2019s colours."
+    },
+    {
+     "label": "Buff and Lapis, finished",
+     "look": {
+      "band": "bars",
+      "top": "sun",
+      "scheme": "mlBuffLapis_asis"
+     },
+     "note": "The same Persian page, sampled and edited by eye: the finished draft."
     }
    ]
   }

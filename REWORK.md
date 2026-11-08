@@ -1,5 +1,31 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: step back on the policy archive, what it is worth
+
+- **Why.** The owner does not want a 50–100 MB archive that grows git
+  history with every retrain. A learned proposal source should be a few
+  kilobytes, built on an understanding of which features drive it. The
+  pooled archive stays off main; no archive is committed until this is
+  understood.
+- **What the archive is.** 79,778 demonstrations (the committed controls of
+  fulfilled sections on 838 training compiles). Two lookups read them for
+  each catch after the first: 16 policy proposals (neighbours under 32
+  proximity trees) and 16 memory proposals (plain feature distance, plus
+  what the compile itself commits). Every proposal is simulated and ranked;
+  the archive only suggests.
+- **First measurements** (V7.1, 4 seeds, against main 9d065738):
+  1. **No archive.** Neither lookup reads demonstrations; their slots go to
+     generic samples. Memory still learns within the compile. On October 4
+     this was "slightly worse"; three retrains since gained +15.5, +8.3 and
+     +2.0. **Hypothesis:** a clear loss, −15 to −40.
+  2. **Memory lookup only** (no policy proposals) and
+  3. **Policy lookup only** (memory starts empty). Both read the same
+     demonstrations. **Hypothesis:** each keeps most of the worth, because
+     they are redundant.
+- **Offline, alongside:** which of the 57 situation features predict the
+  committed controls, and how much of the controls' spread a handful of
+  prototypes per construction group covers.
+
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 
 - **Question.** Did the pooled policies gain because of the doubled

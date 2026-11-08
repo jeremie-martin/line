@@ -186,6 +186,27 @@ point.
   - Even with the archive, a ride's drawn arcs are closer to each other
     (0.87) than to other songs' arcs. In shape terms there is some
     within-ride repetition everywhere; the archive reduces it.
+- **First look by the owner's eye** (Catch Sheet page: every catch of 8
+  rides, seed 101, main line and guides, three versions under shuffled
+  letters).
+  - "The differences are a bit subtle … maybe they're not so bad." The
+    owner was unsure in each case.
+  - Preferred, revealed afterwards:
+    - amour de ma vie 108 s: the archive;
+    - tiki tiki: the compact network;
+    - luna bala: the compact network.
+  - Never the no-archive version. Two of the three picks are the version
+    with the fewest catches in the computer's lookalike groups.
+  - Three unsure picks are not evidence for a measure. They do say the
+    variety differences between the three versions are small to the eye.
+- **The owner's position on the trade-off** (not a decision, "we are not
+  there yet").
+  - A drop of about 20 points (say 780 against 800) is significant but not
+    the end of the world. A drop of 70 is unacceptable.
+  - It could be worth taking if the result is much simpler: more linear,
+    not a black box, something that makes sense and can be improved in the
+    near future.
+  - First: more measurement, characterization and understanding.
 - **Open.** The shape descriptor is a choice (directions along the line,
   size apart), not a validated one. Before any of this is shown to the
   owner, step 3 renders nearest pairs and clusters, so the eye can check

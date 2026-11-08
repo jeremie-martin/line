@@ -1,6 +1,6 @@
 # Timing: how a ride meets its song (design proposal, v3)
 
-*8 November 2026. Agreed design; stages 1 and 2 are implemented (below), stages 3 and 4 are not. It settles what the system is and why; details are settled
+*8 November 2026. Agreed design; stages 1 and 2 are implemented, stage 3 is with the owner (round 23), stage 4 is not. It settles what the system is and why; details are settled
 while coding, and the finished code is reviewed against it. Reviewed through three rounds (an independent analysis, adversarial
 reviews and a from-scratch design study by Codex); the last round found the design sound, with one ordering fix, applied.
 Measurements: `IMPACT-TIMING.md`.*
@@ -123,6 +123,11 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    The round begins by recompiling the lab's rides at the same jolt: identical tracks, now with beats, so aligned. The lab
    shows each ride both ways, the saved one (as compiled, as the owner knows it) and the recompiled one: the same ride, only the
    timing differs. (The no-mixing rule is for blind studies, not for this deliberate comparison.)
+   **Begun (8 November):** the lab's rides are the recompiled ones (aligned, 24.3 to 33.4 ms); the as-compiled set is the same
+   rides with their beats withheld, byte-identical to the lab before (all 8 scenes, all 116 fingerprint frames). A lab option can
+   name its ride set, so the four timings switch in place: A as compiled at touch, then aligned at touch, at the strongest frame,
+   on the beat. Round 23 asks it on whole films of three songs and in the lab. Relative to the beat, the effects sit at about
+   −7 ms (A), −31 to −41 ms (B), 0 ± 16–26 ms per hit (C) and 0 (D). The owner's answer sets `effectsAt` in v1.
 4. **Jolt 0** (compiler): the declared comparison; rides recompiled; offsets adapt by themselves (about 14 ms instead of 29).
 
 ## Out of scope

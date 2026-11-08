@@ -1,4 +1,4 @@
-// Interaction suite for the concept lab: question mode, old rides, free lab and blind test, at phone size
+// Interaction suite for the concept lab: question mode, ride sets, free lab and blind test, at phone size
 // (390×844, touch, .tap()) and desktop. It asserts STATE (what is selected, stored, drawn, where things are), not just "no errors".
 // Usage (with the lab served on :8770): /usr/bin/node generated/concept-lab/uicheck.mjs   Exit code 1 on any failed check.
 import {chromium} from 'playwright';
@@ -148,10 +148,10 @@ try {
     await tap(p, '#qpick button', 1); await tap(p, '#qpick button', 2);
     await tap(p, '#qnext'); await settled(p);
     await tap(p, '#qpick button', 3); // None of these
-    for (let i = 3; i <= 6; i++) {await tap(p, '#qnext'); await settled(p);} // to 4, 5, 6, then done
+    for (let i = 3; i <= 7; i++) {await tap(p, '#qnext'); await settled(p);} // to 4, 5, 6, 7, then done
     await p.waitForFunction(() => !document.getElementById('qsummary').hidden);
     const lines = (await p.locator('#qsummary').inputValue()).split('\n');
-    check(lines.length === 6, 'summary has one line per question', String(lines.length));
+    check(lines.length === 7, 'summary has one line per question', String(lines.length));
     check(lines[0] === '1. The band, compared fairly → D · None — band note', 'option "None" reads as D · None, with the note', lines[0]);
     check(lines[1] === '2. What at the top of the frame? → B · A sun, a little higher + C · The title', 'multi picks listed exactly', lines[1]);
     check(lines[2] === '3. The line → None of these', '"None of these" spelled out', lines[2]);
@@ -183,7 +183,7 @@ try {
     await settled(p); await p.waitForTimeout(1500); s = await st(p);
     check(s.qi === 3 && s.song === 'lua' && s.loaded === 'lua' && Math.abs(s.loop - 36.5) < 1e-6 && s.loopLen === 6 && s.mix.scheme === 'kraft',
       'Next, Next: question 4 with its ride, loop and option', JSON.stringify({qi: s.qi, song: s.song, loaded: s.loaded, loop: s.loop, len: s.loopLen, scheme: s.mix.scheme}));
-    check((await p.locator('#qprogress').textContent()).startsWith('Question 4 of 6 · Lua'), 'progress line matches', await p.locator('#qprogress').textContent());
+    check((await p.locator('#qprogress').textContent()).startsWith('Question 4 of 7 · Lua'), 'progress line matches', await p.locator('#qprogress').textContent());
     // option switching while a moment loads: the option survives and the override is added on arrival
     await tap(p, '#qprev'); await settled(p); await tap(p, '#qprev'); await settled(p); // question 2
     await tap(p, '#moments button', 1); await tap(p, '#presets button', 2); // Tomada (loads), then option C during the load
@@ -198,10 +198,28 @@ try {
     const p = await open('?qtest=1&q=3');
     await settled(p);
     await tap(p, '#moments button', 3); await settled(p); let s = await st(p);
-    check(s.ridesOld && s.loadedOld && s.loaded === 'los' && Math.abs(s.loop - 10) < 1e-6, 'the old-rides moment loads the round-5 ride', JSON.stringify({old: s.ridesOld, loadedOld: s.loadedOld, loaded: s.loaded, loop: s.loop}));
+    check(s.rides === 'old' && s.drawnRides === 'old' && s.loaded === 'los' && Math.abs(s.loop - 10) < 1e-6, 'the old-rides moment loads the round-5 ride', JSON.stringify({rides: s.rides, drawn: s.drawnRides, loaded: s.loaded, loop: s.loop}));
     check((await p.locator('#optflag').textContent()).endsWith('· Los Voltaje 10 s, round 5'), 'the picture label says it is the round-5 ride', await p.locator('#optflag').textContent());
     await tap(p, '#moments button', 0); await settled(p); s = await st(p);
-    check(!s.ridesOld && !s.loadedOld && s.loaded === 'tomada', 'the next moment returns to the current ride', JSON.stringify({old: s.ridesOld, loaded: s.loaded}));
+    check(s.rides === '' && s.drawnRides === '' && s.loaded === 'tomada', 'the next moment returns to the current ride', JSON.stringify({rides: s.rides, loaded: s.loaded}));
+    await p.context().close();
+  });
+
+  // ── 4b. an option on another ride set: switched in place, at the same moment, playing on ─────────────────────
+  await run('Question mode: an option on another ride set', async () => {
+    const p = await open('?qtest=1&q=7');
+    await settled(p); let s = await st(p);
+    check(s.drawnRides === '' && s.loaded === 'lua', 'the question opens on the lab’s rides', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
+    await tap(p, '#play'); await p.waitForFunction(() => window.__labState().playing, null, {timeout: 10000});
+    await tap(p, '#presets button', 1);
+    await p.waitForFunction(() => window.__labState().drawnRides === 'compiled', null, {timeout: 30000}); s = await st(p);
+    check(s.playing && s.seconds >= 36.5 && s.seconds < 41.6, 'B switches to the as-compiled ride at the same moment, still playing', JSON.stringify({playing: s.playing, seconds: s.seconds}));
+    await tap(p, '#moments button', 1); await settled(p); s = await st(p);
+    check(s.drawnRides === 'old' && s.loaded === 'los', 'a moment’s ride set wins over the option’s', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
+    await tap(p, '#moments button', 0); await settled(p); s = await st(p);
+    check(s.drawnRides === 'compiled' && s.loaded === 'lua', 'the next moment returns to the option’s ride set', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
+    await tap(p, '#presets button', 0); await p.waitForFunction(() => window.__labState().drawnRides === '', null, {timeout: 30000});
+    check(true, 'A returns to the lab’s rides');
     await p.context().close();
   });
 

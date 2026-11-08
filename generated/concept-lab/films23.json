@@ -1,0 +1,122 @@
+{
+ "title": "Round 23 · when the hits happen",
+ "description": "Whole songs, the same ride in four timings. Switch at the same moment, with sound. The phone itself plays picture and sound together here, as it will on YouTube.",
+ "groups": [
+  {
+   "id": "timing",
+   "label": "Four timings",
+   "description": "Only the timing varies.",
+   "variants": [
+    "a",
+    "b",
+    "c",
+    "d"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "a",
+     "label": "A · Today",
+     "description": "As compiled; effects from each first touch.",
+     "src": "films23/petrunko-a.mp4"
+    },
+    {
+     "id": "b",
+     "label": "B · Aligned, at the touch",
+     "description": "Effects about 35 ms before the beat.",
+     "src": "films23/petrunko-b.mp4"
+    },
+    {
+     "id": "c",
+     "label": "C · Aligned, at the strongest frame",
+     "description": "Effects on the beat on average.",
+     "src": "films23/petrunko-c.mp4"
+    },
+    {
+     "id": "d",
+     "label": "D · Aligned, on the beat",
+     "description": "Effects exactly on each beat.",
+     "src": "films23/petrunko-d.mp4"
+    }
+   ]
+  },
+  {
+   "id": "tomada",
+   "label": "Montagem Tomada (super slowed)",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "a",
+     "label": "A · Today",
+     "description": "As compiled; effects from each first touch.",
+     "src": "films23/tomada-a.mp4"
+    },
+    {
+     "id": "b",
+     "label": "B · Aligned, at the touch",
+     "description": "Effects about 35 ms before the beat.",
+     "src": "films23/tomada-b.mp4"
+    },
+    {
+     "id": "c",
+     "label": "C · Aligned, at the strongest frame",
+     "description": "Effects on the beat on average.",
+     "src": "films23/tomada-c.mp4"
+    },
+    {
+     "id": "d",
+     "label": "D · Aligned, on the beat",
+     "description": "Effects exactly on each beat.",
+     "src": "films23/tomada-d.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "a",
+     "label": "A · Today",
+     "description": "As compiled; effects from each first touch.",
+     "src": "films23/los-a.mp4"
+    },
+    {
+     "id": "b",
+     "label": "B · Aligned, at the touch",
+     "description": "Effects about 35 ms before the beat.",
+     "src": "films23/los-b.mp4"
+    },
+    {
+     "id": "c",
+     "label": "C · Aligned, at the strongest frame",
+     "description": "Effects on the beat on average.",
+     "src": "films23/los-c.mp4"
+    },
+    {
+     "id": "d",
+     "label": "D · Aligned, on the beat",
+     "description": "Effects exactly on each beat.",
+     "src": "films23/los-d.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Round 23",
+   "href": "/generated/concept-lab/round23.html"
+  },
+  {
+   "label": "The question",
+   "href": "/generated/concept-lab/?q=1"
+  }
+ ]
+}

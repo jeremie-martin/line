@@ -1,6 +1,7 @@
 // Rendering fingerprint: sha1 of 116 lab frames across the looks, every option, the themes and the old rides. A refactor
-// must leave the picture byte-identical: run it before and after, then diff the two files.
-//   /usr/bin/node generated/concept-lab/fingerprint.mjs OUT.txt [port]   (needs the lab served on 127.0.0.1:8770, or port)
+// must leave the picture byte-identical: run it before and after, then diff the two files. A ride set (rides.js) draws every case
+// that names none from that set, labelled as usual, so the two files still diff line by line.
+//   /usr/bin/node generated/concept-lab/fingerprint.mjs OUT.txt [port] [rides]   (needs the lab served on 127.0.0.1:8770, or port)
 import {chromium} from 'playwright';
 import {writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
@@ -20,10 +21,10 @@ export const CASES = [
   ['los', 'swatch', '', [10, 28.9], 'old'],
 ];
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [out, port = '8770'] = process.argv.slice(2), b = await chromium.launch({args: ['--mute-audio']}), lines = [];
+  const [out, port = '8770', all = ''] = process.argv.slice(2), b = await chromium.launch({args: ['--mute-audio']}), lines = [];
   for (const [song, c, m, ts, rides] of CASES) {
-    const p = await b.newPage({viewport: {width: 1080, height: 1920}});
-    await p.goto(`http://127.0.0.1:${port}/generated/concept-lab/?shot=1&song=${song}&c=${c}&t=0${m ? '&m=' + m : ''}${rides ? '&rides=' + rides : ''}`);
+    const p = await b.newPage({viewport: {width: 1080, height: 1920}}), set = rides ?? all;
+    await p.goto(`http://127.0.0.1:${port}/generated/concept-lab/?shot=1&song=${song}&c=${c}&t=0${m ? '&m=' + m : ''}${set ? '&rides=' + set : ''}`);
     await p.waitForFunction(() => window.__ready === true || !!window.__loadError, null, {timeout: 90000});
     const state = await p.evaluate(() => ({error: window.__loadError, preset: window.__labState().preset}));
     if (state.error || state.preset !== c) throw new Error(`${song} ${c}: ${state.error ?? 'no such look'}`);

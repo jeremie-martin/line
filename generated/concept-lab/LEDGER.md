@@ -147,7 +147,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 3. ~~Whether all dark palettes should be inked~~ (R21): yes, all ink.
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).
 5. Zoom per song, and the direction layer: how looks are chosen, hints, variety (R5–R6).
-6. Timing between music and contacts: what should land on the beat (first touch, onset or peak) and the jolt, explored by ear in round 22 (owner, 8 November; `docs/IMPACT-TIMING.md`, with the measurements). Until 8 November every finished video's sound was 42.7 ms late and its picture 16.7 ms late, so the June choice was heard through that; the lab and the videos are now on one clock (REWORK.md, November 8).
+6. Timing between music and contacts (`docs/TIMING-DESIGN.md`): the lab's rides are aligned since 8 November (24–33 ms); where the effects start (touch, strongest frame or beat) is asked in round 23, on whole films. Earlier: what should land on the beat and the jolt, explored by ear in round 22 (owner, 8 November; `docs/IMPACT-TIMING.md`, with the measurements). Until 8 November every finished video's sound was 42.7 ms late and its picture 16.7 ms late, so the June choice was heard through that; the lab and the videos are now on one clock (REWORK.md, November 8).
 7. Whole films of v1: not watched since R6. All judgements since have been on loops.
 8. Since 8 November, any look can ship: `npm run video -- --study=DIR --look=THEME` draws exactly what the lab shows. Nothing has been published in the v1 look yet.
 

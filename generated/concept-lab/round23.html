@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round twenty-three</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--surface:#fcfcfb}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--surface:#1a1a19}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:14px;font-weight:600;margin-bottom:2px}
+figure p{font-size:13px;color:var(--soft);margin:0 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--soft);margin:0 0 4px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+svg{display:block;width:100%;height:auto;touch-action:pan-y}
+svg text{font:12px system-ui,sans-serif;fill:var(--soft)}
+#tip{font-size:13px;color:var(--soft);min-height:1.5em;margin:4px 0 0;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;font-size:14px;width:100%;font-variant-numeric:tabular-nums;margin:6px 0}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--soft);font-weight:500}
+</style>
+</head>
+<body><main>
+<p class="kicker">Round twenty-three · 8 November</p>
+<h1>When do the hits happen?</h1>
+<p class="lead">The lab’s rides now know their beats, so each is shown about 30 ms earlier: its strongest frames meet the beats on average. One question is left: where the shake, split and flash start.</p>
+
+<a class="card primary" href="/motion-gallery/video-compare.html?collection=/generated/concept-lab/films23.json"><span class="go">→</span><b>Four timings, whole songs</b><span>Petrunko, Tomada and Los Voltaje, each in A–D. Switch at the same moment, with sound. Judge here: the phone keeps picture and sound together.</span></a>
+<a class="card" href="./?q=1"><span class="go">→</span><b>The question</b><span>The same four on chosen moments, switched live, and your pick. Over Bluetooth the lab’s sound can be late: trust the films.</span></a>
+
+<h2>The four</h2>
+<table>
+<tr><th></th><th>The effects</th><th>The ride’s strongest frames</th></tr>
+<tr><td><strong>A · Today</strong></td><td>about 7 ms before the beat</td><td>about 30 ms after it</td></tr>
+<tr><td><strong>B · Aligned, at the touch</strong></td><td>about 35 ms before</td><td>on the beat, on average</td></tr>
+<tr><td><strong>C · Aligned, at the strongest frame</strong></td><td>on the beat, on average (each within about a frame)</td><td>on the beat, on average</td></tr>
+<tr><td><strong>D · Aligned, on the beat</strong></td><td>exactly on the beat</td><td>on the beat, on average</td></tr>
+</table>
+<p class="small">Only the timing varies: the same ride, the same v1 effects. These differences are near the limit of what people notice; “I can’t tell” is a real answer.</p>
+
+<h2>My suggestion</h2>
+<p><strong>C.</strong> The effects then start when the rider actually strikes, and those strikes now land on the beats on average. D is tidier on paper, but a flash can come up to a frame away from the strike it belongs to. If C and D look the same to you, C.</p>
+
+<h2>Since round 22</h2>
+<ul>
+<li><strong>A is exactly what you have been watching:</strong> the same frames, byte for byte.</li>
+<li><strong>The rides are the same:</strong> recompiled, they gave identical tracks; they now also record the beats the spec asks for.</li>
+<li><strong>Layout A stays</strong>, as you chose.</li>
+</ul>
+
+<p class="small"><a href="morning.html">All rounds</a> · <a href="round22.html">Round 22</a> · <a href="./">Free lab</a></p>
+</main></body></html>

@@ -43,13 +43,14 @@ wherever it lives. Line counts are as of today.*
 
 | File | Lines | Role |
 |---|---|---|
-| `lab.js` | 400 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
+| `lab.js` | 407 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
 | `presets.js` | 8 | The lab's looks: Swatch, Plain, the themes |
+| `rides.js` | 16 | The ride sets by name (the lab's rides, the same as compiled, the round 1–5 rides) and where their scenes live |
 | `index.html`, `lab.css` | 158 | Page and style |
 
 **Tools:** `prepare.mjs` (scenes, through `scene.ts`), `recompile.sh` (rides), `film.mjs` and `films7.sh` (films, through
 `write.ts`), `fourup.sh` and `grid12.sh` (compositions, in the standard), `shoot.mjs` and `strip.mjs` (stills),
-`uicheck.mjs` (64 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames).
+`uicheck.mjs` (69 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
 
 **Studies, kept for their findings:** `intensity/`, `timing/`, `analysis/`. **Not for code review:** `agents/` (helper reports
 and data), the round pages.
@@ -69,7 +70,7 @@ and data), the round pages.
 |---|---|
 | `generated/renderer/` | The bundle (A) |
 | `generated/spectrum/` | Cached spectra, one per recording |
-| `generated/concept-lab/` (ignored parts) | `data/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`; all regenerable |
+| `generated/concept-lab/` (ignored parts) | `data/`, `data-compiled/`, `data-r5/`, `data-r19/`, `rides*/`, `films*/`, `fourup/`; all regenerable |
 | `generated/style-lab*`, `style-study`, `style-review`, `video-workflow-audit` | The Codex-era style labs and their films (rounds 1–6 linked some); their code was deleted on 8 November |
 | Repository root: `2026-11-02-*.md` | The owner's conversation exports (rounds 1–6 and earlier context) |
 

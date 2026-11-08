@@ -7,9 +7,12 @@ production video renderer itself (`scripts/video/`): what the owner approves her
 - A lab film is written by the production writer (`film.mjs`), so a film of a look is that look.
 - The lab is tracked on the `visual-lab` branch.
 
-The rides are **recompiled with the current compiler** (`recompile.sh` writes `rides/`, same songs and seeds); `prepare.mjs`
-builds their scenes into `data/` with the production scene builder. `prepare.mjs --old` builds `data-r5/` from the round 1–5
-rides, which `?rides=old` (or a question moment marked `old`) plays.
+The rides are **recompiled with the current compiler** (`recompile.sh` writes `rides/`, same songs and seeds; last on 8 November,
+identical tracks, now with their authored beats, so aligned); `prepare.mjs` builds their scenes into `data/` with the production
+scene builder. The other ride sets (`rides.js`): `prepare.mjs --as-compiled` builds `data-compiled/`, the same rides drawn as
+compiled (byte-identical to the lab before 8 November), and `--old` builds `data-r5/` from the round 1–5 rides. `?rides=NAME`
+plays a set; in a question, a moment, an option or the question can name one (a moment's wins), and switching options between
+sets keeps the moment and the music.
 
 Start at `morning.html`. One server serves the lab, the review pages and their APIs, and builds the renderer bundle as it starts:
 `HOST=0.0.0.0 PORT=8770 npm run serve` (the lab's tools expect port 8770; the owner reviews at `http://10.77.77.1:8770/generated/concept-lab/morning.html`).
@@ -84,11 +87,11 @@ reliably (`night.py`), so each song's drop is placed by hand (`scripts/video/dro
 ## Files
 
 - **Data:** `recompile.sh` (rides), `prepare.mjs` (scenes).
-- **Films and stills:** `film.mjs` (`song=`, `c=` a look, `m=` options, `from=`, `to=`, `rides=old`, `width=`) writes through the
+- **Films and stills:** `film.mjs` (`song=`, `c=` a look, `m=` options, `from=`, `to=`, `rides=compiled|old`, `width=`) writes through the
   production writer; `films7.sh` writes the round-20 themes. `fourup.sh` and `grid12.sh` assemble films.
   `shoot.mjs` and `strip.mjs` capture stills and frame strips from the lab's shot mode.
 - **Checks:**
-  - `uicheck.mjs`: 64 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
+  - `uicheck.mjs`: 69 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
   - `qcheck.mjs`: walks the live questions. `check.mjs`: phone size.
   - `fingerprint.mjs`: 116 frames hashed (`analysis/fingerprint-baseline.txt`). Run it before and after a refactor and require
     identical outputs.

@@ -6,10 +6,11 @@ import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {OPTIONS, V1, resolveLook} from '/scripts/video/look.js';
 import {PRESETS} from './presets.js';
+import {rideSet} from './rides.js';
 
 const SONGS = {circus: 'Circus Minimus', petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
 const noEnds = {...V1, ends: 'none'};
-// Each option: [label, look, note shown when tapped].
+// Each option: [label, look, note shown when tapped, ride set (rides.js) when not the question's].
 // A frozen set of questions, used only by uicheck.mjs (?qtest=1): the interaction suite tests the machinery (multi picks, a label
 // with a comma, moment overrides, old rides) without depending on whatever the current round asks.
 const TEST_QUESTIONS = [
@@ -34,17 +35,22 @@ const TEST_QUESTIONS = [
       ['As designed', {...noEnds, band: 'bars', scheme: s}, 'The original paper.'],
       ...[0, 1, 2].map(i => [`Variant ${i + 1}`, {...noEnds, band: 'bars', scheme: `${s}~${i}`}, 'Only the paper changes.'])],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]})),
+  {id: 'timing', ask: 'An option on another ride set', why: 'Varies: only the timing.', song: 'lua', t: 36.5, len: 5, opts: [
+      ['Aligned', {...noEnds, band: 'bars'}, 'The lab’s rides.'],
+      ['As compiled', {...noEnds, band: 'bars'}, 'The same ride as compiled.', 'compiled']],
+    moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
 const QUESTIONS = [
-  {id: 'layout', ask: 'The layout as a whole', why: 'Your idea from round 21: instead of moving one element at a time, a few complete layouts, each seen with and without a sun. The changes are small on purpose. Varies: the rider’s height, the band’s height and, in D, the sun’s. The moments switch the sun on and off; “Shorts UI” shows where YouTube’s buttons and captions sit. Keep any number.',
-    song: 'circus', t: 18, len: 6, multi: true, opts: [
-      ['As now', {...noEnds, band: 'bars', riderLower: '0', bandHeight: 'lowmid', sunLift: '16'}, 'The rider as today; the band low-middle. With a sun: the rider 32 px lower, the sun 16 px higher (your round-21 choice).'],
-      ['The rider a touch lower', {...noEnds, band: 'bars', riderLower: '8', bandHeight: 'lowmid', sunLift: '16'}, 'The rider 8 px lower; the band as now.'],
-      ['Rider and band lower', {...noEnds, band: 'bars', riderLower: '8', bandHeight: 'low', sunLift: '16'}, 'The rider 8 px lower; the band at “low”, 29 px lower.'],
-      ['More room, more air', {...noEnds, band: 'bars', riderLower: '16', bandHeight: 'low', sunLift: '32'}, 'The rider 16 px lower; the band at “low”; with a sun, the sun 32 px higher.']],
-    moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['With a sun · Hokusai', 18, 'circus', {scheme: 'hokusai', top: 'sun'}],
-      ['With a sun · Celadon, the hook', 43, 'circus', {scheme: 'w2Celadon', top: 'sun'}], ['With the title', 18, 'circus', {top: 'title'}]]},
+  {id: 'timing', ask: 'When do the hits happen?',
+    why: 'The ride is now shown about 30 ms earlier, so that its strongest frames meet the beats on average (round 22). This asks where the shake, split and flash should start. The differences are 20 to 40 ms: watch the films with sound, and “I can’t tell” (in the note) is a useful answer. Here you can switch at the same moment (not over Bluetooth). Varies: only the timing.',
+    song: 'petrunko', t: 33.5, len: 6, opts: [
+      ['Today', {...noEnds, band: 'bars', effectsAt: 'touch'}, 'What you have been watching: the ride as compiled, the effects from each first touch. The strongest frames come about 30 ms after the beats.', 'compiled'],
+      ['Aligned, effects at the touch', {...noEnds, band: 'bars', effectsAt: 'touch'}, 'The ride aligned; the effects still start at each first touch, now about 35 ms before the beat.'],
+      ['Aligned, effects at the strongest frame', {...noEnds, band: 'bars', effectsAt: 'peak'}, 'The ride aligned; each hit’s effects start at its strongest frame: on the beat on average, within a frame either way.'],
+      ['Aligned, effects on the beat', {...noEnds, band: 'bars', effectsAt: 'beat'}, 'The ride aligned; the effects start exactly on each authored beat, whatever the ride does.']],
+    moments: [['Petrunko 34 s', 33.5], ['Tomada 56 s, the strongest hit', 55.4, 'tomada'], ['Los Voltaje 28 s, the dive', 28.5, 'los'],
+      ['Batidão 44 s', 43.6, 'batidao'], ['Coma 51 s', 50, 'coma']]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
@@ -70,7 +76,7 @@ let qi = Math.max(0, Math.min(QUESTIONS.length, (parseInt(q.get('q'), 10) || 1) 
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r22';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r23';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -80,30 +86,39 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // ── loading ────────────────────────────────────────────────────────────────
 // A song's scene and native replay are kept; its picture is made when the song is shown (its offscreen canvases are large).
 const cache = new Map();
-// ?rides=old (or a question moment marked 'old') plays the round 1–5 rides; the cache keeps both
-let ridesOld = q.get('rides') === 'old', loadedOld = null;
+// The ride set on screen (rides.js; '' the lab's rides): ?rides=NAME in the free lab; in a question, the moment's set, else the
+// option's, else the question's. The cache keeps every set it has loaded.
+let rides = q.get('rides') ?? '', loadedRides = null, momentRides = null, loadedAudio = null;
 // a moment can carry an override (for example 'On Dune'); it stays while the viewer switches options, until another moment
 let momentExtra = null, momentLabel = '';
 async function loadSong(key) {
-  const id = ++loadId; song = key; P = null; loadedOld = ridesOld; status('Loading ' + SONGS[key] + (ridesOld ? ' (round-5 ride)' : '') + '…');
-  const ck = key + (ridesOld ? ':old' : '');
+  // another ride set of the song on screen (the same ride timed differently): the current picture keeps drawing, and the music
+  // playing, until the other is ready, so options can be switched mid-play
+  const id = ++loadId, set = rides, switching = key === song && !!P;
+  song = key; loadedRides = set; if (!switching) P = null;
   // returns false when a newer load superseded this one, or when it failed, so callers stop instead of applying their state
   try {
+    const {dir, label} = rideSet(set), ck = key + ':' + set;
+    if (!switching) status('Loading ' + SONGS[key] + (label ? ` (${label})` : '') + '…');
     let entry = cache.get(ck);
     if (!entry) {
-      const res = await fetch(`./${ridesOld ? 'data-r5' : 'data'}/${key}.json`);
-      if (!res.ok) throw new Error(`no ${ridesOld ? 'round-5 ' : ''}ride data (HTTP ${res.status})`);
+      const res = await fetch(`./${dir}/${key}.json`);
+      if (!res.ok) throw new Error(`no ${label ? label + ' ' : ''}ride data (HTTP ${res.status})`);
       const scene = await res.json();
       entry = {scene, replay: N.replay(scene.track, scene.trace)}; cache.set(ck, entry);
       entry.replay.catch(() => cache.delete(ck)); // a failed replay is retried on the next tap
     }
     if (id !== loadId) return false; // a newer load began meanwhile: this song's music must not replace the newer song's
-    const [replay, sheet] = await Promise.all([entry.replay, sheetPromise, shot ? null : music.load('/' + entry.scene.audio).catch(() => null)]);
+    // the recording already loaded keeps playing; another is decoded (a failed decode leaves the ride to scrub, silent)
+    const audio = '/' + entry.scene.audio;
+    let decoding = null;
+    if (!shot && audio !== loadedAudio) {loadedAudio = null; decoding = music.load(audio).then(ok => {if (ok) loadedAudio = audio;}).catch(() => null);}
+    const [replay, sheet] = await Promise.all([entry.replay, sheetPromise, decoding]);
     if (id !== loadId) return false;
-    P = {...createPicture(canvas, entry.scene, replay, sheet, N.riderPainter()), key, scene: entry.scene};
+    P = {...createPicture(canvas, entry.scene, replay, sheet, N.riderPainter()), key, rides: set, scene: entry.scene};
   } catch (e) {
     // a failed load leaves no ride and says why; the next tap retries (P is null)
-    if (id === loadId) {status(`Could not load ${SONGS[key]}: ${e.message}`); if (shot) window.__loadError = e.message;}
+    if (id === loadId) {P = null; status(`Could not load ${SONGS[key]}: ${e.message}`); if (shot) window.__loadError = e.message;}
     return false;
   }
   $('seek').max = P.span[1]; seconds = Math.min(seconds, P.span[1]);
@@ -113,7 +128,7 @@ async function loadSong(key) {
   return true;
 }
 // a look the ride cannot be drawn in (effects on the beat without recorded beats) says so instead of drawing something else
-function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix);} catch (e) {status(e.message); if (shot) throw e;}}
+function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix);} catch (e) {status(e.message); if (shot) {window.__loadError = e.message; throw e;}}}
 function moments() {
   // the quietest and the densest section (hits per second), the middle section change, the strongest hit, the ends
   const hits = P.effectTimes(mix), sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
@@ -168,28 +183,30 @@ function qStart(question) {
 }
 // What is drawn in question mode is ALWAYS the chosen option plus the chosen moment's override, built in this one place.
 function applyOption() {const Q = QUESTIONS[qi]; if (Q?.opts) mix = resolveLook(null, {...Q.opts[qopt][1], ...(momentExtra ?? {})});}
-function setOption(i) {qopt = i; applyOption(); renderQuestion(); draw();}
+function questionRides() {const Q = QUESTIONS[qi]; return momentRides ?? Q.opts[qopt][3] ?? Q.rides ?? '';}
+// an option on another ride set switches to it at the same time, playing on
+function setOption(i) {qopt = i; applyOption(); renderQuestion(); draw(); rides = questionRides(); if (rides !== loadedRides) loadSong(song);}
 async function goQuestion(i, restore = null) {
   const nav = ++navId;
-  pause(); qi = i; qopt = 0; momentExtra = null; momentLabel = ''; qmoment = null; scrollTo(0, 0);
+  pause(); qi = i; qopt = 0; momentExtra = null; momentRides = null; momentLabel = ''; qmoment = null; scrollTo(0, 0);
   $('qcopy').textContent = 'Copy answers';
   if (qi >= QUESTIONS.length) {renderQuestion(); return;}
   const Q = QUESTIONS[qi];
   if (restore && restore.opt > 0 && restore.opt < Q.opts.length) qopt = restore.opt;
-  applyOption(); ridesOld = Q.rides === 'old';
+  applyOption(); rides = questionRides();
   renderQuestion();
   // !P: `song` names the song being loaded before its ride is ready, so a second tap during a load must load again
-  if ((song !== Q.song || ridesOld !== loadedOld || !P) && !await loadSong(Q.song)) return;
+  if ((song !== Q.song || rides !== loadedRides || !P) && !await loadSong(Q.song)) return;
   if (nav !== navId) return; // the viewer moved on while this question's song loaded
   loop = loopHome = qStart(Q); loopLen = Q.len ?? 4; $('loop').classList.add('on'); $('loop').textContent = `Loop ${loopLen} s`; seek(loop); renderQuestion(); draw();
   if (restore && Q.moments?.[restore.mo]) await goMoment(restore.mo);
 }
 async function goMoment(j) {
-  const Q = QUESTIONS[qi], [label, at, sg, extra, rides] = Q.moments[j], nav = ++navId;
-  const was = playing; pause(); ridesOld = rides === 'old'; momentExtra = extra ?? null; qmoment = j;
-  momentLabel = extra || rides === 'old' ? label : '';
-  applyOption(); renderQuestion();
-  if (((sg ?? Q.song) !== song || ridesOld !== loadedOld || !P) && !await loadSong(sg ?? Q.song)) return;
+  const Q = QUESTIONS[qi], [label, at, sg, extra, set] = Q.moments[j], nav = ++navId;
+  const was = playing; pause(); momentExtra = extra ?? null; momentRides = set ?? null; qmoment = j;
+  momentLabel = extra || set ? label : '';
+  applyOption(); rides = questionRides(); renderQuestion();
+  if (((sg ?? Q.song) !== song || rides !== loadedRides || !P) && !await loadSong(sg ?? Q.song)) return;
   if (nav !== navId) return;
   loop = loopHome = at === 'end' ? Math.max(0, P.span[1] - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
   $('loop').classList.add('on'); seek(loop); renderQuestion(); draw(); if (was) play();
@@ -386,5 +403,5 @@ else if (qmode) {
 }
 else loadSong(song).catch(e => status('Could not load: ' + e.message));
 // Read-only state for uicheck.mjs: lets the interaction suite assert what is drawn, not just that nothing threw.
-window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, preset: preset.id, song, loaded: P?.key ?? null, ridesOld, loadedOld,
+window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, preset: preset.id, song, loaded: P?.key ?? null, rides, loadedRides, drawnRides: P?.rides ?? null,
   loop, loopLen, seconds, playing, scheme: P ? P.schemeAt(seconds, mix) : null});

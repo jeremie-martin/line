@@ -28,6 +28,9 @@
 - **Hypothesis.** Coverage the policies miss returns. Ride-outs and floats
   up; headline up a little or neutral.
 - **Risk.** Fewer policy and memory proposals; the dense strata may lose.
+- **Result (V7.1, 4 seeds): not adopted.** +1.0 [−5.7, +7.6], 0.66; 18 of
+  35 specs up; explicit requests −7.5. Ride-outs barely move (+1.2), so the
+  policies' ride-out losses are not a coverage gap.
 
 ## November 8 (night): hypotheses, second-round and pooled policies
 
@@ -59,6 +62,11 @@
   - +3.3 [−3.1, +9.7], 0.90; 27 of 35 specs up.
   - P6 +13.4, G +7.1, P2 +6.3, P3 +5.3, P1 +4.0, E +3.8 against P7 −10.3.
   - Extended to 8 seeds.
+- **Pooled at 8 seeds:** +2.0 [−1.0, +5.0], 0.92; 26 of 35 specs up; G +7.4,
+  P6 +7.2, P5 +3.7, P2 +3.5 against P7 −4.5, P4 −2.6; strong extra impacts
+  −33%. A small, consistent gain for twice the archive (100.2 MB, over
+  GitHub's file limit): the owner's call on storage. Held out runs for the
+  record.
 - **Memory.** The pooled archive (260 MB uncompressed) is parsed by every
   compile worker. Run beside the second-round comparison at 22 workers each,
   free memory fell to 4 GB, and the pooled run was stopped before the system

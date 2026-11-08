@@ -12,6 +12,12 @@
   - If the mix itself helps, a gain over main at equal size, adoptable
     within today's storage.
   - If only count matters, null.
+- **Result (V7.1, 4 seeds): null; not adopted.**
+  - −1.7 [−9.0, +5.7], 0.26; 18 of 35 specs up.
+  - P7 −21.6, one fragile ride-out ride −126.8.
+- **Reading.** The pooled gain comes from demonstration count, not from
+  mixing compilers. More demonstrations therefore need more storage: the
+  owner's decision.
 
 ## November 8 (morning): summary of November 7 and the night
 
@@ -45,6 +51,8 @@ latent crash on two training cases).
   - Storage options: accept the size in git, use git LFS, or keep archives
     outside git with a fetch step. Demonstrations dominate the size (121 of
     130 MB raw), so encoding gains are small.
+  - An equal-size mix of both collections is null (−1.7): the gain is the
+    count.
 - **Ending refinement:** worth −0.2 if removed (uniform, 1% of frames).
   Delete for leanness, or keep.
 - **Body drag** rose about 14% with today's policies. It is an unvalidated

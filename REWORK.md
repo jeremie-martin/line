@@ -154,9 +154,42 @@ point.
     close to each other as to other songs'. Songs do not develop a vocabulary
     of their own. Whether that is a problem is a taste question.
   - The spread (whole-catalogue variety) barely differs between arms.
-- **Open.** One seed. Controls rather than shapes: a geometry-level
-  descriptor (the drawn line) is the next instrument, before any of this is
-  shown to the owner.
+- **The drawn lines agree, more weakly** (the same tool on the saved compare
+  arms: V7.1, 4 seeds, 164 rides, about 14,000 arcs each).
+  - Here a move is the direction of the arc's main line (guides left out)
+    at 16 points evenly spaced along it, in the world frame: the shape the
+    eye sees, without its size.
+
+  | arm | ratio (own ride / other songs) | distinct moves per ride | recurring 3-arc motifs | line length, median (quartiles) |
+  |---|---|---|---|---|
+  | archive (main) | 0.87 | 45.6 | 0.5% | 99 (71–139) |
+  | none | 0.75 | 41.9 | 1.1% | 94 (69–129) |
+  | compact network | 0.85 | 44.1 | 0.7% | 98 (70–136) |
+
+  - **None against main**, paired by ride: ratio −0.10 (−0.13 to −0.08),
+    lower in 79% of rides; 3.8 fewer distinct moves (−4.7 to −3.0); motifs
+    +0.6 points (+0.3 to +1.0).
+  - **Compact network against main**: ratio −0.02 (−0.05 to 0.00); 1.5
+    fewer moves (−2.3 to −0.8); motifs not different.
+  - **Per family** (ratio, main / none / network):
+    - arcs unguided 0.88 / 0.81 / 0.86;
+    - arcs 0.88 / 0.84 / 0.85;
+    - terraces 0.91 / 0.84 / 0.85;
+    - serpentine 0.89 / 0.76 / 0.89;
+    - scallops 0.88 / 0.77 / 0.87;
+    - fold 0.89 / 0.74 / 0.85;
+    - scattered 0.72 / 0.76 / 0.79.
+
+    Scattered is the one family where main repeats itself the most of the
+    three arms, and the most of any family. In fold, none uses more distinct
+    moves (6.2 against 5.7) while repeating itself more.
+  - Even with the archive, a ride's drawn arcs are closer to each other
+    (0.87) than to other songs' arcs. In shape terms there is some
+    within-ride repetition everywhere; the archive reduces it.
+- **Open.** The shape descriptor is a choice (directions along the line,
+  size apart), not a validated one. Before any of this is shown to the
+  owner, step 3 renders nearest pairs and clusters, so the eye can check
+  that "close" here means "looks alike".
 
 ## November 8: step back on the policy archive, what it is worth
 

@@ -55,6 +55,21 @@ export function arcControlProposals(features:number[],incoming:number,span:numbe
     for(let j=0;counts.reduce((a:number,b:number)=>a+b,0)<count;j++)counts[j%counts.length]++;
     return model.models.flatMap((m:any,j:number)=>counts[j]?arcControlProposals(features,incoming,span,m,counts[j]):[]);
   }
+  if(model.network){
+    // A compact interpolating model: a one-layer network maps the situation to
+    // the six relative main controls; residual styles spread the proposals.
+    const n=model.network,x=n.inputs.map((j:number,k:number)=>(features[j]-n.inputMean[k])/n.inputScale[k]);
+    const h=n.hidden.bias.map((b:number,u:number)=>Math.max(0,n.hidden.weights[u].reduce((s:number,w:number,k:number)=>s+w*x[k],b)));
+    const y=n.output.bias.map((b:number,o:number)=>n.output.weights[o].reduce((s:number,w:number,u:number)=>s+w*h[u],b));
+    const selected:ArcMotionControl[]=[];
+    for(const style of n.styles){
+      const v=y.map((m:number,o:number)=>n.controlMean[o]+n.controlScale[o]*(m+style.residual[o]));
+      const c={...style.control,entry:incoming+v[0],turn:v[1],exit:incoming+v[2],support:span*v[3],bias:v[4],offset:v[5]} as ArcMotionControl;
+      if(selected.some(p=>arcControlsSimilar(c,p)))continue;
+      selected.push(c);if(selected.length>=count)break;
+    }
+    return selected;
+  }
   if(model.exemplars){
     const input=model.proximityTrees?features.map(Math.fround):undefined;
     const queryLeaves=model.proximityTrees?.map((tree:any)=>{

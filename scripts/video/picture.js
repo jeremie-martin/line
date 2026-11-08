@@ -262,12 +262,14 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   // through the filter. It reads on any palette, a dark drop included.
   const boostCanvas = document.createElement('canvas');
   const boostOf = ({m, h}, curve) => !h || m < 0.003 ? 0 : curve(h.s) * m;
-  function layBoosted(a, paper) {
+  // `under` draws, on the paper itself, what the boost must leave alone: the pencilled course ahead (a contrast boost pushes a
+  // light pencil toward the paper, so on strong hits the course ahead blinked out as the rider landed: phone review, 8 November)
+  function layBoosted(a, paper, under) {
     const w = canvas.width, hh = canvas.height;
     if (boostCanvas.width !== w || boostCanvas.height !== hh) {boostCanvas.width = w; boostCanvas.height = hh;}
     const g = boostCanvas.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, hh); g.drawImage(canvas, 0, 0);
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = paper; ctx.fillRect(0, 0, w, hh);
-    ctx.filter = `saturate(${1 + 0.3 * a}) contrast(${1 + 0.25 * a})`; ctx.drawImage(boostCanvas, 0, 0); ctx.restore();
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = paper; ctx.fillRect(0, 0, w, hh); under();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = `saturate(${1 + 0.3 * a}) contrast(${1 + 0.25 * a})`; ctx.drawImage(boostCanvas, 0, 0); ctx.restore();
   }
 
   // ── colour ───────────────────────────────────────────────────────────────
@@ -311,14 +313,15 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
         for (const l of grid.get(gx + ',' + gy) ?? []) if (!seen.has(l)) {seen.add(l); out.push(l);}
     return out;
   }
-  function drawLines(visible, at, z, th, look, over) {
+  // the course: the inked lines and (with pencil → ink or whole rail) the pencilled ones ahead; `part` draws one of the two
+  function drawLines(visible, at, z, th, look, over, part = 'all') {
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const path = filter => {ctx.beginPath(); for (const l of visible) if (filter(l)) {ctx.moveTo(l.x1, l.y1); ctx.lineTo(l.x2, l.y2);}};
     const ink = Math.max(2, 3.6 / z);
-    if (look.line === 'ink') {path(() => true); ctx.strokeStyle = th.ink; ctx.lineWidth = ink; ctx.stroke(); return;}
+    if (look.line === 'ink') {if (part !== 'pencil') {path(() => true); ctx.strokeStyle = th.ink; ctx.lineWidth = ink; ctx.stroke();} return;}
     const done = look.line === 'rail' ? l => l.rail <= at : l => l.ink <= at;
-    path(l => !done(l)); ctx.strokeStyle = over > 0.02 ? mixHex(th.pencil, th.ink, 0.25 * over) : th.pencil; ctx.lineWidth = Math.max(1.3, (3 + 1.4 * over) / z); ctx.stroke();
-    path(done); ctx.strokeStyle = th.ink; ctx.lineWidth = ink; ctx.stroke();
+    if (part !== 'ink') {path(l => !done(l)); ctx.strokeStyle = over > 0.02 ? mixHex(th.pencil, th.ink, 0.25 * over) : th.pencil; ctx.lineWidth = Math.max(1.3, (3 + 1.4 * over) / z); ctx.stroke();}
+    if (part !== 'pencil') {path(done); ctx.strokeStyle = th.ink; ctx.lineWidth = ink; ctx.stroke();}
   }
   // the rider stays on its own screen point at any zoom
   function riderCamera(v, ox, oy, k) {
@@ -349,7 +352,10 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   function drawBand(t, r, alpha, th, look) {
     const shift = BAND_SHIFT[look.bandHeight];
     ctx.save(); ctx.translate(0, shift);
-    const row = spectrumRow(t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => th.dark ? mixHex(c, '#ffffff', 0.62 * th.dark) : c;
+    // Iris draws in its own navy and lavender, lit toward white on any dark paper (Night's, or a dark scheme's own: on Black's
+    // paper the navy was nearly invisible, theme study 8 November)
+    const onDark = th.dark || hex(th.bg).reduce((sum, v) => sum + v, 0) < 0.9 * 255;
+    const row = spectrumRow(t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => onDark ? mixHex(c, '#ffffff', 0.62) : c;
     ctx.globalAlpha = alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     const p = schemeAt(t, look), RED = p.accent, graphite = th.dark ? p.nightInk : p.mass;
     if (look.band === 'fork') {
@@ -399,10 +405,11 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (band > 0.003 && look.band !== 'none') drawBand(t, r, band, th, look);
     const cc = {...v, ax: v.ax + hc.dx, ay: v.ay + hc.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     ctx.setTransform(world);
-    drawLines(visibleLines(cc), at, cc.z, th, look, v.over);
+    const visible = visibleLines(cc), boosted = boosting > 0.01;
+    drawLines(visible, at, cc.z, th, look, v.over, boosted ? 'ink' : 'all');
     drawRider(riderCamera(v, hc.dx, hc.dy, k), at);
     ctx.setTransform(k, 0, 0, k, 0, 0);
-    if (boosting > 0.01) layBoosted(boosting, th.bg);
+    if (boosted) layBoosted(boosting, th.bg, () => {ctx.setTransform(world); drawLines(visible, at, cc.z, th, look, v.over, 'pencil');});
     if (fx) {
       split(k, hit, fx.split); ctx.setTransform(k, 0, 0, k, 0, 0);
     }

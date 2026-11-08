@@ -54,6 +54,20 @@ export const THEMES = {
   oldrose: {name: 'Old Rose', line: 'Wada 265: violet-black, an old-rose band, all ink, the title.', look: {scheme: 'wOldRose', band: 'bars', line: 'ink', top: 'title'}},
   ultramarine: {name: 'Ultramarine', line: 'Wada 295: violet-black, a pure blue band, the whole course inked.', look: {scheme: 'wUltramarine', band: 'bars', line: 'ink'}},
   aconite: {name: 'Aconite', line: 'Wada 344: midnight paper, an aconite band, all ink.', look: {scheme: 'w2Aconite', band: 'bars', line: 'ink'}},
+  // candidates of the theme study (8 November, concept-lab/theme-proposals.html), judged in round 27
+  seashell: {name: 'Seashell Night', line: 'Wada 194: peach-shell paper, an Olympic-blue band, a jasper-red bar; Night at the drop.', look: {scheme: 'w2Seashell', band: 'bars', drop: 'night'}},
+  peony: {name: 'Peony to Magenta', line: 'Wada 204 → 144: ice-blue paper and a magenta band; at the drop the page goes black, the band stays.', look: {scheme: 'w2Peony', band: 'bars', drop: 'switch'}},
+  kraft: {name: 'Kraft Poster', line: 'Brown kraft, black line, rust bars, the loudest in white ink, the title: a screenprinted gig poster.', look: {scheme: 'kraftPoster', band: 'bars', top: 'title', line: 'ink'}},
+  cyanotype: {name: 'Cyanotype', line: 'Blueprint blue, a white line, pale-blue bars and a yellow sun.', look: {scheme: 'cyanotypeBright', band: 'bars', top: 'sun', line: 'ink'}},
+  apricot: {name: 'Apricot', line: 'Wada 253: slate-black, an apricot band, one lemon bar: the brightest dark.', look: {scheme: 'w2Apricot', band: 'bars', line: 'ink'}},
+  // drafts of the second theme study (8 November), judged in round 27
+  bricklacquer: {name: 'Brick to Lacquer', line: 'Wada 325 to Kintsugi: cream and a rose-brick band; at the drop, black lacquer, the line and the title turn gold.', look: {scheme: 'wBrick', band: 'bars', top: 'title', drop: 'switch'}},
+  heather: {name: 'Heather', line: 'Wada 338: a pink page, a dusky-green fork, the loudest in orange-yellow, the whole rail inked on touch, the title.', look: {scheme: 'w2Heather', band: 'fork', accent: 'loud', line: 'rail', top: 'title'}},
+  lavender: {name: 'Lavender Dusk', line: 'Lavender: lilac-grey paper, the Iris band in its own violets, an apricot sun.', look: {scheme: 'lavender', band: 'iris', top: 'sun'}},
+  cobalt: {name: 'Cobalt', line: 'Wada 333: mint paper, a pure blue band, one sienna bar, easing out when quiet.', look: {scheme: 'w2CobaltBright', band: 'bars', zoom: 'quiet'}},
+  rothko: {name: 'Rothko', line: 'The Seagram murals: a maroon room, brick bars, a candle-gold bar and a candle-gold sun; the first dark theme with a sun.', look: {scheme: 'rothko', band: 'bars', top: 'sun', line: 'ink'}},
+  lyons: {name: 'Lyons Blue and Gold', line: 'Wada 126 at night: Lyons blue, an ochre-gold band, one ivory bar, the title in ivory.', look: {scheme: 'w2Lyons', band: 'bars', line: 'ink', top: 'title'}},
+  slate: {name: 'Slate', line: 'Fog over a harbour: blue-grey paper, a slate band, the loudest three always mustard, plain paper.', look: {scheme: 'slate', band: 'bars', accent: 'loud', paper: 'plain'}},
 };
 /** The compiler's review clips: the ride alone, black on white, nothing that could colour a judgement of the motion. */
 export const PLAIN = {paper: 'plain', line: 'ink', band: 'none', top: 'none', drop: 'off', ends: 'none', hits: 'none'};

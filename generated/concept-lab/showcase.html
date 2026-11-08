@@ -20,7 +20,8 @@ await Promise.all(['600 120px "DM Sans"', '400 40px "DM Sans"', '500 30px "IBM P
 
 const frame = document.getElementById('frame'), g = frame.getContext('2d');
 frame.width = cfg.width; frame.height = cfg.height;
-const looks = Object.fromEntries(cfg.tiles.map(id => [id, resolveLook(id)]));
+// the themes without their drop: a cut inside a drop treatment would show neither the theme nor its drop
+const looks = Object.fromEntries(cfg.tiles.map(id => [id, resolveLook(id, {drop: 'off'})]));
 const canvasOf = (w, h) => {const c = document.createElement('canvas'); c.width = w; c.height = h; return c;};
 // one picture per size: a picture is a pure function of (t, look), so one picture draws every theme in turn
 const big = canvasOf(cfg.big.w, cfg.big.h), bigPicture = createPicture(big, scene, replay, sheet, N.riderPainter());
@@ -72,14 +73,26 @@ function drawWall(t) {
   });
 }
 
+// WCAG relative luminance and contrast, for the caption's colour
+const luminance = rgb => {const [r, gg, b] = rgb.map(v => {v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;}); return 0.2126 * r + 0.7152 * gg + 0.0722 * b;};
+const contrast = (x, y) => {const [a, b] = [luminance(x), luminance(y)].sort((p, q) => q - p); return (a + 0.05) / (b + 0.05);};
+const rgbOf = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+function captionInk(id) {
+  const px = big.getContext('2d').getImageData(big.width / 2 - 200, big.height - 120, 400, 70).data, bg = [0, 0, 0];
+  for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) bg[c] += px[i + c] / (px.length / 4);
+  const s = SCHEMES[looks[id].scheme];
+  return [s.ink, s.nightInk, s.paper, s.nightPaper].filter(Boolean).reduce((best, c) => contrast(rgbOf(c), bg) > contrast(rgbOf(best), bg) ? c : best);
+}
+
 function drawSolo(t) {
   const k = onShow(t), id = cfg.tiles[k];
   bigPicture.draw(t, looks[id]);
   g.drawImage(big, 0, 0);
-  // the theme's name for two seconds after each cut, in the theme's own ink, faded in and out
+  // the theme's name for two seconds after each cut, faded in and out, in whichever of the theme's own colours stands out most
+  // against the paper actually behind it (read from the frame: a dark paper, a tinted one)
   const age = t - cfg.cuts[k], a = Math.min(1, age / 0.25, Math.max(0, (2.2 - age) / 0.5));
   if (a > 0) {
-    g.save(); g.globalAlpha = a; g.fillStyle = SCHEMES[looks[id].scheme].ink; g.textAlign = 'center';
+    g.save(); g.globalAlpha = a; g.fillStyle = captionInk(id); g.textAlign = 'center';
     g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '8px'; g.fillText(THEMES[id].name.toUpperCase(), frame.width / 2, frame.height - 74);
     g.restore();
   }

@@ -1,7 +1,9 @@
-// A film of many themes over one ride: node generated/concept-lab/showcase.mjs layout=wall|solo [song=circus] [from=0 to=…] out=FILE.mp4
+// A film of many themes over one ride: node generated/concept-lab/showcase.mjs set=twelve|seventeen|… [layout=solo|wall]
+//   [song=circus] [from=0 to=…] [out=FILE.mp4]
 // The frames are composed in showcase.html from the video renderer's own picture (served by the review server, :8770) and
 // encoded once here, under the repository's encoding standard, then checked like every video (frames, size, tags, audio
-// within 1 ms). The cuts, by hand: each on a hit, on the song's section starts where one is near (CUTS).
+// within 1 ms). The themes play without their drop (a cut inside a drop treatment would show neither). The cuts: the song in
+// equal parts, each cut on a section start when one is near, otherwise on the strongest hit near its place.
 import {createServer} from 'node:http';
 import {once} from 'node:events';
 import {spawn} from 'node:child_process';
@@ -13,17 +15,16 @@ import {FPS, audioLag, verifyVideo} from '../../scripts/video/write.ts';
 
 const ROOT = resolve(import.meta.dirname, '../..'), LAB = import.meta.dirname;
 const a = Object.fromEntries(process.argv.slice(2).map(s => {const i = s.indexOf('='); return [s.slice(0, i), s.slice(i + 1)];}));
-const layout = a.layout ?? 'wall', song = a.song ?? 'circus';
+const layout = a.layout ?? 'solo', song = a.song ?? 'circus', set = a.set ?? 'twelve';
 if (!['wall', 'solo'].includes(layout)) throw new Error(`layout=wall|solo, not ${layout}`);
-// Circus Minimus: twelve looks, one per cut. The cuts sit on hits: the section starts (verse 12.87, groove 25.70, hook 38.47,
-// full groove 51.30) and, between them, the strongest hit within 1.2 s of every 6.4 s. The drop (38.5–51.3) goes to the two
-// themes whose drop shows (Night; the switch to espresso); light and dark otherwise alternate.
-const PLANS = {
-  circus: {kicker: 'Circus Minimus · one ride, twelve looks',
-    cuts: [0, 5.27, 12.87, 19.27, 25.695, 32.12, 38.47, 44.87, 51.295, 57.695, 64.12, 70.47],
-    themes: ['hokusai', 'plum', 'celadon', 'oldrose', 'wisteria', 'ultramarine', 'paper', 'dune', 'aubergine', 'aconite', 'prussian', 'black']},
+// The sets, in the order shown: light and dark alternating, a strong look first.
+const SETS = {
+  twelve: ['hokusai', 'plum', 'celadon', 'oldrose', 'wisteria', 'ultramarine', 'paper', 'dune', 'aubergine', 'aconite', 'prussian', 'black'],
+  seventeen: ['hokusai', 'plum', 'seashell', 'oldrose', 'celadon', 'apricot', 'kraft', 'ultramarine', 'peony', 'cyanotype', 'wisteria', 'aconite',
+    'dune', 'black', 'prussian', 'aubergine', 'paper'],
 };
-const plan = PLANS[song]; if (!plan) throw new Error(`no cut plan for ${song}`);
+const themes = SETS[set]; if (!themes) throw new Error(`set=${Object.keys(SETS).join('|')}`);
+if (layout === 'wall' && themes.length > 12) throw new Error('the wall holds twelve miniatures; use layout=solo');
 const scene = JSON.parse(readFileSync(join(LAB, 'data', `${song}.json`), 'utf8'));
 const from = a.from === undefined ? scene.span[0] : +a.from, to = a.to === undefined ? scene.span[1] : +a.to;
 if (!(from >= scene.span[0] && to <= scene.span[1] && to > from)) throw new Error(`${from}–${to} s is outside the song span ${scene.span.join('–')} s`);
@@ -35,9 +36,21 @@ const config = layout === 'wall'
   ? {layout, width: W, height: H, big: {x: M, y: M, w: bigW, h: bigH}, tile: {w: tw, h: th}, cols,
     grid: {x: gx, y: gridY, gap, gapY}, header: {x: gx, y: M, w: cols * tw + (cols - 1) * gap, h: gridY - M - 40}}
   : {layout, width: 1080, height: 1920, big: {x: 0, y: 0, w: 1080, h: 1920}};
-Object.assign(config, {song, fps: FPS, from, to, cuts: plan.cuts, tiles: plan.themes, kicker: plan.kicker});
+/** n cuts over [from, to): every part's start on a section start within a third of a part, else the strongest hit there. */
+function cutsFor(n) {
+  const a0 = scene.account, o = scene.timing.offset, part = (to - from) / n, near = part / 3;
+  const hits = a0.matches.map(m => ({t: a0.events[m.event].peak / 40 - o, s: a0.events[m.event].strength}));
+  return Array.from({length: n}, (_, k) => {
+    if (k === 0) return from;
+    const want = from + k * part, section = scene.phases.find(p => Math.abs(p.t0 - want) < near);
+    const at = section ? section.t0 : want, hit = hits.filter(h => Math.abs(h.t - at) < (section ? 0.15 : near)).sort((x, y) => y.s - x.s)[0];
+    return +(hit ? hit.t : at).toFixed(3);
+  });
+}
+const title = scene.title.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+Object.assign(config, {song, fps: FPS, from, to, cuts: cutsFor(themes.length), tiles: themes, kicker: `${title} · one ride, ${themes.length} looks`});
 
-const out = resolve(a.out ?? join(LAB, 'showcase', `${song}-${layout}.mp4`)), count = Math.round((to - from) * FPS);
+const out = resolve(a.out ?? join(LAB, 'showcase', `${song}-${set}-${layout}.mp4`)), count = Math.round((to - from) * FPS);
 mkdirSync(dirname(out), {recursive: true});
 const movie = out + '.partial.mp4', PREROLL = 0.5, start = Math.max(0, from - PREROLL);
 const encoder = spawn('ffmpeg', ['-v', 'error', '-xerror', '-y', '-f', 'image2pipe', '-c:v', 'png', '-framerate', String(FPS), '-i', 'pipe:0',

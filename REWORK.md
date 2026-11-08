@@ -395,6 +395,66 @@ moves start 53% of committed arcs.
   - Ride-outs of a second or more are rare in every version (under 1 s per
     minute). Worth the owner's eye: long rides along a line hardly exist.
 
+### Generated variation instead of copied moves
+
+- **Form** (`exp/catalogue-generated`; 2,756 numbers, 9 KB). Per family:
+  - the same core table per contact side;
+  - the share of opposing-side catches per grid cell (smoothed);
+  - every other parameter (the deviations of entry, turn and exit from the
+    core, support/span, bias, offset, and the optional fields present in at
+    least half of the demonstrations) as its observed range: 11
+    quantiles.
+  - Proposal k takes its side from the opposing share, then each parameter
+    from an evenly spread sequence mapped through its quantiles. 64
+    proposals, all offered. No demonstration is stored.
+  - Every number reads as a range. For guided arcs, the turn deviates from
+    the typical move by −25° to +36°, and the guide sits 8 to 22 px away.
+    The opposing-side share is about a third at light asks, under a tenth
+    at strong asks with steep arrivals.
+- **Result: −51.6** [−67.6, −35.7] against main; paired against the copied
+  catalogue −29.0 [−39.6, −18.3]. Body drag −26% (3.08 s/min); strong
+  arrivals head-down or backward 12.3% against 10.2%.
+
+  | source | against main | share of the archive's worth recovered |
+  |---|---|---|
+  | none | −70.6 | 0% |
+  | generated, independent ranges | −51.6 | 27% |
+  | catalogue, 64 copied moves | −22.7 | 68% |
+
+- **Reading.** Copying real moves carries about 29 points. Sampled
+  independently, the parameters lose their coherence: in a real move,
+  turn, exit, length, easing and offset fit together. The correlations
+  are strong and readable (guided arcs: the extra turn against the extra
+  entry −0.67, the extra exit +0.51, turnFraction +0.46, support +0.40).
+- **Next** (`exp/catalogue-generated-correlated`; 3,786 numbers, 12 KB).
+  The same ranges, with the parameters varying together as their
+  correlations say: normal scores combined through a correlation factor
+  per family and side.
+- **Result: −47.0** [−57.2, −36.7] against main; paired against the copied
+  catalogue −24.3 [−33.7, −14.9]. Only 4.6 better than independent
+  ranges. Body drag −23%; strong extra impacts 0.27 per 100 beats.
+
+  | source | against main | share recovered |
+  |---|---|---|
+  | none | −70.6 | 0% |
+  | generated, independent ranges | −51.6 | 27% |
+  | generated, correlated | −47.0 | 33% |
+  | catalogue, 64 copied moves, all tried | −22.7 | 68% |
+  | (catalogue, 32 copied moves, fixed order, 40 slots) | −37.9 | 46% |
+
+- **Reading.**
+  - Real moves are worth far more than sampled ones. Even the plainest
+    copied catalogue beats the best generated one.
+  - What makes a real move good is not in its parameters' ranges, nor in
+    how they vary pairwise. It is in specific joint combinations: a move
+    that works is a coherent shape, and sampled combinations are often
+    awkward (more extra hits, more head-down arrivals).
+  - So "copying what worked" carries about 25 points that a readable
+    statistical description cannot.
+  - This answers the question the step back raised. Moves cannot simply be
+    generated from statistics. Moves that work have to come from somewhere:
+    stored real moves, or a model of what works.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

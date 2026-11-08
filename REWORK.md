@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): diagnostic, today's main at twice the allowance
+
+- **Question.** Before today's changes, twice the allowance bought +0.1:
+  the search was not limited by compute. Ranking now trusts measurement
+  more, local search judges like ranking, and the policies come from
+  today's compiler. Is it still unlimited?
+- **Run.** The same commit (main 9d065738) at `standard*2` against
+  `standard`, V7.1, 4 seeds. Not a candidate for adoption: compute is a
+  cost. It tells where to work next.
+- **Reading plan.**
+  - A clear gain means search effort pays again, and the budget laws
+    (scale-free, per the owner's rule) are worth revisiting.
+  - A null means proposals, not effort, still limit.
+
 ## November 8 (night): hypothesis, a learned estimate matched to today's policies
 
 - **Data.** The second collection (main 9d065738, today's policies): 840

@@ -42,7 +42,8 @@ const TEST_QUESTIONS = [
 ];
 
 // A round of theme candidates (candidates.json): their schemes join the palettes in this page's memory only, so versions not yet in
-// the code can be compared live. Round 28: sixteen drafts, each as drafted, matched to Wada and tuned; a grade per version.
+// the code can be compared live. Round 29: two improvements from round 28, its four unanswered drafts and ten new ones, each
+// in its visibly different versions; a grade per version.
 const CANDIDATES = await fetch('./candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
 if (CANDIDATES) {Object.assign(SCHEMES, CANDIDATES.schemes); Object.assign(DROP_SCHEMES, CANDIDATES.drops);}
 const DRAFT_MOMENTS = [['Verse, 18 s', 18], ['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Later, 59.5 s', 59.5]];
@@ -91,7 +92,7 @@ let navId = 0, qmoment = null, loopHome = null;
 // the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
 let exaggerate = 1;
 function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r28';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r29';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();

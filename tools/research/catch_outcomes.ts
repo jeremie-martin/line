@@ -9,9 +9,10 @@
  *   node tools/research/catch_outcomes.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,...]
  *   node tools/research/catch_outcomes.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
-import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {appendFileSync, createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {createInterface} from 'node:readline';
 import {dirname, join} from 'node:path';
-import {gzipSync, gunzipSync} from 'node:zlib';
+import {gzipSync, createGunzip} from 'node:zlib';
 import {v7Cases, resolveCase, digest} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
@@ -53,19 +54,22 @@ async function worker(id: string, seed: number) {
   });
 }
 
-function report(dir: string, armDir?: string) {
-  const rides = gunzipSync(readFileSync(join(dir, 'rides.jsonl.gz'))).toString('utf8').trim().split('\n').map(l => JSON.parse(l));
-  if (armDir) {
-    let same = 0;
-    for (const r of rides) {
+async function report(dir: string, armDir?: string) {
+  // Streamed: a full study is far larger than one string may be.
+  let rides = 0, same = 0, intervals = 0, candidates = 0, committed = 0;
+  for await (const line of createInterface({input: createReadStream(join(dir, 'rides.jsonl.gz')).pipe(createGunzip()), crlfDelay: Infinity})) {
+    if (!line.trim()) continue;
+    const r = JSON.parse(line);
+    rides++;
+    intervals += r.intervals.length;
+    for (const x of r.intervals) { candidates += x.candidates.length; if (x.kept !== undefined) committed++; }
+    if (armDir) {
       const saved = JSON.parse(readFileSync(join(armDir, 'cells', `${r.spec}~${r.seed}.json`), 'utf8'));
       if (saved.trackHash === r.trackHash) same++; else console.log(`DIFFERENT track  ${r.spec}~${r.seed}`);
     }
-    console.log(`track identity: ${same}/${rides.length} identical to the saved arm`);
   }
-  const intervals = rides.flatMap(r => r.intervals), candidates = intervals.reduce((n: number, x: any) => n + x.candidates.length, 0);
-  console.log(`${rides.length} rides, ${intervals.length} intervals offered, ${candidates} candidates (${(candidates / Math.max(1, intervals.length)).toFixed(1)} per interval), ` +
-    `${intervals.filter((x: any) => x.kept !== undefined).length} committed`);
+  if (armDir) console.log(`track identity: ${same}/${rides} identical to the saved arm`);
+  console.log(`${rides} rides, ${intervals} intervals offered, ${candidates} candidates (${(candidates / Math.max(1, intervals)).toFixed(1)} per interval), ${committed} committed`);
 }
 
 if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')));
@@ -81,4 +85,4 @@ else if (command === 'run') {
   writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.catch-outcomes.v1', seed, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
   await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`]));
-} else report(out, process.argv[4]);
+} else await report(out, process.argv[4]);

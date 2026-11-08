@@ -1,5 +1,63 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (morning): summary of November 7 and the night
+
+**Where main stands** (9d065738, against the morning main 72e6ed9a, from
+saved rides):
+
+| panel | morning | now | change |
+|---|---|---|---|
+| V7.1, 8 seeds | 786.0 | **813.8** | **+27.8**; 34 of 35 specs up; every category up (G +41.9, P4 +42.1, P7 +28.7, P1 +28.0) |
+| held out, 11 songs | 712.0 | **767.1** | **+55.1**; 13 of 13 specs up |
+
+No ride lost; physics frames unchanged.
+
+**Adopted on November 7, in order:**
+1. **No forced flight before a catch:** V7.1 +5.1, held out +33.6.
+2. **Half-weight prediction in ranking:** V7.1 +6.2, held out +2.9.
+3. **Local search judges like ranking:** V7.1 +8.3, held out +5.7.
+4. **Construction policies from today's compiler:** V7.1 +8.3, held out
+   +12.8.
+
+Also: a candidate too long for its section's ids is rejected, not fatal (a
+latent crash on two training cases).
+
+**For the owner to decide:**
+- **Pooled policies** (both of today's collections): V7.1 +2.0 [−1.0, +5.0]
+  at 8 seeds, held out **+8.9 [+1.7, +16.0]**, 11 of 13 up.
+  - It needs a 75.5 MB brotli archive (100.2 MB as gzip, over GitHub's
+    limit).
+  - Ready on local branch `exp/policies-pooled-brotli`, verified to give
+    identical rides.
+  - Storage options: accept the size in git, use git LFS, or keep archives
+    outside git with a fetch step. Demonstrations dominate the size (121 of
+    130 MB raw), so encoding gains are small.
+- **Ending refinement:** worth −0.2 if removed (uniform, 1% of frames).
+  Delete for leanness, or keep.
+- **Body drag** rose about 14% with today's policies. It is an unvalidated
+  proxy, reported only; the review pages show the rides.
+
+**Tested overnight and not adopted** (each stated before running, on the
+benchmark):
+- second-round policies +1.3 (8 seeds);
+- a smaller archive −5.3 (demonstration count matters);
+- twice the policy proposals +0.7 (the first attempt changed a value
+  production overrides);
+- a generic reserve on ordinary arcs +1.0;
+- a smaller reserve on shaped constructions +1.3;
+- policies with forced-family demonstrations +0.8;
+- 64 proximity trees −2.4;
+- strength-seeking response steps −3.1;
+- two retrained learned estimates −3.6 and −0.1;
+- twice the allowance −2.7 (compute does not limit).
+
+**What the evidence says now.**
+- The largest share of strength loss is proposal coverage: no candidate
+  near the ask was ever proposed (39% on the library songs).
+- Ranking and search effort are not the limit.
+- The policies are the lever: learned from the current compiler, with as
+  many demonstrations as storage allows.
+
 ## November 8 (night): measurement, the ending refinement on today's main
 
 - **Question.** On the November 1 compiler, removing the ending refinement

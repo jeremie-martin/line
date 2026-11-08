@@ -18,7 +18,7 @@ export const OPTIONS = {
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
-  hits: ['On each hit', {v1: 'Shake, split, flash (v1)', zoom: 'Zoom, split, colour boost', zoomShake: 'Zoom, shake on strong hits only, split, colour boost', still: 'No camera motion: split, stronger colour boost', none: 'Nothing'}],
+  hits: ['On each hit', {v1: 'Shake, split, flash (v1)', noMotion: 'No camera motion: split, colour boost', shakeFrom60: 'Split, colour boost, shake from strength 0.6', shakeFrom70: 'Split, colour boost, shake from strength 0.7', none: 'Nothing'}],
 };
 
 export const V1 = {

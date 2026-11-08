@@ -90,7 +90,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Flash: toward the paper, 25 % at 0.85, gently on | v1 | Toward the paper "by a wide margin" (R8). No ceiling, but not 50 %: about 25 % at 0.8–0.85, around 30 % at 1.0 (R15–R17). "Shifted right" (R17). |
 | Rider half-clean through the split | v1 | "Slightly less split" (R4), restored in R12. |
 | Today's recipe, Held, Refined, the hit bench | kept as options | References and earlier rounds. |
-| Punch, recoil, bloom, radial split | parked | Built R6–R8, not chosen. |
+| Punch, recoil, bloom, radial split | parked | Built R6–R8, not chosen. The punch's successor, the zoom (R24–R25), rejected: deleted. |
 | Afterimage | parked | "Better implementation… adds clutter… park it" (R5). |
 
 ### Top of the frame, background, drop
@@ -136,7 +136,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 
 ## Open items, in one place
 
-0. **The hit effects, rethought (rounds 24–25, open).** One table, `picture.js` RECIPES, `look.hits`: `v1` (today: shake, split, flash), `zoom` (zoom, split, colour boost), `zoomShake` (the same, with the shake from strength 0.65 only), `still` (no camera motion: split, stronger colour boost). Plain names, one meaning each: **shake** (the frame knocked along the hit, springing back), **zoom** (the camera zooms in on the rider and eases back over 0.3 s; 20 % closer at 0.85), **split**, **flash** (toward the paper), **colour boost** (what is drawn on the paper more saturated and contrasted; the paper unchanged). R24: "the still… looks pretty damn good"; the zoom too small to see; names unclear ("no fancy names"). R25 adds the curves on its page and the lab's "Exaggerate the hit effects" slider (a viewing aid, ×1–×4, never in a look). The owner's words that led there (8 November, "should come somewhat soon"): "We have three levers: the camera shake, the split and the flash."
+0. **The hit effects, rethought (rounds 24–26, open).** One table, `picture.js` RECIPES, `look.hits`: `v1` (today: shake, split, flash), `noMotion` (split, colour boost; the frame never moves), `shakeFrom60` and `shakeFrom70` (the same, with the shake on strong hits only, on the flash's S-curve from 0.6 to 24 px at 0.85, or from 0.7 to 24 px at 0.9). Plain names: **shake**, **split**, **flash** (toward the paper), **colour boost** (what is drawn on the paper more saturated and contrasted; the paper unchanged). R25: no camera motion is "a complete game changer" for clarity, and wins on Circus "by a wide margin"; but on the strongest hit today's feels better. **The zoom is rejected (twice: the punch R6–R8, the zoom R24–R25): "I hate seeing the rider become bigger and then smaller… all the geometry".** Round 26 asks whether the strongest hits keep a shake, and from what strength. The lab's "Exaggerate the hit effects" slider is a viewing aid (×1–×4, never in a look). The owner's words that led there (8 November, "should come somewhat soon"): "We have three levers: the camera shake, the split and the flash."
    - **Shake versus pulse:** when the owner spoke of shake, they often meant the **pulse**, the zoom. "The shake makes everything a bit less readable, while a punch, a zoom in or out, may be clearer. We could use both."
    - **Flash:** "play with the vibrance, the saturation, some other effect than the literal flash to the background, or a combination."
    - Plan: rework the flash, the shake and the pulse later, with the curve-first method of R12–R17.

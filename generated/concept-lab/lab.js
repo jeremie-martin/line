@@ -40,20 +40,20 @@ const TEST_QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-// Rounds 24–25: the hit effects, rethought. Every option is the Hokusai theme without ends (loops), varying only the hit.
+// Rounds 24–26: the hit effects, rethought. Every option is the Hokusai theme without ends (loops), varying only the hit.
 const hokusai = {...resolveLook('hokusai'), ends: 'none'};
 // a moment on another theme: that whole look, but the hit of the option being watched
 const onTheme = name => {const {hits, ...look} = resolveLook(name); return {...look, ends: 'none'};};
 const QUESTIONS = [
-  {id: 'hits', ask: 'What should a hit feel like?',
-    why: 'Today’s hit and three other ways of feeling it. Shake: the whole frame is knocked along the hit and springs back. Zoom: the camera zooms in on the rider for an instant and eases back. Split: the red and blue channels pull apart (in all four). Flash: the picture fades toward the paper colour. Colour boost: what is drawn on the paper gets more saturated and more contrasted for an instant; the paper does not change. All follow the hit’s own strength, from its strongest frame. The slider above exaggerates every effect alike, to see them. Keep any number, and say what you would mix.',
+  {id: 'strongShake', ask: 'A shake for the strongest hits?',
+    why: 'No camera motion is the base now (round 25). The question: should the strongest hits still shake, and from what strength? The shake (the whole frame knocked along the hit and springing back) then follows a curve like the flash’s: nothing below a strength, then a smooth rise to today’s 24 px. Half of all hits are between 0.47 and 0.70; one in ten is above 0.76. Split and colour boost as in round 25 (the colour boost: what is drawn on the paper gets more saturated and contrasted for an instant; the paper does not change). Today is there for reference. Keep any number.',
     song: 'tomada', t: 55.4, len: 6, multi: true, opts: [
-      ['Today', {...hokusai, hits: 'v1'}, 'Shake, split, flash: the approved v1.'],
-      ['Zoom', {...hokusai, hits: 'zoom'}, 'Zoom, split, colour boost.'],
-      ['Zoom, shake on strong hits', {...hokusai, hits: 'zoomShake'}, 'Zoom, split, colour boost, and the shake on strong hits only (from strength 0.65).'],
-      ['No camera motion', {...hokusai, hits: 'still'}, 'Split and a stronger colour boost; the camera never moves.']],
-    moments: [['Tomada 56 s, the strongest hit', 55.4], ['Petrunko 34 s', 33.5, 'petrunko'], ['Los Voltaje 28 s, the dive', 28.5, 'los'],
-      ['Circus, the hook', 43, 'circus'], ['On Paper · Tomada', 55.4, 'tomada', onTheme('paper')], ['On Black · Los Voltaje', 28.5, 'los', onTheme('black')]]},
+      ['Today', {...hokusai, hits: 'v1'}, 'Shake on every hit, split, flash: the approved v1.'],
+      ['No camera motion', {...hokusai, hits: 'noMotion'}, 'Split and colour boost; the frame never moves.'],
+      ['Shake from 0.6', {...hokusai, hits: 'shakeFrom60'}, 'No camera motion, except a shake on strong hits: from strength 0.6, 24 px at 0.85.'],
+      ['Shake from 0.7', {...hokusai, hits: 'shakeFrom70'}, 'No camera motion, except a shake on the strongest hits: from strength 0.7, 24 px at 0.9.']],
+    moments: [['Tomada 56 s, the strongest hit', 55.4], ['Circus, the hook', 43, 'circus'], ['Petrunko 34 s', 33.5, 'petrunko'],
+      ['Los Voltaje 28 s, the dive', 28.5, 'los'], ['On Paper · Tomada', 55.4, 'tomada', onTheme('paper')], ['On Black · Los Voltaje', 28.5, 'los', onTheme('black')]]},
 ];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
@@ -82,7 +82,7 @@ let navId = 0, qmoment = null, loopHome = null;
 // the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
 let exaggerate = 1;
 function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r25';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r26';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();

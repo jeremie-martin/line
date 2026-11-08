@@ -19,7 +19,7 @@ Start at `morning.html`. One server serves the lab, the review pages and their A
 | Entry | What it is |
 |---|---|
 | `morning.html` | Index of all rounds. Each round page has the films and questions of its day. Rounds 1–5 keep their pages and films; their interactive snapshots were retired on 8 November (git history has them). |
-| `?q=1` | The current round's questions (round 25: the hit effects, a second look), stored in localStorage as `concept-lab-answers-r25` (`STORE` in `lab.js`). The slider under the transport exaggerates the hit effects (a viewing aid, ×1–×4, not saved). |
+| `?q=1` | The current round's questions (round 26: a shake for the strongest hits?), stored in localStorage as `concept-lab-answers-r26` (`STORE` in `lab.js`). The slider under the transport exaggerates the hit effects (a viewing aid, ×1–×4, not saved). |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab: the looks (`presets.js`: Swatch, Plain and the themes), and every option of a look as a chip. |
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |

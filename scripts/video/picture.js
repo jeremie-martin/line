@@ -52,23 +52,22 @@ const riseR = (s, from, full, p = 2) => {const x = ramp(s, from, full); return x
 const SHAKE = s => Math.min(48, 24 * linR(s, 0.2, 0.85)); // px: straight from 0 at 0.2 to 24 px at 0.85 (R13, R17)
 const SPLIT = s => 14 * Math.min(3, 1.5 * riseR(s, 0.3, 0.85)); // px before the direction's match: a slow start from 0.3 (R15)
 const FLASH = s => Math.min(0.5, s <= 0.85 ? 0.25 * smoothstep(ramp(s, 0.6, 0.85)) : 0.25 + 0.25 * (s - 0.85)); // 0.6 → 25 % at 0.85, gently on (R17)
-// The ways a hit can be felt (look.hits), compared in rounds 24–25. Plain names, one meaning each:
+// The ways a hit can be felt (look.hits), compared in rounds 24–26. Plain names, one meaning each:
 //   shake — the whole frame is knocked along the hit's direction and springs back;
-//   zoom — the camera zooms in on the rider for an instant and eases back (the rider stays where it is on screen);
 //   split — the red and blue channels pull apart for an instant;
 //   flash — the picture fades toward the paper colour for an instant;
 //   colour boost — what is drawn on the paper gets more saturated and more contrasted for an instant; the paper does not change.
-// A recipe lists its effects, each as a curve of the hit's measured strength.
-const ZOOM_IN = s => Math.min(0.4, 0.2 * linR(s, 0.2, 0.85)); // fraction closer: straight from 0 at 0.2 to 20 % at 0.85, and on
-const STRONG_SHAKE = s => Math.min(48, 24 * linR(s, 0.65, 0.95)); // px: the shake from strength 0.65 only (16 px at 0.85, 24 at 0.95)
-const BOOST = s => Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.45, 0.85)) : 1 + 1.5 * (s - 0.85)); // 0.45 → full at 0.85, gently on
-const STRONG_BOOST = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, half as much again
+// A recipe lists its effects, each as a curve of the hit's measured strength. (A zoom on the rider was tried twice, R6–R8 and
+// R24–R25, and rejected: "I hate seeing the rider become bigger and then smaller… all the geometry".)
+const BOOST = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on
+/** The shake kept for strong hits: nothing below `from`, then the flash's S-curve to today's 24 px at `full`, then gently on. */
+const strongShake = (from, full) => s => Math.min(48, s <= full ? 24 * smoothstep(ramp(s, from, full)) : 24 + 40 * (s - full));
 /** Exported for the round pages' curves, so a chart shows exactly what is drawn. */
 export const RECIPES = {
   v1: {shake: SHAKE, split: SPLIT, flash: FLASH}, // today: shake, split, flash (R7–R19)
-  zoom: {zoom: ZOOM_IN, split: SPLIT, boost: BOOST},
-  zoomShake: {zoom: ZOOM_IN, shake: STRONG_SHAKE, split: SPLIT, boost: BOOST}, // the shake on strong hits only
-  still: {split: SPLIT, boost: STRONG_BOOST}, // no camera motion
+  noMotion: {split: SPLIT, boost: BOOST}, // no camera motion: the split and the colour boost carry the hit (R25: "a game changer")
+  shakeFrom60: {shake: strongShake(0.6, 0.85), split: SPLIT, boost: BOOST}, // and the shake on strong hits, from strength 0.6
+  shakeFrom70: {shake: strongShake(0.7, 0.9), split: SPLIT, boost: BOOST}, // and the shake on the strongest, from strength 0.7
 };
 const HALF = 0.61; // the halfway split shows the same fringe as the sideways one, on average (fitted on Tomada and Los Voltaje, R8)
 const TITLE_SPLIT = 0.65, TITLE_PULSE = 0.45; // the title gets a little less split (R16) and less of its zoom pulse (R19)
@@ -209,13 +208,6 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (!h || m < 0.002) return {dx: 0, dy: 0};
     const i = into(h), a = curve(h.s) * m * Math.cos(2 * Math.PI * 6 * age);
     return {dx: a * i.x, dy: a * i.y};
-  }
-  // the zoom: the camera zooms in on the rider at once, holds like every effect, then eases back over 0.3 s (longer than the shake's
-  // knock: a zoom reads only if the eye can follow it); the rider stays where it is on screen
-  function zoomOf({h, age}, curve) {
-    if (!h) return 0;
-    const hold = (1 + 2 * excess(h.I)) / 60, back = age < hold ? 1 : 1 - smoothstep((age - hold) / 0.3);
-    return back > 0.002 ? curve(h.s) * back : 0;
   }
   // The colour split, halfway between sideways and the hit's direction, over the whole picture (the band, title and sun too,
   // R11). Its overscan hides the edges and zooms the whole picture a little with each split: the pulse (R18).
@@ -411,8 +403,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W, recipe = RECIPES[look.hits];
     const fx = recipe && exaggerate !== 1 ? Object.fromEntries(Object.entries(recipe).map(([name, curve]) => [name, s => curve(s) * exaggerate])) : recipe;
     const hit = fx ? strongest(r) : null;
-    const th = themeAt(t, r, look), seen = bookend(t, cameraAt(look, at), at, look);
-    const hc = fx?.shake ? shake(hit, fx.shake) : {dx: 0, dy: 0}, v = fx?.zoom ? {...seen, z: seen.z * (1 + zoomOf(hit, fx.zoom))} : seen;
+    const th = themeAt(t, r, look), v = bookend(t, cameraAt(look, at), at, look), hc = fx?.shake ? shake(hit, fx.shake) : {dx: 0, dy: 0};
     titleBox = null; // set by drawTop when it draws the title in this frame
     const boosting = fx?.boost ? boostOf(hit, fx.boost) : 0;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;

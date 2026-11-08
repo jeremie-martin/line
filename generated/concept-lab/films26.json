@@ -1,0 +1,153 @@
+{
+ "title": "Round 26 · a shake for the strongest hits?",
+ "description": "Whole songs in Hokusai: no camera motion as the base, and the shake kept, or not, for the strongest hits. Switch at the same moment, with sound.",
+ "groups": [
+  {
+   "id": "hits",
+   "label": "Four hits",
+   "description": "Only the hit effects vary.",
+   "variants": [
+    "v1",
+    "noMotion",
+    "shakeFrom60",
+    "shakeFrom70"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "tomada",
+   "label": "Montagem Tomada (super slowed)",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake on every hit, split, flash: the approved v1.",
+     "src": "films24/tomada-v1.mp4"
+    },
+    {
+     "id": "noMotion",
+     "label": "B · No camera motion",
+     "description": "Split and colour boost; the frame never moves.",
+     "src": "films24/tomada-still.mp4"
+    },
+    {
+     "id": "shakeFrom60",
+     "label": "C · Shake from 0.6",
+     "description": "No camera motion, except a shake on strong hits (from 0.6).",
+     "src": "films26/tomada-shakeFrom60.mp4"
+    },
+    {
+     "id": "shakeFrom70",
+     "label": "D · Shake from 0.7",
+     "description": "No camera motion, except a shake on the strongest hits (from 0.7).",
+     "src": "films26/tomada-shakeFrom70.mp4"
+    }
+   ]
+  },
+  {
+   "id": "circus",
+   "label": "Circus Minimus",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake on every hit, split, flash: the approved v1.",
+     "src": "films24/circus-v1.mp4"
+    },
+    {
+     "id": "noMotion",
+     "label": "B · No camera motion",
+     "description": "Split and colour boost; the frame never moves.",
+     "src": "films24/circus-still.mp4"
+    },
+    {
+     "id": "shakeFrom60",
+     "label": "C · Shake from 0.6",
+     "description": "No camera motion, except a shake on strong hits (from 0.6).",
+     "src": "films26/circus-shakeFrom60.mp4"
+    },
+    {
+     "id": "shakeFrom70",
+     "label": "D · Shake from 0.7",
+     "description": "No camera motion, except a shake on the strongest hits (from 0.7).",
+     "src": "films26/circus-shakeFrom70.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake on every hit, split, flash: the approved v1.",
+     "src": "films24/petrunko-v1.mp4"
+    },
+    {
+     "id": "noMotion",
+     "label": "B · No camera motion",
+     "description": "Split and colour boost; the frame never moves.",
+     "src": "films24/petrunko-still.mp4"
+    },
+    {
+     "id": "shakeFrom60",
+     "label": "C · Shake from 0.6",
+     "description": "No camera motion, except a shake on strong hits (from 0.6).",
+     "src": "films26/petrunko-shakeFrom60.mp4"
+    },
+    {
+     "id": "shakeFrom70",
+     "label": "D · Shake from 0.7",
+     "description": "No camera motion, except a shake on the strongest hits (from 0.7).",
+     "src": "films26/petrunko-shakeFrom70.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake on every hit, split, flash: the approved v1.",
+     "src": "films24/los-v1.mp4"
+    },
+    {
+     "id": "noMotion",
+     "label": "B · No camera motion",
+     "description": "Split and colour boost; the frame never moves.",
+     "src": "films24/los-still.mp4"
+    },
+    {
+     "id": "shakeFrom60",
+     "label": "C · Shake from 0.6",
+     "description": "No camera motion, except a shake on strong hits (from 0.6).",
+     "src": "films26/los-shakeFrom60.mp4"
+    },
+    {
+     "id": "shakeFrom70",
+     "label": "D · Shake from 0.7",
+     "description": "No camera motion, except a shake on the strongest hits (from 0.7).",
+     "src": "films26/los-shakeFrom70.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Round 26",
+   "href": "/generated/concept-lab/round26.html"
+  },
+  {
+   "label": "The question",
+   "href": "/generated/concept-lab/?q=1"
+  }
+ ]
+}

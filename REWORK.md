@@ -244,6 +244,68 @@ moves start 53% of committed arcs.
   family does not lock rides into repetition. It is within a few percent
   of the archive, and far from the no-archive arm.
 
+### Chains of strong beats: why the catalogue's arrivals run shallow
+
+- **Where.** 91% of the catalogue's shallow arrivals at strong beats (below
+  15° where main arrives at 25° or more; 157 beats) follow another strong
+  beat. 76% of strong beats do.
+- **The loop.** In those chains the catalogue's arc before redirects hard
+  (turn −18°, exit −18° relative to its arrival) to land its own strong
+  beat. That leaves the rider flatter, and the next arrival is shallow.
+  On the same beats main's arc before turns −7° with exit −2°. It still
+  lands its beat, because its own arrival was steep (35° against 18°), and
+  it leaves steep for the next. Main keeps the chain steep; the catalogue
+  drifts shallow.
+- **Proposals or choice?** `catch_outcomes.ts` on the all-tried catalogue
+  (5.36 million candidates, tracks identical) and on main. Committed
+  catches in strong chains, 1,478 each:
+
+  | | main | catalogue |
+  |---|---|---|
+  | the pool holds a move that hits this beat within 0.1 and leaves the next arrival at 30° or steeper | 54% | 44% |
+  | the committed move does both | 32% | 22% |
+  | next arrival after the committed move, median | 31.0° | 27.3° |
+
+  Mostly availability: such moves are scarcer in the catalogue's pools,
+  and chosen a little less often when present.
+- **What those moves look like** (main's pools; candidates that hit a
+  strong beat within 0.1 with the next beat strong; medians relative to
+  the arrival):
+
+  | arrival | moves that hit and leave steep | moves that hit and leave flat |
+  |---|---|---|
+  | below 25° | **caught from above, then dived**: opposing side, turn +27°, exit +18°; next arrival 54° | redirect: turn −17°, exit −17°; next 14° |
+  | 25–40° | **hit by the entry angle, then dived**: entry −17°, turn +10°, exit +6°; next 36° | redirect: turn −19°, exit −17°; next 20° |
+  | 40° or more | redirect (turn −18°, exit −18°); next 36° | stronger redirect (exit −26°); next 26° |
+
+  - A shallow rider in a strong chain is best caught on the underside of a
+    line that sends them down: an upper-receiver catch.
+  - At medium angles the line meets the rider flatter than they arrive,
+    so the hit comes from the contact itself, and then turns down instead
+    of redirecting up.
+  - The catalogue's table says "redirect" for every strong ask, and its
+    styles rarely carry a +10° turn.
+- **Next: chain moves** (`exp/catalogue-chain-moves`). Per family, 16
+  measured moves of exactly this kind: medoids of main's pool candidates
+  that hit a strong beat within 0.1 and left the next strong arrival at
+  30° or steeper, each with the arrival heading it was measured at.
+  - In the arc families, a quarter to nearly half are caught from above.
+  - When this beat and the next are strong, they are offered first,
+    closest arrival heading first, within the same 64 proposals.
+  - 26,799 numbers in all (50 KB).
+- **Result: no gain.** Paired against the all-tried catalogue: −1.8
+  [−4.6, +1.0]; explicit requests +4.6; strong extra impacts 0.13 against
+  0.07 per 100 beats.
+  - Arrivals at strong beats below 15°: 13% → 11% (main 6%). Short by more
+    than 0.2: 12% → 11% (main 8%).
+- **Reading.** Three readable patches on the setup have now been tried:
+  aimed variants, a next-beat axis, and chain moves. None fixes the drift.
+  The archive's steepness is a property of the whole chain from the
+  start of the ride, held by every move being close to what worked in that
+  exact state. Offering the right kind of move at one catch does not
+  restore it. This thread is set aside; the setup costs the catalogue
+  about 2 of its 4 extra points of strong beats short.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

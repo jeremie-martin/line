@@ -32,7 +32,7 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 - Three colours: the idea is liked, its colours are not yet.
 
 ### Top of the frame
-- **The title:** the song's name in the line's colour, two lines at most, "maybe not all the time". It suits quiet papers (Paper, Prussian, Plum, Old Rose).
+- **The title:** the song's name in the line's colour, two lines at most, "maybe not all the time". It suits quiet papers (Paper, Prussian, Plum, Old Rose). **A minority of themes only** (owner, 8 November: "I like it, but don't love it… it should be a minority"): a new theme gets a title only when the title is its idea; otherwise a sun or nothing.
 - **The sun:** a bold disc that balances the frame (Dune: "so inspired"). It takes the palette's sun colour or its accent. With a sun, the rider sits 32 px lower and the sun 16 px higher (round 21; `sunRider`, `sunLift`).
 - One top element at a time.
 
@@ -46,7 +46,7 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 - Use it sparingly: three of twelve themes in round 20.
 
 ### Balance across a set
-- Mix light and dark (7 and 5 in round 20). Spread the top elements (four titles, three suns, five with nothing). Vary the band forms, and keep any one palette family from dominating.
+- Mix light and dark (7 and 5 in round 20). Spread the top elements, with titles a minority (four titles, three suns, five with nothing in round 20; eight of 24 on 8 November is the ceiling, not a target). Vary the band forms, and keep any one palette family from dominating.
 
 ## The twelve themes of round 20, as worked examples
 

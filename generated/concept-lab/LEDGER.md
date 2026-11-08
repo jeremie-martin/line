@@ -96,7 +96,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 ### Top of the frame, background, drop
 | Piece | Status | Notes |
 |---|---|---|
-| Title | v1, optional per look | In the line's colour, "tremendous"; two lines at most (R5); optional (R6). |
+| Title | v1, optional per look, a minority of themes | In the line's colour, "tremendous"; two lines at most (R5); optional (R6). "I like it, but don't love it… it should be a minority" (8 November): new themes take it only when it is their idea. |
 | Sun | kept where it fits | Dune's sun "so inspired, so bold"; it balances the frame (R5). An element, not part of a scheme (R6). Midnight's moon: bad. |
 | Background: Whisper or plain | v1 | Tone by impact went too dark (R3). |
 | Night | v1 | A hand cue; "Night looks amazing" (R6). |

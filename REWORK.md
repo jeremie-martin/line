@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): hypothesis, a smaller generic reserve on shaped constructions
+
+- **Basis.** `arc_proposals.ts` reserves 25% of the initial proposals for
+  generic samples on novel constructors (a profile, or the transfer layout),
+  because "the inherited model already covers ordinary arcs" and not these.
+  Today's policies hold 6–9k demonstrations per shaped group (fold 6,252,
+  scallops 8,965, serpentine 7,480, terraces 8,265).
+- **Change.** The reserve on novel constructors goes from 25% to 10%;
+  ordinary arcs keep none.
+- **Hypothesis.** The policies now cover these constructors, so the
+  reserve spends slots generic samples use less well: shaped sections, and
+  explicit requests, up.
+- **Risk.** Transfer layouts hold few demonstrations (about 600) and may
+  lose.
+
 ## November 8 (night): pooled policies pass, held for the owner's storage decision
 
 | panel | change | interval / support |

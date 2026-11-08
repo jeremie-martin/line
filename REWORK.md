@@ -120,6 +120,40 @@
   - **Hypothesis:** −15 to −25, at least 5 better than the prototypes. That
     would show that interpolating the situation works, and the gap left is
     what to close next.
+- **Results:**
+  - **Control prototypes: −33.1** [−46.5, −19.8]; 1 of 35 up; explicit
+    requests −41.9; body drag −17%.
+  - **Compact network: −25.1** [−31.1, −19.2]; 2 of 35 up; explicit
+    requests −26.0; body drag −21%; strong extra impacts ×3.5; no ride lost;
+    frames unchanged. Inside the hypothesis (at its edge), 8 better than
+    the prototypes. The coverage test had predicted about −22.
+
+  | proposal source | size | V7.1 |
+  |---|---|---|
+  | archive (both lookups) | 52 MB | 0 |
+  | policy lookup only | 52 MB | −6.7 |
+  | memory lookup only | 52 MB | −8.0 |
+  | compact network | 18 KB | −25.1 |
+  | 64 representatives per group | 147 KB | −27.7 |
+  | 32 control prototypes | 17 KB | −33.1 |
+  | 16 representatives per group | 43 KB | −38.6 |
+  | none (generic samples only) | 0 | −70.6 |
+
+- **Reading.**
+  - About half of the archive's worth is knowing where good controls lie
+    at all (prototypes recover 37 of 70 points). The generic sampler's box
+    is far from them.
+  - Mapping the situation to controls adds 8 more, with 5k numbers.
+  - The remaining 25 points are what nearest neighbours in 80k rows still
+    give.
+- **Next: the compact model learns from its own compiler.** Collect on the
+  network compiler (benchmark/v4 training songs, 5 seeds), then retrain the
+  network on that collection, alone and pooled with the archive's
+  demonstrations. The data stays in `generated/`; only the model is
+  committed.
+  - **Hypothesis:** each round of self-training closes part of the gap, as
+    retraining always has for the archive. A pooled retrain gains 5–10
+    over −25.1.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

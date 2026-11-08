@@ -1,0 +1,153 @@
+{
+ "title": "Round 24 · what a hit feels like",
+ "description": "Whole songs in Hokusai, the same ride in four ways of feeling a hit. Switch at the same moment, with sound.",
+ "groups": [
+  {
+   "id": "hits",
+   "label": "Four hits",
+   "description": "Only the hit effects vary.",
+   "variants": [
+    "v1",
+    "punch",
+    "tiers",
+    "still"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "tomada",
+   "label": "Montagem Tomada (super slowed)",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "The thud, the split, the flash toward the paper.",
+     "src": "films24/tomada-v1.mp4"
+    },
+    {
+     "id": "punch",
+     "label": "B · Punch",
+     "description": "The camera punches in; the colours surge.",
+     "src": "films24/tomada-punch.mp4"
+    },
+    {
+     "id": "tiers",
+     "label": "C · Punch, a thud for the biggest",
+     "description": "Every hit punches; the strongest also thud.",
+     "src": "films24/tomada-tiers.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · Still",
+     "description": "Nothing moves: the split and a stronger surge.",
+     "src": "films24/tomada-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "The thud, the split, the flash toward the paper.",
+     "src": "films24/petrunko-v1.mp4"
+    },
+    {
+     "id": "punch",
+     "label": "B · Punch",
+     "description": "The camera punches in; the colours surge.",
+     "src": "films24/petrunko-punch.mp4"
+    },
+    {
+     "id": "tiers",
+     "label": "C · Punch, a thud for the biggest",
+     "description": "Every hit punches; the strongest also thud.",
+     "src": "films24/petrunko-tiers.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · Still",
+     "description": "Nothing moves: the split and a stronger surge.",
+     "src": "films24/petrunko-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "The thud, the split, the flash toward the paper.",
+     "src": "films24/los-v1.mp4"
+    },
+    {
+     "id": "punch",
+     "label": "B · Punch",
+     "description": "The camera punches in; the colours surge.",
+     "src": "films24/los-punch.mp4"
+    },
+    {
+     "id": "tiers",
+     "label": "C · Punch, a thud for the biggest",
+     "description": "Every hit punches; the strongest also thud.",
+     "src": "films24/los-tiers.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · Still",
+     "description": "Nothing moves: the split and a stronger surge.",
+     "src": "films24/los-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "circus",
+   "label": "Circus Minimus",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "The thud, the split, the flash toward the paper.",
+     "src": "films24/circus-v1.mp4"
+    },
+    {
+     "id": "punch",
+     "label": "B · Punch",
+     "description": "The camera punches in; the colours surge.",
+     "src": "films24/circus-punch.mp4"
+    },
+    {
+     "id": "tiers",
+     "label": "C · Punch, a thud for the biggest",
+     "description": "Every hit punches; the strongest also thud.",
+     "src": "films24/circus-tiers.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · Still",
+     "description": "Nothing moves: the split and a stronger surge.",
+     "src": "films24/circus-still.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Round 24",
+   "href": "/generated/concept-lab/round24.html"
+  },
+  {
+   "label": "The question",
+   "href": "/generated/concept-lab/?q=1"
+  }
+ ]
+}

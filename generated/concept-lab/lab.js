@@ -40,8 +40,21 @@ const TEST_QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-// Round 23 is answered (C: effects at the strongest frame); the next round's questions go here.
-const QUESTIONS = [];
+// Round 24: the hit effects, rethought. Every option is the Hokusai theme without ends (loops), varying only the hit.
+const hokusai = {...resolveLook('hokusai'), ends: 'none'};
+// a moment on another theme: that whole look, but the hit of the option being watched
+const onTheme = name => {const {hits, ...look} = resolveLook(name); return {...look, ends: 'none'};};
+const QUESTIONS = [
+  {id: 'hits', ask: 'What should a hit feel like?',
+    why: 'Today’s hit and three new ideas of it, each a whole idea, not a tweak. The colour split stays in all of them. B: the camera punches in on the rider instead of shaking, and the colours surge instead of the flash (the paper stays the paper). C: the same, with the thud kept for the biggest hits only. D: nothing moves; the split and a stronger surge carry the hit. Each follows the hit’s own strength, from its strongest frame. Watch the films first. Keep any number, and say what you would mix.',
+    song: 'tomada', t: 55.4, len: 6, multi: true, opts: [
+      ['Today', {...hokusai, hits: 'v1'}, 'The thud, the split and the flash toward the paper, as you know them.'],
+      ['Punch', {...hokusai, hits: 'punch'}, 'The camera closes in on the rider and springs back; the colours surge.'],
+      ['Punch, a thud for the biggest', {...hokusai, hits: 'tiers'}, 'Every hit punches; only the strongest also thud.'],
+      ['Still', {...hokusai, hits: 'still'}, 'Nothing moves: the split and a stronger colour surge.']],
+    moments: [['Tomada 56 s, the strongest hit', 55.4], ['Petrunko 34 s', 33.5, 'petrunko'], ['Los Voltaje 28 s, the dive', 28.5, 'los'],
+      ['Circus, the hook', 43, 'circus'], ['On Paper · Tomada', 55.4, 'tomada', onTheme('paper')], ['On Black · Los Voltaje', 28.5, 'los', onTheme('black')]]},
+];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
 for (const Q of QUESTIONS) for (const o of Q.opts) o[1] = resolveLook(null, o[1]);
@@ -66,7 +79,7 @@ let qi = Math.max(0, Math.min(QUESTIONS.length, (parseInt(q.get('q'), 10) || 1) 
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r23';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r24';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();

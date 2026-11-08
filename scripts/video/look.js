@@ -18,7 +18,7 @@ export const OPTIONS = {
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
-  hits: ['On each hit', {v1: 'Shake, colour split and flash (v1)', none: 'Nothing'}],
+  hits: ['On each hit', {v1: 'Shake, colour split and flash (v1)', punch: 'Punch, split and colour surge', tiers: 'Punch, a thud on the biggest, split and surge', still: 'Still: split and a strong colour surge', none: 'Nothing'}],
 };
 
 export const V1 = {

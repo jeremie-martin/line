@@ -19,7 +19,7 @@ wherever it lives. Line counts are as of today.*
 |---|---|---|
 | `look.js` (+ `look.d.ts`) | 71 | Every option (defined only here; the types say a look is a checked one), the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
 | `timing.js` (+ `timing.d.ts`) | 31 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account, and its timing in words |
-| `picture.js` | 395 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit's shake, split and flash |
+| `picture.js` | 434 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit as its recipe says (`RECIPES`: today's shake, split and flash; the round-24 punch, thud for the biggest and colour surge) |
 | `camera.js` | 72 | Follows direction and its two zoom tides |
 | `palettes.js` | 267 | Every scheme, its variants, `LIBRARY` (the owner's tiers), `DROP_SCHEMES` |
 | `intensity.js` | 62 | The intensity metric and its measures |

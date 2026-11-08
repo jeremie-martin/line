@@ -52,6 +52,19 @@ const riseR = (s, from, full, p = 2) => {const x = ramp(s, from, full); return x
 const SHAKE = s => Math.min(48, 24 * linR(s, 0.2, 0.85)); // px: straight from 0 at 0.2 to 24 px at 0.85 (R13, R17)
 const SPLIT = s => 14 * Math.min(3, 1.5 * riseR(s, 0.3, 0.85)); // px before the direction's match: a slow start from 0.3 (R15)
 const FLASH = s => Math.min(0.5, s <= 0.85 ? 0.25 * smoothstep(ramp(s, 0.6, 0.85)) : 0.25 + 0.25 * (s - 0.85)); // 0.6 → 25 % at 0.85, gently on (R17)
+// The candidates of the hit-effects round (R24), beside today's: the camera's punch (a zoom in on the rider, as a fraction), a thud
+// kept for the biggest hits, and a colour surge (saturation and contrast swelling for an instant) instead of the flash.
+const PUNCH = s => Math.min(0.24, 0.12 * linR(s, 0.2, 0.85)); // straight from 0 at 0.2 to 12 % closer at 0.85, and on
+const BIG_SHAKE = s => Math.min(48, 24 * linR(s, 0.65, 0.95)); // px: only from 0.65: 16 px at 0.85, 24 at 0.95
+const SURGE = s => Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.45, 0.85)) : 1 + 1.5 * (s - 0.85)); // 0.45 → full at 0.85, gently on
+const STRONG_SURGE = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // starts earlier, half as much again
+/** The ways a hit can be felt (look.hits), each a whole idea of a hit; every one keeps the colour split. */
+const RECIPES = {
+  v1: {shake: SHAKE, flash: true}, // today: the thud, the split, the flash toward the paper (R7–R19)
+  punch: {punch: PUNCH, surge: SURGE}, // the camera punches in on the rider; the colours surge
+  tiers: {punch: PUNCH, shake: BIG_SHAKE, surge: SURGE}, // every hit punches; the biggest also thud
+  still: {surge: STRONG_SURGE}, // nothing moves: the split and the colours carry the hit
+};
 const HALF = 0.61; // the halfway split shows the same fringe as the sideways one, on average (fitted on Tomada and Los Voltaje, R8)
 const TITLE_SPLIT = 0.65, TITLE_PULSE = 0.45; // the title gets a little less split (R16) and less of its zoom pulse (R19)
 // Strength as duration: the peak is held at least one full 60 fps frame (no hit loses its peak to the frame grid); the
@@ -187,10 +200,16 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   }
   const into = h => ({x: -h.nrm.x, y: -h.nrm.y});
   // the thud: the frame is knocked along the blow at once, then springs back through rest (6 Hz) as the energy drains
-  function shake({m, h, age}) {
+  function shake({m, h, age}, curve) {
     if (!h || m < 0.002) return {dx: 0, dy: 0};
-    const i = into(h), a = SHAKE(h.s) * m * Math.cos(2 * Math.PI * 6 * age);
+    const i = into(h), a = curve(h.s) * m * Math.cos(2 * Math.PI * 6 * age);
     return {dx: a * i.x, dy: a * i.y};
+  }
+  // the punch: the camera closes in on the rider at once, then springs back through rest (4 Hz, a slight recoil) as the energy
+  // drains; the rider stays where it is on screen, and nothing but the ride moves
+  function punch({m, h, age}, curve) {
+    if (!h || m < 0.002) return 0;
+    return curve(h.s) * m * Math.cos(2 * Math.PI * 4 * age);
   }
   // The colour split, halfway between sideways and the hit's direction, over the whole picture (the band, title and sun too,
   // R11). Its overscan hides the edges and zooms the whole picture a little with each split: the pulse (R18).
@@ -255,6 +274,19 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const op = FLASH(h.s) * m; if (op < 0.003) return;
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.3 * (op / 0.3); ctx.fillStyle = paper;
     ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore();
+  }
+
+  // the colour surge: everything drawn on the paper (ink, line, rider, band, sun, title) swells in saturation and contrast for an
+  // instant, while the paper stays exactly the paper: the frame's content is drawn on a clear canvas and laid on the paper through
+  // the filter. It reads on any palette, a dark drop included.
+  const surgeCanvas = document.createElement('canvas');
+  const surgeOf = ({m, h}, curve) => !h || m < 0.003 ? 0 : curve(h.s) * m;
+  function laySurged(a, paper) {
+    const w = canvas.width, hh = canvas.height;
+    if (surgeCanvas.width !== w || surgeCanvas.height !== hh) {surgeCanvas.width = w; surgeCanvas.height = hh;}
+    const g = surgeCanvas.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, w, hh); g.drawImage(canvas, 0, 0);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = paper; ctx.fillRect(0, 0, w, hh);
+    ctx.filter = `saturate(${1 + 0.3 * a}) contrast(${1 + 0.25 * a})`; ctx.drawImage(surgeCanvas, 0, 0); ctx.restore();
   }
 
   // ── colour ───────────────────────────────────────────────────────────────
@@ -369,12 +401,15 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
 
   /** Draw the frame at song time t (s). Returns the world-to-canvas transform the ride was drawn with (before the split). */
   function draw(t, look) {
-    const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W, on = look.hits === 'v1';
-    const hit = on ? strongest(r) : null;
-    const th = themeAt(t, r, look), v = bookend(t, cameraAt(look, at), at, look), hc = on ? shake(hit) : {dx: 0, dy: 0};
+    const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W, recipe = RECIPES[look.hits];
+    const hit = recipe ? strongest(r) : null;
+    const th = themeAt(t, r, look), seen = bookend(t, cameraAt(look, at), at, look);
+    const hc = recipe?.shake ? shake(hit, recipe.shake) : {dx: 0, dy: 0}, v = recipe?.punch ? {...seen, z: seen.z * (1 + punch(hit, recipe.punch))} : seen;
     titleBox = null; // set by drawTop when it draws the title in this frame
+    const surging = recipe?.surge ? surgeOf(hit, recipe.surge) : 0;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
-    ctx.fillStyle = th.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // with a surge, the content is drawn on a clear canvas and laid on the paper afterwards
+    if (surging > 0.01) ctx.clearRect(0, 0, canvas.width, canvas.height); else {ctx.fillStyle = th.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);}
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) drawTop(t, r, a, th, look);}
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
@@ -385,7 +420,11 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     drawLines(visibleLines(cc), at, cc.z, th, look, v.over);
     drawRider(riderCamera(v, hc.dx, hc.dy, k), at);
     ctx.setTransform(k, 0, 0, k, 0, 0);
-    if (on) {split(k, hit); ctx.setTransform(k, 0, 0, k, 0, 0); flash(hit, th.bg);}
+    if (surging > 0.01) laySurged(surging, th.bg);
+    if (recipe) {
+      split(k, hit); ctx.setTransform(k, 0, 0, k, 0, 0);
+      if (recipe.flash) flash(hit, th.bg);
+    }
     return world;
   }
 

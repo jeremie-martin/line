@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): hypothesis, policies with every family on paired rails
+
+- **Basis.** Proposal coverage is now the largest share of strength loss
+  (39% on G). Demonstration count matters, and a second round of the same
+  cases saturates.
+- **Data.**
+  - The adopted policies' data (today's first collection plus the transfer
+    collections).
+  - Plus a new collection, `--catalog=v6paired`: explicit V6 plans for each
+    family (single, arcs, fold, serpentine, scallops, terraces, scattered)
+    on paired rails, on non-evaluation music, 4 plans each. 280 compiles on
+    main (worktree 6ee6f0f52db8, structurally identical to main), 26,879 probes.
+  - 90,870 demonstrations (main: 79,778); 59.0 MB as gzip.
+- **Hypothesis.** Demonstrations of every family across varied music widen
+  what gets proposed: strength on strong asks up, V7.1 up, held out up.
+- **Risk.** Explicit-family plans differ from automatic plans; their
+  demonstrations may pull proposals toward forced shapes.
+
 ## November 8 (night): why strong catches miss, re-measured on today's main
 
 `loss_attribution.ts` on main 9d065738 (V7.1, seed 101, 3,448 catches),

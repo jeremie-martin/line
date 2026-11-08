@@ -9,6 +9,12 @@
   stage) against main, V7.1, 4 seeds. This is information for the owner's
   decision, not a change to adopt.
 - **Hypothesis.** About the same as before: a small loss, uniform.
+- **Result.**
+  - −0.2 [−0.4, −0.0]; 0 of 35 specs up, 26 slightly down (lowest −1.0),
+    9 unchanged.
+  - The refinement costs 1% of physics frames.
+  - Unchanged since November 1: it is worth a fraction of a point. Keeping
+    or deleting it stays the owner's call; nothing changed.
 
 ## November 8 (night): hypothesis, strength-seeking response steps
 

@@ -154,6 +154,21 @@
   - **Hypothesis:** each round of self-training closes part of the gap, as
     retraining always has for the archive. A pooled retrain gains 5–10
     over −25.1.
+- **Alongside: multiple-choice proposals** (V7.1, 4 seeds, the archive's
+  data).
+  - **Why.** The fixed residual styles spread every situation the same way.
+    Here one network per group (16 units, all 57 features) has 32 heads. Each
+    demonstration trains only the head closest to it (5% shared among the
+    others, so no head dies). The heads therefore learn situation-dependent
+    alternatives: the quantity the coverage test measures.
+  - Each head carries the optional fields of the real demonstration it fits
+    best among those it wins. Small transfer groups get constant heads.
+  - 27,947 numbers, 83 KB as stored. Runtime: the same 15 lines, reading a
+    head instead of a residual.
+  - **Offline coverage:** 0.853 (network + styles 0.975, full 0.746).
+  - **Hypothesis:** −8 to −16; clearly better than −25.1. If so, the
+    remaining gap is under a fifth of the archive's worth, and the size
+    can be cut further (one network shared by all groups).
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

@@ -169,6 +169,21 @@
   - **Hypothesis:** −8 to −16; clearly better than −25.1. If so, the
     remaining gap is under a fifth of the archive's worth, and the size
     can be cut further (one network shared by all groups).
+- **Result: refuted.** −25.9 [−36.1, −15.8]; 0 of 35 specs up; explicit
+  requests −27.3; body drag −19%. Equal to the simpler network (−25.1).
+- **Reading.** The coverage test ordered the retrieval variants but fails
+  across model kinds. Coming closer to the committed six main controls is
+  not what makes a proposal useful. Candidates for what retrieval gives that
+  a learned map does not:
+  - a coherent complete control (the optional fields come from the same
+    case);
+  - physical viability (a neighbour's control worked in a nearly identical
+    state);
+  - the committed controls' fine detail, which local search then needs
+    less effort to reach.
+  The per-source viability of initial proposals separates the first two.
+  It is not in the saved rides, so it is measured next on four cases per
+  arm.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

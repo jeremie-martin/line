@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): pooled policies pass, held for the owner's storage decision
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | +2.0 | [−1.0, +5.0], 0.92; 26 of 35 specs up (G +7.4, P6 +7.2) |
+| held out, 11 songs | **+8.9** | [+1.7, +16.0], 0.99; **11 of 13 specs up**; all 4 blocks positive |
+
+- No ride lost.
+- **Costs.**
+  - Body drag +4% (V7.1) and +1% (held out).
+  - Strong extra impacts −33% on V7.1, +77% held out (0.08 against 0.04
+    per 100 beats).
+- By the bar used for today's adoptions this passes. Its only cost is the
+  archive: 156,009 demonstrations, 100.2 MB as gzip (over GitHub's file
+  limit), 75.5 MB as brotli.
+- **Ready, not merged.**
+  - Local branch `exp/policies-pooled-brotli` holds the brotli archive on
+    top of the brotli-capable loader.
+  - It reproduces the benchmarked gzip rides exactly (6 specs compared,
+    every ride identical).
+  - Merging needs the owner's word: about 75 MB added to the repository
+    history for good.
+  - On merge: refresh parity, `npm run check`, then set the `main`
+    reference.
+
 ## November 8 (night): diagnostic, today's main at twice the allowance
 
 - **Question.** Before today's changes, twice the allowance bought +0.1:

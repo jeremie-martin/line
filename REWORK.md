@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: a hit happens at its strongest frame (timing stage 3 done; branch `visual-lab`)
+
+The lab's rides were recompiled at the same jolt (identical tracks, now with
+beats, so aligned at 24 to 33 ms) and round 23 compared four timings on whole
+films: today's, then aligned with the effects at the first touch, at the
+strongest frame and on the beat. The owner chose the strongest frame. It is the
+one rule now, with no option: everything a hit triggers runs on the ride clock
+from its strongest frame, the intensity metric reads the same moment, the impact
+panel plots it, and a hit's direction stays the line struck at its onset (at the
+strongest frame the nearest line differs on about 10 % of hits, some reversed).
+The lab fingerprint moved on 55 of 116 frames.
+
+A step-back review (Codex and an independent agent, at design level) found and
+this change fixes: study clips had lost their beat marks in stage 1 (they are
+the spec's authored beats again, variant-aware and checked against its hash);
+a crashed ride could not open (the replay required a trace past the ride's end);
+the scene took its sections from the song's current authoring (now the record's
+own, with its recording); the span was enforced by some callers only (now by the
+writer); a compare export of a perturbed cell failed (now through the
+evaluation's own case); two compatibility paths and a duplicate frame rate. The
+scene now checks its invariants once (all 194 saved records pass), the review
+player says how a ride is timed, and the cross-offset test covers hit effects.
+Study clips are declared what they were: bare tracks, shown as compiled, judging
+motion rather than sync.
+
 ## November 8: rides record their authored beats (timing stage 2 of 4; branch `visual-lab`)
 
 `loadMusicSpec` takes the beats from the spec as authored, before the jolt, and

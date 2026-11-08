@@ -250,33 +250,38 @@ and validation are in [music authoring](docs/music-authoring.md).
      every identity. Rides saved before 8 November have none and stay as compiled.
    - `scene.ts` builds what every consumer reads: the ride (its track, and for a
      compiled production its trace), its impact account projected as recorded, in
-     physics frames (targets with their beats when recorded; events with touch,
-     onset, strongest frame and strength; matches), the timing, the song span
-     (`[0, spec duration]`, a bare track's own duration), the song's recording,
-     spectrum (`make_spectrum.py`, cached by the recording's bytes in
-     `generated/spectrum/`) and hand-placed drop (`drops.ts`). It reads no spec, so
-     editing a spec never blocks a render.
+     physics frames (targets with their beats when recorded; events with onset,
+     strongest frame and strength; matches), the timing, the song span
+     (`[0, spec duration]`, a bare track's own duration), and the song: a saved
+     ride's own recording and sections (its compiled case), the spectrum
+     (`make_spectrum.py`, cached by the recording's bytes in `generated/spectrum/`)
+     and hand-placed drop (`drops.ts`). It reads no spec and no current authoring,
+     so a saved ride renders the same whatever they say today. It refuses a record
+     of another song, hits whose strongest frames are out of order, and a ride
+     that ends before the span it is shown with.
    - `picture.js` draws the frame at song time t for a look: the ride at r, the
      "Follows direction" camera (`camera.js`), the line, the band, the top element,
-     the drop, and each hit's shake, colour split and flash, sized by its measured
-     strength, from its effect time (the look's `effectsAt`: touch, strongest frame
-     or authored beat; v1 is touch). The intensity metric (`intensity.js`) is built
-     on ride time from each hit's touch and read at r. `look.js` holds every
-     option, the settled defaults (V1), the themes and `plain` (the compiler's
-     review clips). Palettes are in `palettes.js`.
+     the drop, and each hit's shake, colour split and flash. **A hit happens at its
+     strongest frame** (round 23), so everything it triggers is on ride time; it
+     is sized by its measured strength and pushed along the line struck at its
+     onset. The intensity metric (`intensity.js`) is built on ride time from the
+     ride's speed and its hits, read at r. `look.js` holds every option, the
+     settled defaults (V1), the themes and `plain` (the compiler's review clips).
+     Palettes are in `palettes.js`.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to
      one FFmpeg, and encodes the song's own audio in the same FFmpeg: frame 0 and
      the first audio sample are song time `from` (the recording is decoded from
      0.5 s earlier and trimmed, since an MP3 decodes wrong for its first frame
-     after a seek). Every video follows one
+     after a seek). It refuses a passage outside the song span. Every video follows one
      standard (`encoding.ts`: H.264 yuv420p, BT.709 limited range, all four colour
      tags) and is checked after writing: frame count, size, rate and tags, and the
      audio within 1 ms of the song by cross-correlation on a second with sound.
    - `native.js`, `worker.js` and `sprites.js` are the vendored rider artwork and
      native replay, bundled with the review player's contact inspection into
      `generated/renderer/` by `scripts/gallery/build_renderer.mjs`, which the review
-     server runs when it starts. The replay checks a saved trace, which must cover
-     the track, against the engine within 1e-7 where one exists.
+     server runs when it starts. The replay checks a saved trace against the engine
+     within 1e-7 on every frame it recorded; a trace stops where its ride ended (a
+     crash or an ejection), and the engine draws on from there.
 
    `npm run video` (`scripts/video.ts`) makes a video from a fresh compile, a
    saved study or a bare track, in any look, whole or a span of the song.
@@ -285,7 +290,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    done, and its record must name this ride's inputs. Renders are outputs of their
    inputs and look; the renderer's commit is recorded, never checked. Review clips
    for blind studies and compare's before/after (`tools/measure/clip_render.ts`)
-   are written directly at their song times in the plain look, 540 × 960; a clip is
+   judge motion, not sync: bare tracks in the plain look, 540 × 960, shown as
+   compiled, so a judged moment is where its physics frame says; their beat marks
+   are the authored beats of the spec the rides were compiled from. A clip is
    reused only for identical inputs and bytes. FFmpeg compositions of written
    videos (`pair_media.ts`, compare's side by side) keep the encoding standard.
 

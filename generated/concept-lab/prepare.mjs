@@ -1,11 +1,11 @@
-// The lab's scenes: node generated/concept-lab/prepare.mjs [--as-compiled | --old] [song…]
+// The lab's scenes: node generated/concept-lab/prepare.mjs [--old] [song…]
 // Each song's scene is built by the video renderer's own scene builder (scripts/video/scene.ts) from its saved ride, so the lab
-// draws exactly what a finished video would. Sets (rides.js): the lab's rides (recompile.sh) in rides/ → data/; --as-compiled,
-// the same rides with their beats withheld, so drawn as compiled → data-compiled/; --old, the music-library round-2 rides
-// (rounds 1–5) → data-r5/.
+// draws exactly what a finished video would. Sets (rides.js): the lab's rides (recompile.sh) in rides/ → data/; --old, the
+// music-library round-2 rides (rounds 1–5) → data-r5/.
 import {readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {buildScene} from '../../scripts/video/scene.ts';
+import {describeTiming} from '../../scripts/video/timing.js';
 import {rideSet} from './rides.js';
 
 const ROOT = resolve(import.meta.dirname, '../..'), LAB = import.meta.dirname;
@@ -17,7 +17,7 @@ export const SONGS = {
   tomada: ['montagem_tomada_super_slowed_selection', 'montagem_tomada_super_slowed_selection-s202'], circus: ['circus_minimus_77s', null],
 };
 const args = process.argv.slice(2), keys = args.filter(a => !a.startsWith('--'));
-const set = args.includes('--old') ? 'old' : args.includes('--as-compiled') ? 'compiled' : '';
+const set = args.includes('--old') ? 'old' : '';
 const record = dir => {const f = existsSync(dir) && readdirSync(dir).find(f => f.endsWith('-production.json')); return f ? join(dir, f) : null;};
 const out = join(LAB, rideSet(set).dir);
 mkdirSync(out, {recursive: true});
@@ -27,9 +27,7 @@ for (const key of keys.length ? keys : Object.keys(SONGS)) {
   if (set === 'old' && !ride) continue;
   const path = set === 'old' ? record(join(ROOT, 'generated/music-library-round2/rides', ride)) : record(join(LAB, 'rides', key));
   if (!path) throw new Error(`${key}: no saved ride${set === 'old' ? '' : ' (run recompile.sh first)'}`);
-  const saved = JSON.parse(readFileSync(path, 'utf8'));
-  if (set === 'compiled') delete saved.beats;
-  const scene = buildScene(song, saved);
+  const scene = buildScene(song, JSON.parse(readFileSync(path, 'utf8')));
   writeFileSync(join(out, `${key}.json`), JSON.stringify(scene));
-  console.log(key, scene.account?.matches.length ?? 0, 'hits', scene.phases.length, 'phases', scene.drop ? `drop ${scene.drop.join('–')}` : 'no drop', scene.timing.aligned ? `offset ${(scene.timing.offset * 1000).toFixed(1)} ms` : `as compiled (${scene.timing.reason})`);
+  console.log(key, scene.account?.matches.length ?? 0, 'hits', scene.phases.length, 'phases', scene.drop ? `drop ${scene.drop.join('–')}` : 'no drop', describeTiming(scene.timing));
 }

@@ -4,7 +4,7 @@
 // Everything is offline: the whole ride is known, so lag is a design choice here, not a cost.
 export const FS = 10; // Hz: nothing here needs more
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-/** The shared, absolute strength curve: the same for every song, no ranks. cam.js re-exports this one. */
+/** The shared, absolute strength curve: the same for every song, no ranks. */
 export const strength = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4);
 
 /** Zero-phase gaussian, edges held. σ in seconds. No overshoot, so it cannot ring or blink. */

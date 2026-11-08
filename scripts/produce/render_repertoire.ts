@@ -33,10 +33,10 @@ for (const id of ids) {
   const inputs = {planSha256: manifest.planSha256, cellSha256: cell.sha256, trackSha256: hash(trackPath), reportSha256: hash(reportPath),
     audioSha256: c.audioSha256, ...(impactPath ? {impactSha256: hash(impactPath)} : {})};
   // timed to the recording verifiedVideoCell has just checked against the ride's own digest
-  const scene = buildScene(c.id, record, resolve(c.audioPath)), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
+  const scene = buildScene(c.id, record), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
   const recordPath = join(root, id + '.video.json');
   if (existsSync(recordPath)) {
-    const saved = readVerifiedJson(recordPath), named = saved.inputs ?? saved.identity;
+    const saved = readVerifiedJson(recordPath), named = saved.inputs;
     for (const [key, value] of Object.entries(inputs)) assert.equal(named[key], value, `${id}.video.json is a video of another ride (${key}); move it away to render this one`);
     // a record is only as good as the videos it names: a deleted or changed file is not "already rendered"
     for (const {path, sha256} of [saved.full, saved.excerpt]) assert.ok(existsSync(join(root, path)) && hash(join(root, path)) === sha256,

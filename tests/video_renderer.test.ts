@@ -4,9 +4,10 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
-import {rideAccount, screenTitle} from '../scripts/video/scene.ts';
+import {buildScene, rideAccount, screenTitle} from '../scripts/video/scene.ts';
 import {alignment, rideTime, songTime, songTimeOfFrame} from '../scripts/video/timing.js';
-import {CLIP_BEFORE, clipBeats, momentClip} from '../tools/measure/clip_render.ts';
+import {CLIP_BEFORE, clipBeats, momentClip, specBeats} from '../tools/measure/clip_render.ts';
+import {loadMusicSpec} from '../scripts/produce/music_artifacts.ts';
 import {bestLag, frameCount, frameSize} from '../scripts/video/write.ts';
 import {BODY_POINTS} from '../scripts/video/picture.js';
 import {videoRequest} from '../scripts/produce/video_request.ts';
@@ -70,10 +71,13 @@ describe('scenes', () => {
     expect(rideAccount({track})).toBeNull();
     const account = rideAccount({track, impactEvaluation: evaluation, beats: [0.99, 2, 2.98]})!;
     expect(account.targets).toEqual([{frame: 40, impact: 0.6, beat: 0.99}, {frame: 80, beat: 2}, {frame: 120, impact: 0.9, beat: 2.98}]);
-    expect(account.events).toEqual([{touch: 40, onset: 41, peak: 42, strength: 0.62}, {touch: 119, onset: 121, peak: 122, strength: 0.31}]);
+    expect(account.events).toEqual([{onset: 41, peak: 42, strength: 0.62}, {onset: 121, peak: 122, strength: 0.31}]);
     expect(account.matches).toEqual([{target: 0, event: 0}, {target: 2, event: 1}]);
     expect(() => rideAccount({track, impactEvaluation: evaluation, beats: [1, 2]})).toThrow(/2 beats for 3 targets/);
     expect(() => rideAccount({track, impactEvaluation: {...evaluation, account: {matches: [{target: 1, event: 5}]}}})).toThrow(/missing/);
+    // hits happen at their strongest frames, in the order of the targets they answer (the picture scans them so)
+    const crossed = {...evaluation, account: {matches: [{target: 0, event: 1}, {target: 2, event: 0}]}};
+    expect(() => rideAccount({track, impactEvaluation: crossed})).toThrow(/target 2 peaks before the one answering target 0/);
   });
   it('a ride is aligned from its own hits, or shown as compiled and says why', () => {
     expect(alignment(null)).toEqual({offset: 0, aligned: false, reason: 'no impact account'});
@@ -85,6 +89,13 @@ describe('scenes', () => {
     expect(aligned.aligned).toBe(true); expect(aligned.offset).toBeCloseTo(0.065, 12);
     expect(alignment(rideAccount({track, impactEvaluation: evaluation, beats: [1.2, 2, 3.2]})).reason).toMatch(/outside \[0, 500\] ms/);
   });
+  it('a saved ride is shown over its own song, and must cover it once aligned', () => {
+    const c = {id: 'petrunko_selection', audioPath: 'productions/petrunko_selection/audio.mp3', durationFrames: 120, phases: []};
+    expect(() => buildScene('lua_na_praca_selection', {track, case: c})).toThrow(/of petrunko_selection, not lua_na_praca_selection/);
+    // aligned 65 ms early, a 3 s song needs the ride to 3.065 s (frame 122.6): a track of 120 frames ends before it
+    const short = {track: {...track, duration: 120}, impactEvaluation: evaluation, beats: [0.99, 2, 2.98], case: c};
+    expect(() => buildScene('petrunko_selection', short)).toThrow(/ends before the song/);
+  });
   it('one relation between the clocks: r = s + offset, and back', () => {
     for (const offset of [-0.1, 0, 0.029]) for (const s of [0, 1.25, 30]) {
       expect(songTime(rideTime(s, offset), offset)).toBeCloseTo(s, 12);
@@ -92,14 +103,15 @@ describe('scenes', () => {
     }
     expect(songTimeOfFrame(80, 0.05)).toBeCloseTo(1.95, 12); // frame 80 is ride time 2 s, shown 50 ms early
   });
-  it('a clip places its judged moment through the ride\'s timing, with the ride\'s recorded beats as its marks', () => {
-    const aligned = {track, impactEvaluation: evaluation, beats: [0.99, 2, 2.98]};
-    const clip = momentClip('petrunko_selection', aligned, 120);
-    expect(clip.from).toBeCloseTo(3 - 0.065 - CLIP_BEFORE, 12);
-    expect(clipBeats(clip)).toEqual([{t: +(2 - clip.from).toFixed(4), impact: null}, {t: +(2.98 - clip.from).toFixed(4), impact: 0.9}]);
-    const bare = momentClip('petrunko_selection', {track}, 120);
-    expect(bare.from).toBe(2); expect(clipBeats(bare)).toEqual([]);
-    expect(() => momentClip('petrunko_selection', {track}, 20)).toThrow(/too early/);
+  it('a study clip is on the compile timeline, with its song\'s authored beats as its marks', async () => {
+    const clip = momentClip('petrunko_selection', track, 120);
+    expect(clip.from).toBe(3 - CLIP_BEFORE); expect(clip.to).toBeCloseTo(3 - CLIP_BEFORE + 1.8, 12);
+    expect(clipBeats(clip, [{t: 1.9, impact: 0.5}, {t: 2, impact: null}, {t: 2.98, impact: 0.9}, {t: 3.81, impact: 1}]))
+      .toEqual([{t: 0, impact: null}, {t: 0.98, impact: 0.9}]);
+    expect(() => momentClip('petrunko_selection', track, 20)).toThrow(/too early/);
+    // the marks are the spec's own beats, as the compiler records them
+    const beats = await specBeats('productions/petrunko_selection/spec.ts'), {beats: recorded} = await loadMusicSpec({song: 'petrunko_selection', title: '', moments: []}, 0);
+    expect(beats.map(b => b.t)).toEqual(recorded);
   });
   it('the on-screen title drops the artist and any parenthetical', () => {
     expect(screenTitle('Chris Grey — LET THE WORLD BURN')).toBe('LET THE WORLD BURN');

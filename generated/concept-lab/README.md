@@ -9,8 +9,7 @@ production video renderer itself (`scripts/video/`): what the owner approves her
 
 The rides are **recompiled with the current compiler** (`recompile.sh` writes `rides/`, same songs and seeds; last on 8 November,
 identical tracks, now with their authored beats, so aligned); `prepare.mjs` builds their scenes into `data/` with the production
-scene builder. The other ride sets (`rides.js`): `prepare.mjs --as-compiled` builds `data-compiled/`, the same rides drawn as
-compiled (byte-identical to the lab before 8 November), and `--old` builds `data-r5/` from the round 1–5 rides. `?rides=NAME`
+scene builder. The other ride set (`rides.js`): `prepare.mjs --old` builds `data-r5/` from the round 1–5 rides (as compiled). `?rides=NAME`
 plays a set; in a question, a moment, an option or the question can name one (a moment's wins), and switching options between
 sets keeps the moment and the music.
 
@@ -20,7 +19,7 @@ Start at `morning.html`. One server serves the lab, the review pages and their A
 | Entry | What it is |
 |---|---|
 | `morning.html` | Index of all rounds. Each round page has the films and questions of its day. Rounds 1–5 keep their pages and films; their interactive snapshots were retired on 8 November (git history has them). |
-| `?q=1` | The current round's questions (round 21: four), stored in localStorage as `concept-lab-answers-r21` (`STORE` in `lab.js`). |
+| `?q=1` | The current round's questions (none open: round 23 is answered), stored in localStorage as `concept-lab-answers-r<round>` (`STORE` in `lab.js`). |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab: the looks (`presets.js`: Swatch, Plain and the themes), and every option of a look as a chip. |
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |
@@ -49,7 +48,7 @@ slope's sine squared, and it never rises on screen while descending (R6–R7). Z
 
 ## Hits (v1)
 
-Each hit on its own, from its first touch, sized by its measured strength s, with no rank and no ceiling (`picture.js`):
+Each hit on its own, from its strongest frame (R23), sized by its measured strength s, with no rank and no ceiling (`picture.js`):
 - **shake:** a thud, straight from 0 at s 0.2 to 24 px at 0.85, then on.
 - **split:** halfway between sideways and the hit's direction, slow start from 0.3 to 12.8 px at 0.85, over the whole picture
   with its zoom pulse.
@@ -69,10 +68,9 @@ study and the blind passages (`?feel=1`).
 `ensemble.py` averages the sound around strong hits, aligned on first touch: the rise sits −6 to +10 ms from the touch on 8
 songs; `attack.py` places the attack against touch, onset and strongest frame on the current rides (`docs/IMPACT-TIMING.md`).
 The design that follows (`docs/TIMING-DESIGN.md`): two clocks, song and ride, one relation r = s + offset
-(`scripts/video/timing.js`), a per-ride offset from strongest frames against authored beats, and `effectsAt` choosing what
-every hit-triggered effect follows. Stages 1 and 2 are in: rides compiled from now on record their beats and are aligned; the
-lab's rides predate that and are shown as compiled (offset 0) until stage 3 recompiles them. The compiler's −15 ms jolt
-(`scripts/produce/jolt.ts`) is unchanged; jolt 0 is stage 4.
+(`scripts/video/timing.js`), and a per-ride offset from strongest frames against authored beats. A hit happens at its strongest
+frame (round 23), so its effects meet the beat on average. Rides record their beats since 8 November and are aligned; the lab's
+were recompiled then (24–33 ms). The compiler's −15 ms jolt (`scripts/produce/jolt.ts`) is unchanged; jolt 0 is stage 4.
 
 ## Inking
 
@@ -91,7 +89,7 @@ reliably (`night.py`), so each song's drop is placed by hand (`scripts/video/dro
   production writer; `films7.sh` writes the round-20 themes. `fourup.sh` and `grid12.sh` assemble films.
   `shoot.mjs` and `strip.mjs` capture stills and frame strips from the lab's shot mode.
 - **Checks:**
-  - `uicheck.mjs`: 69 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
+  - `uicheck.mjs`: 66 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
   - `qcheck.mjs`: walks the live questions. `check.mjs`: phone size.
   - `fingerprint.mjs`: 116 frames hashed (`analysis/fingerprint-baseline.txt`). Run it before and after a refactor and require
     identical outputs.

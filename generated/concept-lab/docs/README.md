@@ -7,8 +7,8 @@ Start with **DIRECTION.md**.
 | `DIRECTION.md` | Where we are, where we're going, how we work |
 | `DECISIONS.md` | How each decision was reached, with only the back-and-forth worth keeping |
 | `THEME-CRAFT.md` | How to build a theme, with the round-20 themes as worked examples |
-| `IMPACT-TIMING.md` | What should land on the beat (first touch, onset or peak): the question, the measurements, the knobs, the options |
-| `TIMING-DESIGN.md` | The agreed design for how a ride meets its song: two clocks, one relation, a per-ride offset, the stages |
+| `IMPACT-TIMING.md` | What should land on the beat (first touch, onset or peak): the question, the measurements, the knobs, the options (decided: the strongest frame, R23) |
+| `TIMING-DESIGN.md` | How a ride meets its song, as implemented: two clocks, one relation, a per-ride offset, a hit at its strongest frame, the stages |
 | `CODE-MAP.md` | Where the implementation lives, what to review, dependencies and untracked artefacts |
 | `owner-answers/` | The owner's answers, verbatim, round by round (kept local for now: the repository is public) |
 | `../LEDGER.md` | The current status of every piece, with the owner's words and the open items |

@@ -18,12 +18,12 @@ wherever it lives. Line counts are as of today.*
 | File | Lines | Role |
 |---|---|---|
 | `look.js` (+ `look.d.ts`) | 66 | Every option, the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
-| `timing.js` (+ `timing.d.ts`) | 29 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account |
-| `picture.js` | 405 | The frame at song time t for a look: the ride prepared once (rails, hits from the account, intensity on ride time, drop), then the ride at r, camera, paper, top, band, lines, rider, and each hit's shake, split and flash from its effect time (`effectsAt`) |
+| `timing.js` (+ `timing.d.ts`) | 31 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account, and its timing in words |
+| `picture.js` | 395 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit's shake, split and flash |
 | `camera.js` | 72 | Follows direction and its two zoom tides |
 | `palettes.js` | 267 | Every scheme, its variants, `LIBRARY` (the owner's tiers), `DROP_SCHEMES` |
 | `intensity.js` | 62 | The intensity metric and its measures |
-| `scene.ts` | 109 | A ride and its song → what every consumer reads: the impact account as recorded (physics frames), the timing, the song span, spectrum (cached), drop, title |
+| `scene.ts` | 119 | A ride and its song → what every consumer reads: the impact account as recorded (physics frames), the timing, the song span, a saved ride's own recording and sections, spectrum (cached), drop, title; checks the ride's invariants once |
 | `drops.ts` | 13 | Each song's drop, placed by hand |
 | `write.ts` | 172 | Scene + look → MP4 in one pass, then checked (frames, tags, audio within 1 ms) |
 | `encoding.ts` | 11 | The one encoding standard (BT.709, all four tags) |
@@ -43,14 +43,14 @@ wherever it lives. Line counts are as of today.*
 
 | File | Lines | Role |
 |---|---|---|
-| `lab.js` | 407 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
+| `lab.js` | 393 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
 | `presets.js` | 8 | The lab's looks: Swatch, Plain, the themes |
-| `rides.js` | 16 | The ride sets by name (the lab's rides, the same as compiled, the round 1–5 rides) and where their scenes live |
+| `rides.js` | 13 | The ride sets by name (the lab's rides, the round 1–5 rides) and where their scenes live |
 | `index.html`, `lab.css` | 158 | Page and style |
 
 **Tools:** `prepare.mjs` (scenes, through `scene.ts`), `recompile.sh` (rides), `film.mjs` and `films7.sh` (films, through
 `write.ts`), `fourup.sh` and `grid12.sh` (compositions, in the standard), `shoot.mjs` and `strip.mjs` (stills),
-`uicheck.mjs` (69 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
+`uicheck.mjs` (66 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
 
 **Studies, kept for their findings:** `intensity/`, `timing/`, `analysis/`. **Not for code review:** `agents/` (helper reports
 and data), the round pages.

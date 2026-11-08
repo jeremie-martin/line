@@ -6,3 +6,4 @@ export function rideTime(s: number, offset: number): number;
 export function songTime(r: number, offset: number): number;
 export function songTimeOfFrame(f: number, offset: number): number;
 export function alignment(account: Account | null): Timing;
+export function describeTiming(timing: Timing): string;

@@ -35,23 +35,14 @@ const TEST_QUESTIONS = [
       ['As designed', {...noEnds, band: 'bars', scheme: s}, 'The original paper.'],
       ...[0, 1, 2].map(i => [`Variant ${i + 1}`, {...noEnds, band: 'bars', scheme: `${s}~${i}`}, 'Only the paper changes.'])],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]})),
-  {id: 'timing', ask: 'An option on another ride set', why: 'Varies: only the timing.', song: 'lua', t: 36.5, len: 5, opts: [
-      ['Aligned', {...noEnds, band: 'bars'}, 'The lab’s rides.'],
-      ['As compiled', {...noEnds, band: 'bars'}, 'The same ride as compiled.', 'compiled']],
+  {id: 'rides', ask: 'An option on another ride set', why: 'Varies: only the ride.', song: 'lua', t: 36.5, len: 5, opts: [
+      ['Today’s ride', {...noEnds, band: 'bars'}, 'The lab’s ride.'],
+      ['The round-5 ride', {...noEnds, band: 'bars'}, 'The round 1–5 ride of the same song.', 'old']],
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-const QUESTIONS = [
-  {id: 'timing', ask: 'When do the hits happen?',
-    why: 'The ride is now shown about 30 ms earlier, so that its strongest frames meet the beats on average (round 22). This asks where the shake, split and flash should start. The differences are 20 to 40 ms: watch the films with sound, and “I can’t tell” (in the note) is a useful answer. Here you can switch at the same moment (not over Bluetooth). Varies: only the timing.',
-    song: 'petrunko', t: 33.5, len: 6, opts: [
-      ['Today', {...noEnds, band: 'bars', effectsAt: 'touch'}, 'What you have been watching: the ride as compiled, the effects from each first touch. The strongest frames come about 30 ms after the beats.', 'compiled'],
-      ['Aligned, effects at the touch', {...noEnds, band: 'bars', effectsAt: 'touch'}, 'The ride aligned; the effects still start at each first touch, now about 35 ms before the beat.'],
-      ['Aligned, effects at the strongest frame', {...noEnds, band: 'bars', effectsAt: 'peak'}, 'The ride aligned; each hit’s effects start at its strongest frame: on the beat on average, within a frame either way.'],
-      ['Aligned, effects on the beat', {...noEnds, band: 'bars', effectsAt: 'beat'}, 'The ride aligned; the effects start exactly on each authored beat, whatever the ride does.']],
-    moments: [['Petrunko 34 s', 33.5], ['Tomada 56 s, the strongest hit', 55.4, 'tomada'], ['Los Voltaje 28 s, the dive', 28.5, 'los'],
-      ['Batidão 44 s', 43.6, 'batidao'], ['Coma 51 s', 50, 'coma']]},
-];
+// Round 23 is answered (C: effects at the strongest frame); the next round's questions go here.
+const QUESTIONS = [];
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
 for (const Q of QUESTIONS) for (const o of Q.opts) o[1] = resolveLook(null, o[1]);
@@ -131,7 +122,7 @@ async function loadSong(key) {
 function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix);} catch (e) {status(e.message); if (shot) {window.__loadError = e.message; throw e;}}}
 function moments() {
   // the quietest and the densest section (hits per second), the middle section change, the strongest hit, the ends
-  const hits = P.effectTimes(mix), sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
+  const hits = P.hitTimes, sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
   const out = [['Opening', 0]];
   if (sect.length) {
     const quiet = sect.reduce((a, b) => b.density < a.density ? b : a), dense = sect.reduce((a, b) => b.density > a.density ? b : a);
@@ -178,7 +169,7 @@ function pause() {playTicket++; if (playing) seconds = music.pause(); else music
 function seek(t) {const resume = playing || music.requested; if (resume) pause(); seconds = clamp(t, 0, P?.span[1] ?? 0); draw(); sync(); if (resume) play();}
 function qStart(question) {
   if (typeof question.t === 'number') return question.t;
-  if (question.t === 'strongest') {const big = P.effectTimes(mix).reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.t - 1.6);}
+  if (question.t === 'strongest') {const big = P.hitTimes.reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.t - 1.6);}
   return 0;
 }
 // What is drawn in question mode is ALWAYS the chosen option plus the chosen moment's override, built in this one place.
@@ -211,15 +202,10 @@ async function goMoment(j) {
   loop = loopHome = at === 'end' ? Math.max(0, P.span[1] - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
   $('loop').classList.add('on'); seek(loop); renderQuestion(); draw(); if (was) play();
 }
-// Answers: picks are a LIST of option labels plus a separate 'none' flag. Older saves kept one joined string ('A, B' or 'A + B');
-// read it back by matching whole labels, so a label that contains a comma still comes back.
+// An answer: the picked option labels (a list, so a label may contain a comma), a separate 'none' flag and a note. Each round
+// keeps its answers in its own store.
 function answerOf(Q) {
-  const a = answers[Q.id] ??= {pick: null, note: ''}, labels = Q.opts.map(o => o[0]);
-  if (!Array.isArray(a.picks)) {
-    const s = a.pick && a.pick !== 'none' ? a.pick : '', wrap = sep => sep + s.split(' + ').join(sep) + sep;
-    a.picks = s ? labels.filter(l => l === s || wrap(', ').includes(', ' + l + ', ') || wrap(' + ').includes(' + ' + l + ' + ')) : [];
-  }
-  if (a.none === undefined) a.none = a.pick === 'none';
+  const a = answers[Q.id] ??= {picks: [], none: false, note: ''}, labels = Q.opts.map(o => o[0]);
   a.picks = labels.filter(l => a.picks.includes(l)); // current labels only, in option order
   return a;
 }
@@ -251,10 +237,10 @@ function renderQuestion() {
   const toggle = label => {
     if (Q.multi) {const s = new Set(a.picks); s.has(label) ? s.delete(label) : s.add(label); a.picks = Q.opts.map(o => o[0]).filter(l => s.has(l));}
     else a.picks = [label];
-    a.none = false; a.pick = pickText(Q, a); saveAnswers(); renderQuestion();
+    a.none = false; saveAnswers(); renderQuestion();
   };
   // 'None of these' is its own flag, never a label: an option may itself be called 'None'
-  const none = () => {a.none = !a.none; a.picks = []; a.pick = a.none ? 'none' : ''; saveAnswers(); renderQuestion();};
+  const none = () => {a.none = !a.none; a.picks = []; saveAnswers(); renderQuestion();};
   $('qpick').replaceChildren(...(done ? [] : [...Q.opts.map(([label], i) => chip(LETTERS[i], !a.none && a.picks.includes(label), () => toggle(label), 'opt')),
     chip('None of these', a.none, none, 'opt')]));
   $('qnote').rows = Q?.open ? 7 : 2; $('qpicklabel').textContent = Q?.multi ? 'Keep (any number)' : 'My pick';

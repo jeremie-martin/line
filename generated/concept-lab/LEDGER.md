@@ -43,13 +43,13 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Piece | Status | The owner's words and notes |
 |---|---|---|
 | Hit strength (measured, absolute) | v1 | Drives every hit effect, never a rank (R1, R5: "adapt to the actual values… the top 20 % could be very small"). A calm song gets less: "Yes, that's right" (R6). Measured from the ride, never the spec's target (confirmed R11). |
-| Hit onset (measured moment) | v1 | Effects start on the frame the hit begins. |
+| Hit moment (measured) | v1 | A hit happens at its strongest frame: its effects start there (R23, "C is the best… clearly"), pushed along the line struck at its onset. |
 | Intensity (speed + impact, `intensity.js`) | v1, used lightly | A clean standalone metric (R3). Blind test: direction right 8/8, size not shown. It drives Whisper, the sun and Out when quiet. |
 | Drop cue (hand-placed, `scripts/video/drops.ts`) | v1 | Detectors failed twice; one hand cue per song. **Open:** where Night *ends* was never reviewed song by song ("I'm not entirely convinced when the night was removed", R4). |
 | Rider direction and slope | v1 | Feeds Follows direction. |
 | Sections | gone as a driver | Hand placement still welcome (R2). |
 | Hit source (drums, vocals…) | parked | "Source should not drive this" (R4). |
-| Timing between music, contacts and visuals | open, compiler track | "Later felt too late, no fixed offsets" (R4); "calibrate… characterise… under control" (R6). On the old rides the first touch lands within one video frame of the sound's rise. Brief: `agents/jolt-brief.md`. |
+| Timing between music, contacts and visuals | v1 (R23) | Each ride aligned from its own hits: its strongest frames meet the authored beats on average (24–33 ms on the lab rides), and the effects start there (`docs/TIMING-DESIGN.md`). The jolt to 0 is the compiler's stage 4. Earlier: "Later felt too late, no fixed offsets" (R4); "calibrate… characterise… under control" (R6). |
 
 ## Elements
 
@@ -147,7 +147,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 3. ~~Whether all dark palettes should be inked~~ (R21): yes, all ink.
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).
 5. Zoom per song, and the direction layer: how looks are chosen, hints, variety (R5–R6).
-6. Timing between music and contacts (`docs/TIMING-DESIGN.md`): the lab's rides are aligned since 8 November (24–33 ms); where the effects start (touch, strongest frame or beat) is asked in round 23, on whole films. Earlier: what should land on the beat and the jolt, explored by ear in round 22 (owner, 8 November; `docs/IMPACT-TIMING.md`, with the measurements). Until 8 November every finished video's sound was 42.7 ms late and its picture 16.7 ms late, so the June choice was heard through that; the lab and the videos are now on one clock (REWORK.md, November 8).
+6. ~~Timing between music and contacts~~ (R23): aligned rides, effects at the strongest frame (`docs/TIMING-DESIGN.md`). Left: the jolt to 0 (compiler, stage 4).
 7. Whole films of v1: not watched since R6. All judgements since have been on loops.
 8. Since 8 November, any look can ship: `npm run video -- --study=DIR --look=THEME` draws exactly what the lab shows. Nothing has been published in the v1 look yet.
 

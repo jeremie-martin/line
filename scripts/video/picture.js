@@ -10,13 +10,13 @@
 // box is measured in the frame that draws the title), so frames can be drawn in any order. Everything is designed on
 // 1080 × 1920 and scaled to the canvas's width; videos are 9:16.
 //
-// Two clocks (timing.js, docs/TIMING-DESIGN.md): the ride (rider, camera, line inking, the intensity metric) is drawn at ride time
-// r = t + offset; the song (the band, the drop, the title, the sun's place) and everything a hit triggers are on song time t.
-// Each hit triggers its effects at its effect time (the look's `effectsAt`: its first touch, its strongest frame or its beat), on
-// its own, sized by its measured strength (never a rank, never the spec's request). Owner's decisions, round by round, are in
-// generated/concept-lab/LEDGER.md.
-import {W, H, FPS, smoothstep, rideSignals, followCamera} from './camera.js';
-import {rideTime, songTimeOfFrame} from './timing.js';
+// Two clocks (timing.js, docs/TIMING-DESIGN.md): the ride (rider, camera, line inking, the intensity metric, and everything a hit
+// triggers) is drawn at ride time r = t + offset; the song (the band, the drop's cue, the title, the sun's place, the opening and
+// the ending) at song time t. A hit happens at its strongest frame (round 23): its shake, split, flash and accent heat start
+// there, on their own, sized by its measured strength (never a rank, never the spec's request), and pushed along the line struck
+// at its onset. Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
+import {W, H, smoothstep, rideSignals, followCamera} from './camera.js';
+import {FPS, rideTime, songTime} from './timing.js';
 import * as I from './intensity.js';
 import {SCHEMES, DROP_SCHEMES} from './palettes.js';
 
@@ -101,10 +101,11 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
         const k = gx + ',' + gy; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(l);
       }
   }
-  // each hit: a measured event that answered a target, in target order, with the struck line's normal on the rider's side (the
-  // direction of its effects, a property of the geometry: the line touched nearest its onset)
+  // each hit: a measured event that answered a target, in target order (scene.ts checks their strongest frames follow it), at its
+  // strongest frame in ride seconds, with the struck line's normal on the rider's side (the direction of its effects, a property
+  // of the geometry: the line touched nearest its onset, where the strike begins)
   const account = scene.account, matchOf = new Map(account?.matches.map(m => [m.target, m.event]));
-  const hits = (account?.targets ?? []).flatMap((target, i) => {
+  const hits = (account?.targets ?? []).flatMap((_, i) => {
     if (!matchOf.has(i)) return [];
     const e = account.events[matchOf.get(i)], f0 = e.onset; let pos = null, nrm = {x: 0, y: -1}, best = Infinity;
     for (let f = f0 - 2; f <= f0 + 4 && !pos; f++) {
@@ -123,42 +124,30 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
         }
       }
     }
-    return [{touch: e.touch, peak: e.peak, beat: target.beat, s: e.strength, I: I.strength(e.strength), nrm}];
+    return [{r: e.peak / FPS, s: e.strength, I: I.strength(e.strength), nrm}];
   });
   const R = rideSignals(centres, replay.contacts);
   // the whole-course view frames the ride itself (rails reaching past it may crop), with a margin
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of centres) {x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);}
   const bbox = {x0: x0 - 80, y0: y0 - 80, x1: x1 + 80, y1: y1 + 80};
-  // the intensity metric (intensity.js): a description of the ride, on ride time, from its speed and its hits' first touches
+  // the intensity metric (intensity.js): a description of the ride, on ride time, from its speed and its hits
   const speed = centres.map((_, f) => {const a = centres[Math.max(0, f - 1)], b = centres[Math.min(centres.length - 1, f + 1)], k = Math.min(centres.length - 1, f + 1) - Math.max(0, f - 1) || 1; return Math.hypot(b.x - a.x, b.y - a.y) / k * FPS;}).filter((_, f) => f % 4 === 0);
-  const level = I.intensity(I.rawSignals({speed, hits: hits.map(h => ({t: h.touch / FPS, s: h.s})), duration: scene.track.duration / FPS}));
+  const level = I.intensity(I.rawSignals({speed, hits: hits.map(h => ({t: h.r, s: h.s})), duration: scene.track.duration / FPS}));
   const cams = new Map();
 
   /** The intensity metric at ride time r, 0–1. */
   function intensityAt(r) {const x = clamp(r * I.FS, 0, level.length - 1), i = Math.floor(x), j = Math.min(i + 1, level.length - 1); return level[i] + (level[j] - level[i]) * (x - i);}
 
-  // ── song time: each hit at its effect time, and the drop ─────────────────
-  // For each effect anchor (look.effectsAt), once: the hits as [effect time, hit], in order, and the drop's span, each end
-  // snapped to the strongest hit near it. The beat exists only when the ride recorded it: asking for it otherwise is an error.
-  const timed = new Map();
-  function onSong(anchor) {
-    if (timed.has(anchor)) return timed.get(anchor);
-    const at = h => {
-      if (anchor !== 'beat') return songTimeOfFrame(h[anchor], offset);
-      if (!Number.isFinite(h.beat)) throw new Error('Effects on the beat need the ride’s recorded beats; this ride has none');
-      return h.beat;
-    };
-    const list = hits.map(h => ({t: at(h), h}));
-    for (let i = 1; i < list.length; i++) if (list[i].t < list[i - 1].t) throw new Error(`Hit effect times go backwards at hit ${i} (${anchor})`);
-    let night = null; const cue = scene.drop;
-    if (cue) {
-      const strongestNear = (c, w) => list.filter(x => Math.abs(x.t - c) < w).reduce((a, b) => (!a || b.h.s > a.h.s ? b : a), null);
-      const s = strongestNear(cue[0], 0.4), exit = strongestNear(cue[1], 0.8); night = [s ? s.t : cue[0], exit ? exit.t : cue[1]];
-    }
-    const out = {list, night}; timed.set(anchor, out); return out;
+  // ── the song's own events: each hit's song time, once, for the drop and the opening ───────────────────
+  // The drop's cue is placed in song time; each end snaps to the strongest hit near it.
+  const hitsOnSong = hits.map(h => ({t: songTime(h.r, offset), h}));
+  let night = null;
+  if (scene.drop) {
+    const strongestNear = (c, w) => hitsOnSong.filter(x => Math.abs(x.t - c) < w).reduce((a, b) => (!a || b.h.s > a.h.s ? b : a), null);
+    const s = strongestNear(scene.drop[0], 0.4), exit = strongestNear(scene.drop[1], 0.8); night = [s ? s.t : scene.drop[0], exit ? exit.t : scene.drop[1]];
   }
-  const inDrop = (t, look) => {const {night} = onSong(look.effectsAt); return night && t >= night[0] && t < night[1];};
+  const inDrop = t => night && t >= night[0] && t < night[1];
 
   // ── camera ───────────────────────────────────────────────────────────────
   function cameraAt(look, at) {
@@ -177,7 +166,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const view = {...c, rx: p.x, ry: p.y, R, over: 0, ending: false};
     if (look.ends === 'none') return view;
     const b = bbox, zo = Math.min(0.78 * W / (b.x1 - b.x0), 0.5 * H / (b.y1 - b.y0)), o = {x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2};
-    const t1 = Math.min(2.2, onSong(look.effectsAt).list.find(x => x.t >= 1.3)?.t ?? 1.6), tE = songEnd - 3;
+    const t1 = Math.min(2.2, hitsOnSong.find(x => x.t >= 1.3)?.t ?? 1.6), tE = songEnd - 3;
     let u = 1;
     if (t < t1) u = smoothstep((t - 0.25) / (t1 - 0.25));
     else if (t > tE) u = 1 - smoothstep((t - tE) / 2.6);
@@ -187,11 +176,11 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   }
 
   // ── hits ─────────────────────────────────────────────────────────────────
-  /** The strongest live hit at song time t and its envelope (0–1): each hit alone, never piling up. */
-  function strongest(t, look) {
+  /** The strongest live hit at ride time r and its envelope (0–1): each hit alone, never piling up. */
+  function strongest(r) {
     let x = 0, last = null, lastEnv = 0, lastAge = 0;
-    for (const {t: at, h} of onSong(look.effectsAt).list) {
-      if (at > t + 0.001) break; const age = t - at;
+    for (const h of hits) {
+      if (h.r > r + 0.001) break; const age = r - h.r;
       const env = held(age, excess(h.I)), v = env * (0.01 + h.s); if (v > x) {x = v; last = h; lastEnv = env; lastAge = age;}
     }
     return {m: last ? lastEnv : 0, h: last, age: lastAge};
@@ -273,13 +262,13 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   const dropScheme = {};
   function schemeAt(t, look) {
     const o = SCHEMES[look.scheme], d = DROP_SCHEMES[look.scheme];
-    if (!(look.drop === 'switch' && inDrop(t, look) && d)) return o;
+    if (!(look.drop === 'switch' && inDrop(t) && d)) return o;
     return dropScheme[look.scheme] ??= {...SCHEMES[d], accent: o.accent, sun: o.sun ?? o.accent};
   }
   // Paper: plain, or answering the ride's intensity (at ride time r); Night is the drop's dark version of the scheme.
   function themeAt(t, r, look) {
     const p = schemeAt(t, look), lit = bg => ({bg, ink: p.ink, pencil: p.pencil, dark: 0});
-    if (look.drop === 'night' && inDrop(t, look)) return {bg: p.nightPaper, ink: p.nightInk, pencil: mixHex(p.nightPaper, p.nightInk, 0.38), dark: 1};
+    if (look.drop === 'night' && inDrop(t)) return {bg: p.nightPaper, ink: p.nightInk, pencil: mixHex(p.nightPaper, p.nightInk, 0.38), dark: 1};
     if (look.paper === 'whisper') return lit(mixHex(p.paper, p.tone ?? p.mass, (p.tone ? 1 : 0.055) * intensityAt(r)));
     return lit(p.paper);
   }
@@ -333,9 +322,10 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     return sp.frames[i].map((v, b) => v + (sp.frames[j][b] - v) * u);
   }
   // which bars take the accent: 'loud', the loudest three; 'heat', as many as recent hits have heated up
-  function accented(t, row, look) {
+  // the band's accented bars: with heat, as many as the hits' recent energy at ride time r; otherwise the loudest
+  function accented(r, row, look) {
     const top = k => row.map((v, b) => [v, b]).sort((a, c) => c[0] - a[0]).slice(0, k).map(x => x[1]);
-    if (look.accent === 'heat') {let h = 0; for (const {t: at, h: x} of onSong(look.effectsAt).list) {if (at > t) break; h += x.I * Math.exp(-(t - at) / 0.8);} return new Set(top(Math.floor(clamp(6 * h / 1.47, 0, 6))));}
+    if (look.accent === 'heat') {let h = 0; for (const x of hits) {if (x.r > r) break; h += x.I * Math.exp(-(r - x.r) / 0.8);} return new Set(top(Math.floor(clamp(6 * h / 1.47, 0, 6))));}
     return new Set(top(3).filter(b => row[b] > 0.25));
   }
   function smoothPath(pts) {
@@ -343,7 +333,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     for (let i = 1; i < pts.length - 1; i++) {const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2; ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);}
     ctx.lineTo(pts.at(-1).x, pts.at(-1).y);
   }
-  function drawBand(t, alpha, th, look) {
+  function drawBand(t, r, alpha, th, look) {
     const shift = BAND_SHIFT[look.bandHeight];
     ctx.save(); ctx.translate(0, shift);
     const row = spectrumRow(t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => th.dark ? mixHex(c, '#ffffff', 0.62 * th.dark) : c;
@@ -351,7 +341,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const p = schemeAt(t, look), RED = p.accent, graphite = th.dark ? p.nightInk : p.mass;
     if (look.band === 'fork') {
       // graphite stems; the accent turns a few dots the accent colour (solid, ≥ 4 px: colour survives only in masses)
-      const base = 0.825 * H, hgt = 0.15 * H, r = 7, hot = accented(t, row, look);
+      const base = 0.825 * H, hgt = 0.15 * H, r = 7, hot = accented(r, row, look);
       row.forEach((v, i) => {
         if (v <= 0) return; const x = (i + .5) * step, y = base - r - (hgt - 2 * r) * v, on = hot.has(i);
         ctx.strokeStyle = mixHex(th.bg, graphite, 0.42); ctx.lineWidth = 3; ctx.globalAlpha = alpha * 0.7; ctx.beginPath(); ctx.moveTo(x, base); ctx.lineTo(x, y); ctx.stroke();
@@ -359,7 +349,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
       });
     } else if (look.band === 'bars') {
       // graphite bars with a reflection, which stops above the comments; an accented bar turns solid
-      const base = 0.80 * H, hgt = 0.15 * H, bw = step * 0.8, room = 0.853 * H - (base + shift) - 6, hot = accented(t, row, look);
+      const base = 0.80 * H, hgt = 0.15 * H, bw = step * 0.8, room = 0.853 * H - (base + shift) - 6, hot = accented(r, row, look);
       row.forEach((v, i) => {
         const h = Math.max(2, v * hgt), x = (i + .5) * step - bw / 2; ctx.fillStyle = hot.has(i) ? RED : graphite;
         ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x, base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x, base + 4, bw, Math.min(h * 0.62, room));
@@ -380,7 +370,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   /** Draw the frame at song time t (s). Returns the world-to-canvas transform the ride was drawn with (before the split). */
   function draw(t, look) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W, on = look.hits === 'v1';
-    const hit = on ? strongest(t, look) : null;
+    const hit = on ? strongest(r) : null;
     const th = themeAt(t, r, look), v = bookend(t, cameraAt(look, at), at, look), hc = on ? shake(hit) : {dx: 0, dy: 0};
     titleBox = null; // set by drawTop when it draws the title in this frame
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
@@ -389,7 +379,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) drawTop(t, r, a, th, look);}
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
-    if (band > 0.003 && look.band !== 'none') drawBand(t, band, th, look);
+    if (band > 0.003 && look.band !== 'none') drawBand(t, r, band, th, look);
     const cc = {...v, ax: v.ax + hc.dx, ay: v.ay + hc.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     ctx.setTransform(world);
     drawLines(visibleLines(cc), at, cc.z, th, look, v.over);
@@ -399,7 +389,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     return world;
   }
 
-  /** The hits at their effect times (song seconds) for a look, in order: [{t, s}]. */
-  const effectTimes = look => onSong(look.effectsAt).list.map(({t, h}) => ({t, s: h.s}));
-  return {draw, span: scene.span, timing: scene.timing, effectTimes, schemeAt};
+  /** The hits at the song times they are seen (song seconds), in order: [{t, s}]. */
+  const hitTimes = hitsOnSong.map(({t, h}) => ({t, s: h.s}));
+  return {draw, span: scene.span, timing: scene.timing, hitTimes, schemeAt};
 }

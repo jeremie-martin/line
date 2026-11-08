@@ -11,7 +11,7 @@
 import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
-import {renderClips, momentClip, clipBeats, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH, type Clip} from './clip_render.ts';
+import {renderClips, momentClip, clipBeats, specBeats, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH, type Clip} from './clip_render.ts';
 import assert from 'node:assert/strict';
 import {loadRun} from '../eval/records.ts';
 import {digest} from '../eval/inputs.ts';
@@ -35,12 +35,15 @@ try {
   // A set 'eval:<run>' reads the track an eval run saved beside its cell.
   const tracks = new Map<string, any>(sources([...new Set(hits.map((h: any) => h.set ?? 'strike').filter((x: string) => !x.startsWith('eval:')))] as string[]).map(s => [`${s.set}~${s.song}~${s.seed}`, s.track]));
   const evalRuns = new Map<string, ReturnType<typeof loadRun>>();
+  // the spec each ride was compiled from: an eval cell's own (its variant), otherwise the song's spec.ts
+  const specs = new Map<string, string>();
   for (const h of hits) if ((h.set ?? '').startsWith('eval:')) {
     const run = h.set.slice(5); if (!evalRuns.has(run)) evalRuns.set(run, loadRun(run));
     const cell = evalRuns.get(run)!.cells.get(`${h.song}~${h.seed}`)!;
     assert.equal(h.trackHash, cell.trackHash, 'blind key names another track');
     assert.equal(h.inputHash, digest(cell.case.input), 'blind key names different authoring');
-    assertReviewSources(h.song, cell.case.input);
+    const spec = cell.case.variant ? `productions/${h.song}/variants/${cell.case.variant}.ts` : `productions/${h.song}/spec.ts`;
+    assertReviewSources(h.song, cell.case.input, spec); specs.set(rideId(h), spec);
     const hit = cell.impact3.perBeat[h.beat]?.hit;
     assert.ok(hit && hit.onset === h.frame && hit.strength === h.strength, 'blind key names another impact');
     if (!tracks.has(rideId(h))) tracks.set(rideId(h), JSON.parse(gunzipSync(readFileSync(join(evalRuns.get(run)!.dir, 'cells', `${h.song}~${h.seed}.track.json.gz`))).toString()));
@@ -48,19 +51,22 @@ try {
   for (const id of ids) if (!tracks.has(id)) throw new Error(`no source ride ${id}`);
   const passages = new Map<string, Clip>(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
     const h = side(p, s);
-    return [`pair${p.pair}-${s}`, momentClip(h.song, {track: tracks.get(rideId(h))}, h.frame)] as const;
+    return [`pair${p.pair}-${s}`, momentClip(h.song, tracks.get(rideId(h)), h.frame)] as const;
   })));
   await renderClips(passages, clips, jobs);
-  // Each side carries the ride's recorded beats inside its clip (seconds from clip start, with the requested strength); the
+  // Each side carries its song's authored beats inside its clip (seconds from clip start, with the requested strength); the
   // judged moment is at hitAt.
-  const beats = (id: string) => clipBeats(passages.get(id)!);
+  const specOf = (h: any) => specs.get(rideId(h)) ?? `productions/${h.song}/spec.ts`;
+  const songBeats = new Map(await Promise.all([...new Set(key.flatMap((p: any) => [specOf(side(p, 'left')), specOf(side(p, 'right'))]))]
+    .map(async path => [path, await specBeats(path as string)] as const)));
+  const beats = (p: any, s: 'left' | 'right') => clipBeats(passages.get(`pair${p.pair}-${s}`)!, songBeats.get(specOf(side(p, s)))!);
   writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: CLIP_BEFORE, length: CLIP_LENGTH,
     prompt: arg('prompt', 'Which one is the bigger impact?'),
     choices: JSON.parse(arg('choices', '[["left","A is bigger"],["right","B is bigger"],["same","About the same"]]')!),
     questions: [{id: arg('question', 'bigger')!, options: JSON.parse(arg('choices', '[["left"],["right"],["same"]]')!).map((c: string[]) => c[0])}],
     clips: key.map((p: any) => ({id: `pair${p.pair}`,
-      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(`pair${p.pair}-left`)},
-      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(`pair${p.pair}-right`)}}))}, null, 1));
+      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(p, 'left')},
+      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(p, 'right')}}))}, null, 1));
   console.log(`${study}: ${key.length} pairs in ${resolve(out)}`);
 } finally {release();}
 process.exit(0);

@@ -4,6 +4,10 @@
 before deciding, not a plan to build. The owner's preference: "a simple, clean solution that's reasonable and gives good enough
 results in the vast majority of cases, as opposed to a complete work stream", unless the measurements argue otherwise.*
 
+*Decided (8 November, round 23): each ride is aligned from its own hits so that its strongest frames meet the authored beats on
+average, and a hit's effects start at its strongest frame. The design and its implementation: `TIMING-DESIGN.md`. What follows
+is the exploration that led there.*
+
 ## The question
 
 The project began by making the rider land on the beat: a spec says when an impact should happen, and how strong. Since then

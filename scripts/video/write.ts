@@ -77,6 +77,7 @@ window.render = async ({look, from, count, width, height}) => {
 
 /** Write the video; returns the number of frames. The output appears only when complete and verified. */
 export async function writeVideo({scene, look, out, from = scene.span[0], to = scene.span[1], width = 1080, log = console.log}: WriteOptions): Promise<number> {
+  if (from < scene.span[0] || to > scene.span[1]) throw new Error(`${from}–${to} s is outside the song span the ride covers, ${scene.span[0]}–${scene.span[1]} s`);
   const {height} = frameSize(width), count = frameCount(from, to), began = performance.now();
   const output = resolve(out);
   mkdirSync(dirname(output), {recursive: true});

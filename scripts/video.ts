@@ -61,12 +61,12 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
     const id = request.id ?? (manifest.cells.length === 1 ? manifest.cells[0].id : undefined);
     if (!id) throw new Error('This study has multiple rides; choose --id=CELL.');
     const {c, cell, record} = verifiedVideoCell(study, manifest, id);
-    scene = buildScene(c.id, record, resolve(c.audioPath)); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
+    scene = buildScene(c.id, record); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
   } else {
     const text = readFileSync(request.track!, 'utf8');
     scene = buildScene(request.music!, {track: JSON.parse(text)}); of = {track: resolve(request.track!), trackSha256: sha(text), music: request.music};
   }
-  const [start, end] = scene.span, from = Math.max(request.from ?? start, start), to = Math.min(request.to ?? end, end);
+  const [start, end] = scene.span, from = request.from ?? start, to = request.to ?? end;
   await writeVideo({scene, look: request.look, out: output, from, to, width: request.width});
   writeFileSync(sidecar, JSON.stringify({of, look: request.look, lookName: request.lookName, timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),

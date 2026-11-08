@@ -21,7 +21,6 @@ intensity/dump.json
 rides/
 rides-*.log
 data-r5/
-data-compiled/
 agents/*/mock/
 agents/review-r6/pos-*.json
 analysis/sig-*.json

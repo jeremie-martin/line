@@ -27,3 +27,5 @@ export function alignment(account) {
   if (!(offset >= 0 && offset <= MAX_OFFSET)) return asCompiled(`offset ${(offset * 1000).toFixed(1)} ms outside [0, ${MAX_OFFSET * 1000}] ms`);
   return {offset, aligned: true};
 }
+/** A ride's timing in words: "aligned, 29.7 ms" or "as compiled (no recorded beats)". */
+export const describeTiming = ({offset, aligned, reason}) => aligned ? `aligned, ${(offset * 1000).toFixed(1)} ms` : `as compiled (${reason})`;

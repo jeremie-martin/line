@@ -1,5 +1,5 @@
 // A lab film, written by the video renderer's own writer (scripts/video/write.ts): exactly what a finished video of this look
-// would be. node generated/concept-lab/film.mjs song=circus c=hokusai [m=band:fork,...] [from=0 to=…] [rides=compiled|old] [width=1080] out=FILE.mp4
+// would be. node generated/concept-lab/film.mjs song=circus c=hokusai [m=band:fork,...] [from=0 to=…] [rides=old] [width=1080] out=FILE.mp4
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {resolveLook} from '../../scripts/video/look.js';

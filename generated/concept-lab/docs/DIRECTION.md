@@ -31,7 +31,7 @@ The Line Rider videos now have a settled first version of their visual language 
    - zoom per song.
 3. **Drops from the spec, by hand.** A drop cue is read from the song's spec sections and placed by hand, never detected. Circus Minimus is the example: Night runs from the hook's first impact (38.5 s) to the re-entry hit (51.3 s).
 4. **Whole films, regularly.** Round 20 proved the point: after many rounds of tuning on short loops, seeing whole films together is where the work is judged.
-5. **Later:** per-song hint sheets, variety across uploads, and the jolt judged again by ear now that picture and sound are in sync (`agents/jolt-brief.md`). The production port is done (8 November): `npm run video -- --look=THEME`.
+5. **Later:** per-song hint sheets, variety across uploads, and the jolt to 0 (the compiler's stage 4 of `TIMING-DESIGN.md`; timing itself is settled, R23). The production port is done (8 November): `npm run video -- --look=THEME`.
 
 ## How we work
 

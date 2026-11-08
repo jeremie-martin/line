@@ -8,7 +8,9 @@
 // against its motion, and while the rider descends it rises on screen at most 45 px/s (it never seems to climb).
 // Pure: no DOM. Frames are 1080 × 1920 design pixels; the picture scales them to the canvas.
 
-export const W = 1080, H = 1920, FPS = 40;
+import {FPS} from './timing.js';
+
+export const W = 1080, H = 1920;
 const DT = 1 / FPS;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 export const smoothstep = x => {x = clamp(x, 0, 1); return x * x * (3 - 2 * x);};

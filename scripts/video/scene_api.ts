@@ -20,7 +20,7 @@ export function createSceneApi(root = process.cwd()) {
       try {bytes = readFileSync(path);} catch {send(404, {error: 'no such ride'}); return true;}
       if (createHash('sha256').update(bytes).digest('hex') !== sha256) {send(409, {error: 'the ride differs from its manifest'}); return true;}
       const record = JSON.parse(bytes.toString());
-      scene = buildScene(record.case.id, record, record.case.audioPath);
+      scene = buildScene(record.case.id, record);
       cache.set(sha256, scene); while (cache.size > 8) cache.delete(cache.keys().next().value!);
     }
     send(200, scene); return true;

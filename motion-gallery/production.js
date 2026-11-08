@@ -2,7 +2,7 @@ import {playerShortcut} from './player-shortcuts.js';
 import {prepareRide,pictureFor} from './ride.js';
 import {highlight} from '/generated/renderer/inspect.js';
 import {THEMES,resolveLook} from '/scripts/video/look.js';
-import {FPS,rideTime,songTimeOfFrame} from '/scripts/video/timing.js';
+import {FPS,describeTiming,rideTime,songTimeOfFrame} from '/scripts/video/timing.js';
 import {sha256Hex} from './sha256.js';
 import {checked} from './artifacts.js';
 import {createContactImpactReview} from './contact-impact-review.js';
@@ -112,7 +112,7 @@ function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.lo
 async function loadMovie(m,url,signal,token){
   const c=m.cells.find(c=>c.method==='production'),recordUrl=new URL(c.id+'.video.json',url);
   const probe=await fetch(recordUrl,{signal});if(!probe.ok)return;
-  const v=await checked(recordUrl.href,signal,undefined,probe),of=v.inputs??v.identity;if(of.planSha256!==m.planSha256||of.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
+  const v=await checked(recordUrl.href,signal,undefined,probe),of=v.inputs;if(of.planSha256!==m.planSha256||of.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
   if(token!==opening)return;
   const src=new URL(v.full.path,url).href;$('movie-link').href=src;$('movie-link').hidden=false;
   $('movie').src=src;$('movie').hidden=false;
@@ -137,7 +137,7 @@ async function openResult(path,job,initialTime=0){
   records=data;views=prepared;manifest=m;manifestUrl=url;const [ride]=cells,p=ride.production;
   $('comparison').disabled=false;
   $('result-title').textContent=libraryEntry?.title??m.plan.cases[0].title;
-  $('result-context').textContent=[m.plan.cases[0].title,`Seed ${ride.seed}`,`${fmt(rides[0].scene.span[1],1)} s`,libraryEntry?.description].filter(Boolean).join(' · ');
+  $('result-context').textContent=[m.plan.cases[0].title,`Seed ${ride.seed}`,`${fmt(rides[0].scene.span[1],1)} s`,...new Set(rides.map(r=>describeTiming(r.scene.timing))),libraryEntry?.description].filter(Boolean).join(' · ');
   document.title=`${libraryEntry?.title??m.plan.cases[0].title} · Line`;
   $('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`${scoreName(ride)} ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} constructions fulfilled · compiled in ${fmt(ride.compileMs/1000,1)} s`;

@@ -16,7 +16,7 @@
 
 ## Hits
 
-- **Agreed:** each hit on its own, driven by its measured strength and onset (never the spec's ask, never a rank).
+- **Agreed:** each hit on its own, at its strongest frame (R23), driven by its measured strength (never the spec's ask, never a rank).
   - **Shake:** a thud, straight from 0 at strength 0.2 to 24 px at 0.85, with no ceiling.
   - **Split:** halfway between sideways and the hit's direction, a slow start from 0.3 to 12.8 px at 0.85, no ceiling, over the whole picture with its zoom pulse. The title gets a little less split and less pulse; the sun gets everything.
   - **Flash:** toward the paper, an S-curve from 0.6 to 25 % at 0.85, then gently on.

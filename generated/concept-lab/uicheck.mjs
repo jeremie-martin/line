@@ -128,14 +128,6 @@ try {
     check(s.qi === 2 && s.momentExtra === null && s.mix.scheme === 'graphite' && !url(p).has('opt') && !url(p).has('mo'), 'next question starts clean (no override, no opt/mo in the address)');
     await tap(p, '#qprev'); await settled(p);
     check(JSON.stringify(await onLabels(p)) === '["B","C"]' && await p.locator('#qnote').inputValue() === 'top note, with a comma', 'back keeps picks and note');
-    // legacy saves (one joined string) are read back
-    await p.evaluate(() => localStorage.setItem('concept-lab-answers-test', JSON.stringify({top: {pick: 'A sun, a little higher, The title', note: 'old'}, band: {pick: 'none', note: ''}, line: {pick: 'Pencil → ink + All ink', note: ''}})));
-    await p.goto(BASE + '?qtest=1&q=2'); await settled(p);
-    check(JSON.stringify(await onLabels(p)) === '["B","C"]', 'a legacy comma-joined save restores B and C', JSON.stringify(await onLabels(p)));
-    await p.goto(BASE + '?qtest=1&q=1'); await settled(p);
-    check(JSON.stringify(await onLabels(p)) === '["None of these"]', 'a legacy "none" save restores None of these', JSON.stringify(await onLabels(p)));
-    await p.goto(BASE + '?qtest=1&q=3'); await settled(p);
-    check(JSON.stringify(await onLabels(p)) === '["A","C"]', 'a legacy " + "-joined save restores A and C', JSON.stringify(await onLabels(p)));
     await p.context().close();
   });
 
@@ -212,14 +204,14 @@ try {
     check(s.drawnRides === '' && s.loaded === 'lua', 'the question opens on the lab’s rides', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
     await tap(p, '#play'); await p.waitForFunction(() => window.__labState().playing, null, {timeout: 10000});
     await tap(p, '#presets button', 1);
-    await p.waitForFunction(() => window.__labState().drawnRides === 'compiled', null, {timeout: 30000}); s = await st(p);
-    check(s.playing && s.seconds >= 36.5 && s.seconds < 41.6, 'B switches to the as-compiled ride at the same moment, still playing', JSON.stringify({playing: s.playing, seconds: s.seconds}));
-    await tap(p, '#moments button', 1); await settled(p); s = await st(p);
+    await p.waitForFunction(() => window.__labState().drawnRides === 'old', null, {timeout: 30000}); s = await st(p);
+    check(s.playing && s.loaded === 'lua' && s.seconds >= 36.5 && s.seconds < 41.6, 'B switches to the round-5 ride at the same moment, still playing', JSON.stringify({playing: s.playing, loaded: s.loaded, seconds: s.seconds}));
+    await tap(p, '#presets button', 0); await p.waitForFunction(() => window.__labState().drawnRides === '', null, {timeout: 30000});
+    check(true, 'A returns to the lab’s ride');
+    await tap(p, '#moments button', 1); await settled(p); await tap(p, '#presets button', 0); await p.waitForTimeout(300); s = await st(p);
     check(s.drawnRides === 'old' && s.loaded === 'los', 'a moment’s ride set wins over the option’s', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
     await tap(p, '#moments button', 0); await settled(p); s = await st(p);
-    check(s.drawnRides === 'compiled' && s.loaded === 'lua', 'the next moment returns to the option’s ride set', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
-    await tap(p, '#presets button', 0); await p.waitForFunction(() => window.__labState().drawnRides === '', null, {timeout: 30000});
-    check(true, 'A returns to the lab’s rides');
+    check(s.drawnRides === '' && s.loaded === 'lua', 'the next moment returns to the option’s ride set', JSON.stringify({drawn: s.drawnRides, loaded: s.loaded}));
     await p.context().close();
   });
 

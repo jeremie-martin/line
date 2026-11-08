@@ -389,7 +389,7 @@ async function rides() {
   const s = await select(), {cells} = loadState(s), cov = coverage(s, cells);
   const ids = arg('cases') ? arg('cases')!.split(',') : movedMost(cov.matched, cells, top).map(x => x.id);
   assert.ok(ids.every(id => cov.matched.includes(id)), 'rides are shown for matched pairs only');
-  const [{loadMusicCase, saveMusicCell}, {writeGalleryJson, judgeIdentity}] = await Promise.all([
+  const [{saveMusicCell}, {writeGalleryJson, judgeIdentity}] = await Promise.all([
     import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/gallery/artifacts.ts'),
   ]);
   const outRoot = resolve('generated/compare', s.name), entries: any[] = [];
@@ -405,8 +405,8 @@ async function rides() {
       assert.equal(shown.trackHash, cell.trackHash, `${out} does not show the saved ride; remove it and export again`);
     } else {
       mkdirSync(out, {recursive: true});
-      // A perturbed cell keeps the authored beats: perturbation tests robustness, the musical moment does not move.
-      const {musicCase, beats} = await loadMusicCase({song: c.song, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`, moments: [], ...(c.variant ? {variant: c.variant} : {})}, arm.jolt);
+      // the case exactly as this arm compiled it (a perturbed cell's targets included) and the song's authored beats
+      const {music, beats} = await resolveCase(c, arm.jolt), musicCase = {...music, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`};
       for (const key of ['specSha256', 'audioSha256', 'analysisSha256'] as const) assert.equal(musicCase[key], c.input[key], `${id}: ${key} changed since the ride was compared`);
       const plan = {schema: 'line.automatic-production.v1', kind: 'musical-direction', source: 'npm run compare (saved benchmark ride)',
         compiler: {contentKey: arm.content.key, commit: arm.content.clean ? arm.content.head : null, arm: arm.key}, judge: judgeIdentity(),
@@ -461,8 +461,8 @@ async function review() {
     for (const side of SIDES) tracks.set(`${side}~${id}`, readArmTrack(s.arms[side], id));
   }
   for (const p of chosen) for (const side of SIDES)
-    // both sides of a passage share its song-time bounds and one soundtrack; each is drawn with its own ride's timing
-    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, ride: {track: tracks.get(`${side}~${p.id}`)}, from: p.from / 40, to: p.to / 40});
+    // both sides of a passage share its bounds on the compile timeline and one soundtrack (study clips are shown as compiled)
+    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, track: tracks.get(`${side}~${p.id}`), from: p.from / 40, to: p.to / 40});
   const rendering = performance.now();
   await renderClips(passageClips, passageDir, jobs);
   const ridesSeconds = (performance.now() - rendering) / 1000, short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!;

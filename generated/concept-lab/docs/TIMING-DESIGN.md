@@ -1,9 +1,9 @@
-# Timing: how a ride meets its song (design proposal, v3)
+# Timing: how a ride meets its song
 
-*8 November 2026. Agreed design; stages 1 and 2 are implemented, stage 3 is with the owner (round 23), stage 4 is not. It settles what the system is and why; details are settled
-while coding, and the finished code is reviewed against it. Reviewed through three rounds (an independent analysis, adversarial
-reviews and a from-scratch design study by Codex); the last round found the design sound, with one ordering fix, applied.
-Measurements: `IMPACT-TIMING.md`.*
+*8 November 2026. The agreed design, as implemented: stages 1 to 3 are done (round 23 chose how hits are timed), stage 4 is
+not. Reviewed as a proposal through three rounds (an independent analysis, adversarial reviews, a from-scratch design study by
+Codex), and as code by a step-back review (Codex and an independent agent), whose findings are applied. Measurements:
+`IMPACT-TIMING.md`.*
 
 ## Goal
 
@@ -17,9 +17,9 @@ strongest frame meets that moment. Presentation owns the alignment; the compiler
 - **Ride time `r`**: seconds of the compiled ride; physics frame `f` is `r = f / 40`.
 - **Beats `b`**: each target's authored time in seconds, exactly as the spec gives it, before any shift, perturbation or
   rounding.
-- **A hit's moments**: the saved impact account's events (`scripts/lib/strike_impact.ts`). `touch` is the event's
-  `contactStart`: the frame its strike starts, which for a renewed strike inside continuous contact is not a new touchdown.
-  `peak` is `peakFrame`, the frame of maximum contact acceleration. Both are physics frames.
+- **A hit**: a measured event of the saved impact account (`scripts/lib/strike_impact.ts`) that answered a target. It
+  **happens at its strongest frame** (`peak`, the event's `peakFrame`: maximum contact acceleration; round 23); its direction is
+  the line struck at its `onset` (half-rise), where the strike begins; its size is its measured strength. Physics frames.
 - **The song span**: `[0, spec duration]`, the duration the spec authors (the record's `case.durationFrames / 40`). A compiled
   ride runs 20 physics frames (0.5 s) past it, so it covers the span for any offset in `[0, 0.5 s]`. A bare track (no spec) has
   the span `[0, track duration]`.
@@ -48,32 +48,36 @@ matched hit, offset out of range). Nothing is ever tuned by hand.
 | Ride time (`r = s + offset`) | Song time (`s`) |
 |---|---|
 | rider pose, camera, line inking, contacts | audio, spectrum band, sections, the drop's cue, the title, the sun's position, the opening and the ending (they read the song span) |
-| the intensity metric: built from the ride's speed and each matched hit's `touch` frame, read at `r` (so the paper's tint, the sun's size and the quiet zoom follow the ride); independent of any look | everything a hit triggers: shake, colour split, flash, the band's accent heat, the drop's snap to a hit, the opening's end, each from the hit's **effect time** |
+| every hit and what it triggers: shake, colour split, flash, the band's accent heat, each from the hit's strongest frame | the drop's ends snap to the strongest hit near each cue, and the opening ends on the first hit after 1.3 s: these convert each hit's strongest frame once, to `peak / 40 − offset` |
+| the intensity metric: the ride's speed and each hit's strength at its strongest frame, read at `r` (so the paper's tint, the sun's size and the quiet zoom follow the ride) | |
 
-**Effect time** = the look option `effectsAt`: `touch` or `peak` (mapped `f / 40 − offset`), or `beat` (`b`). One selector,
-shared by every hit-triggered item. `beat` requires beats: on an as-compiled scene without them, choosing it is an error, never a
-fallback. Effect times must be non-decreasing (asserted; the picture scans hits in order). The direction of a hit's effects stays
-a property of the geometry. v1 keeps `touch`.
+**A hit happens at its strongest frame, everywhere** (owner, round 23: of today's timing, effects at the first touch, at the
+strongest frame and on the beat, on aligned rides, "C is the best… clearly"). On an aligned ride that is on its beat on
+average, within about a frame. There is no option: one rule for every ride, aligned or as compiled. `scene.ts` checks, once,
+that matched hits' strongest frames follow their targets' order (the picture scans them so).
 
 ## The scene: the single source
 
 Built once by `scene.ts` from a saved ride record (a bare track only when no record exists):
 
 - `offset`, `aligned`, and the reason when not;
-- the song span;
-- the account projected, in physics frames: every target (with its beat when recorded), every event (`touch`, `onset`, `peak`,
+- the song span, and the song: a saved ride's own (its case's song, recording, duration and sections), a bare track's named;
+- the account projected, in physics frames: every target (with its beat when recorded), every event (`onset`, `peak`,
   `strength`), and which event matched which target. Matched hits reference this projection; nothing is converted until the
   picture converts it, once.
+
+It refuses, once, where it is built: a record of another song, hits out of order, and a ride that ends before the span it is shown
+with (`rideTime(span end) ≤ track duration`). All 194 saved records on the owner's machine pass.
 
 ## Consumers
 
 | Consumer | Reads |
 |---|---|
 | Picture (lab, films, videos) | the scene; one conversion per frame |
-| Review player and impact panel | the scene: seek bounds from the song span; inspection at `r`; beats at `b`, events mapped; the compiler's own residuals shown separately, labelled as compiler diagnostics |
-| Study clips | each clip is centred on the judged moment's ride frame mapped to song time (so non-hit moments work too); simultaneous comparisons (compare's before/after) share common song-time bounds and one soundtrack, each side with its own offset; beat marks come from the scene's beats; a study declares one state and its builder refuses keys that mix aligned and as-compiled rides |
+| Review player and impact panel | the scene: seek bounds from the song span; inspection at `r`; the ride's timing in words ("aligned, 29.7 ms"); beats at `b`, each realized hit at its strongest frame, mapped; the compiler's own measures (onset and strongest-frame offsets from the target frame, its error sums) from the saved record, labelled as the compiler's |
+| Study clips | judge motion, not sync: bare tracks shown as compiled, on the compile timeline (frame `f` at `f / 40` s), so a judged moment is where its frame says; compare's before/after shares the passage's bounds and one soundtrack; beat marks are the song's authored beats from the spec the rides were compiled from (checked against its hash) |
 | Lab UI | the scene's song times |
-| `npm run video`, study renders | records and sidecars carry the look, the offset and the alignment state; a saved video with another presentation is not reused: a fresh destination is required |
+| `npm run video`, study renders | records and sidecars carry the look, the offset and the alignment state; a saved video with another presentation is not reused: a fresh destination is required. The writer refuses a passage outside the song span |
 | Spec dashboard | unchanged: authored times on the audio (song time) |
 
 ## What the compiler records
@@ -127,7 +131,14 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    rides with their beats withheld, byte-identical to the lab before (all 8 scenes, all 116 fingerprint frames). A lab option can
    name its ride set, so the four timings switch in place: A as compiled at touch, then aligned at touch, at the strongest frame,
    on the beat. Round 23 asks it on whole films of three songs and in the lab. Relative to the beat, the effects sit at about
-   −7 ms (A), −31 to −41 ms (B), 0 ± 16–26 ms per hit (C) and 0 (D). The owner's answer sets `effectsAt` in v1.
+   −7 ms (A), −31 to −41 ms (B), 0 ± 16–26 ms per hit (C) and 0 (D).
+   **Done (8 November): C**, effects at the strongest frame. The option `effectsAt` and the comparison's as-compiled ride set
+   are deleted: a hit happens at its strongest frame, for every ride (above). With that, everything a hit triggers moved onto
+   the ride clock, the intensity metric reads the same moment, and the impact panel plots it. A step-back review then found
+   and fixed: study clips had lost their beat marks (now the spec's authored beats again, variant-aware), a crashed ride could
+   not be opened (the replay required a trace past its end), sections came from the song's current authoring (now the record's
+   own), the span was enforced by some callers only (now by the writer), a compare export of a perturbed cell failed (now
+   through the evaluation's own case), and two compatibility paths. The cross-offset test now covers hit effects.
 4. **Jolt 0** (compiler): the declared comparison; rides recompiled; offsets adapt by themselves (about 14 ms instead of 29).
 
 ## Out of scope

@@ -38,10 +38,10 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 11. **Videos: one renderer** (2026-11-08, branch `visual-lab`; REWORK.md).
     Open:
     - **Timing** (`generated/concept-lab/docs/TIMING-DESIGN.md`, all on
-      `visual-lab`): stages 1 and 2 done (two clocks, the scene's account, span
-      and timing, `effectsAt`; rides record authored beats). Next: stage 3,
-      alignment decided with the hit-effects round; stage 4, jolt 0 as a
-      declared comparison.
+      `visual-lab`): stages 1 to 3 done (two clocks, the scene as the single
+      source, rides record authored beats and align themselves, a hit happens
+      at its strongest frame, R23). Next: stage 4, jolt 0 as a declared
+      comparison.
     - Evaluation plans still carry `authoredTargets` (authored contacts in
       frames, loaded a second time at jolt 0, read by nothing): a redundant
       earlier form of the recorded beats. Removing it changes the planned

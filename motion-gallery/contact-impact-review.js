@@ -1,6 +1,8 @@
-/** Saved shared-account observations on the review player, on the song's clock: each target at its authored beat when the ride
- * recorded it (otherwise its compiled frame), each event at its onset, both through the ride's timing (scripts/video/timing.js).
- * The compiler's own residuals (onset and peak offsets from the target frame) are its diagnostics, shown as such. */
+/** Saved shared-account observations on the review player, on the song's clock, from the ride's scene (scripts/video/scene.ts):
+ * each target at its authored beat when the ride recorded it (otherwise its compiled frame), each event where the video shows
+ * it, at its strongest frame, both through the ride's timing (scripts/video/timing.js). The compiler's own measures (onset and
+ * strongest-frame offsets from the target frame, the strength and extra-response errors) come from the saved record and are
+ * labelled as the compiler's. */
 import {songTimeOfFrame} from '../scripts/video/timing.js';
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 const fmt=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
@@ -20,7 +22,7 @@ export function createContactImpactReview({seek}){
  const overviewTitle=node('p','Whole ride'),detailTitle=node('p'),detailChart=node('div');overviewTitle.className=detailTitle.className='impact-chart-title';detailChart.className='contact-impact-chart';
  chart.className='contact-impact-chart';small.type='checkbox';label.append(small,document.createTextNode(' Include very small extra responses'));
  const table=node('table'),head=node('thead'),heading=node('tr');
- for(const title of ['Interaction','Target time','Observed time','Onset offset (compiler)','Contact-force peak offset (compiler)','Wanted strength','Measured strength'])heading.append(node('th',title));
+ for(const title of ['Interaction','Beat','Strongest frame','Onset offset (compiler)','Contact-force peak offset (compiler)','Wanted strength','Measured strength'])heading.append(node('th',title));
  head.append(heading);const body=node('tbody');table.append(head,body);const wrap=node('div');wrap.className='table-wrap';wrap.append(table);
  const hint=node('p','Click an impact to jump there.');hint.className='impact-hint';
  host.append(overviewTitle,chart,detailTitle,detailChart,hint);document.getElementById('watch-layout').append(host);
@@ -33,10 +35,10 @@ export function createContactImpactReview({seek}){
   const {events,targets,account}=record.impactEvaluation,rows=[];
   for(const [i,target]of targets.entries()){
    const match=account.matches.find(m=>m.target===i),event=match?events[match.event]:undefined;
-   rows.push({time:targetTime(i),label:`Beat ${i+1}`,target:targetTime(i),actual:event?eventTime(event):undefined,
+   rows.push({time:targetTime(i),label:`Beat ${i+1}`,target:targetTime(i),actual:match?eventTime(match.event):undefined,
     offset:match?match.offset*25:undefined,peak:event?.peakFrame!==undefined?(event.peakFrame-target.frame)*25:undefined,wanted:target.impact,strength:event?.strength});
   }
-  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:eventTime(e),label:e.kind==='strike'?'Extra strike':'Extra response',actual:eventTime(e),strength:e.strength});}
+  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:eventTime(i),label:e.kind==='strike'?'Extra strike':'Extra response',actual:eventTime(i),strength:e.strength});}
   body.replaceChildren(...rows.sort((a,b)=>a.time-b.time).map(r=>{
    const tr=node('tr'),link=node('button',r.label);link.onclick=()=>seek(Math.max(0,r.time-.2));const cell=node('td');cell.append(link);tr.append(cell);
    const ms=v=>Number.isFinite(v)?`${v>0?'+':''}${v} ms`:'—';
@@ -57,7 +59,7 @@ export function createContactImpactReview({seek}){
   for(const [k,target] of targets.entries()){const t=targetTime(k);if(t<start||t>end)continue;svg.append(svgNode('line',{x1:x(t),x2:x(t),y1:145,y2:145-125*(target.impact??0),stroke:'#999','stroke-width':3}));}
   const matched=new Set(account.matches.map(m=>m.event));
   for(const [i,e]of events.entries()){
-   const t=eventTime(e);if(t<start||t>end)continue;
+   const t=eventTime(i);if(t<start||t>end)continue;
    const y=145-125*e.strength,color=matched.has(i)?'#287aa6':'#bb5c23';
    svg.append(svgNode('line',{x1:x(t),x2:x(t),y1:145,y2:y,stroke:color,'stroke-width':1}));
    const point=svgNode('circle',{cx:x(t),cy:y,r:2.5,fill:color}),title=svgNode('title',{});
@@ -88,10 +90,10 @@ export function createContactImpactReview({seek}){
   bind(r,scene){
    if(!r.impactEvaluation)return;
    record=r;extent=scene.span[1];const {events,targets,account}=r.impactEvaluation,{offset}=scene.timing;
-   targetTime=i=>scene.account.targets[i].beat??songTimeOfFrame(targets[i].frame,offset);eventTime=e=>songTimeOfFrame(e.onset,offset);
+   targetTime=i=>scene.account.targets[i].beat??songTimeOfFrame(targets[i].frame,offset);eventTime=i=>songTimeOfFrame(scene.account.events[i].peak,offset);
    host.hidden=false;details.hidden=false;document.getElementById('watch-layout').classList.add('has-impacts');description.textContent=`${r.impactEvaluation.contract}. Gray marks show requested beats;`+' '+' blue marks show matched responses; orange marks show extra responses. All event strengths contribute to the account, including small responses hidden from the table. Click the chart or a row to inspect the actual ride.';
    const onsetRms=25*Math.sqrt(account.matches.reduce((n,m)=>n+m.offset*m.offset,0)/Math.max(1,account.matches.length));
-   summary.textContent=`${account.matches.length}/${targets.length} beats matched · strength RMS ${fmt(Math.sqrt(account.strengthMse))} · onset RMS ${fmt(onsetRms,1)} ms · extra-response RMS ${fmt(Math.sqrt(account.extraMse))}. These are separate observations, not an aesthetic rating.`;
+   summary.textContent=`${account.matches.length}/${targets.length} beats matched · strength RMS ${fmt(Math.sqrt(account.strengthMse))} · compiler onset RMS ${fmt(onsetRms,1)} ms · extra-response RMS ${fmt(Math.sqrt(account.extraMse))}. These are separate observations, not an aesthetic rating.`;
    drawChart();rebuild();
   },
   draw(seconds){shown=seconds;moveCursor();},

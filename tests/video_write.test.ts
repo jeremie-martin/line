@@ -48,17 +48,30 @@ it('starts a mid-song excerpt with the song\'s own samples, also from an MP3', a
   expect(rms(i => clip[i] - song[i])).toBeLessThan(0.6 * rms(i => song[i]));
 }, 120000);
 
-it('shows physics frame f at song time f / 40 − offset, whatever the offset\'s sign', async () => {
-  // the plain look draws the ride alone, so its picture is a function of ride time only: the same ride time must give the same frames
+it('shows physics frame f at song time f / 40 − offset, whatever the offset\'s sign, hits and all', async () => {
+  // with nothing on the song's clock drawn (no band, title, drop or ends), the picture is a function of ride time only: the same
+  // ride time must give the same frames, the ride and each hit's effects at its strongest frame alike
   const frames = (path: string) => execFileSync('ffmpeg', ['-v', 'error', '-i', path, '-map', '0:v', '-f', 'framemd5', '-'], {encoding: 'utf8'})
     .split('\n').filter(l => l && !l.startsWith('#')).map(l => l.split(',').at(-1)!.trim());
-  const write = async (offset: number, from: number, name: string) => {
+  // one strong hit, answered at physics frame 22 (ride time 0.55 s), its strike beginning at 20
+  const account = {targets: [{frame: 22, impact: 0.9}], events: [{onset: 20, peak: 22, strength: 0.9}], matches: [{target: 0, event: 0}]};
+  const write = async (look: ReturnType<typeof resolveLook>, offset: number, from: number, name: string) => {
     const out = join(dir, name);
-    await writeVideo({scene: {...scene, timing: {offset, aligned: false, reason: 'test'}}, look: resolveLook('plain'), out, from, to: from + 0.25, width: 180, log: () => {}});
+    await writeVideo({scene: {...scene, account, timing: {offset, aligned: false, reason: 'test'}}, look, out, from, to: from + 0.25, width: 180, log: () => {}});
     return frames(out);
   };
-  const reference = await write(0, 0.5, 'offset0.mp4');
-  expect(reference).toHaveLength(15);
-  expect(await write(0.1, 0.4, 'offset+.mp4')).toEqual(reference); // shown 0.1 s early: ride time 0.5 at song time 0.4
-  expect(await write(-0.1, 0.6, 'offset-.mp4')).toEqual(reference);
-}, 120000);
+  for (const [name, look] of [['plain', resolveLook('plain')], ['hits', resolveLook('plain', {hits: 'v1'})]] as const) {
+    const reference = await write(look, 0, 0.5, `${name}-offset0.mp4`);
+    expect(reference).toHaveLength(15);
+    expect(await write(look, 0.1, 0.4, `${name}-offset+.mp4`)).toEqual(reference); // shown 0.1 s early: ride time 0.5 at song time 0.4
+    expect(await write(look, -0.1, 0.6, `${name}-offset-.mp4`)).toEqual(reference);
+  }
+  // the hit does show in that passage (the two looks differ only by their hits; encoded frames are compared whole, since a change
+  // in one frame alters its neighbours' bytes)
+  expect(frames(join(dir, 'hits-offset0.mp4'))).not.toEqual(frames(join(dir, 'plain-offset0.mp4')));
+}, 180000);
+
+it('refuses a passage outside the song span the ride covers', async () => {
+  await expect(writeVideo({scene, look: resolveLook('plain'), out: join(dir, 'outside.mp4'), from: 1, to: 1.75, width: 180, log: () => {}}))
+    .rejects.toThrow(/outside the song span the ride covers, 0–1.5 s/);
+});

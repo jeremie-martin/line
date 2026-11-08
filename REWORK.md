@@ -70,8 +70,56 @@ no-archive floor (−70.6) and main, with every version reported in full.
   - Ranking the styles by two readable quantities is worth about 5 points,
     and a larger ranked set about 4 more.
   - The everyday songs (G) carry most of the remaining loss.
+- **More styles plateau.** 128 ranked styles (42,471 numbers, 74 KB): −31.7
+  against −29.1 for 64. The remaining loss is not a matter of more stored
+  moves.
+- **Where the ranked 64 still lose** (`loss_parts.py`, headline points
+  against main, with the compact network for comparison):
+  - strong beats too soft −11.6 (network −12.0);
+  - speed −8.6 (−7.7); extra hits −2.9 (−0.9); air −1.2 (+0.1).
+  - Strength is now as good as the network's. The large shared loss of
+    every compact source (strong beats about 12, speed about 8) remains.
 - Branches: `exp/readable-catalogue`, `exp/catalogue-ranked-32`,
-  `exp/catalogue-ranked-64` (local).
+  `exp/catalogue-ranked-64`, `exp/catalogue-ranked-128` (local).
+
+### What a candidate leads to: a forward model of a catch (report only)
+
+- **Instrument.** `tools/research/catch_outcomes.ts` records every retained
+  candidate of every offered interval: its control relative to the
+  arrival, and what it led to (measured strength, span residuals, local
+  cost, arrival at the next catch).
+  - Main, V7.1, seed 101: 41 rides, all tracks identical to the saved arm.
+  - 27,723 intervals, 5.25 million measured candidates (about 190 per
+    interval), 3,489 committed. That is 65 times the archive's winners,
+    and it includes the candidates that lost.
+- **How predictable the outcomes are** (boosted trees on situation and
+  control, 40 candidates sampled per interval, about 1 million rows; fitted
+  on some songs and scored on held-out songs):
+
+  | outcome | R² across songs | rank agreement within one pool |
+  |---|---|---|
+  | measured strength | **0.85** | 0.54 |
+  | arrival heading at the next catch | **0.93** | 0.70 |
+  | arrival speed at the next catch | 0.80 | 0.61 |
+  | air residual | 0.58 | 0.49 |
+  | speed residual | 0.66 | 0.60 |
+  | local cost | −0.08 | 0.24 |
+
+  - The physical outcomes are well predicted. The total cost is not, since
+    it is dominated by rare failures.
+  - As a screen inside a pool, the predicted parts combined with the
+    compiler's weights put 38% of the measured best tenth into their best
+    quarter (chance 25%), and 50% on strong asks.
+- **Readable versions are weak.** Straight lines on named physical terms
+  (speed × sine of the redirect, heading + exit, durations…): strength
+  0.43, next heading 0.76, next speed 0.58. Contact physics is nonlinear.
+- **Reading.**
+  - A compact nonlinear model can say what a move will do: how hard the
+    hit, and where the next arrival. Its role would be narrow: aim the
+    readable moves, while simulation still decides.
+  - Within a pool, where candidates are near-copies of each other, it
+    discriminates only moderately. Whether aiming pays is tested first
+    without any model (next).
 
 ## November 8: the archive is frozen; today's compiler is the baseline
 

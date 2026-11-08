@@ -113,7 +113,7 @@ async function main(){
  const dir=resolve(arg('out')!),pool=new WorkerPool(workerJobs(arg('jobs','16'))),seeds=Number(arg('seeds','1')),budget=arg('budget','standard')!;
  assert.ok(Number.isSafeInteger(seeds)&&seeds>=1,'invalid seed count');
  assert.ok(budget==='standard'||Number.isSafeInteger(Number(budget))&&Number(budget)>0,'invalid budget');
- assert.ok(['v4','v6transfer'].includes(catalog),'unknown training catalog');
+ assert.ok(['v4','v6transfer','v6paired'].includes(catalog),'unknown training catalog');
  const cases=(await trainingCases()).slice(0,Number(arg('limit','1000')));
  const only=arg('only')?new Set<string>(JSON.parse(readFileSync(arg('only')!,'utf8'))):null;
  const declared=cases.flatMap((c:any)=>Array.from({length:seeds},(_,k)=>({id:c.id,seed:c.plans?Number(Object.keys(c.plans)[k]):101*(k+1),inputSha256:digest(c)})));

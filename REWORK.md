@@ -17,6 +17,12 @@
   ranking takes them where they pay. Strength on strong asks up; V7.1 up.
 - **Risk.** Fewer balanced response rounds; span errors and extras may
   rise.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −3.1 [−4.0, −2.1], < 0.01; every block negative; 13 of 35 specs up.
+  - P1 −15.4; strong extra impacts +145%.
+  - Pushing the same shapes toward strength along the measured Jacobian
+    spends response work badly. The missing strong options are not one
+    linear step away.
 
 ## November 8 (night): hypothesis, policies with every family on paired rails
 

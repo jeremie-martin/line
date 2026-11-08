@@ -1,5 +1,42 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: the archive is frozen; today's compiler is the baseline
+
+- **Decision** (agreed with the owner).
+  - Today's compiler, archive included, is the baseline.
+  - The construction-policy archive is frozen: no more retrains. It stays
+    committed, because compare and collection checkouts build every arm
+    from git, and old commits must stay rebuildable. Keeping it only
+    locally would break those checkouts and would not shrink the history
+    already there.
+  - `tests/policy_archive_frozen.test.ts` pins its fingerprint. The
+    compiler already checks the file against that fingerprint when it
+    loads it. Unfreezing needs the owner's decision and a deliberate edit
+    of the pin.
+  - The pooled archives (100 MB and more) stay on local branches only.
+- **The way forward: reduce our reliance on the archive step by step.**
+  - Readable mechanisms are added beside the archive. After each one, the
+    no-archive comparison measures what the archive is still worth.
+  - Once its worth is about 20 points or less, it can be removed: the
+    owner could accept that drop for a much simpler compiler, not 70.
+  - Each attempt is bounded: a hypothesis stated in advance, one
+    implementation, a comparison with the archive and one without, about a
+    day. No implementation without the owner's go-ahead.
+- **The design space is wide, and the options combine.**
+  - Physics-aimed proposals: the redirect a strong hit needs, computed
+    from arrival speed and the requested strength.
+  - A concise learned model that proposes geometry.
+  - Better refinement: proposals are only starting points, and local
+    search finishes 97% of committed arcs.
+  - A catalogue of geometries, each modifiable in specific ways.
+  - These are not rivals of each other or of the archive; several can
+    work together.
+- **What they must cover** (from the studies below):
+  - reliable hard hits on strong beats: landing arcs that redirect;
+  - arrivals that stay steep enough;
+  - several good alternatives per situation, since no single rule
+    describes the archive's good catches.
+
 ## November 8: plan, understand the candidates and measure variety before changing them
 
 The owner's direction: no new candidate generator yet. Keep the archive as

@@ -2,13 +2,13 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "6503f83c9c07227d5eb55716e6230739f25f7f99f801ce067c235fd9f59724e0",
-  "sha256": "b0e4fb3b3dd7af221c6d04ba4925b0b331f6f43250adaf3c5d6543fd8d514cba",
-  "uncompressedBytes": 24651,
+  "compressedSha256": "99e77b90152e987087cdc0a3b385f8ad14e4e6ed6fe61f7618ea18d342bf5b0f",
+  "sha256": "766a0211f4adad6dbde3e47286dba643cc84d7b1c520c6ade51610551a19a7ca",
+  "uncompressedBytes": 32358,
   "provenance": {
     "source": "repertoire_policy_model_v3.json.gz",
     "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-    "method": "generated catalogue: core table per side, opposing share per cell, each parameter spread over its observed range (11 quantiles); no copied demonstrations",
-    "numbers": 2756
+    "method": "generated catalogue: core table per side, opposing share per cell, each parameter spread over its observed range (11 quantiles), parameters varying together as their correlations say; no copied demonstrations",
+    "numbers": 3786
   }
 }

@@ -17,7 +17,7 @@ wherever it lives. Line counts are as of today.*
 
 | File | Lines | Role |
 |---|---|---|
-| `look.js` (+ `look.d.ts`) | 66 | Every option, the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
+| `look.js` (+ `look.d.ts`) | 71 | Every option (defined only here; the types say a look is a checked one), the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
 | `timing.js` (+ `timing.d.ts`) | 31 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account, and its timing in words |
 | `picture.js` | 395 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit's shake, split and flash |
 | `camera.js` | 72 | Follows direction and its two zoom tides |
@@ -43,9 +43,9 @@ wherever it lives. Line counts are as of today.*
 
 | File | Lines | Role |
 |---|---|---|
-| `lab.js` | 393 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
+| `lab.js` | 392 | Loading, the question mode, the free lab, the transport, the blind test; `QUESTIONS`, `TEST_QUESTIONS` |
 | `presets.js` | 8 | The lab's looks: Swatch, Plain, the themes |
-| `rides.js` | 13 | The ride sets by name (the lab's rides, the round 1–5 rides) and where their scenes live |
+| `rides.js` | 28 | The lab's songs (name, song, compiled seed and variant, round-5 ride) and ride sets, defined once for the lab, `prepare.mjs`, `film.mjs` and `recompile.sh` |
 | `index.html`, `lab.css` | 158 | Page and style |
 
 **Tools:** `prepare.mjs` (scenes, through `scene.ts`), `recompile.sh` (rides), `film.mjs` and `films7.sh` (films, through

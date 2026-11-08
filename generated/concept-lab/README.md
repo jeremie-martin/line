@@ -7,7 +7,7 @@ production video renderer itself (`scripts/video/`): what the owner approves her
 - A lab film is written by the production writer (`film.mjs`), so a film of a look is that look.
 - The lab is tracked on the `visual-lab` branch.
 
-The rides are **recompiled with the current compiler** (`recompile.sh` writes `rides/`, same songs and seeds; last on 8 November,
+The rides are **recompiled with the current compiler** (`recompile.sh` writes `rides/`, the songs, seeds and variants of `rides.js`; last on 8 November,
 identical tracks, now with their authored beats, so aligned); `prepare.mjs` builds their scenes into `data/` with the production
 scene builder. The other ride set (`rides.js`): `prepare.mjs --old` builds `data-r5/` from the round 1–5 rides (as compiled). `?rides=NAME`
 plays a set; in a question, a moment, an option or the question can name one (a moment's wins), and switching options between

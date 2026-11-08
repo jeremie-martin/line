@@ -1,11 +1,12 @@
-// Types of look.js (a plain module, so the browser loads it as is).
-export type Look = {
-  scheme: string; paper: 'whisper' | 'plain'; line: 'inking' | 'rail' | 'ink'; band: 'none' | 'bars' | 'fork' | 'iris';
-  accent: 'heat' | 'loud'; bandHeight: 'low' | 'lowmid' | 'mid'; top: 'none' | 'sun' | 'title'; riderLower: string; sunRider: string; sunLift: string;
-  drop: 'off' | 'night' | 'switch'; zoom: 'steady' | 'quiet'; ends: 'course' | 'none'; hits: 'v1' | 'none';
-};
-export const OPTIONS: Record<keyof Look, [string, Record<string, string>]>;
+// Types of look.js (a plain module, so the browser loads it as is). The options and their values are defined once, in look.js;
+// resolveLook checks every option and value, so a look that reaches TypeScript code is a complete, checked one. No TypeScript
+// code reads a single option: a look is passed through, to the picture.
+/** A complete look: every option of look.js OPTIONS with one of its values, as resolveLook returns it. */
+export type Look = {readonly [option: string]: string};
+/** Some options of a look (a theme's choices, PLAIN). */
+export type LookChoices = {readonly [option: string]: string};
+export const OPTIONS: {readonly [option: string]: readonly [label: string, values: {readonly [value: string]: string}]};
 export const V1: Look;
-export const THEMES: Record<string, {name: string; line: string; look: Partial<Look>}>;
-export const PLAIN: Partial<Look>;
+export const THEMES: {readonly [name: string]: {name: string; line: string; look: LookChoices}};
+export const PLAIN: LookChoices;
 export function resolveLook(name?: string | null, overrides?: Record<string, string>): Look;

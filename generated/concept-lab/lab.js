@@ -6,9 +6,8 @@ import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {OPTIONS, V1, resolveLook} from '/scripts/video/look.js';
 import {PRESETS} from './presets.js';
-import {rideSet} from './rides.js';
+import {SONGS, rideSet} from './rides.js';
 
-const SONGS = {circus: 'Circus Minimus', petrunko: 'Petrunko', lua: 'Lua na Praça', los: 'Los Voltaje', batidao: 'No Batidão', burn: 'Let the World Burn', coma: 'Montagem Coma', tomada: 'Montagem Tomada (super slowed)'};
 const noEnds = {...V1, ends: 'none'};
 // Each option: [label, look, note shown when tapped, ride set (rides.js) when not the question's].
 // A frozen set of questions, used only by uicheck.mjs (?qtest=1): the interaction suite tests the machinery (multi picks, a label
@@ -52,7 +51,7 @@ const q = new URLSearchParams(location.search);
 const shot = q.has('shot');
 const $ = id => document.getElementById(id);
 const music = createMusic(), onScreen = displayTime();
-let song = SONGS[q.get('song')] ? q.get('song') : 'petrunko';
+let song = Object.hasOwn(SONGS, q.get('song') ?? '') ? q.get('song') : 'petrunko';
 let preset = PRESETS.find(p => p.id === q.get('c')) ?? PRESETS[0];
 let mix = {...preset.mix};
 // the address's options are checked by the writers' own rule (resolveLook); one it cannot set is ignored, and a shot reports it,
@@ -90,7 +89,7 @@ async function loadSong(key) {
   // returns false when a newer load superseded this one, or when it failed, so callers stop instead of applying their state
   try {
     const {dir, label} = rideSet(set), ck = key + ':' + set;
-    if (!switching) status('Loading ' + SONGS[key] + (label ? ` (${label})` : '') + '…');
+    if (!switching) status('Loading ' + SONGS[key].name + (label ? ` (${label})` : '') + '…');
     let entry = cache.get(ck);
     if (!entry) {
       const res = await fetch(`./${dir}/${key}.json`);
@@ -109,7 +108,7 @@ async function loadSong(key) {
     P = {...createPicture(canvas, entry.scene, replay, sheet, N.riderPainter()), key, rides: set, scene: entry.scene};
   } catch (e) {
     // a failed load leaves no ride and says why; the next tap retries (P is null)
-    if (id === loadId) {P = null; status(`Could not load ${SONGS[key]}: ${e.message}`); if (shot) window.__loadError = e.message;}
+    if (id === loadId) {P = null; status(`Could not load ${SONGS[key].name}: ${e.message}`); if (shot) window.__loadError = e.message;}
     return false;
   }
   $('seek').max = P.span[1]; seconds = Math.min(seconds, P.span[1]);
@@ -220,7 +219,7 @@ function renderQuestion() {
   $('moments').replaceChildren(...(!done && Q.moments ? Q.moments.map(([label], j) => chip(label, j === qmoment, () => goMoment(j), 'moment')) : []));
   $('optflag').hidden = done || !!Q?.open;
   if (!done && !Q.open) $('optflag').textContent = `${LETTERS[qopt]} · ${Q.opts[qopt][0]}${momentLabel ? ' · ' + momentLabel : ''}`;
-  $('qprogress').textContent = done ? 'All done' : `Question ${qi + 1} of ${QUESTIONS.length} · ${SONGS[song]}`;
+  $('qprogress').textContent = done ? 'All done' : `Question ${qi + 1} of ${QUESTIONS.length} · ${SONGS[song].name}`;
   $('concept').textContent = done ? 'Thank you.' : Q.ask;
   $('line').textContent = done ? 'Copy your answers and paste them to me in the chat. They are also kept in this browser.' : Q.why;
   // The chosen option's note sits in a block of FIXED height (the longest note of this question), so the answer buttons below never
@@ -260,7 +259,7 @@ function renderUI() {
   if (qmode) return renderQuestion();
   // during a load there is no ride to find moments in
   $('moments').replaceChildren(...(P ? moments() : []).map(([label, at]) => chip(label, false, () => {if (loop !== null) loop = at; seek(at);}, 'moment')));
-  const songs = $('songs'); songs.replaceChildren(...Object.entries(SONGS).map(([k, v]) => chip(v, k === song, () => {if (k !== song || !P) {pause(); loadSong(k);}}, 'song')));
+  const songs = $('songs'); songs.replaceChildren(...Object.entries(SONGS).map(([k, {name}]) => chip(name, k === song, () => {if (k !== song || !P) {pause(); loadSong(k);}}, 'song')));
   const pres = $('presets'); pres.replaceChildren(...PRESETS.map((p, i) => chip(`${i + 1} · ${p.name}`, p === preset, () => choosePreset(p))));
   const custom = Object.keys(mix).some(d => mix[d] !== preset.mix[d]);
   $('concept').textContent = preset.name + (custom ? ' · adjusted' : ''); $('line').textContent = preset.line;

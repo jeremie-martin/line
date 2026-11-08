@@ -10,7 +10,7 @@ import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {join, resolve} from 'node:path';
 import assert from 'node:assert/strict';
-import {renderClips, momentClip, clipBeats, specBeats, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH, type Clip} from '../clip_render.ts';
+import {renderClips, momentClip, clipBeats, specBeats, CLIP_BEFORE, CLIP_LENGTH, type Clip} from '../clip_render.ts';
 import {lockArtifacts} from '../../../scripts/lib/artifact_lock.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
@@ -42,17 +42,10 @@ try {
   })));
   await renderClips(passages, clips, jobs);
 
-  // Each side's song's authored beats inside its clip (seconds from clip start, requested strength), as pair_study.ts: from the
-  // spec its compiled record names (a held-out song may be a variant).
-  const specOf = (h: any) => {
-    assert.ok(existsSync(h.compiled), `${h.compiled}, the record the key names, is missing`);
-    const {case: c} = JSON.parse(readFileSync(h.compiled, 'utf8'));
-    assertReviewSources(h.song, c, c.source);
-    return c.source as string;
-  };
-  const specs = new Map<string, string>(sides.map((h: any) => [h.compiled, specOf(h)]));
-  const songBeats = new Map(await Promise.all([...new Set(specs.values())].map(async path => [path, await specBeats(path)] as const)));
-  const beats = (p: any, s: 'left' | 'right') => clipBeats(passages.get(`pair${p.pair}-${s}`)!, songBeats.get(specs.get(p[s].compiled)!)!);
+  // Each side's song's authored beats inside its clip (seconds from clip start, requested strength), as pair_study.ts. The study's
+  // rides were compiled from the song's spec.ts (observe_heldout.ts refuses any other), so only preserved inputs are needed.
+  const songBeats = new Map(await Promise.all([...new Set(sides.map((h: any) => h.song as string))].map(async song => [song, await specBeats(`productions/${song}/spec.ts`)] as const)));
+  const beats = (p: any, s: 'left' | 'right') => clipBeats(passages.get(`pair${p.pair}-${s}`)!, songBeats.get(p[s].song)!);
   writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: CLIP_BEFORE, length: CLIP_LENGTH, prompt: PROMPT,
     choices: CHOICES, questions: [{id: 'bigger', options: CHOICES.map(c => c[0])}],
     clips: key.map((p: any) => ({id: `pair${p.pair}`,

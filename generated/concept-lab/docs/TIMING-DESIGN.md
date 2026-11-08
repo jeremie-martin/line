@@ -75,7 +75,7 @@ with (`rideTime(span end) ≤ track duration`). All 194 saved records on the own
 |---|---|
 | Picture (lab, films, videos) | the scene; one conversion per frame |
 | Review player and impact panel | the scene: seek bounds from the song span; inspection at `r`; the ride's timing in words ("aligned, 29.7 ms"); beats at `b`, each realized hit at its strongest frame, mapped; the compiler's own measures (onset and strongest-frame offsets from the target frame, its error sums) from the saved record, labelled as the compiler's |
-| Study clips | judge motion, not sync: bare tracks shown as compiled, on the compile timeline (frame `f` at `f / 40` s), so a judged moment is where its frame says; compare's before/after shares the passage's bounds and one soundtrack; beat marks are the song's authored beats from the spec the rides were compiled from (checked against its hash) |
+| Study clips | judge motion, not sync: bare tracks shown as compiled, on the compile timeline (frame `f` at `f / 40` s), so a judged moment is where its frame says; compare's before/after shares the passage's bounds and one soundtrack; beat marks are the song's authored beats from the spec the rides were compiled from (an eval cell's own spec, checked against its hash; the visibility study's spec.ts, which its observe step requires; otherwise the song's spec.ts) |
 | Lab UI | the scene's song times |
 | `npm run video`, study renders | records and sidecars carry the look, the offset and the alignment state; a saved video with another presentation is not reused: a fresh destination is required. The writer refuses a passage outside the song span |
 | Spec dashboard | unchanged: authored times on the audio (song time) |
@@ -135,7 +135,7 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    **Done (8 November): C**, effects at the strongest frame. The option `effectsAt` and the comparison's as-compiled ride set
    are deleted: a hit happens at its strongest frame, for every ride (above). With that, everything a hit triggers moved onto
    the ride clock, the intensity metric reads the same moment, and the impact panel plots it. A step-back review then found
-   and fixed: study clips had lost their beat marks (now the spec's authored beats again, variant-aware), a crashed ride could
+   and fixed: study clips had lost their beat marks (now the spec's authored beats again, an eval cell's own variant included), a crashed ride could
    not be opened (the replay required a trace past its end), sections came from the song's current authoring (now the record's
    own), the span was enforced by some callers only (now by the writer), a compare export of a perturbed cell failed (now
    through the evaluation's own case), and two compatibility paths. The cross-offset test now covers hit effects.

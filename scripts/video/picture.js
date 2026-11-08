@@ -6,8 +6,9 @@
 //   replay — the native replay of the ride (renderer worker): per physics frame the rider's points and the lines it touches;
 //            the camera follows these points, so a bare track renders as well as a saved production
 //   sheet, paint — the vendored rider artwork and its painter (renderer bundle)
-// draw(t, look) is a pure function of t for a given look (the only carry-over between frames is the title's box, measured when
-// the title is drawn). Everything is designed on 1080 × 1920 and scaled to the canvas's width; videos are 9:16.
+// draw(t, look) is a pure function of t for a given look: nothing carries from one frame to the next (the title's box is measured
+// in the frame that draws the title), so frames can be drawn in any order. Everything is designed on 1080 × 1920 and scaled to
+// the canvas's width; videos are 9:16.
 //
 // Every hit takes effect at the rider's first touch, on its own, sized by its measured strength (never a rank, never the spec's
 // request). Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
@@ -216,9 +217,9 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   // blend: blending two splits looked grey and doubled. The sun is not touched (R19).
   const preCanvas = document.createElement('canvas'), maskCanvas = document.createElement('canvas'), smallCanvas = document.createElement('canvas');
   // the feathered mask depends only on the frame size and the title's box, so its blur (the costliest step) runs once per title
-  const featherCanvas = document.createElement('canvas'); let featherKey = '', titleOn = false;
+  const featherCanvas = document.createElement('canvas'); let featherKey = '';
   function keepTitle(k, before) {
-    if (!titleOn || !titleBox) return;
+    if (!titleBox) return; // only when this frame drew the title
     const w = canvas.width, h = canvas.height;
     if (before) {if (preCanvas.width !== w || preCanvas.height !== h) {preCanvas.width = w; preCanvas.height = h;} preCanvas.getContext('2d').drawImage(canvas, 0, 0); return;}
     if (!lastSplit) return;
@@ -357,7 +358,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const at = clamp(t * FPS, 0, frames.length - 1), k = canvas.width / W, on = look.hits === 'v1';
     const hit = on ? strongest(t) : null;
     const th = themeAt(t, look), v = bookend(t, cameraAt(look, at), at, look), hc = on ? shake(t, hit) : {dx: 0, dy: 0};
-    titleOn = look.top === 'title';
+    titleBox = null; // set by drawTop when it draws the title in this frame
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
     ctx.fillStyle = th.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(k, 0, 0, k, 0, 0);

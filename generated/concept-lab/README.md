@@ -11,7 +11,8 @@ The rides are **recompiled with the current compiler** (`recompile.sh` writes `r
 builds their scenes into `data/` with the production scene builder. `prepare.mjs --old` builds `data-r5/` from the round 1–5
 rides, which `?rides=old` (or a question moment marked `old`) plays.
 
-Start at `morning.html` (served by `npm run serve`):
+Start at `morning.html`. One server serves the lab, the review pages and their APIs, and builds the renderer bundle as it starts:
+`HOST=0.0.0.0 PORT=8770 npm run serve` (the lab's tools expect port 8770; the owner reviews at `http://10.77.77.1:8770/generated/concept-lab/morning.html`).
 
 | Entry | What it is |
 |---|---|

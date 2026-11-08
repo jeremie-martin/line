@@ -14,7 +14,8 @@ The lab fingerprint moved on 55 of 116 frames.
 
 A step-back review (Codex and an independent agent, at design level) found and
 this change fixes: study clips had lost their beat marks in stage 1 (they are
-the spec's authored beats again, variant-aware and checked against its hash);
+the spec's authored beats again: an eval cell's own spec, checked against its
+hash; the visibility study's spec.ts, which its observe step requires);
 a crashed ride could not open (the replay required a trace past the ride's end);
 the scene took its sections from the song's current authoring (now the record's
 own, with its recording); the span was enforced by some callers only (now by the
@@ -24,6 +25,13 @@ scene now checks its invariants once (all 194 saved records pass), the review
 player says how a ride is timed, and the cross-offset test covers hit effects.
 Study clips are declared what they were: bare tracks, shown as compiled, judging
 motion rather than sync.
+
+Then folded: the lab's song table is defined once (`rides.js`, which also feeds
+`recompile.sh`), and `look.d.ts` no longer repeats the options (no TypeScript
+reads one; `resolveLook` checks them). A throwaway visibility study (three pairs
+from the published key, preserved tracks only) and a short `npm run video` ran
+end to end; the pair-study builder and compare's review could not, for lack of
+their source data on this machine.
 
 ## November 8: rides record their authored beats (timing stage 2 of 4; branch `visual-lab`)
 

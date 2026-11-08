@@ -53,6 +53,10 @@
   the ask"; V7.1 up.
 - **Risk.** A larger archive; finer neighbourhoods may overfit to single
   demonstrations.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −2.4 [−8.0, +3.1], 0.13; 14 of 35 specs up.
+  - P4 −6.8, P5 −6.7, P1 −6.0.
+  - The archived trainer's 32 trees stand.
 
 ## November 8 (night): why strong catches miss, re-measured on today's main
 

@@ -104,7 +104,7 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    picture, inspection, seek bounds, clip bounds and export all show physics frame `f` at song time `f / 40 − offset`); the lab
    fingerprint byte-identical except around the few hits whose `touch` differs from the picture's old first-touch search (that
    also moves the intensity metric over a few seconds around them; each shown).
-2. **Beats recorded** (compiler only, on `rework/foundations`, when the owner chooses): additive. Proof: parity unchanged; on
+2. **Beats recorded** (compiler only, on `visual-lab` like the rest; merged into foundations later): additive. Proof: parity unchanged; on
    saved rides, beats equal the spec at its recorded hash (a test oracle, not a runtime path). The lab's rides are left as they
    are, so nothing is aligned yet.
 3. **Alignment together with the effects round**: turning the offset on while effects stay at `touch` would put the flash and

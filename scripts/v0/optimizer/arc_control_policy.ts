@@ -139,7 +139,10 @@ function catalogueProposals(cat:any,features:number[],incoming:number,span:numbe
   };
   const cores=new Map<number,number[]|undefined>();
   const selected:ArcMotionControl[]=[];
-  for(const style of cat.styles){
+  // Styles that record their use per situation cell are offered most typical first.
+  const used=(s:any)=>(1-u)*(1-v)*s.usage[i*n+j]+(1-u)*v*s.usage[i*n+j+1]+u*(1-v)*s.usage[(i+1)*n+j]+u*v*s.usage[(i+1)*n+j+1];
+  const styles=cat.styles[0]?.usage?cat.styles.map((s:any,k:number)=>({s,k,w:used(s)})).sort((a:any,b:any)=>b.w-a.w||a.k-b.k).map((x:any)=>x.s):cat.styles;
+  for(const style of styles){
     if(!cores.has(style.side))cores.set(style.side,core(style.side));
     const c0=cores.get(style.side);if(!c0)continue;
     const {support,...free}=style.control;

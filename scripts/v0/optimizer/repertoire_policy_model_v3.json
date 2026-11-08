@@ -2,13 +2,13 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "068229de46e2ecca57fa5a67b752e3755d799710d87c4c585ceefcb7f4a8e4a9",
-  "sha256": "36df46efc21d58c73fdb78bd9c8496c6a4e6b20f4340b4ef43cec7d5e74bc7b0",
-  "uncompressedBytes": 89103,
+  "compressedSha256": "76c33c7bd52b68abec3c2627270aa8ae26ff6fee7475405eda28b1a8f9fa78c1",
+  "sha256": "b66eb33b4c29f127ea5a0479e4f8f106d5ebf6e6c4088af1dd3ad95a1e10674e",
+  "uncompressedBytes": 126016,
   "provenance": {
     "source": "repertoire_policy_model_v3.json.gz",
     "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-    "method": "readable catalogue: core table (requested strength x arrival heading) per side + 32 real-demonstration styles per group",
-    "numbers": 5582
+    "method": "readable catalogue: core table (requested strength x arrival heading) per side + 32 real-demonstration styles per group, styles ranked by their use in the situation",
+    "numbers": 13582
   }
 }

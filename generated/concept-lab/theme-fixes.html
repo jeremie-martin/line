@@ -36,12 +36,23 @@ textarea{width:100%;font:15px system-ui,sans-serif;padding:10px;border-radius:12
 .stills figure{flex:0 0 62%;max-width:300px;margin:0;scroll-snap-align:start}.stills img,.stills video{width:100%;aspect-ratio:9/16;border-radius:10px;background:var(--line);display:block}
 .opt .stills{padding:0}
 .rate.n2{grid-template-columns:repeat(3,1fr)}.rate.n3{grid-template-columns:repeat(4,1fr)}
+.grade{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0 0}
+.grade button{font:600 16px system-ui,sans-serif;padding:10px 0;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);touch-action:manipulation}
+.grade button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
+.scale{font-size:12px;color:var(--soft);margin:4px 0 0;display:flex;justify-content:space-between}
+.theme textarea{margin:6px 16px 0;width:calc(100% - 32px)}
+@media (min-width: 900px){
+  main{max-width:1180px}
+  .opt{display:grid;grid-template-columns:200px 1fr;gap:6px 20px;align-items:start}
+  .opt .stills{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;overflow:visible}.opt .stills figure{max-width:none}
+  .opt .pair{max-width:480px}
+}
 </style>
 </head>
 <body><main>
 <p class="kicker">Themes · 8 November</p>
 <h1>Five small choices</h1>
-<p class="lead">From the two reviews of the themes (an art director and a phone-viewer study). A drop is a switch, so each drop option is shown through it: swipe from just before the drop, to a 5-second clip through the switch (tap it for sound), to inside the drop. Tap one answer per choice.</p>
+<p class="lead">From the two reviews of the themes (an art director and a phone-viewer study). A drop is a switch, so each drop option is shown through it: swipe from just before the drop, to a 5-second clip through the switch (tap it for sound), to inside the drop. Grade every option from 1 (cut) to 5 (love), and add a note if you like.</p>
 <p class="small">Already fixed, no question: on strong hits the colour boost no longer fades the pencilled course ahead (it blinked out as the rider landed, on every light theme), and Black Iris’s band is lit on its dark paper.</p>
 <div id="list"></div>
 <h2>Anything else</h2>
@@ -63,15 +74,23 @@ const CHOICES = [
   {id: 'ultra', title: 'Ultramarine’s bars', why: 'Its bars are the faintest against their paper of the set (3.4:1). The same blue, brighter (4.4:1)? You were unsure about Ultramarine.', when: DAY,
     opts: [['As now', 'ultra-now'], ['Brighter', 'ultra-bright']]},
 ];
-const STORE = 'concept-lab-theme-choices-r27', state = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
-state.picks ??= {}; state.note ??= '';
+const STORE = 'concept-lab-theme-choices-r27-grades', state = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
+state.grades ??= {}; state.notes ??= {}; state.note ??= '';
 const save = () => {try {localStorage.setItem(STORE, JSON.stringify(state));} catch {}};
 const el = (tag, cls, text) => {const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e;};
-const count = () => {document.getElementById('count').textContent = `${Object.keys(state.picks).length} of ${CHOICES.length} answered`;};
+const total = CHOICES.reduce((n, c) => n + c.opts.length, 0);
+const count = () => {document.getElementById('count').textContent = `${CHOICES.reduce((n, c) => n + c.opts.filter(([, f]) => state.grades[c.id]?.[f]).length, 0)} of ${total} graded`;};
+function grade(c, file) {
+  const box = el('div'), row = el('div', 'grade');
+  const paint = () => {for (const b of row.children) b.classList.toggle('on', state.grades[c.id]?.[file] === +b.textContent);};
+  for (let g = 1; g <= 5; g++) {const b = el('button', '', String(g)); b.onclick = () => {const gs = state.grades[c.id] ??= {}; gs[file] === g ? delete gs[file] : gs[file] = g; save(); paint(); count();}; row.append(b);}
+  const scale = el('div', 'scale'); scale.append(el('span', '', '1 cut'), el('span', '', '3 fine'), el('span', '', '5 love'));
+  paint(); box.append(row, scale); return box;
+}
 for (const c of CHOICES) {
   const card = el('section', 'theme'); card.append(el('h3', '', c.title), el('p', '', c.why));
   c.opts.forEach(([label, file], i) => {
-    const o = el('div', 'opt'); o.append(el('h4', '', `${String.fromCharCode(65 + i)} · ${label}`));
+    const o = el('div', 'opt'), head = el('div'); head.append(el('h4', '', `${String.fromCharCode(65 + i)} · ${label}`), grade(c, file)); o.append(head);
     const still = (src, caption) => {const f = el('figure'), im = el('img'); im.loading = 'lazy'; im.src = src; im.alt = `${c.title}, ${label}, ${caption}`; f.append(im, el('figcaption', '', caption)); return f;};
     if (c.drop) {
       // the switch in context: before the drop, the clip through it, inside it
@@ -87,15 +106,15 @@ for (const c of CHOICES) {
     }
     card.append(o);
   });
-  const rate = el('div', `rate n${c.opts.length}`), answers = [...c.opts.map(([label], i) => `${String.fromCharCode(65 + i)} · ${label}`), 'Can’t tell'];
-  const paint = () => {for (const b of rate.children) b.classList.toggle('on', state.picks[c.id] === b.dataset.v);};
-  for (const a of answers) {const b = el('button', '', a.split(' · ')[0] === a ? a : a.split(' · ')[0]); b.dataset.v = a; b.onclick = () => {state.picks[c.id] === a ? delete state.picks[c.id] : state.picks[c.id] = a; save(); paint(); count();}; rate.append(b);}
-  paint(); card.append(rate); document.getElementById('list').append(card);
+  const note = el('textarea'); note.rows = 2; note.placeholder = `A note on ${c.title} (optional)`; note.value = state.notes[c.id] ?? '';
+  note.oninput = () => {note.value ? state.notes[c.id] = note.value : delete state.notes[c.id]; save();};
+  card.append(note); document.getElementById('list').append(card);
 }
 const note = document.getElementById('note'); note.value = state.note; note.oninput = () => {state.note = note.value; save();};
 count();
 document.getElementById('copy').onclick = async () => {
-  const text = ['Theme choices (round 27)', ...CHOICES.map(c => `${c.title}: ${state.picks[c.id] ?? '—'}`), ...(state.note ? [`Note: ${state.note}`] : [])].join('\n');
+  const lines = CHOICES.map(c => `${c.title}: ${c.opts.map(([label, f], i) => `${String.fromCharCode(65 + i)} ${label} ${state.grades[c.id]?.[f] ?? '—'}`).join(', ')}${state.notes[c.id] ? ` — ${state.notes[c.id]}` : ''}`);
+  const text = ['Theme choices (round 27), grades 1–5', ...lines, ...(state.note ? [`Note: ${state.note}`] : [])].join('\n');
   try {await navigator.clipboard.writeText(text); document.getElementById('copy').textContent = 'Copied';} catch {prompt('Copy this:', text);}
   setTimeout(() => {document.getElementById('copy').textContent = 'Copy answers';}, 1500);
 };

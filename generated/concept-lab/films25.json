@@ -1,0 +1,153 @@
+{
+ "title": "Round 25 · what a hit feels like (a second look)",
+ "description": "Whole songs in Hokusai, the same ride in four ways of feeling a hit. Switch at the same moment, with sound.",
+ "groups": [
+  {
+   "id": "hits",
+   "label": "Four hits",
+   "description": "Only the hit effects vary.",
+   "variants": [
+    "v1",
+    "zoom",
+    "zoomShake",
+    "still"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "tomada",
+   "label": "Montagem Tomada (super slowed)",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake, split, flash: the approved v1.",
+     "src": "films24/tomada-v1.mp4"
+    },
+    {
+     "id": "zoom",
+     "label": "B · Zoom",
+     "description": "Zoom, split, colour boost.",
+     "src": "films25/tomada-zoom.mp4"
+    },
+    {
+     "id": "zoomShake",
+     "label": "C · Zoom, shake on strong hits",
+     "description": "Zoom, split, colour boost, the shake from strength 0.65.",
+     "src": "films25/tomada-zoomShake.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · No camera motion",
+     "description": "Split and a stronger colour boost.",
+     "src": "films24/tomada-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake, split, flash: the approved v1.",
+     "src": "films24/petrunko-v1.mp4"
+    },
+    {
+     "id": "zoom",
+     "label": "B · Zoom",
+     "description": "Zoom, split, colour boost.",
+     "src": "films25/petrunko-zoom.mp4"
+    },
+    {
+     "id": "zoomShake",
+     "label": "C · Zoom, shake on strong hits",
+     "description": "Zoom, split, colour boost, the shake from strength 0.65.",
+     "src": "films25/petrunko-zoomShake.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · No camera motion",
+     "description": "Split and a stronger colour boost.",
+     "src": "films24/petrunko-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los",
+   "label": "Los Voltaje",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake, split, flash: the approved v1.",
+     "src": "films24/los-v1.mp4"
+    },
+    {
+     "id": "zoom",
+     "label": "B · Zoom",
+     "description": "Zoom, split, colour boost.",
+     "src": "films25/los-zoom.mp4"
+    },
+    {
+     "id": "zoomShake",
+     "label": "C · Zoom, shake on strong hits",
+     "description": "Zoom, split, colour boost, the shake from strength 0.65.",
+     "src": "films25/los-zoomShake.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · No camera motion",
+     "description": "Split and a stronger colour boost.",
+     "src": "films24/los-still.mp4"
+    }
+   ]
+  },
+  {
+   "id": "circus",
+   "label": "Circus Minimus",
+   "description": "The whole song.",
+   "videos": [
+    {
+     "id": "v1",
+     "label": "A · Today",
+     "description": "Shake, split, flash: the approved v1.",
+     "src": "films24/circus-v1.mp4"
+    },
+    {
+     "id": "zoom",
+     "label": "B · Zoom",
+     "description": "Zoom, split, colour boost.",
+     "src": "films25/circus-zoom.mp4"
+    },
+    {
+     "id": "zoomShake",
+     "label": "C · Zoom, shake on strong hits",
+     "description": "Zoom, split, colour boost, the shake from strength 0.65.",
+     "src": "films25/circus-zoomShake.mp4"
+    },
+    {
+     "id": "still",
+     "label": "D · No camera motion",
+     "description": "Split and a stronger colour boost.",
+     "src": "films24/circus-still.mp4"
+    }
+   ]
+  }
+ ],
+ "links": [
+  {
+   "label": "Round 25",
+   "href": "/generated/concept-lab/round25.html"
+  },
+  {
+   "label": "The question",
+   "href": "/generated/concept-lab/?q=1"
+  }
+ ]
+}

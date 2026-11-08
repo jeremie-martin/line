@@ -19,7 +19,7 @@ Start at `morning.html`. One server serves the lab, the review pages and their A
 | Entry | What it is |
 |---|---|
 | `morning.html` | Index of all rounds. Each round page has the films and questions of its day. Rounds 1–5 keep their pages and films; their interactive snapshots were retired on 8 November (git history has them). |
-| `?q=1` | The current round's questions (round 24: the hit effects), stored in localStorage as `concept-lab-answers-r24` (`STORE` in `lab.js`). |
+| `?q=1` | The current round's questions (round 25: the hit effects, a second look), stored in localStorage as `concept-lab-answers-r25` (`STORE` in `lab.js`). The slider under the transport exaggerates the hit effects (a viewing aid, ×1–×4, not saved). |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab: the looks (`presets.js`: Swatch, Plain and the themes), and every option of a look as a chip. |
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |
@@ -89,7 +89,7 @@ reliably (`night.py`), so each song's drop is placed by hand (`scripts/video/dro
   production writer; `films7.sh` writes the round-20 themes. `fourup.sh` and `grid12.sh` assemble films.
   `shoot.mjs` and `strip.mjs` capture stills and frame strips from the lab's shot mode.
 - **Checks:**
-  - `uicheck.mjs`: 66 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
+  - `uicheck.mjs`: 69 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
   - `qcheck.mjs`: walks the live questions. `check.mjs`: phone size.
   - `fingerprint.mjs`: 116 frames hashed (`analysis/fingerprint-baseline.txt`). Run it before and after a refactor and require
     identical outputs.

@@ -215,6 +215,18 @@ try {
     await p.context().close();
   });
 
+  // ── 4c. the viewing aid: multiplies the hit effects while set, never saved, back to ×1 on the next question ───────
+  await run('Question mode: exaggerate the hit effects', async () => {
+    const p = await open('?qtest=1&q=1');
+    await settled(p);
+    await p.locator('#exagx').fill('3'); let s = await st(p);
+    check(s.exaggerate === 3 && (await p.locator('#exagval').textContent()) === '×3', 'the slider sets ×3 and says so', String(s.exaggerate));
+    check(!url(p).toString().includes('exag'), 'the aid is not in the address');
+    await tap(p, '#qnext'); await settled(p); s = await st(p);
+    check(s.exaggerate === 1 && (await p.locator('#exagx').inputValue()) === '1', 'the next question starts at ×1', String(s.exaggerate));
+    await p.context().close();
+  });
+
   // ── 5. desktop keyboard ─────────────────────────────────────────────────────────────────────────────────────
   await run('Question mode, desktop keyboard', async () => {
     const p = await open('?qtest=1&q=2', DESK);

@@ -40,18 +40,18 @@ const TEST_QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-// Round 24: the hit effects, rethought. Every option is the Hokusai theme without ends (loops), varying only the hit.
+// Rounds 24–25: the hit effects, rethought. Every option is the Hokusai theme without ends (loops), varying only the hit.
 const hokusai = {...resolveLook('hokusai'), ends: 'none'};
 // a moment on another theme: that whole look, but the hit of the option being watched
 const onTheme = name => {const {hits, ...look} = resolveLook(name); return {...look, ends: 'none'};};
 const QUESTIONS = [
   {id: 'hits', ask: 'What should a hit feel like?',
-    why: 'Today’s hit and three new ideas of it, each a whole idea, not a tweak. The colour split stays in all of them. B: the camera punches in on the rider instead of shaking, and the colours surge instead of the flash (the paper stays the paper). C: the same, with the thud kept for the biggest hits only. D: nothing moves; the split and a stronger surge carry the hit. Each follows the hit’s own strength, from its strongest frame. Watch the films first. Keep any number, and say what you would mix.',
+    why: 'Today’s hit and three other ways of feeling it. Shake: the whole frame is knocked along the hit and springs back. Zoom: the camera zooms in on the rider for an instant and eases back. Split: the red and blue channels pull apart (in all four). Flash: the picture fades toward the paper colour. Colour boost: what is drawn on the paper gets more saturated and more contrasted for an instant; the paper does not change. All follow the hit’s own strength, from its strongest frame. The slider above exaggerates every effect alike, to see them. Keep any number, and say what you would mix.',
     song: 'tomada', t: 55.4, len: 6, multi: true, opts: [
-      ['Today', {...hokusai, hits: 'v1'}, 'The thud, the split and the flash toward the paper, as you know them.'],
-      ['Punch', {...hokusai, hits: 'punch'}, 'The camera closes in on the rider and springs back; the colours surge.'],
-      ['Punch, a thud for the biggest', {...hokusai, hits: 'tiers'}, 'Every hit punches; only the strongest also thud.'],
-      ['Still', {...hokusai, hits: 'still'}, 'Nothing moves: the split and a stronger colour surge.']],
+      ['Today', {...hokusai, hits: 'v1'}, 'Shake, split, flash: the approved v1.'],
+      ['Zoom', {...hokusai, hits: 'zoom'}, 'Zoom, split, colour boost.'],
+      ['Zoom, shake on strong hits', {...hokusai, hits: 'zoomShake'}, 'Zoom, split, colour boost, and the shake on strong hits only (from strength 0.65).'],
+      ['No camera motion', {...hokusai, hits: 'still'}, 'Split and a stronger colour boost; the camera never moves.']],
     moments: [['Tomada 56 s, the strongest hit', 55.4], ['Petrunko 34 s', 33.5, 'petrunko'], ['Los Voltaje 28 s, the dive', 28.5, 'los'],
       ['Circus, the hook', 43, 'circus'], ['On Paper · Tomada', 55.4, 'tomada', onTheme('paper')], ['On Black · Los Voltaje', 28.5, 'los', onTheme('black')]]},
 ];
@@ -79,7 +79,10 @@ let qi = Math.max(0, Math.min(QUESTIONS.length, (parseInt(q.get('q'), 10) || 1) 
 // Every question/moment navigation takes a ticket; an async step that resumes after a newer navigation drops its stale state
 // instead of applying it (a slow song load used to finish after the viewer had moved on and overwrite the newer choice).
 let navId = 0, qmoment = null, loopHome = null;
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r24';
+// the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
+let exaggerate = 1;
+function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r25';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -131,7 +134,7 @@ async function loadSong(key) {
   return true;
 }
 // a look the ride cannot be drawn in (effects on the beat without recorded beats) says so instead of drawing something else
-function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix);} catch (e) {status(e.message); if (shot) {window.__loadError = e.message; throw e;}}}
+function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix, exaggerate);} catch (e) {status(e.message); if (shot) {window.__loadError = e.message; throw e;}}}
 function moments() {
   // the quietest and the densest section (hits per second), the middle section change, the strongest hit, the ends
   const hits = P.hitTimes, sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
@@ -191,7 +194,7 @@ function questionRides() {const Q = QUESTIONS[qi]; return momentRides ?? Q.opts[
 function setOption(i) {qopt = i; applyOption(); renderQuestion(); draw(); rides = questionRides(); if (rides !== loadedRides) loadSong(song);}
 async function goQuestion(i, restore = null) {
   const nav = ++navId;
-  pause(); qi = i; qopt = 0; momentExtra = null; momentRides = null; momentLabel = ''; qmoment = null; scrollTo(0, 0);
+  pause(); qi = i; qopt = 0; momentExtra = null; momentRides = null; momentLabel = ''; qmoment = null; scrollTo(0, 0); setExaggerate(1);
   $('qcopy').textContent = 'Copy answers';
   if (qi >= QUESTIONS.length) {renderQuestion(); return;}
   const Q = QUESTIONS[qi];
@@ -303,6 +306,7 @@ else {
   const togglePlay = () => {playing || music.requested ? pause() : play();};
   $('play').onclick = togglePlay;
   $('seek').oninput = () => seek(+$('seek').value);
+  $('exagx').oninput = () => setExaggerate(+$('exagx').value);
   $('back').onclick = () => seek(seconds - 5); $('fwd').onclick = () => seek(seconds + 5);
   addEventListener('keydown', e => {
     if (e.target.closest?.('input,textarea')) return;
@@ -401,5 +405,5 @@ else if (qmode) {
 }
 else loadSong(song).catch(e => status('Could not load: ' + e.message));
 // Read-only state for uicheck.mjs: lets the interaction suite assert what is drawn, not just that nothing threw.
-window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, preset: preset.id, song, loaded: P?.key ?? null, rides, loadedRides, drawnRides: P?.rides ?? null,
+window.__labState = () => ({qi, qopt, qmoment, momentExtra, momentLabel, mix: {...mix}, preset: preset.id, song, loaded: P?.key ?? null, rides, loadedRides, drawnRides: P?.rides ?? null, exaggerate,
   loop, loopLen, seconds, playing, scheme: P ? P.schemeAt(seconds, mix) : null});

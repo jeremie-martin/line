@@ -19,7 +19,7 @@ wherever it lives. Line counts are as of today.*
 |---|---|---|
 | `look.js` (+ `look.d.ts`) | 71 | Every option (defined only here; the types say a look is a checked one), the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
 | `timing.js` (+ `timing.d.ts`) | 31 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account, and its timing in words |
-| `picture.js` | 434 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit as its recipe says (`RECIPES`: today's shake, split and flash; the round-24 punch, thud for the biggest and colour surge) |
+| `picture.js` | 442 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit as its recipe says (`RECIPES`, exported for the round pages: shake, zoom, split, flash, colour boost); `draw(t, look, exaggerate)` |
 | `camera.js` | 72 | Follows direction and its two zoom tides |
 | `palettes.js` | 267 | Every scheme, its variants, `LIBRARY` (the owner's tiers), `DROP_SCHEMES` |
 | `intensity.js` | 62 | The intensity metric and its measures |
@@ -50,7 +50,7 @@ wherever it lives. Line counts are as of today.*
 
 **Tools:** `prepare.mjs` (scenes, through `scene.ts`), `recompile.sh` (rides), `film.mjs` and `films7.sh` (films, through
 `write.ts`), `fourup.sh` and `grid12.sh` (compositions, in the standard), `shoot.mjs` and `strip.mjs` (stills),
-`uicheck.mjs` (66 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
+`uicheck.mjs` (69 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
 
 **Studies, kept for their findings:** `intensity/`, `timing/`, `analysis/`. **Not for code review:** `agents/` (helper reports
 and data), the round pages.

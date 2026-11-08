@@ -2,7 +2,7 @@
  * Cache only successful results; no physics runs while playing or scrubbing. */
 let rendererPromise, worker, active, nextRequest = 0;
 const queue = [], cache = new Map();
-const renderer = () => rendererPromise ??= import('/generated/motion-gallery-renderer/view.js')
+const renderer = () => rendererPromise ??= import('/generated/renderer/view.js')
   .catch(error => { rendererPromise = undefined; throw error; });
 
 function finish(job, error, data) {
@@ -18,7 +18,7 @@ function pump() {
   const job = active = queue.shift();
   try {
     if (!worker) {
-      const current = worker = new Worker('/generated/motion-gallery-renderer/worker.js', {type: 'module'});
+      const current = worker = new Worker('/generated/renderer/worker.js', {type: 'module'});
       current.onmessage = ({data}) => {
         if (worker !== current || active?.request !== data.request) return;
         finish(active, data.error ? new Error(data.error) : null, data);

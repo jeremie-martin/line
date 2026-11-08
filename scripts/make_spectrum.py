@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Extract a per-frame frequency spectrum from an audio file for the Remotion music
-visualizer (a symmetric bar display in the vertical overlay).
+Extract a per-frame frequency spectrum from an audio file: the lower band of the
+video picture (scripts/video/picture.js), cached per recording by scripts/video/scene.ts.
 
 ffmpeg decodes the mp3 to mono f32 PCM; we STFT it, bin magnitudes into log-spaced
 frequency bands, apply a perceptual tilt + normalize + gamma, and smooth over time.
 No librosa — just numpy + ffmpeg.
 
-  python3 scripts/make_spectrum.py --audio=beats/tiki_tiki_48s.mp3 \
-      --out=remotion/public/tiki_t10_r01_s36_vert.spectrum.json [--fps=30] [--bands=56]
+  python3 scripts/make_spectrum.py --audio=productions/tiki_tiki_48s/audio.mp3 \
+      --out=spectrum.json [--fps=30] [--bands=56]
 
 Output JSON: { "fps", "bands", "frames": [[b0..bN-1 in 0..1], ...] }.
 """

@@ -21,11 +21,6 @@
       <button id="fwd" class="icon" aria-label="Forward 5 seconds">+5</button>
       <span id="time">0:00</span>
     </div>
-    <div id="exag" class="exag" hidden>
-      <label for="exagx">Exaggerate the shake <output id="exagval">×1.0</output></label>
-      <input id="exagx" type="range" min="1" max="4" step="0.5" value="1">
-      <small>Temporary viewing aid: multiplies every option’s shake alike, so the differences are easier to see. It is not part of any option, is not saved, and resets on the next question.</small>
-    </div>
     <h1 id="concept"></h1>
     <p id="line"></p>
     <div class="qbox">
@@ -42,11 +37,6 @@
       <div class="feelnav"><button id="feelprev" class="tool">Back</button><button id="feelnext" class="play">Next pair</button></div>
       <textarea id="feelsummary" rows="4" hidden></textarea>
       <button id="feelcopy" class="play" hidden>Copy answers</button>
-    </div>
-    <div id="bench" class="bench" hidden>
-      <div class="benchhead"><span id="benchlabel"></span><button id="benchreal" class="opt on">As recorded</button><button id="benchslow" class="opt">¼ speed</button></div>
-      <input id="benchstrength" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Hit strength">
-      <div id="benchhist" class="benchhist" aria-hidden="true"></div>
     </div>
     <div class="tools">
       <div id="songs" class="songs"></div>

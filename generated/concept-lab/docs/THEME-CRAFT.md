@@ -6,7 +6,7 @@ A **theme** is a complete direction for one video: everything that isn't the rid
 
 | Choice | Options | Where |
 |---|---|---|
-| Palette | a scheme from the library | `palettes.js` (`SCHEMES`, `LIBRARY`) |
+| Palette | a scheme from the library | `scripts/video/palettes.js` (`SCHEMES`, `LIBRARY`) |
 | Band | bars with the loudest in red, fork, Iris, Three colours | `music` (+ `redBy`) |
 | Top of the frame | nothing, the title, the sun | `top` |
 | Line | pencil → ink, whole rail, all ink | `ink` |
@@ -14,7 +14,7 @@ A **theme** is a complete direction for one video: everything that isn't the rid
 | Zoom over time | steady, out when quiet | `tide` |
 | Paper | Whisper, plain | `bg` |
 
-In the lab a theme is a look in `PRESETS` (`t-*`). Everything else comes from `v1.js`.
+A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top of `V1`, which supplies everything else. The lab shows each one, and `npm run video -- --look=NAME` ships it.
 
 ## The rules we've learned
 

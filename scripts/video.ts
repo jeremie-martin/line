@@ -1,82 +1,73 @@
-/** One command from a fresh seed or saved ride to a plain/finished video. */
+/** One command from a fresh seed, a saved ride or a bare track to a finished video, drawn by the video renderer
+ * (scripts/video/) exactly as the concept lab shows it. */
 import {randomInt} from 'node:crypto';
-import {openSync, closeSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
-import {basename, dirname, join, resolve} from 'node:path';
+import {openSync, closeSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {basename, join, resolve} from 'node:path';
 import {spawn, execFileSync} from 'node:child_process';
 import {videoRequest} from './produce/video_request.ts';
 import {readVerifiedJson, verifiedVideoCell} from './produce/video_input.ts';
-import {ensureSpectrum, renderVideo} from './produce/render.ts';
+import {buildScene} from './video/scene.ts';
+import {writeVideo} from './video/write.ts';
+import {THEMES} from './video/look.js';
 import {sha} from './lib/case.ts';
 
 async function main() {
 if (process.argv.includes('--help')) {
-  console.log(`Generate a video from a fresh seed or a saved ride.
+  console.log(`Make a video from a fresh seed, a saved ride or a bare track.
 
-  npm run video -- --song=petrunko_selection --seed=404
-  npm run video -- --study=generated/my-ride --style=plain --format=horizontal
-  npm run video -- --track=track.json --audio=song.mp3 --spec=spec.ts
+  npm run video -- --song=petrunko_selection --seed=404 --look=hokusai
+  npm run video -- --study=generated/my-ride --look=dune --from=20 --to=35
+  npm run video -- --track=track.json --music=petrunko_selection
 
-Inputs: --song=ID [--seed=N --budget=N], --study=DIR [--id=CELL], or --track=FILE [--audio=FILE --spec=FILE].
-Look:   --style=plain|finished --format=horizontal|vertical --zoom-mult=N
-Output: --out=FILE.mp4 --workers=N
-Defaults: finished vertical for productions; plain horizontal for raw tracks.
-Progress and timings appear here; detailed logs and fresh compilation artifacts stay beside the output.`);
+Input:  --song=ID [--seed=N --budget=N] (compiles first), --study=DIR [--id=CELL], or --track=FILE --music=SONG.
+Look:   --look=${Object.keys(THEMES).join('|')}|plain (paper for productions, plain for tracks)
+        --set=key:value,… changes single options of the look (scripts/video/look.js)
+Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N pixels (1080; the video is 9:16)
+Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
 } else {
   const began = performance.now(), request = videoRequest(process.argv.slice(2));
-  const name = request.song ?? (request.study ? basename(resolve(request.study)) : basename(request.track, '.json'));
-  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const output = resolve(request.out ?? `generated/videos/${name}-${stamp}.mp4`);
+  const name = request.song ?? (request.study ? basename(resolve(request.study)) : basename(request.track!, '.json'));
+  const output = resolve(request.out ?? `generated/videos/${name}-${new Date().toISOString().replace(/[:.]/g, '-')}.mp4`);
   if (!output.endsWith('.mp4')) throw new Error('--out must end with .mp4');
   const work = output.slice(0, -4) + '.assets';
   if (existsSync(output) || existsSync(work)) throw new Error('Output already exists; choose a new --out.');
-  mkdirSync(work, {recursive: true});
-  process.env.LR_REMOTION_CONCURRENCY = String(request.workers);
   let study = request.study ? resolve(request.study) : undefined;
   const seed = request.seed ?? randomInt(0, 2 ** 31);
-  console.log(`Video · ${request.style} · ${request.format} · ${request.workers} workers\nOutput: ${output}`);
+  console.log(`Video · ${request.lookName} · ${request.width} px wide\nOutput: ${output}`);
   if (request.song) {
+    mkdirSync(work, {recursive: true});
     study = join(work, 'production');
     console.log(`Compile · ${request.song} · seed ${seed}`);
-    const started = performance.now();
-    const log = join(work, 'compile.log');
+    const started = performance.now(), log = join(work, 'compile.log');
     console.log(`Log: ${log}`);
     await new Promise<void>((done, fail) => {
       const fd = openSync(log, 'w');
       const pulse = setInterval(() => console.log(`Compile running · ${((performance.now() - started) / 1000).toFixed(0)}s`), 15_000);
       const cleanup = () => {clearInterval(pulse); closeSync(fd);};
-      const child = spawn(process.execPath, ['scripts/produce/automatic.ts',`--song=${request.song}`,`--seed=${seed}`,`--out=${study}`,
+      const child = spawn(process.execPath, ['scripts/produce/automatic.ts', `--song=${request.song}`, `--seed=${seed}`, `--out=${study}`,
         ...(request.budget ? [`--budget=${request.budget}`] : [])], {stdio: ['ignore', fd, fd]});
       child.once('error', error => {cleanup(); fail(error);});
       child.once('exit', code => {cleanup(); code === 0 ? done() : fail(new Error(`Compilation exited ${code}; see ${log}`));});
     });
     console.log(`Compile done · ${((performance.now() - started) / 1000).toFixed(1)}s`);
   }
-  const render = {...request.render};
-  let trackPath = request.track, audioPath = request.audio, specPath = request.spec, reportPath: string | undefined, impactPath: string | undefined, jolt = 0;
+  let scene, of;
   if (study) {
     const manifest = readVerifiedJson(join(study, 'manifest.json'));
     const id = request.id ?? (manifest.cells.length === 1 ? manifest.cells[0].id : undefined);
     if (!id) throw new Error('This study has multiple rides; choose --id=CELL.');
-    const input = verifiedVideoCell(study, manifest, id);
-    ({trackPath, reportPath, impactPath} = input);
-    audioPath = input.c.audioPath; specPath = input.c.source; jolt = manifest.plan.jolt;
-    if (request.style === 'finished') {
-      render.beatPunchPct = input.c.render.beatPunchPct;
-      if (request.format === 'vertical' && !request.zoomOverride) render.zoomMult = input.c.render.zoomMult;
-    }
+    const {c, cell, record} = verifiedVideoCell(study, manifest, id);
+    scene = buildScene(c.id, record); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
+  } else {
+    const text = readFileSync(request.track!, 'utf8');
+    scene = buildScene(request.music!, {track: JSON.parse(text)}); of = {track: resolve(request.track!), trackSha256: sha(text), music: request.music};
   }
-  const inputs = Object.fromEntries([trackPath,audioPath,specPath,reportPath,impactPath].filter((p): p is string => Boolean(p)).map(p => [resolve(p), sha(readFileSync(p))]));
-  const spectrumBase = request.style === 'finished' ? await ensureSpectrum(resolve(audioPath), name, join(work, 'spectrum.log')) : undefined;
-  const movie = await renderVideo({name: 'video', trackPath, audioPath, specPath, reportPath, impactPath, spectrumBase,
-    render, jolt, workDir: work, style: request.style});
-  console.log('Verify · decode output');
-  execFileSync('ffmpeg', ['-v','error','-xerror','-i',movie,'-f','null','-'], {stdio: ['ignore','ignore','pipe']});
-  for (const [path, hash] of Object.entries(inputs)) if (sha(readFileSync(path)) !== hash) throw new Error(`Input changed during rendering: ${path}`);
-  const seconds = (performance.now() - began) / 1000;
-  writeFileSync(join(work, 'video.json'), JSON.stringify({inputs, style: request.style, format: request.format, render,
-    workers: request.workers, ...(request.song ? {seed} : {}), seconds, sha256: sha(readFileSync(movie))}, null, 2) + '\n');
-  mkdirSync(dirname(output), {recursive: true}); renameSync(movie, output);
-  console.log(`Done · ${seconds.toFixed(1)}s total\n${output}`);
+  const from = request.from ?? 0, to = Math.min(request.to ?? scene.duration, scene.duration);
+  await writeVideo({scene, look: request.look, out: output, from, to, width: request.width});
+  writeFileSync(output.slice(0, -4) + '.json', JSON.stringify({of, look: request.look, lookName: request.lookName, from, to, width: request.width,
+    renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
+    seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
+  console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);
 }
 }
 await main().catch(error => {console.error(`Video failed: ${error.message ?? error}`); process.exitCode = 1;});

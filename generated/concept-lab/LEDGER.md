@@ -8,7 +8,7 @@ The current state of every piece of the visual direction after rounds 1–19 (7 
 
 A look (Paper, Hokusai…) is only a saved direction. The owner's verdicts are filed per piece, never per look.
 
-**The settled v1 is `v1.js`.** It is the single source of truth for the defaults; this file gives the reasons. Formulas are in `lab.js` (`RESP`, the hit parts) and `cam.js` (`PLACEMENTS`). Palettes are in `palettes.js`.
+**The settled v1 is `V1` in `scripts/video/look.js`** (since 8 November also production's renderer). It is the single source of truth for the defaults; this file gives the reasons. Formulas are in `scripts/video/picture.js` (the hit curves) and `camera.js` (Follows direction). Palettes are in `scripts/video/palettes.js`.
 
 Statuses:
 - **v1:** in the defaults.
@@ -45,7 +45,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Hit strength (measured, absolute) | v1 | Drives every hit effect, never a rank (R1, R5: "adapt to the actual values… the top 20 % could be very small"). A calm song gets less: "Yes, that's right" (R6). Measured from the ride, never the spec's target (confirmed R11). |
 | Hit onset (measured moment) | v1 | Effects start on the frame the hit begins. |
 | Intensity (speed + impact, `intensity.js`) | v1, used lightly | A clean standalone metric (R3). Blind test: direction right 8/8, size not shown. It drives Whisper, the sun and Out when quiet. |
-| Drop cue (hand-placed, `NIGHTS`) | v1 | Detectors failed twice; one hand cue per song. **Open:** where Night *ends* was never reviewed song by song ("I'm not entirely convinced when the night was removed", R4). |
+| Drop cue (hand-placed, `scripts/video/drops.ts`) | v1 | Detectors failed twice; one hand cue per song. **Open:** where Night *ends* was never reviewed song by song ("I'm not entirely convinced when the night was removed", R4). |
 | Rider direction and slope | v1 | Feeds Follows direction. |
 | Sections | gone as a driver | Hand placement still welcome (R2). |
 | Hit source (drums, vocals…) | parked | "Source should not drive this" (R4). |
@@ -115,7 +115,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 - an accent stands apart from the bars in lightness;
 - lightness-first generation made candidates homogeneous (R6), so it is used to check, never to generate.
 
-**Library** (`LIBRARY` in `palettes.js`, the latest verdict per palette), for sampling and weighting later:
+**Library** (`LIBRARY` in `scripts/video/palettes.js`, the latest verdict per palette), for sampling and weighting later:
 - **love:** graphite, hokusai, black, dune, plum, lavender; Wada: Prussian, Magenta, Ultramarine, Old Rose, Celadon, Aubergine, Wisteria, Seashell, Aconite.
 - **good:** cafe, kraft (darker paper, R9), cyanotype (less colour, R9) with its indigo and deep siblings, rothko (less colour) and rothkoNeutral, lagoon, slate, sumi, ravilious, cahier, kintsugi (for a drop); Wada: Brick (accent fixed, R11), Orchid, Russet, Gilt, Etruscan (accent fixed, R12), Peony, Umber, Hydrangea, Heather, Cobalt, Carmine, Apricot, Grenadine, Aubergine's night.
 - **works (not a favourite):** Verdigris, Denim, Viridian, Indigo Teal, Camellia (accent fixed, R12), Blush, Pansy, Saxe, Heather's night, mauve, midnight, vegas.
@@ -147,8 +147,9 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 3. Whether all dark palettes should be inked (R12).
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).
 5. Zoom per song, and the direction layer: how looks are chosen, hints, variety (R5–R6).
-6. Timing between music and contacts: compiler track (R4, R6).
+6. Timing between music and contacts: the jolt, judged again by ear. Until 8 November every finished video's sound was 42.7 ms late and its picture 16.7 ms late, so the June choice was heard through that; the lab and the videos are now on one clock (REWORK.md, November 8).
 7. Whole films of v1: not watched since R6. All judgements since have been on loops.
+8. Since 8 November, any look can ship: `npm run video -- --study=DIR --look=THEME` draws exactly what the lab shows. Nothing has been published in the v1 look yet.
 
 ## How to work
 

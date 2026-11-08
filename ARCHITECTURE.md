@@ -231,29 +231,46 @@ and validation are in [music authoring](docs/music-authoring.md).
    editable fields or native controls. Scrubbing and musical-impact jumps retain
    the prior playback state; seeking to the end stops. Pending audio starts are
    cancellable so rapid input cannot override a newer pause.
-   `scripts/video.ts` makes a video from a fresh production, saved study or raw
-   review track. `renderVideo` in `scripts/produce/render.ts` owns the shared
-   ride export and audio mux; finished presentation adds the existing spectrum
-   and measured-impact effects. Plain review clips call this same function.
-   Format and presentation are independent. `renderBundle` adds publication
-   metadata, and `render_repertoire.ts` retains collection rendering and verified
-   media reuse. The exporter bundles the vendored physics, WebGL drawing, artwork
-   and camera directly (`scripts/gallery/native/video.js`). It sends one lossless
-   PNG frame at a time to native FFmpeg, with backpressure and frame-order checks;
-   encoding happens outside the browser. Each export owns an isolated, short-lived
-   loopback server and browser. There is no editor, shared mirror server, browser
-   video encoder or animation-clock pacing. The native camera and the original
-   repeated first frame/terminal-frame timing are preserved. Presentation keeps
-   its existing effects. Single-video jobs use up to 16 presentation workers,
-   bounded by CPU count and RAM; collection lanes retain their smaller default.
+   **Videos** have one renderer, `scripts/video/`, and the concept lab draws
+   through the same one, so what the owner approves there is what ships.
+   - `scene.ts` builds what a picture is drawn from: the ride (its track, and for a
+     compiled production its trace), its measured hits (the saved impact account's
+     onsets and strengths, never the spec's requests), the song's recording,
+     spectrum (`make_spectrum.py`, cached by the recording's bytes in
+     `generated/spectrum/`) and hand-placed drop (`drops.ts`), in song seconds. It
+     reads no spec, so editing a spec never blocks a render.
+   - `picture.js` draws the frame at song time t for a look: the "Follows
+     direction" camera (`camera.js`), the line, the band, the top element, the
+     drop, and each hit's shake, colour split and flash from its first touch,
+     sized by its measured strength. `look.js` holds every option, the settled
+     defaults (V1), the themes and `plain` (the compiler's review clips). Palettes
+     are in `palettes.js`, the intensity metric in `intensity.js`.
+   - `write.ts` draws each frame in a headless page, sends it once, losslessly, to
+     one FFmpeg, and encodes the song's own audio in the same FFmpeg: frame 0 and
+     the first audio sample are song time `from`. Every video follows one
+     standard (`encoding.ts`: H.264 yuv420p, BT.709 limited range, all four colour
+     tags) and is checked after writing: frame count, size, rate and tags, and the
+     audio within 1 ms of the song by cross-correlation.
+   - `native.js` and `worker.js` are the vendored rider artwork and native replay,
+     bundled with the review players' view into `generated/renderer/` by
+     `scripts/gallery/build_renderer.mjs`. The replay checks a saved trace against
+     the engine within 1e-7 where one exists.
+
+   `npm run video` (`scripts/video.ts`) makes a video from a fresh compile, a
+   saved study or a bare track, in any look, whole or a span of the song.
+   `scripts/produce/render_repertoire.ts` renders a study's valid rides with their
+   excerpts and publication bundles (`upload.json`); a ride with a saved record is
+   done, and its record must name this ride's inputs. Renders are outputs of their
+   inputs and look; the renderer's commit is recorded, never checked. Review clips
+   for blind studies and compare's before/after (`tools/measure/clip_render.ts`)
+   are written directly at their song times in the plain look, 540 × 960; a clip is
+   reused only for identical inputs and bytes. FFmpeg compositions of written
+   videos (`pair_media.ts`, compare's side by side) keep the encoding standard.
 
    **Style reviews:** prefer one player with instant variant switching that keeps
-   the same time and playing/paused state. Static overlays can be compared live
-   over one exported clip; motion-dependent effects need Remotion previews at
-   matching timestamps. Adopt the chosen treatment in Remotion and verify the
-   export, rather than leaving it only in the review page. November 2026's
-   owner-selected soft-base vignette is static, above the spectrum and flash:
-   faint bottom shading, a trace at the top, no entrance animation or impact pulse.
+   the same time and playing/paused state: the concept lab
+   (`generated/concept-lab/`) is that player for looks, and its films are written
+   by the same writer.
    `motion-gallery/video-compare.html?collection=/path/to/comparison.json` compares
    independently rendered videos in one player. The JSON has a `title` and
    `videos: [{label, src, description?}]`; video paths resolve relative to the JSON.
@@ -266,10 +283,7 @@ and validation are in [music authoring](docs/music-authoring.md).
    `passages: [{id, label, videos: [{id: styleId, label, src}]}]`. A passage change
    keeps the selected style when available and resets playback time. Group changes
    preserve time. Optional `recipe` details stay collapsed; `links` connect related
-   review collections. The November style study is documented in
-   `docs/research/postprocessing-style-study-20261102.md`.
-   Final Remotion exports explicitly use BT.709 limited range so subtle shading
-   is preserved in browser playback as well as decoded frames.
+   review collections.
 
 ## Geometry families
 
@@ -467,7 +481,7 @@ Known limits of the strike account:
   - Every matched v3 hit records onset, force peak, first contact and its arrival
     posture. The blind selector consumes that same first-contact observation;
     clip centering remains at onset. Existing study IDs cannot be overwritten.
-    Review render reuse checks track, authoring, rendering inputs and movie bytes.
+    A review clip is reused only for identical inputs (ride, recording, span, look) and bytes.
   - Held-out new music: Trouble, Valhalla and Circus Minimus (`--panel=heldout`).
 - **`npm run compare`** (`tools/eval/compare.ts`, `arms.ts`, `compile.ts`)
   compares a candidate compiler with a named reference on a panel, V7 by
@@ -523,9 +537,8 @@ inputs; compilation also checks them against current inputs. Failed jobs remain
 visible and the batch exits unsuccessfully.
 Concurrent jobs settle before the batch releases its directory lock, including
 when a worker fails. Every renderer closes its own browser, server and encoder.
-Within one render, overlay-data generation overlaps ride rendering and audio
-muxing. Composition waits for both branches; failures also wait for both before
-removing their temporary files. Worker and Remotion resource limits still apply.
+A video is written in one pass by one browser and one encoder, which every writer
+closes, also on failure; its output appears only once complete and verified.
 
 Future-model collection uses frozen physical prefixes and an independent native
 probe allowance. Its declared plan binds compiler, collector, inputs, work and

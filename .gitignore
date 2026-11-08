@@ -10,8 +10,6 @@ coverage/
 .vitest/
 playwright-report/
 test-results/
-remotion/public/*.overlay.json
-remotion/public/*.spectrum.json
 __pycache__/
 *.pyc
 *.log

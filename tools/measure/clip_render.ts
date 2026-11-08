@@ -1,75 +1,70 @@
-/** Plain landscape renders for review clips: the ride with the spec camera, no
- * overlay or beat punch (scripts/export.ts at 1280×720, zoom ×3.5), muxed with the
- * song; and clips cut around a hit. Shared by the pair studies and the night report. */
-import {existsSync, mkdirSync, writeFileSync, readFileSync, renameSync} from 'node:fs';
+/** Review clips for the compiler's studies (pair studies, the visibility study, compare's before/after review): passages of
+ * rides in the plain look (look.js PLAIN: the ride alone, black on white), 540 × 960, with the song, written directly by the
+ * video writer at their song times, so a clip's hit is exactly where the manifest says. Shared by pair_study, visibility and
+ * tools/eval/compare. */
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {renderVideo} from '../../scripts/produce/render.ts';
+import {buildScene} from '../../scripts/video/scene.ts';
+import {resolveLook} from '../../scripts/video/look.js';
+import {writeVideo} from '../../scripts/video/write.ts';
+import {AUDIO, KEEP, VIDEO} from '../../scripts/video/encoding.ts';
 
-export const CLIP_BEFORE = 1.0, CLIP_LENGTH = 1.8;
-
+export const CLIP_BEFORE = 1.0, CLIP_LENGTH = 1.8, CLIP_WIDTH = 540;
+const PLAIN = resolveLook('plain');
 const sha = (x: string | Buffer) => createHash('sha256').update(x).digest('hex');
-export function reviewRenderInput(song: string, track: any, spec = `productions/${song}/spec.ts`) {
-  const files = [spec, `productions/${song}/audio.mp3`,
-    'tools/measure/clip_render.ts', 'scripts/produce/render.ts', 'scripts/lib/video_options.ts', 'scripts/lib/export.ts', 'scripts/v0/core/camera.ts',
-    'scripts/gallery/build_renderer.mjs', 'scripts/gallery/native/video.js', 'scripts/gallery/native/sprites.js', 'scripts/v0/types.ts', 'scripts/produce/jolt.ts', 'package-lock.json',
-    'mirror/index.html', 'mirror/helper.js', 'mirror/manifest.json', 'mirror/_v2153.0/main.js'];
-  return {trackHash: sha(JSON.stringify(track)), files: Object.fromEntries(files.map(p => [p, sha(readFileSync(p))])),
-    ffmpeg: sha(execFileSync('ffmpeg', ['-version']))};
+
+/** A passage of a ride: `track` of `song` (a folder of productions/) from `from` to `to`, in song seconds. */
+export type Clip = {song: string; track: any; from: number; to: number};
+/** The clip whose judged hit (at physics frame `frame`) lands CLIP_BEFORE seconds in. */
+export function hitClip(song: string, track: any, frame: number): Clip {
+  const from = frame / 40 - CLIP_BEFORE;
+  assert.ok(from >= 0, `a hit at ${frame / 40} s is too early for a clip that starts ${CLIP_BEFORE} s before it`);
+  return {song, track, from, to: from + CLIP_LENGTH};
 }
+
 export function assertReviewSources(song: string, input: {specSha256: string; audioSha256: string}, spec = `productions/${song}/spec.ts`) {
   assert.equal(sha(readFileSync(spec)), input.specSha256, 'review specification differs from compiled input');
   assert.equal(sha(readFileSync(`productions/${song}/audio.mp3`)), input.audioSha256, 'review audio differs from compiled input');
 }
-export function verifyCachedRide(movie: string, input: unknown) {
-  const record = JSON.parse(readFileSync(movie + '.render.json', 'utf8'));
-  assert.deepEqual(record.input, input, 'review render inputs changed; use a fresh render directory');
-  assert.equal(record.movieSha256, sha(readFileSync(movie)), 'cached review video differs');
+/** What a clip is of; a written clip records it beside itself (<clip>.json). */
+export function clipInput({song, track, from, to}: Clip) {
+  return {song, trackHash: sha(JSON.stringify(track)), audioSha256: sha(readFileSync(`productions/${song}/audio.mp3`)), from, to, width: CLIP_WIDTH, look: PLAIN};
+}
+/** An existing clip is reused only for the same inputs and intact bytes; otherwise the directory belongs to another study. */
+export function verifyCachedClip(movie: string, input: unknown) {
+  const record = JSON.parse(readFileSync(movie + '.json', 'utf8'));
+  assert.deepEqual(record.input, input, `${movie} is of other inputs; use a fresh directory`);
+  assert.equal(record.movieSha256, sha(readFileSync(movie)), `${movie} differs from the clip that was written`);
 }
 
-/** Renders every ride in `tracks` (id → {song, track, spec?}) to `<dir>/<id>.mp4`,
- * reusing only renders with matching input identity and movie bytes. `spec`
- * (the camera) defaults to the song's spec.ts. */
-export async function renderRides(tracks: Map<string, {song: string; track: any; spec?: string}>, dir: string, jobs = 4) {
+/** Writes each clip (id → clip) to <dir>/<id>.mp4, `jobs` at a time, reusing a clip already written from the same inputs. */
+export async function renderClips(clips: Map<string, Clip>, dir: string, jobs = 4) {
   mkdirSync(dir, {recursive: true});
   assert.ok(Number.isSafeInteger(jobs) && jobs > 0 && jobs <= 12, 'invalid render jobs');
-  const inputs = new Map([...tracks].map(([id, {song, track, spec}]) => [id, reviewRenderInput(song, track, spec)]));
-  for (const id of tracks.keys()) if (existsSync(join(dir, id + '.mp4'))) verifyCachedRide(join(dir, id + '.mp4'), inputs.get(id));
-  const queue = [...tracks.keys()].filter(id => !existsSync(join(dir, id + '.mp4')));
+  const inputs = new Map([...clips].map(([id, clip]) => [id, clipInput(clip)]));
+  for (const id of clips.keys()) if (existsSync(join(dir, id + '.mp4'))) verifyCachedClip(join(dir, id + '.mp4'), inputs.get(id));
+  const queue = [...clips.keys()].filter(id => !existsSync(join(dir, id + '.mp4')));
   const results = await Promise.allSettled(Array.from({length: jobs}, async () => {
     while (queue.length) {
-      const id = queue.shift()!, {song, track, spec = `productions/${song}/spec.ts`} = tracks.get(id)!, trackPath = join(dir, id + '.track.json');
-      writeFileSync(trackPath, JSON.stringify(track));
-      const movie = await renderVideo({name: id, trackPath, audioPath: `productions/${song}/audio.mp3`,
-        specPath: spec, style: 'plain', qp: 28, jolt: 0,
-        render: {res: '1280x720', zoomMult: 3.5, beatPunchPct: 0}, workDir: join(dir, 'render-work', id)});
-      renameSync(movie, join(dir, id + '.mp4'));
-      assert.deepEqual(reviewRenderInput(song, track, spec), inputs.get(id), 'render inputs changed during rendering');
-      writeFileSync(join(dir, id + '.mp4.render.json'), JSON.stringify({input: inputs.get(id), movieSha256: sha(readFileSync(join(dir, id + '.mp4')))}));
+      const id = queue.shift()!, {song, track, from, to} = clips.get(id)!, movie = join(dir, id + '.mp4');
+      await writeVideo({scene: buildScene(song, {track}), look: PLAIN, out: movie, from, to, width: CLIP_WIDTH, log: () => {}});
+      writeFileSync(movie + '.json', JSON.stringify({input: inputs.get(id), movieSha256: sha(readFileSync(movie))}));
       console.log(`rendered ${id}`);
     }
   }));
   const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
-  if (failures.length) throw new AggregateError(failures.map(r => r.reason), 'Review renders failed');
+  if (failures.length) throw new AggregateError(failures.map(r => r.reason), 'Review clips failed');
 }
 
-/** Cuts a CLIP_LENGTH clip whose hit at `frame` lands CLIP_BEFORE seconds in. */
-export function cutClip(ride: string, frame: number, out: string) {
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(frame / 40 - CLIP_BEFORE), '-i', ride, '-t', String(CLIP_LENGTH),
-    '-vf', 'scale=960:540', '-c:v', 'libx264', '-crf', '22', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k',
-    '-movflags', '+faststart', out]);
-}
-
-/** One clip of two rides, `top` above `bottom`, over the same `from`..`to`
- * seconds (so synchronized by construction), with the top ride's sound, each half
- * captioned, a gray rule between them, and `mark` (seconds, absolute) flagged in both halves. */
-export function stackClip(top: string, bottom: string, from: number, to: number, captions: [string, string], mark: number, out: string) {
-  const text = (caption: string) => `drawtext=text='${caption.replace(/[\\':%]/g, '')}':x=16:y=14:fontsize=26:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=8,` +
-    `drawtext=text='here':x=(w-tw)/2:y=14:fontsize=26:fontcolor=black:box=1:boxcolor=yellow@0.9:boxborderw=8:enable='between(t,${(mark - from - .12).toFixed(3)},${(mark - from + .25).toFixed(3)})'`;
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-ss', String(from), '-t', String(to - from), '-i', top, '-ss', String(from), '-t', String(to - from), '-i', bottom,
-    '-filter_complex', `[0:v]scale=960:540,setpts=PTS-STARTPTS,${text(captions[0])},pad=960:544:0:0:color=gray[a];[1:v]scale=960:540,setpts=PTS-STARTPTS,${text(captions[1])}[b];[a][b]vstack[v]`,
-    '-map', '[v]', '-map', '0:a', '-c:v', 'libx264', '-crf', '22', '-preset', 'medium', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k',
-    '-movflags', '+faststart', out]);
+/** Two clips of the same passage side by side, with the left clip's sound, each captioned, and `mark` (seconds from the clips'
+ * start) flagged in both. */
+export function sideBySide(left: string, right: string, captions: [string, string], mark: number, out: string) {
+  const text = (caption: string) => `drawtext=text='${caption.replace(/[\\':%]/g, '')}':x=12:y=12:fontsize=22:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=6,` +
+    `drawtext=text='here':x=(w-tw)/2:y=48:fontsize=22:fontcolor=black:box=1:boxcolor=yellow@0.9:boxborderw=6:enable='between(t,${(mark - .12).toFixed(3)},${(mark + .25).toFixed(3)})'`;
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', left, '-i', right,
+    '-filter_complex', `[0:v]${text(captions[0])},pad=iw+4:ih:0:0:color=gray[a];[1:v]${text(captions[1])}[b];[a][b]hstack,${KEEP}[v]`,
+    '-map', '[v]', '-map', '0:a', ...VIDEO, ...AUDIO, '-movflags', '+faststart', out]);
 }

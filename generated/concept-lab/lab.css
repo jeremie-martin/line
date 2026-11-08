@@ -79,14 +79,6 @@ body.feelmode #presets, body.feelmode #moments, body.feelmode .transport, body.f
 .feelpick .opt:disabled {opacity: .35;}
 #feelsummary {width: 100%; box-sizing: border-box; font-size: 14px;}
 .stagewrap .sideflag {position: absolute; left: 10px; top: 10px; font: 600 20px/1 system-ui, sans-serif; background: #15181d; color: #fff; padding: 7px 11px; border-radius: 6px;}
-/* hit bench */
-.bench {display: grid; gap: 6px; margin: 4px 0 8px;}
-.bench[hidden] {display: none;}
-.benchhead {display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px;}
-.benchhead span {flex: 1 1 100%;}
-#benchstrength {width: 100%; height: 32px;}
-.benchhist {display: flex; align-items: flex-end; gap: 1px; height: 26px;}
-.benchhist i {flex: 1; background: var(--muted, #99a); opacity: .45; min-height: 1px;}
 .presets[hidden], .qrow[hidden] {display: none;}
 
 /* the link sits in the controls' flow: fixed on top of the page it covered the picture's corner and, once scrolled, whatever chip
@@ -109,8 +101,3 @@ textarea {font-size: 16px;}
 body.qmode #qpick .opt {min-width: 44px; min-height: 40px; font-size: 15px;}
 body.qmode .moment, body.qmode .qnav .tool {min-height: 36px;}
 body.qmode .qprogress {white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.exag {display: grid; gap: 4px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 10px; font-size: 13px; color: var(--soft);}
-.exag[hidden] {display: none;}
-.exag label {display: flex; justify-content: space-between; color: var(--ink); font-weight: 600;}
-.exag input {width: 100%; height: 32px; accent-color: var(--ink);}
-.exag small {font-size: 12px; line-height: 1.35;}

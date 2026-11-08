@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import * as I from '../intensity.js';
+import * as I from '../../../scripts/video/intensity.js';
 // Exports the six lab songs' curves for the page's chart: Both, Speed, Impact, every 0.5 s.
 const out = {}, FPS = 40;
 for (const key of ['petrunko', 'lua', 'los', 'batidao', 'burn', 'coma', 'tomada']) {

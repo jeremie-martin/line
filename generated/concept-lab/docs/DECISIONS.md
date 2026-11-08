@@ -29,7 +29,7 @@
 - **Worth remembering:**
   - **Fairness.** The hit-direction split looked "way more prominent" because it crosses the lines while today's runs along them. It was measured and matched to today's average fringe (`splitmeasure.mjs`, R8). The lab also wrongly split the band; production splits the ride only.
   - **Misunderstandings cost rounds.** "A little less impact" meant the title moving, not the shake (R16–R18). The title's movement came from the split's overscan zooming the whole picture about 3 %, which nobody designed. The fix kept the pulse everywhere except the title (R19).
-  - **"Today's" in the lab is a copy of the shipped recipe**, not the shipped renderer.
+  - **"Today's" in the lab was a copy of the June recipe**, not the shipped renderer. Both were deleted on 8 November, when the lab's renderer became production's.
 
 ## Colour
 

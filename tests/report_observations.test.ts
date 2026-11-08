@@ -21,18 +21,18 @@ it('samples incoming pose at first contact, even when the rider flips before ons
   expect(arrivalPose(frames,1)).toEqual({contactStart:1,headDown:false});
   expect(arrivalPose(frames,2).headDown).toBe(true);
 });
-it('review video reuse requires matching inputs and intact movie bytes', async () => {
+it('a review clip is reused only for the same inputs and intact bytes', async () => {
   const {mkdtempSync,writeFileSync,rmSync} = await import('node:fs');
   const {tmpdir} = await import('node:os'); const {join} = await import('node:path');
   const {createHash} = await import('node:crypto');
-  const {verifyCachedRide} = await import('../tools/measure/clip_render.ts');
-  const dir=mkdtempSync(join(tmpdir(),'review-cache-')),movie=join(dir,'ride.mp4'),input={trackHash:'a',audioSha256:'b'};
+  const {verifyCachedClip} = await import('../tools/measure/clip_render.ts');
+  const dir=mkdtempSync(join(tmpdir(),'review-cache-')),movie=join(dir,'clip.mp4'),input={trackHash:'a',audioSha256:'b'};
   try {
     writeFileSync(movie,'movie');
-    expect(()=>verifyCachedRide(movie,input)).toThrow();
-    writeFileSync(movie+'.render.json',JSON.stringify({input,movieSha256:createHash('sha256').update('movie').digest('hex')}));
-    expect(()=>verifyCachedRide(movie,input)).not.toThrow();
-    expect(()=>verifyCachedRide(movie,{...input,trackHash:'other'})).toThrow(/inputs changed/);
-    writeFileSync(movie,'different');expect(()=>verifyCachedRide(movie,input)).toThrow(/video differs/);
+    expect(()=>verifyCachedClip(movie,input)).toThrow();
+    writeFileSync(movie+'.json',JSON.stringify({input,movieSha256:createHash('sha256').update('movie').digest('hex')}));
+    expect(()=>verifyCachedClip(movie,input)).not.toThrow();
+    expect(()=>verifyCachedClip(movie,{...input,trackHash:'other'})).toThrow(/other inputs/);
+    writeFileSync(movie,'different');expect(()=>verifyCachedClip(movie,input)).toThrow(/differs from the clip/);
   } finally {rmSync(dir,{recursive:true,force:true});}
 });

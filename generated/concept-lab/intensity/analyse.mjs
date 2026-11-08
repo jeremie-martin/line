@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import * as I from '../intensity.js';
+import * as I from '../../../scripts/video/intensity.js';
 const d = JSON.parse(fs.readFileSync('analysis/signals.json'));
 const med = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)], worst = a => Math.max(...a), least = a => Math.min(...a);
 const rides = Object.entries(d).map(([k, r]) => [k, I.rawSignals({speed: r.speed, hits: r.hits.map(h => ({t: h[0], s: h[1]})), duration: r.n / 40})]);

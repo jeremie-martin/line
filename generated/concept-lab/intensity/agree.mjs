@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import * as I from '../intensity.js';
+import * as I from '../../../scripts/video/intensity.js';
 const d = JSON.parse(fs.readFileSync('analysis/signals.json'));
 const corr = (a, b) => {const n = a.length, ma = a.reduce((x, y) => x + y) / n, mb = b.reduce((x, y) => x + y) / n; let s = 0, u = 0, v = 0; for (let i = 0; i < n; i++) {s += (a[i] - ma) * (b[i] - mb); u += (a[i] - ma) ** 2; v += (b[i] - mb) ** 2;} return s / Math.sqrt(u * v);};
 const rows = [];

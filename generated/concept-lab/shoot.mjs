@@ -1,4 +1,4 @@
-// Capture concept frames: node generated/concept-lab/shoot.mjs song=petrunko t=10.8 c=today,ride out=DIR [m=...]
+// Capture concept frames: node generated/concept-lab/shoot.mjs song=petrunko t=10.8 c=swatch,plain out=DIR [m=...]
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
 const a = Object.fromEntries(process.argv.slice(2).map(s => s.split('=')));

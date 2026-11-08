@@ -5,6 +5,7 @@ import {execFile} from 'node:child_process';
 import {access, mkdir, mkdtemp, readFile, rename, rm, writeFile} from 'node:fs/promises';
 import {join, relative, resolve, sep} from 'node:path';
 import {promisify} from 'node:util';
+import {KEEP, TAGS} from '../video/encoding.ts';
 
 const execute = promisify(execFile);
 const digest = (bytes: Buffer | string): string => createHash('sha256').update(bytes).digest('hex');
@@ -51,14 +52,14 @@ export function createPairMedia(root: string = process.cwd()) {
       await mkdir(cache, {recursive: true}); const temporary = await mkdtemp(join(cache, '.building-'));
       try {
         const gap = Math.max(2, 2 * Math.round(a.width / 80));
-        const filter = layout === 'wide' ? `[0:v]pad=iw+${gap}:ih:0:0:color=white[l];[l][1:v]hstack=inputs=2[v]`
-          : `[0:v]pad=iw:ih+${gap}:0:0:color=white[l];[l][1:v]vstack=inputs=2[v]`;
+        const filter = layout === 'wide' ? `[0:v]pad=iw+${gap}:ih:0:0:color=white[l];[l][1:v]hstack=inputs=2,${KEEP}[v]`
+          : `[0:v]pad=iw:ih+${gap}:0:0:color=white[l];[l][1:v]vstack=inputs=2,${KEEP}[v]`;
         // Encode the shared picture once; remux its exact video packets with
         // the other original AAC soundtrack. No independent clocks in the UI.
         await run('ffmpeg', ['-v', 'error', '-nostdin', '-y', '-i', inputs[0], '-i', inputs[1],
           '-filter_complex_threads', '1', '-filter_complex', filter, '-map', '[v]', '-map', '0:a:0',
           '-frames:v', String(frames), '-c:v', 'libx264', '-threads', '2', '-preset', 'veryfast', '-crf', '12',
-          '-pix_fmt', 'yuv420p', '-c:a', 'copy', '-movflags', '+faststart', join(temporary, 'left.mp4')]);
+          '-pix_fmt', 'yuv420p', ...TAGS, '-c:a', 'copy', '-movflags', '+faststart', join(temporary, 'left.mp4')]);
         await run('ffmpeg', ['-v', 'error', '-nostdin', '-y', '-i', join(temporary, 'left.mp4'), '-i', inputs[1],
           '-map', '0:v:0', '-map', '1:a:0', '-c', 'copy', '-movflags', '+faststart', join(temporary, 'right.mp4')]);
         const current = await Promise.all(inputs.map(async p => digest(await readFile(p))));

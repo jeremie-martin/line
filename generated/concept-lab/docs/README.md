@@ -10,5 +10,5 @@ Start with **DIRECTION.md**.
 | `CODE-MAP.md` | Where the implementation lives, what to review, dependencies and untracked artefacts |
 | `owner-answers/` | The owner's answers, verbatim, round by round (kept local for now: the repository is public) |
 | `../LEDGER.md` | The current status of every piece, with the owner's words and the open items |
-| `../v1.js` | The settled defaults (the single source of truth) |
+| `../../../scripts/video/look.js` | The settled defaults, the themes and every option (the single source of truth, for the lab and production) |
 | `../README.md` | The lab's files and tools |

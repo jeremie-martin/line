@@ -1,5 +1,51 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: one video renderer (adopted; branch `visual-lab`)
+
+Finished videos were a ride exported by the native player and re-composited by
+Remotion with the June look. Measured on real renders (Lua s101, Petrunko s202):
+
+- **The audio was 42.7 ms late** in every finished video, the published ones
+  too: Remotion read the source AAC ignoring its priming and wrote its own.
+- **The ride was one frame late** (16.7 ms): frame 0 was shown twice.
+- **Colours were wrong on every player:** the ride was encoded with BT.601 and
+  no tag, then read and labelled as BT.709 (the Hokusai sun #d4412a showed as
+  #ec5620).
+- **Edge bars:** the colour split left cyan and yellow strips at the frame's
+  edges on strong hits (39 and 37 frames in one shipped video).
+- **Render hashes:** each saved video recorded hashes of 12 presentation files
+  and all of `remotion/src`, so any edit to them made saved productions refuse
+  to re-render.
+
+The lab's own pipeline had none of these: one canvas, piped once into FFmpeg,
+audio measured at 0 ms. So the lab's drawing became the one renderer,
+`scripts/video/` (ARCHITECTURE.md, Review), and everything goes through it:
+
+- `npm run video`, study renders, the compiler's review clips (the plain look)
+  and the lab's films;
+- one encoding standard with all four colour tags, and a check of every
+  written video (frames, tags, audio within 1 ms of the song);
+- a render is an output of its inputs and look; the renderer's commit is
+  recorded, never checked.
+
+**Deleted:** Remotion and the June look (LOCKED_FX), the beat punch, the
+overlay data, the native video exporter, the horizontal format, the dormant
+style study, cross-study video reuse, and the render hashes.
+
+**Checks:**
+- **Proof of the move:** the extraction is byte-identical on 116 lab frames
+  (themes, every option, the plain look, the round-5 rides).
+- **Data path:** the scenes then moved to the shared builder. It keeps the
+  measured values instead of re-rounding them, which moves band heights by at
+  most 0.14 px; 111 frames changed, the 5 plain frames did not.
+- **Gates:** parity and judge parity pass, as do the tests (444), the
+  typecheck (0 errors), reach (0 unreachable) and the smoke check.
+
+**Not changed:**
+- The compiler.
+- Presentation settings still inside compile identities (TODO.md, item 11).
+- The jolt, to be judged again by ear on videos now in sync.
+
 ## November 7: local search judges like ranking (adopted)
 
 The interval's best candidate (where local search starts and what it improves)

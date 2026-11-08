@@ -1,27 +1,61 @@
-/** Reuse exact production media across workspace runs before invoking the existing
- * renderer. Reuse checks track/report bytes, inputs, metrics and pipeline hashes. */
-import {existsSync,readFileSync,readdirSync} from 'node:fs';
-import {resolve,join} from 'node:path';
+/** Render the valid rides of a saved study as finished videos: node scripts/produce/render_repertoire.ts --study=DIR [--ids=a,b]
+ * [--look=THEME]. No compilation, selection or geometry change happens here.
+ *
+ * Each ride gets its full video and its excerpt, both written directly by the video writer, a publication bundle
+ * (videos/<song>/<song>-s<seed>/: video.mp4, work.json, upload.json) and a record <id>.video.json. A ride that already has a
+ * record is done: its record must name this ride (its inputs), whatever renderer made it; delete the record to render it again.
+ * A render is the output of its inputs (the ride, its account, the recording) and a look; the renderer's commit is recorded for
+ * information, never checked. */
+import assert from 'node:assert/strict';
+import {copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
+import {join, relative, resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
-const root=process.argv.find(a=>a.startsWith('--study='))?.slice(8);
-if(!root)throw new Error('--study required');
-const out=resolve(root),read=(path:string)=>JSON.parse(readFileSync(path,'utf8'));
-const manifest=read(join(out,'manifest.json')),sources=new Set<string>();
-const examples='motion-gallery/repertoire-examples.json';
-if(existsSync(examples))for(const e of read(examples))sources.add(resolve(e.manifest.replace(/^\//,'').replace(/\/manifest\.json$/,'')));
-const jobs='generated/repertoire-jobs';
-if(existsSync(jobs))for(const id of readdirSync(jobs))if(/^[a-f0-9-]{36}$/.test(id))sources.add(resolve(jobs,id,'output'));
-const library='motion-gallery/production-library.json';
-if(existsSync(library))for(const e of read(library).entries)if(e.manifest)sources.add(resolve(e.manifest.replace(/^\//,'').replace(/\/manifest\.json$/,'')));
-const pending=()=>manifest.cells.filter((c:any)=>c.valid&&!existsSync(join(out,c.id+'.video.json')));
-for(const source of sources){
- if(source===out||!pending().length||!existsSync(join(source,'manifest.json')))continue;
- const previous=read(join(source,'manifest.json'));
- if(!pending().some((c:any)=>previous.cells.some((p:any)=>p.caseId===c.caseId&&p.method===c.method&&p.trackHash===c.trackHash&&existsSync(join(source,p.id+'.video.json')))))continue;
- execFileSync(process.execPath,['scripts/produce/reuse_musical_direction_videos.ts',`--study=${out}`,`--from=${source}`],{stdio:'inherit'});
+import {hostname} from 'node:os';
+import {sha} from '../lib/case.ts';
+import {writeGalleryJson} from '../gallery/artifacts.ts';
+import {readVerifiedJson, verifiedVideoCell} from './video_input.ts';
+import {buildScene} from '../video/scene.ts';
+import {resolveLook} from '../video/look.js';
+import {writeVideo} from '../video/write.ts';
+
+const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
+assert.ok(arg('study'), '--study required');
+const root = resolve(arg('study')!), manifest = readVerifiedJson(join(root, 'manifest.json'));
+const lookName = arg('look') ?? 'paper', look = resolveLook(lookName);
+const ids: string[] = arg('ids')?.split(',') ?? manifest.cells.filter((c: any) => c.valid).map((c: any) => c.id);
+assert.ok(ids.every(id => manifest.cells.some((c: any) => c.id === id)), 'unknown --ids');
+const hash = (p: string) => sha(readFileSync(p)), gitSha = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
+if (!ids.length) console.log('no valid rides to render');
+for (const id of ids) {
+  const {cell, c, record, trackPath, reportPath, impactPath} = verifiedVideoCell(root, manifest, id);
+  // what this render is of: change any of these and it is a video of another ride
+  const inputs = {planSha256: manifest.planSha256, cellSha256: cell.sha256, trackSha256: hash(trackPath), reportSha256: hash(reportPath),
+    audioSha256: c.audioSha256, ...(impactPath ? {impactSha256: hash(impactPath)} : {})};
+  const recordPath = join(root, id + '.video.json');
+  if (existsSync(recordPath)) {
+    const saved = readVerifiedJson(recordPath), named = saved.inputs ?? saved.identity;
+    for (const [key, value] of Object.entries(inputs)) assert.equal(named[key], value, `${id}.video.json is a video of another ride (${key}); move it away to render this one`);
+    console.log(`already rendered ${id}${saved.look ? ` (${saved.lookName ?? 'custom look'})` : ' (an earlier renderer)'}`); continue;
+  }
+  const scene = buildScene(c.id, record), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
+  rmSync(work, {recursive: true, force: true}); mkdirSync(work, {recursive: true});
+  const full = join(work, 'video.mp4'), excerpt = join(work, 'excerpt.mp4');
+  console.log(`render ${id} · ${lookName} · ${scene.duration.toFixed(1)} s`);
+  await writeVideo({scene, look, out: full});
+  await writeVideo({scene, look, out: excerpt, from: c.excerpt[0], to: Math.min(c.excerpt[1], scene.duration)});
+  // the publication bundle: staged, then moved into place whole
+  const folder = join(root, 'videos', id, name), staging = join(root, 'videos', `.staging-${name}`);
+  rmSync(staging, {recursive: true, force: true}); mkdirSync(staging, {recursive: true});
+  renameSync(full, join(staging, 'video.mp4')); renameSync(excerpt, join(staging, 'excerpt.mp4'));
+  copyFileSync(join(root, id, 'work.json'), join(staging, 'work.json'));
+  writeFileSync(join(staging, 'upload.json'), JSON.stringify({project: 'musical-direction-review', song: id, video: 'video.mp4', created_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
+    values: {seed: cell.seed, rep: 0}, meta: {git_sha: gitSha, generator_host: hostname(), look: lookName,
+      score: Number((impactPath ? cell.score.score : cell.metrics.score).toFixed(1)), revolutions: Number(cell.metrics.rotations.toFixed(2)),
+      standTimePct: Number(cell.metrics.standTimePct.toFixed(2)), budget: cell.allowance ?? cell.budget}}, null, 2));
+  rmSync(folder, {recursive: true, force: true}); mkdirSync(join(root, 'videos', id), {recursive: true}); renameSync(staging, folder);
+  rmSync(work, {recursive: true, force: true});
+  const media = (file: string) => ({path: relative(root, join(folder, file)), sha256: hash(join(folder, file))});
+  writeGalleryJson(root, id + '.video.json', {schema: 'line.production-video.v2', id, inputs, lookName, look, renderedAt: gitSha,
+    full: media('video.mp4'), excerpt: {...media('excerpt.mp4'), start: c.excerpt[0], end: c.excerpt[1]}, visualApproval: null});
+  console.log(`complete ${id}`);
 }
-// A study with no valid ride ('Incomplete' in the library index) has nothing to render; passing an empty --ids used to fail
-// render_musical_direction's argument check and count the entry as a failed render job.
-const valid=manifest.cells.filter((c:any)=>c.valid).map((c:any)=>c.id);
-if(valid.length)execFileSync(process.execPath,['scripts/produce/render_musical_direction.ts',`--study=${out}`,`--ids=${valid.join(',')}`],{stdio:'inherit'});
-else console.log('no valid rides to render');

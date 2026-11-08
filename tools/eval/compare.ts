@@ -437,7 +437,7 @@ async function rides() {
 
 /** The passages where the two versions differ most (tools/eval/passages.ts),
  * from the rides that moved most, each rendered as one plain clip with the
- * reference above the candidate, in a video-compare collection. Saved rides only. */
+ * reference left of the candidate, in a video-compare collection. Saved rides only. */
 async function review() {
   const k = Number(arg('passages', '6')), jobs = Number(arg('jobs', '4')), began = performance.now();
   assert.ok(Number.isSafeInteger(k) && k >= 1, '--passages must be a positive integer');
@@ -445,26 +445,28 @@ async function review() {
   // The library songs (*_selection) are long and hard to judge by eye: left out unless --all-songs.
   const pool = cov.matched.filter(id => flag('all-songs') || !caseOf(id).song.endsWith('_selection'));
   assert.ok(pool.length, 'no matched saved rides in this selection (compile them with `run`, or add --all-songs)');
-  const {passages, choose, LENGTH} = await import('./passages.ts'), {renderRides, stackClip, assertReviewSources} = await import('../measure/clip_render.ts');
+  const {passages, choose, LENGTH} = await import('./passages.ts'), {renderClips, sideBySide, assertReviewSources} = await import('../measure/clip_render.ts');
   const chosen = choose(movedMost(pool, cells, Math.max(12, 2 * k)).flatMap(({id}) =>
     passages(id, cells.reference.get(id), cells.candidate.get(id), s.resolved.get(id)!.music.durationFrames).map(p => ({...p, spec: specKey(caseOf(id))}))), k);
   assert.ok(chosen.length, 'the two versions do not differ in any scored quantity on these rides');
-  const root = resolve('generated/compare', s.name), clips = join(root, 'review'), rideDir = join(root, 'review-rides');
+  const root = resolve('generated/compare', s.name), clips = join(root, 'review'), passageDir = join(root, 'review-passages');
   mkdirSync(clips, {recursive: true});
   const specOf = (id: string) => {const c = caseOf(id); return c.variant ? `productions/${c.song}/variants/${c.variant}.ts` : `productions/${c.song}/spec.ts`;};
-  const rideId = (side: Side, id: string) => `${side}-${id.replace(/~/g, '-')}-${cells[side].get(id).trackHash.slice(0, 12)}`;
-  const tracks = new Map<string, {song: string; track: any; spec: string}>();
+  const clipId = (side: Side, p: {id: string; from: number; to: number}) => `${side}-${p.id.replace(/~/g, '-')}-${cells[side].get(p.id).trackHash.slice(0, 12)}-${p.from}-${p.to}`;
+  const tracks = new Map<string, any>(), passageClips = new Map<string, {song: string; track: any; from: number; to: number}>();
   for (const id of new Set(chosen.map(p => p.id))) {
     assertReviewSources(caseOf(id).song, caseOf(id).input, specOf(id));
-    for (const side of SIDES) tracks.set(rideId(side, id), {song: caseOf(id).song, track: readArmTrack(s.arms[side], id), spec: specOf(id)});
+    for (const side of SIDES) tracks.set(`${side}~${id}`, readArmTrack(s.arms[side], id));
   }
+  for (const p of chosen) for (const side of SIDES)
+    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, track: tracks.get(`${side}~${p.id}`), from: p.from / 40, to: p.to / 40});
   const rendering = performance.now();
-  await renderRides(tracks, rideDir, jobs);
+  await renderClips(passageClips, passageDir, jobs);
   const ridesSeconds = (performance.now() - rendering) / 1000, short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!;
   const entries = chosen.map((p, n) => {
     const started = performance.now(), file = `${n + 1}-${p.id.replace(/~/g, '-')}-${(p.from / 40).toFixed(1)}s.mp4`;
-    stackClip(join(rideDir, rideId('reference', p.id) + '.mp4'), join(rideDir, rideId('candidate', p.id) + '.mp4'), p.from / 40, p.to / 40,
-      [`before  ${short('reference')}`, `after  ${short('candidate')}`], p.items[0].at / 40, join(clips, file));
+    sideBySide(join(passageDir, clipId('reference', p) + '.mp4'), join(passageDir, clipId('candidate', p) + '.mp4'),
+      [`before  ${short('reference')}`, `after  ${short('candidate')}`], (p.items[0].at - p.from) / 40, join(clips, file));
     const d = headlineScore(cells.candidate.get(p.id)) - headlineScore(cells.reference.get(p.id));
     // The player shows one paragraph: the changes first, then where and why.
     const description = [...p.items.slice(0, 6).map(x => `${x.text} (error ${signed(x.error[1] - x.error[0], 3)})`),
@@ -474,17 +476,17 @@ async function review() {
     const seconds = (performance.now() - started) / 1000;
     console.log(`clip ${n + 1}/${chosen.length} ${file} · ${seconds.toFixed(1)} s · ${p.items[0].text}`);
     return {seconds, passage: {id: String(n + 1), label: `${n + 1}. ${caseOf(p.id).song} ${caseOf(p.id).variant ?? ''} ${caseOf(p.id).seed} · ${(p.from / 40).toFixed(0)} s`,
-      description: p.items[0].text, videos: [{id: 'stacked', label: 'before above, after below', src: `review/${file}`, description}]}};
+      description: p.items[0].text, videos: [{id: 'stacked', label: 'before left, after right', src: `review/${file}`, description}]}};
   });
   const collection = resolve(root, 'review.json');
   writeFileSync(collection, JSON.stringify({title: `${short('candidate')} vs ${s.reference.name}: where they differ`,
     description: `The ${chosen.length} passages of ${LENGTH} s where the scored quantities changed most, from the ${s.panel} rides that moved most` +
-      `${flag('all-songs') ? '' : ' (library songs left out)'}. Reference above, candidate below, same moment, the reference's sound; the yellow tag marks the largest change.`,
+      `${flag('all-songs') ? '' : ' (library songs left out)'}. Reference left, candidate right, same moment, the reference's sound; the yellow tag marks the largest change.`,
     groups: [{id: 'stacked', label: 'Before / after', variants: ['stacked']}], passages: entries.map(e => e.passage)}, null, 1) + '\n');
   const size = (dir: string) => Number(execFileSync('du', ['-sb', dir]).toString().split('\t')[0]) / 1e6;
-  console.log(`\n${chosen.length} passages in ${((performance.now() - began) / 1000).toFixed(0)} s: rides rendered in ${ridesSeconds.toFixed(0)} s ` +
-    `(${tracks.size} rides, ${jobs} at a time, cached rides reused), clips ${entries.map(e => e.seconds.toFixed(1)).join(', ')} s each; ` +
-    `disk: clips ${size(clips).toFixed(1)} MB, rendered rides ${size(rideDir).toFixed(0)} MB (${rideDir})`);
+  console.log(`\n${chosen.length} passages in ${((performance.now() - began) / 1000).toFixed(0)} s: passages rendered in ${ridesSeconds.toFixed(0)} s ` +
+    `(${passageClips.size} passages, ${jobs} at a time, cached passages reused), clips ${entries.map(e => e.seconds.toFixed(1)).join(', ')} s each; ` +
+    `disk: clips ${size(clips).toFixed(1)} MB, rendered passages ${size(passageDir).toFixed(0)} MB (${passageDir})`);
   console.log(`review: http://10.77.77.30:8767/motion-gallery/video-compare.html?collection=/generated/compare/${s.name}/review.json`);
 }
 

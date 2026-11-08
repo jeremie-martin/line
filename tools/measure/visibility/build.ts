@@ -1,7 +1,7 @@
 /** Impact-visibility study, step 3: render the clips and publish the manifest for
- * motion-gallery/pairs.html, from a key written by select.ts. Same renders and clips
- * as tools/measure/pair_study.ts (plain landscape, spec camera, 1.8 s with the
- * judged moment at 1.0 s); the rides come from the tracks preserved in
+ * motion-gallery/pairs.html, from a key written by select.ts. Same clips as
+ * tools/measure/pair_study.ts (clip_render.ts: the plain look, 1.8 s with the judged
+ * moment at 1.0 s); the rides come from the tracks preserved in
  * labels/studies/sources, checked against the key's hashes.
  *
  *   node tools/measure/visibility/build.ts --study=<id> [--jobs=8] */
@@ -10,7 +10,7 @@ import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {join, resolve} from 'node:path';
 import assert from 'node:assert/strict';
-import {renderRides, cutClip, CLIP_BEFORE, CLIP_LENGTH} from '../clip_render.ts';
+import {renderClips, hitClip, CLIP_BEFORE, CLIP_LENGTH} from '../clip_render.ts';
 import {songSpec} from '../observe.ts';
 import {lockArtifacts} from '../../../scripts/lib/artifact_lock.ts';
 
@@ -22,7 +22,7 @@ const PROMPT = 'Which one is the bigger impact? Judge only the moment marked by 
   'Some lights mark ordinary riding with no hit at all: if neither lit moment looks like an impact, choose "Neither looks like an impact".';
 const CHOICES = [['left', 'A is the bigger impact'], ['right', 'B is the bigger impact'], ['same', 'About the same'], ['neither', 'Neither looks like an impact']];
 
-const out = join('generated/label-studies', study), rides = join(out, 'rides'), clips = join(out, 'clips');
+const out = join('generated/label-studies', study), clips = join(out, 'clips');
 mkdirSync(out, {recursive: true});
 const release = lockArtifacts(out);
 try {
@@ -37,9 +37,10 @@ try {
     assert.equal(createHash('sha256').update(text).digest('hex'), h.trackSha256, `${h.source} is not the measured track`);
     tracks.set(id, {song: h.song, track: JSON.parse(text)});
   }
-  await renderRides(tracks, rides, jobs);
-  for (const p of key) for (const s of ['left', 'right'] as const)
-    cutClip(join(rides, `heldout~${p[s].song}~${p[s].seed}.mp4`), p[s].frame, join(clips, `pair${p.pair}-${s}.mp4`));
+  await renderClips(new Map(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
+    const {song, track} = tracks.get(`heldout~${p[s].song}~${p[s].seed}`)!;
+    return [`pair${p.pair}-${s}`, hitClip(song, track, p[s].frame)] as const;
+  }))), clips, jobs);
 
   // Beats of the specification inside each clip (seconds from clip start, requested strength), as pair_study.ts.
   const specs = new Map<string, Awaited<ReturnType<typeof songSpec>>>();

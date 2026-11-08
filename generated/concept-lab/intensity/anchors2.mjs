@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import * as I from '../intensity.js';
+import * as I from '../../../scripts/video/intensity.js';
 const d = JSON.parse(fs.readFileSync('analysis/signals.json')), pool = {speed: [], power: []}, names = Object.keys(d);
 const raws = Object.values(d).map(r => I.rawSignals({speed: r.speed, hits: r.hits.map(h => ({t: h[0], s: h[1]})), duration: r.n / 40}));
 for (const raw of raws) {pool.speed.push(...I.SHAPES.steady.fn(I.gaussian(raw.speed, .3), I.DEFAULTS)); pool.power.push(...I.SHAPES.steady.fn(I.gaussian(raw.power, 1), I.DEFAULTS));}

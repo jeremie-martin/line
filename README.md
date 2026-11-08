@@ -90,32 +90,29 @@ Chromium installation instead of Playwright's default browser.
 | `npm run serve` | review server on http://127.0.0.1:8767/ (native playback with music); `HOST=0.0.0.0` to reach it from other machines |
 | `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
 | `npm run library` | (re)generate the production review library |
-| `npm run render -- --study=DIR` | render vertical videos for a compiled study (optional) |
+| `npm run render -- --study=DIR [--look=THEME]` | render a compiled study's videos, excerpts and upload bundles |
 | `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on the V7 panel ([docs/benchmark.md](docs/benchmark.md)) |
 | `npm run eval -- --name=DIR [--panel=v7\|v7-confirm]` | compile one panel with this checkout |
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
-| `npm run video -- --song=petrunko_selection --seed=404` | compile a fresh ride and make a finished vertical video |
-| `npm run video -- --study=DIR --style=plain --format=horizontal` | make one review video from a saved production (`--id=CELL` for a study with several rides) |
+| `npm run video -- --song=petrunko_selection --seed=404 --look=hokusai` | compile a fresh ride and make its video |
+| `npm run video -- --study=DIR --look=plain --from=20 --to=35` | make a video of a saved production, whole or a span (`--id=CELL` for a study with several rides) |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 
-`video` also accepts `--track=FILE [--audio=FILE --spec=FILE]` for plain review
-media, using the project's single-rider, normal-line track format.
-Presentation (`plain` or `finished`) and format (`horizontal` or `vertical`)
-are independent. Use `--out=FILE.mp4`, `--workers=N`, or `--zoom-mult=N` when
-needed; `--help` lists the interface. Without a seed, a fresh seed is printed and
-recorded. Progress shows stage timings; detailed logs and compilation artifacts
-live in the adjacent `.assets` directory. Existing outputs are never overwritten.
+`video` also accepts `--track=FILE --music=SONG` for a bare track over a song's
+recording. A look is a theme or `plain` (`scripts/video/look.js`), and
+`--set=key:value,…` changes single options; `--width=N` sets the size (1080 by
+default; videos are 9:16). `--help` lists the interface. Without a seed, a fresh
+seed is recorded. The video's `.json` sidecar says what it is of; compilation
+artifacts live in the adjacent `.assets` directory. Existing outputs are never
+overwritten.
 
-The same rendering implementation serves this command, gallery productions and
-review clips. Plain media skips spectrum analysis and presentation rendering.
-Finished media keeps the existing camera, measured-impact effects and visual recipe.
-The native drawing code streams lossless frames to FFmpeg; no editor or separately
-started mirror server is needed. Frame transfer is bounded and the output is
-published only after encoding completes.
-Install `remotion/` dependencies for finished media; rendering requires local
-Chromium, ffmpeg/ffprobe and, for uncached spectrum analysis, the music Python
-environment (`LR_SPECTRUM_PYTHON` can select it).
+Every video, these and the concept lab's films and the study clips, is drawn by
+one renderer (`scripts/video/`) and written in one pass: each frame goes once to
+FFmpeg with the song's own audio, under one encoding standard (BT.709, all colour
+tags), and is checked after writing (frames, tags, and the audio within 1 ms of the
+song). Rendering requires local Chromium, ffmpeg/ffprobe and, for an uncached
+spectrum, Python with numpy (`LR_SPECTRUM_PYTHON` can select it).
 
 ## Checks
 

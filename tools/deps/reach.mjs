@@ -18,7 +18,7 @@ const ROOT = resolve(import.meta.dirname, '../..');
 const ts = createRequire(join(ROOT, 'package.json'))('@typescript/typescript6');
 const tracked = execSync('git ls-files', {cwd: ROOT, maxBuffer: 1 << 28}).toString().split('\n').filter(Boolean);
 const CODE = /\.(ts|mts|mjs|js|cjs)$/;
-const files = tracked.filter(f => CODE.test(f) && !/^(node_modules|remotion\/node_modules)\//.test(f));
+const files = tracked.filter(f => CODE.test(f) && !/^node_modules\//.test(f));
 const fileSet = new Set(tracked.filter(f => CODE.test(f)));
 const tryResolve = base => [base, base + '.ts', base + '.mts', base + '.mjs', base + '.js', base + '/index.ts', base + '/index.js',
   ...(base.endsWith('.js') ? [base.slice(0, -3) + '.ts'] : [])].find(c => fileSet.has(c)) ?? null;

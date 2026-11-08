@@ -1,6 +1,6 @@
 // The numbers quoted on the morning page. Each injection goes in at 6 moments on each of 22 rides.
 import fs from 'node:fs';
-import * as I from '../intensity.js';
+import * as I from '../../../scripts/video/intensity.js';
 const d = JSON.parse(fs.readFileSync('analysis/signals.json'));
 const med = a => [...a].sort((x, y) => x - y)[Math.floor(a.length / 2)], worst = a => Math.max(...a);
 const names = Object.keys(d), R = Object.values(d).map(r => ({speed: r.speed, hits: r.hits.map(h => ({t: h[0], s: h[1]})), duration: r.n / 40})), raws = R.map(I.rawSignals);

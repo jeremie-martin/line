@@ -1,6 +1,5 @@
-/** Builds a blind pair study for the dashboard (motion-gallery/pairs.html): plain
- * landscape renders of each ride (spec camera, no overlay or beat punch), a
- * clip around each hit, and the manifest the labels API validates.
+/** Builds a blind pair study for the dashboard (motion-gallery/pairs.html): a clip of
+ * each hit in the plain look (clip_render.ts) and the manifest the labels API validates.
  *
  *   node tools/measure/pair_study.ts --key=labels/studies/<study>.key.json --study=<study>
  *       [--jobs=4] [--prompt=TEXT]
@@ -12,7 +11,7 @@
 import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
-import {renderRides, cutClip, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH} from './clip_render.ts';
+import {renderClips, hitClip, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH} from './clip_render.ts';
 import assert from 'node:assert/strict';
 import {loadRun} from '../eval/records.ts';
 import {digest} from '../eval/inputs.ts';
@@ -22,13 +21,12 @@ import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const study = arg('study')!, key = JSON.parse(readFileSync(arg('key')!, 'utf8'));
 const jobs = Number(arg('jobs', '4'));
-const out = join('generated/label-studies', study), rides = join(out, 'rides'), clips = join(out, 'clips');
+const out = join('generated/label-studies', study), clips = join(out, 'clips');
 assert.match(study, /^[a-z0-9-]+$/);
 mkdirSync(out, {recursive: true});
 const release = lockArtifacts(out);
 try {
   assert.ok(!existsSync(join(out, 'manifest.json')), 'study already published; use a fresh study id');
-  mkdirSync(rides, {recursive: true}); mkdirSync(clips, {recursive: true});
   const BEFORE = CLIP_BEFORE, LENGTH = CLIP_LENGTH;
 
   const side = (p: any, s: 'left' | 'right') => typeof p[s] === 'object' ? p[s] : p[s] === 'body-first' ? {set: 'strike', ...p.a} : {set: 'strike', ...p.b};
@@ -48,15 +46,11 @@ try {
     assert.ok(hit && hit.onset === h.frame && hit.strength === h.strength, 'blind key names another impact');
     if (!tracks.has(rideId(h))) tracks.set(rideId(h), JSON.parse(gunzipSync(readFileSync(join(evalRuns.get(run)!.dir, 'cells', `${h.song}~${h.seed}.track.json.gz`))).toString()));
   }
-  await renderRides(new Map(ids.map(id => {
-    if (!tracks.has(id)) throw new Error(`no source ride ${id}`);
-    return [id, {song: id.split('~')[1], track: tracks.get(id)}];
-  })), rides, jobs);
-
-  for (const p of key) for (const s of ['left', 'right'] as const) {
+  for (const id of ids) if (!tracks.has(id)) throw new Error(`no source ride ${id}`);
+  await renderClips(new Map(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
     const h = side(p, s);
-    cutClip(join(rides, rideId(h) + '.mp4'), h.frame, join(clips, `pair${p.pair}-${s}.mp4`));
-  }
+    return [`pair${p.pair}-${s}`, hitClip(h.song, tracks.get(rideId(h)), h.frame)] as const;
+  }))), clips, jobs);
   // Each side carries the specification beats inside its clip (seconds from clip
   // start, with the requested strength); the judged hit is at hitAt.
   const specs = new Map<string, Awaited<ReturnType<typeof songSpec>>>();

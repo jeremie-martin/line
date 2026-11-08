@@ -10,8 +10,7 @@ import {gunzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {join, resolve} from 'node:path';
 import assert from 'node:assert/strict';
-import {renderClips, hitClip, CLIP_BEFORE, CLIP_LENGTH} from '../clip_render.ts';
-import {songSpec} from '../observe.ts';
+import {renderClips, momentClip, clipBeats, CLIP_BEFORE, CLIP_LENGTH, type Clip} from '../clip_render.ts';
 import {lockArtifacts} from '../../../scripts/lib/artifact_lock.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
@@ -37,24 +36,19 @@ try {
     assert.equal(createHash('sha256').update(text).digest('hex'), h.trackSha256, `${h.source} is not the measured track`);
     tracks.set(id, {song: h.song, track: JSON.parse(text)});
   }
-  await renderClips(new Map(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
+  const passages = new Map<string, Clip>(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
     const {song, track} = tracks.get(`heldout~${p[s].song}~${p[s].seed}`)!;
-    return [`pair${p.pair}-${s}`, hitClip(song, track, p[s].frame)] as const;
-  }))), clips, jobs);
+    return [`pair${p.pair}-${s}`, momentClip(song, {track}, p[s].frame)] as const;
+  })));
+  await renderClips(passages, clips, jobs);
 
-  // Beats of the specification inside each clip (seconds from clip start, requested strength), as pair_study.ts.
-  const specs = new Map<string, Awaited<ReturnType<typeof songSpec>>>();
-  for (const h of sides) if (!specs.has(h.song)) specs.set(h.song, await songSpec(h.song));
-  const beats = (h: any) => {
-    const start = h.frame / 40 - CLIP_BEFORE;
-    return specs.get(h.song)!.targets.filter((t: any) => t.frame / 40 >= start && t.frame / 40 <= start + CLIP_LENGTH)
-      .map((t: any) => ({t: +(t.frame / 40 - start).toFixed(4), impact: t.impact ?? null}));
-  };
+  // The ride's recorded beats inside each clip (seconds from clip start, requested strength), as pair_study.ts.
+  const beats = (id: string) => clipBeats(passages.get(id)!);
   writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: CLIP_BEFORE, length: CLIP_LENGTH, prompt: PROMPT,
     choices: CHOICES, questions: [{id: 'bigger', options: CHOICES.map(c => c[0])}],
     clips: key.map((p: any) => ({id: `pair${p.pair}`,
-      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(p.left)},
-      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(p.right)}}))}, null, 1));
+      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(`pair${p.pair}-left`)},
+      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(`pair${p.pair}-right`)}}))}, null, 1));
   console.log(`${study}: ${key.length} pairs, ${tracks.size} rides in ${resolve(out)}`);
 } finally {release();}
 process.exit(0);

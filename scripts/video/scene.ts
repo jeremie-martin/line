@@ -1,10 +1,13 @@
-/** What the picture is drawn from: one ride and its song, in song seconds.
+/** What the picture is drawn from: one ride and its song (generated/concept-lab/docs/TIMING-DESIGN.md).
  *
- * The video renderer (picture.js) and the concept lab read exactly this, so a lab frame and a finished video frame are
- * drawn from the same data. Hits are the ride's own measured impacts (onset and strength from the saved one-to-one impact
- * account), never the spec's requests; a bare track (a review clip) has none. The spectrum is computed once per recording
- * (make_spectrum.py) and cached by its bytes. Nothing here reads the spec: a saved ride renders the same whatever the spec
- * says today. */
+ * Every consumer reads this one object: the picture (the lab, its films, the videos, study clips, the review player), the
+ * review player's impact panel and the study builders. It holds:
+ * - the ride as compiled (track, trace) and its impact account as recorded, in physics frames: every target (with its authored
+ *   beat, in seconds, when the ride recorded it), every measured event (first touch, onset, strongest frame, strength), and which
+ *   event answered which target. Nothing is converted here; the consumer converts once, through timing.js;
+ * - the ride's timing: the offset between the song's clock and the ride's, derived from the ride itself (timing.js);
+ * - the song span the ride covers, and the song: its recording, spectrum, sections, drop and title.
+ * Nothing here reads the spec: a saved ride renders the same whatever the spec says today. */
 import {createHash, randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
@@ -12,37 +15,55 @@ import {join, relative, resolve} from 'node:path';
 import {repertoireSongs} from '../gallery/repertoire_catalog.ts';
 import {loadSelect} from '../produce/config.ts';
 import {DROP_TIMES} from './drops.ts';
+import {FPS, alignment} from './timing.js';
 
 const ROOT = resolve(import.meta.dirname, '../..');
-const FPS = 40; // physics frames per second
 const SPECTRUM = {fps: 30, bands: 56};
 
-export type Hit = {t: number; s: number};
+/** A requested impact: its physics frame as compiled, its requested strength, and its authored beat (seconds) when recorded. */
+export type Target = {frame: number; impact?: number; beat?: number};
+/** A measured impact (scripts/lib/strike_impact.ts), in physics frames: where its strike starts (`touch`, the event's
+ * contactStart, which for a renewed strike inside continuous contact is not a new touchdown), its half-rise onset, its strongest
+ * frame (maximum contact acceleration), and its strength. */
+export type ImpactEvent = {touch: number; onset: number; peak: number; strength: number};
+export type Account = {targets: Target[]; events: ImpactEvent[]; matches: {target: number; event: number}[]};
+export type Timing = {offset: number; aligned: boolean; reason?: string};
 export type Phase = {name: string; t0: number; t1: number};
 export type Scene = {
-  song: string; title: string; duration: number;
-  /** Repository-relative path of the recording; t = 0 is its first decoded sample. */
+  song: string; title: string;
+  /** Repository-relative path of the recording; song time 0 is its first decoded sample. */
   audio: string;
+  /** The song time the ride covers: the spec's duration for a compiled ride, the track's for a bare one. A video's extent. */
+  span: [number, number];
+  timing: Timing;
   track: {duration: number; lines: unknown[]; riders: unknown[]};
   /** A compiled production's recorded body points; the replay checks the ride against them. */
   trace?: {fps: number; pointIds: string[]; frames: number[][]};
-  hits: Hit[]; phases: Phase[];
-  /** The drop, placed by hand from the spec's sections, or null. */
+  account: Account | null;
+  phases: Phase[];
+  /** The drop, placed by hand from the spec's sections, in song time, or null. */
   drop: [number, number] | null;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
-type ImpactEvaluation = {targets: {frame: number}[]; events: {onset: number; strength: number}[]; account: {matches: {target: number; event: number}[]}};
-/** A ride: a track, and for a compiled production its trace and impact account. */
-export type Ride = {track: Scene['track']; trace?: Scene['trace']; impactEvaluation?: ImpactEvaluation};
+type SavedEvaluation = {targets: {frame: number; impact?: number}[];
+  events: {contactStart: number; onset: number; peakFrame: number; strength: number}[]; account: {matches: {target: number; event: number}[]}};
+/** A ride: a track, and for a compiled production its trace, impact account, song duration and (once recorded) authored beats,
+ * one per target of its account. */
+export type Ride = {track: Scene['track']; trace?: Scene['trace']; impactEvaluation?: SavedEvaluation; beats?: number[];
+  case?: {durationFrames: number}};
 
-/** The ride's measured hits: every requested impact the ride answered, at its measured onset and strength. */
-export function measuredHits(evaluation: ImpactEvaluation): Hit[] {
-  const event = new Map(evaluation.account.matches.map(m => [m.target, evaluation.events[m.event]]));
-  return evaluation.targets.flatMap((_, i) => {
-    const e = event.get(i);
-    if (event.has(i) && !e) throw new Error('Saved impact match references a missing event');
-    return e ? [{t: e.onset / FPS, s: e.strength}] : [];
+/** The ride's impact account as recorded, or null for a bare track. */
+export function rideAccount(ride: Ride): Account | null {
+  const e = ride.impactEvaluation;
+  if (!e) return null;
+  if (ride.beats && ride.beats.length !== e.targets.length) throw new Error(`The ride records ${ride.beats.length} beats for ${e.targets.length} targets`);
+  const targets = e.targets.map((t, i) => ({frame: t.frame, ...(t.impact === undefined ? {} : {impact: t.impact}), ...(ride.beats ? {beat: ride.beats[i]} : {})}));
+  const events = e.events.map(x => ({touch: x.contactStart, onset: x.onset, peak: x.peakFrame, strength: x.strength}));
+  const matches = e.account.matches.map(({target, event}) => {
+    if (!targets[target] || !events[event]) throw new Error('Saved impact match references a missing target or event');
+    return {target, event};
   });
+  return {targets, events, matches};
 }
 
 /** The on-screen title: the catalog title without its artist or parenthetical, in capitals. */
@@ -78,10 +99,11 @@ export const songRecording = (song: string) => relative(ROOT, loadSelect(join(RO
 export function buildScene(song: string, ride: Ride, recording = songRecording(song)): Scene {
   const entry = repertoireSongs.find(s => s.id === song);
   if (!entry) throw new Error(`Unknown song: ${song}`);
-  const audio = relative(ROOT, resolve(ROOT, recording)), duration = ride.track.duration / FPS;
+  const audio = relative(ROOT, resolve(ROOT, recording)), account = rideAccount(ride);
+  const end = (ride.case?.durationFrames ?? ride.track.duration) / FPS;
   const composition = join(ROOT, 'productions', song, 'composition.json');
   const authored: {name: string; t: number}[] = existsSync(composition) ? JSON.parse(readFileSync(composition, 'utf8')).phases : [];
-  const phases = authored.length ? authored.map((p, i) => ({name: p.name, t0: p.t, t1: authored[i + 1]?.t ?? duration})) : [{name: 'all', t0: 0, t1: duration}];
-  return {song, title: screenTitle(entry.title), duration, audio, track: ride.track, ...(ride.trace ? {trace: ride.trace} : {}),
-    hits: ride.impactEvaluation ? measuredHits(ride.impactEvaluation) : [], phases, drop: DROP_TIMES[song] ?? null, spectrum: spectrum(resolve(ROOT, audio))};
+  const phases = authored.length ? authored.map((p, i) => ({name: p.name, t0: p.t, t1: authored[i + 1]?.t ?? end})) : [{name: 'all', t0: 0, t1: end}];
+  return {song, title: screenTitle(entry.title), audio, span: [0, end], timing: alignment(account), track: ride.track,
+    ...(ride.trace ? {trace: ride.trace} : {}), account, phases, drop: DROP_TIMES[song] ?? null, spectrum: spectrum(resolve(ROOT, audio))};
 }

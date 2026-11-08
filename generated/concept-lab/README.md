@@ -64,8 +64,11 @@ study and the blind passages (`?feel=1`).
 ## Timing (`timing/`)
 
 `ensemble.py` averages the sound around strong hits, aligned on first touch: the rise sits −6 to +10 ms from the touch on 8
-songs. The lab's films and the finished videos are on one clock (song seconds; the audio is checked within 1 ms). The compiler's
-−15 ms jolt (`scripts/produce/jolt.ts`) is unchanged, to be judged again by ear.
+songs; `attack.py` places the attack against touch, onset and strongest frame on the current rides (`docs/IMPACT-TIMING.md`).
+The design that follows (`docs/TIMING-DESIGN.md`): two clocks, song and ride, one relation r = s + offset
+(`scripts/video/timing.js`), a per-ride offset from strongest frames against authored beats, and `effectsAt` choosing what
+every hit-triggered effect follows. Stage 1 is in: every ride is shown as compiled (offset 0) until rides record beats. The
+compiler's −15 ms jolt (`scripts/produce/jolt.ts`) is unchanged; jolt 0 is stage 4.
 
 ## Inking
 

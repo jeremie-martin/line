@@ -2,7 +2,7 @@
 export type Look = {
   scheme: string; paper: 'whisper' | 'plain'; line: 'inking' | 'rail' | 'ink'; band: 'none' | 'bars' | 'fork' | 'iris';
   accent: 'heat' | 'loud'; bandHeight: 'low' | 'lowmid' | 'mid'; top: 'none' | 'sun' | 'title'; riderLower: string; sunRider: string; sunLift: string;
-  drop: 'off' | 'night' | 'switch'; zoom: 'steady' | 'quiet'; ends: 'course' | 'none'; hits: 'v1' | 'none';
+  drop: 'off' | 'night' | 'switch'; zoom: 'steady' | 'quiet'; ends: 'course' | 'none'; hits: 'v1' | 'none'; effectsAt: 'touch' | 'peak' | 'beat';
 };
 export const OPTIONS: Record<keyof Look, [string, Record<string, string>]>;
 export const V1: Look;

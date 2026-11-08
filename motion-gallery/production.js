@@ -2,6 +2,7 @@ import {playerShortcut} from './player-shortcuts.js';
 import {prepareRide,pictureFor} from './ride.js';
 import {highlight} from '/generated/renderer/inspect.js';
 import {THEMES,resolveLook} from '/scripts/video/look.js';
+import {FPS,rideTime,songTimeOfFrame} from '/scripts/video/timing.js';
 import {sha256Hex} from './sha256.js';
 import {checked} from './artifacts.js';
 import {createContactImpactReview} from './contact-impact-review.js';
@@ -58,8 +59,8 @@ function draw(){
   const w=Math.round(canvas.clientWidth*r),h=Math.round(canvas.clientHeight*r);if(!w||!h)return;
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
   const world=view.picture.draw(seconds,look);
-  // inspection: the lines that guided the ride (blue) and the ones touched at this frame (orange), with the picture's camera
-  if($('inspect').checked){const {guideIds,byFrame}=view.ride.inspection,f=Math.max(0,Math.min(byFrame.length-1,Math.floor(seconds*40))),c=canvas.getContext('2d');
+  // inspection: the lines that guided the ride (blue) and the ones touched at the physics frame shown (orange), with the picture's camera
+  if($('inspect').checked){const {guideIds,byFrame}=view.ride.inspection,f=Math.max(0,Math.min(byFrame.length-1,Math.floor(rideTime(seconds,view.ride.scene.timing.offset)*FPS))),c=canvas.getContext('2d');
    highlight(c,world,record,guideIds,'#2468ba',2*r);highlight(c,world,record,byFrame[f].all,'#d35400',2*r);}
  });
  impactReview.draw(seconds);
@@ -136,17 +137,19 @@ async function openResult(path,job,initialTime=0){
   records=data;views=prepared;manifest=m;manifestUrl=url;const [ride]=cells,p=ride.production;
   $('comparison').disabled=false;
   $('result-title').textContent=libraryEntry?.title??m.plan.cases[0].title;
-  $('result-context').textContent=[m.plan.cases[0].title,`Seed ${ride.seed}`,`${fmt(m.plan.cases[0].durationFrames/40,1)} s`,libraryEntry?.description].filter(Boolean).join(' · ');
+  $('result-context').textContent=[m.plan.cases[0].title,`Seed ${ride.seed}`,`${fmt(rides[0].scene.span[1],1)} s`,libraryEntry?.description].filter(Boolean).join(' · ');
   document.title=`${libraryEntry?.title??m.plan.cases[0].title} · Line`;
   $('result-note').textContent=p.qualified?'Complete ride · every requested construction fulfilled.':ride.valid?'Complete ride · some requested constructions were not fulfilled.':`Incomplete ride · ${ride.failure?.reason??p.constructionFailure??'see saved diagnostics'}`;$('result-note').classList.toggle('error',!p.qualified);
   $('production-metrics').textContent=`${scoreName(ride)} ${fmt(ride.score.score,1)} · ${p.realization.fulfilledSections}/${p.realization.requested} constructions fulfilled · compiled in ${fmt(ride.compileMs/1000,1)} s`;
   if(!ride.impactContract)$('result-note').textContent='Previous landing objective, kept for comparison. '+$('result-note').textContent;
-  impactReview.bind(data[0]);
+  impactReview.bind(data[0],rides[0].scene);
   $('seek').min=0;
-  $('seek').max=Math.min(m.plan.cases[0].durationFrames/40,...data.map(r=>(r.trace.frames.length-1)/40));$('seek').disabled=false;
+  // the song the rides cover (scene.ts), and the song time of a compiled frame through the ride's timing (timing.js)
+  const {offset}=rides[0].scene.timing,at=frame=>songTimeOfFrame(frame,offset);
+  $('seek').max=Math.min(...rides.map(r=>r.scene.span[1]));$('seek').disabled=false;
   const real=new Map(p.realization.sections.map(r=>[r.section,r]));
-  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(requests[0].frame/40,1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${phrase.railLayout??'paired'} layout; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>jump(requests[0].frame/40-.3);return b;}));
-  $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(r.frame/40),names[r.construction],`${r.guidance} / ${r.railLayout??'paired'}`,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
+  $('timeline').replaceChildren(...p.plan.phrases.map(phrase=>{const requests=p.plan.requests.slice(phrase.first,phrase.first+phrase.count),ok=requests.every(r=>real.get(r.section)?.fulfilled),b=el('button',`${names[phrase.construction]} · ${fmt(at(requests[0].frame),1)}s`,ok?'':'unfulfilled');b.title=`${phrase.guidance} guidance; ${phrase.railLayout??'paired'} layout; ${ok?'fulfilled':'unfulfilled'}`;b.onclick=()=>jump(at(requests[0].frame)-.3);return b;}));
+  $('observations').replaceChildren(...p.plan.requests.slice(1).map(r=>{const result=real.get(r.section),tr=el('tr');for(const t of [r.section,fmt(at(r.frame)),names[r.construction],`${r.guidance} / ${r.railLayout??'paired'}`,result?.fulfilled?'Fulfilled':result?.reasons?.join(', ')??'Not built'])tr.append(el('td',String(t)));return tr;}));
   $('work').textContent=`Automatic compile: ${ride.physicalFrames.toLocaleString()} of ${ride.allowance.toLocaleString()} physics frames. Independent judging and video rendering are separate. ${p.plan.policy}. The physical checks establish functional construction, not an aesthetic rating.`;
   $('record-link').href=new URL(ride.path,url).href;$('render').hidden=!job||!ride.valid;$('render').disabled=['queued','rendering','complete'].includes(job?.render);$('render').textContent=job?.render==='complete'?'Video ready':job?.render==='rendering'?'Rendering…':'Render finished video';
   const motion=p.motion?.full;$('motion-detail').hidden=!motion;

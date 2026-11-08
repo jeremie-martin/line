@@ -11,4 +11,5 @@ if (!preset) throw new Error(`no look ${c}: ${PRESETS.map(p => p.id).join(', ')}
 const look = resolveLook(null, {...preset.mix, ...Object.fromEntries((a.m ?? '').split(',').filter(Boolean).map(kv => kv.split(':')))});
 const scene = JSON.parse(readFileSync(join(import.meta.dirname, a.rides === 'old' ? 'data-r5' : 'data', `${song}.json`), 'utf8'));
 await writeVideo({scene, look, out: a.out ?? join(import.meta.dirname, 'films', `${song}-${c}.mp4`),
-  from: a.from === undefined ? 0 : +a.from, to: a.to === undefined ? scene.duration : +a.to, width: a.width === undefined ? 1080 : +a.width});
+  // the song span the ride covers unless asked otherwise
+  from: a.from === undefined ? undefined : +a.from, to: a.to === undefined ? undefined : +a.to, width: a.width === undefined ? 1080 : +a.width});

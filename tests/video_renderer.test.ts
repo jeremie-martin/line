@@ -4,7 +4,9 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
-import {measuredHits, screenTitle} from '../scripts/video/scene.ts';
+import {rideAccount, screenTitle} from '../scripts/video/scene.ts';
+import {alignment, rideTime, songTime, songTimeOfFrame} from '../scripts/video/timing.js';
+import {CLIP_BEFORE, clipBeats, momentClip} from '../tools/measure/clip_render.ts';
 import {bestLag, frameCount, frameSize} from '../scripts/video/write.ts';
 import {BODY_POINTS} from '../scripts/video/picture.js';
 import {videoRequest} from '../scripts/produce/video_request.ts';
@@ -59,11 +61,45 @@ describe('the video command', () => {
 });
 
 describe('scenes', () => {
-  it('hits are the ride\'s own measured onsets and strengths, for answered requests only', () => {
-    const evaluation = {targets: [{frame: 40}, {frame: 80}, {frame: 120}], events: [{onset: 41, strength: 0.62}, {onset: 121, strength: 0.31}],
-      account: {matches: [{target: 0, event: 0}, {target: 2, event: 1}]}};
-    expect(measuredHits(evaluation)).toEqual([{t: 41 / 40, s: 0.62}, {t: 121 / 40, s: 0.31}]);
-    expect(() => measuredHits({...evaluation, account: {matches: [{target: 1, event: 5}]}})).toThrow(/missing event/);
+  // a recorded ride: three requested impacts, two answered (targets 0 and 2), with its authored beats when recorded
+  const evaluation = {targets: [{frame: 40, impact: 0.6}, {frame: 80}, {frame: 120, impact: 0.9}],
+    events: [{contactStart: 40, onset: 41, peakFrame: 42, strength: 0.62}, {contactStart: 119, onset: 121, peakFrame: 122, strength: 0.31}],
+    account: {matches: [{target: 0, event: 0}, {target: 2, event: 1}]}};
+  const track = {duration: 160, lines: [], riders: []};
+  it('the account is the ride\'s own, in physics frames, with its beats one to one with its targets', () => {
+    expect(rideAccount({track})).toBeNull();
+    const account = rideAccount({track, impactEvaluation: evaluation, beats: [0.99, 2, 2.98]})!;
+    expect(account.targets).toEqual([{frame: 40, impact: 0.6, beat: 0.99}, {frame: 80, beat: 2}, {frame: 120, impact: 0.9, beat: 2.98}]);
+    expect(account.events).toEqual([{touch: 40, onset: 41, peak: 42, strength: 0.62}, {touch: 119, onset: 121, peak: 122, strength: 0.31}]);
+    expect(account.matches).toEqual([{target: 0, event: 0}, {target: 2, event: 1}]);
+    expect(() => rideAccount({track, impactEvaluation: evaluation, beats: [1, 2]})).toThrow(/2 beats for 3 targets/);
+    expect(() => rideAccount({track, impactEvaluation: {...evaluation, account: {matches: [{target: 1, event: 5}]}}})).toThrow(/missing/);
+  });
+  it('a ride is aligned from its own hits, or shown as compiled and says why', () => {
+    expect(alignment(null)).toEqual({offset: 0, aligned: false, reason: 'no impact account'});
+    expect(alignment(rideAccount({track, impactEvaluation: evaluation}))).toEqual({offset: 0, aligned: false, reason: 'no recorded beats'});
+    expect(alignment(rideAccount({track, impactEvaluation: {...evaluation, account: {matches: []}}, beats: [1, 2, 3]})))
+      .toEqual({offset: 0, aligned: false, reason: 'no matched hit'});
+    // the mean of (strongest frame − beat): (42/40 − 0.99 + 122/40 − 2.98) / 2 = 0.065 s
+    const aligned = alignment(rideAccount({track, impactEvaluation: evaluation, beats: [0.99, 2, 2.98]}));
+    expect(aligned.aligned).toBe(true); expect(aligned.offset).toBeCloseTo(0.065, 12);
+    expect(alignment(rideAccount({track, impactEvaluation: evaluation, beats: [1.2, 2, 3.2]})).reason).toMatch(/outside \[0, 500\] ms/);
+  });
+  it('one relation between the clocks: r = s + offset, and back', () => {
+    for (const offset of [-0.1, 0, 0.029]) for (const s of [0, 1.25, 30]) {
+      expect(songTime(rideTime(s, offset), offset)).toBeCloseTo(s, 12);
+      expect(rideTime(s, offset)).toBeCloseTo(s + offset, 12);
+    }
+    expect(songTimeOfFrame(80, 0.05)).toBeCloseTo(1.95, 12); // frame 80 is ride time 2 s, shown 50 ms early
+  });
+  it('a clip places its judged moment through the ride\'s timing, with the ride\'s recorded beats as its marks', () => {
+    const aligned = {track, impactEvaluation: evaluation, beats: [0.99, 2, 2.98]};
+    const clip = momentClip('petrunko_selection', aligned, 120);
+    expect(clip.from).toBeCloseTo(3 - 0.065 - CLIP_BEFORE, 12);
+    expect(clipBeats(clip)).toEqual([{t: +(2 - clip.from).toFixed(4), impact: null}, {t: +(2.98 - clip.from).toFixed(4), impact: 0.9}]);
+    const bare = momentClip('petrunko_selection', {track}, 120);
+    expect(bare.from).toBe(2); expect(clipBeats(bare)).toEqual([]);
+    expect(() => momentClip('petrunko_selection', {track}, 20)).toThrow(/too early/);
   });
   it('the on-screen title drops the artist and any parenthetical', () => {
     expect(screenTitle('Chris Grey — LET THE WORLD BURN')).toBe('LET THE WORLD BURN');

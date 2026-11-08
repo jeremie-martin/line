@@ -66,9 +66,9 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
     const text = readFileSync(request.track!, 'utf8');
     scene = buildScene(request.music!, {track: JSON.parse(text)}); of = {track: resolve(request.track!), trackSha256: sha(text), music: request.music};
   }
-  const from = request.from ?? 0, to = Math.min(request.to ?? scene.duration, scene.duration);
+  const [start, end] = scene.span, from = Math.max(request.from ?? start, start), to = Math.min(request.to ?? end, end);
   await writeVideo({scene, look: request.look, out: output, from, to, width: request.width});
-  writeFileSync(sidecar, JSON.stringify({of, look: request.look, lookName: request.lookName, from, to, width: request.width,
+  writeFileSync(sidecar, JSON.stringify({of, look: request.look, lookName: request.lookName, timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

@@ -19,6 +19,7 @@ export const OPTIONS = {
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   hits: ['On each hit', {v1: 'Shake, colour split and flash (v1)', none: 'Nothing'}],
+  effectsAt: ['A hit’s effects start at', {touch: 'Its first touch (v1)', peak: 'Its strongest frame', beat: 'The beat it answers'}],
 };
 
 export const V1 = {
@@ -34,8 +35,9 @@ export const V1 = {
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
   // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',
-  // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19)
-  hits: 'v1',
+  // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19), starting at the hit's
+  // first touch until the effects round decides (docs/TIMING-DESIGN.md)
+  hits: 'v1', effectsAt: 'touch',
 };
 
 /** The golden set's first themes (round 20): each chooses a palette, band, top element, line and drop so that they belong together. */

@@ -37,9 +37,11 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 
 11. **Videos: one renderer** (2026-11-08, branch `visual-lab`; REWORK.md).
     Open:
-    - **Owner, next concept-lab round:** the jolt, judged again by ear now that
-      picture and sound are in sync (the June choice was heard through a 43 ms
-      audio delay).
+    - **Timing** (`generated/concept-lab/docs/TIMING-DESIGN.md`, all on
+      `visual-lab`): stage 1 done (two clocks, the scene's account, span and
+      timing, `effectsAt`). Next: stage 2, the compiler records authored beats
+      (parity unchanged); stage 3, alignment decided with the hit-effects round;
+      stage 4, jolt 0 as a declared comparison.
     - Done: the review player draws the video picture too (plain by default, any
       theme), with contact inspection as an overlay (owner, 2026-11-08).
     - Kept by the owner's choice (2026-11-08): the specs' `camera` (zoom lanes,

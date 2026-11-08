@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: timing, two clocks (stage 1 of 4; branch `visual-lab`)
+
+Hit effects, the intensity metric, seek bounds, study clips and the review
+panel each converted physics frames to seconds their own way, and the jolt
+drove several of them at once. Now (`generated/concept-lab/docs/TIMING-DESIGN.md`):
+song time and ride time, one relation r = s + offset (`scripts/video/timing.js`),
+and the scene as the single source: the impact account as recorded, the song
+span, and the ride's timing. A ride is aligned (offset = mean of strongest
+frame − authored beat) only when its record has beats; none does yet, so every
+ride is shown as compiled, and the lab is byte-identical but for 2 of 876 hits
+whose recorded strike start differs from the old first-touch search. What hit
+effects follow is a look option, `effectsAt` (touch in v1). Next: beats
+recorded by the compiler, then alignment with the effects round, then jolt 0.
+
 ## November 8: one video renderer (adopted; branch `visual-lab`)
 
 Finished videos were a ride exported by the native player and re-composited by

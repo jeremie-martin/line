@@ -1,6 +1,6 @@
 # Timing: how a ride meets its song (design proposal, v3)
 
-*8 November 2026. Agreed design; nothing here is implemented yet. It settles what the system is and why; details are settled
+*8 November 2026. Agreed design; stage 1 is implemented (below), stages 2–4 are not. It settles what the system is and why; details are settled
 while coding, and the finished code is reviewed against it. Reviewed through three rounds (an independent analysis, adversarial
 reviews and a from-scratch design study by Codex); the last round found the design sound, with one ordering fix, applied.
 Measurements: `IMPACT-TIMING.md`.*
@@ -104,6 +104,9 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    picture, inspection, seek bounds, clip bounds and export all show physics frame `f` at song time `f / 40 − offset`); the lab
    fingerprint byte-identical except around the few hits whose `touch` differs from the picture's old first-touch search (that
    also moves the intensity metric over a few seconds around them; each shown).
+   **Done (8 November):** the cross-offset test writes the same frames for offsets 0, +0.1 and −0.1 s from the matching song
+   times; the lab fingerprint is byte-identical on all 116 frames; `touch` differs from the old search on 2 of 876 hits (Batidão
+   48.425 → 48.475 s, Coma 52.025 → 52.075 s: renewed strikes inside contact, whose effects now start 50 ms later).
 2. **Beats recorded** (compiler only, on `visual-lab` like the rest; merged into foundations later): additive. Proof: parity unchanged; on
    saved rides, beats equal the spec at its recorded hash (a test oracle, not a runtime path). The lab's rides are left as they
    are, so nothing is aligned yet.

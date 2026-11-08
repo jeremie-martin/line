@@ -1,4 +1,7 @@
-/** Saved shared-account observations on the existing native/audio player. */
+/** Saved shared-account observations on the review player, on the song's clock: each target at its authored beat when the ride
+ * recorded it (otherwise its compiled frame), each event at its onset, both through the ride's timing (scripts/video/timing.js).
+ * The compiler's own residuals (onset and peak offsets from the target frame) are its diagnostics, shown as such. */
+import {songTimeOfFrame} from '../scripts/video/timing.js';
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 const fmt=(n,d=3)=>Number.isFinite(n)?n.toFixed(d):'—';
 /** Fixed eight-second inspection window, including the final partial window. */
@@ -17,12 +20,12 @@ export function createContactImpactReview({seek}){
  const overviewTitle=node('p','Whole ride'),detailTitle=node('p'),detailChart=node('div');overviewTitle.className=detailTitle.className='impact-chart-title';detailChart.className='contact-impact-chart';
  chart.className='contact-impact-chart';small.type='checkbox';label.append(small,document.createTextNode(' Include very small extra responses'));
  const table=node('table'),head=node('thead'),heading=node('tr');
- for(const title of ['Interaction','Target time','Observed time','Onset offset','Contact-force peak offset','Wanted strength','Measured strength'])heading.append(node('th',title));
+ for(const title of ['Interaction','Target time','Observed time','Onset offset (compiler)','Contact-force peak offset (compiler)','Wanted strength','Measured strength'])heading.append(node('th',title));
  head.append(heading);const body=node('tbody');table.append(head,body);const wrap=node('div');wrap.className='table-wrap';wrap.append(table);
  const hint=node('p','Click an impact to jump there.');hint.className='impact-hint';
  host.append(overviewTitle,chart,detailTitle,detailChart,hint);document.getElementById('watch-layout').append(host);
  const details=node('details');details.id='impact-measurements';details.hidden=true;details.append(node('summary','Impact measurements'),description,summary,label,wrap);document.getElementById('motion-detail').before(details);
- let record,cursor,detailCursor,windowMark,detailStart=-1,extent=1,shown=0,chartWidth=360;
+ let record,cursor,detailCursor,windowMark,detailStart=-1,extent=1,shown=0,chartWidth=360,targetTime,eventTime;
  new ResizeObserver(entries=>{const width=Math.round(entries[0].contentRect.width);if(width>0&&width!==chartWidth){chartWidth=width;if(record)drawChart();}}).observe(chart);
  const svgNode=(tag,attrs)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));return e;};
  const rebuild=()=>{
@@ -30,10 +33,10 @@ export function createContactImpactReview({seek}){
   const {events,targets,account}=record.impactEvaluation,rows=[];
   for(const [i,target]of targets.entries()){
    const match=account.matches.find(m=>m.target===i),event=match?events[match.event]:undefined;
-   rows.push({time:target.frame/40,label:`Beat ${i+1}`,target:target.frame/40,actual:event?.onset/40,
+   rows.push({time:targetTime(i),label:`Beat ${i+1}`,target:targetTime(i),actual:event?eventTime(event):undefined,
     offset:match?match.offset*25:undefined,peak:event?.peakFrame!==undefined?(event.peakFrame-target.frame)*25:undefined,wanted:target.impact,strength:event?.strength});
   }
-  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:e.onset/40,label:e.kind==='strike'?'Extra strike':'Extra response',actual:e.onset/40,strength:e.strength});}
+  for(const i of account.unmatchedEvents){const e=events[i];if(small.checked||e.strength>=.05)rows.push({time:eventTime(e),label:e.kind==='strike'?'Extra strike':'Extra response',actual:eventTime(e),strength:e.strength});}
   body.replaceChildren(...rows.sort((a,b)=>a.time-b.time).map(r=>{
    const tr=node('tr'),link=node('button',r.label);link.onclick=()=>seek(Math.max(0,r.time-.2));const cell=node('td');cell.append(link);tr.append(cell);
    const ms=v=>Number.isFinite(v)?`${v>0?'+':''}${v} ms`:'—';
@@ -51,10 +54,10 @@ export function createContactImpactReview({seek}){
   const {events,targets,account}=record.impactEvaluation,x=t=>chartWidth*(t-start)/(end-start);
   const svg=svgNode('svg',{viewBox:`0 0 ${chartWidth} 170`,role:'img','aria-label':`Requested and realized impacts, ${fmt(start,1)} to ${fmt(end,1)} seconds`});
   svg.append(svgNode('line',{x1:0,x2:chartWidth,y1:145,y2:145,stroke:'#999'}));
-  for(const target of targets){const t=target.frame/40;if(t<start||t>end)continue;svg.append(svgNode('line',{x1:x(t),x2:x(t),y1:145,y2:145-125*(target.impact??0),stroke:'#999','stroke-width':3}));}
+  for(const [k,target] of targets.entries()){const t=targetTime(k);if(t<start||t>end)continue;svg.append(svgNode('line',{x1:x(t),x2:x(t),y1:145,y2:145-125*(target.impact??0),stroke:'#999','stroke-width':3}));}
   const matched=new Set(account.matches.map(m=>m.event));
   for(const [i,e]of events.entries()){
-   const t=e.onset/40;if(t<start||t>end)continue;
+   const t=eventTime(e);if(t<start||t>end)continue;
    const y=145-125*e.strength,color=matched.has(i)?'#287aa6':'#bb5c23';
    svg.append(svgNode('line',{x1:x(t),x2:x(t),y1:145,y2:y,stroke:color,'stroke-width':1}));
    const point=svgNode('circle',{cx:x(t),cy:y,r:2.5,fill:color}),title=svgNode('title',{});
@@ -81,9 +84,11 @@ export function createContactImpactReview({seek}){
  small.onchange=rebuild;
  return {
   clear(){record=undefined;cursor=detailCursor=windowMark=undefined;detailStart=-1;shown=0;chart.replaceChildren();detailChart.replaceChildren();body.replaceChildren();description.textContent='';summary.textContent='';host.hidden=true;details.hidden=true;document.getElementById('watch-layout').classList.remove('has-impacts');},
-  bind(r){
+  /** r: the saved record (its account and the compiler's diagnostics); scene: its scene (scene.ts: span, timing, beats). */
+  bind(r,scene){
    if(!r.impactEvaluation)return;
-   record=r;extent=r.case.durationFrames/40;const {events,targets,account}=r.impactEvaluation;
+   record=r;extent=scene.span[1];const {events,targets,account}=r.impactEvaluation,{offset}=scene.timing;
+   targetTime=i=>scene.account.targets[i].beat??songTimeOfFrame(targets[i].frame,offset);eventTime=e=>songTimeOfFrame(e.onset,offset);
    host.hidden=false;details.hidden=false;document.getElementById('watch-layout').classList.add('has-impacts');description.textContent=`${r.impactEvaluation.contract}. Gray marks show requested beats;`+' '+' blue marks show matched responses; orange marks show extra responses. All event strengths contribute to the account, including small responses hidden from the table. Click the chart or a row to inspect the actual ride.';
    const onsetRms=25*Math.sqrt(account.matches.reduce((n,m)=>n+m.offset*m.offset,0)/Math.max(1,account.matches.length));
    summary.textContent=`${account.matches.length}/${targets.length} beats matched · strength RMS ${fmt(Math.sqrt(account.strengthMse))} · onset RMS ${fmt(onsetRms,1)} ms · extra-response RMS ${fmt(Math.sqrt(account.extraMse))}. These are separate observations, not an aesthetic rating.`;

@@ -204,6 +204,8 @@ and validation are in [music authoring](docs/music-authoring.md).
    (`scripts/video/picture.js`, below) from the scene the review server builds for
    it (`/api/scene`, `scripts/video/scene_api.ts`), in a chosen look: plain by
    default, or any theme, so the review shows what a video of the ride would.
+   Seeking covers the scene's song span; inspection and the impact panel convert
+   physics frames through `timing.js`.
    "Inspect contacts" overlays the guiding lines and the lines touched at each
    frame with the picture's own camera (`scripts/gallery/inspect.js`). The canvas is
    9:16 and fits within 72% of viewport height (`motion-gallery/ride.js`). Native
@@ -235,18 +237,30 @@ and validation are in [music authoring](docs/music-authoring.md).
    cancellable so rapid input cannot override a newer pause.
    **Videos** have one renderer, `scripts/video/`, and the concept lab draws
    through the same one, so what the owner approves there is what ships.
-   - `scene.ts` builds what a picture is drawn from: the ride (its track, and for a
-     compiled production its trace), its measured hits (the saved impact account's
-     onsets and strengths, never the spec's requests), the song's recording,
+   - **Two clocks, one relation** (`timing.js`, design in
+     `generated/concept-lab/docs/TIMING-DESIGN.md`): song time s (the recording,
+     spectrum, sections, drop, authored beats) and ride time r (physics frame f is
+     r = f / 40), with r = s + offset. Nothing else converts between them. A ride's
+     offset is the mean over its matched hits of (strongest frame − authored beat);
+     a ride is *aligned* when its record has beats, a matched hit and an offset in
+     [0, 0.5 s], otherwise shown *as compiled* (offset 0, the reason saved). Rides
+     record no beats yet, so every ride is as compiled.
+   - `scene.ts` builds what every consumer reads: the ride (its track, and for a
+     compiled production its trace), its impact account projected as recorded, in
+     physics frames (targets with their beats when recorded; events with touch,
+     onset, strongest frame and strength; matches), the timing, the song span
+     (`[0, spec duration]`, a bare track's own duration), the song's recording,
      spectrum (`make_spectrum.py`, cached by the recording's bytes in
-     `generated/spectrum/`) and hand-placed drop (`drops.ts`), in song seconds. It
-     reads no spec, so editing a spec never blocks a render.
-   - `picture.js` draws the frame at song time t for a look: the "Follows
-     direction" camera (`camera.js`), the line, the band, the top element, the
-     drop, and each hit's shake, colour split and flash from its first touch,
-     sized by its measured strength. `look.js` holds every option, the settled
-     defaults (V1), the themes and `plain` (the compiler's review clips). Palettes
-     are in `palettes.js`, the intensity metric in `intensity.js`.
+     `generated/spectrum/`) and hand-placed drop (`drops.ts`). It reads no spec, so
+     editing a spec never blocks a render.
+   - `picture.js` draws the frame at song time t for a look: the ride at r, the
+     "Follows direction" camera (`camera.js`), the line, the band, the top element,
+     the drop, and each hit's shake, colour split and flash, sized by its measured
+     strength, from its effect time (the look's `effectsAt`: touch, strongest frame
+     or authored beat; v1 is touch). The intensity metric (`intensity.js`) is built
+     on ride time from each hit's touch and read at r. `look.js` holds every
+     option, the settled defaults (V1), the themes and `plain` (the compiler's
+     review clips). Palettes are in `palettes.js`.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to
      one FFmpeg, and encodes the song's own audio in the same FFmpeg: frame 0 and
      the first audio sample are song time `from` (the recording is decoded from

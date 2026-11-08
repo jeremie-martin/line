@@ -8,7 +8,7 @@ import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {once} from 'node:events';
 import {execFile, execFileSync, spawn} from 'node:child_process';
-import {mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync} from 'node:fs';
+import {mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {dirname, join, resolve} from 'node:path';
 import {promisify} from 'node:util';
@@ -36,7 +36,7 @@ const rendererBundle = () => bundle ??= (async () => {
 })().catch(error => {bundle = undefined; throw error;});
 export type WriteOptions = {
   scene: Scene; look: Look; out: string;
-  /** Song seconds; the whole ride by default. */
+  /** Song seconds; the scene's span (the song the ride covers) by default. */
   from?: number; to?: number;
   /** Frame width in pixels (the picture is 9:16), 1080 by default. */
   width?: number;
@@ -76,7 +76,7 @@ window.render = async ({look, from, count, width, height}) => {
 </script>`;
 
 /** Write the video; returns the number of frames. The output appears only when complete and verified. */
-export async function writeVideo({scene, look, out, from = 0, to = scene.duration, width = 1080, log = console.log}: WriteOptions): Promise<number> {
+export async function writeVideo({scene, look, out, from = scene.span[0], to = scene.span[1], width = 1080, log = console.log}: WriteOptions): Promise<number> {
   const {height} = frameSize(width), count = frameCount(from, to), began = performance.now();
   const output = resolve(out);
   mkdirSync(dirname(output), {recursive: true});
@@ -105,7 +105,8 @@ export async function writeVideo({scene, look, out, from = 0, to = scene.duratio
     assets.set(token + 'scene.json', {type: 'application/json', bytes: Buffer.from(JSON.stringify(scene))});
     assets.set(token + 'bosh.svg', file(join(ROOT, 'mirror/_v2153.0/bosh-sprite.svg'), 'image/svg+xml'));
     for (const [name, bytes] of await rendererBundle()) assets.set(token + 'renderer/' + name, {type: 'text/javascript', bytes});
-    for (const name of ['picture.js', 'camera.js', 'intensity.js', 'palettes.js']) assets.set(token + 'video/' + name, file(join(ROOT, 'scripts/video', name)));
+    // every browser module of the renderer, so whatever picture.js imports is there by construction
+    for (const name of readdirSync(join(ROOT, 'scripts/video')).filter(n => n.endsWith('.js'))) assets.set(token + 'video/' + name, file(join(ROOT, 'scripts/video', name)));
     // the audio is decoded from PREROLL before `from` and trimmed back to `from`, so its first samples are the song's own
     const start = Math.max(0, from - PREROLL);
     encoder = spawn('ffmpeg', ['-v', 'error', '-xerror', '-y', '-f', 'image2pipe', '-c:v', 'png', '-framerate', String(FPS), '-i', 'pipe:0',

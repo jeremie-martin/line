@@ -26,5 +26,5 @@ for (const key of keys.length ? keys : Object.keys(SONGS)) {
   if (!path) throw new Error(`${key}: no saved ride${old ? '' : ' (run recompile.sh first)'}`);
   const scene = buildScene(song, JSON.parse(readFileSync(path, 'utf8')));
   writeFileSync(join(out, `${key}.json`), JSON.stringify(scene));
-  console.log(key, scene.hits.length, 'hits', scene.phases.length, 'phases', scene.drop ? `drop ${scene.drop.join('–')}` : 'no drop');
+  console.log(key, scene.account?.matches.length ?? 0, 'hits', scene.phases.length, 'phases', scene.drop ? `drop ${scene.drop.join('–')}` : 'no drop', scene.timing.aligned ? `offset ${(scene.timing.offset * 1000).toFixed(1)} ms` : `as compiled (${scene.timing.reason})`);
 }

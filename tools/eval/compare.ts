@@ -27,6 +27,7 @@ import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
 import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
 import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts';
+import type {Clip} from '../measure/clip_render.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
 import {headline, headlineScore, specKey, mean, strataOf, summarize} from './summary.ts';
@@ -453,13 +454,14 @@ async function review() {
   mkdirSync(clips, {recursive: true});
   const specOf = (id: string) => {const c = caseOf(id); return c.variant ? `productions/${c.song}/variants/${c.variant}.ts` : `productions/${c.song}/spec.ts`;};
   const clipId = (side: Side, p: {id: string; from: number; to: number}) => `${side}-${p.id.replace(/~/g, '-')}-${cells[side].get(p.id).trackHash.slice(0, 12)}-${p.from}-${p.to}`;
-  const tracks = new Map<string, any>(), passageClips = new Map<string, {song: string; track: any; from: number; to: number}>();
+  const tracks = new Map<string, any>(), passageClips = new Map<string, Clip>();
   for (const id of new Set(chosen.map(p => p.id))) {
     assertReviewSources(caseOf(id).song, caseOf(id).input, specOf(id));
     for (const side of SIDES) tracks.set(`${side}~${id}`, readArmTrack(s.arms[side], id));
   }
   for (const p of chosen) for (const side of SIDES)
-    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, track: tracks.get(`${side}~${p.id}`), from: p.from / 40, to: p.to / 40});
+    // both sides of a passage share its song-time bounds and one soundtrack; each is drawn with its own ride's timing
+    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, ride: {track: tracks.get(`${side}~${p.id}`)}, from: p.from / 40, to: p.to / 40});
   const rendering = performance.now();
   await renderClips(passageClips, passageDir, jobs);
   const ridesSeconds = (performance.now() - rendering) / 1000, short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!;

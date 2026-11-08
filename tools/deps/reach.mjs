@@ -22,8 +22,9 @@ const files = tracked.filter(f => CODE.test(f) && !/^node_modules\//.test(f));
 const fileSet = new Set(tracked.filter(f => CODE.test(f)));
 const tryResolve = base => [base, base + '.ts', base + '.mts', base + '.mjs', base + '.js', base + '/index.ts', base + '/index.js',
   ...(base.endsWith('.js') ? [base.slice(0, -3) + '.ts'] : [])].find(c => fileSet.has(c)) ?? null;
+// A root-absolute specifier ('/scripts/video/picture.js') is a browser module, served from the repository root (scripts/serve.ts).
 const resolveSpec = (spec, from) => spec.startsWith('.') || spec.startsWith('/')
-  ? tryResolve(relative(ROOT, spec.startsWith('/') ? spec : resolve(ROOT, dirname(from), spec))) : null;
+  ? tryResolve(spec.startsWith('/') ? spec.slice(1) : relative(ROOT, resolve(ROOT, dirname(from), spec))) : null;
 
 const isTest = f => f.startsWith('tests/');
 const graph = {}, typeGraph = {}, lines = {};

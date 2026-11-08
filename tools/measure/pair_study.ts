@@ -11,11 +11,11 @@
 import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join, resolve} from 'node:path';
-import {renderClips, hitClip, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH} from './clip_render.ts';
+import {renderClips, momentClip, clipBeats, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH, type Clip} from './clip_render.ts';
 import assert from 'node:assert/strict';
 import {loadRun} from '../eval/records.ts';
 import {digest} from '../eval/inputs.ts';
-import {songSpec, sources} from './observe.ts';
+import {sources} from './observe.ts';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 
 const arg = (k: string, d?: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
@@ -27,7 +27,6 @@ mkdirSync(out, {recursive: true});
 const release = lockArtifacts(out);
 try {
   assert.ok(!existsSync(join(out, 'manifest.json')), 'study already published; use a fresh study id');
-  const BEFORE = CLIP_BEFORE, LENGTH = CLIP_LENGTH;
 
   const side = (p: any, s: 'left' | 'right') => typeof p[s] === 'object' ? p[s] : p[s] === 'body-first' ? {set: 'strike', ...p.a} : {set: 'strike', ...p.b};
   const rideId = (h: any) => `${h.set ?? 'strike'}~${h.song}~${h.seed}`;
@@ -47,26 +46,21 @@ try {
     if (!tracks.has(rideId(h))) tracks.set(rideId(h), JSON.parse(gunzipSync(readFileSync(join(evalRuns.get(run)!.dir, 'cells', `${h.song}~${h.seed}.track.json.gz`))).toString()));
   }
   for (const id of ids) if (!tracks.has(id)) throw new Error(`no source ride ${id}`);
-  await renderClips(new Map(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
+  const passages = new Map<string, Clip>(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {
     const h = side(p, s);
-    return [`pair${p.pair}-${s}`, hitClip(h.song, tracks.get(rideId(h)), h.frame)] as const;
-  }))), clips, jobs);
-  // Each side carries the specification beats inside its clip (seconds from clip
-  // start, with the requested strength); the judged hit is at hitAt.
-  const specs = new Map<string, Awaited<ReturnType<typeof songSpec>>>();
-  for (const song of new Set(hits.map((h: any) => h.song))) specs.set(song as string, await songSpec(song as string));
-  const beats = (h: any) => {
-    const start = h.frame / 40 - BEFORE;
-    return specs.get(h.song)!.targets.filter((t: any) => t.frame / 40 >= start && t.frame / 40 <= start + LENGTH)
-      .map((t: any) => ({t: +(t.frame / 40 - start).toFixed(4), impact: t.impact ?? null}));
-  };
-  writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: BEFORE, length: LENGTH,
+    return [`pair${p.pair}-${s}`, momentClip(h.song, {track: tracks.get(rideId(h))}, h.frame)] as const;
+  })));
+  await renderClips(passages, clips, jobs);
+  // Each side carries the ride's recorded beats inside its clip (seconds from clip start, with the requested strength); the
+  // judged moment is at hitAt.
+  const beats = (id: string) => clipBeats(passages.get(id)!);
+  writeFileSync(join(out, 'manifest.json'), JSON.stringify({study, kind: 'pairs', hitAt: CLIP_BEFORE, length: CLIP_LENGTH,
     prompt: arg('prompt', 'Which one is the bigger impact?'),
     choices: JSON.parse(arg('choices', '[["left","A is bigger"],["right","B is bigger"],["same","About the same"]]')!),
     questions: [{id: arg('question', 'bigger')!, options: JSON.parse(arg('choices', '[["left"],["right"],["same"]]')!).map((c: string[]) => c[0])}],
     clips: key.map((p: any) => ({id: `pair${p.pair}`,
-      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(side(p, 'left'))},
-      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(side(p, 'right'))}}))}, null, 1));
+      left: {src: `/${clips}/pair${p.pair}-left.mp4`, beats: beats(`pair${p.pair}-left`)},
+      right: {src: `/${clips}/pair${p.pair}-right.mp4`, beats: beats(`pair${p.pair}-right`)}}))}, null, 1));
   console.log(`${study}: ${key.length} pairs in ${resolve(out)}`);
 } finally {release();}
 process.exit(0);

@@ -14,7 +14,8 @@ beforeAll(() => {
   execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-i', 'anoisesrc=d=2:c=pink:r=48000:a=0.5', join(dir, 'song.wav')]);
   const track = {duration: 60, startPosition: {x: 0, y: 0}, riders: [{startPosition: {x: 0, y: 0}, startVelocity: {x: 2, y: 0}, remountable: 1}],
     lines: [{id: 1, type: 0, x1: -20, y1: 10, x2: 400, y2: 120, flipped: false, leftExtended: false, rightExtended: false}]};
-  scene = {song: 'test', title: 'TEST', duration: 1.5, audio: join(dir, 'song.wav'), track, hits: [], phases: [{name: 'all', t0: 0, t1: 1.5}], drop: null,
+  scene = {song: 'test', title: 'TEST', audio: join(dir, 'song.wav'), span: [0, 1.5], timing: {offset: 0, aligned: false, reason: 'no impact account'},
+    track, account: null, phases: [{name: 'all', t0: 0, t1: 1.5}], drop: null,
     spectrum: {fps: 30, bands: 56, frames: Array.from({length: 60}, () => new Array(56).fill(0.3))}};
 });
 afterAll(() => rmSync(dir, {recursive: true, force: true}));
@@ -45,4 +46,19 @@ it('starts a mid-song excerpt with the song\'s own samples, also from an MP3', a
   // the first MP3 frame's worth of the excerpt is the song there: AAC's first frame keeps about a third of the signal as error,
   // the seek artifact was all of it (measured 0.33 against 0.99)
   expect(rms(i => clip[i] - song[i])).toBeLessThan(0.6 * rms(i => song[i]));
+}, 120000);
+
+it('shows physics frame f at song time f / 40 − offset, whatever the offset\'s sign', async () => {
+  // the plain look draws the ride alone, so its picture is a function of ride time only: the same ride time must give the same frames
+  const frames = (path: string) => execFileSync('ffmpeg', ['-v', 'error', '-i', path, '-map', '0:v', '-f', 'framemd5', '-'], {encoding: 'utf8'})
+    .split('\n').filter(l => l && !l.startsWith('#')).map(l => l.split(',').at(-1)!.trim());
+  const write = async (offset: number, from: number, name: string) => {
+    const out = join(dir, name);
+    await writeVideo({scene: {...scene, timing: {offset, aligned: false, reason: 'test'}}, look: resolveLook('plain'), out, from, to: from + 0.25, width: 180, log: () => {}});
+    return frames(out);
+  };
+  const reference = await write(0, 0.5, 'offset0.mp4');
+  expect(reference).toHaveLength(15);
+  expect(await write(0.1, 0.4, 'offset+.mp4')).toEqual(reference); // shown 0.1 s early: ride time 0.5 at song time 0.4
+  expect(await write(-0.1, 0.6, 'offset-.mp4')).toEqual(reference);
 }, 120000);

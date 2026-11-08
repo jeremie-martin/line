@@ -106,16 +106,17 @@ async function loadSong(key) {
     if (id === loadId) {status(`Could not load ${SONGS[key]}: ${e.message}`); if (shot) window.__loadError = e.message;}
     return false;
   }
-  $('seek').max = P.duration; seconds = Math.min(seconds, P.duration);
+  $('seek').max = P.span[1]; seconds = Math.min(seconds, P.span[1]);
   status(''); renderUI(); draw();
-  if (shot) {window.__ready = true; window.__duration = P.duration; window.__audio = '/' + P.scene.audio;
+  if (shot) {window.__ready = true; window.__duration = P.span[1]; window.__audio = '/' + P.scene.audio;
     window.__renderAt = t => {seconds = t; draw(); return canvas.toDataURL('image/png');};}
   return true;
 }
-function draw() {if (P && canvas.width && canvas.height) P.draw(seconds, mix);}
+// a look the ride cannot be drawn in (effects on the beat without recorded beats) says so instead of drawing something else
+function draw() {if (P && canvas.width && canvas.height) try {P.draw(seconds, mix);} catch (e) {status(e.message); if (shot) throw e;}}
 function moments() {
   // the quietest and the densest section (hits per second), the middle section change, the strongest hit, the ends
-  const sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: P.hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
+  const hits = P.effectTimes(mix), sect = P.scene.phases.filter(s => s.t1 - s.t0 > 2).map(s => ({...s, density: hits.filter(h => h.t >= s.t0 && h.t < s.t1).length / Math.max(0.5, s.t1 - s.t0)}));
   const out = [['Opening', 0]];
   if (sect.length) {
     const quiet = sect.reduce((a, b) => b.density < a.density ? b : a), dense = sect.reduce((a, b) => b.density > a.density ? b : a);
@@ -123,9 +124,9 @@ function moments() {
   }
   const change = P.scene.phases[Math.min(P.scene.phases.length - 1, Math.floor(P.scene.phases.length / 2))];
   if (change.t0 > 0) out.push(['Section change', Math.max(0, change.t0 - 1.5)]);
-  if (P.drop) out.push(['The drop', Math.max(0, P.drop[0] - 1.5)]);
-  if (P.hits.length) {const big = P.hits.reduce((a, b) => b.s > a.s ? b : a); out.push(['Strongest hit', Math.max(0, big.tc - 1.2)]);}
-  return [...out, ['Ending', Math.max(0, P.duration - 4)]];
+  if (P.scene.drop) out.push(['The drop', Math.max(0, P.scene.drop[0] - 1.5)]);
+  if (hits.length) {const big = hits.reduce((a, b) => b.s > a.s ? b : a); out.push(['Strongest hit', Math.max(0, big.t - 1.2)]);}
+  return [...out, ['Ending', Math.max(0, P.span[1] - 4)]];
 }
 
 // ── transport and UI ───────────────────────────────────────────────────────
@@ -133,7 +134,7 @@ let loop = null, loopLen = 4;
 function status(text) {const s = $('status'); if (s) s.textContent = text;}
 function fmt(t) {return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;}
 function sync() {
-  $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P?.duration ?? 0);
+  $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P?.span[1] ?? 0);
   if (feelmode) return; // the blind test's address must not carry (or leak) the free lab's look
   const url = new URL(location.href);
   if (qmode) {
@@ -152,17 +153,17 @@ function sync() {
 // play must not touch the state afterwards.
 let playTicket = 0;
 async function play() {
-  if (!P) return; if (seconds >= P.duration - 0.05) seconds = 0;
+  if (!P) return; if (seconds >= P.span[1] - 0.05) seconds = 0;
   const n = ++playTicket;
   $('play').textContent = 'Pause'; $('play').classList.add('on');
   try {await music.play(seconds, 1); if (n !== playTicket) return; playing = music.playing;} catch {if (n !== playTicket) return; playing = false;}
   if (!playing) {$('play').textContent = 'Play'; $('play').classList.remove('on');}
 }
 function pause() {playTicket++; if (playing) seconds = music.pause(); else music.pause(); playing = false; $('play').textContent = 'Play'; $('play').classList.remove('on'); sync();}
-function seek(t) {const resume = playing || music.requested; if (resume) pause(); seconds = clamp(t, 0, P?.duration ?? 0); draw(); sync(); if (resume) play();}
+function seek(t) {const resume = playing || music.requested; if (resume) pause(); seconds = clamp(t, 0, P?.span[1] ?? 0); draw(); sync(); if (resume) play();}
 function qStart(question) {
   if (typeof question.t === 'number') return question.t;
-  if (question.t === 'strongest') {const big = P.hits.reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.tc - 1.6);}
+  if (question.t === 'strongest') {const big = P.effectTimes(mix).reduce((a, b) => b.s > a.s ? b : a); return Math.max(0, big.t - 1.6);}
   return 0;
 }
 // What is drawn in question mode is ALWAYS the chosen option plus the chosen moment's override, built in this one place.
@@ -190,7 +191,7 @@ async function goMoment(j) {
   applyOption(); renderQuestion();
   if (((sg ?? Q.song) !== song || ridesOld !== loadedOld || !P) && !await loadSong(sg ?? Q.song)) return;
   if (nav !== navId) return;
-  loop = loopHome = at === 'end' ? Math.max(0, P.duration - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
+  loop = loopHome = at === 'end' ? Math.max(0, P.span[1] - (Q.len ?? 4)) : qStart({t: at}); loopLen = Q.len ?? 4;
   $('loop').classList.add('on'); seek(loop); renderQuestion(); draw(); if (was) play();
 }
 // Answers: picks are a LIST of option labels plus a separate 'none' flag. Older saves kept one joined string ('A, B' or 'A + B');
@@ -275,9 +276,9 @@ function fit() {
   if (canvas.width !== w || canvas.height !== h) {canvas.width = w; canvas.height = h; draw();}
 }
 // a loop that would run past the song's end wraps at the end (it used to stop there, and the next Play started from 0:00)
-const loopEnd = () => Math.min(loop + loopLen, P.duration);
+const loopEnd = () => Math.min(loop + loopLen, P.span[1]);
 function tick(ts) {
-  if (playing && P) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loopEnd()) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= P.duration) {pause(); seconds = P.duration;} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P.duration);}
+  if (playing && P) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loopEnd()) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= P.span[1]) {pause(); seconds = P.span[1];} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P.span[1]);}
   requestAnimationFrame(tick);
 }
 function cycleOption(dir) {const o = QUESTIONS[qi]?.opts; if (o) setOption((qopt + dir + o.length) % o.length);}

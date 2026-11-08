@@ -7,7 +7,7 @@ wherever it lives. Line counts are as of today.*
 
 | Area | Where | Size | Role |
 |---|---|---|---|
-| A. The video renderer | `scripts/video/` | about 1,190 lines | Draws and writes every video: the finished ones, the lab's films, the review clips |
+| A. The video renderer | `scripts/video/` | about 1,380 lines | Draws and writes every video: the finished ones, the lab's films, the review clips |
 | B. Its commands | `scripts/video.ts`, `scripts/produce/{render_repertoire,video_input,video_request}.ts`, `tools/measure/clip_render.ts` | about 270 lines | `npm run video`, study renders and bundles, review clips |
 | C. The concept lab | `generated/concept-lab/` | runtime about 570 lines | The owner's questions, the free mix, the blind test; draws through A |
 | D. Review players | `motion-gallery/`, `shared/playback.js`, `scripts/gallery/inspect.js` | – | The compiler's ride review and the video players |
@@ -18,11 +18,12 @@ wherever it lives. Line counts are as of today.*
 | File | Lines | Role |
 |---|---|---|
 | `look.js` (+ `look.d.ts`) | 66 | Every option, the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
-| `picture.js` | 377 | The frame at song time t for a look: the ride prepared once (rails, hits at first touch, intensity, drop), then camera, paper, top, band, lines, rider, and each hit's shake, split and flash |
+| `timing.js` (+ `timing.d.ts`) | 29 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account |
+| `picture.js` | 405 | The frame at song time t for a look: the ride prepared once (rails, hits from the account, intensity on ride time, drop), then the ride at r, camera, paper, top, band, lines, rider, and each hit's shake, split and flash from its effect time (`effectsAt`) |
 | `camera.js` | 72 | Follows direction and its two zoom tides |
 | `palettes.js` | 267 | Every scheme, its variants, `LIBRARY` (the owner's tiers), `DROP_SCHEMES` |
 | `intensity.js` | 62 | The intensity metric and its measures |
-| `scene.ts` | 81 | A ride and its song → what the picture draws: hits from the saved impact account, spectrum (cached), drop, title |
+| `scene.ts` | 109 | A ride and its song → what every consumer reads: the impact account as recorded (physics frames), the timing, the song span, spectrum (cached), drop, title |
 | `drops.ts` | 13 | Each song's drop, placed by hand |
 | `write.ts` | 172 | Scene + look → MP4 in one pass, then checked (frames, tags, audio within 1 ms) |
 | `encoding.ts` | 11 | The one encoding standard (BT.709, all four tags) |

@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): why strong catches miss, re-measured on today's main
+
+`loss_attribution.ts` on main 9d065738 (V7.1, seed 101, 3,448 catches),
+against November 7 afternoon (before half-weight prediction, local search
+judging like ranking, and today's policies). Shares of the squared strength
+error on the library songs (G):
+
+| cause | Nov 7 afternoon | now |
+|---|---|---|
+| no candidate in the pool meaningfully closer to the ask | 29% | **39%** |
+| a closer candidate was cheaper here; the next catch would pay | 32% | 21% |
+| a closer candidate cost this span: speed | 21% | 24% |
+| other span costs (air, extra, timing, rest) | 18% | 15% |
+
+- **The ranking changes did what they meant to.** The "next catch would
+  pay" share fell by a third.
+- **The largest share is now proposal coverage:** the strong catch was never
+  proposed. This fits the night's other results:
+  - policies are the lever (+8.3 / +12.8; demonstration count matters);
+  - more search effort is not (twice the allowance −2.7; twice the policy
+    proposals +0.7).
+- **Next:** demonstrations that cover more situations (a V6 collection of
+  every family on paired rails is running), rather than more of the same.
+
 ## November 8 (night): hypothesis, a smaller generic reserve on shaped constructions
 
 - **Basis.** `arc_proposals.ts` reserves 25% of the initial proposals for

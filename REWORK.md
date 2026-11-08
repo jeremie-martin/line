@@ -184,6 +184,34 @@ no-archive floor (−70.6) and main, with every version reported in full.
   - The loss left is the shared one: strong beats on everyday songs, and
     speed.
 
+### Where the all-tried catalogue still misses strong beats
+
+`strong_catches.py` on an origins study of `exp/catalogue-64-all-tried`
+(seed 101, 41 rides, tracks identical to its saved arm). The catalogue's
+moves start 53% of committed arcs.
+
+| arm | short by more than 0.2 | arrivals below 15° | short at 25–35° | short at main's headings |
+|---|---|---|---|---|
+| main | 8% | 6% | 6% | 8% |
+| catalogue, all tried | 12% | **13%** | **7%** | 10% |
+| compact network | 14% | 11% | 13% | 12% |
+
+- **Conversion is nearly the archive's.** At the same arrival heading the
+  catalogue's landing arcs hit almost as well as main's (7% short at
+  25–35°, against 6%).
+- **The setup is not.** It arrives shallow (below 15°) twice as often.
+  The 175 strong beats only it misses arrive at 17° (main 35° on the same
+  beats). A third of them land from the opposing side (main 13%).
+- **Why.** The catalogue's table and ranking read only the beat the arc
+  lands on. The arc before a strong beat must leave so that the rider
+  arrives steep, and nothing tells the catalogue that the next beat is
+  strong. The archive's distance weighs the next beats four times. The
+  compiler's steep-arrival preference then has nothing steep to choose.
+- **Next.** The table and the ranking gain a third readable axis: the next
+  beat's requested strength (a 5 × 5 × 3 grid, trilinear). In-sample, the
+  table then explains more of the exit (terraces 0.38 → 0.49, scallops
+  0.51 → 0.61).
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

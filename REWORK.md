@@ -100,6 +100,26 @@
   - **Hypothesis** (from the coverage test): about half, so −25 to −45.
     Much better would mean the generic sampler's box, not the situation, is
     what the archive fixes.
+- **Result, policy lookup only: −6.7** [−12.5, −1.0]; 12 of 35 up; P7
+  −19.3, P1 −16.6. With memory only at −8.0, either lookup alone keeps about
+  90% of the worth: the two are mostly redundant, each adding 7–8 points.
+- **Next: compact network proposals** (V7.1, 4 seeds). One small model per
+  construction group:
+  - A one-layer network (16 units) maps the 12 most important situation
+    features to the six relative main controls.
+  - 32 residual styles (k-means of the training residuals) spread the
+    proposals around that mean. Each style carries the optional fields
+    (bend, clearance…) of the real demonstration nearest its centre.
+  - Groups under 1,000 demonstrations (transfer) get the mean only, plus
+    styles.
+  - 5,361 numbers in all, 18 KB as stored.
+  - Runtime: 15 lines in `arc_control_policy.ts`. The model takes the 32
+    policy slots; memory learns within the compile only, as in the
+    no-archive arm. Coverage 0.975 against 0.746 (full) and 1.073
+    (prototypes) at 32 proposals.
+  - **Hypothesis:** −15 to −25, at least 5 better than the prototypes. That
+    would show that interpolating the situation works, and the gap left is
+    what to close next.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

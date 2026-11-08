@@ -21,7 +21,7 @@ const TEST_QUESTIONS = [
     moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
   {id: 'top', ask: 'What at the top of the frame?', why: 'Varies: only the top of the frame.', song: 'petrunko', t: 33.6, len: 5, multi: true, opts: [
       ['Nothing', {...noEnds, band: 'bars', top: 'none'}, 'Nothing.'],
-      ['A sun, a little higher', {...noEnds, band: 'bars', top: 'sun', sunY: '0.16'}, 'The sun, a few pixels higher.'],
+      ['A sun, a little higher', {...noEnds, band: 'bars', top: 'sun', sunLift: '19.2'}, 'The sun, a few pixels higher.'],
       ['The title', {...noEnds, band: 'bars', top: 'title'}, 'The song’s name.']],
     moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Dune', 33.6, 'petrunko', {scheme: 'dune'}], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Hokusai', 33.6, 'petrunko', {scheme: 'hokusai'}]]},
   {id: 'line', ask: 'The line', why: 'Varies: only how the line appears.', song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
@@ -39,15 +39,15 @@ const TEST_QUESTIONS = [
 const QUESTIONS = [
   {id: 'sunrider', ask: 'With a sun, should the rider sit lower?', why: 'You liked the sun where it is and suggested lowering the rider when there is one. The camera behaves exactly the same; the whole view just sits a little lower. Varies: only that. Moments switch to Dune and Celadon. Keep any number.',
     song: 'circus', t: 18, len: 6, multi: true, opts: [
-      ['As now', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0'}, 'The rider at its usual height.'],
-      ['A little lower', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0.025'}, '2.5 % of the screen lower (48 px).'],
-      ['Lower', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0.05'}, '5 % lower (96 px).']],
+      ['As now', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0', sunLift: '0'}, 'The rider at its usual height.'],
+      ['A little lower', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '48', sunLift: '0'}, '2.5 % of the screen lower (48 px).'],
+      ['Lower', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '96', sunLift: '0'}, '5 % lower (96 px).']],
     moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['On Dune', 18, 'circus', {scheme: 'dune'}], ['On Celadon', 43, 'circus', {scheme: 'w2Celadon'}]]},
   {id: 'sunheight', ask: 'And the sun: where it is, or a few pixels higher?', why: 'You said you didn’t want to move the sun, “maybe by a few pixels above”. Varies: only the sun’s height. Keep any number.',
     song: 'circus', t: 18, len: 6, multi: true, opts: [
-      ['Where it is', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunY: '0.17'}, 'As now.'],
-      ['A few pixels higher', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunY: '0.16'}, '19 px higher.'],
-      ['Higher', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunY: '0.15'}, '38 px higher.']],
+      ['Where it is', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0', sunLift: '0'}, 'As now.'],
+      ['A few pixels higher', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0', sunLift: '19.2'}, '19 px higher.'],
+      ['Higher', {...noEnds, band: 'bars', scheme: 'hokusai', top: 'sun', sunRider: '0', sunLift: '38.4'}, '38 px higher.']],
     moments: [['Circus 18 s', 18], ['Circus 43 s (the hook)', 43], ['On Dune', 18, 'circus', {scheme: 'dune'}], ['On Celadon', 43, 'circus', {scheme: 'w2Celadon'}]]},
   {id: 'bandy', ask: 'The band’s height, now that the rider sits higher', why: 'Low-middle was chosen in round 3, when the rider sat at about 43 % of the height. It sits at 38 % now and the band was never re-checked. Varies: only the band’s height. Keep any number.',
     song: 'circus', t: 18, len: 6, multi: true, opts: [

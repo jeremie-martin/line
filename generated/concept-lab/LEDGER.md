@@ -67,7 +67,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Piece | Status | Notes |
 |---|---|---|
 | Pencil → ink | v1 | "Absolutely amazed" (R1). Inks as the rider passes, so no grey is left behind (R5). |
-| Whole rail, all ink | kept | All three are good; any look, any mode (R5–R6). Whole rail suits high contrast. Old Rose: all ink, "definitely" (R12). Whether all dark palettes should be inked: **open** ("I don't know about all dark palettes"). |
+| Whole rail, all ink | kept | All three are good; any look, any mode (R5–R6). Whole rail suits high contrast. Old Rose: all ink, "definitely" (R12). Dark palettes are inked from the start (R21: all ink, then whole rail, then pencil → ink; "for now, this is what we use… we can easily just put it back"). |
 | Line in front of the title | parked | The line is behind the title; the in-front rim stays a lab option (R6). |
 
 ### Band
@@ -142,9 +142,9 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
    - Plan: rework the flash, the shake and the pulse later, with the curve-first method of R12–R17.
 
 1. Where Night ends, song by song (R4). Rule since R20: cues are placed by hand from the spec's sections (Circus Minimus: the HOOK's first impact at 38.5 s to the RE-ENTRY hit at 51.3 s).
-1b. With a sun: the rider a little lower, and the sun a few pixels higher (R20 remark, R21 question).
-2. The band height against the rider at 38 % (R3, R12 audit).
-3. Whether all dark palettes should be inked (R12).
+1b. ~~With a sun~~ (R21): the rider 32 px lower, the sun 16 px higher.
+2. **The layout as a whole** (R21: "try a few sets of element positions… see what works best as a whole… with and without a sun"; small changes only): the band's height and position, and perhaps the rider 8–16 px lower without a sun if the band gives room. Round 22.
+3. ~~Whether all dark palettes should be inked~~ (R21): yes, all ink.
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).
 5. Zoom per song, and the direction layer: how looks are chosen, hints, variety (R5–R6).
 6. Timing between music and contacts: what should land on the beat (first touch, onset or peak) and the jolt, explored by ear in round 22 (owner, 8 November; `docs/IMPACT-TIMING.md`, with the measurements). Until 8 November every finished video's sound was 42.7 ms late and its picture 16.7 ms late, so the June choice was heard through that; the lab and the videos are now on one clock (REWORK.md, November 8).

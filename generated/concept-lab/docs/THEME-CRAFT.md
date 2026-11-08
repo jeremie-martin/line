@@ -33,11 +33,11 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 
 ### Top of the frame
 - **The title:** the song's name in the line's colour, two lines at most, "maybe not all the time". It suits quiet papers (Paper, Prussian, Plum, Old Rose).
-- **The sun:** a bold disc that balances the frame (Dune: "so inspired"). It takes the palette's sun colour or its accent. With a sun, the rider may sit a little lower (round 21 question).
+- **The sun:** a bold disc that balances the frame (Dune: "so inspired"). It takes the palette's sun colour or its accent. With a sun, the rider sits 32 px lower and the sun 16 px higher (round 21; `sunRider`, `sunLift`).
 - One top element at a time.
 
 ### Line
-- Pencil → ink is the default. All ink suits dark palettes (Old Rose: "definitely"); whether every dark palette should use it is open. Whole rail suits high contrast (Black, Ultramarine).
+- Pencil → ink is the default on light papers. **Dark palettes are inked from the start** (round 21: all ink over whole rail over pencil → ink; Old Rose: "definitely", R12). Whole rail stays an option.
 
 ### The drop
 - **Night** for the classic (Paper).
@@ -59,10 +59,10 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 | Celadon | Wada 171 | bars | sun | pencil → ink | – | Maroon bars on celadon; the marigold sun echoes the accent |
 | Aubergine | Wada 307 | bars | – | pencil → ink | its own night | Lilac to wine-black, from one combination |
 | Wisteria | Wada 197 | fork | – | pencil → ink | – (plain paper) | The quietest: a violet fork on near-white |
-| Black Iris | black | Iris | – | whole rail | – | Iris lives in the dark; rails light whole |
+| Black Iris | black | Iris | – | all ink | – | Iris lives in the dark (whole rail until R21) |
 | Plum | plum | bars | title | all ink | – | Lilac bars and amber on plum |
 | Old Rose | Wada 265 | bars | title | all ink | – | "So freaking elegant" |
-| Ultramarine | Wada 295 | bars | – | whole rail | – | A pure blue band on violet-black |
+| Ultramarine | Wada 295 | bars | – | all ink | – | A pure blue band on violet-black (whole rail until R21) |
 | Aconite | Wada 344 | bars | – | all ink | – | Midnight and aconite violet |
 
 From the contact sheet, two choices moved: Iris went from Plum, where it was faint, to Black, and Ultramarine's barely visible fork became bars.

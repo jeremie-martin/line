@@ -10,13 +10,13 @@ export const CASES = [
   ['tomada', 'swatch', 'top:title', [38.26, 38.3]], ['tomada', 'swatch', 'top:sun,scheme:dune', [38.27]],
   ['lua', 'swatch', 'scheme:wOldRose,line:ink', [36.5]], ['lua', 'swatch', 'scheme:w2Seashell', [36.5]], ['lua', 'swatch', 'scheme:kraft~2', [36.5]],
   ['petrunko', 'swatch', 'scheme:dune,drop:switch,top:sun', [25]], ['lua', 'swatch', 'band:iris', [36.5]],
-  ['lua', 'swatch', 'top:sun,sunRider:0.05,sunY:0.15', [36.5]],
+  ['lua', 'swatch', 'top:sun,sunRider:96,sunLift:38.4', [36.5]],
   ...THEMES.map(c => ['circus', c, '', [0.5, 20, 40, 45.2, 52]]),
   ...['petrunko', 'lua', 'los', 'batidao', 'burn', 'coma', 'tomada', 'circus'].map(s => [s, 'swatch', '', [3, 15, 30]]),
   ['tomada', 'plain', '', [0, 5, 38.27]], ['los', 'plain', '', [28.9]], ['circus', 'plain', '', [20]],
   ['lua', 'swatch', 'bandHeight:low', [36.5]], ['lua', 'swatch', 'bandHeight:mid', [36.5]], ['lua', 'swatch', 'accent:loud', [36.5]],
   ['los', 'swatch', 'zoom:quiet', [28.9]], ['los', 'swatch', 'line:rail', [28.9]], ['petrunko', 'swatch', 'drop:night', [25, 34.7]],
-  ['lua', 'swatch', 'band:fork', [36.5]], ['tomada', 'swatch', 'hits:none', [38.27]], ['circus', 'swatch', 'top:sun,sunRider:0.025,sunY:0.16', [18, 43]],
+  ['lua', 'swatch', 'band:fork', [36.5]], ['tomada', 'swatch', 'hits:none', [38.27]], ['circus', 'swatch', 'top:sun,sunRider:48,sunLift:19.2', [18, 43]],
   ['los', 'swatch', '', [10, 28.9], 'old'],
 ];
 if (import.meta.url === `file://${process.argv[1]}`) {

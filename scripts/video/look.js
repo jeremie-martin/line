@@ -12,8 +12,8 @@ export const OPTIONS = {
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
   bandHeight: ['Band height', {low: 'Low', lowmid: 'Low-middle', mid: 'Middle'}],
   top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title'}],
-  sunRider: ['With a sun, the rider sits', {'0': 'As without a sun', '0.025': 'A little lower', '0.05': 'Lower'}],
-  sunY: ['The sun’s height', {'0.17': 'As now', '0.16': 'A few pixels higher', '0.15': 'Higher'}],
+  sunRider: ['With a sun, the rider sits lower by', {'0': 'Nothing', '32': '32 px (v1)', '48': '48 px', '96': '96 px'}],
+  sunLift: ['The sun sits higher by', {'0': 'Nothing', '16': '16 px (v1)', '19.2': '19 px', '38.4': '38 px'}],
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
@@ -30,8 +30,8 @@ export const V1 = {
   band: 'none', accent: 'heat', bandHeight: 'lowmid',
   // paper: Whisper (R3–R4); nothing at the top unless a theme asks; no drop treatment unless a theme asks
   scheme: 'graphite', paper: 'whisper', top: 'none', drop: 'off',
-  // with a sun: the rider's height and the sun's own height (open question, round 21)
-  sunRider: '0', sunY: '0.17',
+  // with a sun, the rider sits 32 px lower and the sun 16 px higher (design pixels of 1080 × 1920; R21)
+  sunRider: '32', sunLift: '16',
   // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19)
   hits: 'v1',
 };
@@ -45,10 +45,11 @@ export const THEMES = {
   celadon: {name: 'Celadon', line: 'Wada 171: celadon paper, a maroon band, a marigold sun.', look: {scheme: 'w2Celadon', band: 'bars', top: 'sun'}},
   aubergine: {name: 'Aubergine', line: 'Wada 307: lilac paper and an aubergine band; at the drop, its own night.', look: {scheme: 'w2Aubergine', band: 'bars', drop: 'switch'}},
   wisteria: {name: 'Wisteria', line: 'Wada 197: near-white grey, a violet fork, plain paper.', look: {scheme: 'w2Wisteria', band: 'fork', accent: 'loud', paper: 'plain'}},
-  black: {name: 'Black Iris', line: 'Black, the Iris band, each rail lighting whole as the rider meets it.', look: {scheme: 'black', band: 'iris', line: 'rail'}},
+  // dark palettes are inked from the start (R21: all ink over whole rail over pencil → ink)
+  black: {name: 'Black Iris', line: 'Black, the Iris band, the whole course inked.', look: {scheme: 'black', band: 'iris', line: 'ink'}},
   plum: {name: 'Plum', line: 'Plum and amber, the bars, the whole course inked, the title.', look: {scheme: 'plum', band: 'bars', line: 'ink', top: 'title'}},
   oldrose: {name: 'Old Rose', line: 'Wada 265: violet-black, an old-rose band, all ink, the title.', look: {scheme: 'wOldRose', band: 'bars', line: 'ink', top: 'title'}},
-  ultramarine: {name: 'Ultramarine', line: 'Wada 295: violet-black, a pure blue band, each rail lighting whole.', look: {scheme: 'wUltramarine', band: 'bars', line: 'rail'}},
+  ultramarine: {name: 'Ultramarine', line: 'Wada 295: violet-black, a pure blue band, the whole course inked.', look: {scheme: 'wUltramarine', band: 'bars', line: 'ink'}},
   aconite: {name: 'Aconite', line: 'Wada 344: midnight paper, an aconite band, all ink.', look: {scheme: 'w2Aconite', band: 'bars', line: 'ink'}},
 };
 /** The compiler's review clips: the ride alone, black on white, nothing that could colour a judgement of the motion. */

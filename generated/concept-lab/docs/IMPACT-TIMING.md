@@ -37,6 +37,23 @@ With today's jolt, the authored times sit about 10 ms after the sound's audible 
 time + 15 ms, so **first touch lands on the sound's rise, and the peak typically comes 25–50 ms later.** The picture's
 effects (shake, split, flash) start at first touch.
 
+## Where the sound's attack sits (measured 8 November)
+
+Time-locked averages of the sound around every answered hit of strength ≥ 0.4 on the current rides (`timing/attack.py`,
+8 songs, 756 hits): where the beat's audible attack (half-rise of the 1 ms envelope) sits relative to each moment of the impact.
+
+| Song | first touch | onset | strongest frame |
+|---|---|---|---|
+| Mean of 8 songs | −7.5 ms | −32 ms | −44 ms |
+| Range | −40 to +7 | −64 to −19 | −65 to −30 |
+| Circus Minimus | −40 ms | −64 ms | −65 ms |
+
+**What the jolt has been doing.** Its +15 ms combines two unrelated facts: the onset comes about 25 ms (one physics frame) after
+the touch, and the authored beat times sit about 10–17 ms after the sound's attack. 25 − 10 ≈ 15, so it puts the first touch on
+the attack, but only where authored times run about 10 ms late. Circus Minimus breaks the assumption: its authored times (the
+voice-drums spec) sit about 49 ms after the attack, so its touches land about 40 ms late today. **For the strongest frame on the
+attack**, impacts would land about 44 ms earlier on average than today, and about 76 ms earlier on Circus Minimus.
+
 ## Three independent knobs
 
 Since every frame is drawn at a song time, these no longer have to move together:

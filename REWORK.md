@@ -14,6 +14,11 @@
   explicit requests, up.
 - **Risk.** Transfer layouts hold few demonstrations (about 600) and may
   lose.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - +1.3 [−2.6, +5.1], 0.81; 15 of 35 specs up.
+  - The gain sits in the single long-float spec (P6 +19.0); P4 −5.8,
+    P1 −5.6, P5 −5.5; explicit requests −2.8.
+  - The reserve is not what limits shaped sections.
 
 ## November 8 (night): pooled policies pass, held for the owner's storage decision
 

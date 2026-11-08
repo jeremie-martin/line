@@ -12,6 +12,22 @@
   should do better: V7.1 up.
 - **Risk.** The same as before: a one-step-better model need not make
   better rides.
+- **Result (V7.1, 4 seeds): not adopted.** −0.1 [−5.1, +4.8], 0.47; 22 of
+  35 specs up; strong extra impacts +168%. Two retrains are null or
+  negative, so the October model stays: the lever is what is proposed, not
+  how the future is priced.
+
+## November 8 (night): hypothesis, a generic reserve on ordinary arcs
+
+- **Basis** (the inventory). On ordinary arcs every initial proposal slot
+  not taken by policies or memory goes to them. Novel constructions keep 25%
+  for generic samples. Ride-outs lost under each policy change tonight
+  (P7 −9.3, −10.3).
+- **Change** (`arc_proposals.ts`). Ordinary arcs reserve 10% of the initial
+  proposals for generic samples (novel constructions keep 25%).
+- **Hypothesis.** Coverage the policies miss returns. Ride-outs and floats
+  up; headline up a little or neutral.
+- **Risk.** Fewer policy and memory proposals; the dense strata may lose.
 
 ## November 8 (night): hypotheses, second-round and pooled policies
 

@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (night): hypothesis, strength-seeking response steps
+
+- **Basis.** The largest share of strength loss (39% on G) is "no
+  candidate in the pool meaningfully closer to the ask". Local search's
+  response step moves the best candidate by a damped Gauss–Newton step that
+  balances every residual at once, so candidates that trade other errors
+  for strength are rarely proposed. Ranking would still judge them on
+  everything.
+- **Change** (`arc_local_search.ts`, response search). Each round also
+  evaluates two candidates along the minimal-norm step that cancels only the
+  strength residual, using the Jacobian the round already measured: the full
+  step and half of it. They count toward the round's allowance; nothing
+  else changes.
+- **Hypothesis.** Pools hold more candidates near the asked strength;
+  ranking takes them where they pay. Strength on strong asks up; V7.1 up.
+- **Risk.** Fewer balanced response rounds; span errors and extras may
+  rise.
+
 ## November 8 (night): hypothesis, policies with every family on paired rails
 
 - **Basis.** Proposal coverage is now the largest share of strength loss

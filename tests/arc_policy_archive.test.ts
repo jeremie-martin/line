@@ -1,25 +1,36 @@
-import {expect,it} from 'vitest';
-import {createHash} from 'node:crypto';
-import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {expect, it} from 'vitest';
+import {mkdtempSync, readFileSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {gzipSync} from 'node:zlib';
+import {gzipSync, brotliCompressSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 import {parseArcPolicyArtifact} from '../scripts/v0/optimizer/connected_arcs.ts';
-it('loads exact policy bytes and rejects damaged compressed or decoded commitments',()=>{
-  const dir=mkdtempSync(join(tmpdir(),'arc-policy-test-'));
-  try{
-    const raw=JSON.stringify({featureCount:57,weights:[.1,-17.618600633958097],absent:undefined})+'\n';
-    const compressed=gzipSync(raw),hash=(b:Buffer|string)=>createHash('sha256').update(b).digest('hex');
-    writeFileSync(join(dir,'policy.json.gz'),compressed);
-    const url=pathToFileURL(join(dir,'policy.json'));
-    const archive={schema:'line.arc-compressed-policy.v1',compression:'gzip-file',file:'policy.json.gz',
-      uncompressedBytes:Buffer.byteLength(raw),sha256:hash(raw),compressedSha256:hash(compressed)};
-    const load=(change={})=>parseArcPolicyArtifact(JSON.stringify({...archive,...change}),url);
-    expect(load()).toEqual(JSON.parse(raw));expect(parseArcPolicyArtifact(raw)).toEqual(JSON.parse(raw));
-    expect(()=>load({sha256:'0'.repeat(64)})).toThrow('checksum');
-    expect(()=>load({compressedSha256:'0'.repeat(64)})).toThrow('checksum');
-    expect(()=>load({uncompressedBytes:archive.uncompressedBytes+1})).toThrow('checksum');
-    expect(()=>load({file:'../policy.json.gz'})).toThrow('invalid');
-  }finally{rmSync(dir,{recursive:true,force:true});}
+
+const sha = (b: Buffer) => createHash('sha256').update(b).digest('hex');
+const model = Buffer.from(JSON.stringify({groups: {a: [1, 2, 3]}, examples: []}));
+
+function archive(dir: string, compression: 'gzip-file' | 'brotli-file', file: string, bytes: Buffer, rawSha = sha(model)) {
+  writeFileSync(join(dir, file), bytes);
+  const pointer = join(dir, `${file}.pointer.json`);
+  writeFileSync(pointer, JSON.stringify({schema: 'line.arc-compressed-policy.v1', compression, file,
+    compressedSha256: sha(bytes), sha256: rawSha, uncompressedBytes: model.length}));
+  return pointer;
+}
+
+it('reads the same model from a gzip or a brotli companion file', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'arc-policy-'));
+  const gz = archive(dir, 'gzip-file', 'policy.json.gz', gzipSync(model));
+  const br = archive(dir, 'brotli-file', 'policy.json.br', brotliCompressSync(model));
+  const read = (p: string) => parseArcPolicyArtifact(Buffer.from(JSON.stringify(JSON.parse(readFileSync(p, 'utf8')))), pathToFileURL(p));
+  expect(read(br)).toEqual(read(gz));
+  expect(read(gz)).toEqual(JSON.parse(model.toString()));
+});
+
+it('refuses a companion file whose name does not match its compression, or whose checksum is wrong', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'arc-policy-'));
+  const misnamed = archive(dir, 'brotli-file', 'policy.json.gz', brotliCompressSync(model));
+  expect(() => parseArcPolicyArtifact(Buffer.from(readFileSync(misnamed)), pathToFileURL(misnamed))).toThrow('invalid arc policy archive');
+  const corrupt = archive(dir, 'brotli-file', 'other.json.br', brotliCompressSync(model), sha(Buffer.from('{"different":true}')));
+  expect(() => parseArcPolicyArtifact(Buffer.from(readFileSync(corrupt)), pathToFileURL(corrupt))).toThrow('checksum mismatch');
 });

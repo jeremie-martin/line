@@ -13,6 +13,26 @@
   - A clear gain means search effort pays again, and the budget laws
     (scale-free, per the owner's rule) are worth revisiting.
   - A null means proposals, not effort, still limit.
+- **Result: no gain from compute.**
+  - −2.7 [−6.8, +1.3], 0.06; 16 of 35 specs up; +3% physics frames.
+  - The search is still not limited by compute. Proposals (what is tried)
+    limit it, as the policy results tonight show. Budget work stays off the
+    list.
+
+## November 8 (night): the policy archive may be brotli-encoded
+
+- `parseArcPolicyArtifact` (`connected_arcs.ts`) reads a `brotli-file`
+  companion (`.br`) as well as `gzip-file` (`.gz`). Both checksums
+  (compressed and raw) are verified as before, so the encoding cannot
+  change the model.
+- The current archive re-encoded in brotli loads to an identical model
+  (same hash).
+- **Structural:** parity unchanged, `npm run check` passes. New test:
+  `arc_policy_archive`.
+- **Why.** Brotli is 24% smaller than gzip on these archives (39.6 MB
+  against 52 MB for the current one). The pooled policies (+2.0 on V7.1,
+  +8.9 held out; next entry) need 100.2 MB as gzip, over GitHub's file
+  limit, and about 79 MB as brotli.
 
 ## November 8 (night): hypothesis, a learned estimate matched to today's policies
 

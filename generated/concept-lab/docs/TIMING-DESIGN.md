@@ -1,6 +1,6 @@
 # Timing: how a ride meets its song (design proposal, v3)
 
-*8 November 2026. Agreed design; stage 1 is implemented (below), stages 2–4 are not. It settles what the system is and why; details are settled
+*8 November 2026. Agreed design; stages 1 and 2 are implemented (below), stages 3 and 4 are not. It settles what the system is and why; details are settled
 while coding, and the finished code is reviewed against it. Reviewed through three rounds (an independent analysis, adversarial
 reviews and a from-scratch design study by Codex); the last round found the design sound, with one ordering fix, applied.
 Measurements: `IMPACT-TIMING.md`.*
@@ -109,9 +109,17 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    48.425 → 48.475 s, Coma 52.025 → 52.075 s: renewed strikes inside contact, whose effects now start 50 ms later).
 2. **Beats recorded** (compiler only, on `visual-lab` like the rest; merged into foundations later): additive. Proof: parity unchanged; on
    saved rides, beats equal the spec at its recorded hash (a test oracle, not a runtime path). The lab's rides are left as they
-   are, so nothing is aligned yet.
-3. **Alignment together with the effects round**: turning the offset on while effects stay at `touch` would put the flash and
-   split about 20 ms ahead of the sound, so the offset and the effect anchor are decided in the same round, by eye, on whole films.
+   are, so none of them is aligned yet.
+   **Done (8 November):** `authoredBeats` in `music_artifacts.ts`; `saveMusicCell` records `beats` beside `impactEvaluation` and
+   checks one per target. Parity and judge parity unchanged. A test runs every spec and variant (85): beats are the spec's own
+   times, the same at any jolt, and target i of the compiled case is contact i shifted. The smoke check's ride records them.
+   All 8 lab rides, recompiled into scratch at the same jolt, have identical tracks and records but for `beats`, and are aligned:
+   offsets 24.3 to 33.4 ms. Every ride compiled from now on records beats, so it is aligned wherever it is drawn (the review
+   player, `npm run video`); saved rides and studies (bare tracks) are not.
+3. **Alignment together with the effects round**: turning the offset on while effects stay at `touch` puts the flash and split
+   31 to 41 ms ahead of the authored beat on the 8 lab rides (each ride's mean touch-to-peak gap), and about 20 ms ahead of the
+   sound's attack (which sits 7.5 ms before the touch at offset 0; the offsets average 29 ms), so the offset and the effect
+   anchor are decided in the same round, by eye, on whole films.
    The round begins by recompiling the lab's rides at the same jolt: identical tracks, now with beats, so aligned. The lab
    shows each ride both ways, the saved one (as compiled, as the owner knows it) and the recompiled one: the same ride, only the
    timing differs. (The no-mixing rule is for blind studies, not for this deliberate comparison.)

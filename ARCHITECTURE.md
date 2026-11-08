@@ -243,8 +243,11 @@ and validation are in [music authoring](docs/music-authoring.md).
      r = f / 40), with r = s + offset. Nothing else converts between them. A ride's
      offset is the mean over its matched hits of (strongest frame − authored beat);
      a ride is *aligned* when its record has beats, a matched hit and an offset in
-     [0, 0.5 s], otherwise shown *as compiled* (offset 0, the reason saved). Rides
-     record no beats yet, so every ride is as compiled.
+     [0, 0.5 s], otherwise shown *as compiled* (offset 0, the reason saved). The
+     beats are the spec's contact times as authored (`authoredBeats` in
+     `scripts/produce/music_artifacts.ts`, which rejects contacts that are not
+     strictly increasing); a ride records them beside its impact account, outside
+     every identity. Rides saved before 8 November have none and stay as compiled.
    - `scene.ts` builds what every consumer reads: the ride (its track, and for a
      compiled production its trace), its impact account projected as recorded, in
      physics frames (targets with their beats when recorded; events with touch,

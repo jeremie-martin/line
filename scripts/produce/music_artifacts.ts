@@ -4,6 +4,7 @@ import {mkdirSync,readFileSync} from 'node:fs';
 import {join,relative,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {sha,type Case} from '../lib/case.ts';
+import type {Spec} from '../v0/types.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {sliceTimeline,effectiveAxes,axesAtFrame} from '../v0/core/substrate.ts';
 import {extractTrace} from '../v0/core/trace.ts';
@@ -18,11 +19,21 @@ import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
-/** Everything a compile and its judgment need. Reads no audio. */
+/** The authored beats: each contact's time in seconds, exactly as the spec gives it, before the jolt, any perturbation or
+ * rounding (generated/concept-lab/docs/TIMING-DESIGN.md). The contacts must be strictly increasing, and are never sorted, so
+ * beat i belongs to target i of every compiled case and impact account made from this spec. */
+export function authoredBeats(spec:Spec,source:string):number[]{
+  spec.contacts.forEach((c,i)=>assert.ok(i===0||c.t>spec.contacts[i-1].t,
+    `${source}: contact ${i} at ${c.t} s is not after contact ${i-1} at ${spec.contacts[i-1]?.t} s; authored contacts must be strictly increasing`));
+  return spec.contacts.map(c=>c.t);
+}
+/** Everything a compile and its judgment need, and the authored beats a saved ride records beside its impact account (they
+ * enter no identity: the case, its hashes and the compile are the same with or without them). Reads no audio. */
 export async function loadMusicSpec(definition:any,jolt:number){
   const cfg=loadSelect(join('productions',definition.song));
   if(definition.variant)cfg.spec=resolve('productions',definition.song,'variants',`${definition.variant}.ts`);
   const module=await import(pathToFileURL(cfg.spec).href);
+  const beats=authoredBeats(module.default,relative(process.cwd(),cfg.spec));
   const spec=normalizeCompilerTimeline(applyJolt(module.default,jolt));
   const durationFrames=Math.round(spec.duration*40),contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
   const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);
@@ -30,22 +41,24 @@ export async function loadMusicSpec(definition:any,jolt:number){
   assert.ok(air.every(a=>Number.isFinite(a.target)),'music review requires authored air throughout');
   const samples=Object.fromEntries((['speed','amplitude'] as const).filter(a=>spec.axes[a]).map(a=>[a,
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
-  return {spec,cfg,bench:module.bench,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
+  return {spec,cfg,bench:module.bench,beats,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
 }
 export async function loadMusicCase(definition:any,jolt:number){
-  const {spec,cfg,musicCase}=await loadMusicSpec(definition,jolt),hash=(p:string)=>sha(readFileSync(p));
-  return {spec,cfg,musicCase:{...musicCase,source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),
+  const {spec,cfg,beats,musicCase}=await loadMusicSpec(definition,jolt),hash=(p:string)=>sha(readFileSync(p));
+  return {spec,cfg,beats,musicCase:{...musicCase,source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),
     audioSha256:hash(cfg.audio),analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render}};
 }
-/** Keep the established cell/manifest contract shared by both native and production renderers. */
-export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:string;seed:number;budget:number;allowance:number;
+/** Keep the established cell/manifest contract shared by both native and production renderers. `beats` are the case's authored
+ * beats (loadMusicSpec), saved beside the impact account, one per target. */
+export function saveMusicCell(args:{out:string;planSha256:string;c:any;beats:number[];method:string;seed:number;budget:number;allowance:number;
  result:any;reference:any;referenceTrace:any;compileMs:number;physicalFrames:number;composition?:any;production?:any;work?:any;
  styles?:any;phrases?:any[];geometry?:string;geometryStyle?:any;subdivisions?:number;faces?:number;profile?:string;strength?:number}){
- const {out,planSha256,c,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,work,
+ const {out,planSha256,c,beats,method,seed,budget,allowance,result,reference,referenceTrace,compileMs,physicalFrames,composition,production,work,
  styles={},phrases=[],geometry,geometryStyle={},subdivisions,faces,profile,strength}=args;
     const validationStarted=performance.now();
     const {grade:historicalGrade,trace,collisionIds,impactEvaluation}=replayGalleryTrack(result.track,c as unknown as Case,true);
     assert.deepEqual(impactEvaluation,result.impactEvaluation,'independent impact account differs');
+    assert.equal(beats.length,impactEvaluation.targets.length,'one authored beat per impact target');
     const grade=contactImpactGrade(historicalGrade,impactEvaluation);
     const fragmentSections:number[]=production?.fragmentSections??composition?.fragmentSections??[],railLayout=fragmentSections.length?'mixed':'connected';
     const railGuides=production?.railGuides??composition?.railGuides;
@@ -95,7 +108,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;method:st
       failure:result.failure,refinement:result.refinementStats,opposingEntryWork:result.opposingEntryWork,styles,fragmentSections,compositionStages:composition?.attempts,fragmentConstruction:composition?.fragmentConstruction,...(composition?{boundaryFrame:composition.boundaryFrame,prefixSha256:composition.prefixSha256,stateSha256:composition.stateSha256}:{})});
     save('work.json',work??{schema:'line.compile-work.v1',allowance,physicalFrames,exhausted:false,stages:[]});
     const cell={id,caseId:c.id,method,railLayout,railGuides,seed,budget,allowance,score:grade.score,
-      impactContract:impactEvaluation.contract,impactEvaluation,historicalGrade,
+      impactContract:impactEvaluation.contract,impactEvaluation,beats,historicalGrade,
       compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,

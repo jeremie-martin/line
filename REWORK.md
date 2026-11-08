@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: rides record their authored beats (timing stage 2 of 4; branch `visual-lab`)
+
+`loadMusicSpec` takes the beats from the spec as authored, before the jolt, and
+rejects contacts that are not strictly increasing (all 85 specs and variants
+already are), so beat i is target i everywhere; `saveMusicCell` saves them
+beside the impact account. They enter no identity: parity and judge parity are
+unchanged. The 8 lab rides recompile to identical tracks and are aligned at
+24.3 to 33.4 ms; the lab keeps its saved rides (as compiled) until stage 3.
+
 ## November 8: timing, two clocks (stage 1 of 4; branch `visual-lab`)
 
 Hit effects, the intensity metric, seek bounds, study clips and the review

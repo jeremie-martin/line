@@ -67,8 +67,9 @@ study and the blind passages (`?feel=1`).
 songs; `attack.py` places the attack against touch, onset and strongest frame on the current rides (`docs/IMPACT-TIMING.md`).
 The design that follows (`docs/TIMING-DESIGN.md`): two clocks, song and ride, one relation r = s + offset
 (`scripts/video/timing.js`), a per-ride offset from strongest frames against authored beats, and `effectsAt` choosing what
-every hit-triggered effect follows. Stage 1 is in: every ride is shown as compiled (offset 0) until rides record beats. The
-compiler's −15 ms jolt (`scripts/produce/jolt.ts`) is unchanged; jolt 0 is stage 4.
+every hit-triggered effect follows. Stages 1 and 2 are in: rides compiled from now on record their beats and are aligned; the
+lab's rides predate that and are shown as compiled (offset 0) until stage 3 recompiles them. The compiler's −15 ms jolt
+(`scripts/produce/jolt.ts`) is unchanged; jolt 0 is stage 4.
 
 ## Inking
 

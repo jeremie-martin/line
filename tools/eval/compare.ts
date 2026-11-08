@@ -405,7 +405,8 @@ async function rides() {
       assert.equal(shown.trackHash, cell.trackHash, `${out} does not show the saved ride; remove it and export again`);
     } else {
       mkdirSync(out, {recursive: true});
-      const {musicCase} = await loadMusicCase({song: c.song, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`, moments: [], ...(c.variant ? {variant: c.variant} : {})}, arm.jolt);
+      // A perturbed cell keeps the authored beats: perturbation tests robustness, the musical moment does not move.
+      const {musicCase, beats} = await loadMusicCase({song: c.song, title: `${c.song}${c.variant ? ` · ${c.variant}` : ''}`, moments: [], ...(c.variant ? {variant: c.variant} : {})}, arm.jolt);
       for (const key of ['specSha256', 'audioSha256', 'analysisSha256'] as const) assert.equal(musicCase[key], c.input[key], `${id}: ${key} changed since the ride was compared`);
       const plan = {schema: 'line.automatic-production.v1', kind: 'musical-direction', source: 'npm run compare (saved benchmark ride)',
         compiler: {contentKey: arm.content.key, commit: arm.content.clean ? arm.content.head : null, arm: arm.key}, judge: judgeIdentity(),
@@ -417,7 +418,7 @@ async function rides() {
         const requests = production.plan.requests.slice(p.first, p.first + p.count);
         return {...p, title: p.construction, window: [requests[0].frame / 40, Math.min(musicCase.durationFrames / 40, requests.at(-1)!.next / 40)], sections: requests.map((r: any) => r.section)};
       });
-      const saved = saveMusicCell({out, planSha256, c: musicCase, method: 'production', seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
+      const saved = saveMusicCell({out, planSha256, c: musicCase, beats, method: 'production', seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
         result: gallery.result, reference: null, referenceTrace: null, compileMs: gallery.compileMs, physicalFrames: gallery.physicalFrames,
         production, styles: production.styles, phrases, work: gallery.work});
       assert.equal(saved.cell.trackHash, digest(readArmTrack(arm, id)), `${side} ${id}: the exported track is not the compared one`);

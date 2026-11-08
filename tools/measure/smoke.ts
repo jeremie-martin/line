@@ -4,16 +4,17 @@
  *   npm run check:smoke
  *
  * Times a small paired comparison against HEAD with perf:engine, compiles one ride
- * with the production command, and opens it in real Chromium: a deep link must land
- * on its time, and no page may fail. Needs local song audio and a Chromium; set
+ * with the production command (its record must carry the spec's authored beats), and
+ * opens it in real Chromium: a deep link must land on its time, and no page may fail. Needs local song audio and a Chromium; set
  * PLAYWRIGHT_CHROMIUM_EXECUTABLE to use one Playwright did not install. */
 import assert from 'node:assert/strict';
 import {execFileSync, spawn} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
+import {sha} from '../../scripts/lib/case.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url)), out = join(root, 'generated/smoke'), BUDGET = 150000;
 const timing = join(root, 'generated/engine-ab/smoke'), CELL = `canonical-music_luna_bala_44s-automatic#101@${BUDGET}`, PORT = 8791, base = `http://127.0.0.1:${PORT}`;
@@ -34,6 +35,15 @@ function timingWorkflow() {
   const result = JSON.parse(readFileSync(join(timing, 'result.json'), 'utf8'));
   assert.equal(result.complete, true, 'timing comparison did not complete');
   assert.equal(result.samples.length, 16, 'timing comparison lost samples');
+}
+
+/** The ride records its authored beats: the spec's own contact times, at the hash it was compiled from. */
+async function recordedBeats() {
+  const dir = join(out, 'ride'), record = JSON.parse(readFileSync(join(dir, readdirSync(dir).find(f => f.endsWith('-production.json'))!), 'utf8'));
+  const spec = join(root, record.case.source);
+  assert.equal(sha(readFileSync(spec)), record.case.specSha256, 'the spec changed since the ride was compiled');
+  const authored = (await import(pathToFileURL(spec).href)).default as {contacts: {t: number}[]};
+  assert.deepEqual(record.beats, authored.contacts.map(c => c.t), 'the ride did not record its authored beats');
 }
 
 async function pages() {
@@ -76,5 +86,6 @@ assert(existsSync(join(root, 'productions/luna_bala_44s/audio.mp3')), 'smoke che
 timingWorkflow();
 run('scripts/gallery/build_renderer.mjs');
 run('scripts/produce/automatic.ts', '--song=luna_bala_44s', '--seed=101', `--budget=${BUDGET}`, `--out=${join(out, 'ride')}`);
+await recordedBeats();
 await pages();
 console.log('PASS  smoke: timing comparison, production compile, review pages');

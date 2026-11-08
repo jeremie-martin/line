@@ -30,7 +30,7 @@ const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts'
  'scripts/v0/optimizer/arc_geometry.ts','scripts/v0/optimizer/motion_profiles.ts','scripts/v0/optimizer/geometry_families.ts',
  'scripts/v0/optimizer/arc_motion_control.ts'];
 const harness=galleryHarnessIdentity(paths);
-const [{compileHandoff},{spec,musicCase:c}]=await Promise.all([
+const [{compileHandoff},{spec,musicCase:c,beats}]=await Promise.all([
  import(pathToFileURL(join(compilerRoot,'scripts/v0/optimizer/handoff.ts')).href) as Promise<typeof import('../v0/optimizer/handoff.ts')>,
  loadMusicCase({song,variant,title,excerpt:[0,Math.min(16,repertoireSongs.find(s=>s.id===song)!.duration)],intent:'Seeded whole-track arrangement',moments:[]},jolt),
 ]);
@@ -43,7 +43,7 @@ const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,
  window:[requests[0].frame/40,Math.min(spec.duration,requests.at(-1)!.next/40)],sections:requests.map(r=>r.section)};});
-const alternative=saveMusicCell({out,planSha256,c,method:'production',seed,budget,allowance:budget,result,reference:null,referenceTrace:null,
+const alternative=saveMusicCell({out,planSha256,c,beats,method:'production',seed,budget,allowance:budget,result,reference:null,referenceTrace:null,
  compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,work:checkpoint.work});
 assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during generation');assert.deepEqual(judgeIdentity(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
 const current=await loadMusicCase({song,variant,title,moments:[]},jolt);for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');

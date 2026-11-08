@@ -25,6 +25,36 @@
 - **Offline, alongside:** which of the 57 situation features predict the
   committed controls, and how much of the controls' spread a handful of
   prototypes per construction group covers.
+- **Offline result** (5 contiguous folds, so one ride's catches do not leak;
+  six main controls, standardized; the six groups with ≥ 5,000
+  demonstrations):
+  - The controls are only about half predictable from the situation: trees
+    on all 57 features explain 0.40–0.56 of their spread (entry, exit and
+    support 0.4–0.75; bias and offset 0.1–0.3). A linear fit explains
+    0.27–0.44.
+  - The 12 most important features give nearly all of it (0.39–0.52). They
+    are what is asked next (impact, air and duration of the next two catches)
+    and the body's vertical velocities (which restate the arrival velocity).
+    Body positions and most of the 40 body numbers add little.
+  - Without any situation, 16 prototypes per group cover 0.70 of the spread
+    and 64 cover 0.84.
+- **Benchmark, first round in:** no archive −69.9 after 3 of 4 rounds,
+  every spec down. The archive carries a large part of the compiler's
+  quality. Body drag halves without it (2.2 against 4.2 s/min): the
+  demonstrations are also where today's drag comes from.
+- **Next: representative demonstrations** (V7.1, 4 seeds, against main).
+  Each group's demonstrations are clustered in the joint space of situation
+  (weighted as the memory distance weighs it) and control. The real
+  demonstration nearest each centre is kept, at 4 significant digits, and
+  the proximity trees are retrained on what is kept. Both lookups run as
+  today.
+  - **64 per group:** 493 demonstrations, 147 KB (0.6% of the rows).
+  - **16 per group:** 157 demonstrations, 43 KB.
+  - **Hypothesis.** The archive's worth is "the right region of control
+    space for this situation", not the density of 80k rows. Then 64 per group
+    keeps most of the 70 points (within −10) and 16 per group keeps more than
+    half. A steep loss at 64 would mean precise local neighbours matter, and
+    a compact replacement has to interpolate rather than retrieve.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

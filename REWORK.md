@@ -201,6 +201,32 @@
   are physically fine; what they lack is quality among the viable ones, or
   the fit with the rest of a compiler co-adapted with the archive (the
   learned estimate and the priors were all tuned with it in place).
+- **Where the archive enters.** One place: the starting pool of each
+  catch after the first (`proposeInitialControls`), through its two lookups.
+  Local search, ranking, the learned estimate and the priors never read it.
+  The memory's within-compile learning (this ride's own commits and
+  responses) is separate and needs no archive.
+- **Does it make the compiler repeat itself?** (report only)
+  - *Near-copies.* For committed controls on the training songs, take the
+    16 demonstrations nearest in situation and find the closest control
+    (standardized six main controls):
+    - archive compiler (`collect-policies-today`): median 0.58; 5% within
+      0.10, 14% within 0.25, 41% within 0.5;
+    - compact-network compiler (`collect-network`, 355 compiles so far):
+      median 1.07; 0%, 1%, 8%.
+    - Random demonstrations: median 1.5.
+    - Caveat: the archive holds the previous compiler's commits on these
+      same training songs, so part of this is the compiler re-committing
+      what it did there last round.
+  - *Seed-to-seed variety.* Airtime differs between random starts by 0.032
+    per gap with the archive, 0.045 without it, and 0.035–0.037 with the
+    compact sources.
+  - *Habits are reinforced.* Body drag is 4.16 s/min with the archive and
+    2.14 without; it rose 14% at the last retrain. Demonstrations are only
+    the compiler's own commits, so each retrain teaches the compiler what it
+    already does, good habits and incidental ones alike.
+  - *Novelty starts behind.* A new construction has no demonstrations until
+    it is used, and competes with 80k proven ones.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

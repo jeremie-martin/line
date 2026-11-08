@@ -32,6 +32,7 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 - Three colours: the idea is liked, its colours are not yet.
 
 ### Top of the frame
+- **The band is never absent:** every theme shows the music (owner, 8 November: a theme with no music visualisation "is not acceptable"); `band: none` is for the plain review look only.
 - **The title:** the song's name in the line's colour, two lines at most, "maybe not all the time". It suits quiet papers (Paper, Prussian, Plum, Old Rose). **A minority of themes only** (owner, 8 November: "I like it, but don't love it… it should be a minority"): a new theme gets a title only when the title is its idea; otherwise a sun or nothing.
 - **The sun:** a bold disc that balances the frame (Dune: "so inspired"). It takes the palette's sun colour or its accent. With a sun, the rider sits 32 px lower and the sun 16 px higher (round 21; `sunRider`, `sunLift`).
 - One top element at a time.

@@ -374,13 +374,14 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
         ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x, base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x, base + 4, bw, Math.min(h * 0.62, room));
       });
     } else if (look.band === 'iris') {
-      const base = 0.82 * H, hgt = 0.14 * H;
+      // bold strands for a phone, where thin ones fade (phone review, 8 November): main line 3.8 → 7 px, echoes 2.6 → 4.5 px
+      const base = 0.82 * H, hgt = 0.14 * H, weight = look.irisWeight === 'bold' ? 1.8 : 1;
       const contour = (vals, dy) => {const pts = vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - v * hgt * 0.72 + dy})); ctx.beginPath(); smoothPath(pts);};
       [.06, .12, .18, .24, .3, .36, .42].map((age, i) => ({age, i})).reverse().forEach(({age, i}) => {
         if (t < age) return; contour(spectrumRow(t - age), hgt * .04 * (i + 1));
-        ctx.strokeStyle = lit('#8f86c9'); ctx.lineWidth = 2.6; ctx.globalAlpha = alpha * (.42 - i * .032); ctx.stroke();
+        ctx.strokeStyle = lit('#8f86c9'); ctx.lineWidth = 2.6 * weight; ctx.globalAlpha = alpha * (.42 - i * .032); ctx.stroke();
       });
-      contour(row, 0); ctx.strokeStyle = lit('#2f3a74'); ctx.lineWidth = 3.8; ctx.globalAlpha = alpha * .92; ctx.stroke();
+      contour(row, 0); ctx.strokeStyle = lit('#2f3a74'); ctx.lineWidth = 3.8 * weight; ctx.globalAlpha = alpha * .92; ctx.stroke();
     }
     ctx.globalAlpha = 1;
     ctx.restore();

@@ -18,6 +18,7 @@ export const OPTIONS = {
   drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
+  irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing'}],
 };
 
@@ -36,7 +37,7 @@ export const V1 = {
   riderLower: '0', sunRider: '32', sunLift: '16',
   // hits: each on its own, driven by what the ride did, from its strongest frame (R23): the split and the colour boost, and a shake
   // on strong hits only; no camera motion otherwise (R26; picture.js has the curves)
-  hits: 'v1',
+  hits: 'v1', irisWeight: 'thin',
 };
 
 /** The golden set's first themes (round 20): each chooses a palette, band, top element, line and drop so that they belong together. */

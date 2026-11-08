@@ -5,6 +5,7 @@ import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {OPTIONS, V1, resolveLook} from '/scripts/video/look.js';
+import {SCHEMES, DROP_SCHEMES} from '/scripts/video/palettes.js';
 import {PRESETS} from './presets.js';
 import {SONGS, rideSet} from './rides.js';
 
@@ -40,8 +41,29 @@ const TEST_QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-// Round 27 (themes) is asked on phone pages of stills instead: theme-ratings.html and theme-fixes.html.
-const QUESTIONS = [];
+// A round of theme candidates (candidates.json): their schemes join the palettes in this page's memory only, so versions not yet in
+// the code can be compared live. Round 28: sixteen drafts, each as drafted, matched to Wada and tuned; a grade per version.
+const CANDIDATES = await fetch('./candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
+if (CANDIDATES) {Object.assign(SCHEMES, CANDIDATES.schemes); Object.assign(DROP_SCHEMES, CANDIDATES.drops);}
+const DRAFT_MOMENTS = [['Verse, 18 s', 18], ['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Later, 59.5 s', 59.5]];
+const QUESTIONS = (CANDIDATES?.drafts ?? []).map(d => ({id: d.id, ask: d.name, grades: true, multi: true,
+  why: `${d.source}. ${d.line} Each version: ${d.variants.map((v, i) => `${String.fromCharCode(65 + i)} ${v.label}`).join(', ')}. Grade any version out of 10; keep any number.`,
+  song: 'circus', t: 18, len: 6, opts: d.variants.map(v => [v.label, {...v.look, ends: 'none'}, v.note]), moments: DRAFT_MOMENTS}));
+// then the five small choices from the theme reviews (the alternatives are exact copies in palettes.js, deleted once answered)
+const fix = (id, choices = {}) => ({...resolveLook(id), ends: 'none', ...choices});
+const DROP_FIX_MOMENTS = [['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Petrunko, into the drop', 21, 'petrunko'], ['Verse, 18 s', 18]];
+if (CANDIDATES) QUESTIONS.push(
+  {id: 'auberginedrop', ask: 'Aubergine’s drop', grades: true, why: 'At the drop Aubergine hands over to a dark partner and carries its carmine accent onto it; today the partner’s bars are carmine too, so the loudest bars vanish for the whole drop. Varies: only the partner’s bars.',
+    song: 'circus', t: 36.5, len: 6, opts: [['As now', fix('aubergine'), 'Carmine bars.'], ['Lavender bars', fix('aubergine', {scheme: 'w2AubergineToLavender'}), 'Wada 307’s own lavender.'], ['Aconite bars', fix('aubergine', {scheme: 'w2AubergineToAconite'}), 'Dark aconite, quieter.']], moments: DROP_FIX_MOMENTS},
+  {id: 'dunedrop', ask: 'Dune’s drop', grades: true, why: 'Dune cuts to coffee at the drop, carrying its amber accent; on Espresso’s latte bars the amber is weak, Café was built for it. Varies: only the partner.',
+    song: 'circus', t: 36.5, len: 6, opts: [['Espresso, as now', fix('dune'), 'Latte bars.'], ['Café', fix('dune', {scheme: 'duneToCafe'}), 'Darker latte bars.']], moments: DROP_FIX_MOMENTS},
+  {id: 'seashelldrop', ask: 'Seashell at the drop', grades: true, why: 'Seashell Night goes to navy Night at the drop; the art director would keep its shell and blue through the drop. Varies: only the drop.',
+    song: 'circus', t: 36.5, len: 6, opts: [['Night, as now', fix('seashell'), 'Navy Night.'], ['No Night', fix('seashell', {drop: 'off'}), 'Shell and blue throughout.']], moments: DROP_FIX_MOMENTS},
+  {id: 'iris', ask: 'Black Iris’s strands', grades: true, why: 'On a phone the Iris band is the faintest of the set, on the theme whose idea it is. Bolder strands? Varies: only the strands’ weight.',
+    song: 'circus', t: 18, len: 6, opts: [['Thin, as now', fix('black'), 'Main line 3.8 px.'], ['Bold', fix('black', {irisWeight: 'bold'}), 'Main line 7 px, echoes 4.5 px.']], moments: [['Verse, 18 s', 18], ['Later, 59.5 s', 59.5], ['Lavender Dusk (Iris on light)', 18, 'circus', {scheme: 'lavender', top: 'sun'}]]},
+  {id: 'ultramarine', ask: 'Ultramarine’s bars', grades: true, why: 'Its bars are the faintest against their paper in the set (3.4:1); the same blue, brighter (4.4:1)? Varies: only the bars’ colour.',
+    song: 'circus', t: 18, len: 6, opts: [['As now', fix('ultramarine'), 'Bars #006eb8.'], ['Brighter', fix('ultramarine', {scheme: 'wUltramarineBright'}), 'Bars #2380cc.']], moments: [['Verse, 18 s', 18], ['Later, 59.5 s', 59.5], ['Petrunko 34 s', 33.5, 'petrunko']]},
+);
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
 for (const Q of QUESTIONS) for (const o of Q.opts) o[1] = resolveLook(null, o[1]);
@@ -69,7 +91,7 @@ let navId = 0, qmoment = null, loopHome = null;
 // the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
 let exaggerate = 1;
 function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r27';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r28';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -245,13 +267,21 @@ function renderQuestion() {
   const none = () => {a.none = !a.none; a.picks = []; saveAnswers(); renderQuestion();};
   $('qpick').replaceChildren(...(done ? [] : [...Q.opts.map(([label], i) => chip(LETTERS[i], !a.none && a.picks.includes(label), () => toggle(label), 'opt')),
     chip('None of these', a.none, none, 'opt')]));
+  // an optional grade out of 10 for the version on screen
+  $('qgraderow').hidden = done || !Q.grades;
+  if (!done && Q.grades) {
+    const label = Q.opts[qopt][0], grades = a.grades ??= {};
+    $('qgradelabel').textContent = `Grade ${LETTERS[qopt]}`;
+    $('qgrade').replaceChildren(...Array.from({length: 10}, (_, g) => chip(String(g + 1), grades[label] === g + 1, () => {grades[label] === g + 1 ? delete grades[label] : grades[label] = g + 1; saveAnswers(); renderQuestion();}, 'opt')));
+  }
   $('qnote').rows = Q?.open ? 7 : 2; $('qpicklabel').textContent = Q?.multi ? 'Keep (any number)' : 'My pick';
   $('qnote').hidden = done; $('qnote').value = a?.note ?? ''; $('qnote').oninput = () => {a.note = $('qnote').value; saveAnswers();};
   $('qprev').disabled = qi === 0; $('qnext').textContent = done ? 'Start again' : qi === QUESTIONS.length - 1 ? 'Finish' : 'Next question';
   $('qnext').className = done ? 'tool' : 'play'; $('qcopy').className = done ? 'play' : 'tool';
   $('qsummary').hidden = !done;
   // the summary names each pick by letter AND label, and 'None of these' in words, so 'D · None' and 'None of these' never read alike
-  if (done) $('qsummary').value = QUESTIONS.map((Q, i) => {const a = answerOf(Q); return Q.open ? `${i + 1}. ${Q.ask}: ${a.note || '(skipped)'}` : `${i + 1}. ${Q.ask} → ${pickText(Q, a) || '(skipped)'}${a.note ? ` — ${a.note}` : ''}`;}).join('\n');
+  const gradeText = (Q, a) => Q.grades && a.grades && Object.keys(a.grades).length ? ` · grades ${Q.opts.map(([l], i) => a.grades[l] ? `${LETTERS[i]} ${a.grades[l]}` : null).filter(Boolean).join(', ')}` : '';
+  if (done) $('qsummary').value = QUESTIONS.map((Q, i) => {const a = answerOf(Q); return Q.open ? `${i + 1}. ${Q.ask}: ${a.note || '(skipped)'}` : `${i + 1}. ${Q.ask} → ${pickText(Q, a) || '(skipped)'}${gradeText(Q, a)}${a.note ? ` — ${a.note}` : ''}`;}).join('\n');
   $('qcopy').hidden = !done;
   sync();
 }

@@ -104,3 +104,4 @@ body.qmode .qprogress {white-space: nowrap; overflow: hidden; text-overflow: ell
 .exag{display:grid;gap:2px;margin:6px 0 2px}.exag label{font-size:13px;color:var(--soft)}.exag output{color:var(--ink);font-weight:600}
 .exag input{width:100%;accent-color:var(--ink)}.exag small{font-size:12px;color:var(--soft);line-height:1.35}
 body.feelmode .exag{display:none !important}
+.qgrade .opt{min-width:34px;text-align:center}

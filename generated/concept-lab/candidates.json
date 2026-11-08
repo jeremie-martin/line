@@ -1,0 +1,1272 @@
+{
+ "round": 28,
+ "about": "Round 28 candidates: schemes added to the palettes in the lab page's memory only (lab.js); none is in the code yet.",
+ "schemes": {
+  "lemonBlue_asis": {
+   "paper": "#f1ef83",
+   "ink": "#171c2c",
+   "pencil": "#9d9b63",
+   "mass": "#204db8",
+   "accent": "#a51c58",
+   "sun": "#204db8",
+   "nightPaper": "#171c2c",
+   "nightInk": "#f1ef83",
+   "tone": "#edea7c"
+  },
+  "lemonBlue_wada": {
+   "paper": "#ededde",
+   "ink": "#171c2c",
+   "pencil": "#9d9b63",
+   "mass": "#16485a",
+   "accent": "#b32f4e",
+   "sun": "#1a7444",
+   "nightPaper": "#171c2c",
+   "nightInk": "#f1ef83",
+   "tone": "#edea7c"
+  },
+  "lemonBlue_tuned": {
+   "paper": "#e9eadb",
+   "ink": "#171c2c",
+   "pencil": "#9d9b63",
+   "mass": "#204db8",
+   "accent": "#ce477a",
+   "sun": "#204db8",
+   "nightPaper": "#171c2c",
+   "nightInk": "#f1ef83",
+   "tone": "#edea7c"
+  },
+  "coralPetrol_asis": {
+   "paper": "#e4a394",
+   "ink": "#202b2c",
+   "pencil": "#a16962",
+   "mass": "#135c61",
+   "accent": "#7b234a",
+   "sun": "#a52848",
+   "nightPaper": "#202b2c",
+   "nightInk": "#f9e4d7",
+   "tone": "#dfa397"
+  },
+  "coralPetrol_wada": {
+   "paper": "#f58e84",
+   "ink": "#202b2c",
+   "pencil": "#a16962",
+   "mass": "#00392b",
+   "accent": "#4c5948",
+   "sun": "#cb2f43",
+   "nightPaper": "#202b2c",
+   "nightInk": "#f9e4d7",
+   "tone": "#dfa397"
+  },
+  "coralPetrol_tuned": {
+   "paper": "#e4a394",
+   "ink": "#202b2c",
+   "pencil": "#a16962",
+   "mass": "#003843",
+   "accent": "#8a3157",
+   "sun": "#a52848",
+   "nightPaper": "#202b2c",
+   "nightInk": "#f9e4d7",
+   "tone": "#dfa397"
+  },
+  "whiteRed_asis": {
+   "paper": "#faf9f5",
+   "ink": "#25201e",
+   "pencil": "#ada7a1",
+   "mass": "#ba351f",
+   "accent": "#de4b2f",
+   "sun": "#de4b2f",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#f4eee7"
+  },
+  "whiteRed_asisDrop": {
+   "paper": "#142a60",
+   "ink": "#fff3e7",
+   "pencil": "#7e91b5",
+   "mass": "#e6bba4",
+   "accent": "#de4b2f",
+   "sun": "#de4b2f",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#192f64"
+  },
+  "whiteRed_wada": {
+   "paper": "#c7d7d0",
+   "ink": "#25201e",
+   "pencil": "#ada7a1",
+   "mass": "#761e00",
+   "accent": "#f15a30",
+   "sun": "#f15a30",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#f4eee7"
+  },
+  "whiteRed_wadaDrop": {
+   "paper": "#1f3445",
+   "ink": "#fff3e7",
+   "pencil": "#5c6873",
+   "mass": "#eea78c",
+   "accent": "#bb7125",
+   "sun": "#bb7125",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#192f64"
+  },
+  "whiteRed_tuned": {
+   "paper": "#faf9f5",
+   "ink": "#25201e",
+   "pencil": "#ada7a1",
+   "mass": "#ba351f",
+   "accent": "#f15d41",
+   "sun": "#de4b2f",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#f4eee7"
+  },
+  "whiteRed_tunedDrop": {
+   "paper": "#242e43",
+   "ink": "#fff3e7",
+   "pencil": "#5e6471",
+   "mass": "#f1b797",
+   "accent": "#de4b2f",
+   "sun": "#de4b2f",
+   "nightPaper": "#142a60",
+   "nightInk": "#fff3e7",
+   "tone": "#192f64"
+  },
+  "silverRust_asis": {
+   "paper": "#d6dcda",
+   "ink": "#1b2525",
+   "pencil": "#8a9995",
+   "mass": "#58726a",
+   "accent": "#b5472d",
+   "sun": "#b5472d",
+   "nightPaper": "#1b2525",
+   "nightInk": "#eef4f0",
+   "tone": "#cbd8d2"
+  },
+  "silverRust_wada": {
+   "paper": "#dfd5c0",
+   "ink": "#1b2525",
+   "pencil": "#8a9995",
+   "mass": "#675928",
+   "accent": "#c26438",
+   "sun": "#ae5224",
+   "nightPaper": "#1b2525",
+   "nightInk": "#eef4f0",
+   "tone": "#cbd8d2"
+  },
+  "silverRust_tuned": {
+   "paper": "#d6dcda",
+   "ink": "#1b2525",
+   "pencil": "#8a9995",
+   "mass": "#2a5046",
+   "accent": "#b5472d",
+   "sun": "#b5472d",
+   "nightPaper": "#1b2525",
+   "nightInk": "#eef4f0",
+   "tone": "#cbd8d2"
+  },
+  "violetCitron_asis": {
+   "paper": "#a7a0cf",
+   "ink": "#17152c",
+   "pencil": "#70678e",
+   "mass": "#33266c",
+   "accent": "#f4f18e",
+   "sun": "#f4f18e",
+   "nightPaper": "#211a3c",
+   "nightInk": "#f5f1dc",
+   "tone": "#a09ac8"
+  },
+  "violetCitron_wada": {
+   "paper": "#97acc8",
+   "ink": "#17152c",
+   "pencil": "#70678e",
+   "mass": "#113705",
+   "accent": "#f5ecc2",
+   "sun": "#f5ecc2",
+   "nightPaper": "#211a3c",
+   "nightInk": "#f5f1dc",
+   "tone": "#a09ac8"
+  },
+  "violetCitron_tuned": {
+   "paper": "#a7a0cf",
+   "ink": "#17152c",
+   "pencil": "#70678e",
+   "mass": "#33266c",
+   "accent": "#f4f18e",
+   "sun": "#f4f18e",
+   "nightPaper": "#211a3c",
+   "nightInk": "#f5f1dc",
+   "tone": "#a09ac8"
+  },
+  "blueRose_asis": {
+   "paper": "#102e3a",
+   "ink": "#f6f0db",
+   "pencil": "#65828b",
+   "mass": "#e99aa6",
+   "accent": "#c0ed62",
+   "sun": "#c0ed62",
+   "nightPaper": "#102e3a",
+   "nightInk": "#f6f0db",
+   "tone": "#153744"
+  },
+  "blueRose_wada": {
+   "paper": "#112f2c",
+   "ink": "#f6f0db",
+   "pencil": "#65828b",
+   "mass": "#f48067",
+   "accent": "#fbe6a0",
+   "sun": "#fbe6a0",
+   "nightPaper": "#102e3a",
+   "nightInk": "#f6f0db",
+   "tone": "#153744"
+  },
+  "blueRose_tuned": {
+   "paper": "#122e39",
+   "ink": "#f6f0db",
+   "pencil": "#65828b",
+   "mass": "#e99aa6",
+   "accent": "#c7f469",
+   "sun": "#c0ed62",
+   "nightPaper": "#102e3a",
+   "nightInk": "#f6f0db",
+   "tone": "#153744"
+  },
+  "brownIce_asis": {
+   "paper": "#382c26",
+   "ink": "#edf6ff",
+   "pencil": "#918076",
+   "mass": "#91c8e5",
+   "accent": "#f4a035",
+   "sun": "#f4a035",
+   "nightPaper": "#231c18",
+   "nightInk": "#edf6ff",
+   "tone": "#3d3029"
+  },
+  "brownIce_wada": {
+   "paper": "#253122",
+   "ink": "#edf6ff",
+   "pencil": "#5b665d",
+   "mass": "#86cad8",
+   "accent": "#ffd68b",
+   "sun": "#f3a257",
+   "nightPaper": "#231c18",
+   "nightInk": "#edf6ff",
+   "tone": "#3d3029"
+  },
+  "brownIce_tuned": {
+   "paper": "#382c26",
+   "ink": "#edf6ff",
+   "pencil": "#6a6260",
+   "mass": "#91c8e5",
+   "accent": "#cf7e00",
+   "sun": "#f4a035",
+   "nightPaper": "#231c18",
+   "nightInk": "#edf6ff",
+   "tone": "#3d3029"
+  },
+  "greenPink_asis": {
+   "paper": "#24513e",
+   "ink": "#fff6e1",
+   "pencil": "#7a9b83",
+   "mass": "#c7e499",
+   "accent": "#ff99ce",
+   "sun": "#ff99ce",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#295742"
+  },
+  "greenPink_asisDrop": {
+   "paper": "#351735",
+   "ink": "#fff6e1",
+   "pencil": "#947793",
+   "mass": "#95d4c3",
+   "accent": "#ff99ce",
+   "sun": "#ff99ce",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#3b1d3b"
+  },
+  "greenPink_wada": {
+   "paper": "#42533e",
+   "ink": "#fff6e1",
+   "pencil": "#7a9b83",
+   "mass": "#ffefae",
+   "accent": "#f37f94",
+   "sun": "#f37f94",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#295742"
+  },
+  "greenPink_wadaDrop": {
+   "paper": "#253122",
+   "ink": "#fff6e1",
+   "pencil": "#947793",
+   "mass": "#8bcdde",
+   "accent": "#e16f56",
+   "sun": "#f48067",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#3b1d3b"
+  },
+  "greenPink_tuned": {
+   "paper": "#24513e",
+   "ink": "#fff6e1",
+   "pencil": "#7a9b83",
+   "mass": "#c7e499",
+   "accent": "#e985ba",
+   "sun": "#ff99ce",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#295742"
+  },
+  "greenPink_tunedDrop": {
+   "paper": "#2f1d2e",
+   "ink": "#fff6e1",
+   "pencil": "#67575f",
+   "mass": "#8bd6c3",
+   "accent": "#d573a7",
+   "sun": "#ff99ce",
+   "nightPaper": "#351735",
+   "nightInk": "#fff6e1",
+   "tone": "#3b1d3b"
+  },
+  "redchalk_asis": {
+   "paper": "#e3f4f6",
+   "ink": "#82241f",
+   "pencil": "#c7aea9",
+   "mass": "#c55347",
+   "accent": "#82241f",
+   "nightPaper": "#1d0c0b",
+   "nightInk": "#fbe2d9"
+  },
+  "redchalk_wada": {
+   "paper": "#b3c5c9",
+   "ink": "#82241f",
+   "pencil": "#aa9694",
+   "mass": "#6c0000",
+   "accent": "#8c4437",
+   "nightPaper": "#1d0c0b",
+   "nightInk": "#fbe2d9"
+  },
+  "redchalk_tuned": {
+   "paper": "#e3f4f6",
+   "ink": "#82241f",
+   "pencil": "#c7aea9",
+   "mass": "#9c2c24",
+   "accent": "#c36056",
+   "nightPaper": "#1d0c0b",
+   "nightInk": "#fbe2d9"
+  },
+  "bluepencil_asis": {
+   "paper": "#f8f7f2",
+   "ink": "#16181d",
+   "pencil": "#89b7de",
+   "mass": "#649dd3",
+   "accent": "#c12535",
+   "nightPaper": "#101722",
+   "nightInk": "#eef1f5"
+  },
+  "bluepencil_wada": {
+   "paper": "#f2efe0",
+   "ink": "#16181d",
+   "pencil": "#89b7de",
+   "mass": "#565d35",
+   "accent": "#d14b65",
+   "nightPaper": "#101722",
+   "nightInk": "#eef1f5"
+  },
+  "bluepencil_tuned": {
+   "paper": "#f8f7f2",
+   "ink": "#16181d",
+   "pencil": "#89b7de",
+   "mass": "#2a6395",
+   "accent": "#e44a51",
+   "nightPaper": "#101722",
+   "nightInk": "#eef1f5"
+  },
+  "dawn_asis": {
+   "paper": "#e0f1ff",
+   "tone": "#ffd6ba",
+   "ink": "#1c1f37",
+   "pencil": "#a8b7bf",
+   "mass": "#40456a",
+   "accent": "#d96629",
+   "nightPaper": "#121428",
+   "nightInk": "#e2f2f6"
+  },
+  "dawn_wada": {
+   "paper": "#b3c5c9",
+   "tone": "#ffd6ba",
+   "ink": "#1c1f37",
+   "pencil": "#818f9b",
+   "mass": "#40456a",
+   "accent": "#d96629",
+   "nightPaper": "#121428",
+   "nightInk": "#e2f2f6"
+  },
+  "dawn_tuned": {
+   "paper": "#e3f0fb",
+   "tone": "#ffd6ba",
+   "ink": "#1c1f37",
+   "pencil": "#a8b7bf",
+   "mass": "#40456a",
+   "accent": "#d96629",
+   "nightPaper": "#121428",
+   "nightInk": "#e2f2f6"
+  },
+  "morning_asis": {
+   "paper": "#071431",
+   "ink": "#f9f2dc",
+   "pencil": "#3c485e",
+   "mass": "#fbe6a0",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#f9f2dc"
+  },
+  "morning_asisDrop": {
+   "paper": "#faf3dd",
+   "ink": "#071431",
+   "pencil": "#bdb7a6",
+   "mass": "#1f345e",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "morning_wada": {
+   "paper": "#112f2c",
+   "ink": "#f9f2dc",
+   "pencil": "#3c485e",
+   "mass": "#c2ad69",
+   "accent": "#ffb59a",
+   "nightPaper": "#071431",
+   "nightInk": "#f9f2dc"
+  },
+  "morning_wadaDrop": {
+   "paper": "#ede7d1",
+   "ink": "#071431",
+   "pencil": "#bdb7a6",
+   "mass": "#135e58",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "morning_tuned": {
+   "paper": "#0c1528",
+   "ink": "#f9f2dc",
+   "pencil": "#3c485e",
+   "mass": "#a89450",
+   "accent": "#ff9b81",
+   "nightPaper": "#071431",
+   "nightInk": "#f9f2dc"
+  },
+  "morning_tunedDrop": {
+   "paper": "#faf3dd",
+   "ink": "#071431",
+   "pencil": "#bdb7a6",
+   "mass": "#445b89",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "redsky_asis": {
+   "paper": "#eaf1fa",
+   "ink": "#33150e",
+   "pencil": "#abb6c1",
+   "mass": "#762c19",
+   "accent": "#e2484f",
+   "nightPaper": "#290c08",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_asisDrop": {
+   "paper": "#571715",
+   "ink": "#eaf1fa",
+   "pencil": "#825651",
+   "mass": "#b7c9e2",
+   "accent": "#e2484f",
+   "nightPaper": "#571715",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_wada": {
+   "paper": "#c7d7d0",
+   "ink": "#33150e",
+   "pencil": "#abb6c1",
+   "mass": "#82241f",
+   "accent": "#f27291",
+   "nightPaper": "#290c08",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_wadaDrop": {
+   "paper": "#793327",
+   "ink": "#eaf1fa",
+   "pencil": "#825651",
+   "mass": "#16d7f9",
+   "accent": "#c55347",
+   "nightPaper": "#571715",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_tuned": {
+   "paper": "#eaf1fa",
+   "ink": "#33150e",
+   "pencil": "#abb6c1",
+   "mass": "#762c19",
+   "accent": "#e2484f",
+   "nightPaper": "#290c08",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_tunedDrop": {
+   "paper": "#432926",
+   "ink": "#eaf1fa",
+   "pencil": "#825651",
+   "mass": "#a6cafb",
+   "accent": "#e2484f",
+   "nightPaper": "#571715",
+   "nightInk": "#eaf1fa"
+  },
+  "violet_asis": {
+   "paper": "#251949",
+   "ink": "#f9f1e3",
+   "pencil": "#554f74",
+   "mass": "#dd4027",
+   "accent": "#fcb315",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "violet_wada": {
+   "paper": "#4f4086",
+   "ink": "#f9f1e3",
+   "pencil": "#7d73a4",
+   "mass": "#ffa385",
+   "accent": "#c88200",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "violet_tuned": {
+   "paper": "#242036",
+   "ink": "#f9f1e3",
+   "pencil": "#554f74",
+   "mass": "#dd4027",
+   "accent": "#fcb315",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "cerulean_asis": {
+   "paper": "#075062",
+   "ink": "#f9f6e3",
+   "pencil": "#58828f",
+   "mass": "#f6917e",
+   "accent": "#fef37d",
+   "nightPaper": "#002732",
+   "nightInk": "#f9f6e3"
+  },
+  "cerulean_wada": {
+   "paper": "#34454c",
+   "ink": "#f9f6e3",
+   "pencil": "#58828f",
+   "mass": "#f68c50",
+   "accent": "#f8ed43",
+   "nightPaper": "#002732",
+   "nightInk": "#f9f6e3"
+  },
+  "cerulean_tuned": {
+   "paper": "#075062",
+   "ink": "#f9f6e3",
+   "pencil": "#58828f",
+   "mass": "#f6917e",
+   "accent": "#fef37d",
+   "nightPaper": "#002732",
+   "nightInk": "#f9f6e3"
+  },
+  "negoro_asis": {
+   "paper": "#140e0b",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#ebd3a2",
+   "accent": "#d96629",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  },
+  "negoro_wada": {
+   "paper": "#0d1417",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#a48e5f",
+   "accent": "#ff975e",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  },
+  "negoro_tuned": {
+   "paper": "#140e0b",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#a0895b",
+   "accent": "#ff9259",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  }
+ },
+ "drops": {
+  "whiteRed_asis": "whiteRed_asisDrop",
+  "whiteRed_wada": "whiteRed_wadaDrop",
+  "whiteRed_tuned": "whiteRed_tunedDrop",
+  "greenPink_asis": "greenPink_asisDrop",
+  "greenPink_wada": "greenPink_wadaDrop",
+  "greenPink_tuned": "greenPink_tunedDrop",
+  "morning_asis": "morning_asisDrop",
+  "morning_wada": "morning_wadaDrop",
+  "morning_tuned": "morning_tunedDrop",
+  "redsky_asis": "redsky_asisDrop",
+  "redsky_wada": "redsky_wadaDrop",
+  "redsky_tuned": "redsky_tunedDrop"
+ },
+ "drafts": [
+  {
+   "id": "lemonBlue",
+   "name": "Lemon and Blue",
+   "line": "Lemon paper carries blue fork stems and raspberry dots beneath a dark title.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "fork",
+      "accent": "loud",
+      "top": "title",
+      "line": "rail",
+      "paper": "plain",
+      "scheme": "lemonBlue_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 251",
+     "look": {
+      "band": "fork",
+      "accent": "loud",
+      "top": "title",
+      "line": "rail",
+      "paper": "plain",
+      "scheme": "lemonBlue_wada"
+     },
+     "note": "Nearest combination in the book: paper Yellow, bars Slate Color, accent Red, sun Diamine Green."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "fork",
+      "accent": "loud",
+      "top": "title",
+      "line": "rail",
+      "paper": "plain",
+      "scheme": "lemonBlue_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "coralPetrol",
+   "name": "Coral and Rose",
+   "line": "Dusty coral, navy-and-lavender contours and a dark rose sun make a warm graphic landscape.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "iris",
+      "bandHeight": "mid",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "zoom": "quiet",
+      "scheme": "coralPetrol_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 332",
+     "look": {
+      "band": "iris",
+      "bandHeight": "mid",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "zoom": "quiet",
+      "scheme": "coralPetrol_wada"
+     },
+     "note": "Nearest combination in the book: paper Coral Red, bars Dusky Green, accent Deep Slate Olive, sun Scarlet."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "iris",
+      "bandHeight": "mid",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "zoom": "quiet",
+      "scheme": "coralPetrol_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "whiteRed",
+   "name": "White and Vermilion",
+   "line": "Red bars on white cut to a blue page with pale peach bars at the drop.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "drop": "switch",
+      "scheme": "whiteRed_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 285",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "drop": "switch",
+      "scheme": "whiteRed_wada"
+     },
+     "note": "Nearest combination in the book: paper Turquoise Green, bars Burnt Sienna, accent Peach Red."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "drop": "switch",
+      "scheme": "whiteRed_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "silverRust",
+   "name": "Silver and Rust",
+   "line": "A rust sun hangs over a green-silver sheet, olive bars beneath the ride (bars added: every theme shows the music).",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "top": "sun",
+      "line": "rail",
+      "zoom": "quiet",
+      "scheme": "silverRust_asis",
+      "band": "bars"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 343",
+     "look": {
+      "top": "sun",
+      "line": "rail",
+      "zoom": "quiet",
+      "scheme": "silverRust_wada",
+      "band": "bars"
+     },
+     "note": "Nearest combination in the book: paper Ivory Buff, bars Deep Grayish Olive, accent Burnt Sienna."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "top": "sun",
+      "line": "rail",
+      "zoom": "quiet",
+      "scheme": "silverRust_tuned",
+      "band": "bars"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "violetCitron",
+   "name": "Violet and Citron",
+   "line": "Violet paper and deep violet bars carry citron accents, then become cream on purple at the drop.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "mid",
+      "top": "title",
+      "line": "ink",
+      "paper": "plain",
+      "drop": "night",
+      "scheme": "violetCitron_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 321",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "mid",
+      "top": "title",
+      "line": "ink",
+      "paper": "plain",
+      "drop": "night",
+      "scheme": "violetCitron_wada"
+     },
+     "note": "Nearest combination in the book: paper Salvia Blue, bars Deep Slate Olive, accent Sulpher Yellow."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "mid",
+      "top": "title",
+      "line": "ink",
+      "paper": "plain",
+      "drop": "night",
+      "scheme": "violetCitron_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "blueRose",
+   "name": "Blue and Rose",
+   "line": "Rose forks and a lime disk glow on a deep blue-green sheet.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "fork",
+      "bandHeight": "low",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "scheme": "blueRose_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 166",
+     "look": {
+      "band": "fork",
+      "bandHeight": "low",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "scheme": "blueRose_wada"
+     },
+     "note": "Nearest combination in the book: paper Deep Slate Green, bars Grenadine Pink, accent Naples Yellow."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "fork",
+      "bandHeight": "low",
+      "top": "sun",
+      "line": "ink",
+      "paper": "plain",
+      "scheme": "blueRose_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "brownIce",
+   "name": "Brown and Ice",
+   "line": "Icy lavender contours and a pale title sit on a smoky brown page.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "iris",
+      "top": "title",
+      "line": "rail",
+      "scheme": "brownIce_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 229",
+     "look": {
+      "band": "iris",
+      "top": "title",
+      "line": "rail",
+      "scheme": "brownIce_wada"
+     },
+     "note": "Nearest combination in the book: paper Deep Slate Olive, bars Neutral Gray, accent Golden Yellow."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "iris",
+      "top": "title",
+      "line": "rail",
+      "scheme": "brownIce_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "greenPink",
+   "name": "Green and Pink",
+   "line": "Leaf-green paper and pale green bars switch to purple and mint, keeping their pink accents.",
+   "source": "Codex, without your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "low",
+      "paper": "plain",
+      "drop": "switch",
+      "zoom": "quiet",
+      "scheme": "greenPink_asis"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 336",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "low",
+      "paper": "plain",
+      "drop": "switch",
+      "zoom": "quiet",
+      "scheme": "greenPink_wada"
+     },
+     "note": "Nearest combination in the book: paper Blackish Olive, bars Pale Lemon Yellow, accent Eosine Pink."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "band": "bars",
+      "accent": "loud",
+      "bandHeight": "low",
+      "paper": "plain",
+      "drop": "switch",
+      "zoom": "quiet",
+      "scheme": "greenPink_tuned"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "redchalk",
+   "name": "Red Chalk",
+   "line": "Wada 25 and 16: a pale blue-grey sheet drawn in one red: the line inks in sanguine, the title is sanguine, Etruscan-red bars with the loudest inked in the line’s red.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "redchalk_asis",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 152",
+     "look": {
+      "scheme": "redchalk_wada",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "Nearest combination in the book: paper Light Glaucous Blue, bars Etruscan Red, accent Hay's Russet."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "redchalk_tuned",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "bluepencil",
+   "name": "Blue Pencil",
+   "line": "An animator’s sheet (Wada 51 and 49): the course ahead in non-photo-blue pencil, inked black as the rider passes, blue-pencil bars with the loudest in red pencil, the title in ink.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "bluepencil_asis",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 261",
+     "look": {
+      "scheme": "bluepencil_wada",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "Nearest combination in the book: paper Pale Lemon Yellow, bars Warm Gray, accent Red."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "bluepencil_tuned",
+      "band": "bars",
+      "top": "title"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "dawn",
+   "name": "Blushing Dawn",
+   "line": "Wada 339: a cool morning sheet that blushes to salmon as the ride heats up, violet-blue bars, an English-red sun.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "dawn_asis",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 339",
+     "look": {
+      "scheme": "dawn_wada",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "Nearest combination in the book: paper Light Glaucous Blue, bars Violet Blue, accent English Red."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "dawn_tuned",
+      "band": "bars",
+      "top": "sun"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "morning",
+   "name": "Night to Morning",
+   "line": "Wada 6 and 193: deep indigo, Naples-yellow bars, a grenadine sun; at the drop day breaks: the page turns Naples yellow, the bars indigo, the sun stays.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "morning_asis",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink",
+      "drop": "switch"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 166",
+     "look": {
+      "scheme": "morning_wada",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink",
+      "drop": "switch"
+     },
+     "note": "Nearest combination in the book: paper Deep Slate Green, bars Naples Yellow, accent Grenadine Pink."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "morning_tuned",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink",
+      "drop": "switch"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "redsky",
+   "name": "Salvia to Red Sky",
+   "line": "Wada 237: salvia-grey paper, madder bars, a carmine sun; at the drop the whole sky turns madder red around the sun and the bars go pale.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "redsky_asis",
+      "band": "bars",
+      "top": "sun",
+      "drop": "switch"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 147",
+     "look": {
+      "scheme": "redsky_wada",
+      "band": "bars",
+      "top": "sun",
+      "drop": "switch"
+     },
+     "note": "Nearest combination in the book: paper Turquoise Green, bars Vandyke Red, accent Spinel Red."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "redsky_tuned",
+      "band": "bars",
+      "top": "sun",
+      "drop": "switch"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "violet",
+   "name": "Violet and Marigold",
+   "line": "Wada 164: a violet dusk, red-orange bars, a marigold bar and a marigold sun.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "violet_asis",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 164",
+     "look": {
+      "scheme": "violet_wada",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "Nearest combination in the book: paper Violet, bars Red Orange, accent Orange Yellow."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "violet_tuned",
+      "band": "bars",
+      "top": "sun",
+      "line": "ink"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "cerulean",
+   "name": "Cerulean and Coral",
+   "line": "Wada 240: a deep cerulean page, a cream line and title, coral bars, one lemon bar.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "cerulean_asis",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 253",
+     "look": {
+      "scheme": "cerulean_wada",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "Nearest combination in the book: paper Slate Color, bars Apricot Orange, accent Lemon Yellow."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "cerulean_tuned",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  },
+  {
+   "id": "negoro",
+   "name": "Negoro Lacquer",
+   "line": "Wada 190, after Negoro lacquerware: black lacquer, the line and the title in English-red lacquer, ivory bars, the loudest in red.",
+   "source": "An agent with all your feedback",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "scheme": "negoro_asis",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "As the designer drew it."
+    },
+    {
+     "label": "Wada no. 190",
+     "look": {
+      "scheme": "negoro_wada",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "Nearest combination in the book: paper Black, bars Ivory Buff, accent English Red."
+    },
+    {
+     "label": "Tuned",
+     "look": {
+      "scheme": "negoro_tuned",
+      "band": "bars",
+      "top": "title",
+      "line": "ink"
+     },
+     "note": "Its own colours, with a quiet paper, bars more colourful than it, an accent apart from the bars."
+    }
+   ]
+  }
+ ]
+}

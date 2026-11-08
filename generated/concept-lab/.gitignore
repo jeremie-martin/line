@@ -3,6 +3,7 @@ films*/
 !films*.json
 !films*.sh
 fourup/
+showcase/
 data/
 shots*/
 generated/
@@ -31,3 +32,4 @@ data-r19/
 rides-variants/
 rides-variants-*.log
 analysis/pos-*.json
+theme-proposals/

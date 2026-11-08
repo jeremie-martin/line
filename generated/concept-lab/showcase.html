@@ -1,0 +1,101 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Theme showcase</title>
+<style>html,body{margin:0;background:#0f0f0f}canvas{display:block}</style>
+<canvas id="frame"></canvas>
+<script type="module">
+// One film of many themes, composed frame by frame from the video renderer's own picture (scripts/video/picture.js), and sent
+// to showcase.mjs, which encodes it once. Layouts: 'wall' (a large vertical picture on the left, every theme in miniature on
+// the right, the one on show outlined), 'solo' (one vertical picture cutting through the themes, each named for a moment).
+import * as N from '/generated/renderer/native.js';
+import {createPicture} from '/scripts/video/picture.js';
+import {THEMES, resolveLook} from '/scripts/video/look.js';
+import {SCHEMES} from '/scripts/video/palettes.js';
+
+const sink = new URLSearchParams(location.search).get('sink');
+const cfg = await (await fetch(sink + 'config.json')).json();
+const scene = await (await fetch(`./data/${cfg.song}.json`)).json();
+const [replay, sheet] = await Promise.all([N.replay(scene.track, scene.trace), N.loadSheet()]);
+await Promise.all(['600 120px "DM Sans"', '400 40px "DM Sans"', '500 30px "IBM Plex Mono"'].map(f => document.fonts.load(f)));
+
+const frame = document.getElementById('frame'), g = frame.getContext('2d');
+frame.width = cfg.width; frame.height = cfg.height;
+const looks = Object.fromEntries(cfg.tiles.map(id => [id, resolveLook(id)]));
+const canvasOf = (w, h) => {const c = document.createElement('canvas'); c.width = w; c.height = h; return c;};
+// one picture per size: a picture is a pure function of (t, look), so one picture draws every theme in turn
+const big = canvasOf(cfg.big.w, cfg.big.h), bigPicture = createPicture(big, scene, replay, sheet, N.riderPainter());
+const tile = cfg.tile && canvasOf(cfg.tile.w, cfg.tile.h), tilePicture = tile && createPicture(tile, scene, replay, sheet, N.riderPainter());
+
+const INK = '#f1efe9', SOFT = '#9b9890', FAINT = '#5f5d58', LINE = '#2b2a28';
+const onShow = t => {let k = 0; for (let i = 0; i < cfg.cuts.length; i++) if (t >= cfg.cuts[i]) k = i; return k;};
+function wrap(text, x, y, width, lineHeight) {
+  let line = '';
+  for (const word of text.split(' ')) {
+    const next = line ? line + ' ' + word : word;
+    if (g.measureText(next).width > width && line) {g.fillText(line, x, y); line = word; y += lineHeight;} else line = next;
+  }
+  if (line) g.fillText(line, x, y);
+}
+function rounded(x, y, w, h, r) {g.beginPath(); g.roundRect(x, y, w, h, r);}
+
+function drawWall(t) {
+  const k = onShow(t), id = cfg.tiles[k];
+  g.fillStyle = '#0f0f0f'; g.fillRect(0, 0, frame.width, frame.height);
+  // the large picture, full height on the left
+  bigPicture.draw(t, looks[id]);
+  g.save(); rounded(cfg.big.x, cfg.big.y, cfg.big.w, cfg.big.h, 18); g.clip(); g.drawImage(big, cfg.big.x, cfg.big.y); g.restore();
+  // the header: the film, the theme on show and its line, the progress through the themes
+  const hx = cfg.header.x, hw = cfg.header.w;
+  g.textBaseline = 'alphabetic'; g.fillStyle = SOFT; g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '6px';
+  g.fillText(cfg.kicker.toUpperCase(), hx, cfg.header.y + 30); g.letterSpacing = '0px';
+  g.fillStyle = INK; g.font = '600 120px "DM Sans"'; g.fillText(THEMES[id].name, hx - 6, cfg.header.y + 190);
+  g.fillStyle = SOFT; g.font = '400 40px "DM Sans"'; wrap(THEMES[id].line, hx, cfg.header.y + 260, hw * 0.72, 54);
+  const py = cfg.header.y + cfg.header.h - 18, seg = (hw - (cfg.tiles.length - 1) * 10) / cfg.tiles.length;
+  // where we are in the song: its section (the drop named as such) and the time
+  const phase = scene.phases.find(p => t >= p.t0 && t < p.t1) ?? scene.phases.at(-1), inDrop = scene.drop && t >= scene.drop[0] && t < scene.drop[1];
+  const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+  g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '6px'; g.fillStyle = SOFT;
+  g.fillText((phase.name + (inDrop ? ' · the drop' : '')).toUpperCase(), hx, py - 34);
+  g.textAlign = 'right'; g.fillText(`${clock(t)} / ${clock(cfg.to)}`, hx + hw, py - 34); g.textAlign = 'left'; g.letterSpacing = '0px';
+  cfg.tiles.forEach((_, i) => {
+    const x = hx + i * (seg + 10), end = cfg.cuts[i + 1] ?? cfg.to, part = Math.min(1, Math.max(0, (t - cfg.cuts[i]) / (end - cfg.cuts[i])));
+    g.fillStyle = LINE; g.fillRect(x, py, seg, 4); g.fillStyle = i < k ? FAINT : SOFT; g.fillRect(x, py, seg * (i < k ? 1 : part), 4);
+  });
+  // every theme in miniature, all at the same moment; the one on show outlined
+  cfg.tiles.forEach((tid, i) => {
+    const c = i % cfg.cols, r = Math.floor(i / cfg.cols), x = cfg.grid.x + c * (cfg.tile.w + cfg.grid.gap), y = cfg.grid.y + r * (cfg.tile.h + cfg.grid.gapY);
+    tilePicture.draw(t, looks[tid]);
+    g.save(); rounded(x, y, cfg.tile.w, cfg.tile.h, 10); g.clip(); g.drawImage(tile, x, y); g.restore();
+    const on = i === k;
+    g.lineWidth = on ? 4 : 1; g.strokeStyle = on ? INK : LINE; rounded(x - (on ? 6 : 0), y - (on ? 6 : 0), cfg.tile.w + (on ? 12 : 0), cfg.tile.h + (on ? 12 : 0), on ? 15 : 10); g.stroke();
+    g.fillStyle = on ? INK : FAINT; g.font = `${on ? 600 : 400} 30px "DM Sans"`; g.fillText(THEMES[tid].name, x, y + cfg.tile.h + 44);
+  });
+}
+
+function drawSolo(t) {
+  const k = onShow(t), id = cfg.tiles[k];
+  bigPicture.draw(t, looks[id]);
+  g.drawImage(big, 0, 0);
+  // the theme's name for two seconds after each cut, in the theme's own ink, faded in and out
+  const age = t - cfg.cuts[k], a = Math.min(1, age / 0.25, Math.max(0, (2.2 - age) / 0.5));
+  if (a > 0) {
+    g.save(); g.globalAlpha = a; g.fillStyle = SCHEMES[looks[id].scheme].ink; g.textAlign = 'center';
+    g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '8px'; g.fillText(THEMES[id].name.toUpperCase(), frame.width / 2, frame.height - 74);
+    g.restore();
+  }
+}
+
+window.render = async () => {
+  const count = Math.round((cfg.to - cfg.from) * cfg.fps);
+  for (let i = 0; i < count; i++) {
+    const t = cfg.from + i / cfg.fps;
+    (cfg.layout === 'wall' ? drawWall : drawSolo)(t);
+    const blob = await new Promise((done, fail) => frame.toBlob(b => b ? done(b) : fail(new Error('Frame capture failed')), 'image/png'));
+    const res = await fetch(sink + 'frame/' + i, {method: 'POST', body: blob});
+    if (!res.ok) throw new Error(await res.text());
+    if ((i + 1) % 240 === 0) await window.progress(i + 1, count);
+  }
+  return count;
+};
+window.ready = true;
+</script>

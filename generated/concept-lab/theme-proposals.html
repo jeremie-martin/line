@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Theme proposals</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--surface:#fcfcfb}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--surface:#1a1a19}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+.lead{color:var(--soft);margin:0 0 24px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 10px}
+a.card.primary{border-color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06)}
+a.card b{display:block;font-size:18px;margin-bottom:2px}
+a.card span{color:var(--soft);font-size:15px}
+a.card .go{float:right;color:var(--soft)}
+h2{font-size:18px;margin:32px 0 8px}
+ul{padding-left:20px;margin:0}
+li{margin:0 0 8px}
+li strong{font-weight:600}
+.small{font-size:14px;color:var(--soft)}
+.small a{color:inherit}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:0 0 10px}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:8px}
+figure{margin:14px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+figcaption{font-size:14px;font-weight:600;margin-bottom:2px}
+figure p{font-size:13px;color:var(--soft);margin:0 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--soft);margin:0 0 4px}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+svg{display:block;width:100%;height:auto;touch-action:pan-y}
+svg text{font:12px system-ui,sans-serif;fill:var(--soft)}
+#tip{font-size:13px;color:var(--soft);min-height:1.5em;margin:4px 0 0;font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;font-size:14px;width:100%;font-variant-numeric:tabular-nums;margin:6px 0}
+th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--soft);font-weight:500}
+img{display:block;width:100%;border-radius:10px;margin:8px 0 4px}
+</style>
+</head>
+<body><main>
+<p class="kicker">Theme proposals · 8 November</p>
+<h1>Three fixes and five new themes</h1>
+<p class="lead">From a design study of the twelve themes against everything you have said about colour. Nothing here is applied yet: all real renders of Circus Minimus with today’s v1, at 18 s, inside the drop on a hit (the colour boost showing), and at 60 s.</p>
+
+<h2>Three fixes</h2>
+<ul>
+<li><strong>Aubergine’s drop:</strong> its night partner has carmine bars, the same colour as the accent it receives, so the loudest bars vanish for the whole drop. Proposed: lavender bars from the same Wada combination, or, quieter, dark aconite bars.</li>
+<li><strong>Dune to Espresso:</strong> the amber accent is weak on Espresso’s latte bars. Proposed: Café as the drop partner, built for Dune’s amber.</li>
+<li><strong>Black Iris:</strong> the Iris band is drawn in fixed navy, nearly invisible on black paper. Proposed: draw it lit whenever the paper is dark, as in Night (a two-line change in the renderer).</li>
+</ul>
+<img src="theme-proposals/refine-aubergine-drop.png" alt="Aubergine's drop: current, lavender bars, aconite bars">
+<img src="theme-proposals/refine-dune-drop-cafe.png" alt="Dune: Espresso against Café at the drop">
+<img src="theme-proposals/refine-black-iris-band.png" alt="Black Iris: the band as now and lit">
+
+<h2>Five new themes</h2>
+<ul>
+<li><strong>Seashell Night</strong> (Wada 194): shell-pink paper, steel-blue bars, Night at the drop.</li>
+<li><strong>Peony to Magenta</strong> (Wada 204 → 144): pale blue paper, magenta bars; at the drop the paper goes black, the bars stay.</li>
+<li><strong>Kraft Poster:</strong> kraft paper, deep rust bars, the title, all ink. The set’s only mid-tone paper.</li>
+<li><strong>Cyanotype:</strong> blueprint-blue paper, brighter periwinkle bars, a yellow sun, all ink.</li>
+<li><strong>Apricot</strong> (Wada 253): near-black paper, apricot bars, all ink.</li>
+</ul>
+<img src="theme-proposals/new-themes-light.png" alt="Seashell Night and Peony to Magenta">
+<img src="theme-proposals/new-themes-dark.png" alt="Kraft Poster, Cyanotype and Apricot">
+<p class="small">Tell me which to keep; the kept ones join the themes and the showcase.</p>
+
+<p class="small"><a href="morning.html">All rounds</a> · <a href="showcase-films.html">The showcase</a></p>
+</main></body></html>

@@ -1,5 +1,39 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8: plan, understand the candidates and measure variety before changing them
+
+The owner's direction: no new candidate generator yet. Keep the archive as
+an instrument for comparison and analysis. First understand what each
+candidate source does and why, and build the telemetry to see variety and
+repetition. Every measure is report-only, never a target.
+
+1. **The candidate pipeline, mapped with numbers.** Every source of a
+   catch's starting pool:
+   - the hand-made centre;
+   - the generic sweep;
+   - the two archive lookups;
+   - within-compile memory and responses;
+   - compact folds, opposing entries, recovery.
+   Then local search and the learned estimate. For each source: tried,
+   viable, frames, and (new, report-only, parity-checked) **which source the
+   committed arc descends from**.
+2. **Variety telemetry.** Today's measures are plan-level (the family drawn
+   per phrase) and seed-to-seed (family and airtime differences). Nothing
+   measures the shapes themselves. Needed:
+   - repetition within a ride (how alike its arcs are; how many distinct
+     moves it uses);
+   - sameness across songs (whether different music gets the same moves);
+   - both per family, and per arm: archive, none, compact.
+   They stay unvalidated until compared with the owner's eye in a blind
+   pairwise study.
+3. **What the archive has learned.** Its most common moves, rare moves, and
+   what it never shows, rendered so the owner can see what is being
+   reapplied.
+4. **Then decide** the candidate design together.
+
+The self-training round on the compact model continues as a comparison
+point.
+
 ## November 8: step back on the policy archive, what it is worth
 
 - **Why.** The owner does not want a 50–100 MB archive that grows git

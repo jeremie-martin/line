@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>New theme drafts</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--on:#1b1f25;--onInk:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--on:#e9ebee;--onInk:#141619}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:640px;margin:0 auto;padding:20px 16px 120px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 4px}
+h1{font-size:28px;line-height:1.15;margin:0 0 8px;letter-spacing:-.01em}
+.lead{color:var(--soft);margin:0 0 8px}
+h2{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin:30px 0 10px}
+.theme{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 0 14px;margin:0 0 14px}
+.theme h3{font-size:20px;margin:0 16px 2px}
+.theme p{font-size:14px;color:var(--soft);margin:0 16px 10px}
+.stills{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.stills::-webkit-scrollbar{display:none}
+.stills figure{flex:0 0 62%;max-width:300px;margin:0;scroll-snap-align:start}
+.stills img{width:100%;aspect-ratio:9/16;border-radius:10px;background:var(--line);display:block}
+.stills figcaption{font-size:12px;color:var(--soft);margin-top:4px}
+.rate{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 16px 0}
+.rate button{font:600 15px system-ui,sans-serif;padding:12px 0;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink);touch-action:manipulation}
+.rate button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;justify-content:space-between}
+.bar span{font-size:14px;color:var(--soft)}
+.bar button{font:600 15px system-ui,sans-serif;padding:11px 18px;border-radius:12px;border:0;background:var(--on);color:var(--onInk)}
+textarea{width:100%;font:15px system-ui,sans-serif;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-top:6px}
+.small{font-size:13px;color:var(--soft)}.small a{color:inherit}
+.ver{margin:2px 16px 10px}.ver h4{font-size:15px;margin:0 0 2px}.ver small{display:block;font-size:12px;color:var(--soft);margin:0 0 6px}
+.ver .stills{padding:0}.stills figure{flex:0 0 46%;max-width:240px;margin:0;scroll-snap-align:start}.stills figure img{width:100%;aspect-ratio:9/16;border-radius:10px;background:var(--line);display:block}
+.stills figcaption{font-size:12px;color:var(--soft);margin-top:4px}
+.rate.three{grid-template-columns:repeat(3,1fr)}.label{font-size:12px;color:var(--soft);margin:12px 16px -6px;text-transform:uppercase;letter-spacing:.05em}
+.src{font-size:12px;color:var(--soft);margin:-6px 16px 10px}
+</style>
+</head>
+<body><main>
+<p class="kicker">Themes · round 28</p>
+<h1>New theme drafts</h1>
+<p class="lead">Sixteen new themes from two designers: Codex, deliberately without any of your feedback, and an agent with all of it. Each comes three ways: <b>as drafted</b>; <b>matched to Wada</b>, the nearest combination in the book; and <b>tuned</b>, the draft’s own colours with the steps your verdicts taught (a quiet paper, bars more colourful than it, an accent apart from the bars). Four stills each, no hit: the verse, just before the drop, inside it, later. Swipe a row; pick the best version, then a verdict.</p>
+<div id="list"></div>
+<h2>Anything else</h2>
+<textarea id="note" rows="3" placeholder="Optional"></textarea>
+<p class="small"><a href="morning.html">All rounds</a></p>
+</main>
+<div class="bar"><span id="count"></span><button id="copy">Copy answers</button></div>
+<script>
+const WHEN = ['Verse, 18 s', 'Before the drop, 37 s', 'Inside the drop, 45 s', 'Later, 60 s'], VERDICTS = ['Love', 'Keep', 'Cut'];
+const STORE = 'concept-lab-theme-drafts-r28', state = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
+state.best ??= {}; state.verdict ??= {}; state.note ??= '';
+const save = () => {try {localStorage.setItem(STORE, JSON.stringify(state));} catch {}};
+const el = (tag, cls, text) => {const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e;};
+let drafts = [];
+const count = () => {document.getElementById('count').textContent = `${Object.keys(state.verdict).length} of ${drafts.length} rated`;};
+function buttons(cls, values, get, set) {
+  const row = el('div', `rate ${cls}`);
+  const paint = () => {for (const b of row.children) b.classList.toggle('on', get() === b.dataset.v);};
+  for (const [v, label] of values) {const b = el('button', '', label); b.dataset.v = v; b.onclick = () => {set(get() === v ? undefined : v); save(); paint(); count();}; row.append(b);}
+  paint(); return row;
+}
+fetch('theme-stills/r28/manifest.json').then(r => r.json()).then(m => {
+  drafts = m.drafts;
+  let group = null;
+  for (const d of drafts) {
+    if (d.source !== group) {group = d.source; document.getElementById('list').append(el('h2', '', d.source));}
+    const card = el('section', 'theme'); card.append(el('h3', '', d.name), el('p', '', d.line));
+    for (const v of d.variants) {
+      const box = el('div', 'ver'); box.append(el('h4', '', v.label)); if (v.note) box.append(el('small', '', v.note));
+      const row = el('div', 'stills');
+      WHEN.forEach((w, i) => {const f = el('figure'), im = el('img'); im.loading = 'lazy'; im.src = `theme-stills/r28/${d.id}_${v.key}-${i + 1}.jpg`; im.alt = `${d.name}, ${v.label}, ${w}`; f.append(im, el('figcaption', '', w)); row.append(f);});
+      box.append(row); card.append(box);
+    }
+    card.append(el('div', 'label', 'Best version'), buttons('three', d.variants.map(v => [v.key, v.short]), () => state.best[d.id], x => {x ? state.best[d.id] = x : delete state.best[d.id];}));
+    card.append(el('div', 'label', 'Verdict'), buttons('three', VERDICTS.map(v => [v, v]), () => state.verdict[d.id], x => {x ? state.verdict[d.id] = x : delete state.verdict[d.id];}));
+    document.getElementById('list').append(card);
+  }
+  count();
+});
+const note = document.getElementById('note'); note.value = state.note; note.oninput = () => {state.note = note.value; save();};
+document.getElementById('copy').onclick = async () => {
+  const short = (d, k) => d.variants.find(v => v.key === k)?.short ?? '—';
+  const text = ['Theme drafts (round 28)', ...drafts.map(d => `${d.name}: ${state.verdict[d.id] ?? '—'}${state.best[d.id] ? `, best ${short(d, state.best[d.id])}` : ''}`), ...(state.note ? [`Note: ${state.note}`] : [])].join('\n');
+  try {await navigator.clipboard.writeText(text); document.getElementById('copy').textContent = 'Copied';} catch {prompt('Copy this:', text);}
+  setTimeout(() => {document.getElementById('copy').textContent = 'Copy answers';}, 1500);
+};
+</script>
+</body></html>

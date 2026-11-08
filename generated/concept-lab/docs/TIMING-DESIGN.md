@@ -38,9 +38,10 @@ module shared by Node and the browser (`scripts/video/timing.js`); nothing else 
 Equal weight per hit (this is exactly "on average"); no audio analysis, weighting, outlier removal or rematching. Each ride's
 average is known to about ±2 ms; rides differ by up to about 9 ms, hence per ride.
 
-**One honest rule.** A ride is *calibrated* when its record has beats, it has at least one matched hit, and the offset falls in
-`[0, 0.5 s]`. Incomplete rides calibrate from what they matched. Anything else is *uncalibrated*: offset 0, shown exactly as
-compiled, with the reason saved in the scene (no beats, no matched hit, offset out of range).
+**One honest rule.** A ride is *aligned* when its record has beats, it has at least one matched hit, and the offset falls in
+`[0, 0.5 s]`: its offset comes from its own hits, automatically, every time it is drawn. Incomplete rides align from what they
+matched. Anything else is *as compiled*: offset 0, shown exactly as compiled, with the reason saved in the scene (no beats, no
+matched hit, offset out of range). Nothing is ever tuned by hand.
 
 ## Who reads which clock
 
@@ -50,7 +51,7 @@ compiled, with the reason saved in the scene (no beats, no matched hit, offset o
 | the intensity metric: built from the ride's speed and each matched hit's `touch` frame, read at `r` (so the paper's tint, the sun's size and the quiet zoom follow the ride); independent of any look | everything a hit triggers: shake, colour split, flash, the band's accent heat, the drop's snap to a hit, the opening's end, each from the hit's **effect time** |
 
 **Effect time** = the look option `effectsAt`: `touch` or `peak` (mapped `f / 40 − offset`), or `beat` (`b`). One selector,
-shared by every hit-triggered item. `beat` requires beats: on an uncalibrated scene without them, choosing it is an error, never a
+shared by every hit-triggered item. `beat` requires beats: on an as-compiled scene without them, choosing it is an error, never a
 fallback. Effect times must be non-decreasing (asserted; the picture scans hits in order). The direction of a hit's effects stays
 a property of the geometry. v1 keeps `touch`.
 
@@ -58,7 +59,7 @@ a property of the geometry. v1 keeps `touch`.
 
 Built once by `scene.ts` from a saved ride record (a bare track only when no record exists):
 
-- `offset`, `calibrated`, and the reason when not;
+- `offset`, `aligned`, and the reason when not;
 - the song span;
 - the account projected, in physics frames: every target (with its beat when recorded), every event (`touch`, `onset`, `peak`,
   `strength`), and which event matched which target. Matched hits reference this projection; nothing is converted until the
@@ -70,9 +71,9 @@ Built once by `scene.ts` from a saved ride record (a bare track only when no rec
 |---|---|
 | Picture (lab, films, videos) | the scene; one conversion per frame |
 | Review player and impact panel | the scene: seek bounds from the song span; inspection at `r`; beats at `b`, events mapped; the compiler's own residuals shown separately, labelled as compiler diagnostics |
-| Study clips | each clip is centred on the judged moment's ride frame mapped to song time (so non-hit moments work too); simultaneous comparisons (compare's before/after) share common song-time bounds and one soundtrack, each side with its own offset; beat marks come from the scene's beats; a study declares one calibration state and its builder refuses keys that mix calibrated and uncalibrated rides |
+| Study clips | each clip is centred on the judged moment's ride frame mapped to song time (so non-hit moments work too); simultaneous comparisons (compare's before/after) share common song-time bounds and one soundtrack, each side with its own offset; beat marks come from the scene's beats; a study declares one state and its builder refuses keys that mix aligned and as-compiled rides |
 | Lab UI | the scene's song times |
-| `npm run video`, study renders | records and sidecars carry the look, the offset and the calibration state; a saved video with another presentation is not reused: a fresh destination is required |
+| `npm run video`, study renders | records and sidecars carry the look, the offset and the alignment state; a saved video with another presentation is not reused: a fresh destination is required |
 | Spec dashboard | unchanged: authored times on the audio (song time) |
 
 ## What the compiler records
@@ -81,7 +82,7 @@ In `loadMusicSpec`, and only there: the authored contacts must be strictly incre
 sorted), so index *i* is the same target before and after any shift. `beats = contacts.map(c => c.t)` before the jolt; asserted
 `beats.length === targets.length`. Saved in the ride record beside `impactEvaluation`, never inside the impact ruler's objects
 or any identity-bearing input (evaluation case identities are unchanged). A perturbed evaluation cell keeps the unperturbed
-beats: perturbation tests robustness, the musical moment does not move. Records saved before have no beats: uncalibrated, until
+beats: perturbation tests robustness, the musical moment does not move. Records saved before have no beats: as compiled, until
 recompiled.
 
 ## The jolt
@@ -97,7 +98,7 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
 
 ## Stages and proofs
 
-1. **Processing, offset 0** (`visual-lab`): `timing.js`; the scene's span, account projection and calibration fields; the
+1. **Processing, offset 0** (`visual-lab`): `timing.js`; the scene's span, account projection and alignment fields; the
    picture on two clocks; every consumer through the scene; `effectsAt`.
    Proof: unit tests of the relation (inverse, sign); one cross-consumer test with a synthetic nonzero offset, both signs (the
    picture, inspection, seek bounds, clip bounds and export all show physics frame `f` at song time `f / 40 − offset`); the lab
@@ -105,11 +106,11 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    also moves the intensity metric over a few seconds around them; each shown).
 2. **Beats recorded** (compiler only, on `rework/foundations`, when the owner chooses): additive. Proof: parity unchanged; on
    saved rides, beats equal the spec at its recorded hash (a test oracle, not a runtime path). The lab's rides are left as they
-   are, so nothing is calibrated yet.
-3. **Calibration together with the effects round**: turning the offset on while effects stay at `touch` would put the flash and
+   are, so nothing is aligned yet.
+3. **Alignment together with the effects round**: turning the offset on while effects stay at `touch` would put the flash and
    split about 20 ms ahead of the sound, so the offset and the effect anchor are decided in the same round, by eye, on whole films.
-   The round begins by recompiling the lab's rides at the same jolt: identical tracks, now with beats, so calibrated. The lab
-   shows each ride both ways, the saved one (uncalibrated, as the owner knows it) and the recompiled one: the same ride, only the
+   The round begins by recompiling the lab's rides at the same jolt: identical tracks, now with beats, so aligned. The lab
+   shows each ride both ways, the saved one (as compiled, as the owner knows it) and the recompiled one: the same ride, only the
    timing differs. (The no-mixing rule is for blind studies, not for this deliberate comparison.)
 4. **Jolt 0** (compiler): the declared comparison; rides recompiled; offsets adapt by themselves (about 14 ms instead of 29).
 

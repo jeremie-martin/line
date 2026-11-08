@@ -150,6 +150,40 @@ no-archive floor (−70.6) and main, with every version reported in full.
   shaped families, which reserve a quarter for the generic sweep). This is
   why ranking matters, and why 128 styles could not help.
 
+### All the catalogue's moves tried: −22.7, closer than the compact network
+
+- **Change.** The 64 ranked styles are all offered: `policySamples: 64`,
+  and `samples: 160` per catch, so 80 initial proposals
+  (`exp/catalogue-64-all-tried`).
+  - Physics frames +1%: the allowance caps the total, so this moves
+    effort from depth to breadth rather than adding compute.
+- **Control.** Main with the same `samples: 160` (`exp/main-samples-160`):
+  **−1.1** [−5.9, +3.6], no effect. More initial slots do not help the
+  archive, which already fits.
+- **Result: −22.7** [−33.9, −11.4]; every seed block negative (−12.8 to
+  −28.9); no ride lost; explicit requests −26.8; strong extra impacts 0.07
+  per 100 beats (main 0.04).
+  - Per category: G −36.7, P5 −35.7, P7 −31.0, P4 −27.0, P1 −23.6, P2
+    −17.2, P3 −14.2, P6 +3.9.
+  - By part (against main; compact network in brackets): strong beats too
+    soft −10.4 (−12.0), speed −6.3 (−7.7), extra hits −3.1 (−0.9), timing
+    −1.0 (−2.5), air −0.9 (+0.1).
+- **128 ranked styles offered the same way: −25.1** [−37.4, −12.8]. About
+  68 of the 128 fit in the slots; more moves crowd each other out. 64,
+  all tried, is the best so far.
+- **The extra hits sit in the shaped, guided families**: over 164 rides,
+  terraces 653 hits (main 492) and serpentine 712 (main 358), all weak
+  (under 0.3). A real move placed in a new situation likely brings a guide
+  clearance the rider touches. About 2 points.
+- **Reading.**
+  - The readable catalogue's moves were good; most were never tried.
+    Offered in full, a 5 × 5 table per family and side plus 64 real moves
+    (25,647 numbers) beats the compact network, at the same physics cost.
+  - That is within about 3 points of the owner's acceptable drop (about
+    20).
+  - The loss left is the shared one: strong beats on everyday songs, and
+    speed.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

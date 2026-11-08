@@ -226,6 +226,19 @@ export const SCHEMES = {
   w2Lyons: {paper: '#081a3f', ink: '#f6ead1', pencil: '#3e4a63', mass: '#d0a43a', accent: '#f6e7c3', nightPaper: '#081a3f', nightInk: '#f6ead1'},
   // Cobalt (Wada 333) with its sienna accent lifted so it parts from the pure blue bars (ΔL .17 instead of .12).
   w2CobaltBright: {paper: '#e7f2ea', ink: '#0c1e2f', pencil: '#a5b2b2', mass: '#006eb8', accent: '#e57f51', nightPaper: '#061523', nightInk: '#e7f2ea'},
+  // Round 28's best versions (8 November), each graded 8 or more by the owner:
+  // Round 28 (Codex's draft matched to Wada 251: Yellow, Slate Color, Red; Diamine Green sun), graded 8; the olive pencil neutralised (TASTE.md)
+  lemonBlue: {paper: '#ededde', ink: '#171c2c', pencil: '#a6a8a5', mass: '#16485a', accent: '#b32f4e', sun: '#1a7444', nightPaper: '#171c2c', nightInk: '#f1ef83', tone: '#edea7c'},
+  // Round 28 (Codex's draft, tuned: the accent lifted from the bars), graded 9; a blue page with peach bars at the drop
+  whiteVermilion: {paper: '#faf9f5', ink: '#25201e', pencil: '#ada7a1', mass: '#ba351f', accent: '#f15d41', sun: '#de4b2f', nightPaper: '#142a60', nightInk: '#fff3e7', tone: '#f4eee7'},
+  // White and Vermilion's drop partner
+  whiteVermilionDrop: {paper: '#242e43', ink: '#fff3e7', pencil: '#5e6471', mass: '#f1b797', accent: '#de4b2f', sun: '#de4b2f', nightPaper: '#142a60', nightInk: '#fff3e7', tone: '#192f64'},
+  // Round 28 (Codex's draft as drawn), graded 8: "the color of the circle and the color of the accent is beautiful"
+  blueRose: {paper: '#102e3a', ink: '#f6f0db', pencil: '#65828b', mass: '#e99aa6', accent: '#c0ed62', sun: '#c0ed62', nightPaper: '#102e3a', nightInk: '#f6f0db', tone: '#153744'},
+  // Round 28 (Wada 339, drafted with the owner's feedback), graded 8: a cool sheet that blushes to salmon with the ride's intensity
+  dawn: {paper: '#e0f1ff', tone: '#ffd6ba', ink: '#1c1f37', pencil: '#a8b7bf', mass: '#40456a', accent: '#d96629', nightPaper: '#121428', nightInk: '#e2f2f6'},
+  // Round 28 (Codex's draft matched to Wada 343: Ivory Buff, Deep Grayish Olive, Burnt Sienna), graded 8: "looks awesome"
+  silverRust: {paper: '#dfd5c0', ink: '#1b2525', pencil: '#8a9995', mass: '#675928', accent: '#c26438', sun: '#ae5224', nightPaper: '#1b2525', nightInk: '#eef4f0', tone: '#cbd8d2'},
 };
 // Round 27 compares drop partners on exact copies of Aubergine and Dune, each handing over to another partner; deleted once
 // answered (the chosen partner becomes the scheme's own).
@@ -233,7 +246,8 @@ for (const [copy, of] of [['w2AubergineToLavender', 'w2Aubergine'], ['w2Aubergin
 // and Ultramarine with brighter bars (phone review: its bars were the faintest against their paper, 3.4:1; here 4.4:1)
 SCHEMES.wUltramarineBright = {...SCHEMES.wUltramarine, mass: '#2380cc'};
 export const SCHEME_NAMES = {graphite: 'Graphite & red', hokusai: 'Hokusai', black: 'Black', lagoon: 'Lagoon', riso: 'Riso', dune: 'Dune', plum: 'Plum', slate: 'Slate', olive: 'Olive', mauve: 'Mauve', bauhaus: 'Bauhaus', sumi: 'Sumi', midnight: 'Midnight', espresso: 'Espresso', moss: 'Moss', klein: 'Klein', bottle: 'Bottle', risoDeep: 'Riso, deeper ink (test)', wPrussian: 'Prussian (Wada 343)', wBrick: 'Brick (Wada 325)', wOrchid: 'Orchid (Wada 315)', wVerdigris: 'Verdigris (Wada 266)', wDenim: 'Denim (Wada 279)', wRusset: 'Russet (Wada 249)', wMagenta: 'Magenta (Wada 144)', wViridian: 'Viridian (Wada 256)', wUltramarine: 'Ultramarine (Wada 295)', wOldRose: 'Old Rose (Wada 265)', wIndigoTeal: 'Indigo Teal (Wada 155)', wGilt: 'Gilt (Wada 325)', w2Etruscan: 'Etruscan (Wada)', w2Peony: 'Peony (Wada)', w2Umber: 'Umber (Wada)', w2Hydrangea: 'Hydrangea (Wada)', w2Celadon: 'Celadon (Wada)', w2Camellia: 'Camellia (Wada)', w2Blush: 'Blush (Wada)', w2Heather: 'Heather (Wada)', w2Aubergine: 'Aubergine (Wada)', w2Wisteria: 'Wisteria (Wada)', w2Cobalt: 'Cobalt (Wada)', w2Seashell: 'Seashell (Wada)', w2Carmine: 'Carmine (Wada)', w2Aconite: 'Aconite (Wada)', w2Apricot: 'Apricot (Wada)', w2Grenadine: 'Grenadine (Wada)', w2Pansy: 'Pansy (Wada)', w2Saxe: 'Saxe (Wada)', w2HeatherNight: 'Heather Night (Wada)', w2AubergineNight: 'Aubergine Night (Wada)', wBrick10: 'Brick, round 10', w2EtruscanR11: 'Etruscan, round 11', w2CamelliaR11: 'Camellia, round 11', cahier: 'Cahier', toile: 'Toile', ravilious: 'Ravilious', lavender: 'Lavender', kraft: 'Kraft', vegas: 'Vegas', cyanotype: 'Cyanotype', kintsugi: 'Kintsugi', rothko: 'Rothko', cafe: 'Café', kraftPoster: 'Kraft, poster', cyanotypeBright: 'Cyanotype, brighter bars', w2AubergineDrop: 'Aubergine, drop (Wada 307)',
-  w2AubergineDropDark: 'Aubergine, darker drop', w2Lyons: 'Lyons (Wada 126)', w2CobaltBright: 'Cobalt, brighter accent (Wada 333)', w2AubergineToLavender: 'Aubergine → lavender drop (R27)', w2AubergineToAconite: 'Aubergine → aconite drop (R27)', duneToCafe: 'Dune → Café (R27)', wUltramarineBright: 'Ultramarine, brighter bars (R27)'};
+  w2AubergineDropDark: 'Aubergine, darker drop', w2Lyons: 'Lyons (Wada 126)', w2CobaltBright: 'Cobalt, brighter accent (Wada 333)', w2AubergineToLavender: 'Aubergine → lavender drop (R27)', w2AubergineToAconite: 'Aubergine → aconite drop (R27)', duneToCafe: 'Dune → Café (R27)', wUltramarineBright: 'Ultramarine, brighter bars (R27)',
+  lemonBlue: 'Lemon and Blue (Wada 251)', whiteVermilion: 'White and Vermilion', whiteVermilionDrop: 'White and Vermilion, drop', blueRose: 'Blue and Rose', dawn: 'Blushing Dawn (Wada 339)', silverRust: 'Silver and Rust (Wada 343)'};
 const DIMS = {scheme: ['Colour', SCHEME_NAMES]}; // the variant code below names schemes through DIMS.scheme[1], as it did in lab.js
 
 // Background study (round 8): a palette's line, bars and accent kept exactly; only the paper moves, along one plain direction
@@ -289,6 +303,7 @@ const DROP_SCHEMES = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', 
   wBrick: 'kintsugi',
   // Wada 204 → 144 share Rosolanc Purple: the bars stay, the page goes dark (theme study, 8 November)
   w2Peony: 'wMagenta',
+  whiteVermilion: 'whiteVermilionDrop',
   // round 27's comparisons (see the copies above)
   w2AubergineToLavender: 'w2AubergineDrop', w2AubergineToAconite: 'w2AubergineDropDark', duneToCafe: 'cafe'};
 

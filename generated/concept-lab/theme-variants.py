@@ -53,11 +53,18 @@ def legible(s):
     # a deliberate ink (a red line) or pencil (a blue pencil) is kept while it reads: ink 4.5:1 against the paper, the pencil
     # visible (1.25:1) but quieter than the ink
     if contrast(s['ink'], s['paper']) < 4.5: s['ink'] = mix(s['mass'], '#101010' if light else '#fafafa', 0.85)
-    if not 1.25 <= contrast(s['pencil'], s['paper']) <= min(3.5, contrast(s['ink'], s['paper'])): s['pencil'] = mix(s['paper'], s['ink'], 0.3)
+    # the pencil is a quiet neutral, never a hue of its own (TASTE.md: a blue pencil turning black was "a huge smell")
+    if not 1.25 <= contrast(s['pencil'], s['paper']) <= min(3.5, contrast(s['ink'], s['paper'])) or lch(s['pencil'])[1] > max(0.03, Cp + 0.01):
+        s['pencil'] = mix(s['paper'], s['ink'], 0.3)
     if 'sun' in s:
         Ls, Cs, Hs = lch(s['sun'])
         if abs(Ls - Lp) < 0.15: s['sun'] = fromlch(Lp - 0.25 if light else Lp + 0.3, Cs, Hs)
     return s
+
+def visible(a, b):
+    """Whether two schemes differ visibly: paper, bars or accent moved by a clearly perceptible step (OKLab ΔE ≥ .04). Round 28's
+    tuned versions mostly did not ("is there really one?"), so a variant that does not is not shown."""
+    return max(de(a[k], b[k]) for k in ('paper', 'mass', 'accent')) >= 0.04
 
 def wada(s):
     """The Wada combination nearest the draft's paper, bars and accent (and a distinct sun), every role assignment tried."""
@@ -75,20 +82,22 @@ def wada(s):
     if 'sun' in s and 'sun' not in roles: m['sun'] = m['accent']
     return legible(m), {'combination': n, 'colours': {r: c['name'] for r, c in zip(roles, pick)}, 'distance': round(cost, 3)}
 
-out = {'schemes': {}, 'drops': {}, 'themes': {}}
-for path in sys.argv[2:]:
-    d = json.load(open(path))
-    for tid, t in d['themes'].items():
-        sid = t['look']['scheme']; base = d['schemes'][sid]; partner = d.get('drops', {}).get(sid)
-        variants = {'asis': (base, None), 'wada': wada(base), 'tuned': (legible(base), None)}
-        for v, (scheme, note) in variants.items():
-            name = f'{tid}_{v}'; out['schemes'][name] = scheme
-            if partner:
-                p = d['schemes'][partner]
-                out['schemes'][name + 'Drop'] = p if v == 'asis' else (wada(p)[0] if v == 'wada' else legible(p))
-                out['drops'][name] = name + 'Drop'
-            out['themes'][name] = {'draft': tid, 'variant': v, 'name': t['name'], 'line': t['line'], 'look': {**t['look'], 'scheme': name}, **({'wada': note} if note else {})}
-json.dump(out, open(sys.argv[1], 'w'), indent=1)
-print(len(out['themes']), 'variants;', sum(1 for t in out['themes'].values() if t['variant'] == 'wada'), 'matched to Wada')
-for t in out['themes'].values():
-    if t['variant'] == 'wada': print(f"  {t['name']}: no. {t['wada']['combination']} {t['wada']['colours']} (distance {t['wada']['distance']})")
+if __name__ == '__main__':
+    out = {'schemes': {}, 'drops': {}, 'themes': {}}
+    for path in sys.argv[2:]:
+        d = json.load(open(path))
+        for tid, t in d['themes'].items():
+            sid = t['look']['scheme']; base = d['schemes'][sid]; partner = d.get('drops', {}).get(sid)
+            variants = {'asis': (base, None), 'wada': wada(base), 'tuned': (legible(base), None)}
+            variants = {v: x for v, x in variants.items() if v == 'asis' or visible(base, x[0])}
+            for v, (scheme, note) in variants.items():
+                name = f'{tid}_{v}'; out['schemes'][name] = scheme
+                if partner:
+                    p = d['schemes'][partner]
+                    out['schemes'][name + 'Drop'] = p if v == 'asis' else (wada(p)[0] if v == 'wada' else legible(p))
+                    out['drops'][name] = name + 'Drop'
+                out['themes'][name] = {'draft': tid, 'variant': v, 'name': t['name'], 'line': t['line'], 'look': {**t['look'], 'scheme': name}, **({'wada': note} if note else {})}
+    json.dump(out, open(sys.argv[1], 'w'), indent=1)
+    print(len(out['themes']), 'variants;', sum(1 for t in out['themes'].values() if t['variant'] == 'wada'), 'matched to Wada')
+    for t in out['themes'].values():
+        if t['variant'] == 'wada': print(f"  {t['name']}: no. {t['wada']['combination']} {t['wada']['colours']} (distance {t['wada']['distance']})")

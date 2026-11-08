@@ -69,6 +69,12 @@ export const THEMES = {
   rothko: {name: 'Rothko', line: 'The Seagram murals: a maroon room, brick bars, a candle-gold bar and a candle-gold sun; the first dark theme with a sun.', look: {scheme: 'rothko', band: 'bars', top: 'sun', line: 'ink'}},
   lyons: {name: 'Lyons Blue and Gold', line: 'Wada 126 at night: Lyons blue, an ochre-gold band, one ivory bar, the title in ivory.', look: {scheme: 'w2Lyons', band: 'bars', line: 'ink', top: 'title'}},
   slate: {name: 'Slate', line: 'Fog over a harbour: blue-grey paper, a slate band, the loudest three always mustard, plain paper.', look: {scheme: 'slate', band: 'bars', accent: 'loud', paper: 'plain'}},
+  // round 28's best versions (8 November), graded 8 or more
+  lemonblue: {name: 'Lemon and Blue', line: 'Wada 251: a pale yellow page, a slate fork with red heads, a green sun, the whole rail inked on touch, the title.', look: {band: 'fork', accent: 'loud', top: 'title', line: 'rail', paper: 'plain', scheme: 'lemonBlue'}},
+  whitevermilion: {name: 'White and Vermilion', line: 'Red bars on white, the loudest lifted to vermilion; at the drop a blue page with peach bars.', look: {band: 'bars', accent: 'loud', drop: 'switch', scheme: 'whiteVermilion'}},
+  bluerose: {name: 'Blue and Rose', line: 'A deep blue-green page, a rose fork and a lime sun: one hot note, echoed.', look: {band: 'fork', bandHeight: 'low', top: 'sun', line: 'ink', paper: 'plain', scheme: 'blueRose'}},
+  dawn: {name: 'Blushing Dawn', line: 'Wada 339: a cool morning sheet that blushes to salmon as the ride heats up, violet-blue bars, an English-red sun.', look: {scheme: 'dawn', band: 'bars', top: 'sun'}},
+  silverrust: {name: 'Silver and Rust', line: 'Wada 343: an ivory-buff page, deep olive bars, a burnt-sienna accent and sun.', look: {top: 'sun', line: 'rail', zoom: 'quiet', scheme: 'silverRust', band: 'bars'}},
 };
 /** The compiler's review clips: the ride alone, black on white, nothing that could colour a judgement of the motion. */
 export const PLAIN = {paper: 'plain', line: 'ink', band: 'none', top: 'none', drop: 'off', ends: 'none', hits: 'none'};

@@ -30,8 +30,9 @@ try {
     await page.route('**/api/repertoire/catalog', route => route.fulfill({json: {songs: [], constructions: []}}));
     await page.route('**/api/repertoire/jobs', route => route.fulfill({json: {jobs: []}}));
     await page.route('**/motion-gallery/production-library.json', route => route.fulfill({json: {entries: ['first','second'].map(id => ({title: id, manifest: `/async-fixture/${id}-manifest.json`}))}}));
-    await page.route('**/motion-gallery/replay.js', route => route.fulfill({contentType: 'text/javascript', body:
-      `export async function prepareView(r){await fetch('/async-fixture/replay-'+r.case.id);return {view:{draw(){}}};}` }));
+    await page.route('**/motion-gallery/ride.js', route => route.fulfill({contentType: 'text/javascript', body:
+      `export async function prepareRide(r){await fetch('/async-fixture/replay-'+r.case.id);return {inspection:{guideIds:[],byFrame:[{all:[]}]}};}` +
+      `export async function pictureFor(){return {draw(){return new DOMMatrix();}};}` }));
     await page.route('**/async-fixture/*', async route => {
       const name = new URL(route.request().url()).pathname.split('/').at(-1); requested.push(name);
       if (name === 'replay-first') {if (mode === 'overlap') await replayGate.promise; await route.fulfill({body: 'ok'}); return;}

@@ -10,7 +10,7 @@ wherever it lives. Line counts are as of today.*
 | A. The video renderer | `scripts/video/` | about 1,190 lines | Draws and writes every video: the finished ones, the lab's films, the review clips |
 | B. Its commands | `scripts/video.ts`, `scripts/produce/{render_repertoire,video_input,video_request}.ts`, `tools/measure/clip_render.ts` | about 270 lines | `npm run video`, study renders and bundles, review clips |
 | C. The concept lab | `generated/concept-lab/` | runtime about 570 lines | The owner's questions, the free mix, the blind test; draws through A |
-| D. Review players | `motion-gallery/`, `shared/playback.js`, `scripts/gallery/native/` | – | The compiler's ride review and the video players |
+| D. Review players | `motion-gallery/`, `shared/playback.js`, `scripts/gallery/inspect.js` | – | The compiler's ride review and the video players |
 | E. Tests | `tests/video_renderer.test.ts`, `tests/video_write.test.ts`, the lab's checks | – | – |
 
 ## A. The video renderer (`scripts/video/`)
@@ -26,7 +26,8 @@ wherever it lives. Line counts are as of today.*
 | `drops.ts` | 13 | Each song's drop, placed by hand |
 | `write.ts` | 172 | Scene + look → MP4 in one pass, then checked (frames, tags, audio within 1 ms) |
 | `encoding.ts` | 11 | The one encoding standard (BT.709, all four tags) |
-| `native.js`, `worker.js` | 66 | The vendored rider artwork and native replay, bundled into `generated/renderer/` (`npm run gallery:renderer`) |
+| `native.js`, `worker.js`, `sprites.js` | 82 | The vendored rider artwork and native replay, bundled into `generated/renderer/` (`npm run gallery:renderer`) |
+| `scene_api.ts` | 32 | The review server's scene endpoint: a saved record's scene, for the review player |
 
 ## B. Commands
 
@@ -55,9 +56,9 @@ and data), the round pages.
 ## D. Review players
 
 - `motion-gallery/video-compare.*` plays rendered videos side by side in one player (the lab's films, compare's review).
-- `motion-gallery/production.html` (`production.js`, `replay.js`, `scripts/gallery/native/view.js`) is the compiler's ride
-  review: native look, the official follower, 16:9 or 9:16, a zoom slider and geometry highlights. It shares the replay
-  worker and the bundle with A. Whether it should draw the video picture instead is open (TODO.md, item 11).
+- `motion-gallery/production.html` (`production.js`, `ride.js`) is the compiler's ride review. It draws the video picture
+  (A) from the scene the review server builds (`/api/scene`, `scripts/video/scene_api.ts`), plain by default or in any theme,
+  with contact inspection as an overlay (`scripts/gallery/inspect.js`).
 - `motion-gallery/pairs.*` plays the blind pair studies (clips from B).
 - `shared/playback.js` is the music clock of every live player, the lab's included.
 

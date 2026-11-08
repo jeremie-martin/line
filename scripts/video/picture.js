@@ -352,7 +352,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     ctx.restore();
   }
 
-  /** Draw the frame at song time t (s). */
+  /** Draw the frame at song time t (s). Returns the world-to-canvas transform the ride was drawn with (before the split). */
   function draw(t, look) {
     const at = clamp(t * FPS, 0, frames.length - 1), k = canvas.width / W, on = look.hits === 'v1';
     const hit = on ? strongest(t) : null;
@@ -365,12 +365,13 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
     if (band > 0.003 && look.band !== 'none') drawBand(t, band, th, look);
-    const cc = {...v, ax: v.ax + hc.dx, ay: v.ay + hc.dy};
-    ctx.setTransform(new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]));
+    const cc = {...v, ax: v.ax + hc.dx, ay: v.ay + hc.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
+    ctx.setTransform(world);
     drawLines(visibleLines(cc), at, cc.z, th, look, v.over);
     drawRider(riderCamera(v, hc.dx, hc.dy, k), at);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (on) {split(k, hit); ctx.setTransform(k, 0, 0, k, 0, 0); flash(hit, th.bg);}
+    return world;
   }
 
   return {draw, hits, duration: scene.duration, drop: night, intensityAt, schemeAt};

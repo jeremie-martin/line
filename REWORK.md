@@ -41,9 +41,13 @@ style study, cross-study video reuse, and the render hashes.
 - **Gates:** parity and judge parity pass, as do the tests (444), the
   typecheck (0 errors), reach (0 unreachable) and the smoke check.
 
+The review player (`motion-gallery/production.html`) draws the same picture, plain
+by default or in any theme, with its contact inspection as an overlay; its 16:9
+format, zoom slider and the official-follower drawing are gone.
+
 **Not changed:**
 - The compiler.
-- Presentation settings still inside compile identities (TODO.md, item 11).
+- The specs, kept as authored by the owner's choice (TODO.md, item 11).
 - The jolt, to be judged again by ear on videos now in sync.
 
 ## November 7: local search judges like ranking (adopted)

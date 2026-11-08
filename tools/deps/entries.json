@@ -11,7 +11,7 @@
     "motion-gallery/production.js",
     "motion-gallery/video-compare.js",
     "scripts/gallery/check_production_ui.mjs",
-    "motion-gallery/replay.js",
+    "motion-gallery/ride.js",
     "motion-gallery/contact-impact-review.js",
     "scripts/v0/bench/sim_trace.ts",
     "motion-gallery/pairs.js",

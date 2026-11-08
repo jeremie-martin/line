@@ -200,13 +200,15 @@ and validation are in [music authoring](docs/music-authoring.md).
    and the music. The music plays through Web Audio and each frame draws the
    ride at the position heard when it reaches the screen
    (`shared/playback.js`, also used by the spec dashboard's cursor and
-   landing clicks and by the grading page). The camera is the videos' own follower
-   centred on the mean of the ten traced points
-   (`scripts/gallery/native/camera.js`). Production viewports are responsive
-   16:9 or 9:16 canvases, selected with Format (default horizontal, zoom 2.0).
-   Portrait previews fit within 72% of viewport height. Native replay is prepared in a worker before playback;
-   drawing interpolates the saved poses and uses the native renderer's cached
-   sprite atlas rather than rasterizing SVG body parts on every refresh.
+   landing clicks and by the grading page). The ride is drawn by the video picture
+   (`scripts/video/picture.js`, below) from the scene the review server builds for
+   it (`/api/scene`, `scripts/video/scene_api.ts`), in a chosen look: plain by
+   default, or any theme, so the review shows what a video of the ride would.
+   "Inspect contacts" overlays the guiding lines and the lines touched at each
+   frame with the picture's own camera (`scripts/gallery/inspect.js`). The canvas is
+   9:16 and fits within 72% of viewport height (`motion-gallery/ride.js`). Native
+   replay is prepared in a worker before playback; drawing interpolates the replayed
+   poses and uses the native renderer's cached sprite atlas.
    Artifact bytes and checksums load together. Music downloads overlap native
    preparation, and optional video metadata loads independently of audio.
    Checksums and selection cancellation are checked before publishing results;
@@ -251,8 +253,9 @@ and validation are in [music authoring](docs/music-authoring.md).
      standard (`encoding.ts`: H.264 yuv420p, BT.709 limited range, all four colour
      tags) and is checked after writing: frame count, size, rate and tags, and the
      audio within 1 ms of the song by cross-correlation.
-   - `native.js` and `worker.js` are the vendored rider artwork and native replay,
-     bundled with the review players' view into `generated/renderer/` by
+   - `native.js`, `worker.js` and `sprites.js` are the vendored rider artwork and
+     native replay, bundled with the review player's contact inspection into
+     `generated/renderer/` by
      `scripts/gallery/build_renderer.mjs`. The replay checks a saved trace against
      the engine within 1e-7 where one exists.
 

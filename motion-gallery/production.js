@@ -1,5 +1,7 @@
 import {playerShortcut} from './player-shortcuts.js';
-import {prepareView} from './replay.js';
+import {prepareRide,pictureFor} from './ride.js';
+import {highlight} from '/generated/renderer/inspect.js';
+import {THEMES,resolveLook} from '/scripts/video/look.js';
 import {sha256Hex} from './sha256.js';
 import {checked} from './artifacts.js';
 import {createContactImpactReview} from './contact-impact-review.js';
@@ -45,14 +47,24 @@ function pause(){const at=music.pause();if(playing)seconds=at;playing=false;$('p
 async function start(){$('play').textContent='Pause';try{if(seconds>=+$('seek').max||seconds<+$('seek').min)seek(+$('seek').min);$('movie').pause();await music.play(seconds,+$('rate').querySelector('input:checked').value);if(!music.playing)return;playing=true;}catch(e){playing=false;$('play').textContent='Play';status(e.message,true);}}
 function togglePlayback(){music.requested?pause():start();}
 
+// The ride is drawn by the video picture, in the chosen look (plain by default), so it is what a video of it shows.
+const looks=new Map([['plain',{name:'Plain',look:resolveLook('plain')}],...Object.entries(THEMES).map(([id,t])=>[id,{name:t.name,look:resolveLook(id)}])]);
+$('look').replaceChildren(...[...looks].map(([id,{name}])=>{const o=el('option',name);o.value=id;return o;}));
+$('look').value=looks.has(new URLSearchParams(location.search).get('look'))?new URLSearchParams(location.search).get('look'):'plain';
 function draw(){
  $('time').textContent=fmt(seconds,2)+' / '+fmt(+$('seek').max,1)+' s';$('seek').value=seconds;
- ($('comparison').checked?[0,1]:[0]).forEach(index=>{const entry=views[index],r=records[index];if(!entry||!r)return;const canvas=$(index?'reference':'production');
- entry.view.draw(canvas,{w:canvas.clientWidth,h:canvas.clientHeight,z:+$('zoom').value,r:Math.min(2,devicePixelRatio)},seconds*40,$('inspect').checked);
+ const look=looks.get($('look').value).look,r=Math.min(2,devicePixelRatio);
+ ($('comparison').checked?[0,1]:[0]).forEach(index=>{const view=views[index],record=records[index];if(!view||!record)return;const canvas=$(index?'reference':'production');
+  const w=Math.round(canvas.clientWidth*r),h=Math.round(canvas.clientHeight*r);if(!w||!h)return;
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  const world=view.picture.draw(seconds,look);
+  // inspection: the lines that guided the ride (blue) and the ones touched at this frame (orange), with the picture's camera
+  if($('inspect').checked){const {guideIds,byFrame}=view.ride.inspection,f=Math.max(0,Math.min(byFrame.length-1,Math.floor(seconds*40))),c=canvas.getContext('2d');
+   highlight(c,world,record,guideIds,'#2468ba',2*r);highlight(c,world,record,byFrame[f].all,'#d35400',2*r);}
  });
  impactReview.draw(seconds);
 }
-function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
+function passageLink(updateHistory=true){if(!manifestUrl)return;const url=new URL(location.href);url.searchParams.set('data',manifestUrl.pathname);url.searchParams.set('t',seconds.toFixed(3));if($('look').value!=='plain')url.searchParams.set('look',$('look').value);else url.searchParams.delete('look');if($('comparison').checked)url.searchParams.set('compare','previous');else url.searchParams.delete('compare');$('passage-link').href=url.href;if(updateHistory)history.replaceState(null,'',url);}
 function jump(t){const resume=music.requested;pause();$('movie').pause();seek(t);if(resume&&seconds<+$('seek').max)start();$('result').focus({preventScroll:true});}
 function seek(t){seconds=Math.max(+$('seek').min,Math.min(+$('seek').max,t));draw();passageLink();}
 async function comparisonChanged(){
@@ -68,9 +80,9 @@ async function comparisonChanged(){
    const previous=await checked(new URL(pc.path,url).href,signal,pc.sha256);
    if(previous.planSha256!==pm.planSha256||previous.seed!==current.seed||previous.case.id!==current.case.id||pm.plan.jolt!==jolt)throw new Error('Previous arrangement has different musical inputs');
    for(const key of ['audioSha256','specSha256','analysisSha256','durationFrames'])if(previous.case[key]!==current.case[key])throw new Error('Previous arrangement has different '+key);
-   const prepared=await prepareView(previous,pc.sha256,signal);
+   const ride=await prepareRide(previous,new URL(pc.path,url).href,pc.sha256,signal),picture=await pictureFor($('reference'),ride);
    if(token!==opening)return;
-   records[1]=previous;views[1]=prepared;status('');
+   records[1]=previous;views[1]={ride,picture};status('');
   }catch(e){if(signal.aborted||token!==opening)return;$('comparison').checked=false;status('Previous comparison unavailable: '+e.message,true);}
   finally{if(token===opening)$('comparison').disabled=false;}
  }
@@ -81,7 +93,6 @@ async function comparisonChanged(){
 }
 $('comparison').onchange=comparisonChanged;
 document.querySelector('header a[href="#generation"]').onclick=()=>{$('generation').open=true;};
-$('format').onchange=()=>{$('rides').dataset.format=$('format').querySelector('input:checked').value;draw();};
 // Each frame shows the ride at the music position heard when the frame is on screen.
 function tick(ts){if(playing){seconds=music.position(onScreen(ts));if(seconds>=+$('seek').max){pause();seek(+$('seek').max);}draw();passageLink(false);}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 $('play').onclick=event=>{togglePlayback();if(event.detail)$('result').focus({preventScroll:true});};
@@ -94,13 +105,13 @@ $('seek').onchange=()=>{if(!pointerScrubbing)endScrub();};
 for(const type of ['pointerup','pointercancel'])document.addEventListener(type,()=>{if(pointerScrubbing)setTimeout(()=>{pointerScrubbing=false;endScrub();},0);});
 for(const id of ['production','reference'])$(id).onclick=()=>{if(!$('play').disabled){togglePlayback();$('result').focus({preventScroll:true});}};
 document.addEventListener('keydown',event=>{if($('result').hidden||$('play').disabled)return;const action=playerShortcut(event);if(!action)return;event.preventDefault();if(action.type==='toggle')togglePlayback();else if(action.type==='seek')jump(seconds+action.delta);});
-$('zoom').oninput=draw;$('inspect').onchange=draw;$('rate').onchange=()=>{if(music.requested){pause();start();}};
+$('look').onchange=()=>{draw();passageLink();};$('inspect').onchange=draw;$('rate').onchange=()=>{if(music.requested){pause();start();}};
 window.addEventListener('resize',draw);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 function clearMovie(){const v=$('movie');v.pause();v.removeAttribute('src');v.load();v.hidden=true;$('movie-link').hidden=true;$('movie-link').removeAttribute('href');}
 async function loadMovie(m,url,signal,token){
   const c=m.cells.find(c=>c.method==='production'),recordUrl=new URL(c.id+'.video.json',url);
   const probe=await fetch(recordUrl,{signal});if(!probe.ok)return;
-  const v=await checked(recordUrl.href,signal,undefined,probe);if(v.identity.planSha256!==m.planSha256||v.identity.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
+  const v=await checked(recordUrl.href,signal,undefined,probe),of=v.inputs??v.identity;if(of.planSha256!==m.planSha256||of.cellSha256!==c.sha256)throw new Error('Video does not match saved ride');
   if(token!==opening)return;
   const src=new URL(v.full.path,url).href;$('movie-link').href=src;$('movie-link').hidden=false;
   $('movie').src=src;$('movie').hidden=false;
@@ -120,7 +131,8 @@ async function openResult(path,job,initialTime=0){
   const libraryEntry=libraryEntries.find(e=>new URL(e.manifest??'',location.href).href===url.href),prior=libraryEntry?.priorManifest;
   previousUrl=prior?new URL(prior,location.href):undefined;
   $('comparison-control').hidden=!prior;if(!prior)$('comparison').checked=false;
-  const prepared=await Promise.all(data.map((r,i)=>prepareView(r,cells[i].sha256,signal)));if(token!==opening)return;
+  const rides=await Promise.all(data.map((r,i)=>prepareRide(r,new URL(cells[i].path,url).href,cells[i].sha256,signal)));
+  const prepared=await Promise.all(rides.map(async(ride,i)=>({ride,picture:await pictureFor($(i?'reference':'production'),ride)})));if(token!==opening)return;
   records=data;views=prepared;manifest=m;manifestUrl=url;const [ride]=cells,p=ride.production;
   $('comparison').disabled=false;
   $('result-title').textContent=libraryEntry?.title??m.plan.cases[0].title;

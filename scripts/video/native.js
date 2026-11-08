@@ -1,7 +1,7 @@
 // The vendored Line Rider code the picture uses, unchanged: the rider artwork and its sprite mapping, and the native replay
 // (worker.js) that checks the saved trace against the engine. Bundled by scripts/gallery/build_renderer.mjs into
 // generated/renderer/native.js; the picture itself (picture.js) stays plain modules.
-import {loadSpriteSheet} from '../gallery/native/sprites.js';
+import {loadSpriteSheet} from './sprites.js';
 const {render: drawSprites, setupSprites} = require('native:806');
 const EntityGenerator = require('native:823');
 

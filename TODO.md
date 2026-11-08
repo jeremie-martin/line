@@ -37,17 +37,15 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 
 11. **Videos: one renderer** (2026-11-08, branch `visual-lab`; REWORK.md).
     Open:
-    - **Owner:** the jolt, judged again by ear now that picture and sound are in
-      sync (the June choice was heard through a 43 ms audio delay).
-    - **Owner:** the review player (`motion-gallery/production.html`) still draws
-      the native look with the official camera, in 16:9 or 9:16 with a zoom
-      slider and geometry highlights; moving it to the video picture would drop
-      those inspection features.
-    - **Compiler side:** presentation settings still sit in compile identities,
-      read by nothing: `render` in `select.json` (it enters every case's
-      `resolvedSha256` through `loadMusicCase`) and `camera` in specs (it enters
-      `specSha256`). Removing them changes every saved run's input identity, so
-      it waits for a moment when the references are re-baselined anyway.
+    - **Owner, next concept-lab round:** the jolt, judged again by ear now that
+      picture and sound are in sync (the June choice was heard through a 43 ms
+      audio delay).
+    - Done: the review player draws the video picture too (plain by default, any
+      theme), with contact inspection as an overlay (owner, 2026-11-08).
+    - Kept by the owner's choice (2026-11-08): the specs' `camera` (zoom lanes,
+      beat punch) and `select.json`'s `render` stay as authored, though the
+      renderer reads neither. Both enter compile identities (`specSha256`, and
+      `resolvedSha256` through `loadMusicCase`).
 
 ## Open questions kept from the retired night report (asked 2026-10-05)
 

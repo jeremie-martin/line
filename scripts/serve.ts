@@ -1,5 +1,5 @@
 /** Local review server: static files under the project root (with byte ranges
- * for audio and video) plus the production job API.
+ * for audio and video) plus the production job, labels, spec and scene APIs.
  *
  *   npm run serve            # http://127.0.0.1:8767/  →  production review page
  *   HOST=0.0.0.0 PORT=8767 npm run serve
@@ -10,9 +10,10 @@ import {extname, normalize, resolve, sep} from 'node:path';
 import {createRepertoireApi} from './gallery/repertoire_api.ts';
 import {createLabelsApi} from './gallery/labels_api.ts';
 import {createSpecApi} from './gallery/spec_api.ts';
+import {createSceneApi} from './video/scene_api.ts';
 
 const PORT = Number(process.env.PORT ?? 8767), HOST = process.env.HOST ?? '127.0.0.1';
-const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), specs = createSpecApi();
+const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), specs = createSpecApi(), scenes = createSceneApi();
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4', '.webm': 'video/webm',
@@ -51,6 +52,7 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
     const handler = url.pathname.startsWith('/api/repertoire/') ? api
       : url.pathname.startsWith('/api/labels/') ? labels
+      : url.pathname === '/api/scene' ? scenes
       : url.pathname.startsWith('/api/spec') ? specs : undefined;
     if (handler && await handler(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}

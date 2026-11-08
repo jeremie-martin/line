@@ -1,5 +1,78 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (evening): readable proposals, first construction steps
+
+The owner asked for broad, methodical construction work on a readable
+proposal system, led by Claude: a piece is not rejected only for scoring
+below the archive. Progress is measured as the gap closed between the
+no-archive floor (−70.6) and main, with every version reported in full.
+
+### What a move is, and how the archive's moves are organized
+
+- **A move is already an editable shape.** `motionArcPaths`
+  (`arc_geometry.ts`) builds an arc from a tangent schedule:
+  - the rider is met at `entry` (shifted by `offset`) and turned by `turn`
+    over the first frames (`turnFraction`, eased by `bias`);
+  - the heading then eases to `exit` over `support` frames, with an
+    optional mid-arc `bend`;
+  - the family's profile modulates it, and the guide follows at
+    `clearance` (`guideFlare`, `guideTilt`).
+  A catalogue is therefore a question of which values good moves use, not
+  of a new representation.
+- **The six main controls do not compress.** Per group, four principal
+  directions cover only 83–89% of their variation. A handful of sliders
+  cannot describe the archive.
+- **The structure is modes set by the situation.**
+  - With a strong ask and a steep arrival the archive redirects: turn
+    −20° to −25°, exit −25° to −43° relative to the arrival.
+  - With a light ask and a shallow arrival it follows or dives. Unguided
+    arcs are then mostly caught from the opposing side (60–83%).
+  - Requested strength, arrival heading and the next ask explain 30–60% of
+    turn and exit (guided arcs: turn 0.46, exit 0.60).
+  - Support, bias and offset do not depend on the situation at all
+    (R² ≤ 0.06): they are free style, the source of variety.
+- **Instrument.** A renderer (scratch, research) rebuilds a stored case's
+  situation from its features and draws its control with the compiler's
+  own `motionArcPaths`, so moves can be looked at.
+
+### A readable catalogue in the compiler (V7.1, 4 seeds, against main)
+
+- **Form.** Per construction group and contact side:
+  - a **core table**: entry, turn and exit relative to the arrival, on a
+    5 × 5 grid over requested strength (0 to 1) and arrival heading (−10°
+    to 70°), read by bilinear interpolation and fitted with a smoothness
+    penalty;
+  - **styles**: real demonstrations, the medoids of k-means on their
+    residual from the table and their free fields. Each keeps its whole
+    control, so a style is a coherent real move.
+  - A proposal is the table's core for the situation plus a style's
+    residual, with the style's free and optional fields. It takes the
+    policy lookup's 32 slots; the memory reads no archive (ride memory
+    only), as in the compact-network arm.
+- **Results.**
+
+  | version | numbers | V7.1 | 95% interval | explicit requests |
+  |---|---|---|---|---|
+  | table + 32 styles, fixed order | 5,582 | −37.9 | −51.3 to −24.6 | −37.0 |
+  | table + 32 styles, ranked by situation | 13,582 | −33.2 | −48.7 to −17.7 | −32.7 |
+  | table + 64 styles, ranked by situation | 25,647 | **−29.1** | −41.9 to −16.4 | −30.3 |
+
+  - "Ranked by situation": each style records how often its demonstrations
+    occur in each cell of the grid (25 counts). Styles are offered most
+    typical first.
+  - No ride lost in any version. Strong extra impacts rise to 0.13–0.18
+    per 100 beats, against 0.04.
+  - Ranked 64, per category: G −45.6, P7 −41.5, P5 −37.5, P1 −28.7, P4
+    −24.2, P6 −22.6, P3 −17.7, P2 −15.4.
+- **Reading.**
+  - A readable table with fixed styles reaches the 32 typical moves
+    (−33.1), not the compact network (−25.1).
+  - Ranking the styles by two readable quantities is worth about 5 points,
+    and a larger ranked set about 4 more.
+  - The everyday songs (G) carry most of the remaining loss.
+- Branches: `exp/readable-catalogue`, `exp/catalogue-ranked-32`,
+  `exp/catalogue-ranked-64` (local).
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

@@ -184,6 +184,23 @@
   The per-source viability of initial proposals separates the first two.
   It is not in the saved rides, so it is measured next on four cases per
   arm.
+- **Viability of initial proposals** (four V7.1 cases, seed 101, compiled
+  in-process per arm; the learned source is the policy lookup or the
+  compact model):
+
+  | arm | learned: tried, viable | memory: tried, viable | generic: tried, viable |
+  |---|---|---|---|
+  | archive | 43,600, 48% | 43,322, 49% | 30,208, 35% |
+  | compact network | 72,112, 43% | 30,480, 45% | 15,476, 13% |
+  | multiple-choice | 71,530, 51% | 29,887, 48% | 15,358, 14% |
+  | control prototypes | n/a | 86,719, 46% | 29,172, 35% |
+  | none | n/a | 38,892, 44% | 75,177, 33% |
+
+  Viability is not the difference: the multiple-choice proposals are viable
+  more often than the archive's and still score lower. The learned proposals
+  are physically fine; what they lack is quality among the viable ones, or
+  the fit with the rest of a compiler co-adapted with the archive (the
+  learned estimate and the priors were all tuned with it in place).
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

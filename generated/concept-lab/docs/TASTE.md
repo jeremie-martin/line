@@ -25,6 +25,10 @@ noisy sample: these are tendencies to design toward, not laws; the owner's eye d
 ## What it means for drafting
 
 - Start from the hot note: choose the accent (and sun) first, vivid (chroma ≥ .15), then a quiet ground and bars that frame it.
+- **Vivid like a pigment, never neon.** The loved hot notes are pigments: Hokusai's vermilion, Dune's amber, Aubergine's carmine,
+  Rothko's candle gold, Blue and Rose's lime only as a small disc on deep teal. A generator that maximised accent chroma (9 November)
+  produced lime, electric-cyan and magenta suns that look like screen test colours: more vivid than the ground, yes; as vivid as
+  possible, no. The correlation says "a hot note", not "the hottest".
 - The pencil (lines not yet ridden) is a quiet neutral between paper and ink, never a hue of its own ("a huge smell").
 - Every theme shows the music; prefer bars or fork.
 - Show a version only when it is visibly different: the "tuned" versions of round 28 changed too little to see, except where the

@@ -34,6 +34,34 @@ repetition. Every measure is report-only, never a target.
 The self-training round on the compact model continues as a comparison
 point.
 
+### The compact model's self-training round: hypothesis not confirmed
+
+- **Setup.** The network compiler (717f0d64) was collected on the training
+  songs (840 compiles, 5 seeds). The network was then retrained on that
+  collection alone ("self"), and pooled with the archive's demonstrations
+  ("pooled"). V7.1, 4 seeds, against main at 813.5.
+- **Result.**
+
+  | arm | stored | V7.1 | 95% interval | explicit requests |
+  |---|---|---|---|---|
+  | compact network (archive data) | 18 KB | −25.1 | — | — |
+  | retrained on its own collection | 15 KB | −25.3 | −36.5 to −14.1 | −22.1 |
+  | retrained, pooled | 20 KB | −22.2 | −27.4 to −16.9 | −23.8 |
+
+  - No ride lost in any arm, and physics frames are unchanged.
+  - Body drag (reported only) is lower: 3.2 and 3.5 s/min against 4.2.
+  - Strong extra impacts are higher: 0.12 and 0.13 per 100 beats against
+    0.04.
+- **Reading.**
+  - The hypothesis (pooled gains 5 to 10) is not confirmed. The pooled
+    retrain gains 2.9, about at the noise level, and self-training alone
+    gains nothing.
+  - A 5k-number network trained on more of the same demonstrations does
+    not close the gap. The missing 22–25 points are not a data-count
+    problem for this model.
+  - The archive's retraining gains came from denser neighbours; the
+    compact model cannot hold them.
+
 ### Step 1: where the committed arcs come from (report only)
 
 - **Instrument.**
@@ -72,6 +100,63 @@ point.
 - **Reading.** The archive chooses the neighbourhood and local search
   finishes the arc. A committed arc is not a copy of a demonstration; it
   starts near one. The sweep and the centre almost never win against them.
+
+### Step 2, first reading: variety of the moves, with and without the archive (report only)
+
+- **Instrument.** `tools/research/move_variety.py` reads one
+  `candidate_origins.ts` study per arm (V7.1, seed 101, 41 rides, 3,508 arcs
+  each).
+  - A move is the six main controls relative to the arrival, standardized
+    per family on the pooled arcs of all arms.
+  - These are controls, not rendered shapes, and the measures are
+    unvalidated: they are a first reading, to be checked by the owner's eye
+    in a blind pairwise study.
+- **Where the arcs start without the archive and with the compact model.**
+
+  | root source of committed arcs | archive (main) | none | compact network |
+  |---|---|---|---|
+  | learned lookup (archive or network) | 46% | — | 45% |
+  | archive's stored demonstrations | 27% | — | — |
+  | this ride's earlier arcs (memory) | 7% | **44%** | 27% |
+  | response proposals | 17% | 28% | 20% |
+  | generic sweep | 1% | 18% | 2% |
+  | hand-made centre, opposing entries, other | 2% | 10% | 6% |
+
+  - Without the archive, the generic sweep is 59% of the tried proposals.
+    It starts 18% of the arcs, and those need the most refinement (median
+    1.0 spread, against 0.7 for memory).
+  - Nearly three quarters of the arcs then start from this ride's own
+    earlier arcs or their responses.
+- **Variety.**
+
+  | arm | spread | ratio (own ride / other songs) | distinct moves per ride | recurring 3-arc motifs |
+  |---|---|---|---|---|
+  | archive (main) | 3.25 | 0.94 | 48.4 | 0.5% |
+  | none | 3.35 | **0.79** | **41.6** | **1.6%** |
+  | compact network | 3.15 | 0.88 | 45.7 | 0.8% |
+
+  Paired by spec against main (bootstrap over 41 specs, 95%):
+  - **None.** The ratio is −0.16 (−0.19 to −0.12), lower in 95% of rides;
+    6.0 fewer distinct moves per ride (−7.6 to −4.4); motifs +1.1 points
+    (+0.4 to +2.0).
+  - **Compact network.** The ratio is −0.05 (−0.09 to −0.02); 2.5 fewer
+    moves (−4.0 to −1.0); motifs +0.3 (−0.4 to +1.2).
+- **Reading.**
+  - In control terms, the archive does not make a ride repeat itself; it is
+    the other way round. Without it, a ride's arcs are much closer to each
+    other than to other songs' arcs. A ride uses fewer distinct moves and
+    repeats short sequences more, because the ride copies its own first
+    successes.
+  - The archive's 14% of commits near a training demonstration is
+    reuse across songs. Within a ride it gives the most varied repertoire of
+    the three arms.
+  - Across songs, main's ratio 0.94 means a ride's own arcs are almost as
+    close to each other as to other songs'. Songs do not develop a vocabulary
+    of their own. Whether that is a problem is a taste question.
+  - The spread (whole-catalogue variety) barely differs between arms.
+- **Open.** One seed. Controls rather than shapes: a geometry-level
+  descriptor (the drawn line) is the next instrument, before any of this is
+  shown to the owner.
 
 ## November 8: step back on the policy archive, what it is worth
 

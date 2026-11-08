@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 8 (morning): hypothesis, an equal-size mix of both collections
+
+- **Question.** Did the pooled policies gain because of the doubled
+  demonstration count, or because they mix two compiler versions?
+- **Data.** Seeds 101, 303 and 505 of the first collection (6e815a57),
+  seeds 202 and 404 of the second (9d065738), plus the transfer
+  collections: 900 sources, 80,029 demonstrations, 52.3 MB. That matches
+  main (79,778, 52 MB).
+- **Hypothesis.**
+  - If the mix itself helps, a gain over main at equal size, adoptable
+    within today's storage.
+  - If only count matters, null.
+
 ## November 8 (morning): summary of November 7 and the night
 
 **Where main stands** (9d065738, against the morning main 72e6ed9a, from

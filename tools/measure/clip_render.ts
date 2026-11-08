@@ -7,7 +7,7 @@ import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {buildScene} from '../../scripts/video/scene.ts';
+import {buildScene, songRecording} from '../../scripts/video/scene.ts';
 import {resolveLook} from '../../scripts/video/look.js';
 import {writeVideo} from '../../scripts/video/write.ts';
 import {AUDIO, KEEP, VIDEO} from '../../scripts/video/encoding.ts';
@@ -27,14 +27,15 @@ export function hitClip(song: string, track: any, frame: number): Clip {
 
 export function assertReviewSources(song: string, input: {specSha256: string; audioSha256: string}, spec = `productions/${song}/spec.ts`) {
   assert.equal(sha(readFileSync(spec)), input.specSha256, 'review specification differs from compiled input');
-  assert.equal(sha(readFileSync(`productions/${song}/audio.mp3`)), input.audioSha256, 'review audio differs from compiled input');
+  assert.equal(sha(readFileSync(songRecording(song))), input.audioSha256, 'review audio differs from compiled input');
 }
-/** What a clip is of; a written clip records it beside itself (<clip>.json). */
+/** What a clip is of; a written clip records it beside itself (<clip>.json). The recording is the one the clip is drawn to. */
 export function clipInput({song, track, from, to}: Clip) {
-  return {song, trackHash: sha(JSON.stringify(track)), audioSha256: sha(readFileSync(`productions/${song}/audio.mp3`)), from, to, width: CLIP_WIDTH, look: PLAIN};
+  return {song, trackHash: sha(JSON.stringify(track)), audioSha256: sha(readFileSync(songRecording(song))), from, to, width: CLIP_WIDTH, look: PLAIN};
 }
 /** An existing clip is reused only for the same inputs and intact bytes; otherwise the directory belongs to another study. */
 export function verifyCachedClip(movie: string, input: unknown) {
+  assert.ok(existsSync(movie + '.json'), `${movie} has no record of what it is of (an older or interrupted build); use a fresh directory`);
   const record = JSON.parse(readFileSync(movie + '.json', 'utf8'));
   assert.deepEqual(record.input, input, `${movie} is of other inputs; use a fresh directory`);
   assert.equal(record.movieSha256, sha(readFileSync(movie)), `${movie} differs from the clip that was written`);

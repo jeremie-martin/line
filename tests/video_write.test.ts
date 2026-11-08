@@ -33,3 +33,16 @@ it('writes every frame once, under the standard, with the song exactly in place'
   execFileSync('ffmpeg', ['-v', 'error', '-i', out, '-c:v', 'copy', '-af', 'adelay=10', '-c:a', 'aac', late]);
   expect(audioLag(late, scene.audio, 0)).toBeCloseTo(10, 1);
 }, 120000);
+
+it('starts a mid-song excerpt with the song\'s own samples, also from an MP3', async () => {
+  // a seek leaves an MP3 decoder without the bits its first frame borrows from earlier frames: that frame decodes wrong
+  const mp3 = join(dir, 'song.mp3'), out = join(dir, 'mp3-excerpt.mp4'), RATE = 48000, at = 0.9;
+  execFileSync('ffmpeg', ['-v', 'error', '-i', scene.audio, '-c:a', 'libmp3lame', '-b:a', '192k', mp3]);
+  expect(await writeVideo({scene: {...scene, audio: mp3}, look: resolveLook('plain'), out, from: at, to: 1.4, width: 180, log: () => {}})).toBe(30);
+  const pcm = (path: string) => {const b = execFileSync('ffmpeg', ['-v', 'error', '-i', path, '-ac', '1', '-ar', String(RATE), '-f', 'f32le', '-']); return new Float32Array(b.buffer, b.byteOffset, b.length >> 2);};
+  const clip = pcm(out), song = pcm(mp3).subarray(Math.round(at * RATE));
+  const rms = (f: (i: number) => number) => {let s = 0; for (let i = 0; i < 1152; i++) s += f(i) ** 2; return Math.sqrt(s / 1152);};
+  // the first MP3 frame's worth of the excerpt is the song there: AAC's first frame keeps about a third of the signal as error,
+  // the seek artifact was all of it (measured 0.33 against 0.99)
+  expect(rms(i => clip[i] - song[i])).toBeLessThan(0.6 * rms(i => song[i]));
+}, 120000);

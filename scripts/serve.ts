@@ -5,12 +5,18 @@
  *   HOST=0.0.0.0 PORT=8767 npm run serve
  */
 import {createServer, type IncomingMessage, type ServerResponse} from 'node:http';
+import {execFileSync} from 'node:child_process';
 import {createReadStream, statSync} from 'node:fs';
 import {extname, normalize, resolve, sep} from 'node:path';
 import {createRepertoireApi} from './gallery/repertoire_api.ts';
 import {createLabelsApi} from './gallery/labels_api.ts';
 import {createSpecApi} from './gallery/spec_api.ts';
 import {createSceneApi} from './video/scene_api.ts';
+
+// The review player and the concept lab import the renderer bundle (generated/renderer/, scripts/gallery/build_renderer.mjs):
+// build it from the current sources before serving, so a fresh checkout works and an edited native.js is never served stale.
+try {execFileSync(process.execPath, [resolve(import.meta.dirname, 'gallery/build_renderer.mjs')], {stdio: ['ignore', 'inherit', 'inherit']});}
+catch (error) {console.error(`The renderer bundle could not be built; rides will not play: ${(error as Error).message.split('\n')[0]}`);}
 
 const PORT = Number(process.env.PORT ?? 8767), HOST = process.env.HOST ?? '127.0.0.1';
 const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), specs = createSpecApi(), scenes = createSceneApi();

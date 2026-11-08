@@ -74,7 +74,12 @@ const music = createMusic(), onScreen = displayTime();
 let song = SONGS[q.get('song')] ? q.get('song') : 'petrunko';
 let preset = PRESETS.find(p => p.id === q.get('c')) ?? PRESETS[0];
 let mix = {...preset.mix};
-for (const kv of (q.get('m') ?? '').split(',').filter(Boolean)) {const [k, v] = kv.split(':'); if (OPTIONS[k] && v in OPTIONS[k][1]) mix[k] = v;}
+// the address's options are checked by the writers' own rule (resolveLook); one it cannot set is ignored, and a shot reports it,
+// so a fingerprint or a still never captures another look than the one it names
+for (const kv of (q.get('m') ?? '').split(',').filter(Boolean)) {
+  const [k, v] = kv.split(':');
+  try {mix = resolveLook(null, {...mix, [k]: v});} catch (e) {if (shot) window.__loadError = e.message;}
+}
 let seconds = +(q.get('t') ?? 0) || 0, playing = false, P = null, loadId = 0;
 const qmode = q.has('q'), feelmode = q.has('feel');
 let qi = Math.max(0, Math.min(QUESTIONS.length, (parseInt(q.get('q'), 10) || 1) - 1)), qopt = 0; // ?q=abc or ?q=1.5 must not give NaN

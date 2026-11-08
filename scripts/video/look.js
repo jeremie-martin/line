@@ -56,11 +56,12 @@ export const PLAIN = {paper: 'plain', line: 'ink', band: 'none', top: 'none', dr
 
 /** A complete, validated look: V1, then the named theme ('plain' for PLAIN), then explicit overrides. */
 export function resolveLook(name = null, overrides = {}) {
-  if (name !== null && name !== 'plain' && !THEMES[name]) throw new Error(`Unknown look: ${name} (themes: ${Object.keys(THEMES).join(', ')}, or plain)`);
+  // own keys only: a name such as 'constructor' or 'toString' is found on every object's prototype
+  if (name !== null && name !== 'plain' && !Object.hasOwn(THEMES, name)) throw new Error(`Unknown look: ${name} (themes: ${Object.keys(THEMES).join(', ')}, or plain)`);
   const look = {...V1, ...(name === 'plain' ? PLAIN : name ? THEMES[name].look : {}), ...overrides};
   for (const [key, value] of Object.entries(look)) {
-    if (!OPTIONS[key]) throw new Error(`Unknown look option: ${key}`);
-    if (key === 'scheme' ? !SCHEMES[value] : !(value in OPTIONS[key][1])) throw new Error(`Unknown ${key}: ${value}`);
+    if (!Object.hasOwn(OPTIONS, key)) throw new Error(`Unknown look option: ${key}`);
+    if (!Object.hasOwn(key === 'scheme' ? SCHEMES : OPTIONS[key][1], value)) throw new Error(`Unknown ${key}: ${value}`);
   }
   return look;
 }

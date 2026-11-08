@@ -7,7 +7,7 @@ import {spawn, execFileSync} from 'node:child_process';
 import {videoRequest} from './produce/video_request.ts';
 import {readVerifiedJson, verifiedVideoCell} from './produce/video_input.ts';
 import {buildScene} from './video/scene.ts';
-import {writeVideo} from './video/write.ts';
+import {frameCount, frameSize, writeVideo} from './video/write.ts';
 import {THEMES} from './video/look.js';
 import {sha} from './lib/case.ts';
 
@@ -26,11 +26,15 @@ Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N p
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
 } else {
   const began = performance.now(), request = videoRequest(process.argv.slice(2));
+  // what can be refused without the ride is refused before a compile spends minutes on it
+  frameSize(request.width);
+  if (request.from !== undefined && request.to !== undefined) frameCount(request.from, request.to);
   const name = request.song ?? (request.study ? basename(resolve(request.study)) : basename(request.track!, '.json'));
   const output = resolve(request.out ?? `generated/videos/${name}-${new Date().toISOString().replace(/[:.]/g, '-')}.mp4`);
   if (!output.endsWith('.mp4')) throw new Error('--out must end with .mp4');
-  const work = output.slice(0, -4) + '.assets';
-  if (existsSync(output) || existsSync(work)) throw new Error('Output already exists; choose a new --out.');
+  // the video, its sidecar and its compile folder: none may replace an existing file (a sidecar named like the input track would)
+  const work = output.slice(0, -4) + '.assets', sidecar = output.slice(0, -4) + '.json';
+  if ([output, sidecar, work].some(p => existsSync(p))) throw new Error(`${basename(output, '.mp4')}.mp4, .json or .assets already exists; choose a new --out.`);
   let study = request.study ? resolve(request.study) : undefined;
   const seed = request.seed ?? randomInt(0, 2 ** 31);
   console.log(`Video · ${request.lookName} · ${request.width} px wide\nOutput: ${output}`);
@@ -57,14 +61,14 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
     const id = request.id ?? (manifest.cells.length === 1 ? manifest.cells[0].id : undefined);
     if (!id) throw new Error('This study has multiple rides; choose --id=CELL.');
     const {c, cell, record} = verifiedVideoCell(study, manifest, id);
-    scene = buildScene(c.id, record); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
+    scene = buildScene(c.id, record, resolve(c.audioPath)); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
   } else {
     const text = readFileSync(request.track!, 'utf8');
     scene = buildScene(request.music!, {track: JSON.parse(text)}); of = {track: resolve(request.track!), trackSha256: sha(text), music: request.music};
   }
   const from = request.from ?? 0, to = Math.min(request.to ?? scene.duration, scene.duration);
   await writeVideo({scene, look: request.look, out: output, from, to, width: request.width});
-  writeFileSync(output.slice(0, -4) + '.json', JSON.stringify({of, look: request.look, lookName: request.lookName, from, to, width: request.width,
+  writeFileSync(sidecar, JSON.stringify({of, look: request.look, lookName: request.lookName, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

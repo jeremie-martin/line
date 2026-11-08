@@ -34,7 +34,8 @@ export function createPairMedia(root: string = process.cwd()) {
   async function prepare(left: string, right: string, layout: PairLayout, duration: number): Promise<PairMedia> {
     if (!['wide', 'stacked'].includes(layout) || !Number.isFinite(duration) || duration <= 0) throw new Error('Invalid pair preview request');
     const inputs = [local(left), local(right)], hashes = await Promise.all(inputs.map(async p => digest(await readFile(p))));
-    const key = digest(JSON.stringify({recipe: 'line.pair-preview.v2-crf12', hashes, layout, duration})), dir = join(cache, key);
+    // the recipe names the encode: a preview made by an earlier one (v2: no BT.709 tags) is not this preview
+    const key = digest(JSON.stringify({recipe: 'line.pair-preview.v3-crf12-bt709', hashes, layout, duration})), dir = join(cache, key);
     const metadata = join(dir, 'media.json');
     if (await exists(metadata)) return JSON.parse(await readFile(metadata, 'utf8')) as PairMedia;
     const prior = pending.get(key); if (prior) return prior;

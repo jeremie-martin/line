@@ -17,12 +17,17 @@ export function riderPainter() {
     drawSprites(context, camera, sheet, [entity]);
   };
 }
-/** The native replay of a saved ride: per physics frame the rider's points and the lines it touches. */
-export function replay(track, trace) {
+/** The native replay of a saved ride: per physics frame the rider's points and the lines it touches. An abort of `signal`
+ * terminates the worker at once (a synchronous replay cannot read a cancel message), so a superseded ride stops costing CPU. */
+export function replay(track, trace, signal) {
   return new Promise((resolve, reject) => {
+    signal?.throwIfAborted();
     const worker = new Worker(new URL('./worker.js', import.meta.url), {type: 'module'});
-    worker.onmessage = ({data}) => {worker.terminate(); data.error ? reject(new Error(data.error)) : resolve(data);};
-    worker.onerror = e => {worker.terminate(); reject(new Error(e.message || 'replay failed'));};
+    const stop = () => {worker.terminate(); signal?.removeEventListener('abort', abort);};
+    const abort = () => {stop(); reject(signal.reason);};
+    signal?.addEventListener('abort', abort, {once: true});
+    worker.onmessage = ({data}) => {stop(); data.error ? reject(new Error(data.error)) : resolve(data);};
+    worker.onerror = e => {stop(); reject(new Error(e.message || 'replay failed'));};
     worker.postMessage({request: 1, track, trace});
   });
 }

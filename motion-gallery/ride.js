@@ -11,12 +11,12 @@ export async function prepareRide(record, url, digest, signal) {
   signal?.throwIfAborted();
   let entry = cache.get(digest);
   if (!entry) {
-    const path = new URL(url, location.href).pathname;
+    // the file's own path: a URL's pathname is percent-encoded, and the scene API resolves the path it is given as a file
+    const path = decodeURIComponent(new URL(url, location.href).pathname);
     const response = await fetch(`/api/scene?ride=${encodeURIComponent(path)}&sha256=${digest}`, {signal});
     if (!response.ok) throw new Error(`Scene unavailable: ${(await response.json().catch(() => ({}))).error ?? response.status}`);
     const scene = await response.json();
-    const replay = await N.replay(scene.track, scene.trace);
-    signal?.throwIfAborted();
+    const replay = await N.replay(scene.track, scene.trace, signal);
     entry = {scene, replay, inspection: inspectRailContacts(record, replay.contacts)};
   }
   cache.delete(digest); cache.set(digest, entry);

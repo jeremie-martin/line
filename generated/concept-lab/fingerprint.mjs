@@ -1,4 +1,4 @@
-// Rendering fingerprint: sha1 of about 130 lab frames across the looks, every option, the themes and the old rides. A refactor
+// Rendering fingerprint: sha1 of 116 lab frames across the looks, every option, the themes and the old rides. A refactor
 // must leave the picture byte-identical: run it before and after, then diff the two files.
 //   /usr/bin/node generated/concept-lab/fingerprint.mjs OUT.txt [port]   (needs the lab served on 127.0.0.1:8770, or port)
 import {chromium} from 'playwright';

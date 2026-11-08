@@ -249,15 +249,17 @@ and validation are in [music authoring](docs/music-authoring.md).
      are in `palettes.js`, the intensity metric in `intensity.js`.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to
      one FFmpeg, and encodes the song's own audio in the same FFmpeg: frame 0 and
-     the first audio sample are song time `from`. Every video follows one
+     the first audio sample are song time `from` (the recording is decoded from
+     0.5 s earlier and trimmed, since an MP3 decodes wrong for its first frame
+     after a seek). Every video follows one
      standard (`encoding.ts`: H.264 yuv420p, BT.709 limited range, all four colour
      tags) and is checked after writing: frame count, size, rate and tags, and the
-     audio within 1 ms of the song by cross-correlation.
+     audio within 1 ms of the song by cross-correlation on a second with sound.
    - `native.js`, `worker.js` and `sprites.js` are the vendored rider artwork and
      native replay, bundled with the review player's contact inspection into
-     `generated/renderer/` by
-     `scripts/gallery/build_renderer.mjs`. The replay checks a saved trace against
-     the engine within 1e-7 where one exists.
+     `generated/renderer/` by `scripts/gallery/build_renderer.mjs`, which the review
+     server runs when it starts. The replay checks a saved trace, which must cover
+     the track, against the engine within 1e-7 where one exists.
 
    `npm run video` (`scripts/video.ts`) makes a video from a fresh compile, a
    saved study or a bare track, in any look, whole or a span of the song.

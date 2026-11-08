@@ -13,6 +13,8 @@ self.onmessage=({data:{request,track,trace}})=>{
     if(trace){
       if(trace.pointIds.length!==10||new Set(trace.pointIds).size!==10)throw new Error('Incomplete body-point trace');
       if(trace.fps!==40||!trace.frames.length)throw new Error('Invalid recorded replay');
+      // every frame drawn is checked: a trace that stops before the track would leave its end drawn from the engine alone
+      if(trace.frames.length<=track.duration)throw new Error('The recorded trace ends before the track');
     }
     const started=performance.now();
     const engine=new Engine().setRiders(track.riders).addLines(track.lines.map(l=>createLineFromJson({...l})));

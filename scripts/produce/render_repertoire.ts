@@ -3,7 +3,8 @@
  *
  * Each ride gets its full video and its excerpt, both written directly by the video writer, a publication bundle
  * (videos/<song>/<song>-s<seed>/: video.mp4, work.json, upload.json) and a record <id>.video.json. A ride that already has a
- * record is done: its record must name this ride (its inputs), whatever renderer made it; delete the record to render it again.
+ * record is done: its record must name this ride (its inputs) and its videos must be intact, whatever renderer made it; delete
+ * the record to render it again.
  * A render is the output of its inputs (the ride, its account, the recording) and a look; the renderer's commit is recorded for
  * information, never checked. */
 import assert from 'node:assert/strict';
@@ -35,27 +36,35 @@ for (const id of ids) {
   if (existsSync(recordPath)) {
     const saved = readVerifiedJson(recordPath), named = saved.inputs ?? saved.identity;
     for (const [key, value] of Object.entries(inputs)) assert.equal(named[key], value, `${id}.video.json is a video of another ride (${key}); move it away to render this one`);
+    // a record is only as good as the videos it names: a deleted or changed file is not "already rendered"
+    for (const {path, sha256} of [saved.full, saved.excerpt]) assert.ok(existsSync(join(root, path)) && hash(join(root, path)) === sha256,
+      `${id}.video.json names ${path}, which is missing or changed; move the record away to render it again`);
     console.log(`already rendered ${id}${saved.look ? ` (${saved.lookName ?? 'custom look'})` : ' (an earlier renderer)'}`); continue;
   }
-  const scene = buildScene(c.id, record), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
+  // timed to the recording verifiedVideoCell has just checked against the ride's own digest
+  const scene = buildScene(c.id, record, resolve(c.audioPath)), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
+  // the excerpt as it will be written, inside the ride: checked before any video is made, and recorded as written
+  const start = c.excerpt[0], end = Math.min(c.excerpt[1], scene.duration);
+  assert.ok(end > start, `${id}: the excerpt ${c.excerpt.join('–')} s lies outside the ${scene.duration} s ride`);
   rmSync(work, {recursive: true, force: true}); mkdirSync(work, {recursive: true});
   const full = join(work, 'video.mp4'), excerpt = join(work, 'excerpt.mp4');
   console.log(`render ${id} · ${lookName} · ${scene.duration.toFixed(1)} s`);
   await writeVideo({scene, look, out: full});
-  await writeVideo({scene, look, out: excerpt, from: c.excerpt[0], to: Math.min(c.excerpt[1], scene.duration)});
+  await writeVideo({scene, look, out: excerpt, from: start, to: end});
   // the publication bundle: staged, then moved into place whole
   const folder = join(root, 'videos', id, name), staging = join(root, 'videos', `.staging-${name}`);
   rmSync(staging, {recursive: true, force: true}); mkdirSync(staging, {recursive: true});
   renameSync(full, join(staging, 'video.mp4')); renameSync(excerpt, join(staging, 'excerpt.mp4'));
   copyFileSync(join(root, id, 'work.json'), join(staging, 'work.json'));
   writeFileSync(join(staging, 'upload.json'), JSON.stringify({project: 'musical-direction-review', song: id, video: 'video.mp4', created_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
-    values: {seed: cell.seed, rep: 0}, meta: {git_sha: gitSha, generator_host: hostname(), look: lookName,
+    // git_sha is the commit that compiled the ride, as it always was; the renderer's commit is recorded beside it
+    values: {seed: cell.seed, rep: 0}, meta: {git_sha: manifest.plan.compiler.head, render_git_sha: gitSha, generator_host: hostname(), look: lookName,
       score: Number((impactPath ? cell.score.score : cell.metrics.score).toFixed(1)), revolutions: Number(cell.metrics.rotations.toFixed(2)),
       standTimePct: Number(cell.metrics.standTimePct.toFixed(2)), budget: cell.allowance ?? cell.budget}}, null, 2));
   rmSync(folder, {recursive: true, force: true}); mkdirSync(join(root, 'videos', id), {recursive: true}); renameSync(staging, folder);
   rmSync(work, {recursive: true, force: true});
   const media = (file: string) => ({path: relative(root, join(folder, file)), sha256: hash(join(folder, file))});
   writeGalleryJson(root, id + '.video.json', {schema: 'line.production-video.v2', id, inputs, lookName, look, renderedAt: gitSha,
-    full: media('video.mp4'), excerpt: {...media('excerpt.mp4'), start: c.excerpt[0], end: c.excerpt[1]}, visualApproval: null});
+    full: media('video.mp4'), excerpt: {...media('excerpt.mp4'), start, end}, visualApproval: null});
   console.log(`complete ${id}`);
 }

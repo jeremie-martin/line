@@ -8,8 +8,9 @@
 import {createHash, randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
-import {join, resolve} from 'node:path';
+import {join, relative, resolve} from 'node:path';
 import {repertoireSongs} from '../gallery/repertoire_catalog.ts';
+import {loadSelect} from '../produce/config.ts';
 import {DROP_TIMES} from './drops.ts';
 
 const ROOT = resolve(import.meta.dirname, '../..');
@@ -68,14 +69,19 @@ export function spectrum(audioPath: string): Scene['spectrum'] {
   return JSON.parse(readFileSync(out, 'utf8'));
 }
 
-/** The scene of one ride of `song` (a folder of productions/). */
-export function buildScene(song: string, ride: Ride): Scene {
+/** The song's recording, repository-relative, resolved as a compile resolves it: select.json's `audio`, by default
+ * productions/<song>/audio.mp3. */
+export const songRecording = (song: string) => relative(ROOT, loadSelect(join(ROOT, 'productions', song)).audio);
+
+/** The scene of one ride of `song` (a folder of productions/), timed to `recording`: a saved production passes the recording it
+ * was compiled and verified against (its case's audioPath), a bare track the song's own. */
+export function buildScene(song: string, ride: Ride, recording = songRecording(song)): Scene {
   const entry = repertoireSongs.find(s => s.id === song);
   if (!entry) throw new Error(`Unknown song: ${song}`);
-  const audio = `productions/${song}/audio.mp3`, duration = ride.track.duration / FPS;
+  const audio = relative(ROOT, resolve(ROOT, recording)), duration = ride.track.duration / FPS;
   const composition = join(ROOT, 'productions', song, 'composition.json');
   const authored: {name: string; t: number}[] = existsSync(composition) ? JSON.parse(readFileSync(composition, 'utf8')).phases : [];
   const phases = authored.length ? authored.map((p, i) => ({name: p.name, t0: p.t, t1: authored[i + 1]?.t ?? duration})) : [{name: 'all', t0: 0, t1: duration}];
   return {song, title: screenTitle(entry.title), duration, audio, track: ride.track, ...(ride.trace ? {trace: ride.trace} : {}),
-    hits: ride.impactEvaluation ? measuredHits(ride.impactEvaluation) : [], phases, drop: DROP_TIMES[song] ?? null, spectrum: spectrum(join(ROOT, audio))};
+    hits: ride.impactEvaluation ? measuredHits(ride.impactEvaluation) : [], phases, drop: DROP_TIMES[song] ?? null, spectrum: spectrum(resolve(ROOT, audio))};
 }

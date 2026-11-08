@@ -2,16 +2,35 @@
 
 *Prepared on 8 November 2026 for a code review, a simplification pass, and then an alignment pass ("did we build the right thing").*
 
-## The branch
+## The branch, and how the work reached `rework/foundations`
 
-- **`visual-lab`** is `rework/foundations` plus 29 commits. **All 29 touch only `generated/concept-lab/`.** Nothing else in the repository was changed by the visual work since the last rebase.
-- **History:** the lab entered the repository in one commit, `8a440f28` ("Track the concept lab…"), which `rework/foundations` already contains (the round-5 state). That commit also touched two repository files, both needed and small:
-  - `.gitignore`: `generated/*` is ignored except `!generated/concept-lab/`;
-  - `tools/deps/entries.json`: the lab's entry points for the reachability guard.
-- **Earlier visual work** (before the lab) lives in `rework/foundations` already: `remotion/src` (production effects, `fx.tsx`), `scripts/fx_recipe.ts` (today's shipped hit recipe), `motion-gallery/` (the switching player, `video-compare.html`), `tests/style_*.test.ts`, `docs/research/`.
-- **For the review,** review the current tree of `generated/concept-lab/`, not commit by commit. Most of the 30 commits are round-by-round iterations of the same files, and the current state is what matters. If a range is wanted: `git diff 8a440f28^ HEAD -- generated/concept-lab`.
+**Correction (8 November):** an earlier version of this map said the lab entered foundations in one commit. That was wrong.
 
-## What to review (by priority)
+**What happened:**
+1. At the start of this session (7 November), the old branch `codex/postprocessing-study` was rebased onto `rework/foundations`.
+2. Around 11:50 that day, **`rework/foundations` was fast-forwarded onto it.** A fast-forward leaves no merge commit, which is why it doesn't show up as a merge.
+3. So **33 commits from the old branch now sit on foundations' own main line**, between `3059a37e` (foundations, 11:06) and `c47272f9` ("Adapt the video command…", 11:50).
+4. We then kept working: **29 more commits** on `visual-lab`, rebased twice onto newer foundations. All 29 touch only `generated/concept-lab/`.
+
+**The 33 integrated commits are four strands, and only one is the lab:**
+
+| Strand | When | Commits (examples) | Where |
+|---|---|---|---|
+| Music-library specs | 1 Nov | `427cf9e4` (22 listening specs), `80873aab`, `b28d6f6d`, `ded01590`, reviews and notes | `productions/`, `docs/` |
+| Video pipeline and production overlay | 1 Nov, 7 Nov | `5a0957e6` (measured impacts in overlays), `04af1504` (unified video generation), `b1b6414f` (stream frames to FFmpeg), `67aff6dc` (soft-base vignette), `c47272f9` (video command on foundations) | `scripts/produce/`, `scripts/`, `remotion/src/`, tests |
+| The earlier style study (Codex era) | 1–2 Nov | `b8b20c81`, `73e882be`, `44c4d3b6`, `ebbe1e3c`, `f2bdd1c2`, `4180a835` (looks); `90128719`, `68beae79`, `d297a542`, `cedc3d33`, `4e061d49`, `84b56844` (review players); `ec28962d`, `9b48c7cd`, `f8747c4e`, `31a71619` (docs) | `remotion/src/study/`, `remotion/src/CurveOverlay.tsx`, `motion-gallery/`, `docs/research/`, `tests/style_*`, `ARCHITECTURE.md`, `REWORK.md` |
+| The concept lab | 7 Nov | `8a440f28` (also the repository `.gitignore` exception and `tools/deps/entries.json`), then the 29 commits on `visual-lab` | `generated/concept-lab/` |
+
+**This changes the review scope.** Visual and study code also lives in the **production tree**, not only in the lab folder:
+- **`remotion/src/study/`** (5 files, 625 lines: `looks.ts`, `Layers.tsx`, `SpectrumForms.tsx`, `signals.ts`, `spectrum.ts`) is imported by the production overlay **`remotion/src/CurveOverlay.tsx`** (760 lines). It only activates when a video is rendered with a `studyLook` setting, so it's dormant in normal production. The lab has since replaced that approach.
+- **`remotion/src/fx.tsx`** and **`scripts/fx_recipe.ts`** hold the shipped hit recipe and the vignette.
+- **`motion-gallery/`**: the review players (`video-compare`, `style-catalog`, `style-review`), used by the lab's early rounds.
+- **Tests:** `tests/style_catalog.test.ts`, `tests/style_compositing.test.ts`, `tests/compare.test.ts` and others.
+- **The video pipeline** (`scripts/produce/`, `scripts/video.ts`): production.
+
+**For the review:** take the lab folder as it stands now, and treat the production-side visual code (the four bullets above) as its own review area. For the latter, the question is what production keeps once v1 is ported. A commit-by-commit review isn't useful for the lab; the 33 integrated commits can be read by strand.
+
+## What to review in the lab folder (by priority)
 
 ### 1. Core runtime: 7 files, about 2,150 lines (dense)
 | File | Lines | Role |
@@ -73,6 +92,8 @@ Outside the repository there is also context:
 - this session's transcript.
 
 ## What a review will likely find (my own reading, to check rather than trust)
+
+0. **The production overlay carries the old style study** (`remotion/src/study/`, wired into `CurveOverlay.tsx` behind `studyLook`). It's a candidate for removal or parking when v1 is ported, since the lab supersedes it.
 
 1. **`lab.js` does too much in one file,** and many lines hold several statements. Natural splits:
    - hits;

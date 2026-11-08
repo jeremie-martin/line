@@ -332,6 +332,69 @@ moves start 53% of committed arcs.
   catch of eight rides, the archive against the catalogue under shuffled
   letters.
 
+### Step back with the owner: does the catalogue escape the archive's issues?
+
+- **The owner's question:** the goal was not a catalogue, but a solution
+  free of the archive's issues. Did we fall into the same ones?
+- **Answer (Claude):** partly.
+  - It fixes size and git growth: 44 KB against 52 MB.
+  - Its table is readable. Its 64 moves per family are copied real
+    demonstrations: inspectable, not understood.
+  - It does not fix the rest. It is distilled from the archive's
+    demonstrations, so it inherits the same habits; improving it would
+    mean retraining on the compiler's own rides, the same loop; and a new
+    construction starts with nothing. It is a much smaller archive, not a
+    different foundation.
+- **The owner:** in practice the archive's tracks were already appreciated,
+  so a valid worry is fine if, in practice, the result is fine. How it
+  looks and behaves matters as much as the score. **Upper hits matter
+  most.** Characterize the rider's behaviour: upper hits, slides, long
+  ride-outs.
+- **Agreed next.**
+  1. A ride-character profile per version (below).
+  2. Replace the copied moves with generated variation: the table's core
+     plus a spread over the free parameters, no copied cases.
+
+### Ride character: how the rider meets the track (report only)
+
+- **Instrument.** `tools/research/ride_character.ts` replays each saved
+  ride and classifies every collision.
+  - **From above** (an upper hit): the touched line pushes the rider down.
+    The engine (`line.rs`) gives a line the normal (−dy, dx)/length,
+    negated when flipped, and pushes a colliding point against it. A push
+    more than 0.2 downward counts, so near-vertical walls count as
+    neither.
+  - Also: guide lines, sled against body points, unbroken sled-contact
+    runs (ride-outs), and flights.
+  - Unvalidated against the owner's eye. An earlier version that compared
+    positions was wrong (70% "from above"), because a colliding point sits
+    on the line itself.
+- **Result** (V7.1, saved arms, 164 rides each):
+
+  | measure | main | catalogue | compact network | none |
+  |---|---|---|---|---|
+  | beats hit from above | 27.9% | 25.4% | 24.9% | 23.2% |
+  | strong beats hit from above | 20.7% | 19.4% | 19.6% | 20.8% |
+  | contact from above, s/min | 7.90 | 7.79 | 7.23 | 6.12 |
+  | guide contact, s/min | 6.11 | 5.86 | 5.64 | 4.53 |
+  | time with the sled on a line | 34.1% | 34.0% | 33.7% | 32.7% |
+  | ride-outs of 1 s or more, s/min | 0.74 | 0.74 | 0.72 | 0.70 |
+  | time in the air | 60.9% | 60.5% | 61.9% | 63.8% |
+  | flights of 1 s or more, per min | 2.41 | 2.25 | 2.44 | 2.69 |
+  | body contact, s/min | 16.1 | 16.2 | 15.3 | 13.3 |
+
+  Paired by ride, catalogue against main: beats hit from above −2.5
+  points [−3.2, −1.8]; strong beats from above −1.3 [−2.4, −0.1]; guide
+  contact −0.25 s/min [−0.38, −0.10]; time in the air −0.5 points. Every
+  other measure is within a fraction of main.
+- **Reading.**
+  - The catalogue keeps the rides' character, upper hits included, within
+    a few percent.
+  - Without the archive, rides lose upper hits and guide contact and fly
+    more.
+  - Ride-outs of a second or more are rare in every version (under 1 s per
+    minute). Worth the owner's eye: long rides along a line hardly exist.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

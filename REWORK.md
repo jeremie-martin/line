@@ -17,6 +17,24 @@
   what gets proposed: strength on strong asks up, V7.1 up, held out up.
 - **Risk.** Explicit-family plans differ from automatic plans; their
   demonstrations may pull proposals toward forced shapes.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - +0.8 [−5.8, +7.4], 0.63; 15 of 35 specs up.
+  - Strong extra impacts double; explicit requests −3.1.
+  - Demonstrations of forced family plans do not widen the proposals that
+    matter.
+
+## November 8 (night): hypothesis, finer policy neighbourhoods (64 trees)
+
+- **Basis.** The policies propose by nearest-exemplar retrieval through
+  proximity forests (32 trees, leaf 4, from the archived trainer). More
+  trees give a finer, steadier similarity between the current situation
+  and past demonstrations.
+- **Change.** The adopted policies retrained on the same demonstrations
+  with 64 trees (`--trees=64`); nothing else.
+- **Hypothesis.** Better-matched proposals, so less "no candidate closer to
+  the ask"; V7.1 up.
+- **Risk.** A larger archive; finer neighbourhoods may overfit to single
+  demonstrations.
 
 ## November 8 (night): why strong catches miss, re-measured on today's main
 

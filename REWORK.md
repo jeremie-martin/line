@@ -71,6 +71,35 @@
   with its size (as the count results said). A compact replacement must
   *interpolate*: map the situation to controls, rather than look up the
   nearest stored case.
+- **Offline coverage test** (a guide, not a decision). For held-out
+  demonstrations (the last 20% of each group, from other compiles): how
+  close does the nearest of 16 proposals come to the committed control (six
+  main fields, standardized)?
+
+  | proposal source | closest (mean of 6 groups) | benchmark |
+  |---|---|---|
+  | full archive | 0.874 | 0 |
+  | random 62% of it | 0.907 | (−5.3 for the 49k archive) |
+  | 64 representatives per group | 1.167 | −27.7 |
+  | 16 representatives per group | 1.367 | −38.6 |
+  | 16 control prototypes, situation ignored | 1.239 | |
+  | linear mean + 16 residual prototypes | 1.125 | |
+  | small network mean + 16 residual prototypes | 1.057 | |
+  | trees mean + 16 residual prototypes | 1.046 | |
+
+  - It orders the four benchmarked retrieval variants correctly.
+  - It favours retrieval by construction: the committed controls grew out
+    of the archive's own proposals and the local search around them.
+- **Next: control prototypes** (V7.1, 4 seeds). 32 per group: the real
+  demonstration nearest each k-means centre of the relative controls,
+  situation ignored. 3,684 numbers, 17 KB as stored (a dedicated format
+  would be a few KB). The memory lookup offers all 32 (it learns within the
+  compile as today); no policy lookup.
+  - **Question.** How much of the 70 points is knowing *where* good controls
+    lie, independent of the situation?
+  - **Hypothesis** (from the coverage test): about half, so −25 to −45.
+    Much better would mean the generic sampler's box, not the situation, is
+    what the archive fixes.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

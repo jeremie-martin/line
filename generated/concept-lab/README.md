@@ -125,6 +125,7 @@ The title gets a little less split (`tsp`) and less pulse (`tpl`). The rider kee
   - `qcheck.mjs`: walks the live questions.
   - `check.mjs`: phone size.
   - `splitmeasure.mjs`: the visible split fringe.
+  - `fingerprint.mjs`: about 150 frames hashed. Run it before and after a refactor, and require the two outputs to be identical.
 - **Reasons and history:**
   - `LEDGER.md` (current state) and `ledger-history/` (earlier ledgers).
   - Round pages: `morning.html` (index), `round1/`–`round5/`, `round6.html`–`round20.html`, `clarify.html`, `system.html`.

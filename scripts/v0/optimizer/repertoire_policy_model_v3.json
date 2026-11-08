@@ -2,13 +2,25 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-  "sha256": "cadcd76fa90eddb644366343777b446ca3dd0aa219dd6d73033d5cea45880565",
-  "uncompressedBytes": 129814392,
+  "compressedSha256": "b2d904e1b9747d02afc8b1008ad1ed800d5f0da856e05d08a363ee73f62a7d89",
+  "sha256": "754aa6e00ff245a57a78b6fb7e8afa91f85f3e407b88f3c9808efcf36a19e030",
+  "uncompressedBytes": 512401,
   "provenance": {
-    "policyTraining": "tools/research/train_construction_v3.py",
-    "collector": "tools/research/value_collect.ts",
-    "data": "today's compiler (6e815a57: benchmark/v4 without eval songs, 5 seeds, 838 compiles) plus the two earlier V6 transfer collections",
-    "evidence": "REWORK.md 2026-11-07 (construction policies from today's compiler)"
+    "source": "repertoire_policy_model_v3.json.gz",
+    "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
+    "method": "64 representative demonstrations per group (k-means medoids in the joint feature/control space)",
+    "digits": 4,
+    "groups": {
+      "[true,null,null,null,null,null,null,null,null,true]": 64,
+      "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]": 64,
+      "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]": 64,
+      "[false,null,null,null,null,null,null,null,\"paired\",true]": 64,
+      "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]": 64,
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]": 64,
+      "[true,null,null,null,null,null,null,null,\"paired\",true]": 64,
+      "[true,null,null,null,null,null,null,null,\"transfer\",true]": 15,
+      "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]": 15,
+      "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]": 15
+    }
   }
 }

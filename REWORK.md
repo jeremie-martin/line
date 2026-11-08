@@ -306,6 +306,32 @@ moves start 53% of committed arcs.
   restore it. This thread is set aside; the setup costs the catalogue
   about 2 of its 4 extra points of strong beats short.
 
+### The held-out panel: where the readable catalogue stands
+
+- **Run.** The all-tried catalogue (`exp/catalogue-64-all-tried`) and the
+  no-archive arm against main on the held-out panel (13 specs from songs
+  never used in training, 4 seeds; `--panel=heldout --heldout`).
+- **Result.**
+
+  | | no archive | readable catalogue | share of the archive's worth recovered |
+  |---|---|---|---|
+  | V7.1 | −70.6 | −22.7 [−33.9, −11.4] | 68% |
+  | held out | −75.3 [−89.1, −61.4] | **−30.3** [−38.7, −21.9] | 60% |
+
+  - Held out: all 13 specs down for the catalogue (lowest −55.0,
+    `no_batidao_selection`; highest −5.5); no ride lost; strong extra
+    impacts 0.23 against 0.04 per 100 beats.
+- **Reading.**
+  - With 25,647 numbers (0.05% of the archive's size), a readable
+    catalogue recovers about two thirds of what the archive is worth, on
+    the benchmark and on new music.
+  - On new music it stays beyond the owner's acceptable drop (about 20).
+  - What is left is understood: strong beats on everyday songs (mostly the
+    chain setup), speed, and extra hits on shaped guided families.
+- **For the owner's eye:** a Catalogue Catch Sheet (artifact) shows every
+  catch of eight rides, the archive against the catalogue under shuffled
+  letters.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

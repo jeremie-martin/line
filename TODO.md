@@ -27,13 +27,24 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
+9. **Compiler work.** Baseline since 2026-11-08: today's main (V7.1 813.5),
+   with the construction-policy archive frozen (REWORK.md, November 8).
+   - **Next: reduce the reliance on the archive.** First a short design note
+     for the owner: physics-aimed proposals, a concise learned geometry
+     model, better refinement, and a catalogue of modifiable geometries,
+     each with the part of the archive's work it would take over. The owner
+     picks the first bounded attempt (about a day each, hypothesis first).
+   - **Owner's call:** delete the ending refinement. Removing it costs 0.2
+     points on today's main, as on November 1; it uses 1% of physics
+     frames. The November 1 deletion branch `exp/no-tail-refinement`
+     removes 330 lines.
+   - Still open from November 1:
+     - short re-landings at speed (Trouble about half, Circus 1/24 and 0/24);
+     - geometry hygiene (G1–G4);
+     - unwanted impacts (U2, U3; guide touches on beats);
+     - the measure (visibility study);
+     - benchmark fitness.
 10. ~~**New benchmark**~~ (2026-10-31): built and baselined (`bench-base-20261031`, `pairs8-base-20261031`).
-9. **Compiler work.** Overnight (2026-11-01): the section fallback replaced the 9-frame rule, and guides are offered, never required. Bench 716 → 739, held out 660 → 733 (16/16), stray hits −57%. Next on the list:
-   - Short re-landings at speed: Trouble about half, Circus 1/24 and 0/24.
-   - Geometry hygiene (G1–G4).
-   - Unwanted impacts (U2, U3; guide touches on beats).
-   - The measure (visibility study).
-   - Benchmark fitness.
 
 ## Open questions kept from the retired night report (asked 2026-10-05)
 

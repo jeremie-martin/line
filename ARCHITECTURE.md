@@ -39,9 +39,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section
    by section (`arc_sequence.ts`); for each section it:
    - proposes geometry (`arc_proposals.ts`) from several sources: the
-     parametric centre, learned retrieval (`arc_control_policy.ts` and the
-     construction models), memory of earlier sections, response directions,
-     and observed receivers;
+     parametric centre, learned retrieval from the construction-policy
+     archive (`arc_control_policy.ts`, `arc_memory.ts`; see "Construction
+     policies" below), memory of earlier sections, response directions, a
+     generic sweep and observed receivers;
    - measures each proposal by native replay from the section's physical
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`);
    - refines the best with coordinate, guide and joint-response steps
@@ -367,9 +368,23 @@ log):
 - **Future ranking:** a single geometry-aware model predicts the next two
   intervals. It ranks alternatives; it does not supply local response gradients.
   Its training groups exclude the four production evaluation songs.
-- **Construction policies:** v3's own, rebuilt under v3 on songs disjoint
-  from the evaluation panel (`repertoire_policy_model_v3.json`; trainer in
-  `tools/research`).
+- **Construction policies (the archive):** 79,778 demonstrations, the
+  committed controls of 838 compiles of the November 7 compiler (6e815a57)
+  plus two earlier transfer-layout collections, on songs disjoint from the
+  evaluation panel (`repertoire_policy_model_v3.json`, 52 MB as gzip;
+  trainer `tools/research/train_construction_v3.py`).
+  - Two lookups read it, only to propose starting controls for each
+    section after the first (`proposeInitialControls`): 16 policy
+    proposals (proximity trees) and 16 memory proposals (feature distance,
+    over the demonstrations and the ride's own earlier commits).
+  - Every proposal is replayed and ranked like any other. Local search,
+    ranking, the learned estimate and the priors never read the archive.
+  - It starts 73% of committed arcs, and it is worth about 70 headline
+    points: mostly reliable hard hits on strong beats (REWORK.md,
+    November 8).
+  - **Frozen since 2026-11-08:** no more retrains, pinned by
+    `tests/policy_archive_frozen.test.ts`. Readable mechanisms are to
+    take over its work step by step, until it can be removed.
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 

@@ -14,14 +14,25 @@
     loads it. Unfreezing needs the owner's decision and a deliberate edit
     of the pin.
   - The pooled archives (100 MB and more) stay on local branches only.
+- **The owner's position.**
+  - A drop of about 20 points (say 780 against 800) is significant but not
+    the end of the world. A drop of 70 (the archive's worth) is
+    unacceptable.
+  - Such a drop could be worth taking for a much simpler compiler: more
+    linear, not a black box, something that makes sense and can be
+    improved.
+- **Why not swap in the compact network now.** It costs 25 points as
+  trained on the archive's data, and 22 at best after retraining. It is
+  still a black box (5,361 numbers no one can read). It saves storage but
+  does not give the readable foundation the owner asks for.
 - **The way forward: reduce our reliance on the archive step by step.**
   - Readable mechanisms are added beside the archive. After each one, the
     no-archive comparison measures what the archive is still worth.
-  - Once its worth is about 20 points or less, it can be removed: the
-    owner could accept that drop for a much simpler compiler, not 70.
-  - Each attempt is bounded: a hypothesis stated in advance, one
-    implementation, a comparison with the archive and one without, about a
-    day. No implementation without the owner's go-ahead.
+  - Once its worth is about 20 points or less, it can be removed.
+  - Each attempt is bounded, about a day: a hypothesis stated in advance,
+    one implementation, then two comparisons against main: the new mechanism
+    with the archive, and the new mechanism without it. No implementation
+    without the owner's go-ahead.
 - **The design space is wide, and the options combine.**
   - Physics-aimed proposals: the redirect a strong hit needs, computed
     from arrival speed and the requested strength.
@@ -36,11 +47,54 @@
   - arrivals that stay steep enough;
   - several good alternatives per situation, since no single rule
     describes the archive's good catches.
+- **Next.** A short design note for the owner: each approach made
+  concrete, which part of the archive's work it would take over, how
+  readable it is, and how the approaches fit together. The owner picks the
+  first bounded attempt from it.
+
+**Terms used in the November 8 entries.**
+
+- **Main**: today's compiler, 813.5 on V7.1 at 4 seeds (813.8 at 8 seeds).
+- **V7.1**: the benchmark suite: 35 specs plus 6 explicit requests, each
+  compiled at several seeds. Its **headline** is the mean over strata (G,
+  everyday songs; P1 to P7, one musical pattern each). Each stratum is the
+  mean of its specs, and each spec the mean of its seeds. **Explicit
+  requests** (E) are reported apart.
+- **Arm**: one compiler version in a comparison. **Ride**: one spec at one
+  seed. **Section**: one arc of a ride and the gap it opens.
+- **Beat** j is the contact at the end of section j. It lands on arc j + 1,
+  so that arc owns the beat's impact, while arc j sets the arrival.
+- **The archive** (also: construction policies, policy archive): 79,778
+  demonstrations, the committed controls of earlier compiles.
+  - Two lookups read it, for each section after the first. The **policy
+    lookup** gives 16 proposals from proximity trees. The **memory lookup**
+    gives 16 from the nearest cases among the stored demonstrations and
+    this ride's own earlier commits.
+  - **Ride memory** means those earlier commits of the same ride. It needs
+    no archive, so it keeps working in the no-archive arm.
+  - The experimental arms that replace the lookups use their freed slots:
+    32 proposals from one source.
+- **The compact network**: a small model per construction group (5,361
+  numbers, 18 KB). It maps the situation to a control, and 32 fixed
+  "styles" spread proposals around it. It takes the policy lookup's place;
+  variants are retrained on more data or have 32 outputs ("multiple
+  choice").
+- **Root source**: where a committed arc's first proposal came from,
+  before refinement changed it.
+- **Controls**: an arc's numbers (entry, turn, exit, support, bias,
+  offset). Entry and exit are measured relative to the arriving heading.
+- **Sled pose**: the sled's angle, positive nose-down. **Head down**: the
+  rider's head below the sled at the strong hit.
+- **Spread** is used in two senses, each stated where it is used: a unit
+  (the standard deviation of a control over the committed arcs), and a
+  variety measure (the mean distance between two random arcs of one
+  family).
 
 ## November 8: plan, understand the candidates and measure variety before changing them
 
-The owner's direction: no new candidate generator yet. Keep the archive as
-an instrument for comparison and analysis. First understand what each
+The owner's direction: no new candidate generator yet. Keep the archive
+(it stays in production) and use it as an instrument for comparison and
+analysis. First understand what each
 candidate source does and why, and build the telemetry to see variety and
 repetition. Every measure is report-only, never a target.
 
@@ -71,33 +125,18 @@ repetition. Every measure is report-only, never a target.
 The self-training round on the compact model continues as a comparison
 point.
 
-### The compact model's self-training round: hypothesis not confirmed
+**Where the plan stands** (end of November 8):
 
-- **Setup.** The network compiler (717f0d64) was collected on the training
-  songs (840 compiles, 5 seeds). The network was then retrained on that
-  collection alone ("self"), and pooled with the archive's demonstrations
-  ("pooled"). V7.1, 4 seeds, against main at 813.5.
-- **Result.**
-
-  | arm | stored | V7.1 | 95% interval | explicit requests |
-  |---|---|---|---|---|
-  | compact network (archive data) | 18 KB | −25.1 | — | — |
-  | retrained on its own collection | 15 KB | −25.3 | −36.5 to −14.1 | −22.1 |
-  | retrained, pooled | 20 KB | −22.2 | −27.4 to −16.9 | −23.8 |
-
-  - No ride lost in any arm, and physics frames are unchanged.
-  - Body drag (reported only) is lower: 3.2 and 3.5 s/min against 4.2.
-  - Strong extra impacts are higher: 0.12 and 0.13 per 100 beats against
-    0.04.
-- **Reading.**
-  - The hypothesis (pooled gains 5 to 10) is not confirmed. The pooled
-    retrain gains 2.9, about at the noise level, and self-training alone
-    gains nothing.
-  - A 5k-number network trained on more of the same demonstrations does
-    not close the gap. The missing 22–25 points are not a data-count
-    problem for this model.
-  - The archive's retraining gains came from denser neighbours; the
-    compact model cannot hold them.
+- Steps 1 and 2: done, below. Step 2 includes the owner's first look at
+  the drawn catches.
+- Step 3, rendering the archive's common, rare and missing moves, was not
+  done. To the owner's eye the variety differences were small, so the work
+  turned to what the archive's points are made of and how strong beats are
+  caught (below).
+- Step 4: the direction is decided (entry above: freeze the archive,
+  then reduce reliance on it step by step). The candidate design itself is
+  still to choose, from the design note.
+- The self-training round: last below; its hypothesis was not confirmed.
 
 ### Step 1: where the committed arcs come from (report only)
 
@@ -131,127 +170,27 @@ point.
     memory.
 - **Refinement.** 97% of committed arcs were refined after being proposed
   (53% coordinate then response steps, 27% coordinate, shape, then
-  response). Refinement moved them a median 0.57 of the committed arcs'
+  response). These are ARCHITECTURE.md's coordinate, guide and
+  joint-response steps of local search. Refinement moved them a median 0.57 of the committed arcs'
   spread from their proposal (quartiles 0.36–0.85). The rare winners from
   the sweep moved 1.1.
 - **Reading.** The archive chooses the neighbourhood and local search
   finishes the arc. A committed arc is not a copy of a demonstration; it
   starts near one. The sweep and the centre almost never win against them.
 
-### What the lost points are made of (report only)
-
-- **Why.** The owner could accept about 20 points for a much simpler,
-  readable candidate source, but not 70. Before designing one, find out what
-  the archive's points buy.
-- **Instrument.** `tools/research/loss_parts.py` reads saved compare arms
-  (V7.1, 4 seeds, 164 rides, each against main).
-  - It splits each ride's score difference over the grade's parts (air,
-    speed, impact strength, timing, extra hits) at the midpoint loss. The
-    remainder is under 2 points in every arm.
-  - Rides combine as in the headline.
-  - It also splits by the family of the arc that owns the gap, and splits
-    impact strength by requested level and direction.
-- **Result** (headline points against main):
-
-  | arm | headline | strong beats too soft | rest of strength | speed | timing | extra hits | air |
-  |---|---|---|---|---|---|---|---|
-  | none | −70.6 | −23.7 | −6.7 | −16.0 | −10.0 | −5.0 | −7.4 |
-  | 16 representatives | −38.6 | −15.5 | −3.8 | −7.9 | −3.5 | −5.7 | −1.9 |
-  | 32 prototypes | −33.1 | −14.7 | −3.8 | −6.9 | −2.4 | −4.7 | −0.5 |
-  | 64 representatives | −27.7 | −11.5 | −2.5 | −5.5 | −1.9 | −4.2 | −2.1 |
-  | multiple-choice network | −25.9 | −11.9 | −1.0 | −7.5 | −1.8 | −2.4 | −1.4 |
-  | network | −25.1 | −12.0 | −1.9 | −7.7 | −2.5 | −0.9 | +0.1 |
-  | network, self-trained | −25.3 | −14.0 | −2.1 | −8.0 | −2.4 | +1.0 | +0.2 |
-  | network, pooled | −22.2 | −12.6 | −1.3 | −7.0 | −2.2 | −0.8 | +2.1 |
-  | memory lookup only | −8.0 | −3.4 | −0.7 | −2.5 | −0.8 | −0.9 | +0.1 |
-  | policy lookup only | −6.7 | −3.8 | +1.4 | −3.3 | −1.1 | −0.8 | +0.8 |
-
-  - Strong beats are those requested at 0.6 or more. Strong hits that are
-    too hard, and quiet beats in either direction, cost under 1 point in
-    every arm.
-  - The everyday-song stratum (G) carries the most strength loss: −25 for
-    the pooled network, against −4 to −8 for P1 to P3. The long ride (P6)
-    gains air (+23) in the network arms.
-  - Per family (air, speed and strength, pooled network): unguided arcs
-    −7.8, arcs −3.4, fold −3.0, serpentine −2.0, terraces −1.8, scallops
-    −1.0, scattered 0.0.
-    - Corrected: a beat's strength now goes to arc j + 1, on which the
-      rider lands. A first version gave it to the arc before.
-- **Reading.**
-  - The archive's points are mostly one thing: **hitting strong beats hard
-    enough**. In every reduced arm, about half the loss is strong beats too
-    soft, and about 7 more is gap speed (likely the same catches: hard hits
-    need arrival speed, see November 7).
-  - The rest (timing, extra hits, air) is small once any learned proposals
-    exist. Timing and extra hits go wrong only with no archive at all.
-  - So a readable candidate source does not need to know everything the
-    archive knows. It needs to know how to set up a strong catch: the
-    arrival speed and the controls that turn it into a hard hit.
-### How the strong beats are caught (report only)
-
-- **Instrument.** `tools/research/strong_catches.py` joins the
-  `candidate_origins.ts` studies (committed controls, situation, sources)
-  with the saved arms' per-beat strength. Tracks are identical.
-  - Beat j is the landing on arc j + 1; arc j sets the arrival.
-  - Seed 101, 41 rides; main, compact network, none.
-- **Strong beats are the norm.** 1,948 of 3,508 beats are requested at 0.6
-  or more (mean 0.75). Every arm undershoots them: median achieved 0.67
-  (main), 0.65 (network), 0.64 (none).
-  - The difference is the tail. Short by more than 0.2: 8%, 14%, 17%.
-- **What a short strong hit looks like** (paired beat by beat, main against
-  network; the same picture whichever arm fails):
-
-  | strong beats | arrival heading (descending) | sled pose | landing arc turn | landing arc exit − incoming | head down |
-  |---|---|---|---|---|---|
-  | both hit (1,586) | 32–35° | 22–24° | −16 to −17° | −16 to −18° | 11% |
-  | only the network short (205), network | 21° | 39° | −4° | +3° | 26% |
-  | the same beats, main | 35° | 28° | −17° | −19° | 16% |
-  | only main short (89), main | 21° | 50° | +5° | | 27% |
-
-  - The failure: a shallow arrival with the sled pitched nose-down, then a
-    landing arc that does not redirect the rider.
-  - On those 205 beats, the arc before has no systematic difference in its
-    own controls. The paired median differences are 1–4°, against
-    11–15° of ordinary scatter. The shallow arrival comes from the ride's
-    history.
-- **Setup against conversion** (arrival heading bands; share of strong
-  beats, then share short):
-
-  | arm | below 15° | 15–25° | 25–35° | 35–45° | 45° and more | short, all |
-  |---|---|---|---|---|---|---|
-  | main | 6%, 32% | 24%, 15% | 23%, 6% | 21%, 3% | 26%, 2% | 8% |
-  | network | 11%, 41% | 27%, 15% | 21%, 13% | 17%, 8% | 24%, 5% | 14% |
-  | none | 11%, 44% | 27%, 21% | 24%, 12% | 16%, 9% | 23%, 9% | 17% |
-
-  - The archive does both: fewer shallow arrivals, and better conversion at
-    every heading.
-  - At main's headings the network would be short on 12%. So about two
-    thirds of its extra shortfalls are conversion at the landing arc, one
-    third the arrival setup.
-- **Is there a straight-line recipe?** Main's landing controls on beats hit
-  within 0.1 of the request, fitted from named inputs:
-  - from requested strength, arrival heading and speed: R² 0.15 to 0.16
-    for entry, turn and exit;
-  - adding pose and the durations and impact of the contacts around it:
-    R² 0.17 to 0.22.
-  - Good catches of the same situation come in many forms. No single
-    control per situation describes them: one rule per situation would
-    land where the compact network already is.
-- **Reading.**
-  - What the archive's points buy is reliable strong hits. It has many good
-    alternative landing arcs to start local search from, and arrivals that
-    stay steep.
-  - A readable replacement would need either several alternatives per
-    situation (as the archive has) or a way to aim the landing arc at the
-    requested strength directly. The impact is the heading turn times
-    arrival speed (November 7), so the redirect a strong hit needs can be
-    computed rather than learned. That would be a physics-aimed generator:
-    a design option for the owner, not implemented.
-  - Arrival steepness is a ride-level budget: a ride that has run shallow
-    cannot make the next strong hit hard.
-
 ### Step 2, first reading: variety of the moves, with and without the archive (report only)
 
+- **Measures** (each per family, then over the ride):
+  - **ratio**: the median distance from an arc to the nearest arc of the
+    same family in its own ride, divided by the same distance to as many
+    arcs drawn from other songs. Below 1, a ride repeats itself more than
+    songs differ from each other.
+  - **distinct moves per ride**: 24 move clusters per family; how many a
+    ride effectively uses.
+  - **recurring 3-arc motifs**: the share of three-arc runs (as clusters)
+    that occur more than once in the ride.
+  - **spread**: the mean distance between two random arcs of one family,
+    whole catalogue.
 - **Instrument.** `tools/research/move_variety.py` reads one
   `candidate_origins.ts` study per arm (V7.1, seed 101, 41 rides, 3,508 arcs
   each).
@@ -269,7 +208,7 @@ point.
   | this ride's earlier arcs (memory) | 7% | **44%** | 27% |
   | response proposals | 17% | 28% | 20% |
   | generic sweep | 1% | 18% | 2% |
-  | hand-made centre, opposing entries, other | 2% | 10% | 6% |
+  | hand-made centre, opposing entries, warm start, recovery | 3% | 10% | 6% |
 
   - Without the archive, the generic sweep is 59% of the tried proposals.
     It starts 18% of the arcs, and those need the most refinement (median
@@ -296,9 +235,11 @@ point.
     other than to other songs' arcs. A ride uses fewer distinct moves and
     repeats short sequences more, because the ride copies its own first
     successes.
-  - The archive's 14% of commits near a training demonstration is
-    reuse across songs. Within a ride it gives the most varied repertoire of
-    the three arms.
+  - On the training songs, 14% of the archive compiler's commits lie close
+    to a stored demonstration (step-back entry below). Part of that is the
+    compiler re-committing what it did on the same songs last round. Within
+    a ride, the archive still gives the most varied repertoire of the three
+    arms.
   - Across songs, main's ratio 0.94 means a ride's own arcs are almost as
     close to each other as to other songs'. Songs do not develop a vocabulary
     of their own. Whether that is a problem is a taste question.
@@ -343,18 +284,171 @@ point.
   - Three rides looked at, briefly and unsure. The owner: no conclusion
     should be drawn from which versions were picked. What stands is that
     the variety differences are small to the eye.
-- **The owner's position on the trade-off** (not a decision, "we are not
-  there yet").
-  - A drop of about 20 points (say 780 against 800) is significant but not
-    the end of the world. A drop of 70 is unacceptable.
-  - It could be worth taking if the result is much simpler: more linear,
-    not a black box, something that makes sense and can be improved in the
-    near future.
-  - First: more measurement, characterization and understanding.
-- **Open.** The shape descriptor is a choice (directions along the line,
-  size apart), not a validated one. Before any of this is shown to the
-  owner, step 3 renders nearest pairs and clusters, so the eye can check
-  that "close" here means "looks alike".
+  - The owner's own idea of repetition is broader than these measures: the
+    same way of catching repeated many times in a ride (for instance, a long
+    arc with an upper rail that controls the rider, then the catch), which
+    spans several arcs and their guides.
+- **Open.**
+  - The shape descriptor is a choice (directions along the line, size
+    apart), not a validated one.
+  - The Catch Sheet's lookalike groups (main line and guides, size
+    included) are the check: whether "close" here means "looks alike".
+  - The page shows lines only, not the rider's motion through them.
+
+### What the lost points are made of (report only)
+
+- **Why.** The owner could accept about 20 points for a much simpler,
+  readable candidate source, but not 70. Before designing one, find out what
+  the archive's points buy.
+- **Instrument.** `tools/research/loss_parts.py` reads saved compare arms
+  (V7.1, 4 seeds, 164 rides, each against main).
+  - It splits each ride's score difference over the grade's parts (air,
+    speed, impact strength, timing, extra hits) at the midpoint loss. The
+    remainder is under 2 points in every arm.
+  - Rides combine as in the headline.
+  - It also splits by the family of the arc that owns the gap, and splits
+    impact strength by requested level and direction.
+- **Result** (headline points against main):
+
+  | arm | headline | strong beats too soft | rest of strength | speed | timing | extra hits | air |
+  |---|---|---|---|---|---|---|---|
+  | none | −70.6 | −23.7 | −6.7 | −16.0 | −10.0 | −5.0 | −7.4 |
+  | 16 representatives | −38.6 | −15.5 | −3.8 | −7.9 | −3.5 | −5.7 | −1.9 |
+  | 32 prototypes | −33.1 | −14.7 | −3.8 | −6.9 | −2.4 | −4.7 | −0.5 |
+  | 64 representatives | −27.7 | −11.5 | −2.5 | −5.5 | −1.9 | −4.2 | −2.1 |
+  | multiple-choice network | −25.9 | −11.9 | −1.0 | −7.5 | −1.8 | −2.4 | −1.4 |
+  | network | −25.1 | −12.0 | −1.9 | −7.7 | −2.5 | −0.9 | +0.1 |
+  | network, self-trained | −25.3 | −14.0 | −2.1 | −8.0 | −2.4 | +1.0 | +0.2 |
+  | network, pooled | −22.2 | −12.6 | −1.3 | −7.0 | −2.2 | −0.8 | +2.1 |
+  | memory lookup only | −8.0 | −3.4 | −0.7 | −2.5 | −0.8 | −0.9 | +0.1 |
+  | policy lookup only | −6.7 | −3.8 | +1.4 | −3.3 | −1.1 | −0.8 | +0.8 |
+
+  - Strong beats are those requested at 0.6 or more. Strong hits that are
+    too hard, and quiet beats in either direction, cost under 1 point in
+    every arm.
+  - The everyday-song stratum (G) carries the most strength loss: −25 for
+    the pooled network, against −4 to −8 for P1 to P3. The long ride (P6)
+    gains air (+23) in the network arms.
+  - Per family (air, speed and strength, pooled network): unguided arcs
+    −7.8, arcs −3.4, fold −3.0, serpentine −2.0, terraces −1.8, scallops
+    −1.0, scattered 0.0.
+    - Corrected: a beat's strength now goes to arc j + 1, on which the
+      rider lands. A first version gave it to the arc before.
+- **Reading.**
+  - The largest single part is **hitting strong beats hard enough**.
+    - In the compact arms (representatives, prototypes, networks) it is 40%
+      to 57% of the loss.
+    - Gap speed adds 5.5 to 8.
+    - With no archive at all, strong beats are 34% (23.7 of 70.6), and
+      speed (16), timing (10) and everything else are lost too.
+  - Timing costs 2 to 3.5 in the compact arms, against 10 with no archive.
+  - Extra hits cost 4 to 6 with stored representatives or prototypes, and
+    about 1 with the networks.
+  - Air is small everywhere except with no archive.
+  - So a readable candidate source does not need to know everything the
+    archive knows. Above all it needs to catch strong beats well; the next
+    study shows what that takes.
+
+### How the strong beats are caught (report only)
+
+- **Instrument.** `tools/research/strong_catches.py` joins the
+  `candidate_origins.ts` studies (committed controls, situation, sources)
+  with the saved arms' per-beat strength. Tracks are identical.
+  - Beat j is the landing on arc j + 1; arc j sets the arrival.
+  - Seed 101, 41 rides; main, compact network, none.
+- **Strong beats are the norm.** 1,948 of 3,508 beats are requested at 0.6
+  or more (mean 0.75). Every arm undershoots them: median achieved 0.67
+  (main), 0.65 (network), 0.64 (none).
+  - The difference is the tail. Short by more than 0.2: 8%, 14%, 17%.
+- **What a short strong hit looks like** (paired beat by beat, main against
+  network; the same picture whichever arm fails):
+
+  | strong beats (medians) | arrival heading (descending) | sled pose | landing arc turn | head down |
+  |---|---|---|---|---|
+  | both hit (1,586) | 32–35° | 22–24° | −16 to −17° | 11% |
+  | only the network short (205): network | 21° | 39° | −4° | 26% |
+  | the same 205 beats: main | 35° | 28° | −17° | 16% |
+  | only main short (89): main | 21° | 50° | +5° | 27% |
+  | the same 89 beats: network | 33° | 27° | −16° | 15% |
+
+  - The landing arc's turn is its control (negative: it redirects the
+    rider upward). Its exit relative to the arrival tells the same story:
+    −19° for main against +3° for the network on the 205 beats.
+
+  - The failure: a shallow arrival with the sled pitched nose-down, then a
+    landing arc that does not redirect the rider.
+  - On those 205 beats, the arc before has no systematic difference in its
+    own controls. The paired median differences are 1–4°, against
+    11–15° of ordinary scatter. The shallow arrival comes from the ride's
+    history.
+- **Setup against conversion** (arrival heading bands; share of strong
+  beats, then share short):
+
+  | arm | below 15° | 15–25° | 25–35° | 35–45° | 45° and more | short, all |
+  |---|---|---|---|---|---|---|
+  | main | 6%, 32% | 24%, 15% | 23%, 6% | 21%, 3% | 26%, 2% | 8% |
+  | network | 11%, 41% | 27%, 15% | 21%, 13% | 17%, 8% | 24%, 5% | 14% |
+  | none | 11%, 44% | 27%, 21% | 24%, 12% | 16%, 9% | 23%, 9% | 17% |
+
+  - The archive does both: fewer shallow arrivals, and better conversion at
+    every heading.
+  - The network is short on 14% of strong beats, main on 8%. With main's
+    mix of arrival headings and its own short rate per heading, the network
+    would be short on 12%. So 4 of its 6 extra points are conversion at the
+    landing arc, and 2 are the arrival setup.
+- **Is there a straight-line recipe?** Main's landing controls on beats hit
+  within 0.1 of the request, fitted from named inputs:
+  - from requested strength, arrival heading and speed: R² 0.15 to 0.16
+    for entry, turn and exit;
+  - adding pose and the durations and impact of the contacts around it:
+    R² 0.17 to 0.22.
+  - Good catches of the same situation come in many forms. No single
+    control per situation describes them: one rule per situation would
+    land where the compact network already is.
+- **Reading.**
+  - What the archive's points buy is reliable strong hits. It has many good
+    alternative landing arcs to start local search from, and arrivals that
+    stay steep.
+  - A readable replacement would need either several alternatives per
+    situation (as the archive has) or a way to aim the landing arc at the
+    requested strength directly. The impact is the heading turn times
+    arrival speed (November 7), so the redirect a strong hit needs can be
+    computed rather than learned. That would be a physics-aimed generator:
+    a design option for the owner, not implemented.
+  - Arrival steepness is a ride-level budget: a ride that has run shallow
+    cannot make the next strong hit hard. The compiler already prefers a
+    steep arrival in the catch before a strong ask (the search profile in
+    ARCHITECTURE.md). These shallow arrivals happen despite it.
+
+### The compact model's self-training round: hypothesis not confirmed
+
+- **Setup.** The network compiler (717f0d64) was collected on the training
+  songs (840 compiles, 5 seeds). The network was then retrained on that
+  collection alone ("self"), and pooled with the archive's demonstrations
+  ("pooled"). V7.1, 4 seeds, against main at 813.5.
+- **Result.**
+
+  | arm | stored | V7.1 | 95% interval | explicit requests |
+  |---|---|---|---|---|
+  | compact network (archive data) | 18 KB | −25.1 | −31.1 to −19.2 | −26.0 |
+  | retrained on its own collection | 15 KB | −25.3 | −36.5 to −14.1 | −22.1 |
+  | retrained, pooled | 20 KB | −22.2 | −27.4 to −16.9 | −23.8 |
+
+  - No ride lost in any arm, and physics frames are unchanged.
+  - Body drag (reported only) is lower: 3.2 and 3.5 s/min against 4.2.
+  - Strong extra impacts are higher: 0.12 and 0.13 per 100 beats against
+    0.04.
+- **Reading.**
+  - The hypothesis (pooled gains 5 to 10) is not confirmed. The pooled
+    retrain gains 2.9, about at the noise level, and self-training alone
+    gains nothing.
+  - A 5k-number network trained on more of the same demonstrations does
+    not close the gap. The missing 22–25 points are not a data-count
+    problem for this model.
+  - The archive's earlier retraining gains came from adding
+    demonstrations: more stored cases, so a closer neighbour for each new
+    situation (November 8, morning: an equal-size mix gained nothing). The
+    compact network stores no cases, so it cannot gain that way.
 
 ## November 8: step back on the policy archive, what it is worth
 
@@ -362,13 +456,24 @@ point.
   history with every retrain. A learned proposal source should be a few
   kilobytes, built on an understanding of which features drive it. The
   pooled archive stays off main; no archive is committed until this is
-  understood.
+  understood. (Settled later the same day: the archive is frozen as it is;
+  see the entry at the top.)
 - **What the archive is.** 79,778 demonstrations (the committed controls of
-  fulfilled sections on 838 training compiles). Two lookups read them for
-  each catch after the first: 16 policy proposals (neighbours under 32
-  proximity trees) and 16 memory proposals (plain feature distance, plus
-  what the compile itself commits). Every proposal is simulated and ranked;
+  fulfilled sections on 838 training compiles, plus two earlier
+  transfer-layout collections). In production two lookups read
+  them for each section after the first: 16 policy proposals (neighbours
+  under 32 proximity trees) and 16 memory proposals (plain feature
+  distance, over the demonstrations and what the compile itself commits). Every proposal is simulated and ranked;
   the archive only suggests.
+- **Results at a glance** (V7.1, 4 seeds, against main 9d065738, in the
+  order run; the size table further down gathers them):
+  - no archive −70.6, a much larger loss than the hypothesis (−15 to −40);
+  - memory lookup only −8.0 and policy lookup only −6.7: the hypothesis
+    (each keeps most of the worth) confirmed;
+  - 64 and 16 representatives −27.7 and −38.6: refuted;
+  - 32 control prototypes −33.1: inside the hypothesis;
+  - compact network −25.1: inside the hypothesis, at its edge;
+  - multiple-choice network −25.9: refuted.
 - **First measurements** (V7.1, 4 seeds, against main 9d065738):
   1. **No archive.** Neither lookup reads demonstrations; their slots go to
      generic samples. Memory still learns within the compile. On October 4
@@ -420,11 +525,12 @@ point.
     requests −28.1; strong extra impacts ×3. Keeps 61% of the archive's
     worth.
   - 16 per group: **−38.6** [−52.8, −24.3]; 1 of 35 up. Keeps 45%.
-  - No ride lost; frames unchanged; body drag −0% and −11%.
+  - No ride lost; frames unchanged; body drag unchanged at 64 and −11% at
+    16.
 - **Reading.** Even well-chosen prototypes lose 40% of the worth: a close
   neighbour matters. The archive works as a cache of solved situations: 838
   compiles of search, distilled. A cache needs coverage, so its worth grows
-  with its size (as the count results said). A compact replacement must
+  with its size (as the smaller-archive test of November 7 found). A compact replacement must
   *interpolate*: map the situation to controls, rather than look up the
   nearest stored case.
 - **Offline coverage test** (a guide, not a decision). For held-out
@@ -435,7 +541,7 @@ point.
   | proposal source | closest (mean of 6 groups) | benchmark |
   |---|---|---|
   | full archive | 0.874 | 0 |
-  | random 62% of it | 0.907 | (−5.3 for the 49k archive) |
+  | random 62% of it | 0.907 | −5.3 (the 49k archive of November 7) |
   | 64 representatives per group | 1.167 | −27.7 |
   | 16 representatives per group | 1.367 | −38.6 |
   | 16 control prototypes, situation ignored | 1.239 | |
@@ -449,7 +555,7 @@ point.
 - **Next: control prototypes** (V7.1, 4 seeds). 32 per group: the real
   demonstration nearest each k-means centre of the relative controls,
   situation ignored. 3,684 numbers, 17 KB as stored (a dedicated format
-  would be a few KB). The memory lookup offers all 32 (it learns within the
+  would be a few KB). The memory lookup offers all 32 in its freed slots (it learns within the
   compile as today); no policy lookup.
   - **Question.** How much of the 70 points is knowing *where* good controls
     lie, independent of the situation?
@@ -469,8 +575,8 @@ point.
   - Groups under 1,000 demonstrations (transfer) get the mean only, plus
     styles.
   - 5,361 numbers in all, 18 KB as stored.
-  - Runtime: 15 lines in `arc_control_policy.ts`. The model takes the 32
-    policy slots; memory learns within the compile only, as in the
+  - Runtime: 15 lines in `arc_control_policy.ts`. The model offers 32
+    proposals in the freed slots; memory learns within the compile only, as in the
     no-archive arm. Coverage 0.975 against 0.746 (full) and 1.073
     (prototypes) at 32 proposals.
   - **Hypothesis:** −15 to −25, at least 5 better than the prototypes. That
@@ -509,7 +615,7 @@ point.
   committed.
   - **Hypothesis:** each round of self-training closes part of the gap, as
     retraining always has for the archive. A pooled retrain gains 5–10
-    over −25.1.
+    over −25.1. (Result in the plan entry above: not confirmed, +2.9.)
 - **Alongside: multiple-choice proposals** (V7.1, 4 seeds, the archive's
   data).
   - **Why.** The fixed residual styles spread every situation the same way.
@@ -601,7 +707,8 @@ point.
   - P7 −21.6, one fragile ride-out ride −126.8.
 - **Reading.** The pooled gain comes from demonstration count, not from
   mixing compilers. More demonstrations therefore need more storage: the
-  owner's decision.
+  owner's decision. (Settled later the same day: no more storage; the
+  archive is frozen.)
 
 ## November 8 (morning): summary of November 7 and the night
 
@@ -788,6 +895,9 @@ error on the library songs (G):
   - The reserve is not what limits shaped sections.
 
 ## November 8 (night): pooled policies pass, held for the owner's storage decision
+
+**Settled later on November 8: not merged.** The archive is frozen as it is
+(entry at the top); `exp/policies-pooled-brotli` stays a local branch.
 
 | panel | change | interval / support |
 |---|---|---|

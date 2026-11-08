@@ -139,6 +139,7 @@ function catalogueProposals(cat:any,features:number[],incoming:number,span:numbe
   };
   const cores=new Map<number,number[]|undefined>();
   const selected:ArcMotionControl[]=[];
+  if(cat.generator)return generatedProposals(cat.generator,core,(t:number[])=>(1-u)*(1-v)*t[i*n+j]+(1-u)*v*t[i*n+j+1]+u*(1-v)*t[(i+1)*n+j]+u*v*t[(i+1)*n+j+1],incoming,span,count);
   // Styles that record their use per situation cell are offered most typical first.
   const used=(s:any)=>(1-u)*(1-v)*s.usage[i*n+j]+(1-u)*v*s.usage[i*n+j+1]+u*(1-v)*s.usage[(i+1)*n+j]+u*v*s.usage[(i+1)*n+j+1];
   const styles=cat.styles[0]?.usage?cat.styles.map((s:any,k:number)=>({s,k,w:used(s)})).sort((a:any,b:any)=>b.w-a.w||a.k-b.k).map((x:any)=>x.s):cat.styles;
@@ -149,6 +150,29 @@ function catalogueProposals(cat:any,features:number[],incoming:number,span:numbe
     const c={...free,entry:incoming+c0[0]+style.residual[0],turn:c0[1]+style.residual[1],exit:incoming+c0[2]+style.residual[2],support:span*support} as ArcMotionControl;
     if(selected.some(p=>arcControlsSimilar(c,p)))continue;
     selected.push(c);if(selected.length>=count)break;
+  }
+  return selected;
+}
+
+/** Generated moves (research): no stored demonstration. Proposal k takes its contact side
+ * from the opposing share of this situation, then every parameter from an evenly spread
+ * sequence mapped through that parameter's observed range (quantiles); entry, turn and exit
+ * deviate from the typical move of this situation. */
+function generatedProposals(gen:any,core:(side:number)=>number[]|undefined,at:(t:number[])=>number,incoming:number,span:number,count:number):ArcMotionControl[]{
+  const frac=(x:number)=>x-Math.floor(x),opposing=at(gen.opposing);
+  const read=(q:number[],x:number)=>{const p=x*(q.length-1),i=Math.min(q.length-2,Math.floor(p));return q[i]+(p-i)*(q[i+1]-q[i]);};
+  const strides=[0.6180339887,0.4142135624,0.7320508076,0.2360679775,0.6457513111,0.3166247903,0.5677643628,0.7416573868,0.1622776602,0.3588989435,0.4721359550,0.8284271247,0.1231056256,0.6055512755,0.4772255751,0.2915026221,0.3851648071,0.9282032303,0.6904157598];
+  const cores=new Map<number,number[]|undefined>(),selected:ArcMotionControl[]=[];
+  for(let k=0;selected.length<count&&k<4*count;k++){
+    const side=frac((k+.5)*0.7548776662)<opposing&&gen.ranges['-1']?-1:1;
+    if(!cores.has(side))cores.set(side,core(side));
+    const c0=cores.get(side),ranges=gen.ranges[String(side)];if(!c0||!ranges)continue;
+    const value:Record<string,number>={};
+    Object.keys(ranges).forEach((name,d)=>{value[name]=read(ranges[name],frac((k+.5)*strides[d%strides.length]+d*.137));});
+    const {dEntry,dTurn,dExit,support,...free}=value;
+    const c={...free,...(side===-1?{contactSide:-1}:{}),entry:incoming+c0[0]+dEntry,turn:c0[1]+dTurn,exit:incoming+c0[2]+dExit,support:span*support} as ArcMotionControl;
+    if(selected.some(p=>arcControlsSimilar(c,p)))continue;
+    selected.push(c);
   }
   return selected;
 }

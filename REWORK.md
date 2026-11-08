@@ -212,6 +212,38 @@ moves start 53% of committed arcs.
   table then explains more of the exit (terraces 0.38 → 0.49, scallops
   0.51 → 0.61).
 
+### Paired comparisons between catalogue versions, and variety
+
+- **Paired, same seeds** (candidate against reference, V7.1, 4 seeds). The
+  comparisons against main are about ±12 wide, too wide to separate
+  catalogue versions, so these are compared directly:
+
+  | change | paired difference |
+  |---|---|
+  | all 64 tried, against 64 ranked in the default slots | **+6.5** [+1.5, +11.4], every block positive |
+  | 128 instead of 64, both all tried | −2.4 [−5.9, +1.0] |
+  | next beat's strength as a third axis, against all tried | −5.3 [−14.2, +3.6] |
+
+- **The next-beat axis** (`exp/catalogue-64-next`, 58,553 numbers): −28.0
+  against main. Arrivals at strong beats below 15° fell only from 13% to
+  10% (main 6%), and strong beats short by more than 0.2 stayed at 12%.
+  The setup depends on the whole chain of arcs and on which candidates
+  ranking keeps, not on one move's exit. Not kept; an open thread.
+- **Variety of the drawn lines** (`move_variety.py`, saved arms, 164
+  rides; unvalidated against the owner's eye):
+
+  | arm | ratio (own ride / other songs) | distinct shapes per ride | recurring 3-arc motifs |
+  |---|---|---|---|
+  | main (archive) | 0.87 | 45.8 | 0.6% |
+  | readable catalogue, all tried | 0.84 | 44.4 | 1.0% |
+  | compact network | 0.85 | 43.9 | 0.6% |
+  | none | 0.76 | 42.5 | 0.9% |
+
+  Catalogue against main, paired by ride: ratio −0.03 [−0.05, −0.01],
+  distinct shapes −1.3 [−2.0, −0.6]. A readable catalogue of 64 moves per
+  family does not lock rides into repetition. It is within a few percent
+  of the archive, and far from the no-archive arm.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

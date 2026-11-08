@@ -136,8 +136,10 @@ point.
     the pooled network, against −4 to −8 for P1 to P3. The long ride (P6)
     gains air (+23) in the network arms.
   - Per family (air, speed and strength, pooled network): unguided arcs
-    −5.9, fold −4.4, arcs −4.0, serpentine −2.4, scallops −1.5, terraces
-    −0.9, scattered +0.3.
+    −7.8, arcs −3.4, fold −3.0, serpentine −2.0, terraces −1.8, scallops
+    −1.0, scattered 0.0.
+    - Corrected: a beat's strength now goes to arc j + 1, on which the
+      rider lands. A first version gave it to the arc before.
 - **Reading.**
   - The archive's points are mostly one thing: **hitting strong beats hard
     enough**. In every reduced arm, about half the loss is strong beats too
@@ -148,11 +150,68 @@ point.
   - So a readable candidate source does not need to know everything the
     archive knows. It needs to know how to set up a strong catch: the
     arrival speed and the controls that turn it into a hard hit.
-- **Next (report only).** On strong beats, compare what the archive
-  proposes and commits with what the compact sources do: arrival speed,
-  entry steepness, controls, and the arc before. If strong catches have a
-  recognisable recipe, a short explicit rule may hold most of the 12 to 15
-  points.
+### How the strong beats are caught (report only)
+
+- **Instrument.** `tools/research/strong_catches.py` joins the
+  `candidate_origins.ts` studies (committed controls, situation, sources)
+  with the saved arms' per-beat strength. Tracks are identical.
+  - Beat j is the landing on arc j + 1; arc j sets the arrival.
+  - Seed 101, 41 rides; main, compact network, none.
+- **Strong beats are the norm.** 1,948 of 3,508 beats are requested at 0.6
+  or more (mean 0.75). Every arm undershoots them: median achieved 0.67
+  (main), 0.65 (network), 0.64 (none).
+  - The difference is the tail. Short by more than 0.2: 8%, 14%, 17%.
+- **What a short strong hit looks like** (paired beat by beat, main against
+  network; the same picture whichever arm fails):
+
+  | strong beats | arrival heading (descending) | sled pose | landing arc turn | landing arc exit − incoming | head down |
+  |---|---|---|---|---|---|
+  | both hit (1,586) | 32–35° | 22–24° | −16 to −17° | −16 to −18° | 11% |
+  | only the network short (205), network | 21° | 39° | −4° | +3° | 26% |
+  | the same beats, main | 35° | 28° | −17° | −19° | 16% |
+  | only main short (89), main | 21° | 50° | +5° | | 27% |
+
+  - The failure: a shallow arrival with the sled pitched nose-down, then a
+    landing arc that does not redirect the rider.
+  - On those 205 beats, the arc before has no systematic difference in its
+    own controls. The paired median differences are 1–4°, against
+    11–15° of ordinary scatter. The shallow arrival comes from the ride's
+    history.
+- **Setup against conversion** (arrival heading bands; share of strong
+  beats, then share short):
+
+  | arm | below 15° | 15–25° | 25–35° | 35–45° | 45° and more | short, all |
+  |---|---|---|---|---|---|---|
+  | main | 6%, 32% | 24%, 15% | 23%, 6% | 21%, 3% | 26%, 2% | 8% |
+  | network | 11%, 41% | 27%, 15% | 21%, 13% | 17%, 8% | 24%, 5% | 14% |
+  | none | 11%, 44% | 27%, 21% | 24%, 12% | 16%, 9% | 23%, 9% | 17% |
+
+  - The archive does both: fewer shallow arrivals, and better conversion at
+    every heading.
+  - At main's headings the network would be short on 12%. So about two
+    thirds of its extra shortfalls are conversion at the landing arc, one
+    third the arrival setup.
+- **Is there a straight-line recipe?** Main's landing controls on beats hit
+  within 0.1 of the request, fitted from named inputs:
+  - from requested strength, arrival heading and speed: R² 0.15 to 0.16
+    for entry, turn and exit;
+  - adding pose and the durations and impact of the contacts around it:
+    R² 0.17 to 0.22.
+  - Good catches of the same situation come in many forms. No single
+    control per situation describes them: one rule per situation would
+    land where the compact network already is.
+- **Reading.**
+  - What the archive's points buy is reliable strong hits. It has many good
+    alternative landing arcs to start local search from, and arrivals that
+    stay steep.
+  - A readable replacement would need either several alternatives per
+    situation (as the archive has) or a way to aim the landing arc at the
+    requested strength directly. The impact is the heading turn times
+    arrival speed (November 7), so the redirect a strong hit needs can be
+    computed rather than learned. That would be a physics-aimed generator:
+    a design option for the owner, not implemented.
+  - Arrival steepness is a ride-level budget: a ride that has run shallow
+    cannot make the next strong hit hard.
 
 ### Step 2, first reading: variety of the moves, with and without the archive (report only)
 

@@ -16,9 +16,9 @@ parts linearly at the midpoint loss: part points = dS/dL(L_mid) x (part's change
 The remainder (curvature) is shown. Rides then combine like the headline: seeds averaged per
 spec, specs averaged per stratum, strata averaged.
 
-Per family: the gap errors (air, speed) of each gap and the impact strength error of the
-contact at its end, attributed to the family of the arc that opens the gap (an arc owns the
-gap it opens and the impact at its own contact). Timing and extra hits are not split by family.
+Per family: the gap errors (air, speed) of gap i go to arc i, which opens it; the impact
+strength error of beat i goes to arc i + 1, on which the rider lands (an arc owns the gap it
+opens and the impact at its own contact). Timing and extra hits are not split by family.
 Impact strength is also split by the requested level (quiet <= 0.15, strong >= 0.6) and by
 whether the hit was too soft or too hard."""
 import json, math, os, sys, collections
@@ -53,7 +53,7 @@ def parts(cell):
     for i, b in enumerate(beats):
         hit = (b.get('hit') or {}).get('strength')
         v = ((hit if hit is not None else 0) - b['requested']) ** 2 / len(beats) / mass
-        out['strength'] += v; by_f[fam(i)] += v
+        out['strength'] += v; by_f[fam(i + 1)] += v
         band = 'strong (>=0.6)' if b['requested'] >= .6 else 'quiet (<=0.15)' if b['requested'] <= .15 else 'middle'
         bands[f"{band}, {'too soft' if (hit or 0) < b['requested'] else 'too hard'}"] += v
     out['timing'] = imp['timingMse'] / mass

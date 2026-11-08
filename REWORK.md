@@ -38,10 +38,14 @@
     Body positions and most of the 40 body numbers add little.
   - Without any situation, 16 prototypes per group cover 0.70 of the spread
     and 64 cover 0.84.
-- **Benchmark, first round in:** no archive −69.9 after 3 of 4 rounds,
-  every spec down. The archive carries a large part of the compiler's
-  quality. Body drag halves without it (2.2 against 4.2 s/min): the
-  demonstrations are also where today's drag comes from.
+- **Result, no archive: −70.6** [−82.4, −58.7]; 34 of 35 specs down, every
+  category down (P4 −88.7, P7 −87.0, G −79.2), explicit requests −50.8. No
+  ride lost; frames unchanged. Body drag halves (2.14 against 4.16 s/min),
+  so the demonstrations are also where today's drag comes from. Strong extra
+  impacts ×6. The archive carries a large part of the compiler's quality.
+- **Result, memory lookup only: −8.0** [−15.2, −0.9]; 6 of 35 specs up,
+  every category down. Memory alone keeps about 89% of the archive's worth.
+  The policy lookup adds the rest, so the two are not fully redundant.
 - **Next: representative demonstrations** (V7.1, 4 seeds, against main).
   Each group's demonstrations are clustered in the joint space of situation
   (weighted as the memory distance weighs it) and control. The real

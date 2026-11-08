@@ -121,6 +121,35 @@ no-archive floor (−70.6) and main, with every version reported in full.
     discriminates only moderately. Whether aiming pays is tested first
     without any model (next).
 
+### Aiming by fixed physical variants: worse
+
+- **Change** (on the 64 ranked styles; `exp/catalogue-aimed`). The 8 most
+  typical normal-side moves also come aimed:
+  - with 8° more redirect (turn −8°) when the beat this arc lands on is
+    requested at 0.6 or more;
+  - with an exit 10° steeper when the next beat is strong, for a steeper
+    arrival there.
+  - The variants take the places of the least typical moves.
+- **Expectation.** Strong beats less often too soft.
+- **Result: −38.6** [−46.7, −30.6], against −29.1 without aiming; every
+  seed block worse; strong extra impacts 0.20 per 100 beats.
+  - Strength −17.4 against −14.0, speed −10.4 against −8.6, extra hits −4.7
+    against −2.9.
+- **Reading.**
+  - Fixed "harder" variants do not hit harder; they only take the places of
+    real moves. This agrees with the night's strength-seeking response step
+    (−3.1): the strong options the compact sources miss are not a fixed
+    step away from the moves they have.
+  - All compact sources so far stall around −25 to −30, whether ranked by
+    two readable quantities (−29.1) or by all 57 features (64
+    representatives, −27.7).
+- **The proposal slots.** The search tries `samples / 2` = 40 initial
+  proposals per catch, shared in proportion among the sources. The
+  archive's lookups ask for 16 + 16, which fit. The catalogue asks for 32
+  beside memory's 16, so only about 24 of its moves are tried (about 18 on
+  shaped families, which reserve a quarter for the generic sweep). This is
+  why ranking matters, and why 128 styles could not help.
+
 ## November 8: the archive is frozen; today's compiler is the baseline
 
 - **Decision** (agreed with the owner).

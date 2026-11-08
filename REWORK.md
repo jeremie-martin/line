@@ -59,6 +59,18 @@
     keeps most of the 70 points (within −10) and 16 per group keeps more than
     half. A steep loss at 64 would mean precise local neighbours matter, and
     a compact replacement has to interpolate rather than retrieve.
+- **Result: refuted.**
+  - 64 per group: **−27.7** [−39.3, −16.2]; 0 of 35 specs up; explicit
+    requests −28.1; strong extra impacts ×3. Keeps 61% of the archive's
+    worth.
+  - 16 per group: **−38.6** [−52.8, −24.3]; 1 of 35 up. Keeps 45%.
+  - No ride lost; frames unchanged; body drag −0% and −11%.
+- **Reading.** Even well-chosen prototypes lose 40% of the worth: a close
+  neighbour matters. The archive works as a cache of solved situations: 838
+  compiles of search, distilled. A cache needs coverage, so its worth grows
+  with its size (as the count results said). A compact replacement must
+  *interpolate*: map the situation to controls, rather than look up the
+  nearest stored case.
 
 ## November 8 (morning): hypothesis, an equal-size mix of both collections
 

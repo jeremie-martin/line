@@ -28,7 +28,6 @@ The Line Rider videos now have a settled first version of their visual language 
 1. **A golden set of themes.** The owner: "perhaps this idea of randomly generating stuff may not be necessary… if we have this set of golden 18 or 24 or 32 themes… we should be able to easily think about some new theme, learning from how to build a theme in the first place." This simplifies the direction layer a lot. A video picks a theme from the set, perhaps with weights or hand hints, instead of composing pieces at random. `docs/THEME-CRAFT.md` is the start of that craft.
 2. **Keep refining v1**, methodically and without rushing. The open items are in `LEDGER.md`:
    - where Night ends on each song;
-   - the layout as a whole: band height and position, the rider's height, with and without a sun (round 22);
    - zoom per song.
 3. **Drops from the spec, by hand.** A drop cue is read from the song's spec sections and placed by hand, never detected. Circus Minimus is the example: Night runs from the hook's first impact (38.5 s) to the re-entry hit (51.3 s).
 4. **Whole films, regularly.** Round 20 proved the point: after many rounds of tuning on short loops, seeing whole films together is where the work is judged.

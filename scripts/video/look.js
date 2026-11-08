@@ -32,7 +32,7 @@ export const V1 = {
   // paper: Whisper (R3–R4); nothing at the top unless a theme asks; no drop treatment unless a theme asks
   scheme: 'graphite', paper: 'whisper', top: 'none', drop: 'off',
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
-  // higher (R21). The layout as a whole is round 22's question.
+  // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',
   // hits by parts, each hit on its own, driven by what the ride did (picture.js has the curves, R7–R19)
   hits: 'v1',

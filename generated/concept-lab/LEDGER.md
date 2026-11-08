@@ -143,7 +143,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 
 1. Where Night ends, song by song (R4). Rule since R20: cues are placed by hand from the spec's sections (Circus Minimus: the HOOK's first impact at 38.5 s to the RE-ENTRY hit at 51.3 s).
 1b. ~~With a sun~~ (R21): the rider 32 px lower, the sun 16 px higher.
-2. **The layout as a whole** (R21: "try a few sets of element positions… see what works best as a whole… with and without a sun"; small changes only): the band's height and position, and perhaps the rider 8–16 px lower without a sun if the band gives room. Round 22.
+2. ~~The layout as a whole~~ (R22): A, as now: the band low-middle, the rider as today; with a sun, the rider 32 px lower and the sun 16 px higher. The other layouts stay as options (`riderLower`, `bandHeight`, `sunLift`).
 3. ~~Whether all dark palettes should be inked~~ (R21): yes, all ink.
 4. A little more split between 0.4 and 0.6 (R15; the R16 question was skipped).
 5. Zoom per song, and the direction layer: how looks are chosen, hints, variety (R5–R6).

@@ -10,6 +10,7 @@ import {createReadStream, statSync} from 'node:fs';
 import {extname, normalize, resolve, sep} from 'node:path';
 import {createRepertoireApi} from './gallery/repertoire_api.ts';
 import {createLabelsApi} from './gallery/labels_api.ts';
+import {createRatingsApi} from './gallery/ratings_api.ts';
 import {createSpecApi} from './gallery/spec_api.ts';
 import {createSceneApi} from './video/scene_api.ts';
 
@@ -19,7 +20,7 @@ try {execFileSync(process.execPath, [resolve(import.meta.dirname, 'gallery/build
 catch (error) {console.error(`The renderer bundle could not be built; rides will not play: ${(error as Error).message.split('\n')[0]}`);}
 
 const PORT = Number(process.env.PORT ?? 8767), HOST = process.env.HOST ?? '127.0.0.1';
-const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), specs = createSpecApi(), scenes = createSceneApi();
+const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), ratings = createRatingsApi(), specs = createSpecApi(), scenes = createSceneApi();
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4', '.webm': 'video/webm',
@@ -58,10 +59,14 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
     const handler = url.pathname.startsWith('/api/repertoire/') ? api
       : url.pathname.startsWith('/api/labels/') ? labels
+      : url.pathname === '/api/rate' || url.pathname.startsWith('/api/rate/') ? ratings
       : url.pathname === '/api/scene' ? scenes
       : url.pathname.startsWith('/api/spec') ? specs : undefined;
     if (handler && await handler(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}
+    // the theme ratings site at a short address: /rate/ lists the sets, /rate/<set> is one set (the page reads it from the address)
+    if (url.pathname === '/rate') {res.writeHead(302, {Location: '/rate/'}).end(); return;}
+    if (/^\/rate\/([a-z0-9-]{1,80})?$/.test(url.pathname)) {serveStatic(req, res, new URL('/generated/concept-lab/rate/index.html', url)); return;}
     serveStatic(req, res, url);
   } catch (e) {
     if (!res.headersSent) res.writeHead(500, {'Content-Type': 'application/json'});

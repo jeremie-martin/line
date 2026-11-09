@@ -34,3 +34,4 @@ rides-variants-*.log
 analysis/pos-*.json
 theme-proposals/
 theme-stills/
+rate/sets/*/stills/

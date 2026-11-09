@@ -1,0 +1,1560 @@
+{
+ "title": "All themes and drafts, 9 November",
+ "created": "2026-11-09",
+ "song": "circus",
+ "moments": [
+  [
+   "Verse",
+   18
+  ],
+  [
+   "Inside the drop",
+   44.65
+  ],
+  [
+   "Later",
+   59.5
+  ]
+ ],
+ "schemes": {
+  "silverRustMiddle": {
+   "paper": "#d6dcda",
+   "ink": "#1b2525",
+   "pencil": "#8a9995",
+   "mass": "#416158",
+   "accent": "#b5472d",
+   "sun": "#b5472d",
+   "nightPaper": "#1b2525",
+   "nightInk": "#eef4f0",
+   "tone": "#cbd8d2"
+  },
+  "morningAlone": {
+   "paper": "#faf3dd",
+   "ink": "#071431",
+   "pencil": "#a8aaa7",
+   "mass": "#314773",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "morningMiddle": {
+   "paper": "#faf3dd",
+   "ink": "#071431",
+   "pencil": "#a8aaa7",
+   "mass": "#314773",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "morningNight": {
+   "paper": "#071431",
+   "ink": "#f9f2dc",
+   "pencil": "#3c485e",
+   "mass": "#fbe6a0",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#f9f2dc"
+  },
+  "morning_asis": {
+   "paper": "#071431",
+   "ink": "#f9f2dc",
+   "pencil": "#3c485e",
+   "mass": "#fbe6a0",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#f9f2dc"
+  },
+  "morning_asisDrop": {
+   "paper": "#faf3dd",
+   "ink": "#071431",
+   "pencil": "#bdb7a6",
+   "mass": "#1f345e",
+   "accent": "#f48067",
+   "nightPaper": "#071431",
+   "nightInk": "#faf3dd"
+  },
+  "redsky_asis": {
+   "paper": "#eaf1fa",
+   "ink": "#33150e",
+   "pencil": "#abb6c1",
+   "mass": "#762c19",
+   "accent": "#e2484f",
+   "nightPaper": "#290c08",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_asisDrop": {
+   "paper": "#571715",
+   "ink": "#eaf1fa",
+   "pencil": "#825651",
+   "mass": "#b7c9e2",
+   "accent": "#e2484f",
+   "nightPaper": "#571715",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_wada": {
+   "paper": "#c7d7d0",
+   "ink": "#33150e",
+   "pencil": "#abb6c1",
+   "mass": "#82241f",
+   "accent": "#f27291",
+   "nightPaper": "#290c08",
+   "nightInk": "#eaf1fa"
+  },
+  "redsky_wadaDrop": {
+   "paper": "#793327",
+   "ink": "#eaf1fa",
+   "pencil": "#825651",
+   "mass": "#16d7f9",
+   "accent": "#c55347",
+   "nightPaper": "#571715",
+   "nightInk": "#eaf1fa"
+  },
+  "violet_asis": {
+   "paper": "#251949",
+   "ink": "#f9f1e3",
+   "pencil": "#554f74",
+   "mass": "#dd4027",
+   "accent": "#fcb315",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "violet_wada": {
+   "paper": "#4f4086",
+   "ink": "#f9f1e3",
+   "pencil": "#7d73a4",
+   "mass": "#ffa385",
+   "accent": "#c88200",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "violet_tuned": {
+   "paper": "#242036",
+   "ink": "#f9f1e3",
+   "pencil": "#554f74",
+   "mass": "#dd4027",
+   "accent": "#fcb315",
+   "nightPaper": "#251949",
+   "nightInk": "#f9f1e3"
+  },
+  "cerulean_asis": {
+   "paper": "#075062",
+   "ink": "#f9f6e3",
+   "pencil": "#58828f",
+   "mass": "#f6917e",
+   "accent": "#fef37d",
+   "nightPaper": "#002732",
+   "nightInk": "#f9f6e3"
+  },
+  "cerulean_wada": {
+   "paper": "#34454c",
+   "ink": "#f9f6e3",
+   "pencil": "#58828f",
+   "mass": "#f68c50",
+   "accent": "#f8ed43",
+   "nightPaper": "#002732",
+   "nightInk": "#f9f6e3"
+  },
+  "negoro_asis": {
+   "paper": "#140e0b",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#ebd3a2",
+   "accent": "#d96629",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  },
+  "negoro_wada": {
+   "paper": "#0d1417",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#a48e5f",
+   "accent": "#ff975e",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  },
+  "negoro_tuned": {
+   "paper": "#140e0b",
+   "ink": "#d96629",
+   "pencil": "#4b3831",
+   "mass": "#a0895b",
+   "accent": "#ff9259",
+   "nightPaper": "#140e0b",
+   "nightInk": "#d96629"
+  },
+  "milkmaid_asis": {
+   "paper": "#eee9df",
+   "ink": "#221811",
+   "pencil": "#b5b1a9",
+   "mass": "#b27e17",
+   "accent": "#2543c2",
+   "sun": "#2543c2",
+   "nightPaper": "#221811",
+   "nightInk": "#eee9df"
+  },
+  "snail_asis": {
+   "paper": "#fbfaf6",
+   "ink": "#0e1310",
+   "pencil": "#b3b1a9",
+   "mass": "#027e47",
+   "accent": "#db2c87",
+   "sun": "#db2c87",
+   "nightPaper": "#05160d",
+   "nightInk": "#fbfaf6"
+  },
+  "snail_wada": {
+   "paper": "#eeebdd",
+   "ink": "#0e1310",
+   "pencil": "#b3b1a9",
+   "mass": "#437742",
+   "accent": "#e75e68",
+   "sun": "#da525d",
+   "nightPaper": "#05160d",
+   "nightInk": "#fbfaf6"
+  },
+  "shinbashi_asis": {
+   "paper": "#f8f7f1",
+   "ink": "#1e1311",
+   "pencil": "#b3b1a9",
+   "mass": "#6a2c29",
+   "accent": "#0ebac6",
+   "nightPaper": "#1e1311",
+   "nightInk": "#f8f7f1"
+  },
+  "splash_asis": {
+   "paper": "#f8e9e3",
+   "ink": "#0d1b2d",
+   "pencil": "#b8afab",
+   "mass": "#2d8ab8",
+   "accent": "#efbd24",
+   "sun": "#efbd24",
+   "nightPaper": "#061c31",
+   "nightInk": "#f8e9e3"
+  },
+  "splash_wada": {
+   "paper": "#cddfe0",
+   "ink": "#0d1b2d",
+   "pencil": "#b8afab",
+   "mass": "#00516f",
+   "accent": "#fdbf68",
+   "sun": "#b97f1e",
+   "nightPaper": "#061c31",
+   "nightInk": "#f8e9e3"
+  },
+  "splash_tuned": {
+   "paper": "#f8e9e3",
+   "ink": "#0d1b2d",
+   "pencil": "#b8afab",
+   "mass": "#005e8a",
+   "accent": "#efbd24",
+   "sun": "#c59500",
+   "nightPaper": "#061c31",
+   "nightInk": "#f8e9e3"
+  },
+  "vertigo_asis": {
+   "paper": "#0c120f",
+   "ink": "#e6f2eb",
+   "pencil": "#474f4b",
+   "mass": "#9f3e4b",
+   "accent": "#37ab6b",
+   "sun": "#37ab6b",
+   "nightPaper": "#0c120f",
+   "nightInk": "#e6f2eb"
+  },
+  "vertigo_asisDrop": {
+   "paper": "#340810",
+   "ink": "#fce9ea",
+   "pencil": "#534b4b",
+   "mass": "#ce7e8a",
+   "accent": "#37ab6b",
+   "sun": "#37ab6b",
+   "nightPaper": "#340810",
+   "nightInk": "#fce9ea"
+  },
+  "jun_asis": {
+   "paper": "#1d140e",
+   "ink": "#e7f0f8",
+   "pencil": "#534b47",
+   "mass": "#6b8fb9",
+   "accent": "#e472dc",
+   "nightPaper": "#1d140e",
+   "nightInk": "#e7f0f8"
+  },
+  "jun_wada": {
+   "paper": "#0d1417",
+   "ink": "#e7f0f8",
+   "pencil": "#534b47",
+   "mass": "#52a572",
+   "accent": "#ff93a8",
+   "nightPaper": "#1d140e",
+   "nightInk": "#e7f0f8"
+  },
+  "jun_tuned": {
+   "paper": "#1d140e",
+   "ink": "#e7f0f8",
+   "pencil": "#534b47",
+   "mass": "#6b8fb9",
+   "accent": "#f985f0",
+   "nightPaper": "#1d140e",
+   "nightInk": "#e7f0f8"
+  },
+  "dream_asis": {
+   "paper": "#0a170f",
+   "ink": "#f2efe0",
+   "pencil": "#484f4a",
+   "mass": "#92a86a",
+   "accent": "#f68622",
+   "sun": "#f1ebd5",
+   "nightPaper": "#0a170f",
+   "nightInk": "#f2efe0"
+  },
+  "dream_wada": {
+   "paper": "#0d1417",
+   "ink": "#f2efe0",
+   "pencil": "#484f4a",
+   "mass": "#7c9f3d",
+   "accent": "#ff93a8",
+   "sun": "#fdd4bd",
+   "nightPaper": "#0a170f",
+   "nightInk": "#f2efe0"
+  },
+  "dream_tuned": {
+   "paper": "#0a170f",
+   "ink": "#f2efe0",
+   "pencil": "#484f4a",
+   "mass": "#92a86a",
+   "accent": "#ffa94f",
+   "sun": "#f1ebd5",
+   "nightPaper": "#0a170f",
+   "nightInk": "#f2efe0"
+  },
+  "kente_asis": {
+   "paper": "#120f0b",
+   "ink": "#f3ebd5",
+   "pencil": "#514c46",
+   "mass": "#298646",
+   "accent": "#ffc927",
+   "sun": "#ffc927",
+   "nightPaper": "#120f0b",
+   "nightInk": "#f3ebd5"
+  },
+  "theoryCoralandGreen_asis": {
+   "paper": "#f5f7ec",
+   "ink": "#0d0d0c",
+   "pencil": "#aeafac",
+   "mass": "#297130",
+   "accent": "#ff7871",
+   "sun": "#ff7871",
+   "nightPaper": "#0d0e09",
+   "nightInk": "#f5f5f2"
+  },
+  "theoryCoralandGreen_asisDrop": {
+   "paper": "#0d0e09",
+   "ink": "#f5f5f2",
+   "pencil": "#434546",
+   "mass": "#688b68",
+   "accent": "#ff7871",
+   "sun": "#ff7871",
+   "nightPaper": "#0d0e09",
+   "nightInk": "#f5f5f2"
+  },
+  "theoryCoralandGreen_wada": {
+   "paper": "#eeebdd",
+   "ink": "#0d0d0c",
+   "pencil": "#aeafac",
+   "mass": "#437742",
+   "accent": "#e75e68",
+   "sun": "#da525d",
+   "nightPaper": "#0d0e09",
+   "nightInk": "#f5f5f2"
+  },
+  "theoryCoralandGreen_wadaDrop": {
+   "paper": "#0d1417",
+   "ink": "#f5f5f2",
+   "pencil": "#434546",
+   "mass": "#009465",
+   "accent": "#fe7e2e",
+   "sun": "#f37420",
+   "nightPaper": "#0d0e09",
+   "nightInk": "#f5f5f2"
+  },
+  "theoryVioletandPeach_asis": {
+   "paper": "#161a1a",
+   "ink": "#f4f8f7",
+   "pencil": "#4f5151",
+   "mass": "#e08b76",
+   "accent": "#5a60fe",
+   "sun": "#5a60fe",
+   "nightPaper": "#090f0e",
+   "nightInk": "#f2f6f5"
+  },
+  "violetPeachPigment": {
+   "paper": "#161a1a",
+   "ink": "#f4f8f7",
+   "pencil": "#4f5151",
+   "mass": "#e08b76",
+   "accent": "#4b54c2",
+   "sun": "#4b54c2",
+   "nightPaper": "#090f0e",
+   "nightInk": "#f2f6f5"
+  },
+  "hctVioletPetrol_asis": {
+   "paper": "#f9f2f3",
+   "ink": "#252023",
+   "pencil": "#b0afaf",
+   "mass": "#00545b",
+   "accent": "#a262b5",
+   "sun": "#a262b5",
+   "nightPaper": "#1d151b",
+   "nightInk": "#f9f2f3"
+  },
+  "hctViridianSienna_asis": {
+   "paper": "#f0f5f2",
+   "ink": "#202222",
+   "pencil": "#b1b0af",
+   "mass": "#89410c",
+   "accent": "#00976f",
+   "sun": "#00976f",
+   "nightPaper": "#101917",
+   "nightInk": "#f0f5f2"
+  },
+  "hctViridianSienna_asisDrop": {
+   "paper": "#101917",
+   "ink": "#e2e4e2",
+   "pencil": "#474645",
+   "mass": "#b35c21",
+   "accent": "#34bf91",
+   "sun": "#34bf91",
+   "nightPaper": "#101917",
+   "nightInk": "#e2e4e2"
+  },
+  "hctAmberPurple_asis": {
+   "paper": "#f9f3ec",
+   "ink": "#24211d",
+   "pencil": "#b1afae",
+   "mass": "#5d3976",
+   "accent": "#e39a1b",
+   "sun": "#e39a1b",
+   "nightPaper": "#1c170c",
+   "nightInk": "#f9f3ec"
+  },
+  "hctAmberPurple_wada": {
+   "paper": "#eeebdd",
+   "ink": "#24211d",
+   "pencil": "#b1afae",
+   "mass": "#064f6e",
+   "accent": "#f99d1b",
+   "sun": "#f99d1b",
+   "nightPaper": "#1c170c",
+   "nightInk": "#f9f3ec"
+  },
+  "hctMadderOlive_asis": {
+   "paper": "#201514",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#7d9343",
+   "accent": "#c34268",
+   "sun": "#c34268",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctMadderOlive_wada": {
+   "paper": "#1c172c",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#837e31",
+   "accent": "#f275a7",
+   "sun": "#b73f74",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctMadderOlive_tuned": {
+   "paper": "#201514",
+   "ink": "#eee2e0",
+   "pencil": "#4a4646",
+   "mass": "#7d9343",
+   "accent": "#ff81a3",
+   "sun": "#c34268",
+   "nightPaper": "#201514",
+   "nightInk": "#eee2e0"
+  },
+  "hctCeruleanBronze_asis": {
+   "paper": "#0f191f",
+   "ink": "#e3e4e6",
+   "pencil": "#474646",
+   "mass": "#a26100",
+   "accent": "#399dcd",
+   "sun": "#399dcd",
+   "nightPaper": "#0f191f",
+   "nightInk": "#e3e4e6"
+  },
+  "mlGiltRedLead_asis": {
+   "paper": "#2e2a1b",
+   "ink": "#f3edd9",
+   "pencil": "#5e5b51",
+   "mass": "#9cb5be",
+   "accent": "#d65f1c",
+   "nightPaper": "#2e2a1b",
+   "nightInk": "#f3edd9"
+  },
+  "mlGiltRedLead_wada": {
+   "paper": "#253122",
+   "ink": "#f3edd9",
+   "pencil": "#5e5b51",
+   "mass": "#86cad8",
+   "accent": "#f15a30",
+   "nightPaper": "#2e2a1b",
+   "nightInk": "#f3edd9"
+  },
+  "mlBuffLapis_asis": {
+   "paper": "#ebe1cb",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#6fa3a0",
+   "accent": "#5446ae",
+   "sun": "#5446ae",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlBuffLapis_wada": {
+   "paper": "#cddfe0",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#005752",
+   "accent": "#7562b5",
+   "sun": "#6450a1",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlBuffLapis_tuned": {
+   "paper": "#ebe1cc",
+   "ink": "#221c33",
+   "pencil": "#a8a49b",
+   "mass": "#085a57",
+   "accent": "#6e63ce",
+   "sun": "#5446ae",
+   "nightPaper": "#1c1934",
+   "nightInk": "#ebe1cb"
+  },
+  "mlChromeMadder_asis": {
+   "paper": "#e3e8ef",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#c8911a",
+   "accent": "#b0341f",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlChromeMadder_wada": {
+   "paper": "#dfd5c0",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#544300",
+   "accent": "#da525d",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlChromeMadder_tuned": {
+   "paper": "#e3e8ef",
+   "ink": "#1c2840",
+   "pencil": "#a9aeb5",
+   "mass": "#784500",
+   "accent": "#c94c36",
+   "nightPaper": "#16233f",
+   "nightInk": "#f2e2a4"
+  },
+  "mlRoseGreyJade_asis": {
+   "paper": "#efe3e1",
+   "ink": "#1b2a31",
+   "pencil": "#aeaaa8",
+   "mass": "#355a6b",
+   "accent": "#1aae78",
+   "nightPaper": "#1b2a31",
+   "nightInk": "#efe3e1"
+  },
+  "mlForestGold_asis": {
+   "paper": "#1f3229",
+   "ink": "#f3ead6",
+   "pencil": "#56605a",
+   "mass": "#b9786a",
+   "accent": "#e0ab2c",
+   "sun": "#e0ab2c",
+   "nightPaper": "#1f3229",
+   "nightInk": "#f3ead6"
+  },
+  "mlForestGold_wada": {
+   "paper": "#112f2c",
+   "ink": "#f3ead6",
+   "pencil": "#56605a",
+   "mass": "#da525d",
+   "accent": "#e2b540",
+   "sun": "#e2b540",
+   "nightPaper": "#1f3229",
+   "nightInk": "#f3ead6"
+  }
+ },
+ "drops": {
+  "morningMiddle": "morningNight",
+  "morning_asis": "morning_asisDrop",
+  "redsky_asis": "redsky_asisDrop",
+  "redsky_wada": "redsky_wadaDrop",
+  "vertigo_asis": "vertigo_asisDrop",
+  "theoryCoralandGreen_asis": "theoryCoralandGreen_asisDrop",
+  "theoryCoralandGreen_wada": "theoryCoralandGreen_wadaDrop",
+  "hctViridianSienna_asis": "hctViridianSienna_asisDrop"
+ },
+ "items": [
+  {
+   "id": "paper",
+   "name": "Paper Night",
+   "look": {
+    "band": "fork",
+    "accent": "loud",
+    "top": "title",
+    "drop": "night"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "hokusai",
+   "name": "Hokusai",
+   "look": {
+    "scheme": "hokusai",
+    "band": "bars",
+    "top": "sun",
+    "zoom": "quiet"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "dune",
+   "name": "Dune to Espresso",
+   "look": {
+    "scheme": "dune",
+    "band": "bars",
+    "top": "sun",
+    "drop": "switch"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "prussian",
+   "name": "Prussian",
+   "look": {
+    "scheme": "wPrussian",
+    "band": "bars",
+    "top": "title"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "celadon",
+   "name": "Celadon",
+   "look": {
+    "scheme": "w2Celadon",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "aubergine",
+   "name": "Aubergine",
+   "look": {
+    "scheme": "w2Aubergine",
+    "band": "bars",
+    "drop": "switch"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "wisteria",
+   "name": "Wisteria",
+   "look": {
+    "scheme": "w2Wisteria",
+    "band": "fork",
+    "accent": "loud",
+    "paper": "plain"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "black",
+   "name": "Black Iris",
+   "look": {
+    "scheme": "black",
+    "band": "iris",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "plum",
+   "name": "Plum",
+   "look": {
+    "scheme": "plum",
+    "band": "bars",
+    "line": "ink",
+    "top": "title"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "oldrose",
+   "name": "Old Rose",
+   "look": {
+    "scheme": "wOldRose",
+    "band": "bars",
+    "line": "ink",
+    "top": "title"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "ultramarine",
+   "name": "Ultramarine",
+   "look": {
+    "scheme": "wUltramarine",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "aconite",
+   "name": "Aconite",
+   "look": {
+    "scheme": "w2Aconite",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "seashell",
+   "name": "Seashell Night",
+   "look": {
+    "scheme": "w2Seashell",
+    "band": "bars",
+    "drop": "night"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "peony",
+   "name": "Peony to Magenta",
+   "look": {
+    "scheme": "w2Peony",
+    "band": "bars",
+    "drop": "switch"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "kraft",
+   "name": "Kraft Poster",
+   "look": {
+    "scheme": "kraftPoster",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "cyanotype",
+   "name": "Cyanotype",
+   "look": {
+    "scheme": "cyanotypeBright",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "apricot",
+   "name": "Apricot",
+   "look": {
+    "scheme": "w2Apricot",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "bricklacquer",
+   "name": "Brick to Lacquer",
+   "look": {
+    "scheme": "wBrick",
+    "band": "bars",
+    "top": "title",
+    "drop": "switch"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "heather",
+   "name": "Heather",
+   "look": {
+    "scheme": "w2Heather",
+    "band": "fork",
+    "accent": "loud",
+    "line": "rail",
+    "top": "title"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "lavender",
+   "name": "Lavender Dusk",
+   "look": {
+    "scheme": "lavender",
+    "band": "iris",
+    "top": "sun"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "cobalt",
+   "name": "Cobalt",
+   "look": {
+    "scheme": "w2CobaltBright",
+    "band": "bars",
+    "zoom": "quiet"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "rothko",
+   "name": "Rothko",
+   "look": {
+    "scheme": "rothko",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "lyons",
+   "name": "Lyons Blue and Gold",
+   "look": {
+    "scheme": "w2Lyons",
+    "band": "bars",
+    "line": "ink",
+    "top": "title"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "slate",
+   "name": "Slate",
+   "look": {
+    "scheme": "slate",
+    "band": "bars",
+    "accent": "loud",
+    "paper": "plain"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "lemonblue",
+   "name": "Lemon and Blue",
+   "look": {
+    "band": "fork",
+    "accent": "loud",
+    "top": "title",
+    "line": "rail",
+    "paper": "plain",
+    "scheme": "lemonBlue"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "whitevermilion",
+   "name": "White and Vermilion",
+   "look": {
+    "band": "bars",
+    "accent": "loud",
+    "drop": "switch",
+    "scheme": "whiteVermilion"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "bluerose",
+   "name": "Blue and Rose",
+   "look": {
+    "band": "fork",
+    "bandHeight": "low",
+    "top": "sun",
+    "line": "ink",
+    "paper": "plain",
+    "scheme": "blueRose"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "dawn",
+   "name": "Blushing Dawn",
+   "look": {
+    "scheme": "dawn",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "silverrust",
+   "name": "Silver and Rust",
+   "look": {
+    "top": "sun",
+    "line": "rail",
+    "zoom": "quiet",
+    "scheme": "silverRust",
+    "band": "bars"
+   },
+   "from": "theme"
+  },
+  {
+   "id": "aubergineLavender",
+   "name": "Aubergine, lavender bars at the drop",
+   "look": {
+    "scheme": "w2AubergineToLavender",
+    "band": "bars",
+    "drop": "switch"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "aubergineAconite",
+   "name": "Aubergine, aconite bars at the drop",
+   "look": {
+    "scheme": "w2AubergineToAconite",
+    "band": "bars",
+    "drop": "switch"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "duneCafe",
+   "name": "Dune to Caf\u00e9",
+   "look": {
+    "scheme": "duneToCafe",
+    "band": "bars",
+    "top": "sun",
+    "drop": "switch"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "seashellNoNight",
+   "name": "Seashell, no Night",
+   "look": {
+    "scheme": "w2Seashell",
+    "band": "bars",
+    "drop": "off"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "blackBold",
+   "name": "Black Iris, bold strands",
+   "look": {
+    "scheme": "black",
+    "band": "iris",
+    "line": "ink",
+    "irisWeight": "bold"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "ultramarineBright",
+   "name": "Ultramarine, brighter bars",
+   "look": {
+    "scheme": "wUltramarineBright",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "choice"
+  },
+  {
+   "id": "silverRust29-1",
+   "name": "Silver and Rust, middle bars",
+   "look": {
+    "top": "sun",
+    "line": "rail",
+    "zoom": "quiet",
+    "band": "bars",
+    "scheme": "silverRustMiddle"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "morning29-0",
+   "name": "Morning",
+   "look": {
+    "band": "bars",
+    "top": "sun",
+    "line": "ink",
+    "scheme": "morningAlone",
+    "drop": "off"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "morning29-1",
+   "name": "Morning to Night",
+   "look": {
+    "band": "bars",
+    "top": "sun",
+    "line": "ink",
+    "scheme": "morningMiddle",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "morning29-2",
+   "name": "Night to Morning, as before",
+   "look": {
+    "band": "bars",
+    "top": "sun",
+    "line": "ink",
+    "scheme": "morning_asis",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "redsky-0",
+   "name": "Salvia to Red Sky",
+   "look": {
+    "scheme": "redsky_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "redsky-1",
+   "name": "Salvia to Red Sky, Wada 147",
+   "look": {
+    "scheme": "redsky_wada",
+    "band": "bars",
+    "top": "sun",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "violet-0",
+   "name": "Violet and Marigold",
+   "look": {
+    "scheme": "violet_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "violet-1",
+   "name": "Violet and Marigold, Wada 164",
+   "look": {
+    "scheme": "violet_wada",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "violet-2",
+   "name": "Violet and Marigold, tuned",
+   "look": {
+    "scheme": "violet_tuned",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "cerulean-0",
+   "name": "Cerulean and Coral",
+   "look": {
+    "scheme": "cerulean_asis",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "cerulean-1",
+   "name": "Cerulean and Coral, Wada 253",
+   "look": {
+    "scheme": "cerulean_wada",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "negoro-0",
+   "name": "Negoro Lacquer",
+   "look": {
+    "scheme": "negoro_asis",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "negoro-1",
+   "name": "Negoro Lacquer, Wada 190",
+   "look": {
+    "scheme": "negoro_wada",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "negoro-2",
+   "name": "Negoro Lacquer, tuned",
+   "look": {
+    "scheme": "negoro_tuned",
+    "band": "bars",
+    "top": "title",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "milkmaid-0",
+   "name": "Ochre and Ultramarine",
+   "look": {
+    "scheme": "milkmaid_asis",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "snail-0",
+   "name": "Emerald and Cerise",
+   "look": {
+    "scheme": "snail_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "snail-1",
+   "name": "Emerald and Cerise, Wada 270",
+   "look": {
+    "scheme": "snail_wada",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "shinbashi-0",
+   "name": "Shinbashi and Ebicha",
+   "look": {
+    "scheme": "shinbashi_asis",
+    "band": "bars",
+    "top": "title"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "splash-0",
+   "name": "Pool Blue and Yellow",
+   "look": {
+    "scheme": "splash_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "splash-1",
+   "name": "Pool Blue and Yellow, Wada 302",
+   "look": {
+    "scheme": "splash_wada",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "splash-2",
+   "name": "Pool Blue and Yellow, tuned",
+   "look": {
+    "scheme": "splash_tuned",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "vertigo-0",
+   "name": "Claret and Jade",
+   "look": {
+    "scheme": "vertigo_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "jun-0",
+   "name": "Jun Ware",
+   "look": {
+    "scheme": "jun_asis",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "jun-1",
+   "name": "Jun Ware, Wada 242",
+   "look": {
+    "scheme": "jun_wada",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "jun-2",
+   "name": "Jun Ware, tuned",
+   "look": {
+    "scheme": "jun_tuned",
+    "band": "bars",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "dream-0",
+   "name": "Jungle Moon",
+   "look": {
+    "scheme": "dream_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "dream-1",
+   "name": "Jungle Moon, Wada 276",
+   "look": {
+    "scheme": "dream_wada",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "dream-2",
+   "name": "Jungle Moon, tuned",
+   "look": {
+    "scheme": "dream_tuned",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "kente-0",
+   "name": "Kente Green and Gold",
+   "look": {
+    "scheme": "kente_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "theoryCoralandGreen-0",
+   "name": "Coral and Green",
+   "look": {
+    "scheme": "theoryCoralandGreen_asis",
+    "paper": "plain",
+    "line": "inking",
+    "accent": "heat",
+    "band": "bars",
+    "top": "none",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "theoryCoralandGreen-1",
+   "name": "Coral and Green, Wada 270",
+   "look": {
+    "scheme": "theoryCoralandGreen_wada",
+    "paper": "plain",
+    "line": "inking",
+    "accent": "heat",
+    "band": "bars",
+    "top": "none",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "theoryVioletandPeach-0",
+   "name": "Violet and Peach",
+   "look": {
+    "scheme": "theoryVioletandPeach_asis",
+    "paper": "plain",
+    "line": "ink",
+    "accent": "loud",
+    "band": "bars",
+    "top": "none",
+    "drop": "off"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "theoryVioletandPeach-1",
+   "name": "Violet and Peach, Pigment violet",
+   "look": {
+    "scheme": "violetPeachPigment",
+    "paper": "plain",
+    "line": "ink",
+    "accent": "loud",
+    "band": "bars",
+    "top": "none",
+    "drop": "off"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctVioletPetrol-0",
+   "name": "Violet and Petrol",
+   "look": {
+    "scheme": "hctVioletPetrol_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctViridianSienna-0",
+   "name": "Viridian and Sienna",
+   "look": {
+    "scheme": "hctViridianSienna_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "switch"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctAmberPurple-0",
+   "name": "Amber and Purple",
+   "look": {
+    "scheme": "hctAmberPurple_asis",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctAmberPurple-1",
+   "name": "Amber and Purple, Wada 151",
+   "look": {
+    "scheme": "hctAmberPurple_wada",
+    "band": "bars",
+    "top": "sun",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctMadderOlive-0",
+   "name": "Madder and Olive",
+   "look": {
+    "scheme": "hctMadderOlive_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctMadderOlive-1",
+   "name": "Madder and Olive, Wada 277",
+   "look": {
+    "scheme": "hctMadderOlive_wada",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctMadderOlive-2",
+   "name": "Madder and Olive, tuned",
+   "look": {
+    "scheme": "hctMadderOlive_tuned",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "hctCeruleanBronze-0",
+   "name": "Cerulean and Bronze",
+   "look": {
+    "scheme": "hctCeruleanBronze_asis",
+    "band": "bars",
+    "top": "sun",
+    "line": "ink",
+    "paper": "plain"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlGiltRedLead-0",
+   "name": "Gilt and Red Lead",
+   "look": {
+    "scheme": "mlGiltRedLead_asis",
+    "band": "bars",
+    "line": "ink",
+    "top": "title"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlGiltRedLead-1",
+   "name": "Gilt and Red Lead, Wada 303",
+   "look": {
+    "scheme": "mlGiltRedLead_wada",
+    "band": "bars",
+    "line": "ink",
+    "top": "title"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlBuffLapis-0",
+   "name": "Buff and Lapis",
+   "look": {
+    "scheme": "mlBuffLapis_asis",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlBuffLapis-1",
+   "name": "Buff and Lapis, Wada 345",
+   "look": {
+    "scheme": "mlBuffLapis_wada",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlBuffLapis-2",
+   "name": "Buff and Lapis, tuned",
+   "look": {
+    "scheme": "mlBuffLapis_tuned",
+    "band": "bars",
+    "top": "sun"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlChromeMadder-0",
+   "name": "Chrome Yellow and Madder",
+   "look": {
+    "scheme": "mlChromeMadder_asis",
+    "band": "bars",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlChromeMadder-1",
+   "name": "Chrome Yellow and Madder, Wada 262",
+   "look": {
+    "scheme": "mlChromeMadder_wada",
+    "band": "bars",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlChromeMadder-2",
+   "name": "Chrome Yellow and Madder, tuned",
+   "look": {
+    "scheme": "mlChromeMadder_tuned",
+    "band": "bars",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlRoseGreyJade-0",
+   "name": "Rose Grey and Jade",
+   "look": {
+    "scheme": "mlRoseGreyJade_asis",
+    "band": "bars",
+    "drop": "night"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlForestGold-0",
+   "name": "Forest Green and Gold",
+   "look": {
+    "scheme": "mlForestGold_asis",
+    "band": "bars",
+    "line": "ink",
+    "top": "sun"
+   },
+   "from": "draft"
+  },
+  {
+   "id": "mlForestGold-1",
+   "name": "Forest Green and Gold, Wada 325",
+   "look": {
+    "scheme": "mlForestGold_wada",
+    "band": "bars",
+    "line": "ink",
+    "top": "sun"
+   },
+   "from": "draft"
+  }
+ ]
+}

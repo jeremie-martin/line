@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rate themes</title>
+<style>
+:root{--bg:#f3f3f1;--card:#fff;--ink:#1a1c1f;--soft:#6b7078;--line:#dcdde0;--on:#1a1c1f;--onInk:#fff;--focus:#2f6fde;--ok:#2e8a55;--warn:#b5532a}
+@media (prefers-color-scheme:dark){:root{--bg:#131416;--card:#1c1d20;--ink:#ebecee;--soft:#9ba1a9;--line:#2e3035;--on:#ebecee;--onInk:#131416;--focus:#6d9cf0;--ok:#6cc08f;--warn:#e58a5f}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}
+img{display:block}
+kbd{font:11px ui-monospace,monospace;border:1px solid var(--line);border-radius:4px;padding:0 4px;background:var(--card)}
+
+.top{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--line)}
+.top h1{font-size:14px;margin:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.top h1 a{color:inherit;text-decoration:none}
+.tabs{display:flex;gap:2px;background:var(--line);padding:2px;border-radius:9px;flex:none}
+.tabs button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font-weight:600;font-size:14px}
+.tabs button.on{background:var(--card);box-shadow:0 1px 2px #0002}
+.status{margin-left:auto;font-size:12px;color:var(--soft);white-space:nowrap}
+.status .bad{color:var(--warn)}
+@media (max-height:500px){.top h1{display:none}.top{padding:4px 12px}}
+@media (max-width:600px){.top h1{display:none}.tabs{flex:1}.tabs button{flex:1;padding:6px 2px}.status{margin-left:0}}
+
+main{flex:1;min-height:0;display:flex}
+.screen{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:8px 12px max(8px,env(safe-area-inset-bottom));gap:8px}
+.view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:var(--gap,6px)}
+figure{margin:0;display:flex;flex-direction:column;align-items:center}
+figure img{border-radius:6px;background:var(--line)}
+figcaption{font-size:11px;color:var(--soft);height:15px;line-height:15px}
+
+/* grade: the theme, then its controls (beside it when the screen is wide) */
+.panel{flex:none;display:flex;flex-direction:column;gap:6px}
+.name{display:flex;align-items:baseline;gap:8px;font-weight:600}
+.name span{margin-left:auto;font-weight:400;font-size:12px;color:var(--soft);white-space:nowrap}
+.grades{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.grades button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 0;font-weight:700;font-size:15px}
+.grades button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
+.bar{display:flex;gap:6px}
+.bar button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 4px;font-size:14px;font-weight:600}
+.bar button.wide{flex:2}
+.hint{font-size:11px;color:var(--soft);text-align:center;margin:0}
+@media (pointer:coarse){.hint{display:none}}
+@media (max-width:420px){.grades{grid-template-columns:repeat(5,1fr)}.grades button{padding:10px 0}}
+@media (min-aspect-ratio:4/3){
+  .screen.grade{flex-direction:row;align-items:stretch}
+  .screen.grade .panel{width:min(300px,34vw);justify-content:center}
+  .screen.grade .grades{grid-template-columns:repeat(5,1fr)}
+  .screen.grade .grades button{padding:12px 0}
+}
+
+/* compare: two themes side by side, each its moments (or one moment and a switch when space is short) */
+.screen.compare .view{gap:14px}
+.side{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border-radius:10px;padding:4px;border:2px solid transparent}
+.side .imgs{display:flex;gap:var(--gap,6px)}
+.side.chosen{border-color:var(--ok)}
+.side .label{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600;max-width:100%}
+.side .label b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.pen{border:0;background:none;padding:2px 4px;color:var(--soft);font-size:13px}
+.moments{display:flex;gap:4px;justify-content:center}
+.moments button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px;font-size:13px}
+.moments button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
+.done{margin:auto;text-align:center;color:var(--soft)}
+
+/* the note editor and an enlarged still */
+.sheet{position:fixed;inset:0;z-index:20;background:#0008;display:flex;align-items:flex-end;justify-content:center}
+.sheet div{background:var(--card);width:min(560px,100%);border-radius:14px 14px 0 0;padding:14px 14px max(14px,env(safe-area-inset-bottom))}
+@media (min-width:700px){.sheet{align-items:center}.sheet div{border-radius:14px}}
+.sheet b{display:block;margin-bottom:6px}
+.sheet textarea{width:100%;font:15px system-ui,sans-serif;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.sheet button{margin-top:8px;width:100%;border:0;border-radius:8px;padding:10px;background:var(--on);color:var(--onInk);font-weight:600}
+.lb{position:fixed;inset:0;z-index:20;background:#000e;display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;align-items:center;padding:12px}
+.lb img{height:calc(100dvh - 48px);max-width:calc(100vw - 24px);object-fit:contain;flex:0 0 auto;scroll-snap-align:center;border-radius:8px}
+.lb p{position:fixed;left:0;right:0;bottom:4px;margin:0;text-align:center;color:#ccc;font-size:12px}
+@media (min-width:900px){.lb{justify-content:center}}
+
+/* standings and the list of sets: pages that scroll */
+.scroll{flex:1;overflow:auto;padding:10px 12px 40px}
+.scroll p{color:var(--soft);font-size:13px;margin:0 0 8px}
+table{width:100%;max-width:900px;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}
+th,td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+th{font-size:11px;color:var(--soft);font-weight:600;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;user-select:none}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td img{width:30px;aspect-ratio:9/16;border-radius:3px;object-fit:cover}
+td .note{color:var(--soft);font-size:12px}
+.sets a{display:block;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 8px;color:inherit;text-decoration:none}
+.sets b{display:block;font-size:16px}
+.sets span{color:var(--soft);font-size:13px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1><a href="/rate/" id="title">Rate themes</a></h1>
+  <nav class="tabs" id="tabs" hidden><button data-tab="grade">Grade</button><button data-tab="compare">Compare</button><button data-tab="standings">Standings</button></nav>
+  <span class="status" id="status"></span>
+</header>
+<main id="main"></main>
+<script type="module">
+// The theme ratings site, served at /rate/<set> (scripts/gallery/ratings_api.ts). Each judgment is an event appended on the
+// server, so a phone and a desktop share one record; the page folds the events into grades, notes and picks.
+//   Grade: one theme per screen, its stills at moments with no hit (the drop seen after the verse), a grade out of 10 per tap.
+//   Compare: two themes; left, right, equal (a tie) or pass (nothing recorded). An Elo guide orders them on screen.
+//   Standings: everything so far.
+// Grade and Compare fill the screen without scrolling, in portrait and landscape: the stills are sized to the room left.
+const $ = id => document.getElementById(id), main = $('main');
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k.startsWith('on') ? e[k] = v : k === 'class' ? e.className = v : e.setAttribute(k, v);
+  e.append(...kids.filter(k => k !== null && k !== undefined && k !== false)); return e;
+};
+const typing = e => ['TEXTAREA', 'INPUT'].includes(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey;
+const set = location.pathname.match(/^\/rate\/([a-z0-9-]+)$/)?.[1];
+if (!set) await home(); else await app(set);
+
+async function home() {
+  const {sets} = await fetch('/api/rate').then(r => r.json());
+  main.append(el('div', {class: 'scroll sets'}, el('p', {}, 'Sets of themes to rate'), ...sets.map(s =>
+    el('a', {href: `/rate/${s.id}`}, el('b', {}, s.title), el('span', {}, `${s.items} themes · ${s.created}`)))));
+}
+
+/** The largest stills of aspect 9:16 that fit n in a row inside a w×h box (a caption line under each). */
+function fit(w, h, n, gap) {
+  const cap = 15, ih = Math.max(40, Math.min(h - cap, (w - gap * (n - 1)) / n * 16 / 9));
+  return {w: Math.floor(ih * 9 / 16), h: Math.floor(ih)};
+}
+
+async function app(set) {
+  const base = `/generated/concept-lab/rate/sets/${set}`;
+  const m = await fetch(`${base}/manifest.json`).then(r => r.ok ? r.json() : Promise.reject(new Error('unknown set')));
+  document.title = m.title; $('title').textContent = m.title; $('tabs').hidden = false;
+  const items = m.items, byId = new Map(items.map(i => [i.id, i])), N = m.moments.length;
+  const still = (id, i) => `${base}/stills/${id}-${i + 1}.jpg`;
+  const preload = ids => ids.forEach(id => m.moments.forEach((_, i) => {new Image().src = still(id, i);}));
+
+  // ── the record: the server's events, plus a queue of ones not yet saved (kept across reloads) ──
+  const QKEY = `rate-queue-${set}`;
+  let events = [], queue = [], saving = false, failed = false;
+  try {queue = JSON.parse(localStorage.getItem(QKEY) ?? '[]');} catch {}
+  const keepQueue = () => {try {localStorage.setItem(QKEY, JSON.stringify(queue));} catch {}};
+  async function flush() {
+    if (saving) return; saving = true;
+    while (queue.length) {
+      try {
+        const r = await fetch(`/api/rate/${set}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(queue[0])});
+        if (r.status === 400) console.warn('refused', queue[0], await r.text()); else if (!r.ok) throw new Error(String(r.status));
+        queue.shift(); keepQueue(); failed = false;
+      } catch {failed = true; break;}
+    }
+    saving = false; status();
+  }
+  setInterval(() => {if (queue.length) flush();}, 5000);
+  async function load() {events = (await fetch(`/api/rate/${set}`).then(r => r.json())).events; fold();}
+  function record(e) {events.push(e); queue.push(e); keepQueue(); fold(); flush();}
+  let grades = {}, notes = {}, picks = [];
+  function fold() {
+    grades = {}; notes = {}; picks = [];
+    for (const e of [...events, ...queue.filter(q => !events.includes(q))]) {
+      if (e.kind === 'grade') e.grade === null ? delete grades[e.id] : grades[e.id] = e.grade;
+      else if (e.kind === 'note') e.text ? notes[e.id] = e.text : delete notes[e.id];
+      else if (e.kind === 'pick') picks.push(e);
+      else if (e.kind === 'undo') picks.pop();
+    }
+    status();
+  }
+  function status() {
+    $('status').replaceChildren(`${Object.keys(grades).length}/${items.length} graded · ${picks.length} picks`,
+      queue.length ? el('span', {class: failed ? 'bad' : ''}, failed ? ' · not saved, retrying' : ' · saving') : ' · saved');
+  }
+  // Elo from the picks in order (K 24; equal is half a win each)
+  function elo() {
+    const r = Object.fromEntries(items.map(i => [i.id, 1500])), n = Object.fromEntries(items.map(i => [i.id, 0]));
+    for (const p of picks) {
+      if (!(p.a in r) || !(p.b in r)) continue;
+      const ea = 1 / (1 + 10 ** ((r[p.b] - r[p.a]) / 400)), sa = p.winner === p.a ? 1 : p.winner === p.b ? 0 : 0.5;
+      r[p.a] += 24 * (sa - ea); r[p.b] -= 24 * (sa - ea); n[p.a]++; n[p.b]++;
+    }
+    return {r, n};
+  }
+
+  // a note on any theme, from either view
+  function editNote(id) {
+    const t = el('textarea', {rows: '4', placeholder: 'What works, what does not…'}); t.value = notes[id] ?? '';
+    const close = () => {box.remove(); removeEventListener('keydown', esc, true); if (t.value.trim() !== (notes[id] ?? '')) record({kind: 'note', id, text: t.value.trim()}); paint?.();};
+    const esc = e => {if (e.key === 'Escape') {e.stopPropagation(); close();}};
+    const box = el('div', {class: 'sheet', onclick: e => {if (e.target === box) close();}},
+      el('div', {}, el('b', {}, byId.get(id).name), t, el('button', {onclick: close}, 'Done')));
+    document.body.append(box); addEventListener('keydown', esc, true); t.focus();
+  }
+  // a theme's stills at full height (swipe between them on a phone); a tap or Escape closes
+  function enlarge(id, at) {
+    const imgs = m.moments.map(([label], i) => el('img', {src: still(id, i), alt: label}));
+    const close = () => {box.remove(); removeEventListener('keydown', esc, true);};
+    const esc = e => {if (e.key === 'Escape') {e.stopPropagation(); close();}};
+    const box = el('div', {class: 'lb', onclick: close}, ...imgs, el('p', {}, `${byId.get(id).name} · tap to close`));
+    document.body.append(box); addEventListener('keydown', esc, true);
+    requestAnimationFrame(() => imgs[at].scrollIntoView({inline: 'center', block: 'nearest'}));
+  }
+
+  // ── tabs: the address keeps the tab (#grade, #compare, #standings) ──
+  const views = {grade, compare, standings};
+  let teardown = () => {}, paint = null;
+  function show() {
+    const tab = views[location.hash.slice(1)] ? location.hash.slice(1) : 'grade';
+    for (const b of $('tabs').children) b.classList.toggle('on', b.dataset.tab === tab);
+    teardown(); paint = null; main.replaceChildren(); teardown = views[tab]() ?? (() => {});
+  }
+  for (const b of $('tabs').children) b.onclick = () => {location.hash = b.dataset.tab;};
+  addEventListener('hashchange', async () => {await load(); show();}); // a tab change catches up with the other device too
+  // the other device may have answered meanwhile: catch up when the page comes back
+  document.addEventListener('visibilitychange', async () => {if (document.visibilityState === 'visible') {await flush(); await load(); show();}});
+  const onResize = f => new ResizeObserver(f);
+
+  // ── Grade ──
+  // a stable shuffle: the same order on every device, with the versions of one draft apart
+  const hash = s => {let h = 2166136261; for (const c of set + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0;};
+  const order = [...items].sort((a, b) => hash(a.id) - hash(b.id));
+  let at = -1;
+  function grade() {
+    if (at < 0) at = Math.max(0, order.findIndex(it => !(it.id in grades)));
+    const view = el('div', {class: 'view'}), name = el('div', {class: 'name'});
+    const buttons = Array.from({length: 10}, (_, i) => el('button', {onclick: () => give(i + 1)}, String(i + 1)));
+    const noteBtn = el('button', {onclick: () => editNote(order[at].id)}, 'Note');
+    const panel = el('div', {class: 'panel'}, name, el('div', {class: 'grades'}, ...buttons),
+      el('div', {class: 'bar'}, el('button', {onclick: () => go(at - 1)}, '‹ Back'), noteBtn,
+        el('button', {class: 'wide', onclick: () => {const n = nextUngraded(); if (n >= 0) go(n);}}, 'Next to grade'), el('button', {onclick: () => go(at + 1)}, 'Skip ›')),
+      el('p', {class: 'hint'}, el('kbd', {}, '1'), '–', el('kbd', {}, '9'), ', ', el('kbd', {}, '0'), ' for 10 · ', el('kbd', {}, '←'), el('kbd', {}, '→'), ' move · ', el('kbd', {}, 'n'), ' note · a still to enlarge'));
+    main.append(el('div', {class: 'screen grade'}, view, panel));
+    let size = {w: 0, h: 0};
+    const ro = onResize(() => {const g = 6; size = fit(view.clientWidth, view.clientHeight, N, g); draw();}); ro.observe(view);
+    function draw() {
+      const it = order[at];
+      view.replaceChildren(...m.moments.map(([label], i) => el('figure', {onclick: () => enlarge(it.id, i)},
+        el('img', {src: still(it.id, i), alt: `${it.name}, ${label}`, width: size.w, height: size.h, style: `width:${size.w}px;height:${size.h}px`}), el('figcaption', {}, label))));
+      paint();
+    }
+    paint = () => {
+      const it = order[at], graded = Object.keys(grades).length;
+      name.replaceChildren(it.name, notes[it.id] ? ' ✎' : '', el('span', {}, `${at + 1} of ${order.length}${graded === order.length ? ' · all graded' : ''}`));
+      buttons.forEach((b, i) => b.classList.toggle('on', grades[it.id] === i + 1));
+      noteBtn.textContent = notes[it.id] ? 'Note ✎' : 'Note';
+    };
+    const nextUngraded = () => {for (let k = 1; k <= order.length; k++) {const j = (at + k) % order.length; if (!(order[j].id in grades)) return j;} return -1;};
+    function go(i) {at = (i + order.length) % order.length; draw(); preload([order[(at + 1) % order.length].id]);}
+    function give(g) {
+      const id = order[at].id, again = grades[id] === g;
+      record({kind: 'grade', id, grade: again ? null : g}); paint();
+      if (again) return;
+      const here = at, n = nextUngraded();
+      if (n >= 0) setTimeout(() => {if (at === here) go(n);}, 250);
+    }
+    const key = e => {
+      if (typing(e) || document.querySelector('.sheet,.lb')) return;
+      if (/^[0-9]$/.test(e.key)) give(e.key === '0' ? 10 : +e.key);
+      else if (e.key === 'ArrowRight') go(at + 1); else if (e.key === 'ArrowLeft') go(at - 1);
+      else if (e.key === 'n') editNote(order[at].id); else return;
+      e.preventDefault();
+    };
+    addEventListener('keydown', key); preload([order[(at + 1) % order.length].id]);
+    return () => {removeEventListener('keydown', key); ro.disconnect();};
+  }
+
+  // ── Compare ──
+  let moment = 0, last = null, pair = null;
+  function nextPair() {
+    // the theme compared least so far, against one of similar standing it has not met, itself compared little
+    const {r, n} = elo(), met = new Set(picks.map(p => [p.a, p.b].sort().join(' ')));
+    const ids = items.map(i => i.id).filter(id => !last?.includes(id)), least = Math.min(...ids.map(id => n[id]));
+    const pickOne = xs => xs[Math.floor(Math.random() * xs.length)];
+    const a = pickOne(ids.filter(id => n[id] === least));
+    const near = ids.filter(id => id !== a).sort((x, y) => Math.abs(r[x] - r[a]) - Math.abs(r[y] - r[a])).slice(0, 12);
+    const fresh = near.filter(id => !met.has([a, id].sort().join(' ')));
+    const from = fresh.length ? fresh : near, fewest = Math.min(...from.map(id => n[id]));
+    const b = pickOne(from.filter(id => n[id] === fewest));
+    return Math.random() < 0.5 ? [a, b] : [b, a];
+  }
+  function compare() {
+    pair ??= nextPair();
+    let busy = false, upcoming = nextPair(), layout = {n: N, w: 0, h: 0};
+    preload(upcoming);
+    const view = el('div', {class: 'view'});
+    const moments = el('div', {class: 'moments'}, ...m.moments.map(([label], i) => el('button', {onclick: () => {moment = i; draw();}}, label)));
+    const bar = el('div', {class: 'bar'},
+      el('button', {onclick: () => choose(pair[0])}, '← Left'), el('button', {onclick: () => choose(null)}, 'Equal'),
+      el('button', {onclick: pass}, 'Pass'), el('button', {onclick: () => choose(pair[1])}, 'Right →'), el('button', {onclick: undo}, 'Undo'));
+    main.append(el('div', {class: 'screen compare'}, view, moments, bar,
+      el('p', {class: 'hint'}, 'Tap the better theme · ', el('kbd', {}, '←'), el('kbd', {}, '→'), ' pick · ', el('kbd', {}, '↑'), ' equal · ', el('kbd', {}, '↓'), ' pass · ', el('kbd', {}, 'z'), ' undo · ✎ a note')));
+    const ro = onResize(() => {
+      // all moments of both themes when they fit at a useful size; otherwise one moment each and a switch
+      const W = view.clientWidth, H = view.clientHeight, side = (W - 14) / 2 - 12, label = 22;
+      const all = fit(side, H - label, N, 6), one = fit(side, H - label, 1, 6);
+      layout = all.h >= 220 || all.h >= one.h * 0.8 ? {n: N, ...all} : {n: 1, ...one};
+      draw();
+    });
+    ro.observe(view);
+    function draw() {
+      moments.hidden = layout.n === N;
+      [...moments.children].forEach((b, i) => b.classList.toggle('on', i === moment));
+      const shown = layout.n === N ? m.moments.map((_, i) => i) : [moment];
+      view.replaceChildren(...pair.map(id => {
+        const it = byId.get(id);
+        return el('div', {class: 'side', onclick: () => choose(id)},
+          el('div', {class: 'imgs'}, ...shown.map(i => el('figure', {}, el('img', {src: still(id, i), alt: `${it.name}, ${m.moments[i][0]}`, style: `width:${layout.w}px;height:${layout.h}px`}),
+            layout.n === N ? el('figcaption', {}, m.moments[i][0]) : null))),
+          el('div', {class: 'label'}, el('b', {}, it.name), el('button', {class: 'pen', title: 'Note', onclick: e => {e.stopPropagation(); editNote(id);}}, notes[id] ? '✎ note' : '✎')));
+      }));
+    }
+    paint = draw;
+    function advance(delay) {
+      last = pair; const next = upcoming;
+      setTimeout(() => {pair = next.some(id => last.includes(id)) ? nextPair() : next; upcoming = nextPair(); preload(upcoming); busy = false; draw();}, delay);
+    }
+    function choose(winner) {
+      if (busy) return; busy = true;
+      record({kind: 'pick', a: pair[0], b: pair[1], winner});
+      view.querySelectorAll('.side').forEach((s, i) => s.classList.toggle('chosen', winner === null || pair[i] === winner));
+      advance(200);
+    }
+    function pass() {if (busy) return; busy = true; advance(0);}
+    function undo() {
+      const p = picks.at(-1); if (!p || busy) return;
+      record({kind: 'undo'}); pair = [p.a, p.b]; draw();
+    }
+    const key = e => {
+      if (typing(e) || document.querySelector('.sheet,.lb')) return;
+      if (e.key === 'ArrowLeft') choose(pair[0]); else if (e.key === 'ArrowRight') choose(pair[1]);
+      else if (e.key === 'ArrowUp' || e.key === '=') choose(null); else if (e.key === 'ArrowDown' || e.key === ' ') pass();
+      else if (e.key === 'z') undo(); else return;
+      e.preventDefault();
+    };
+    addEventListener('keydown', key);
+    return () => {removeEventListener('keydown', key); ro.disconnect();};
+  }
+
+  // ── Standings ──
+  let sortBy = 'elo';
+  function standings() {
+    const {r, n} = elo(), box = el('div', {class: 'scroll'});
+    const cols = [['', null], ['Theme', 'name'], ['Grade', 'grade'], ['Elo', 'elo'], ['Picks', 'n']];
+    const val = {name: it => it.name, grade: it => grades[it.id] ?? -1, elo: it => n[it.id] ? r[it.id] : -1, n: it => n[it.id]};
+    const rows = [...items].sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name) : val[sortBy](b) - val[sortBy](a) || val.grade(b) - val.grade(a));
+    box.append(el('p', {}, 'Tap a column to sort, a picture to enlarge. Elo is a guide: it moves with each pick and settles after a few per theme.'),
+      el('table', {}, el('thead', {}, el('tr', {}, ...cols.map(([label, k]) => el('th', {class: k && k !== 'name' ? 'n' : '', onclick: () => {if (k) {sortBy = k; show();}}}, label + (k === sortBy ? ' ↓' : ''))))),
+        el('tbody', {}, ...rows.map(it => el('tr', {},
+          el('td', {}, el('img', {src: still(it.id, 0), alt: '', loading: 'lazy', onclick: () => enlarge(it.id, 0)})),
+          el('td', {}, it.name, notes[it.id] ? el('div', {class: 'note'}, notes[it.id]) : null),
+          el('td', {class: 'n'}, String(grades[it.id] ?? '–')),
+          el('td', {class: 'n'}, n[it.id] ? String(Math.round(r[it.id])) : '–'),
+          el('td', {class: 'n'}, String(n[it.id])))))));
+    main.append(box);
+  }
+
+  await flush(); await load(); show();
+}
+</script>
+</body>
+</html>

@@ -152,12 +152,20 @@ async function app(set, results) {
   const keep = (k, v) => {try {localStorage.setItem(k, JSON.stringify(v));} catch {}};
   let server = [], seq = 0, setHash = null, outbox = load(OUT) ?? [], mine = load(MINE) ?? [], failed = false, stale = false, sending = false;
   let record = fold([]);
-  const refold = () => {const have = new Set(server.map(e => e.id)); record = fold([...server, ...outbox.filter(e => !have.has(e.id))]); status();};
+  // a set built on earlier ones (set.json buildsOn) carries their judgments: the same themes have the same ids, so a comparison
+  // made there counts here; they are read, never written. Everything in the order it was saved, then this device's outbox.
+  const earlier = Object.fromEntries((S.buildsOn ?? []).map(s => [s, {events: [], seq: 0}]));
+  const refold = () => {
+    const saved = [...Object.values(earlier).flatMap(x => x.events), ...server].sort((a, b) => (a.savedAt ?? '').localeCompare(b.savedAt ?? ''));
+    const have = new Set(saved.map(e => e.id)); record = fold([...saved, ...outbox.filter(e => !have.has(e.id))]); status();
+  };
   async function pull() {
     try {
+      let n = 0;
+      for (const [s, x] of Object.entries(earlier)) {const r = await fetch(`/api/rate/${s}/events?after=${x.seq}`).then(r => r.json()); x.events.push(...r.events); x.seq = r.seq; n += r.events.length;}
       const r = await fetch(`/api/rate/${set}/events?after=${seq}`).then(r => r.json());
       if (setHash && r.setHash !== setHash) stale = true;
-      setHash ??= r.setHash; server.push(...r.events); seq = r.seq; refold(); return r.events.length;
+      setHash ??= r.setHash; server.push(...r.events); seq = r.seq; refold(); return n + r.events.length;
     } catch {return 0;}
   }
   async function push() {

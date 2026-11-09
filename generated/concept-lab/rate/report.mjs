@@ -9,8 +9,9 @@ import {fold, fit} from './model.js';
 const [set, topArg] = process.argv.slice(2), top = Number(topArg) || 32;
 if (!/^[a-z0-9-]{1,80}$/.test(set ?? '')) throw new Error('usage: report.mjs <set> [top]');
 const HERE = import.meta.dirname, S = JSON.parse(readFileSync(join(HERE, 'sets', set, 'set.json'), 'utf8'));
-const log = join(HERE, '../docs/owner-answers/ratings', `${set}.jsonl`);
-const events = existsSync(log) ? readFileSync(log, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
+// the set's judgments and those of the sets it builds on (the same themes, the same ids), in the order they were saved
+const logOf = s => {const f = join(HERE, '../docs/owner-answers/ratings', `${s}.jsonl`); return existsSync(f) ? readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];};
+const events = [...(S.buildsOn ?? []), set].flatMap(logOf).sort((a, b) => (a.savedAt ?? '').localeCompare(b.savedAt ?? ''));
 const record = fold(events), f = fit(S.themes, record, {top}), byId = new Map(S.themes.map(t => [t.id, t]));
 
 // OKLab distance between two themes' key colours, plus their look differences

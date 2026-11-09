@@ -1,15 +1,21 @@
 // Checks the judging site on a phone (upright and on its side) and a desktop: node generated/concept-lab/rate/check.mjs [SHOTS_DIR]
 // Runs on a throwaway copy of the newest set (zz-check, removed after), so the owner's record is never touched. Needs the server.
 import {chromium, devices} from 'playwright';
-import {lstatSync, mkdirSync, readdirSync, rmSync, symlinkSync, unlinkSync} from 'node:fs';
+import {lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, rmdirSync, symlinkSync, unlinkSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 
 const SETS = join(import.meta.dirname, 'sets'), LOG = join(import.meta.dirname, '../docs/owner-answers/ratings/zz-check.jsonl');
 const OUT = process.argv[2] ?? join(tmpdir(), 'rate-check'); mkdirSync(OUT, {recursive: true});
 const newest = readdirSync(SETS).filter(s => s !== 'zz-check').sort().at(-1);
-const unlink = () => {try {if (lstatSync(join(SETS, 'zz-check')).isSymbolicLink()) unlinkSync(join(SETS, 'zz-check'));} catch {}};
-unlink(); rmSync(LOG, {force: true}); symlinkSync(newest, join(SETS, 'zz-check'));
+// the copy: the newest set's themes and stills (linked), without the earlier sets it builds on, whose judgments are the owner's
+const COPY = join(SETS, 'zz-check');
+const unlink = () => {try {if (lstatSync(join(COPY, 'stills')).isSymbolicLink()) unlinkSync(join(COPY, 'stills')); rmSync(join(COPY, 'set.json'), {force: true}); rmdirSync(COPY);} catch {}};
+unlink(); rmSync(LOG, {force: true});
+mkdirSync(COPY);
+const {buildsOn, ...frozen} = JSON.parse(readFileSync(join(SETS, newest, 'set.json'), 'utf8'));
+writeFileSync(join(COPY, 'set.json'), JSON.stringify({...frozen, set: 'zz-check'}));
+symlinkSync(join('..', newest, 'stills'), join(COPY, 'stills'));
 const HOST = 'http://127.0.0.1:8770', U = `${HOST}/rate/zz-check`, API = `${HOST}/api/rate/zz-check/events`, errs = [];
 let fails = 0;
 const ok = (c, m) => {if (!c) fails++; console.log(c ? 'ok  ' : 'FAIL', m);};

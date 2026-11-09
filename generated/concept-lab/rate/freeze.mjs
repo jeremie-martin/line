@@ -1,5 +1,5 @@
 // Freeze a set of themes to judge: node generated/concept-lab/rate/freeze.mjs DRAFT.json
-// DRAFT: {set: "2026-11-09-themes", title, round, created, schemes?: {name: scheme}, drops?: {scheme: partner},
+// DRAFT: {set: "2026-11-09-themes", title, round, created, include?: [earlier set], schemes?: {name: scheme}, drops?: {scheme: partner},
 //         themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
 // Each theme is resolved to its full specification: every look option (resolveLook, so no V1 default is implied) and the
 // colours of its scheme and of its drop partner (so no named scheme is referred to). Its id is the hash of that specification:
@@ -9,7 +9,7 @@
 // its stills from the specifications themselves (stills/<id>-<n>.jpg; not committed, keep them: they are what was judged).
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {resolveLook} from '../../../scripts/video/look.js';
@@ -47,7 +47,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else {
     const registry = existsSync(REGISTRY) ? readFileSync(REGISTRY, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
     const byLabel = new Map(registry.map(r => [r.label, r.id])), byId = new Map(registry.map(r => [r.id, r.label]));
-    const themes = [], problems = [], fresh = [];
+    const themes = [], problems = [], fresh = [], builds = draft.include ?? [];
+    // a set may build on earlier ones: their themes come along unchanged (same ids, same stills) and so do their judgments
+    for (const s of builds) {
+      const prev = JSON.parse(readFileSync(join(HERE, 'sets', s, 'set.json'), 'utf8'));
+      for (const t of prev.themes) if (!themes.some(x => x.id === t.id)) themes.push(t);
+    }
     for (const t of draft.themes) {
       const spec = specOf(t.look, schemes, drops), id = themeId(spec);
       if (byLabel.has(t.label) && byLabel.get(t.label) !== id) {problems.push(`"${t.label}" already names another theme (${byLabel.get(t.label)}): give this one a new name`); continue;}
@@ -61,13 +66,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (problems.length) throw new Error(`not frozen:\n  ${problems.join('\n  ')}`);
     let renderer = 'unknown';
     try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}
-    set = {set: draft.set, title: draft.title, round: draft.round ?? null, created: draft.created, song: 'circus', renderer, moments: MOMENTS, themes};
+    set = {set: draft.set, title: draft.title, round: draft.round ?? null, created: draft.created, song: 'circus', renderer, moments: MOMENTS,
+      ...(builds.length ? {buildsOn: builds} : {}), themes};
     mkdirSync(dir, {recursive: true});
     writeFileSync(file, JSON.stringify(set, null, 1) + '\n');
     for (const r of fresh) appendFileSync(REGISTRY, JSON.stringify(r) + '\n');
     console.log(`${draft.set}: ${themes.length} themes frozen, ${fresh.length} new to the registry`);
   }
   // the stills, rendered from the frozen specifications (each theme's colours under its own id)
+  // the stills of themes from earlier sets are those judged there: copied, never rendered again
+  for (const s of set.buildsOn ?? []) for (const t of set.themes) set.moments.forEach((_, i) => {
+    const from = join(HERE, 'sets', s, 'stills', `${t.id}-${i + 1}.jpg`), to = join(dir, 'stills', `${t.id}-${i + 1}.jpg`);
+    if (existsSync(from) && !existsSync(to)) {mkdirSync(join(dir, 'stills'), {recursive: true}); copyFileSync(from, to);}
+  });
   const out = join(dir, 'stills'), missing = set.themes.filter(t => set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
   if (missing.length) {
     const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json');

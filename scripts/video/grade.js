@@ -73,14 +73,36 @@ export const GRADES = {
   // only, its three settings apart: when it starts (LATE from 0.45, TOP from 0.6), its strength k, what the paper does
   vibranceStrongHalfPaper: vibranceOf(1.1, 0.5), vibranceStrongKeepPaper: vibranceOf(1.1, 0),
   vibranceTopHalfPaper: vibranceOf(1.1, 0.5), vibranceTopKeepPaper: vibranceOf(1.1, 0),
+
+  // Round 37, after round 36 (today's intensity "pretty damn good"; the owner's curve: nothing at the bottom, a slow start, then
+  // faster, smoothed, rising across everything that happens): the same vibrance, strength 1.1, on SOFT and SOFTER
+  vibranceSoftHalfPaper: vibranceOf(1.1, 0.5), vibranceSoftKeepPaper: vibranceOf(1.1, 0),
+  vibranceSofterHalfPaper: vibranceOf(1.1, 0.5), vibranceSofterKeepPaper: vibranceOf(1.1, 0),
 };
 // How the intensity becomes the effect's amount (0–1): round 32's responses rise across 0.2–0.8 (the normal part already
 // changed); the later ones are 0 up to 0.45 (Circus Minimus: its verse 0.36, the start of its build 0.48) and full from 0.8,
 // eased at both ends (smoothstep) so the effect fades in and out without a corner.
 const smooth = x => x * x * (3 - 2 * x);
+/** A smooth curve through points [x, y], rising, without overshoot or corner (monotone cubic, Fritsch–Carlson), flat outside. */
+export function monotone(pts) {
+  const n = pts.length, dx = [], m = [], t = new Array(n).fill(0);
+  for (let i = 0; i < n - 1; i++) {dx.push(pts[i + 1][0] - pts[i][0]); m.push((pts[i + 1][1] - pts[i][1]) / dx[i]);}
+  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : 3 * (dx[i - 1] + dx[i]) / ((2 * dx[i] + dx[i - 1]) / m[i - 1] + (dx[i] + 2 * dx[i - 1]) / m[i]);
+  return x => {
+    if (x <= pts[0][0]) return pts[0][1];
+    if (x >= pts[n - 1][0]) return pts[n - 1][1];
+    let i = 0; while (x > pts[i + 1][0]) i++;
+    const h = dx[i], u = (x - pts[i][0]) / h;
+    return (2 * u ** 3 - 3 * u ** 2 + 1) * pts[i][1] + (u ** 3 - 2 * u ** 2 + u) * h * t[i] + (-2 * u ** 3 + 3 * u ** 2) * pts[i + 1][1] + (u ** 3 - u ** 2) * h * t[i + 1];
+  };
+}
+// Round 37's curves (round36.html): nothing up to 0.3, 15 % at 0.6 (the median moment of 22 production rides), full at 0.9 (above
+// 99 % of their time); Softer: nothing up to 0.35, 8 % at 0.65, full at 0.92
+export const SOFT = monotone([[0.3, 0], [0.6, 0.15], [0.9, 1]]), SOFTER = monotone([[0.35, 0], [0.65, 0.08], [0.92, 1]]);
 export const EARLY = I => clamp((I - 0.2) / 0.6, 0, 1), LATE = I => smooth(clamp((I - 0.45) / 0.35, 0, 1)), TOP = I => smooth(clamp((I - 0.6) / 0.25, 0, 1));
 const CURVE = {vibranceLate: LATE, vibranceKeepPaper: LATE, saturationUp: LATE, contrastUp: LATE, vibranceContrast: LATE,
-  vibranceStrongHalfPaper: LATE, vibranceStrongKeepPaper: LATE, vibranceTopHalfPaper: TOP, vibranceTopKeepPaper: TOP};
+  vibranceStrongHalfPaper: LATE, vibranceStrongKeepPaper: LATE, vibranceTopHalfPaper: TOP, vibranceTopKeepPaper: TOP,
+  vibranceSoftHalfPaper: SOFT, vibranceSoftKeepPaper: SOFT, vibranceSofterHalfPaper: SOFTER, vibranceSofterKeepPaper: SOFTER};
 /** How much of the effect (0–1) at intensity I. */
 export const amountOf = (kind, I) => (CURVE[kind] ?? EARLY)(I);
 

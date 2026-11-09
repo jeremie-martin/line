@@ -16,7 +16,10 @@ export const OPTIONS = {
     saturationUp: 'Saturation rising when intense', contrastUp: 'Contrast rising when intense', vibranceContrast: 'Vibrance and contrast, when intense',
     // round 35: vibrance's settings apart (grade.js)
     vibranceStrongHalfPaper: 'Vibrance from 0.45, strength 1.1, paper half', vibranceStrongKeepPaper: 'Vibrance from 0.45, strength 1.1, paper stays',
-    vibranceTopHalfPaper: 'Vibrance from 0.6, strength 1.1, paper half', vibranceTopKeepPaper: 'Vibrance from 0.6, strength 1.1, paper stays'}],
+    vibranceTopHalfPaper: 'Vibrance from 0.6, strength 1.1, paper half', vibranceTopKeepPaper: 'Vibrance from 0.6, strength 1.1, paper stays',
+    // round 37: the soft-start curves (grade.js SOFT, SOFTER)
+    vibranceSoftHalfPaper: 'Vibrance, soft start, paper half', vibranceSoftKeepPaper: 'Vibrance, soft start, paper stays',
+    vibranceSofterHalfPaper: 'Vibrance, softer, paper half', vibranceSofterKeepPaper: 'Vibrance, softer, paper stays'}],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],

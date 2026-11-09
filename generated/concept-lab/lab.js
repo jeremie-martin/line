@@ -6,6 +6,7 @@ import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {OPTIONS, V1, resolveLook} from '/scripts/video/look.js';
 import {SCHEMES, DROP_SCHEMES} from '/scripts/video/palettes.js';
+import {GRADES, amountOf} from '/scripts/video/grade.js';
 import {PRESETS} from './presets.js';
 import {SONGS, rideSet} from './rides.js';
 
@@ -165,9 +166,17 @@ function moments() {
 // ── transport and UI ───────────────────────────────────────────────────────
 let loop = null, loopLen = 4;
 function status(text) {const s = $('status'); if (s) s.textContent = text;}
+// in a round about intensity (?set=intensity…): the ride's intensity now and how much of the version's colour response it gives
+function showLevel() {
+  const el = $('level'), look = qmode ? QUESTIONS[qi]?.opts[qopt]?.[1] : null;
+  el.hidden = !(ROUND_SET?.startsWith('intensity') && P?.levelAt);
+  if (el.hidden) return;
+  const I = P.levelAt(seconds), kind = look?.paper;
+  el.textContent = `Intensity ${I.toFixed(2)}` + (GRADES[kind] ? ` · vibrance ${Math.round(100 * amountOf(kind, I))} %` : '');
+}
 function fmt(t) {return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;}
 function sync() {
-  $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P?.span[1] ?? 0);
+  $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P?.span[1] ?? 0); showLevel();
   if (feelmode) return; // the blind test's address must not carry (or leak) the free lab's look
   const url = new URL(location.href);
   if (qmode) {
@@ -316,7 +325,7 @@ function fit() {
 // a loop that would run past the song's end wraps at the end (it used to stop there, and the next Play started from 0:00)
 const loopEnd = () => Math.min(loop + loopLen, P.span[1]);
 function tick(ts) {
-  if (playing && P) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loopEnd()) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= P.span[1]) {pause(); seconds = P.span[1];} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P.span[1]);}
+  if (playing && P) {seconds = music.position(onScreen(ts)); if (loop !== null && seconds >= loopEnd()) {seek(loop); requestAnimationFrame(tick); return;} if (seconds >= P.span[1]) {pause(); seconds = P.span[1];} draw(); $('seek').value = seconds; $('time').textContent = fmt(seconds) + ' / ' + fmt(P.span[1]); showLevel();}
   requestAnimationFrame(tick);
 }
 function cycleOption(dir) {const o = QUESTIONS[qi]?.opts; if (o) setOption((qopt + dir + o.length) % o.length);}

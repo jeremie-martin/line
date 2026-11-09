@@ -33,7 +33,7 @@ describe('colour responses to the ride’s intensity (grade.js)', () => {
     expect(L(lit.paper)).toBeGreaterThan(L(dune.paper)); expect(lit.mass).toBe(dune.mass);
     expect(Object.keys(GRADES)).toEqual(expect.arrayContaining(['both', 'brightness', 'contrast', 'saturation', 'vibrance']));
   });
-  it('the round-34 responses leave the normal part exactly as designed and only add when intense', () => {
+  it('the round-34 responses leave the normal part exactly as designed and only add when intense', async () => {
     for (const k of ['vibranceLate', 'vibranceKeepPaper', 'saturationUp', 'contrastUp', 'vibranceContrast']) {
       for (const I of [0, 0.36, 0.45]) {expect(gradeScheme(dune, k, I)).toEqual(dune); expect(gradeScheme(jungle, k, I)).toEqual(jungle);}
       expect(gradeScheme(dune, k, 0.8)).not.toEqual(dune);
@@ -51,6 +51,12 @@ describe('colour responses to the ride’s intensity (grade.js)', () => {
     expect(C(half.paper)).toBeGreaterThan(C(dune.paper)); expect(C(half.paper)).toBeLessThan(C(full.paper));
     expect(gradeScheme(dune, 'vibranceStrongKeepPaper', 0.8).paper).toBe(dune.paper);
     expect(gradeScheme(dune, 'vibranceTopHalfPaper', 0.6)).toEqual(dune);
+    // round 37: the soft-start curves pass through their points, rise without overshoot, and leave 0.3 untouched
+    // @ts-expect-error: a plain module
+    const {SOFT, SOFTER} = await import('../scripts/video/grade.js');
+    expect(SOFT(0.3)).toBe(0); expect(SOFT(0.6)).toBeCloseTo(0.15, 9); expect(SOFT(0.9)).toBe(1); expect(SOFT(0.95)).toBe(1); expect(SOFTER(0.65)).toBeCloseTo(0.08, 9);
+    for (let x = 0; x < 1; x += 0.01) {expect(SOFT(x + 0.01)).toBeGreaterThanOrEqual(SOFT(x) - 1e-12); expect(SOFT(x)).toBeLessThanOrEqual(1); expect(SOFTER(x)).toBeGreaterThanOrEqual(0);}
+    expect(gradeScheme(dune, 'vibranceSoftKeepPaper', 0.3)).toEqual(dune);
     // contrast rising moves the line away from the paper
     expect(Math.abs(L(gradeScheme(jungle, 'contrastUp', 0.8).mass) - L(jungle.paper))).toBeGreaterThan(Math.abs(L(jungle.mass) - L(jungle.paper)));
   });

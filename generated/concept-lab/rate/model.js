@@ -61,34 +61,37 @@ export function fit(themes, record, {top = 32, iterations = 400} = {}) {
   return {rows: Object.fromEntries(rows.map(r => [r.id, r])), order, tie: Math.exp(lnu), games: games.length};
 }
 
-/** The next duel among the themes not cut, as [left, right, why]. `group` maps a theme to its draft (siblings share it). */
+/** The next duel among the themes not cut, as [left, right, why]. `group` maps a theme to its draft (siblings share it).
+ *  The pair whose answer teaches the most: both strengths uncertain (se²), an outcome hard to call (p(1−p)), and near the line
+ *  of the best `top` (pTop(1−pTop), with a floor so the whole order keeps improving); a pair already met counts less, and every
+ *  theme first reaches three duels. Chosen at random among the four best, so the screen never repeats itself.
+ *  In simulation (87 themes, a judge of known taste, rate/ in the 9 November notes) it finds 28.5 of the true best 32 after
+ *  500 duels and 29.3 after 1000, against 25.0 and 27.3 for random pairs, and orders the whole set at least as well.
+ *  A few pairs are siblings (versions of one draft: "which version", what drafting learns from) or random (against a biased fit). */
 export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null} = {}) {
-  const live = themes.filter(t => record.verdicts[t.id] !== 'cut').map(t => t.id).filter(id => !last.includes(id));
-  if (live.length < 2) return null;
-  const {rows} = fit(themes, record, {top, iterations: 150});
-  const met = new Set(record.duels.map(d => [d.left, d.right].sort().join(' ')));
-  const unmet = (a, b) => !met.has([a, b].sort().join(' '));
-  const pick = xs => xs[Math.floor(rand() * xs.length)];
-  const p = (a, b) => 1 / (1 + Math.exp(rows[b].strength - rows[a].strength));
-  const opponent = (a, pool) => {
-    const others = pool.filter(b => b !== a), fresh = others.filter(b => unmet(a, b));
-    const from = fresh.length ? fresh : others;
-    return from.sort((x, y) => Math.abs(p(a, x) - 0.5) - Math.abs(p(a, y) - 0.5) || rows[x].duels - rows[y].duels)[0];
-  };
+  const live = themes.filter(t => record.verdicts[t.id] !== 'cut').map(t => t.id), pool = live.filter(id => !last.includes(id));
+  if (pool.length < 2) return null;
+  const {rows} = fit(themes, record, {top, iterations: 400});
+  const met = new Map();
+  for (const d of record.duels) {const k = [d.left, d.right].sort().join(' '); met.set(k, (met.get(k) ?? 0) + 1);}
   const order = (a, b, why) => rand() < 0.5 ? [a, b, why] : [b, a, why];
-  // 1. coverage: every theme reaches three duels
-  const least = Math.min(...live.map(id => rows[id].duels));
-  if (least < 3) {const a = pick(live.filter(id => rows[id].duels === least)); return order(a, opponent(a, live), 'coverage');}
+  const least = Math.min(...live.map(id => rows[id].duels)), covering = least < 3;
   const r = rand();
-  // 2. siblings: versions of one draft against each other ("which version")
-  if (r < 0.15) {
-    const pairs = [];
-    for (const a of live) for (const b of live) if (a < b && group(a) && group(a) === group(b) && unmet(a, b)) pairs.push([a, b]);
-    if (pairs.length) {const [a, b] = pick(pairs); return order(a, b, 'sibling');}
+  if (!covering && r < 0.1) {
+    const sibs = [];
+    for (const a of pool) for (const b of pool) if (a < b && group(a) && group(a) === group(b) && !met.has(`${a} ${b}`)) sibs.push([a, b]);
+    if (sibs.length) {const [a, b] = sibs[Math.floor(rand() * sibs.length)]; return order(a, b, 'sibling');}
   }
-  // 3. a few at random, against a biased model
-  if (r > 0.9) {const a = pick(live); return order(a, pick(live.filter(b => b !== a)), 'random');}
-  // 4. information: the theme whose place among the best is least certain, against an even opponent
-  const a = [...live].sort((x, y) => Math.abs(rows[x].pTop - 0.5) - Math.abs(rows[y].pTop - 0.5) || rows[x].duels - rows[y].duels)[0];
-  return order(a, opponent(a, live), 'info');
+  if (!covering && r > 0.95) {const a = pool[Math.floor(rand() * pool.length)], others = pool.filter(b => b !== a); return order(a, others[Math.floor(rand() * others.length)], 'random');}
+  const scored = [];
+  for (let i = 0; i < pool.length; i++) for (let j = i + 1; j < pool.length; j++) {
+    const a = rows[pool[i]], b = rows[pool[j]], p = 1 / (1 + Math.exp(b.strength - a.strength));
+    let score = (a.se ** 2 + b.se ** 2) * p * (1 - p) * (a.pTop * (1 - a.pTop) + b.pTop * (1 - b.pTop) + 0.1)
+      / (1 + (met.get([a.id, b.id].sort().join(' ')) ?? 0));
+    if (covering && a.duels > least && b.duels > least) score *= 0.01;
+    scored.push([score, a.id, b.id]);
+  }
+  scored.sort((x, y) => y[0] - x[0]);
+  const [, a, b] = scored[Math.floor(rand() * Math.min(4, scored.length))];
+  return order(a, b, covering ? 'coverage' : 'info');
 }

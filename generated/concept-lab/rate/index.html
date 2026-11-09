@@ -412,8 +412,10 @@ async function app(set, results) {
     const paint = () => {
       const top = 32, f = fit(themes, record, {top}), page = el('div', {class: 'page'});
       const nDuels = record.duels.filter(d => d.outcome !== 'pass').length;
+      // settled: its place relative to the best `top` is clear either way (in or out in at least 9 draws out of 10)
+      const settled = f.order.filter(r => r.pTop >= 0.9 || r.pTop <= 0.1).length;
       page.append(el('h2', {}, S.title),
-        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} comparisons, ${record.notes.length} notes. Strength: a Bradley–Terry fit of the comparisons with ties, each verdict an anchor; ` +
+        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} comparisons, ${record.notes.length} notes; ${settled} of ${themes.length} settled (clearly in or out of the best ${top}). Strength: a Bradley–Terry fit of the comparisons with ties, each verdict an anchor; ` +
           `“Best ${top}”: how often a theme lands among the best ${top} when the uncertainty is drawn. The line marks the ${top}th.`),
         el('table', {}, el('thead', {}, el('tr', {}, ['#', 'Theme', '', 'Verdict', 'Strength', `Best ${top}`, 'Compared'].map((h, i) => el('th', {class: i >= 4 || i === 0 ? 'n' : ''}, h)))),
           el('tbody', {}, f.order.map(r => {

@@ -43,6 +43,14 @@ describe('colour responses to the ride’s intensity (grade.js)', () => {
     expect(C(gradeScheme(dune, 'vibranceLate', 0.8).paper)).toBeLessThan(C(gradeScheme(dune, 'vibrance', 0.8).paper));
     const kept = gradeScheme(dune, 'vibranceKeepPaper', 0.8);
     expect(kept.paper).toBe(dune.paper); expect(kept.pencil).toBe(dune.pencil); expect(C(kept.mass)).toBeGreaterThan(C(dune.mass));
+    // a colour already above 0.2 is never lowered, at any intensity
+    const loud = {...dune, accent: '#ff4d3d'};
+    for (const k of ['vibrance', 'vibranceLate', 'vibranceStrongKeepPaper', 'saturationUp']) for (const I of [0, 0.5, 1]) expect(C(gradeScheme(loud, k, I).accent)).toBeGreaterThanOrEqual(C(loud.accent) - 1e-3);
+    // round 35: the paper half or kept; the later start leaves 0.6 untouched
+    const half = gradeScheme(dune, 'vibranceStrongHalfPaper', 0.8), full = gradeScheme(dune, 'vibrance', 0.8);
+    expect(C(half.paper)).toBeGreaterThan(C(dune.paper)); expect(C(half.paper)).toBeLessThan(C(full.paper));
+    expect(gradeScheme(dune, 'vibranceStrongKeepPaper', 0.8).paper).toBe(dune.paper);
+    expect(gradeScheme(dune, 'vibranceTopHalfPaper', 0.6)).toEqual(dune);
     // contrast rising moves the line away from the paper
     expect(Math.abs(L(gradeScheme(jungle, 'contrastUp', 0.8).mass) - L(jungle.paper))).toBeGreaterThan(Math.abs(L(jungle.mass) - L(jungle.paper)));
   });

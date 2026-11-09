@@ -1,0 +1,973 @@
+{
+ "round": 35,
+ "about": "Round 35: vibrance only, its settings apart (when it starts, its strength, the paper), scripts/video/grade.js; round35.html has the curves.",
+ "schemes": {
+  "i35JungleMoontuned": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "i35Rothko": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "i35Cyanotype": {
+   "accent": "#ffc83d",
+   "ink": "#f4f1e6",
+   "mass": "#8dadd7",
+   "nightInk": "#f4f1e6",
+   "nightPaper": "#122e57",
+   "paper": "#384c69",
+   "pencil": "#6e7889"
+  },
+  "i35Hokusai": {
+   "accent": "#d4412a",
+   "ink": "#12294d",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "i35HokusaiDrop": {
+   "accent": "#fda856",
+   "ink": "#ebf1f7",
+   "mass": "#7b95b0",
+   "nightInk": "#ebf1f7",
+   "nightPaper": "#0b1726",
+   "paper": "#0b1726",
+   "pencil": "#4a5666",
+   "sun": "#d8d1bb"
+  },
+  "i35Dune": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  }
+ },
+ "drops": {
+  "i35Hokusai": "i35HokusaiDrop"
+ },
+ "drafts": [
+  {
+   "id": "intensity3-i35JungleMoontuned",
+   "name": "Jungle Moon, tuned: vibrance, its three settings",
+   "source": "Round 35: when it starts, how strong, what the paper does (round35.html has the curves)",
+   "line": "Vibrance only. Each version is three numbers: the intensity where it starts, its strength (how much a muted colour gains), and what the paper does. The first moment plays from normal (0.48) into the intense part (0.79 at 40 s).",
+   "t": 34,
+   "len": 8,
+   "moments": [
+    [
+     "Normal into intense, 34 s",
+     34
+    ],
+    [
+     "Normal, verse 16 s",
+     16
+    ],
+    [
+     "Intense, 42 s",
+     42
+    ],
+    [
+     "Batidão 18 s: intense most of the song (0.82)",
+     18,
+     "batidao"
+    ],
+    [
+     "Tomada 33 s: calm into intense (0.18 → 0.65)",
+     33,
+     "tomada"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "From 0.2 · strength 1.1 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibrance",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Round 33’s, as it was. Starts at intensity 0.2, rises in a straight line to full at 0.8: Circus’s normal verse (0.36) already gets a quarter of it."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceLate",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Round 34’s C. Nothing below 0.45, full at 0.8, eased at both ends."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Round 34’s D: as C, but the paper and the pencilled course never change."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper gains half as much as the rest."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper never changes."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "Only the most intense parts: nothing below 0.6, full at 0.85, eased; the paper half."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35JungleMoontuned"
+     },
+     "note": "As the one before, the paper never changes."
+    }
+   ]
+  },
+  {
+   "id": "intensity3-i35Rothko",
+   "name": "Rothko: vibrance, its three settings",
+   "source": "Round 35: when it starts, how strong, what the paper does (round35.html has the curves)",
+   "line": "Vibrance only. Each version is three numbers: the intensity where it starts, its strength (how much a muted colour gains), and what the paper does. The first moment plays from normal (0.48) into the intense part (0.79 at 40 s).",
+   "t": 34,
+   "len": 8,
+   "moments": [
+    [
+     "Normal into intense, 34 s",
+     34
+    ],
+    [
+     "Normal, verse 16 s",
+     16
+    ],
+    [
+     "Intense, 42 s",
+     42
+    ],
+    [
+     "Batidão 18 s: intense most of the song (0.82)",
+     18,
+     "batidao"
+    ],
+    [
+     "Tomada 33 s: calm into intense (0.18 → 0.65)",
+     33,
+     "tomada"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "From 0.2 · strength 1.1 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibrance",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Round 33’s, as it was. Starts at intensity 0.2, rises in a straight line to full at 0.8: Circus’s normal verse (0.36) already gets a quarter of it."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceLate",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Round 34’s C. Nothing below 0.45, full at 0.8, eased at both ends."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Round 34’s D: as C, but the paper and the pencilled course never change."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper gains half as much as the rest."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper never changes."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "Only the most intense parts: nothing below 0.6, full at 0.85, eased; the paper half."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Rothko"
+     },
+     "note": "As the one before, the paper never changes."
+    }
+   ]
+  },
+  {
+   "id": "intensity3-i35Cyanotype",
+   "name": "Cyanotype: vibrance, its three settings",
+   "source": "Round 35: when it starts, how strong, what the paper does (round35.html has the curves)",
+   "line": "Vibrance only. Each version is three numbers: the intensity where it starts, its strength (how much a muted colour gains), and what the paper does. The first moment plays from normal (0.48) into the intense part (0.79 at 40 s).",
+   "t": 34,
+   "len": 8,
+   "moments": [
+    [
+     "Normal into intense, 34 s",
+     34
+    ],
+    [
+     "Normal, verse 16 s",
+     16
+    ],
+    [
+     "Intense, 42 s",
+     42
+    ],
+    [
+     "Batidão 18 s: intense most of the song (0.82)",
+     18,
+     "batidao"
+    ],
+    [
+     "Tomada 33 s: calm into intense (0.18 → 0.65)",
+     33,
+     "tomada"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "From 0.2 · strength 1.1 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibrance",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Round 33’s, as it was. Starts at intensity 0.2, rises in a straight line to full at 0.8: Circus’s normal verse (0.36) already gets a quarter of it."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceLate",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Round 34’s C. Nothing below 0.45, full at 0.8, eased at both ends."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Round 34’s D: as C, but the paper and the pencilled course never change."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper gains half as much as the rest."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceStrongKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper never changes."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "Only the most intense parts: nothing below 0.6, full at 0.85, eased; the paper half."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceTopKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Cyanotype"
+     },
+     "note": "As the one before, the paper never changes."
+    }
+   ]
+  },
+  {
+   "id": "intensity3-i35Hokusai",
+   "name": "Hokusai: vibrance, its three settings",
+   "source": "Round 35: when it starts, how strong, what the paper does (round35.html has the curves)",
+   "line": "Vibrance only. Each version is three numbers: the intensity where it starts, its strength (how much a muted colour gains), and what the paper does. The first moment plays from normal (0.48) into the intense part (0.79 at 40 s).",
+   "t": 34,
+   "len": 8,
+   "moments": [
+    [
+     "Normal into intense, 34 s",
+     34
+    ],
+    [
+     "Normal, verse 16 s",
+     16
+    ],
+    [
+     "Intense, 42 s",
+     42
+    ],
+    [
+     "Batidão 18 s: intense most of the song (0.82)",
+     18,
+     "batidao"
+    ],
+    [
+     "Tomada 33 s: calm into intense (0.18 → 0.65)",
+     33,
+     "tomada"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "From 0.2 · strength 1.1 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibrance",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Round 33’s, as it was. Starts at intensity 0.2, rises in a straight line to full at 0.8: Circus’s normal verse (0.36) already gets a quarter of it."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceLate",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Round 34’s C. Nothing below 0.45, full at 0.8, eased at both ends."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Round 34’s D: as C, but the paper and the pencilled course never change."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceStrongHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper gains half as much as the rest."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceStrongKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper never changes."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceTopHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "Only the most intense parts: nothing below 0.6, full at 0.85, eased; the paper half."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceTopKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "i35Hokusai"
+     },
+     "note": "As the one before, the paper never changes."
+    }
+   ]
+  },
+  {
+   "id": "intensity3-i35Dune",
+   "name": "Dune: vibrance, its three settings",
+   "source": "Round 35: when it starts, how strong, what the paper does (round35.html has the curves)",
+   "line": "Vibrance only. Each version is three numbers: the intensity where it starts, its strength (how much a muted colour gains), and what the paper does. The first moment plays from normal (0.48) into the intense part (0.79 at 40 s).",
+   "t": 34,
+   "len": 8,
+   "moments": [
+    [
+     "Normal into intense, 34 s",
+     34
+    ],
+    [
+     "Normal, verse 16 s",
+     16
+    ],
+    [
+     "Intense, 42 s",
+     42
+    ],
+    [
+     "Batidão 18 s: intense most of the song (0.82)",
+     18,
+     "batidao"
+    ],
+    [
+     "Tomada 33 s: calm into intense (0.18 → 0.65)",
+     33,
+     "tomada"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "From 0.2 · strength 1.1 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibrance",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Round 33’s, as it was. Starts at intensity 0.2, rises in a straight line to full at 0.8: Circus’s normal verse (0.36) already gets a quarter of it."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper changes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceLate",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Round 34’s C. Nothing below 0.45, full at 0.8, eased at both ends."
+    },
+    {
+     "label": "From 0.45 · strength 0.75 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Round 34’s D: as C, but the paper and the pencilled course never change."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceStrongHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper gains half as much as the rest."
+    },
+    {
+     "label": "From 0.45 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceStrongKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Round 33’s strength with round 34’s start; the paper never changes."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper half",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceTopHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "Only the most intense parts: nothing below 0.6, full at 0.85, eased; the paper half."
+    },
+    {
+     "label": "From 0.6 · strength 1.1 · paper stays",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceTopKeepPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "i35Dune"
+     },
+     "note": "As the one before, the paper never changes."
+    }
+   ]
+  }
+ ]
+}

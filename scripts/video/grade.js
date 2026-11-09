@@ -33,14 +33,21 @@ export function fromOklch({L, C, h}) {
   return '#' + rgb.map(v => Math.round(clamp(enc(clamp(v, 0, 1)), 0, 1) * 255).toString(16).padStart(2, '0')).join('');
 }
 
-const CAP = 0.2, TOKENS = ['paper', 'ink', 'pencil', 'mass', 'accent', 'sun', 'tone', 'nightPaper', 'nightInk'];
+const CAP = 0.2, PAPERS = new Set(['paper', 'pencil', 'tone', 'nightPaper']), TOKENS = ['paper', 'ink', 'pencil', 'mass', 'accent', 'sun', 'tone', 'nightPaper', 'nightInk'];
+/** Vibrance: a colour's chroma C becomes C × (1 + k × w × amount × (1 − C / 0.2)), never above 0.2 and never below C. So a
+ *  muted colour gains most (the paper, C ≈ 0.03, by k × 0.85), one at 0.2 nothing. k is the strength; w is 1 for what is drawn
+ *  (track, bars, sun, hot note) and `paper` (0–1) for the paper and the pencilled course. */
+const vibranceOf = (k, paper) => (c, _p, e, isPaper, key) => {
+  const w = isPaper || PAPERS.has(key) ? paper : 1;
+  return {...c, C: Math.max(c.C, Math.min(CAP, c.C * (1 + k * w * e * Math.max(0, 1 - c.C / CAP))))};
+};
 /** Each response: (colour, the paper's colour, amount 0–1 (CURVE), is it the paper, which token) → colour, all OKLCH. At the loudest moment (I = 1)
  *  the "swelling" ones go beyond the theme's own colours, the "arriving" ones reach them. */
 export const GRADES = {
   // Saturation: in quiet parts every colour is muted (about half its chroma); the theme's own colours arrive with the music
   saturation: (c, _p, I) => ({...c, C: c.C * (0.45 + 0.55 * I)}),
   // Vibrance: with the music, the muted colours (paper, bars, line) gain colour, much more than those already vivid
-  vibrance: (c, _p, I) => ({...c, C: Math.min(CAP, Math.max(c.C, c.C * (1 + 1.1 * I * Math.max(0, 1 - c.C / CAP))))}),
+  vibrance: vibranceOf(1.1, 1),
   // Contrast: in quiet parts everything sits closer to the paper's lightness; the full contrast arrives with the music
   contrast: (c, p, I, isPaper) => (isPaper ? c : {...c, L: p.L + (c.L - p.L) * (0.62 + 0.38 * I)}),
   // Saturation and contrast together: quiet parts are soft and muted, the theme arrives whole with the music
@@ -51,29 +58,37 @@ export const GRADES = {
   // Round 34, after the owner's round 33 (vibrance on all five themes, "by a huge margin"; "the normal version should not be changed
   // by all this effect"): every response leaves the normal part exactly as designed and only adds when the ride is intense (LATE)
   // Vibrance, later and gentler: as round 33's, about two thirds as strong
-  vibranceLate: (c, _p, e) => ({...c, C: Math.min(CAP, Math.max(c.C, c.C * (1 + 0.75 * e * Math.max(0, 1 - c.C / CAP))))}),
+  vibranceLate: vibranceOf(0.75, 1),
   // Vibrance on what is drawn, the paper stays (Cyanotype's paper went "a bit too much blue"): bars, line, sun and hot note only
-  vibranceKeepPaper: (c, p, e, isPaper, key) => (isPaper || key === 'pencil' || key === 'tone' ? c : GRADES.vibranceLate(c, p, e)),
+  vibranceKeepPaper: vibranceOf(0.75, 0),
   // Saturation, rising: every colour gains chroma alike (a third more at the most intense), never above 0.2
-  saturationUp: (c, _p, e) => ({...c, C: Math.min(CAP, Math.max(c.C, c.C * (1 + 0.35 * e)))}),
+  saturationUp: (c, _p, e) => ({...c, C: Math.max(c.C, Math.min(CAP, c.C * (1 + 0.35 * e)))}),
   // Contrast, rising: the track and the bars move away from the paper's lightness (up to 30 % further); the sun and the hot note
   // keep theirs (pushed toward white or black they lost their colour)
   contrastUp: (c, p, e, _isPaper, key) => (key !== 'ink' && key !== 'mass' && key !== 'nightInk' ? c : {...c, L: clamp(p.L + (c.L - p.L) * (1 + 0.3 * e), 0, 1)}),
   // Vibrance and contrast together, both only when intense
-  vibranceContrast: (c, p, e, isPaper, key) => GRADES.contrastUp(GRADES.vibranceLate(c, p, e), p, e, isPaper, key),
+  vibranceContrast: (c, p, e, isPaper, key) => GRADES.contrastUp(GRADES.vibranceLate(c, p, e, isPaper, key), p, e, isPaper, key),
+
+  // Round 35, after round 34 ("the vibrance will win"; the paper kept "very strong"; a mix of rounds 33 and 34 likely): vibrance
+  // only, its three settings apart: when it starts (LATE from 0.45, TOP from 0.6), its strength k, what the paper does
+  vibranceStrongHalfPaper: vibranceOf(1.1, 0.5), vibranceStrongKeepPaper: vibranceOf(1.1, 0),
+  vibranceTopHalfPaper: vibranceOf(1.1, 0.5), vibranceTopKeepPaper: vibranceOf(1.1, 0),
 };
 // How the intensity becomes the effect's amount (0–1): round 32's responses rise across 0.2–0.8 (the normal part already
 // changed); the later ones are 0 up to 0.45 (Circus Minimus: its verse 0.36, the start of its build 0.48) and full from 0.8,
 // eased at both ends (smoothstep) so the effect fades in and out without a corner.
 const smooth = x => x * x * (3 - 2 * x);
-const LATE = I => smooth(clamp((I - 0.45) / 0.35, 0, 1)), EARLY = I => clamp((I - 0.2) / 0.6, 0, 1);
-const CURVE = {vibranceLate: LATE, vibranceKeepPaper: LATE, saturationUp: LATE, contrastUp: LATE, vibranceContrast: LATE};
+export const EARLY = I => clamp((I - 0.2) / 0.6, 0, 1), LATE = I => smooth(clamp((I - 0.45) / 0.35, 0, 1)), TOP = I => smooth(clamp((I - 0.6) / 0.25, 0, 1));
+const CURVE = {vibranceLate: LATE, vibranceKeepPaper: LATE, saturationUp: LATE, contrastUp: LATE, vibranceContrast: LATE,
+  vibranceStrongHalfPaper: LATE, vibranceStrongKeepPaper: LATE, vibranceTopHalfPaper: TOP, vibranceTopKeepPaper: TOP};
+/** How much of the effect (0–1) at intensity I. */
+export const amountOf = (kind, I) => (CURVE[kind] ?? EARLY)(I);
 
 /** The scheme as drawn at the ride's intensity I (intensity.js) under response `kind` (a key of GRADES). */
 export function gradeScheme(scheme, kind, I) {
   // the intensity is absolute, the same for every song (never a song's own percentiles): above 0.8 is rare (Circus Minimus: 0.36
   // in its verse, 0.79 at its most intense)
-  const f = GRADES[kind], i = (CURVE[kind] ?? EARLY)(I), out = {...scheme};
+  const f = GRADES[kind], i = amountOf(kind, I), out = {...scheme};
   const paper = toOklch(scheme.paper), night = scheme.nightPaper ? toOklch(scheme.nightPaper) : paper;  // night colours answer their own paper
   for (const k of TOKENS) if (scheme[k]) out[k] = fromOklch(f(toOklch(scheme[k]), k.startsWith('night') ? night : paper, i, k === 'paper' || k === 'nightPaper', k));
   return out;

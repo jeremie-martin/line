@@ -10,7 +10,10 @@ export const OPTIONS = {
   paper: ['Paper', {whisper: 'Whisper (tints very slightly with the ride’s intensity)', plain: 'Plain',
     saturation: 'Saturation: muted when quiet, the colours arrive with the music', vibrance: 'Vibrance: the muted colours gain colour with the music',
     contrast: 'Contrast: soft when quiet, full contrast with the music', both: 'Saturation and contrast: soft and muted when quiet',
-    brightness: 'Brightness: the paper lightens with the music'}],
+    brightness: 'Brightness: the paper lightens with the music',
+    // round 34: the normal part as designed, the effect only when intense
+    vibranceLate: 'Vibrance, only when intense, gentler', vibranceKeepPaper: 'Vibrance, only when intense, the paper stays',
+    saturationUp: 'Saturation rising when intense', contrastUp: 'Contrast rising when intense', vibranceContrast: 'Vibrance and contrast, when intense'}],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],

@@ -31,6 +31,19 @@ describe('colour responses to the ride’s intensity (grade.js)', () => {
     expect(Math.abs(L(quiet.ink) - L(jungle.paper))).toBeLessThan(Math.abs(L(jungle.ink) - L(jungle.paper)));
     const lit = gradeScheme(dune, 'brightness', 0.8);
     expect(L(lit.paper)).toBeGreaterThan(L(dune.paper)); expect(lit.mass).toBe(dune.mass);
-    expect(Object.keys(GRADES).sort()).toEqual(['both', 'brightness', 'contrast', 'saturation', 'vibrance']);
+    expect(Object.keys(GRADES)).toEqual(expect.arrayContaining(['both', 'brightness', 'contrast', 'saturation', 'vibrance']));
+  });
+  it('the round-34 responses leave the normal part exactly as designed and only add when intense', () => {
+    for (const k of ['vibranceLate', 'vibranceKeepPaper', 'saturationUp', 'contrastUp', 'vibranceContrast']) {
+      for (const I of [0, 0.36, 0.45]) {expect(gradeScheme(dune, k, I)).toEqual(dune); expect(gradeScheme(jungle, k, I)).toEqual(jungle);}
+      expect(gradeScheme(dune, k, 0.8)).not.toEqual(dune);
+      for (const h of Object.values(gradeScheme(dune, k, 1) as Record<string, string>)) expect(C(h)).toBeLessThanOrEqual(0.2 + 1e-3);
+    }
+    // gentler than round 33's vibrance at the same intensity, and the paper stays when asked
+    expect(C(gradeScheme(dune, 'vibranceLate', 0.8).paper)).toBeLessThan(C(gradeScheme(dune, 'vibrance', 0.8).paper));
+    const kept = gradeScheme(dune, 'vibranceKeepPaper', 0.8);
+    expect(kept.paper).toBe(dune.paper); expect(kept.pencil).toBe(dune.pencil); expect(C(kept.mass)).toBeGreaterThan(C(dune.mass));
+    // contrast rising moves the line away from the paper
+    expect(Math.abs(L(gradeScheme(jungle, 'contrastUp', 0.8).mass) - L(jungle.paper))).toBeGreaterThan(Math.abs(L(jungle.mass) - L(jungle.paper)));
   });
 });

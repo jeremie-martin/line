@@ -228,6 +228,9 @@ async function app(set, results) {
   }
   // a theme without a drop look still changes a little inside the drop (Whisper paper follows the ride's intensity): say so
   // a theme without a drop look stays itself in the song's drop: there the still only shows it when the music is loud
+  // in a set of variations (pairs within one theme) the screen names the version, which is what differs: "Rothko · vibrance" is
+  // "vibrance", the theme as it was is "today" (the full name stays in the results)
+  const name = id => {const l = byId.get(id).label; return S.pairs === 'group' ? (l.split(' · ')[1] ?? 'today').replace('saturation and ', 'sat. + ') : l;};
   const caption = (t, m) => /drop/i.test(m.label) && t.spec.look.drop === 'off' ? 'Loud part' : m.label;
   function themeView(id, size, {onlook, tag} = {}) {
     const t = byId.get(id), v = record.verdicts[id];
@@ -236,7 +239,7 @@ async function app(set, results) {
       el('div', {class: 'shots', style: `grid-template-columns:repeat(${size.cols},auto)`}, S.moments.map((m, i) =>
         el('figure', {onclick: e => {e.stopPropagation(); onlook(i);}}, el('img', {src: still(id, i), alt: `${t.label}, ${m.label}`, style: `width:${size.w}px;height:${size.h}px`}),
           el('figcaption', {style: `width:${size.w}px`}, caption(t, m))))),
-      el('div', {class: 'label'}, tag ? el('span', {style: 'color:var(--soft);font-weight:500'}, tag) : null, el('span', {}, t.label), v ? el('i', {class: `v v-${v}`}, WORD[v]) : null,
+      el('div', {class: 'label'}, tag ? el('span', {style: 'color:var(--soft);font-weight:500'}, tag) : null, el('span', {}, name(id)), v ? el('i', {class: `v v-${v}`}, WORD[v]) : null,
         record.notes.some(n => n.themes.includes(id)) ? el('span', {title: 'has notes', style: 'color:var(--soft)'}, '✎') : null));
   }
   let toastTimer = null;
@@ -249,7 +252,7 @@ async function app(set, results) {
   /** The note sheet: about one theme, or in a duel about either or the pair. A draft survives a reload. */
   function note(targets) {
     if (document.querySelector('.sheet')) return;
-    const choices = targets.length > 1 ? [...targets.map(id => [byId.get(id).label, [id]]), ['The pair', targets]] : [[byId.get(targets[0]).label, targets]];
+    const choices = targets.length > 1 ? [...targets.map(id => [name(id), [id]]), ['The pair', targets]] : [[name(targets[0]), targets]];
     let at = choices.length - 1;  // a duel's note is about the pair unless a side is chosen
     const t = el('textarea', {rows: '4', placeholder: 'What works, what does not, what to try…'});
     t.value = load(DRAFT)?.text ?? '';
@@ -281,7 +284,7 @@ async function app(set, results) {
     const paint = () => {
       const id = ids[at], w = Math.min((innerWidth - 24 - 8 * (M - 1)) / M, (innerHeight - 90) * 9 / 16);
       shots.replaceChildren(...S.moments.map((_, i) => el('img', {src: still(id, i), alt: '', style: `width:${w}px;height:${w * 16 / 9}px;border-radius:6px`})));
-      who.textContent = ids.length > 1 ? `${at ? 'Right' : 'Left'}: ${byId.get(id).label} · tap to flip` : `${byId.get(id).label} · tap to close`;
+      who.textContent = ids.length > 1 ? `${at ? 'Right' : 'Left'}: ${name(id)} · tap to flip` : `${name(id)} · tap to close`;
     };
     const close = () => {box.remove(); removeEventListener('keydown', keys, true);};
     const flip = () => {if (ids.length > 1) {at = 1 - at; paint();} else close();};
@@ -336,7 +339,7 @@ async function app(set, results) {
       if (sortAt < 0 || busy()) return;
       const id = order[sortAt]; emit({kind: 'verdict', theme: id, value: v});
       stage.querySelector('.theme')?.classList.add('flash');
-      toast(`${VERB[v]} “${byId.get(id).label}”`, {onNote: () => note([id]), onUndo: undo});
+      toast(`${VERB[v]} “${name(id)}”`, {onNote: () => note([id]), onUndo: undo});
       const n = next(sortAt);
       setTimeout(() => {if (n < 0) {sortAt = -2; paint();} else go(n);}, 160);
     }
@@ -361,7 +364,7 @@ async function app(set, results) {
   // ── Compare ──
   let pair = null, last = [];
   const group = id => byId.get(id)?.group ?? null;
-  const nextPair = () => choosePair(themes, record, {last, group, retired});
+  const nextPair = () => choosePair(themes, record, {last, group, retired, within: S.pairs === 'group'});
   function compare() {
     pair ??= nextPair();
     let shown = performance.now(), locked = false;
@@ -392,7 +395,7 @@ async function app(set, results) {
       const views = stage.querySelectorAll('.theme');
       if (outcome === 'left' || outcome === 'equal') views[0]?.classList.add('flash');
       if (outcome === 'right' || outcome === 'equal') views[1]?.classList.add('flash');
-      const la = byId.get(a).label, lb = byId.get(b).label;
+      const la = name(a), lb = name(b);
       const text = outcome === 'left' ? `“${la}” over “${lb}”` : outcome === 'right' ? `“${lb}” over “${la}”` : outcome === 'equal' ? `Equal: “${la}”, “${lb}”` : 'Passed';
       toast(text, {onNote: () => note([a, b]), onUndo: undo});
       last = [a, b]; const upcoming = nextPair(); if (upcoming) preload(upcoming.slice(0, 2));

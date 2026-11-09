@@ -1,5 +1,5 @@
 // Checks the judging site on a phone (upright and on its side) and a desktop: node generated/concept-lab/rate/check.mjs [SHOTS_DIR]
-// Runs on a throwaway copy of the newest set (zz-check, removed after), so the owner's record is never touched. Needs the server.
+// Runs on a throwaway copy of the newest set (or $SET) (zz-check, removed after), so the owner's record is never touched. Needs the server.
 import {chromium, devices} from 'playwright';
 import {lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, rmdirSync, symlinkSync, unlinkSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 
 const SETS = join(import.meta.dirname, 'sets'), LOG = join(import.meta.dirname, '../docs/owner-answers/ratings/zz-check.jsonl');
 const OUT = process.argv[2] ?? join(tmpdir(), 'rate-check'); mkdirSync(OUT, {recursive: true});
-const newest = readdirSync(SETS).filter(s => s !== 'zz-check').sort().at(-1);
+const newest = process.env.SET ?? readdirSync(SETS).filter(s => s !== 'zz-check').sort().at(-1);  // SET=<set> checks another
 // the copy: the newest set's themes and stills (linked), without the earlier sets it builds on, whose judgments are the owner's
 const COPY = join(SETS, 'zz-check');
 const unlink = () => {try {if (lstatSync(join(COPY, 'stills')).isSymbolicLink()) unlinkSync(join(COPY, 'stills')); rmSync(join(COPY, 'set.json'), {force: true}); rmdirSync(COPY);} catch {}};
@@ -119,6 +119,10 @@ try {
   ok(await k.$$eval('tbody tr.retired', r => r.length) === (frozen.retired ?? []).length, 'results list the retired themes last');
   const gone = new Set(frozen.retired ?? []), shownIn = all.filter(e => e.kind === 'duel').flatMap(e => [e.left, e.right]).concat(all.filter(e => e.kind === 'verdict').map(e => e.theme));
   ok(shownIn.length && !shownIn.some(id => gone.has(id)), `no retired theme was shown (${shownIn.length} looked at)`);
+  if (frozen.pairs === 'group') {
+    const g = new Map(frozen.themes.map(t => [t.id, t.group])), duels = all.filter(e => e.kind === 'duel');
+    ok(duels.length && duels.every(d => g.get(d.left) === g.get(d.right)), `a set of variations compares versions of one theme only (${duels.length} pairs)`);
+  }
   await k.screenshot({path: `${OUT}/desk-results.png`});
   await k.goto(`${HOST}/rate/`); await k.waitForSelector('.sets a'); ok(true, 'the home page lists the sets');
   ok(!errs.length, `no page errors ${errs.join(' | ')}`);

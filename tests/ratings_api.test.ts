@@ -79,6 +79,16 @@ describe('theme judgments: the model', () => {
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let k = 0; k < 20; k++) expect(choosePair(T, fold(events), {rand, retired: new Set(['a'])})!.slice(0, 2)).not.toContain('a');
   });
+  it('a set of variations compares only versions of one theme', () => {
+    let seed = 5;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647, group = (id: string) => (['a', 'b', 'c'].includes(id) ? 'x' : 'y');
+    const events: object[] = [];
+    for (let n = 0; n < 40; n++) {
+      const [l, r] = choosePair(T, fold(events), {rand, group, within: true});
+      expect(group(l)).toBe(group(r));
+      events.push(duel(n, l, r, n % 3 ? 'left' : 'right'));
+    }
+  });
 });
 
 describe('theme judgments: a theme is its full specification', () => {

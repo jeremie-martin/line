@@ -26,5 +26,12 @@ window.renderStills = async ({schemes = {}, drops = {}, jobs, width = 540, quali
   }
   return out;
 };
+/** The ride's intensity (0–1) every `step` seconds of song time, and the hits (song time, strength): to choose moments. */
+window.levels = async ({song, step = 0.25}) => {
+  const sheet = await N.loadSheet(), canvas = document.createElement('canvas'), scene = await (await fetch(`./data/${song}.json`)).json();
+  const picture = createPicture(canvas, scene, await N.replay(scene.track, scene.trace), sheet, N.riderPainter()), [a, b] = picture.span ?? [0, 60];
+  const out = []; for (let t = a; t <= b; t += step) out.push([+t.toFixed(2), +picture.levelAt(t).toFixed(3)]);
+  return {span: [a, b], levels: out, hits: picture.hitTimes};
+};
 window.ready = true;
 </script>

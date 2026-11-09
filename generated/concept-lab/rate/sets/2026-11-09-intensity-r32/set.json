@@ -1,0 +1,1358 @@
+{
+ "set": "2026-11-09-intensity-r32",
+ "title": "How colour follows the music: seven ways, on five themes",
+ "round": 32,
+ "created": "2026-11-09T22:00:00Z",
+ "song": "circus",
+ "renderer": "v7.1-136-g2e3ecf58-dirty",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "pairs": "group",
+ "themes": [
+  {
+   "id": "t-5ef95f30ebe6",
+   "label": "Jungle Moon, tuned",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-c44acad46414",
+   "label": "Jungle Moon, tuned · nothing moves",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-5a35e282efd4",
+   "label": "Jungle Moon, tuned · saturation",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "saturation",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-eb84dc6b2c76",
+   "label": "Jungle Moon, tuned · vibrance",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibrance",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-68873a650e36",
+   "label": "Jungle Moon, tuned · contrast",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "contrast",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-6d333f4bb9d5",
+   "label": "Jungle Moon, tuned · saturation and contrast",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "both",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-786384715630",
+   "label": "Jungle Moon, tuned · brightness",
+   "group": "Jungle Moon, tuned",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "brightness",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-e3bedc8194ba",
+   "label": "Rothko",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-dd8b2e0a5161",
+   "label": "Rothko · nothing moves",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-93a8ba0fabaa",
+   "label": "Rothko · saturation",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "saturation",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d0f6fd88a1e7",
+   "label": "Rothko · vibrance",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibrance",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7e88ac1b7578",
+   "label": "Rothko · contrast",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "contrast",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7ffda83199e0",
+   "label": "Rothko · saturation and contrast",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "both",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-23e8eaab9101",
+   "label": "Rothko · brightness",
+   "group": "Rothko",
+   "parents": [
+    "t-e3bedc8194ba"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "brightness",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-bf43a2210b06",
+   "label": "Cyanotype",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-bdb0d29d0241",
+   "label": "Cyanotype · nothing moves",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-19c26c38aaef",
+   "label": "Cyanotype · saturation",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "saturation",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-f5d45dbaf7fb",
+   "label": "Cyanotype · vibrance",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibrance",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-617ebb4e1aad",
+   "label": "Cyanotype · contrast",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "contrast",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d535cf645853",
+   "label": "Cyanotype · saturation and contrast",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "both",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d3650153ecc6",
+   "label": "Cyanotype · brightness",
+   "group": "Cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "brightness",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8e2b67884d5d",
+   "label": "Hokusai",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-402afcc5ad1e",
+   "label": "Hokusai · nothing moves",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-1fda09d977ed",
+   "label": "Hokusai · saturation",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "saturation",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-f3897c40d16f",
+   "label": "Hokusai · vibrance",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibrance",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-a8700e2a978e",
+   "label": "Hokusai · contrast",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "contrast",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-45e6e83288e9",
+   "label": "Hokusai · saturation and contrast",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "both",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-a4da4f4c2b09",
+   "label": "Hokusai · brightness",
+   "group": "Hokusai",
+   "parents": [
+    "t-8e2b67884d5d"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "brightness",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-1cc88106df04",
+   "label": "Dune",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-54f857e6fe64",
+   "label": "Dune · nothing moves",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ebafb6d9a467",
+   "label": "Dune · saturation",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "saturation",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b20d98bd2710",
+   "label": "Dune · vibrance",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibrance",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-584e86039516",
+   "label": "Dune · contrast",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "contrast",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b5425fe1993c",
+   "label": "Dune · saturation and contrast",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "both",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-189acf9ca8e8",
+   "label": "Dune · brightness",
+   "group": "Dune",
+   "parents": [
+    "t-1cc88106df04"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "brightness",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

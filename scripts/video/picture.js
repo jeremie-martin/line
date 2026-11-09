@@ -19,6 +19,7 @@ import {W, H, smoothstep, rideSignals, followCamera} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import * as I from './intensity.js';
 import {SCHEMES, DROP_SCHEMES} from './palettes.js';
+import {GRADES, gradeScheme} from './grade.js';
 
 const ZOOM = 6.2; // 15 % closer than the first videos (R4)
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -275,10 +276,21 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   // ── colour ───────────────────────────────────────────────────────────────
   // The drop switch carries the accent and the sun over, so the switch keeps one thread (Midnight's own moon was "bad", R6).
   const dropScheme = {};
-  function schemeAt(t, look) {
+  function schemeOf(t, look) {
     const o = SCHEMES[look.scheme], d = DROP_SCHEMES[look.scheme];
     if (!(look.drop === 'switch' && inDrop(t) && d)) return o;
     return dropScheme[look.scheme] ??= {...SCHEMES[d], accent: o.accent, sun: o.sun ?? o.accent};
+  }
+  // A colour response (look.paper other than Whisper and Plain, grade.js) gives the whole scheme as drawn at the ride's intensity
+  // now: set by draw() for its frame (in steps of 1/200, cached).
+  let nowLevel = 0;
+  const graded = new WeakMap();  // scheme → (response and level → the scheme as drawn)
+  function schemeAt(t, look) {
+    const o = schemeOf(t, look);
+    if (!GRADES[look.paper]) return o;
+    const q = Math.round(nowLevel * 200), key = `${look.paper} ${q}`, m = graded.get(o) ?? graded.set(o, new Map()).get(o);
+    if (!m.has(key)) m.set(key, gradeScheme(o, look.paper, q / 200));
+    return m.get(key);
   }
   // Paper: plain, or answering the ride's intensity (at ride time r); Night is the drop's dark version of the scheme.
   function themeAt(t, r, look) {
@@ -391,6 +403,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
    * part of a look, a film or a video. Returns the world-to-canvas transform the ride was drawn with (before the split). */
   function draw(t, look, exaggerate = 1) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W, recipe = RECIPES[look.hits];
+    nowLevel = intensityAt(r);
     const fx = recipe && exaggerate !== 1 ? Object.fromEntries(Object.entries(recipe).map(([name, curve]) => [name, s => curve(s) * exaggerate])) : recipe;
     const hit = fx ? strongest(r) : null;
     const th = themeAt(t, r, look), v = bookend(t, cameraAt(look, at), at, look), hc = fx?.shake ? shake(hit, fx.shake) : {dx: 0, dy: 0};
@@ -419,5 +432,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
 
   /** The hits at the song times they are seen (song seconds), in order: [{t, s}]. */
   const hitTimes = hitsOnSong.map(({t, h}) => ({t, s: h.s}));
-  return {draw, span: scene.span, timing: scene.timing, hitTimes, schemeAt};
+  /** The ride's intensity (0–1) at song time t. */
+  const levelAt = t => intensityAt(rideTime(t, offset));
+  return {draw, span: scene.span, timing: scene.timing, hitTimes, schemeAt, levelAt};
 }

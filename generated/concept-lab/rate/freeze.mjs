@@ -1,6 +1,6 @@
 // Freeze a set of themes to judge: node generated/concept-lab/rate/freeze.mjs DRAFT.json
 // DRAFT: {set: "2026-11-09-themes", title, round, created, include?: [earlier set], schemes?: {name: scheme}, drops?: {scheme: partner},
-//         retire?: [themeId], themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
+//         retire?: [themeId], pairs?: "group" (compare only versions of one theme: a set of variations), themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
 // A retired theme (from an earlier set) is kept in the set, so the judgments that involved it still inform the fit, but it is
 // never shown again (set.json retired; model.js).
 // Each theme is resolved to its full specification: every look option (resolveLook, so no V1 default is implied) and the
@@ -75,7 +75,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     let renderer = 'unknown';
     try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}
     set = {set: draft.set, title: draft.title, round: draft.round ?? null, created: draft.created, song: 'circus', renderer, moments: MOMENTS,
-      ...(builds.length ? {buildsOn: builds} : {}), ...(retired.length ? {retired} : {}), themes};
+      ...(builds.length ? {buildsOn: builds} : {}), ...(retired.length ? {retired} : {}), ...(draft.pairs ? {pairs: draft.pairs} : {}), themes};
     mkdirSync(dir, {recursive: true});
     writeFileSync(file, JSON.stringify(set, null, 1) + '\n');
     for (const r of fresh) appendFileSync(REGISTRY, JSON.stringify(r) + '\n');

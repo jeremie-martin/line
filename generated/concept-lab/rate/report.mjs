@@ -13,7 +13,7 @@ const HERE = import.meta.dirname, S = JSON.parse(readFileSync(join(HERE, 'sets',
 const logOf = s => {const f = join(HERE, '../docs/owner-answers/ratings', `${s}.jsonl`); return existsSync(f) ? readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];};
 const events = [...(S.buildsOn ?? []), set].flatMap(logOf).sort((a, b) => (a.savedAt ?? '').localeCompare(b.savedAt ?? ''));
 const retired = new Set(S.retired ?? []), among = new Set(S.themes.filter(t => !retired.has(t.id)).map(t => t.id));
-const record = fold(events), f = fit(S.themes, record, {top, among}), byId = new Map(S.themes.map(t => [t.id, t]));
+const record = fold(events), f = fit(S.themes, record, {top, among, twins: S.twins ?? null}), byId = new Map(S.themes.map(t => [t.id, t]));
 
 // OKLab distance between two themes' key colours, plus their look differences
 const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;

@@ -364,7 +364,7 @@ async function app(set, results) {
   // ── Compare ──
   let pair = null, last = [];
   const group = id => byId.get(id)?.group ?? null;
-  const nextPair = () => choosePair(themes, record, {last, group, retired, within: S.pairs === 'group'});
+  const nextPair = () => choosePair(themes, record, {last, group, retired, within: S.pairs === 'group', twins: S.twins ?? null});
   function compare() {
     pair ??= nextPair();
     let shown = performance.now(), locked = false;
@@ -425,7 +425,7 @@ async function app(set, results) {
   function showResults() {
     for (const a of seg.children) a.classList.toggle('on', a.dataset.m === 'results');
     const paint = () => {
-      const top = 32, f = fit(themes, record, {top, among}), page = el('div', {class: 'page'});
+      const top = 32, f = fit(themes, record, {top, among, twins: S.twins ?? null}), page = el('div', {class: 'page'});
       const nDuels = record.duels.filter(d => d.outcome !== 'pass').length;
       // settled: its place relative to the best `top` is clear either way (in or out in at least 9 draws out of 10)
       const settled = f.order.filter(r => !r.retired && (r.pTop >= 0.9 || r.pTop <= 0.1)).length;

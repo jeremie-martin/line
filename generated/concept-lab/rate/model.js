@@ -4,11 +4,14 @@
 //   choosePair(...)       → the next duel and why: coverage first, then the line around `top`, siblings, some random
 // A set may retire themes (set.json `retired`): they stay in the fit, so every judgment that involved them still informs the
 // others, but they are never shown again and never count for the best `top` (fit's `among`, choosePair's `retired`).
+// A theme may have a twin (set.json `twins`: new id → earlier id), the same theme drawn differently (round 38: the colour response
+// changed): its prior is its twin's strength as the comparisons without any twinned theme put it (fixed, so it cannot feed back),
+// with that strength's uncertainty plus TWIN_SD; its own comparisons decide from there.
 // Events refer to themes by id (a hash of the full specification, freeze.mjs), so a judgment always means one exact theme.
 
 export const VERDICTS = ['love', 'keep', 'unsure', 'cut'];
 // a verdict is an absolute anchor for the strength: its prior mean (on the natural-log scale of Bradley–Terry)
-const PRIOR = {love: 1.2, keep: 0.4, unsure: -0.4, cut: -1.2}, PRIOR_SD = 0.7, NO_VERDICT_SD = 1.2;
+const PRIOR = {love: 1.2, keep: 0.4, unsure: -0.4, cut: -1.2}, PRIOR_SD = 0.7, NO_VERDICT_SD = 1.2, TWIN_SD = 0.5;
 
 /** The record as of now: retracted events dropped, the latest verdict per theme, every duel and note in order. */
 export function fold(events) {
@@ -24,9 +27,16 @@ export function fold(events) {
 }
 
 /** Bradley–Terry with ties (Davidson), each theme's verdict a Gaussian prior on its strength. Passes carry no information. */
-export function fit(themes, record, {top = 32, iterations = 400, among = null} = {}) {
+export function fit(themes, record, {top = 32, iterations = 400, among = null, twins = null} = {}) {
   const ids = themes.map(t => t.id), at = new Map(ids.map((id, i) => [id, i])), n = ids.length;
   const mu = ids.map(id => PRIOR[record.verdicts[id]] ?? 0), sd = ids.map(id => record.verdicts[id] ? PRIOR_SD : NO_VERDICT_SD);
+  // a twinned theme (no verdict of its own) starts from its twin: the twin's strength from the comparisons without any twinned
+  // theme, fixed before this fit
+  const linked = twins ? ids.filter(id => !record.verdicts[id] && at.has(twins[id])) : [];
+  if (linked.length) {
+    const without = new Set(linked), base = fit(themes, {...record, duels: record.duels.filter(d => !without.has(d.left) && !without.has(d.right))}, {iterations});
+    for (const id of linked) {const r = base.rows[twins[id]], i = at.get(id); mu[i] = r.strength; sd[i] = Math.hypot(r.se, TWIN_SD);}
+  }
   const games = record.duels.filter(d => d.outcome !== 'pass' && at.has(d.left) && at.has(d.right))
     .map(d => [at.get(d.left), at.get(d.right), d.outcome]);
   const s = mu.slice(); let lnu = Math.log(0.5);
@@ -74,16 +84,18 @@ export function fit(themes, record, {top = 32, iterations = 400, among = null} =
  *  In simulation (87 themes, a judge of known taste, rate/ in the 9 November notes) it finds 28.5 of the true best 32 after
  *  500 duels and 29.3 after 1000, against 25.0 and 27.3 for random pairs, and orders the whole set at least as well.
  *  A few pairs are siblings (versions of one draft: "which version", what drafting learns from) or random (against a biased fit). */
-export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null, retired = new Set(), within = false} = {}) {
+export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null, retired = new Set(), within = false, twins = null} = {}) {
   // within: only versions of one theme are compared (a set of variations, set.json pairs: "group")
   const allowed = (a, b) => !within || (group(a) !== null && group(a) === group(b));
   const live = themes.filter(t => record.verdicts[t.id] !== 'cut' && !retired.has(t.id)).map(t => t.id), pool = live.filter(id => !last.includes(id));
   if (pool.length < 2) return null;
-  const {rows} = fit(themes, record, {top, iterations: 400, among: retired.size ? new Set(themes.filter(t => !retired.has(t.id)).map(t => t.id)) : null});
+  const {rows} = fit(themes, record, {top, iterations: 400, twins, among: retired.size ? new Set(themes.filter(t => !retired.has(t.id)).map(t => t.id)) : null});
+  // a theme's comparisons count with its twin's for coverage: a twin compared three times is already placed
+  const seen = id => rows[id].duels + (twins?.[id] && rows[twins[id]] ? rows[twins[id]].duels : 0);
   const met = new Map();
   for (const d of record.duels) {const k = [d.left, d.right].sort().join(' '); met.set(k, (met.get(k) ?? 0) + 1);}
   const order = (a, b, why) => rand() < 0.5 ? [a, b, why] : [b, a, why];
-  const least = Math.min(...live.map(id => rows[id].duels)), covering = least < 3;
+  const least = Math.min(...live.map(seen)), covering = least < 3;
   const r = rand();
   if (!within && !covering && r < 0.1) {
     const sibs = [];
@@ -100,7 +112,7 @@ export function choosePair(themes, record, {top = 32, last = [], rand = Math.ran
     const a = rows[pool[i]], b = rows[pool[j]], p = 1 / (1 + Math.exp(b.strength - a.strength));
     let score = (a.se ** 2 + b.se ** 2) * p * (1 - p) * (a.pTop * (1 - a.pTop) + b.pTop * (1 - b.pTop) + 0.1)
       / (1 + (met.get([a.id, b.id].sort().join(' ')) ?? 0));
-    if (covering && a.duels > least && b.duels > least) score *= 0.01;
+    if (covering && seen(a.id) > least && seen(b.id) > least) score *= 0.01;
     scored.push([score, a.id, b.id]);
   }
   if (!scored.length) return null;

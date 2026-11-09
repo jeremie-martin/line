@@ -79,6 +79,27 @@ describe('theme judgments: the model', () => {
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let k = 0; k < 20; k++) expect(choosePair(T, fold(events), {rand, retired: new Set(['a'])})!.slice(0, 2)).not.toContain('a');
   });
+  it('a twin starts from its twin\'s strength and its own comparisons decide', () => {
+    const events: object[] = [];
+    let n = 0;
+    // a beats b, c, d, e often; then f, a's twin, has no comparisons of its own
+    for (let k = 0; k < 5; k++) for (const x of ['b', 'c', 'd', 'e']) events.push(duel(n++, 'a', x, 'left'));
+    const twins = {f: 'a'}, before = fit(T, fold(events)).rows.a.strength, f0 = fit(T, fold(events), {twins});
+    expect(f0.rows.f.strength).toBeCloseTo(f0.rows.a.strength, 2);
+    expect(f0.rows.a.strength).toBeCloseTo(before, 6);
+    expect(f0.rows.f.se).toBeGreaterThan(f0.rows.a.se);
+    // f then loses to everyone: it falls below a, and a does not move
+    for (let k = 0; k < 6; k++) for (const x of ['b', 'c', 'd', 'e']) events.push(duel(n++, 'f', x, 'right'));
+    const f1 = fit(T, fold(events), {twins});
+    expect(f1.rows.f.strength).toBeLessThan(f1.rows.a.strength - 1);
+    // the link adds no loop: with or without it, a is placed alike (only f's own prior differs)
+    expect(Math.abs(f1.rows.a.strength - fit(T, fold(events)).rows.a.strength)).toBeLessThan(0.5);
+    // coverage counts a twin's comparisons: f, new but twinned with a much-compared a, needs no first round of its own
+    let seed = 9;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647, fresh = fold(events.slice(0, 20));
+    expect(choosePair(T, fresh, {rand, retired: new Set(['a'])})![2]).toBe('coverage');
+    expect(choosePair(T, fresh, {rand, twins, retired: new Set(['a'])})![2]).not.toBe('coverage');
+  });
   it('a set of variations compares only versions of one theme', () => {
     let seed = 5;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647, group = (id: string) => (['a', 'b', 'c'].includes(id) ? 'x' : 'y');

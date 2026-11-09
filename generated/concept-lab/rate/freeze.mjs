@@ -1,6 +1,7 @@
 // Freeze a set of themes to judge: node generated/concept-lab/rate/freeze.mjs DRAFT.json
 // DRAFT: {set: "2026-11-09-themes", title, round, created, include?: [earlier set], schemes?: {name: scheme}, drops?: {scheme: partner},
-//         retire?: [themeId], pairs?: "group" (compare only versions of one theme: a set of variations), themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
+//         retire?: [themeId], pairs?: "group" (compare only versions of one theme: a set of variations), themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId],
+//         twin?: themeId (the same theme drawn differently: its strength starts from the twin's, model.js)}]}
 // A retired theme (from an earlier set) is kept in the set, so the judgments that involved it still inform the fit, but it is
 // never shown again (set.json retired; model.js).
 // Each theme is resolved to its full specification: every look option (resolveLook, so no V1 default is implied) and the
@@ -53,7 +54,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const builds = [];
     const chain = name => {if (builds.includes(name)) return; builds.push(name); for (const s of JSON.parse(readFileSync(join(HERE, 'sets', name, 'set.json'), 'utf8')).buildsOn ?? []) chain(s);};
     (draft.include ?? []).forEach(chain);
-    const themes = [], problems = [], fresh = [];
+    const themes = [], problems = [], fresh = [], twins = {};
     // a set may build on earlier ones: their themes come along unchanged (same ids, same stills) and so do their judgments
     for (const s of builds) {
       const prev = JSON.parse(readFileSync(join(HERE, 'sets', s, 'set.json'), 'utf8'));
@@ -67,15 +68,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       if (label !== t.label) console.log(`"${t.label}" is "${label}" (${id}), kept under that name`);
       if (themes.some(x => x.label === label)) {problems.push(`two themes named "${label}"`); continue;}
       themes.push({id, label, group: t.group ?? null, parents: t.parents ?? [], spec});
+      if (t.twin) twins[id] = t.twin;
       if (!byId.has(id)) fresh.push({id, label, spec, parents: t.parents ?? [], round: draft.round ?? null, set: draft.set});
     }
     const retired = draft.retire ?? [];
     for (const id of retired) if (!themes.some(t => t.id === id)) problems.push(`cannot retire ${id}: not a theme of the sets it builds on`);
+    for (const [id, twin] of Object.entries(twins)) if (!themes.some(t => t.id === twin)) problems.push(`the twin of ${id}, ${twin}, is not a theme of this set`);
     if (problems.length) throw new Error(`not frozen:\n  ${problems.join('\n  ')}`);
     let renderer = 'unknown';
     try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}
     set = {set: draft.set, title: draft.title, round: draft.round ?? null, created: draft.created, song: 'circus', renderer, moments: MOMENTS,
-      ...(builds.length ? {buildsOn: builds} : {}), ...(retired.length ? {retired} : {}), ...(draft.pairs ? {pairs: draft.pairs} : {}), themes};
+      ...(builds.length ? {buildsOn: builds} : {}), ...(retired.length ? {retired} : {}), ...(draft.pairs ? {pairs: draft.pairs} : {}), ...(Object.keys(twins).length ? {twins} : {}), themes};
     mkdirSync(dir, {recursive: true});
     writeFileSync(file, JSON.stringify(set, null, 1) + '\n');
     for (const r of fresh) appendFileSync(REGISTRY, JSON.stringify(r) + '\n');

@@ -100,6 +100,21 @@ describe('theme judgments: the model', () => {
     expect(choosePair(T, fresh, {rand, retired: new Set(['a'])})![2]).toBe('coverage');
     expect(choosePair(T, fresh, {rand, twins, retired: new Set(['a'])})![2]).not.toBe('coverage');
   });
+  it('mostly within a ground once every theme is placed, and now and then a pair asked again', async () => {
+    // @ts-expect-error: a plain module
+    const {groundOf} = await import('../generated/concept-lab/rate/model.js');
+    expect([groundOf('#0a170f'), groundOf('#384c69'), groundOf('#efe2cd')]).toEqual(['dark', 'mid', 'light']);
+    const ground = (id: string) => (['a', 'b', 'c'].includes(id) ? 'dark' : 'light'), events: object[] = [];
+    let n = 0, seed = 11;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let k = 0; k < 3; k++) for (const [l, r] of [['a', 'd'], ['b', 'e'], ['c', 'f']]) events.push(duel(n++, l, r, 'left'));
+    for (let k = 0; k < 30; k++) {const [l, r, why] = choosePair(T, fold(events), {rand, ground, sameGround: 1})!; expect(why === 'random' || ground(l) === ground(r)).toBe(true);}
+    for (const [l, r] of [['a', 'b'], ['a', 'c'], ['b', 'c'], ['d', 'e'], ['d', 'f'], ['e', 'f'], ['a', 'e'], ['b', 'f'], ['c', 'd'], ['a', 'f']]) events.push(duel(n++, l, r, 'right'));
+    const seen = new Set(events.map((e: any) => [e.left, e.right].sort().join(' ')));
+    let repeats = 0;
+    for (let k = 0; k < 30; k++) {const [l, r, why] = choosePair(T, fold(events), {rand, repeat: 1}); if (why === 'repeat') {repeats++; expect(seen.has([l, r].sort().join(' '))).toBe(true);}}
+    expect(repeats).toBeGreaterThan(20);
+  });
   it('a set of variations compares only versions of one theme', () => {
     let seed = 5;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647, group = (id: string) => (['a', 'b', 'c'].includes(id) ? 'x' : 'y');

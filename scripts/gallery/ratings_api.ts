@@ -16,7 +16,7 @@ type FrozenSet = {set: string; title: string; created: string; themes: {id: stri
 const reply = (res: ServerResponse, data: unknown, status = 200) => {
   res.writeHead(status, {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}); res.end(JSON.stringify(data));
 };
-const OUTCOMES = ['left', 'right', 'equal', 'pass'], VERDICTS = ['love', 'keep', 'unsure', 'cut'], WHY = ['coverage', 'info', 'sibling', 'random', 'again'];
+const OUTCOMES = ['left', 'right', 'equal', 'pass'], VERDICTS = ['love', 'keep', 'unsure', 'cut'], WHY = ['coverage', 'info', 'sibling', 'random', 'again', 'repeat'];
 
 /** The event as stored (only the fields of its kind), or the reason it is refused. */
 export function checkEvent(e: any, themes: ReadonlySet<string>): {event: Record<string, unknown>} | {error: string} {

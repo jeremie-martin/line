@@ -120,7 +120,7 @@ tr.retired{opacity:.55}tr.retired-head td{padding-top:18px;font-weight:600;color
 // A still opens the viewer (comparing, a tap there flips between the two themes). Results: /rate/<set>/results.
 // Events go to the server in batches from an outbox (kept across reloads); every device pulls the others' on focus and every
 // 10 s. The judging model (the fit, the next pair) is model.js, shared with report.mjs. (Events call a comparison a duel.)
-import {fold, fit, choosePair, VERDICTS} from '/generated/concept-lab/rate/model.js';
+import {fold, fit, choosePair, groundOf, VERDICTS} from '/generated/concept-lab/rate/model.js';
 
 const $ = id => document.getElementById(id), main = $('main');
 const el = (tag, attrs = {}, ...kids) => {
@@ -364,7 +364,12 @@ async function app(set, results) {
   // ── Compare ──
   let pair = null, last = [];
   const group = id => byId.get(id)?.group ?? null;
-  const nextPair = () => choosePair(themes, record, {last, group, retired, within: S.pairs === 'group', twins: S.twins ?? null});
+  // in a set of themes (not of variations): half the pairs, once every theme is placed, within one ground (dark, mid-tone, light),
+  // and one pair in thirty asked again, to measure how consistent the answers are (owner, 9 November: "maximize the likelihood
+  // that the data will be useful"; the simulation found the tilt neither helps nor hurts the ranking, see rate/ in the notes)
+  const ground = id => groundOf(byId.get(id).spec.colours.paper), variations = S.pairs === 'group';
+  const nextPair = () => choosePair(themes, record, {last, group, retired, within: variations, twins: S.twins ?? null,
+    ...(variations ? {} : {ground, sameGround: 0.5, repeat: 1 / 30})});
   function compare() {
     pair ??= nextPair();
     let shown = performance.now(), locked = false;

@@ -10,6 +10,14 @@
 // Events refer to themes by id (a hash of the full specification, freeze.mjs), so a judgment always means one exact theme.
 
 export const VERDICTS = ['love', 'keep', 'unsure', 'cut'];
+
+/** A theme's ground by its paper's lightness (OKLab L): 'dark' below 0.3, 'mid' to 0.6, 'light' above. */
+export function groundOf(hex) {
+  const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4, [r, g, b] = [1, 3, 5].map(i => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  const L = 0.2104542553 * Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) + 0.793617785 * Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+    - 0.0040720468 * Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return L < 0.3 ? 'dark' : L < 0.6 ? 'mid' : 'light';
+}
 // a verdict is an absolute anchor for the strength: its prior mean (on the natural-log scale of Bradley–Terry)
 const PRIOR = {love: 1.2, keep: 0.4, unsure: -0.4, cut: -1.2}, PRIOR_SD = 0.7, NO_VERDICT_SD = 1.2, TWIN_SD = 0.5;
 
@@ -84,7 +92,8 @@ export function fit(themes, record, {top = 32, iterations = 400, among = null, t
  *  In simulation (87 themes, a judge of known taste, rate/ in the 9 November notes) it finds 28.5 of the true best 32 after
  *  500 duels and 29.3 after 1000, against 25.0 and 27.3 for random pairs, and orders the whole set at least as well.
  *  A few pairs are siblings (versions of one draft: "which version", what drafting learns from) or random (against a biased fit). */
-export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null, retired = new Set(), within = false, twins = null} = {}) {
+export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null, retired = new Set(), within = false, twins = null,
+  ground = null, sameGround = 0, repeat = 0} = {}) {
   // within: only versions of one theme are compared (a set of variations, set.json pairs: "group")
   const allowed = (a, b) => !within || (group(a) !== null && group(a) === group(b));
   const live = themes.filter(t => record.verdicts[t.id] !== 'cut' && !retired.has(t.id)).map(t => t.id), pool = live.filter(id => !last.includes(id));
@@ -102,13 +111,24 @@ export function choosePair(themes, record, {top = 32, last = [], rand = Math.ran
     for (const a of pool) for (const b of pool) if (a < b && group(a) && group(a) === group(b) && !met.has(`${a} ${b}`)) sibs.push([a, b]);
     if (sibs.length) {const [a, b] = sibs[Math.floor(rand() * sibs.length)]; return order(a, b, 'sibling');}
   }
+  // now and then a pair already answered, asked again (sides drawn afresh): how consistent the answers are
+  if (!covering && repeat > 0 && rand() < repeat) {
+    const recent = new Set(record.duels.slice(-10).map(d => [d.left, d.right].sort().join(' ')));
+    const done = [...new Map(record.duels.filter(d => d.outcome !== 'pass' && pool.includes(d.left) && pool.includes(d.right) && allowed(d.left, d.right))
+      .map(d => [[d.left, d.right].sort().join(' '), d])).entries()].filter(([k]) => !recent.has(k)).map(([, d]) => d);
+    if (done.length) {const d = done[Math.floor(rand() * done.length)]; return order(d.left, d.right, 'repeat');}
+  }
+  // mostly a dark against a dark and a light against a light (a mid-tone ground meets both): where the final choice is decided;
+  // the rest across, which keeps one scale for all
+  const sameOnly = !covering && ground && sameGround > 0 && rand() < sameGround;
+  const near = (a, b) => !sameOnly || ground(a) === ground(b) || ground(a) === 'mid' || ground(b) === 'mid';
   if (!covering && r > 0.95) {
     const a = pool[Math.floor(rand() * pool.length)], others = pool.filter(b => b !== a && allowed(a, b));
     if (others.length) return order(a, others[Math.floor(rand() * others.length)], 'random');
   }
   const scored = [];
   for (let i = 0; i < pool.length; i++) for (let j = i + 1; j < pool.length; j++) {
-    if (!allowed(pool[i], pool[j])) continue;
+    if (!allowed(pool[i], pool[j]) || !near(pool[i], pool[j])) continue;
     const a = rows[pool[i]], b = rows[pool[j]], p = 1 / (1 + Math.exp(b.strength - a.strength));
     let score = (a.se ** 2 + b.se ** 2) * p * (1 - p) * (a.pTop * (1 - a.pTop) + b.pTop * (1 - b.pTop) + 0.1)
       / (1 + (met.get([a.id, b.id].sort().join(' ')) ?? 0));

@@ -1,5 +1,5 @@
 // Stills of looks for rating pages: node generated/concept-lab/stills.mjs jobs=FILE.json out=DIR
-// FILE: {schemes?: {name: scheme}, drops?: {scheme: partner}, width?: 540, jobs: [{name, song, look, times: [s…]}]}; a look
+// FILE: {schemes?: {name: scheme}, drops?: {scheme: partner}, width?: 540, quality?: 0.86 (JPEG), jobs: [{name, song, look, times: [s…]}]}; a look
 // is a set of options over V1 (look.js), e.g. {scheme: 'hokusai', band: 'bars', top: 'sun'}. Writes DIR/<name>-<i>.jpg (i from 1).
 // Needs the review server (:8770); new schemes live only in the page's memory (stills.html).
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';

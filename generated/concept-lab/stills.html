@@ -10,7 +10,7 @@ import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
 import {SCHEMES, DROP_SCHEMES} from '/scripts/video/palettes.js';
 
-window.renderStills = async ({schemes = {}, drops = {}, jobs, width = 540}) => {
+window.renderStills = async ({schemes = {}, drops = {}, jobs, width = 540, quality = 0.86}) => {
   for (const name of Object.keys(schemes)) if (Object.hasOwn(SCHEMES, name)) throw new Error(`scheme ${name} already exists`);
   Object.assign(SCHEMES, schemes); Object.assign(DROP_SCHEMES, drops);
   const sheet = await N.loadSheet(), canvas = document.createElement('canvas'), pictures = new Map(), out = {};
@@ -22,7 +22,7 @@ window.renderStills = async ({schemes = {}, drops = {}, jobs, width = 540}) => {
       pictures.set(song, createPicture(canvas, scene, await N.replay(scene.track, scene.trace), sheet, N.riderPainter()));
     }
     const picture = pictures.get(song), resolved = resolveLook(null, look);
-    out[name] = times.map(t => {picture.draw(t, resolved); return canvas.toDataURL('image/jpeg', 0.86);});
+    out[name] = times.map(t => {picture.draw(t, resolved); return canvas.toDataURL('image/jpeg', quality);});
   }
   return out;
 };

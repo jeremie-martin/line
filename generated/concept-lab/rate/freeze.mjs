@@ -43,7 +43,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let set;
   if (existsSync(file)) {
     set = JSON.parse(readFileSync(file, 'utf8'));
-    console.log(`${draft.set} is frozen: only its missing stills are rendered`);
+    console.log(`${draft.set} is frozen: ${process.argv.includes("--rerender") ? "its stills are rendered again" : "only its missing stills are rendered"}`);
   } else {
     const registry = existsSync(REGISTRY) ? readFileSync(REGISTRY, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
     const byLabel = new Map(registry.map(r => [r.label, r.id])), byId = new Map(registry.map(r => [r.id, r.label]));
@@ -79,13 +79,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const from = join(HERE, 'sets', s, 'stills', `${t.id}-${i + 1}.jpg`), to = join(dir, 'stills', `${t.id}-${i + 1}.jpg`);
     if (existsSync(from) && !existsSync(to)) {mkdirSync(join(dir, 'stills'), {recursive: true}); copyFileSync(from, to);}
   });
-  const out = join(dir, 'stills'), missing = set.themes.filter(t => set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
+  // at the video's own resolution, lightly compressed (a desktop shows them ~720 px high, on a dense screen ~1440 real pixels).
+  // --rerender renders every still again from the frozen specifications (the set and its judgments are untouched): only
+  // with the renderer the set was frozen with, which stills.json records with the size and quality
+  const STILLS = {width: 1080, quality: 0.92}, out = join(dir, 'stills'), again = process.argv.includes('--rerender');
+  const missing = set.themes.filter(t => again || set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
   if (missing.length) {
     const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json');
     const sc = {}, dr = {};
     for (const t of missing) {sc[t.id] = t.spec.colours; if (t.spec.drop) {sc[`${t.id}-drop`] = t.spec.drop; dr[t.id] = `${t.id}-drop`;}}
-    writeFileSync(jobs, JSON.stringify({schemes: sc, drops: dr, jobs: missing.map(t => ({name: t.id, song: set.song, look: {...t.spec.look, scheme: t.id}, times: set.moments.map(m => m.t)}))}));
+    writeFileSync(jobs, JSON.stringify({...STILLS, schemes: sc, drops: dr, jobs: missing.map(t => ({name: t.id, song: set.song, look: {...t.spec.look, scheme: t.id}, times: set.moments.map(m => m.t)}))}));
     try {execFileSync(process.execPath, [join(HERE, '..', 'stills.mjs'), `jobs=${jobs}`, `out=${out}`], {stdio: 'inherit'});}
     finally {rmSync(tmp, {recursive: true, force: true});}
+    let renderer = 'unknown';
+    try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}
+    writeFileSync(join(dir, 'stills.json'), JSON.stringify({...STILLS, renderer, rendered: new Date().toISOString()}, null, 1) + '\n');
   } else console.log('all stills present');
 }

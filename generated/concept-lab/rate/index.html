@@ -3,358 +3,426 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rate themes</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Judge themes</title>
 <style>
-:root{--bg:#f3f3f1;--card:#fff;--ink:#1a1c1f;--soft:#6b7078;--line:#dcdde0;--on:#1a1c1f;--onInk:#fff;--focus:#2f6fde;--ok:#2e8a55;--warn:#b5532a}
-@media (prefers-color-scheme:dark){:root{--bg:#131416;--card:#1c1d20;--ink:#ebecee;--soft:#9ba1a9;--line:#2e3035;--on:#ebecee;--onInk:#131416;--focus:#6d9cf0;--ok:#6cc08f;--warn:#e58a5f}}
+:root{--bg:#f2f2f0;--card:#fff;--ink:#1a1c1f;--soft:#6b7078;--line:#d9dade;--on:#1a1c1f;--onInk:#fff;--ok:#2e8a55;--warn:#b5532a;
+  --love:#c2410c;--keep:#2e8a55;--unsure:#8a7a2e;--cut:#6b7078}
+@media (prefers-color-scheme:dark){:root{--bg:#121315;--card:#1c1d20;--ink:#ebecee;--soft:#9ba1a9;--line:#303237;--on:#ebecee;--onInk:#121315;--ok:#6cc08f;--warn:#e58a5f;
+  --love:#f08a4b;--keep:#6cc08f;--unsure:#cdbb63;--cut:#9ba1a9}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
-button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent;border:1px solid var(--line);background:var(--card);border-radius:10px}
+button:active{transform:scale(.97)}
+a{color:inherit}
 img{display:block}
-kbd{font:11px ui-monospace,monospace;border:1px solid var(--line);border-radius:4px;padding:0 4px;background:var(--card)}
+kbd{font:600 10px ui-monospace,monospace;color:var(--soft);margin-left:6px}
+@media (pointer:coarse){kbd{display:none}}
 
-.top{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;border-bottom:1px solid var(--line)}
-.top h1{font-size:14px;margin:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.top h1 a{color:inherit;text-decoration:none}
-.tabs{display:flex;gap:2px;background:var(--line);padding:2px;border-radius:9px;flex:none}
-.tabs button{border:0;background:transparent;padding:5px 12px;border-radius:7px;font-weight:600;font-size:14px}
-.tabs button.on{background:var(--card);box-shadow:0 1px 2px #0002}
+.top{flex:none;display:flex;align-items:center;gap:10px;padding:6px 12px;min-height:44px}
+.top a.title{font-weight:600;font-size:14px;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.seg{display:flex;background:var(--line);padding:2px;border-radius:9px;flex:none}
+.seg a{padding:5px 14px;border-radius:7px;font-weight:600;font-size:14px;text-decoration:none}
+.seg a.on{background:var(--card);box-shadow:0 1px 2px #0002}
 .status{margin-left:auto;font-size:12px;color:var(--soft);white-space:nowrap}
-.status .bad{color:var(--warn)}
-@media (max-height:500px){.top h1{display:none}.top{padding:4px 12px}}
-@media (max-width:600px){.top h1{display:none}.tabs{flex:1}.tabs button{flex:1;padding:6px 2px}.status{margin-left:0}}
+.status .bad{color:var(--warn);font-weight:600}
+@media (max-width:560px){.top a.title{display:none}.top{gap:8px}.seg a{padding:5px 10px}}
 
-main{flex:1;min-height:0;display:flex}
-.screen{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:8px 12px max(8px,env(safe-area-inset-bottom));gap:8px}
-.view{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:var(--gap,6px)}
-figure{margin:0;display:flex;flex-direction:column;align-items:center}
+main{flex:1;min-height:0;display:flex;position:relative}
+.judge{flex:1;min-width:0;display:grid;grid-template-columns:1fr;grid-template-rows:1fr auto;gap:8px;padding:4px 12px max(10px,env(safe-area-inset-bottom))}
+.stage{min-height:0;display:flex;align-items:center;justify-content:center;gap:var(--between)}
+.theme{display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:12px;padding:4px;border:2px solid transparent;transition:border-color .1s}
+.theme.flash{border-color:var(--ok)}
+.shots{display:grid;gap:6px}
+figure{margin:0;cursor:zoom-in}
 figure img{border-radius:6px;background:var(--line)}
-figcaption{font-size:11px;color:var(--soft);height:15px;line-height:15px}
-
-/* grade: the theme, then its controls (beside it when the screen is wide) */
-.panel{flex:none;display:flex;flex-direction:column;gap:6px}
-.name{display:flex;align-items:baseline;gap:8px;font-weight:600}
-.name span{margin-left:auto;font-weight:400;font-size:12px;color:var(--soft);white-space:nowrap}
-.grades{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
-.grades button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 0;font-weight:700;font-size:15px}
-.grades button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
-.bar{display:flex;gap:6px}
-.bar button{flex:1;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 4px;font-size:14px;font-weight:600}
-.bar button.wide{flex:2}
-.hint{font-size:11px;color:var(--soft);text-align:center;margin:0}
-@media (pointer:coarse){.hint{display:none}}
-@media (max-width:420px){.grades{grid-template-columns:repeat(5,1fr)}.grades button{padding:10px 0}}
-@media (min-aspect-ratio:4/3){
-  .screen.grade{flex-direction:row;align-items:stretch}
-  .screen.grade .panel{width:min(300px,34vw);justify-content:center}
-  .screen.grade .grades{grid-template-columns:repeat(5,1fr)}
-  .screen.grade .grades button{padding:12px 0}
+figcaption{font-size:11px;color:var(--soft);text-align:center;height:14px;line-height:14px}
+.label{display:flex;align-items:center;gap:6px;max-width:100%;font-weight:600;font-size:14px;height:22px}
+.label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v{font-size:12px;font-weight:600;font-style:normal;padding:1px 6px;border-radius:6px;color:var(--onInk)}
+.bar{display:grid;gap:6px;width:100%;max-width:720px;justify-self:center}
+.bar .row{display:grid;gap:6px;grid-auto-flow:column;grid-auto-columns:1fr}
+.bar .main button{min-height:56px;font-weight:700;font-size:16px}
+.bar .aux button{min-height:48px;font-weight:600;font-size:15px}
+button.on{color:var(--onInk);border-color:transparent}
+.v-love{background:var(--love)!important}.v-keep{background:var(--keep)!important}.v-unsure{background:var(--unsure)!important}.v-cut{background:var(--cut)!important}
+/* a phone on its side: the decisions on rails under the thumbs */
+.rail{display:none}
+@media (orientation:landscape) and (max-height:560px){
+  .top{min-height:34px;padding:2px 12px}
+  .judge{grid-template-columns:76px 1fr 76px;grid-template-rows:1fr auto;padding:2px 8px max(6px,env(safe-area-inset-bottom))}
+  .rail{display:flex;flex-direction:column;gap:6px;grid-row:1 / span 2}
+  .rail button{flex:1;font-weight:700;font-size:15px;padding:0 4px}
+  .rail.l{grid-column:1}.rail.r{grid-column:3}
+  .judge .stage{grid-column:2;grid-row:1}
+  .judge .bar{grid-column:2;grid-row:2;max-width:none}
+  .judge .bar .main{display:none}
+  .judge .bar .aux button{min-height:40px}
 }
+.end{margin:auto;text-align:center;display:grid;gap:10px;justify-items:center}
+.end p{margin:0;color:var(--soft)}
+.end button{padding:12px 20px;font-weight:600}
 
-/* compare: two themes side by side, each its moments (or one moment and a switch when space is short) */
-.screen.compare .view{gap:14px}
-.side{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;border-radius:10px;padding:4px;border:2px solid transparent}
-.side .imgs{display:flex;gap:var(--gap,6px)}
-.side.chosen{border-color:var(--ok)}
-.side .label{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:600;max-width:100%}
-.side .label b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-.pen{border:0;background:none;padding:2px 4px;color:var(--soft);font-size:13px}
-.moments{display:flex;gap:4px;justify-content:center}
-.moments button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 10px;font-size:13px}
-.moments button.on{background:var(--on);color:var(--onInk);border-color:var(--on)}
-.done{margin:auto;text-align:center;color:var(--soft)}
+.toast{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--barH,120px) + 18px);z-index:6;background:var(--on);color:var(--onInk);border-radius:12px;
+  padding:6px 6px 6px 14px;display:flex;align-items:center;gap:6px;font-size:14px;max-width:calc(100% - 24px);box-shadow:0 4px 18px #0004}
+.toast span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast button{background:transparent;color:inherit;border-color:#fff4;padding:8px 10px;font-weight:600;flex:none}
 
-/* the note editor and an enlarged still */
-.sheet{position:fixed;inset:0;z-index:20;background:#0008;display:flex;align-items:flex-end;justify-content:center}
-.sheet div{background:var(--card);width:min(560px,100%);border-radius:14px 14px 0 0;padding:14px 14px max(14px,env(safe-area-inset-bottom))}
-@media (min-width:700px){.sheet{align-items:center}.sheet div{border-radius:14px}}
-.sheet b{display:block;margin-bottom:6px}
-.sheet textarea{width:100%;font:15px system-ui,sans-serif;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
-.sheet button{margin-top:8px;width:100%;border:0;border-radius:8px;padding:10px;background:var(--on);color:var(--onInk);font-weight:600}
-.lb{position:fixed;inset:0;z-index:20;background:#000e;display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;align-items:center;padding:12px}
-.lb img{height:calc(100dvh - 48px);max-width:calc(100vw - 24px);object-fit:contain;flex:0 0 auto;scroll-snap-align:center;border-radius:8px}
-.lb p{position:fixed;left:0;right:0;bottom:4px;margin:0;text-align:center;color:#ccc;font-size:12px}
-@media (min-width:900px){.lb{justify-content:center}}
+.sheet{position:fixed;inset:0;z-index:20;background:#0009;display:flex;align-items:flex-end;justify-content:center}
+.sheet .box{background:var(--card);width:min(600px,100%);max-height:100%;overflow:auto;border-radius:14px 14px 0 0;padding:12px 14px max(14px,env(safe-area-inset-bottom));display:grid;gap:8px}
+@media (min-width:700px){.sheet{align-items:center}.sheet .box{border-radius:14px}}
+.sheet .strip{display:flex;gap:6px;justify-content:center}
+.sheet .strip img{height:110px;border-radius:5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{padding:6px 10px;font-size:14px;border-radius:999px}
+.chips button.on{background:var(--on);color:var(--onInk)}
+.sheet textarea{width:100%;font:16px system-ui,sans-serif;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.sheet .old{font-size:13px;color:var(--soft);margin:0}
+.sheet .go{display:flex;gap:8px}.sheet .go button{flex:1;min-height:46px;font-weight:600}
+.sheet .go button.primary{background:var(--on);color:var(--onInk)}
+.viewer{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#ddd}
+.viewer .shots{display:flex;gap:8px}
+.viewer .who{font-weight:600;font-size:15px}
+.viewer .x{position:fixed;top:max(8px,env(safe-area-inset-top));right:10px;background:#222;color:#eee;border-color:#444;padding:8px 14px}
 
-/* standings and the list of sets: pages that scroll */
-.scroll{flex:1;overflow:auto;padding:10px 12px 40px}
-.scroll p{color:var(--soft);font-size:13px;margin:0 0 8px}
-table{width:100%;max-width:900px;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}
-th,td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
-th{font-size:11px;color:var(--soft);font-weight:600;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;user-select:none}
+.page{flex:1;overflow:auto;padding:10px 12px 40px}
+.page h2{font-size:17px;margin:4px 0 8px}
+.page p{color:var(--soft);font-size:13px;margin:0 0 10px;max-width:760px}
+.sets a{display:block;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 8px;text-decoration:none}
+.sets b{display:block;font-size:16px}.sets span{color:var(--soft);font-size:13px}
+table{border-collapse:collapse;background:var(--card);border:1px solid var(--line);width:100%;max-width:1100px}
+th,td{padding:5px 8px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+th{font-size:11px;color:var(--soft);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-td img{width:30px;aspect-ratio:9/16;border-radius:3px;object-fit:cover}
-td .note{color:var(--soft);font-size:12px}
-.sets a{display:block;max-width:640px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 8px;color:inherit;text-decoration:none}
-.sets b{display:block;font-size:16px}
-.sets span{color:var(--soft);font-size:13px}
+td .pair{display:flex;gap:3px}td .pair img{width:34px;border-radius:3px;cursor:zoom-in}
+td .notes{color:var(--soft);font-size:12px;margin-top:2px}
+tr.cutline td{border-bottom:2px solid var(--ink)}
+.meter{display:inline-block;width:60px;height:6px;background:var(--line);border-radius:3px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--ok)}
 </style>
 </head>
 <body>
-<header class="top">
-  <h1><a href="/rate/" id="title">Rate themes</a></h1>
-  <nav class="tabs" id="tabs" hidden><button data-tab="grade">Grade</button><button data-tab="compare">Compare</button><button data-tab="standings">Standings</button></nav>
-  <span class="status" id="status"></span>
-</header>
+<header class="top" id="top"><a class="title" href="/rate/" id="title">Judge themes</a><span class="status" id="status"></span></header>
 <main id="main"></main>
 <script type="module">
-// The theme ratings site, served at /rate/<set> (scripts/gallery/ratings_api.ts). Each judgment is an event appended on the
-// server, so a phone and a desktop share one record; the page folds the events into grades, notes and picks.
-//   Grade: one theme per screen, its stills at moments with no hit (the drop seen after the verse), a grade out of 10 per tap.
-//   Compare: two themes; left, right, equal (a tie) or pass (nothing recorded). An Elo guide orders them on screen.
-//   Standings: everything so far.
-// Grade and Compare fill the screen without scrolling, in portrait and landscape: the stills are sized to the room left.
+// Judging themes, at /rate/<set> (scripts/gallery/ratings_api.ts). One screen for both ways of judging:
+//   Sort: one theme, a verdict (love, keep, unsure, cut) per tap. Duel: two themes, left, right, equal or pass.
+// Every theme shows two stills (the verse; inside the drop, after the verse), sized to the screen: no scrolling, on a phone
+// upright or on its side or a desktop. A judgment saves at once and moves on; a toast offers a note on it or its undo.
+// A still opens the viewer (in a duel, a tap there flips between the two themes). Results: /rate/<set>/results.
+// Events go to the server in batches from an outbox (kept across reloads); every device pulls the others' on focus and every
+// 10 s. The judging model (the fit, the next duel) is model.js, shared with report.mjs.
+import {fold, fit, choosePair, VERDICTS} from '/generated/concept-lab/rate/model.js';
+
 const $ = id => document.getElementById(id), main = $('main');
 const el = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) k.startsWith('on') ? e[k] = v : k === 'class' ? e.className = v : e.setAttribute(k, v);
-  e.append(...kids.filter(k => k !== null && k !== undefined && k !== false)); return e;
+  for (const [k, v] of Object.entries(attrs)) if (v !== undefined && v !== null) k.startsWith('on') ? e[k] = v : k === 'class' ? e.className = v : e.setAttribute(k, v);
+  e.append(...kids.flat().filter(k => k !== null && k !== undefined && k !== false)); return e;
 };
-const typing = e => ['TEXTAREA', 'INPUT'].includes(e.target.tagName) || e.metaKey || e.ctrlKey || e.altKey;
-const set = location.pathname.match(/^\/rate\/([a-z0-9-]+)$/)?.[1];
-if (!set) await home(); else await app(set);
+const key = (label, k) => [label, k ? el('kbd', {}, k) : null];
+const VERB = {love: 'Loved', keep: 'Kept', unsure: 'Unsure about', cut: 'Cut'}, WORD = {love: 'Love', keep: 'Keep', unsure: 'Unsure', cut: 'Cut'};
+const [, set, sub] = location.pathname.match(/^\/rate\/([a-z0-9-]+)?(?:\/(results))?$/) ?? [];
+if (!set) await home(); else await app(set, sub === 'results');
 
 async function home() {
   const {sets} = await fetch('/api/rate').then(r => r.json());
-  main.append(el('div', {class: 'scroll sets'}, el('p', {}, 'Sets of themes to rate'), ...sets.map(s =>
-    el('a', {href: `/rate/${s.id}`}, el('b', {}, s.title), el('span', {}, `${s.items} themes · ${s.created}`)))));
+  main.append(el('div', {class: 'page sets'}, el('h2', {}, 'Sets of themes'), sets.map(s =>
+    el('a', {href: `/rate/${s.set}`}, el('b', {}, s.title), el('span', {}, `${s.themes} themes · ${s.created} · ${s.set}`)))));
 }
 
-/** The largest stills of aspect 9:16 that fit n in a row inside a w×h box (a caption line under each). */
-function fit(w, h, n, gap) {
-  const cap = 15, ih = Math.max(40, Math.min(h - cap, (w - gap * (n - 1)) / n * 16 / 9));
-  return {w: Math.floor(ih * 9 / 16), h: Math.floor(ih)};
-}
-
-async function app(set) {
+async function app(set, results) {
   const base = `/generated/concept-lab/rate/sets/${set}`;
-  const m = await fetch(`${base}/manifest.json`).then(r => r.ok ? r.json() : Promise.reject(new Error('unknown set')));
-  document.title = m.title; $('title').textContent = m.title; $('tabs').hidden = false;
-  const items = m.items, byId = new Map(items.map(i => [i.id, i])), N = m.moments.length;
+  const S = await fetch(`${base}/set.json`).then(r => r.ok ? r.json() : Promise.reject(new Error('unknown set')));
+  const themes = S.themes, byId = new Map(themes.map(t => [t.id, t])), M = S.moments.length;
   const still = (id, i) => `${base}/stills/${id}-${i + 1}.jpg`;
-  const preload = ids => ids.forEach(id => m.moments.forEach((_, i) => {new Image().src = still(id, i);}));
+  const preload = ids => ids.forEach(id => S.moments.forEach((_, i) => {new Image().src = still(id, i);}));
+  document.title = S.title; $('title').textContent = S.title;
 
-  // ── the record: the server's events, plus a queue of ones not yet saved (kept across reloads) ──
-  const QKEY = `rate-queue-${set}`;
-  let events = [], queue = [], saving = false, failed = false;
-  try {queue = JSON.parse(localStorage.getItem(QKEY) ?? '[]');} catch {}
-  const keepQueue = () => {try {localStorage.setItem(QKEY, JSON.stringify(queue));} catch {}};
-  async function flush() {
-    if (saving) return; saving = true;
-    while (queue.length) {
-      try {
-        const r = await fetch(`/api/rate/${set}`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(queue[0])});
-        if (r.status === 400) console.warn('refused', queue[0], await r.text()); else if (!r.ok) throw new Error(String(r.status));
-        queue.shift(); keepQueue(); failed = false;
-      } catch {failed = true; break;}
-    }
-    saving = false; status();
+  // ── the record: the server's events, and an outbox of this device's not yet saved ──
+  const OUT = `rate-outbox-${set}`, MINE = `rate-mine-${set}`, DRAFT = `rate-draft-${set}`;
+  const load = k => {try {return JSON.parse(localStorage.getItem(k) ?? 'null');} catch {return null;}};
+  const keep = (k, v) => {try {localStorage.setItem(k, JSON.stringify(v));} catch {}};
+  let server = [], seq = 0, setHash = null, outbox = load(OUT) ?? [], mine = load(MINE) ?? [], failed = false, stale = false, sending = false;
+  let record = fold([]);
+  const refold = () => {const have = new Set(server.map(e => e.id)); record = fold([...server, ...outbox.filter(e => !have.has(e.id))]); status();};
+  async function pull() {
+    try {
+      const r = await fetch(`/api/rate/${set}/events?after=${seq}`).then(r => r.json());
+      if (setHash && r.setHash !== setHash) stale = true;
+      setHash ??= r.setHash; server.push(...r.events); seq = r.seq; refold(); return r.events.length;
+    } catch {return 0;}
   }
-  setInterval(() => {if (queue.length) flush();}, 5000);
-  async function load() {events = (await fetch(`/api/rate/${set}`).then(r => r.json())).events; fold();}
-  function record(e) {events.push(e); queue.push(e); keepQueue(); fold(); flush();}
-  let grades = {}, notes = {}, picks = [];
-  function fold() {
-    grades = {}; notes = {}; picks = [];
-    for (const e of [...events, ...queue.filter(q => !events.includes(q))]) {
-      if (e.kind === 'grade') e.grade === null ? delete grades[e.id] : grades[e.id] = e.grade;
-      else if (e.kind === 'note') e.text ? notes[e.id] = e.text : delete notes[e.id];
-      else if (e.kind === 'pick') picks.push(e);
-      else if (e.kind === 'undo') picks.pop();
-    }
-    status();
+  async function push() {
+    if (sending || !outbox.length || stale) return; sending = true;
+    const batch = outbox.slice(0, 50);
+    try {
+      const r = await fetch(`/api/rate/${set}/events`, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({setHash, events: batch})});
+      if (r.status === 409) stale = true;
+      else if (r.status === 400) {console.warn('refused', await r.text()); outbox = outbox.slice(batch.length);}
+      else if (!r.ok) throw new Error(String(r.status));
+      else {outbox = outbox.slice(batch.length); failed = false;}
+      keep(OUT, outbox);
+    } catch {failed = true;}
+    sending = false; await pull(); if (outbox.length && !failed && !stale) push();
+  }
+  const device = () => ({kind: matchMedia('(pointer:coarse)').matches ? 'phone' : 'desktop', w: innerWidth, h: innerHeight});
+  const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  function emit(e) {
+    const ev = {id: newId(), at: new Date().toISOString(), device: device(), ...e};
+    outbox.push(ev); keep(OUT, outbox);
+    if (e.kind !== 'retract') {mine.push(ev.id); keep(MINE, mine.slice(-500));}
+    refold(); push(); return ev;
   }
   function status() {
-    $('status').replaceChildren(`${Object.keys(grades).length}/${items.length} graded · ${picks.length} picks`,
-      queue.length ? el('span', {class: failed ? 'bad' : ''}, failed ? ' · not saved, retrying' : ' · saving') : ' · saved');
+    const v = Object.keys(record.verdicts).length, d = record.duels.filter(x => x.outcome !== 'pass').length;
+    $('status').replaceChildren(`${v}/${themes.length} sorted · ${d} duels · `,
+      stale ? el('span', {class: 'bad'}, 'set changed: reload') : outbox.length ? el('span', {class: failed ? 'bad' : ''}, failed ? `${outbox.length} waiting` : 'saving') : 'saved');
   }
-  // Elo from the picks in order (K 24; equal is half a win each)
-  function elo() {
-    const r = Object.fromEntries(items.map(i => [i.id, 1500])), n = Object.fromEntries(items.map(i => [i.id, 0]));
-    for (const p of picks) {
-      if (!(p.a in r) || !(p.b in r)) continue;
-      const ea = 1 / (1 + 10 ** ((r[p.b] - r[p.a]) / 400)), sa = p.winner === p.a ? 1 : p.winner === p.b ? 0 : 0.5;
-      r[p.a] += 24 * (sa - ea); r[p.b] -= 24 * (sa - ea); n[p.a]++; n[p.b]++;
-    }
-    return {r, n};
+  let repaint = null, teardown = () => {};
+  setInterval(() => {if (document.visibilityState === 'visible') {push(); pull().then(n => {if (n) repaint?.();});}}, 10000);
+  document.addEventListener('visibilitychange', () => {if (document.visibilityState === 'visible') {push(); pull().then(() => repaint?.());}});
+  await pull(); push();
+
+  // ── the mode switch and the results link (the address keeps the mode: #sort, #duel) ──
+  const seg = el('nav', {class: 'seg'}, el('a', {href: `/rate/${set}#sort`, 'data-m': 'sort'}, 'Sort'), el('a', {href: `/rate/${set}#duel`, 'data-m': 'duel'}, 'Duel'),
+    el('a', {href: `/rate/${set}/results`, 'data-m': 'results'}, 'Results'));
+  $('top').insertBefore(seg, $('status'));
+
+  // ── shared pieces ──
+  /** The judging screen: a stage (one theme or two, each its moments) and the bar, or rails on a phone on its side. */
+  function screen({rails = [null, null], bar}) {
+    const stage = el('div', {class: 'stage'}), root = el('div', {class: 'judge'}, rails[0] && el('div', {class: 'rail l'}, rails[0]), stage, bar, rails[1] && el('div', {class: 'rail r'}, rails[1]));
+    main.append(root);
+    const ro = new ResizeObserver(() => {main.style.setProperty('--barH', `${bar.offsetHeight}px`); repaint?.();}); ro.observe(stage);
+    return {stage, root, stop: () => ro.disconnect()};
+  }
+  /** The largest stills (9:16) for n themes of M moments in a w×h stage: every still in a row, or each theme's moments
+   *  stacked in a column, whichever shows them bigger. */
+  function layout(w, h, n) {
+    const label = 24, cap = 15, gap = 6, between = n > 1 ? 18 : 0, pad = 12, options = [];
+    const rowW = (w - between * (n - 1) - n * pad - gap * (n * M - n)) / (n * M);
+    options.push({cols: M, size: Math.min(rowW, (h - label - cap - pad) * 9 / 16)});
+    if (M > 1) {const colW = (w - between * (n - 1) - n * pad) / n; options.push({cols: 1, size: Math.min(colW, ((h - label - pad - M * cap - gap * (M - 1)) / M) * 9 / 16)});}
+    const best = options.sort((a, b) => b.size - a.size)[0];
+    return {cols: best.cols, w: Math.max(30, Math.floor(best.size)), h: Math.max(53, Math.floor(best.size * 16 / 9)), between};
+  }
+  function themeView(id, size, {onlook, tag} = {}) {
+    const t = byId.get(id), v = record.verdicts[id];
+    return el('div', {class: 'theme'},
+      el('div', {class: 'shots', style: `grid-template-columns:repeat(${size.cols},auto)`}, S.moments.map((m, i) =>
+        el('figure', {onclick: e => {e.stopPropagation(); onlook(i);}}, el('img', {src: still(id, i), alt: `${t.label}, ${m.label}`, style: `width:${size.w}px;height:${size.h}px`}), el('figcaption', {}, m.label)))),
+      el('div', {class: 'label'}, tag ? el('span', {style: 'color:var(--soft);font-weight:500'}, tag) : null, el('span', {}, t.label), v ? el('i', {class: `v v-${v}`}, WORD[v]) : null,
+        record.notes.some(n => n.themes.includes(id)) ? el('span', {title: 'has notes', style: 'color:var(--soft)'}, '✎') : null));
+  }
+  let toastTimer = null;
+  function toast(text, {onNote, onUndo}) {
+    document.querySelector('.toast')?.remove(); clearTimeout(toastTimer);
+    const box = el('div', {class: 'toast'}, el('span', {}, text),
+      el('button', {onclick: () => {box.remove(); onNote();}}, '✎ Note'), el('button', {onclick: () => {box.remove(); onUndo();}}, '↶ Undo'));
+    main.append(box); toastTimer = setTimeout(() => box.remove(), 5000);
+  }
+  /** The note sheet: about one theme, or in a duel about either or the pair. A draft survives a reload. */
+  function note(targets) {
+    if (document.querySelector('.sheet')) return;
+    const choices = targets.length > 1 ? [...targets.map(id => [byId.get(id).label, [id]]), ['The pair', targets]] : [[byId.get(targets[0]).label, targets]];
+    let at = choices.length - 1;  // a duel's note is about the pair unless a side is chosen
+    const t = el('textarea', {rows: '4', placeholder: 'What works, what does not, what to try…'});
+    t.value = load(DRAFT)?.text ?? '';
+    t.oninput = () => keep(DRAFT, {text: t.value});
+    const chips = el('div', {class: 'chips'}), old = el('div');
+    const strip = el('div', {class: 'strip'}, targets.flatMap(id => S.moments.map((_, i) => el('img', {src: still(id, i), alt: ''}))));
+    const paint = () => {
+      chips.replaceChildren(...(choices.length > 1 ? choices.map(([label], i) => el('button', {class: i === at ? 'on' : '', onclick: () => {at = i; paint(); t.focus();}}, label)) : []));
+      const ids = choices[at][1], earlier = record.notes.filter(n => n.themes.length === ids.length && ids.every(id => n.themes.includes(id)));
+      old.replaceChildren(...earlier.map(n => el('p', {class: 'old'}, `“${n.text}”`)));
+    };
+    const close = save => {
+      if (save && t.value.trim()) emit({kind: 'note', themes: choices[at][1], text: t.value.trim()});
+      if (save || !t.value.trim()) keep(DRAFT, null);
+      sheet.remove(); removeEventListener('keydown', keys, true); repaint?.();
+    };
+    const keys = e => {
+      if (e.key === 'Escape') {e.preventDefault(); e.stopPropagation(); close(true);}
+      else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {e.preventDefault(); close(true);}
+    };
+    const sheet = el('div', {class: 'sheet', onclick: e => {if (e.target === sheet) close(true);}},
+      el('div', {class: 'box'}, strip, chips, old, t, el('div', {class: 'go'}, el('button', {onclick: () => close(false)}, 'Cancel'), el('button', {class: 'primary', onclick: () => close(true)}, 'Save note'))));
+    paint(); document.body.append(sheet); addEventListener('keydown', keys, true); t.focus();
+  }
+  /** Full screen: a theme's moments at full height; in a duel a tap flips to the other theme. */
+  function viewer(ids, start = 0) {
+    let at = start;
+    const shots = el('div', {class: 'shots'}), who = el('div', {class: 'who'});
+    const paint = () => {
+      const id = ids[at], w = Math.min((innerWidth - 24 - 8 * (M - 1)) / M, (innerHeight - 90) * 9 / 16);
+      shots.replaceChildren(...S.moments.map((_, i) => el('img', {src: still(id, i), alt: '', style: `width:${w}px;height:${w * 16 / 9}px;border-radius:6px`})));
+      who.textContent = ids.length > 1 ? `${at ? 'Right' : 'Left'}: ${byId.get(id).label} · tap to flip` : `${byId.get(id).label} · tap to close`;
+    };
+    const close = () => {box.remove(); removeEventListener('keydown', keys, true);};
+    const flip = () => {if (ids.length > 1) {at = 1 - at; paint();} else close();};
+    const keys = e => {if (e.key === 'Escape' || e.key === 'v') {e.preventDefault(); e.stopPropagation(); close();} else if (e.key === 'x' || e.key === ' ') {e.preventDefault(); e.stopPropagation(); flip();}};
+    const box = el('div', {class: 'viewer', onclick: flip}, shots, who, el('button', {class: 'x', onclick: e => {e.stopPropagation(); close();}}, '✕ Close'));
+    paint(); document.body.append(box); addEventListener('keydown', keys, true);
+  }
+  const busy = () => document.querySelector('.sheet,.viewer');
+  /** Take back this device's latest judgment still standing; returns it. */
+  function undoMine() {
+    const standing = new Set(record.live.map(e => e.id));
+    const id = [...mine].reverse().find(x => standing.has(x)); if (!id) return null;
+    const ev = record.live.find(e => e.id === id); emit({kind: 'retract', target: id}); return ev;
   }
 
-  // a note on any theme, from either view
-  function editNote(id) {
-    const t = el('textarea', {rows: '4', placeholder: 'What works, what does not…'}); t.value = notes[id] ?? '';
-    const close = () => {box.remove(); removeEventListener('keydown', esc, true); if (t.value.trim() !== (notes[id] ?? '')) record({kind: 'note', id, text: t.value.trim()}); paint?.();};
-    const esc = e => {if (e.key === 'Escape') {e.stopPropagation(); close();}};
-    const box = el('div', {class: 'sheet', onclick: e => {if (e.target === box) close();}},
-      el('div', {}, el('b', {}, byId.get(id).name), t, el('button', {onclick: close}, 'Done')));
-    document.body.append(box); addEventListener('keydown', esc, true); t.focus();
-  }
-  // a theme's stills at full height (swipe between them on a phone); a tap or Escape closes
-  function enlarge(id, at) {
-    const imgs = m.moments.map(([label], i) => el('img', {src: still(id, i), alt: label}));
-    const close = () => {box.remove(); removeEventListener('keydown', esc, true);};
-    const esc = e => {if (e.key === 'Escape') {e.stopPropagation(); close();}};
-    const box = el('div', {class: 'lb', onclick: close}, ...imgs, el('p', {}, `${byId.get(id).name} · tap to close`));
-    document.body.append(box); addEventListener('keydown', esc, true);
-    requestAnimationFrame(() => imgs[at].scrollIntoView({inline: 'center', block: 'nearest'}));
-  }
-
-  // ── tabs: the address keeps the tab (#grade, #compare, #standings) ──
-  const views = {grade, compare, standings};
-  let teardown = () => {}, paint = null;
+  if (results) return showResults();
+  const mode = () => location.hash === '#duel' ? 'duel' : location.hash === '#sort' ? 'sort' : themes.every(t => record.verdicts[t.id]) ? 'duel' : 'sort';
   function show() {
-    const tab = views[location.hash.slice(1)] ? location.hash.slice(1) : 'grade';
-    for (const b of $('tabs').children) b.classList.toggle('on', b.dataset.tab === tab);
-    teardown(); paint = null; main.replaceChildren(); teardown = views[tab]() ?? (() => {});
+    teardown(); main.replaceChildren(); repaint = null;
+    for (const a of seg.children) a.classList.toggle('on', a.dataset.m === mode());
+    teardown = (mode() === 'duel' ? duel : sort)() ?? (() => {});
   }
-  for (const b of $('tabs').children) b.onclick = () => {location.hash = b.dataset.tab;};
-  addEventListener('hashchange', async () => {await load(); show();}); // a tab change catches up with the other device too
-  // the other device may have answered meanwhile: catch up when the page comes back
-  document.addEventListener('visibilitychange', async () => {if (document.visibilityState === 'visible') {await flush(); await load(); show();}});
-  const onResize = f => new ResizeObserver(f);
+  addEventListener('hashchange', () => pull().then(show));  // a change of mode catches up with the other device too
 
-  // ── Grade ──
-  // a stable shuffle: the same order on every device, with the versions of one draft apart
-  const hash = s => {let h = 2166136261; for (const c of set + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0;};
-  const order = [...items].sort((a, b) => hash(a.id) - hash(b.id));
-  let at = -1;
-  function grade() {
-    if (at < 0) at = Math.max(0, order.findIndex(it => !(it.id in grades)));
-    const view = el('div', {class: 'view'}), name = el('div', {class: 'name'});
-    const buttons = Array.from({length: 10}, (_, i) => el('button', {onclick: () => give(i + 1)}, String(i + 1)));
-    const noteBtn = el('button', {onclick: () => editNote(order[at].id)}, 'Note');
-    const panel = el('div', {class: 'panel'}, name, el('div', {class: 'grades'}, ...buttons),
-      el('div', {class: 'bar'}, el('button', {onclick: () => go(at - 1)}, '‹ Back'), noteBtn,
-        el('button', {class: 'wide', onclick: () => {const n = nextUngraded(); if (n >= 0) go(n);}}, 'Next to grade'), el('button', {onclick: () => go(at + 1)}, 'Skip ›')),
-      el('p', {class: 'hint'}, el('kbd', {}, '1'), '–', el('kbd', {}, '9'), ', ', el('kbd', {}, '0'), ' for 10 · ', el('kbd', {}, '←'), el('kbd', {}, '→'), ' move · ', el('kbd', {}, 'n'), ' note · a still to enlarge'));
-    main.append(el('div', {class: 'screen grade'}, view, panel));
-    let size = {w: 0, h: 0};
-    const ro = onResize(() => {const g = 6; size = fit(view.clientWidth, view.clientHeight, N, g); draw();}); ro.observe(view);
-    function draw() {
-      const it = order[at];
-      view.replaceChildren(...m.moments.map(([label], i) => el('figure', {onclick: () => enlarge(it.id, i)},
-        el('img', {src: still(it.id, i), alt: `${it.name}, ${label}`, width: size.w, height: size.h, style: `width:${size.w}px;height:${size.h}px`}), el('figcaption', {}, label))));
-      paint();
+  // ── Sort ──
+  const h32 = s => {let h = 2166136261; for (const c of set + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0;};
+  const order = [...themes].sort((a, b) => h32(a.id) - h32(b.id)).map(t => t.id);
+  let sortAt = -1;
+  function sort() {
+    const next = from => {for (let k = 1; k <= order.length; k++) {const j = (from + k) % order.length; if (!record.verdicts[order[j]]) return j;} return -1;};
+    if (sortAt < 0) sortAt = next(-1) >= 0 ? next(-1) : -2;
+    const verdictButtons = VERDICTS.map((v, i) => el('button', {onclick: () => give(v)}, key(WORD[v], String(i + 1))));
+    const railVerdicts = VERDICTS.map(v => el('button', {onclick: () => give(v)}, WORD[v]));
+    const aux = el('div', {class: 'row aux'}, el('button', {onclick: () => go(sortAt - 1)}, key('‹', '[')), el('button', {onclick: () => sortAt >= 0 && note([order[sortAt]])}, key('✎ Note', 'n')),
+      el('button', {onclick: undo}, key('↶ Undo', 'z')), el('button', {onclick: () => go(sortAt + 1)}, key('›', ']')));
+    const bar = el('div', {class: 'bar'}, el('div', {class: 'row main'}, verdictButtons), aux);
+    const left = [el('button', {onclick: () => go(sortAt - 1)}, '‹'), el('button', {onclick: () => sortAt >= 0 && note([order[sortAt]])}, '✎'), el('button', {onclick: undo}, '↶'), el('button', {onclick: () => go(sortAt + 1)}, '›')];
+    const {stage, stop} = screen({rails: [left, railVerdicts], bar});
+    function paint() {
+      if (sortAt === -2) {
+        stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, `All ${themes.length} sorted.`), el('button', {onclick: () => {location.hash = '#duel';}}, 'On to the duels'),
+          el('button', {onclick: () => go(0)}, 'Look through them again')));
+        return;
+      }
+      const id = order[sortAt], v = record.verdicts[id];
+      [...verdictButtons, ...railVerdicts].forEach((b, i) => {const val = VERDICTS[i % 4]; b.className = v === val ? `on v-${val}` : '';});
+      stage.replaceChildren(themeView(id, layout(stage.clientWidth, stage.clientHeight, 1), {onlook: () => viewer([id]), tag: `${sortAt + 1}/${order.length}`}));
     }
-    paint = () => {
-      const it = order[at], graded = Object.keys(grades).length;
-      name.replaceChildren(it.name, notes[it.id] ? ' ✎' : '', el('span', {}, `${at + 1} of ${order.length}${graded === order.length ? ' · all graded' : ''}`));
-      buttons.forEach((b, i) => b.classList.toggle('on', grades[it.id] === i + 1));
-      noteBtn.textContent = notes[it.id] ? 'Note ✎' : 'Note';
-    };
-    const nextUngraded = () => {for (let k = 1; k <= order.length; k++) {const j = (at + k) % order.length; if (!(order[j].id in grades)) return j;} return -1;};
-    function go(i) {at = (i + order.length) % order.length; draw(); preload([order[(at + 1) % order.length].id]);}
-    function give(g) {
-      const id = order[at].id, again = grades[id] === g;
-      record({kind: 'grade', id, grade: again ? null : g}); paint();
-      if (again) return;
-      const here = at, n = nextUngraded();
-      if (n >= 0) setTimeout(() => {if (at === here) go(n);}, 250);
+    repaint = paint;
+    function go(i) {sortAt = ((i % order.length) + order.length) % order.length; paint(); preload([order[(sortAt + 1) % order.length]]);}
+    function give(v) {
+      if (sortAt < 0 || busy()) return;
+      const id = order[sortAt]; emit({kind: 'verdict', theme: id, value: v});
+      stage.querySelector('.theme')?.classList.add('flash');
+      toast(`${VERB[v]} “${byId.get(id).label}”`, {onNote: () => note([id]), onUndo: undo});
+      const n = next(sortAt);
+      setTimeout(() => {if (n < 0) {sortAt = -2; paint();} else go(n);}, 160);
     }
-    const key = e => {
-      if (typing(e) || document.querySelector('.sheet,.lb')) return;
-      if (/^[0-9]$/.test(e.key)) give(e.key === '0' ? 10 : +e.key);
-      else if (e.key === 'ArrowRight') go(at + 1); else if (e.key === 'ArrowLeft') go(at - 1);
-      else if (e.key === 'n') editNote(order[at].id); else return;
-      e.preventDefault();
-    };
-    addEventListener('keydown', key); preload([order[(at + 1) % order.length].id]);
-    return () => {removeEventListener('keydown', key); ro.disconnect();};
-  }
-
-  // ── Compare ──
-  let moment = 0, last = null, pair = null;
-  function nextPair() {
-    // the theme compared least so far, against one of similar standing it has not met, itself compared little
-    const {r, n} = elo(), met = new Set(picks.map(p => [p.a, p.b].sort().join(' ')));
-    const ids = items.map(i => i.id).filter(id => !last?.includes(id)), least = Math.min(...ids.map(id => n[id]));
-    const pickOne = xs => xs[Math.floor(Math.random() * xs.length)];
-    const a = pickOne(ids.filter(id => n[id] === least));
-    const near = ids.filter(id => id !== a).sort((x, y) => Math.abs(r[x] - r[a]) - Math.abs(r[y] - r[a])).slice(0, 12);
-    const fresh = near.filter(id => !met.has([a, id].sort().join(' ')));
-    const from = fresh.length ? fresh : near, fewest = Math.min(...from.map(id => n[id]));
-    const b = pickOne(from.filter(id => n[id] === fewest));
-    return Math.random() < 0.5 ? [a, b] : [b, a];
-  }
-  function compare() {
-    pair ??= nextPair();
-    let busy = false, upcoming = nextPair(), layout = {n: N, w: 0, h: 0};
-    preload(upcoming);
-    const view = el('div', {class: 'view'});
-    const moments = el('div', {class: 'moments'}, ...m.moments.map(([label], i) => el('button', {onclick: () => {moment = i; draw();}}, label)));
-    const bar = el('div', {class: 'bar'},
-      el('button', {onclick: () => choose(pair[0])}, '← Left'), el('button', {onclick: () => choose(null)}, 'Equal'),
-      el('button', {onclick: pass}, 'Pass'), el('button', {onclick: () => choose(pair[1])}, 'Right →'), el('button', {onclick: undo}, 'Undo'));
-    main.append(el('div', {class: 'screen compare'}, view, moments, bar,
-      el('p', {class: 'hint'}, 'Tap the better theme · ', el('kbd', {}, '←'), el('kbd', {}, '→'), ' pick · ', el('kbd', {}, '↑'), ' equal · ', el('kbd', {}, '↓'), ' pass · ', el('kbd', {}, 'z'), ' undo · ✎ a note')));
-    const ro = onResize(() => {
-      // all moments of both themes when they fit at a useful size; otherwise one moment each and a switch
-      const W = view.clientWidth, H = view.clientHeight, side = (W - 14) / 2 - 12, label = 22;
-      const all = fit(side, H - label, N, 6), one = fit(side, H - label, 1, 6);
-      layout = all.h >= 220 || all.h >= one.h * 0.8 ? {n: N, ...all} : {n: 1, ...one};
-      draw();
-    });
-    ro.observe(view);
-    function draw() {
-      moments.hidden = layout.n === N;
-      [...moments.children].forEach((b, i) => b.classList.toggle('on', i === moment));
-      const shown = layout.n === N ? m.moments.map((_, i) => i) : [moment];
-      view.replaceChildren(...pair.map(id => {
-        const it = byId.get(id);
-        return el('div', {class: 'side', onclick: () => choose(id)},
-          el('div', {class: 'imgs'}, ...shown.map(i => el('figure', {}, el('img', {src: still(id, i), alt: `${it.name}, ${m.moments[i][0]}`, style: `width:${layout.w}px;height:${layout.h}px`}),
-            layout.n === N ? el('figcaption', {}, m.moments[i][0]) : null))),
-          el('div', {class: 'label'}, el('b', {}, it.name), el('button', {class: 'pen', title: 'Note', onclick: e => {e.stopPropagation(); editNote(id);}}, notes[id] ? '✎ note' : '✎')));
-      }));
-    }
-    paint = draw;
-    function advance(delay) {
-      last = pair; const next = upcoming;
-      setTimeout(() => {pair = next.some(id => last.includes(id)) ? nextPair() : next; upcoming = nextPair(); preload(upcoming); busy = false; draw();}, delay);
-    }
-    function choose(winner) {
-      if (busy) return; busy = true;
-      record({kind: 'pick', a: pair[0], b: pair[1], winner});
-      view.querySelectorAll('.side').forEach((s, i) => s.classList.toggle('chosen', winner === null || pair[i] === winner));
-      advance(200);
-    }
-    function pass() {if (busy) return; busy = true; advance(0);}
     function undo() {
-      const p = picks.at(-1); if (!p || busy) return;
-      record({kind: 'undo'}); pair = [p.a, p.b]; draw();
+      const ev = undoMine(); if (!ev) return;
+      document.querySelector('.toast')?.remove();
+      if (ev.kind === 'duel') {location.hash = '#duel'; return;}
+      go(order.indexOf(ev.kind === 'verdict' ? ev.theme : ev.themes[0]));
     }
-    const key = e => {
-      if (typing(e) || document.querySelector('.sheet,.lb')) return;
-      if (e.key === 'ArrowLeft') choose(pair[0]); else if (e.key === 'ArrowRight') choose(pair[1]);
-      else if (e.key === 'ArrowUp' || e.key === '=') choose(null); else if (e.key === 'ArrowDown' || e.key === ' ') pass();
-      else if (e.key === 'z') undo(); else return;
+    const keys = e => {
+      if (busy() || e.metaKey || e.ctrlKey || e.altKey || ['TEXTAREA', 'INPUT'].includes(e.target.tagName)) return;
+      if (/^[1-4]$/.test(e.key)) give(VERDICTS[+e.key - 1]);
+      else if (e.key === '[' || e.key === 'ArrowLeft') go(sortAt - 1); else if (e.key === ']' || e.key === 'ArrowRight') go(sortAt + 1);
+      else if (e.key === 'z' || e.key === 'Backspace') undo(); else if (e.key === 'n' && sortAt >= 0) note([order[sortAt]]);
+      else if (e.key === 'v' && sortAt >= 0) viewer([order[sortAt]]); else if (e.key === 'Tab') location.hash = '#duel'; else return;
       e.preventDefault();
     };
-    addEventListener('keydown', key);
-    return () => {removeEventListener('keydown', key); ro.disconnect();};
+    addEventListener('keydown', keys); paint(); if (sortAt >= 0) preload([order[(sortAt + 1) % order.length]]);
+    return () => {removeEventListener('keydown', keys); stop(); document.querySelector('.toast')?.remove();};
   }
 
-  // ── Standings ──
-  let sortBy = 'elo';
-  function standings() {
-    const {r, n} = elo(), box = el('div', {class: 'scroll'});
-    const cols = [['', null], ['Theme', 'name'], ['Grade', 'grade'], ['Elo', 'elo'], ['Picks', 'n']];
-    const val = {name: it => it.name, grade: it => grades[it.id] ?? -1, elo: it => n[it.id] ? r[it.id] : -1, n: it => n[it.id]};
-    const rows = [...items].sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name) : val[sortBy](b) - val[sortBy](a) || val.grade(b) - val.grade(a));
-    box.append(el('p', {}, 'Tap a column to sort, a picture to enlarge. Elo is a guide: it moves with each pick and settles after a few per theme.'),
-      el('table', {}, el('thead', {}, el('tr', {}, ...cols.map(([label, k]) => el('th', {class: k && k !== 'name' ? 'n' : '', onclick: () => {if (k) {sortBy = k; show();}}}, label + (k === sortBy ? ' ↓' : ''))))),
-        el('tbody', {}, ...rows.map(it => el('tr', {},
-          el('td', {}, el('img', {src: still(it.id, 0), alt: '', loading: 'lazy', onclick: () => enlarge(it.id, 0)})),
-          el('td', {}, it.name, notes[it.id] ? el('div', {class: 'note'}, notes[it.id]) : null),
-          el('td', {class: 'n'}, String(grades[it.id] ?? '–')),
-          el('td', {class: 'n'}, n[it.id] ? String(Math.round(r[it.id])) : '–'),
-          el('td', {class: 'n'}, String(n[it.id])))))));
-    main.append(box);
+  // ── Duel ──
+  let pair = null, last = [];
+  const group = id => byId.get(id)?.group ?? null;
+  const nextPair = () => choosePair(themes, record, {last, group});
+  function duel() {
+    pair ??= nextPair();
+    let shown = performance.now(), locked = false;
+    const decide = o => () => choose(o);
+    const main1 = el('div', {class: 'row main'}, el('button', {onclick: decide('left')}, key('◀ Left', '←')), el('button', {onclick: decide('equal')}, key('= Equal', '↑')),
+      el('button', {onclick: decide('pass')}, key('Pass', '↓')), el('button', {onclick: decide('right')}, key('Right ▶', '→')));
+    const aux = el('div', {class: 'row aux'}, el('button', {onclick: undo}, key('↶ Undo', 'z')), el('button', {onclick: () => pair && note(pair.slice(0, 2))}, key('✎ Note', 'n')));
+    const auxRail = el('div', {class: 'row aux'}, el('button', {onclick: decide('equal')}, '= Equal'), el('button', {onclick: decide('pass')}, 'Pass'),
+      el('button', {onclick: undo}, '↶ Undo'), el('button', {onclick: () => pair && note(pair.slice(0, 2))}, '✎ Note'));
+    const bar = el('div', {class: 'bar'}, main1, aux, auxRail);
+    const rails = [[el('button', {onclick: decide('left')}, '◀ Left')], [el('button', {onclick: decide('right')}, 'Right ▶')]];
+    const {stage, root, stop} = screen({rails, bar});
+    const sideways = () => getComputedStyle(root).gridTemplateColumns.split(' ').length === 3;
+    function paint() {
+      aux.hidden = sideways(); auxRail.hidden = !sideways();
+      if (!pair) {stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, 'Fewer than two themes left to duel (the cut ones sit out).'))); return;}
+      const size = layout(stage.clientWidth, stage.clientHeight, 2);
+      stage.style.setProperty('--between', `${size.between}px`);
+      stage.replaceChildren(...pair.slice(0, 2).map((id, side) => themeView(id, size, {onlook: () => viewer(pair.slice(0, 2), side), tag: side ? 'Right' : 'Left'})));
+    }
+    repaint = paint;
+    function choose(outcome) {
+      if (!pair || locked || busy()) return; locked = true;
+      const [a, b, why] = pair, ms = Math.round(performance.now() - shown);
+      emit({kind: 'duel', left: a, right: b, outcome, ms, why});
+      const views = stage.querySelectorAll('.theme');
+      if (outcome === 'left' || outcome === 'equal') views[0]?.classList.add('flash');
+      if (outcome === 'right' || outcome === 'equal') views[1]?.classList.add('flash');
+      const la = byId.get(a).label, lb = byId.get(b).label;
+      const text = outcome === 'left' ? `“${la}” over “${lb}”` : outcome === 'right' ? `“${lb}” over “${la}”` : outcome === 'equal' ? `Equal: “${la}”, “${lb}”` : 'Passed';
+      toast(text, {onNote: () => note([a, b]), onUndo: undo});
+      last = [a, b]; const upcoming = nextPair(); if (upcoming) preload(upcoming.slice(0, 2));
+      setTimeout(() => {pair = upcoming; shown = performance.now(); locked = false; paint();}, 160);
+    }
+    function undo() {
+      const ev = undoMine(); if (!ev) return;
+      document.querySelector('.toast')?.remove();
+      if (ev.kind === 'verdict') {sortAt = order.indexOf(ev.theme); location.hash = '#sort'; return;}
+      if (ev.kind === 'duel') {pair = [ev.left, ev.right, 'again']; shown = performance.now(); locked = false; paint();}
+    }
+    const keys = e => {
+      if (busy() || e.metaKey || e.ctrlKey || e.altKey || ['TEXTAREA', 'INPUT'].includes(e.target.tagName)) return;
+      const k = {ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'equal', '=': 'equal', ArrowDown: 'pass', ' ': 'pass'}[e.key];
+      if (k) choose(k);
+      else if (e.key === 'z' || e.key === 'Backspace') undo(); else if (e.key === 'n' && pair) note(pair.slice(0, 2));
+      else if (e.key === 'v' && pair) viewer(pair.slice(0, 2)); else if (e.key === 'Tab') location.hash = '#sort'; else return;
+      e.preventDefault();
+    };
+    addEventListener('keydown', keys); paint();
+    return () => {removeEventListener('keydown', keys); stop(); document.querySelector('.toast')?.remove();};
   }
 
-  await flush(); await load(); show();
+  show();
+
+  // ── Results: one ranking from every verdict and duel ──
+  function showResults() {
+    for (const a of seg.children) a.classList.toggle('on', a.dataset.m === 'results');
+    const paint = () => {
+      const top = 32, f = fit(themes, record, {top}), page = el('div', {class: 'page'});
+      const nDuels = record.duels.filter(d => d.outcome !== 'pass').length;
+      page.append(el('h2', {}, S.title),
+        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} duels, ${record.notes.length} notes. Strength: a Bradley–Terry fit of the duels with ties, each verdict an anchor; ` +
+          `“Best ${top}”: how often a theme lands among the best ${top} when the uncertainty is drawn. The line marks the ${top}th.`),
+        el('table', {}, el('thead', {}, el('tr', {}, ['#', 'Theme', '', 'Verdict', 'Strength', `Best ${top}`, 'Duels'].map((h, i) => el('th', {class: i >= 4 || i === 0 ? 'n' : ''}, h)))),
+          el('tbody', {}, f.order.map(r => {
+            const t = byId.get(r.id), notes = record.notes.filter(n => n.themes.includes(r.id));
+            return el('tr', {class: r.rank === top ? 'cutline' : ''},
+              el('td', {class: 'n'}, String(r.rank)),
+              el('td', {}, el('div', {class: 'pair'}, S.moments.map((_, i) => el('img', {src: still(r.id, i), alt: '', loading: 'lazy', onclick: () => viewer([r.id])})))),
+              el('td', {}, t.label, notes.length ? el('div', {class: 'notes'}, notes.map(n => el('div', {}, `${n.themes.length > 1 ? 'pair: ' : ''}“${n.text}”`))) : null),
+              el('td', {}, r.verdict ? el('i', {class: `v v-${r.verdict}`}, WORD[r.verdict]) : '–'),
+              el('td', {class: 'n'}, `${r.strength.toFixed(2)} ± ${r.se.toFixed(2)}`),
+              el('td', {class: 'n'}, `${Math.round(r.pTop * 100)}%`, el('span', {class: 'meter'}, el('i', {style: `width:${Math.round(r.pTop * 100)}%`}))),
+              el('td', {class: 'n'}, String(r.duels)));
+          }))));
+      main.replaceChildren(page);
+    };
+    repaint = paint; paint();
+  }
 }
 </script>
 </body>

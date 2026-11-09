@@ -64,9 +64,10 @@ const server = createServer(async (req, res) => {
       : url.pathname.startsWith('/api/spec') ? specs : undefined;
     if (handler && await handler(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}
-    // the theme ratings site at a short address: /rate/ lists the sets, /rate/<set> is one set (the page reads it from the address)
+    // the theme ratings site at short addresses: /rate/ lists the sets; /rate/<set> judges one, /rate/<set>/results its standings
+    // (the page reads which from the address)
     if (url.pathname === '/rate') {res.writeHead(302, {Location: '/rate/'}).end(); return;}
-    if (/^\/rate\/([a-z0-9-]{1,80})?$/.test(url.pathname)) {serveStatic(req, res, new URL('/generated/concept-lab/rate/index.html', url)); return;}
+    if (/^\/rate\/(?:[a-z0-9-]{1,80}(?:\/results)?)?$/.test(url.pathname)) {serveStatic(req, res, new URL('/generated/concept-lab/rate/index.html', url)); return;}
     serveStatic(req, res, url);
   } catch (e) {
     if (!res.headersSent) res.writeHead(500, {'Content-Type': 'application/json'});

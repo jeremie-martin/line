@@ -2,6 +2,8 @@
 //   fold(events)          → the current record: verdicts (latest per theme), duels, notes; retracted events removed
 //   fit(themes, record)   → per theme: strength (Bradley–Terry with ties, Davidson), its uncertainty, P(among the best `top`)
 //   choosePair(...)       → the next duel and why: coverage first, then the line around `top`, siblings, some random
+// A set may retire themes (set.json `retired`): they stay in the fit, so every judgment that involved them still informs the
+// others, but they are never shown again and never count for the best `top` (fit's `among`, choosePair's `retired`).
 // Events refer to themes by id (a hash of the full specification, freeze.mjs), so a judgment always means one exact theme.
 
 export const VERDICTS = ['love', 'keep', 'unsure', 'cut'];
@@ -22,7 +24,7 @@ export function fold(events) {
 }
 
 /** Bradley–Terry with ties (Davidson), each theme's verdict a Gaussian prior on its strength. Passes carry no information. */
-export function fit(themes, record, {top = 32, iterations = 400} = {}) {
+export function fit(themes, record, {top = 32, iterations = 400, among = null} = {}) {
   const ids = themes.map(t => t.id), at = new Map(ids.map((id, i) => [id, i])), n = ids.length;
   const mu = ids.map(id => PRIOR[record.verdicts[id]] ?? 0), sd = ids.map(id => record.verdicts[id] ? PRIOR_SD : NO_VERDICT_SD);
   const games = record.duels.filter(d => d.outcome !== 'pass' && at.has(d.left) && at.has(d.right))
@@ -48,16 +50,20 @@ export function fit(themes, record, {top = 32, iterations = 400} = {}) {
   // uncertainty from the curvature (information) at the fit; P(among the best `top`) by sampling
   const info = sd.map(x => 1 / x ** 2), duelsOf = new Array(n).fill(0);
   for (const [i, j] of games) {const [pi, pj] = probs(i, j); const v = pi * (1 - pi) + pj * (1 - pj); info[i] += v / 2; info[j] += v / 2; duelsOf[i]++; duelsOf[j]++;}
-  const se = info.map(x => 1 / Math.sqrt(x)), K = Math.min(top, n), inTop = new Array(n).fill(0), draws = 400;
+  // the best `top` among the themes that compete (`among`, every theme by default): a retired theme is never in it
+  const competes = ids.map(id => !among || among.has(id)), m = competes.filter(Boolean).length;
+  const se = info.map(x => 1 / Math.sqrt(x)), K = Math.min(top, m), inTop = new Array(n).fill(0), draws = 400;
   let seed = 12345; const rand = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
   const normal = () => Math.sqrt(-2 * Math.log(rand() || 1e-9)) * Math.cos(2 * Math.PI * rand());
   for (let d = 0; d < draws; d++) {
-    const x = s.map((v, i) => v + se[i] * normal()), cut = [...x].sort((a, b) => b - a)[K - 1];
-    x.forEach((v, i) => {if (v >= cut) inTop[i]++;});
+    const x = s.map((v, i) => v + se[i] * normal()), cut = x.filter((_, i) => competes[i]).sort((a, b) => b - a)[K - 1];
+    x.forEach((v, i) => {if (competes[i] && v >= cut) inTop[i]++;});
   }
-  const rows = ids.map((id, i) => ({id, strength: s[i], se: se[i], pTop: inTop[i] / draws, duels: duelsOf[i], verdict: record.verdicts[id] ?? null}));
-  const order = [...rows].sort((a, b) => b.strength - a.strength);
-  order.forEach((r, k) => {r.rank = k + 1;});
+  const rows = ids.map((id, i) => ({id, strength: s[i], se: se[i], pTop: competes[i] ? inTop[i] / draws : null, duels: duelsOf[i],
+    verdict: record.verdicts[id] ?? null, retired: !competes[i]}));
+  // the order of the competing themes (ranked), then the retired ones (unranked)
+  const order = [...rows].sort((a, b) => (a.retired - b.retired) || b.strength - a.strength);
+  order.filter(r => !r.retired).forEach((r, k) => {r.rank = k + 1;});
   return {rows: Object.fromEntries(rows.map(r => [r.id, r])), order, tie: Math.exp(lnu), games: games.length};
 }
 
@@ -68,10 +74,10 @@ export function fit(themes, record, {top = 32, iterations = 400} = {}) {
  *  In simulation (87 themes, a judge of known taste, rate/ in the 9 November notes) it finds 28.5 of the true best 32 after
  *  500 duels and 29.3 after 1000, against 25.0 and 27.3 for random pairs, and orders the whole set at least as well.
  *  A few pairs are siblings (versions of one draft: "which version", what drafting learns from) or random (against a biased fit). */
-export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null} = {}) {
-  const live = themes.filter(t => record.verdicts[t.id] !== 'cut').map(t => t.id), pool = live.filter(id => !last.includes(id));
+export function choosePair(themes, record, {top = 32, last = [], rand = Math.random, group = () => null, retired = new Set()} = {}) {
+  const live = themes.filter(t => record.verdicts[t.id] !== 'cut' && !retired.has(t.id)).map(t => t.id), pool = live.filter(id => !last.includes(id));
   if (pool.length < 2) return null;
-  const {rows} = fit(themes, record, {top, iterations: 400});
+  const {rows} = fit(themes, record, {top, iterations: 400, among: retired.size ? new Set(themes.filter(t => !retired.has(t.id)).map(t => t.id)) : null});
   const met = new Map();
   for (const d of record.duels) {const k = [d.left, d.right].sort().join(' '); met.set(k, (met.get(k) ?? 0) + 1);}
   const order = (a, b, why) => rand() < 0.5 ? [a, b, why] : [b, a, why];

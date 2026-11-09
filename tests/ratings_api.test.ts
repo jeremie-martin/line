@@ -62,6 +62,23 @@ describe('theme judgments: the model', () => {
     const count = (x: string) => fold(events).duels.filter((d: {left: string; right: string}) => d.left === x || d.right === x).length;
     for (const x of ['a', 'b', 'c', 'd', 'e']) expect(count(x)).toBeGreaterThanOrEqual(3);
   });
+  it('a retired theme still informs the fit but is never shown and never counts for the best', () => {
+    const events: object[] = [];
+    let n = 0;
+    // a beats everyone; b beats c, d, e; a is then retired
+    for (let k = 0; k < 4; k++) for (const x of ['b', 'c', 'd', 'e', 'f']) events.push(duel(n++, x, 'a', 'right'));
+    for (let k = 0; k < 4; k++) for (const x of ['c', 'd', 'e']) events.push(duel(n++, 'b', x, 'left'));
+    const among = new Set(['b', 'c', 'd', 'e', 'f']), f = fit(T, fold(events), {top: 1, among});
+    expect(f.rows.a.retired).toBe(true);
+    expect(f.rows.a.pTop).toBeNull();
+    expect(f.order.at(-1).id).toBe('a');  // listed last, unranked
+    expect(f.order[0].id).toBe('b');
+    expect(f.rows.b.rank).toBe(1);
+    expect(f.rows.a.strength).toBeGreaterThan(f.rows.b.strength);  // what was said about it still stands
+    let seed = 3;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let k = 0; k < 20; k++) expect(choosePair(T, fold(events), {rand, retired: new Set(['a'])})!.slice(0, 2)).not.toContain('a');
+  });
 });
 
 describe('theme judgments: a theme is its full specification', () => {

@@ -115,7 +115,10 @@ try {
   ok(r1.added === 1 && r2.added === 0, 'the API keeps a retried event once');
   ok(await post({setHash: 'changed', events: [probe]}) === 409, 'the API refuses events for a changed set');
   await k.goto(U + '/results'); await k.waitForSelector('tbody tr');
-  ok(await k.$$eval('tbody tr', r => r.length) === (await (await fetch(`${HOST}/generated/concept-lab/rate/sets/zz-check/set.json`)).json()).themes.length, 'results list every theme');
+  ok(await k.$$eval('tbody tr:not(.retired-head)', r => r.length) === frozen.themes.length, 'results list every theme');
+  ok(await k.$$eval('tbody tr.retired', r => r.length) === (frozen.retired ?? []).length, 'results list the retired themes last');
+  const gone = new Set(frozen.retired ?? []), shownIn = all.filter(e => e.kind === 'duel').flatMap(e => [e.left, e.right]).concat(all.filter(e => e.kind === 'verdict').map(e => e.theme));
+  ok(shownIn.length && !shownIn.some(id => gone.has(id)), `no retired theme was shown (${shownIn.length} looked at)`);
   await k.screenshot({path: `${OUT}/desk-results.png`});
   await k.goto(`${HOST}/rate/`); await k.waitForSelector('.sets a'); ok(true, 'the home page lists the sets');
   ok(!errs.length, `no page errors ${errs.join(' | ')}`);

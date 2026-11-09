@@ -12,7 +12,8 @@ const HERE = import.meta.dirname, S = JSON.parse(readFileSync(join(HERE, 'sets',
 // the set's judgments and those of the sets it builds on (the same themes, the same ids), in the order they were saved
 const logOf = s => {const f = join(HERE, '../docs/owner-answers/ratings', `${s}.jsonl`); return existsSync(f) ? readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];};
 const events = [...(S.buildsOn ?? []), set].flatMap(logOf).sort((a, b) => (a.savedAt ?? '').localeCompare(b.savedAt ?? ''));
-const record = fold(events), f = fit(S.themes, record, {top}), byId = new Map(S.themes.map(t => [t.id, t]));
+const retired = new Set(S.retired ?? []), among = new Set(S.themes.filter(t => !retired.has(t.id)).map(t => t.id));
+const record = fold(events), f = fit(S.themes, record, {top, among}), byId = new Map(S.themes.map(t => [t.id, t]));
 
 // OKLab distance between two themes' key colours, plus their look differences
 const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
@@ -28,7 +29,7 @@ const likeness = (x, y) => {
   return Math.max(0, 1 - d / 0.15) * (x.spec.look.band === y.spec.look.band ? 1 : 0.7) * (x.spec.look.drop === y.spec.look.drop ? 1 : 0.8);
 };
 const chosen = [];
-for (const r of f.order.filter(r => r.verdict !== 'cut')) {
+for (const r of f.order.filter(r => r.verdict !== 'cut' && !r.retired)) {
   if (chosen.length >= top) break;
   const t = byId.get(r.id), worst = Math.max(0, ...chosen.map(c => likeness(t, byId.get(c.id))));
   if (worst < 0.6) chosen.push(r); // too like one already in: left for a later round's variety, not chosen twice
@@ -44,7 +45,7 @@ const lines = [
   `## A varied best ${top} (${chosen.length})`, '',
   ...chosen.map((r, i) => `${i + 1}. **${byId.get(r.id).label}** (${r.id}): strength ${r.strength.toFixed(2)} ± ${r.se.toFixed(2)}, P ${Math.round(r.pTop * 100)}%, ${r.verdict ? word[r.verdict] : 'unsorted'}, ${r.duels} duels`),
   '', '## Every theme, strongest first', '', '| # | Theme | Verdict | Strength | P(best) | Duels | Notes |', '|---|---|---|---|---|---|---|',
-  ...f.order.map(r => `| ${r.rank} | ${byId.get(r.id).label} | ${r.verdict ? word[r.verdict] : '–'} | ${r.strength.toFixed(2)} ± ${r.se.toFixed(2)} | ${Math.round(r.pTop * 100)}% | ${r.duels} | ${notesOf(r.id).join(' ').replace(/\|/g, '/')} |`),
+  ...f.order.map(r => `| ${r.retired ? 'retired' : r.rank} | ${byId.get(r.id).label} | ${r.verdict ? word[r.verdict] : '–'} | ${r.strength.toFixed(2)} ± ${r.se.toFixed(2)} | ${r.retired ? '–' : Math.round(r.pTop * 100) + '%'} | ${r.duels} | ${notesOf(r.id).join(' ').replace(/\|/g, '/')} |`),
   '', '## Close calls (equal, passed or slower than 8 s)', '',
   ...close.map(d => `- ${byId.get(d.left).label} vs ${byId.get(d.right).label}: ${d.outcome}${d.ms ? `, ${(d.ms / 1000).toFixed(1)} s` : ''}`),
 ];

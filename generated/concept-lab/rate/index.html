@@ -104,6 +104,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 td .pair{display:flex;gap:3px}td .pair img{width:34px;border-radius:3px;cursor:zoom-in}
 td .notes{color:var(--soft);font-size:12px;margin-top:2px}
 tr.cutline td{border-bottom:2px solid var(--ink)}
+tr.retired{opacity:.55}tr.retired-head td{padding-top:18px;font-weight:600;color:var(--soft)}
 .meter{display:inline-block;width:60px;height:6px;background:var(--line);border-radius:3px;vertical-align:middle;margin-left:6px;overflow:hidden}
 .meter i{display:block;height:100%;background:var(--ok)}
 </style>
@@ -142,6 +143,8 @@ async function app(set, results) {
   const base = `/generated/concept-lab/rate/sets/${set}`;
   const S = await fetch(`${base}/set.json`).then(r => r.ok ? r.json() : Promise.reject(new Error('unknown set')));
   const themes = S.themes, byId = new Map(themes.map(t => [t.id, t])), M = S.moments.length;
+  // retired themes (set.json retired) stay in the fit, so what was said about them still counts, but are never shown again
+  const retired = new Set(S.retired ?? []), shown = themes.filter(t => !retired.has(t.id)), among = new Set(shown.map(t => t.id));
   const still = (id, i) => `${base}/stills/${id}-${i + 1}.jpg`;
   const preload = ids => ids.forEach(id => S.moments.forEach((_, i) => {new Image().src = still(id, i);}));
   document.title = S.title; $('title').textContent = S.title;
@@ -191,8 +194,8 @@ async function app(set, results) {
     refold(); push(); return ev;
   }
   function status() {
-    const v = Object.keys(record.verdicts).length, d = record.duels.filter(x => x.outcome !== 'pass').length;
-    $('status').replaceChildren(`${v}/${themes.length} sorted · ${d} compared · `,
+    const v = shown.filter(t => record.verdicts[t.id]).length, d = record.duels.filter(x => x.outcome !== 'pass').length;
+    $('status').replaceChildren(`${v}/${shown.length} sorted · ${d} compared · `,
       stale ? el('span', {class: 'bad'}, 'set changed: reload') : outbox.length ? el('span', {class: failed ? 'bad' : ''}, failed ? `${outbox.length} waiting` : 'saving') : 'saved');
   }
   let repaint = null, teardown = () => {};
@@ -294,7 +297,7 @@ async function app(set, results) {
   }
 
   if (results) return showResults();
-  const mode = () => ['#compare', '#duel'].includes(location.hash) ? 'compare' : location.hash === '#sort' ? 'sort' : themes.every(t => record.verdicts[t.id]) ? 'compare' : 'sort';
+  const mode = () => ['#compare', '#duel'].includes(location.hash) ? 'compare' : location.hash === '#sort' ? 'sort' : shown.every(t => record.verdicts[t.id]) ? 'compare' : 'sort';
   function show() {
     teardown(); main.replaceChildren(); repaint = null;
     for (const a of seg.children) a.classList.toggle('on', a.dataset.m === mode());
@@ -304,7 +307,7 @@ async function app(set, results) {
 
   // ── Sort ──
   const h32 = s => {let h = 2166136261; for (const c of set + s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0;};
-  const order = [...themes].sort((a, b) => h32(a.id) - h32(b.id)).map(t => t.id);
+  const order = [...shown].sort((a, b) => h32(a.id) - h32(b.id)).map(t => t.id);
   let sortAt = -1;
   function sort() {
     const next = from => {for (let k = 1; k <= order.length; k++) {const j = (from + k) % order.length; if (!record.verdicts[order[j]]) return j;} return -1;};
@@ -318,7 +321,7 @@ async function app(set, results) {
     const {stage, stop} = screen({rails: [left, railVerdicts], bar});
     function paint() {
       if (sortAt === -2) {
-        stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, `All ${themes.length} sorted.`), el('button', {onclick: () => {location.hash = '#compare';}}, 'On to comparing'),
+        stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, `All ${shown.length} sorted.`), el('button', {onclick: () => {location.hash = '#compare';}}, 'On to comparing'),
           el('button', {onclick: () => go(0)}, 'Look through them again')));
         return;
       }
@@ -357,7 +360,7 @@ async function app(set, results) {
   // ── Compare ──
   let pair = null, last = [];
   const group = id => byId.get(id)?.group ?? null;
-  const nextPair = () => choosePair(themes, record, {last, group});
+  const nextPair = () => choosePair(themes, record, {last, group, retired});
   function compare() {
     pair ??= nextPair();
     let shown = performance.now(), locked = false;
@@ -418,24 +421,27 @@ async function app(set, results) {
   function showResults() {
     for (const a of seg.children) a.classList.toggle('on', a.dataset.m === 'results');
     const paint = () => {
-      const top = 32, f = fit(themes, record, {top}), page = el('div', {class: 'page'});
+      const top = 32, f = fit(themes, record, {top, among}), page = el('div', {class: 'page'});
       const nDuels = record.duels.filter(d => d.outcome !== 'pass').length;
       // settled: its place relative to the best `top` is clear either way (in or out in at least 9 draws out of 10)
-      const settled = f.order.filter(r => r.pTop >= 0.9 || r.pTop <= 0.1).length;
+      const settled = f.order.filter(r => !r.retired && (r.pTop >= 0.9 || r.pTop <= 0.1)).length;
+      const sorted = shown.filter(t => record.verdicts[t.id]).length;
       page.append(el('h2', {}, S.title),
-        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} comparisons, ${record.notes.length} notes; ${settled} of ${themes.length} settled (clearly in or out of the best ${top}). Strength: a Bradley–Terry fit of the comparisons with ties, each verdict an anchor; ` +
+        el('p', {}, `${sorted} of ${shown.length} sorted, ${nDuels} comparisons, ${record.notes.length} notes; ${settled} of ${shown.length} settled (clearly in or out of the best ${top}). ` +
+          (retired.size ? `${retired.size} retired themes are listed last: no longer shown, but what was said about them still counts. ` : '') + `Strength: a Bradley–Terry fit of the comparisons with ties, each verdict an anchor; ` +
           `“Best ${top}”: how often a theme lands among the best ${top} when the uncertainty is drawn. The line marks the ${top}th.`),
         el('table', {}, el('thead', {}, el('tr', {}, ['#', 'Theme', '', 'Verdict', 'Strength', `Best ${top}`, 'Compared'].map((h, i) => el('th', {class: i >= 4 || i === 0 ? 'n' : ''}, h)))),
-          el('tbody', {}, f.order.map(r => {
+          el('tbody', {}, f.order.flatMap(r => {
             const t = byId.get(r.id), notes = record.notes.filter(n => n.themes.includes(r.id));
-            return el('tr', {class: r.rank === top ? 'cutline' : ''},
-              el('td', {class: 'n'}, String(r.rank)),
+            const head = r.retired && r === f.order.find(x => x.retired) ? [el('tr', {class: 'retired-head'}, el('td', {colspan: 7}, 'Retired'))] : [];
+            return [...head, el('tr', {class: r.rank === top ? 'cutline' : r.retired ? 'retired' : ''},
+              el('td', {class: 'n'}, r.retired ? '–' : String(r.rank)),
               el('td', {}, el('div', {class: 'pair'}, S.moments.map((_, i) => el('img', {src: still(r.id, i), alt: '', loading: 'lazy', onclick: () => viewer([r.id])})))),
               el('td', {}, t.label, notes.length ? el('div', {class: 'notes'}, notes.map(n => el('div', {}, `${n.themes.length > 1 ? 'pair: ' : ''}“${n.text}”`))) : null),
               el('td', {}, r.verdict ? el('i', {class: `v v-${r.verdict}`}, WORD[r.verdict]) : '–'),
               el('td', {class: 'n'}, `${r.strength.toFixed(2)} ± ${r.se.toFixed(2)}`),
-              el('td', {class: 'n'}, `${Math.round(r.pTop * 100)}%`, el('span', {class: 'meter'}, el('i', {style: `width:${Math.round(r.pTop * 100)}%`}))),
-              el('td', {class: 'n'}, String(r.duels)));
+              el('td', {class: 'n'}, r.retired ? '–' : [`${Math.round(r.pTop * 100)}%`, el('span', {class: 'meter'}, el('i', {style: `width:${Math.round(r.pTop * 100)}%`}))]),
+              el('td', {class: 'n'}, String(r.duels)))];
           }))));
       main.replaceChildren(page);
     };

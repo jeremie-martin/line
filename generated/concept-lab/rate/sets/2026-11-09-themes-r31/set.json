@@ -1,0 +1,5055 @@
+{
+ "set": "2026-11-09-themes-r31",
+ "title": "Themes alone (no drop looks), and 16 drafts from what you chose",
+ "round": 31,
+ "created": "2026-11-09T21:00:00Z",
+ "song": "circus",
+ "renderer": "v7.1-134-g0f1028d8-dirty",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "buildsOn": [
+  "2026-11-09-themes-r30",
+  "2026-11-09-themes"
+ ],
+ "retired": [
+  "t-e5e503a34036",
+  "t-8e9b5d2fe88f",
+  "t-c022f567cc05",
+  "t-bad5d3c43a2f",
+  "t-1373277f23a2",
+  "t-7257fcc62d7b",
+  "t-3decc5d65e73",
+  "t-3da8890ab977",
+  "t-d3736aa5f507",
+  "t-a51bf4ada5d9",
+  "t-dbceaa234963",
+  "t-f7ebb1dbdb35",
+  "t-846b64a0c346",
+  "t-e24cd2fc1766",
+  "t-ef6662657a35",
+  "t-104b0976cbf0",
+  "t-bc65346504f1",
+  "t-23b5c7b5931b",
+  "t-b665c2e4b8dc",
+  "t-62d1097c5f6f",
+  "t-e8c9c9469228",
+  "t-828c55cb8350",
+  "t-6db108c41408",
+  "t-f225645cda11",
+  "t-058b22a54506",
+  "t-65b0d430c317",
+  "t-44a80d4cf4db",
+  "t-fd55c7c54c01",
+  "t-16af93aa3026",
+  "t-31c155204250",
+  "t-0d4893aceee7",
+  "t-ef4d04a9fc71",
+  "t-467b4e069981",
+  "t-f8fa6c34794f",
+  "t-cb6b85520154",
+  "t-762e9f8ebf5e",
+  "t-9c23d4e6898c",
+  "t-da88c4ad1125",
+  "t-10c254efb9d8",
+  "t-3f40d3ecb2de",
+  "t-d15c77a99104",
+  "t-45b6da67360e",
+  "t-1c78673c3981",
+  "t-ebf4d83914c9",
+  "t-b93687af8231",
+  "t-0e325d516f75",
+  "t-1a26dc648f5e",
+  "t-21101d0bc499",
+  "t-50ea2abb4516",
+  "t-8adf3d840ec9",
+  "t-53fec6bd3ee8",
+  "t-77ded13eee43",
+  "t-94e10cf1d850",
+  "t-df37823f95b8",
+  "t-0dccea9497c1",
+  "t-1d916399733f",
+  "t-94c43a1f0ffd",
+  "t-f48fce7c937d",
+  "t-7d2902b8347a",
+  "t-23775aed7dac",
+  "t-1021e40694b2",
+  "t-19f96410b4be",
+  "t-73fa49439a0e",
+  "t-96d72cfce1c1",
+  "t-793c2462e1e7",
+  "t-707ff2c80dda",
+  "t-87455f648e78",
+  "t-c1d5b9ab7470",
+  "t-c2beac65649c",
+  "t-9af9f1d8384c",
+  "t-b1dbc20e5383",
+  "t-98c83e2df735",
+  "t-abdf41891086",
+  "t-09a33789ea1c"
+ ],
+ "themes": [
+  {
+   "id": "t-7257fcc62d7b",
+   "label": "Paper Night",
+   "group": "paper",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d3262e",
+     "ink": "#15181d",
+     "mass": "#3b414a",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#14171d",
+     "paper": "#ffffff",
+     "pencil": "#b4bcc8",
+     "tone": "#eef2f8"
+    },
+    "drop": {
+     "accent": "#ff4d3d",
+     "ink": "#eef1f5",
+     "mass": "#c9ced6",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#101216",
+     "paper": "#101216",
+     "pencil": "#4c535f"
+    },
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8e2b67884d5d",
+   "label": "Hokusai",
+   "group": "hokusai",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d4412a",
+     "ink": "#12294d",
+     "mass": "#1d3e73",
+     "nightInk": "#f4ecdc",
+     "nightPaper": "#0d1f3f",
+     "paper": "#f4ecdc",
+     "pencil": "#b8b4a4"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-bad5d3c43a2f",
+   "label": "Dune to Espresso",
+   "group": "dune",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": {
+     "accent": "#65d2d2",
+     "ink": "#f4ead9",
+     "mass": "#ae9278",
+     "nightInk": "#f4ead9",
+     "nightPaper": "#1e130e",
+     "paper": "#1e130e",
+     "pencil": "#584d45"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ebf4d83914c9",
+   "label": "Prussian",
+   "group": "prussian",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ca6b3f",
+     "ink": "#0b2532",
+     "mass": "#064f6e",
+     "nightInk": "#f2e9d6",
+     "nightPaper": "#041620",
+     "paper": "#f2e9d6",
+     "pencil": "#adaea5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9e99f30948fa",
+   "label": "Celadon",
+   "group": "celadon",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f99d1b",
+     "ink": "#2d1514",
+     "mass": "#8d3331",
+     "nightInk": "#e5f2ec",
+     "nightPaper": "#210d0c",
+     "paper": "#e5f2ec",
+     "pencil": "#aeb0ab"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8e9b5d2fe88f",
+   "label": "Aubergine",
+   "group": "aubergine",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e23247",
+     "ink": "#261322",
+     "mass": "#6b2d5e",
+     "nightInk": "#eeedf9",
+     "nightPaper": "#1d0d1a",
+     "paper": "#eeedf9",
+     "pencil": "#b2acb9"
+    },
+    "drop": {
+     "accent": "#c3bdef",
+     "ink": "#f4ecf1",
+     "mass": "#d31f3c",
+     "nightInk": "#f4ecf1",
+     "nightPaper": "#1f0c1b",
+     "paper": "#1f0c1b",
+     "pencil": "#5f4f5b"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ef4d04a9fc71",
+   "label": "Wisteria",
+   "group": "wisteria",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f37f94",
+     "ink": "#1b1a2f",
+     "mass": "#66629c",
+     "nightInk": "#eaf2f3",
+     "nightPaper": "#131123",
+     "paper": "#eaf2f3",
+     "pencil": "#acb1b8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-baa45154fb75",
+   "label": "Black Iris",
+   "group": "black",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff4d3d",
+     "ink": "#eef1f5",
+     "mass": "#c9ced6",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#101216",
+     "paper": "#101216",
+     "pencil": "#4c535f"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "iris",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7f7cbdd8f3c8",
+   "label": "Plum",
+   "group": "plum",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffb000",
+     "ink": "#f5e9fb",
+     "mass": "#cfb2e6",
+     "nightInk": "#f5e9fb",
+     "nightPaper": "#1c1025",
+     "paper": "#1c1025",
+     "pencil": "#5c4a6a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-16ec03ffd456",
+   "label": "Old Rose",
+   "group": "oldrose",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffd15a",
+     "ink": "#f8ebeb",
+     "mass": "#c7626f",
+     "nightInk": "#f8ebeb",
+     "nightPaper": "#171226",
+     "paper": "#171226",
+     "pencil": "#5b5361"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-762e9f8ebf5e",
+   "label": "Ultramarine",
+   "group": "ultramarine",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fdbf68",
+     "ink": "#eaeef9",
+     "mass": "#006eb8",
+     "nightInk": "#eaeef9",
+     "nightPaper": "#171226",
+     "paper": "#171226",
+     "pencil": "#565465"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-3f40d3ecb2de",
+   "label": "Aconite",
+   "group": "aconite",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fdc57e",
+     "ink": "#f4ebf4",
+     "mass": "#a36aa5",
+     "nightInk": "#f4ebf4",
+     "nightPaper": "#091326",
+     "paper": "#091326",
+     "pencil": "#505464"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-104b0976cbf0",
+   "label": "Seashell Night",
+   "group": "seashell",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f1592b",
+     "ink": "#0f1e2f",
+     "mass": "#3e6594",
+     "nightInk": "#faebe3",
+     "nightPaper": "#081423",
+     "paper": "#faebe3",
+     "pencil": "#b4aead"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-3decc5d65e73",
+   "label": "Peony to Magenta",
+   "group": "peony",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e59564",
+     "ink": "#2e171f",
+     "mass": "#b73f74",
+     "nightInk": "#e2f2f6",
+     "nightPaper": "#200d14",
+     "paper": "#e2f2f6",
+     "pencil": "#acb0b6"
+    },
+    "drop": {
+     "accent": "#ff833a",
+     "ink": "#f8ebee",
+     "mass": "#b73f74",
+     "nightInk": "#f8ebee",
+     "nightPaper": "#170f12",
+     "paper": "#170f12",
+     "pencil": "#5b5154"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-467b4e069981",
+   "label": "Kraft Poster",
+   "group": "kraft",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fffaf0",
+     "ink": "#1a140e",
+     "mass": "#552c0a",
+     "nightInk": "#e6d2b4",
+     "nightPaper": "#1a140e",
+     "paper": "#bb9e79",
+     "pencil": "#8b6e4a",
+     "sun": "#f7f1e3"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-bf43a2210b06",
+   "label": "Cyanotype",
+   "group": "cyanotype",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffc83d",
+     "ink": "#f4f1e6",
+     "mass": "#8dadd7",
+     "nightInk": "#f4f1e6",
+     "nightPaper": "#122e57",
+     "paper": "#384c69",
+     "pencil": "#6e7889"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-65b0d430c317",
+   "label": "Apricot",
+   "group": "apricot",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f8ed43",
+     "ink": "#f6ece8",
+     "mass": "#d97234",
+     "nightInk": "#f6ece8",
+     "nightPaper": "#0c181d",
+     "paper": "#0c181d",
+     "pencil": "#52585a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-c022f567cc05",
+   "label": "Brick to Lacquer",
+   "group": "bricklacquer",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#cd9205",
+     "ink": "#062522",
+     "mass": "#b93c48",
+     "nightInk": "#fbe6a0",
+     "nightPaper": "#091c1a",
+     "paper": "#f6ecd7",
+     "pencil": "#aeb0a1"
+    },
+    "drop": {
+     "accent": "#f2cc6e",
+     "ink": "#e2bb5f",
+     "mass": "#8e3427",
+     "nightInk": "#e2bb5f",
+     "nightPaper": "#141210",
+     "paper": "#141210",
+     "pencil": "#433d34",
+     "sun": "#c43a2c"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8adf3d840ec9",
+   "label": "Heather",
+   "group": "heather",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#efa800",
+     "ink": "#06221e",
+     "mass": "#125950",
+     "nightInk": "#f8eaf0",
+     "nightPaper": "#041815",
+     "paper": "#f8eaf0",
+     "pencil": "#afaeb1"
+    },
+    "drop": {
+     "accent": "#fcb315",
+     "ink": "#f7ebeb",
+     "mass": "#bf444b",
+     "nightInk": "#f7ebeb",
+     "nightPaper": "#041a17",
+     "paper": "#041a17",
+     "pencil": "#4d5957"
+    },
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "rail",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-5e870cd62322",
+   "label": "Lavender Dusk",
+   "group": "lavender",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f0a04f",
+     "ink": "#28213a",
+     "mass": "#6c6185",
+     "nightInk": "#f5e9fb",
+     "nightPaper": "#1c1025",
+     "paper": "#eeecf1",
+     "pencil": "#c2bdcb"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "iris",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-6db108c41408",
+   "label": "Cobalt",
+   "group": "cobalt",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e57f51",
+     "ink": "#0c1e2f",
+     "mass": "#006eb8",
+     "nightInk": "#e7f2ea",
+     "nightPaper": "#061523",
+     "paper": "#e7f2ea",
+     "pencil": "#a5b2b2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-e3bedc8194ba",
+   "label": "Rothko",
+   "group": "rothko",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffc46b",
+     "ink": "#f6dcc4",
+     "mass": "#b84a42",
+     "nightInk": "#f6dcc4",
+     "nightPaper": "#1a0709",
+     "paper": "#221314",
+     "pencil": "#61413c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-07d5336aae38",
+   "label": "Lyons Blue and Gold",
+   "group": "lyons",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f6e7c3",
+     "ink": "#f6ead1",
+     "mass": "#d0a43a",
+     "nightInk": "#f6ead1",
+     "nightPaper": "#081a3f",
+     "paper": "#081a3f",
+     "pencil": "#3e4a63"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-77dcd1b4a4a9",
+   "label": "Slate",
+   "group": "slate",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#deac2e",
+     "ink": "#131e2b",
+     "mass": "#486176",
+     "nightInk": "#ecf1f5",
+     "nightPaper": "#101c28",
+     "paper": "#ecf1f5",
+     "pencil": "#aeb9c2"
+    },
+    "drop": {
+     "accent": "#fda856",
+     "ink": "#ebf1f7",
+     "mass": "#7b95b0",
+     "nightInk": "#ebf1f7",
+     "nightPaper": "#0b1726",
+     "paper": "#0b1726",
+     "pencil": "#4a5666",
+     "sun": "#d8d1bb"
+    },
+    "look": {
+     "accent": "loud",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-16af93aa3026",
+   "label": "Lemon and Blue",
+   "group": "lemonblue",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#b32f4e",
+     "ink": "#171c2c",
+     "mass": "#16485a",
+     "nightInk": "#f1ef83",
+     "nightPaper": "#171c2c",
+     "paper": "#ededde",
+     "pencil": "#a6a8a5",
+     "sun": "#1a7444",
+     "tone": "#edea7c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "rail",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-e8c9c9469228",
+   "label": "White and Vermilion",
+   "group": "whitevermilion",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f15d41",
+     "ink": "#25201e",
+     "mass": "#ba351f",
+     "nightInk": "#fff3e7",
+     "nightPaper": "#142a60",
+     "paper": "#faf9f5",
+     "pencil": "#ada7a1",
+     "sun": "#de4b2f",
+     "tone": "#f4eee7"
+    },
+    "drop": {
+     "accent": "#de4b2f",
+     "ink": "#fff3e7",
+     "mass": "#f1b797",
+     "nightInk": "#fff3e7",
+     "nightPaper": "#142a60",
+     "paper": "#242e43",
+     "pencil": "#5e6471",
+     "sun": "#de4b2f",
+     "tone": "#192f64"
+    },
+    "look": {
+     "accent": "loud",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-fd55c7c54c01",
+   "label": "Blue and Rose",
+   "group": "bluerose",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c0ed62",
+     "ink": "#f6f0db",
+     "mass": "#e99aa6",
+     "nightInk": "#f6f0db",
+     "nightPaper": "#102e3a",
+     "paper": "#102e3a",
+     "pencil": "#65828b",
+     "sun": "#c0ed62",
+     "tone": "#153744"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "fork",
+     "bandHeight": "low",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-dd2580d1b710",
+   "label": "Blushing Dawn",
+   "group": "dawn",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d96629",
+     "ink": "#1c1f37",
+     "mass": "#40456a",
+     "nightInk": "#e2f2f6",
+     "nightPaper": "#121428",
+     "paper": "#e0f1ff",
+     "pencil": "#a8b7bf",
+     "tone": "#ffd6ba"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-91783d8f957b",
+   "label": "Silver and Rust",
+   "group": "silverrust",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c26438",
+     "ink": "#1b2525",
+     "mass": "#675928",
+     "nightInk": "#eef4f0",
+     "nightPaper": "#1b2525",
+     "paper": "#dfd5c0",
+     "pencil": "#8a9995",
+     "sun": "#ae5224",
+     "tone": "#cbd8d2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "rail",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-3da8890ab977",
+   "label": "Aubergine, lavender bars at the drop",
+   "group": "aubergine",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e23247",
+     "ink": "#261322",
+     "mass": "#6b2d5e",
+     "nightInk": "#eeedf9",
+     "nightPaper": "#1d0d1a",
+     "paper": "#eeedf9",
+     "pencil": "#b2acb9"
+    },
+    "drop": {
+     "accent": "#e23247",
+     "ink": "#f4ecf1",
+     "mass": "#b5b1d8",
+     "nightInk": "#f4ecf1",
+     "nightPaper": "#1f0c1b",
+     "paper": "#1f0c1b",
+     "pencil": "#5f4f5b"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-a51bf4ada5d9",
+   "label": "Aubergine, aconite bars at the drop",
+   "group": "aubergine",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e23247",
+     "ink": "#261322",
+     "mass": "#6b2d5e",
+     "nightInk": "#eeedf9",
+     "nightPaper": "#1d0d1a",
+     "paper": "#eeedf9",
+     "pencil": "#b2acb9"
+    },
+    "drop": {
+     "accent": "#e23247",
+     "ink": "#f4ecf1",
+     "mass": "#714073",
+     "nightInk": "#f4ecf1",
+     "nightPaper": "#1f0c1b",
+     "paper": "#1f0c1b",
+     "pencil": "#5f4f5b"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-e5e503a34036",
+   "label": "Dune to Café",
+   "group": "dune",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": {
+     "accent": "#ffb000",
+     "ink": "#f4ead9",
+     "mass": "#8a6f58",
+     "nightInk": "#f4ead9",
+     "nightPaper": "#1e130e",
+     "paper": "#1e130e",
+     "pencil": "#584d45"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-da88c4ad1125",
+   "label": "Seashell, no Night",
+   "group": "seashell",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f1592b",
+     "ink": "#0f1e2f",
+     "mass": "#3e6594",
+     "nightInk": "#faebe3",
+     "nightPaper": "#081423",
+     "paper": "#faebe3",
+     "pencil": "#b4aead"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b12aadfd1afd",
+   "label": "Black Iris, bold strands",
+   "group": "black",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff4d3d",
+     "ink": "#eef1f5",
+     "mass": "#c9ced6",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#101216",
+     "paper": "#101216",
+     "pencil": "#4c535f"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "iris",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "bold",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-513b2498367b",
+   "label": "Ultramarine, brighter bars",
+   "group": "ultramarine",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fdbf68",
+     "ink": "#eaeef9",
+     "mass": "#2380cc",
+     "nightInk": "#eaeef9",
+     "nightPaper": "#171226",
+     "paper": "#171226",
+     "pencil": "#565465"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d304e8d2faa0",
+   "label": "Silver and Rust, middle bars",
+   "group": "silverrust",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#b5472d",
+     "ink": "#1b2525",
+     "mass": "#416158",
+     "nightInk": "#eef4f0",
+     "nightPaper": "#1b2525",
+     "paper": "#d6dcda",
+     "pencil": "#8a9995",
+     "sun": "#b5472d",
+     "tone": "#cbd8d2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "rail",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "quiet"
+    }
+   }
+  },
+  {
+   "id": "t-f8fa6c34794f",
+   "label": "Morning",
+   "group": "morning29",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f48067",
+     "ink": "#071431",
+     "mass": "#314773",
+     "nightInk": "#faf3dd",
+     "nightPaper": "#071431",
+     "paper": "#faf3dd",
+     "pencil": "#a8aaa7"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-e24cd2fc1766",
+   "label": "Morning to Night",
+   "group": "morning29",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f48067",
+     "ink": "#071431",
+     "mass": "#314773",
+     "nightInk": "#faf3dd",
+     "nightPaper": "#071431",
+     "paper": "#faf3dd",
+     "pencil": "#a8aaa7"
+    },
+    "drop": {
+     "accent": "#f48067",
+     "ink": "#f9f2dc",
+     "mass": "#fbe6a0",
+     "nightInk": "#f9f2dc",
+     "nightPaper": "#071431",
+     "paper": "#071431",
+     "pencil": "#3c485e"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ef6662657a35",
+   "label": "Night to Morning, as before",
+   "group": "morning29",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f48067",
+     "ink": "#f9f2dc",
+     "mass": "#fbe6a0",
+     "nightInk": "#f9f2dc",
+     "nightPaper": "#071431",
+     "paper": "#071431",
+     "pencil": "#3c485e"
+    },
+    "drop": {
+     "accent": "#f48067",
+     "ink": "#071431",
+     "mass": "#1f345e",
+     "nightInk": "#faf3dd",
+     "nightPaper": "#071431",
+     "paper": "#faf3dd",
+     "pencil": "#bdb7a6"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-45b6da67360e",
+   "label": "Salvia to Red Sky",
+   "group": "redsky",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e2484f",
+     "ink": "#33150e",
+     "mass": "#762c19",
+     "nightInk": "#eaf1fa",
+     "nightPaper": "#290c08",
+     "paper": "#eaf1fa",
+     "pencil": "#abb6c1"
+    },
+    "drop": {
+     "accent": "#e2484f",
+     "ink": "#eaf1fa",
+     "mass": "#b7c9e2",
+     "nightInk": "#eaf1fa",
+     "nightPaper": "#571715",
+     "paper": "#571715",
+     "pencil": "#825651"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b1dbc20e5383",
+   "label": "Salvia to Red Sky, Wada 147",
+   "group": "redsky",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f27291",
+     "ink": "#33150e",
+     "mass": "#82241f",
+     "nightInk": "#eaf1fa",
+     "nightPaper": "#290c08",
+     "paper": "#c7d7d0",
+     "pencil": "#abb6c1"
+    },
+    "drop": {
+     "accent": "#c55347",
+     "ink": "#eaf1fa",
+     "mass": "#16d7f9",
+     "nightInk": "#eaf1fa",
+     "nightPaper": "#571715",
+     "paper": "#793327",
+     "pencil": "#825651"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-0e325d516f75",
+   "label": "Violet and Marigold",
+   "group": "violet",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fcb315",
+     "ink": "#f9f1e3",
+     "mass": "#dd4027",
+     "nightInk": "#f9f1e3",
+     "nightPaper": "#251949",
+     "paper": "#251949",
+     "pencil": "#554f74"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-77ded13eee43",
+   "label": "Violet and Marigold, Wada 164",
+   "group": "violet",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c88200",
+     "ink": "#f9f1e3",
+     "mass": "#ffa385",
+     "nightInk": "#f9f1e3",
+     "nightPaper": "#251949",
+     "paper": "#4f4086",
+     "pencil": "#7d73a4"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b7fecf5485bd",
+   "label": "Violet and Marigold, tuned",
+   "group": "violet",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fcb315",
+     "ink": "#f9f1e3",
+     "mass": "#dd4027",
+     "nightInk": "#f9f1e3",
+     "nightPaper": "#251949",
+     "paper": "#242036",
+     "pencil": "#554f74"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-0d4893aceee7",
+   "label": "Cerulean and Coral",
+   "group": "cerulean",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fef37d",
+     "ink": "#f9f6e3",
+     "mass": "#f6917e",
+     "nightInk": "#f9f6e3",
+     "nightPaper": "#002732",
+     "paper": "#075062",
+     "pencil": "#58828f"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-167d61469320",
+   "label": "Cerulean and Coral, Wada 253",
+   "group": "cerulean",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f8ed43",
+     "ink": "#f9f6e3",
+     "mass": "#f68c50",
+     "nightInk": "#f9f6e3",
+     "nightPaper": "#002732",
+     "paper": "#34454c",
+     "pencil": "#58828f"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-f963ae1d9789",
+   "label": "Negoro Lacquer",
+   "group": "negoro",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d96629",
+     "ink": "#d96629",
+     "mass": "#ebd3a2",
+     "nightInk": "#d96629",
+     "nightPaper": "#140e0b",
+     "paper": "#140e0b",
+     "pencil": "#4b3831"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-866ec6f4cc02",
+   "label": "Negoro Lacquer, Wada 190",
+   "group": "negoro",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff975e",
+     "ink": "#d96629",
+     "mass": "#a48e5f",
+     "nightInk": "#d96629",
+     "nightPaper": "#140e0b",
+     "paper": "#0d1417",
+     "pencil": "#4b3831"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-a8680c1e9cf5",
+   "label": "Negoro Lacquer, tuned",
+   "group": "negoro",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff9259",
+     "ink": "#d96629",
+     "mass": "#a0895b",
+     "nightInk": "#d96629",
+     "nightPaper": "#140e0b",
+     "paper": "#140e0b",
+     "pencil": "#4b3831"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-87455f648e78",
+   "label": "Ochre and Ultramarine",
+   "group": "milkmaid",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#2543c2",
+     "ink": "#221811",
+     "mass": "#b27e17",
+     "nightInk": "#eee9df",
+     "nightPaper": "#221811",
+     "paper": "#eee9df",
+     "pencil": "#b5b1a9",
+     "sun": "#2543c2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-98c83e2df735",
+   "label": "Emerald and Cerise",
+   "group": "snail",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#db2c87",
+     "ink": "#0e1310",
+     "mass": "#027e47",
+     "nightInk": "#fbfaf6",
+     "nightPaper": "#05160d",
+     "paper": "#fbfaf6",
+     "pencil": "#b3b1a9",
+     "sun": "#db2c87"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-f7ebb1dbdb35",
+   "label": "Emerald and Cerise, Wada 270",
+   "group": "snail",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e75e68",
+     "ink": "#0e1310",
+     "mass": "#437742",
+     "nightInk": "#fbfaf6",
+     "nightPaper": "#05160d",
+     "paper": "#eeebdd",
+     "pencil": "#b3b1a9",
+     "sun": "#da525d"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-707ff2c80dda",
+   "label": "Shinbashi and Ebicha",
+   "group": "shinbashi",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#0ebac6",
+     "ink": "#1e1311",
+     "mass": "#6a2c29",
+     "nightInk": "#f8f7f1",
+     "nightPaper": "#1e1311",
+     "paper": "#f8f7f1",
+     "pencil": "#b3b1a9"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-846b64a0c346",
+   "label": "Pool Blue and Yellow",
+   "group": "splash",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#efbd24",
+     "ink": "#0d1b2d",
+     "mass": "#2d8ab8",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#f8e9e3",
+     "pencil": "#b8afab",
+     "sun": "#efbd24"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1373277f23a2",
+   "label": "Pool Blue and Yellow, Wada 302",
+   "group": "splash",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#fdbf68",
+     "ink": "#0d1b2d",
+     "mass": "#00516f",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#cddfe0",
+     "pencil": "#b8afab",
+     "sun": "#b97f1e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-bc65346504f1",
+   "label": "Pool Blue and Yellow, tuned",
+   "group": "splash",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#efbd24",
+     "ink": "#0d1b2d",
+     "mass": "#005e8a",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#f8e9e3",
+     "pencil": "#b8afab",
+     "sun": "#c59500"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-c1d5b9ab7470",
+   "label": "Claret and Jade",
+   "group": "vertigo",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#37ab6b",
+     "ink": "#e6f2eb",
+     "mass": "#9f3e4b",
+     "nightInk": "#e6f2eb",
+     "nightPaper": "#0c120f",
+     "paper": "#0c120f",
+     "pencil": "#474f4b",
+     "sun": "#37ab6b"
+    },
+    "drop": {
+     "accent": "#37ab6b",
+     "ink": "#fce9ea",
+     "mass": "#ce7e8a",
+     "nightInk": "#fce9ea",
+     "nightPaper": "#340810",
+     "paper": "#340810",
+     "pencil": "#534b4b",
+     "sun": "#37ab6b"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-23775aed7dac",
+   "label": "Jun Ware",
+   "group": "jun",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e472dc",
+     "ink": "#e7f0f8",
+     "mass": "#6b8fb9",
+     "nightInk": "#e7f0f8",
+     "nightPaper": "#1d140e",
+     "paper": "#1d140e",
+     "pencil": "#534b47"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-31c155204250",
+   "label": "Jun Ware, Wada 242",
+   "group": "jun",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff93a8",
+     "ink": "#e7f0f8",
+     "mass": "#52a572",
+     "nightInk": "#e7f0f8",
+     "nightPaper": "#1d140e",
+     "paper": "#0d1417",
+     "pencil": "#534b47"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-94e10cf1d850",
+   "label": "Jun Ware, tuned",
+   "group": "jun",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f985f0",
+     "ink": "#e7f0f8",
+     "mass": "#6b8fb9",
+     "nightInk": "#e7f0f8",
+     "nightPaper": "#1d140e",
+     "paper": "#1d140e",
+     "pencil": "#534b47"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-06c553598319",
+   "label": "Jungle Moon",
+   "group": "dream",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f68622",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-719747cf44a0",
+   "label": "Jungle Moon, Wada 276",
+   "group": "dream",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff93a8",
+     "ink": "#f2efe0",
+     "mass": "#7c9f3d",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0d1417",
+     "pencil": "#484f4a",
+     "sun": "#fdd4bd"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-5ef95f30ebe6",
+   "label": "Jungle Moon, tuned",
+   "group": "dream",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b5c4b7d32a1b",
+   "label": "Kente Green and Gold",
+   "group": "kente",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ffc927",
+     "ink": "#f3ebd5",
+     "mass": "#298646",
+     "nightInk": "#f3ebd5",
+     "nightPaper": "#120f0b",
+     "paper": "#120f0b",
+     "pencil": "#514c46",
+     "sun": "#ffc927"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-f48fce7c937d",
+   "label": "Coral and Green",
+   "group": "theoryCoralandGreen",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff7871",
+     "ink": "#0d0d0c",
+     "mass": "#297130",
+     "nightInk": "#f5f5f2",
+     "nightPaper": "#0d0e09",
+     "paper": "#f5f7ec",
+     "pencil": "#aeafac",
+     "sun": "#ff7871"
+    },
+    "drop": {
+     "accent": "#ff7871",
+     "ink": "#f5f5f2",
+     "mass": "#688b68",
+     "nightInk": "#f5f5f2",
+     "nightPaper": "#0d0e09",
+     "paper": "#0d0e09",
+     "pencil": "#434546",
+     "sun": "#ff7871"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-09a33789ea1c",
+   "label": "Coral and Green, Wada 270",
+   "group": "theoryCoralandGreen",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e75e68",
+     "ink": "#0d0d0c",
+     "mass": "#437742",
+     "nightInk": "#f5f5f2",
+     "nightPaper": "#0d0e09",
+     "paper": "#eeebdd",
+     "pencil": "#aeafac",
+     "sun": "#da525d"
+    },
+    "drop": {
+     "accent": "#fe7e2e",
+     "ink": "#f5f5f2",
+     "mass": "#009465",
+     "nightInk": "#f5f5f2",
+     "nightPaper": "#0d0e09",
+     "paper": "#0d1417",
+     "pencil": "#434546",
+     "sun": "#f37420"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-73fa49439a0e",
+   "label": "Violet and Peach",
+   "group": "theoryVioletandPeach",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#5a60fe",
+     "ink": "#f4f8f7",
+     "mass": "#e08b76",
+     "nightInk": "#f2f6f5",
+     "nightPaper": "#090f0e",
+     "paper": "#161a1a",
+     "pencil": "#4f5151",
+     "sun": "#5a60fe"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-53fec6bd3ee8",
+   "label": "Violet and Peach, Pigment violet",
+   "group": "theoryVioletandPeach",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#4b54c2",
+     "ink": "#f4f8f7",
+     "mass": "#e08b76",
+     "nightInk": "#f2f6f5",
+     "nightPaper": "#090f0e",
+     "paper": "#161a1a",
+     "pencil": "#4f5151",
+     "sun": "#4b54c2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-94c43a1f0ffd",
+   "label": "Violet and Petrol",
+   "group": "hctVioletPetrol",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#a262b5",
+     "ink": "#252023",
+     "mass": "#00545b",
+     "nightInk": "#f9f2f3",
+     "nightPaper": "#1d151b",
+     "paper": "#f9f2f3",
+     "pencil": "#b0afaf",
+     "sun": "#a262b5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-96d72cfce1c1",
+   "label": "Viridian and Sienna",
+   "group": "hctViridianSienna",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#00976f",
+     "ink": "#202222",
+     "mass": "#89410c",
+     "nightInk": "#f0f5f2",
+     "nightPaper": "#101917",
+     "paper": "#f0f5f2",
+     "pencil": "#b1b0af",
+     "sun": "#00976f"
+    },
+    "drop": {
+     "accent": "#34bf91",
+     "ink": "#e2e4e2",
+     "mass": "#b35c21",
+     "nightInk": "#e2e4e2",
+     "nightPaper": "#101917",
+     "paper": "#101917",
+     "pencil": "#474645",
+     "sun": "#34bf91"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d3736aa5f507",
+   "label": "Amber and Purple",
+   "group": "hctAmberPurple",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#24211d",
+     "mass": "#5d3976",
+     "nightInk": "#f9f3ec",
+     "nightPaper": "#1c170c",
+     "paper": "#f9f3ec",
+     "pencil": "#b1afae",
+     "sun": "#e39a1b"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b665c2e4b8dc",
+   "label": "Amber and Purple, Wada 151",
+   "group": "hctAmberPurple",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f99d1b",
+     "ink": "#24211d",
+     "mass": "#064f6e",
+     "nightInk": "#f9f3ec",
+     "nightPaper": "#1c170c",
+     "paper": "#eeebdd",
+     "pencil": "#b1afae",
+     "sun": "#f99d1b"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1d916399733f",
+   "label": "Madder and Olive",
+   "group": "hctMadderOlive",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c34268",
+     "ink": "#eee2e0",
+     "mass": "#7d9343",
+     "nightInk": "#eee2e0",
+     "nightPaper": "#201514",
+     "paper": "#201514",
+     "pencil": "#4a4646",
+     "sun": "#c34268"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-10c254efb9d8",
+   "label": "Madder and Olive, Wada 277",
+   "group": "hctMadderOlive",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f275a7",
+     "ink": "#eee2e0",
+     "mass": "#837e31",
+     "nightInk": "#eee2e0",
+     "nightPaper": "#201514",
+     "paper": "#1c172c",
+     "pencil": "#4a4646",
+     "sun": "#b73f74"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-0dccea9497c1",
+   "label": "Madder and Olive, tuned",
+   "group": "hctMadderOlive",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ff81a3",
+     "ink": "#eee2e0",
+     "mass": "#7d9343",
+     "nightInk": "#eee2e0",
+     "nightPaper": "#201514",
+     "paper": "#201514",
+     "pencil": "#4a4646",
+     "sun": "#c34268"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-21101d0bc499",
+   "label": "Cerulean and Bronze",
+   "group": "hctCeruleanBronze",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#399dcd",
+     "ink": "#e3e4e6",
+     "mass": "#a26100",
+     "nightInk": "#e3e4e6",
+     "nightPaper": "#0f191f",
+     "paper": "#0f191f",
+     "pencil": "#474646",
+     "sun": "#399dcd"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "plain",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-44a80d4cf4db",
+   "label": "Gilt and Red Lead",
+   "group": "mlGiltRedLead",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d65f1c",
+     "ink": "#f3edd9",
+     "mass": "#9cb5be",
+     "nightInk": "#f3edd9",
+     "nightPaper": "#2e2a1b",
+     "paper": "#2e2a1b",
+     "pencil": "#5e5b51"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d15c77a99104",
+   "label": "Gilt and Red Lead, Wada 303",
+   "group": "mlGiltRedLead",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f15a30",
+     "ink": "#f3edd9",
+     "mass": "#86cad8",
+     "nightInk": "#f3edd9",
+     "nightPaper": "#2e2a1b",
+     "paper": "#253122",
+     "pencil": "#5e5b51"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1a26dc648f5e",
+   "label": "Buff and Lapis",
+   "group": "mlBuffLapis",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#5446ae",
+     "ink": "#221c33",
+     "mass": "#6fa3a0",
+     "nightInk": "#ebe1cb",
+     "nightPaper": "#1c1934",
+     "paper": "#ebe1cb",
+     "pencil": "#a8a49b",
+     "sun": "#5446ae"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-058b22a54506",
+   "label": "Buff and Lapis, Wada 345",
+   "group": "mlBuffLapis",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#7562b5",
+     "ink": "#221c33",
+     "mass": "#005752",
+     "nightInk": "#ebe1cb",
+     "nightPaper": "#1c1934",
+     "paper": "#cddfe0",
+     "pencil": "#a8a49b",
+     "sun": "#6450a1"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-abdf41891086",
+   "label": "Buff and Lapis, tuned",
+   "group": "mlBuffLapis",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#6e63ce",
+     "ink": "#221c33",
+     "mass": "#085a57",
+     "nightInk": "#ebe1cb",
+     "nightPaper": "#1c1934",
+     "paper": "#ebe1cc",
+     "pencil": "#a8a49b",
+     "sun": "#5446ae"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-23b5c7b5931b",
+   "label": "Chrome Yellow and Madder",
+   "group": "mlChromeMadder",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#b0341f",
+     "ink": "#1c2840",
+     "mass": "#c8911a",
+     "nightInk": "#f2e2a4",
+     "nightPaper": "#16233f",
+     "paper": "#e3e8ef",
+     "pencil": "#a9aeb5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-cb6b85520154",
+   "label": "Chrome Yellow and Madder, Wada 262",
+   "group": "mlChromeMadder",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#da525d",
+     "ink": "#1c2840",
+     "mass": "#544300",
+     "nightInk": "#f2e2a4",
+     "nightPaper": "#16233f",
+     "paper": "#dfd5c0",
+     "pencil": "#a9aeb5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-62d1097c5f6f",
+   "label": "Chrome Yellow and Madder, tuned",
+   "group": "mlChromeMadder",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c94c36",
+     "ink": "#1c2840",
+     "mass": "#784500",
+     "nightInk": "#f2e2a4",
+     "nightPaper": "#16233f",
+     "paper": "#e3e8ef",
+     "pencil": "#a9aeb5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1021e40694b2",
+   "label": "Rose Grey and Jade",
+   "group": "mlRoseGreyJade",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#1aae78",
+     "ink": "#1b2a31",
+     "mass": "#355a6b",
+     "nightInk": "#efe3e1",
+     "nightPaper": "#1b2a31",
+     "paper": "#efe3e1",
+     "pencil": "#aeaaa8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-70fd10cdf9b3",
+   "label": "Forest Green and Gold",
+   "group": "mlForestGold",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e0ab2c",
+     "ink": "#f3ead6",
+     "mass": "#b9786a",
+     "nightInk": "#f3ead6",
+     "nightPaper": "#1f3229",
+     "paper": "#1f3229",
+     "pencil": "#56605a",
+     "sun": "#e0ab2c"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-4326e9dabe8d",
+   "label": "Forest Green and Gold, Wada 325",
+   "group": "mlForestGold",
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e2b540",
+     "ink": "#f3ead6",
+     "mass": "#da525d",
+     "nightInk": "#f3ead6",
+     "nightPaper": "#1f3229",
+     "paper": "#112f2c",
+     "pencil": "#56605a",
+     "sun": "#e2b540"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-828c55cb8350",
+   "label": "Blue and White Porcelain",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#284ab2",
+     "ink": "#18243c",
+     "mass": "#7097d1",
+     "nightInk": "#f0f4f7",
+     "nightPaper": "#080f1c",
+     "paper": "#f0f4f7",
+     "pencil": "#b2b3b5",
+     "sun": "#284ab2"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-2ef1e123f6d5",
+   "label": "Cobalt and Chartreuse",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#bbd14a",
+     "ink": "#e2e0d9",
+     "mass": "#7ba0e5",
+     "nightInk": "#e2e0d9",
+     "nightPaper": "#0f131f",
+     "paper": "#0f131f",
+     "pencil": "#434448",
+     "sun": "#bbd14a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-b93687af8231",
+   "label": "Rose Enamel and Malachite",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#00915f",
+     "ink": "#391c23",
+     "mass": "#cc6987",
+     "nightInk": "#f6f3ed",
+     "nightPaper": "#1c0c11",
+     "paper": "#f6f3ed",
+     "pencil": "#b3b2b0",
+     "sun": "#00915f"
+    },
+    "drop": {
+     "accent": "#2eb27a",
+     "ink": "#e1d5d5",
+     "mass": "#d37691",
+     "nightInk": "#e1d5d5",
+     "nightPaper": "#1e0e14",
+     "paper": "#1e0e14",
+     "pencil": "#484345",
+     "sun": "#2eb27a"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9af9f1d8384c",
+   "label": "Turquoise and Lustre",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#3cc5be",
+     "ink": "#e9e1d0",
+     "mass": "#cfa36c",
+     "nightInk": "#e9e1d0",
+     "nightPaper": "#1c130c",
+     "paper": "#1c130c",
+     "pencil": "#474441",
+     "sun": "#3cc5be"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-70934e8708a4",
+   "label": "Lily White and Leaf Green",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#63b650",
+     "ink": "#e8e3d6",
+     "mass": "#cdc19e",
+     "nightInk": "#e8e3d6",
+     "nightPaper": "#07191d",
+     "paper": "#07191d",
+     "pencil": "#424648",
+     "sun": "#63b650"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-793c2462e1e7",
+   "label": "Kingfisher and Cinnabar",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#dc593f",
+     "ink": "#e6e3dd",
+     "mass": "#2c95af",
+     "nightInk": "#e6e3dd",
+     "nightPaper": "#130e0b",
+     "paper": "#130e0b",
+     "pencil": "#44413e",
+     "sun": "#dc593f"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-dbceaa234963",
+   "label": "Grey Blue and Madder",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#aa2e4a",
+     "ink": "#0e1925",
+     "mass": "#6888a9",
+     "nightInk": "#dcd4c0",
+     "nightPaper": "#0e1721",
+     "paper": "#dcd4c0",
+     "pencil": "#9c9a98"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-19f96410b4be",
+   "label": "Khaki and Mauve",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#a258ae",
+     "ink": "#292433",
+     "mass": "#6c5d2f",
+     "nightInk": "#f7f6fa",
+     "nightPaper": "#110d17",
+     "paper": "#f7f6fa",
+     "pencil": "#b6b5b8",
+     "sun": "#a258ae"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1c78673c3981",
+   "label": "Olive and Krishna Blue",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#2575bd",
+     "ink": "#122132",
+     "mass": "#666926",
+     "nightInk": "#faebe2",
+     "nightPaper": "#160d07",
+     "paper": "#faebe2",
+     "pencil": "#b0aeac",
+     "sun": "#2575bd"
+    },
+    "drop": {
+     "accent": "#4790d8",
+     "ink": "#ddd8ca",
+     "mass": "#8d9144",
+     "nightInk": "#ddd8ca",
+     "nightPaper": "#13150a",
+     "paper": "#13150a",
+     "pencil": "#444542",
+     "sun": "#4790d8"
+    },
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "switch",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-c2beac65649c",
+   "label": "Coptic Purple and Leaf Green",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#529e41",
+     "ink": "#2e1720",
+     "mass": "#602d43",
+     "nightInk": "#f2eadd",
+     "nightPaper": "#180b10",
+     "paper": "#f2eadd",
+     "pencil": "#adacaa"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-f225645cda11",
+   "label": "Pink and Prussian Blue",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#2751b8",
+     "ink": "#16223a",
+     "mass": "#c56f80",
+     "nightInk": "#e9f3eb",
+     "nightPaper": "#07121e",
+     "paper": "#e9f3eb",
+     "pencil": "#afb1af"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-23d660197bf3",
+   "label": "Gilt and Lapis",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#4885df",
+     "ink": "#e5ded0",
+     "mass": "#d4b982",
+     "nightInk": "#e5ded0",
+     "nightPaper": "#180f0e",
+     "paper": "#180f0e",
+     "pencil": "#474241"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-df37823f95b8",
+   "label": "Teal and Fuchsia",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ae2c77",
+     "ink": "#072627",
+     "mass": "#2b9196",
+     "nightInk": "#f8efe0",
+     "nightPaper": "#140e06",
+     "paper": "#f8efe0",
+     "pencil": "#b1b0ae",
+     "sun": "#ae2c77"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7d2902b8347a",
+   "label": "Ochre and Magenta",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#ca549d",
+     "ink": "#e4e0d6",
+     "mass": "#c9964c",
+     "nightInk": "#e4e0d6",
+     "nightPaper": "#0c1614",
+     "paper": "#0c1614",
+     "pencil": "#414645",
+     "sun": "#ca549d"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9c23d4e6898c",
+   "label": "Ink Black and Kingfisher",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#1c7eab",
+     "ink": "#222120",
+     "mass": "#403e3a",
+     "nightInk": "#f7f7f4",
+     "nightPaper": "#100f0d",
+     "paper": "#f7f7f4",
+     "pencil": "#b6b6b4",
+     "sun": "#1c7eab"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "night",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-50ea2abb4516",
+   "label": "Iris Green and Violet",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#bb8aef",
+     "ink": "#e3e1d7",
+     "mass": "#3e7e4e",
+     "nightInk": "#e3e1d7",
+     "nightPaper": "#09151e",
+     "paper": "#09151e",
+     "pencil": "#414548"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1cc88106df04",
+   "label": "Dune",
+   "group": "dune",
+   "parents": [
+    "t-e5e503a34036"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7d2fb85f4f50",
+   "label": "Aubergine, no drop",
+   "group": "aubergine",
+   "parents": [
+    "t-8e9b5d2fe88f"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e23247",
+     "ink": "#261322",
+     "mass": "#6b2d5e",
+     "nightInk": "#eeedf9",
+     "nightPaper": "#1d0d1a",
+     "paper": "#eeedf9",
+     "pencil": "#b2acb9"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ed13584fe828",
+   "label": "Brick",
+   "group": "bricklacquer",
+   "parents": [
+    "t-c022f567cc05"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#cd9205",
+     "ink": "#062522",
+     "mass": "#b93c48",
+     "nightInk": "#fbe6a0",
+     "nightPaper": "#091c1a",
+     "paper": "#f6ecd7",
+     "pencil": "#aeb0a1"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-c1877f20946c",
+   "label": "Pool Blue and Yellow, Wada 302, no drop",
+   "group": "splash",
+   "parents": [
+    "t-1373277f23a2"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#fdbf68",
+     "ink": "#0d1b2d",
+     "mass": "#00516f",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#cddfe0",
+     "pencil": "#b8afab",
+     "sun": "#b97f1e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-57771a22fc94",
+   "label": "Paper",
+   "group": "paper",
+   "parents": [
+    "t-7257fcc62d7b"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d3262e",
+     "ink": "#15181d",
+     "mass": "#3b414a",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#14171d",
+     "paper": "#ffffff",
+     "pencil": "#b4bcc8",
+     "tone": "#eef2f8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d2a3b9992fa4",
+   "label": "Peony",
+   "group": "peony",
+   "parents": [
+    "t-3decc5d65e73"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e59564",
+     "ink": "#2e171f",
+     "mass": "#b73f74",
+     "nightInk": "#e2f2f6",
+     "nightPaper": "#200d14",
+     "paper": "#e2f2f6",
+     "pencil": "#acb0b6"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9421d4d62d0a",
+   "label": "Amber and Purple, no drop",
+   "group": "hctAmberPurple",
+   "parents": [
+    "t-d3736aa5f507"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#24211d",
+     "mass": "#5d3976",
+     "nightInk": "#f9f3ec",
+     "nightPaper": "#1c170c",
+     "paper": "#f9f3ec",
+     "pencil": "#b1afae",
+     "sun": "#e39a1b"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7413e496c520",
+   "label": "Grey Blue and Madder, no drop",
+   "group": null,
+   "parents": [
+    "t-dbceaa234963"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#aa2e4a",
+     "ink": "#0e1925",
+     "mass": "#6888a9",
+     "nightInk": "#dcd4c0",
+     "nightPaper": "#0e1721",
+     "paper": "#dcd4c0",
+     "pencil": "#9c9a98"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d9e8db4d792d",
+   "label": "Emerald and Cerise, Wada 270, no drop",
+   "group": "snail",
+   "parents": [
+    "t-f7ebb1dbdb35"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e75e68",
+     "ink": "#0e1310",
+     "mass": "#437742",
+     "nightInk": "#fbfaf6",
+     "nightPaper": "#05160d",
+     "paper": "#eeebdd",
+     "pencil": "#b3b1a9",
+     "sun": "#da525d"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-18d8973b5acd",
+   "label": "Pool Blue and Yellow, no drop",
+   "group": "splash",
+   "parents": [
+    "t-846b64a0c346"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#efbd24",
+     "ink": "#0d1b2d",
+     "mass": "#2d8ab8",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#f8e9e3",
+     "pencil": "#b8afab",
+     "sun": "#efbd24"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-579254610316",
+   "label": "Night to Morning, as before, no drop",
+   "group": "morning29",
+   "parents": [
+    "t-ef6662657a35"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f48067",
+     "ink": "#f9f2dc",
+     "mass": "#fbe6a0",
+     "nightInk": "#f9f2dc",
+     "nightPaper": "#071431",
+     "paper": "#071431",
+     "pencil": "#3c485e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-3c0c2e897b3c",
+   "label": "Pool Blue and Yellow, tuned, no drop",
+   "group": "splash",
+   "parents": [
+    "t-bc65346504f1"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#efbd24",
+     "ink": "#0d1b2d",
+     "mass": "#005e8a",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#f8e9e3",
+     "pencil": "#b8afab",
+     "sun": "#c59500"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-49e37a45a4ae",
+   "label": "Chrome Yellow and Madder, no drop",
+   "group": "mlChromeMadder",
+   "parents": [
+    "t-23b5c7b5931b"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#b0341f",
+     "ink": "#1c2840",
+     "mass": "#c8911a",
+     "nightInk": "#f2e2a4",
+     "nightPaper": "#16233f",
+     "paper": "#e3e8ef",
+     "pencil": "#a9aeb5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-900f87e9189e",
+   "label": "Amber and Purple, Wada 151, no drop",
+   "group": "hctAmberPurple",
+   "parents": [
+    "t-b665c2e4b8dc"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f99d1b",
+     "ink": "#24211d",
+     "mass": "#064f6e",
+     "nightInk": "#f9f3ec",
+     "nightPaper": "#1c170c",
+     "paper": "#eeebdd",
+     "pencil": "#b1afae",
+     "sun": "#f99d1b"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-ca287cb20540",
+   "label": "Chrome Yellow and Madder, tuned, no drop",
+   "group": "mlChromeMadder",
+   "parents": [
+    "t-62d1097c5f6f"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#c94c36",
+     "ink": "#1c2840",
+     "mass": "#784500",
+     "nightInk": "#f2e2a4",
+     "nightPaper": "#16233f",
+     "paper": "#e3e8ef",
+     "pencil": "#a9aeb5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7744682b96e3",
+   "label": "White and Vermilion, no drop",
+   "group": "whitevermilion",
+   "parents": [
+    "t-e8c9c9469228"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f15d41",
+     "ink": "#25201e",
+     "mass": "#ba351f",
+     "nightInk": "#fff3e7",
+     "nightPaper": "#142a60",
+     "paper": "#faf9f5",
+     "pencil": "#ada7a1",
+     "sun": "#de4b2f",
+     "tone": "#f4eee7"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "none",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-5849fc33048b",
+   "label": "Salvia, Wada 147",
+   "group": "redsky",
+   "parents": [
+    "t-b1dbc20e5383"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f27291",
+     "ink": "#33150e",
+     "mass": "#82241f",
+     "nightInk": "#eaf1fa",
+     "nightPaper": "#290c08",
+     "paper": "#c7d7d0",
+     "pencil": "#abb6c1"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-99c1e43c3e79",
+   "label": "Gilt and Amber",
+   "group": "gilt",
+   "parents": [
+    "t-23d660197bf3"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f8962d",
+     "ink": "#e5ded0",
+     "mass": "#d4b982",
+     "nightInk": "#e5ded0",
+     "nightPaper": "#180f0e",
+     "paper": "#180f0e",
+     "pencil": "#474241"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-a30c54db350d",
+   "label": "Negoro Lacquer, cream line",
+   "group": "negoro",
+   "parents": [
+    "t-f963ae1d9789"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#d96629",
+     "ink": "#efe2cd",
+     "mass": "#ebd3a2",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#140e0b",
+     "paper": "#140e0b",
+     "pencil": "#4b3831"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-586c91df5449",
+   "label": "Buff and Lapis, between",
+   "group": "mlBuffLapis",
+   "parents": [
+    "t-1a26dc648f5e"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#6155be",
+     "ink": "#221c33",
+     "mass": "#3c7f7c",
+     "nightInk": "#ebe1cb",
+     "nightPaper": "#1c1934",
+     "paper": "#ebe1cb",
+     "pencil": "#a8a49b",
+     "sun": "#5446ae"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d276d668c0f6",
+   "label": "Pool Blue Night",
+   "group": "splash",
+   "parents": [
+    "t-1373277f23a2"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#fdbf68",
+     "ink": "#f8e9e3",
+     "mass": "#ccc4c3",
+     "nightInk": "#f8e9e3",
+     "nightPaper": "#061c31",
+     "paper": "#061c31",
+     "pencil": "#626a75",
+     "sun": "#f8e9e3"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d357777f04f2",
+   "label": "Amber Night",
+   "group": "hctAmberPurple",
+   "parents": [
+    "t-b665c2e4b8dc"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f99d1b",
+     "ink": "#f9f3ec",
+     "mass": "#d1cbc4",
+     "nightInk": "#f9f3ec",
+     "nightPaper": "#1c170c",
+     "paper": "#1c170c",
+     "pencil": "#706b61",
+     "sun": "#f9f3ec"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-143129d2195b",
+   "label": "Jungle Moon, lemon",
+   "group": "dream",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#f2e15f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-176767464a18",
+   "label": "Jungle Moon, vermilion",
+   "group": "dream",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#fd6844",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-10115fed8d88",
+   "label": "Jungle Moon, chartreuse",
+   "group": "dream",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#b8db4e",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9cd3a1cc4e02",
+   "label": "Dune, vermilion",
+   "group": "dune",
+   "parents": [
+    "t-e5e503a34036"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#da4528",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8db4dbff40cb",
+   "label": "Dune, cobalt",
+   "group": "dune",
+   "parents": [
+    "t-e5e503a34036"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#285cc2",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d49b75d678e7",
+   "label": "Dune, inked",
+   "group": "dune",
+   "parents": [
+    "t-e5e503a34036"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7b5c479443bf",
+   "label": "Jungle Moon, inking",
+   "group": "dream",
+   "parents": [
+    "t-5ef95f30ebe6"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffa94f",
+     "ink": "#f2efe0",
+     "mass": "#92a86a",
+     "nightInk": "#f2efe0",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#484f4a",
+     "sun": "#f1ebd5"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-1ad96465dc80",
+   "label": "Madder Ground",
+   "group": "cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#fdca3a",
+     "ink": "#f4eee0",
+     "mass": "#d5ada0",
+     "nightInk": "#f4eee0",
+     "nightPaper": "#3e0f0e",
+     "paper": "#713c38",
+     "pencil": "#98716a",
+     "sun": "#f6eed8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-0e66c4a82f74",
+   "label": "Moss Ground",
+   "group": "cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffb348",
+     "ink": "#f4eee0",
+     "mass": "#b3bd99",
+     "nightInk": "#f4eee0",
+     "nightPaper": "#17270d",
+     "paper": "#415338",
+     "pencil": "#77826a",
+     "sun": "#f6eed8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-2076cfbe612a",
+   "label": "Dusk Violet Ground",
+   "group": "cyanotype",
+   "parents": [
+    "t-bf43a2210b06"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#ffc345",
+     "ink": "#f4eee0",
+     "mass": "#b6b3d6",
+     "nightInk": "#f4eee0",
+     "nightPaper": "#241b3b",
+     "paper": "#4f466b",
+     "pencil": "#81788e",
+     "sun": "#f6eed8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-a844556e8b82",
+   "label": "Kraft and Vermilion",
+   "group": "kraft",
+   "parents": [
+    "t-467b4e069981"
+   ],
+   "spec": {
+    "colours": {
+     "accent": "#de3f20",
+     "ink": "#1a140e",
+     "mass": "#552c0a",
+     "nightInk": "#e6d2b4",
+     "nightPaper": "#1a140e",
+     "paper": "#bb9e79",
+     "pencil": "#8b6e4a",
+     "sun": "#f8f1e3"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "whisper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

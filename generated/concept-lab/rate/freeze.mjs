@@ -1,6 +1,8 @@
 // Freeze a set of themes to judge: node generated/concept-lab/rate/freeze.mjs DRAFT.json
 // DRAFT: {set: "2026-11-09-themes", title, round, created, include?: [earlier set], schemes?: {name: scheme}, drops?: {scheme: partner},
-//         themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
+//         retire?: [themeId], themes: [{label, look: {scheme, …choices}, group?, parents?: [themeId]}]}
+// A retired theme (from an earlier set) is kept in the set, so the judgments that involved it still inform the fit, but it is
+// never shown again (set.json retired; model.js).
 // Each theme is resolved to its full specification: every look option (resolveLook, so no V1 default is implied) and the
 // colours of its scheme and of its drop partner (so no named scheme is referred to). Its id is the hash of that specification:
 // change one colour and it is another theme. The registry (rate/themes.jsonl, committed: these are designs, not answers) binds
@@ -47,7 +49,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } else {
     const registry = existsSync(REGISTRY) ? readFileSync(REGISTRY, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
     const byLabel = new Map(registry.map(r => [r.label, r.id])), byId = new Map(registry.map(r => [r.id, r.label]));
-    const themes = [], problems = [], fresh = [], builds = draft.include ?? [];
+    // the sets it builds on, with theirs in turn: a judgment made in any of them still counts here
+    const builds = [];
+    const chain = name => {if (builds.includes(name)) return; builds.push(name); for (const s of JSON.parse(readFileSync(join(HERE, 'sets', name, 'set.json'), 'utf8')).buildsOn ?? []) chain(s);};
+    (draft.include ?? []).forEach(chain);
+    const themes = [], problems = [], fresh = [];
     // a set may build on earlier ones: their themes come along unchanged (same ids, same stills) and so do their judgments
     for (const s of builds) {
       const prev = JSON.parse(readFileSync(join(HERE, 'sets', s, 'set.json'), 'utf8'));
@@ -63,11 +69,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       themes.push({id, label, group: t.group ?? null, parents: t.parents ?? [], spec});
       if (!byId.has(id)) fresh.push({id, label, spec, parents: t.parents ?? [], round: draft.round ?? null, set: draft.set});
     }
+    const retired = draft.retire ?? [];
+    for (const id of retired) if (!themes.some(t => t.id === id)) problems.push(`cannot retire ${id}: not a theme of the sets it builds on`);
     if (problems.length) throw new Error(`not frozen:\n  ${problems.join('\n  ')}`);
     let renderer = 'unknown';
     try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}
     set = {set: draft.set, title: draft.title, round: draft.round ?? null, created: draft.created, song: 'circus', renderer, moments: MOMENTS,
-      ...(builds.length ? {buildsOn: builds} : {}), themes};
+      ...(builds.length ? {buildsOn: builds} : {}), ...(retired.length ? {retired} : {}), themes};
     mkdirSync(dir, {recursive: true});
     writeFileSync(file, JSON.stringify(set, null, 1) + '\n');
     for (const r of fresh) appendFileSync(REGISTRY, JSON.stringify(r) + '\n');
@@ -83,7 +91,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // --rerender renders every still again from the frozen specifications (the set and its judgments are untouched): only
   // with the renderer the set was frozen with, which stills.json records with the size and quality
   const STILLS = {width: 1080, quality: 0.92}, out = join(dir, 'stills'), again = process.argv.includes('--rerender');
-  const missing = set.themes.filter(t => again || set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
+  const missing = set.themes.filter(t => !(set.retired ?? []).includes(t.id) || again).filter(t => again || set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
   if (missing.length) {
     const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json');
     const sc = {}, dr = {};

@@ -1,7 +1,9 @@
 /** The owner's theme judgments (generated/concept-lab/rate/). A set is frozen (rate/sets/<set>/set.json, written once by
  * rate/freeze.mjs); its events are appended to generated/concept-lab/docs/owner-answers/ratings/<set>.jsonl, local only: the
  * repository is public and owner answers are never committed (.git/info/exclude). One log for every device, append-only, so a
- * phone and a desktop never conflict; a retried batch never duplicates (events carry their own id).
+ * phone and a desktop never conflict; a retried batch never duplicates (events carry their own id). Each event keeps when it
+ * was made (at, the device's clock) and saved (savedAt), the device (phone or desktop, screen, home screen) and the client
+ * (address, browser).
  *   GET  /api/rate                     → {sets: [{set, title, created, themes}]}, newest first
  *   GET  /api/rate/<set>/events?after=n → {events (each with its seq), seq, setHash}
  *   POST /api/rate/<set>/events        ← {setHash, events: [...]} → {ok, added}; 409 if the set changed since the page loaded */
@@ -21,7 +23,7 @@ export function checkEvent(e: any, themes: ReadonlySet<string>): {event: Record<
   if (typeof e?.id !== 'string' || !/^[0-9A-Za-z_-]{8,40}$/.test(e.id)) return {error: 'an event needs an id'};
   const known = (id: unknown): id is string => typeof id === 'string' && themes.has(id);
   const device = e.device && typeof e.device === 'object'
-    ? {kind: e.device.kind === 'phone' ? 'phone' : 'desktop', w: Number(e.device.w) || null, h: Number(e.device.h) || null} : null;
+    ? {kind: e.device.kind === 'phone' ? 'phone' : 'desktop', w: Number(e.device.w) || null, h: Number(e.device.h) || null, standalone: e.device.standalone === true} : null;
   const base = {v: 1, id: e.id, at: typeof e.at === 'string' ? e.at.slice(0, 40) : null, device};
   switch (e.kind) {
     case 'verdict':
@@ -80,11 +82,13 @@ export function createRatingsApi(root = process.cwd()) {
     const bad = checked.find((c: any) => 'error' in c);
     if (bad) {reply(res, bad, 400); return true;}
     let seq = stored.length ? stored.at(-1).seq : 0, added = 0;
+    // where it came from: the address and the browser (the device kind and screen come with the event)
+    const client = {ip: req.socket.remoteAddress ?? null, ua: String(req.headers['user-agent'] ?? '').slice(0, 300)};
     mkdirSync(store, {recursive: true});
     for (const {event} of checked as {event: Record<string, unknown>}[]) {
       if (seen.has(event.id as string)) continue;  // a retry after a lost reply: already kept
       seen.add(event.id as string);
-      appendFileSync(file, JSON.stringify({...event, seq: ++seq, set, savedAt: new Date().toISOString()}) + '\n'); added++;
+      appendFileSync(file, JSON.stringify({...event, seq: ++seq, set, savedAt: new Date().toISOString(), client}) + '\n'); added++;
     }
     reply(res, {ok: true, added}); return true;
   };

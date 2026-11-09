@@ -44,7 +44,8 @@ figure{margin:0;cursor:zoom-in}
 figure img{border-radius:6px;background:var(--line)}
 figcaption{font-size:11px;color:var(--soft);text-align:center;height:14px;line-height:14px}
 .label{display:flex;align-items:center;gap:6px;max-width:100%;font-weight:600;font-size:14px;height:22px}
-.label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.label span:first-child,.label i{flex:none}
 .v{font-size:12px;font-weight:600;font-style:normal;padding:1px 6px;border-radius:6px;color:var(--onInk)}
 .bar{display:grid;gap:6px;width:100%;max-width:720px;justify-self:center}
 .bar .row{display:grid;gap:6px;grid-auto-flow:column;grid-auto-columns:1fr}
@@ -112,12 +113,12 @@ tr.cutline td{border-bottom:2px solid var(--ink)}
 <main id="main"></main>
 <script type="module">
 // Judging themes, at /rate/<set> (scripts/gallery/ratings_api.ts). One screen for both ways of judging:
-//   Sort: one theme, a verdict (love, keep, unsure, cut) per tap. Duel: two themes, left, right, equal or pass.
+//   Sort: one theme, a verdict (love, keep, unsure, cut) per tap. Compare: two themes, left, right, equal or pass.
 // Every theme shows two stills (the verse; inside the drop, after the verse), sized to the screen: no scrolling, on a phone
 // upright or on its side or a desktop. A judgment saves at once and moves on; a toast offers a note on it or its undo.
-// A still opens the viewer (in a duel, a tap there flips between the two themes). Results: /rate/<set>/results.
+// A still opens the viewer (comparing, a tap there flips between the two themes). Results: /rate/<set>/results.
 // Events go to the server in batches from an outbox (kept across reloads); every device pulls the others' on focus and every
-// 10 s. The judging model (the fit, the next duel) is model.js, shared with report.mjs.
+// 10 s. The judging model (the fit, the next pair) is model.js, shared with report.mjs. (Events call a comparison a duel.)
 import {fold, fit, choosePair, VERDICTS} from '/generated/concept-lab/rate/model.js';
 
 const $ = id => document.getElementById(id), main = $('main');
@@ -172,7 +173,8 @@ async function app(set, results) {
     } catch {failed = true;}
     sending = false; await pull(); if (outbox.length && !failed && !stale) push();
   }
-  const device = () => ({kind: matchMedia('(pointer:coarse)').matches ? 'phone' : 'desktop', w: innerWidth, h: innerHeight});
+  const device = () => ({kind: matchMedia('(pointer:coarse)').matches ? 'phone' : 'desktop', w: innerWidth, h: innerHeight,
+    standalone: matchMedia('(display-mode: standalone)').matches || navigator.standalone === true});
   const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   function emit(e) {
     const ev = {id: newId(), at: new Date().toISOString(), device: device(), ...e};
@@ -182,7 +184,7 @@ async function app(set, results) {
   }
   function status() {
     const v = Object.keys(record.verdicts).length, d = record.duels.filter(x => x.outcome !== 'pass').length;
-    $('status').replaceChildren(`${v}/${themes.length} sorted · ${d} duels · `,
+    $('status').replaceChildren(`${v}/${themes.length} sorted · ${d} compared · `,
       stale ? el('span', {class: 'bad'}, 'set changed: reload') : outbox.length ? el('span', {class: failed ? 'bad' : ''}, failed ? `${outbox.length} waiting` : 'saving') : 'saved');
   }
   let repaint = null, teardown = () => {};
@@ -191,7 +193,7 @@ async function app(set, results) {
   await pull(); push();
 
   // ── the mode switch and the results link (the address keeps the mode: #sort, #duel) ──
-  const seg = el('nav', {class: 'seg'}, el('a', {href: `/rate/${set}#sort`, 'data-m': 'sort'}, 'Sort'), el('a', {href: `/rate/${set}#duel`, 'data-m': 'duel'}, 'Duel'),
+  const seg = el('nav', {class: 'seg'}, el('a', {href: `/rate/${set}#sort`, 'data-m': 'sort'}, 'Sort'), el('a', {href: `/rate/${set}#compare`, 'data-m': 'compare'}, 'Compare'),
     el('a', {href: `/rate/${set}/results`, 'data-m': 'results'}, 'Results'));
   $('top').insertBefore(seg, $('status'));
 
@@ -215,7 +217,8 @@ async function app(set, results) {
   }
   function themeView(id, size, {onlook, tag} = {}) {
     const t = byId.get(id), v = record.verdicts[id];
-    return el('div', {class: 'theme'},
+    // exactly as wide as its stills: a long name is cut short, never widens the stage
+    return el('div', {class: 'theme', style: `width:${size.cols * size.w + (size.cols - 1) * 6 + 12}px`},
       el('div', {class: 'shots', style: `grid-template-columns:repeat(${size.cols},auto)`}, S.moments.map((m, i) =>
         el('figure', {onclick: e => {e.stopPropagation(); onlook(i);}}, el('img', {src: still(id, i), alt: `${t.label}, ${m.label}`, style: `width:${size.w}px;height:${size.h}px`}), el('figcaption', {}, m.label)))),
       el('div', {class: 'label'}, tag ? el('span', {style: 'color:var(--soft);font-weight:500'}, tag) : null, el('span', {}, t.label), v ? el('i', {class: `v v-${v}`}, WORD[v]) : null,
@@ -280,11 +283,11 @@ async function app(set, results) {
   }
 
   if (results) return showResults();
-  const mode = () => location.hash === '#duel' ? 'duel' : location.hash === '#sort' ? 'sort' : themes.every(t => record.verdicts[t.id]) ? 'duel' : 'sort';
+  const mode = () => ['#compare', '#duel'].includes(location.hash) ? 'compare' : location.hash === '#sort' ? 'sort' : themes.every(t => record.verdicts[t.id]) ? 'compare' : 'sort';
   function show() {
     teardown(); main.replaceChildren(); repaint = null;
     for (const a of seg.children) a.classList.toggle('on', a.dataset.m === mode());
-    teardown = (mode() === 'duel' ? duel : sort)() ?? (() => {});
+    teardown = (mode() === 'compare' ? compare : sort)() ?? (() => {});
   }
   addEventListener('hashchange', () => pull().then(show));  // a change of mode catches up with the other device too
 
@@ -297,14 +300,14 @@ async function app(set, results) {
     if (sortAt < 0) sortAt = next(-1) >= 0 ? next(-1) : -2;
     const verdictButtons = VERDICTS.map((v, i) => el('button', {onclick: () => give(v)}, key(WORD[v], String(i + 1))));
     const railVerdicts = VERDICTS.map(v => el('button', {onclick: () => give(v)}, WORD[v]));
-    const aux = el('div', {class: 'row aux'}, el('button', {onclick: () => go(sortAt - 1)}, key('‹', '[')), el('button', {onclick: () => sortAt >= 0 && note([order[sortAt]])}, key('✎ Note', 'n')),
-      el('button', {onclick: undo}, key('↶ Undo', 'z')), el('button', {onclick: () => go(sortAt + 1)}, key('›', ']')));
+    const aux = el('div', {class: 'row aux'}, el('button', {onclick: () => go(sortAt - 1)}, key('‹', '[')), el('button', {onclick: undo}, key('↶ Undo', 'z')),
+      el('button', {onclick: () => sortAt >= 0 && note([order[sortAt]])}, key('✎ Note', 'n')), el('button', {onclick: () => go(sortAt + 1)}, key('›', ']')));
     const bar = el('div', {class: 'bar'}, el('div', {class: 'row main'}, verdictButtons), aux);
     const left = [el('button', {onclick: () => go(sortAt - 1)}, '‹'), el('button', {onclick: () => sortAt >= 0 && note([order[sortAt]])}, '✎'), el('button', {onclick: undo}, '↶'), el('button', {onclick: () => go(sortAt + 1)}, '›')];
     const {stage, stop} = screen({rails: [left, railVerdicts], bar});
     function paint() {
       if (sortAt === -2) {
-        stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, `All ${themes.length} sorted.`), el('button', {onclick: () => {location.hash = '#duel';}}, 'On to the duels'),
+        stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, `All ${themes.length} sorted.`), el('button', {onclick: () => {location.hash = '#compare';}}, 'On to comparing'),
           el('button', {onclick: () => go(0)}, 'Look through them again')));
         return;
       }
@@ -325,7 +328,7 @@ async function app(set, results) {
     function undo() {
       const ev = undoMine(); if (!ev) return;
       document.querySelector('.toast')?.remove();
-      if (ev.kind === 'duel') {location.hash = '#duel'; return;}
+      if (ev.kind === 'duel') {location.hash = '#compare'; return;}
       go(order.indexOf(ev.kind === 'verdict' ? ev.theme : ev.themes[0]));
     }
     const keys = e => {
@@ -333,33 +336,35 @@ async function app(set, results) {
       if (/^[1-4]$/.test(e.key)) give(VERDICTS[+e.key - 1]);
       else if (e.key === '[' || e.key === 'ArrowLeft') go(sortAt - 1); else if (e.key === ']' || e.key === 'ArrowRight') go(sortAt + 1);
       else if (e.key === 'z' || e.key === 'Backspace') undo(); else if (e.key === 'n' && sortAt >= 0) note([order[sortAt]]);
-      else if (e.key === 'v' && sortAt >= 0) viewer([order[sortAt]]); else if (e.key === 'Tab') location.hash = '#duel'; else return;
+      else if (e.key === 'v' && sortAt >= 0) viewer([order[sortAt]]); else if (e.key === 'Tab') location.hash = '#compare'; else return;
       e.preventDefault();
     };
     addEventListener('keydown', keys); paint(); if (sortAt >= 0) preload([order[(sortAt + 1) % order.length]]);
     return () => {removeEventListener('keydown', keys); stop(); document.querySelector('.toast')?.remove();};
   }
 
-  // ── Duel ──
+  // ── Compare ──
   let pair = null, last = [];
   const group = id => byId.get(id)?.group ?? null;
   const nextPair = () => choosePair(themes, record, {last, group});
-  function duel() {
+  function compare() {
     pair ??= nextPair();
     let shown = performance.now(), locked = false;
     const decide = o => () => choose(o);
+    // three columns: Left | Equal over Pass | Right, with Undo and Note beside Pass
     const main1 = el('div', {class: 'row main'}, el('button', {onclick: decide('left')}, key('◀ Left', '←')), el('button', {onclick: decide('equal')}, key('= Equal', '↑')),
-      el('button', {onclick: decide('pass')}, key('Pass', '↓')), el('button', {onclick: decide('right')}, key('Right ▶', '→')));
-    const aux = el('div', {class: 'row aux'}, el('button', {onclick: undo}, key('↶ Undo', 'z')), el('button', {onclick: () => pair && note(pair.slice(0, 2))}, key('✎ Note', 'n')));
-    const auxRail = el('div', {class: 'row aux'}, el('button', {onclick: decide('equal')}, '= Equal'), el('button', {onclick: decide('pass')}, 'Pass'),
-      el('button', {onclick: undo}, '↶ Undo'), el('button', {onclick: () => pair && note(pair.slice(0, 2))}, '✎ Note'));
+      el('button', {onclick: decide('right')}, key('Right ▶', '→')));
+    const aux = el('div', {class: 'row aux'}, el('button', {onclick: undo}, key('↶ Undo', 'z')), el('button', {onclick: decide('pass')}, key('Pass', '↓')),
+      el('button', {onclick: () => pair && note(pair.slice(0, 2))}, key('✎ Note', 'n')));
+    const auxRail = el('div', {class: 'row aux'}, el('button', {onclick: undo}, '↶ Undo'), el('button', {onclick: decide('equal')}, '= Equal'),
+      el('button', {onclick: decide('pass')}, 'Pass'), el('button', {onclick: () => pair && note(pair.slice(0, 2))}, '✎ Note'));
     const bar = el('div', {class: 'bar'}, main1, aux, auxRail);
     const rails = [[el('button', {onclick: decide('left')}, '◀ Left')], [el('button', {onclick: decide('right')}, 'Right ▶')]];
     const {stage, root, stop} = screen({rails, bar});
     const sideways = () => getComputedStyle(root).gridTemplateColumns.split(' ').length === 3;
     function paint() {
       aux.hidden = sideways(); auxRail.hidden = !sideways();
-      if (!pair) {stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, 'Fewer than two themes left to duel (the cut ones sit out).'))); return;}
+      if (!pair) {stage.replaceChildren(el('div', {class: 'end'}, el('p', {}, 'Fewer than two themes left to compare (the cut ones sit out).'))); return;}
       const size = layout(stage.clientWidth, stage.clientHeight, 2);
       stage.style.setProperty('--between', `${size.between}px`);
       stage.replaceChildren(...pair.slice(0, 2).map((id, side) => themeView(id, size, {onlook: () => viewer(pair.slice(0, 2), side), tag: side ? 'Right' : 'Left'})));
@@ -405,9 +410,9 @@ async function app(set, results) {
       const top = 32, f = fit(themes, record, {top}), page = el('div', {class: 'page'});
       const nDuels = record.duels.filter(d => d.outcome !== 'pass').length;
       page.append(el('h2', {}, S.title),
-        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} duels, ${record.notes.length} notes. Strength: a Bradley–Terry fit of the duels with ties, each verdict an anchor; ` +
+        el('p', {}, `${Object.keys(record.verdicts).length} of ${themes.length} sorted, ${nDuels} comparisons, ${record.notes.length} notes. Strength: a Bradley–Terry fit of the comparisons with ties, each verdict an anchor; ` +
           `“Best ${top}”: how often a theme lands among the best ${top} when the uncertainty is drawn. The line marks the ${top}th.`),
-        el('table', {}, el('thead', {}, el('tr', {}, ['#', 'Theme', '', 'Verdict', 'Strength', `Best ${top}`, 'Duels'].map((h, i) => el('th', {class: i >= 4 || i === 0 ? 'n' : ''}, h)))),
+        el('table', {}, el('thead', {}, el('tr', {}, ['#', 'Theme', '', 'Verdict', 'Strength', `Best ${top}`, 'Compared'].map((h, i) => el('th', {class: i >= 4 || i === 0 ? 'n' : ''}, h)))),
           el('tbody', {}, f.order.map(r => {
             const t = byId.get(r.id), notes = record.notes.filter(n => n.themes.includes(r.id));
             return el('tr', {class: r.rank === top ? 'cutline' : ''},

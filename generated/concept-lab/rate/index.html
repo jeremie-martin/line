@@ -42,7 +42,7 @@ main{flex:1;min-height:0;display:flex;position:relative}
 .shots{display:grid;gap:6px}
 figure{margin:0;cursor:zoom-in}
 figure img{border-radius:6px;background:var(--line)}
-figcaption{font-size:11px;color:var(--soft);text-align:center;height:14px;line-height:14px}
+figcaption{font-size:11px;color:var(--soft);text-align:center;height:14px;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .label{display:flex;align-items:center;gap:6px;max-width:100%;font-weight:600;font-size:14px;height:22px}
 .label span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .label span:first-child,.label i{flex:none}
@@ -215,12 +215,15 @@ async function app(set, results) {
     const best = options.sort((a, b) => b.size - a.size)[0];
     return {cols: best.cols, w: Math.max(30, Math.floor(best.size)), h: Math.max(53, Math.floor(best.size * 16 / 9)), between};
   }
+  // a theme without a drop look still changes a little inside the drop (Whisper paper follows the ride's intensity): say so
+  const caption = (t, m) => /drop/i.test(m.label) && t.spec.look.drop === 'off' ? `${m.label} · no drop look` : m.label;
   function themeView(id, size, {onlook, tag} = {}) {
     const t = byId.get(id), v = record.verdicts[id];
     // exactly as wide as its stills: a long name is cut short, never widens the stage
     return el('div', {class: 'theme', style: `width:${size.cols * size.w + (size.cols - 1) * 6 + 12}px`},
       el('div', {class: 'shots', style: `grid-template-columns:repeat(${size.cols},auto)`}, S.moments.map((m, i) =>
-        el('figure', {onclick: e => {e.stopPropagation(); onlook(i);}}, el('img', {src: still(id, i), alt: `${t.label}, ${m.label}`, style: `width:${size.w}px;height:${size.h}px`}), el('figcaption', {}, m.label)))),
+        el('figure', {onclick: e => {e.stopPropagation(); onlook(i);}}, el('img', {src: still(id, i), alt: `${t.label}, ${m.label}`, style: `width:${size.w}px;height:${size.h}px`}),
+          el('figcaption', {style: `width:${size.w}px`}, caption(t, m))))),
       el('div', {class: 'label'}, tag ? el('span', {style: 'color:var(--soft);font-weight:500'}, tag) : null, el('span', {}, t.label), v ? el('i', {class: `v v-${v}`}, WORD[v]) : null,
         record.notes.some(n => n.themes.includes(id)) ? el('span', {title: 'has notes', style: 'color:var(--soft)'}, '✎') : null));
   }

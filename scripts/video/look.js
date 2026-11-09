@@ -18,7 +18,7 @@ export const OPTIONS = {
     vibranceStrongHalfPaper: 'Vibrance from 0.45, strength 1.1, paper half', vibranceStrongKeepPaper: 'Vibrance from 0.45, strength 1.1, paper stays',
     vibranceTopHalfPaper: 'Vibrance from 0.6, strength 1.1, paper half', vibranceTopKeepPaper: 'Vibrance from 0.6, strength 1.1, paper stays',
     // round 37: the soft-start curves (grade.js SOFT, SOFTER)
-    vibranceSoftHalfPaper: 'Vibrance, soft start, paper half', vibranceSoftKeepPaper: 'Vibrance, soft start, paper stays',
+    vibranceSoftHalfPaper: 'Vibrance, soft start, paper half (v1)', vibranceSoftKeepPaper: 'Vibrance, soft start, paper stays',
     vibranceSofterHalfPaper: 'Vibrance, softer, paper half', vibranceSofterKeepPaper: 'Vibrance, softer, paper stays'}],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
@@ -43,8 +43,9 @@ export const V1 = {
   line: 'inking',
   // band: low-middle (R3); the heat logic decides how many bars take the accent (R4); each theme chooses its form
   band: 'none', accent: 'heat', bandHeight: 'lowmid',
-  // paper: Whisper (R3–R4); nothing at the top unless a theme asks; no drop treatment unless a theme asks
-  scheme: 'graphite', paper: 'whisper', top: 'none', drop: 'off',
+  // paper: how the colours answer the ride's intensity: vibrance on the soft-start curve, the paper half (R37, "a pure banger";
+  // R33–R36 before, Whisper R3–R36; grade.js); nothing at the top unless a theme asks; no drop treatment unless a theme asks
+  scheme: 'graphite', paper: 'vibranceSoftHalfPaper', top: 'none', drop: 'off',
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
   // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',

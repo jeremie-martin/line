@@ -33,7 +33,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 | Hits: colour boost | Instead of the flash: what is drawn on the paper gets more saturated and more contrasted for an instant, the paper unchanged; from 0.35, full at 0.85 (saturation +45 %, contrast +38 %), gently on | R24–R26 |
 | Hits: title | A little less split, and less pulse. The sun keeps everything | R15–R19 |
 | Hits: rider | Keeps half its clean image through the split | R4, R12 |
-| Background | Whisper (a faint tint with intensity) | R3–R4 |
+| Colour with intensity | Vibrance on a soft-start curve: the muted colours gain colour as the ride gets intense, the vivid ones barely; nothing up to intensity 0.3, 15 % at 0.6, full at 0.9 (smooth); strength 1.1; the paper gains half as much; never above chroma 0.2 (`grade.js`, look `paper`). Whisper (a faint tint) before | R33–R37 (Whisper R3–R36) |
 | Top of the frame | Optional per look: the song title (two lines at most, in the line's colour), or the sun where it fits | R4–R6 |
 | Colours | Wada's Dictionary of Color Combinations as the method, plus a tiered library (below) | R10–R12 |
 | Night | A hand-placed drop cue | R2–R6 |
@@ -44,7 +44,7 @@ Round numbers (R1–R19) say when the owner said it. The full previous ledger, w
 |---|---|---|
 | Hit strength (measured, absolute) | v1 | Drives every hit effect, never a rank (R1, R5: "adapt to the actual values… the top 20 % could be very small"). A calm song gets less: "Yes, that's right" (R6). Measured from the ride, never the spec's target (confirmed R11). |
 | Hit moment (measured) | v1 | A hit happens at its strongest frame: its effects start there (R23, "C is the best… clearly"), pushed along the line struck at its onset. |
-| Intensity (speed + impact, `intensity.js`) | v1, used lightly | A clean standalone metric (R3). Blind test: direction right 8/8, size not shown. It drives Whisper, the sun and Out when quiet. |
+| Intensity (speed + impact, `intensity.js`) | v1 | A clean standalone metric (R3). Blind test: direction right 8/8, size not shown. It drives vibrance, the sun and Out when quiet. R36 explained it in full (`round36.html`): "what we have today is already pretty damn good"; quicker or "both needed" recipes measured, not adopted. The normal part of a song must stay the theme as designed (R33: "the normal version should not be changed by all this effect"). |
 | Drop cue (hand-placed, `scripts/video/drops.ts`) | v1 | Detectors failed twice; one hand cue per song. **Open:** where Night *ends* was never reviewed song by song ("I'm not entirely convinced when the night was removed", R4). |
 | Rider direction and slope | v1 | Feeds Follows direction. |
 | Sections | gone as a driver | Hand placement still welcome (R2). |

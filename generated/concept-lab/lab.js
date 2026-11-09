@@ -44,16 +44,18 @@ const TEST_QUESTIONS = [
 // A round of theme candidates (candidates.json): their schemes join the palettes in this page's memory only, so versions not yet in
 // the code can be compared live. Round 29: two improvements from round 28, its four unanswered drafts, twenty new ones (references,
 // a generator, colour tools: docs/COLOUR-TOOLS.md) and the tools' raw output, each in its visibly different versions; a grade per version.
-const CANDIDATES = await fetch('./candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
+// ?set=NAME plays another round's candidates (candidates-NAME.json, answers kept apart): round 33 is ?set=intensity
+const ROUND_SET = /^[a-z0-9-]{1,40}$/.test(new URLSearchParams(location.search).get('set') ?? '') ? new URLSearchParams(location.search).get('set') : null;
+const CANDIDATES = await fetch(ROUND_SET ? `./candidates-${ROUND_SET}.json` : './candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
 if (CANDIDATES) {Object.assign(SCHEMES, CANDIDATES.schemes); Object.assign(DROP_SCHEMES, CANDIDATES.drops);}
 const DRAFT_MOMENTS = [['Verse, 18 s', 18], ['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Later, 59.5 s', 59.5]];
 const QUESTIONS = (CANDIDATES?.drafts ?? []).map(d => ({id: d.id, ask: d.name, grades: true, multi: true,
   why: `${d.source}. ${d.line} Each version: ${d.variants.map((v, i) => `${String.fromCharCode(65 + i)} ${v.label}`).join(', ')}. Grade any version out of 10; keep any number.`,
-  song: 'circus', t: 18, len: 6, opts: d.variants.map(v => [v.label, {...v.look, ends: 'none'}, v.note]), moments: DRAFT_MOMENTS}));
+  song: d.song ?? 'circus', t: d.t ?? 18, len: d.len ?? 6, opts: d.variants.map(v => [v.label, {...v.look, ends: 'none'}, v.note]), moments: d.moments ?? DRAFT_MOMENTS}));
 // then the five small choices from the theme reviews (the alternatives are exact copies in palettes.js, deleted once answered)
 const fix = (id, choices = {}) => ({...resolveLook(id), ends: 'none', ...choices});
 const DROP_FIX_MOMENTS = [['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Petrunko, into the drop', 21, 'petrunko'], ['Verse, 18 s', 18]];
-if (CANDIDATES) QUESTIONS.push(
+if (CANDIDATES && !ROUND_SET) QUESTIONS.push(
   {id: 'auberginedrop', ask: 'Aubergine’s drop', grades: true, why: 'At the drop Aubergine hands over to a dark partner and carries its carmine accent onto it; today the partner’s bars are carmine too, so the loudest bars vanish for the whole drop. Varies: only the partner’s bars.',
     song: 'circus', t: 36.5, len: 6, opts: [['As now', fix('aubergine'), 'Carmine bars.'], ['Lavender bars', fix('aubergine', {scheme: 'w2AubergineToLavender'}), 'Wada 307’s own lavender.'], ['Aconite bars', fix('aubergine', {scheme: 'w2AubergineToAconite'}), 'Dark aconite, quieter.']], moments: DROP_FIX_MOMENTS},
   {id: 'dunedrop', ask: 'Dune’s drop', grades: true, why: 'Dune cuts to coffee at the drop, carrying its amber accent; on Espresso’s latte bars the amber is weak, Café was built for it. Varies: only the partner.',
@@ -92,7 +94,7 @@ let navId = 0, qmoment = null, loopHome = null;
 // the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
 let exaggerate = 1;
 function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : 'concept-lab-answers-r29';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : ROUND_SET ? `concept-lab-answers-${ROUND_SET}` : 'concept-lab-answers-r29';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();

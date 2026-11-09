@@ -227,11 +227,11 @@ async function app(set, results) {
     return {cols: best.cols, w: Math.max(30, Math.floor(best.size)), h: Math.max(53, Math.floor(best.size * 16 / 9)), between};
   }
   // a theme without a drop look still changes a little inside the drop (Whisper paper follows the ride's intensity): say so
-  // a theme without a drop look stays itself in the song's drop: there the still only shows it when the music is loud
   // in a set of variations (pairs within one theme) the screen names the version, which is what differs: "Rothko · vibrance" is
   // "vibrance", the theme as it was is "today" (the full name stays in the results)
   const name = id => {const l = byId.get(id).label; return S.pairs === 'group' ? (l.split(' · ')[1] ?? 'today').replace('saturation and ', 'sat. + ') : l;};
-  const caption = (t, m) => /drop/i.test(m.label) && t.spec.look.drop === 'off' ? 'Loud part' : m.label;
+  // the two moments by the ride's intensity (intensity.js): the verse is ordinary (about 0.36), the second moment intense (0.71)
+  const caption = (t, m) => /drop/i.test(m.label) && t.spec.look.drop === 'off' ? 'Intense part' : S.pairs === 'group' && m.label === 'Verse' ? 'Normal part' : m.label;
   function themeView(id, size, {onlook, tag} = {}) {
     const t = byId.get(id), v = record.verdicts[id];
     // exactly as wide as its stills: a long name is cut short, never widens the stage

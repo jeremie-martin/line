@@ -24,6 +24,15 @@ signs, and every ruler.
 **Then:** jolt 0 in the same commit, with the parity references updated; the jolt code, `LR_JOLT_OFFSET_MS` and the spec's unused
 `music.offset` removed in a structural commit after it.
 
+**Result (V7.1, 4 seeds; `compare --candidate-jolt=0`, added for this): not adopted.**
+- 164/164 rides finish in both arms.
+- The headline moved −4.1 [−14.7, +6.4], support 0.15. The seed blocks were −2.3, +3.4, −12.6 and −5.0.
+- 18 specs went up and 17 down. The losses sit in the long-gap categories: P6 −15.9, P7 −11.1, P3 −8.9.
+- The rulers barely moved (strength rms about +0.002). Strong extra impacts went from 0.05 to 0.08 per 100 beats, mostly in P6.
+- Past the declared −3 bound, so the jolt stays at −15. Neutral is neither shown nor ruled out.
+
+Report: `generated/eval/compare/b17d3af4-vs-visual-lab@fa2c274e-v7.1-cand-jolt-0/report.txt`.
+
 ## November 10, night: Cut-outs joins the collection (round 42)
 
 The bars sit a third of the way from Prussian toward the deeper blue (OKLCH; #014a7a). The theme is frozen as set

@@ -2,13 +2,13 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "a93f1d6c79d52152fa1c83c70dc9db7977a4ccaa1466fd7f4ed453829382a779",
-  "sha256": "dbb622ea5784c2b43697e9077150c9185da249912d19cbfd2d95302c17914cc2",
-  "uncompressedBytes": 67604,
+  "compressedSha256": "ad5ad91cf3d02b32248f0c3c2b4eb602e0a64de7a657f1d90928ad8fa8e0d21b",
+  "sha256": "9ac29b2e35864bbbf2254de4da0508a399f550ac26fedaf094631cbc46c31469",
+  "uncompressedBytes": 207970,
   "provenance": {
-    "source": "repertoire_policy_model_v3.json.gz",
+    "source": "archive-9d065738.json.gz",
     "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-    "method": "one-layer network (16 units, 12 most important features) + 32 residual styles per group",
-    "numbers": 5361
+    "method": "57 normalized situation features (body included), 32 ReLU units, MSE with 35% hidden-weight pruning and 40 masked fine-tuning epochs, 32 k-means residual styles per group; seed 57",
+    "numbers": 26409
   }
 }

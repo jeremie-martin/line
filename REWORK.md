@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: jolt 0, declared before running (timing stage 4)
+
+The jolt still shifts every authored contact 15 ms later before compiling (`scripts/produce/jolt.ts`, `JOLT_DEFAULT_MS = -15`,
+the owner's choice by ear in June). It only moves the compiler's targets. Since stage 1 a video aligns each ride itself
+(offset = mean strongest frame − authored beat), so presentation no longer depends on the jolt. At 0, `applyJolt` returns the
+spec unchanged and its early-contact clamp never runs. No spec needs the clamp: all 85 specs and variants have their first
+contact at or after the earliest catchable 0.125 s.
+
+**Change.** `JOLT_DEFAULT_MS = 0` (branch `exp/jolt-0`). Nothing else.
+
+**Hypothesis.** Quality is neutral: at 40 frames a second the shift moved each target by 0 or 1 frame, and scoring follows the
+targets.
+
+**Measure.** `compare` on V7.1, 4 seeds, against `visual-lab`: completion first, then the headline with its interval and per-spec
+signs, and every ruler.
+
+**Accept if:**
+- no ride is lost;
+- the headline change is not worse than −3 points, with its interval including 0 or above it;
+- no ruler is clearly worse (a ruler that is worse is disclosed).
+
+**Then:** jolt 0 in the same commit, with the parity references updated; the jolt code, `LR_JOLT_OFFSET_MS` and the spec's unused
+`music.offset` removed in a structural commit after it.
+
 ## November 10, night: Cut-outs joins the collection (round 42)
 
 The bars sit a third of the way from Prussian toward the deeper blue (OKLCH; #014a7a). The theme is frozen as set

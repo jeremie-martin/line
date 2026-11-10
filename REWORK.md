@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: the video code keeps only what production draws (structural, owner's decision)
+
+The owner: "now for the actual production code base, let's clean that up". The rounds, their answers and every earlier look stay
+in git history; the code keeps what the 24 themes, their drop pairings and the plain review look draw.
+- `palettes.js`, 327 → 29 lines: the ~200 named schemes, the paper and theme variant generators, the `LIBRARY` tiers and the old
+  `DROP_SCHEMES` go. What stays: `graphite` (V1's, so the plain clips and the lab's Swatch), each theme's scheme under its id,
+  Hokusai's judged partner, Paper Print's black and white, the pairings.
+- `grade.js`, 79 → 49: one response, vibrance on the soft-start curve with the paper half, and `plain`. Whisper, saturation,
+  contrast, brightness and the other vibrance curves go. `theme.js` loses Night and Whisper (`nightPaper`, `nightInk` and `tone`
+  stay in the specifications, which are the themes' identities, but nothing draws them).
+- `look.js`: values no theme, `PLAIN` or `V1` uses go: drop `night`, `bandHeight` low and mid, `riderLower` 8 and 16, `sunRider`
+  0, 48 and 96, `sunLift` 0, 19.2, 32 and 38.4. Every key stays, so every judged id is unchanged (the test recomputes all 24).
+- The lab (`lab.js`): the round-29 questions and their copied schemes go; the candidate files of rounds 29–44 go (10 files, 9,679
+  lines). `?set=NAME&q=1` still asks a new round. The test questions and `uicheck.mjs` now use collection schemes (76/76; two
+  checks had failed since the collection replaced the old theme names).
+- Pages that drew retired looks go: the showcase (`showcase.html`, `.mjs`, `showcase-films.html`), `theme-ratings.html` and
+  `films7.sh`. The rounds index greys the rounds whose questions or pages are retired. Other round pages are self-contained and stay.
+- `fingerprint.mjs` now covers production: every collection theme, four pairings, every remaining option value, plain and the
+  old rides (182 frames; new baseline).
+- Frozen sets: `stills.html` accepts a scheme already named with identical colours, so `freeze.mjs --rerender` works for the
+  sets of collection themes (it refused them before). A set judged with retired values is refused with its own renderer commit.
+
+scripts/video: 1,779 → 1,446 lines; 10,083 lines of retired lab files deleted.
+
+**Proof.** Before the change, 174 stills (each of the 24 themes on Circus at 18 and 44.65 s and on Petrunko; all 20 pairings at
+18, 44.6 and 44.65 s and on Los Voltaje inside its drop; plain, V1, Swatch) at 1080 px, JPEG 0.92: after it, all 174 are
+byte-identical, and the 48 Circus theme stills equal the judged frozen ones. The new fingerprint is identical before and after
+(182 frames). `freeze.mjs --rerender` on copies of the light-collection and cut-outs sets reproduces their 12 stills exactly.
+Tests (569), typecheck, reach, compile and judge parity pass; the lab plays a theme and every option chip, the collection page and
+the rounds index load without errors. Unchanged: `check.mjs` still reports horizontal overflow at 390 px.
+
 ## November 11: each video's look is chosen for it; drops (rounds 43–44)
 
 The project is a mass generator: no one picks a video's look. `scripts/video/choose.js` chooses from the ride's id:

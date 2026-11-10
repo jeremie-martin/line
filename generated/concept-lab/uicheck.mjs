@@ -2,6 +2,7 @@
 // (390×844, touch, .tap()) and desktop. It asserts STATE (what is selected, stored, drawn, where things are), not just "no errors".
 // Usage (with the lab served on :8770): /usr/bin/node generated/concept-lab/uicheck.mjs   Exit code 1 on any failed check.
 import {chromium} from 'playwright';
+import {COLLECTION} from '../../scripts/video/collection.js';
 
 const BASE = 'http://127.0.0.1:8770/generated/concept-lab/';
 const PHONE = {viewport: {width: 390, height: 844}, deviceScaleFactor: 3, isMobile: true, hasTouch: true};
@@ -36,7 +37,8 @@ const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 const cornerPixel = p => p.evaluate(() => {const c = document.getElementById('stage'); return [...c.getContext('2d').getImageData(3, 3, 1, 1).data].slice(0, 3);});
 const near = (a, b, tol) => a.every((v, i) => Math.abs(v - b[i]) <= tol);
 const url = p => new URL(p.url()).searchParams;
-const QMOMENTS_TOP = ['Petrunko 34 s', 'Tomada 37 s', 'On Dune', 'On Café (dark)', 'On Hokusai'];
+const QMOMENTS_TOP = ['Petrunko 34 s', 'Tomada 37 s', 'On Dune', 'On Rothko (dark)', 'On Hokusai'];
+const DUNE = COLLECTION.dune.id, HOKUSAI = COLLECTION.hokusai.id;
 
 try {
   // ── 1. question mode at phone size: layout, picks, overrides ───────────────────────────────────────────────
@@ -86,17 +88,17 @@ try {
     await tap(p, '#moments button', QMOMENTS_TOP.indexOf('On Dune')); await settled(p);
     const dune = hex('#efe2cd');
     let s = await st(p);
-    check(s.mix.scheme === 'dune' && s.qmoment === 2, 'On Dune applies the Dune scheme', s.mix.scheme);
+    check(s.mix.scheme === DUNE && s.qmoment === 2, 'On Dune applies the Dune scheme', s.mix.scheme);
     check(await p.locator('#moments button.on').textContent() === 'On Dune', 'the active moment chip is marked');
     await tap(p, '#presets button', 1); s = await st(p);
-    check(s.mix.scheme === 'dune' && s.mix.top === 'sun', 'option chip B keeps the Dune override', `${s.mix.scheme} ${s.mix.top}`);
+    check(s.mix.scheme === DUNE && s.mix.top === 'sun', 'option chip B keeps the Dune override', `${s.mix.scheme} ${s.mix.top}`);
     check(near(await cornerPixel(p), dune, 18), 'the drawn paper is Dune after switching option', String(await cornerPixel(p)));
     // swipe on the picture (used to drop the override)
     const box = await p.locator('#stagewrap').boundingBox();
     await p.evaluate(({x, y}) => {const el = document.getElementById('stagewrap'), o = {pointerId: 1, bubbles: true, pointerType: 'touch'};
       el.dispatchEvent(new PointerEvent('pointerdown', {...o, clientX: x + 200, clientY: y})); el.dispatchEvent(new PointerEvent('pointerup', {...o, clientX: x + 60, clientY: y + 5}));}, {x: box.x, y: box.y + 200});
     s = await st(p);
-    check(s.qopt === 2 && s.mix.scheme === 'dune' && s.mix.top === 'title', 'a swipe moves to C and keeps the Dune override', `${s.qopt} ${s.mix.scheme} ${s.mix.top}`);
+    check(s.qopt === 2 && s.mix.scheme === DUNE && s.mix.top === 'title', 'a swipe moves to C and keeps the Dune override', `${s.qopt} ${s.mix.scheme} ${s.mix.top}`);
     check(near(await cornerPixel(p), dune, 18), 'the drawn paper is still Dune after the swipe', String(await cornerPixel(p)));
     const flag = await p.locator('#optflag').textContent();
     check(flag === 'C · The title · On Dune', 'the label on the picture says what is drawn', flag);
@@ -120,8 +122,8 @@ try {
     let s = await st(p);
     check(JSON.stringify(await onLabels(p)) === '["B","C"]', 'reload restores the picks', JSON.stringify(await onLabels(p)));
     check(await p.locator('#qnote').inputValue() === 'top note, with a comma', 'reload restores the note');
-    check(s.qopt === 1 && s.qmoment === 2 && s.mix.scheme === 'dune', 'reload restores option B on Dune', `${s.qopt} ${s.qmoment} ${s.mix.scheme}`);
-    check(await p.locator('#optflag').textContent() === 'B · A sun, a little higher · On Dune', 'reload restores the picture label', await p.locator('#optflag').textContent());
+    check(s.qopt === 1 && s.qmoment === 2 && s.mix.scheme === DUNE, 'reload restores option B on Dune', `${s.qopt} ${s.qmoment} ${s.mix.scheme}`);
+    check(await p.locator('#optflag').textContent() === 'B · A sun, top right · On Dune', 'reload restores the picture label', await p.locator('#optflag').textContent());
     // next then back: picks and note kept, option/moment back to the question's start
     await tap(p, '#qnext'); await settled(p);
     s = await st(p);
@@ -145,7 +147,7 @@ try {
     const lines = (await p.locator('#qsummary').inputValue()).split('\n');
     check(lines.length === 7, 'summary has one line per question', String(lines.length));
     check(lines[0] === '1. The band, compared fairly → D · None — band note', 'option "None" reads as D · None, with the note', lines[0]);
-    check(lines[1] === '2. What at the top of the frame? → B · A sun, a little higher + C · The title', 'multi picks listed exactly', lines[1]);
+    check(lines[1] === '2. What at the top of the frame? → B · A sun, top right + C · The title', 'multi picks listed exactly', lines[1]);
     check(lines[2] === '3. The line → None of these', '"None of these" spelled out', lines[2]);
     check(lines.slice(3).every(l => l.endsWith('→ (skipped)')), 'unanswered questions say skipped', lines.slice(3).join(' | '));
     check(await p.locator('#optflag').isHidden(), 'no option label on the done page');
@@ -173,7 +175,7 @@ try {
     // Next, Next quickly (petrunko → tomada → lua): ends on question 4 with its own loop
     await tap(p, '#qnext'); await tap(p, '#qnext');
     await settled(p); await p.waitForTimeout(1500); s = await st(p);
-    check(s.qi === 3 && s.song === 'lua' && s.loaded === 'lua' && Math.abs(s.loop - 36.5) < 1e-6 && s.loopLen === 6 && s.mix.scheme === 'kraft',
+    check(s.qi === 3 && s.song === 'lua' && s.loaded === 'lua' && Math.abs(s.loop - 36.5) < 1e-6 && s.loopLen === 6 && s.mix.scheme === COLLECTION.paper.id,
       'Next, Next: question 4 with its ride, loop and option', JSON.stringify({qi: s.qi, song: s.song, loaded: s.loaded, loop: s.loop, len: s.loopLen, scheme: s.mix.scheme}));
     check((await p.locator('#qprogress').textContent()).startsWith('Question 4 of 7 · Lua'), 'progress line matches', await p.locator('#qprogress').textContent());
     // option switching while a moment loads: the option survives and the override is added on arrival
@@ -237,9 +239,9 @@ try {
     await p.keyboard.press('Space');
     await p.locator('#moments button').nth(2).click(); await settled(p);
     await p.keyboard.press('ArrowRight'); let s = await st(p);
-    check(s.qopt === 1 && s.mix.scheme === 'dune', 'ArrowRight keeps the moment override', `${s.qopt} ${s.mix.scheme}`);
+    check(s.qopt === 1 && s.mix.scheme === DUNE, 'ArrowRight keeps the moment override', `${s.qopt} ${s.mix.scheme}`);
     await p.keyboard.press('3'); s = await st(p);
-    check(s.qopt === 2 && s.mix.scheme === 'dune', 'number keys pick the option (as the hint says)', `${s.qopt} ${s.mix.scheme}`);
+    check(s.qopt === 2 && s.mix.scheme === DUNE, 'number keys pick the option (as the hint says)', `${s.qopt} ${s.mix.scheme}`);
     await p.locator('#qnote').click(); await p.keyboard.type('12 ');
     check((await st(p)).qopt === 2 && await p.locator('#qnote').inputValue() === '12 ', 'typing in the note does not switch options');
     // loop: off, then on again returns to the moment's passage and length
@@ -257,17 +259,17 @@ try {
     await settled(p);
     await p.locator('#presets button', {hasText: 'Hokusai'}).tap();
     await p.locator('#mixtoggle').tap();
-    await p.locator('#mix .row').filter({hasText: 'At the drop'}).locator('button', {hasText: 'Night'}).first().tap();
+    await p.locator('#mix .row').filter({hasText: 'At the drop'}).locator('button', {hasText: 'Switch'}).first().tap();
     let q = url(p);
-    check(q.get('c') === 'hokusai' && (q.get('m') ?? '').includes('drop:night'), 'the address carries preset and adjustments', p.url());
+    check(q.get('c') === 'hokusai' && (q.get('m') ?? '').includes('drop:switch'), 'the address carries preset and adjustments', p.url());
     await p.reload(); await settled(p); let s = await st(p);
-    check(s.mix.scheme === 'hokusai' && s.mix.drop === 'night' && (await p.locator('#concept').textContent()) === 'Hokusai · adjusted', 'reload restores preset and adjustments');
+    check(s.mix.scheme === HOKUSAI && s.mix.drop === 'switch' && (await p.locator('#concept').textContent()) === 'Hokusai · v1 · adjusted', 'reload restores preset and adjustments');
     // rapid song switching
     // by name, not position, so adding a song never breaks the check
     for (const name of ['Lua na Praça', 'Los Voltaje', 'Let the World Burn']) await p.locator('#songs button', {hasText: name}).tap();
     await settled(p); await p.waitForTimeout(1200); s = await st(p);
     check(s.song === 'burn' && s.loaded === 'burn' && (await p.locator('#songs button.on').textContent()) === 'Let the World Burn', 'rapid song taps end on the last song', `${s.song} ${s.loaded}`);
-    check(s.mix.scheme === 'hokusai' && s.mix.drop === 'night', 'switching songs keeps the look');
+    check(s.mix.scheme === HOKUSAI && s.mix.drop === 'switch', 'switching songs keeps the look');
     // 'Ending' seeks to 4 s before the end. The page opened at 12 s, so the old test (seconds > 0) passed even if the chip did nothing.
     await p.locator('#moments button', {hasText: 'Ending'}).tap(); s = await st(p); const dur = await p.evaluate(() => +document.getElementById('seek').max);
     check(dur > 20 && Math.abs(s.seconds - (dur - 4)) < 0.01, 'a moment chip seeks', `${s.seconds} of ${dur}`);
@@ -280,28 +282,27 @@ try {
     const before = p => p.route('**/candidates-intensity-check.json', r => r.fulfill({json: {drafts: [{
       id: 'caption', name: 'Colour response', source: 'Interaction test', line: '', song: 'circus', t: 44.65,
       variants: [
-        {label: 'Contrast', look: {paper: 'contrast'}, note: ''},
         {label: 'Vibrance', look: {paper: 'vibranceSoftHalfPaper'}, note: ''},
+        {label: 'Plain', look: {paper: 'plain'}, note: ''},
       ],
       moments: [['As designed', 44.65], ['Plain at the same moment', 44.65, 'circus', {paper: 'plain'}]],
     }]}}));
     const p = await open('?set=intensity-check&q=1', PHONE, {before}); await settled(p);
     const caption = () => p.locator('#level').textContent();
-    const contrast = await caption();
-    check(await p.locator('#level').isVisible() && /^Intensity \d\.\d{2} · colour response \d+ %$/.test(contrast),
-      'contrast is labelled colour response, not vibrance', contrast);
-    await tap(p, '#presets button', 1); const vibrance = await caption();
-    check(vibrance !== contrast && vibrance.split(' · ')[0] === contrast.split(' · ')[0],
-      'switching response changes its amount at the same ride intensity', vibrance);
-    await tap(p, '#moments button', 1); await settled(p);
-    check((await st(p)).mix.paper === 'plain' && await caption() === contrast.split(' · ')[0],
+    const vibrance = await caption(), level = vibrance.split(' · ')[0];
+    check(await p.locator('#level').isVisible() && /^Intensity \d\.\d{2} · colour response \d+ %$/.test(vibrance),
+      'the response is labelled colour response, with its amount', vibrance);
+    await tap(p, '#presets button', 1);
+    check(await caption() === level, 'switching to plain removes the amount at the same ride intensity', await caption());
+    await tap(p, '#presets button', 0); await tap(p, '#moments button', 1); await settled(p);
+    check((await st(p)).mix.paper === 'plain' && await caption() === level,
       'a plain moment override removes the response amount');
-    await tap(p, '#presets button', 0);
-    check(await caption() === contrast.split(' · ')[0], 'the caption keeps the moment override when switching options');
+    await tap(p, '#presets button', 1); await tap(p, '#presets button', 0);
+    check(await caption() === level, 'the caption keeps the moment override when switching options');
     await tap(p, '#moments button', 0); await settled(p);
-    check(await caption() === contrast, 'returning to the original moment restores its response amount');
-    await p.goto(BASE + '?set=intensity-check&song=circus&t=44.65&m=paper:contrast'); await settled(p);
-    check(await caption() === contrast, 'the free lab reports the same response as the question');
+    check(await caption() === vibrance, 'returning to the original moment restores its response amount');
+    await p.goto(BASE + '?set=intensity-check&song=circus&t=44.65&m=paper:vibranceSoftHalfPaper'); await settled(p);
+    check(await caption() === vibrance, 'the free lab reports the same response as the question');
     await p.goto(BASE + '?song=circus&t=44.65'); await settled(p);
     check(await p.locator('#level').isHidden(), 'ordinary theme review does not show intensity diagnostics');
     await p.context().close();

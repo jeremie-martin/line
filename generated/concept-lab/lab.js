@@ -6,11 +6,12 @@ import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {OPTIONS, V1, resolveLook} from '/scripts/video/look.js';
 import {SCHEMES, DROP_SCHEMES} from '/scripts/video/palettes.js';
+import {COLLECTION} from '/scripts/video/collection.js';
 import {GRADES, amountOf} from '/scripts/video/grade.js';
 import {PRESETS} from './presets.js';
 import {SONGS, rideSet} from './rides.js';
 
-const noEnds = {...V1, ends: 'none'};
+const noEnds = {...V1, ends: 'none'}, scheme = key => COLLECTION[key].id;
 // Each option: [label, look, note shown when tapped, ride set (rides.js) when not the question's].
 // A frozen set of questions, used only by uicheck.mjs (?qtest=1): the interaction suite tests the machinery (multi picks, a label
 // with a comma, moment overrides, old rides) without depending on whatever the current round asks.
@@ -23,18 +24,18 @@ const TEST_QUESTIONS = [
     moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Batidão 15 s', 14.5, 'batidao']]},
   {id: 'top', ask: 'What at the top of the frame?', why: 'Varies: only the top of the frame.', song: 'petrunko', t: 33.6, len: 5, multi: true, opts: [
       ['Nothing', {...noEnds, band: 'bars', top: 'none'}, 'Nothing.'],
-      ['A sun, a little higher', {...noEnds, band: 'bars', top: 'sun', sunLift: '19.2'}, 'The sun, a few pixels higher.'],
+      ['A sun, top right', {...noEnds, band: 'bars', top: 'sun'}, 'The sun, top right.'],
       ['The title', {...noEnds, band: 'bars', top: 'title'}, 'The song’s name.']],
-    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Dune', 33.6, 'petrunko', {scheme: 'dune'}], ['On Café (dark)', 33.6, 'petrunko', {scheme: 'cafe'}], ['On Hokusai', 33.6, 'petrunko', {scheme: 'hokusai'}]]},
+    moments: [['Petrunko 34 s', 33.6], ['Tomada 37 s', 36.5, 'tomada'], ['On Dune', 33.6, 'petrunko', {scheme: scheme('dune')}], ['On Rothko (dark)', 33.6, 'petrunko', {scheme: scheme('rothko')}], ['On Hokusai', 33.6, 'petrunko', {scheme: scheme('hokusai')}]]},
   {id: 'line', ask: 'The line', why: 'Varies: only how the line appears.', song: 'tomada', t: 36.5, len: 5, multi: true, opts: [
       ['Pencil → ink', {...noEnds, band: 'bars', line: 'inking'}, 'Inks as the rider passes.'],
       ['Whole rail', {...noEnds, band: 'bars', line: 'rail'}, 'A rail lights whole when the rider meets it.'],
       ['All ink', {...noEnds, band: 'bars', line: 'ink'}, 'Inked from the start.']],
     moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
-  ...[['bgKraft', 'Kraft: which paper?', 'kraft'], ['bgCyan', 'Cyanotype: which paper?', 'cyanotype'], ['bgRothko', 'Rothko: which paper?', 'rothko']].map(([id, ask, s]) => (
-    {id, ask, why: 'Varies: only the paper.', song: 'lua', t: 36.5, len: 6, multi: true, opts: [
-      ['As designed', {...noEnds, band: 'bars', scheme: s}, 'The original paper.'],
-      ...[0, 1, 2].map(i => [`Variant ${i + 1}`, {...noEnds, band: 'bars', scheme: `${s}~${i}`}, 'Only the paper changes.'])],
+  ...[['light', 'Which light theme?', ['paper', 'dune', 'seashell', 'peony']], ['dark', 'Which dark theme?', ['rothko', 'cyanotype', 'oldRose', 'negoro']],
+    ['sun', 'Which theme with a sun?', ['jungleMoon', 'cobaltChartreuse', 'lilyLeaf', 'forestGold']]].map(([id, ask, keys]) => (
+    {id, ask, why: 'Varies: only the colours.', song: 'lua', t: 36.5, len: 6, multi: true, opts: keys.map(k =>
+      [COLLECTION[k].name, {...noEnds, band: 'bars', scheme: scheme(k)}, COLLECTION[k].line]),
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 45 s', 45, 'los'], ['Petrunko 28 s', 28, 'petrunko']]})),
   {id: 'rides', ask: 'An option on another ride set', why: 'Varies: only the ride.', song: 'lua', t: 36.5, len: 5, opts: [
       ['Today’s ride', {...noEnds, band: 'bars'}, 'The lab’s ride.'],
@@ -42,35 +43,17 @@ const TEST_QUESTIONS = [
     moments: [['Lua 36 s', 36.5], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
 ];
 
-// A round of theme candidates (candidates.json): their schemes join the palettes in this page's memory only, so versions not yet in
-// the code can be compared live. Round 29: two improvements from round 28, its four unanswered drafts, twenty new ones (references,
-// a generator, colour tools: docs/COLOUR-TOOLS.md) and the tools' raw output, each in its visibly different versions; a grade per version.
-// ?set=NAME plays another round's candidates (candidates-NAME.json, answers kept apart): round 33 is ?set=intensity
+// A round of theme candidates: ?set=NAME&q=1 asks the drafts of candidates-NAME.json ({schemes?, drops?, drafts: [{id, name, source,
+// line, song?, t?, len?, moments?, variants: [{label, look, note}]}]}), answers kept apart per set. Their schemes join the palettes in
+// this page's memory only, so versions not yet in the code can be compared live; one grade per version. The candidate files of
+// rounds 29–44 are in git history before 11 November.
 const ROUND_SET = /^[a-z0-9-]{1,40}$/.test(new URLSearchParams(location.search).get('set') ?? '') ? new URLSearchParams(location.search).get('set') : null;
-const CANDIDATES = await fetch(ROUND_SET ? `./candidates-${ROUND_SET}.json` : './candidates.json').then(r => r.ok ? r.json() : null).catch(() => null);
+const CANDIDATES = ROUND_SET ? await fetch(`./candidates-${ROUND_SET}.json`).then(r => r.ok ? r.json() : null).catch(() => null) : null;
 if (CANDIDATES) {Object.assign(SCHEMES, CANDIDATES.schemes); Object.assign(DROP_SCHEMES, CANDIDATES.drops);}
 const DRAFT_MOMENTS = [['Verse, 18 s', 18], ['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Later, 59.5 s', 59.5]];
 const QUESTIONS = (CANDIDATES?.drafts ?? []).map(d => ({id: d.id, ask: d.name, grades: true, multi: true,
   why: `${d.source}. ${d.line} Each version: ${d.variants.map((v, i) => `${String.fromCharCode(65 + i)} ${v.label}`).join(', ')}. Grade any version out of 10; keep any number.`,
   song: d.song ?? 'circus', t: d.t ?? 18, len: d.len ?? 6, opts: d.variants.map(v => [v.label, {...v.look, ends: 'none'}, v.note]), moments: d.moments ?? DRAFT_MOMENTS}));
-// then the five small choices from the theme reviews (the alternatives are exact copies in palettes.js, deleted once answered)
-// the themes these questions fixed, as they were in round 29 (look.js THEMES is now the collection, 2026-11-10)
-const R29 = {aubergine: {scheme: 'w2Aubergine', band: 'bars', drop: 'switch'}, dune: {scheme: 'dune', band: 'bars', top: 'sun', drop: 'switch'},
-  seashell: {scheme: 'w2Seashell', band: 'bars', drop: 'night'}, black: {scheme: 'black', band: 'iris', line: 'ink'}, ultramarine: {scheme: 'wUltramarine', band: 'bars', line: 'ink'}};
-const fix = (id, choices = {}) => ({...resolveLook(null, R29[id]), ends: 'none', ...choices});
-const DROP_FIX_MOMENTS = [['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Petrunko, into the drop', 21, 'petrunko'], ['Verse, 18 s', 18]];
-if (CANDIDATES && !ROUND_SET) QUESTIONS.push(
-  {id: 'auberginedrop', ask: 'Aubergine’s drop', grades: true, why: 'At the drop Aubergine hands over to a dark partner and carries its carmine accent onto it; today the partner’s bars are carmine too, so the loudest bars vanish for the whole drop. Varies: only the partner’s bars.',
-    song: 'circus', t: 36.5, len: 6, opts: [['As now', fix('aubergine'), 'Carmine bars.'], ['Lavender bars', fix('aubergine', {scheme: 'w2AubergineToLavender'}), 'Wada 307’s own lavender.'], ['Aconite bars', fix('aubergine', {scheme: 'w2AubergineToAconite'}), 'Dark aconite, quieter.']], moments: DROP_FIX_MOMENTS},
-  {id: 'dunedrop', ask: 'Dune’s drop', grades: true, why: 'Dune cuts to coffee at the drop, carrying its amber accent; on Espresso’s latte bars the amber is weak, Café was built for it. Varies: only the partner.',
-    song: 'circus', t: 36.5, len: 6, opts: [['Espresso, as now', fix('dune'), 'Latte bars.'], ['Café', fix('dune', {scheme: 'duneToCafe'}), 'Darker latte bars.']], moments: DROP_FIX_MOMENTS},
-  {id: 'seashelldrop', ask: 'Seashell at the drop', grades: true, why: 'Seashell Night goes to navy Night at the drop; the art director would keep its shell and blue through the drop. Varies: only the drop.',
-    song: 'circus', t: 36.5, len: 6, opts: [['Night, as now', fix('seashell'), 'Navy Night.'], ['No Night', fix('seashell', {drop: 'off'}), 'Shell and blue throughout.']], moments: DROP_FIX_MOMENTS},
-  {id: 'iris', ask: 'Black Iris’s strands', grades: true, why: 'On a phone the Iris band is the faintest of the set, on the theme whose idea it is. Bolder strands? Varies: only the strands’ weight.',
-    song: 'circus', t: 18, len: 6, opts: [['Thin, as now', fix('black'), 'Main line 3.8 px.'], ['Bold', fix('black', {irisWeight: 'bold'}), 'Main line 7 px, echoes 4.5 px.']], moments: [['Verse, 18 s', 18], ['Later, 59.5 s', 59.5], ['Lavender Dusk (Iris on light)', 18, 'circus', {scheme: 'lavender', top: 'sun'}]]},
-  {id: 'ultramarine', ask: 'Ultramarine’s bars', grades: true, why: 'Its bars are the faintest against their paper in the set (3.4:1); the same blue, brighter (4.4:1)? Varies: only the bars’ colour.',
-    song: 'circus', t: 18, len: 6, opts: [['As now', fix('ultramarine'), 'Bars #006eb8.'], ['Brighter', fix('ultramarine', {scheme: 'wUltramarineBright'}), 'Bars #2380cc.']], moments: [['Verse, 18 s', 18], ['Later, 59.5 s', 59.5], ['Petrunko 34 s', 33.5, 'petrunko']]},
-);
 if (new URLSearchParams(location.search).has('qtest')) QUESTIONS.splice(0, QUESTIONS.length, ...TEST_QUESTIONS);
 // every option is a complete look, checked once: a typo in a question fails on load, not silently on screen
 for (const Q of QUESTIONS) for (const o of Q.opts) o[1] = resolveLook(null, o[1]);
@@ -98,7 +81,7 @@ let navId = 0, qmoment = null, loopHome = null;
 // the viewing aid (index.html #exag): multiplies every hit effect alike; never part of a look or an answer, back to ×1 on each question
 let exaggerate = 1;
 function setExaggerate(x) {exaggerate = x; $('exagx').value = String(x); $('exagval').textContent = `×${x}`; draw();}
-const STORE = q.has('qtest') ? 'concept-lab-answers-test' : ROUND_SET ? `concept-lab-answers-${ROUND_SET}` : 'concept-lab-answers-r29';
+const STORE = q.has('qtest') ? 'concept-lab-answers-test' : ROUND_SET ? `concept-lab-answers-${ROUND_SET}` : 'concept-lab-answers';
 const answers = (() => {try {return JSON.parse(localStorage.getItem(STORE) ?? '{}');} catch {return {};}})();
 const saveAnswers = () => {try {localStorage.setItem(STORE, JSON.stringify(answers));} catch {}};
 const sheetPromise = N.loadSheet();
@@ -429,6 +412,7 @@ async function runFeel() {
   show();
 }
 if (feelmode) {song = 'los'; mix = {...FEEL_LOOK}; seconds = 4; loadSong(song).then(runFeel).catch(e => status('Could not load: ' + e.message));}
+else if (qmode && !QUESTIONS.length) status(ROUND_SET ? `No questions in candidates-${ROUND_SET}.json.` : 'No round is open: ?set=NAME&q=1 asks the drafts of candidates-NAME.json.');
 else if (qmode) {
   song = QUESTIONS[Math.min(qi, QUESTIONS.length - 1)].song;
   const restore = {opt: LETTERS.indexOf(q.get('opt') ?? 'A'), mo: (+q.get('mo') || 0) - 1};

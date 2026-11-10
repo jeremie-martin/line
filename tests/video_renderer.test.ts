@@ -40,6 +40,9 @@ describe('looks', () => {
     expect(() => resolveLook(null, {music: 'bars'})).toThrow(/Unknown look option: music/);
     expect(() => resolveLook(null, {band: 'blocks'})).toThrow(/Unknown band: blocks/);
     expect(() => resolveLook(null, {scheme: 'nope'})).toThrow(/Unknown scheme: nope/);
+    // values of earlier rounds were retired (11 November): their keys stay, so judged ids are unchanged
+    for (const [key, value] of [['drop', 'night'], ['paper', 'whisper'], ['bandHeight', 'mid'], ['sunLift', '19.2'], ['scheme', 'dune']])
+      expect(() => resolveLook(null, {[key]: value})).toThrow(new RegExp(`Unknown ${key}: ${value}`));
     // names every object inherits are not looks, options or values
     for (const [name, overrides] of [['constructor', {}], [null, {band: 'constructor'}], [null, {scheme: 'toString'}], [null, {toString: 'x'}]] as const)
       expect(() => resolveLook(name, overrides)).toThrow(/Unknown/);

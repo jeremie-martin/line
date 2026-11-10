@@ -109,6 +109,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const STILLS = {width: 1080, quality: 0.92}, out = join(dir, 'stills'), again = process.argv.includes('--rerender');
   const missing = set.themes.filter(t => !(set.retired ?? []).includes(t.id) || again).filter(t => again || set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
   if (missing.length) {
+    // a set judged in looks whose option values were retired (11 November: Whisper and the other colour responses, Night, the
+    // band, rider and sun alternatives) is drawn by the renderer it was frozen with, not this one
+    for (const t of missing) try {resolveLook(null, {...t.spec.look, scheme: 'graphite'});} catch (e) {
+      throw new Error(`${draft.set}: ${t.label} (${t.id}) uses a retired look value (${e.message}); render this set with its own renderer, git ${set.renderer}`);
+    }
     const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json'), rendered = join(tmp, 'stills');
     const sc = {}, dr = {};
     for (const t of missing) {sc[t.id] = t.spec.colours; if (t.spec.drop) {sc[`${t.id}-drop`] = t.spec.drop; dr[t.id] = `${t.id}-drop`;}}

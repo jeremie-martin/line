@@ -3,15 +3,21 @@ import {build} from 'esbuild';
 import {chromium, type Browser, type Page} from 'playwright';
 
 let browser: Browser, page: Page;
+// production theme schemes, set in the page (beforeAll)
+declare const DUNE: string, ROTHKO: string, HOKUSAI: string;
 beforeAll(async () => {
   const bundle = await build({stdin: {contents: `export {createPicture, BODY_POINTS} from './scripts/video/picture.js';
     export {resolveLook} from './scripts/video/look.js';
     export {drawBand} from './scripts/video/music.js';
-    export {createTheme} from './scripts/video/theme.js';`, resolveDir: process.cwd()}, bundle: true, write: false, format: 'iife', globalName: 'renderer'});
+    export {createTheme} from './scripts/video/theme.js';
+    export {COLLECTION} from './scripts/video/collection.js';`, resolveDir: process.cwd()}, bundle: true, write: false, format: 'iife', globalName: 'renderer'});
   browser = await chromium.launch(); page = await browser.newPage();
   await page.addScriptTag({content: bundle.outputFiles[0].text});
   await page.evaluate(() => {
     const {createPicture, BODY_POINTS, resolveLook} = (window as any).renderer;
+    // production schemes by name, for the cases below (each runs in the page)
+    const {COLLECTION} = (window as any).renderer;
+    Object.assign(window, {DUNE: COLLECTION.dune.id, ROTHKO: COLLECTION.rothko.id, HOKUSAI: COLLECTION.hokusai.id});
     // Synthetic replay: no audio, native engine or saved lab artifacts needed. Two separate rails:
     // one touched, one safely ahead as pencil. A small coloured rider makes the clean overlay visible.
     const frames = Array.from({length: 201}, (_, f) => ({points: BODY_POINTS.map((name: string) => ({name, pos: {x: f * 2, y: 0}})),
@@ -47,8 +53,8 @@ it('seeking, changing the top and resizing give exactly the same pixels as a fre
   const failures = await page.evaluate(() => {
     const fixture = (window as any).fixture, used = fixture(), failures = [];
     const cases = [
-      [1, {top: 'title'}, 180, 1], [1.05, {top: 'sun', scheme: 'dune'}, 360, 3],
-      [0.99, {top: 'none'}, 180, 1], [1.12, {top: 'title', drop: 'night'}, 180, 1],
+      [1, {top: 'title'}, 180, 1], [1.05, {top: 'sun', scheme: DUNE}, 360, 3],
+      [0.99, {top: 'none'}, 180, 1], [1.12, {top: 'title', scheme: HOKUSAI, drop: 'switch'}, 180, 1],
       [1, {top: 'title'}, 360, 1], [1, {top: 'none', hits: 'none'}, 180, 1],
       [1.25, {top: 'title'}, 180, 1], [1, {top: 'title'}, 180, 1],
     ];
@@ -72,7 +78,7 @@ it('colour boost changes content but keeps the paper and pencilled rail intact o
   const result = await page.evaluate(() => {
     // Strength 0.5: colour boost, no shake, split below the half-pixel visibility threshold at this resolution.
     const f = (window as any).fixture(0.5), results = [];
-    for (const scheme of ['graphite', 'rothko']) {
+    for (const scheme of ['graphite', ROTHKO]) {
       const options = {scheme, top: 'sun', accent: 'loud'};
       const {png: off, world} = f.render(1, {...options, hits: 'none'});
       const g = f.canvas.getContext('2d');
@@ -91,10 +97,10 @@ it('colour boost changes content but keeps the paper and pencilled rail intact o
 it('colour queries use their requested time even before drawing or after an unrelated seek', async () => {
   const result = await page.evaluate(() => {
     const {resolveLook, createTheme} = (window as any).renderer, f = (window as any).fixture(0.85, true);
-    const look = resolveLook(null, {scheme: 'dune', paper: 'saturation', drop: 'off'}), theme = createTheme(null);
+    const look = resolveLook(null, {scheme: DUNE, paper: 'vibranceSoftHalfPaper', drop: 'off'}), theme = createTheme(null);
     const times = [0, 1, 2.5, 4.9], expected = times.map(t => theme(t, f.picture.levelAt(t), look).scheme);
     const before = times.map(t => f.picture.schemeAt(t, look));
-    f.render(4.9, look); f.render(0, {scheme: 'rothko'});
+    f.render(4.9, look); f.render(0, {scheme: ROTHKO});
     const after = times.map(t => f.picture.schemeAt(t, look));
     return {before, after, expected};
   });

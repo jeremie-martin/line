@@ -1,0 +1,676 @@
+{
+ "round": 41,
+ "about": "Round 41: the light themes’ second pass, judged with neutral colours; schemes in the lab page’s memory only.",
+ "schemes": {
+  "r41dawnA": {
+   "accent": "#f0b135",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#e0f1ff",
+   "nightPaper": "#1c1f37",
+   "paper": "#e0f1ff",
+   "pencil": "#a8b7bf",
+   "sun": "#f0b135"
+  },
+  "r41dawnB": {
+   "accent": "#f0b135",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#ecf5fd",
+   "nightPaper": "#1c1f37",
+   "paper": "#ecf5fd",
+   "pencil": "#adb5c3",
+   "sun": "#f0b135"
+  },
+  "r41dawnC": {
+   "accent": "#fba62a",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#ecf5fd",
+   "nightPaper": "#1c1f37",
+   "paper": "#ecf5fd",
+   "pencil": "#adb5c3",
+   "sun": "#fba62a"
+  },
+  "r41dawnD": {
+   "accent": "#f7c747",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#ecf5fd",
+   "nightPaper": "#1c1f37",
+   "paper": "#ecf5fd",
+   "pencil": "#adb5c3",
+   "sun": "#f7c747"
+  },
+  "r41peonyA": {
+   "accent": "#e59564",
+   "ink": "#2e171f",
+   "mass": "#b73f74",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#e59564"
+  },
+  "r41peonyB": {
+   "accent": "#e59564",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#e59564"
+  },
+  "r41peonyC": {
+   "accent": "#ea6d56",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#ea6d56"
+  },
+  "r41peonyD": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#f9a63e"
+  },
+  "r41seashellA": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf1eb",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf1eb",
+   "pencil": "#b5b2b4",
+   "sun": "#f1592b"
+  },
+  "r41seashellB": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#f1592b"
+  },
+  "r41seashellC": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r41seashellD": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#335a88",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r41cutoutsA": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#194cb1",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r41cutoutsB": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#141e8f",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r41cutoutsC": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#12389e",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r41cutoutsD": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#014d71",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r41violetsA": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r41violetsB": {
+   "accent": "#f37f94",
+   "ink": "#1b1a2f",
+   "mass": "#66629c",
+   "nightInk": "#eaf2f3",
+   "nightPaper": "#1b1a2f",
+   "paper": "#eaf2f3",
+   "pencil": "#acb1b8",
+   "sun": "#f37f94"
+  },
+  "r41bluegoldA": {
+   "accent": "#f0b135",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#e0f1ff",
+   "nightPaper": "#1c1f37",
+   "paper": "#e0f1ff",
+   "pencil": "#a8b7bf",
+   "sun": "#f0b135"
+  },
+  "r41bluegoldB": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  }
+ },
+ "drops": {},
+ "drafts": [
+  {
+   "id": "r41dawn",
+   "name": "Blushing Dawn, gold note: the last few percent",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. Your pick, the gold note; you asked for a slightly whiter sky, and the gold reads a little mustard. Changes are a few percent.",
+   "variants": [
+    {
+     "label": "Gold note, as picked",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41dawnA"
+     },
+     "note": "Sky #e0f1ff, gold #f0b135."
+    },
+    {
+     "label": "Whiter sky",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41dawnB"
+     },
+     "note": "Only the sky: lighter and less blue (#e9f4fc)."
+    },
+    {
+     "label": "Whiter sky, warmer gold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41dawnC"
+     },
+     "note": "The whiter sky, the gold moved toward amber: less mustard."
+    },
+    {
+     "label": "Whiter sky, lighter gold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41dawnD"
+     },
+     "note": "The whiter sky, a lighter, cleaner gold: less mustard the other way."
+    }
+   ]
+  },
+  {
+   "id": "r41peony",
+   "name": "Peony with its sun: bars and the warm note",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. Your pick, with the sun; you asked for bars a few percent stronger (the deep version was too deep) and a better accent and sun.",
+   "variants": [
+    {
+     "label": "With a sun, as picked",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41peonyA"
+     },
+     "note": "Bars #b73f74, apricot accent and sun #e59564."
+    },
+    {
+     "label": "Stronger bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41peonyB"
+     },
+     "note": "Only the bars: a few percent deeper and more vivid."
+    },
+    {
+     "label": "Stronger bars, coral",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41peonyC"
+     },
+     "note": "The stronger bars, a coral accent and sun."
+    },
+    {
+     "label": "Stronger bars, marigold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41peonyD"
+     },
+     "note": "The stronger bars, a marigold accent and sun."
+    }
+   ]
+  },
+  {
+   "id": "r41seashell",
+   "name": "Seashell, paler: the last few percent",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. Your pick, the paler shell with the whole course inked; you asked for a tad paler still and a slightly less saturated sun and accent.",
+   "variants": [
+    {
+     "label": "Paler shell, all ink, as picked",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41seashellA"
+     },
+     "note": "Shell #fdf1eb, jasper #f1592b."
+    },
+    {
+     "label": "Paler still",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41seashellB"
+     },
+     "note": "Only the shell: a tad paler."
+    },
+    {
+     "label": "Paler, softer jasper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41seashellC"
+     },
+     "note": "Paler shell, the jasper sun and accent a little less saturated."
+    },
+    {
+     "label": "Paler, softer, deeper blue",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41seashellD"
+     },
+     "note": "As C, with the blue bars a touch deeper."
+    }
+   ]
+  },
+  {
+   "id": "r41cutouts",
+   "name": "Cut-outs, seen with neutral colours",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. You first saw it through Redshift and picked the ultramarine. Here again, with a version between the two blues and one other direction.",
+   "variants": [
+    {
+     "label": "Cobalt, as drafted",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41cutoutsA"
+     },
+     "note": "Cobalt bars, coral sun."
+    },
+    {
+     "label": "Ultramarine, your pick",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41cutoutsB"
+     },
+     "note": "Deep ultramarine bars."
+    },
+    {
+     "label": "Between the two",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41cutoutsC"
+     },
+     "note": "Ultramarine, a little less deep and less violet."
+    },
+    {
+     "label": "Prussian blue",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41cutoutsD"
+     },
+     "note": "A deep Prussian blue instead: greener, quieter."
+    }
+   ]
+  },
+  {
+   "id": "r41violets",
+   "name": "Two violet themes: both, one, or neither?",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. Lavender with violet bars and Wisteria with bars and a pink sun, your picks, are close cousins: violet bars on a near-white ground with a warm sun. The collection gains more from two different themes than from two cousins. Grade each; your note decides.",
+   "variants": [
+    {
+     "label": "Lavender Dusk, violet bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41violetsA"
+     },
+     "note": "Lilac-grey ground, dusk-violet bars, apricot sun."
+    },
+    {
+     "label": "Wisteria, bars and a pink sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41violetsB"
+     },
+     "note": "Grey-white ground, violet bars, pink sun."
+    }
+   ]
+  },
+  {
+   "id": "r41bluegold",
+   "name": "Two blue bands with a gold sun",
+   "source": "Round 41 · light themes, second pass",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. Blushing Dawn’s gold note beside Amber and Purple, which is already in the collection: blue bars and a gold-amber sun on a light ground. Does Dawn add something of its own?",
+   "variants": [
+    {
+     "label": "Blushing Dawn, gold note",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41bluegoldA"
+     },
+     "note": "Sky ground, violet-navy bars, gold."
+    },
+    {
+     "label": "Amber and Purple (in the collection)",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r41bluegoldB"
+     },
+     "note": "Warm paper, deep Prussian bars, amber."
+    }
+   ]
+  }
+ ]
+}

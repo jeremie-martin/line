@@ -1,5 +1,11 @@
 # Foundations rework (started 2026-10-03)
 
+## November 10, night: Cut-outs joins the collection (round 42)
+
+The bars sit a third of the way from Prussian toward the deeper blue (OKLCH; #014a7a). The theme is frozen as set
+`2026-11-10-cutouts` and added to `collection.js`, which now holds 24 themes: 12 dark families and 11 light. Its id is
+reproduced, its stills rendered by name are byte-identical to the frozen ones, and the tests, typecheck and reach pass.
+
 ## November 10, night: six light themes join the collection (rounds 40–41)
 
 Round 40 gave 11 light themes a page each: the theme as judged and three directions. The owner answered the colour pages again

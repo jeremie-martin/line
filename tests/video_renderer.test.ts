@@ -27,7 +27,7 @@ describe('looks', () => {
   });
   it('every production theme is exactly the theme judged under its name: same specification, same id', () => {
     const registry = new Map(readFileSync('generated/concept-lab/rate/themes.jsonl', 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)).map(r => [r.id, r]));
-    expect(Object.keys(THEMES).length).toBe(23);
+    expect(Object.keys(THEMES).length).toBe(24);
     for (const theme of Object.values(THEMES)) {
       const spec = specOf(resolveLook(null, theme.look), SCHEMES, DROP_SCHEMES);
       expect(themeId(spec), theme.name).toBe(theme.id);

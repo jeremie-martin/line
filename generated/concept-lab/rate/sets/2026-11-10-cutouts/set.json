@@ -1,0 +1,55 @@
+{
+ "set": "2026-11-10-cutouts",
+ "title": "Cut-outs, chosen in round 42 for the collection",
+ "round": 42,
+ "created": "2026-11-10",
+ "song": "circus",
+ "renderer": "v7.1-152-g6b422b05",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "themes": [
+  {
+   "id": "t-d3dd1b2714d4",
+   "label": "Cut-outs",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f05940",
+     "ink": "#141414",
+     "mass": "#014a7a",
+     "nightInk": "#fbfaf6",
+     "nightPaper": "#141414",
+     "paper": "#fbfaf6",
+     "pencil": "#b5b4b2",
+     "sun": "#f05940"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

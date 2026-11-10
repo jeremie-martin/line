@@ -1,6 +1,6 @@
 // The collection: the themes in production (owner, 2026-11-10: "they will go into production"). These are the themes the owner liked
 // consistently from round 27 to round 38, each exactly as judged in round 38 (v1: vibrance follows intensity), and the light
-// themes chosen in rounds 40–41. Each entry is
+// themes chosen in rounds 40–42. Each entry is
 // the frozen specification of one judged theme, copied from the judging registry (generated/concept-lab/rate/themes.jsonl),
 // and the id that hashes it, so a production theme cannot drift from what was judged: tests/video_renderer.test.ts recomputes
 // every id. To add a theme, copy its registry entry; a changed theme is a new theme, judged again under a new name.
@@ -53,4 +53,7 @@ export const COLLECTION = {
     spec: {"colours": {"accent": "#f9a63e","ink": "#2e171f","mass": "#b02f6a","nightInk": "#e2f2f6","nightPaper": "#2e171f","paper": "#e2f2f6","pencil": "#acb0b6","sun": "#f9a63e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   seashell: {name: "Seashell, paler, softer jasper", id: "t-4860903eef2c", line: "Pale shell, Olympic-blue bars, a soft jasper bar and sun, the whole course inked.",
     spec: {"colours": {"accent": "#e7714e","ink": "#0f1e2f","mass": "#3e6594","nightInk": "#fdf5f2","nightPaper": "#0f1e2f","paper": "#fdf5f2","pencil": "#b5b5b9","sun": "#e7714e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  // round 42 (owner, 10 November): new, after Matisse’s paper cut-outs; the bars a third of the way from Prussian toward a deeper blue
+  cutouts: {name: "Cut-outs", id: "t-d3dd1b2714d4", line: "White, a deep blue band, a coral bar and sun, the whole course inked.",
+    spec: {"colours": {"accent": "#f05940","ink": "#141414","mass": "#014a7a","nightInk": "#fbfaf6","nightPaper": "#141414","paper": "#fbfaf6","pencil": "#b5b4b2","sun": "#f05940"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
 };

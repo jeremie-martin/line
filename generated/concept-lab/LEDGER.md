@@ -1,5 +1,7 @@
 # Ledger: what is decided, what is open, and why
 
+> **History (11 November 2026).** Superseded by [`docs/visual-system.md`](../../docs/visual-system.md), which says what is current. Kept as the record of how it was reached; read its claims about taste as observations from a small sample, not rules.
+
 Started after rounds 1–19 (7 November 2026), with later decisions added below, by layer (see `system.html`):
 - **signals:** what is true about the ride and the song;
 - **elements:** the instruments;

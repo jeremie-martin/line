@@ -1,5 +1,7 @@
 # What the owner likes in a theme, and why
 
+> **History (11 November 2026).** Superseded by [`docs/visual-system.md`](../../../docs/visual-system.md), which says what is current. Kept as the record of how it was reached; read its claims about taste as observations from a small sample, not rules.
+
 *8 November 2026, from 57 rated looks: round 27's 25 themes (love 9, keep 7, unsure 5, cut 2) and round 28's graded versions
 (out of 10; where only words were given, their reading is in `analysis` below). Measured in OKLab on each look's scheme. A small,
 noisy sample: these are tendencies to design toward, not laws; the owner's eye decides. Craft rules: `THEME-CRAFT.md`.*

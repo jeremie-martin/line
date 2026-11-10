@@ -1,5 +1,7 @@
 # Crafting a theme
 
+> **History (11 November 2026).** Superseded by [`docs/visual-system.md`](../../../docs/visual-system.md), which says what is current. Kept as the record of how it was reached; read its claims about taste as observations from a small sample, not rules.
+
 *Toward a golden set of hand-crafted themes. Started after round 20, from the twelve themes on Circus Minimus; option names and workflow updated 10 November. See DIRECTION.md for the round-39 shortlist and deferred drop work.*
 
 A **theme** is a complete direction for one video: everything that isn't the ride itself. All themes share the settled v1 (camera, line behaviour, hits, opening and ending). A theme chooses only these:

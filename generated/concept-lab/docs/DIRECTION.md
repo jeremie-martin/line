@@ -1,5 +1,7 @@
 # The visual direction: where we are, where we're going
 
+> **History (11 November 2026).** Superseded by [`docs/visual-system.md`](../../../docs/visual-system.md), which says what is current. Kept as the record of how it was reached; read its claims about taste as observations from a small sample, not rules.
+
 *Started 7 November 2026 after round 20; current-state notes updated 10 November after round 39. The owner reviews. This is the document to read first.*
 
 ## Current round: refine the shortlist

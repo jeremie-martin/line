@@ -1,5 +1,7 @@
 # How the decisions were reached
 
+> **History (11 November 2026).** Superseded by [`docs/visual-system.md`](../../../docs/visual-system.md), which says what is current. Kept as the record of how it was reached; read its claims about taste as observations from a small sample, not rules.
+
 *The agreements as they finally stand, topic by topic. Only the back-and-forth worth remembering is kept. The verbatim answers are in `docs/owner-answers/`, and the per-piece status is in `LEDGER.md`.*
 
 ## Camera

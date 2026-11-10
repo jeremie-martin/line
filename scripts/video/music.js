@@ -4,7 +4,7 @@ import {W, H} from './camera.js';
 import {mixHex} from './colour.js';
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 // Leave room below the band for the Shorts comments (from roughly 0.85 H).
-const BAND_SHIFT = {low: 0, lowmid: -0.015 * H, mid: -0.03 * H};
+const BAND_SHIFT = {lowmid: -0.015 * H};
 
 /** Loud accents: up to three bands above 0.25. Heat: up to six, from recent impact energy. Ties keep band order. */
 export function accentedBands(row, mode, heat) {
@@ -23,8 +23,8 @@ function smoothPath(ctx, pts) {
 export function drawBand(ctx, spectrum, t, heat, alpha, colours, look) {
   const shift = BAND_SHIFT[look.bandHeight];
   ctx.save(); ctx.translate(0, shift);
-  // Iris draws in its own navy and lavender, lit toward white on any dark paper (Night's, or a dark scheme's own: on Black's
-  // paper the navy was nearly invisible, theme study 8 November)
+  // Iris draws in its own navy and lavender, lit toward white on a dark paper (on Black's paper the navy was nearly invisible,
+  // theme study 8 November)
   const onDark = colours.irisLight;
   const row = spectrumAt(spectrum, t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => onDark ? mixHex(c, '#ffffff', 0.62) : c;
   ctx.globalAlpha = alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';

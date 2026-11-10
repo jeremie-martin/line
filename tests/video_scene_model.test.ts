@@ -7,6 +7,7 @@ import {createTheme, dropSpan} from '../scripts/video/theme.js';
 import {SCHEMES, DROP_SCHEMES} from '../scripts/video/palettes.js';
 import {GRADES, COLOUR_RESPONSES, gradeScheme} from '../scripts/video/grade.js';
 import {resolveLook} from '../scripts/video/look.js';
+import {COLLECTION} from '../scripts/video/collection.js';
 
 const line = (id: number, x1: number, x2: number, y = 0) => ({id, x1, y1: y, x2, y2: y});
 
@@ -87,8 +88,8 @@ describe('camera and framing', () => {
     expect(overview.over).toBe(1); expect(overview.z).toBeLessThan(riding.z);
     expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0, ending: false});
     expect(frame(20, 800, look)).toMatchObject({over: 1, ending: true});
-    const lower = frame(4, 160, resolveLook(null, {top: 'sun', riderLower: '8'}));
-    expect(lower.ay - riding.ay).toBe(40);
+    const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));
+    expect(lower.ay - riding.ay).toBe(32);
     for (const t of [0, 0.7, 1.8, 10, 18, 20]) for (const zoom of ['quiet', 'steady']) {
       const options = {...look, zoom};
       const c = frame(t, t * 40, options);
@@ -101,32 +102,32 @@ describe('camera and framing', () => {
 });
 
 describe('drop and colour resolution', () => {
+  // Hokusai: a production theme with its own judged drop partner
+  const hokusai = COLLECTION.hokusai.id, scheme = SCHEMES[hokusai], partner = SCHEMES[DROP_SCHEMES[hokusai]];
   it('snaps authored cues on song time and uses a half-open drop interval', () => {
     expect(dropSpan(null, [])).toBeNull();
     expect(dropSpan([2, 4], [])).toEqual([2, 4]);
     expect(dropSpan([2, 4], [{t: 1.8, s: 0.9}, {t: 2.1, s: 0.9}, {t: 3.5, s: 0.4}])).toEqual([1.8, 3.5]);
-    const theme = createTheme([2, 4]), look = resolveLook(null, {scheme: 'dune', paper: 'plain', drop: 'night'});
-    expect(theme(1.999, 0.5, look).paper).toBe(SCHEMES.dune.paper);
-    expect(theme(2, 0.5, look)).toMatchObject({paper: SCHEMES.dune.nightPaper, ink: SCHEMES.dune.nightInk, band: SCHEMES.dune.nightInk, sun: SCHEMES.dune.nightInk, irisLight: true});
-    expect(theme(4, 0.5, look).paper).toBe(SCHEMES.dune.paper);
-    expect(createTheme(null)(2, 0.5, look).paper).toBe(SCHEMES.dune.paper);
+    const theme = createTheme([2, 4]), look = resolveLook(null, {scheme: hokusai, paper: 'plain', drop: 'switch'});
+    expect(theme(1.999, 0.5, look)).toMatchObject({paper: scheme.paper, irisLight: false});
+    expect(theme(2, 0.5, look)).toMatchObject({paper: partner.paper, ink: partner.ink, band: partner.mass, accent: scheme.accent, sun: scheme.accent, irisLight: true});
+    expect(theme(4, 0.5, look).paper).toBe(scheme.paper);
+    expect(createTheme(null)(2, 0.5, look).paper).toBe(scheme.paper);
   });
   it('switches before grading, carries the accent and sun, and never mutates a palette', () => {
-    const original = structuredClone(SCHEMES.dune), look = resolveLook(null, {scheme: 'dune', drop: 'switch'});
-    const expected = gradeScheme({...SCHEMES[DROP_SCHEMES.dune], accent: original.accent, sun: original.sun}, look.paper, 0.7);
+    const original = structuredClone(scheme), look = resolveLook(null, {scheme: hokusai, drop: 'switch'});
+    const expected = gradeScheme({...partner, accent: original.accent, sun: original.sun ?? original.accent}, look.paper, 0.7);
     const theme = createTheme([2, 4]);
     expect(theme(3, 0.7, look).scheme).toEqual(expected);
     theme(5, 0.2, look); theme(1, 0.9, look);
     expect(theme(3, 0.7, look).scheme).toEqual(expected);
-    expect(SCHEMES.dune).toEqual(original);
+    expect(scheme).toEqual(original);
   });
-  it('has one definition per colour response; quiet paper and whole-palette grades remain distinct', () => {
-    expect(Object.keys(COLOUR_RESPONSES)).toEqual(['whisper', 'plain', ...Object.keys(GRADES)]);
+  it('has one definition per colour response; plain draws the scheme as it is', () => {
+    expect(Object.keys(COLOUR_RESPONSES)).toEqual(['plain', ...Object.keys(GRADES)]);
     for (const [key, value] of Object.entries(GRADES)) expect(COLOUR_RESPONSES[key]).toBe(value.label);
-    const theme = createTheme(null), look = resolveLook(null, {scheme: 'dune', paper: 'plain'});
-    expect(theme(0, 0.9, look).scheme).toBe(SCHEMES.dune);
-    const whisper = theme(0, 0.9, {...look, paper: 'whisper'});
-    expect(whisper.paper).not.toBe(SCHEMES.dune.paper); expect(whisper.ink).toBe(SCHEMES.dune.ink);
-    expect(theme(0, 0.9, {...look, paper: 'vibranceSoftHalfPaper'}).ink).not.toBe(SCHEMES.dune.ink);
+    const theme = createTheme(null), look = resolveLook(null, {scheme: hokusai, paper: 'plain'});
+    expect(theme(0, 0.9, look).scheme).toBe(scheme);
+    expect(theme(0, 0.9, {...look, paper: 'vibranceSoftHalfPaper'}).ink).not.toBe(scheme.ink);
   });
 });

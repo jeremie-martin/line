@@ -19,7 +19,7 @@ Start at `morning.html`. One server serves the lab, the review pages and their A
 | Entry | What it is |
 |---|---|
 | `morning.html` | Index of all rounds. Each round page has the films and questions of its day. Rounds 1–5 keep their pages and films; their interactive snapshots were retired on 8 November (git history has them). |
-| `?q=1` | The current round's questions (round 26: a shake for the strongest hits?), stored in localStorage as `concept-lab-answers-r26` (`STORE` in `lab.js`). The slider under the transport exaggerates the hit effects (a viewing aid, ×1–×4, not saved). |
+| `?set=NAME&q=1` | A round's questions: the drafts of `candidates-NAME.json` (format in `lab.js`), stored in localStorage as `concept-lab-answers-NAME`. No round is open now: the candidate files of rounds 29–44 were retired on 11 November (git history has them). The slider under the transport exaggerates the hit effects (a viewing aid, ×1–×4, not saved). |
 | `?feel=1` | Blind test of the intensity metric. |
 | `./` | The free lab: the looks (`presets.js`: Swatch, Plain and the themes), and every option of a look as a chip. |
 | `system.html` | How the pieces fit: signals, elements, schemes, direction. |
@@ -28,17 +28,19 @@ Start at `morning.html`. One server serves the lab, the review pages and their A
 
 ## What a look is
 
-`scripts/video/look.js` holds every option (`OPTIONS`), the settled defaults (`V1`), the themes (`THEMES`) and `plain`, the
-compiler's review look. The reasons for each choice are in `LEDGER.md`.
+`scripts/video/look.js` holds every option (`OPTIONS`), the settled defaults (`V1`), the themes (`THEMES`, the collection) and
+`plain`, the compiler's review look. Each option keeps only the values production uses (11 November); the alternatives of earlier
+rounds are in git history, and the reasons for each choice in `LEDGER.md`. A new round compares new colours as candidate schemes
+(`?set=`), and a new option value is added to `look.js` with the drawing it needs.
 
 | Option | v1 | Others |
 |---|---|---|
-| Colour (`scheme`, `palettes.js`) | per theme; library tiers in `LIBRARY` | about 90 schemes: our own, Wada pass 1 (`w*`) and pass 2 (`w2*`), paper and theme variants (`name~x`) |
-| Paper | Whisper (tints very slightly with the intensity) | plain |
+| Colour (`scheme`, `palettes.js`) | graphite; each theme its own (named by its id) | the drop pairings `<light id>+<dark id>` |
+| Colour response (`paper`, `grade.js`) | vibrance on the soft-start curve, the paper half | plain |
 | Line | pencil → ink | whole rail; all ink |
-| Lower band | per theme | bars or fork with the loudest in the accent (`accent`: heat or loudest three), Iris; height low, low-middle (v1), middle |
-| Top of the frame | per theme | sun (its height and the rider's with it: round 21), title |
-| At the drop | per theme | Night; a switch to the scheme's drop partner |
+| Lower band | per theme | bars or fork with the loudest in the accent (`accent`: heat or loudest three), Iris (thin or bold); height low-middle |
+| Top of the frame | per theme | sun (the rider 32 px lower, the sun 16 px higher: round 21), title |
+| At the drop | nothing | a switch to the scheme's drop partner |
 | Zoom over time | steady | out when quiet |
 | Opening and ending | the whole course at both ends | none |
 | On each hit | split, colour boost, and a shake on strong hits (below) | nothing |
@@ -87,11 +89,11 @@ reliably (`night.py`), so each song's drop is placed by hand (`scripts/video/dro
 
 - **Data:** `recompile.sh` (rides), `prepare.mjs` (scenes).
 - **Films and stills:** `film.mjs` (`song=`, `c=` a look, `m=` options, `from=`, `to=`, `rides=old`, `width=`) writes through the
-  production writer; `films7.sh` writes the round-20 themes. `fourup.sh` and `grid12.sh` assemble films.
+  production writer. `fourup.sh` and `grid12.sh` assemble films.
   `shoot.mjs` and `strip.mjs` capture stills and frame strips from the lab's shot mode.
 - **Checks:**
-  - `uicheck.mjs`: 69 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
+  - `uicheck.mjs`: 76 interaction checks on a frozen question set (`?qtest=1`); must pass before a round goes out.
   - `qcheck.mjs`: walks the live questions. `check.mjs`: phone size.
-  - `fingerprint.mjs`: 116 frames hashed (`analysis/fingerprint-baseline.txt`). Run it before and after a refactor and require
-    identical outputs.
+  - `fingerprint.mjs`: 182 frames hashed across production (every collection theme, drop pairings, every option value, plain,
+    the old rides; `analysis/fingerprint-baseline.txt`). Run it before and after a refactor and require identical outputs.
 - **Reasons and history:** `LEDGER.md` and `ledger-history/`; the round pages; `agents/`, the notes and reports of every helper.

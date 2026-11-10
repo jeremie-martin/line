@@ -1,8 +1,8 @@
-// Resolve the colours for one frame: drop partner → intensity grade → Night / Whisper treatment.
+// Resolve the colours for one frame: drop partner → intensity grade.
 // No canvas or previous-frame state. The caches memoize only scheme, response and quantized intensity.
 import {SCHEMES, DROP_SCHEMES} from './palettes.js';
 import {GRADES, gradeScheme} from './grade.js';
-import {mixHex, rgb} from './colour.js';
+import {rgb} from './colour.js';
 
 /** Hand-placed song cues snap to the strongest nearby matched hit; ties keep the first hit.
  * The entry and exit windows differ deliberately. With no hit nearby, the authored cue stays. */
@@ -30,18 +30,11 @@ export function createTheme(drop) {
       if (!cache.has(key)) cache.set(key, gradeScheme(scheme, look.paper, q / 200));
       scheme = cache.get(key);
     }
-    const night = look.drop === 'night' && inDrop;
-    const paper = night ? scheme.nightPaper : look.paper === 'whisper'
-      ? mixHex(scheme.paper, scheme.tone ?? scheme.mass, (scheme.tone ? 1 : 0.055) * intensity) : scheme.paper;
+    const {paper} = scheme;
     return {
-      scheme, paper,
-      ink: night ? scheme.nightInk : scheme.ink,
-      pencil: night ? mixHex(scheme.nightPaper, scheme.nightInk, 0.38) : scheme.pencil,
-      band: night ? scheme.nightInk : scheme.mass,
-      sun: night ? scheme.nightInk : scheme.sun ?? scheme.accent,
-      accent: scheme.accent,
-      // Night treatment and a naturally dark ground are distinct; only Iris needs this combined test.
-      irisLight: !!night || rgb(paper).reduce((sum, v) => sum + v, 0) < 0.9 * 255,
+      scheme, paper, ink: scheme.ink, pencil: scheme.pencil, band: scheme.mass, sun: scheme.sun ?? scheme.accent, accent: scheme.accent,
+      // Iris is lit toward white on a dark ground
+      irisLight: rgb(paper).reduce((sum, v) => sum + v, 0) < 0.9 * 255,
     };
   };
 }

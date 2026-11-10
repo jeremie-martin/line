@@ -282,16 +282,22 @@ and validation are in [music authoring](docs/music-authoring.md).
      draws bars, fork or Iris. Bars and fork share accent selection, fed recent
      heat on the ride clock (or the loudest three bands).
    - `theme.js` snaps the authored drop cues to nearby hits on song time and
-     resolves drop partner, intensity grade and Night/Whisper treatment in that
-     order. Effective paper, ink, pencil, band, accent and sun colours are passed
-     to drawing explicitly. `grade.js` defines each live colour response's
-     transform, curve and label together; `colour.js` owns sRGB/OKLCH arithmetic.
-     `look.js` holds the settled defaults (V1), the themes and the plain review look;
-     the themes are the collection (`collection.js`): each judged theme's frozen
-     specification and hash id, copied from the judging registry, so a test proves
-     production draws exactly what was judged. `palettes.js` holds the palette
-     library and names each collection scheme by its theme's id. The saved `paper` option now reads
-     “Colour response” in the lab; frozen theme specifications keep their keys.
+     resolves the drop partner, then the intensity grade, in that order. Effective
+     paper, ink, pencil, band, accent and sun colours are passed to drawing
+     explicitly. `grade.js` defines the colour response (vibrance on the soft-start
+     curve, the paper half; `plain` draws the scheme as it is) with its curve and
+     label; `colour.js` owns sRGB/OKLCH arithmetic.
+     `look.js` holds every option with the values production uses (`OPTIONS`), the
+     settled defaults (V1), the themes and the plain review look; the themes are the
+     collection (`collection.js`): each judged theme's frozen specification and hash
+     id, copied from the judging registry, so a test proves production draws exactly
+     what was judged. Every frozen specification spells out every option, so the
+     option keys never change; values no production look uses are removed (those of
+     rounds 3–44 are in git history before 11 November). `palettes.js` names each
+     collection scheme by its theme's id, each drop pairing `<light id>+<dark id>`,
+     and keeps `graphite`, the default look's. The saved `paper` option reads
+     “Colour response” in the lab. `choose.js` picks each video's theme and drop
+     partner from its ride's id.
    - **A hit happens at its strongest frame** (round 23), sized by measured
      strength and directed along the line struck at onset. `hits.js` prepares
      these hits and samples the single winning hit's shake, split and colour

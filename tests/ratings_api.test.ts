@@ -137,7 +137,7 @@ describe('theme judgments: a theme is its full specification', () => {
     expect(themeId(JSON.parse(canonical(a)))).toBe(themeId(JSON.parse(canonical(b))));
     expect(themeId({...a, colours: {...a.colours, paper: '#fffffe'}})).not.toBe(themeId(a));
     // a named scheme resolves to its colours and its drop partner's, every look option spelled out
-    const spec = specOf({scheme: 'hokusai'}, {hokusai: {paper: '#eeeeee'}, hokusaiDrop: {paper: '#111111'}}, {hokusai: 'hokusaiDrop'});
+    const spec = specOf({scheme: 'graphite'}, {graphite: {paper: '#eeeeee'}, graphiteDrop: {paper: '#111111'}}, {graphite: 'graphiteDrop'});
     expect(spec.colours.paper).toBe('#eeeeee');
     expect(spec.drop.paper).toBe('#111111');
     expect(spec.look).not.toHaveProperty('scheme');

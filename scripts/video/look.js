@@ -5,7 +5,9 @@ import {SCHEMES, SCHEME_NAMES} from './palettes.js';
 import {COLOUR_RESPONSES} from './grade.js';
 import {COLLECTION} from './collection.js';
 
-/** Every option of every parameter, with its label (the lab shows these). */
+/** Every option of every parameter, with its label (the lab shows these). Every frozen theme specification spells out every key
+ * (rate/freeze.mjs), so the keys stay; the values are the ones production uses (those of earlier rounds are in git history before
+ * 11 November). */
 export const OPTIONS = {
   scheme: ['Colour', SCHEME_NAMES],
   // `paper` is the saved look key, including frozen theme identities; the response now covers the whole palette.
@@ -13,12 +15,12 @@ export const OPTIONS = {
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
-  bandHeight: ['Band height', {low: 'Low', lowmid: 'Low-middle', mid: 'Middle'}],
+  bandHeight: ['Band height', {lowmid: 'Low-middle'}],
   top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title'}],
-  riderLower: ['The rider sits lower by', {'0': 'Nothing (v1)', '8': '8 px', '16': '16 px'}],
-  sunRider: ['With a sun, the rider sits lower by', {'0': 'Nothing', '32': '32 px (v1)', '48': '48 px', '96': '96 px'}],
-  sunLift: ['The sun sits higher by', {'0': 'Nothing', '16': '16 px (v1)', '19.2': '19 px', '32': '32 px', '38.4': '38 px'}],
-  drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun'}],
+  riderLower: ['The rider sits lower by', {'0': 'Nothing'}],
+  sunRider: ['With a sun, the rider sits lower by', {'32': '32 px'}],
+  sunLift: ['The sun sits higher by', {'16': '16 px'}],
+  drop: ['At the drop', {off: 'Nothing', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
@@ -29,12 +31,12 @@ export const V1 = {
   // camera: Follows direction (fixed in camera.js), 15 % closer than the first videos, a steady zoom, the whole course at both
   // ends (R1–R7)
   zoom: 'steady', ends: 'course',
-  // line: pencil → ink as the rider passes (R1, R5); whole rail and all ink are alternatives (R5–R6)
+  // line: pencil → ink as the rider passes (R1, R5); whole rail and all ink are themes' choices (R5–R6)
   line: 'inking',
   // band: low-middle (R3); the heat logic decides how many bars take the accent (R4); each theme chooses its form
   band: 'none', accent: 'heat', bandHeight: 'lowmid',
   // paper: how the colours answer the ride's intensity: vibrance on the soft-start curve, the paper half (R37, "a pure banger";
-  // R33–R36 before, Whisper R3–R36; grade.js); nothing at the top unless a theme asks; no drop treatment unless a theme asks
+  // grade.js); nothing at the top unless a theme asks; no drop treatment unless a theme asks
   scheme: 'graphite', paper: 'vibranceSoftHalfPaper', top: 'none', drop: 'off',
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
   // higher (R21). Round 22 confirmed the whole layout as it is.

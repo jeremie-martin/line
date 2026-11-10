@@ -1,0 +1,1446 @@
+{
+ "round": 40,
+ "about": "Round 40: light themes, one page per theme, each as judged and three directions; schemes in the lab page’s memory only.",
+ "schemes": {
+  "r40paperA": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8"
+  },
+  "r40paperB": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r40paperC": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#8e929a",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8"
+  },
+  "r40paperD": {
+   "accent": "#d33e21",
+   "ink": "#1a1512",
+   "mass": "#aaa39d",
+   "nightInk": "#f7f3ec",
+   "nightPaper": "#1a1512",
+   "paper": "#f7f3ec",
+   "pencil": "#b5b0aa",
+   "sun": "#d33e21"
+  },
+  "r40lavenderA": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#6c6185",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r40lavenderB": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#6c6185",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r40lavenderC": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r40lavenderD": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#422c59",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r40dawnA": {
+   "accent": "#d96629",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#e0f1ff",
+   "nightPaper": "#1c1f37",
+   "paper": "#e0f1ff",
+   "pencil": "#a8b7bf"
+  },
+  "r40dawnB": {
+   "accent": "#f0b135",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#e0f1ff",
+   "nightPaper": "#1c1f37",
+   "paper": "#e0f1ff",
+   "pencil": "#a8b7bf",
+   "sun": "#f0b135"
+  },
+  "r40dawnC": {
+   "accent": "#e47b79",
+   "ink": "#1c1f37",
+   "mass": "#2f3058",
+   "nightInk": "#e7f2fc",
+   "nightPaper": "#1c1f37",
+   "paper": "#e7f2fc",
+   "pencil": "#aab3c3",
+   "sun": "#e47b79"
+  },
+  "r40dawnD": {
+   "accent": "#e96f49",
+   "ink": "#1c1f37",
+   "mass": "#40456a",
+   "nightInk": "#f8f1e3",
+   "nightPaper": "#1c1f37",
+   "paper": "#f8f1e3",
+   "pencil": "#b6b3b2",
+   "sun": "#e96f49"
+  },
+  "r40celadonA": {
+   "accent": "#f99d1b",
+   "ink": "#2d1514",
+   "mass": "#8d3331",
+   "nightInk": "#e5f2ec",
+   "nightPaper": "#2d1514",
+   "paper": "#e5f2ec",
+   "pencil": "#aeb0ab"
+  },
+  "r40celadonB": {
+   "accent": "#f99d1b",
+   "ink": "#2d1514",
+   "mass": "#8d3331",
+   "nightInk": "#f5f0e3",
+   "nightPaper": "#2d1514",
+   "paper": "#f5f0e3",
+   "pencil": "#bbaea5"
+  },
+  "r40celadonC": {
+   "accent": "#de9c31",
+   "ink": "#2d1514",
+   "mass": "#722423",
+   "nightInk": "#d5ede1",
+   "nightPaper": "#2d1514",
+   "paper": "#d5ede1",
+   "pencil": "#a5aca3",
+   "sun": "#de9c31"
+  },
+  "r40celadonD": {
+   "accent": "#f0b135",
+   "ink": "#2d1514",
+   "mass": "#8d3331",
+   "nightInk": "#e5f2ec",
+   "nightPaper": "#2d1514",
+   "paper": "#e5f2ec",
+   "pencil": "#aeb0ab",
+   "sun": "#f0b135"
+  },
+  "r40peonyA": {
+   "accent": "#e59564",
+   "ink": "#2e171f",
+   "mass": "#b73f74",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6"
+  },
+  "r40peonyB": {
+   "accent": "#e59564",
+   "ink": "#2e171f",
+   "mass": "#b73f74",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#e59564"
+  },
+  "r40peonyC": {
+   "accent": "#f0b135",
+   "ink": "#2e171f",
+   "mass": "#832151",
+   "nightInk": "#fcf3f2",
+   "nightPaper": "#2e171f",
+   "paper": "#fcf3f2",
+   "pencil": "#c0b1b3",
+   "sun": "#f0b135"
+  },
+  "r40peonyD": {
+   "accent": "#ca4b85",
+   "ink": "#2e171f",
+   "mass": "#0d5665",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#ca4b85"
+  },
+  "r40prussianA": {
+   "accent": "#ca6b3f",
+   "ink": "#0b2532",
+   "mass": "#064f6e",
+   "nightInk": "#f2e9d6",
+   "nightPaper": "#0b2532",
+   "paper": "#f2e9d6",
+   "pencil": "#adaea5"
+  },
+  "r40prussianB": {
+   "accent": "#ca6b3f",
+   "ink": "#0b2532",
+   "mass": "#064f6e",
+   "nightInk": "#f2e9d6",
+   "nightPaper": "#0b2532",
+   "paper": "#f2e9d6",
+   "pencil": "#adaea5",
+   "sun": "#ca6b3f"
+  },
+  "r40prussianC": {
+   "accent": "#ca6b3f",
+   "ink": "#0b2532",
+   "mass": "#064f6e",
+   "nightInk": "#f2e9d6",
+   "nightPaper": "#0b2532",
+   "paper": "#f2e9d6",
+   "pencil": "#adaea5",
+   "sun": "#ca6b3f"
+  },
+  "r40prussianD": {
+   "accent": "#e25c26",
+   "ink": "#0b2532",
+   "mass": "#01435b",
+   "nightInk": "#f2e9d6",
+   "nightPaper": "#0b2532",
+   "paper": "#f2e9d6",
+   "pencil": "#adaea5",
+   "sun": "#e25c26"
+  },
+  "r40seashellA": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#faebe3",
+   "nightPaper": "#0f1e2f",
+   "paper": "#faebe3",
+   "pencil": "#b4aead"
+  },
+  "r40seashellB": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#faebe3",
+   "nightPaper": "#0f1e2f",
+   "paper": "#faebe3",
+   "pencil": "#b4aead",
+   "sun": "#f1592b"
+  },
+  "r40seashellC": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#1d4371",
+   "nightInk": "#faebe3",
+   "nightPaper": "#0f1e2f",
+   "paper": "#faebe3",
+   "pencil": "#b4aead",
+   "sun": "#f1592b"
+  },
+  "r40seashellD": {
+   "accent": "#f1592b",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf1eb",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf1eb",
+   "pencil": "#b5b2b4",
+   "sun": "#f1592b"
+  },
+  "r40wisteriaA": {
+   "accent": "#f37f94",
+   "ink": "#1b1a2f",
+   "mass": "#66629c",
+   "nightInk": "#eaf2f3",
+   "nightPaper": "#1b1a2f",
+   "paper": "#eaf2f3",
+   "pencil": "#acb1b8"
+  },
+  "r40wisteriaB": {
+   "accent": "#f37f94",
+   "ink": "#1b1a2f",
+   "mass": "#66629c",
+   "nightInk": "#eaf2f3",
+   "nightPaper": "#1b1a2f",
+   "paper": "#eaf2f3",
+   "pencil": "#acb1b8"
+  },
+  "r40wisteriaC": {
+   "accent": "#f37f94",
+   "ink": "#1b1a2f",
+   "mass": "#66629c",
+   "nightInk": "#eaf2f3",
+   "nightPaper": "#1b1a2f",
+   "paper": "#eaf2f3",
+   "pencil": "#acb1b8",
+   "sun": "#f37f94"
+  },
+  "r40wisteriaD": {
+   "accent": "#f37f94",
+   "ink": "#1b1a2f",
+   "mass": "#42386e",
+   "nightInk": "#eaf2f3",
+   "nightPaper": "#1b1a2f",
+   "paper": "#eaf2f3",
+   "pencil": "#acb1b8",
+   "sun": "#f37f94"
+  },
+  "r40whitevermilionA": {
+   "accent": "#f15d41",
+   "ink": "#25201e",
+   "mass": "#ba351f",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#de4b2f"
+  },
+  "r40whitevermilionB": {
+   "accent": "#f15d41",
+   "ink": "#25201e",
+   "mass": "#ba351f",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#de4b2f"
+  },
+  "r40whitevermilionC": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "r40whitevermilionD": {
+   "accent": "#f15d41",
+   "ink": "#25201e",
+   "mass": "#ba351f",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#de4b2f"
+  },
+  "r40slateA": {
+   "accent": "#deac2e",
+   "ink": "#131e2b",
+   "mass": "#486176",
+   "nightInk": "#ecf1f5",
+   "nightPaper": "#131e2b",
+   "paper": "#ecf1f5",
+   "pencil": "#aeb9c2"
+  },
+  "r40slateB": {
+   "accent": "#deac2e",
+   "ink": "#131e2b",
+   "mass": "#486176",
+   "nightInk": "#ecf1f5",
+   "nightPaper": "#131e2b",
+   "paper": "#ecf1f5",
+   "pencil": "#aeb9c2",
+   "sun": "#deac2e"
+  },
+  "r40slateC": {
+   "accent": "#deac2e",
+   "ink": "#131e2b",
+   "mass": "#2b3f51",
+   "nightInk": "#ecf1f5",
+   "nightPaper": "#131e2b",
+   "paper": "#ecf1f5",
+   "pencil": "#aeb9c2",
+   "sun": "#deac2e"
+  },
+  "r40slateD": {
+   "accent": "#deac2e",
+   "ink": "#131e2b",
+   "mass": "#486176",
+   "nightInk": "#ecf1f5",
+   "nightPaper": "#131e2b",
+   "paper": "#ecf1f5",
+   "pencil": "#aeb9c2",
+   "sun": "#deac2e"
+  },
+  "r40matisseA": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#194cb1",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r40matisseB": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#141e8f",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r40matisseC": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#194cb1",
+   "accent": "#f0d947",
+   "sun": "#f0d947",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r40matisseD": {
+   "paper": "#f7f0de",
+   "ink": "#141414",
+   "mass": "#194cb1",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#f7f0de",
+   "pencil": "#b2ada1"
+  }
+ },
+ "drops": {},
+ "drafts": [
+  {
+   "id": "r40paper",
+   "name": "Paper: the classic Line Rider page",
+   "source": "Round 40 · light themes · from “Paper · v1”",
+   "line": "White and black, as Line Rider itself. As judged it has the fork and the title; the versions try a deep band, the quietest pencil drawing, and Sumi’s warm white.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r40paperA"
+     },
+     "note": "Fork with the loudest in red, the title, pencil → ink."
+    },
+    {
+     "label": "Black and red print",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40paperB"
+     },
+     "note": "Near-black bars, one red bar and a red sun, the whole course inked."
+    },
+    {
+     "label": "Pencil drawing",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40paperC"
+     },
+     "note": "Light graphite bars, the red only on the hot bar; nothing on top; pencil → ink."
+    },
+    {
+     "label": "Sumi",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40paperD"
+     },
+     "note": "Warm white, sumi ink, pale warm-grey bars, a vermilion seal as the sun; all ink."
+    }
+   ]
+  },
+  {
+   "id": "r40lavender",
+   "name": "Lavender Dusk: the band against the line",
+   "source": "Round 40 · light themes · from “Lavender Dusk · v1”",
+   "line": "Your note: a heavy dark track over a thin wave looks unbalanced; make the visualisation stronger rather than the rest weaker.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "iris",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40lavenderA"
+     },
+     "note": "Thin Iris strands, apricot sun, pencil → ink."
+    },
+    {
+     "label": "Bold strands",
+     "look": {
+      "accent": "heat",
+      "band": "iris",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "bold",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40lavenderB"
+     },
+     "note": "Only the strands change: 7 px main line instead of 3.8."
+    },
+    {
+     "label": "Violet bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40lavenderC"
+     },
+     "note": "Bars in the theme’s own dusk violet, the hot bar apricot."
+    },
+    {
+     "label": "Dusk print",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40lavenderD"
+     },
+     "note": "Deep aubergine-violet bars, apricot hot bar and sun, the whole course inked."
+    }
+   ]
+  },
+  {
+   "id": "r40dawn",
+   "name": "Blushing Dawn: the accent",
+   "source": "Round 40 · light themes · from “Blushing Dawn · v1”",
+   "line": "Your note: “not really fond of the colours, in particular the accent” (orange #d96629 on violet-blue bars).",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40dawnA"
+     },
+     "note": "Orange accent and sun on a sky-blue sheet."
+    },
+    {
+     "label": "Gold note",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40dawnB"
+     },
+     "note": "Only the accent and sun: gold instead of orange."
+    },
+    {
+     "label": "Rose dawn",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40dawnC"
+     },
+     "note": "A softer sky, deeper violet-navy bars, a rose-salmon accent and sun."
+    },
+    {
+     "label": "Morning",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40dawnD"
+     },
+     "note": "A pale warm sheet instead of blue, the same bars, a coral accent and sun."
+    }
+   ]
+  },
+  {
+   "id": "r40celadon",
+   "name": "Celadon: the ground",
+   "source": "Round 40 · light themes · from “Celadon · v1”",
+   "line": "Your note: the background doesn’t quite complement the rest. Maroon bars, orange accent and sun on mint.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40celadonA"
+     },
+     "note": "Mint-celadon ground."
+    },
+    {
+     "label": "Ivory ground",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40celadonB"
+     },
+     "note": "Only the ground: ivory instead of mint."
+    },
+    {
+     "label": "Deeper celadon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40celadonC"
+     },
+     "note": "A truer celadon, deeper maroon bars, an ochre-gold accent and sun."
+    },
+    {
+     "label": "Gold, not orange",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40celadonD"
+     },
+     "note": "Only the accent and sun: gold instead of orange."
+    }
+   ]
+  },
+  {
+   "id": "r40peony",
+   "name": "Peony: variations",
+   "source": "Round 40 · light themes · from “Peony · v1”",
+   "line": "Your note: “this works but I’d be curious to try a few variations”.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40peonyA"
+     },
+     "note": "Peony bars, apricot hot bar, nothing on top."
+    },
+    {
+     "label": "With a sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40peonyB"
+     },
+     "note": "Only an apricot sun added."
+    },
+    {
+     "label": "Deep peony, gold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40peonyC"
+     },
+     "note": "A warm white, deeper peony bars, a gold hot bar and sun."
+    },
+    {
+     "label": "Teal and peony",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40peonyD"
+     },
+     "note": "Turned around: deep teal bars, the peony as the hot bar and sun."
+    }
+   ]
+  },
+  {
+   "id": "r40prussian",
+   "name": "Prussian",
+   "source": "Round 40 · light themes · from “Prussian”",
+   "line": "You praised it in words but it lost its few comparisons. Ivory, a deep Prussian-teal band, a burnt-sienna bar, the title. Here alone, with today’s colour response.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r40prussianA"
+     },
+     "note": "The title; pencil → ink."
+    },
+    {
+     "label": "A sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40prussianB"
+     },
+     "note": "Only the title replaced by a burnt-sienna sun."
+    },
+    {
+     "label": "Sun, all ink",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40prussianC"
+     },
+     "note": "The sun, and the whole course inked."
+    },
+    {
+     "label": "Hotter note",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40prussianD"
+     },
+     "note": "Deeper teal bars, a brighter vermilion-orange hot bar and sun."
+    }
+   ]
+  },
+  {
+   "id": "r40seashell",
+   "name": "Seashell",
+   "source": "Round 40 · light themes · from “Seashell Night”",
+   "line": "You praised it in words. Peach-shell paper, an Olympic-blue band, a jasper-red bar. Here alone, without its Night drop.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40seashellA"
+     },
+     "note": "Nothing on top; pencil → ink."
+    },
+    {
+     "label": "A sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40seashellB"
+     },
+     "note": "Only a jasper sun added."
+    },
+    {
+     "label": "Deeper blue",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40seashellC"
+     },
+     "note": "Deeper blue bars and the sun."
+    },
+    {
+     "label": "Paler shell, all ink",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40seashellD"
+     },
+     "note": "A paler shell, the sun, the whole course inked."
+    }
+   ]
+  },
+  {
+   "id": "r40wisteria",
+   "name": "Wisteria",
+   "source": "Round 40 · light themes · from “Wisteria”",
+   "line": "You praised it in words. Grey-white, a violet fork with pink heads, plain paper (no colour response).",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "plain",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40wisteriaA"
+     },
+     "note": "The fork, the loudest three in pink, plain paper."
+    },
+    {
+     "label": "Bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "plain",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40wisteriaB"
+     },
+     "note": "Only the band: violet bars instead of the fork."
+    },
+    {
+     "label": "Bars and a pink sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40wisteriaC"
+     },
+     "note": "Bars, a pink sun, today’s colour response."
+    },
+    {
+     "label": "Deep violet, all ink",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40wisteriaD"
+     },
+     "note": "Deep violet bars, the pink sun, the whole course inked."
+    }
+   ]
+  },
+  {
+   "id": "r40whitevermilion",
+   "name": "White and Vermilion",
+   "source": "Round 40 · light themes · from “White and Vermilion”",
+   "line": "Your 9 in round 28 (“just looks very good”), then it lost its comparisons. Red bars on white, the loudest lifted to vermilion. Here alone, without its drop.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40whitevermilionA"
+     },
+     "note": "The loudest three in vermilion, nothing on top."
+    },
+    {
+     "label": "A sun",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40whitevermilionB"
+     },
+     "note": "Only its vermilion sun added."
+    },
+    {
+     "label": "Deep red, gold note",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40whitevermilionC"
+     },
+     "note": "Deeper red bars, a gold hot bar and sun."
+    },
+    {
+     "label": "Sun, all ink",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40whitevermilionD"
+     },
+     "note": "The sun and the whole course inked."
+    }
+   ]
+  },
+  {
+   "id": "r40slate",
+   "name": "Slate",
+   "source": "Round 40 · light themes · from “Slate”",
+   "line": "You liked its mustard. Blue-grey paper, a slate band, the loudest three always mustard, plain paper.",
+   "variants": [
+    {
+     "label": "As judged",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "plain",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "none",
+      "zoom": "steady",
+      "scheme": "r40slateA"
+     },
+     "note": "Nothing on top; pencil → ink; plain paper."
+    },
+    {
+     "label": "A mustard sun",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "plain",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40slateB"
+     },
+     "note": "Only a mustard sun added."
+    },
+    {
+     "label": "Deeper slate",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40slateC"
+     },
+     "note": "Deeper slate bars, the sun, today’s colour response."
+    },
+    {
+     "label": "Sun, all ink",
+     "look": {
+      "accent": "loud",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "plain",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40slateD"
+     },
+     "note": "The sun and the whole course inked."
+    }
+   ]
+  },
+  {
+   "id": "r40matisse",
+   "name": "New: Cut-outs",
+   "source": "Round 40 · light themes · new",
+   "line": "New, after Matisse’s paper cut-outs: white, a cobalt band, a coral sun, black line. Bold flat colour on a light ground, which the set lacks.",
+   "variants": [
+    {
+     "label": "As drafted",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40matisseA"
+     },
+     "note": "Cobalt bars, coral hot bar and sun, all ink."
+    },
+    {
+     "label": "Ultramarine",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40matisseB"
+     },
+     "note": "Deep ultramarine bars."
+    },
+    {
+     "label": "Lemon note",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40matisseC"
+     },
+     "note": "A lemon hot bar and sun instead of coral."
+    },
+    {
+     "label": "Cream ground",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r40matisseD"
+     },
+     "note": "A cream ground instead of white."
+    }
+   ]
+  }
+ ]
+}

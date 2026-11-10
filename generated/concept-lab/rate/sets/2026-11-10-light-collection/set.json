@@ -1,0 +1,194 @@
+{
+ "set": "2026-11-10-light-collection",
+ "title": "Light themes chosen in rounds 40–41 for the collection",
+ "round": 41,
+ "created": "2026-11-10",
+ "song": "circus",
+ "renderer": "v7.1-151-gd6384d6e",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "themes": [
+  {
+   "id": "t-ea30e1e9c046",
+   "label": "Paper, black and red print",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d7352d",
+     "ink": "#15181d",
+     "mass": "#2b2e33",
+     "nightInk": "#ffffff",
+     "nightPaper": "#15181d",
+     "paper": "#ffffff",
+     "pencil": "#b4bcc8",
+     "sun": "#d7352d"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-8cd5796e6d2e",
+   "label": "White and Vermilion, deep red and gold",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f0b135",
+     "ink": "#25201e",
+     "mass": "#89221c",
+     "nightInk": "#faf9f5",
+     "nightPaper": "#25201e",
+     "paper": "#faf9f5",
+     "pencil": "#ada7a1",
+     "sun": "#f0b135"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9d58b06d3f84",
+   "label": "Lavender Dusk, violet bars",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f0a04f",
+     "ink": "#28213a",
+     "mass": "#64547f",
+     "nightInk": "#eeecf1",
+     "nightPaper": "#28213a",
+     "paper": "#eeecf1",
+     "pencil": "#c2bdcb"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-03b6a0e1e6b5",
+   "label": "Peony, stronger bars and marigold",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f9a63e",
+     "ink": "#2e171f",
+     "mass": "#b02f6a",
+     "nightInk": "#e2f2f6",
+     "nightPaper": "#2e171f",
+     "paper": "#e2f2f6",
+     "pencil": "#acb0b6",
+     "sun": "#f9a63e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-4860903eef2c",
+   "label": "Seashell, paler, softer jasper",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e7714e",
+     "ink": "#0f1e2f",
+     "mass": "#3e6594",
+     "nightInk": "#fdf5f2",
+     "nightPaper": "#0f1e2f",
+     "paper": "#fdf5f2",
+     "pencil": "#b5b5b9",
+     "sun": "#e7714e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

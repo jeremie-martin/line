@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 10, night: six light themes join the collection (rounds 40–41)
+
+Round 40 gave 11 light themes a page each: the theme as judged and three directions. The owner answered the colour pages again
+with Redshift off. Round 41 refined the close ones by a few percent and asked two questions about the collection itself.
+
+**In** (frozen as set `2026-11-10-light-collection`, then added to `collection.js`):
+- Paper as judged, and Paper's black and red print;
+- White and Vermilion with deep red bars and gold;
+- Lavender Dusk with violet bars;
+- Peony with stronger bars and marigold;
+- Seashell, paler with a softer jasper.
+
+The collection is now 23 themes: 12 dark families, 10 light.
+
+**Out:**
+- Celadon: "we have alternatives that are even better".
+- Prussian and Slate: a muted theme must be exceptional to earn its place.
+- Wisteria: Lavender's cousin, Lavender kept.
+- Blushing Dawn: Amber and Purple was preferred beside it; its refined version stays in the round-41 file.
+- Sumi, Morning and the pencil drawing: they repeat looks the collection has.
+
+**Still open:** Cut-outs' blue, between Prussian and a deeper blue (round 42, `?set=cutouts`).
+
+**Checks:**
+- All 23 production themes reproduce their judged ids.
+- The 12 new stills rendered by theme name are byte-identical to the frozen ones.
+- 579 tests, typecheck, reach, compile parity and judge parity pass.
+
 ## November 10, evening: colour judgments made through Redshift (a correction)
 
 The owner's desktop runs Redshift: 3500 K at night, neutral 6500 K by day. All of round 38 was judged through it: 125

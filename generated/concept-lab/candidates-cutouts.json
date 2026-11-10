@@ -1,0 +1,141 @@
+{
+ "round": 42,
+ "about": "Round 42: Cut-outs, the bars between Prussian and a deeper blue; schemes in the lab page’s memory only.",
+ "schemes": {
+  "r42cutoutsA": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#014d71",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r42cutoutsB": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#024b77",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r42cutoutsC": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#014781",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  },
+  "r42cutoutsD": {
+   "paper": "#fbfaf6",
+   "ink": "#141414",
+   "mass": "#00418f",
+   "accent": "#f05940",
+   "sun": "#f05940",
+   "nightPaper": "#141414",
+   "nightInk": "#fbfaf6",
+   "pencil": "#b5b4b2"
+  }
+ },
+ "drops": {},
+ "drafts": [
+  {
+   "id": "r42cutouts",
+   "name": "Cut-outs: Prussian toward the deeper blue",
+   "source": "Round 42 · your round 41 note",
+   "line": "Judge with Redshift off (or on the phone): this page is about colour. You picked the Prussian blue and asked for mixes with “between the two”. Only the bars change, in even steps.",
+   "variants": [
+    {
+     "label": "Prussian, your pick",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r42cutoutsA"
+     },
+     "note": "Prussian blue bars (#014d71). Bars #014d71."
+    },
+    {
+     "label": "A quarter of the way",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r42cutoutsB"
+     },
+     "note": "Prussian, a quarter of the way toward the deeper, more violet blue. Bars #024b77."
+    },
+    {
+     "label": "Halfway",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r42cutoutsC"
+     },
+     "note": "Halfway between the Prussian and “between the two”. Bars #014781."
+    },
+    {
+     "label": "Three quarters",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r42cutoutsD"
+     },
+     "note": "Three quarters of the way: mostly the deeper blue, a trace of the Prussian. Bars #00418f."
+    }
+   ]
+  }
+ ]
+}

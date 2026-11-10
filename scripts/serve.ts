@@ -68,6 +68,8 @@ const server = createServer(async (req, res) => {
     // (the page reads which from the address)
     if (url.pathname === '/rate') {res.writeHead(302, {Location: '/rate/'}).end(); return;}
     if (/^\/rate\/(?:[a-z0-9-]{1,80}(?:\/results)?)?$/.test(url.pathname)) {serveStatic(req, res, new URL('/generated/concept-lab/rate/index.html', url)); return;}
+    // the theme collection, every production theme live: /collection
+    if (url.pathname === '/collection' || url.pathname === '/collection/') {serveStatic(req, res, new URL('/generated/concept-lab/collection/index.html', url)); return;}
     serveStatic(req, res, url);
   } catch (e) {
     if (!res.headersSent) res.writeHead(500, {'Content-Type': 'application/json'});

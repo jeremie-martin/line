@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>The collection</title>
+<style>
+:root{--bg:#121212;--panel:#1a1a1a;--ink:#ece9e2;--soft:#8f8b84;--faint:#5a5752;--line:#2a2927;--hi:#f4f1ea;
+  --mono:ui-monospace,"SF Mono","IBM Plex Mono",Menlo,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,Inter,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bar{position:sticky;top:0;z-index:5;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1500px;margin:0 auto;padding:14px 20px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px 22px;align-items:center}
+h1{margin:0;font-size:20px;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+h1 small{font-size:13px;font-weight:450;color:var(--soft);margin-left:8px;letter-spacing:0}
+.songs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent);padding-right:24px}
+.songs::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:6px 12px;border-radius:999px;border:1px solid var(--line);color:var(--soft);font-size:13px;white-space:nowrap}
+.chip:hover{color:var(--ink);border-color:#3a3936}
+.chip.on{background:var(--ink);color:#141414;border-color:var(--ink)}
+.filters{display:flex;gap:6px}
+.transport{grid-column:1/-1;display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:center}
+.play{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#141414;display:grid;place-items:center}
+.play svg{width:16px;height:16px}
+.jump{font-size:13px;color:var(--soft);display:flex;gap:4px}
+.jump button{padding:5px 9px;border-radius:7px}
+.jump button:hover{color:var(--ink);background:#222}
+.track{position:relative;height:28px;display:flex;align-items:center}
+.track .rail{position:absolute;left:0;right:0;height:4px;border-radius:2px;background:var(--line)}
+.track .drop{position:absolute;height:4px;border-radius:2px;background:#4a3f36}
+.track .done{position:absolute;left:0;height:4px;border-radius:2px;background:var(--soft)}
+.track input{position:absolute;inset:0;width:100%;margin:0;opacity:0;cursor:pointer}
+.track .knob{position:absolute;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--hi);box-shadow:0 0 0 4px rgba(244,241,234,.12);pointer-events:none}
+.time{font:12px var(--mono);color:var(--soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+.time b{font-weight:500;color:var(--ink)}
+main{max-width:1500px;margin:0 auto;padding:8px 20px 60px}
+.group{margin-top:26px}
+.group h2{margin:0 0 14px;font:500 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.group h2 span{color:var(--faint);margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:22px 16px}
+.tile{display:flex;flex-direction:column;align-self:start;text-align:left;padding:0;min-width:0}
+.tile .frame{position:relative;aspect-ratio:9/16;border-radius:10px;overflow:hidden;background:#000;outline:1px solid rgba(255,255,255,.06);transition:transform .18s ease,outline-color .18s}
+.tile canvas{width:100%;height:100%;display:block}
+.tile:hover .frame,.tile:focus-visible .frame{transform:translateY(-3px);outline-color:rgba(255,255,255,.28)}
+.tile .name{margin-top:9px;font-size:13.5px;font-weight:550;line-height:1.25;color:var(--ink)}
+.tile .dots{margin-top:6px;display:flex;gap:4px}
+.dots i{width:11px;height:11px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.tile .key{font:11px var(--mono);color:var(--faint);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.default{font:10px var(--mono);letter-spacing:.12em;color:#141414;background:var(--ink);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+#status{position:fixed;inset:auto 0 18px;text-align:center;color:var(--soft);font-size:13px;pointer-events:none}
+/* the focus view */
+.focus{position:fixed;inset:0;z-index:10;background:rgba(10,10,10,.97);display:none;grid-template-columns:minmax(0,auto) minmax(300px,420px);justify-content:center;gap:40px;padding:28px 36px}
+.focus.open{display:grid}
+.stage{position:relative;height:calc(100vh - 56px);aspect-ratio:9/16;border-radius:14px;overflow:hidden;align-self:center;background:#000}
+.stage canvas{width:100%;height:100%;display:block}
+.side{align-self:center;max-height:calc(100vh - 56px);overflow:auto;padding-right:6px}
+.kicker{font:500 11px var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+.side h3{margin:8px 0 6px;font-size:34px;line-height:1.08;font-weight:650;letter-spacing:-.02em}
+.side .lede{margin:0 0 24px;color:#bdb8b0;font-size:15.5px}
+.sw{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:26px}
+.sw button{text-align:left;padding:0}
+.sw .c{height:54px;border-radius:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.sw .r{margin-top:6px;font-size:12.5px;color:var(--ink)}
+.sw .h{font:11.5px var(--mono);color:var(--soft)}
+.sw button:hover .h{color:var(--ink)}
+dl{margin:0 0 24px;display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:13.5px}
+dt{color:var(--soft)}dd{margin:0}
+.cmd{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:12.5px var(--mono);color:#cfcac2;margin-bottom:12px}
+.cmd code{flex:1;overflow-x:auto;white-space:nowrap}
+.cmd button{color:var(--soft);font-size:12px}.cmd button:hover{color:var(--ink)}
+.origin{font-size:12.5px;color:var(--soft);line-height:1.55}
+.origin code{font:11.5px var(--mono);color:var(--faint)}
+.nav{position:absolute;top:22px;right:26px;display:flex;gap:6px;z-index:2}
+.nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);color:var(--soft);font-size:17px}
+.nav button:hover{color:var(--ink);border-color:#444}
+.ftransport{display:flex;align-items:center;gap:12px;margin:-4px 0 22px}
+.ftransport .track{flex:1}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:#141414;padding:7px 14px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;z-index:20;pointer-events:none}
+.toast.on{opacity:1}
+@media (max-width:820px){
+  .bar-in{grid-template-columns:1fr auto;padding:12px 14px 10px;gap:10px 12px}
+  h1{font-size:18px;white-space:normal}
+  h1 small{display:block;margin:1px 0 0;font-size:12px}
+  .songs{grid-column:1/-1;grid-row:2}
+  .transport{grid-row:3;grid-template-columns:auto 1fr auto;grid-template-areas:"play track time" "jump jump jump";gap:6px 12px}
+  .transport .play{grid-area:play}.transport .track{grid-area:track}.transport .time{grid-area:time}.transport .jump{grid-area:jump;margin-left:40px}
+  .time{font-size:11px}
+  main{padding:4px 14px 60px}
+  .grid{grid-template-columns:repeat(3,1fr);gap:16px 10px}
+  .tile .name{font-size:12px}.tile .key{display:none}
+  .focus{overflow-y:auto;padding:58px 14px 40px;background:#101010}
+  .focus.open{display:block}
+  .stage{height:auto;width:min(100%,calc((100svh - 90px) * 9 / 16));margin:0 auto 22px}
+  .side{max-height:none;overflow:visible;max-width:520px;margin:0 auto}
+  .side h3{font-size:27px}
+  .nav{top:10px;right:10px}
+}
+</style>
+
+<div class="bar"><div class="bar-in">
+  <h1>The collection <small id="count"></small></h1>
+  <div class="songs" id="songs"></div>
+  <div class="filters" id="filters"></div>
+  <div class="transport">
+    <button class="play" id="play" aria-label="Play"></button>
+    <div class="jump" id="jumps"></div>
+    <div class="track" id="track"><div class="rail"></div><div class="drop"></div><div class="done"></div><div class="knob"></div><input type="range" min="0" step="0.01" aria-label="Position"></div>
+    <div class="time" id="time"></div>
+  </div>
+</div></div>
+<main id="groups"></main>
+<p id="status">Loading the ride…</p>
+
+<div class="focus" id="focus">
+  <div class="nav"><button id="prev" aria-label="Previous theme">‹</button><button id="next" aria-label="Next theme">›</button><button id="close" aria-label="Close">✕</button></div>
+  <div class="stage"><canvas id="big"></canvas></div>
+  <div class="side" id="side"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// The collection: every production theme (scripts/video/look.js THEMES, from collection.js) drawn live by the video renderer
+// itself, all at the same moment of one ride and its music. Choose the ride; a theme opens large with its colours, its choices
+// and where it was judged. Served at /collection by the review server.
+import * as N from '/generated/renderer/native.js';
+import {createPicture} from '/scripts/video/picture.js';
+import {THEMES, OPTIONS, DEFAULT_THEME, resolveLook} from '/scripts/video/look.js';
+import {SCHEMES} from '/scripts/video/palettes.js';
+import {createMusic, displayTime} from '/shared/playback.js';
+
+const $ = id => document.getElementById(id);
+const SONGS = [['circus', 'Circus Minimus'], ['petrunko', 'Petrunko'], ['lua', 'Lua na Praça'], ['los', 'Los Voltaje'], ['batidao', 'No Batidão'],
+  ['burn', 'Let the World Burn'], ['coma', 'Montagem Coma'], ['tomada', 'Montagem Tomada']];
+const q = new URLSearchParams(location.search);
+
+// ── the themes ───────────────────────────────────────────────────────────────
+const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+const lightness = hex => {const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
+  return 0.2104542553 * Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b) + 0.793617785 * Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
+    - 0.0040720468 * Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);};
+const themes = Object.entries(THEMES).map(([key, t]) => {
+  const look = resolveLook(key), c = SCHEMES[look.scheme];
+  return {key, look, c, name: t.name.replace(/ · v1$/, '').replace(/, no drop$/, ''), label: t.name, line: t.line, id: t.id, dark: lightness(c.paper) < 0.5};
+});
+const origin = new Map();
+fetch('/generated/concept-lab/rate/themes.jsonl').then(r => r.ok ? r.text() : '').then(text => {
+  for (const l of text.split('\n').filter(Boolean)) {const r = JSON.parse(l); origin.set(r.id, r);}
+}).catch(() => {});
+
+// ── state ────────────────────────────────────────────────────────────────────
+const music = createMusic(), onScreen = displayTime();
+let song = SONGS.some(s => s[0] === q.get('song')) ? q.get('song') : 'circus', scene, replay, sheet, tilePic, bigPic, loadTicket = 0;
+let t = 0, playing = false, playTicket = 0, filter = ['all', 'dark', 'light'].includes(q.get('only')) ? q.get('only') : 'all';
+let focused = THEMES[q.get('theme')] ? q.get('theme') : null, dirty = true, cursor = 0;
+const tileCanvas = document.createElement('canvas'), big = $('big');
+
+// ── the bar ──────────────────────────────────────────────────────────────────
+$('count').textContent = `${themes.length} themes · ${themes.filter(x => x.dark).length} dark · ${themes.filter(x => !x.dark).length} light`;
+function chips(host, items, current, pick) {
+  host.replaceChildren(...items.map(([id, label]) => {const b = document.createElement('button'); b.className = 'chip' + (id === current ? ' on' : ''); b.textContent = label; b.onclick = () => pick(id); return b;}));
+}
+const renderSongs = () => chips($('songs'), SONGS, song, id => {if (id !== song) {song = id; renderSongs(); load();}});
+const renderFilters = () => chips($('filters'), [['all', 'All'], ['dark', 'Dark'], ['light', 'Light']], filter, id => {filter = id; renderFilters(); buildGrid(); remember();});
+const PLAY = '<svg viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg>', PAUSE = '<svg viewBox="0 0 16 16"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z" fill="currentColor"/></svg>';
+const clock = x => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+function remember() {
+  const u = new URL(location.href); u.searchParams.set('song', song);
+  filter === 'all' ? u.searchParams.delete('only') : u.searchParams.set('only', filter);
+  focused ? u.searchParams.set('theme', focused) : u.searchParams.delete('theme');
+  history.replaceState(null, '', u);
+}
+
+// the scrubbers: the one in the bar and the one in the focus view share the position
+function makeTrack(host) {
+  const input = host.querySelector('input');
+  input.oninput = () => seek(+input.value);
+  return {
+    span() {const [a, b] = scene.span; input.max = b; const d = scene.drop; const drop = host.querySelector('.drop');
+      if (d) {drop.hidden = false; drop.style.left = `${100 * d[0] / b}%`; drop.style.width = `${100 * (d[1] - d[0]) / b}%`;} else drop.hidden = true;},
+    show() {const f = 100 * t / scene.span[1]; input.value = t; host.querySelector('.done').style.width = f + '%'; host.querySelector('.knob').style.left = f + '%';},
+  };
+}
+const tracks = [makeTrack($('track'))];
+function showTime() {
+  if (!scene) return;
+  const inDrop = scene.drop && t >= scene.drop[0] && t < scene.drop[1], phase = scene.phases.find(p => t >= p.t0 && t < p.t1) ?? scene.phases.at(-1);
+  const where = inDrop ? 'the drop' : phase.name.toLowerCase(), text = innerWidth > 820 ? `<b>${clock(t)}</b> / ${clock(scene.span[1])} · ${where}` : `<b>${clock(t)}</b> · ${where}`;
+  for (const el of document.querySelectorAll('.time')) el.innerHTML = text;
+  for (const tr of tracks) tr.show();
+  for (const b of document.querySelectorAll('.play')) {b.innerHTML = playing ? PAUSE : PLAY; b.setAttribute('aria-label', playing ? 'Pause' : 'Play');}
+}
+function jumps() {
+  const verse = scene.phases.find(p => /verse/i.test(p.name)) ?? scene.phases[1] ?? scene.phases[0], list = [['Start', 0], ['Verse', verse.t0 + 1.5]];
+  if (scene.drop) list.push(['Drop', scene.drop[0] + 0.6], ['Inside', (scene.drop[0] + scene.drop[1]) / 2]);
+  for (const host of document.querySelectorAll('.jump')) host.replaceChildren(...list.map(([l, s]) => {const b = document.createElement('button'); b.textContent = l; b.onclick = () => seek(s); return b;}));
+}
+
+// ── playback ─────────────────────────────────────────────────────────────────
+function seek(s) {t = Math.max(0, Math.min(scene.span[1], s)); if (playing) {const n = ++playTicket; music.play(t, 1).then(() => {if (n === playTicket) playing = music.playing;}).catch(() => {});} dirty = true; cursor = 0; showTime();}
+async function toggle() {
+  if (!scene) return;
+  if (playing) {playTicket++; t = music.pause(); playing = false; showTime(); return;}
+  if (t >= scene.span[1] - 0.05) t = 0;
+  const n = ++playTicket; playing = true; showTime();
+  try {await music.play(t, 1); if (n === playTicket) playing = music.playing;} catch {if (n === playTicket) playing = false;}
+  showTime();
+}
+for (const b of document.querySelectorAll('.play')) b.onclick = toggle;
+
+// ── the grid ─────────────────────────────────────────────────────────────────
+let tiles = [];
+function buildGrid() {
+  const groups = filter === 'all' ? [['Dark', true], ['Light', false]] : [[filter === 'dark' ? 'Dark' : 'Light', filter === 'dark']];
+  tiles = [];
+  $('groups').replaceChildren(...groups.map(([title, dark]) => {
+    const list = themes.filter(x => x.dark === dark), sec = document.createElement('section'); sec.className = 'group';
+    sec.innerHTML = `<h2>${title}<span>${list.length}</span></h2>`;
+    const grid = document.createElement('div'); grid.className = 'grid';
+    for (const x of list) {
+      const b = document.createElement('button'); b.className = 'tile'; b.onclick = () => open(x.key);
+      const used = [x.c.paper, x.c.mass, x.c.accent, x.look.top === 'sun' ? (x.c.sun ?? x.c.accent) : null, x.c.ink].filter(Boolean);
+      b.innerHTML = `<div class="frame"><canvas></canvas></div><div class="name">${x.name}${x.key === DEFAULT_THEME ? '<span class="default">DEFAULT</span>' : ''}</div>
+        <div class="dots">${[...new Set(used)].map(c => `<i style="background:${c}"></i>`).join('')}</div><div class="key">--look=${x.key}</div>`;
+      grid.append(b); tiles.push({x, canvas: b.querySelector('canvas')});
+    }
+    sec.append(grid); return sec;
+  }));
+  sizeTiles(); dirty = true; cursor = 0;
+}
+function sizeTiles() {
+  if (!tiles.length) return;
+  const css = tiles[0].canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  const w = Math.max(90, Math.min(360, Math.round(css.width * dpr))), h = Math.round(w * 16 / 9);
+  if (tileCanvas.width !== w) {tileCanvas.width = w; tileCanvas.height = h;}
+  for (const {canvas} of tiles) if (canvas.width !== w) {canvas.width = w; canvas.height = h;}
+  dirty = true; cursor = 0;
+}
+addEventListener('resize', () => {sizeTiles(); sizeBig();});
+
+// drawing: the focused theme every frame; otherwise the tiles, as many as fit in a frame's budget, round-robin while playing
+function drawTiles() {
+  if (!tilePic || !tiles.length) return;
+  const start = performance.now(), budget = playing ? 12 : 1e9;
+  for (let n = 0; n < tiles.length; n++) {
+    const i = (cursor + n) % tiles.length, {x, canvas} = tiles[i];
+    tilePic.draw(t, x.look); canvas.getContext('2d').drawImage(tileCanvas, 0, 0);
+    if (performance.now() - start > budget) {cursor = (i + 1) % tiles.length; return;}
+  }
+  cursor = 0; dirty = false;
+}
+function frame(ts) {
+  if (scene) {
+    if (playing) {t = music.position(onScreen(ts)); if (t >= scene.span[1]) {t = scene.span[1]; playTicket++; music.pause(); playing = false;} showTime();}
+    if (focused) {if (playing || dirty) {bigPic.draw(t, THEMES_BY[focused].look); dirty = false;}}
+    else if (playing || dirty) drawTiles();
+  }
+  requestAnimationFrame(frame);
+}
+const THEMES_BY = Object.fromEntries(themes.map(x => [x.key, x]));
+
+// ── the focus view ───────────────────────────────────────────────────────────
+const ROLE = [['paper', 'Ground'], ['ink', 'Line'], ['pencil', 'Pencil'], ['mass', 'Bars'], ['accent', 'Hot bar'], ['sun', 'Sun']];
+const say = (k, v) => OPTIONS[k][1][v] ?? v;
+function sizeBig() {
+  if (!focused) return;
+  const css = big.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1), w = Math.min(1080, Math.round(css.width * dpr));
+  if (big.width !== w) {big.width = w; big.height = Math.round(w * 16 / 9);}
+  dirty = true;
+}
+function open(key) {
+  focused = key; const x = THEMES_BY[key], o = origin.get(x.id);
+  const roles = ROLE.filter(([k]) => k !== 'pencil' || x.look.line !== 'ink').filter(([k]) => k !== 'sun' || x.look.top === 'sun')
+    .map(([k, r]) => [r, k === 'sun' ? (x.c.sun ?? x.c.accent) : x.c[k]]);
+  const band = x.look.band === 'iris' ? `${say('band', 'iris')}, ${x.look.irisWeight === 'bold' ? 'bold strands' : 'thin strands'}` : say('band', x.look.band);
+  $('side').innerHTML = `
+    <div class="kicker">${x.dark ? 'Dark' : 'Light'} theme${x.key === DEFAULT_THEME ? ' · the default' : ''}</div>
+    <h3>${x.name}</h3><p class="lede">${x.line}</p>
+    <div class="ftransport"><button class="play"></button><div class="track" id="ftrack"><div class="rail"></div><div class="drop"></div><div class="done"></div><div class="knob"></div><input type="range" min="0" step="0.01" aria-label="Position"></div></div>
+    <div class="jump" style="margin:-12px 0 20px"></div>
+    <div class="sw">${roles.map(([r, c]) => `<button data-hex="${c}"><div class="c" style="background:${c}"></div><div class="r">${r}</div><div class="h">${c}</div></button>`).join('')}</div>
+    <dl><dt>Band</dt><dd>${band}</dd><dt>On top</dt><dd>${say('top', x.look.top)}</dd><dt>Line</dt><dd>${say('line', x.look.line)}</dd>
+      <dt>Colour</dt><dd>${x.look.paper === 'plain' ? 'Constant: it does not follow the intensity' : 'Grows more vivid when the ride is intense'}</dd>${x.look.zoom === 'quiet' ? '<dt>Camera</dt><dd>Eases out when quiet</dd>' : ''}</dl>
+    <div class="cmd"><code>npm run video -- --song=… --look=${x.key}</code><button data-copy="--look=${x.key}">Copy</button></div>
+    <div class="origin">Judged as “${x.label}”${o?.round ? `, round ${o.round}` : ''}${o?.set ? ` (${o.set})` : ''}.<br><code>${x.id}</code></div>`;
+  $('side').querySelector('.play').onclick = toggle;
+  $('side').querySelectorAll('[data-hex]').forEach(b => b.onclick = () => copy(b.dataset.hex));
+  $('side').querySelector('[data-copy]').onclick = e => copy(e.target.dataset.copy);
+  tracks.length = 1; const tr = makeTrack($('ftrack')); tracks.push(tr);
+  $('focus').classList.add('open'); document.body.style.overflow = 'hidden';
+  if (scene) {tr.span(); jumps();}
+  sizeBig(); showTime(); remember();
+}
+function close() {focused = null; tracks.length = 1; $('focus').classList.remove('open'); document.body.style.overflow = ''; dirty = true; cursor = 0; remember();}
+function step(d) {const list = themes.filter(x => filter === 'all' || x.dark === (filter === 'dark')), i = list.findIndex(x => x.key === focused); open(list[(i + d + list.length) % list.length].key);}
+$('prev').onclick = () => step(-1); $('next').onclick = () => step(1); $('close').onclick = close;
+$('focus').onclick = e => {if (e.target === $('focus')) close();};
+async function copy(text) {try {await navigator.clipboard.writeText(text); toast(`Copied ${text}`);} catch {toast(text);}}
+let toastTimer; function toast(text) {$('toast').textContent = text; $('toast').classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('on'), 1400);}
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.key !== ' ') return;
+  if (e.key === ' ') {e.preventDefault(); toggle();}
+  else if (e.key === 'Escape' && focused) close();
+  else if (focused && e.key === 'ArrowRight') step(1); else if (focused && e.key === 'ArrowLeft') step(-1);
+  else if (!focused && e.key === 'ArrowRight') seek(t + 2); else if (!focused && e.key === 'ArrowLeft') seek(t - 2);
+});
+
+// ── a ride ───────────────────────────────────────────────────────────────────
+async function load() {
+  const n = ++loadTicket; $('status').hidden = false; $('status').textContent = 'Loading the ride…';
+  if (playing) {playTicket++; music.pause(); playing = false;}
+  try {
+    const s = await (await fetch(`/generated/concept-lab/data/${song}.json`)).json();
+    const [r, sh] = await Promise.all([N.replay(s.track, s.trace), sheet ?? N.loadSheet()]);
+    if (n !== loadTicket) return;
+    scene = s; replay = r; sheet = sh;
+    tilePic = createPicture(tileCanvas, scene, replay, sheet, N.riderPainter());
+    bigPic = createPicture(big, scene, replay, sheet, N.riderPainter());
+    music.load('/' + scene.audio).catch(() => {});
+    if (!(t > 0) || t > scene.span[1]) t = (scene.phases.find(p => /verse/i.test(p.name))?.t0 ?? 0) + 1.5;
+    for (const tr of tracks) tr.span();
+    jumps(); dirty = true; cursor = 0; showTime(); remember();
+    $('status').hidden = true;
+  } catch (e) {if (n === loadTicket) $('status').textContent = `Could not load ${song}: ${e.message}`;}
+}
+
+renderSongs(); renderFilters(); buildGrid();
+if (focused) open(focused);
+await load();
+requestAnimationFrame(frame);
+window.__collection = {themes: themes.length, ready: () => !!scene, drawTiles: () => {const a = performance.now(); dirty = true; cursor = 0; const p = playing; drawTiles(); return performance.now() - a;}};
+</script>
+</html>

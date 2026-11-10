@@ -1,20 +1,20 @@
 # Crafting a theme
 
-*Toward a golden set of 18–32 hand-crafted themes. Written after round 20, from the twelve themes on Circus Minimus.*
+*Toward a golden set of hand-crafted themes. Started after round 20, from the twelve themes on Circus Minimus; option names and workflow updated 10 November. See DIRECTION.md for the round-39 shortlist and deferred drop work.*
 
 A **theme** is a complete direction for one video: everything that isn't the ride itself. All themes share the settled v1 (camera, line behaviour, hits, opening and ending). A theme chooses only these:
 
 | Choice | Options | Where |
 |---|---|---|
 | Palette | a scheme from the library | `scripts/video/palettes.js` (`SCHEMES`, `LIBRARY`) |
-| Band | bars with the loudest in red, fork, Iris, Three colours | `music` (+ `redBy`) |
+| Band | bars, fork, Iris; accent from heat or the loudest three | `band`, `accent` |
 | Top of the frame | nothing, the title, the sun | `top` |
-| Line | pencil → ink, whole rail, all ink | `ink` |
-| The drop | nothing, Night, a switch to a partner scheme | `night` (+ `DROPS`) |
-| Zoom over time | steady, out when quiet | `tide` |
-| Paper | Whisper, plain | `bg` |
+| Line | pencil → ink, whole rail, all ink | `line` |
+| The drop | nothing, Night, a switch to a partner scheme | `drop` (+ `DROP_SCHEMES`) |
+| Zoom over time | steady, out when quiet | `zoom` |
+| Colour response | soft-start vibrance (v1), plain, Whisper and the live comparison variants | `paper` (saved key), `grade.js` |
 
-A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top of `V1`, which supplies everything else. The lab shows each one, and `npm run video -- --look=NAME` ships it.
+A production theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top of `V1`, which supplies everything else. `presets.js` derives the lab's named looks from those entries, and `npm run video -- --look=NAME` ships them. Proposed variants live in the lab's candidate files; judging freezes their full resolved look, palette and drop partner. Later default changes must not reinterpret a judged theme.
 
 ## The rules we've learned
 
@@ -29,7 +29,7 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 
 ### Band
 - Bars with the loudest in red are the strongest preference. Fork and Iris add variety: Iris is "crazy" in the dark, faint on mid-dark plum. A fork on a pale paper is delicate (Wisteria).
-- Three colours: the idea is liked, its colours are not yet.
+- Three colours was an earlier proposal; it is not in today's runtime options.
 
 ### Top of the frame
 - **The band is never absent:** every theme shows the music (owner, 8 November: a theme with no music visualisation "is not acceptable"); `band: none` is for the plain review look only.
@@ -43,7 +43,7 @@ A theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top
 ### The drop
 - **Night** for the classic (Paper).
 - **A switch to a darker partner from the same family**, carrying the accent and the sun: Dune → Espresso ("very good"), Aubergine → its own night (both from Wada combination 307).
-- Partners are in `DROPS`. The cue is placed by hand from the spec's sections; Circus Minimus runs from the hook to the re-entry.
+- Partners are in `DROP_SCHEMES`. The cue is placed by hand from the spec's sections; Circus Minimus runs from the hook to the re-entry. These describe existing treatments; the current shortlist round defers new drop decisions.
 - Use it sparingly: three of twelve themes in round 20.
 
 ### Balance across a set
@@ -72,6 +72,6 @@ From the contact sheet, two choices moved: Iris went from Plum, where it was fai
 
 1. Pick a palette from the library (`love` first), or derive a new one from a Wada combination with the palette rules above.
 2. Choose its band, top element, line and drop for the palette's character, not in isolation. Ask whether it reads clearly on a phone, and whether it is distinct from the themes already in the set.
-3. Add it as a `t-*` look in `PRESETS`, with a one-line description of why it works.
-4. Look at a contact sheet with the rest of the set, at two moments (one inside the drop), and adjust.
-5. Render it in a multi-panel film with its neighbours (`films7.sh`, `grid12.sh`), and watch the whole song.
+3. Propose clearly named variants in a candidate round, with a description of what differs and why. Compare one change at a time at the same moments in the lab. Freeze a new judging identity when the design changes; keep earlier specifications, stills and answers intact.
+4. Compare the normal and intense passages and the set's variety. Judge drop treatments separately when that work resumes; a loud passage is not itself a drop treatment.
+5. Render finalists with their neighbours and watch whole songs, including a phone-sized view. After approval, put the chosen design in `THEMES` (and its palette/partner in `palettes.js`); `PRESETS` follows automatically. Promotion is an explicit design decision, not a consequence of a ranking score.

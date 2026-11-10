@@ -39,7 +39,11 @@ try {
   ok(await fits(p), `phone upright, sort: fits the screen (stills ${Math.round(await still(p))} px high)`);
   await p.screenshot({path: `${OUT}/phone-sort.png`});
   const first = (await shown(p))[0];
-  for (const v of ['Keep', 'Love', 'Cut']) {await p.tap(`.bar .main button:has-text("${v}")`); await settle(p);}
+  let cutLabel;
+  for (const v of ['Keep', 'Love', 'Cut']) {
+    if (v === 'Cut') cutLabel = (await shown(p))[0];
+    await p.tap(`.bar .main button:has-text("${v}")`); await settle(p);
+  }
   let ev = await live();
   ok(ev.filter(e => e.kind === 'verdict').map(e => e.value).join() === 'keep,love,cut' && new Set(ev.map(e => e.theme)).size === 3, 'phone: three verdicts in a row, three themes');
   ok((await shown(p))[0] !== first, 'phone: a verdict moves on');
@@ -50,7 +54,7 @@ try {
   await p.tap('.bar .aux button:has-text("Undo")'); await settle(p);
   ev = await live(); ok(!ev.some(e => e.kind === 'note'), 'phone: undo takes back the latest judgment (the note)');
   await p.tap('.bar .aux button:has-text("Undo")'); await settle(p);
-  ev = await live(); ok(!ev.some(e => e.value === 'cut') && (await shown(p))[0] === (await p.evaluate(id => id, null), (await shown(p))[0]), 'phone: undo again takes back the cut');
+  ev = await live(); ok(!ev.some(e => e.value === 'cut') && (await shown(p))[0] === cutLabel, 'phone: undo again takes back the cut and restores its theme');
   await p.tap('.theme figure >> nth=1'); await p.waitForSelector('.viewer'); await p.screenshot({path: `${OUT}/phone-viewer.png`});
   await p.tap('.viewer'); ok(!(await p.$('.viewer')), 'phone: a still opens the viewer, a tap closes it');
   // duel, upright

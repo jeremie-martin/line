@@ -2,6 +2,7 @@
 // anything drawn with it. A ride gives two honest signals: how fast the rider is going, and how much impact it is taking
 // per second (impact rate × strength as one sum, so a few big hits and many small ones are the same kind of thing).
 // Everything is offline: the whole ride is known, so lag is a design choice here, not a cost.
+import {FPS} from './timing.js';
 export const FS = 10; // Hz: nothing here needs more
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** The shared, absolute strength curve: the same for every song, no ranks. */
@@ -60,3 +61,14 @@ export const maxChange = (x, seconds) => {const k = Math.round(seconds * FS); le
 export const range = x => quantile(x, 0.95) - quantile(x, 0.05);
 export const share = (x, test) => x.reduce((a, v) => a + (test(v) ? 1 : 0), 0) / x.length;
 export {quantile};
+
+/** The renderer's measured ride → calibrated intensity samples. The input speed is on the physics grid. */
+export function rideIntensity(speed, hits, duration) {
+  return intensity(rawSignals({speed: speed.filter((_, f) => f % (FPS / FS) === 0),
+    hits: hits.map(h => ({t: h.time, s: h.strength})), duration}));
+}
+/** Intensity at ride time, interpolated and held at the endpoints. */
+export function intensityAt(level, time) {
+  const x = clamp(time * FS, 0, level.length - 1), i = Math.floor(x), j = Math.min(i + 1, level.length - 1);
+  return level[i] + (level[j] - level[i]) * (x - i);
+}

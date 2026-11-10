@@ -1,6 +1,8 @@
 import {describe, expect, it} from 'vitest';
 // @ts-expect-error: a plain module
-import {GRADES, gradeScheme, toOklch, fromOklch} from '../scripts/video/grade.js';
+import {GRADES, gradeScheme} from '../scripts/video/grade.js';
+
+import {toOklch, fromOklch} from '../scripts/video/colour.js';
 
 const dune = {paper: '#efe2cd', ink: '#3a2115', pencil: '#c4b197', mass: '#8c3a1c', accent: '#e39a1b', sun: '#d8622a', nightPaper: '#2a160d', nightInk: '#efe2cd'};
 const jungle = {paper: '#0a170f', ink: '#f2efe0', pencil: '#484f4a', mass: '#92a86a', accent: '#ffa94f', sun: '#f1ebd5', nightPaper: '#0a170f', nightInk: '#f2efe0'};

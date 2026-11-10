@@ -1,25 +1,14 @@
 // A look: everything the picture can vary, as named options. One source of truth for the concept lab, the films and the
-// finished videos. V1 is the settled default, chosen with the owner over concept-lab rounds 1–20 (generated/concept-lab/LEDGER.md
+// finished videos. V1 is the settled default, chosen with the owner in the visual lab (generated/concept-lab/LEDGER.md
 // has the owner's words per piece); a theme is V1 plus a few choices that belong together. Pure: no DOM.
 import {SCHEMES, SCHEME_NAMES} from './palettes.js';
+import {COLOUR_RESPONSES} from './grade.js';
 
 /** Every option of every parameter, with its label (the lab shows these). */
 export const OPTIONS = {
   scheme: ['Colour', SCHEME_NAMES],
-  // how the colours answer the ride's intensity: Whisper (the paper only, very slightly), Plain (nothing), or a response of grade.js
-  paper: ['Paper', {whisper: 'Whisper (tints very slightly with the ride’s intensity)', plain: 'Plain',
-    saturation: 'Saturation: muted when quiet, the colours arrive with the music', vibrance: 'Vibrance: the muted colours gain colour with the music',
-    contrast: 'Contrast: soft when quiet, full contrast with the music', both: 'Saturation and contrast: soft and muted when quiet',
-    brightness: 'Brightness: the paper lightens with the music',
-    // round 34: the normal part as designed, the effect only when intense
-    vibranceLate: 'Vibrance, only when intense, gentler', vibranceKeepPaper: 'Vibrance, only when intense, the paper stays',
-    saturationUp: 'Saturation rising when intense', contrastUp: 'Contrast rising when intense', vibranceContrast: 'Vibrance and contrast, when intense',
-    // round 35: vibrance's settings apart (grade.js)
-    vibranceStrongHalfPaper: 'Vibrance from 0.45, strength 1.1, paper half', vibranceStrongKeepPaper: 'Vibrance from 0.45, strength 1.1, paper stays',
-    vibranceTopHalfPaper: 'Vibrance from 0.6, strength 1.1, paper half', vibranceTopKeepPaper: 'Vibrance from 0.6, strength 1.1, paper stays',
-    // round 37: the soft-start curves (grade.js SOFT, SOFTER)
-    vibranceSoftHalfPaper: 'Vibrance, soft start, paper half (v1)', vibranceSoftKeepPaper: 'Vibrance, soft start, paper stays',
-    vibranceSofterHalfPaper: 'Vibrance, softer, paper half', vibranceSofterKeepPaper: 'Vibrance, softer, paper stays'}],
+  // `paper` is the saved look key, including frozen theme identities; the response now covers the whole palette.
+  paper: ['Colour response', COLOUR_RESPONSES],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
@@ -50,7 +39,7 @@ export const V1 = {
   // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',
   // hits: each on its own, driven by what the ride did, from its strongest frame (R23): the split and the colour boost, and a shake
-  // on strong hits only; no camera motion otherwise (R26; picture.js has the curves)
+  // on strong hits only; no camera motion otherwise (R26; hits.js has the response)
   hits: 'v1', irisWeight: 'thin',
 };
 

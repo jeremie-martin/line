@@ -275,6 +275,38 @@ try {
     await p.context().close();
   });
 
+  await run('Intensity caption: the look on screen', async () => {
+    // A fixed round exercises the same candidate/moment path as the live intensity rounds, without changing their files.
+    const before = p => p.route('**/candidates-intensity-check.json', r => r.fulfill({json: {drafts: [{
+      id: 'caption', name: 'Colour response', source: 'Interaction test', line: '', song: 'circus', t: 44.65,
+      variants: [
+        {label: 'Contrast', look: {paper: 'contrast'}, note: ''},
+        {label: 'Vibrance', look: {paper: 'vibranceSoftHalfPaper'}, note: ''},
+      ],
+      moments: [['As designed', 44.65], ['Plain at the same moment', 44.65, 'circus', {paper: 'plain'}]],
+    }]}}));
+    const p = await open('?set=intensity-check&q=1', PHONE, {before}); await settled(p);
+    const caption = () => p.locator('#level').textContent();
+    const contrast = await caption();
+    check(await p.locator('#level').isVisible() && /^Intensity \d\.\d{2} · colour response \d+ %$/.test(contrast),
+      'contrast is labelled colour response, not vibrance', contrast);
+    await tap(p, '#presets button', 1); const vibrance = await caption();
+    check(vibrance !== contrast && vibrance.split(' · ')[0] === contrast.split(' · ')[0],
+      'switching response changes its amount at the same ride intensity', vibrance);
+    await tap(p, '#moments button', 1); await settled(p);
+    check((await st(p)).mix.paper === 'plain' && await caption() === contrast.split(' · ')[0],
+      'a plain moment override removes the response amount');
+    await tap(p, '#presets button', 0);
+    check(await caption() === contrast.split(' · ')[0], 'the caption keeps the moment override when switching options');
+    await tap(p, '#moments button', 0); await settled(p);
+    check(await caption() === contrast, 'returning to the original moment restores its response amount');
+    await p.goto(BASE + '?set=intensity-check&song=circus&t=44.65&m=paper:contrast'); await settled(p);
+    check(await caption() === contrast, 'the free lab reports the same response as the question');
+    await p.goto(BASE + '?song=circus&t=44.65'); await settled(p);
+    check(await p.locator('#level').isHidden(), 'ordinary theme review does not show intensity diagnostics');
+    await p.context().close();
+  });
+
   // ── 7. blind test ───────────────────────────────────────────────────────────────────────────────────────────
   await run('Blind test', async () => {
     const p = await open('?feel=1', {...PHONE, colorScheme: 'dark'});

@@ -1,5 +1,81 @@
 # Foundations rework (started 2026-10-03)
 
+## November 10: validation against the visual direction and judging workflow
+
+Reviewed the recent owner decisions through R39 and traced named themes, candidate
+looks, frozen judging specifications, ranking and one-pass renders. The current
+62-theme comparison material is preserved: all 124 stills byte-identical to both
+the pre-refactor renderer and the actual archived images; all 197 frozen theme
+identities valid. Sampled intensity, hit times and spans agree across all eight
+lab songs. No pending theme refinement or drop decision was adopted.
+
+The fork/heat correction is visibly consequential on affected older/free looks
+(including Blue and Rose), but no active R38 theme uses it. Inspected before/after
+stills and documented that matching the intended driver does not establish taste
+approval. Corrected the lab's intensity caption to follow the resolved look and
+name colour response accurately. Updated stale current-state docs without changing
+owner answers. Full intent/evidence map and limits:
+`docs/research/visual-direction-validation-20261110.md`.
+
+Found and fixed an evidence-integrity gap: frozen still regeneration now renders
+to a temporary directory, rejects any changed existing image before publication,
+and only adds missing files. It cannot silently replace judged images while
+keeping their votes. Three regression tests plus the real freeze command on a
+throwaway set cover identical, differing and incomplete batches. The judging UI's
+cut-undo check now asserts the restored theme instead of comparing it to itself.
+
+Validation: lab 76/76 checks; judging phone/desktop checks pass on an isolated set;
+real Rothko excerpt through the production writer: 150 frames, 0.00 ms audio-start
+error. All 578 tests (110 files), typecheck and reachability pass. The renderer's
+compile/judge parity checks also passed; this validation made no compiler changes.
+
+## November 10: visual models and composition, structural review
+
+Reviewed intensity, music, inking, camera/framing, drops and colour together.
+`picture.js` now composes explicit frame inputs: prepared track/ink frames,
+shared motion and calibrated intensity, one camera representation including
+bookends, effective theme colours, then music, track, rider and hit compositing.
+Removed the dead airborne/steady-zoom machinery, duplicate finite differences,
+duplicate rider/camera positions, three parallel colour-response definitions,
+and the implicit last-drawn intensity used by colour queries. Colour arithmetic
+is shared; drop and Night decisions are resolved once rather than by each element.
+Active theme variants and the intensity study helpers remain: they are used in
+ongoing comparisons and diagnostics, not compatibility fallbacks.
+
+Two corrections: the fork's dot radius (7) shadowed ride time, so its heat was
+always sampled at seven seconds; both band shapes now share heat-based accent
+selection. `schemeAt(t, look)` now uses intensity at t, even before drawing or
+after an unrelated seek. Tests cover both. The saved `paper` field is preserved
+for frozen theme identities; the lab labels it “Colour response”.
+
+Validation: all 116 lab fingerprint frames unchanged; 40,446 graded palettes
+identical. A 2,592-frame synthetic comparison spans bands, accents, intensity
+responses, changing speed, zoom, bookends, tops and drops; differences occur only
+in fork/heat cases affected by the correction. New model and browser tests cover
+rail membership/inking/visibility, absolute intensity and slew, spectrum and
+accents, framing limits, drop boundaries, palette integrity and seek independence.
+All 575 tests (109 files), compile/judge parity, typecheck and reachability pass.
+
+## November 10: hit effects, structural review
+
+Kept the approved R23/R26 picture: measured peak timing, onset-line direction,
+slow-start split, colour boost excluding paper and pencil, shake above 0.6,
+clean rider overlay, and the title's smaller split and overscan. Separated the
+pure hit model (`scripts/video/hits.js`) from canvas separation (`split.js`);
+`picture.js` keeps drawing order. Removed the one-entry recipe registry,
+per-frame curve wrappers, the before/after title protocol and mutable split/title
+state. Hit fields name time, strength, energy and normal explicitly. Band heat
+still accumulates independently; the intensity-driven theme grade is unchanged.
+Historical round pages already hold their own curve samples and need no runtime
+compatibility export. The existing `hits: v1/none` look choices remain valid.
+
+Validation: all 116 lab fingerprint frames and 504 targeted synthetic frames
+byte-identical against the original renderer. New tests
+cover event selection/direction, peak onset and recovery, thresholds and strong-hit
+growth, overlap and heat, exaggeration, seek/top/size changes, and paper/pencil
+preservation on light and dark grounds. All 562 tests (108 files), compile and
+judge parity, typecheck, and reachability (including the new files) pass.
+
 ## November 8: a hit happens at its strongest frame (timing stage 3 done; branch `visual-lab`)
 
 The lab's rides were recompiled at the same jolt (identical tracks, now with

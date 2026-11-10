@@ -1,6 +1,6 @@
 # Ledger: what is decided, what is open, and why
 
-The current state of every piece of the visual direction after rounds 1–19 (7 November 2026), by layer (see `system.html`):
+Started after rounds 1–19 (7 November 2026), with later decisions added below, by layer (see `system.html`):
 - **signals:** what is true about the ride and the song;
 - **elements:** the instruments;
 - **schemes:** colours only;
@@ -8,7 +8,9 @@ The current state of every piece of the visual direction after rounds 1–19 (7 
 
 A look (Paper, Hokusai…) is only a saved direction. The owner's verdicts are filed per piece, never per look.
 
-**The settled v1 is `V1` in `scripts/video/look.js`** (since 8 November also production's renderer). It is the single source of truth for the defaults; this file gives the reasons. Formulas are in `scripts/video/picture.js` (the hit curves) and `camera.js` (Follows direction). Palettes are in `scripts/video/palettes.js`.
+**The settled v1 is `V1` in `scripts/video/look.js`** (since 8 November also production's renderer). It is the single source of truth for the defaults; this file gives the reasons. Formulas are in `scripts/video/hits.js` (the hit curves), `camera.js` (Follows direction), and `grade.js` (colour response). Palettes are in `scripts/video/palettes.js`.
+
+**Current-state reading, 10 November:** `docs/DIRECTION.md` records round 39's shortlist and deferred drop work. `OPTIONS` in `look.js` is the live option catalog. The historical “kept” and “parked” rows below preserve verdicts, not a promise that every old experiment remains executable (for example Tamed, Three colours and the earlier hit recipes). Preserve the verdict without reviving removed code.
 
 Statuses:
 - **v1:** in the defaults.

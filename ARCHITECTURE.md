@@ -259,16 +259,38 @@ and validation are in [music authoring](docs/music-authoring.md).
      so a saved ride renders the same whatever they say today. It refuses a record
      of another song, hits whose strongest frames are out of order, and a ride
      that ends before the span it is shown with.
-   - `picture.js` draws the frame at song time t for a look: the ride at r, the
-     "Follows direction" camera (`camera.js`), the line, the band, the top element,
-     the drop, and each hit's colour split, colour boost and (strong hits only)
-     shake. **A hit happens at its
-     strongest frame** (round 23), so everything it triggers is on ride time; it
-     is sized by its measured strength and pushed along the line struck at its
-     onset. The intensity metric (`intensity.js`) is built on ride time from the
-     ride's speed and its hits, read at r. `look.js` holds every option, the
-     settled defaults (V1), the themes and `plain` (the compiler's review clips).
-     Palettes are in `palettes.js`.
+   - `picture.js` composes the frame at song time t. It samples the ride at r,
+     resolves one framing and one set of colours, then draws top, music, track
+     and rider. It owns the colour-boost order (paper and pencil excluded) and
+     applies the hit split last. Frames and colour queries are independent of
+     previous draws or seeks.
+   - `camera.js` computes shared ride velocity/speed, the fixed follow camera and
+     steady/quiet zoom, then samples framing and the whole-course bookends.
+     Every view uses the same representation: rider world position, rider screen
+     position and zoom. No airborne zoom branch or separate bookend transform.
+     `intensity.js` samples measured speed and hit peaks on its 10 Hz grid and
+     applies the calibrated absolute metric; its study helpers remain in use by
+     the lab's diagnostic sweeps. Camera zoom uses nearest intensity samples,
+     colour and sun interpolate them, preserving their approved responses.
+   - `track.js` prepares connected rails, first contact and ink frames, and the
+     visibility index once. Drawing reads those frames; it never updates inking
+     during playback. `music.js` interpolates the spectrum on song time and
+     draws bars, fork or Iris. Bars and fork share accent selection, fed recent
+     heat on the ride clock (or the loudest three bands).
+   - `theme.js` snaps the authored drop cues to nearby hits on song time and
+     resolves drop partner, intensity grade and Night/Whisper treatment in that
+     order. Effective paper, ink, pencil, band, accent and sun colours are passed
+     to drawing explicitly. `grade.js` defines each live colour response's
+     transform, curve and label together; `colour.js` owns sRGB/OKLCH arithmetic.
+     `look.js` holds the settled defaults (V1), themes and plain review look;
+     `palettes.js` holds the palette library. The saved `paper` option now reads
+     “Colour response” in the lab; frozen theme specifications keep their keys.
+   - **A hit happens at its strongest frame** (round 23), sized by measured
+     strength and directed along the line struck at onset. `hits.js` prepares
+     these hits and samples the single winning hit's shake, split and colour
+     boost; band heat accumulates separately. `split.js` owns channel separation,
+     the clean rider overlay and the title's smaller split, with explicit inputs
+     for this frame.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to
      one FFmpeg, and encodes the song's own audio in the same FFmpeg: frame 0 and
      the first audio sample are song time `from` (the recording is decoded from

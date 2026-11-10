@@ -12,7 +12,7 @@
 // its stills from the specifications themselves (stills/<id>-<n>.jpg; not committed, keep them: they are what was judged).
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {appendFileSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {appendFileSync, constants, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {resolveLook} from '../../../scripts/video/look.js';
@@ -37,6 +37,19 @@ export function specOf(look, schemes, drops) {
   return JSON.parse(canonical({look: options, colours: schemes[scheme], drop: partner ? schemes[partner] : null}));
 }
 
+/** Check the complete rendered batch before adding missing stills. Existing images are the judged evidence, never replaced. */
+export function preserveStills(rendered, out, names) {
+  const missing = [];
+  for (const name of names) {
+    const source = join(rendered, name), target = join(out, name), bytes = readFileSync(source);
+    if (!existsSync(target)) missing.push([source, target]);
+    else if (!bytes.equals(readFileSync(target))) throw new Error(
+      `${name}: rendered image differs from the frozen still; no rendered stills published. Keep the judged image. Restore missing evidence with the original renderer and scene; review changed visuals separately.`);
+  }
+  mkdirSync(out, {recursive: true});
+  for (const [source, target] of missing) copyFileSync(source, target, constants.COPYFILE_EXCL);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const draft = JSON.parse(readFileSync(process.argv[2], 'utf8'));
   if (!/^[a-z0-9-]{1,80}$/.test(draft.set ?? '')) throw new Error('the set needs a name: a date and a slug, e.g. 2026-11-09-themes');
@@ -46,7 +59,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let set;
   if (existsSync(file)) {
     set = JSON.parse(readFileSync(file, 'utf8'));
-    console.log(`${draft.set} is frozen: ${process.argv.includes("--rerender") ? "its stills are rendered again" : "only its missing stills are rendered"}`);
+    console.log(`${draft.set} is frozen: ${process.argv.includes("--rerender") ? "its stills are rendered again for comparison; existing images are preserved" : "only its missing stills are rendered"}`);
   } else {
     const registry = existsSync(REGISTRY) ? readFileSync(REGISTRY, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)) : [];
     const byLabel = new Map(registry.map(r => [r.label, r.id])), byId = new Map(registry.map(r => [r.id, r.label]));
@@ -91,16 +104,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (existsSync(from) && !existsSync(to)) {mkdirSync(join(dir, 'stills'), {recursive: true}); copyFileSync(from, to);}
   });
   // at the video's own resolution, lightly compressed (a desktop shows them ~720 px high, on a dense screen ~1440 real pixels).
-  // --rerender renders every still again from the frozen specifications (the set and its judgments are untouched): only
-  // with the renderer the set was frozen with, which stills.json records with the size and quality
+  // --rerender checks every still against the frozen evidence. A changed renderer, scene or encoder must not rewrite
+  // an image under its existing judgments. Render into a temporary directory and compare the whole batch before publishing.
   const STILLS = {width: 1080, quality: 0.92}, out = join(dir, 'stills'), again = process.argv.includes('--rerender');
   const missing = set.themes.filter(t => !(set.retired ?? []).includes(t.id) || again).filter(t => again || set.moments.some((_, i) => !existsSync(join(out, `${t.id}-${i + 1}.jpg`))));
   if (missing.length) {
-    const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json');
+    const tmp = mkdtempSync(join(tmpdir(), 'freeze-')), jobs = join(tmp, 'jobs.json'), rendered = join(tmp, 'stills');
     const sc = {}, dr = {};
     for (const t of missing) {sc[t.id] = t.spec.colours; if (t.spec.drop) {sc[`${t.id}-drop`] = t.spec.drop; dr[t.id] = `${t.id}-drop`;}}
     writeFileSync(jobs, JSON.stringify({...STILLS, schemes: sc, drops: dr, jobs: missing.map(t => ({name: t.id, song: set.song, look: {...t.spec.look, scheme: t.id}, times: set.moments.map(m => m.t)}))}));
-    try {execFileSync(process.execPath, [join(HERE, '..', 'stills.mjs'), `jobs=${jobs}`, `out=${out}`], {stdio: 'inherit'});}
+    try {
+      execFileSync(process.execPath, [join(HERE, '..', 'stills.mjs'), `jobs=${jobs}`, `out=${rendered}`], {stdio: 'inherit'});
+      preserveStills(rendered, out, missing.flatMap(t => set.moments.map((_, i) => `${t.id}-${i + 1}.jpg`)));
+    }
     finally {rmSync(tmp, {recursive: true, force: true});}
     let renderer = 'unknown';
     try {renderer = execFileSync('git', ['describe', '--always', '--dirty'], {cwd: HERE, encoding: 'utf8'}).trim();} catch {}

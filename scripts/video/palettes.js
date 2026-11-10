@@ -2,7 +2,7 @@
 // (rounds 4–20); the order of definitions is unchanged, so every colour is identical.
 // A scheme is colours only (LEDGER.md: Schemes). Tokens: paper, ink, pencil, mass (the bars), accent, sun?, nightPaper, nightInk.
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-const hex = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+import {rgb} from './colour.js';
 
 // A scheme is a whole print identity: every colour below comes from these tokens. Validated in agents/round4-ideas (contrast, 4:2:0).
 export const SCHEMES = {
@@ -258,7 +258,7 @@ const BG_STUDY = {
   rothko: [['less colour', '#221314'], ['almost neutral', '#1b1617'], ['darker', '#120103'], ['darker, less colour', '#0c0304'], ['lighter', '#3b1a1e']],
 };
 // A new paper for scheme o, its pencil keeping the same offset from the paper (used by both variant families below)
-const pencilFor = (o, paper) => {const d = hex(o.pencil).map((c, j) => c - hex(o.paper)[j]); return '#' + hex(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('');};
+const pencilFor = (o, paper) => {const d = rgb(o.pencil).map((c, j) => c - rgb(o.paper)[j]); return '#' + rgb(paper).map((c, j) => clamp(c + d[j], 0, 255).toString(16).padStart(2, '0')).join('');};
 for (const [b, vs] of Object.entries(BG_STUDY)) vs.forEach(([, paper], i) => {
   const o = SCHEMES[b];
   SCHEMES[`${b}~${i}`] = {...o, paper, pencil: pencilFor(o, paper)}; DIMS.scheme[1][`${b}~${i}`] = `${DIMS.scheme[1][b]}, paper ${vs[i][0]}`;

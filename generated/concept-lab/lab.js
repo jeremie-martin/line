@@ -168,11 +168,11 @@ let loop = null, loopLen = 4;
 function status(text) {const s = $('status'); if (s) s.textContent = text;}
 // in a round about intensity (?set=intensity…): the ride's intensity now and how much of the version's colour response it gives
 function showLevel() {
-  const el = $('level'), look = qmode ? QUESTIONS[qi]?.opts[qopt]?.[1] : null;
+  const el = $('level');
   el.hidden = !(ROUND_SET?.startsWith('intensity') && P?.levelAt);
   if (el.hidden) return;
-  const I = P.levelAt(seconds), kind = look?.paper;
-  el.textContent = `Intensity ${I.toFixed(2)}` + (GRADES[kind] ? ` · vibrance ${Math.round(100 * amountOf(kind, I))} %` : '');
+  const I = P.levelAt(seconds), kind = mix.paper;
+  el.textContent = `Intensity ${I.toFixed(2)}` + (GRADES[kind] ? ` · colour response ${Math.round(100 * amountOf(kind, I))} %` : '');
 }
 function fmt(t) {return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;}
 function sync() {

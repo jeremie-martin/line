@@ -15,20 +15,28 @@ wherever it lives. Line counts are as of today.*
 
 ## A. The video renderer (`scripts/video/`)
 
-| File | Lines | Role |
-|---|---|---|
-| `look.js` (+ `look.d.ts`) | 71 | Every option (defined only here; the types say a look is a checked one), the settled defaults `V1`, the `THEMES`, `PLAIN` (review clips), `resolveLook` (refuses anything unknown) |
-| `timing.js` (+ `timing.d.ts`) | 31 | The two clocks and their one relation, r = s + offset; a ride's alignment from its account, and its timing in words |
-| `picture.js` | 415 | The frame at song time t for a look: the ride prepared once (rails, hits from the account at their strongest frames, intensity, drop), then the ride and everything a hit triggers at r, camera, paper, top, band, lines, rider, and each hit as its recipe says (`RECIPES`, exported for round pages: v1's split, colour boost and shake on strong hits); `draw(t, look, exaggerate)` |
-| `camera.js` | 72 | Follows direction and its two zoom tides |
-| `palettes.js` | 267 | Every scheme, its variants, `LIBRARY` (the owner's tiers), `DROP_SCHEMES` |
-| `intensity.js` | 62 | The intensity metric and its measures |
-| `scene.ts` | 119 | A ride and its song → what every consumer reads: the impact account as recorded (physics frames), the timing, the song span, a saved ride's own recording and sections, spectrum (cached), drop, title; checks the ride's invariants once |
-| `drops.ts` | 13 | Each song's drop, placed by hand |
-| `write.ts` | 172 | Scene + look → MP4 in one pass, then checked (frames, tags, audio within 1 ms) |
-| `encoding.ts` | 11 | The one encoding standard (BT.709, all four tags) |
-| `native.js`, `worker.js`, `sprites.js` | 82 | The vendored rider artwork and native replay, bundled into `generated/renderer/` (`npm run gallery:renderer`) |
-| `scene_api.ts` | 32 | The review server's scene endpoint: a saved record's scene, for the review player |
+| File | Role |
+|---|---|
+| `look.js` (+ `look.d.ts`) | Settled defaults, themes, options and validation; colour response choices come from `grade.js` |
+| `timing.js` (+ `timing.d.ts`) | The two clocks, r = s + offset, and alignment from the recorded account |
+| `picture.js` | Prepares the scene's visual models, samples them for one frame and owns drawing/compositing order |
+| `hits.js` | Measured-hit preparation, single-hit response, accumulating band heat |
+| `split.js` | Canvas channel separation, clean rider overlay, smaller title split; scratch canvases and mask cache |
+| `camera.js` | Shared velocity/speed, follow camera and zoom, one framing representation through bookends |
+| `track.js` | Connected rails, contact/ink frames, spatial visibility, pencil/ink drawing |
+| `music.js` | Song-time spectrum, shared accent selection, bars/fork/Iris drawing |
+| `theme.js` | Snapped drop interval, partner switch, intensity grade and effective drawing colours; no previous-frame state |
+| `grade.js`, `colour.js` | Each colour response's label, curve and transform together; sRGB/OKLCH arithmetic |
+| `palettes.js` | Schemes, variants, library tiers and drop partners |
+| `intensity.js` | Absolute ride-intensity metric, physics-grid preparation and sampling; helpers used by diagnostic studies |
+| `scene.ts` | Ride and song → recorded account, timing, song span, sections, spectrum, drop and title; validates invariants |
+| `drops.ts` | Each song's authored drop cues |
+| `write.ts`, `encoding.ts` | One-pass MP4 writing and verification; the encoding standard |
+| `native.js`, `worker.js`, `sprites.js` | Native replay and vendored rider artwork, bundled for the browser |
+| `scene_api.ts` | Saved scene endpoint for the review player |
+
+Updated 10 November: the picture's models are directly testable, and every drawing function receives this frame's inputs.
+The earlier sizes above are historical; this table intentionally avoids maintaining manual line counts.
 
 ## B. Commands
 
@@ -50,7 +58,8 @@ wherever it lives. Line counts are as of today.*
 
 **Tools:** `prepare.mjs` (scenes, through `scene.ts`), `recompile.sh` (rides), `film.mjs` and `films7.sh` (films, through
 `write.ts`), `fourup.sh` and `grid12.sh` (compositions, in the standard), `shoot.mjs` and `strip.mjs` (stills),
-`uicheck.mjs` (69 checks), `qcheck.mjs`, `check.mjs`, `fingerprint.mjs` (116 frames; a ride set as third argument).
+`uicheck.mjs` (question, free-mix and blind-test interactions, including intensity captions), `qcheck.mjs`, `check.mjs`,
+`fingerprint.mjs` (116 frames; a ride set as third argument).
 
 **Studies, kept for their findings:** `intensity/`, `timing/`, `analysis/`. **Not for code review:** `agents/` (helper reports
 and data), the round pages.

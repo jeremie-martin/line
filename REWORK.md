@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: the merged compiler's baseline
+
+`visual-lab` with `rework/foundations` merged (the November 7 archive, no jolt; reference `merged` = 9e311371) scores **812.1** on
+V7.1, 4 seeds, 164/164 rides complete. Explicit requests score 781.0. Strong extra impacts are 0.10 per 100 beats, body drag
+4.20 s/min, and strong arrivals head-down or backward 10.1%. Main before the jolt removal scored 813.5, so the difference, −1.4,
+is within seed noise, as the owner judged. Every compiler comparison from here on is against this baseline.
+
 ## November 11: `rework/foundations` merged into `visual-lab`; parity references refreshed
 
 The merge composes two adopted behavioural changes: the November 7 construction policies (the archive, frozen November 8)

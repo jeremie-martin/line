@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 10, evening: colour judgments made through Redshift (a correction)
+
+The owner's desktop runs Redshift: 3500 K at night, neutral 6500 K by day. All of round 38 was judged through it: 125
+comparisons and 22 notes, on November 9 at 21–22 h and November 10 at 7 h, CET. Round 40's first answers were too. The
+earlier sets were judged in the morning on desktop (neutral) or on the phone.
+
+**Corrected claim.** In mixed dark/light pairs, the dark theme wins:
+- desktop by day: 57% (124);
+- desktop at night: 70% (20);
+- phone: 44% (78).
+
+The "dark beats light about 7 in 10" in the entry below is mostly this artefact, not taste. The notes on grounds and warmth
+from round 38 ("too red", "a bit sad", poor harmony) are unconfirmed until seen on a neutral screen.
+
+**Kept.** The collection stays, by the owner's decision, and its strengths come mostly from neutral sessions. Judgments of form
+(band shape, a sun or not, inking) are less affected by the filter.
+
 ## November 10: the collection goes into production (owner's decision)
 
 **Why.** 39 rounds of proposing and judging had stopped converging. To test whether an agent's eye could take over some of the judging, I

@@ -4,9 +4,12 @@
  * pace, span, span targets, family) and, for each retained candidate, its control relative
  * to the arrival with its optional fields, and what it led to: the measured impact, the
  * span residuals, the local cost, and the arrival at the next catch (heading, speed, pose).
- * The committed candidate of each interval is marked. Nothing is simulated beyond the
- * compile; the report checks track identity against a saved arm.
- *   node tools/research/catch_outcomes.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,...]
+ * The committed candidate of each interval is marked, with the interval's rejection counts.
+ * Nothing is simulated beyond the compile; the report checks track identity against a saved arm.
+ * `--cases=train` compiles the training catalog instead (value_collect.ts `trainingCases`,
+ * catalog v4, every evaluation song excluded), ids as listed there; those rides are not
+ * measured (no beats), and their stratum is the source song (`parentId`).
+ *   node tools/research/catch_outcomes.ts run OUT [--cases=v7.1|train] [--jobs=N] [--seed=101] [--specs=a~b,...]
  *   node tools/research/catch_outcomes.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
 import {appendFileSync, createReadStream, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -16,16 +19,39 @@ import {gzipSync, createGunzip} from 'node:zlib';
 import {v7Cases, resolveCase, digest} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
+import {trainingCases, EVAL_GROUPS} from './value_collect.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
 const SUITE = 'tools/eval/suites/v7.1.json';
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 
-async function worker(id: string, seed: number) {
+/** One ride's compile: a V7.1 case (measured), or a training case compiled as value_collect.ts does. */
+async function ride(id: string, seed: number, cases: string) {
+  if (cases === 'train') {
+    const c = (await trainingCases()).find((x: any) => x.id === id);
+    assert(c, `unknown training case: ${id}`);
+    const [{caseSpec}, {compileHandoff}, {productionBudget}] = await Promise.all([
+      import('../../scripts/lib/case.ts'), import('../../scripts/v0/optimizer/handoff.ts'), import('../../scripts/v0/optimizer/production_budget.ts')]);
+    const spec = caseSpec(c);
+    return {stratum: c.parentId as string, compile: async () => {
+      const cp = compileHandoff(spec, seed, {budget: productionBudget(spec.duration), creative: {},
+        phraseBoundaries: (c.phases ?? []).map((p: any) => p.start).filter((t: any) => Number.isFinite(t))});
+      return {complete: cp.repertoire!.valid, score: null, track: cp.track, rows: cp.repertoire!.result.rows as any[], beats: null};
+    }};
+  }
   const c = (await v7Cases([seed], '.', SUITE)).find(x => `${x.song}~${x.variant ?? 'spec'}` === id);
   assert(c, `unknown case: ${id}`);
   const {spec, music, planned} = await resolveCase(c);
+  return {stratum: c.bench.stratum, compile: async () => {
+    const {cell, track, gallery} = await compileAndMeasure('.', planned, {spec, music}, {budget: 'standard'});
+    return {complete: cell.complete, score: cell.score?.score ?? 0, track, rows: gallery.result.rows as any[],
+      beats: (cell.impact3?.perBeat ?? []).map((b: any) => ({requested: b.requested, strength: r4(b.hit?.strength)}))};
+  }};
+}
+
+async function worker(id: string, seed: number, cases: string) {
+  const {stratum, compile} = await ride(id, seed, cases);
   const intervals: any[] = [], seen = new Set<object>(), where = new WeakMap<object, [number, number]>();
   await withSequenceObserver((i, offered, _chosen, ctx) => {
     for (const interval of new Set(offered.map(o => o.interval))) {
@@ -34,7 +60,7 @@ async function worker(id: string, seed: number) {
       const p = intervals.length, request = (ctx.options as any).constructionRequests?.[i];
       intervals.push({i, frame: interval.frame, next: interval.next, incoming: r4(interval.incoming), pace: r4(interval.pace), span: interval.span,
         family: request?.construction ?? null, guidance: request?.guidance ?? null, rail: request?.railLayout ?? null,
-        targets: interval.targets, features: interval.inputFeatures.map(r4),
+        failures: {...interval.failures}, targets: interval.targets, features: interval.inputFeatures.map(r4),
         candidates: interval.candidates.map((x, k) => {
           where.set(x.c, [p, k]);
           const {entry, turn, exit, support, ...rest} = x.c as any;
@@ -44,12 +70,10 @@ async function worker(id: string, seed: number) {
         })});
     }
   }, async () => {
-    const {cell, track, gallery} = await compileAndMeasure('.', planned, {spec, music}, {budget: 'standard'});
-    const rows = gallery.result.rows as any[];
+    const {complete, score, track, rows, beats} = await compile();
     for (const row of rows) { const at = where.get(row.control); if (at) intervals[at[0]].kept = at[1]; }
-    const beats = (cell.impact3?.perBeat ?? []).map((b: any) => ({requested: b.requested, strength: r4(b.hit?.strength)}));
-    appendFileSync(join(out, 'rides.jsonl.gz'), gzipSync(JSON.stringify({spec: id, stratum: c.bench.stratum, seed, complete: cell.complete,
-      score: cell.score?.score ?? 0, trackHash: digest(track), beats, intervals}) + '\n'));
+    appendFileSync(join(out, 'rides.jsonl.gz'), gzipSync(JSON.stringify({spec: id, stratum, seed, complete,
+      score, trackHash: digest(track), beats, intervals}) + '\n'));
   });
 }
 
@@ -71,17 +95,21 @@ async function report(dir: string, armDir?: string) {
   console.log(`${rides} rides, ${intervals} intervals offered, ${candidates} candidates (${(candidates / Math.max(1, intervals)).toFixed(1)} per interval), ${committed} committed`);
 }
 
-if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')));
+const cases = arg('cases', 'v7.1');
+assert(cases === 'v7.1' || cases === 'train', '--cases is v7.1 or train');
+if (command === 'worker') await worker(arg('spec', ''), Number(arg('seed', '101')), cases);
 else if (command === 'run') {
   const pool = new WorkerPool(workerJobs(arg('jobs', '') || undefined)), seed = Number(arg('seed', '101'));
   assert(Number.isSafeInteger(seed), '--seed must be an integer');
-  const all = (await v7Cases([seed], '.', SUITE)).map(x => `${x.song}~${x.variant ?? 'spec'}`);
+  const all = cases === 'train' ? (await trainingCases()).map((x: any) => x.id as string)
+    : (await v7Cases([seed], '.', SUITE)).map(x => `${x.song}~${x.variant ?? 'spec'}`);
   const queue = arg('specs', all.join(',')).split(',');
   assert(queue.every(Boolean) && new Set(queue).size === queue.length, '--specs must contain unique cases');
   assert(out && !existsSync(out), 'a new study requires a fresh output directory');
   mkdirSync(dirname(out), {recursive: true});
   mkdirSync(out);
-  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.catch-outcomes.v1', seed, suite: SUITE, specs: queue}, null, 2) + '\n');
+  writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.catch-outcomes.v1', seed, cases, suite: cases === 'train' ? 'value_collect.ts trainingCases (catalog v4)' : SUITE,
+    excludedGroups: cases === 'train' ? EVAL_GROUPS : undefined, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--cases=${cases}`, `--spec=${spec}`, `--seed=${seed}`]));
 } else await report(out, process.argv[4]);

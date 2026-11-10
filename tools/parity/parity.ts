@@ -39,12 +39,11 @@ function caseOf(cell: {id: string}) {
   return {c, music: fixture.music[c.sourceId]};
 }
 
-/** A V7 specification as `compare` compiles it, without reading audio. The default
- * offset is pinned: the environment's LR_JOLT_OFFSET_MS must not move these hashes. */
+/** A V7 specification as `compare` compiles it, without reading audio. */
 async function specCase(cell: Cell) {
-  const [{loadMusicSpec}, {JOLT_DEFAULT_MS}] = await Promise.all([import('../../scripts/produce/music_artifacts.ts'), import('../../scripts/produce/jolt.ts')]);
+  const {loadMusicSpec} = await import('../../scripts/produce/music_artifacts.ts');
   const {song, variant} = cell.spec!;
-  return loadMusicSpec({song, title: song, moments: [], variant}, JOLT_DEFAULT_MS);
+  return loadMusicSpec({song, title: song, moments: [], variant});
 }
 
 async function specInputs(cell: Cell) {

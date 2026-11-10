@@ -109,7 +109,7 @@
     "variant": "bench-long"
    },
    "budget": 150000,
-   "trackHash": "3fc7e65092ed9132480f35bbe6a2c9a682b06e3e8e40d169fa0585711c6afaa9",
+   "trackHash": "78cd32d4120e9fb4612393c97c2fd4fb962749dc20aa0942ba90a43369c72339",
    "physicalFrames": 149997
   },
   {
@@ -121,8 +121,8 @@
     "variant": "bench-pairs"
    },
    "budget": 150000,
-   "trackHash": "12d785d1150d75c399c227e9572e82e0d766af0c43260981c7eea44832d7b318",
-   "physicalFrames": 148516
+   "trackHash": "189bd53d7c6036464a51c275212fbbbe382a12d362bc819d0b952cb852c42958",
+   "physicalFrames": 149997
   },
   {
    "id": "tiki_tiki_48s/bench-pairs",
@@ -132,10 +132,10 @@
     "song": "tiki_tiki_48s",
     "variant": "bench-pairs"
    },
-   "trackHash": "d81d96dd9678203dbb237c0ad41d7ddc848632f52e6769989c6ebab5b3aae53b",
-   "physicalFrames": 3220764,
-   "quality": 819.6188,
-   "loss": 0.00408976445115909
+   "trackHash": "55dde69301ff59627c65a4e8647c995434a3a162251a0de2e6eb6a11bbc03362",
+   "physicalFrames": 3281011,
+   "quality": 830.4823,
+   "loss": 0.003357090987739919
   },
   {
    "id": "luna_bala_44s/v7-rideout",
@@ -145,10 +145,10 @@
     "song": "luna_bala_44s",
     "variant": "v7-rideout"
    },
-   "trackHash": "5eea8aebf5b0b34b5e378c49207d7473fe3977c641379cd79bfed60626f975b9",
-   "physicalFrames": 2815185,
-   "quality": 815.6552,
-   "loss": 0.003996808323830034
+   "trackHash": "f6483d247073e71c9f19b91fa0abaacb34a9d3528a50e432242f05ebb6b52ce5",
+   "physicalFrames": 2834306,
+   "quality": 844.7582,
+   "loss": 0.0019460287388059815
   },
   {
    "id": "amor_na_praia_46s/v7-explicit-handover",
@@ -158,10 +158,10 @@
     "song": "amor_na_praia_46s",
     "variant": "v7-explicit-handover"
    },
-   "trackHash": "33c975fa291525235a4d8190237659cf6b04f57602f4b51bad26367e26b23a80",
-   "physicalFrames": 3154504,
-   "quality": 787.5797,
-   "loss": 0.006588046595612564
+   "trackHash": "1ecc74fd2e29311afc6602ff4465b3ecd44c0f23c9fcb8301607382f79400596",
+   "physicalFrames": 3150558,
+   "quality": 770.9884,
+   "loss": 0.009396574015479112
   },
   {
    "id": "canonical-bridge_frontier_low_air_endurance-automatic",

@@ -33,6 +33,23 @@ signs, and every ruler.
 
 Report: `generated/eval/compare/b17d3af4-vs-visual-lab@fa2c274e-v7.1-cand-jolt-0/report.txt`.
 
+**Adopted by the owner's decision (2026-11-11).** The measurement is consistent with no effect: 18 specs up and 17 down, and
+the interval spans 0. The −3 bound was too tight for a 4-seed interval about ±10 points wide, so missing it says little. The
+owner reads the seed blocks as noise and removes the jolt for simplicity: contacts are compiled at their authored times.
+- Removed: `scripts/produce/jolt.ts`, `LR_JOLT_OFFSET_MS`, every jolt parameter and field (spec loading, evaluation plans, arms,
+  production plans, the gallery job identity), `compare --candidate-jolt` with `assertJoltPair`/`allowJolt`, the evaluation
+  plans' redundant `authoredTargets`, and the spec type's unused `music.offset` (the spec dashboard now reads the spec on the
+  audio's clock).
+- The silent clamp became a validation: a spec whose first contact is before the earliest catchable 0.125 s (frame 5) is
+  refused when it loads. All 85 specs and variants pass.
+- Old records are refused, not relabelled. Evaluation runs (`line.eval.v2`), arms (`line.eval-arm.v2`) and production
+  collections (`line.production-library-plan.v2`) say they were compiled under the retired shift and must be recompiled;
+  `remeasure` refuses them; arm keys and gallery job identities no longer match, so no old cell is reused. New schemas: v3,
+  and `line.automatic-production.v2` for production plans. Saved rides still play: each aligns itself from its beats.
+- Parity references refreshed: the 5 cells compiled from current specs changed tracks (4 frame counts; quality on the 3
+  judged ones 819.6 → 830.5, 815.7 → 844.8, 787.6 → 771.0); the 20 fixture cells are byte-identical. Tests, typecheck, reach,
+  compile and judge parity pass.
+
 ## November 10, night: Cut-outs joins the collection (round 42)
 
 The bars sit a third of the way from Prussian toward the deeper blue (OKLCH; #014a7a). The theme is frozen as set

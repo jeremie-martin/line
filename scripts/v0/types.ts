@@ -108,11 +108,6 @@ export type SpecMusic = {
   artist?: string;
   /** Human-readable tempo/meter label, e.g. "100 BPM · 4/4". */
   tempo?: string;
-  /**
-   * Seconds added to audio time before comparing to spec time. Default 0.
-   * Positive values mean the dashboard reads the spec at `audio.currentTime + offset`.
-   */
-  offset?: number;
   /** Optional beat/onset/downbeat analysis JSON, repo-relative path or URL. */
   beats?: string;
   /** Optional spectrogram assets, repo-relative paths or URLs. */

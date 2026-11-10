@@ -2,8 +2,7 @@ import {readdirSync, existsSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {expect, it} from 'vitest';
-import {authoredBeats, loadMusicSpec} from '../scripts/produce/music_artifacts.ts';
-import {applyJolt, JOLT_DEFAULT_MS} from '../scripts/produce/jolt.ts';
+import {authoredBeats, EARLIEST_CONTACT_S, loadMusicSpec} from '../scripts/produce/music_artifacts.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 
 const spec = (times: number[]) => ({duration: 10, contacts: times.map(t => ({t, impact: .5})), axes: {}}) as unknown as Spec;
@@ -16,7 +15,13 @@ it('authored beats are the spec’s own times, and only a strictly increasing sp
   expect(authoredBeats(spec([]), 'x')).toEqual([]);
 });
 
-// Every spec and variant in the repository: beat i is target i of the compiled case, whatever the jolt.
+it('a contact before the earliest catchable one is refused, never moved', () => {
+  expect(EARLIEST_CONTACT_S).toBe(0.125);
+  expect(authoredBeats(spec([0.125, 1]), 'x')).toEqual([0.125, 1]);
+  expect(() => authoredBeats(spec([0.1, 1]), 'song/spec.ts')).toThrow(/song\/spec.ts: contact 0 at 0.1 s is earlier than the earliest catchable contact, 0.125 s/);
+});
+
+// Every spec and variant in the repository: beat i is target i of the compiled case, at its authored time.
 const definitions = readdirSync('productions').flatMap(song => [
   ...existsSync(join('productions', song, 'spec.ts')) ? [{song}] : [],
   ...existsSync(join('productions', song, 'variants')) ? readdirSync(join('productions', song, 'variants'))
@@ -25,11 +30,9 @@ const definitions = readdirSync('productions').flatMap(song => [
 
 it.each(definitions.map(d => [d.variant ? `${d.song} · ${d.variant}` : d.song, d] as const))('%s: beats belong to their targets', async (_, d) => {
   const definition = {...d, title: d.song, moments: []};
-  const [jolted, unjolted] = await Promise.all([loadMusicSpec(definition, JOLT_DEFAULT_MS), loadMusicSpec(definition, 0)]);
-  const authored = (await import(pathToFileURL(resolve(jolted.cfg.spec)).href)).default as Spec;
-  expect(jolted.beats).toEqual(authored.contacts.map(c => c.t));
-  expect(unjolted.beats).toEqual(jolted.beats);
-  // target i is authored contact i, shifted: nothing between the spec and the case reorders, merges or drops a contact
-  const shifted = applyJolt(authored, JOLT_DEFAULT_MS).contacts;
-  expect(jolted.musicCase.contacts).toEqual(shifted.map(c => ({frame: Math.round(c.t * 40), impact: c.impact})));
+  const loaded = await loadMusicSpec(definition);
+  const authored = (await import(pathToFileURL(resolve(loaded.cfg.spec)).href)).default as Spec;
+  expect(loaded.beats).toEqual(authored.contacts.map(c => c.t));
+  // target i is authored contact i: nothing between the spec and the case moves, reorders, merges or drops a contact
+  expect(loaded.musicCase.contacts).toEqual(authored.contacts.map(c => ({frame: Math.round(c.t * 40), impact: c.impact})));
 }, 30000);

@@ -37,15 +37,11 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 
 11. **Videos: one renderer** (2026-11-08, branch `visual-lab`; REWORK.md).
     Open:
-    - **Timing** (`generated/concept-lab/docs/TIMING-DESIGN.md`, all on
-      `visual-lab`): stages 1 to 3 done (two clocks, the scene as the single
+    - ~~**Timing**~~ (`generated/concept-lab/docs/TIMING-DESIGN.md`, all on
+      `visual-lab`): stages 1 to 4 done (two clocks, the scene as the single
       source, rides record authored beats and align themselves, a hit happens
-      at its strongest frame, R23). Next: stage 4, jolt 0 as a declared
-      comparison.
-    - Evaluation plans still carry `authoredTargets` (authored contacts in
-      frames, loaded a second time at jolt 0, read by nothing): a redundant
-      earlier form of the recorded beats. Removing it changes the planned
-      case that resumed runs compare, so it goes with foundations work.
+      at its strongest frame, R23; the jolt removed by the owner's decision,
+      2026-11-11, with the evaluation plans' redundant `authoredTargets`).
     - Done: the review player draws the video picture too (plain by default, any
       theme), with contact inspection as an overlay (owner, 2026-11-08).
     - Kept by the owner's choice (2026-11-08): the specs' `camera` (zoom lanes,

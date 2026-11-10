@@ -149,14 +149,15 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how the compiler works and
 the rework remains available at tag `archive/pre-rework-2026-10-03`.
 
 Evaluation evidence is a complete declared panel. `npm run eval` records the
-resolved timing offset, authoring identity and measurement code before compiling;
+resolved authoring identity and measurement code before compiling;
 resuming validates those inputs and every saved track. Worker failures return a
 nonzero exit status. Reports refuse missing cells and comparisons with different
 inputs or measurement code. An incomplete *ride* remains a measured outcome.
 
 To remeasure saved tracks under current diagnostics, preserve the old directory
-and use `node tools/eval/remeasure.ts --from=OLD --name=NEW
---jolt-ms=-15`. This does not recompile or alter tracks. It checks saved beat
+and use `node tools/eval/remeasure.ts --from=OLD --name=NEW`. This does not
+recompile or alter tracks. Runs compiled before 2026-11-11, with every contact
+moved 15 ms later, are refused: recompile them. It checks saved beat
 requests and frozen axis observations before accepting current authoring. Runs
 without saved tracks remain historical tables, not current comparable evidence.
 

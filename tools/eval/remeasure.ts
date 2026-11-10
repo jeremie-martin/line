@@ -3,28 +3,32 @@
  * tracks, work, construction fulfillment and geometry facts remain historical;
  * observations carry the current evaluator identity. Cells compiled before
  * geometry facts existed stay without them: the plan and the guide rails are
- * not in a saved track. --jolt-ms is mandatory for old evidence.
+ * not in a saved track. Runs compiled under the retired contact shift (schema
+ * line.eval.v2) answered other targets and are refused: recompile them.
  *
- * node tools/eval/remeasure.ts --from=OLD --name=NEW --jolt-ms=-15 */
+ * node tools/eval/remeasure.ts --from=OLD --name=NEW */
 import assert from 'node:assert/strict';
 import {mkdirSync, existsSync, readdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {resolveCase, digest, evaluatorIdentity} from './inputs.ts';
-import {readJson, readTrack, saveCell, atomicWrite, loadRun, runDir, compiledOutputs, type RunPlan} from './records.ts';
+import {readJson, readTrack, saveCell, atomicWrite, loadRun, runDir, compiledOutputs, RUN_SCHEMA, type RunPlan} from './records.ts';
 import {measureCell} from './measure.ts';
 import {LineRiderEngine as Engine} from '../../scripts/lib/native_motion/engine.ts';
 
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
-const from = arg('from'), name = arg('name'), joltArg = arg('jolt-ms');
-assert.ok(from && name && joltArg !== undefined, '--from, --name and --jolt-ms are required');
-const source = runDir(from), out = runDir(name), jolt = Number(joltArg);
-assert.ok(Number.isFinite(jolt)); assert.ok(!existsSync(out), 'remeasure into a fresh directory; preserve the original evidence');
-const old = readJson(join(source, 'run.json')), ids = old.panel.map((c: any) => c.id).sort();
+const from = arg('from'), name = arg('name');
+assert.ok(from && name, '--from and --name are required');
+const source = runDir(from), out = runDir(name);
+assert.ok(!existsSync(out), 'remeasure into a fresh directory; preserve the original evidence');
+const old = readJson(join(source, 'run.json'));
+// Its tracks were compiled against targets moved before compiling (15 ms later by default): remeasuring cannot make them current.
+assert.equal(old.schema, RUN_SCHEMA, `${from} was compiled under the contact shift retired on 2026-11-11 or earlier evidence: recompile it`);
+const ids = old.panel.map((c: any) => c.id).sort();
 assert.deepEqual(readdirSync(join(source, 'cells')).filter(f => f.endsWith('.json')).map(f => f.slice(0, -5)).sort(), ids, 'incomplete source run');
 assert.equal(new Set(ids).size, ids.length, 'duplicate source cases');
-const inputs = await Promise.all(old.panel.map((c: any) => resolveCase(c, jolt)));
+const inputs = await Promise.all(old.panel.map((c: any) => resolveCase(c)));
 // Everything else, including a retired `mode`, stays as the source run recorded it.
-const plan: RunPlan = {...old, evaluator: evaluatorIdentity(), jolt, panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
+const plan: RunPlan = {...old, evaluator: evaluatorIdentity(), panelName: old.panelName ?? 'dev', panel: inputs.map(x => x.planned),
   remeasuredFrom: {runSha256: digest(old), cellsSha256: digest(ids.map((id: string) => readJson(join(source, 'cells', id + '.json'))))}};
 // The saved case list defines this panel. Its name is a provenance label;
 // independently declared confirmation panels need not be CLI presets.

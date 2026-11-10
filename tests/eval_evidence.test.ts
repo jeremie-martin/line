@@ -26,10 +26,10 @@ it('measurement identity follows indirect rules and both engine artifacts', () =
 });
 function fixture(count = 2) {
   const dir = temporary(); mkdirSync(join(dir, 'cells'));
-  const plan: RunPlan = {schema: 'line.eval.v2', identity: {head: 'compiler'}, evaluator: 'a'.repeat(64), jolt: -15,
+  const plan: RunPlan = {schema: 'line.eval.v3', identity: {head: 'compiler'}, evaluator: 'a'.repeat(64),
     budget: '100000', panelName: 'v7', panel: Array.from({length: count}, (_, k) => ({id: `song~${k}`, song: 'song', seed: k,
-      perturbation: null, input: {jolt: -15, specSha256: 's', audioSha256: 'a', analysisSha256: 'b', resolvedSha256: 'c'},
-      targets: [{frame: 40, t: 1, impact: .7}], authoredTargets: [{frame: 39, impact: .7}]}))};
+      perturbation: null, input: {specSha256: 's', audioSha256: 'a', analysisSha256: 'b', resolvedSha256: 'c'},
+      targets: [{frame: 40, t: 1, impact: .7}]}))};
   atomicWrite(join(dir, 'run.json'), JSON.stringify(plan));
   const track = {lines: [], riders: []};
   const save = (n: number, complete = true) => saveCell(dir, plan, plan.panel[n], {complete, fulfilled: complete,
@@ -58,22 +58,17 @@ it('rejects duplicate declarations, undeclared files, transplanted cells, and ch
 it('pairs actual resolved inputs and measurement code, while permitting different compilers', () => {
   const f = fixture(1); f.save(0); const a = loadRun(f.dir), b = structuredClone(a);
   b.run.identity.head = 'other'; expect(() => assertPairedRuns(a, b)).not.toThrow();
-  b.run.panel[0].input.jolt = 100; expect(() => assertPairedRuns(a, b)).toThrow(/resolved inputs/);
-  b.run.panel[0].input.jolt = -15; b.run.evaluator = 'b'.repeat(64);
+  b.run.panel[0].targets[0].t = 1.015; expect(() => assertPairedRuns(a, b)).toThrow(/resolved inputs/);
+  b.run.panel[0].targets[0].t = 1; b.run.evaluator = 'b'.repeat(64);
   expect(() => assertPairedRuns(a, b)).toThrow(/measurement code/);
 });
-it('a declared jolt comparison lets paired inputs differ in the jolt and what it moves, nothing else', () => {
-  const f = fixture(1); f.save(0); const a = loadRun(f.dir), jolted = () => {
-    const b = structuredClone(a); b.run.jolt = 0;
-    Object.assign(b.run.panel[0], {input: {...b.run.panel[0].input, jolt: 0, resolvedSha256: 'd'}, targets: [{frame: 39, t: .985, impact: .7}]});
-    return b;
-  };
-  expect(() => assertPairedRuns(a, jolted())).toThrow(/resolved inputs/);
-  expect(() => assertPairedRuns(a, jolted(), {allowJolt: true})).not.toThrow();
-  const changes: Array<(b: any) => void> = [b => {b.run.panel[0].input.specSha256 = 'other';}, b => {b.run.panel[0].targets[0].impact = .8;},
-    b => {b.run.panel[0].authoredTargets[0].frame = 38;}, b => {b.run.panel[0].targets[0].t = .96;}, b => {b.run.panel[0].targets[0].frame = 40;},
-    b => {b.run.panel[0].targets.push({frame: 60, t: 1.5, impact: .5});}, b => {b.run.panel[0].input.jolt = -15;}];
-  for (const change of changes) {const b = jolted(); change(b); expect(() => assertPairedRuns(a, b, {allowJolt: true})).toThrow();}
+it('refuses a run compiled under the retired contact shift, and remeasuring it, rather than relabel it', () => {
+  const f = fixture(1); f.save(0);
+  atomicWrite(join(f.dir, 'run.json'), JSON.stringify({...f.plan, schema: 'line.eval.v2'}));
+  expect(() => readPlan(f.dir)).toThrow(/retired on 2026-11-11.*recompile/);
+  const r = spawnSync(process.execPath, [resolve('tools/eval/remeasure.ts'), `--from=${f.dir}`, `--name=${f.dir}-remeasured`], {encoding: 'utf8'});
+  dirs.push(`${f.dir}-remeasured`);
+  expect(r.status).not.toBe(0); expect(r.stderr).toMatch(/retired on 2026-11-11.*recompile/);
 });
 it('rejects invalid execution options before starting workers', () => {
   for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions(budget, 'dev')).toThrow();
@@ -116,8 +111,10 @@ export default {duration:2,preroll:0,contacts:[{t:.6,impact:.4},{t:1.2,impact:.5
   const plan = readPlan(dir);
   expect(plan.panel).toHaveLength(12);
   expect(readCells(dir, plan).size).toBe(0);
-  const resumed = spawnSync(process.execPath, args,
-    {cwd: root, env: {...env, LR_JOLT_OFFSET_MS: String(plan.jolt + 100)}, encoding: 'utf8', maxBuffer: 2e6});
+  // Authoring changed since the plan: the resume refuses rather than mixing inputs.
+  const moved = join(root, 'productions', 'luna_bala_44s', 'variants', 'sealed-fixture.ts');
+  writeFileSync(moved, readFileSync(moved, 'utf8').replace('{t:.6,impact:.4}', '{t:.65,impact:.4}'));
+  const resumed = spawnSync(process.execPath, args, {cwd: root, env, encoding: 'utf8', maxBuffer: 2e6});
   expect(resumed.status).toBe(1); expect(resumed.stderr).toContain('run inputs or measurement code changed');
   expect(digest(readPlan(dir))).toBe(digest(plan));
 }, 60000);

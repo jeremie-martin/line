@@ -392,7 +392,7 @@ async function loadAnalysis(music) {
   if (!music) return null;
   const load = (url) => url ? fetch(url, { cache: "no-cache" }).then(readJsonOk).catch(() => null) : null;
   const [raw, measured, vocal] = await Promise.all([load(music.beatsUrl), load(music.eventsUrl), load(music.vocalEvidenceUrl)]);
-  const analysis = normalizeAnalysis(raw ?? {}, musicOffset(music));
+  const analysis = normalizeAnalysis(raw ?? {});
   // The y-axis ceilings do not depend on the view: computed once per song.
   const ceiling = (field) => vocal[field].reduce((top, v) => v === null ? top : Math.max(top, v), 1);
   analysis.vocal = vocal && {...vocal, ceilings: {rms: ceiling('rms'), spectralChange: ceiling('spectralChange')}};
@@ -404,18 +404,18 @@ async function loadAnalysis(music) {
   note.classList.toggle('error', Boolean(evidenceError));
   // Keep every instrument at its own time, including quieter overlapping vocals.
   if (measured?.events) {
-    analysis.onsets = sourceEvents(measured.events, musicOffset(music));
+    analysis.onsets = sourceEvents(measured.events);
   }
   return analysis;
 }
 
-function normalizeAnalysis(raw, offset) {
-  const withOffset = (t) => round(audioToSpecTime(Number(t), offset), 4);
-  const beats = numericTimes(raw.beats ?? raw.beat_times ?? raw.beat_grid?.beats).map(withOffset);
-  const downbeats = numericTimes(raw.downbeats ?? raw.beat_grid?.downbeats).map(withOffset);
+function normalizeAnalysis(raw) {
+  const time = (t) => round(Number(t), 4);
+  const beats = numericTimes(raw.beats ?? raw.beat_times ?? raw.beat_grid?.beats).map(time);
+  const downbeats = numericTimes(raw.downbeats ?? raw.beat_grid?.downbeats).map(time);
   const onsetSource = raw.drum_onsets ?? raw.onsets_drums ?? raw.onsets_mix ?? raw.onsets ?? [];
   const onsets = numericEvents(onsetSource).map((event) => ({
-    t: withOffset(event.t),
+    t: time(event.t),
     strength: event.strength,
   }));
   return { beats, downbeats, onsets };
@@ -967,9 +967,7 @@ function drawSpectrogram(svg, L, plotW, y, h) {
   const clip = add(defs, "clipPath", { id: clipId });
   add(clip, "rect", { x: L, y, width: plotW, height: h });
   const metaDuration = Number(spec.meta?.duration) || audioDurationForMusic(state.data.music) || state.data.spec.duration;
-  const offset = musicOffset(state.data.music);
-  const imageT0 = audioToSpecTime(0, offset);
-  const imageT1 = audioToSpecTime(metaDuration, offset);
+  const imageT0 = 0, imageT1 = metaDuration;
   add(svg, "image", {
     href: imageUrl,
     x: state.timeline.rawXFor(imageT0),
@@ -1026,9 +1024,9 @@ function drawEventLane(svg, L, plotW, y, h) {
 }
 
 function drawVocalEvidence(svg, L, plotW, y) {
-  const e = state.analysis.vocal, offset = musicOffset(state.data.music), dt = e.hopSamples / e.sampleRate;
-  const first = Math.max(0, Math.floor((state.viewStart - offset) / dt));
-  const last = Math.min(e.rms.length - 1, Math.ceil((state.viewEnd - offset) / dt));
+  const e = state.analysis.vocal, dt = e.hopSamples / e.sampleRate;
+  const first = Math.max(0, Math.floor(state.viewStart / dt));
+  const last = Math.min(e.rms.length - 1, Math.ceil(state.viewEnd / dt));
   for (const [row, field, label, color] of [[0, 'rms', 'vocal RMS', '#a86820'], [1, 'spectralChange', 'change', '#77529c']]) {
     const top = y + row * 48, height = 38;
     const ceiling = e.ceilings[field];
@@ -1039,7 +1037,7 @@ function drawVocalEvidence(svg, L, plotW, y) {
     for (let i = first; i <= last; i++) {
       const v = e[field][i];
       if (v === null) {pen = false; continue;}
-      path += `${pen ? 'L' : 'M'}${state.timeline.xFor(i * dt + offset).toFixed(2)},${(top + height - (v / ceiling) * height).toFixed(2)} `;
+      path += `${pen ? 'L' : 'M'}${state.timeline.xFor(i * dt).toFixed(2)},${(top + height - (v / ceiling) * height).toFixed(2)} `;
       pen = true;
     }
     add(svg, 'path', {d:path,fill:'none',stroke:color,'stroke-width':1.2,'data-evidence-series':field});
@@ -1047,8 +1045,8 @@ function drawVocalEvidence(svg, L, plotW, y) {
   const kinds = ['spectral-onset', 'pitched-estimate', 'unpitched-estimate'];
   ['onset est.', 'tonal est.', 'noisy est.'].forEach((label, i) => add(svg,'text',{x:3,y:y+108+i*17,class:'svg-small'},label));
   for (const c of e.candidates) {
-    if (!timeVisible(c.t + offset)) continue;
-    const dot = add(svg,'circle',{cx:state.timeline.xFor(c.t+offset),cy:y+104+kinds.indexOf(c.kind)*17,r:2.8,fill:'#6b737b','data-vocal-candidate':c.kind});
+    if (!timeVisible(c.t)) continue;
+    const dot = add(svg,'circle',{cx:state.timeline.xFor(c.t),cy:y+104+kinds.indexOf(c.kind)*17,r:2.8,fill:'#6b737b','data-vocal-candidate':c.kind});
     const landmarks = c.landmarks;
     const timing = landmarks ? ` · RMS minimum ${landmarks.precedingMinimumT.toFixed(3)} s${landmarks.minimumAtClipStart ? ' (clip-start fallback)' : ''} · steepest rise ${landmarks.steepestRiseT === null ? 'unavailable' : landmarks.steepestRiseT.toFixed(3) + ' s'}; measurement landmarks, not onset bounds` : '';
     if (landmarks) dot.dataset.acousticLandmarks = 'true';
@@ -1317,7 +1315,7 @@ function renderInspector(t = specTime()) {
   const zoomValue = cameraZoomAt(t);
   const zoomKeyframeHit = nearestCameraZoomKeyframe(t);
   refs.cursorTime.textContent = formatTime(t);
-  const vocal = vocalFrame(state.analysis?.vocal, specToAudioTime(t));
+  const vocal = vocalFrame(state.analysis?.vocal, t);
   // One assignment per call: this runs on every animation frame during playback.
   refs.cursorGrid.innerHTML = [
     detail("contact", contactHit ? `#${contactHit.index} ${signed(contactHit.contact.t - t)}s` : "none"),
@@ -2066,9 +2064,7 @@ function renderAgentContext() {
       t: round(t, 3),
       time: formatTime(t),
       music: state.data.music ? {
-        offset: musicOffset(state.data.music),
-        audioTime: hasAudio() ? round(specToAudioTime(t, musicOffset(state.data.music)), 3) : null,
-        specFromAudio: hasAudio() ? round(t, 3) : null,
+        audioTime: hasAudio() ? round(t, 3) : null,
         clock: isPlaying() ? "audio" : "paused",
       } : null,
       phase: currentPhase(t)?.name ?? null,
@@ -2110,10 +2106,10 @@ function renderAgentContext() {
     evidence: {
       url: state.data.music?.vocalEvidenceUrl ?? null,
       error: state.data.music?.vocalEvidenceError ?? null,
-      meaning: 'Measurements and detector estimates, not words or impact requests. Vocal window and candidate times are in audio seconds; source times below are spec seconds.',
-      vocalWindow: vocalFrame(state.analysis?.vocal, specToAudioTime(t)),
+      meaning: 'Measurements and detector estimates, not words or impact requests. Spec time is audio time: every time here is in seconds of the recording.',
+      vocalWindow: vocalFrame(state.analysis?.vocal, t),
       nearbySources: (state.analysis?.onsets ?? []).filter(event => Math.abs(event.t - t) <= .25),
-      nearbyVocalCandidates: (state.analysis?.vocal?.candidates ?? []).filter(c => Math.abs(c.t - specToAudioTime(t)) <= .25),
+      nearbyVocalCandidates: (state.analysis?.vocal?.candidates ?? []).filter(c => Math.abs(c.t - t) <= .25),
     },
     stagedEdits: state.edits,
     nearbyContacts: state.data.contacts
@@ -2134,7 +2130,7 @@ function togglePlayback() {
 
 function startPlayback(t) {
   clearClicks();
-  music.play(specToAudioTime(t, musicOffset(state.data.music)), state.playbackRate)
+  music.play(t, state.playbackRate)
     .then(() => updatePlaybackUi(), (error) => toast(String(error)));
 }
 
@@ -2155,19 +2151,6 @@ function hasAudio() {
   return Boolean(music.duration);
 }
 
-function musicOffset(music = state.data?.music) {
-  const offset = Number(music?.offset);
-  return Number.isFinite(offset) ? offset : 0;
-}
-
-function audioToSpecTime(audioTime, offset = musicOffset()) {
-  return audioTime + offset;
-}
-
-function specToAudioTime(specTimeValue, offset = musicOffset()) {
-  return specTimeValue - offset;
-}
-
 function audioDurationForMusic(spec = state.data?.music) {
   if (music.duration) return music.duration;
   const metaDuration = Number(spec?.spectrogram?.meta?.duration);
@@ -2177,7 +2160,7 @@ function audioDurationForMusic(spec = state.data?.music) {
 /** Spec time heard at performance time `ms` (now by default); the cursor when paused. */
 function specTime(ms = performance.now()) {
   if (!state.data) return 0;
-  const t = isPlaying() ? audioToSpecTime(music.position(ms), musicOffset(state.data.music)) : state.cursorT;
+  const t = isPlaying() ? music.position(ms) : state.cursorT;
   return clamp(t, 0, state.data.spec.duration);
 }
 
@@ -2220,12 +2203,12 @@ function clearClicks() {
 }
 function scheduleClicks() {
   if (!isPlaying() || !refs.toggleClicks.checked) return;
-  const ctx = music.context, offset = musicOffset(state.data.music);
-  const now = audioToSpecTime(music.rendered(), offset), horizon = now + 0.15 * state.playbackRate;
+  const ctx = music.context;
+  const now = music.rendered(), horizon = now + 0.15 * state.playbackRate;
   if (!(clicks.until >= now - 0.05 && clicks.until <= horizon)) clicks.until = now; // after a seek
   for (const contact of state.data.contacts) {
     if (contact.t <= clicks.until || contact.t > horizon) continue;
-    const at = music.when(specToAudioTime(contact.t, offset));
+    const at = music.when(contact.t);
     const osc = ctx.createOscillator(), gain = ctx.createGain();
     clicks.pending.add(osc);
     osc.onended = () => {clicks.pending.delete(osc); osc.disconnect(); gain.disconnect();};

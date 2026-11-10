@@ -1,7 +1,7 @@
 /** Bookkeeping for `compare`: arms, their saved cells, and named references.
  *
  * An arm is one compiler (by content, not by commit) under one setting
- * (allowance, creative preferences, jolt). Its cells live in
+ * (allowance, creative preferences). Its cells live in
  * generated/eval/arms/<key>/ and are reused by any panel that declares the
  * same resolved case. A saved cell is compatible when its resolved inputs
  * equal today's; when only the measurement code changed, its track is
@@ -84,26 +84,36 @@ export function worktreeFor(commit: string) {
   return dir;
 }
 
-export type Arm = {key: string; dir: string; root: string; label: string; content: ReturnType<typeof compilerContent>; settings: ArmSettings; jolt: number};
+export type Arm = {key: string; dir: string; root: string; label: string; content: ReturnType<typeof compilerContent>; settings: ArmSettings};
 /** An arm: the compiler's content, the compile adapter (tools/eval/compile.ts)
  * and the setting. A change to any of them is a different arm. */
-export function armKey(contentKey: string, settings: ArmSettings, jolt: number, adapter = ADAPTER_SHA256) {
-  return digest({contentKey, adapter, budget: settings.budget, creative: settings.creative ?? {}, jolt}).slice(0, 16);
+export function armKey(contentKey: string, settings: ArmSettings, adapter = ADAPTER_SHA256) {
+  return digest({contentKey, adapter, budget: settings.budget, creative: settings.creative ?? {}}).slice(0, 16);
 }
-export function openArm(root: string, label: string, content: ReturnType<typeof compilerContent>, settings: ArmSettings, jolt: number): Arm {
-  const key = armKey(content.key, settings, jolt), dir = resolve('generated/eval/arms', key);
+/** v3: contacts compiled at their authored times. A v2 arm moved them first (15 ms later by default): another setting. */
+const ARM_SCHEMA = 'line.eval-arm.v3';
+/** An arm's saved description (arm.json), refused when it was compiled under another timing setting. */
+export function readArmMeta(dir: string) {
+  const meta = readJson(join(dir, 'arm.json'));
+  assert.notEqual(meta.schema, 'line.eval-arm.v2', `${dir} was compiled under the contact shift retired on 2026-11-11 (contacts moved before ` +
+    'compiling, 15 ms later by default): a different setting, recompile it');
+  assert.equal(meta.schema, ARM_SCHEMA, `${dir}/arm.json: unknown arm schema ${meta.schema}`);
+  return meta;
+}
+export function openArm(root: string, label: string, content: ReturnType<typeof compilerContent>, settings: ArmSettings): Arm {
+  const key = armKey(content.key, settings), dir = resolve('generated/eval/arms', key);
   mkdirSync(join(dir, 'cells'), {recursive: true});
   // Several commits can share one compiler content (a documentation commit
   // changes nothing); the arm lists the ones it has seen, for provenance.
-  const meta = {schema: 'line.eval-arm.v2', contentKey: content.key, adapterSha256: ADAPTER_SHA256,
-    engineSha256: content.engineSha256, budget: settings.budget, creative: settings.creative ?? {}, jolt};
+  const meta = {schema: ARM_SCHEMA, contentKey: content.key, adapterSha256: ADAPTER_SHA256,
+    engineSha256: content.engineSha256, budget: settings.budget, creative: settings.creative ?? {}};
   const commit = content.clean ? content.head : 'uncommitted changes on ' + content.head;
   if (existsSync(join(dir, 'arm.json'))) {
-    const {commits, ...saved} = readJson(join(dir, 'arm.json'));
+    const {commits, ...saved} = readArmMeta(dir);
     assert.deepEqual(saved, meta, `${dir}/arm.json does not describe this arm`);
     if (!commits.includes(commit)) atomicWrite(join(dir, 'arm.json'), JSON.stringify({...meta, commits: [...commits, commit]}, null, 1));
   } else atomicWrite(join(dir, 'arm.json'), JSON.stringify({...meta, commits: [commit]}, null, 1));
-  return {key, dir, root, label, content, settings, jolt};
+  return {key, dir, root, label, content, settings};
 }
 
 const cellPath = (arm: Pick<Arm, 'dir'>, id: string) => join(arm.dir, 'cells', id + '.json');

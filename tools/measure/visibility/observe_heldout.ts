@@ -37,8 +37,8 @@ for (const name of readdirSync(dir).filter(d => /^[a-z_0-9]+_\d+s-\d+$/.test(d))
   assert.ok(existsSync(path), `missing ${path}`);
   const bytes = readFileSync(path), saved = JSON.parse(bytes.toString());
   assert.equal(sha(bytes), readFileSync(path + '.sha256', 'utf8').trim().split(/\s+/)[0], `${path} differs from its recorded sha256`);
-  // Beats as compiled: `npm run produce` applies the felt-jolt offset (contacts 15 ms
-  // after the audio beat, scripts/produce/jolt.ts), so a beat's frame may be one
+  // Beats as compiled: these saved rides were compiled with every contact 15 ms after
+  // its authored time (a shift removed on 2026-11-11), so a beat's frame may be one
   // later than round(t·40). Matching uses the compiled frames, as the saved evaluation did.
   const spec = await songSpec(song), D = spec.durationFrames;
   assert.equal(saved.case.durationFrames, D);

@@ -90,10 +90,6 @@ npm run compare -- review --reference=main --candidate=<branch>          # the p
   - `--jobs=N`: parallel rides (default: available CPUs at about 2 GB each);
   - `--budget=standard*F` and `--creative=JSON`: both arms;
   - `--candidate-budget` and `--candidate-creative`: one arm.
-  - `--candidate-jolt=MS`: the candidate's cases resolved, compiled and
-    measured at another jolt than this checkout's (a jolt comparison). Paired
-    cases may then differ in the jolt and what it moves (the targets' times),
-    nothing else; the report says so in its provenance.
 - **Agents:** run it as a tracked background task, so its end is noticed at
   once. Do not watch a log with `tail -f | grep`, which does not exit.
 - **Branches:** a candidate branch must start from the reference's commit.

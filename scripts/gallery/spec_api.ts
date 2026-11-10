@@ -79,7 +79,7 @@ export function createSpecApi(root = process.cwd()) {
       else vocalEvidenceError = 'Vocal evidence is stale or its source files are missing. Regenerate it before using it.';
     }
     const beats = asset(m.beats), image = asset(m.spectrogram?.image), meta = asset(m.spectrogram?.metadata);
-    return {title: m.title ?? null, artist: m.artist ?? null, tempo: m.tempo ?? null, offset: Number.isFinite(m.offset) ? m.offset : 0,
+    return {title: m.title ?? null, artist: m.artist ?? null, tempo: m.tempo ?? null,
       audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beats: m.beats ?? null, beatsUrl: beats?.url ?? null, eventsUrl: events?.url ?? null,
       vocalEvidenceUrl, vocalEvidenceError,
       spectrogram: image || meta ? {image: image?.ref ?? null, imageUrl: image?.url ?? null, metadata: meta?.ref ?? null,

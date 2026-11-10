@@ -62,11 +62,11 @@ it('runs sealed and held-out panels only on their explicit flag', () => {
 });
 
 // ---- synthetic runs for the report arithmetic ----
-const JOLT = -15, frameOf = (t: number) => Math.round((t - JOLT / 1000) * 40);
+const frameOf = (t: number) => Math.round(t * 40);
 function planned(song: string, variant: string | null, seed: number, stratum: string, windows: Array<[number, number]>, times: number[]) {
   return {id: `${song}~${variant ?? 'spec'}~${seed}`, song, seed, perturbation: null, variant, bench: {stratum, pattern: 'p', windows},
-    input: {jolt: JOLT, specSha256: 's', audioSha256: 'a', analysisSha256: 'b', resolvedSha256: 'c'},
-    targets: times.map(t => ({t: t - JOLT / 1000, frame: frameOf(t), impact: .7})), authoredTargets: []};
+    input: {specSha256: 's', audioSha256: 'a', analysisSha256: 'b', resolvedSha256: 'c'},
+    targets: times.map(t => ({t, frame: frameOf(t), impact: .7}))};
 }
 /** A cell whose v3 loss is `loss`; `strengths[j]` null = beat j missed. */
 function cell(c: any, {complete = true, loss = .1, strengths, extras = [], terminus = {frame: 2000, reason: 'endOfSpec'}}:
@@ -79,7 +79,7 @@ function cell(c: any, {complete = true, loss = .1, strengths, extras = [], termi
     beats: c.targets.map((t: any) => ({requested: t.impact, r1: {strength: .5, peak: 1}, impulse: {competitor: 0, hit: 1}, extrasR1: [], hiddenBend: 0}))};
 }
 const run = (panel: any[], cells: any[]): Run => ({dir: '', cells: new Map(cells.map(x => [x.case.id, x])),
-  run: {schema: 'line.eval.v2', identity: {head: 'abcdef0123'}, evaluator: 'e'.repeat(64), jolt: JOLT, budget: 'standard', panelName: 'bench', panel}});
+  run: {schema: 'line.eval.v3', identity: {head: 'abcdef0123'}, evaluator: 'e'.repeat(64), budget: 'standard', panelName: 'bench', panel}});
 
 it('reports completion first and quality only on cells complete in both arms, strata weighted equally', () => {
   const T = [1, 2, 3];

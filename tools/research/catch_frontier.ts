@@ -14,7 +14,6 @@ import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from
 import {dirname, join} from 'node:path';
 import {v7Cases, resolveCase, digest} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
-import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import type {MeasuredCandidate} from '../../scripts/v0/optimizer/arc_candidates.ts';
@@ -31,7 +30,7 @@ const summary = (x: MeasuredCandidate) => [r4(x.actualImpact), r4(x.localCost - 
 async function worker(id: string, seed: number, width: number) {
   const c = (await v7Cases([seed], '.', SUITE)).find(x => `${x.song}~${x.variant ?? 'spec'}` === id);
   assert(c, `unknown case: ${id}`);
-  const {spec, music, planned} = await resolveCase(c, resolveJoltMs());
+  const {spec, music, planned} = await resolveCase(c);
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const probes: any[] = [];
   const {cell, track} = await withSequenceObserver((i, offered, chosen, ctx) => {

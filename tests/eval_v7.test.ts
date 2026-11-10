@@ -49,8 +49,8 @@ it('has one headline: categories equal, specs equal within, explicit requests ap
 
 it('makes a change to the compile adapter a different arm', () => {
   const settings = {budget: 'standard'};
-  expect(armKey('content', settings, -15, 'adapter-a')).not.toBe(armKey('content', settings, -15, 'adapter-b'));
-  expect(armKey('content', settings, -15, 'adapter-a')).toBe(armKey('content', settings, -15, 'adapter-a'));
+  expect(armKey('content', settings, 'adapter-a')).not.toBe(armKey('content', settings, 'adapter-b'));
+  expect(armKey('content', settings, 'adapter-a')).toBe(armKey('content', settings, 'adapter-a'));
 });
 
 it('computes seed-block uncertainty as a t interval and directional support', () => {

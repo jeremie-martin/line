@@ -11,9 +11,8 @@ import {join} from 'node:path';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 import {compilerIdentity} from '../../scripts/lib/compiler_identity.ts';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
-import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {PANEL_HELP, PANEL_NAMES, panelCases, resolveCase, evaluatorIdentity} from './inputs.ts';
-import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, type RunPlan} from './records.ts';
+import {readPlan, readCells, saveCell, loadRun, atomicWrite, runDir, RUN_SCHEMA, type RunPlan} from './records.ts';
 import {stratify, geometryStrata, headline, type Run} from './summary.ts';
 import {ADAPTER_SHA256, compileAndMeasure} from './compile.ts';
 
@@ -40,13 +39,13 @@ export function validateRunOptions(budget: string, panel: string, flags: {sealed
     (Number.isSafeInteger(Number(budget)) && Number(budget) > 0), 'budget must be standard, standard*FACTOR or a positive integer');
 }
 async function planFor(budget: string, panelName: string, creative?: Record<string, unknown>): Promise<RunPlan> {
-  const identity = compilerIdentity('.'), evaluator = evaluatorIdentity(), jolt = resolveJoltMs();
+  const identity = compilerIdentity('.'), evaluator = evaluatorIdentity();
   const cases = await panelCases(panelName);
   assert.ok(cases.length > 0, `panel ${panelName} declares no cases (no matching variant files found)`);
-  const panel = await Promise.all(cases.map(async c => (await resolveCase(c, jolt)).planned));
+  const panel = await Promise.all(cases.map(async c => (await resolveCase(c)).planned));
   // The compile adapter (compile.ts) turns a case into compile options; neither the
   // compiler identity nor the evaluator identity covers it, so the plan pins it.
-  return {schema: 'line.eval.v2', identity, evaluator, adapter: ADAPTER_SHA256, jolt, budget, panelName, panel, ...(creative ? {creative} : {})};
+  return {schema: RUN_SCHEMA, identity, evaluator, adapter: ADAPTER_SHA256, budget, panelName, panel, ...(creative ? {creative} : {})};
 }
 async function worker(dir: string, id: string) {
   const plan = readPlan(dir), c = plan.panel.find(c => c.id === id);
@@ -54,12 +53,12 @@ async function worker(dir: string, id: string) {
   assert.deepEqual(compilerIdentity('.'), plan.identity, 'compiler changed before worker started');
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed');
   assert.equal(ADAPTER_SHA256, plan.adapter, 'compile adapter (tools/eval/compile.ts) changed since the run was planned');
-  const {spec, music, planned} = await resolveCase(c, plan.jolt);
+  const {spec, music, planned} = await resolveCase(c);
   assert.deepEqual(planned, c, 'resolved authoring changed');
   const {cell, track} = await compileAndMeasure('.', c, {spec, music}, plan);
   assert.deepEqual(compilerIdentity('.'), plan.identity, 'compiler changed during worker');
   assert.equal(evaluatorIdentity(), plan.evaluator, 'measurement code changed during worker');
-  assert.deepEqual((await resolveCase(c, plan.jolt)).planned, c, 'authoring changed during worker');
+  assert.deepEqual((await resolveCase(c)).planned, c, 'authoring changed during worker');
   saveCell(dir, plan, c, cell, track);
 }
 async function main() {
@@ -100,8 +99,8 @@ export const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(
 const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)}${r.run.creative ? `, creative ${JSON.stringify(r.run.creative)}` : ''})`;
 /** The stratified report: completion, then
  * quality on both-complete cells, then per-spec detail with seed sign counts. */
-export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string, pairing: {allowJolt?: boolean} = {}): string[] {
-  const r = stratify(a, b, pairing), out: string[] = [], paired = !!b, A = 'A', B = 'B';
+export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string): string[] {
+  const r = stratify(a, b), out: string[] = [], paired = !!b, A = 'A', B = 'B';
   out.push(`${a.run.panelName} — A = ${nameA}${b ? `, B = ${nameB}; differences are A − B, paired by case` : ''}`,
     `compiler A ${who(a)}${b ? `, B ${who(b)}` : ''}; evaluator ${a.run.evaluator.slice(0, 12)}; ${a.run.panel.length} cases`,
     'Strata weigh equally. Within a stratum each spec weighs equally; seeds are averaged.',
@@ -144,13 +143,13 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
       return pad(!Number.isFinite(value) ? '—' : paired ? `${num(m.diff, true)} +${m.up}−${m.down}=${m.same}` : num(m.a), 22);
     }).join('')}`.trimEnd());
   }
-  return [...out, '', ...geometryReport(a, b, pairing)];
+  return [...out, '', ...geometryReport(a, b)];
 }
 const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
 /** Section 4 of the stratified report: how rides use the geometry families.
  * Single run: values. Paired: A→B per stratum, then A, B and A − B over strata. */
-export function geometryReport(a: Run, b?: Run, pairing: {allowJolt?: boolean} = {}): string[] {
-  const g = geometryStrata(a, b, pairing), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
+export function geometryReport(a: Run, b?: Run): string[] {
+  const g = geometryStrata(a, b), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
   const out = [`4. Geometry: planned sections on every cell; realized facts on cells complete in ${paired ? 'both arms' : 'this run'} (${
     g.strata.map((s, i) => `${s} ${g.realizedCells[i]}`).join(', ')}). Descriptive only: no target, no verdict.`];
   if (missing.length === (paired ? 2 : 1)) return [...out, `not recorded: ${paired ? 'both runs predate' : 'this run predates'} geometry facts. They are compiler output`

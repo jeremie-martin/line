@@ -1,9 +1,9 @@
 /** Every measured source survives; the merged event's timestamp is not its
  * sources' timestamp. These are observations, never requested impacts. */
-export function sourceEvents(events, offset = 0) {
+export function sourceEvents(events) {
   return events.flatMap(event => Object.entries(event.sources).map(([source, value]) => ({
-    t: value.t + offset, strength: value.rise, peak: value.peak, source,
-    mergedTime: event.t + offset,
+    t: value.t, strength: value.rise, peak: value.peak, source,
+    mergedTime: event.t,
   }))).sort((a, b) => a.t - b.t || a.source.localeCompare(b.source));
 }
 

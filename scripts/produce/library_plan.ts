@@ -8,10 +8,17 @@ export function musicSource(c: any) {
     resolvedSha256: createHash('sha256').update(JSON.stringify({duration: c.durationFrames, contacts: c.contacts,
       air: c.air, samples: c.samples, phases: c.phases, render: c.render})).digest('hex')};
 }
+/** v3: contacts compiled at their authored times. A v2 collection moved them first (15 ms later by default). */
+export const LIBRARY_SCHEMA = 'line.production-library-plan.v3';
+export function assertLibrarySchema(collection: any) {
+  assert.notEqual(collection.schema, 'line.production-library-plan.v2', 'this collection was compiled under the contact shift retired on ' +
+    '2026-11-11 (contacts moved before compiling, 15 ms later by default): a different setting, compile a fresh collection');
+  assert.equal(collection.schema, LIBRARY_SCHEMA, 'collection needs an explicit input manifest');
+}
 export function assertLibraryEntry(collection: any, entry: any, manifest: any, plan: any) {
-  assert.equal(collection.schema, 'line.production-library-plan.v2', 'collection needs an explicit input manifest');
+  assertLibrarySchema(collection);
   assert.deepEqual(manifest.plan, plan, 'manifest and plan differ');
-  assert.equal(plan.jolt, collection.jolt, 'collection timing differs');
+  assert.equal(plan.schema, 'line.automatic-production.v2', 'collection entry compiled under another timing setting');
   assert.deepEqual(plan.compiler, collection.compiler, 'collection compiler differs');
   assert.deepEqual(plan.request, entry.request, 'collection request differs');
   assert.equal(plan.cases.length, 1);

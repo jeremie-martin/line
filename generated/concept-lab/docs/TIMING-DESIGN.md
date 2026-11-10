@@ -1,7 +1,7 @@
 # Timing: how a ride meets its song
 
-*8 November 2026. The agreed design, as implemented: stages 1 to 3 are done (round 23 chose how hits are timed), stage 4 is
-not. Reviewed as a proposal through three rounds (an independent analysis, adversarial reviews, a from-scratch design study by
+*8 November 2026. The agreed design, as implemented: stages 1 to 4 are done (round 23 chose how hits are timed; the jolt was
+removed on 11 November). Reviewed as a proposal through three rounds (an independent analysis, adversarial reviews, a from-scratch design study by
 Codex), and as code by a step-back review (Codex and an independent agent), whose findings are applied. Measurements:
 `IMPACT-TIMING.md`.*
 
@@ -83,15 +83,15 @@ with (`rideTime(span end) ≤ track duration`). All 194 saved records on the own
 ## What the compiler records
 
 In `loadMusicSpec`, and only there: the authored contacts must be strictly increasing (an unsorted spec is rejected, not
-sorted), so index *i* is the same target before and after any shift. `beats = contacts.map(c => c.t)` before the jolt; asserted
+sorted), so index *i* is the same target before and after any perturbation. `beats = contacts.map(c => c.t)`; asserted
 `beats.length === targets.length`. Saved in the ride record beside `impactEvaluation`, never inside the impact ruler's objects
 or any identity-bearing input (evaluation case identities are unchanged). A perturbed evaluation cell keeps the unperturbed
 beats: perturbation tests robustness, the musical moment does not move. Records saved before have no beats: as compiled, until
 recompiled.
 
-## The jolt
+## The jolt (removed 11 November)
 
-It shifts every authored contact time before compiling: targets, scoring and the contacts' relation to the other authored curves
+It shifted every authored contact time before compiling: targets, scoring and the contacts' relation to the other authored curves
 all move (per hit, 0 or +25 ms after rounding). With the offset derived from each ride, presentation no longer depends on it.
 
 - **Jolt 0**, code kept: in the same change, the early-contact check moves to spec validation (a jolt of 0 already skips
@@ -99,6 +99,9 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
   two resolved input identities differing only in the jolt, the V7.1 panel, completion and every ruler reported, and acceptance
   bounds agreed beforehand.
 - **Later:** remove the jolt, and the spec type's unused `music.offset` (read only by the spec dashboard, set by no spec).
+- **Done (11 November):** the comparison was inconclusive (REWORK.md), and the owner removed the jolt: contacts are compiled at
+  their authored times, a contact before the earliest catchable 0.125 s is refused when the spec loads, and `music.offset` is
+  gone.
 
 ## Stages and proofs
 
@@ -140,6 +143,9 @@ all move (per hit, 0 or +25 ms after rounding). With the offset derived from eac
    own), the span was enforced by some callers only (now by the writer), a compare export of a perturbed cell failed (now
    through the evaluation's own case), and two compatibility paths. The cross-offset test now covers hit effects.
 4. **Jolt 0** (compiler): the declared comparison; rides recompiled; offsets adapt by themselves (about 14 ms instead of 29).
+   **Done (11 November):** the comparison was inconclusive (V7.1, 4 seeds: −4.1 [−14.7, +6.4], 18 specs up, 17 down, no ride
+   lost); the owner removed the jolt entirely. Records compiled under it are refused by the evaluation tools (recompile them);
+   saved rides still align themselves from their beats.
 
 ## Out of scope
 

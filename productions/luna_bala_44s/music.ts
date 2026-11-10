@@ -72,8 +72,8 @@ export const LAST_KICK = 42.957;
 
 /**
  * The first sung word (G4, salience 1.0), at its vocal attack (see header). The
- * compiler cannot land it: with it as the first contact (0.189 s after the -15 ms
- * jolt, frame 8) every Luna variant failed at once with `no_arc` (6 of 6 compiles,
+ * compiler cannot land it: with it as the first contact (then compiled 15 ms later,
+ * 0.189 s, frame 8) every Luna variant failed at once with `no_arc` (6 of 6 compiles,
  * October 31), so no variant lands it; the ride starts on the second word.
  */
 export const FIRST_WORD = 0.174;

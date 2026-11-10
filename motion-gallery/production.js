@@ -73,13 +73,13 @@ async function comparisonChanged(){
  const token=opening,signal=controller?.signal;
  if($('comparison').checked&&previousUrl&&!views[1]){
   // Optional historical playback must neither delay nor prevent the current ride.
-  const url=previousUrl,current=records[0],jolt=manifest.plan.jolt;
+  const url=previousUrl,current=records[0],schema=manifest.plan.schema;
   $('comparison').disabled=true;status('Loading previous automatic arrangement…');
   try{
    const pm=await checked(url.href,signal),pc=pm.cells.find(c=>c.method==='production');
    if(!pc)throw new Error('Missing previous automatic arrangement');
    const previous=await checked(new URL(pc.path,url).href,signal,pc.sha256);
-   if(previous.planSha256!==pm.planSha256||previous.seed!==current.seed||previous.case.id!==current.case.id||pm.plan.jolt!==jolt)throw new Error('Previous arrangement has different musical inputs');
+   if(previous.planSha256!==pm.planSha256||previous.seed!==current.seed||previous.case.id!==current.case.id||pm.plan.schema!==schema)throw new Error('Previous arrangement has different musical inputs');
    for(const key of ['audioSha256','specSha256','analysisSha256','durationFrames'])if(previous.case[key]!==current.case[key])throw new Error('Previous arrangement has different '+key);
    const ride=await prepareRide(previous,new URL(pc.path,url).href,pc.sha256,signal),picture=await pictureFor($('reference'),ride);
    if(token!==opening)return;

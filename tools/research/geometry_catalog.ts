@@ -6,14 +6,15 @@
  * node tools/research/geometry_catalog.ts ARM_DIR */
 import {readdirSync, writeFileSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
-import {readJson} from '../eval/records.ts';
 import {observe} from '../measure/observe.ts';
 import {resolveCase} from '../eval/inputs.ts';
-import {readArmTrack} from '../eval/arms.ts';
+import {readJson} from '../eval/records.ts';
+import {readArmMeta, readArmTrack} from '../eval/arms.ts';
 
 const armDir = process.argv[2], out = 'docs/assets/geometry';
 mkdirSync(out, {recursive: true});
-const arm = {dir: armDir} as any, meta = readJson(join(armDir, 'arm.json'));
+const arm = {dir: armDir} as any;
+readArmMeta(armDir); // refuses an arm compiled under another timing setting
 const cells = readdirSync(join(armDir, 'cells')).filter(f => f.endsWith('.json')).map(f => readJson(join(armDir, 'cells', f))).filter(c => c.complete && c.geometry);
 const usage: Record<string, {frames: number; sections: number; railUsed: number; offered: number}> = {}, total = {frames: 0};
 const candidates: Record<string, Array<{cell: any; i: number; frame: number; frames: number; rail: boolean}>> = {};
@@ -33,7 +34,7 @@ for (const [f, u] of Object.entries(usage).sort((a, b) => b[1].frames - a[1].fra
 
 /** One picture: the gap's lines and two neighbours on each side, and the rider path through the gap. */
 async function draw(name: string, x: {cell: any; i: number; frame: number; frames: number}) {
-  const track = readArmTrack(arm, x.cell.case.id), {music} = await resolveCase(x.cell.case, meta.jolt);
+  const track = readArmTrack(arm, x.cell.case.id), {music} = await resolveCase(x.cell.case);
   const sec = (l: any) => Math.floor((l.id - 1000) / 10000), chain = new Map<number, number>(), last = new Map<number, any>(), count = new Map<number, number>();
   for (const l of track.lines) {
     const s = sec(l), p = last.get(s); let k = count.get(s) ?? 0;

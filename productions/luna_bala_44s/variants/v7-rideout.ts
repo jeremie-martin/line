@@ -65,7 +65,7 @@ const times = landings([FIRST_LANDABLE, PHRASE1_ATTACK, VOICE_REENTRY], KICKS);
 const strength = (t: number) => (t === DROP ? 1.0 : t < DROP ? wordStrength(t) : kickStrength(t, 0.5, 0.18));
 
 // The gap target is the mean of the curve over the gap's frames, so the air steps
-// within ±0.05 s of each ride-out's landings (the -15 ms jolt stays inside).
+// within ±0.05 s of each ride-out's landings.
 const E = 0.05;
 const air = keyframes(kf([
   [0.0, 0.6], [PHRASE1_ATTACK - E, 0.6],

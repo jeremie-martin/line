@@ -4,11 +4,11 @@ import {sourceEvents, vocalFrame} from '../spec-dashboard/music-evidence.js';
 
 it('retains a quieter vocal source at its own timestamp when a drum dominates the merged event', () => {
   const events = [{t: 1, sources: {drums: {t: 1, rise: .8, peak: .9}, vocals: {t: 1.025, rise: .1, peak: .3}}}];
-  const rows = sourceEvents(events, .2);
+  const rows = sourceEvents(events);
   expect(rows).toHaveLength(2);
   expect(rows[0].source).toBe('drums');
-  expect(rows[1]).toMatchObject({source: 'vocals', strength: .1, peak: .3, mergedTime: 1.2});
-  expect(rows[1].t).toBeCloseTo(1.225, 12);
+  expect(rows[1]).toMatchObject({source: 'vocals', strength: .1, peak: .3, mergedTime: 1});
+  expect(rows[1].t).toBe(1.025);
   expect(events[0].sources.vocals.t).toBe(1.025);
 });
 

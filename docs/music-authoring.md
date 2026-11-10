@@ -210,8 +210,8 @@ Observations from one song, not rules. Variants live in
     0.06–0.21 before kicks at 0.38–0.50), but a groove full of them can run
     out of budget (one of two seeds failed).
   - The first landing must come at about 0.2 s or later. Landings at 0.13 s
-    and at 0.17 s (0.19 s once the −15 ms jolt is applied) both failed with
-    `no_arc`.
+    and at 0.17 s (compiled 15 ms later at the time, 0.19 s) both failed with
+    `no_arc`. A contact before 0.125 s (frame 5) is refused when the spec loads.
 - **Room makes a slam.** A float into a big hit (Trouble's drop after a 1.8 s
   break) reaches 0.97–0.98.
 - **Quiet.** Gentle touches read about 0.05–0.15; requests below about 0.05
@@ -402,7 +402,7 @@ compiler/input identities; the specification and original playback speed were
 unchanged.
 
 The initial six-run review suggested seed 404 at standard budget: hook
-mean absolute timing offset 21.2 ms relative to quantized/jolt-adjusted compiler
+mean absolute timing offset 21.2 ms relative to quantized, then 15 ms shifted, compiler
 targets (maximum 50 ms), two extra detected hook impacts, mean achieved strength
 0.381 versus 0.615 requested. Eleven of 39 hook hits measure below 0.25. Shared
 voice/drum contacts average 0.592 achieved versus 0.715 requested; vocal-only

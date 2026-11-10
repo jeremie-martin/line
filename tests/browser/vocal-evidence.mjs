@@ -18,8 +18,7 @@ try {
     const events = JSON.parse(readFileSync(`productions/${song}/events.json`, 'utf8')).events;
     await page.goto(`${base}/spec-dashboard/?spec=${spec}`);
     await page.waitForSelector('[data-evidence-series="rms"]');
-    const offset = data.music.offset;
-    const inRange = t => t + offset >= 0 && t + offset <= data.spec.duration;
+    const inRange = t => t >= 0 && t <= data.spec.duration;
     check(await page.locator('[data-evidence-series]').count() === 2, `${song}: both continuous measurements`);
     for (const source of ['drums', 'bass', 'vocals', 'other']) {
       const expected = events.filter(e => e.sources[source] && inRange(e.sources[source].t)).length;

@@ -22,7 +22,6 @@ import {dirname, join} from 'node:path';
 import {v7Cases, resolveCase} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {digest} from '../eval/inputs.ts';
-import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {searchInterval} from '../../scripts/v0/optimizer/arc_interval.ts';
 import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
@@ -39,7 +38,7 @@ const r4 = (x: number | undefined) => x === undefined || !Number.isFinite(x) ? n
 async function worker(id: string, seed: number) {
   const c = (await v7Cases([seed])).find(x => `${x.song}~${x.variant ?? 'spec'}` === id)!;
   assert(c, `unknown study case: ${id}`);
-  const {spec, music, planned} = await resolveCase(c, resolveJoltMs());
+  const {spec, music, planned} = await resolveCase(c);
   const asks = [undefined, ...music.contacts.map((t: any) => t.impact)];
   const probes: any[] = [];
   const observe: Parameters<typeof withSequenceObserver>[0] = (i, offered, chosen, ctx) => {

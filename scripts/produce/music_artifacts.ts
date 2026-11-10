@@ -4,7 +4,8 @@ import {mkdirSync,readFileSync} from 'node:fs';
 import {join,relative,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {sha,type Case} from '../lib/case.ts';
-import type {Spec} from '../v0/types.ts';
+import {FPS,type Spec} from '../v0/types.ts';
+import {K_BOUNCE_LANDING} from '../lib/detector.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {sliceTimeline,effectiveAxes,axesAtFrame} from '../v0/core/substrate.ts';
 import {extractTrace} from '../v0/core/trace.ts';
@@ -14,27 +15,32 @@ import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 import {inspectRailContacts} from '../gallery/contacts.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
-import {applyJolt} from './jolt.ts';
 import {loadSelect} from './config.ts';
 import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
-/** The authored beats: each contact's time in seconds, exactly as the spec gives it, before the jolt, any perturbation or
- * rounding (generated/concept-lab/docs/TIMING-DESIGN.md). The contacts must be strictly increasing, and are never sorted, so
- * beat i belongs to target i of every compiled case and impact account made from this spec. */
+/** The earliest catchable contact, in seconds: the rider cannot land before frame K_BOUNCE_LANDING. */
+export const EARLIEST_CONTACT_S=K_BOUNCE_LANDING/FPS;
+/** The authored beats: each contact's time in seconds, exactly as the spec gives it and as it is compiled, before any
+ * perturbation or rounding (generated/concept-lab/docs/TIMING-DESIGN.md). The contacts must be strictly increasing, and are
+ * never sorted, so beat i belongs to target i of every compiled case and impact account made from this spec. A contact before
+ * the earliest catchable one is refused, never moved. */
 export function authoredBeats(spec:Spec,source:string):number[]{
   spec.contacts.forEach((c,i)=>assert.ok(i===0||c.t>spec.contacts[i-1].t,
     `${source}: contact ${i} at ${c.t} s is not after contact ${i-1} at ${spec.contacts[i-1]?.t} s; authored contacts must be strictly increasing`));
+  const first=spec.contacts[0];
+  assert.ok(!first||first.t>=EARLIEST_CONTACT_S,
+    `${source}: contact 0 at ${first?.t} s is earlier than the earliest catchable contact, ${EARLIEST_CONTACT_S} s (frame ${K_BOUNCE_LANDING}); move it later`);
   return spec.contacts.map(c=>c.t);
 }
 /** Everything a compile and its judgment need, and the authored beats a saved ride records beside its impact account (they
  * enter no identity: the case, its hashes and the compile are the same with or without them). Reads no audio. */
-export async function loadMusicSpec(definition:any,jolt:number){
+export async function loadMusicSpec(definition:any){
   const cfg=loadSelect(join('productions',definition.song));
   if(definition.variant)cfg.spec=resolve('productions',definition.song,'variants',`${definition.variant}.ts`);
   const module=await import(pathToFileURL(cfg.spec).href);
   const beats=authoredBeats(module.default,relative(process.cwd(),cfg.spec));
-  const spec=normalizeCompilerTimeline(applyJolt(module.default,jolt));
+  const spec=normalizeCompilerTimeline(module.default);
   const durationFrames=Math.round(spec.duration*40),contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
   const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);
   const air=gaps.map(g=>({gap:g.index,target:effectiveAxes(g,spec).air}));
@@ -43,8 +49,8 @@ export async function loadMusicSpec(definition:any,jolt:number){
     Array.from({length:durationFrames+1},(_,f)=>axesAtFrame(f,spec)[a]??null)]));
   return {spec,cfg,bench:module.bench,beats,musicCase:{...definition,id:definition.song,durationFrames,contacts,air,samples,phases:module.overlayMeta?.phases??[]}};
 }
-export async function loadMusicCase(definition:any,jolt:number){
-  const {spec,cfg,beats,musicCase}=await loadMusicSpec(definition,jolt),hash=(p:string)=>sha(readFileSync(p));
+export async function loadMusicCase(definition:any){
+  const {spec,cfg,beats,musicCase}=await loadMusicSpec(definition),hash=(p:string)=>sha(readFileSync(p));
   return {spec,cfg,beats,musicCase:{...musicCase,source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),
     audioSha256:hash(cfg.audio),analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render}};
 }

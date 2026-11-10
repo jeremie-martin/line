@@ -8,9 +8,8 @@ import {createHash} from 'node:crypto';
 import {galleryCompilerIdentity,galleryHarnessIdentity,writeGalleryJson} from '../gallery/artifacts.ts';
 import {repertoireSongs,validateAutomaticProductionRequest} from '../gallery/repertoire_catalog.ts';
 import {lockArtifacts} from '../lib/artifact_lock.ts';
-import {resolveJoltMs} from './jolt.ts';
 import {loadMusicCase} from './music_artifacts.ts';
-import {musicSource,assertLibraryEntry} from './library_plan.ts';
+import {musicSource,assertLibraryEntry,assertLibrarySchema,LIBRARY_SCHEMA} from './library_plan.ts';
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
 const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),pool=new WorkerPool(workerJobs(arg('jobs',phase==='render'?'1':'3')));
 if(!['compile','render','index'].includes(phase))throw new Error('invalid phase');
@@ -24,13 +23,13 @@ try {
   const referenceRoot=resolve(arg('reference-root','generated/production-repertoire/library-qualified'));
   const planPath=join(out,'collection-plan.json');
   const compilerRoot=resolve(arg('compiler-root','.'));
-  const compiler=galleryCompilerIdentity(compilerRoot),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts','scripts/produce/library_plan.ts','scripts/produce/jolt.ts','scripts/produce/config.ts']);
+  const compiler=galleryCompilerIdentity(compilerRoot),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts','scripts/produce/library_plan.ts','scripts/produce/config.ts']);
   if(phase==='compile'){
-   const jolt=resolveJoltMs(),sources=Object.fromEntries(await Promise.all(repertoireSongs.map(async song=>[song.id,musicSource((await loadMusicCase({song:song.id,title:song.title,moments:[]},jolt)).musicCase)])));
-   const plan={schema:'line.production-library-plan.v2',compilerRoot,compiler,harness,jolt,sources,requests,referenceRoot};
+   const sources=Object.fromEntries(await Promise.all(repertoireSongs.map(async song=>[song.id,musicSource((await loadMusicCase({song:song.id,title:song.title,moments:[]})).musicCase)])));
+   const plan={schema:LIBRARY_SCHEMA,compilerRoot,compiler,harness,sources,requests,referenceRoot};
    if(existsSync(planPath))assert.deepEqual(readChecked(planPath),plan,'library inputs changed; preserve this collection and choose a fresh output directory');else writeGalleryJson(out,'collection-plan.json',plan);
   }else if(!existsSync(planPath))throw new Error('compile the predeclared collection first');
-  const plan=readChecked(planPath);assert.equal(plan.schema,'line.production-library-plan.v2','collection needs an explicit input manifest');
+  const plan=readChecked(planPath);assertLibrarySchema(plan);
   const entries=plan.requests.map((r:any)=>({...r,status:'scheduled',manifest:undefined,error:undefined}));
   function checkedManifest(entry:any){
    const dir=join(out,entry.id),m=readChecked(join(dir,'manifest.json')),p=readChecked(join(dir,'plan.json'));
@@ -57,7 +56,7 @@ try {
    writeGalleryJson(dir,'request.json',entry.request);
    const args=phase==='compile'?['scripts/produce/automatic.ts','--request='+join(dir,'request.json'),'--out='+dir,'--compiler-root='+plan.compilerRoot]:['scripts/produce/render_repertoire.ts','--study='+dir];
    const fd=openSync(join(dir,phase+'.log'),'a');
-   try{await pool.worker(args,{env:{LR_JOLT_OFFSET_MS:String(plan.jolt)},stdio:['ignore',fd,fd]});
+   try{await pool.worker(args,{stdio:['ignore',fd,fd]});
    }catch(e){failures.push(entry.id+': '+String(e));writeGalleryJson(dir,phase==='compile'?'failure.json':'render-failure.json',{error:String(e)});}
    finally{closeSync(fd);index();console.log(JSON.stringify({id:entry.id,phase,status:entry.status,video:entry.video,error:entry.error}));}
   }

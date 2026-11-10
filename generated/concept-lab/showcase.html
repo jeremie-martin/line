@@ -27,6 +27,8 @@ const canvasOf = (w, h) => {const c = document.createElement('canvas'); c.width 
 const big = canvasOf(cfg.big.w, cfg.big.h), bigPicture = createPicture(big, scene, replay, sheet, N.riderPainter());
 const tile = cfg.tile && canvasOf(cfg.tile.w, cfg.tile.h), tilePicture = tile && createPicture(tile, scene, replay, sheet, N.riderPainter());
 
+// a theme's name as shown: its registry label without the version
+const nameOf = id => THEMES[id].name.replace(/ · v1$/, '');
 const INK = '#f1efe9', SOFT = '#9b9890', FAINT = '#5f5d58', LINE = '#2b2a28';
 const onShow = t => {let k = 0; for (let i = 0; i < cfg.cuts.length; i++) if (t >= cfg.cuts[i]) k = i; return k;};
 function wrap(text, x, y, width, lineHeight) {
@@ -49,7 +51,7 @@ function drawWall(t) {
   const hx = cfg.header.x, hw = cfg.header.w;
   g.textBaseline = 'alphabetic'; g.fillStyle = SOFT; g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '6px';
   g.fillText(cfg.kicker.toUpperCase(), hx, cfg.header.y + 30); g.letterSpacing = '0px';
-  g.fillStyle = INK; g.font = '600 120px "DM Sans"'; g.fillText(THEMES[id].name, hx - 6, cfg.header.y + 190);
+  g.fillStyle = INK; g.font = '600 120px "DM Sans"'; g.fillText(nameOf(id), hx - 6, cfg.header.y + 190);
   g.fillStyle = SOFT; g.font = '400 40px "DM Sans"'; wrap(THEMES[id].line, hx, cfg.header.y + 260, hw * 0.72, 54);
   const py = cfg.header.y + cfg.header.h - 18, seg = (hw - (cfg.tiles.length - 1) * 10) / cfg.tiles.length;
   // where we are in the song: its section (the drop named as such) and the time
@@ -69,7 +71,7 @@ function drawWall(t) {
     g.save(); rounded(x, y, cfg.tile.w, cfg.tile.h, 10); g.clip(); g.drawImage(tile, x, y); g.restore();
     const on = i === k;
     g.lineWidth = on ? 4 : 1; g.strokeStyle = on ? INK : LINE; rounded(x - (on ? 6 : 0), y - (on ? 6 : 0), cfg.tile.w + (on ? 12 : 0), cfg.tile.h + (on ? 12 : 0), on ? 15 : 10); g.stroke();
-    g.fillStyle = on ? INK : FAINT; g.font = `${on ? 600 : 400} 30px "DM Sans"`; g.fillText(THEMES[tid].name, x, y + cfg.tile.h + 44);
+    g.fillStyle = on ? INK : FAINT; g.font = `${on ? 600 : 400} 30px "DM Sans"`; g.fillText(nameOf(tid), x, y + cfg.tile.h + 44);
   });
 }
 
@@ -93,7 +95,7 @@ function drawSolo(t) {
   const age = t - cfg.cuts[k], a = Math.min(1, age / 0.25, Math.max(0, (2.2 - age) / 0.5));
   if (a > 0) {
     g.save(); g.globalAlpha = a; g.fillStyle = captionInk(id); g.textAlign = 'center';
-    g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '8px'; g.fillText(THEMES[id].name.toUpperCase(), frame.width / 2, frame.height - 74);
+    g.font = '500 30px "IBM Plex Mono"'; g.letterSpacing = '8px'; g.fillText(nameOf(id).toUpperCase(), frame.width / 2, frame.height - 74);
     g.restore();
   }
 }

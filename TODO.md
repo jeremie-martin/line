@@ -45,9 +45,9 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
     - Done: the review player draws the video picture too (plain by default, any
       theme), with contact inspection as an overlay (owner, 2026-11-08).
     - Kept by the owner's choice (2026-11-08): the specs' `camera` (zoom lanes,
-      beat punch) and `select.json`'s `render` stay as authored, though the
-      renderer reads neither. Both enter compile identities (`specSha256`, and
-      `resolvedSha256` through `loadMusicCase`).
+      beat punch) stays as authored, though the renderer does not read it. It
+      enters compile identities (`specSha256`). `select.json` (with its `render`
+      block) went with the production characterization (2026-11-11).
 
 ## Open questions kept from the retired night report (asked 2026-10-05)
 

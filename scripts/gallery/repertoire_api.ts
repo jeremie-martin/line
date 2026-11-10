@@ -6,7 +6,6 @@ import {createHash,randomUUID} from 'node:crypto';
 import {existsSync,mkdirSync,readFileSync,readdirSync,writeFileSync,renameSync,openSync,closeSync} from 'node:fs';
 import {join,relative} from 'node:path';
 import {compilerIdentity} from '../lib/compiler_identity.ts';
-import {loadSelect} from '../produce/config.ts';
 import {repertoireCatalog,validateAutomaticProductionRequest,type AutomaticProductionRequest} from './repertoire_catalog.ts';
 const hash=(data:string|Buffer)=>createHash('sha256').update(data).digest('hex');
 const json=(res:ServerResponse,data:unknown,status=200)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store'});res.end(JSON.stringify(data));};
@@ -38,10 +37,10 @@ export function createRepertoireApi(root=process.cwd()){
   // and all of the shared artifact harness. Never cache by title.
   const compiler=compilerIdentity(root).candidateFingerprint;
   const paths=['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/gallery/repertoire_catalog.ts',
-   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts','scripts/produce/config.ts','scripts/produce/measure.ts',
+   'scripts/gallery/artifacts.ts','scripts/gallery/contacts.ts','scripts/gallery/verify_construction.ts',
    ...readdirSync(join(root,'productions',request.song)).filter(p=>/\.(ts|json)$/.test(p)).map(p=>`productions/${request.song}/${p}`)];
-  const cfg=loadSelect(join(root,'productions',request.song));
-  return hash(JSON.stringify({request,compiler,spec:hash(readFileSync(cfg.spec)),audio:hash(readFileSync(cfg.audio)),render:cfg.render,files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
+  const song=join(root,'productions',request.song);
+  return hash(JSON.stringify({request,compiler,spec:hash(readFileSync(join(song,'spec.ts'))),audio:hash(readFileSync(join(song,'audio.mp3'))),files:paths.map(p=>[p,hash(readFileSync(join(root,p)))])}));
  }
  function pump(){
   if(closed)return;

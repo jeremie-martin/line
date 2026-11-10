@@ -61,8 +61,7 @@ for (const id of ids) {
   writeFileSync(join(staging, 'upload.json'), JSON.stringify({project: 'musical-direction-review', song: id, video: 'video.mp4', created_at: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     // git_sha is the commit that compiled the ride, as it always was; the renderer's commit is recorded beside it
     values: {seed: cell.seed, rep: 0}, meta: {git_sha: manifest.plan.compiler.head, render_git_sha: gitSha, generator_host: hostname(), look: lookName,
-      score: Number((impactPath ? cell.score.score : cell.metrics.score).toFixed(1)), revolutions: Number(cell.metrics.rotations.toFixed(2)),
-      standTimePct: Number(cell.metrics.standTimePct.toFixed(2)), budget: cell.allowance ?? cell.budget}}, null, 2));
+      score: Number((impactPath ? cell.score.score : cell.metrics.score).toFixed(1)), budget: cell.allowance ?? cell.budget}}, null, 2));
   rmSync(folder, {recursive: true, force: true}); mkdirSync(join(root, 'videos', id), {recursive: true}); renameSync(staging, folder);
   rmSync(work, {recursive: true, force: true});
   const media = (file: string) => ({path: relative(root, join(folder, file)), sha256: hash(join(folder, file))});

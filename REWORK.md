@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: the old production characterization removed (structural, owner's decision)
+
+The owner: the per-song characterization and qualification ("the number of rotations… completely outdated") goes entirely.
+- Removed: `scripts/produce/measure.ts` (production metrics and the qualification floors), `scripts/produce/config.ts` (the
+  `select.json` and `characterization.json` schemas, floor derivation, `loadSelect`), the 11 `select.json`,
+  `characterization.json` and `select.suggested.json` files, the cells' `metrics` field and the `revolutions` and
+  `standTimePct` of `upload.json`. With them, code only they reached: `scripts/v0/score.ts` (the old drift score) and its test,
+  `scripts/v0/core/trace.ts` and `scripts/lib/rotation.ts`. No ruler or compiler used any of it.
+- A song is now its directory: `spec.ts` (or a variant), `audio.mp3`, `audio.json`. Every song already used those defaults.
+  `select.json`'s `render` block, read by nothing, goes too.
+- Identities change knowingly: `render` left the music case (evaluation `resolvedSha256`, production `musicSource`) and the
+  compiler content lost dead files, so saved arms are recompiled. No parity or test reference stores them.
+- Proof: compile parity byte-identical against the previous commit's references (25 cells), judge parity, tests (570, in a
+  clean worktree of this commit; the drift score's 13 went with it) and typecheck pass; reach finds nothing unreachable
+  from this change (it lists `scripts/video/choose.js`, dead since 266d1db2).
+
 ## November 11: jolt 0, declared before running (timing stage 4)
 
 The jolt still shifts every authored contact 15 ms later before compiling (`scripts/produce/jolt.ts`, `JOLT_DEFAULT_MS = -15`,

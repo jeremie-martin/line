@@ -6,7 +6,7 @@ import {createHash} from 'node:crypto';
 export function musicSource(c: any) {
   return {specSha256: c.specSha256, audioSha256: c.audioSha256, analysisSha256: c.analysisSha256,
     resolvedSha256: createHash('sha256').update(JSON.stringify({duration: c.durationFrames, contacts: c.contacts,
-      air: c.air, samples: c.samples, phases: c.phases, render: c.render})).digest('hex')};
+      air: c.air, samples: c.samples, phases: c.phases})).digest('hex')};
 }
 /** v3: contacts compiled at their authored times. A v2 collection moved them first (15 ms later by default). */
 export const LIBRARY_SCHEMA = 'line.production-library-plan.v3';

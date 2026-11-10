@@ -246,7 +246,10 @@ and validation are in [music authoring](docs/music-authoring.md).
      [0, 0.5 s], otherwise shown *as compiled* (offset 0, the reason saved). The
      beats are the spec's contact times as authored (`authoredBeats` in
      `scripts/produce/music_artifacts.ts`, which rejects contacts that are not
-     strictly increasing); a ride records them beside its impact account, outside
+     strictly increasing or come before the earliest catchable 0.125 s; contacts
+     are compiled at exactly these times). A song is its directory
+     `productions/<song>/`: `spec.ts` (or `variants/<name>.ts`), `audio.mp3` and
+     its analysis `audio.json`, nothing else. A ride records them beside its impact account, outside
      every identity. Rides saved before 8 November have none and stay as compiled.
    - `scene.ts` builds what every consumer reads: the ride (its track, and for a
      compiled production its trace), its impact account projected as recorded, in

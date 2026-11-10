@@ -23,7 +23,7 @@ try {
   const referenceRoot=resolve(arg('reference-root','generated/production-repertoire/library-qualified'));
   const planPath=join(out,'collection-plan.json');
   const compilerRoot=resolve(arg('compiler-root','.'));
-  const compiler=galleryCompilerIdentity(compilerRoot),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts','scripts/produce/library_plan.ts','scripts/produce/config.ts']);
+  const compiler=galleryCompilerIdentity(compilerRoot),harness=galleryHarnessIdentity(['scripts/produce/automatic.ts','scripts/produce/music_artifacts.ts','scripts/produce/production_library.ts','scripts/gallery/repertoire_catalog.ts','scripts/produce/library_plan.ts']);
   if(phase==='compile'){
    const sources=Object.fromEntries(await Promise.all(repertoireSongs.map(async song=>[song.id,musicSource((await loadMusicCase({song:song.id,title:song.title,moments:[]})).musicCase)])));
    const plan={schema:LIBRARY_SCHEMA,compilerRoot,compiler,harness,sources,requests,referenceRoot};

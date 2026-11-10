@@ -8,15 +8,12 @@ import {FPS,type Spec} from '../v0/types.ts';
 import {K_BOUNCE_LANDING} from '../lib/detector.ts';
 import {normalizeCompilerTimeline} from '../v0/optimizer/compiler_input.ts';
 import {sliceTimeline,effectiveAxes,axesAtFrame} from '../v0/core/substrate.ts';
-import {extractTrace} from '../v0/core/trace.ts';
 import {arcRailGroups} from '../v0/optimizer/arc_guidance.ts';
 import {arcMainSteps} from '../v0/optimizer/arc_geometry.ts';
 import {guideFootprint} from '../v0/optimizer/arc_guide_choice.ts';
 import {inspectRailContacts} from '../gallery/contacts.ts';
 import {replayGalleryTrack,writeGalleryJson} from '../gallery/artifacts.ts';
 import {verifyMainConstruction} from '../gallery/verify_construction.ts';
-import {loadSelect} from './config.ts';
-import {measure} from './measure.ts';
 import {contactImpactGrade} from '../gallery/contact_impact_grade.ts';
 
 /** The earliest catchable contact, in seconds: the rider cannot land before frame K_BOUNCE_LANDING. */
@@ -36,8 +33,9 @@ export function authoredBeats(spec:Spec,source:string):number[]{
 /** Everything a compile and its judgment need, and the authored beats a saved ride records beside its impact account (they
  * enter no identity: the case, its hashes and the compile are the same with or without them). Reads no audio. */
 export async function loadMusicSpec(definition:any){
-  const cfg=loadSelect(join('productions',definition.song));
-  if(definition.variant)cfg.spec=resolve('productions',definition.song,'variants',`${definition.variant}.ts`);
+  // A song is its directory: spec.ts (or variants/<name>.ts), audio.mp3 and its analysis audio.json.
+  const song=join('productions',definition.song);
+  const cfg={spec:resolve(song,...definition.variant?['variants',`${definition.variant}.ts`]:['spec.ts']),audio:resolve(song,'audio.mp3')};
   const module=await import(pathToFileURL(cfg.spec).href);
   const beats=authoredBeats(module.default,relative(process.cwd(),cfg.spec));
   const spec=normalizeCompilerTimeline(module.default);
@@ -52,7 +50,7 @@ export async function loadMusicSpec(definition:any){
 export async function loadMusicCase(definition:any){
   const {spec,cfg,beats,musicCase}=await loadMusicSpec(definition),hash=(p:string)=>sha(readFileSync(p));
   return {spec,cfg,beats,musicCase:{...musicCase,source:relative(process.cwd(),cfg.spec),specSha256:hash(cfg.spec),audioPath:relative(process.cwd(),cfg.audio),
-    audioSha256:hash(cfg.audio),analysisSha256:hash(join('productions',definition.song,'audio.json')),render:cfg.render}};
+    audioSha256:hash(cfg.audio),analysisSha256:hash(join('productions',definition.song,'audio.json'))}};
 }
 /** Keep the established cell/manifest contract shared by both native and production renderers. `beats` are the case's authored
  * beats (loadMusicSpec), saved beside the impact account, one per target. */
@@ -105,7 +103,6 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;beats:num
         if(!same)changedMotionFrames++;
       }
     }
-    const metrics=measure(seed,result.track,result.report,extractTrace(result.track));
     const id=`${c.id}-${seed}-${method}`,dir=join(out,id);mkdirSync(dir,{recursive:true});
     const save=(name:string,value:unknown)=>writeGalleryJson(dir,name,value);
     save('track.json',result.track);save('report.json',result.report);
@@ -118,7 +115,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;beats:num
       compileMs,physicalFrames,...(production?{production}:{}),validationMs:performance.now()-validationStarted,lines:result.track.lines.length,
       trackHash:sha(JSON.stringify(result.track)),observations:grade.observations,contacts:grade.contacts,offBeat:grade.offBeat,
       terminus:grade.terminus,failure:result.failure,valid,qualityRms:grade.score.weightedAxisRms,usage,sections,
-      geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),metrics,
+      geometryVerification,contactSummary:inspection.summary,collisionSha256:sha(JSON.stringify(collisionIds)),
       construction:{styles,phrases,fragmentSections,fragmentConstruction:composition?.fragmentConstruction,boundaryFrame:composition?.boundaryFrame??null,stages:composition?.attempts,prefixFrames,changedMotionFrames,
         changedSections:composition?.changedSections??[],baseTrackHash:method==='baseline'||!reference?null:sha(JSON.stringify(reference.track))},
       trackPath:relative(out,join(dir,'track.json')),reportPath:relative(out,join(dir,'report.json')),

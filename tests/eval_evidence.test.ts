@@ -92,8 +92,7 @@ it('failed workers make the actual CLI fail, retaining a resumable plan but no s
     const songDir = join(root, 'productions', song); mkdirSync(join(songDir, 'variants'), {recursive: true});
     writeFileSync(join(songDir, 'variants', 'sealed-fixture.ts'), `export const bench = {stratum: 'P1', pattern: 'fixture', windows: [[.5, 1.5]]};
 export default {duration:2,preroll:0,contacts:[{t:.6,impact:.4},{t:1.2,impact:.5}],axes:{air:()=>.5,speed:()=>.5}};`);
-    writeFileSync(join(songDir, 'select.json'), JSON.stringify({audio: 'audio.wav'}));
-    writeFileSync(join(songDir, 'audio.wav'), audio);
+    writeFileSync(join(songDir, 'audio.mp3'), audio); // hashed, never decoded
     writeFileSync(join(songDir, 'audio.json'), '{}');
     writeFileSync(join(songDir, 'spec.ts'), 'export default {duration:2,preroll:0,contacts:[{t:.6,impact:.4},{t:1.2,impact:.5}],axes:{air:()=>.5,speed:()=>.5}};');
   }

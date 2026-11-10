@@ -87,7 +87,7 @@ npm run compare -- review --reference=main --candidate=<branch>          # the p
   leave a lock in its arm; the message names the PID to check first.
 - **Options:**
   - `--only=REGEX`: a subset of cases;
-  - `--jobs=N`: parallel rides (default: available CPUs at about 2 GB each);
+  - `--jobs=N`: parallel rides (default: one per CPU and per 2 GB of memory, whichever is fewer, at most 23);
   - `--budget=standard*F` and `--creative=JSON`: both arms;
   - `--candidate-budget` and `--candidate-creative`: one arm.
 - **Agents:** run it as a tracked background task, so its end is noticed at

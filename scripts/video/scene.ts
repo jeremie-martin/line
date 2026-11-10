@@ -16,7 +16,6 @@ import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
 import {join, relative, resolve} from 'node:path';
 import {repertoireSongs} from '../gallery/repertoire_catalog.ts';
-import {loadSelect} from '../produce/config.ts';
 import {DROP_TIMES} from './drops.ts';
 import {FPS, alignment, rideTime} from './timing.js';
 
@@ -99,9 +98,8 @@ export function spectrum(audioPath: string): Scene['spectrum'] {
   return JSON.parse(readFileSync(out, 'utf8'));
 }
 
-/** The song's recording, repository-relative, resolved as a compile resolves it: select.json's `audio`, by default
- * productions/<song>/audio.mp3. */
-export const songRecording = (song: string) => relative(ROOT, loadSelect(join(ROOT, 'productions', song)).audio);
+/** The song's recording, repository-relative, as a compile resolves it: productions/<song>/audio.mp3. */
+export const songRecording = (song: string) => join('productions', song, 'audio.mp3');
 
 /** The scene of one ride of `song` (a folder of productions/). A saved production is shown over the recording it was compiled
  * and verified against, with its own sections; a bare track over the song's recording, as one section. */

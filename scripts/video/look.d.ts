@@ -7,6 +7,7 @@ export type Look = {readonly [option: string]: string};
 export type LookChoices = {readonly [option: string]: string};
 export const OPTIONS: {readonly [option: string]: readonly [label: string, values: {readonly [value: string]: string}]};
 export const V1: Look;
-export const THEMES: {readonly [name: string]: {name: string; line: string; look: LookChoices}};
+export const THEMES: {readonly [name: string]: {name: string; id: string; line: string; look: LookChoices}};
+export const DEFAULT_THEME: string;
 export const PLAIN: LookChoices;
 export function resolveLook(name?: string | null, overrides?: Record<string, string>): Look;

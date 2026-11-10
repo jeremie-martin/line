@@ -1,5 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
+## November 10: the collection goes into production (owner's decision)
+
+**Why.** 39 rounds of proposing and judging had stopped converging. To test whether an agent's eye could take over some of the judging, I
+predicted 40 of the owner's decisive comparisons blind: no theme whose score I had seen, the answers hidden until my picks were
+written down. My picks matched 26 of 40, 65 % [50, 78]. The rule "the darker theme wins" scores the same 65 %. Where I went
+against that rule I was right 8 of 16 times. So no agent judgement stands in for the owner's beyond that rule, and no taste
+"language" should drive generation. What is reliable is coarse:
+- dark beats light about 7 times in 10 (+0.77 against −0.07);
+- the track is never a colour;
+- no red grounds.
+
+The owner's decision: the themes they consistently liked become the collection, with no quota and no further rounds on them.
+
+**What.** `scripts/video/collection.js` holds 17 themes in 16 families. Each is its frozen round-38 specification (v1), copied
+from the judging registry, with its hash id:
+- **dark:** Jungle Moon (tuned, vermilion), Rothko, Cyanotype, Cerulean and Coral, Cobalt and Chartreuse, Lily White and Leaf
+  Green, Old Rose, Black Iris (bold), Violet and Marigold, Gilt and Amber, Negoro (cream line), Forest Green and Gold;
+- **light:** Amber and Purple, Hokusai, Dune (inked), Silver and Rust.
+
+How it is wired:
+- `look.js` `THEMES` is now this collection. The round-20 to round-28 themes left it; their schemes stay in the palette library.
+- `palettes.js` names each collection scheme by its theme id, as the judging stills are drawn.
+- Productions default to `DEFAULT_THEME` (Jungle Moon, the strongest) instead of Paper Night.
+- The lab's round-29 questions keep their old looks written out, so they play as before.
+
+**Checks.**
+- A new test proves every production theme reproduces its judged id and specification.
+- All 34 stills rendered by theme name are byte-identical to the judged ones.
+- 579 tests, typecheck, reach, compile parity and judge parity pass.
+- The lab loads every round set and plays all 19 presets at 16.7 ms a frame; the question walk passes.
+- The fingerprint's theme cases now name collection themes, so its theme frames have a new baseline.
+- Unchanged and failing before this change too: `check.mjs` reports horizontal overflow at 390 px.
+
+**Next.** Light themes, worked one theme at a time: a few versions of one theme, iterated briefly, as video in the lab.
+
 ## November 10: validation against the visual direction and judging workflow
 
 Reviewed the recent owner decisions through R39 and traced named themes, candidate

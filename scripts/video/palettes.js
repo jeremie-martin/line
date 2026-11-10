@@ -3,6 +3,7 @@
 // A scheme is colours only (LEDGER.md: Schemes). Tokens: paper, ink, pencil, mass (the bars), accent, sun?, nightPaper, nightInk.
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 import {rgb} from './colour.js';
+import {COLLECTION} from './collection.js';
 
 // A scheme is a whole print identity: every colour below comes from these tokens. Validated in agents/round4-ideas (contrast, 4:2:0).
 export const SCHEMES = {
@@ -306,5 +307,12 @@ const DROP_SCHEMES = {graphite: 'black', hokusai: 'midnight', dune: 'espresso', 
   whiteVermilion: 'whiteVermilionDrop',
   // round 27's comparisons (see the copies above)
   w2AubergineToLavender: 'w2AubergineDrop', w2AubergineToAconite: 'w2AubergineDropDark', duneToCafe: 'cafe'};
+
+// The collection's themes (collection.js): each scheme is named by its theme's id, with its drop partner as judged, exactly as
+// the judging stills were drawn (rate/freeze.mjs), so these colours are the judged ones and no named scheme is shared.
+for (const {name, id, spec} of Object.values(COLLECTION)) {
+  SCHEMES[id] = spec.colours; SCHEME_NAMES[id] = name;
+  if (spec.drop) {SCHEMES[`${id}-drop`] = spec.drop; SCHEME_NAMES[`${id}-drop`] = `${name}, drop partner`; DROP_SCHEMES[id] = `${id}-drop`;}
+}
 
 export {LIBRARY, DROP_SCHEMES};

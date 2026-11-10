@@ -1,5 +1,5 @@
 /** The public interface of `npm run video`, shared by fresh productions, saved rides and bare tracks. */
-import {resolveLook} from '../video/look.js';
+import {DEFAULT_THEME, resolveLook} from '../video/look.js';
 
 export function videoRequest(argv: string[]) {
   const args: Record<string, string> = {};
@@ -22,7 +22,7 @@ export function videoRequest(argv: string[]) {
   };
   const integer = (key: string, min: number) => number(key, n => /^\d+$/.test(args[key]) && Number.isSafeInteger(n) && n >= min, min ? 'a positive integer' : 'a nonnegative integer');
   const seconds = (key: string) => number(key, n => Number.isFinite(n) && n >= 0, 'a time in seconds');
-  const lookName = args.look ?? (args.track ? 'plain' : 'paper');
+  const lookName = args.look ?? (args.track ? 'plain' : DEFAULT_THEME);
   const overrides = Object.fromEntries((args.set ?? '').split(',').filter(Boolean).map(kv => {
     const [key, value, extra] = kv.split(':');
     if (!value || extra !== undefined) throw new Error(`--set takes key:value pairs separated by commas (got ${kv})`);

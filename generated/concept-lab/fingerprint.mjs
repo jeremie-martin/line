@@ -5,7 +5,7 @@
 import {chromium} from 'playwright';
 import {writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-const THEMES = ['paper', 'hokusai', 'dune', 'prussian', 'celadon', 'aubergine', 'wisteria', 'black', 'plum', 'oldrose', 'ultramarine', 'aconite'];
+const THEMES = ['jungleMoon', 'rothko', 'cyanotype', 'ceruleanCoral', 'oldRose', 'blackIris', 'violetMarigold', 'negoro', 'amberPurple', 'hokusai', 'dune', 'silverRust'];
 export const CASES = [
   ['tomada', 'swatch', '', [0, 0.5, 36.6, 38.27, 40.75]],
   ['tomada', 'swatch', 'top:title', [38.26, 38.3]], ['tomada', 'swatch', 'top:sun,scheme:dune', [38.27]],

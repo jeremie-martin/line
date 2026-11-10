@@ -1,8 +1,9 @@
 // A look: everything the picture can vary, as named options. One source of truth for the concept lab, the films and the
 // finished videos. V1 is the settled default, chosen with the owner in the visual lab (generated/concept-lab/LEDGER.md
-// has the owner's words per piece); a theme is V1 plus a few choices that belong together. Pure: no DOM.
+// has the owner's words per piece); a theme is a judged look of the collection. Pure: no DOM.
 import {SCHEMES, SCHEME_NAMES} from './palettes.js';
 import {COLOUR_RESPONSES} from './grade.js';
+import {COLLECTION} from './collection.js';
 
 /** Every option of every parameter, with its label (the lab shows these). */
 export const OPTIONS = {
@@ -43,42 +44,13 @@ export const V1 = {
   hits: 'v1', irisWeight: 'thin',
 };
 
-/** The golden set's first themes (round 20): each chooses a palette, band, top element, line and drop so that they belong together. */
-export const THEMES = {
-  paper: {name: 'Paper Night', line: 'Graphite, the fork with the loudest in red, the title, Night at the drop.', look: {band: 'fork', accent: 'loud', top: 'title', drop: 'night'}},
-  hokusai: {name: 'Hokusai', line: 'Washi and indigo, the bars, the sun, easing out when quiet.', look: {scheme: 'hokusai', band: 'bars', top: 'sun', zoom: 'quiet'}},
-  dune: {name: 'Dune to Espresso', line: 'Sand and rust with its sun; at the drop it cuts to coffee, the sun staying.', look: {scheme: 'dune', band: 'bars', top: 'sun', drop: 'switch'}},
-  prussian: {name: 'Prussian', line: 'Wada 343: ivory, a deep Prussian-teal band, the title.', look: {scheme: 'wPrussian', band: 'bars', top: 'title'}},
-  celadon: {name: 'Celadon', line: 'Wada 171: celadon paper, a maroon band, a marigold sun.', look: {scheme: 'w2Celadon', band: 'bars', top: 'sun'}},
-  aubergine: {name: 'Aubergine', line: 'Wada 307: lilac paper and an aubergine band; at the drop, its own night.', look: {scheme: 'w2Aubergine', band: 'bars', drop: 'switch'}},
-  wisteria: {name: 'Wisteria', line: 'Wada 197: near-white grey, a violet fork, plain paper.', look: {scheme: 'w2Wisteria', band: 'fork', accent: 'loud', paper: 'plain'}},
-  // dark palettes are inked from the start (R21: all ink over whole rail over pencil → ink)
-  black: {name: 'Black Iris', line: 'Black, the Iris band, the whole course inked.', look: {scheme: 'black', band: 'iris', line: 'ink'}},
-  plum: {name: 'Plum', line: 'Plum and amber, the bars, the whole course inked, the title.', look: {scheme: 'plum', band: 'bars', line: 'ink', top: 'title'}},
-  oldrose: {name: 'Old Rose', line: 'Wada 265: violet-black, an old-rose band, all ink, the title.', look: {scheme: 'wOldRose', band: 'bars', line: 'ink', top: 'title'}},
-  ultramarine: {name: 'Ultramarine', line: 'Wada 295: violet-black, a pure blue band, the whole course inked.', look: {scheme: 'wUltramarine', band: 'bars', line: 'ink'}},
-  aconite: {name: 'Aconite', line: 'Wada 344: midnight paper, an aconite band, all ink.', look: {scheme: 'w2Aconite', band: 'bars', line: 'ink'}},
-  // candidates of the theme study (8 November, concept-lab/theme-proposals.html), judged in round 27
-  seashell: {name: 'Seashell Night', line: 'Wada 194: peach-shell paper, an Olympic-blue band, a jasper-red bar; Night at the drop.', look: {scheme: 'w2Seashell', band: 'bars', drop: 'night'}},
-  peony: {name: 'Peony to Magenta', line: 'Wada 204 → 144: ice-blue paper and a magenta band; at the drop the page goes black, the band stays.', look: {scheme: 'w2Peony', band: 'bars', drop: 'switch'}},
-  kraft: {name: 'Kraft Poster', line: 'Brown kraft, black line, rust bars, the loudest in white ink, the title: a screenprinted gig poster.', look: {scheme: 'kraftPoster', band: 'bars', top: 'title', line: 'ink'}},
-  cyanotype: {name: 'Cyanotype', line: 'Blueprint blue, a white line, pale-blue bars and a yellow sun.', look: {scheme: 'cyanotypeBright', band: 'bars', top: 'sun', line: 'ink'}},
-  apricot: {name: 'Apricot', line: 'Wada 253: slate-black, an apricot band, one lemon bar: the brightest dark.', look: {scheme: 'w2Apricot', band: 'bars', line: 'ink'}},
-  // drafts of the second theme study (8 November), judged in round 27
-  bricklacquer: {name: 'Brick to Lacquer', line: 'Wada 325 to Kintsugi: cream and a rose-brick band; at the drop, black lacquer, the line and the title turn gold.', look: {scheme: 'wBrick', band: 'bars', top: 'title', drop: 'switch'}},
-  heather: {name: 'Heather', line: 'Wada 338: a pink page, a dusky-green fork, the loudest in orange-yellow, the whole rail inked on touch, the title.', look: {scheme: 'w2Heather', band: 'fork', accent: 'loud', line: 'rail', top: 'title'}},
-  lavender: {name: 'Lavender Dusk', line: 'Lavender: lilac-grey paper, the Iris band in its own violets, an apricot sun.', look: {scheme: 'lavender', band: 'iris', top: 'sun'}},
-  cobalt: {name: 'Cobalt', line: 'Wada 333: mint paper, a pure blue band, one sienna bar, easing out when quiet.', look: {scheme: 'w2CobaltBright', band: 'bars', zoom: 'quiet'}},
-  rothko: {name: 'Rothko', line: 'The Seagram murals: a maroon room, brick bars, a candle-gold bar and a candle-gold sun; the first dark theme with a sun.', look: {scheme: 'rothko', band: 'bars', top: 'sun', line: 'ink'}},
-  lyons: {name: 'Lyons Blue and Gold', line: 'Wada 126 at night: Lyons blue, an ochre-gold band, one ivory bar, the title in ivory.', look: {scheme: 'w2Lyons', band: 'bars', line: 'ink', top: 'title'}},
-  slate: {name: 'Slate', line: 'Fog over a harbour: blue-grey paper, a slate band, the loudest three always mustard, plain paper.', look: {scheme: 'slate', band: 'bars', accent: 'loud', paper: 'plain'}},
-  // round 28's best versions (8 November), graded 8 or more
-  lemonblue: {name: 'Lemon and Blue', line: 'Wada 251: a pale yellow page, a slate fork with red heads, a green sun, the whole rail inked on touch, the title.', look: {band: 'fork', accent: 'loud', top: 'title', line: 'rail', paper: 'plain', scheme: 'lemonBlue'}},
-  whitevermilion: {name: 'White and Vermilion', line: 'Red bars on white, the loudest lifted to vermilion; at the drop a blue page with peach bars.', look: {band: 'bars', accent: 'loud', drop: 'switch', scheme: 'whiteVermilion'}},
-  bluerose: {name: 'Blue and Rose', line: 'A deep blue-green page, a rose fork and a lime sun: one hot note, echoed.', look: {band: 'fork', bandHeight: 'low', top: 'sun', line: 'ink', paper: 'plain', scheme: 'blueRose'}},
-  dawn: {name: 'Blushing Dawn', line: 'Wada 339: a cool morning sheet that blushes to salmon as the ride heats up, violet-blue bars, an English-red sun.', look: {scheme: 'dawn', band: 'bars', top: 'sun'}},
-  silverrust: {name: 'Silver and Rust', line: 'Wada 343: an ivory-buff page, deep olive bars, a burnt-sienna accent and sun.', look: {top: 'sun', line: 'rail', zoom: 'quiet', scheme: 'silverRust', band: 'bars'}},
-};
+/** The themes in production: the collection (collection.js), each exactly as judged. A theme's look is its whole judged look,
+ * its scheme named by its id; its name is its label in the judging registry, bound to that theme for good. */
+export const THEMES = Object.fromEntries(Object.entries(COLLECTION).map(([key, {name, id, line, spec}]) =>
+  [key, {name, id, line, look: {...spec.look, scheme: id}}]));
+
+/** A production's theme when none is named: the collection's strongest in the owner's comparisons (round 38). */
+export const DEFAULT_THEME = 'jungleMoon';
 /** The compiler's review clips: the ride alone, black on white, nothing that could colour a judgement of the motion. */
 export const PLAIN = {paper: 'plain', line: 'ink', band: 'none', top: 'none', drop: 'off', ends: 'none', hits: 'none'};
 

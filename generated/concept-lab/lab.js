@@ -54,7 +54,10 @@ const QUESTIONS = (CANDIDATES?.drafts ?? []).map(d => ({id: d.id, ask: d.name, g
   why: `${d.source}. ${d.line} Each version: ${d.variants.map((v, i) => `${String.fromCharCode(65 + i)} ${v.label}`).join(', ')}. Grade any version out of 10; keep any number.`,
   song: d.song ?? 'circus', t: d.t ?? 18, len: d.len ?? 6, opts: d.variants.map(v => [v.label, {...v.look, ends: 'none'}, v.note]), moments: d.moments ?? DRAFT_MOMENTS}));
 // then the five small choices from the theme reviews (the alternatives are exact copies in palettes.js, deleted once answered)
-const fix = (id, choices = {}) => ({...resolveLook(id), ends: 'none', ...choices});
+// the themes these questions fixed, as they were in round 29 (look.js THEMES is now the collection, 2026-11-10)
+const R29 = {aubergine: {scheme: 'w2Aubergine', band: 'bars', drop: 'switch'}, dune: {scheme: 'dune', band: 'bars', top: 'sun', drop: 'switch'},
+  seashell: {scheme: 'w2Seashell', band: 'bars', drop: 'night'}, black: {scheme: 'black', band: 'iris', line: 'ink'}, ultramarine: {scheme: 'wUltramarine', band: 'bars', line: 'ink'}};
+const fix = (id, choices = {}) => ({...resolveLook(null, R29[id]), ends: 'none', ...choices});
 const DROP_FIX_MOMENTS = [['Into the drop, 36.5 s', 36.5], ['Inside the drop, 44.6 s', 44.6], ['Petrunko, into the drop', 21, 'petrunko'], ['Verse, 18 s', 18]];
 if (CANDIDATES && !ROUND_SET) QUESTIONS.push(
   {id: 'auberginedrop', ask: 'Aubergine’s drop', grades: true, why: 'At the drop Aubergine hands over to a dark partner and carries its carmine accent onto it; today the partner’s bars are carmine too, so the loudest bars vanish for the whole drop. Varies: only the partner’s bars.',

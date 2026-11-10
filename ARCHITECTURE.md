@@ -282,8 +282,11 @@ and validation are in [music authoring](docs/music-authoring.md).
      order. Effective paper, ink, pencil, band, accent and sun colours are passed
      to drawing explicitly. `grade.js` defines each live colour response's
      transform, curve and label together; `colour.js` owns sRGB/OKLCH arithmetic.
-     `look.js` holds the settled defaults (V1), themes and plain review look;
-     `palettes.js` holds the palette library. The saved `paper` option now reads
+     `look.js` holds the settled defaults (V1), the themes and the plain review look;
+     the themes are the collection (`collection.js`): each judged theme's frozen
+     specification and hash id, copied from the judging registry, so a test proves
+     production draws exactly what was judged. `palettes.js` holds the palette
+     library and names each collection scheme by its theme's id. The saved `paper` option now reads
      “Colour response” in the lab; frozen theme specifications keep their keys.
    - **A hit happens at its strongest frame** (round 23), sized by measured
      strength and directed along the line struck at onset. `hits.js` prepares

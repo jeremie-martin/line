@@ -16,13 +16,13 @@ import {sha} from '../lib/case.ts';
 import {writeGalleryJson} from '../gallery/artifacts.ts';
 import {readVerifiedJson, verifiedVideoCell} from './video_input.ts';
 import {buildScene} from '../video/scene.ts';
-import {resolveLook} from '../video/look.js';
+import {DEFAULT_THEME, resolveLook} from '../video/look.js';
 import {writeVideo} from '../video/write.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
 assert.ok(arg('study'), '--study required');
 const root = resolve(arg('study')!), manifest = readVerifiedJson(join(root, 'manifest.json'));
-const lookName = arg('look') ?? 'paper', look = resolveLook(lookName);
+const lookName = arg('look') ?? DEFAULT_THEME, look = resolveLook(lookName);
 const ids: string[] = arg('ids')?.split(',') ?? manifest.cells.filter((c: any) => c.valid).map((c: any) => c.id);
 assert.ok(ids.every(id => manifest.cells.some((c: any) => c.id === id)), 'unknown --ids');
 const hash = (p: string) => sha(readFileSync(p)), gitSha = execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();

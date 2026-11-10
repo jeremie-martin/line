@@ -3,7 +3,9 @@ import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
+import {DEFAULT_THEME, OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
+import {DROP_SCHEMES, SCHEMES} from '../scripts/video/palettes.js';
+import {specOf, themeId} from '../generated/concept-lab/rate/freeze.mjs';
 import {buildScene, rideAccount, screenTitle} from '../scripts/video/scene.ts';
 import {alignment, rideTime, songTime, songTimeOfFrame} from '../scripts/video/timing.js';
 import {CLIP_BEFORE, clipBeats, momentClip, specBeats} from '../tools/measure/clip_render.ts';
@@ -21,7 +23,17 @@ describe('looks', () => {
   it('every theme and the plain look resolve to complete, valid looks', () => {
     for (const name of [...Object.keys(THEMES), 'plain']) expect(Object.keys(resolveLook(name)).sort()).toEqual(Object.keys(OPTIONS).sort());
     expect(resolveLook('plain')).toMatchObject(PLAIN);
-    expect(resolveLook('hokusai', {top: 'title'})).toMatchObject({scheme: 'hokusai', band: 'bars', top: 'title'});
+    expect(resolveLook('hokusai', {top: 'title'})).toMatchObject({scheme: THEMES.hokusai.id, band: 'bars', top: 'title'});
+  });
+  it('every production theme is exactly the theme judged under its name: same specification, same id', () => {
+    const registry = new Map(readFileSync('generated/concept-lab/rate/themes.jsonl', 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l)).map(r => [r.id, r]));
+    expect(Object.keys(THEMES).length).toBe(17);
+    for (const theme of Object.values(THEMES)) {
+      const spec = specOf(resolveLook(null, theme.look), SCHEMES, DROP_SCHEMES);
+      expect(themeId(spec), theme.name).toBe(theme.id);
+      expect(registry.get(theme.id)?.label, theme.id).toBe(theme.name);
+      expect(spec).toEqual(registry.get(theme.id)?.spec);
+    }
   });
   it('refuses unknown themes, options and values instead of drawing something else', () => {
     expect(() => resolveLook('today')).toThrow(/Unknown look: today/);
@@ -41,11 +53,11 @@ describe('the video command', () => {
       ['--song=x', '--from=abc'], ['--song=x', '--seed=-1'], ['--song=x', '--width=0'], ['--id=a', '--song=x']])
       expect(() => videoRequest(args), args.join(' ')).toThrow();
   });
-  it('a production gets the paper look, a bare track the plain one; options, span and width are kept', () => {
-    expect(videoRequest(['--song=x', '--seed=0'])).toMatchObject({lookName: 'paper', look: resolveLook('paper'), seed: 0, width: 1080});
+  it('a production gets the default theme, a bare track the plain one; options, span and width are kept', () => {
+    expect(videoRequest(['--song=x', '--seed=0'])).toMatchObject({lookName: DEFAULT_THEME, look: resolveLook(DEFAULT_THEME), seed: 0, width: 1080});
     expect(videoRequest(['--track=t.json', '--music=petrunko_selection'])).toMatchObject({lookName: 'plain', look: resolveLook('plain')});
     expect(videoRequest(['--study=s', '--look=hokusai', '--set=top:title', '--from=20', '--to=35', '--width=540']))
-      .toMatchObject({look: {scheme: 'hokusai', top: 'title'}, from: 20, to: 35, width: 540});
+      .toMatchObject({look: {scheme: THEMES.hokusai.id, top: 'title'}, from: 20, to: 35, width: 540});
   });
   it('refuses changed artifacts and failed rides before rendering', () => {
     const dir = mkdtempSync(join(tmpdir(), 'line-video-input-'));

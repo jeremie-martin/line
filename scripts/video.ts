@@ -8,7 +8,7 @@ import {videoRequest} from './produce/video_request.ts';
 import {readVerifiedJson, verifiedVideoCell} from './produce/video_input.ts';
 import {buildScene} from './video/scene.ts';
 import {frameCount, frameSize, writeVideo} from './video/write.ts';
-import {THEMES} from './video/look.js';
+import {DEFAULT_THEME, THEMES} from './video/look.js';
 import {sha} from './lib/case.ts';
 
 async function main() {
@@ -20,7 +20,7 @@ if (process.argv.includes('--help')) {
   npm run video -- --track=track.json --music=petrunko_selection
 
 Input:  --song=ID [--seed=N --budget=N] (compiles first), --study=DIR [--id=CELL], or --track=FILE --music=SONG.
-Look:   --look=${Object.keys(THEMES).join('|')}|plain (paper for productions, plain for tracks)
+Look:   --look=${Object.keys(THEMES).join('|')}|plain (${DEFAULT_THEME} for productions, plain for tracks)
         --set=key:value,… changes single options of the look (scripts/video/look.js)
 Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N pixels (1080; the video is 9:16)
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);

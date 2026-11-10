@@ -1,5 +1,7 @@
 # Code map: the videos and the lab, by content
 
+> **History (11 November 2026).** Describes the code before the video housekeeping (a4df4ebd); `ARCHITECTURE.md` and [`docs/visual-system.md`](../../../docs/visual-system.md) are current.
+
 *As of 8 November 2026, after the move to one video renderer (REWORK.md, November 8). Organised by what the code does,
 wherever it lives. Line counts are as of today.*
 

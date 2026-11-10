@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Round thirty-nine</title>
+<style>
+:root{--bg:#f2f3f5;--ink:#1b1f25;--soft:#626a75;--line:#dde0e5;--card:#fff;--in:#1baf7a;--out:#9aa2ad;--surface:#fcfcfb}
+@media (prefers-color-scheme:dark){:root{--bg:#141619;--ink:#e9ebee;--soft:#9aa2ad;--line:#2b2f35;--card:#1d2024;--in:#199e70;--out:#626a75;--surface:#1a1a19}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-text-size-adjust:100%}
+main{max-width:860px;margin:0 auto;padding:28px 16px 64px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+h1{font-size:30px;line-height:1.15;margin:0 0 12px;letter-spacing:-.015em}
+h2{font-size:20px;margin:40px 0 6px}
+.lead,.sub{color:var(--soft);margin:0 0 18px}
+.sub{font-size:15px}
+ol.shared{padding-left:22px;margin:0}
+ol.shared li{margin:0 0 10px}
+.card{display:grid;grid-template-columns:auto 1fr;gap:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 10px}
+.card.off{opacity:.8}
+.stills{display:flex;gap:6px}
+.stills figure{margin:0;text-align:center}
+.stills img{display:block;width:118px;aspect-ratio:9/16;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--surface)}
+.stills figcaption{font-size:11px;color:var(--soft);margin-top:3px}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin:0 0 4px}
+.head b{font-size:18px}
+.chip{font-size:12px;color:var(--soft);border:1px solid var(--line);border-radius:999px;padding:0 8px}
+.score{font-size:13px;color:var(--soft);font-variant-numeric:tabular-nums}
+.card p{margin:0 0 6px;font-size:15px}
+.card p.k{color:var(--soft)}
+.card p.k strong{color:var(--ink);font-weight:600}
+.carry{font-size:13px;color:var(--soft)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;border:0;background:transparent;color:var(--ink);padding:5px 14px;cursor:pointer;min-height:34px}
+.seg button.on.in{background:var(--in);color:#fff}
+.seg button.on.out{background:var(--out);color:#fff}
+input.note,textarea{font:inherit;font-size:15px;flex:1;min-width:180px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);padding:6px 10px}
+textarea{width:100%;min-height:90px}
+#summary{margin-top:10px;min-height:140px}
+.out-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.out-grid .card{grid-template-columns:auto 1fr;gap:10px;padding:10px;margin:0}
+.out-grid .stills img{width:72px}
+.out-grid .head b{font-size:15px}
+.out-grid p{font-size:14px}
+.count{position:sticky;top:0;background:var(--bg);padding:8px 0;font-size:14px;color:var(--soft);border-bottom:1px solid var(--line);z-index:2}
+.count b{color:var(--ink)}
+button.big{font:inherit;font-weight:600;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:10px;padding:10px 18px;cursor:pointer;margin-top:12px}
+#copied{font-size:14px;color:var(--soft);margin-left:10px}
+@media (max-width:600px){.card{grid-template-columns:1fr}.stills img{width:calc(50vw - 36px)}.out-grid .card{grid-template-columns:auto 1fr}.out-grid .stills img{width:60px}}
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">Round thirty-nine · the shortlist</p>
+<h1>Which themes we refine, one by one</h1>
+<p class="lead">From everything so far — 598 comparisons, 34 notes on the judging site, 28 lab rounds and our conversations — 28 theme families in and 18 out. Each family below says why it is in, the one problem I would address, and how. Move anything in or out, add a word where you disagree, then copy your answers to me.</p>
+
+<p class="count" id="count"></p>
+
+<h2>Four problems several themes share</h2>
+<p class="sub">Each is settled first on the themes named, in the lab, and the answer then carried to the others (you still see each one, as a quick confirmation).</p>
+<ol class="shared">
+<li><strong>The track is not a colour.</strong> Near-white on dark grounds, near-black on light ones. Only Negoro breaks it today: cream instead of orange won by about 1.1. This becomes a rule; no question needed.</li>
+<li><strong>The hot bar stands apart from the bars</strong>, in hue and not only lightness: a neighbouring hue separates without clashing (Dune: amber, a neighbour, 0.65 and 1.01; vermilion, the same hue, −0.24; cobalt, the opposite side, −0.48). Settled on Dune, Blushing Dawn and Negoro.</li>
+<li><strong>On light grounds the band holds its own against the track.</strong> A thin band under a heavy track is unbalanced; bold strands beat thin by 0.8 on Black Iris with nothing else changed. Settled on Lavender Dusk and Paper, then Wisteria.</li>
+<li><strong>Grounds.</strong> Dark grounds: warm only when nearly black (Rothko yes, Madder no); green and blue carry colour well. Every theme clearly light or clearly dark. Settled on Gilt and Amber, Moss Ground, Celadon and Kraft.</li>
+</ol>
+
+<h2>Straight through</h2>
+<p class="sub">Strong and with nothing named against them. They go to the final comparisons as they are, unless one of the shared answers applies.</p>
+<div id="pass"></div>
+
+<h2>Fixed in the lab</h2>
+<p class="sub">One lab page each: the theme as it is beside two or three versions, in motion, each version answering the problem named. You can always keep it as it is.</p>
+<div id="fix"></div>
+
+<h2>Brought back</h2>
+<p class="sub">Light themes you praised in words that lost their few comparisons. Drawn here as they were before v1. Your call.</p>
+<div id="back"></div>
+
+<h2>Out</h2>
+<p class="sub">Each with its reason. Bring any back with a click.</p>
+<div class="out-grid" id="out"></div>
+
+<h2>Anything else</h2>
+<textarea id="general" placeholder="A general note (optional)"></textarea>
+<button class="big" id="copy">Copy answers</button><span id="copied"></span>
+<textarea id="summary" readonly hidden></textarea>
+</main>
+<script>
+const DATA = [{"name":"Jungle Moon","group":"pass","carry":["Jungle Moon, tuned · v1","Jungle Moon, vermilion · v1","Jungle Moon, inking · v1"],"score":"2.25 · 1.59 · 1.63","why":"The strongest family; you named it the green ground that works, and vermilion “significantly more elegant” than Wada 276.","problem":null,"plan":"Seven versions down to three: the tuned accent, the vermilion accent, the inking line. Lemon, chartreuse, the first accent and Wada 276 stop here.","ids":["t-5dc2a46a3f84","t-a92dbc8f728b","t-0e0a3a4e60f6"],"ground":"dark","whisper":false},{"name":"Rothko","group":"pass","carry":["Rothko · v1"],"score":"1.86","why":"Second strongest, a Love in round 27. Its ground is warm but nearly black, which is why it escapes the red-ground problem.","problem":null,"plan":"As it is.","ids":["t-2938b354e6e8"],"ground":"dark","whisper":false},{"name":"Cobalt and Chartreuse","group":"pass","carry":["Cobalt and Chartreuse · v1"],"score":"1.52","why":"Strong, no complaint, and the only chartreuse accent.","problem":null,"plan":"As it is.","ids":["t-df6663d14e4d"],"ground":"dark","whisper":false},{"name":"Lily White and Leaf Green","group":"pass","carry":["Lily White and Leaf Green · v1"],"score":"1.23","why":"Strong, no complaint, the only green accent.","problem":null,"plan":"As it is.","ids":["t-e58e6673dc57"],"ground":"dark","whisper":false},{"name":"Old Rose","group":"pass","carry":["Old Rose · v1"],"score":"1.22","why":"“So freaking elegant”, a Love in round 27.","problem":null,"plan":"As it is.","ids":["t-3ea7c5b1b561"],"ground":"dark","whisper":false},{"name":"Black Iris","group":"pass","carry":["Black Iris, bold strands · v1"],"score":"1.12","why":"The Iris band on a near-black ground: “very sharp, very neat”. Bold strands beat thin by 0.8 with nothing else changed.","problem":null,"plan":"Bold strands only; thin stops here.","ids":["t-4205a80aa6d1"],"ground":"dark","whisper":false},{"name":"Violet and Marigold","group":"pass","carry":["Violet and Marigold, tuned · v1"],"score":"1.11","why":"Strong once its ground was tuned (+1.76, the biggest single-change gain on record).","problem":null,"plan":"As it is.","ids":["t-d292d74da185"],"ground":"dark","whisper":false},{"name":"Plum","group":"pass","carry":["Plum · v1"],"score":"0.57","why":"“It looks tremendous… I don't know that I would like to change it”, a Love in round 27. Middling in comparisons, but nothing named against it.","problem":null,"plan":"As it is.","ids":["t-2032bbbdef81"],"ground":"dark","whisper":false},{"name":"Cyanotype","group":"pass","carry":["Cyanotype · v1"],"score":"1.76","why":"Third strongest, a Love in round 27, the blue mid-tone ground.","problem":null,"plan":"As it is. Your round-33 “a bit too much blue” was the full-paper vibrance; v1 gives the paper half. I'll check it in motion.","ids":["t-fdc7a911c6b3"],"ground":"mid","whisper":false},{"name":"Cerulean and Coral","group":"pass","carry":["Cerulean and Coral, Wada 253 · v1"],"score":"1.61","why":"Strong, the only coral bars, a slate-blue mid-tone ground.","problem":null,"plan":"As it is.","ids":["t-27498337b932"],"ground":"mid","whisper":false},{"name":"Hokusai","group":"pass","carry":["Hokusai · v1"],"score":"1.16","why":"Loved from the very first films; the strongest light theme with no complaint.","problem":null,"plan":"As it is. In round 33 you thought its vibrance “maybe a bit too strong”; I'll check v1 in motion.","ids":["t-44cbb7107ee7"],"ground":"light","whisper":false},{"name":"Silver and Rust","group":"pass","carry":["Silver and Rust · v1"],"score":"0.92","why":"The Wada version you gave 8 out of 10. The “middle bars” attempt was the one you found sad, and it stops here.","problem":null,"plan":"As it is.","ids":["t-8a7eaef36d4f"],"ground":"light","whisper":false},{"name":"Negoro Lacquer","group":"fix","shared":"track","carry":["Negoro Lacquer, cream line · v1"],"score":"1.04 (orange track: 0.10, −0.18, −0.19)","why":"A good dark theme once the track is cream: about 1.1 stronger than the same theme with its orange track.","problem":"The orange title still shouts, and the hot bar is weak beside the bars.","plan":"The title out and a sun or moon in, as you suggested; then the hot bar made to stand apart.","ids":["t-dca82d1cc303"],"ground":"dark","whisper":false},{"name":"Gilt and Amber","group":"fix","shared":"ground","carry":["Gilt and Amber · v1"],"score":"1.08","why":"Liked (“It's okay. I like it”). Its sibling Gilt and Lapis lost for its accent, so amber is the accent we keep.","problem":"The ground is warm enough to be “almost on the edge”.","plan":"The same theme on a slightly cooler, more neutral near-black, and one nearer Rothko's.","ids":["t-32fabe4d1ffb"],"ground":"dark","whisper":false},{"name":"Lyons Blue and Gold","group":"fix","carry":["Lyons Blue and Gold · v1"],"score":"0.44","why":"“Pretty fire already.” The boldest navy.","problem":"You'd like a tad more yellow, while the hot bar must still read as intense.","plan":"The bars a step and two steps more yellow; the hot bar kept clearly apart.","ids":["t-21bb344e2c7f"],"ground":"dark","whisper":false},{"name":"Dune","group":"fix","shared":"accent","carry":["Dune, inked · v1"],"score":"1.01 (vermilion −0.24, cobalt −0.48)","why":"Loved since round 5 (“so inspired, so bold”). The inked version is the strongest.","problem":"The hot bar should pop more, with a slightly cleaner separation between the colours.","plan":"The test case for the accent question (below): amber is its neighbour hue; I'd try it brighter and more saturated, and a slightly deeper bar colour behind it.","ids":["t-f11ca2eb1f74"],"ground":"light","whisper":false},{"name":"Blushing Dawn","group":"fix","shared":"accent","carry":["Blushing Dawn · v1"],"score":"0.78","why":"The pale blue light ground you asked for (“not always cream”). An 8 in round 28.","problem":"“Not really fond of the colours, in particular the accent.”","plan":"The orange accent replaced by accents chosen to fit the navy bars on pale blue.","ids":["t-6be23eb262be"],"ground":"light","whisper":false},{"name":"Amber and Purple","group":"fix","carry":["Amber and Purple, Wada 151, no drop · v1"],"score":"1.25","why":"The strongest light theme in comparisons.","problem":"“Missing the mark a little bit in terms of colour elegance and harmony”, with no single part named.","plan":"One version changes the bars and one changes the accent and sun, so your answer tells us which part was off.","ids":["t-c617adb47275"],"ground":"light","whisper":false},{"name":"Lavender Dusk","group":"fix","shared":"band","carry":["Lavender Dusk · v1"],"score":"0.84","why":"A Keep in round 27, the only lavender ground.","problem":"A thin wave under a heavy dark track: “the lack of balance”.","plan":"The test case for the band question (below): bold strands, and the wave in a deeper colour.","ids":["t-208b3c4e85fd"],"ground":"light","whisper":false},{"name":"Paper","group":"fix","shared":"band","carry":["Paper · v1"],"score":"0.67","why":"Graphite and red, loved since round 2: the pure one.","problem":"The same balance question as Lavender Dusk: a thin fork under a black track.","plan":"The fork drawn heavier, against today's.","ids":["t-9d00f5e65ab9"],"ground":"light","whisper":false},{"name":"Moss Ground","group":"fix","shared":"ground","carry":["Moss Ground · v1"],"score":"−0.41","why":"You liked its almost muted, elegant colours; the coloured-ground idea lives on through it.","problem":"The ground is slightly too bright.","plan":"The ground a step and two steps darker.","ids":["t-13021e3b530a"],"ground":"mid","whisper":false},{"name":"Peony","group":"fix","carry":["Peony · v1"],"score":"−0.21","why":"“This works but I'd be curious to try a few variations.” The rose bars on pale blue are unique.","problem":"No fault named; you asked for variations.","plan":"Three deliberate variations: the ground, the accent, the bars' depth.","ids":["t-5390d02a42c2"],"ground":"light","whisper":false},{"name":"Kraft","group":"fix","shared":"ground","carry":["Kraft and Vermilion · v1"],"score":"−0.88","why":"Kraft has had more praise than its scores suggest (“the bars… awesome. The line, I really like them”).","problem":"“Too dark for a light theme, or too bright for a dark one.”","plan":"Choose a side: a lighter kraft with lighter bars, and a true dark kraft with a cream track.","ids":["t-6c94abf25cc6"],"ground":"light","whisper":false},{"name":"Celadon","group":"fix","shared":"ground","carry":["Celadon · v1"],"score":"0.17","why":"“The F looks great” in round 11, a Keep in round 27; the only pale green ground.","problem":"The ground doesn't quite complement the rest.","plan":"The ground moved toward the bars' warmth, and one less green.","ids":["t-037ec7f23079"],"ground":"light","whisper":false},{"name":"Seashell","group":"back","carry":["Seashell, no Night"],"score":"−0.53 (6 comparisons)","why":"“Oh, God, the seashell… Beautiful. Love it.” Seashell Night was a Love in round 27. A blush paper with navy bars: light variety we lack.","problem":"Lost its few comparisons once its drop was gone.","plan":"Brought back as it is, drawn with v1.","ids":["t-da88c4ad1125"],"ground":"light","whisper":true},{"name":"Prussian","group":"back","carry":["Prussian"],"score":"−0.63 (6 comparisons)","why":"“Super elegant. Everything works very well”, a Keep in round 27.","problem":"Lost its few comparisons.","plan":"Brought back as it is, drawn with v1; its title could become a sun.","ids":["t-ebf4d83914c9"],"ground":"light","whisper":true},{"name":"Wisteria","group":"back","shared":"band","carry":["Wisteria"],"score":"−0.41 (6 comparisons)","why":"“Now, the K looks beautiful”, a Keep in round 27. A fork band on a pale aqua ground.","problem":"Probably the same thin-band balance as Paper.","plan":"Brought back with whatever the band question decides.","ids":["t-ef4d04a9fc71"],"ground":"light","whisper":true},{"name":"White and Vermilion","group":"back","carry":["White and Vermilion, no drop · v1"],"score":"−1.03 (3 comparisons)","why":"In round 28 you gave the tuned version 9 out of 10, “lovely”. Only 3 comparisons since.","problem":"Words and comparisons disagree; too few comparisons to trust either.","plan":"Brought back as it is.","ids":["t-736e43c04b89"],"ground":"light","whisper":false},{"name":"Madder Ground","group":"out","carry":["Madder Ground · v1"],"score":"−1.77","why":"“I don't like such a red background.”","ids":["t-9862cd608bdc"],"ground":"mid","whisper":false},{"name":"Dusk Violet Ground","group":"out","carry":["Dusk Violet Ground · v1"],"score":"0.18","why":"“On the edge”; Moss carries the coloured-ground idea.","ids":["t-7be94a5a754e"],"ground":"mid","whisper":false},{"name":"Forest Green and Gold","group":"out","carry":["Forest Green and Gold, Wada 325 · v1"],"score":"0.94","why":"“Not an all-time favourite, far from it. I think we can do better”; Jungle Moon is the dark green.","ids":["t-82ffe91688a8"],"ground":"dark","whisper":false},{"name":"Aubergine","group":"out","carry":["Aubergine, no drop · v1"],"score":"−0.36 (with its drop 1.79)","why":"Loved with its drop, weak without it: it comes back when we look at drops.","ids":["t-5e494ce360ad"],"ground":"light","whisper":false},{"name":"Brick","group":"out","carry":["Brick · v1"],"score":"−0.23 (with its drop 1.65)","why":"The same as Aubergine: loved as Brick to Lacquer.","ids":["t-9a2caad488fc"],"ground":"light","whisper":false},{"name":"Slate","group":"out","carry":["Slate"],"score":"0.41","why":"Good, “not coup de cœur”; Unsure in round 27.","ids":["t-77dcd1b4a4a9"],"ground":"light","whisper":false},{"name":"Ultramarine","group":"out","carry":["Ultramarine, brighter bars · v1"],"score":"0.28","why":"“So cool. Love it” in round 10, then Unsure; Cobalt and Chartreuse and Lyons cover dark blue.","ids":["t-318b1f42c00f"],"ground":"dark","whisper":false},{"name":"Gilt and Lapis","group":"out","carry":["Gilt and Lapis · v1"],"score":"0.14","why":"“I don't like the bar accent”; Gilt continues as Gilt and Amber.","ids":["t-0bd8e7977b8f"],"ground":"dark","whisper":false},{"name":"Night to Morning","group":"out","carry":["Night to Morning, as before, no drop · v1"],"score":"−0.12","why":"“The dark version is the weakest of the two.”","ids":["t-c0c7b65f5a50"],"ground":"dark","whisper":false},{"name":"Salvia","group":"out","carry":["Salvia, Wada 147 · v1"],"score":"−0.75","why":"“Poor colour harmony.”","ids":["t-fcde1606e789"],"ground":"light","whisper":false},{"name":"Pool Blue and Yellow","group":"out","carry":["Pool Blue and Yellow, tuned, no drop · v1"],"score":"−0.61","why":"“Poor colour harmony”; “great drop, I don't love the verse.”","ids":["t-6ca126a930f6"],"ground":"light","whisper":false},{"name":"Kente Green and Gold","group":"out","carry":["Kente Green and Gold · v1"],"score":"0.35","why":"Middling, nothing said for it.","ids":["t-1b349462b3a0"],"ground":"dark","whisper":false},{"name":"Pool Blue Night","group":"out","carry":["Pool Blue Night · v1"],"score":"0.42","why":"Middling, nothing said for it.","ids":["t-d0395ed8d755"],"ground":"dark","whisper":false},{"name":"Amber Night","group":"out","carry":["Amber Night · v1"],"score":"0.75","why":"Middling, nothing said for it; Gilt and Amber is the warm dark one.","ids":["t-aad34b27cee1"],"ground":"dark","whisper":false},{"name":"Chrome Yellow and Madder","group":"out","carry":["Chrome Yellow and Madder, no drop · v1"],"score":"−0.40","why":"Low, nothing said for it.","ids":["t-5b395c9f362a"],"ground":"light","whisper":false},{"name":"Grey Blue and Madder","group":"out","carry":["Grey Blue and Madder, no drop · v1"],"score":"−0.50","why":"Low, nothing said for it.","ids":["t-eb3ec22b35bb"],"ground":"light","whisper":false},{"name":"Buff and Lapis","group":"out","carry":["Buff and Lapis, between · v1"],"score":"−0.95","why":"Low; “something in the middle” was tried.","ids":["t-fe9696f46b92"],"ground":"light","whisper":false},{"name":"Emerald and Cerise","group":"out","carry":["Emerald and Cerise, Wada 270, no drop · v1"],"score":"−1.44","why":"Lowest but one.","ids":["t-9de50f246f17"],"ground":"light","whisper":false}];
+const SET = 'rate/sets/2026-11-09-themes-r38/stills/', KEY = 'round39-shortlist';
+let saved = {};
+try {saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');} catch {}
+const save = () => {try {localStorage.setItem(KEY, JSON.stringify(saved));} catch {}};
+const el = (tag, attrs = {}, ...kids) => {const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) k.startsWith('on') ? e.addEventListener(k.slice(2), v) : e.setAttribute(k, v); e.append(...kids.filter(k => k != null)); return e;};
+const isIn = f => saved[f.name]?.in ?? f.group !== 'out';
+const GROUND = {dark: 'dark ground', mid: 'mid-tone ground', light: 'light ground'};
+
+function count() {
+  const inn = DATA.filter(isIn), g = k => inn.filter(f => f.ground === k).length;
+  document.getElementById('count').innerHTML = `<b>${inn.length} families in</b> · ${g('dark')} dark, ${g('mid')} mid-tone, ${g('light')} light · ${inn.reduce((a, f) => a + f.carry.length, 0)} themes before any new version`;
+}
+function card(f) {
+  const small = f.group === 'out', id = f.ids[0];
+  const stills = el('div', {class: 'stills'}, el('figure', {}, el('img', {src: `${SET}${id}-1.jpg`, alt: `${f.name}, normal part`, loading: 'lazy'}), small ? null : el('figcaption', {}, 'Normal part')),
+    small ? null : el('figure', {}, el('img', {src: `${SET}${id}-2.jpg`, alt: `${f.name}, intense part`, loading: 'lazy'}), el('figcaption', {}, 'Intense part')));
+  const c = el('div', {class: 'card'});
+  const yes = el('button', {class: 'in'}, 'In'), no = el('button', {class: 'out'}, 'Out');
+  const paint = () => {const v = isIn(f); yes.classList.toggle('on', v); no.classList.toggle('on', !v); c.classList.toggle('off', !v); count();};
+  const set = v => () => {saved[f.name] = {...saved[f.name], in: v}; save(); paint();};
+  yes.addEventListener('click', set(true)); no.addEventListener('click', set(false));
+  const note = el('input', {class: 'note', placeholder: 'A note (optional)', value: saved[f.name]?.note ?? ''});
+  note.addEventListener('input', () => {saved[f.name] = {...saved[f.name], note: note.value}; save();});
+  const body = el('div', {},
+    el('div', {class: 'head'}, el('b', {}, f.name), el('span', {class: 'chip'}, GROUND[f.ground]), el('span', {class: 'score'}, `strength ${f.score}`)),
+    el('p', {}, f.why),
+    f.problem ? el('p', {class: 'k'}, el('strong', {}, 'Problem: '), f.problem) : null,
+    f.plan && !small ? el('p', {class: 'k'}, el('strong', {}, f.group === 'pass' ? 'Carried: ' : 'Versions: '), f.plan) : null,
+    !small && f.carry.length > 1 ? el('p', {class: 'carry'}, 'Themes kept: ' + f.carry.join(' · ')) : null,
+    f.whisper && !small ? el('p', {class: 'carry'}, 'Drawn before v1 (no vibrance at the intense part).') : null,
+    el('div', {class: 'row'}, el('span', {class: 'seg'}, yes, no), small ? null : note));
+  c.append(stills, body); paint(); return c;
+}
+for (const f of DATA) document.getElementById(f.group).append(card(f));
+const general = document.getElementById('general');
+general.value = saved._general ?? '';
+general.addEventListener('input', () => {saved._general = general.value; save();});
+document.getElementById('copy').addEventListener('click', async () => {
+  const moved = DATA.filter(f => isIn(f) !== (f.group !== 'out')), notes = DATA.filter(f => saved[f.name]?.note?.trim());
+  const lines = ['Round 39 · the shortlist',
+    moved.length ? 'Moved: ' + moved.map(f => `${f.name} → ${isIn(f) ? 'in' : 'out'}`).join('; ') : 'Moved: nothing, the list as proposed',
+    ...notes.map(f => `${f.name}: ${saved[f.name].note.trim()}`),
+    general.value.trim() ? 'General: ' + general.value.trim() : null].filter(Boolean);
+  const box = document.getElementById('summary'); box.hidden = false; box.value = lines.join('\n');
+  let ok = false;
+  try {await navigator.clipboard.writeText(box.value); ok = true;} catch {}
+  if (!ok) {box.focus(); box.select(); try {ok = document.execCommand('copy');} catch {}}
+  document.getElementById('copied').textContent = ok ? 'Copied ✓ Paste it to me in the chat.' : 'Selected: copy it from the box.';
+});
+</script>
+</body>
+</html>

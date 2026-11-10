@@ -3,7 +3,7 @@
 // A scheme is colours only (LEDGER.md: Schemes). Tokens: paper, ink, pencil, mass (the bars), accent, sun?, nightPaper, nightInk.
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 import {rgb} from './colour.js';
-import {COLLECTION, DROPS} from './collection.js';
+import {COLLECTION, DROPS, DROP_ONLY} from './collection.js';
 
 // A scheme is a whole print identity: every colour below comes from these tokens. Validated in agents/round4-ideas (contrast, 4:2:0).
 export const SCHEMES = {
@@ -317,10 +317,11 @@ for (const {name, id, spec} of Object.values(COLLECTION)) {
 
 // A pairing's scheme is the light theme's colours under the name `<light id>+<dark id>`, handing over to the dark theme's at the drop,
 // so a video's look names its pair exactly and the judged themes stay as they were.
+for (const [key, {name, colours}] of Object.entries(DROP_ONLY)) {SCHEMES[`drop-${key}`] = colours; SCHEME_NAMES[`drop-${key}`] = name;}
 for (const [light, partners] of Object.entries(DROPS)) for (const dark of Object.keys(partners)) {
-  const a = COLLECTION[light].id, b = COLLECTION[dark].id;
+  const a = COLLECTION[light].id, b = COLLECTION[dark]?.id ?? `drop-${dark}`;
   // a copy: the drop switch caches per scheme object
-  SCHEMES[`${a}+${b}`] = {...SCHEMES[a]}; SCHEME_NAMES[`${a}+${b}`] = `${COLLECTION[light].name} → ${COLLECTION[dark].name}`; DROP_SCHEMES[`${a}+${b}`] = b;
+  SCHEMES[`${a}+${b}`] = {...SCHEMES[a]}; SCHEME_NAMES[`${a}+${b}`] = `${COLLECTION[light].name} → ${(COLLECTION[dark] ?? DROP_ONLY[dark]).name}`; DROP_SCHEMES[`${a}+${b}`] = b;
 }
 
 export {LIBRARY, DROP_SCHEMES};

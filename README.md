@@ -100,8 +100,10 @@ Chromium installation instead of Playwright's default browser.
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 
 `video` also accepts `--track=FILE --music=SONG` for a bare track over a song's
-recording. A look is a theme of the collection (`scripts/video/collection.js`;
-`jungleMoon` by default) or `plain`, and
+recording. Each video's look is chosen for its ride (`scripts/video/choose.js`): a theme
+of the collection (`scripts/video/collection.js`), mostly light, and for a light
+theme on a song with a drop, sometimes a dark partner at the drop. `--look=THEME`
+or `plain` names one instead, and
 `--set=key:value,…` changes single options; `--width=N` sets the size (1080 by
 default; videos are 9:16). `--help` lists the interface. Without a seed, a fresh
 seed is recorded. The video's `.json` sidecar says what it is of; compilation

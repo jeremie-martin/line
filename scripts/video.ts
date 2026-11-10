@@ -8,7 +8,8 @@ import {videoRequest} from './produce/video_request.ts';
 import {readVerifiedJson, verifiedVideoCell} from './produce/video_input.ts';
 import {buildScene} from './video/scene.ts';
 import {frameCount, frameSize, writeVideo} from './video/write.ts';
-import {DEFAULT_THEME, THEMES} from './video/look.js';
+import {THEMES, resolveLook} from './video/look.js';
+import {chooseLook} from './video/choose.js';
 import {sha} from './lib/case.ts';
 
 async function main() {
@@ -20,7 +21,7 @@ if (process.argv.includes('--help')) {
   npm run video -- --track=track.json --music=petrunko_selection
 
 Input:  --song=ID [--seed=N --budget=N] (compiles first), --study=DIR [--id=CELL], or --track=FILE --music=SONG.
-Look:   --look=${Object.keys(THEMES).join('|')}|plain (${DEFAULT_THEME} for productions, plain for tracks)
+Look:   chosen for the ride (scripts/video/choose.js); --look=${Object.keys(THEMES).join('|')}|plain names one (plain for tracks)
         --set=key:value,… changes single options of the look (scripts/video/look.js)
 Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N pixels (1080; the video is 9:16)
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
@@ -37,7 +38,7 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
   if ([output, sidecar, work].some(p => existsSync(p))) throw new Error(`${basename(output, '.mp4')}.mp4, .json or .assets already exists; choose a new --out.`);
   let study = request.study ? resolve(request.study) : undefined;
   const seed = request.seed ?? randomInt(0, 2 ** 31);
-  console.log(`Video · ${request.lookName} · ${request.width} px wide\nOutput: ${output}`);
+  console.log(`Video · ${request.lookName ?? 'look chosen for the ride'} · ${request.width} px wide\nOutput: ${output}`);
   if (request.song) {
     mkdirSync(work, {recursive: true});
     study = join(work, 'production');
@@ -67,8 +68,12 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
     scene = buildScene(request.music!, {track: JSON.parse(text)}); of = {track: resolve(request.track!), trackSha256: sha(text), music: request.music};
   }
   const [start, end] = scene.span, from = request.from ?? start, to = request.to ?? end;
-  await writeVideo({scene, look: request.look, out: output, from, to, width: request.width});
-  writeFileSync(sidecar, JSON.stringify({of, look: request.look, lookName: request.lookName, timing: scene.timing, from, to, width: request.width,
+  // the look: as named, or chosen from what the video is of (the same ride always gets the same look)
+  const chosen = request.look ? null : chooseLook('id' in of ? of.id : `${of.music}-${of.trackSha256}`, {hasDrop: !!scene.drop});
+  const look = request.look ?? resolveLook(null, {...chosen!.look, ...request.overrides}), theme = chosen?.theme ?? request.lookName, partner = chosen?.partner ?? null;
+  console.log(`Look · ${partner ? `${theme} → ${partner}` : theme}`);
+  await writeVideo({scene, look, out: output, from, to, width: request.width});
+  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

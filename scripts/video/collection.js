@@ -59,8 +59,8 @@ export const COLLECTION = {
 };
 
 /** Each light theme's dark partners at the drop (round 43, owner, 11 November), with their weights when one is drawn. At the drop the
- * picture takes the partner's colours and keeps the light theme's layout, hot note and sun (look.js drop 'switch'); partners share
- * the light theme's layout, sun with sun. Light to dark only. A theme absent here keeps its colours through the drop. */
+ * picture takes the partner's colours and keeps the light theme's layout, hot note and sun (look.js drop 'switch'), so a sun never
+ * appears or leaves at the drop. Light to dark only. A theme absent here keeps its colours through the drop. */
 export const DROPS = {
   amberPurple: {cyanotype: 1, cobaltChartreuse: 1},
   hokusai: {cobaltChartreuse: 1},
@@ -72,4 +72,10 @@ export const DROPS = {
   seashell: {cobaltChartreuse: 1},
   cutouts: {cobaltChartreuse: 1, lilyLeaf: 1},
   paper: {blackIris: 2, negoro: 1},  // "strong preference" for Black Iris; Negoro "kinda works"
+  paperPrint: {blackIris: 1, blackAndWhite: 1},  // round 44: the owner asked for black and white
+};
+
+/** Colours that are only ever a drop partner, never a theme of their own (round 44). */
+export const DROP_ONLY = {
+  blackAndWhite: {name: 'Black and white', colours: {paper: '#0b0b0b', ink: '#f4f4f2', pencil: '#4a4a48', mass: '#ededeb', accent: '#ffffff', nightPaper: '#0b0b0b', nightInk: '#f4f4f2'}},
 };

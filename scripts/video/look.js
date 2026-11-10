@@ -49,8 +49,6 @@ export const V1 = {
 export const THEMES = Object.fromEntries(Object.entries(COLLECTION).map(([key, {name, id, line, spec}]) =>
   [key, {name, id, line, look: {...spec.look, scheme: id}}]));
 
-/** A production's theme when none is named: the collection's strongest in the owner's comparisons (round 38). */
-export const DEFAULT_THEME = 'jungleMoon';
 /** The compiler's review clips: the ride alone, black on white, nothing that could colour a judgement of the motion. */
 export const PLAIN = {paper: 'plain', line: 'ink', band: 'none', top: 'none', drop: 'off', ends: 'none', hits: 'none'};
 

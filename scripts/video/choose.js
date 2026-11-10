@@ -35,7 +35,7 @@ function weighted(weights, u) {
 export function chooseLook(key, {hasDrop, shares = SHARES} = {}) {
   const light = unit(key, 'ground') < shares.light, theme = pick(light ? LIGHT : DARK, unit(key, 'theme'));
   const partners = DROPS[theme], partner = light && hasDrop && partners && unit(key, 'drop') < shares.drop ? weighted(partners, unit(key, 'partner')) : null;
-  const scheme = partner ? `${COLLECTION[theme].id}+${COLLECTION[partner].id}` : COLLECTION[theme].id;
+  const scheme = partner ? `${COLLECTION[theme].id}+${COLLECTION[partner]?.id ?? `drop-${partner}`}` : COLLECTION[theme].id;
   if (!SCHEMES[scheme]) throw new Error(`no scheme for ${theme} → ${partner}`);
   return {theme, partner, look: resolveLook(theme, partner ? {scheme, drop: 'switch'} : {})};
 }

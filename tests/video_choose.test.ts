@@ -1,21 +1,21 @@
 import {describe, expect, it} from 'vitest';
-import {COLLECTION, DROPS} from '../scripts/video/collection.js';
+import {COLLECTION, DROPS, DROP_ONLY} from '../scripts/video/collection.js';
 import {SCHEMES, DROP_SCHEMES} from '../scripts/video/palettes.js';
 import {DARK, LIGHT, SHARES, chooseLook} from '../scripts/video/choose.js';
 import {resolveLook} from '../scripts/video/look.js';
 import {createTheme} from '../scripts/video/theme.js';
 
 describe('the look of each video', () => {
-  it('pairs only light themes with dark partners of the same layout, each pairing its own scheme', () => {
+  it('pairs only light themes with dark partners, each pairing its own scheme (the light theme keeps its layout, so its sun stays)', () => {
     for (const [light, partners] of Object.entries(DROPS)) {
       expect(LIGHT).toContain(light);
       for (const dark of Object.keys(partners)) {
-        expect(DARK).toContain(dark);
-        expect(resolveLook(dark).top === 'sun').toBe(resolveLook(light).top === 'sun');
-        const pair = `${COLLECTION[light].id}+${COLLECTION[dark].id}`;
+        const only = DROP_ONLY[dark], darkScheme = only ? `drop-${dark}` : COLLECTION[dark].id;
+        if (!only) expect(DARK).toContain(dark);
+        const pair = `${COLLECTION[light].id}+${darkScheme}`;
         expect(SCHEMES[pair]).toEqual(SCHEMES[COLLECTION[light].id]);
         expect(SCHEMES[pair]).not.toBe(SCHEMES[COLLECTION[light].id]);
-        expect(DROP_SCHEMES[pair]).toBe(COLLECTION[dark].id);
+        expect(DROP_SCHEMES[pair]).toBe(darkScheme);
       }
     }
   });

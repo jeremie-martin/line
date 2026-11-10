@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: each video's look is chosen for it; drops (rounds 43–44)
+
+The project is a mass generator: no one picks a video's look. `scripts/video/choose.js` chooses from the ride's id:
+- 75% light themes;
+- for a light theme whose song has a drop, a dark partner half the time, drawn by weight.
+
+The same ride always gets the same look. `npm run render` (each ride of a batch) and `npm run video` both choose unless `--look`
+names a theme. Each record says its theme and partner. `DEFAULT_THEME` is retired.
+
+**Pairings** are the owner's round 43–44 answers, in `collection.js` `DROPS`, light to dark only. At the drop the picture takes the
+partner's colours and keeps the light theme's layout, hot note and sun, so a sun never appears or leaves. Paper Print's second
+partner, pure black and white, is a drop-only colour set (`DROP_ONLY`). A pairing is its own scheme, `<light id>+<dark id>`, a
+copy, because the switch caches per scheme object, so judged theme ids are unchanged. The test-only drop value `partner` (the
+partner's own hot note) was removed: the owner keeps the hot note and sun.
+
+**The collection page** lists each light theme's partners and previews any of them through the drop.
+
+**Fixed on the way:** the render record's score read the cells' removed `metrics` field. `--set` values are checked before any
+work even when the look is chosen later.
+
+**Checks:** 570 tests (a new `video_choose` test covers pairings, the switch per pairing and the shares over 4,000 picks),
+typecheck, reach, compile parity and judge parity pass.
+
 ## November 11: the old production characterization removed (structural, owner's decision)
 
 The owner: the per-song characterization and qualification ("the number of rotations… completely outdated") goes entirely.

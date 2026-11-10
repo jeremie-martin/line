@@ -69,6 +69,8 @@ dt{color:var(--soft)}dd{margin:0}
 .cmd{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:12.5px var(--mono);color:#cfcac2;margin-bottom:12px}
 .cmd code{flex:1;overflow-x:auto;white-space:nowrap}
 .cmd button{color:var(--soft);font-size:12px}.cmd button:hover{color:var(--ink)}
+.pairs{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.pairs button{padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;color:var(--soft)}
+.pairs button:hover{color:var(--ink)}.pairs button.on{background:var(--ink);color:#141414;border-color:var(--ink)}.pairs small{flex-basis:100%;color:var(--faint);font-size:11.5px}
 .origin{font-size:12.5px;color:var(--soft);line-height:1.55}
 .origin code{font:11.5px var(--mono);color:var(--faint)}
 .nav{position:absolute;top:22px;right:26px;display:flex;gap:6px;z-index:2}
@@ -125,7 +127,8 @@ dt{color:var(--soft)}dd{margin:0}
 // and where it was judged. Served at /collection by the review server.
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
-import {THEMES, OPTIONS, DEFAULT_THEME, resolveLook} from '/scripts/video/look.js';
+import {THEMES, OPTIONS, resolveLook} from '/scripts/video/look.js';
+import {COLLECTION, DROPS, DROP_ONLY} from '/scripts/video/collection.js';
 import {SCHEMES} from '/scripts/video/palettes.js';
 import {createMusic, displayTime} from '/shared/playback.js';
 
@@ -220,7 +223,7 @@ function buildGrid() {
     for (const x of list) {
       const b = document.createElement('button'); b.className = 'tile'; b.onclick = () => open(x.key);
       const used = [x.c.paper, x.c.mass, x.c.accent, x.look.top === 'sun' ? (x.c.sun ?? x.c.accent) : null, x.c.ink].filter(Boolean);
-      b.innerHTML = `<div class="frame"><canvas></canvas></div><div class="name">${x.name}${x.key === DEFAULT_THEME ? '<span class="default">DEFAULT</span>' : ''}</div>
+      b.innerHTML = `<div class="frame"><canvas></canvas></div><div class="name">${x.name}</div>
         <div class="dots">${[...new Set(used)].map(c => `<i style="background:${c}"></i>`).join('')}</div><div class="key">--look=${x.key}</div>`;
       grid.append(b); tiles.push({x, canvas: b.querySelector('canvas')});
     }
@@ -252,7 +255,7 @@ function drawTiles() {
 function frame(ts) {
   if (scene) {
     if (playing) {t = music.position(onScreen(ts)); if (t >= scene.span[1]) {t = scene.span[1]; playTicket++; music.pause(); playing = false;} showTime();}
-    if (focused) {if (playing || dirty) {bigPic.draw(t, THEMES_BY[focused].look); dirty = false;}}
+    if (focused) {if (playing || dirty) {bigPic.draw(t, focusLook()); dirty = false;}}
     else if (playing || dirty) drawTiles();
   }
   requestAnimationFrame(frame);
@@ -274,16 +277,19 @@ function open(key) {
     .map(([k, r]) => [r, k === 'sun' ? (x.c.sun ?? x.c.accent) : x.c[k]]);
   const band = x.look.band === 'iris' ? `${say('band', 'iris')}, ${x.look.irisWeight === 'bold' ? 'bold strands' : 'thin strands'}` : say('band', x.look.band);
   $('side').innerHTML = `
-    <div class="kicker">${x.dark ? 'Dark' : 'Light'} theme${x.key === DEFAULT_THEME ? ' · the default' : ''}</div>
+    <div class="kicker">${x.dark ? 'Dark' : 'Light'} theme</div>
     <h3>${x.name}</h3><p class="lede">${x.line}</p>
     <div class="ftransport"><button class="play"></button><div class="track" id="ftrack"><div class="rail"></div><div class="drop"></div><div class="done"></div><div class="knob"></div><input type="range" min="0" step="0.01" aria-label="Position"></div></div>
     <div class="jump" style="margin:-12px 0 20px"></div>
     <div class="sw">${roles.map(([r, c]) => `<button data-hex="${c}"><div class="c" style="background:${c}"></div><div class="r">${r}</div><div class="h">${c}</div></button>`).join('')}</div>
     <dl><dt>Band</dt><dd>${band}</dd><dt>On top</dt><dd>${say('top', x.look.top)}</dd><dt>Line</dt><dd>${say('line', x.look.line)}</dd>
+      ${drops(x)}
       <dt>Colour</dt><dd>${x.look.paper === 'plain' ? 'Constant: it does not follow the intensity' : 'Grows more vivid when the ride is intense'}</dd>${x.look.zoom === 'quiet' ? '<dt>Camera</dt><dd>Eases out when quiet</dd>' : ''}</dl>
     <div class="cmd"><code>npm run video -- --song=… --look=${x.key}</code><button data-copy="--look=${x.key}">Copy</button></div>
     <div class="origin">Judged as “${x.label}”${o?.round ? `, round ${o.round}` : ''}${o?.set ? ` (${o.set})` : ''}.<br><code>${x.id}</code></div>`;
   $('side').querySelector('.play').onclick = toggle;
+  $('side').querySelectorAll('[data-pair]').forEach(b => b.onclick = () => {pair = pair === b.dataset.pair ? null : b.dataset.pair; markPair(); dirty = true; if (pair && scene?.drop) seek(scene.drop[0] - 2);});
+  pair = null; markPair();
   $('side').querySelectorAll('[data-hex]').forEach(b => b.onclick = () => copy(b.dataset.hex));
   $('side').querySelector('[data-copy]').onclick = e => copy(e.target.dataset.copy);
   tracks.length = 1; const tr = makeTrack($('ftrack')); tracks.push(tr);
@@ -291,7 +297,17 @@ function open(key) {
   if (scene) {tr.span(); jumps();}
   sizeBig(); showTime(); remember();
 }
-function close() {focused = null; tracks.length = 1; $('focus').classList.remove('open'); document.body.style.overflow = ''; dirty = true; cursor = 0; remember();}
+// a light theme's drop partners (collection.js DROPS); a dark theme lists the light themes that drop into it
+function drops(x) {
+  const to = Object.keys(DROPS[x.key] ?? {}), from = Object.keys(DROPS).filter(l => DROPS[l][x.key]);
+  if (to.length) return `<dt>At the drop</dt><dd class="pairs">${to.map(k => `<button data-pair="${k}">${(THEMES_BY[k] ?? DROP_ONLY[k]).name}</button>`).join('')}<small>${scene?.drop ? 'Tap one to play the drop with it.' : 'This ride has no drop.'}</small></dd>`;
+  if (from.length) return `<dt>Drop for</dt><dd>${from.map(k => THEMES_BY[k].name).join(', ')}</dd>`;
+  return x.dark ? '' : '<dt>At the drop</dt><dd>Keeps its colours</dd>';
+}
+let pair = null;
+function markPair() {$('side').querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('on', b.dataset.pair === pair));}
+const focusLook = () => {const x = THEMES_BY[focused]; return pair ? resolveLook(x.key, {scheme: `${COLLECTION[x.key].id}+${COLLECTION[pair]?.id ?? `drop-${pair}`}`, drop: 'switch'}) : x.look;};
+function close() {pair = null; focused = null; tracks.length = 1; $('focus').classList.remove('open'); document.body.style.overflow = ''; dirty = true; cursor = 0; remember();}
 function step(d) {const list = themes.filter(x => filter === 'all' || x.dark === (filter === 'dark')), i = list.findIndex(x => x.key === focused); open(list[(i + d + list.length) % list.length].key);}
 $('prev').onclick = () => step(-1); $('next').onclick = () => step(1); $('close').onclick = close;
 $('focus').onclick = e => {if (e.target === $('focus')) close();};
@@ -320,6 +336,7 @@ async function load() {
     if (!(t > 0) || t > scene.span[1]) t = (scene.phases.find(p => /verse/i.test(p.name))?.t0 ?? 0) + 1.5;
     for (const tr of tracks) tr.span();
     jumps(); dirty = true; cursor = 0; showTime(); remember();
+    if (focused) open(focused);  // its panel names the ride's drop
     $('status').hidden = true;
   } catch (e) {if (n === loadTicket) $('status').textContent = `Could not load ${song}: ${e.message}`;}
 }

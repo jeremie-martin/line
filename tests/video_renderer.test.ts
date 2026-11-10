@@ -3,7 +3,7 @@ import {mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
-import {DEFAULT_THEME, OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
+import {OPTIONS, PLAIN, THEMES, V1, resolveLook} from '../scripts/video/look.js';
 import {DROP_SCHEMES, SCHEMES} from '../scripts/video/palettes.js';
 import {specOf, themeId} from '../generated/concept-lab/rate/freeze.mjs';
 import {buildScene, rideAccount, screenTitle} from '../scripts/video/scene.ts';
@@ -53,8 +53,8 @@ describe('the video command', () => {
       ['--song=x', '--from=abc'], ['--song=x', '--seed=-1'], ['--song=x', '--width=0'], ['--id=a', '--song=x']])
       expect(() => videoRequest(args), args.join(' ')).toThrow();
   });
-  it('a production gets the default theme, a bare track the plain one; options, span and width are kept', () => {
-    expect(videoRequest(['--song=x', '--seed=0'])).toMatchObject({lookName: DEFAULT_THEME, look: resolveLook(DEFAULT_THEME), seed: 0, width: 1080});
+  it('a production\'s look is chosen for its ride, a bare track gets the plain one; options, span and width are kept', () => {
+    expect(videoRequest(['--song=x', '--seed=0', '--set=top:title'])).toMatchObject({lookName: null, look: null, overrides: {top: 'title'}, seed: 0, width: 1080});
     expect(videoRequest(['--track=t.json', '--music=petrunko_selection'])).toMatchObject({lookName: 'plain', look: resolveLook('plain')});
     expect(videoRequest(['--study=s', '--look=hokusai', '--set=top:title', '--from=20', '--to=35', '--width=540']))
       .toMatchObject({look: {scheme: THEMES.hokusai.id, top: 'title'}, from: 20, to: 35, width: 540});

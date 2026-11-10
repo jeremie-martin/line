@@ -1,5 +1,5 @@
 /** The public interface of `npm run video`, shared by fresh productions, saved rides and bare tracks. */
-import {DEFAULT_THEME, resolveLook} from '../video/look.js';
+import {resolveLook} from '../video/look.js';
 
 export function videoRequest(argv: string[]) {
   const args: Record<string, string> = {};
@@ -22,7 +22,8 @@ export function videoRequest(argv: string[]) {
   };
   const integer = (key: string, min: number) => number(key, n => /^\d+$/.test(args[key]) && Number.isSafeInteger(n) && n >= min, min ? 'a positive integer' : 'a nonnegative integer');
   const seconds = (key: string) => number(key, n => Number.isFinite(n) && n >= 0, 'a time in seconds');
-  const lookName = args.look ?? (args.track ? 'plain' : DEFAULT_THEME);
+  // a production's look is chosen for its ride once the scene is known (scripts/video.ts), unless --look names one
+  const lookName = args.look ?? (args.track ? 'plain' : null);
   const overrides = Object.fromEntries((args.set ?? '').split(',').filter(Boolean).map(kv => {
     const [key, value, extra] = kv.split(':');
     if (!value || extra !== undefined) throw new Error(`--set takes key:value pairs separated by commas (got ${kv})`);
@@ -30,5 +31,6 @@ export function videoRequest(argv: string[]) {
   }));
   return {song: args.song, study: args.study, id: args.id, track: args.track, music: args.music, out: args.out,
     seed: integer('seed', 0), budget: integer('budget', 1), from: seconds('from'), to: seconds('to'), width: integer('width', 1) ?? 1080,
-    lookName, look: resolveLook(lookName, overrides)};
+    // the options are checked now even when the look is chosen later: an unknown option or value fails before any work
+    lookName, overrides, look: lookName ? resolveLook(lookName, overrides) : (resolveLook(null, overrides), null)};
 }

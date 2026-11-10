@@ -23,7 +23,7 @@ export function createTheme(drop) {
       // Carry the hot note and sun across the switch, preserving the theme's thread.
       if (!switched.has(original)) switched.set(original, {...SCHEMES[partner], accent: original.accent, sun: original.sun ?? original.accent});
       scheme = switched.get(original);
-    } else if (look.drop === 'partner' && inDrop && partner) scheme = SCHEMES[partner];  // the partner's own colours, hot note included
+    }
     if (Object.hasOwn(GRADES, look.paper)) {
       const q = Math.round(intensity * 200), key = `${look.paper} ${q}`;
       const cache = graded.get(scheme) ?? graded.set(scheme, new Map()).get(scheme);

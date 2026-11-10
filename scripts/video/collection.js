@@ -57,3 +57,19 @@ export const COLLECTION = {
   cutouts: {name: "Cut-outs", id: "t-d3dd1b2714d4", line: "White, a deep blue band, a coral bar and sun, the whole course inked.",
     spec: {"colours": {"accent": "#f05940","ink": "#141414","mass": "#014a7a","nightInk": "#fbfaf6","nightPaper": "#141414","paper": "#fbfaf6","pencil": "#b5b4b2","sun": "#f05940"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
 };
+
+/** Each light theme's dark partners at the drop (round 43, owner, 11 November), with their weights when one is drawn. At the drop the
+ * picture takes the partner's colours and keeps the light theme's layout, hot note and sun (look.js drop 'switch'); partners share
+ * the light theme's layout, sun with sun. Light to dark only. A theme absent here keeps its colours through the drop. */
+export const DROPS = {
+  amberPurple: {cyanotype: 1, cobaltChartreuse: 1},
+  hokusai: {cobaltChartreuse: 1},
+  dune: {rothko: 1},
+  silverRust: {rothko: 1, lilyLeaf: 1, jungleMoon: 1},
+  whiteVermilion: {rothko: 1},
+  lavender: {violetMarigold: 1},
+  peony: {violetMarigold: 1, forestGold: 1},
+  seashell: {cobaltChartreuse: 1},
+  cutouts: {cobaltChartreuse: 1, lilyLeaf: 1},
+  paper: {blackIris: 2, negoro: 1},  // "strong preference" for Black Iris; Negoro "kinda works"
+};

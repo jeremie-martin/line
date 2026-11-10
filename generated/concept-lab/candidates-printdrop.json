@@ -1,0 +1,152 @@
+{
+ "round": 44,
+ "about": "Round 44: Paper Print’s black-and-white drop.",
+ "schemes": {
+  "r44black": {
+   "paper": "#0b0b0b",
+   "ink": "#f4f4f2",
+   "pencil": "#4a4a48",
+   "mass": "#ededeb",
+   "accent": "#ffffff",
+   "nightPaper": "#0b0b0b",
+   "nightInk": "#f4f4f2"
+  },
+  "r44charcoal": {
+   "paper": "#1b1b1b",
+   "ink": "#f0f0ee",
+   "pencil": "#4f4f4d",
+   "mass": "#8d8d8b",
+   "accent": "#ffffff",
+   "nightPaper": "#1b1b1b",
+   "nightInk": "#f0f0ee"
+  },
+  "r44printA": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r44printB": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r44printC": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  }
+ },
+ "drops": {
+  "r44printA": "t-4205a80aa6d1",
+  "r44printB": "r44black",
+  "r44printC": "r44charcoal"
+ },
+ "drafts": [
+  {
+   "id": "r44print",
+   "name": "Paper, black and red print: a black-and-white drop",
+   "source": "Round 44 · your round 43 note",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). You asked for black and white: the drop goes black, the line and bars white or grey, the red hot note and red sun kept. Keep any that work.",
+   "variants": [
+    {
+     "label": "Black Iris’s colours",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r44printA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Near-black #101216, white line, pale grey bars #c9ced6. The red hot note and red sun stay."
+    },
+    {
+     "label": "Black and white",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r44printB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Black #0b0b0b, white line and white bars. The red hot note and red sun stay."
+    },
+    {
+     "label": "Charcoal, grey bars",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r44printC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Charcoal #1b1b1b, white line, mid-grey bars #8d8d8b. The red hot note and red sun stay."
+    }
+   ]
+  }
+ ]
+}

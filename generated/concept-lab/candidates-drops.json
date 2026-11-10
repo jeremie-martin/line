@@ -1,0 +1,2000 @@
+{
+ "round": 43,
+ "about": "Round 43: a dark partner for each light theme at the drop; schemes in the lab page’s memory only.",
+ "schemes": {
+  "r43amberPurpleA": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r43amberPurpleB": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r43amberPurpleC": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r43amberPurpleD": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r43hokusaiA": {
+   "accent": "#d4412a",
+   "ink": "#12294d",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "r43hokusaiB": {
+   "accent": "#d4412a",
+   "ink": "#12294d",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "r43hokusaiC": {
+   "accent": "#d4412a",
+   "ink": "#12294d",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "r43hokusaiD": {
+   "accent": "#d4412a",
+   "ink": "#12294d",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "r43duneA": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43duneB": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43duneC": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43duneD": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43silverRustA": {
+   "accent": "#c26438",
+   "ink": "#1b2525",
+   "mass": "#675928",
+   "nightInk": "#eef4f0",
+   "nightPaper": "#1b2525",
+   "paper": "#dfd5c0",
+   "pencil": "#8a9995",
+   "sun": "#ae5224",
+   "tone": "#cbd8d2"
+  },
+  "r43silverRustB": {
+   "accent": "#c26438",
+   "ink": "#1b2525",
+   "mass": "#675928",
+   "nightInk": "#eef4f0",
+   "nightPaper": "#1b2525",
+   "paper": "#dfd5c0",
+   "pencil": "#8a9995",
+   "sun": "#ae5224",
+   "tone": "#cbd8d2"
+  },
+  "r43silverRustC": {
+   "accent": "#c26438",
+   "ink": "#1b2525",
+   "mass": "#675928",
+   "nightInk": "#eef4f0",
+   "nightPaper": "#1b2525",
+   "paper": "#dfd5c0",
+   "pencil": "#8a9995",
+   "sun": "#ae5224",
+   "tone": "#cbd8d2"
+  },
+  "r43silverRustD": {
+   "accent": "#c26438",
+   "ink": "#1b2525",
+   "mass": "#675928",
+   "nightInk": "#eef4f0",
+   "nightPaper": "#1b2525",
+   "paper": "#dfd5c0",
+   "pencil": "#8a9995",
+   "sun": "#ae5224",
+   "tone": "#cbd8d2"
+  },
+  "r43paperPrintA": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r43paperPrintB": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r43paperPrintC": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r43paperPrintD": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r43whiteVermilionA": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "r43whiteVermilionB": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "r43whiteVermilionC": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "r43whiteVermilionD": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "r43lavenderA": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r43lavenderB": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r43lavenderC": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r43lavenderD": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "r43peonyA": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#f9a63e"
+  },
+  "r43peonyB": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#f9a63e"
+  },
+  "r43peonyC": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#f9a63e"
+  },
+  "r43peonyD": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#b02f6a",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#e2f2f6",
+   "pencil": "#acb0b6",
+   "sun": "#f9a63e"
+  },
+  "r43seashellA": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43seashellB": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43seashellC": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43seashellD": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43cutoutsA": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#fbfaf6",
+   "pencil": "#b5b4b2",
+   "sun": "#f05940"
+  },
+  "r43cutoutsB": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#fbfaf6",
+   "pencil": "#b5b4b2",
+   "sun": "#f05940"
+  },
+  "r43cutoutsC": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#fbfaf6",
+   "pencil": "#b5b4b2",
+   "sun": "#f05940"
+  },
+  "r43cutoutsD": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#fbfaf6",
+   "pencil": "#b5b4b2",
+   "sun": "#f05940"
+  },
+  "r43paperA": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r43paperB": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r43paperC": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r43paperD": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r43hotA": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43hotB": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r43hotC": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43hotD": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r43invA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r43invB": {
+   "accent": "#ffc83d",
+   "ink": "#f4f1e6",
+   "mass": "#8dadd7",
+   "nightInk": "#f4f1e6",
+   "nightPaper": "#122e57",
+   "paper": "#384c69",
+   "pencil": "#6e7889"
+  },
+  "r43invC": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  }
+ },
+ "drops": {
+  "r43amberPurpleA": "t-fdc7a911c6b3",
+  "r43amberPurpleB": "t-5dc2a46a3f84",
+  "r43amberPurpleC": "t-df6663d14e4d",
+  "r43amberPurpleD": "t-2938b354e6e8",
+  "r43hokusaiA": "t-fdc7a911c6b3",
+  "r43hokusaiB": "t-df6663d14e4d",
+  "r43hokusaiC": "t-5dc2a46a3f84",
+  "r43hokusaiD": "t-2938b354e6e8",
+  "r43duneA": "t-2938b354e6e8",
+  "r43duneB": "t-82ffe91688a8",
+  "r43duneC": "t-5dc2a46a3f84",
+  "r43duneD": "t-d292d74da185",
+  "r43silverRustA": "t-5dc2a46a3f84",
+  "r43silverRustB": "t-82ffe91688a8",
+  "r43silverRustC": "t-2938b354e6e8",
+  "r43silverRustD": "t-e58e6673dc57",
+  "r43paperPrintA": "t-5dc2a46a3f84",
+  "r43paperPrintB": "t-2938b354e6e8",
+  "r43paperPrintC": "t-d292d74da185",
+  "r43paperPrintD": "t-df6663d14e4d",
+  "r43whiteVermilionA": "t-2938b354e6e8",
+  "r43whiteVermilionB": "t-d292d74da185",
+  "r43whiteVermilionC": "t-82ffe91688a8",
+  "r43whiteVermilionD": "t-5dc2a46a3f84",
+  "r43lavenderA": "t-d292d74da185",
+  "r43lavenderB": "t-df6663d14e4d",
+  "r43lavenderC": "t-2938b354e6e8",
+  "r43lavenderD": "t-5dc2a46a3f84",
+  "r43peonyA": "t-d292d74da185",
+  "r43peonyB": "t-82ffe91688a8",
+  "r43peonyC": "t-2938b354e6e8",
+  "r43peonyD": "t-fdc7a911c6b3",
+  "r43seashellA": "t-fdc7a911c6b3",
+  "r43seashellB": "t-df6663d14e4d",
+  "r43seashellC": "t-5dc2a46a3f84",
+  "r43seashellD": "t-2938b354e6e8",
+  "r43cutoutsA": "t-fdc7a911c6b3",
+  "r43cutoutsB": "t-df6663d14e4d",
+  "r43cutoutsC": "t-e58e6673dc57",
+  "r43cutoutsD": "t-5dc2a46a3f84",
+  "r43paperA": "t-4205a80aa6d1",
+  "r43paperB": "t-3ea7c5b1b561",
+  "r43paperC": "t-dca82d1cc303",
+  "r43paperD": "t-32fabe4d1ffb",
+  "r43hotA": "t-fdc7a911c6b3",
+  "r43hotB": "t-fdc7a911c6b3",
+  "r43hotC": "t-2938b354e6e8",
+  "r43hotD": "t-2938b354e6e8",
+  "r43invA": "t-f11ca2eb1f74",
+  "r43invB": "t-4860903eef2c",
+  "r43invC": "t-8a7eaef36d4f"
+ },
+ "drafts": [
+  {
+   "id": "r43amberPurple",
+   "name": "Amber and Purple, Wada 151: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Amber and Purple, Wada 151’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Cyanotype",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43amberPurpleA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s ground, line and bars; Amber and Purple, Wada 151’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43amberPurpleB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Amber and Purple, Wada 151’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43amberPurpleC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Amber and Purple, Wada 151’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43amberPurpleD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Amber and Purple, Wada 151’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43hokusai",
+   "name": "Hokusai: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Hokusai’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Cyanotype",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hokusaiA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s ground, line and bars; Hokusai’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hokusaiB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Hokusai’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hokusaiC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Hokusai’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hokusaiD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Hokusai’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43dune",
+   "name": "Dune, inked: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Dune, inked’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43duneA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Dune, inked’s hot note and sun."
+    },
+    {
+     "label": "Forest Green and Gold, Wada 325",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43duneB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Forest Green and Gold, Wada 325’s ground, line and bars; Dune, inked’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43duneC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Dune, inked’s hot note and sun."
+    },
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43duneD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Violet and Marigold, tuned’s ground, line and bars; Dune, inked’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43silverRust",
+   "name": "Silver and Rust: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Silver and Rust’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43silverRustA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Silver and Rust’s hot note and sun."
+    },
+    {
+     "label": "Forest Green and Gold, Wada 325",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43silverRustB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Forest Green and Gold, Wada 325’s ground, line and bars; Silver and Rust’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43silverRustC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Silver and Rust’s hot note and sun."
+    },
+    {
+     "label": "Lily White and Leaf Green",
+     "look": {
+      "zoom": "quiet",
+      "ends": "none",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43silverRustD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Lily White and Leaf Green’s ground, line and bars; Silver and Rust’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43paperPrint",
+   "name": "Paper, black and red print: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Paper, black and red print’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperPrintA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Paper, black and red print’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperPrintB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Paper, black and red print’s hot note and sun."
+    },
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperPrintC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Violet and Marigold, tuned’s ground, line and bars; Paper, black and red print’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperPrintD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Paper, black and red print’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43whiteVermilion",
+   "name": "White and Vermilion, deep red and gold: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps White and Vermilion, deep red and gold’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43whiteVermilionA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; White and Vermilion, deep red and gold’s hot note and sun."
+    },
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43whiteVermilionB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Violet and Marigold, tuned’s ground, line and bars; White and Vermilion, deep red and gold’s hot note and sun."
+    },
+    {
+     "label": "Forest Green and Gold, Wada 325",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43whiteVermilionC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Forest Green and Gold, Wada 325’s ground, line and bars; White and Vermilion, deep red and gold’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43whiteVermilionD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; White and Vermilion, deep red and gold’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43lavender",
+   "name": "Lavender Dusk, violet bars: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Lavender Dusk, violet bars’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43lavenderA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Violet and Marigold, tuned’s ground, line and bars; Lavender Dusk, violet bars’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43lavenderB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Lavender Dusk, violet bars’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43lavenderC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Lavender Dusk, violet bars’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43lavenderD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Lavender Dusk, violet bars’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43peony",
+   "name": "Peony, stronger bars and marigold: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Peony, stronger bars and marigold’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43peonyA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Violet and Marigold, tuned’s ground, line and bars; Peony, stronger bars and marigold’s hot note and sun."
+    },
+    {
+     "label": "Forest Green and Gold, Wada 325",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43peonyB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Forest Green and Gold, Wada 325’s ground, line and bars; Peony, stronger bars and marigold’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43peonyC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Peony, stronger bars and marigold’s hot note and sun."
+    },
+    {
+     "label": "Cyanotype",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43peonyD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s ground, line and bars; Peony, stronger bars and marigold’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43seashell",
+   "name": "Seashell, paler, softer jasper: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Seashell, paler, softer jasper’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Cyanotype",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43seashellA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s ground, line and bars; Seashell, paler, softer jasper’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43seashellB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Seashell, paler, softer jasper’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43seashellC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Seashell, paler, softer jasper’s hot note and sun."
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43seashellD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s ground, line and bars; Seashell, paler, softer jasper’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43cutouts",
+   "name": "Cut-outs: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Cut-outs’s layout (its sun stays, so nothing moves). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Cyanotype",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43cutoutsA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s ground, line and bars; Cut-outs’s hot note and sun."
+    },
+    {
+     "label": "Cobalt and Chartreuse",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43cutoutsB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cobalt and Chartreuse’s ground, line and bars; Cut-outs’s hot note and sun."
+    },
+    {
+     "label": "Lily White and Leaf Green",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43cutoutsC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Lily White and Leaf Green’s ground, line and bars; Cut-outs’s hot note and sun."
+    },
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43cutoutsD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jungle Moon, tuned’s ground, line and bars; Cut-outs’s hot note and sun."
+    }
+   ]
+  },
+  {
+   "id": "r43paper",
+   "name": "Paper: its drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). At the drop the picture switches to a dark theme’s colours and keeps Paper’s layout (its band and title). The hot note carries over, as the renderer does today. Keep every partner that works; any one you keep can be drawn.",
+   "variants": [
+    {
+     "label": "Black Iris, bold strands",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Black Iris, bold strands’s ground, line and bars; Paper’s hot note."
+    },
+    {
+     "label": "Old Rose",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Old Rose’s ground, line and bars; Paper’s hot note."
+    },
+    {
+     "label": "Negoro Lacquer, cream line",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Negoro Lacquer, cream line’s ground, line and bars; Paper’s hot note."
+    },
+    {
+     "label": "Gilt and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "r43paperD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Gilt and Amber’s ground, line and bars; Paper’s hot note."
+    }
+   ]
+  },
+  {
+   "id": "r43hotnote",
+   "name": "The hot note at the drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). Today the switch keeps the light theme’s hot note and sun on the dark partner. Or the partner as it is, with its own. Two pairings, each both ways; only that changes.",
+   "variants": [
+    {
+     "label": "Seashell → Cyanotype, Seashell’s jasper kept",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hotA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Jasper hot note and sun inside the drop."
+    },
+    {
+     "label": "Seashell → Cyanotype as it is",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hotB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "partner",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Cyanotype’s own yellow inside the drop."
+    },
+    {
+     "label": "Dune → Rothko, Dune’s amber kept",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hotC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Amber hot note and orange sun inside the drop."
+    },
+    {
+     "label": "Dune → Rothko as it is",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43hotD",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "partner",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Rothko’s own candle gold inside the drop."
+    }
+   ]
+  },
+  {
+   "id": "r43inverse",
+   "name": "Experiment: dark first, light in the drop",
+   "source": "Round 43 · drops",
+   "moments": [
+    [
+     "Into the drop, 36.5 s",
+     36.5
+    ],
+    [
+     "Inside the drop, 44.6 s",
+     44.6
+    ],
+    [
+     "Out of the drop, 50 s",
+     50
+    ],
+    [
+     "Verse, 18 s",
+     18
+    ]
+   ],
+   "t": 36.5,
+   "len": 10,
+   "line": "Judge with Redshift off (or on the phone). Your idea to try once: a dark theme that turns light for the drop. Hot note carried.",
+   "variants": [
+    {
+     "label": "Rothko → Dune",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43invA",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Maroon room, then sand and rust."
+    },
+    {
+     "label": "Cyanotype → Seashell",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43invB",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Blueprint, then shell and blue."
+    },
+    {
+     "label": "Jungle Moon → Silver and Rust",
+     "look": {
+      "zoom": "steady",
+      "ends": "none",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "r43invC",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "switch",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": "Night jungle, then ivory and olive."
+    }
+   ]
+  }
+ ]
+}

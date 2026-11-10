@@ -18,7 +18,7 @@ export const OPTIONS = {
   riderLower: ['The rider sits lower by', {'0': 'Nothing (v1)', '8': '8 px', '16': '16 px'}],
   sunRider: ['With a sun, the rider sits lower by', {'0': 'Nothing', '32': '32 px (v1)', '48': '48 px', '96': '96 px'}],
   sunLift: ['The sun sits higher by', {'0': 'Nothing', '16': '16 px (v1)', '19.2': '19 px', '32': '32 px', '38.4': '38 px'}],
-  drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner'}],
+  drop: ['At the drop', {off: 'Nothing', night: 'Night', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun', partner: 'Switch to the scheme’s drop partner as it is'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],

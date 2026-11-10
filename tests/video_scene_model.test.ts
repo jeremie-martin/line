@@ -120,6 +120,11 @@ describe('drop and colour resolution', () => {
     expect(theme(3, 0.7, look).scheme).toEqual(expected);
     expect(SCHEMES.dune).toEqual(original);
   });
+  it('a partner switch as it is keeps the partner\'s own hot note and sun', () => {
+    const look = resolveLook(null, {scheme: 'dune', drop: 'partner'}), theme = createTheme([2, 4]);
+    expect(theme(3, 0.7, look).scheme).toEqual(gradeScheme(SCHEMES[DROP_SCHEMES.dune], look.paper, 0.7));
+    expect(theme(1, 0.7, look).scheme).toEqual(gradeScheme(SCHEMES.dune, look.paper, 0.7));
+  });
   it('has one definition per colour response; quiet paper and whole-palette grades remain distinct', () => {
     expect(Object.keys(COLOUR_RESPONSES)).toEqual(['whisper', 'plain', ...Object.keys(GRADES)]);
     for (const [key, value] of Object.entries(GRADES)) expect(COLOUR_RESPONSES[key]).toBe(value.label);

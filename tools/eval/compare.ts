@@ -5,7 +5,7 @@
  * point. It announces no winner; the decision is ours.
  *
  *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v7.1] [--jobs=N] [--rounds=N]
- *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
+ *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..] [--candidate-jolt=MS]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
@@ -16,7 +16,12 @@
  * changes included; a commit or branch compiles from a worktree of it, so this
  * checkout stays free. A round is every spec's k-th seed: rides run round by
  * round, categories interleaved, so a stopped run covers the panel evenly.
- * Ctrl-C keeps finished rides and prints a report labelled PARTIAL. */
+ * Ctrl-C keeps finished rides and prints a report labelled PARTIAL.
+ *
+ * --candidate-jolt=MS resolves, compiles and measures the candidate's cases at
+ * another jolt than this checkout's (LR_JOLT_OFFSET_MS or its default): a
+ * declared jolt comparison. Paired cases may then differ only in the jolt and
+ * what it moves (records.ts `assertJoltPair`). */
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
@@ -25,7 +30,7 @@ import {join, resolve} from 'node:path';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
 import {resolveJoltMs} from '../../scripts/produce/jolt.ts';
 import {panelCases, resolveCase, evaluatorIdentity, digest, EXPLICIT} from './inputs.ts';
-import {readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
+import {assertJoltPair, readJson, type PlannedCase, type Run, type RunPlan} from './records.ts';
 import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts';
 import type {Clip} from '../measure/clip_render.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
@@ -41,8 +46,10 @@ const signed = (x: number, d = 1) => !Number.isFinite(x) ? '—' : (x > 0 ? '+' 
 
 type Side = 'candidate' | 'reference';
 const SIDES = ['candidate', 'reference'] as const;
+type Resolved = Awaited<ReturnType<typeof resolveCase>>;
+/** `cases` are the reference's; `inputs` are each arm's own resolved cases, which differ only under --candidate-jolt. */
 type Selection = {panel: string; reference: ReturnType<typeof getReference>; arms: Record<Side, Arm>; cases: PlannedCase[];
-  rounds: PlannedCase[][]; resolved: Map<string, {spec: any; music: any}>; evaluator: string; name: string};
+  rounds: PlannedCase[][]; inputs: Record<Side, Map<string, Resolved>>; evaluator: string; name: string};
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
@@ -57,38 +64,52 @@ async function select(): Promise<Selection> {
   const candidateSettings: ArmSettings = {budget: candidateBudget, ...(candidateCreative ? {creative: candidateCreative} : {})};
   assert.ok(arg('reference'), '--reference=NAME is required (see `npm run compare -- reference list`)');
   const reference = getReference(arg('reference')!), jolt = resolveJoltMs(), here = compilerContent('.');
+  const candidateJolt = arg('candidate-jolt') === undefined ? jolt : Number(arg('candidate-jolt'));
+  assert.ok(arg('candidate-jolt') !== '' && Number.isFinite(candidateJolt), '--candidate-jolt must be a number of milliseconds');
   const refContent = commitContent(reference.commit, here.engineSha256);
   const candidateRef = arg('candidate', '.')!;
   let candidate: Arm;
   if (candidateRef === '.') {
-    candidate = openArm('.', `this checkout (${here.head.slice(0, 8)}${here.clean ? '' : ' + uncommitted changes'})`, here, candidateSettings, jolt);
+    candidate = openArm('.', `this checkout (${here.head.slice(0, 8)}${here.clean ? '' : ' + uncommitted changes'})`, here, candidateSettings, candidateJolt);
   } else {
     const commit = resolveCommit(candidateRef);
-    candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, here.engineSha256), candidateSettings, jolt);
+    candidate = openArm('', `${candidateRef} (${commit.slice(0, 8)})`, commitContent(commit, here.engineSha256), candidateSettings, candidateJolt);
   }
   const ref = openArm('', `${reference.name} (${reference.commit.slice(0, 8)})`, refContent, settings, jolt);
   // --only=REGEX restricts the panel to matching case ids (a targeted look; coverage then refers to that subset).
   const only = arg('only') ? new RegExp(arg('only')!) : null, declared = (await panelCases(panel, '.', seedCount)).filter(c => !only || only.test(c.id));
   assert.ok(declared.length, `no case of ${panel} matches --only`);
   const resolvedCases = await Promise.all(declared.map(c => resolveCase(c, jolt)));
-  const resolved = new Map(resolvedCases.map(r => [r.planned.id, {spec: r.spec, music: r.music}]));
+  const candidateCases = candidateJolt === jolt ? resolvedCases : await Promise.all(declared.map(c => resolveCase(c, candidateJolt)));
+  // A jolt comparison: each pair is one declared case resolved at two jolts. Besides the cases
+  // themselves (assertJoltPair), what their digest covers must not move: duration, preroll, and the
+  // music but for the contacts' frames and the air curve's values sampled at the moved gaps.
+  if (candidateJolt !== jolt) resolvedCases.forEach((r, i) => {
+    const c = candidateCases[i], unmoved = (x: Resolved) => digest({duration: x.spec.duration, preroll: x.spec.preroll,
+      music: {...x.music, contacts: x.music.contacts.map((y: any) => y.impact), air: x.music.air.map(({target: _, ...gap}: any) => gap)}});
+    assertJoltPair(c.planned, r.planned, candidateJolt, jolt);
+    assert.equal(unmoved(c), unmoved(r), `${r.planned.id}: the arms' resolved inputs differ in more than the jolt`);
+  });
+  const byId = (xs: Resolved[]) => new Map(xs.map(r => [r.planned.id, r]));
   // Non-default settings are part of the default name, so they never collide with a standard comparison.
   const extra = [budget !== 'standard' ? `budget-${budget}` : '', candidateBudget !== budget ? `cand-budget-${candidateBudget}` : '',
-    creative ? `creative-${digest(creative).slice(0, 6)}` : '', candidateCreative !== creative ? `cand-creative-${digest(candidateCreative ?? {}).slice(0, 6)}` : '']
+    creative ? `creative-${digest(creative).slice(0, 6)}` : '', candidateCreative !== creative ? `cand-creative-${digest(candidateCreative ?? {}).slice(0, 6)}` : '',
+    candidateJolt !== jolt ? `cand-jolt-${candidateJolt}` : '']
     .filter(Boolean).map(x => '-' + x.replace(/[^A-Za-z0-9._-]/g, '_')).join('');
   const name = arg('name', `${candidateRef === '.' ? 'checkout' : candidateRef.replace(/[^A-Za-z0-9._-]/g, '_')}-vs-${reference.name}@${reference.commit.slice(0, 8)}-${panel}${extra}${only ? '-only' : ''}`)!;
   // A comparison keeps its configuration under its name: running it again with
   // more seeds extends it; anything else needs another --name.
   // This checkout is edited all the time: pin it as "this checkout", a commit by its arm.
   const config = {panel, only: arg('only') ?? null, reference: reference.commit, referenceArm: ref.key,
-    candidate: candidateRef === '.' ? {ref: '.', settings: candidateSettings} : {ref: candidateRef, arm: candidate.key}};
+    candidate: candidateRef === '.' ? {ref: '.', settings: candidateSettings, ...(candidateJolt !== jolt ? {jolt: candidateJolt} : {})} : {ref: candidateRef, arm: candidate.key}};
   const configPath = resolve('generated/eval/compare', name, 'comparison.json');
   if (existsSync(configPath)) {
     const saved = readJson(configPath);
     assert.deepEqual(saved, config, `comparison ${name} was started with another configuration (${configPath}); use --name=… for a new one`);
   } else {mkdirSync(resolve('generated/eval/compare', name), {recursive: true}); writeFileSync(configPath, JSON.stringify(config, null, 1));}
   const cases = resolvedCases.map(r => r.planned);
-  return {panel, reference, arms: {candidate, reference: ref}, cases, rounds: rounds(cases), resolved, evaluator: evaluatorIdentity(), name};
+  return {panel, reference, arms: {candidate, reference: ref}, cases, rounds: rounds(cases),
+    inputs: {candidate: byId(candidateCases), reference: byId(resolvedCases)}, evaluator: evaluatorIdentity(), name};
 }
 
 /** Rounds: every spec's k-th seed (seeds in ascending order). */
@@ -117,7 +138,7 @@ function loadState(s: Selection) {
     if (side === 'reference' && s.arms.reference.key === s.arms.candidate.key) {cells.reference = cells.candidate; missing.reference = missing.candidate; break;}
     let remeasured = 0, stale = 0;
     for (const c of s.cases) {
-      const state = savedCell(s.arms[side], c, s.evaluator, () => s.resolved.get(c.id)!);
+      const own = s.inputs[side].get(c.id)!, state = savedCell(s.arms[side], own.planned, s.evaluator, () => own);
       if (state && 'cell' in state) {cells[side].set(c.id, state.cell); if (state.remeasured) remeasured++;}
       else {missing[side].push(c); if (state) stale++;}
     }
@@ -128,7 +149,7 @@ function loadState(s: Selection) {
 }
 
 function runOf(s: Selection, side: Side, cells: Map<string, any>, ids: string[]): Run {
-  const arm = s.arms[side], wanted = new Set(ids), panel = s.cases.filter(c => wanted.has(c.id));
+  const arm = s.arms[side], wanted = new Set(ids), panel = s.cases.filter(c => wanted.has(c.id)).map(c => s.inputs[side].get(c.id)!.planned);
   const run: RunPlan = {schema: 'line.eval.v2', identity: {head: arm.content.clean ? arm.content.head : 'checkout', candidateFingerprint: arm.content.key},
     evaluator: s.evaluator, jolt: arm.jolt, budget: arm.settings.budget, panelName: s.panel, panel,
     ...(arm.settings.creative ? {creative: arm.settings.creative} : {})};
@@ -273,7 +294,8 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
     `  provenance: compiler content ${ca.content.key.slice(0, 12)} vs ${ra.content.key.slice(0, 12)}${ca.content.key === ra.content.key ? ' (THE SAME COMPILER)' : ''}; ` +
     `engine ${ca.content.engineSha256.slice(0, 12)}; measurement ${s.evaluator.slice(0, 12)}; ` +
     `allowance ${ca.settings.budget === ra.settings.budget ? ca.settings.budget : `candidate ${ca.settings.budget}, reference ${ra.settings.budget}`}` +
-    `${JSON.stringify(ca.settings.creative ?? {}) !== JSON.stringify(ra.settings.creative ?? {}) ? `; creative candidate ${JSON.stringify(ca.settings.creative ?? {})}, reference ${JSON.stringify(ra.settings.creative ?? {})}` : ''}`,
+    `${JSON.stringify(ca.settings.creative ?? {}) !== JSON.stringify(ra.settings.creative ?? {}) ? `; creative candidate ${JSON.stringify(ca.settings.creative ?? {})}, reference ${JSON.stringify(ra.settings.creative ?? {})}` : ''}` +
+    `${ca.jolt !== ra.jolt ? `; jolt candidate ${ca.jolt} ms, reference ${ra.jolt} ms (a jolt comparison)` : ''}`,
     ...notes.map(n => `  ${n}`),
     `  coverage: ${cov.matched.length}/${s.cases.length} matched pairs; complete rounds ${cov.complete}/${cov.rounds}; by category ${cov.byCat.join(' · ')}`,
     ...(full ? [] : [`  outstanding: candidate ${cov.outstanding.candidate}, reference ${cov.outstanding.reference} rides; resume with the same command`]), '');
@@ -290,7 +312,8 @@ function report(s: Selection, cells: Record<Side, Map<string, any>>, notes: stri
   out.push('Rides that moved most (candidate − reference, headline points); see them with `npm run compare -- rides` and the same flags:',
     ...moved.map(m => `  ${pad(m.id, 46)}${signed(m.d)}`), '');
   out.push('Detail (the stratified report on the matched pairs; A = candidate, B = reference):', '');
-  return [...out, ...stratifiedReport(runOf(s, 'candidate', cells.candidate, cov.matched), runOf(s, 'reference', cells.reference, cov.matched), 'candidate', s.reference.name)];
+  return [...out, ...stratifiedReport(runOf(s, 'candidate', cells.candidate, cov.matched), runOf(s, 'reference', cells.reference, cov.matched), 'candidate', s.reference.name,
+    {allowJolt: ca.jolt !== ra.jolt})];
 }
 /** The `n` matched rides whose headline moved most, either way. */
 const movedMost = (ids: string[], cells: Record<Side, Map<string, any>>, n: number) =>
@@ -322,7 +345,7 @@ async function run() {
   } catch (e) {for (const r of releases) r(); throw e;}
   const rs = s.rounds.slice(0, maxRounds), queue: Array<{side: Side; c: PlannedCase}> = [];
   const toCompile = {candidate: new Set(missing.candidate.map(m => m.id)), reference: new Set(missing.reference.map(m => m.id))};
-  for (const r of rs) for (const c of r) for (const side of SIDES) if (toCompile[side].has(c.id)) queue.push({side, c});
+  for (const r of rs) for (const c of r) for (const side of SIDES) if (toCompile[side].has(c.id)) queue.push({side, c: s.inputs[side].get(c.id)!.planned});
   const announced = new Set<number>(coverage(s, cells).done);
   let finished = 0;
   const failures: string[] = [], began = performance.now();
@@ -449,7 +472,7 @@ async function review() {
   assert.ok(pool.length, 'no matched saved rides in this selection (compile them with `run`, or add --all-songs)');
   const {passages, choose, LENGTH} = await import('./passages.ts'), {renderClips, sideBySide, assertReviewSources} = await import('../measure/clip_render.ts');
   const chosen = choose(movedMost(pool, cells, Math.max(12, 2 * k)).flatMap(({id}) =>
-    passages(id, cells.reference.get(id), cells.candidate.get(id), s.resolved.get(id)!.music.durationFrames).map(p => ({...p, spec: specKey(caseOf(id))}))), k);
+    passages(id, cells.reference.get(id), cells.candidate.get(id), s.inputs.reference.get(id)!.music.durationFrames).map(p => ({...p, spec: specKey(caseOf(id))}))), k);
   assert.ok(chosen.length, 'the two versions do not differ in any scored quantity on these rides');
   const root = resolve('generated/compare', s.name), clips = join(root, 'review'), passageDir = join(root, 'review-passages');
   mkdirSync(clips, {recursive: true});

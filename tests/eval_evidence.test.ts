@@ -62,6 +62,19 @@ it('pairs actual resolved inputs and measurement code, while permitting differen
   b.run.panel[0].input.jolt = -15; b.run.evaluator = 'b'.repeat(64);
   expect(() => assertPairedRuns(a, b)).toThrow(/measurement code/);
 });
+it('a declared jolt comparison lets paired inputs differ in the jolt and what it moves, nothing else', () => {
+  const f = fixture(1); f.save(0); const a = loadRun(f.dir), jolted = () => {
+    const b = structuredClone(a); b.run.jolt = 0;
+    Object.assign(b.run.panel[0], {input: {...b.run.panel[0].input, jolt: 0, resolvedSha256: 'd'}, targets: [{frame: 39, t: .985, impact: .7}]});
+    return b;
+  };
+  expect(() => assertPairedRuns(a, jolted())).toThrow(/resolved inputs/);
+  expect(() => assertPairedRuns(a, jolted(), {allowJolt: true})).not.toThrow();
+  const changes: Array<(b: any) => void> = [b => {b.run.panel[0].input.specSha256 = 'other';}, b => {b.run.panel[0].targets[0].impact = .8;},
+    b => {b.run.panel[0].authoredTargets[0].frame = 38;}, b => {b.run.panel[0].targets[0].t = .96;}, b => {b.run.panel[0].targets[0].frame = 40;},
+    b => {b.run.panel[0].targets.push({frame: 60, t: 1.5, impact: .5});}, b => {b.run.panel[0].input.jolt = -15;}];
+  for (const change of changes) {const b = jolted(); change(b); expect(() => assertPairedRuns(a, b, {allowJolt: true})).toThrow();}
+});
 it('rejects invalid execution options before starting workers', () => {
   for (const budget of ['0', '-1', '1.5', 'Infinity', 'NaN', '1junk']) expect(() => validateRunOptions(budget, 'dev')).toThrow();
   expect(() => validateRunOptions('standard', 'dev')).toThrow();

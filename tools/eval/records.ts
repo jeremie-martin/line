@@ -45,6 +45,24 @@ export function readCell(dir: string, plan: RunPlan, c: PlannedCase) {
   assert.equal(digest(readTrack(dir, c.id)), cell.trackHash, `${c.id}: saved track differs`);
   return cell;
 }
+/** The one difference a jolt comparison allows between two resolutions of a
+ * case: the jolt itself, each target's time (moved by the jolts' difference,
+ * its frame rounded from it) and the resolved digest that covers them.
+ * Everything else is identical: the declared case, spec, audio, analysis,
+ * authored targets, target count and impacts. (Duration, preroll and the music
+ * inside the digest are checked by compare on the resolved inputs.) */
+export function assertJoltPair(a: PlannedCase, b: PlannedCase, joltA: number, joltB: number) {
+  const unmoved = (c: PlannedCase, jolt: number) => {
+    assert.equal(c.input.jolt, jolt, `${c.id}: resolved at jolt ${c.input.jolt}, not ${jolt}`);
+    return {...c, input: {...c.input, jolt: null, resolvedSha256: null}, targets: c.targets.map((t: {impact: number | null}) => t.impact)};
+  };
+  assert.deepEqual(unmoved(a, joltA), unmoved(b, joltB), 'paired runs must have identical resolved inputs but for the jolt');
+  a.targets.forEach((t: {t: number; frame: number}, i: number) => {
+    const u = b.targets[i];
+    assert.ok(Math.abs(t.t + joltA / 1000 - (u.t + joltB / 1000)) < 1e-9 && t.frame === Math.round(t.t * 40) && u.frame === Math.round(u.t * 40),
+      `${a.id}: target ${i} is not the same contact moved by the jolt`);
+  });
+}
 export const readJsonGz = (path: string) => JSON.parse(gunzipSync(readFileSync(path)).toString());
 export const readTrack = (dir: string, id: string) => readJsonGz(join(dir, 'cells', id + '.track.json.gz'));
 /** What a remeasured cell carries over from its compile: compiler outputs that
@@ -68,9 +86,16 @@ export function loadRun(name: string): Run {
   assert.equal(cells.size, run.panel.length, `incomplete evaluation: ${cells.size}/${run.panel.length} cells; resume before reporting`);
   return {dir, run, cells};
 }
-export function assertPairedRuns(a: Run, b: Run) {
+/** Paired runs: the same measurement code and identical resolved inputs. A
+ * declared jolt comparison (`compare --candidate-jolt`, `allowJolt`) lets the
+ * jolt differ, and nothing else (assertJoltPair). */
+export function assertPairedRuns(a: Run, b: Run, {allowJolt = false} = {}) {
   assert.equal(a.run.evaluator, b.run.evaluator, 'different measurement code: remeasure before comparing');
   const inputs = (r: Run) => [...r.run.panel].sort((x, y) => x.id.localeCompare(y.id));
-  assert.deepEqual(inputs(a), inputs(b), 'paired runs must have identical resolved inputs');
+  if (allowJolt && a.run.jolt !== b.run.jolt) {
+    const pa = inputs(a), pb = inputs(b);
+    assert.equal(pa.length, pb.length, 'paired runs must have identical resolved inputs');
+    pa.forEach((c, i) => assertJoltPair(c, pb[i], a.run.jolt, b.run.jolt));
+  } else assert.deepEqual(inputs(a), inputs(b), 'paired runs must have identical resolved inputs');
   for (const r of [a, b]) assert.deepEqual([...r.cells.keys()].sort(), r.run.panel.map(c => c.id).sort(), 'incomplete paired panel');
 }

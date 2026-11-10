@@ -118,8 +118,8 @@ export const specKey = (c: any) => `${c.song}~${c.variant ?? 'spec'}`;
  * with sign counts over seeds; a stratum is the mean of its specs; `strata` is
  * the mean of the strata (each weighs equally). No intervals: with few units a
  * resampled interval is not evidence. */
-export function stratify(a: Run, b?: Run) {
-  if (b) assertPairedRuns(a, b);
+export function stratify(a: Run, b?: Run, pairing: {allowJolt?: boolean} = {}) {
+  if (b) assertPairedRuns(a, b, pairing);
   const cases = a.run.panel as any[];
   assert.ok(cases.every(c => c.bench), 'this run predates the stratified panels; its report is at tag archive/pre-lean-foundation-2026-11');
   const strata = strataOf(cases);
@@ -198,8 +198,8 @@ export type GeometryValue = {strata: Array<{a: number; b: number; diff: number}>
  * realized facts use cells complete in both arms (in this run, unpaired). A run
  * with any cell lacking geometry facts is not recorded and gives no values.
  * Descriptive only: no direction is better. */
-export function geometryStrata(a: Run, b?: Run) {
-  if (b) assertPairedRuns(a, b);
+export function geometryStrata(a: Run, b?: Run, pairing: {allowJolt?: boolean} = {}) {
+  if (b) assertPairedRuns(a, b, pairing);
   const cases = a.run.panel as any[], runs = b ? [a, b] : [a];
   const recorded = runs.map(r => [...r.cells.values()].every(c => !!c.geometry));
   const facts = runs.map((r, i) => new Map(recorded[i] ? cases.map(c => [c.id, geometryOfCell(r.cells.get(c.id))!]) : []));

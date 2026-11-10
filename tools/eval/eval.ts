@@ -100,8 +100,8 @@ export const pad = (s: string, n: number) => s.length >= n ? s + ' ' : s.padEnd(
 const who = (r: Run) => `${String(r.run.identity?.head ?? '?').slice(0, 8)} (fingerprint ${String(r.run.identity?.candidateFingerprint ?? '?').slice(0, 8)}${r.run.creative ? `, creative ${JSON.stringify(r.run.creative)}` : ''})`;
 /** The stratified report: completion, then
  * quality on both-complete cells, then per-spec detail with seed sign counts. */
-export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string): string[] {
-  const r = stratify(a, b), out: string[] = [], paired = !!b, A = 'A', B = 'B';
+export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, nameB?: string, pairing: {allowJolt?: boolean} = {}): string[] {
+  const r = stratify(a, b, pairing), out: string[] = [], paired = !!b, A = 'A', B = 'B';
   out.push(`${a.run.panelName} — A = ${nameA}${b ? `, B = ${nameB}; differences are A − B, paired by case` : ''}`,
     `compiler A ${who(a)}${b ? `, B ${who(b)}` : ''}; evaluator ${a.run.evaluator.slice(0, 12)}; ${a.run.panel.length} cases`,
     'Strata weigh equally. Within a stratum each spec weighs equally; seeds are averaged.',
@@ -144,13 +144,13 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
       return pad(!Number.isFinite(value) ? '—' : paired ? `${num(m.diff, true)} +${m.up}−${m.down}=${m.same}` : num(m.a), 22);
     }).join('')}`.trimEnd());
   }
-  return [...out, '', ...geometryReport(a, b)];
+  return [...out, '', ...geometryReport(a, b, pairing)];
 }
 const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
 /** Section 4 of the stratified report: how rides use the geometry families.
  * Single run: values. Paired: A→B per stratum, then A, B and A − B over strata. */
-export function geometryReport(a: Run, b?: Run): string[] {
-  const g = geometryStrata(a, b), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
+export function geometryReport(a: Run, b?: Run, pairing: {allowJolt?: boolean} = {}): string[] {
+  const g = geometryStrata(a, b, pairing), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
   const out = [`4. Geometry: planned sections on every cell; realized facts on cells complete in ${paired ? 'both arms' : 'this run'} (${
     g.strata.map((s, i) => `${s} ${g.realizedCells[i]}`).join(', ')}). Descriptive only: no target, no verdict.`];
   if (missing.length === (paired ? 2 : 1)) return [...out, `not recorded: ${paired ? 'both runs predate' : 'this run predates'} geometry facts. They are compiler output`

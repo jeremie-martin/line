@@ -1,22 +1,25 @@
 /** Base search configuration for arc construction, scaled by ride length and frame budget. */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { gunzipSync } from "node:zlib";
+import { brotliDecompressSync, gunzipSync } from "node:zlib";
 import type { ArcMotionOptions } from "./arc_motion.ts";
 import futureValueModel from "./arc_value_model.json" with { type: "json" };
 import type { Spec } from "../types.ts";
 
-/** Reads a JSON model artifact, expanding a checksummed gzip companion file. */
+/** Reads a JSON model artifact, expanding a checksummed gzip (.gz) or brotli (.br) companion file.
+ * Both checksums (compressed and raw) are verified, so the encoding never changes the model. */
 export function parseArcPolicyArtifact(bytes:Buffer|string,artifactUrl?:URL):any {
   const artifact=JSON.parse(bytes.toString());
   if(artifact.schema!=="line.arc-compressed-policy.v1")return artifact;
-  if(artifact.compression!=="gzip-file"||!artifactUrl||typeof artifact.file!=="string"||
-    !/^[a-zA-Z0-9_.-]+\.gz$/.test(artifact.file)||!Number.isSafeInteger(artifact.uncompressedBytes)||artifact.uncompressedBytes<=0)
+  const suffix=({"gzip-file":"gz","brotli-file":"br"} as Record<string,string>)[artifact.compression];
+  if(!suffix||!artifactUrl||typeof artifact.file!=="string"||
+    !new RegExp(`^[a-zA-Z0-9_.-]+\\.${suffix}$`).test(artifact.file)||!Number.isSafeInteger(artifact.uncompressedBytes)||artifact.uncompressedBytes<=0)
     throw new Error("invalid arc policy archive");
   const compressed=readFileSync(new URL(artifact.file,artifactUrl));
   if(createHash("sha256").update(compressed).digest("hex")!==artifact.compressedSha256)
     throw new Error("arc policy archive checksum mismatch");
-  const raw=gunzipSync(compressed,{maxOutputLength:artifact.uncompressedBytes});
+  const raw=suffix==="gz"?gunzipSync(compressed,{maxOutputLength:artifact.uncompressedBytes})
+    :brotliDecompressSync(compressed,{maxOutputLength:artifact.uncompressedBytes});
   if(raw.length!==artifact.uncompressedBytes||createHash("sha256").update(raw).digest("hex")!==artifact.sha256)
     throw new Error("arc policy archive checksum mismatch");
   return JSON.parse(raw.toString());

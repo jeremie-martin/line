@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11: `rework/foundations` merged into `visual-lab`; parity references refreshed
+
+The merge composes two adopted behavioural changes: the November 7 construction policies (the archive, frozen November 8)
+from `rework/foundations` and the jolt removal (November 11) from `visual-lab`. Neither parent's compile references can hold.
+- `npm run parity -- --update`: the 20 fixture cells now equal `rework/foundations`' references exactly (the jolt never
+  reached them); the 5 cells compiled from current specs changed tracks, with quality on the 3 judged ones 830.5 → 836.8
+  (tiki_tiki bench-pairs), 844.8 → 856.7 (luna_bala v7-rideout) and 771.0 → 780.3 (amor_na_praia v7-explicit-handover),
+  against `visual-lab`. One ride per cell: not a comparison.
+- Adapted: `tools/research/candidate_origins.ts` and `catch_outcomes.ts` no longer pass a jolt to `resolveCase`.
+- V7.1 813.5 (TODO.md, item 9) was measured with the jolt; the merged main needs its own baseline before the next compiler
+  comparison.
+
 ## November 11: each video's look is chosen for it; drops (rounds 43–44)
 
 The project is a mass generator: no one picks a video's look. `scripts/video/choose.js` chooses from the ride's id:
@@ -356,6 +368,1696 @@ format, zoom slider and the official-follower drawing are gone.
 - The compiler.
 - The specs, kept as authored by the owner's choice (TODO.md, item 11).
 - The jolt, to be judged again by ear on videos now in sync.
+
+## November 8 (evening): readable proposals, first construction steps
+
+The owner asked for broad, methodical construction work on a readable
+proposal system, led by Claude: a piece is not rejected only for scoring
+below the archive. Progress is measured as the gap closed between the
+no-archive floor (−70.6) and main, with every version reported in full.
+
+### What a move is, and how the archive's moves are organized
+
+- **A move is already an editable shape.** `motionArcPaths`
+  (`arc_geometry.ts`) builds an arc from a tangent schedule:
+  - the rider is met at `entry` (shifted by `offset`) and turned by `turn`
+    over the first frames (`turnFraction`, eased by `bias`);
+  - the heading then eases to `exit` over `support` frames, with an
+    optional mid-arc `bend`;
+  - the family's profile modulates it, and the guide follows at
+    `clearance` (`guideFlare`, `guideTilt`).
+  A catalogue is therefore a question of which values good moves use, not
+  of a new representation.
+- **The six main controls do not compress.** Per group, four principal
+  directions cover only 83–89% of their variation. A handful of sliders
+  cannot describe the archive.
+- **The structure is modes set by the situation.**
+  - With a strong ask and a steep arrival the archive redirects: turn
+    −20° to −25°, exit −25° to −43° relative to the arrival.
+  - With a light ask and a shallow arrival it follows or dives. Unguided
+    arcs are then mostly caught from the opposing side (60–83%).
+  - Requested strength, arrival heading and the next ask explain 30–60% of
+    turn and exit (guided arcs: turn 0.46, exit 0.60).
+  - Support, bias and offset do not depend on the situation at all
+    (R² ≤ 0.06): they are free style, the source of variety.
+- **Instrument.** A renderer (scratch, research) rebuilds a stored case's
+  situation from its features and draws its control with the compiler's
+  own `motionArcPaths`, so moves can be looked at.
+
+### A readable catalogue in the compiler (V7.1, 4 seeds, against main)
+
+- **Form.** Per construction group and contact side:
+  - a **core table**: entry, turn and exit relative to the arrival, on a
+    5 × 5 grid over requested strength (0 to 1) and arrival heading (−10°
+    to 70°), read by bilinear interpolation and fitted with a smoothness
+    penalty;
+  - **styles**: real demonstrations, the medoids of k-means on their
+    residual from the table and their free fields. Each keeps its whole
+    control, so a style is a coherent real move.
+  - A proposal is the table's core for the situation plus a style's
+    residual, with the style's free and optional fields. It takes the
+    policy lookup's 32 slots; the memory reads no archive (ride memory
+    only), as in the compact-network arm.
+- **Results.**
+
+  | version | numbers | V7.1 | 95% interval | explicit requests |
+  |---|---|---|---|---|
+  | table + 32 styles, fixed order | 5,582 | −37.9 | −51.3 to −24.6 | −37.0 |
+  | table + 32 styles, ranked by situation | 13,582 | −33.2 | −48.7 to −17.7 | −32.7 |
+  | table + 64 styles, ranked by situation | 25,647 | **−29.1** | −41.9 to −16.4 | −30.3 |
+
+  - "Ranked by situation": each style records how often its demonstrations
+    occur in each cell of the grid (25 counts). Styles are offered most
+    typical first.
+  - No ride lost in any version. Strong extra impacts rise to 0.13–0.18
+    per 100 beats, against 0.04.
+  - Ranked 64, per category: G −45.6, P7 −41.5, P5 −37.5, P1 −28.7, P4
+    −24.2, P6 −22.6, P3 −17.7, P2 −15.4.
+- **Reading.**
+  - A readable table with fixed styles reaches the 32 typical moves
+    (−33.1), not the compact network (−25.1).
+  - Ranking the styles by two readable quantities is worth about 5 points,
+    and a larger ranked set about 4 more.
+  - The everyday songs (G) carry most of the remaining loss.
+- **More styles plateau.** 128 ranked styles (42,471 numbers, 74 KB): −31.7
+  against −29.1 for 64. The remaining loss is not a matter of more stored
+  moves.
+- **Where the ranked 64 still lose** (`loss_parts.py`, headline points
+  against main, with the compact network for comparison):
+  - strong beats too soft −11.6 (network −12.0);
+  - speed −8.6 (−7.7); extra hits −2.9 (−0.9); air −1.2 (+0.1).
+  - Strength is now as good as the network's. The large shared loss of
+    every compact source (strong beats about 12, speed about 8) remains.
+- Branches: `exp/readable-catalogue`, `exp/catalogue-ranked-32`,
+  `exp/catalogue-ranked-64`, `exp/catalogue-ranked-128` (local).
+
+### What a candidate leads to: a forward model of a catch (report only)
+
+- **Instrument.** `tools/research/catch_outcomes.ts` records every retained
+  candidate of every offered interval: its control relative to the
+  arrival, and what it led to (measured strength, span residuals, local
+  cost, arrival at the next catch).
+  - Main, V7.1, seed 101: 41 rides, all tracks identical to the saved arm.
+  - 27,723 intervals, 5.25 million measured candidates (about 190 per
+    interval), 3,489 committed. That is 65 times the archive's winners,
+    and it includes the candidates that lost.
+- **How predictable the outcomes are** (boosted trees on situation and
+  control, 40 candidates sampled per interval, about 1 million rows; fitted
+  on some songs and scored on held-out songs):
+
+  | outcome | R² across songs | rank agreement within one pool |
+  |---|---|---|
+  | measured strength | **0.85** | 0.54 |
+  | arrival heading at the next catch | **0.93** | 0.70 |
+  | arrival speed at the next catch | 0.80 | 0.61 |
+  | air residual | 0.58 | 0.49 |
+  | speed residual | 0.66 | 0.60 |
+  | local cost | −0.08 | 0.24 |
+
+  - The physical outcomes are well predicted. The total cost is not, since
+    it is dominated by rare failures.
+  - As a screen inside a pool, the predicted parts combined with the
+    compiler's weights put 38% of the measured best tenth into their best
+    quarter (chance 25%), and 50% on strong asks.
+- **Readable versions are weak.** Straight lines on named physical terms
+  (speed × sine of the redirect, heading + exit, durations…): strength
+  0.43, next heading 0.76, next speed 0.58. Contact physics is nonlinear.
+- **Reading.**
+  - A compact nonlinear model can say what a move will do: how hard the
+    hit, and where the next arrival. Its role would be narrow: aim the
+    readable moves, while simulation still decides.
+  - Within a pool, where candidates are near-copies of each other, it
+    discriminates only moderately. Whether aiming pays is tested first
+    without any model (next).
+
+### Aiming by fixed physical variants: worse
+
+- **Change** (on the 64 ranked styles; `exp/catalogue-aimed`). The 8 most
+  typical normal-side moves also come aimed:
+  - with 8° more redirect (turn −8°) when the beat this arc lands on is
+    requested at 0.6 or more;
+  - with an exit 10° steeper when the next beat is strong, for a steeper
+    arrival there.
+  - The variants take the places of the least typical moves.
+- **Expectation.** Strong beats less often too soft.
+- **Result: −38.6** [−46.7, −30.6], against −29.1 without aiming; every
+  seed block worse; strong extra impacts 0.20 per 100 beats.
+  - Strength −17.4 against −14.0, speed −10.4 against −8.6, extra hits −4.7
+    against −2.9.
+- **Reading.**
+  - Fixed "harder" variants do not hit harder; they only take the places of
+    real moves. This agrees with the night's strength-seeking response step
+    (−3.1): the strong options the compact sources miss are not a fixed
+    step away from the moves they have.
+  - All compact sources so far stall around −25 to −30, whether ranked by
+    two readable quantities (−29.1) or by all 57 features (64
+    representatives, −27.7).
+- **The proposal slots.** The search tries `samples / 2` = 40 initial
+  proposals per catch, shared in proportion among the sources. The
+  archive's lookups ask for 16 + 16, which fit. The catalogue asks for 32
+  beside memory's 16, so only about 24 of its moves are tried (about 18 on
+  shaped families, which reserve a quarter for the generic sweep). This is
+  why ranking matters, and why 128 styles could not help.
+
+### All the catalogue's moves tried: −22.7, closer than the compact network
+
+- **Change.** The 64 ranked styles are all offered: `policySamples: 64`,
+  and `samples: 160` per catch, so 80 initial proposals
+  (`exp/catalogue-64-all-tried`).
+  - Physics frames +1%: the allowance caps the total, so this moves
+    effort from depth to breadth rather than adding compute.
+- **Control.** Main with the same `samples: 160` (`exp/main-samples-160`):
+  **−1.1** [−5.9, +3.6], no effect. More initial slots do not help the
+  archive, which already fits.
+- **Result: −22.7** [−33.9, −11.4]; every seed block negative (−12.8 to
+  −28.9); no ride lost; explicit requests −26.8; strong extra impacts 0.07
+  per 100 beats (main 0.04).
+  - Per category: G −36.7, P5 −35.7, P7 −31.0, P4 −27.0, P1 −23.6, P2
+    −17.2, P3 −14.2, P6 +3.9.
+  - By part (against main; compact network in brackets): strong beats too
+    soft −10.4 (−12.0), speed −6.3 (−7.7), extra hits −3.1 (−0.9), timing
+    −1.0 (−2.5), air −0.9 (+0.1).
+- **128 ranked styles offered the same way: −25.1** [−37.4, −12.8]. About
+  68 of the 128 fit in the slots; more moves crowd each other out. 64,
+  all tried, is the best so far.
+- **The extra hits sit in the shaped, guided families**: over 164 rides,
+  terraces 653 hits (main 492) and serpentine 712 (main 358), all weak
+  (under 0.3). A real move placed in a new situation likely brings a guide
+  clearance the rider touches. About 2 points.
+- **Reading.**
+  - The readable catalogue's moves were good; most were never tried.
+    Offered in full, a 5 × 5 table per family and side plus 64 real moves
+    (25,647 numbers) beats the compact network, at the same physics cost.
+  - That is within about 3 points of the owner's acceptable drop (about
+    20).
+  - The loss left is the shared one: strong beats on everyday songs, and
+    speed.
+
+### Where the all-tried catalogue still misses strong beats
+
+`strong_catches.py` on an origins study of `exp/catalogue-64-all-tried`
+(seed 101, 41 rides, tracks identical to its saved arm). The catalogue's
+moves start 53% of committed arcs.
+
+| arm | short by more than 0.2 | arrivals below 15° | short at 25–35° | short at main's headings |
+|---|---|---|---|---|
+| main | 8% | 6% | 6% | 8% |
+| catalogue, all tried | 12% | **13%** | **7%** | 10% |
+| compact network | 14% | 11% | 13% | 12% |
+
+- **Conversion is nearly the archive's.** At the same arrival heading the
+  catalogue's landing arcs hit almost as well as main's (7% short at
+  25–35°, against 6%).
+- **The setup is not.** It arrives shallow (below 15°) twice as often.
+  The 175 strong beats only it misses arrive at 17° (main 35° on the same
+  beats). A third of them land from the opposing side (main 13%).
+- **Why.** The catalogue's table and ranking read only the beat the arc
+  lands on. The arc before a strong beat must leave so that the rider
+  arrives steep, and nothing tells the catalogue that the next beat is
+  strong. The archive's distance weighs the next beats four times. The
+  compiler's steep-arrival preference then has nothing steep to choose.
+- **Next.** The table and the ranking gain a third readable axis: the next
+  beat's requested strength (a 5 × 5 × 3 grid, trilinear). In-sample, the
+  table then explains more of the exit (terraces 0.38 → 0.49, scallops
+  0.51 → 0.61).
+
+### Paired comparisons between catalogue versions, and variety
+
+- **Paired, same seeds** (candidate against reference, V7.1, 4 seeds). The
+  comparisons against main are about ±12 wide, too wide to separate
+  catalogue versions, so these are compared directly:
+
+  | change | paired difference |
+  |---|---|
+  | all 64 tried, against 64 ranked in the default slots | **+6.5** [+1.5, +11.4], every block positive |
+  | 128 instead of 64, both all tried | −2.4 [−5.9, +1.0] |
+  | next beat's strength as a third axis, against all tried | −5.3 [−14.2, +3.6] |
+
+- **The next-beat axis** (`exp/catalogue-64-next`, 58,553 numbers): −28.0
+  against main. Arrivals at strong beats below 15° fell only from 13% to
+  10% (main 6%), and strong beats short by more than 0.2 stayed at 12%.
+  The setup depends on the whole chain of arcs and on which candidates
+  ranking keeps, not on one move's exit. Not kept; an open thread.
+- **Variety of the drawn lines** (`move_variety.py`, saved arms, 164
+  rides; unvalidated against the owner's eye):
+
+  | arm | ratio (own ride / other songs) | distinct shapes per ride | recurring 3-arc motifs |
+  |---|---|---|---|
+  | main (archive) | 0.87 | 45.8 | 0.6% |
+  | readable catalogue, all tried | 0.84 | 44.4 | 1.0% |
+  | compact network | 0.85 | 43.9 | 0.6% |
+  | none | 0.76 | 42.5 | 0.9% |
+
+  Catalogue against main, paired by ride: ratio −0.03 [−0.05, −0.01],
+  distinct shapes −1.3 [−2.0, −0.6]. A readable catalogue of 64 moves per
+  family does not lock rides into repetition. It is within a few percent
+  of the archive, and far from the no-archive arm.
+
+### Chains of strong beats: why the catalogue's arrivals run shallow
+
+- **Where.** 91% of the catalogue's shallow arrivals at strong beats (below
+  15° where main arrives at 25° or more; 157 beats) follow another strong
+  beat. 76% of strong beats do.
+- **The loop.** In those chains the catalogue's arc before redirects hard
+  (turn −18°, exit −18° relative to its arrival) to land its own strong
+  beat. That leaves the rider flatter, and the next arrival is shallow.
+  On the same beats main's arc before turns −7° with exit −2°. It still
+  lands its beat, because its own arrival was steep (35° against 18°), and
+  it leaves steep for the next. Main keeps the chain steep; the catalogue
+  drifts shallow.
+- **Proposals or choice?** `catch_outcomes.ts` on the all-tried catalogue
+  (5.36 million candidates, tracks identical) and on main. Committed
+  catches in strong chains, 1,478 each:
+
+  | | main | catalogue |
+  |---|---|---|
+  | the pool holds a move that hits this beat within 0.1 and leaves the next arrival at 30° or steeper | 54% | 44% |
+  | the committed move does both | 32% | 22% |
+  | next arrival after the committed move, median | 31.0° | 27.3° |
+
+  Mostly availability: such moves are scarcer in the catalogue's pools,
+  and chosen a little less often when present.
+- **What those moves look like** (main's pools; candidates that hit a
+  strong beat within 0.1 with the next beat strong; medians relative to
+  the arrival):
+
+  | arrival | moves that hit and leave steep | moves that hit and leave flat |
+  |---|---|---|
+  | below 25° | **caught from above, then dived**: opposing side, turn +27°, exit +18°; next arrival 54° | redirect: turn −17°, exit −17°; next 14° |
+  | 25–40° | **hit by the entry angle, then dived**: entry −17°, turn +10°, exit +6°; next 36° | redirect: turn −19°, exit −17°; next 20° |
+  | 40° or more | redirect (turn −18°, exit −18°); next 36° | stronger redirect (exit −26°); next 26° |
+
+  - A shallow rider in a strong chain is best caught on the underside of a
+    line that sends them down: an upper-receiver catch.
+  - At medium angles the line meets the rider flatter than they arrive,
+    so the hit comes from the contact itself, and then turns down instead
+    of redirecting up.
+  - The catalogue's table says "redirect" for every strong ask, and its
+    styles rarely carry a +10° turn.
+- **Next: chain moves** (`exp/catalogue-chain-moves`). Per family, 16
+  measured moves of exactly this kind: medoids of main's pool candidates
+  that hit a strong beat within 0.1 and left the next strong arrival at
+  30° or steeper, each with the arrival heading it was measured at.
+  - In the arc families, a quarter to nearly half are caught from above.
+  - When this beat and the next are strong, they are offered first,
+    closest arrival heading first, within the same 64 proposals.
+  - 26,799 numbers in all (50 KB).
+- **Result: no gain.** Paired against the all-tried catalogue: −1.8
+  [−4.6, +1.0]; explicit requests +4.6; strong extra impacts 0.13 against
+  0.07 per 100 beats.
+  - Arrivals at strong beats below 15°: 13% → 11% (main 6%). Short by more
+    than 0.2: 12% → 11% (main 8%).
+- **Reading.** Three readable patches on the setup have now been tried:
+  aimed variants, a next-beat axis, and chain moves. None fixes the drift.
+  The archive's steepness is a property of the whole chain from the
+  start of the ride, held by every move being close to what worked in that
+  exact state. Offering the right kind of move at one catch does not
+  restore it. This thread is set aside; the setup costs the catalogue
+  about 2 of its 4 extra points of strong beats short.
+
+### The held-out panel: where the readable catalogue stands
+
+- **Run.** The all-tried catalogue (`exp/catalogue-64-all-tried`) and the
+  no-archive arm against main on the held-out panel (13 specs from songs
+  never used in training, 4 seeds; `--panel=heldout --heldout`).
+- **Result.**
+
+  | | no archive | readable catalogue | share of the archive's worth recovered |
+  |---|---|---|---|
+  | V7.1 | −70.6 | −22.7 [−33.9, −11.4] | 68% |
+  | held out | −75.3 [−89.1, −61.4] | **−30.3** [−38.7, −21.9] | 60% |
+
+  - Held out: all 13 specs down for the catalogue (lowest −55.0,
+    `no_batidao_selection`; highest −5.5); no ride lost; strong extra
+    impacts 0.23 against 0.04 per 100 beats.
+- **Reading.**
+  - With 25,647 numbers (0.05% of the archive's size), a readable
+    catalogue recovers about two thirds of what the archive is worth, on
+    the benchmark and on new music.
+  - On new music it stays beyond the owner's acceptable drop (about 20).
+  - What is left is understood: strong beats on everyday songs (mostly the
+    chain setup), speed, and extra hits on shaped guided families.
+- **For the owner's eye:** a Catalogue Catch Sheet (artifact) shows every
+  catch of eight rides, the archive against the catalogue under shuffled
+  letters.
+
+### Step back with the owner: does the catalogue escape the archive's issues?
+
+- **The owner's question:** the goal was not a catalogue, but a solution
+  free of the archive's issues. Did we fall into the same ones?
+- **Answer (Claude):** partly.
+  - It fixes size and git growth: 44 KB against 52 MB.
+  - Its table is readable. Its 64 moves per family are copied real
+    demonstrations: inspectable, not understood.
+  - It does not fix the rest. It is distilled from the archive's
+    demonstrations, so it inherits the same habits; improving it would
+    mean retraining on the compiler's own rides, the same loop; and a new
+    construction starts with nothing. It is a much smaller archive, not a
+    different foundation.
+- **The owner:** in practice the archive's tracks were already appreciated,
+  so a valid worry is fine if, in practice, the result is fine. How it
+  looks and behaves matters as much as the score. **Upper hits matter
+  most.** Characterize the rider's behaviour: upper hits, slides, long
+  ride-outs.
+- **Agreed next.**
+  1. A ride-character profile per version (below).
+  2. Replace the copied moves with generated variation: the table's core
+     plus a spread over the free parameters, no copied cases.
+
+### Ride character: how the rider meets the track (report only)
+
+- **Instrument.** `tools/research/ride_character.ts` replays each saved
+  ride and classifies every collision.
+  - **From above** (an upper hit): the touched line pushes the rider down.
+    The engine (`line.rs`) gives a line the normal (−dy, dx)/length,
+    negated when flipped, and pushes a colliding point against it. A push
+    more than 0.2 downward counts, so near-vertical walls count as
+    neither.
+  - Also: guide lines, sled against body points, unbroken sled-contact
+    runs (ride-outs), and flights.
+  - Unvalidated against the owner's eye. An earlier version that compared
+    positions was wrong (70% "from above"), because a colliding point sits
+    on the line itself.
+- **Result** (V7.1, saved arms, 164 rides each):
+
+  | measure | main | catalogue | compact network | none |
+  |---|---|---|---|---|
+  | beats hit from above | 27.9% | 25.4% | 24.9% | 23.2% |
+  | strong beats hit from above | 20.7% | 19.4% | 19.6% | 20.8% |
+  | contact from above, s/min | 7.90 | 7.79 | 7.23 | 6.12 |
+  | guide contact, s/min | 6.11 | 5.86 | 5.64 | 4.53 |
+  | time with the sled on a line | 34.1% | 34.0% | 33.7% | 32.7% |
+  | ride-outs of 1 s or more, s/min | 0.74 | 0.74 | 0.72 | 0.70 |
+  | time in the air | 60.9% | 60.5% | 61.9% | 63.8% |
+  | flights of 1 s or more, per min | 2.41 | 2.25 | 2.44 | 2.69 |
+  | body contact, s/min | 16.1 | 16.2 | 15.3 | 13.3 |
+
+  Paired by ride, catalogue against main: beats hit from above −2.5
+  points [−3.2, −1.8]; strong beats from above −1.3 [−2.4, −0.1]; guide
+  contact −0.25 s/min [−0.38, −0.10]; time in the air −0.5 points. Every
+  other measure is within a fraction of main.
+- **Reading.**
+  - The catalogue keeps the rides' character, upper hits included, within
+    a few percent.
+  - Without the archive, rides lose upper hits and guide contact and fly
+    more.
+  - Ride-outs of a second or more are rare in every version (under 1 s per
+    minute). Worth the owner's eye: long rides along a line hardly exist.
+
+### Generated variation instead of copied moves
+
+- **Form** (`exp/catalogue-generated`; 2,756 numbers, 9 KB). Per family:
+  - the same core table per contact side;
+  - the share of opposing-side catches per grid cell (smoothed);
+  - every other parameter (the deviations of entry, turn and exit from the
+    core, support/span, bias, offset, and the optional fields present in at
+    least half of the demonstrations) as its observed range: 11
+    quantiles.
+  - Proposal k takes its side from the opposing share, then each parameter
+    from an evenly spread sequence mapped through its quantiles. 64
+    proposals, all offered. No demonstration is stored.
+  - Every number reads as a range. For guided arcs, the turn deviates from
+    the typical move by −25° to +36°, and the guide sits 8 to 22 px away.
+    The opposing-side share is about a third at light asks, under a tenth
+    at strong asks with steep arrivals.
+- **Result: −51.6** [−67.6, −35.7] against main; paired against the copied
+  catalogue −29.0 [−39.6, −18.3]. Body drag −26% (3.08 s/min); strong
+  arrivals head-down or backward 12.3% against 10.2%.
+
+  | source | against main | share of the archive's worth recovered |
+  |---|---|---|
+  | none | −70.6 | 0% |
+  | generated, independent ranges | −51.6 | 27% |
+  | catalogue, 64 copied moves | −22.7 | 68% |
+
+- **Reading.** Copying real moves carries about 29 points. Sampled
+  independently, the parameters lose their coherence: in a real move,
+  turn, exit, length, easing and offset fit together. The correlations
+  are strong and readable (guided arcs: the extra turn against the extra
+  entry −0.67, the extra exit +0.51, turnFraction +0.46, support +0.40).
+- **Next** (`exp/catalogue-generated-correlated`; 3,786 numbers, 12 KB).
+  The same ranges, with the parameters varying together as their
+  correlations say: normal scores combined through a correlation factor
+  per family and side.
+- **Result: −47.0** [−57.2, −36.7] against main; paired against the copied
+  catalogue −24.3 [−33.7, −14.9]. Only 4.6 better than independent
+  ranges. Body drag −23%; strong extra impacts 0.27 per 100 beats.
+
+  | source | against main | share recovered |
+  |---|---|---|
+  | none | −70.6 | 0% |
+  | generated, independent ranges | −51.6 | 27% |
+  | generated, correlated | −47.0 | 33% |
+  | catalogue, 64 copied moves, all tried | −22.7 | 68% |
+  | (catalogue, 32 copied moves, fixed order, 40 slots) | −37.9 | 46% |
+
+- **Reading.**
+  - Real moves are worth far more than sampled ones. Even the plainest
+    copied catalogue beats the best generated one.
+  - What makes a real move good is not in its parameters' ranges, nor in
+    how they vary pairwise. It is in specific joint combinations: a move
+    that works is a coherent shape, and sampled combinations are often
+    awkward (more extra hits, more head-down arrivals).
+  - So "copying what worked" carries about 25 points that a readable
+    statistical description cannot.
+  - This answers the question the step back raised. Moves cannot simply be
+    generated from statistics. Moves that work have to come from somewhere:
+    stored real moves, or a model of what works.
+
+## November 8: the archive is frozen; today's compiler is the baseline
+
+- **Decision** (agreed with the owner).
+  - Today's compiler, archive included, is the baseline.
+  - The construction-policy archive is frozen: no more retrains. It stays
+    committed, because compare and collection checkouts build every arm
+    from git, and old commits must stay rebuildable. Keeping it only
+    locally would break those checkouts and would not shrink the history
+    already there.
+  - `tests/policy_archive_frozen.test.ts` pins its fingerprint. The
+    compiler already checks the file against that fingerprint when it
+    loads it. Unfreezing needs the owner's decision and a deliberate edit
+    of the pin.
+  - The pooled archives (100 MB and more) stay on local branches only.
+- **The owner's position.**
+  - A drop of about 20 points (say 780 against 800) is significant but not
+    the end of the world. A drop of 70 (the archive's worth) is
+    unacceptable.
+  - Such a drop could be worth taking for a much simpler compiler: more
+    linear, not a black box, something that makes sense and can be
+    improved.
+- **Why not swap in the compact network now.** It costs 25 points as
+  trained on the archive's data, and 22 at best after retraining. It is
+  still a black box (5,361 numbers no one can read). It saves storage but
+  does not give the readable foundation the owner asks for.
+- **The way forward: reduce our reliance on the archive step by step.**
+  - Readable mechanisms are added beside the archive. After each one, the
+    no-archive comparison measures what the archive is still worth.
+  - Once its worth is about 20 points or less, it can be removed.
+  - Each attempt is bounded, about a day: a hypothesis stated in advance,
+    one implementation, then two comparisons against main: the new mechanism
+    with the archive, and the new mechanism without it. No implementation
+    without the owner's go-ahead.
+- **The design space is wide, and the options combine.**
+  - Physics-aimed proposals: the redirect a strong hit needs, computed
+    from arrival speed and the requested strength.
+  - A concise learned model that proposes geometry.
+  - Better refinement: proposals are only starting points, and local
+    search finishes 97% of committed arcs.
+  - A catalogue of geometries, each modifiable in specific ways.
+  - These are not rivals of each other or of the archive; several can
+    work together.
+- **What they must cover** (from the studies below):
+  - reliable hard hits on strong beats: landing arcs that redirect;
+  - arrivals that stay steep enough;
+  - several good alternatives per situation, since no single rule
+    describes the archive's good catches.
+- **Next.** A short design note for the owner: each approach made
+  concrete, which part of the archive's work it would take over, how
+  readable it is, and how the approaches fit together. The owner picks the
+  first bounded attempt from it.
+
+**Terms used in the November 8 entries.**
+
+- **Main**: today's compiler, 813.5 on V7.1 at 4 seeds (813.8 at 8 seeds).
+- **V7.1**: the benchmark suite: 35 specs plus 6 explicit requests, each
+  compiled at several seeds. Its **headline** is the mean over strata (G,
+  everyday songs; P1 to P7, one musical pattern each). Each stratum is the
+  mean of its specs, and each spec the mean of its seeds. **Explicit
+  requests** (E) are reported apart.
+- **Arm**: one compiler version in a comparison. **Ride**: one spec at one
+  seed. **Section**: one arc of a ride and the gap it opens.
+- **Beat** j is the contact at the end of section j. It lands on arc j + 1,
+  so that arc owns the beat's impact, while arc j sets the arrival.
+- **The archive** (also: construction policies, policy archive): 79,778
+  demonstrations, the committed controls of earlier compiles.
+  - Two lookups read it, for each section after the first. The **policy
+    lookup** gives 16 proposals from proximity trees. The **memory lookup**
+    gives 16 from the nearest cases among the stored demonstrations and
+    this ride's own earlier commits.
+  - **Ride memory** means those earlier commits of the same ride. It needs
+    no archive, so it keeps working in the no-archive arm.
+  - The experimental arms that replace the lookups use their freed slots:
+    32 proposals from one source.
+- **The compact network**: a small model per construction group (5,361
+  numbers, 18 KB). It maps the situation to a control, and 32 fixed
+  "styles" spread proposals around it. It takes the policy lookup's place;
+  variants are retrained on more data or have 32 outputs ("multiple
+  choice").
+- **Root source**: where a committed arc's first proposal came from,
+  before refinement changed it.
+- **Controls**: an arc's numbers (entry, turn, exit, support, bias,
+  offset). Entry and exit are measured relative to the arriving heading.
+- **Sled pose**: the sled's angle, positive nose-down. **Head down**: the
+  rider's head below the sled at the strong hit.
+- **Spread** is used in two senses, each stated where it is used: a unit
+  (the standard deviation of a control over the committed arcs), and a
+  variety measure (the mean distance between two random arcs of one
+  family).
+
+## November 8: plan, understand the candidates and measure variety before changing them
+
+The owner's direction: no new candidate generator yet. Keep the archive
+(it stays in production) and use it as an instrument for comparison and
+analysis. First understand what each
+candidate source does and why, and build the telemetry to see variety and
+repetition. Every measure is report-only, never a target.
+
+1. **The candidate pipeline, mapped with numbers.** Every source of a
+   catch's starting pool:
+   - the hand-made centre;
+   - the generic sweep;
+   - the two archive lookups;
+   - within-compile memory and responses;
+   - compact folds, opposing entries, recovery.
+   Then local search and the learned estimate. For each source: tried,
+   viable, frames, and (new, report-only, parity-checked) **which source the
+   committed arc descends from**.
+2. **Variety telemetry.** Today's measures are plan-level (the family drawn
+   per phrase) and seed-to-seed (family and airtime differences). Nothing
+   measures the shapes themselves. Needed:
+   - repetition within a ride (how alike its arcs are; how many distinct
+     moves it uses);
+   - sameness across songs (whether different music gets the same moves);
+   - both per family, and per arm: archive, none, compact.
+   They stay unvalidated until compared with the owner's eye in a blind
+   pairwise study.
+3. **What the archive has learned.** Its most common moves, rare moves, and
+   what it never shows, rendered so the owner can see what is being
+   reapplied.
+4. **Then decide** the candidate design together.
+
+The self-training round on the compact model continues as a comparison
+point.
+
+**Where the plan stands** (end of November 8):
+
+- Steps 1 and 2: done, below. Step 2 includes the owner's first look at
+  the drawn catches.
+- Step 3, rendering the archive's common, rare and missing moves, was not
+  done. To the owner's eye the variety differences were small, so the work
+  turned to what the archive's points are made of and how strong beats are
+  caught (below).
+- Step 4: the direction is decided (entry above: freeze the archive,
+  then reduce reliance on it step by step). The candidate design itself is
+  still to choose, from the design note.
+- The self-training round: last below; its hypothesis was not confirmed.
+
+### Step 1: where the committed arcs come from (report only)
+
+- **Instrument.**
+  - `scripts/v0/optimizer/arc_origin.ts` labels every proposal with its
+    root source. Each refinement step appends its stage, and the label
+    keeps a copy of the proposal as first made.
+  - Labels are off unless a research tool enables them, and the compiler
+    never reads one. `npm run check` passes (parity identical).
+  - `tools/research/candidate_origins.ts` compiles V7.1 rides with labels
+    on. All 41 rides (seed 101) are identical to main's saved arm.
+- **Root source of the 3,508 committed arcs** (V7.1, seed 101, main):
+
+  | source | share of initial proposals | share of committed arcs |
+  |---|---|---|
+  | archive, policy lookup | 33% | **46%** |
+  | archive, memory's stored demonstrations | 33% (memory, both kinds) | **27%** |
+  | memory, arcs committed earlier in this ride | (in the 33%) | 7% |
+  | response proposals (this ride's response steps) | 8% | 17% |
+  | generic sweep | 23% | **1%** |
+  | hand-made centre | 2% | 1% |
+  | warm start, opposing entries, recovery | — | 2% |
+
+  - 73% of committed arcs start from an archive demonstration. Most of the
+    rest (responses and this ride's own arcs) descend from earlier arcs of
+    the same ride, which mostly started from the archive.
+  - The generic sweep makes a quarter of the proposals and starts 1 arc in
+    100.
+  - The shares are the same in every family and every stratum. Transfer
+    arcs (9) are the exception, starting from responses and this ride's
+    memory.
+- **Refinement.** 97% of committed arcs were refined after being proposed
+  (53% coordinate then response steps, 27% coordinate, shape, then
+  response). These are ARCHITECTURE.md's coordinate, guide and
+  joint-response steps of local search. Refinement moved them a median 0.57 of the committed arcs'
+  spread from their proposal (quartiles 0.36–0.85). The rare winners from
+  the sweep moved 1.1.
+- **Reading.** The archive chooses the neighbourhood and local search
+  finishes the arc. A committed arc is not a copy of a demonstration; it
+  starts near one. The sweep and the centre almost never win against them.
+
+### Step 2, first reading: variety of the moves, with and without the archive (report only)
+
+- **Measures** (each per family, then over the ride):
+  - **ratio**: the median distance from an arc to the nearest arc of the
+    same family in its own ride, divided by the same distance to as many
+    arcs drawn from other songs. Below 1, a ride repeats itself more than
+    songs differ from each other.
+  - **distinct moves per ride**: 24 move clusters per family; how many a
+    ride effectively uses.
+  - **recurring 3-arc motifs**: the share of three-arc runs (as clusters)
+    that occur more than once in the ride.
+  - **spread**: the mean distance between two random arcs of one family,
+    whole catalogue.
+- **Instrument.** `tools/research/move_variety.py` reads one
+  `candidate_origins.ts` study per arm (V7.1, seed 101, 41 rides, 3,508 arcs
+  each).
+  - A move is the six main controls relative to the arrival, standardized
+    per family on the pooled arcs of all arms.
+  - These are controls, not rendered shapes, and the measures are
+    unvalidated: they are a first reading, to be checked by the owner's eye
+    in a blind pairwise study.
+- **Where the arcs start without the archive and with the compact model.**
+
+  | root source of committed arcs | archive (main) | none | compact network |
+  |---|---|---|---|
+  | learned lookup (archive or network) | 46% | — | 45% |
+  | archive's stored demonstrations | 27% | — | — |
+  | this ride's earlier arcs (memory) | 7% | **44%** | 27% |
+  | response proposals | 17% | 28% | 20% |
+  | generic sweep | 1% | 18% | 2% |
+  | hand-made centre, opposing entries, warm start, recovery | 3% | 10% | 6% |
+
+  - Without the archive, the generic sweep is 59% of the tried proposals.
+    It starts 18% of the arcs, and those need the most refinement (median
+    1.0 spread, against 0.7 for memory).
+  - Nearly three quarters of the arcs then start from this ride's own
+    earlier arcs or their responses.
+- **Variety.**
+
+  | arm | spread | ratio (own ride / other songs) | distinct moves per ride | recurring 3-arc motifs |
+  |---|---|---|---|---|
+  | archive (main) | 3.25 | 0.94 | 48.4 | 0.5% |
+  | none | 3.35 | **0.79** | **41.6** | **1.6%** |
+  | compact network | 3.15 | 0.88 | 45.7 | 0.8% |
+
+  Paired by spec against main (bootstrap over 41 specs, 95%):
+  - **None.** The ratio is −0.16 (−0.19 to −0.12), lower in 95% of rides;
+    6.0 fewer distinct moves per ride (−7.6 to −4.4); motifs +1.1 points
+    (+0.4 to +2.0).
+  - **Compact network.** The ratio is −0.05 (−0.09 to −0.02); 2.5 fewer
+    moves (−4.0 to −1.0); motifs +0.3 (−0.4 to +1.2).
+- **Reading.**
+  - In control terms, the archive does not make a ride repeat itself; it is
+    the other way round. Without it, a ride's arcs are much closer to each
+    other than to other songs' arcs. A ride uses fewer distinct moves and
+    repeats short sequences more, because the ride copies its own first
+    successes.
+  - On the training songs, 14% of the archive compiler's commits lie close
+    to a stored demonstration (step-back entry below). Part of that is the
+    compiler re-committing what it did on the same songs last round. Within
+    a ride, the archive still gives the most varied repertoire of the three
+    arms.
+  - Across songs, main's ratio 0.94 means a ride's own arcs are almost as
+    close to each other as to other songs'. Songs do not develop a vocabulary
+    of their own. Whether that is a problem is a taste question.
+  - The spread (whole-catalogue variety) barely differs between arms.
+- **The drawn lines agree, more weakly** (the same tool on the saved compare
+  arms: V7.1, 4 seeds, 164 rides, about 14,000 arcs each).
+  - Here a move is the direction of the arc's main line (guides left out)
+    at 16 points evenly spaced along it, in the world frame: the shape the
+    eye sees, without its size.
+
+  | arm | ratio (own ride / other songs) | distinct moves per ride | recurring 3-arc motifs | line length, median (quartiles) |
+  |---|---|---|---|---|
+  | archive (main) | 0.87 | 45.6 | 0.5% | 99 (71–139) |
+  | none | 0.75 | 41.9 | 1.1% | 94 (69–129) |
+  | compact network | 0.85 | 44.1 | 0.7% | 98 (70–136) |
+
+  - **None against main**, paired by ride: ratio −0.10 (−0.13 to −0.08),
+    lower in 79% of rides; 3.8 fewer distinct moves (−4.7 to −3.0); motifs
+    +0.6 points (+0.3 to +1.0).
+  - **Compact network against main**: ratio −0.02 (−0.05 to 0.00); 1.5
+    fewer moves (−2.3 to −0.8); motifs not different.
+  - **Per family** (ratio, main / none / network):
+    - arcs unguided 0.88 / 0.81 / 0.86;
+    - arcs 0.88 / 0.84 / 0.85;
+    - terraces 0.91 / 0.84 / 0.85;
+    - serpentine 0.89 / 0.76 / 0.89;
+    - scallops 0.88 / 0.77 / 0.87;
+    - fold 0.89 / 0.74 / 0.85;
+    - scattered 0.72 / 0.76 / 0.79.
+
+    Scattered is the one family where main repeats itself the most of the
+    three arms, and the most of any family. In fold, none uses more distinct
+    moves (6.2 against 5.7) while repeating itself more.
+  - Even with the archive, a ride's drawn arcs are closer to each other
+    (0.87) than to other songs' arcs. In shape terms there is some
+    within-ride repetition everywhere; the archive reduces it.
+- **First look by the owner's eye** (Catch Sheet page: every catch of 8
+  rides, seed 101, main line and guides, three versions under shuffled
+  letters).
+  - "The differences are a bit subtle … maybe they're not so bad." The
+    owner was unsure in each case.
+  - Three rides looked at, briefly and unsure. The owner: no conclusion
+    should be drawn from which versions were picked. What stands is that
+    the variety differences are small to the eye.
+  - The owner's own idea of repetition is broader than these measures: the
+    same way of catching repeated many times in a ride (for instance, a long
+    arc with an upper rail that controls the rider, then the catch), which
+    spans several arcs and their guides.
+- **Open.**
+  - The shape descriptor is a choice (directions along the line, size
+    apart), not a validated one.
+  - The Catch Sheet's lookalike groups (main line and guides, size
+    included) are the check: whether "close" here means "looks alike".
+  - The page shows lines only, not the rider's motion through them.
+
+### What the lost points are made of (report only)
+
+- **Why.** The owner could accept about 20 points for a much simpler,
+  readable candidate source, but not 70. Before designing one, find out what
+  the archive's points buy.
+- **Instrument.** `tools/research/loss_parts.py` reads saved compare arms
+  (V7.1, 4 seeds, 164 rides, each against main).
+  - It splits each ride's score difference over the grade's parts (air,
+    speed, impact strength, timing, extra hits) at the midpoint loss. The
+    remainder is under 2 points in every arm.
+  - Rides combine as in the headline.
+  - It also splits by the family of the arc that owns the gap, and splits
+    impact strength by requested level and direction.
+- **Result** (headline points against main):
+
+  | arm | headline | strong beats too soft | rest of strength | speed | timing | extra hits | air |
+  |---|---|---|---|---|---|---|---|
+  | none | −70.6 | −23.7 | −6.7 | −16.0 | −10.0 | −5.0 | −7.4 |
+  | 16 representatives | −38.6 | −15.5 | −3.8 | −7.9 | −3.5 | −5.7 | −1.9 |
+  | 32 prototypes | −33.1 | −14.7 | −3.8 | −6.9 | −2.4 | −4.7 | −0.5 |
+  | 64 representatives | −27.7 | −11.5 | −2.5 | −5.5 | −1.9 | −4.2 | −2.1 |
+  | multiple-choice network | −25.9 | −11.9 | −1.0 | −7.5 | −1.8 | −2.4 | −1.4 |
+  | network | −25.1 | −12.0 | −1.9 | −7.7 | −2.5 | −0.9 | +0.1 |
+  | network, self-trained | −25.3 | −14.0 | −2.1 | −8.0 | −2.4 | +1.0 | +0.2 |
+  | network, pooled | −22.2 | −12.6 | −1.3 | −7.0 | −2.2 | −0.8 | +2.1 |
+  | memory lookup only | −8.0 | −3.4 | −0.7 | −2.5 | −0.8 | −0.9 | +0.1 |
+  | policy lookup only | −6.7 | −3.8 | +1.4 | −3.3 | −1.1 | −0.8 | +0.8 |
+
+  - Strong beats are those requested at 0.6 or more. Strong hits that are
+    too hard, and quiet beats in either direction, cost under 1 point in
+    every arm.
+  - The everyday-song stratum (G) carries the most strength loss: −25 for
+    the pooled network, against −4 to −8 for P1 to P3. The long ride (P6)
+    gains air (+23) in the network arms.
+  - Per family (air, speed and strength, pooled network): unguided arcs
+    −7.8, arcs −3.4, fold −3.0, serpentine −2.0, terraces −1.8, scallops
+    −1.0, scattered 0.0.
+    - Corrected: a beat's strength now goes to arc j + 1, on which the
+      rider lands. A first version gave it to the arc before.
+- **Reading.**
+  - The largest single part is **hitting strong beats hard enough**.
+    - In the compact arms (representatives, prototypes, networks) it is 40%
+      to 57% of the loss.
+    - Gap speed adds 5.5 to 8.
+    - With no archive at all, strong beats are 34% (23.7 of 70.6), and
+      speed (16), timing (10) and everything else are lost too.
+  - Timing costs 2 to 3.5 in the compact arms, against 10 with no archive.
+  - Extra hits cost 4 to 6 with stored representatives or prototypes, and
+    about 1 with the networks.
+  - Air is small everywhere except with no archive.
+  - So a readable candidate source does not need to know everything the
+    archive knows. Above all it needs to catch strong beats well; the next
+    study shows what that takes.
+
+### How the strong beats are caught (report only)
+
+- **Instrument.** `tools/research/strong_catches.py` joins the
+  `candidate_origins.ts` studies (committed controls, situation, sources)
+  with the saved arms' per-beat strength. Tracks are identical.
+  - Beat j is the landing on arc j + 1; arc j sets the arrival.
+  - Seed 101, 41 rides; main, compact network, none.
+- **Strong beats are the norm.** 1,948 of 3,508 beats are requested at 0.6
+  or more (mean 0.75). Every arm undershoots them: median achieved 0.67
+  (main), 0.65 (network), 0.64 (none).
+  - The difference is the tail. Short by more than 0.2: 8%, 14%, 17%.
+- **What a short strong hit looks like** (paired beat by beat, main against
+  network; the same picture whichever arm fails):
+
+  | strong beats (medians) | arrival heading (descending) | sled pose | landing arc turn | head down |
+  |---|---|---|---|---|
+  | both hit (1,586) | 32–35° | 22–24° | −16 to −17° | 11% |
+  | only the network short (205): network | 21° | 39° | −4° | 26% |
+  | the same 205 beats: main | 35° | 28° | −17° | 16% |
+  | only main short (89): main | 21° | 50° | +5° | 27% |
+  | the same 89 beats: network | 33° | 27° | −16° | 15% |
+
+  - The landing arc's turn is its control (negative: it redirects the
+    rider upward). Its exit relative to the arrival tells the same story:
+    −19° for main against +3° for the network on the 205 beats.
+
+  - The failure: a shallow arrival with the sled pitched nose-down, then a
+    landing arc that does not redirect the rider.
+  - On those 205 beats, the arc before has no systematic difference in its
+    own controls. The paired median differences are 1–4°, against
+    11–15° of ordinary scatter. The shallow arrival comes from the ride's
+    history.
+- **Setup against conversion** (arrival heading bands; share of strong
+  beats, then share short):
+
+  | arm | below 15° | 15–25° | 25–35° | 35–45° | 45° and more | short, all |
+  |---|---|---|---|---|---|---|
+  | main | 6%, 32% | 24%, 15% | 23%, 6% | 21%, 3% | 26%, 2% | 8% |
+  | network | 11%, 41% | 27%, 15% | 21%, 13% | 17%, 8% | 24%, 5% | 14% |
+  | none | 11%, 44% | 27%, 21% | 24%, 12% | 16%, 9% | 23%, 9% | 17% |
+
+  - The archive does both: fewer shallow arrivals, and better conversion at
+    every heading.
+  - The network is short on 14% of strong beats, main on 8%. With main's
+    mix of arrival headings and its own short rate per heading, the network
+    would be short on 12%. So 4 of its 6 extra points are conversion at the
+    landing arc, and 2 are the arrival setup.
+- **Is there a straight-line recipe?** Main's landing controls on beats hit
+  within 0.1 of the request, fitted from named inputs:
+  - from requested strength, arrival heading and speed: R² 0.15 to 0.16
+    for entry, turn and exit;
+  - adding pose and the durations and impact of the contacts around it:
+    R² 0.17 to 0.22.
+  - Good catches of the same situation come in many forms. No single
+    control per situation describes them: one rule per situation would
+    land where the compact network already is.
+- **Reading.**
+  - What the archive's points buy is reliable strong hits. It has many good
+    alternative landing arcs to start local search from, and arrivals that
+    stay steep.
+  - A readable replacement would need either several alternatives per
+    situation (as the archive has) or a way to aim the landing arc at the
+    requested strength directly. The impact is the heading turn times
+    arrival speed (November 7), so the redirect a strong hit needs can be
+    computed rather than learned. That would be a physics-aimed generator:
+    a design option for the owner, not implemented.
+  - Arrival steepness is a ride-level budget: a ride that has run shallow
+    cannot make the next strong hit hard. The compiler already prefers a
+    steep arrival in the catch before a strong ask (the search profile in
+    ARCHITECTURE.md). These shallow arrivals happen despite it.
+
+### The compact model's self-training round: hypothesis not confirmed
+
+- **Setup.** The network compiler (717f0d64) was collected on the training
+  songs (840 compiles, 5 seeds). The network was then retrained on that
+  collection alone ("self"), and pooled with the archive's demonstrations
+  ("pooled"). V7.1, 4 seeds, against main at 813.5.
+- **Result.**
+
+  | arm | stored | V7.1 | 95% interval | explicit requests |
+  |---|---|---|---|---|
+  | compact network (archive data) | 18 KB | −25.1 | −31.1 to −19.2 | −26.0 |
+  | retrained on its own collection | 15 KB | −25.3 | −36.5 to −14.1 | −22.1 |
+  | retrained, pooled | 20 KB | −22.2 | −27.4 to −16.9 | −23.8 |
+
+  - No ride lost in any arm, and physics frames are unchanged.
+  - Body drag (reported only) is lower: 3.2 and 3.5 s/min against 4.2.
+  - Strong extra impacts are higher: 0.12 and 0.13 per 100 beats against
+    0.04.
+- **Reading.**
+  - The hypothesis (pooled gains 5 to 10) is not confirmed. The pooled
+    retrain gains 2.9, about at the noise level, and self-training alone
+    gains nothing.
+  - A 5k-number network trained on more of the same demonstrations does
+    not close the gap. The missing 22–25 points are not a data-count
+    problem for this model.
+  - The archive's earlier retraining gains came from adding
+    demonstrations: more stored cases, so a closer neighbour for each new
+    situation (November 8, morning: an equal-size mix gained nothing). The
+    compact network stores no cases, so it cannot gain that way.
+
+## November 8: step back on the policy archive, what it is worth
+
+- **Why.** The owner does not want a 50–100 MB archive that grows git
+  history with every retrain. A learned proposal source should be a few
+  kilobytes, built on an understanding of which features drive it. The
+  pooled archive stays off main; no archive is committed until this is
+  understood. (Settled later the same day: the archive is frozen as it is;
+  see the entry at the top.)
+- **What the archive is.** 79,778 demonstrations (the committed controls of
+  fulfilled sections on 838 training compiles, plus two earlier
+  transfer-layout collections). In production two lookups read
+  them for each section after the first: 16 policy proposals (neighbours
+  under 32 proximity trees) and 16 memory proposals (plain feature
+  distance, over the demonstrations and what the compile itself commits). Every proposal is simulated and ranked;
+  the archive only suggests.
+- **Results at a glance** (V7.1, 4 seeds, against main 9d065738, in the
+  order run; the size table further down gathers them):
+  - no archive −70.6, a much larger loss than the hypothesis (−15 to −40);
+  - memory lookup only −8.0 and policy lookup only −6.7: the hypothesis
+    (each keeps most of the worth) confirmed;
+  - 64 and 16 representatives −27.7 and −38.6: refuted;
+  - 32 control prototypes −33.1: inside the hypothesis;
+  - compact network −25.1: inside the hypothesis, at its edge;
+  - multiple-choice network −25.9: refuted.
+- **First measurements** (V7.1, 4 seeds, against main 9d065738):
+  1. **No archive.** Neither lookup reads demonstrations; their slots go to
+     generic samples. Memory still learns within the compile. On October 4
+     this was "slightly worse"; three retrains since gained +15.5, +8.3 and
+     +2.0. **Hypothesis:** a clear loss, −15 to −40.
+  2. **Memory lookup only** (no policy proposals) and
+  3. **Policy lookup only** (memory starts empty). Both read the same
+     demonstrations. **Hypothesis:** each keeps most of the worth, because
+     they are redundant.
+- **Offline, alongside:** which of the 57 situation features predict the
+  committed controls, and how much of the controls' spread a handful of
+  prototypes per construction group covers.
+- **Offline result** (5 contiguous folds, so one ride's catches do not leak;
+  six main controls, standardized; the six groups with ≥ 5,000
+  demonstrations):
+  - The controls are only about half predictable from the situation: trees
+    on all 57 features explain 0.40–0.56 of their spread (entry, exit and
+    support 0.4–0.75; bias and offset 0.1–0.3). A linear fit explains
+    0.27–0.44.
+  - The 12 most important features give nearly all of it (0.39–0.52). They
+    are what is asked next (impact, air and duration of the next two catches)
+    and the body's vertical velocities (which restate the arrival velocity).
+    Body positions and most of the 40 body numbers add little.
+  - Without any situation, 16 prototypes per group cover 0.70 of the spread
+    and 64 cover 0.84.
+- **Result, no archive: −70.6** [−82.4, −58.7]; 34 of 35 specs down, every
+  category down (P4 −88.7, P7 −87.0, G −79.2), explicit requests −50.8. No
+  ride lost; frames unchanged. Body drag halves (2.14 against 4.16 s/min),
+  so the demonstrations are also where today's drag comes from. Strong extra
+  impacts ×6. The archive carries a large part of the compiler's quality.
+- **Result, memory lookup only: −8.0** [−15.2, −0.9]; 6 of 35 specs up,
+  every category down. Memory alone keeps about 89% of the archive's worth.
+  The policy lookup adds the rest, so the two are not fully redundant.
+- **Next: representative demonstrations** (V7.1, 4 seeds, against main).
+  Each group's demonstrations are clustered in the joint space of situation
+  (weighted as the memory distance weighs it) and control. The real
+  demonstration nearest each centre is kept, at 4 significant digits, and
+  the proximity trees are retrained on what is kept. Both lookups run as
+  today.
+  - **64 per group:** 493 demonstrations, 147 KB (0.6% of the rows).
+  - **16 per group:** 157 demonstrations, 43 KB.
+  - **Hypothesis.** The archive's worth is "the right region of control
+    space for this situation", not the density of 80k rows. Then 64 per group
+    keeps most of the 70 points (within −10) and 16 per group keeps more than
+    half. A steep loss at 64 would mean precise local neighbours matter, and
+    a compact replacement has to interpolate rather than retrieve.
+- **Result: refuted.**
+  - 64 per group: **−27.7** [−39.3, −16.2]; 0 of 35 specs up; explicit
+    requests −28.1; strong extra impacts ×3. Keeps 61% of the archive's
+    worth.
+  - 16 per group: **−38.6** [−52.8, −24.3]; 1 of 35 up. Keeps 45%.
+  - No ride lost; frames unchanged; body drag unchanged at 64 and −11% at
+    16.
+- **Reading.** Even well-chosen prototypes lose 40% of the worth: a close
+  neighbour matters. The archive works as a cache of solved situations: 838
+  compiles of search, distilled. A cache needs coverage, so its worth grows
+  with its size (as the smaller-archive test of November 7 found). A compact replacement must
+  *interpolate*: map the situation to controls, rather than look up the
+  nearest stored case.
+- **Offline coverage test** (a guide, not a decision). For held-out
+  demonstrations (the last 20% of each group, from other compiles): how
+  close does the nearest of 16 proposals come to the committed control (six
+  main fields, standardized)?
+
+  | proposal source | closest (mean of 6 groups) | benchmark |
+  |---|---|---|
+  | full archive | 0.874 | 0 |
+  | random 62% of it | 0.907 | −5.3 (the 49k archive of November 7) |
+  | 64 representatives per group | 1.167 | −27.7 |
+  | 16 representatives per group | 1.367 | −38.6 |
+  | 16 control prototypes, situation ignored | 1.239 | |
+  | linear mean + 16 residual prototypes | 1.125 | |
+  | small network mean + 16 residual prototypes | 1.057 | |
+  | trees mean + 16 residual prototypes | 1.046 | |
+
+  - It orders the four benchmarked retrieval variants correctly.
+  - It favours retrieval by construction: the committed controls grew out
+    of the archive's own proposals and the local search around them.
+- **Next: control prototypes** (V7.1, 4 seeds). 32 per group: the real
+  demonstration nearest each k-means centre of the relative controls,
+  situation ignored. 3,684 numbers, 17 KB as stored (a dedicated format
+  would be a few KB). The memory lookup offers all 32 in its freed slots (it learns within the
+  compile as today); no policy lookup.
+  - **Question.** How much of the 70 points is knowing *where* good controls
+    lie, independent of the situation?
+  - **Hypothesis** (from the coverage test): about half, so −25 to −45.
+    Much better would mean the generic sampler's box, not the situation, is
+    what the archive fixes.
+- **Result, policy lookup only: −6.7** [−12.5, −1.0]; 12 of 35 up; P7
+  −19.3, P1 −16.6. With memory only at −8.0, either lookup alone keeps about
+  90% of the worth: the two are mostly redundant, each adding 7–8 points.
+- **Next: compact network proposals** (V7.1, 4 seeds). One small model per
+  construction group:
+  - A one-layer network (16 units) maps the 12 most important situation
+    features to the six relative main controls.
+  - 32 residual styles (k-means of the training residuals) spread the
+    proposals around that mean. Each style carries the optional fields
+    (bend, clearance…) of the real demonstration nearest its centre.
+  - Groups under 1,000 demonstrations (transfer) get the mean only, plus
+    styles.
+  - 5,361 numbers in all, 18 KB as stored.
+  - Runtime: 15 lines in `arc_control_policy.ts`. The model offers 32
+    proposals in the freed slots; memory learns within the compile only, as in the
+    no-archive arm. Coverage 0.975 against 0.746 (full) and 1.073
+    (prototypes) at 32 proposals.
+  - **Hypothesis:** −15 to −25, at least 5 better than the prototypes. That
+    would show that interpolating the situation works, and the gap left is
+    what to close next.
+- **Results:**
+  - **Control prototypes: −33.1** [−46.5, −19.8]; 1 of 35 up; explicit
+    requests −41.9; body drag −17%.
+  - **Compact network: −25.1** [−31.1, −19.2]; 2 of 35 up; explicit
+    requests −26.0; body drag −21%; strong extra impacts ×3.5; no ride lost;
+    frames unchanged. Inside the hypothesis (at its edge), 8 better than
+    the prototypes. The coverage test had predicted about −22.
+
+  | proposal source | size | V7.1 |
+  |---|---|---|
+  | archive (both lookups) | 52 MB | 0 |
+  | policy lookup only | 52 MB | −6.7 |
+  | memory lookup only | 52 MB | −8.0 |
+  | compact network | 18 KB | −25.1 |
+  | 64 representatives per group | 147 KB | −27.7 |
+  | 32 control prototypes | 17 KB | −33.1 |
+  | 16 representatives per group | 43 KB | −38.6 |
+  | none (generic samples only) | 0 | −70.6 |
+
+- **Reading.**
+  - About half of the archive's worth is knowing where good controls lie
+    at all (prototypes recover 37 of 70 points). The generic sampler's box
+    is far from them.
+  - Mapping the situation to controls adds 8 more, with 5k numbers.
+  - The remaining 25 points are what nearest neighbours in 80k rows still
+    give.
+- **Next: the compact model learns from its own compiler.** Collect on the
+  network compiler (benchmark/v4 training songs, 5 seeds), then retrain the
+  network on that collection, alone and pooled with the archive's
+  demonstrations. The data stays in `generated/`; only the model is
+  committed.
+  - **Hypothesis:** each round of self-training closes part of the gap, as
+    retraining always has for the archive. A pooled retrain gains 5–10
+    over −25.1. (Result in the plan entry above: not confirmed, +2.9.)
+- **Alongside: multiple-choice proposals** (V7.1, 4 seeds, the archive's
+  data).
+  - **Why.** The fixed residual styles spread every situation the same way.
+    Here one network per group (16 units, all 57 features) has 32 heads. Each
+    demonstration trains only the head closest to it (5% shared among the
+    others, so no head dies). The heads therefore learn situation-dependent
+    alternatives: the quantity the coverage test measures.
+  - Each head carries the optional fields of the real demonstration it fits
+    best among those it wins. Small transfer groups get constant heads.
+  - 27,947 numbers, 83 KB as stored. Runtime: the same 15 lines, reading a
+    head instead of a residual.
+  - **Offline coverage:** 0.853 (network + styles 0.975, full 0.746).
+  - **Hypothesis:** −8 to −16; clearly better than −25.1. If so, the
+    remaining gap is under a fifth of the archive's worth, and the size
+    can be cut further (one network shared by all groups).
+- **Result: refuted.** −25.9 [−36.1, −15.8]; 0 of 35 specs up; explicit
+  requests −27.3; body drag −19%. Equal to the simpler network (−25.1).
+- **Reading.** The coverage test ordered the retrieval variants but fails
+  across model kinds. Coming closer to the committed six main controls is
+  not what makes a proposal useful. Candidates for what retrieval gives that
+  a learned map does not:
+  - a coherent complete control (the optional fields come from the same
+    case);
+  - physical viability (a neighbour's control worked in a nearly identical
+    state);
+  - the committed controls' fine detail, which local search then needs
+    less effort to reach.
+  The per-source viability of initial proposals separates the first two.
+  It is not in the saved rides, so it is measured next on four cases per
+  arm.
+- **Viability of initial proposals** (four V7.1 cases, seed 101, compiled
+  in-process per arm; the learned source is the policy lookup or the
+  compact model):
+
+  | arm | learned: tried, viable | memory: tried, viable | generic: tried, viable |
+  |---|---|---|---|
+  | archive | 43,600, 48% | 43,322, 49% | 30,208, 35% |
+  | compact network | 72,112, 43% | 30,480, 45% | 15,476, 13% |
+  | multiple-choice | 71,530, 51% | 29,887, 48% | 15,358, 14% |
+  | control prototypes | n/a | 86,719, 46% | 29,172, 35% |
+  | none | n/a | 38,892, 44% | 75,177, 33% |
+
+  Viability is not the difference: the multiple-choice proposals are viable
+  more often than the archive's and still score lower. The learned proposals
+  are physically fine; what they lack is quality among the viable ones, or
+  the fit with the rest of a compiler co-adapted with the archive (the
+  learned estimate and the priors were all tuned with it in place).
+- **Where the archive enters.** One place: the starting pool of each
+  catch after the first (`proposeInitialControls`), through its two lookups.
+  Local search, ranking, the learned estimate and the priors never read it.
+  The memory's within-compile learning (this ride's own commits and
+  responses) is separate and needs no archive.
+- **Does it make the compiler repeat itself?** (report only)
+  - *Near-copies.* For committed controls on the training songs, take the
+    16 demonstrations nearest in situation and find the closest control
+    (standardized six main controls):
+    - archive compiler (`collect-policies-today`): median 0.58; 5% within
+      0.10, 14% within 0.25, 41% within 0.5;
+    - compact-network compiler (`collect-network`, 355 compiles so far):
+      median 1.07; 0%, 1%, 8%.
+    - Random demonstrations: median 1.5.
+    - Caveat: the archive holds the previous compiler's commits on these
+      same training songs, so part of this is the compiler re-committing
+      what it did there last round.
+  - *Seed-to-seed variety.* Airtime differs between random starts by 0.032
+    per gap with the archive, 0.045 without it, and 0.035–0.037 with the
+    compact sources.
+  - *Habits are reinforced.* Body drag is 4.16 s/min with the archive and
+    2.14 without; it rose 14% at the last retrain. Demonstrations are only
+    the compiler's own commits, so each retrain teaches the compiler what it
+    already does, good habits and incidental ones alike.
+  - *Novelty starts behind.* A new construction has no demonstrations until
+    it is used, and competes with 80k proven ones.
+
+## November 8 (morning): hypothesis, an equal-size mix of both collections
+
+- **Question.** Did the pooled policies gain because of the doubled
+  demonstration count, or because they mix two compiler versions?
+- **Data.** Seeds 101, 303 and 505 of the first collection (6e815a57),
+  seeds 202 and 404 of the second (9d065738), plus the transfer
+  collections: 900 sources, 80,029 demonstrations, 52.3 MB. That matches
+  main (79,778, 52 MB).
+- **Hypothesis.**
+  - If the mix itself helps, a gain over main at equal size, adoptable
+    within today's storage.
+  - If only count matters, null.
+- **Result (V7.1, 4 seeds): null; not adopted.**
+  - −1.7 [−9.0, +5.7], 0.26; 18 of 35 specs up.
+  - P7 −21.6, one fragile ride-out ride −126.8.
+- **Reading.** The pooled gain comes from demonstration count, not from
+  mixing compilers. More demonstrations therefore need more storage: the
+  owner's decision. (Settled later the same day: no more storage; the
+  archive is frozen.)
+
+## November 8 (morning): summary of November 7 and the night
+
+**Where main stands** (9d065738, against the morning main 72e6ed9a, from
+saved rides):
+
+| panel | morning | now | change |
+|---|---|---|---|
+| V7.1, 8 seeds | 786.0 | **813.8** | **+27.8**; 34 of 35 specs up; every category up (G +41.9, P4 +42.1, P7 +28.7, P1 +28.0) |
+| held out, 11 songs | 712.0 | **767.1** | **+55.1**; 13 of 13 specs up |
+
+No ride lost; physics frames unchanged.
+
+**Adopted on November 7, in order:**
+1. **No forced flight before a catch:** V7.1 +5.1, held out +33.6.
+2. **Half-weight prediction in ranking:** V7.1 +6.2, held out +2.9.
+3. **Local search judges like ranking:** V7.1 +8.3, held out +5.7.
+4. **Construction policies from today's compiler:** V7.1 +8.3, held out
+   +12.8.
+
+Also: a candidate too long for its section's ids is rejected, not fatal (a
+latent crash on two training cases).
+
+**For the owner to decide:**
+- **Pooled policies** (both of today's collections): V7.1 +2.0 [−1.0, +5.0]
+  at 8 seeds, held out **+8.9 [+1.7, +16.0]**, 11 of 13 up.
+  - It needs a 75.5 MB brotli archive (100.2 MB as gzip, over GitHub's
+    limit).
+  - Ready on local branch `exp/policies-pooled-brotli`, verified to give
+    identical rides.
+  - Storage options: accept the size in git, use git LFS, or keep archives
+    outside git with a fetch step. Demonstrations dominate the size (121 of
+    130 MB raw), so encoding gains are small.
+  - An equal-size mix of both collections is null (−1.7): the gain is the
+    count.
+- **Ending refinement:** worth −0.2 if removed (uniform, 1% of frames).
+  Delete for leanness, or keep.
+- **Body drag** rose about 14% with today's policies. It is an unvalidated
+  proxy, reported only; the review pages show the rides.
+
+**Tested overnight and not adopted** (each stated before running, on the
+benchmark):
+- second-round policies +1.3 (8 seeds);
+- a smaller archive −5.3 (demonstration count matters);
+- twice the policy proposals +0.7 (the first attempt changed a value
+  production overrides);
+- a generic reserve on ordinary arcs +1.0;
+- a smaller reserve on shaped constructions +1.3;
+- policies with forced-family demonstrations +0.8;
+- 64 proximity trees −2.4;
+- strength-seeking response steps −3.1;
+- two retrained learned estimates −3.6 and −0.1;
+- twice the allowance −2.7 (compute does not limit).
+
+**What the evidence says now.**
+- The largest share of strength loss is proposal coverage: no candidate
+  near the ask was ever proposed (39% on the library songs).
+- Ranking and search effort are not the limit.
+- The policies are the lever: learned from the current compiler, with as
+  many demonstrations as storage allows.
+
+## November 8 (night): measurement, the ending refinement on today's main
+
+- **Question.** On the November 1 compiler, removing the ending refinement
+  (R0) cost −0.2, uniform across specs; its deletion waits for the owner.
+  The compiler has changed since. What is it worth today?
+- **Run.** `refineAttempts: 0` (no refinement; `arc_motion.ts` skips the
+  stage) against main, V7.1, 4 seeds. This is information for the owner's
+  decision, not a change to adopt.
+- **Hypothesis.** About the same as before: a small loss, uniform.
+- **Result.**
+  - −0.2 [−0.4, −0.0]; 0 of 35 specs up, 26 slightly down (lowest −1.0),
+    9 unchanged.
+  - The refinement costs 1% of physics frames.
+  - Unchanged since November 1: it is worth a fraction of a point. Keeping
+    or deleting it stays the owner's call; nothing changed.
+
+## November 8 (night): hypothesis, strength-seeking response steps
+
+- **Basis.** The largest share of strength loss (39% on G) is "no
+  candidate in the pool meaningfully closer to the ask". Local search's
+  response step moves the best candidate by a damped Gauss–Newton step that
+  balances every residual at once, so candidates that trade other errors
+  for strength are rarely proposed. Ranking would still judge them on
+  everything.
+- **Change** (`arc_local_search.ts`, response search). Each round also
+  evaluates two candidates along the minimal-norm step that cancels only the
+  strength residual, using the Jacobian the round already measured: the full
+  step and half of it. They count toward the round's allowance; nothing
+  else changes.
+- **Hypothesis.** Pools hold more candidates near the asked strength;
+  ranking takes them where they pay. Strength on strong asks up; V7.1 up.
+- **Risk.** Fewer balanced response rounds; span errors and extras may
+  rise.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −3.1 [−4.0, −2.1], < 0.01; every block negative; 13 of 35 specs up.
+  - P1 −15.4; strong extra impacts +145%.
+  - Pushing the same shapes toward strength along the measured Jacobian
+    spends response work badly. The missing strong options are not one
+    linear step away.
+
+## November 8 (night): hypothesis, policies with every family on paired rails
+
+- **Basis.** Proposal coverage is now the largest share of strength loss
+  (39% on G). Demonstration count matters, and a second round of the same
+  cases saturates.
+- **Data.**
+  - The adopted policies' data (today's first collection plus the transfer
+    collections).
+  - Plus a new collection, `--catalog=v6paired`: explicit V6 plans for each
+    family (single, arcs, fold, serpentine, scallops, terraces, scattered)
+    on paired rails, on non-evaluation music, 4 plans each. 280 compiles on
+    main (worktree 6ee6f0f52db8, structurally identical to main), 26,879 probes.
+  - 90,870 demonstrations (main: 79,778); 59.0 MB as gzip.
+- **Hypothesis.** Demonstrations of every family across varied music widen
+  what gets proposed: strength on strong asks up, V7.1 up, held out up.
+- **Risk.** Explicit-family plans differ from automatic plans; their
+  demonstrations may pull proposals toward forced shapes.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - +0.8 [−5.8, +7.4], 0.63; 15 of 35 specs up.
+  - Strong extra impacts double; explicit requests −3.1.
+  - Demonstrations of forced family plans do not widen the proposals that
+    matter.
+
+## November 8 (night): hypothesis, finer policy neighbourhoods (64 trees)
+
+- **Basis.** The policies propose by nearest-exemplar retrieval through
+  proximity forests (32 trees, leaf 4, from the archived trainer). More
+  trees give a finer, steadier similarity between the current situation
+  and past demonstrations.
+- **Change.** The adopted policies retrained on the same demonstrations
+  with 64 trees (`--trees=64`); nothing else.
+- **Hypothesis.** Better-matched proposals, so less "no candidate closer to
+  the ask"; V7.1 up.
+- **Risk.** A larger archive; finer neighbourhoods may overfit to single
+  demonstrations.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −2.4 [−8.0, +3.1], 0.13; 14 of 35 specs up.
+  - P4 −6.8, P5 −6.7, P1 −6.0.
+  - The archived trainer's 32 trees stand.
+
+## November 8 (night): why strong catches miss, re-measured on today's main
+
+`loss_attribution.ts` on main 9d065738 (V7.1, seed 101, 3,448 catches),
+against November 7 afternoon (before half-weight prediction, local search
+judging like ranking, and today's policies). Shares of the squared strength
+error on the library songs (G):
+
+| cause | Nov 7 afternoon | now |
+|---|---|---|
+| no candidate in the pool meaningfully closer to the ask | 29% | **39%** |
+| a closer candidate was cheaper here; the next catch would pay | 32% | 21% |
+| a closer candidate cost this span: speed | 21% | 24% |
+| other span costs (air, extra, timing, rest) | 18% | 15% |
+
+- **The ranking changes did what they meant to.** The "next catch would
+  pay" share fell by a third.
+- **The largest share is now proposal coverage:** the strong catch was never
+  proposed. This fits the night's other results:
+  - policies are the lever (+8.3 / +12.8; demonstration count matters);
+  - more search effort is not (twice the allowance −2.7; twice the policy
+    proposals +0.7).
+- **Next:** demonstrations that cover more situations (a V6 collection of
+  every family on paired rails is running), rather than more of the same.
+
+## November 8 (night): hypothesis, a smaller generic reserve on shaped constructions
+
+- **Basis.** `arc_proposals.ts` reserves 25% of the initial proposals for
+  generic samples on novel constructors (a profile, or the transfer layout),
+  because "the inherited model already covers ordinary arcs" and not these.
+  Today's policies hold 6–9k demonstrations per shaped group (fold 6,252,
+  scallops 8,965, serpentine 7,480, terraces 8,265).
+- **Change.** The reserve on novel constructors goes from 25% to 10%;
+  ordinary arcs keep none.
+- **Hypothesis.** The policies now cover these constructors, so the
+  reserve spends slots generic samples use less well: shaped sections, and
+  explicit requests, up.
+- **Risk.** Transfer layouts hold few demonstrations (about 600) and may
+  lose.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - +1.3 [−2.6, +5.1], 0.81; 15 of 35 specs up.
+  - The gain sits in the single long-float spec (P6 +19.0); P4 −5.8,
+    P1 −5.6, P5 −5.5; explicit requests −2.8.
+  - The reserve is not what limits shaped sections.
+
+## November 8 (night): pooled policies pass, held for the owner's storage decision
+
+**Settled later on November 8: not merged.** The archive is frozen as it is
+(entry at the top); `exp/policies-pooled-brotli` stays a local branch.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | +2.0 | [−1.0, +5.0], 0.92; 26 of 35 specs up (G +7.4, P6 +7.2) |
+| held out, 11 songs | **+8.9** | [+1.7, +16.0], 0.99; **11 of 13 specs up**; all 4 blocks positive |
+
+- No ride lost.
+- **Costs.**
+  - Body drag +4% (V7.1) and +1% (held out).
+  - Strong extra impacts −33% on V7.1, +77% held out (0.08 against 0.04
+    per 100 beats).
+- By the bar used for today's adoptions this passes. Its only cost is the
+  archive: 156,009 demonstrations, 100.2 MB as gzip (over GitHub's file
+  limit), 75.5 MB as brotli.
+- **Ready, not merged.**
+  - Local branch `exp/policies-pooled-brotli` holds the brotli archive on
+    top of the brotli-capable loader.
+  - It reproduces the benchmarked gzip rides exactly (6 specs compared,
+    every ride identical).
+  - Merging needs the owner's word: about 75 MB added to the repository
+    history for good.
+  - On merge: refresh parity, `npm run check`, then set the `main`
+    reference.
+
+## November 8 (night): diagnostic, today's main at twice the allowance
+
+- **Question.** Before today's changes, twice the allowance bought +0.1:
+  the search was not limited by compute. Ranking now trusts measurement
+  more, local search judges like ranking, and the policies come from
+  today's compiler. Is it still unlimited?
+- **Run.** The same commit (main 9d065738) at `standard*2` against
+  `standard`, V7.1, 4 seeds. Not a candidate for adoption: compute is a
+  cost. It tells where to work next.
+- **Reading plan.**
+  - A clear gain means search effort pays again, and the budget laws
+    (scale-free, per the owner's rule) are worth revisiting.
+  - A null means proposals, not effort, still limit.
+- **Result: no gain from compute.**
+  - −2.7 [−6.8, +1.3], 0.06; 16 of 35 specs up; +3% physics frames.
+  - The search is still not limited by compute. Proposals (what is tried)
+    limit it, as the policy results tonight show. Budget work stays off the
+    list.
+
+## November 8 (night): the policy archive may be brotli-encoded
+
+- `parseArcPolicyArtifact` (`connected_arcs.ts`) reads a `brotli-file`
+  companion (`.br`) as well as `gzip-file` (`.gz`). Both checksums
+  (compressed and raw) are verified as before, so the encoding cannot
+  change the model.
+- The current archive re-encoded in brotli loads to an identical model
+  (same hash).
+- **Structural:** parity unchanged, `npm run check` passes. New test:
+  `arc_policy_archive`.
+- **Why.** Brotli is 24% smaller than gzip on these archives (39.6 MB
+  against 52 MB for the current one). The pooled policies (+2.0 on V7.1,
+  +8.9 held out; next entry) need 100.2 MB as gzip, over GitHub's file
+  limit, and about 79 MB as brotli.
+
+## November 8 (night): hypothesis, a learned estimate matched to today's policies
+
+- **Data.** The second collection (main 9d065738, today's policies): 840
+  compiles, 80,548 probes.
+- **Training.** Same trainer and target. Held-out-group regret 0.0426
+  against the October model's 0.0423.
+- **Change.** `arc_value_model.json` replaced; weight unchanged.
+- **Hypothesis.** The earlier retrain (−3.6) learned from a compiler whose
+  policies were then replaced. A model learned from the compiler it serves
+  should do better: V7.1 up.
+- **Risk.** The same as before: a one-step-better model need not make
+  better rides.
+- **Result (V7.1, 4 seeds): not adopted.** −0.1 [−5.1, +4.8], 0.47; 22 of
+  35 specs up; strong extra impacts +168%. Two retrains are null or
+  negative, so the October model stays: the lever is what is proposed, not
+  how the future is priced.
+
+## November 8 (night): hypothesis, a generic reserve on ordinary arcs
+
+- **Basis** (the inventory). On ordinary arcs every initial proposal slot
+  not taken by policies or memory goes to them. Novel constructions keep 25%
+  for generic samples. Ride-outs lost under each policy change tonight
+  (P7 −9.3, −10.3).
+- **Change** (`arc_proposals.ts`). Ordinary arcs reserve 10% of the initial
+  proposals for generic samples (novel constructions keep 25%).
+- **Hypothesis.** Coverage the policies miss returns. Ride-outs and floats
+  up; headline up a little or neutral.
+- **Risk.** Fewer policy and memory proposals; the dense strata may lose.
+- **Result (V7.1, 4 seeds): not adopted.** +1.0 [−5.7, +7.6], 0.66; 18 of
+  35 specs up; explicit requests −7.5. Ride-outs barely move (+1.2), so the
+  policies' ride-out losses are not a coverage gap.
+
+## November 8 (night): hypotheses, second-round and pooled policies
+
+- **Data.** A second five-seed collection on the new main (9d065738: the
+  policies from today's compiler).
+  - All 840 compiles finished, now that the id-range fix is in; 80,548
+    probes.
+- **Second-round policies.** That collection plus the transfer
+  collections: 79,919 demonstrations, 52.1 MB.
+  - **Hypothesis.** Demonstrations from a compiler that already proposes
+    well; a gain over main if recency still pays, null if rounds saturate
+    (H2 and H4 diminished before).
+- **Pooled policies.** Both of today's collections plus the transfer
+  collections: 156,009 demonstrations, 100.2 MB.
+  - **Hypothesis.** Demonstration count matters (three seeds instead of
+    five lost 5.3), so twice the demonstrations gains over main.
+  - The archive exceeds GitHub's 100 MB file limit. The branch stays local,
+    and adopting it would need another encoding (brotli: −24%) or storage
+    outside git, the owner's call.
+- **Second-round result (V7.1, 4 seeds): inconclusive.**
+  - +2.7 [−4.7, +10.1], 0.84; 21 of 35 specs up.
+  - P3 +10.2, P1 +9.0, P2 +7.3, P6 +6.7, G +5.1 against P7 −15.2 (one
+    fragile ride-out ride −148.7) and explicit requests −5.9.
+  - Extended to 8 seeds.
+- **Second round at 8 seeds: not adopted.** +1.3 [−4.3, +7.0], 0.70; 24 of
+  35 specs up; blocks split 4 and 4. A second round of demonstrations from
+  an already retrained compiler adds little, as before (H2, H4).
+- **Pooled (4 seeds, 8 workers): inconclusive, promising.**
+  - +3.3 [−3.1, +9.7], 0.90; 27 of 35 specs up.
+  - P6 +13.4, G +7.1, P2 +6.3, P3 +5.3, P1 +4.0, E +3.8 against P7 −10.3.
+  - Extended to 8 seeds.
+- **Pooled at 8 seeds:** +2.0 [−1.0, +5.0], 0.92; 26 of 35 specs up; G +7.4,
+  P6 +7.2, P5 +3.7, P2 +3.5 against P7 −4.5, P4 −2.6; strong extra impacts
+  −33%. A small, consistent gain for twice the archive (100.2 MB, over
+  GitHub's file limit): the owner's call on storage. Held out runs for the
+  record.
+- **Memory.** The pooled archive (260 MB uncompressed) is parsed by every
+  compile worker. Run beside the second-round comparison at 22 workers each,
+  free memory fell to 4 GB, and the pooled run was stopped before the system
+  stopped anything. It is re-run alone at 8 workers.
+
+## November 7 (night): hypothesis, twice the proposals for the policies
+
+- **Basis.** The policies from today's compiler gained +8.3 and +12.8
+  through the proposals they make, but they still get the share sized for
+  the older ones: `policySamples` = 32·(guide allowance)/160, at most 32 of
+  each interval's initial proposals, with the rest generic samples.
+- **Change** (`connected_arcs.ts`). `policySamples` doubles (64 at the
+  standard allowance), the same law ×2. The proposal total is unchanged:
+  the policies take the share from generic samples.
+- **Hypothesis.** More of each interval's search starts where today's
+  compiler catches well; V7.1 up, most on the dense strata.
+- **Risk.** Fewer generic samples means less coverage of novel situations;
+  floats or explicit requests may lose.
+- **Result: no change at all** (every ride identical). Production overrides
+  this value: `repertoire_search.ts` sets `policySamples: 16` and
+  `memorySamples: 16`, so `connected_arcs.ts`'s value never reaches a
+  production compile.
+- **Re-run on the real setting:** `policySamples` 16 → 32 in
+  `repertoire_search.ts`, same hypothesis (branch
+  `exp/policy-proposals-x2`).
+- **Result (V7.1, 4 seeds): not adopted.** +0.7 [−1.7, +3.0], 0.78; 18 of
+  35 specs up. The policies' gain comes from what they propose, not from
+  proposing more.
+
+## November 7 (night): hypothesis, a smaller policy archive
+
+- **Basis.** The adopted policies are a 49.7 MB archive (79,778
+  demonstrations), just under GitHub's 50 MB warning.
+- **Change.** The same training, on 3 of the 5 seeds of today's collection
+  (101, 202, 303) plus the same transfer collections: 49,306
+  demonstrations, 32.6 MB.
+- **Hypothesis.** No headline loss against the full archive (within
+  noise). If so, the smaller archive replaces it for the repository's sake.
+- **Risk.** A loss means demonstration count still matters at this size.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −5.3 [−12.1, +1.4], 0.04; 11 of 35 specs up; every block negative.
+  - P6 −23.0, P7 −13.7; strong extra impacts triple.
+  - Demonstration count matters: the full archive stays. The repository
+    size has to be solved another way (storage outside git, or a denser
+    encoding), not by fewer demonstrations.
+
+## November 7: construction policies from today's compiler (adopted)
+
+`repertoire_policy_model_v3.json(.gz)` is replaced. It holds 79,778
+demonstrations: today's five-seed collection on main 6e815a57 (838 compiles
+of the training catalog, songs disjoint from every benchmark and held-out
+song), pooled with the two earlier transfer-layout collections. Hypothesis
+and basis: the entry on construction policies from today's compiler.
+
+| panel | change | interval / support |
+|---|---|---|
+| V7.1, 8 seeds | **+8.3** | [+4.5, +12.1], > 0.99; **32 of 35 specs up**; all 8 seed blocks positive (G +15.6, P1 +12.5, P2 +9.6, P3 +7.0, P4 +10.4, P5 +12.3, P6 −14.5, P7 +13.4) |
+| held out, 11 songs | **+12.8** | [+5.4, +20.2], > 0.99; **11 of 13 specs up**; all 4 blocks positive (lowest lua_na_praca −1.7, highest petrunko +37.6) |
+| explicit requests | +10.4 | |
+
+- **No ride lost**; physics frames unchanged.
+- **Every ruler** (V7.1, 8 seeds):
+  - strong catches fall less short: strong bias +0.006, very strong +0.008
+    (+0.014 on the library songs, +0.027 on intense passages);
+  - air and speed errors lower except on long floats (P6, a single spec);
+  - head-down or backward strong arrivals −0.015.
+- **Costs.**
+  - body drag +14% (V7.1) and +12% (held out);
+  - strong extra impacts −16% and −12%;
+  - head-down or backward strong arrivals −10% and −17%.
+- **Archive:** 49.7 MB, against 22.6 MB before, just under GitHub's 50 MB
+  warning. Pruning it (fewer, deduplicated demonstrations) is a follow-up
+  for the owner.
+- **Reading.** Policies learned from the compiler they serve matter more
+  than anything about ranking. They decide which catches are ever proposed,
+  and the short hops and the new local search changed that.
+- Parity references were refreshed.
+
+## November 7: hypothesis, construction policies from today's compiler
+
+- **Basis.** The inventory found the construction policies collected
+  before two of today's changes (no forced flight, half-weight prediction),
+  so every demonstration had a flight of six frames or more. The last
+  retrain on a current compiler was the largest single gain of the period
+  (+15.5, November 1).
+- **Data.** The construction demonstrations of today's five-seed
+  collection (main 6e815a57, 838 compiles of the training catalog), pooled
+  with the two earlier transfer-layout collections (rounds 1 and 2), which
+  today's collection lacks.
+  - 79,778 demonstrations (the adopted pooled policies: about 34,000).
+  - The archive grows to 50 MB from 22.6 MB.
+- **Change.** `repertoire_policy_model_v3.json(.gz)` replaced; nothing else.
+- **Hypothesis.** Proposals that match how today's compiler catches (short
+  hops, the new ranking and local search). V7.1 up, most on the dense
+  strata; held out up.
+- **Risks.**
+  - Demonstrations echo the compiler that produced them (diminishing
+    returns from more rounds: H2, H4).
+  - The archive size is a repository question for the owner if it wins.
+
+## November 7: hypothesis, the learned estimate retrained on today's compiler
+
+- **Data.** `value_collect.ts` from main's frozen worktree (6e815a57):
+  - the training catalog (benchmark/v4 groups, disjoint from every
+    benchmark and held-out song), 5 seeds, 838 of 840 compiles. Two were
+    excluded and named in the provenance: they failed on the id-range bug
+    fixed above;
+  - 80,353 probe rows (the October model: 82,903);
+  - 16 workers (40 ran out of memory).
+- **Training** (`train_value_v3.py`, unchanged target and hyper-parameters;
+  validation holds out whole groups):
+  - Spearman 0.68 against the October model's 0.63;
+  - mean absolute error 0.066 against 0.073;
+  - mean regret 0.054 against 0.054.
+- **Screen** (within-catch, today's main, 1,946 alternatives in 344
+  catches, correlation with the measured next interval's cost):
+  - new model 0.37;
+  - October model 0.30 (0.41 on the half-weight main: it no longer matches
+    how local search now searches);
+  - jointly: new 0.27 [0.18, 0.34], October 0.16 [0.04, 0.29].
+- **Change.** `arc_value_model.json` replaced by the new model. Its weight
+  in ranking is unchanged (0.225).
+- **Hypothesis.** Better future discrimination gives better choices: V7.1
+  up, held out up, most where the next catch is costly (dense strong G, P1,
+  P4).
+- **Risk.** Last time a retrain lost (−4.8) despite equal regret. That
+  model had a fifth of the data and was never screened within a catch.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −3.6 [−15.2, +8.0], 0.20; 15 of 35 specs up.
+  - G +3.3, but P1 −13.1, P5 −9.9 and P4 −5.0.
+  - Strong extra impacts +56%, body drag +6%, head-down or backward
+    arrivals −15%.
+- **Reading.**
+  - A better one-step, within-catch screen did not carry to whole rides.
+    Twice today (here and the per-part calibration), one-step measures
+    ranked a change correctly as a hypothesis but not as an outcome.
+  - The October model's errors may be partly absorbed by the weights tuned
+    with it, half-weight prediction included.
+  - The new model and its data are kept (`generated/value-v4/
+    model-local-search`, `collect-local-search`) for a later, joint test:
+    for example, the new model with its weight re-chosen on the benchmark,
+    or retrained construction policies from the same collection.
+
+## November 7: a candidate too long for its section's ids is rejected, not fatal
+
+- **Found by** the five-seed training collection. Two training compiles
+  failed with "contact interval exceeds its segment namespace":
+  `stretch_bridge_frontier_low_air_endurance_6s` seed 202, and
+  `stretch_supported_speed_change` seed 404 (the second in the collector's
+  probes).
+- **Cause.** A section owns 10000 line ids (1000 + 10000·i). In very long
+  intervals (gaps of several seconds), the scattered construction can split
+  a carrier into more than 10000 fragments, and ordinary geometry has the
+  same guard. Both guards threw, failing the whole compile.
+- **Age.** Present at least since this morning's main (4613abbc), on both
+  pre-afternoon mains, and on today's. Earlier collections used seed 101
+  only and never met it. No benchmark or held-out ride ever reached it.
+- **Fix.**
+  - Such a candidate is rejected (`id_range`) like any other unbuildable
+    geometry: `fragmentInterval` returns null, and the evaluator rejects
+    before simulating.
+  - The search continues; a shaped section that offers nothing already
+    falls back to plain arcs.
+  - Both compiles now finish, and both rides are valid.
+- **Structural:** compile and judge parity unchanged; `npm run check`
+  passes.
+- New test: `contact_interval_ids`.
+
+## November 7: hypothesis, the response step solves with ranking's weights
+
+- **Basis.** "Local search judges like ranking" changed which candidate
+  local search starts from and what counts as an improvement. The response
+  step (a damped Gauss–Newton step from measured sensitivities) still
+  solves for the residual vector with every prior at full weight, so its
+  steps still aim at arrivals that ranking discounts. Refinement is already
+  consistent: it turns the arrival and heading priors off and judges
+  complete revisions.
+- **Change** (`arc_local_search.ts`, response search only). Each prior row
+  of the residual vector and of the Jacobian is scaled by the square root of
+  its ranking weight:
+  - arrival rows by √0.25;
+  - the heading row by √0.5;
+  - repair's reference rows by √0.25.
+
+  The step solves the same weighted problem ranking judges. Nothing else
+  changes.
+- **Hypothesis.** Response steps land nearer what ranking keeps. A small
+  V7.1 gain over the new main, the same direction as the last change.
+- **Risk.** Little: the response step is one part of local search.
+- **Result (V7.1, 4 seeds): not adopted.**
+  - −1.9 [−11.3, +7.5], 0.29; 18 of 35 specs up.
+  - G +4.0, but P7 −9.5 and P1 −7.1.
+  - Strong extra impacts double (0.10 against 0.05 per 100 beats).
+- **Reading.** Aiming the step at the full priors helps the search even
+  though ranking discounts them: the response step needs the strong pull to
+  move at all.
+
+## November 7: the steep-angle prior re-tested on the new main (kept)
+
+Removing the steep-angle prior before strong catches (Y, earlier a neutral
+trade left to the owner's eye) was re-tested on top of "local search judges
+like ranking".
+
+- V7.1, 4 seeds: **−5.7 [−20.9, +9.5], 0.16; 31 of 35 specs down**.
+- Every category is down (P6 −9.9, P4 −8.4, P1 −6.7, G −6.4).
+- Head-down or backward strong arrivals −16% and body drag −4%, but the
+  headline loss is broad.
+- Before, local search climbed toward this prior at full weight and ranking
+  discounted it. Weighed consistently, it pays.
+- **Closed: the prior stays.** The branch `exp/no-steep-angle` is kept for
+  the record.
 
 ## November 7: local search judges like ranking (adopted)
 

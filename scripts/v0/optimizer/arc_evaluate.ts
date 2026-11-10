@@ -5,6 +5,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * construction requirement becomes a candidate. Measurements and rejections
  * are memoized by control within the search's memo context. */
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection, type RawFrame } from '../../lib/detector.ts';
+import { carryOrigin } from './arc_origin.ts';
 import { measureTrajectoryAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
@@ -62,8 +63,8 @@ export function rememberNear(s: IntervalSearch, candidate: Near) {
 }
 
 function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragments) {
-  const {options, memo} = s, work = s.ctx.work;
-  c = s.normalizeControl(c);
+  const {options, memo} = s, work = s.ctx.work, input = c;
+  c = carryOrigin(s.normalizeControl(c), input);
   const key = arcControlMemoKey(c, options.channel) + (fragments ? '|fragments' : '');
   work.samples++;
   const saved = memo.get(key);
@@ -81,7 +82,9 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   const count = built.added ? built.added.length : built.paths.reduce((n, p) => n + Math.max(0, p.points.length - 1), 0);
   if (!count) return null;
   const prefixFrames = Math.min(built.prefixFrames, child.getLastFrameIndex() + 1);
-  if (count >= 10000) throw new Error('arc geometry id range exhausted');
+  // A section owns 10000 line ids. Geometry that would spill into the next section is not
+  // buildable: reject the candidate (before any simulation) rather than fail the compile.
+  if (count >= 10000) return reject('id_range');
   const replay = replayCandidate(s, child, prefixFrames);
   if ('reason' in replay) return reject(replay.reason);
   const added = built.added ?? solidPathLines(built.paths);

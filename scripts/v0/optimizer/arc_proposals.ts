@@ -4,6 +4,7 @@
  * compact folds, observed receivers). Every proposal is measured by the
  * ordinary evaluator; none is accepted on its own authority. */
 import { getPhysicsFrameCount } from '../../lib/detector.ts';
+import { tagOrigin, tagOriginIfNew, deriveOrigin } from './arc_origin.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
@@ -95,17 +96,17 @@ export function proposeInitialControls(s: IntervalSearch) {
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) {
-    evaluate(s, options.warmStart);
+    evaluate(s, tagOrigin(options.warmStart, 'warm'));
     if (options.warmIncoming !== undefined && options.warmIncoming !== incoming)
-      evaluate(s, {...options.warmStart, entry: options.warmStart.entry + incoming - options.warmIncoming,
-        exit: options.warmStart.exit + incoming - options.warmIncoming});
+      evaluate(s, tagOrigin({...options.warmStart, entry: options.warmStart.entry + incoming - options.warmIncoming,
+        exit: options.warmStart.exit + incoming - options.warmIncoming}, 'warm'));
   }
   for (let k = 0; k < initial; k++) {
     const stream = k === 0 ? 'center' : k <= learnedEnd ? 'learned' : k <= memoryEnd ? 'memory' : k <= policy.length ? 'response' : 'generic';
     const accounting = s.ctx.work.initialProposalWork[stream], began = getPhysicsFrameCount();
     accounting.attempts++;
     try {
-      if (evaluate(s, k > 0 && k <= policy.length ? policy[k - 1] : k === 0 ? s.center : genericControl(s, k))) accounting.viable++;
+      if (evaluate(s, tagOriginIfNew(k > 0 && k <= policy.length ? policy[k - 1] : k === 0 ? s.center! : genericControl(s, k), stream === 'learned' ? 'policy-archive' : stream))) accounting.viable++;
     } finally {
       accounting.physicsFrames += getPhysicsFrameCount() - began;
     }
@@ -125,9 +126,9 @@ export function proposeOpposingEntries(s: IntervalSearch) {
     for (let k = 0; k < options.opposingEntryProposals!; k++) {
       const c = k === 0 ? s.center! : genericControl(s, k);
       work.attempts++;
-      if (evaluate(s, {...c, contactSide: -1, entry: 2 * incoming - c.entry, turn: -c.turn, exit: 2 * incoming - c.exit,
+      if (evaluate(s, tagOrigin({...c, contactSide: -1, entry: 2 * incoming - c.entry, turn: -c.turn, exit: 2 * incoming - c.exit,
         ...(c.foldBend === undefined ? {} : {foldBend: -c.foldBend}),
-        ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})})) work.viable++;
+        ...(c.guideTilt === undefined ? {} : {guideTilt: -c.guideTilt})}, 'opposing'))) work.viable++;
       if (k % 8 === 7) retainSearch(s);
     }
   } finally {
@@ -150,7 +151,7 @@ export function proposeCompactFolds(s: IntervalSearch) {
     const accounting = s.ctx.work.initialProposalWork.compactFold, began = getPhysicsFrameCount();
     accounting.attempts++;
     try {
-      if (evaluate(s, control)) accounting.viable++;
+      if (evaluate(s, deriveOrigin(control, anchor, 'compactFold'))) accounting.viable++;
     } finally {
       accounting.physicsFrames += getPhysicsFrameCount() - began;
     }
@@ -165,8 +166,8 @@ export function proposeObservedReceivers(s: IntervalSearch) {
   const anchor = s.best?.candidate.c ?? s.near[0]?.c ?? s.center;
   if (anchor) for (let k = 0; k < 12; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1;
-    evaluate(s, {...anchor, receiverFlight: 1 + Math.floor(5 * frac(.2718281828)), receiverEntry: -5 + 30 * frac(.7548776662),
-      receiverTurn: -40 + 80 * frac(.5698402910), receiverExit: -60 + 130 * frac(.3247179572), receiverDuration: .25 + .7 * frac(.4384471872)});
+    evaluate(s, deriveOrigin({...anchor, receiverFlight: 1 + Math.floor(5 * frac(.2718281828)), receiverEntry: -5 + 30 * frac(.7548776662),
+      receiverTurn: -40 + 80 * frac(.5698402910), receiverExit: -60 + 130 * frac(.3247179572), receiverDuration: .25 + .7 * frac(.4384471872)}, anchor, 'receiver'));
   }
   retainSearch(s);
 }
@@ -181,13 +182,13 @@ export function recoverInitialization(s: IntervalSearch) {
   s.ctx.work.initializationRecovery.push(record);
   try {
     for (let k = 1; k <= options.initialRecoverySamples!; k++) {
-      let proposal = genericControl(s, k);
+      let proposal = tagOrigin(genericControl(s, k), 'recovery');
       if (s.near.length && k % 3 !== 0) {
         const keys = arcResponseKeys(options.guides, {...options, observedReceiver: true});
         const trial = Math.floor(k * 2 / 3), key = keys[Math.floor(trial / 2) % keys.length];
         const anchor = s.near[Math.floor(trial / (2 * keys.length)) % Math.min(4, s.near.length)].c;
         const step = arcControlStep(key, 'coordinate', anchor.support) * Math.pow(.65, Math.floor(trial / (6 * keys.length)));
-        proposal = {...anchor, [key]: arcControlValue(anchor, key, options.channel) + (trial % 2 ? -1 : 1) * step};
+        proposal = deriveOrigin({...anchor, [key]: arcControlValue(anchor, key, options.channel) + (trial % 2 ? -1 : 1) * step}, anchor, 'recovery');
       }
       record.proposals++;
       if (evaluate(s, proposal)) record.viable++;

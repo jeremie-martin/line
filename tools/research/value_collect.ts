@@ -2,7 +2,7 @@
  * arc future-value model from the production compiler under line.strike.v3.
  *
  *   node tools/research/value_collect.ts run --out=DIR [--seeds=1] [--jobs=16] [--budget=standard|N] [--limit=N]
- *       [--catalog=v4|v6transfer] [--only=FILE]
+ *       [--catalog=v4|v6transfer|v6paired] [--only=FILE]
  *
  * --only=FILE restricts the work to the `id~seed` compiles listed in FILE (a JSON
  * array), e.g. the sources of an earlier construction artifact, so a later round
@@ -44,6 +44,15 @@ async function trainingCases(): Promise<any[]> {
     return c.cases.filter((x: any) => x.layout === 'transfer' && ['arcs', 'fold', 'serpentine'].includes(x.family) && !/luna|amor|tiki|amour/i.test(x.sourceId))
       .map((x: any) => {const music = c.music.find((m: any) => m.id === x.sourceId)!;
         return {...music, id: x.id, group: `v6:${x.family}-transfer:${(music as any).group}`, plans: x.plans};});
+  }
+  if (catalog === 'v6paired') {
+    // Explicit V6 plans for each construction family on paired rails, from non-evaluation music:
+    // every family in varied musical situations (diversity, not more seeds of the same cases).
+    const c = trainingData('catalog-v6');
+    return c.cases.filter((x: any) => x.layout === 'paired' && ['single', 'arcs', 'fold', 'serpentine', 'scallops', 'terraces', 'scattered'].includes(x.family)
+      && !/luna|amor|tiki|amour/i.test(x.sourceId))
+      .map((x: any) => {const music = c.music.find((m: any) => m.id === x.sourceId)!;
+        return {...music, id: x.id, group: `v6:${x.family}-paired:${(music as any).group}`, plans: x.plans};});
   }
   return trainingData('specifications-v4').filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
 }
@@ -104,7 +113,7 @@ async function main(){
  const dir=resolve(arg('out')!),pool=new WorkerPool(workerJobs(arg('jobs','16'))),seeds=Number(arg('seeds','1')),budget=arg('budget','standard')!;
  assert.ok(Number.isSafeInteger(seeds)&&seeds>=1,'invalid seed count');
  assert.ok(budget==='standard'||Number.isSafeInteger(Number(budget))&&Number(budget)>0,'invalid budget');
- assert.ok(['v4','v6transfer'].includes(catalog),'unknown training catalog');
+ assert.ok(['v4','v6transfer','v6paired'].includes(catalog),'unknown training catalog');
  const cases=(await trainingCases()).slice(0,Number(arg('limit','1000')));
  const only=arg('only')?new Set<string>(JSON.parse(readFileSync(arg('only')!,'utf8'))):null;
  const declared=cases.flatMap((c:any)=>Array.from({length:seeds},(_,k)=>({id:c.id,seed:c.plans?Number(Object.keys(c.plans)[k]):101*(k+1),inputSha256:digest(c)})));

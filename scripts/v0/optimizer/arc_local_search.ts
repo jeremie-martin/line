@@ -7,6 +7,7 @@ import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcResponseStep } from './arc_response.ts';
 import { ARC_CORE_KEYS, ARC_EXPRESSIVE_KEYS, arcControlValue, arcControlStep, arcResponseKeys, arcControlActive } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { deriveOrigin } from './arc_origin.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -24,7 +25,7 @@ export function coordinateSearch(s: IntervalSearch) {
     const best = s.best!.candidate;
     const candidate = {...best.c, [key]: best.c[key]! + sign * arcControlStep(key, 'coordinate', best.c.support) *
       Math.pow(.65, Math.floor(round / 2))};
-    evaluate(s, candidate);
+    evaluate(s, deriveOrigin(candidate, best.c, 'coordinate'));
     if (k % 10 === 9) retainSearch(s);
   }
 }
@@ -60,8 +61,9 @@ function guideShapeSearch(s: IntervalSearch, origin: MeasuredCandidate, keys: Co
   const broad = Math.min(24, Math.ceil(count / 3));
   for (let k = 0; keys.length && k < count; k++) {
     const frac = (n: number) => ((k + 1) * n) % 1;
-    let c: ArcMotionControl;
+    let c: ArcMotionControl, parent: ArcMotionControl;
     if (k < broad) {
+      parent = origin.c;
       c = {...origin.c};
       c.clearance = k === 0 ? 12 : 8 + 16 * frac(.61803398875);
       if (k > 0) {
@@ -73,12 +75,13 @@ function guideShapeSearch(s: IntervalSearch, origin: MeasuredCandidate, keys: Co
       if (options.railLayout === 'transfer' && k > 0) c.mainEnd = .3 + .6 * frac(.6931471806);
     } else {
       const best = s.best!.candidate;
+      parent = best.c;
       const key = keys[Math.floor(k / 2) % keys.length];
       const step = arcControlStep(key, 'coordinate', best.c.support);
       c = {...best.c, [key]: arcControlValue(best.c, key, options.channel) +
         (k % 2 === 0 ? -1 : 1) * step * Math.pow(.6, Math.floor((k - broad) / (keys.length * 4)))};
     }
-    evaluate(s, c);
+    evaluate(s, deriveOrigin(c, parent, 'shape'));
     if (k % 8 === 7) retainSearch(s);
   }
 }
@@ -97,8 +100,8 @@ function responseSearch(s: IntervalSearch, responseKeys: ControlKey[], responseA
     const jac = origin.residuals.map(() => Array(responseKeys.length).fill(0));
     responseKeys.forEach((key, d) => {
       const step = scale(key) * trust;
-      const a = evaluate(s, {...origin.c, [key]: value(key) + step})?.candidate;
-      const b = evaluate(s, {...origin.c, [key]: value(key) - step})?.candidate;
+      const a = evaluate(s, deriveOrigin({...origin.c, [key]: value(key) + step}, origin.c, 'response'))?.candidate;
+      const b = evaluate(s, deriveOrigin({...origin.c, [key]: value(key) - step}, origin.c, 'response'))?.candidate;
       responseUsed += 2;
       for (let r = 0; r < jac.length; r++)
         jac[r][d] = a && b ? (a.residuals[r] - b.residuals[r]) / 2 : a ? a.residuals[r] - origin.residuals[r] : b ? origin.residuals[r] - b.residuals[r] : 0;
@@ -117,7 +120,7 @@ function responseSearch(s: IntervalSearch, responseKeys: ControlKey[], responseA
       if (delta) {
         const c = {...origin.c};
         responseKeys.forEach((key, d) => c[key] = value(key) + fraction * scale(key) * trust * clamp(delta[d], -3, 3));
-        evaluate(s, c);
+        evaluate(s, deriveOrigin(c, origin.c, 'response'));
       }
       responseUsed++;
     }

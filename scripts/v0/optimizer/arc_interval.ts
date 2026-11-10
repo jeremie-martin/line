@@ -2,6 +2,7 @@
  * start, propose connected arc geometry, measure every proposal natively and
  * refine locally around the best. All work is charged to the shared meter. */
 import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
+import { tagOrigin } from './arc_origin.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
@@ -25,7 +26,7 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
   if (!s) return null;
   try {
     if (options.directControls) {
-      for (const control of options.directControls) evaluate(s, control);
+      for (const control of options.directControls) evaluate(s, tagOrigin(control, 'direct'));
     } else {
       proposeInitialControls(s);
       proposeOpposingEntries(s);
@@ -75,6 +76,8 @@ function replaceWithFragments(s: IntervalSearch) {
       if (!proposal.contactPositions) throw new Error('scattered carrier lacks its evaluated contact positions');
       stats.probes++;
       const fragments = fragmentInterval(proposal.lines, proposal.contactPositions);
+      // Too many fragments for the section's line ids: this carrier cannot be built as fragments.
+      if (!fragments) {s.failures.id_range = (s.failures.id_range ?? 0) + 1; continue;}
       const began = getPhysicsFrameCount();
       evaluate(s, proposal.c, fragments);
       stats.replayFrames += getPhysicsFrameCount() - began;

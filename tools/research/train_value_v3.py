@@ -41,15 +41,19 @@ def export(model, link):
 
 rows, records, plans, omitted = [], [], [], 0
 feature_count = 73 if args.features == 'geometry' else 57
+collections = []
+excluded = {f'{x}.json.gz' for x in args.exclude.split(',') if x}
 for root in args.inputs.split(','):
     plan_bytes = (Path(root) / 'plan.json').read_bytes(); plan = json.loads(plan_bytes)
     assert plan['schema'] == 'line.value-collection.v2', 'collector must provide a verified plan'
     plan_sha = hashlib.sha256(json.dumps(plan, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
     declared = {f"{w['id']}~{w['seed']}.json.gz": w for w in plan['work']}
     assert len(declared) == len(plan['work']) > 0, 'duplicate or empty collection'
-    paths = sorted(Path(root).glob('*.json.gz'))
-    excluded = {f'{x}.json.gz' for x in args.exclude.split(',') if x}
-    assert excluded <= set(declared), 'excluded compiles must be declared by the plan'
+    collections.append((Path(root), plan_bytes, plan, plan_sha, declared))
+if not excluded <= {name for _, _, _, _, declared in collections for name in declared}:
+    raise ValueError('excluded compiles must be declared by an input plan')
+for root, plan_bytes, plan, plan_sha, declared in collections:
+    paths = sorted(root.glob('*.json.gz'))
     assert {path.name for path in paths} == set(declared) - excluded, 'incomplete or undeclared collection records'
     assert plan['search']['depth'] == 2, 'trainer target requires two-interval probes'
     plans.append({'sha256': hashlib.sha256(plan_bytes).hexdigest(), 'plan': plan})

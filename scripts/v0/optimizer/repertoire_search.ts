@@ -32,7 +32,9 @@ export function loadConstructionArtifact(){
 }
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
  if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
- const {id:_id,...profile}=IMPACT_SEARCH_PROFILE,artifact=loadConstructionArtifact();
+ const {id:_id,...profile}=IMPACT_SEARCH_PROFILE;
+ // Preserve artifact validation/loading, but neither removed lookup uses it.
+ loadConstructionArtifact();
  return {...connectedArcOptions(spec,allowance),
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
   // Preserve the complete ride while using spare work to improve its ending.

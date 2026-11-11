@@ -8,6 +8,7 @@ import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
+import {proposeStagedControls, stagedProposalSlots} from './arc_staged_proposals.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
@@ -100,7 +101,10 @@ export function proposeInitialControls(s: IntervalSearch) {
       evaluate(s, {...options.warmStart, entry: options.warmStart.entry + incoming - options.warmIncoming,
         exit: options.warmStart.exit + incoming - options.warmIncoming});
   }
-  for (let k = 0; k < initial; k++) {
+  // Replace only generic slots left by the removed archive lookups. Online
+  // memory, responses, the centre and all other construction families survive.
+  const staged = stagedProposalSlots(s, Math.max(0, initial - 1 - policy.length));
+  for (let k = 0; k < initial - (staged >= 4 ? staged : 0); k++) {
     const stream = k === 0 ? 'center' : k <= learnedEnd ? 'learned' : k <= memoryEnd ? 'memory' : k <= policy.length ? 'response' : 'generic';
     const accounting = s.ctx.work.initialProposalWork[stream], began = getPhysicsFrameCount();
     accounting.attempts++;
@@ -111,6 +115,7 @@ export function proposeInitialControls(s: IntervalSearch) {
     }
     if (k % 10 === 9) retainSearch(s);
   }
+  if (staged >= 4) proposeStagedControls(s, staged);
 }
 
 /** Offer the same curve constructor from the opposite contact side. Both sides

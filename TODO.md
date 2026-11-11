@@ -27,15 +27,15 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
-9. **Compiler work.** Baseline since 2026-11-08: today's main (V7.1 813.5),
-   with the construction-policy archive frozen (REWORK.md, November 8).
-   That figure predates the jolt removal (2026-11-11); measure the merged
-   main's baseline before the next compiler comparison.
-   - **Next: reduce the reliance on the archive.** First a short design note
-     for the owner: physics-aimed proposals, a concise learned geometry
-     model, better refinement, and a catalogue of modifiable geometries,
-     each with the part of the archive's work it would take over. The owner
-     picks the first bounded attempt (about a day each, hypothesis first).
+9. **Compiler work.** Baseline: the merged main, V7.1 **812.1** (4 seeds; reference `merged`, 2026-11-11). The construction-policy
+   archive is still frozen (REWORK.md, November 8).
+   - **Replacing the archive: the night of November 11** (REWORK.md, "November 11 (night)").
+     - The best archive-free version is `exp/compact-sources-memory` (210 KB): −11.7 [−17.9, −5.5], held out −15.6.
+     - The 107 KB `exp/compact-sources` scores −14.7, held out −19.9, with ride character kept.
+     - Compact sources plateau: more styles, more memory moves and more data don't help.
+     - Generating moves (readable physics, staged probes, a forward model) failed.
+     - **Owner's call:** adopt one of the two (and at what loss), or keep the archive.
+     - Open question: what does the remaining strong-beat gap on everyday songs need?
    - **Owner's call:** delete the ending refinement. Removing it costs 0.2
      points on today's main, as on November 1; it uses 1% of physics
      frames. The November 1 deletion branch `exp/no-tail-refinement`

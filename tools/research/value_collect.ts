@@ -37,7 +37,7 @@ function trainingData(name: string) {
   assert.equal(createHash('sha256').update(raw).digest('hex'), lock.sha256 ?? lock.specificationsSha256, `${name} checksum mismatch`);
   return JSON.parse(raw.toString());
 }
-async function trainingCases(): Promise<any[]> {
+export async function trainingCases(): Promise<any[]> {
   if (catalog === 'v6transfer') {
     // Explicit V6 plans with transfer rail layouts (rare in automatic plans), from non-evaluation music.
     const c = trainingData('catalog-v6');

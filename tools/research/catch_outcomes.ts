@@ -4,7 +4,9 @@
  * pace, span, span targets, family) and, for each retained candidate, its control relative
  * to the arrival with its optional fields, and what it led to: the measured impact, the
  * span residuals, the local cost, and the arrival at the next catch (heading, speed, pose).
- * The committed candidate of each interval is marked, with the interval's rejection counts.
+ * The committed candidate of each interval is marked, with the interval's rejection counts and
+ * each rejected evaluation (`rejected`: its control in the same form, and the reason; memo repeats
+ * are counted, not listed).
  * Nothing is simulated beyond the compile; the report checks track identity against a saved arm.
  * `--cases=train` compiles the training catalog instead (value_collect.ts `trainingCases`,
  * catalog v4, every evaluation song excluded), ids as listed there; those rides are not
@@ -19,6 +21,7 @@ import {gzipSync, createGunzip} from 'node:zlib';
 import {v7Cases, resolveCase, digest} from '../eval/inputs.ts';
 import {compileAndMeasure} from '../eval/compile.ts';
 import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
+import {withRejectionObserver} from '../../scripts/v0/optimizer/arc_evaluate.ts';
 import {trainingCases, EVAL_GROUPS} from './value_collect.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
@@ -53,18 +56,27 @@ async function ride(id: string, seed: number, cases: string) {
 async function worker(id: string, seed: number, cases: string) {
   const {stratum, compile} = await ride(id, seed, cases);
   const intervals: any[] = [], seen = new Set<object>(), where = new WeakMap<object, [number, number]>();
-  await withSequenceObserver((i, offered, _chosen, ctx) => {
+  // A search's candidate list is the one its interval result offers: rejections are filed under it.
+  const rejected = new WeakMap<object, any[]>();
+  const relative = (c: any, incoming: number, span: number) => {
+    const {entry, turn, exit, support, ...rest} = c;
+    return {c: [entry - incoming, turn, exit - incoming, support / span].map(r4), o: Object.fromEntries(Object.entries(rest).map(([key, v]) => [key, r4(v as number)]))};
+  };
+  await withRejectionObserver((s, c, reason) => {
+    let list = rejected.get(s.candidates);
+    if (!list) rejected.set(s.candidates, list = []);
+    list.push({...relative(c, s.incoming, s.span), reason});
+  }, () => withSequenceObserver((i, offered, _chosen, ctx) => {
     for (const interval of new Set(offered.map(o => o.interval))) {
       if (seen.has(interval)) continue;
       seen.add(interval);
       const p = intervals.length, request = (ctx.options as any).constructionRequests?.[i];
       intervals.push({i, frame: interval.frame, next: interval.next, incoming: r4(interval.incoming), pace: r4(interval.pace), span: interval.span,
         family: request?.construction ?? null, guidance: request?.guidance ?? null, rail: request?.railLayout ?? null,
-        failures: {...interval.failures}, targets: interval.targets, features: interval.inputFeatures.map(r4),
+        failures: {...interval.failures}, rejected: rejected.get(interval.candidates) ?? [], targets: interval.targets, features: interval.inputFeatures.map(r4),
         candidates: interval.candidates.map((x, k) => {
           where.set(x.c, [p, k]);
-          const {entry, turn, exit, support, ...rest} = x.c as any;
-          return {c: [entry - interval.incoming, turn, exit - interval.incoming, support / interval.span].map(r4), o: Object.fromEntries(Object.entries(rest).map(([key, v]) => [key, r4(v as number)])),
+          return {...relative(x.c, interval.incoming, interval.span),
             impact: r4(x.actualImpact), residuals: x.residuals.slice(0, 6).map(r4), local: r4(x.localCost),
             heading: r4(x.heading), endSpeed: r4(x.endSpeed), pose: r4(x.pose)};
         })});
@@ -74,7 +86,7 @@ async function worker(id: string, seed: number, cases: string) {
     for (const row of rows) { const at = where.get(row.control); if (at) intervals[at[0]].kept = at[1]; }
     appendFileSync(join(out, 'rides.jsonl.gz'), gzipSync(JSON.stringify({spec: id, stratum, seed, complete,
       score, trackHash: digest(track), beats, intervals}) + '\n'));
-  });
+  }));
 }
 
 async function report(dir: string, armDir?: string) {

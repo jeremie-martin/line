@@ -32,6 +32,19 @@ const deg = (x: number) => x * 180 / Math.PI;
 
 type Rejection = {reason: string; near?: Near};
 
+/** Study-only access to rejected evaluations (report only): the search, the normalized
+ * control and the reason. Observers must not mutate either. */
+type RejectionObserver = (s: IntervalSearch, c: ArcMotionControl, reason: string) => void;
+let rejectionObserver: RejectionObserver | undefined;
+
+/** Install a rejection observer for one isolated worker task; overlapping studies are rejected. */
+export async function withRejectionObserver<T>(observer: RejectionObserver, run: () => Promise<T>): Promise<T> {
+  if (rejectionObserver) throw new Error('a rejection study is already active in this worker');
+  rejectionObserver = observer;
+  try { return await run(); }
+  finally { rejectionObserver = undefined; }
+}
+
 /** Measures control `c` (or explicit contact `fragments`) in search `s`.
  * Returns the measured candidate, or null when it is rejected; a valid
  * candidate with a lower optimization cost becomes `s.best`. */
@@ -74,6 +87,7 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
       work.observedReceiverWork.failures[reason] = (work.observedReceiverWork.failures[reason] ?? 0) + 1;
     memo.set(key, {reason, near});
     s.failures[reason] = (s.failures[reason] ?? 0) + 1;
+    rejectionObserver?.(s, c, reason);
     return null;
   };
   const built = buildGeometry(s, c, fragments);

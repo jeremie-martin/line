@@ -12,8 +12,8 @@ let constructionArtifact:{policies:NonNullable<ArcMotionOptions['constructionPol
 export function constructionSearchModelData(model:any){
  if(model.schema!=='line.construction-policies.v1'||!model.groups||typeof model.groups!=='object')throw new Error('invalid construction policy artifact');
  const inherited=Object.fromEntries(Object.entries(model.groups).map(([key,group]:[string,any])=>{
-  if(group.featureCount!==57||!Array.isArray(group.exemplars))throw new Error('invalid construction policy group');
-  return [key,group.exemplars.map((r:any)=>({...r.controlReference,features:r.features}))];
+  if(group.featureCount!==57||!(Array.isArray(group.exemplars)||group.catalogue||group.network||Array.isArray(group.models)))throw new Error('invalid construction policy group');
+  return [key,(group.exemplars??[]).map((r:any)=>({...r.controlReference,features:r.features}))];
  }));
  const examples=model.memoryGroups?Object.fromEntries(Object.entries(model.memoryGroups).map(([key,entries]:[string,any])=>{
   if(!Array.isArray(entries))throw new Error('invalid construction memory group');
@@ -37,7 +37,7 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
   // Preserve the complete ride while using spare work to improve its ending.
   refineTailSections:1,refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
-  memorySamples:16,policySamples:16,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
+  memorySamples:16,policySamples:96,samples:192,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
   initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),
   constructionRequests:Object.fromEntries(plan.requests.map(r=>[r.section,r])),

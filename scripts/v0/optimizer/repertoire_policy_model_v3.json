@@ -2,13 +2,29 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-  "sha256": "cadcd76fa90eddb644366343777b446ca3dd0aa219dd6d73033d5cea45880565",
-  "uncompressedBytes": 129814392,
+  "compressedBytes": 109590,
+  "compressedSha256": "3f5c0cee67e979826900b215914ab1e4e405223d32db461d5c16d4c52f8d9e06",
+  "sha256": "68ffc4286af15d8b7f703843efcecc3ff96a7711f0f83f1e0d88bddc16eba86e",
+  "uncompressedBytes": 443045,
   "provenance": {
-    "policyTraining": "tools/research/train_construction_v3.py",
-    "collector": "tools/research/value_collect.ts",
-    "data": "today's compiler (6e815a57: benchmark/v4 without eval songs, 5 seeds, 838 compiles) plus the two earlier V6 transfer collections",
-    "evidence": "REWORK.md 2026-11-07 (construction policies from today's compiler)"
+    "method": "Catalogue and 57-feature network offered together unchanged, with proposal weights [64, 32]",
+    "sources": [
+      {
+        "commit": "489a1661b647ff00dbc95a9001385845e45f590c",
+        "file": "repertoire_policy_model_v3.json.gz",
+        "compressedBytes": 45698,
+        "compressedSha256": "246d1e17ae0122c06aeaf744105e6c0bb0ec6cfdcf32ca7931b4307d15081cce",
+        "uncompressedBytes": 234433,
+        "sha256": "3f30660af2935486e85c55a5992c67207ba1d6351f33ec4572d219b1bb652953"
+      },
+      {
+        "commit": "1bb70e3aad05510904c39c25dd8498152286e31c",
+        "file": "repertoire_policy_model_v3.json.gz",
+        "compressedBytes": 57540,
+        "compressedSha256": "ad5ad91cf3d02b32248f0c3c2b4eb602e0a64de7a657f1d90928ad8fa8e0d21b",
+        "uncompressedBytes": 207970,
+        "sha256": "9ac29b2e35864bbbf2254de4da0508a399f550ac26fedaf094631cbc46c31469"
+      }
+    ]
   }
 }

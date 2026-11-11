@@ -85,6 +85,7 @@ jolt; against `merged`):
 - With about 940 strong-chain demonstrations added to the memory (current and next beat both requested ≥ 0.6, features 48 and 53;
   `exp/compact-sources-memory-chains`, 400 KB), paired against the 210 KB version: −0.2 [−2.9, +2.5] at 8 seeds (everyday songs
   G +6.4; P6 −12.6 on its single spec). Held out: +3.0 [−4.7, +10.7], 6 specs up, 7 down. Inconclusive; not worth its size.
+- With 32 memory proposals instead of 16 (samples 224): −2.6 [−6.0, +0.8] paired at 8 seeds; more memory crowds out refinement.
 - With its network retrained on the pooled archive (twice the demonstrations; `exp/compact-sources-pooled`), paired, 4 seeds:
   +0.3 [−4.0, +4.7], 14 specs up, 21 down. Null: more training data does not move the compact sources.
 

@@ -1,5 +1,105 @@
 # Foundations rework (started 2026-10-03)
 
+## November 11 (night): replacing the archive, what moves the score and what doesn't
+
+**The goal (owner).** A compiler without the 52 MB construction archive that at least matches main. It should be clean and
+readable where it can be, and it should be a different approach, not a mere iteration of the catalogue. Size: "a few dozen KB,
+maybe 100 KB" (October). Budget is not the problem (the owner: even ten times the budget barely moves the score).
+
+All results are V7.1 and 4 seeds unless stated, against main `9d065738` (813.5; 813.8 at 8 seeds) on the remote machine, or
+against `merged` (visual-lab with foundations, no jolt, 812.1) where stated. No ride was lost in any arm.
+
+**1. How much stored real moves are worth** (archive subsets, full lookup, data-only):
+
+| moves kept | size | change |
+|---|---|---|
+| 79,778 (main) | 52 MB | 0 |
+| 49,306 (earlier) | 33 MB | −5.3 |
+| 8,000 (10%) | ~5 MB | −9.7 [−13.4, −6.0] |
+| 3,200 (4%) | ~2 MB | −16.8 |
+| 493 medoids (earlier) | 147 KB | −27.7 |
+| none | — | −70.6 |
+
+Density matters all the way down. No subset small enough matches main.
+
+The full archive looked up by 17 readable numbers only (arrival 7, the asks ahead 10; no body point state, no trees) loses
+−9.8 [≈ −14, −4]. The rider's body at arrival matters to which stored move is right (at 4%: −18.9 against −16.8).
+
+**2. Compressing what to do stalls around −20.**
+
+| policy | size | change |
+|---|---|---|
+| network, 12 features (earlier) | 18 KB | −25.1 |
+| network, 57 features, hidden 32, 32 styles (new) | 57 KB | −23.6 [−38.6, −8.6] |
+| catalogue, 64 styles all tried (earlier) | 44 KB | −22.7 |
+| catalogue + 57-feature network together | 107 KB | −19.0 [−25.5, −12.6]; **−17.4 [−21.9, −13.0] at 8 seeds**; held out −21.9 [−28.9, −14.9] |
+| the same with 64 network styles (paired against 32) | 119 KB | −0.1 [−3.4, +3.3] |
+
+Seeing the body helps a lookup, not a network (57 vs 12 features: about the same). Two compact sources together beat either one.
+Breadth beyond that is saturated.
+
+The loss of catalogue + network breaks down (`loss_parts.py`, 380 rides) as −17.9 in all:
+- strength −9.6 (strong beats too soft −8.4; everyday songs G −18.3);
+- speed −4.6, timing −1.6, extra hits −1.3, air −1.0.
+
+This is the chain-setup gap foundations diagnosed.
+
+**3. Real moves for the memory lookup add a little** (data-only on top of catalogue + network):
+- 493 representative demonstrations (210 KB in all): +2.9 [−0.1, +5.9] paired, support 0.97; explicit requests +8.0; strong extras −38%.
+  Against main: **−14.4 [−21.5, −7.3] at 8 seeds**.
+- 1,600 demonstrations (344 KB): −13.9 [−18.8, −8.9] at 8 seeds, no better than 493. Memory density is saturated inside the
+  combination too.
+
+**4. Generating moves, with physics or a learned model of it, does not reach the right geometry.**
+- **Readable physics** (Codex study, 5.25 M measured candidates): strength from speed and entry R² 0.36, against 0.82 for trees.
+  Strength sums speed × change of direction over six frames after contact, so it depends on the whole contact. The next arrival
+  from the exit gives R² 0.39 (0.88 for trees). No readable inverse can aim.
+- **Staged probes** (a Codex design note, then its pilot `exp/staged-probes`): build a move in stages with short metered
+  simulations (entry 24 → redirect 12 → runout 8; ordinary unguided arcs only). Null: −1.7 paired against no-archive, 16 specs up
+  and 19 down, at equal physics.
+- **Imagined proposals** (`exp/imagined-proposals`):
+  - The model: an 88.5 KB MLP forward model trained on training songs only (122 rides, 2 seeds; accepted and rejected
+    evaluations). On unseen V7.1 it predicts strength at R² 0.85, the next heading at 0.91 and the next speed at 0.82, and failure
+    with AUC 0.87.
+  - The source: 512 correlated generated controls per side are scored by the model; the best 64 distinct ones are tried.
+  - Result: **−51.6** [−63.4, −39.8] against merged, no better than the generator alone. It improved the compiler's own strength
+    rulers (R1, strike) and worsened v3 (strong beats soft): self-grading. Within an interval the model ranks only moderately
+    (best tenth in the predicted best quarter 35%, against 87% for perfect prediction). The pool is the bottleneck: imagination
+    can't make incoherent combinations coherent.
+
+**5. On today's compiler** (`exp/compact-sources`: the 107 KB sources ported onto visual-lab, the merged compiler without the
+jolt; against `merged`):
+- V7.1, 8 seeds: **−14.7 [−20.2, −9.3]**; 2 specs up, 33 down; physics +1%. Body drag −8%; strong extra impacts 0.12 against 0.08
+  per 100 beats; head-down strong arrivals 10.5% against 9.7%.
+- Held out (13 specs, 52 rides): **−19.9 [−32.1, −7.8]**; 1 up, 12 down; head-down strong arrivals 11.3% against 9.6%.
+- **Ride character is kept** (`ride_character.ts`, 328 rides each, paired):
+  - beats hit from above 26.8% against 27.5% (−0.6 points [−1.1, −0.2]);
+  - strong beats from above 21.0% against 21.1% (no change);
+  - contact from above −0.30 s/min, guide contact −0.32 s/min;
+  - ride-outs, flights, air and body contact within a fraction.
+- With the 493 memory demonstrations (`exp/compact-sources-memory`, 210 KB), paired against it at 8 seeds: **+3.1 [−0.2, +6.3]**,
+  support 0.97; 23 specs up, 12 down; explicit requests +8.1; head-down strong arrivals −5%. So about −11.6 against merged.
+  Directly against merged: **−11.7 [−17.9, −5.5]** at 8 seeds (1 spec up, 34 down; G −24.7; explicit requests −12.9; physics +1%;
+  body drag −5%; strong extra impacts 0.12 against 0.08; head-down strong arrivals 9.9% against 9.7%). Held out:
+  **−15.6 [−20.9, −10.4]** (3 up, 10 down), against −19.9 for the 107 KB version.
+- With about 940 strong-chain demonstrations added to the memory (current and next beat both requested ≥ 0.6, features 48 and 53;
+  `exp/compact-sources-memory-chains`, 400 KB), paired against the 210 KB version: −0.2 [−2.9, +2.5] at 8 seeds (everyday songs
+  G +6.4; P6 −12.6 on its single spec). Held out: +3.0 [−4.7, +10.7], 6 specs up, 7 down. Inconclusive; not worth its size.
+- With its network retrained on the pooled archive (twice the demonstrations; `exp/compact-sources-pooled`), paired, 4 seeds:
+  +0.3 [−4.0, +4.7], 14 specs up, 21 down. Null: more training data does not move the compact sources.
+
+**Reading.** What wins is coherent moves, real or learned from real ones, and many of them, close to the exact state including
+the rider's body. Compressing them caps around −15 on today's compiler (−17 on the old base). A few hundred real moves for the
+memory gain about 3 more; more of them gain nothing. Generating
+moves and searching by physics, staged or imagined, did not find what the stored moves carry. Matching main without the archive
+remains open.
+
+**Built.** On visual-lab, report only: `catch_outcomes.ts --cases=train` (training songs) and a rejected-evaluation observer
+(parity identical). On branches: the experiments above, `exp/compact-sources` and `exp/compact-sources-memory` (the candidates,
+on visual-lab, ready to compare and adopt).
+
+**Not adopted.** No change to main; the archive stays.
+
 ## November 11: the merged compiler's baseline
 
 `visual-lab` with `rework/foundations` merged (the November 7 archive, no jolt; reference `merged` = 9e311371) scores **812.1** on

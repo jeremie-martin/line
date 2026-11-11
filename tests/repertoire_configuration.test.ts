@@ -10,18 +10,17 @@ import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_rep
 import {repertoireSearchOptions} from '../scripts/v0/optimizer/repertoire_search.ts';
 import type {Spec} from '../scripts/v0/types.ts';
 
-it('loads the construction archive once and resolves the complete search profile once',()=>{
+it('reads no construction archive (imagined proposals experiment) and resolves the complete search profile',()=>{
  const spec:Spec={duration:2,preroll:0,contacts:[{t:1,impact:.8}],axes:{air:()=>.5,speed:()=>.5}};
  const plan=planIntentionalRepertoire(spec,101);
  reads.length=0;
  const current=repertoireSearchOptions(spec,plan,200000);
  const archives=()=>reads.filter(p=>/repertoire_policy_model.*\.json(?:\.gz)?$/.test(p));
- expect(archives().length).toBe(2);
- expect(archives().every(p=>p.includes('repertoire_policy_model_v3'))).toBe(true);
+ expect(archives().length).toBe(0);
  expect(current.impactSearch?.uprightArrival).toBe(1);
  expect(current).not.toHaveProperty('coupledIntervalSamples');
  expect(current).not.toHaveProperty('constructionModel');
- expect(repertoireSearchOptions(spec,plan,200000).constructionPolicies).toBe(current.constructionPolicies);
- expect(archives().length).toBe(2);
- expect(archives().length).toBe(2);
+ expect(current.constructionPolicies).toBeUndefined();
+ expect(current.constructionExamples).toBeUndefined();
+ expect(current).toMatchObject({imaginedProposals:true,policySamples:64,samples:160});
 });

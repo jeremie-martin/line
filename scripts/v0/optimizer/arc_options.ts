@@ -52,6 +52,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   memorySamples?: number;
   memoryResponseSamples?: number;
   policySamples?: number;
+  /** Experiment: policy slots of later sections go to model-aimed generated controls (arc_imagined.ts). */
+  imaginedProposals?: boolean;
   /** Learned future value of an arrival, used to rank candidates and guide search. */
   futureValueModel?: any;
   valueWeight?: number;
@@ -135,7 +137,7 @@ export const EVALUATION_IDENTITY = {
   budget: 'search', samples: 'search', guidance: 'search',
   guidanceSamples: 'search',
   responseSamples: 'search', memorySamples: 'search',
-  memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
+  memoryResponseSamples: 'search', policySamples: 'search', imaginedProposals: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
   refineTailSections: 'search', refineAttempts: 'search',
   refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search',

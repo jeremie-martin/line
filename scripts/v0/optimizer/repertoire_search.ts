@@ -1,14 +1,10 @@
 /** One search configuration for production plans and matched-plan research. */
-import {readFileSync} from 'node:fs';
-import {connectedArcOptions,parseArcPolicyArtifact} from './connected_arcs.ts';
+import {connectedArcOptions} from './connected_arcs.ts';
 import {constructionStyle,type ProductionPlan} from './repertoire_policy.ts';
 import {INTENTIONAL_REPERTOIRE_POLICY} from './intentional_repertoire.ts';
 import type {Spec} from '../types.ts';
 import type {ArcMotionOptions} from './arc_motion.ts';
 import {IMPACT_SEARCH_PROFILE} from './contact_impact_profile.ts';
-// Rebuilt under line.strike.v3 on songs disjoint from the evaluation panel.
-const MODEL=new URL('./repertoire_policy_model_v3.json',import.meta.url);
-let constructionArtifact:{policies:NonNullable<ArcMotionOptions['constructionPolicies']>;examples:NonNullable<ArcMotionOptions['constructionExamples']>}|undefined;
 export function constructionSearchModelData(model:any){
  if(model.schema!=='line.construction-policies.v1'||!model.groups||typeof model.groups!=='object')throw new Error('invalid construction policy artifact');
  const inherited=Object.fromEntries(Object.entries(model.groups).map(([key,group]:[string,any])=>{
@@ -27,17 +23,15 @@ export function constructionSearchModelData(model:any){
  })):inherited;
  return {policies:model.groups,examples};
 }
-export function loadConstructionArtifact(){
-  return constructionArtifact??=constructionSearchModelData(parseArcPolicyArtifact(readFileSync(MODEL),MODEL));
-}
 export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:number):ArcMotionOptions{
  if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
- const {id:_id,...profile}=IMPACT_SEARCH_PROFILE,artifact=loadConstructionArtifact();
+ const {id:_id,...profile}=IMPACT_SEARCH_PROFILE;
  return {...connectedArcOptions(spec,allowance),
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
   // Preserve the complete ride while using spare work to improve its ending.
   refineTailSections:1,refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
-  memorySamples:16,policySamples:16,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
+  // Experiment: no archive. Imagined proposals take the policy lookup's slots; memory is this ride's own.
+  memorySamples:16,policySamples:64,samples:160,imaginedProposals:true,
   initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),
   constructionRequests:Object.fromEntries(plan.requests.map(r=>[r.section,r])),

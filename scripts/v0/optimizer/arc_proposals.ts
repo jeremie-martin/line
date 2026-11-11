@@ -7,6 +7,7 @@ import { getPhysicsFrameCount } from '../../lib/detector.ts';
 import { tagOrigin, tagOriginIfNew, deriveOrigin } from './arc_origin.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
+import { imaginedProposals } from './arc_imagined.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
@@ -86,13 +87,14 @@ export function proposeInitialControls(s: IntervalSearch) {
   // Startup has a different physical-state distribution from a later catch.
   // Its optional learned proposals still pass the ordinary interval search.
   const proposalModel = i === 0 ? options.controlPolicy?.startupModel : options.controlPolicy;
-  const requested = [proposalModel ? options.policySamples ?? 8 : 0, remembered.length, responses.length];
+  const imagined = i > 0 && !!options.imaginedProposals;
+  const requested = [proposalModel || imagined ? options.policySamples ?? 8 : 0, remembered.length, responses.length];
   // The inherited model already covers ordinary arcs. Reserve new geometry
   // proposals where its training constructor differs from this request.
   const novelConstructor = !!options.profile || options.railLayout === 'transfer';
   const reservedGeneric = Math.ceil(initial * (novelConstructor ? .25 : 0));
   const counts = allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric));
-  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
+  const policy = !counts[0] ? [] : imagined ? imaginedProposals(s, counts[0]) : arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]);
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) {
@@ -106,7 +108,7 @@ export function proposeInitialControls(s: IntervalSearch) {
     const accounting = s.ctx.work.initialProposalWork[stream], began = getPhysicsFrameCount();
     accounting.attempts++;
     try {
-      if (evaluate(s, tagOriginIfNew(k > 0 && k <= policy.length ? policy[k - 1] : k === 0 ? s.center! : genericControl(s, k), stream === 'learned' ? 'policy-archive' : stream))) accounting.viable++;
+      if (evaluate(s, tagOriginIfNew(k > 0 && k <= policy.length ? policy[k - 1] : k === 0 ? s.center! : genericControl(s, k), stream === 'learned' ? (imagined ? 'imagined' : 'policy-archive') : stream))) accounting.viable++;
     } finally {
       accounting.physicsFrames += getPhysicsFrameCount() - began;
     }

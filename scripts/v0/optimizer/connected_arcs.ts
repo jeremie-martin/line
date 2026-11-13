@@ -58,6 +58,6 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
     futureValueModel: guidanceSamples ? futureValueModel : undefined,
     // Predicted future loss ranks physical alternatives. Native residuals
     // alone guide local geometry fitting.
-    valueWeight: .45,
+    valueWeight: .6,
   };
 }

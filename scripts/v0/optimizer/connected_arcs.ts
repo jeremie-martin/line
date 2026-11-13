@@ -45,7 +45,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const guidanceSamples = Math.min(176, Math.floor(1.5 * proposalGuidanceSamples));
   const responseSamples = Math.floor(guidanceSamples * 161 / 176);
   return { budget, samples,
-    channel: 12, radius: 24, impactWeight: 1,
+    channel: 12, radius: 24, impactWeight: 1.5,
     amplitudeWeight: 1 / 3, arrivalWeight: .3,
     headingWeight: .3, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     responseSamples,

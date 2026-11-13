@@ -12,6 +12,10 @@
 - **Hypothesis:** fewer guide crossings at the leading end; score neutral. **Risk:** the body landing under the guide
   early may be part of what holds the rider on through a strong hit (strong strength, extra impacts and completion to
   watch). Measure: V8 4 seeds paired against `compiler`, guide crossings.
+- **Result: not adopted.** V8, 4 seeds: −2.0 [−7.0, +2.9], 19 specs up, 24 down (Valhalla −30.6); strong extra
+  impacts −5%, head-down strong arrivals +5%, body drag −2%. The leading-end crossings barely move (first three
+  segments 41.2 → 38.2 per ride, 3 px or deeper 6.6 → 5.9): the sled's position at the catch is not where the body
+  meets the guide. A body-aware rule would need the body's points, which the floor curve is not built from.
 
 ## November 13 (late): hypothesis, room for the steep arrival a long float makes (stated before running)
 

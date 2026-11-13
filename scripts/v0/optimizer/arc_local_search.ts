@@ -47,7 +47,9 @@ export function guidanceSearch(s: IntervalSearch) {
   let keys: ControlKey[] = ['clearance', ...ARC_CORE_KEYS, ...ARC_EXPRESSIVE_KEYS];
   if (options.independentGuide) keys.push('guideTilt');
   if (receiverActive) keys.push('receiverFlight', 'receiverEntry', 'receiverTurn', 'receiverExit', 'receiverDuration');
-  keys = keys.filter(key => arcControlActive(key, options.guides, {...options, observedReceiver: receiverActive}));
+  // The hold is offered by the steering proposals (arc_proposals.ts), which set it together with a steeper exit; refined
+  // children keep their parent's.
+  keys = keys.filter(key => key !== 'hold' && arcControlActive(key, options.guides, {...options, observedReceiver: receiverActive}));
   if (receiverActive) keys = keys.filter(key => !irrelevantGuide.has(key));
   guideShapeSearch(s, origin, keys, count);
   responseSearch(s, responseKeys, responseAllowance);
@@ -69,7 +71,6 @@ function guideShapeSearch(s: IntervalSearch, origin: MeasuredCandidate, keys: Co
         c.turnFraction = .15 + .65 * frac(.2718281828);
         c.bend = -35 + 70 * frac(.1415926535);
         c.guideFlare = -12 + 24 * frac(.5772156649);
-        if (keys.includes('hold')) c.hold = 6 * frac(.4142135624);
       }
       if (options.independentGuide && k > 0) c.guideTilt = -15 + 30 * frac(.9159655941);
       if (options.railLayout === 'transfer' && k > 0) c.mainEnd = .3 + .6 * frac(.6931471806);

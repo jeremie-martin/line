@@ -8,7 +8,8 @@ import { tagOrigin, tagOriginIfNew, deriveOrigin } from './arc_origin.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
-import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
+import { arcControlValue, arcControlStep, arcResponseKeys, arcControlActive, arcControlsSimilar } from './arc_motion_control.ts';
+import { distinctCandidates } from './arc_candidates.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
@@ -107,6 +108,19 @@ export function proposeInitialControls(s: IntervalSearch) {
     }
     if (k % 10 === 9) retainSearch(s);
   }
+}
+
+/** Before a strong catch, the best measured moves are offered again as steering moves: the catch's heading held for a
+ * few frames after its turn, then a steeper exit under the guide, so the rail turns the rider down after the hit rather
+ * than during it, and the next catch arrives steeper (REWORK.md, November 14). Ordinary measured candidates. */
+export function proposeSteering(s: IntervalSearch) {
+  const {options, i, ctx} = s;
+  const next = ctx.contacts[i + 1], ask = next ? ctx.gaps[next.gap]?.targets.impact : undefined;
+  if (!(ask !== undefined && ask >= .6 && arcControlActive('hold', options.guides, options) && s.best)) return;
+  const parents = [s.best.candidate.c, ...distinctCandidates(options, s.candidates, 3).map(x => x.c)]
+    .filter((c, k, all) => all.findIndex(o => arcControlsSimilar(o, c)) === k).slice(0, 2);
+  for (const c of parents) for (const hold of [2, 4]) for (const dive of [15, 30])
+    evaluate(s, deriveOrigin({...c, hold, exit: c.entry + c.turn + dive, clearance: Math.min(c.clearance ?? options.channel ?? 12, 14)}, c, 'steering'));
 }
 
 /** Offer the same curve constructor from the opposite contact side. Both sides

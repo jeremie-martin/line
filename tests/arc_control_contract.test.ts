@@ -54,7 +54,7 @@ it('lets explicit search timing represent the inherited long arc exactly', () =>
 });
 
 it('offers response search only active dimensions that have a response step', () => {
-  expect(arcResponseKeys()).toEqual([...ARC_CORE_KEYS, 'clearance', 'turnFraction', 'bend', 'hold', 'guideFlare']);
+  expect(arcResponseKeys()).toEqual([...ARC_CORE_KEYS, 'clearance', 'turnFraction', 'bend', 'guideFlare']);
   expect(arcResponseKeys(true, {profile: 'fold'})).not.toContain('hold');
   const transfer = arcResponseKeys(true, {independentGuide: true, railLayout: 'transfer', observedReceiver: true});
   expect(transfer).toEqual(expect.arrayContaining(['guideTilt', 'mainEnd', 'receiverFlight']));

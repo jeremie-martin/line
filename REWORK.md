@@ -16,6 +16,13 @@
   and response steps; absent elsewhere (identical geometry when absent).
 - **Hypothesis:** guided strong catches keep their strength and exit steeper; chains steepen, speed and strength rise on
   dense strong songs (G, P1, P4); V8 up. **Watch:** extra strikes, body drag, crashes.
+- **Result, first execution: −6.0 [−10.0, −2.0]** (V8, 4 seeds; 10 specs up, 33 down; P6 −19.7, P3 −7.5). The search
+  hardly used it: 966 of 4,397 sections carry a hold, median 0, 90% at 1.5 frames or less; strong catches unchanged
+  (strength 0.717, exit 20° against 0.720 and 20°). A random coordinate cannot find the combination that steers (hold
+  with a steeper exit under a close rail), and the extra dimension diluted the sweep.
+- **Second execution** (same branch): `hold` leaves the sweep, the coordinate keys and the response step; instead, when
+  the next ask is 0.6 or more, the two best distinct measured moves are offered again as steering moves: hold 2 or 4
+  frames, exit 15° or 30° below the catch's heading after its turn, rail clearance at most 14 (8 measured candidates).
 
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 

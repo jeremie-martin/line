@@ -61,7 +61,7 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
     - **Here, on `visual-lab`:** the look. New themes, better versions of the themes not loved, the painting, the hit
       effects. After that, the specifications (below).
     - **Compiler: another agent, another machine, a branch from `visual-lab`.** The goal is never the score alone: a
-      950 compiler once made boring, repetitive tracks. Check ride character (`ride_character.ts`) with every gain.
+      950 compiler once made boring, repetitive tracks. Keep ride character in mind (`ride_character.ts`); it is not a gate on every change.
     - **A harder benchmark** (for that agent; cheap, not a new benchmark from scratch): the current specs made a bit
       faster and shorter, with more contrast or higher asks, plus some held-out specs or variations of them. Keep a few
       specs held out.

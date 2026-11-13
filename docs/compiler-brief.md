@@ -37,7 +37,7 @@ tracks should be like that.
 
 ## Keep in mind
 
-- **Variety and character of the rides.** Look at `tools/measure/ride_character.ts` and at real tracks from time to
+- **Variety and character of the rides.** Look at `tools/research/ride_character.ts` and at real tracks from time to
   time, and before claiming a large gain. It is not a gate on every change.
 - The rules in `CLAUDE.md` hold: parity for structural changes, paired comparisons for behavioural ones, physics
   accounting, and no optimizing a measure that isn't validated against the owner's labels.

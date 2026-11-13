@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): which catches the rider does not survive (report only)
+
+`tools/research/crash_edge.ts` (V8, seed 101, the 49 specs, tracks identical to `compiler`): for every interval with a
+strength ask, the candidates rejected because the rider or sled came apart, the strongest impact each struck near the
+catch before that, and the strongest survivor.
+
+| ask | came apart / interval | survived | kept | strongest survivor | crash struck harder than every survivor |
+|---|---|---|---|---|---|
+| 0–0.3 | 54 | 176 | 0.187 | 0.568 | 54% of intervals |
+| 0.3–0.6 | 82 | 162 | 0.421 | 0.622 | 73% |
+| 0.6–0.75 | 125 | 177 | 0.617 | 0.735 | 77% |
+| 0.75–0.9 | 140 | 174 | 0.695 | 0.762 | 75% |
+| 0.9+ | 152 | 164 | 0.765 | 0.797 | 72% |
+
+- 90–98% come apart within 12 frames of the catch: the hit itself throws the rider off. About 45% of all evaluations
+  end that way, more as the ask rises (the review agent's finding 6, confirmed).
+- On asks ≥0.75, 48% of intervals have a crash that reached the ask (within 0.05) while no survivor did.
+- But the kept catch (0.695) is well below the strongest survivor (0.762): what binds the kept strength is still the
+  energy trade-off with the next catches, not survival. Rescuing crashes would add options the ranking mostly would
+  not take.
+- Among candidates that struck within 0.1 of the ask, 29% came apart; no control separates them cleanly (receiver
+  entry against the sled axis, against the incoming heading, turn, guide clearance, support length: 19–49% at the
+  extremes), except contact from above: 83% come apart.
+- The review agent's finding 1 (span weights by length) and 5 (proposal slots) were tested above: both null.
+
 ## November 13 (late): hypothesis, more proposal slots for memory and remembered responses (stated before running)
 
 - **Basis** (review agent, V8 seed 101 origins): per initial slot, remembered responses give about 145 committed moves,

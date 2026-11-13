@@ -32,8 +32,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    where it helps the catch (78% of such sections on the bench) instead of
    buying a forced touch. Automatic plans use paired rails only; explicit
    plans may still require guides and later-receiver layouts. It is seeded and reproducible,
-   and it uses the requested impact and speed (for example, calm passages
-   favour open arcs). An explicit plan bypasses this step.
+   and it uses the requested impact and speed: calm passages favour open arcs,
+   and in strong phrases (mean ask 0.4 to 0.8, phased in) the open arcs' share
+   becomes arcs offered a guide, which land strong catches harder (since
+   2026-11-13). An explicit plan bypasses this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section

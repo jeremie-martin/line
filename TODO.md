@@ -32,6 +32,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Open question: the remaining strong-beat gap on everyday songs (chain setup). Compact sources plateau (more styles, more
      memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
    - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
+   - ~~Strong phrases offered guides~~ (adopted 2026-11-13: V8 +7.7, V7.1 +4.0, held out +13.9; body drag +13%,
+     strong extras +16%, more upper hits). For the owner's eye: intense passages now rarely use open arcs.
    - Still open from November 1:
      - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
        quality there is the same strong-too-soft story as elsewhere;

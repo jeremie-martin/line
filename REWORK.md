@@ -21,6 +21,14 @@
     against 0.63; mean absolute error 0.072 against 0.080.
 - **Hypothesis:** strong chains descend more and keep speed; G and P1 up most; V8 up. Earlier retrains (two-interval)
   were null or negative despite better offline numbers: the decisive test is the panel.
+- **Result: not adopted** (V8, 4 seeds): **−6.9 [−10.0, −3.8]**, every block negative, 11 specs up, 32 down; every
+  category down (G −6.9, P6 −19.7, P7 −8.8); explicit −8.2; strong extra impacts +21%.
+  - Strong strength rms unchanged (−0.001); quiet strength rms +0.020 (every category worse), speed rms +0.003.
+  - Same signature as the steep-arrival room for long floats: valuing energy for later makes quiet beats land harder
+    now, and strong beats gain nothing. The pools do not hold strength that a longer view could unlock; a third
+    retrain of the future value (after November 1 and 7) loses on whole rides despite better held-out ranking.
+  - Kept on the branch (`exp/long-horizon-value`, the data in `generated/value-v5/`); not merged: with the old model the
+    appended features would be unused inputs.
 
 ## November 13 (late): hypothesis, the guide begins ahead of the sled at the catch (G3; stated before running)
 

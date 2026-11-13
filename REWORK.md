@@ -110,6 +110,10 @@
   `/generated/compare/exp_trim-untouched-ends-vs-compiler@34f67bde-v7.1/review.json` and `geometry.html` beside it.
 - **Waits for the owner** (the diagnosis said no geometry change before his look): it changes the look only, by removing
   lead-ins the rider flies past and runouts it leaves.
+- **Not merged (November 14):** it breaks the construction-integrity contract: `verify_construction` and two tests
+  rebuild every main curve from its committed controls and require the exact curve, so a trimmed curve fails
+  verification. Adopting it means teaching the verifier that a final curve is a contiguous part of the rebuilt one; left
+  on its branch, cosmetic only.
 
 ## November 13 (late): which catches the rider does not survive (report only)
 

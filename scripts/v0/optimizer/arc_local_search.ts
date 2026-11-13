@@ -42,8 +42,7 @@ export function guidanceSearch(s: IntervalSearch) {
   const responseKeys = arcResponseKeys(options.guides, {...options, observedReceiver: receiverActive}).filter(key => !receiverActive || !irrelevantGuide.has(key));
   const wantedResponse = Math.min(options.guidanceSamples ?? 48, options.responseSamples ?? 0);
   const responseRound = 2 * responseKeys.length + 3;
-  const responseAllowance = options.completeGuidanceBudget
-    ? Math.floor(wantedResponse / responseRound) * responseRound : wantedResponse >= responseRound ? wantedResponse : 0;
+  const responseAllowance = wantedResponse >= responseRound ? wantedResponse : 0;
   const count = (options.guidanceSamples ?? 48) - responseAllowance;
   let keys: ControlKey[] = ['clearance', ...ARC_CORE_KEYS, ...ARC_EXPRESSIVE_KEYS];
   if (options.independentGuide) keys.push('guideTilt');

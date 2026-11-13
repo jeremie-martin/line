@@ -26,7 +26,6 @@ export function createSearchWork() {
     backtracks: 0,
     searchBudgetExhausted: false,
     observedConstructionRate: 0,
-    refinementStats: null as any,
     terminalSelectionStats: null as any,
     budgetInterruptions: [] as BudgetInterruption[],
     planningDecisions: [] as any[],

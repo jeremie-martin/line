@@ -16,13 +16,10 @@ it('keeps completed intervals after every remaining backtracking alternative fai
   expect(r.rows).toHaveLength(2);expect(r.impactEvaluation.valid).toBe(false);
   expect(r.track.lines.length).toBeGreaterThan(0);expect(r.stats.sim_frames).toBeLessThanOrEqual(30000);
 });
-it('keeps accepted reflow controls synchronized with the geometry used by later repairs',()=>{
-  // Very strong asks leave repairs to accept, which is what exercises the synchronization.
+it('keeps committed controls synchronized with the geometry that follows them',()=>{
   const strong={...spec,contacts:spec.contacts.map(c=>({...c,impact:.9}))};
-  const r=compileArcMotion(strong,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24,refineAttempts:8,refineWidth:3});
-  expect(r.refinementStats.counts.accepted).toBeGreaterThan(0);
+  const r=compileArcMotion(strong,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24});
   expect(r.impactEvaluation.valid).toBe(true);
-  expect(r.refinementStats.finalLoss).toBeLessThanOrEqual(r.refinementStats.initialLoss);
   resetFrameCount();setPhysicsFrameLimit(null);
   try{for(let i=0;i<r.rows.length;i++){
     const group=(l:any)=>Math.floor((l.id-1000)/10000);

@@ -53,9 +53,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    - keeps all distinct untried measured alternatives at four recent boundaries,
      reopening at most eight at a time after a physical dead end; recovery
      shares the allowance and preserves the longest prefix on interruption;
-   - finishes with terminal selection and ending refinement
-     (`arc_complete_refinement.ts`, `arc_refinement.ts`), then a cold replay
-     checked against an independent engine (`arc_finalize.ts`).
+   - finishes with terminal selection, then a cold replay checked against an
+     independent engine (`arc_finalize.ts`). The ending refinement that used
+     to follow terminal selection was deleted on 2026-11-13 (REWORK.md).
 
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)

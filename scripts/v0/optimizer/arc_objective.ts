@@ -1,4 +1,4 @@
-/** Shared whole-track objective. Search, refinement and final selection use
+/** Shared whole-track objective. Search, terminal selection and final selection use
  * the same authored axes and physical-support motion preferences. */
 import {detect, type Detection, type RawTrajectory} from '../../lib/detector.ts';
 import type {AxisValues, DriftReport, Gap} from '../types.ts';

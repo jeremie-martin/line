@@ -35,8 +35,6 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
  const {id:_id,...profile}=IMPACT_SEARCH_PROFILE,artifact=loadConstructionArtifact();
  return {...connectedArcOptions(spec,allowance),
   motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},
-  // Preserve the complete ride while using spare work to improve its ending.
-  refineTailSections:1,refineAttempts:12,refineSamples:64,refineGuidanceSamples:96,refineWidth:4,
   memorySamples:16,policySamples:96,samples:192,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
   initialRecoverySamples:160,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),

@@ -8,7 +8,7 @@
  * - constructionStyle(): the geometry style of each section.
  *
  * IntervalOverrides are set only inside the compiler, per interval search
- * (allowance scaling and complete-track refinement). IntervalOptions is what one interval search sees. */
+ * (allowance scaling, research probes and tests). IntervalOptions is what one interval search sees. */
 import type { ArcMotionControl, ArcGeometryStyle, ArcSectionStyle } from './arc_geometry.ts';
 import type { ArcControlExample } from './arc_memory.ts';
 import type { ConstructionRequest } from './repertoire_policy.ts';
@@ -66,14 +66,6 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
-  /** Complete-track refinement with the whole authored objective: attempts,
-   * samples and width; refineTailSections spends the remaining work on the
-   * ending without reconstructing a long suffix. */
-  refineTailSections?: number;
-  refineAttempts?: number;
-  refineSamples?: number;
-  refineGuidanceSamples?: number;
-  refineWidth?: number;
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -90,18 +82,10 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
 /** Set only by the compiler for one interval search. */
 export type IntervalOverrides = Partial<Pick<ArcMotionOptions,
   'samples' | 'guidanceSamples' | 'responseSamples' | 'initialRecoverySamples' | 'arrivalWeight' | 'headingWeight' | 'guidance'>> & {
-  /** A control evaluated before the ordinary proposals, optionally re-aimed
-   * from the incoming direction it was measured with. */
+  /** A control evaluated before the ordinary proposals. */
   warmStart?: ArcMotionControl;
-  warmIncoming?: number;
   /** Measure exactly these controls and nothing else. */
   directControls?: ArcMotionControl[];
-  /** Skip the initial proposals; search only around the warm start. */
-  localOnly?: boolean;
-  /** Arrival state a repaired interval should reproduce. */
-  arrivalReference?: any;
-  /** Give unusable response-round remainders back to coordinate exploration. */
-  completeGuidanceBudget?: boolean;
 };
 
 /** Options of one interval search: configuration, overrides and section
@@ -116,10 +100,9 @@ export type IntervalOptions = ArcMotionOptions & IntervalOverrides & {controlPol
  *   its presence, or its entry at the interval index);
  * - 'fixed': can change a measurement but is constant within one compile, and
  *   memo contexts never outlive a compile;
- * - 'search': shapes which controls are measured, never a measurement;
- * - 'noReuse': evaluations are not shared between searches while it is set.
+ * - 'search': shapes which controls are measured, never a measurement.
  * Every option must be classified. Key entries serialize in this order. */
-type EvaluationRole = 'key' | 'keyPresence' | 'keySection' | 'fixed' | 'search' | 'noReuse';
+type EvaluationRole = 'key' | 'keyPresence' | 'keySection' | 'fixed' | 'search';
 export const EVALUATION_IDENTITY = {
   channel: 'key', radius: 'key', faces: 'key', profile: 'key', profileStrength: 'key', profileStart: 'key',
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
@@ -130,18 +113,13 @@ export const EVALUATION_IDENTITY = {
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
 
-  arrivalReference: 'noReuse',
-
   budget: 'search', samples: 'search', guidance: 'search',
   guidanceSamples: 'search',
   responseSamples: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  refineTailSections: 'search', refineAttempts: 'search',
-  refineSamples: 'search', refineGuidanceSamples: 'search', refineWidth: 'search',
   constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
-  warmStart: 'search', warmIncoming: 'search', directControls: 'search', localOnly: 'search',
-  completeGuidanceBudget: 'search', controlPolicy: 'search',
+  warmStart: 'search', directControls: 'search', controlPolicy: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 
 const MEMO_CONTEXT = (Object.entries(EVALUATION_IDENTITY) as Array<[keyof IntervalOptions, EvaluationRole]>)
@@ -156,8 +134,6 @@ export function evaluationContext(options: IntervalOptions, i: number) {
 
 /** Rejects out-of-range allowances and inconsistent impact settings before any work. */
 export function validateArcOptions(seed: number, options: ArcMotionOptions) {
-  if (options.refineTailSections !== undefined && (!Number.isSafeInteger(options.refineTailSections) || options.refineTailSections < 1))
-    throw new Error('invalid refinement tail window');
   if (options.initialRecoverySamples !== undefined && (!Number.isSafeInteger(options.initialRecoverySamples) ||
     options.initialRecoverySamples < 0 || options.initialRecoverySamples > 320)) throw new Error('invalid initialization recovery allowance');
   if (!Number.isSafeInteger(seed) || !Number.isSafeInteger(options.budget) || options.budget <= 0) throw new Error('invalid arc compiler input');

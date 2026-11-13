@@ -1,4 +1,4 @@
-/** Review clips for the compiler's studies (pair studies, the visibility study, compare's before/after review): passages of
+/** Review clips for the compiler's studies (pair studies, the visibility study, compare's whole-ride review): passages of
  * rides in the plain look (look.js PLAIN: the ride alone, black on white), 540 × 960, with the song, written directly by the
  * video writer. Study clips judge motion, not sync: their rides are bare tracks, shown as compiled, on the compile timeline (physics
  * frame f at f / 40 s of the song, scripts/video/timing.js with offset 0), so a judged moment is exactly where its frame says.
@@ -7,14 +7,12 @@
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {execFileSync} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {buildScene, songRecording, type Scene} from '../../scripts/video/scene.ts';
 import {FPS} from '../../scripts/video/timing.js';
 import {resolveLook} from '../../scripts/video/look.js';
 import {writeVideo} from '../../scripts/video/write.ts';
-import {AUDIO, KEEP, VIDEO} from '../../scripts/video/encoding.ts';
 import {authoredBeats} from '../../scripts/produce/music_artifacts.ts';
 import type {Spec} from '../../scripts/v0/types.ts';
 
@@ -75,12 +73,3 @@ export async function renderClips(clips: Map<string, Clip>, dir: string, jobs = 
   if (failures.length) throw new AggregateError(failures.map(r => r.reason), 'Review clips failed');
 }
 
-/** Two clips of the same passage side by side, with the left clip's sound, each captioned, and `mark` (seconds from the clips'
- * start) flagged in both. */
-export function sideBySide(left: string, right: string, captions: [string, string], mark: number, out: string) {
-  const text = (caption: string) => `drawtext=text='${caption.replace(/[\\':%]/g, '')}':x=12:y=12:fontsize=22:fontcolor=white:box=1:boxcolor=black@0.55:boxborderw=6,` +
-    `drawtext=text='here':x=(w-tw)/2:y=48:fontsize=22:fontcolor=black:box=1:boxcolor=yellow@0.9:boxborderw=6:enable='between(t,${(mark - .12).toFixed(3)},${(mark + .25).toFixed(3)})'`;
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', left, '-i', right,
-    '-filter_complex', `[0:v]${text(captions[0])},pad=iw+4:ih:0:0:color=gray[a];[1:v]${text(captions[1])}[b];[a][b]hstack,${KEEP}[v]`,
-    '-map', '[v]', '-map', '0:a', ...VIDEO, ...AUDIO, '-movflags', '+faststart', out]);
-}

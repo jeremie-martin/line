@@ -94,7 +94,7 @@ npm run compare -- run --reference=main --candidate=<branch>             # 4 see
 npm run compare -- run --reference=main --candidate=<branch> --seeds=8   # extend: compiles only the missing pairs
 npm run compare -- report --reference=main --candidate=<branch>          # saved rides only, compiles nothing
 npm run compare -- rides  --reference=main --candidate=<branch>          # most-moved rides, side by side on the dashboard
-npm run compare -- review --reference=main --candidate=<branch>          # the passages that differ most, before above after
+npm run compare -- review --reference=main --candidate=<branch>          # whole rides before/after, and a geometry sheet
 ```
 
 - The panel is V7.1 unless `--panel=…` says otherwise.

@@ -45,6 +45,9 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
     searchDefault: c => Math.min(5, c.support * .5) / c.support,
     normalize: (v, c) => normalizeArcTurnFraction(v, c.support)},
   bend: {family: 'expressive', min: -60, max: 60, tolerance: 5, coordinate: 10, response: 7},
+  // Frames after the catch's turn that keep its heading before the curve bends toward the exit: a guided curve can then
+  // steer the rider down after the hit, not during it (REWORK.md, November 14).
+  hold: {family: 'expressive', min: 0, max: 8, tolerance: .5, coordinate: 1.5, response: 1, searchDefault: () => 0},
   guideFlare: {family: 'expressive', min: -16, max: 16, tolerance: 2, coordinate: 4, response: 2.5},
   guideTilt: {family:'guide',min:-25,max:25,tolerance:2,coordinate:5,response:3},
   foldBias: {family:'expressive',min:-6,max:6,tolerance:.3,coordinate:1,response:.6,searchDefault:c=>c.bias},
@@ -73,6 +76,7 @@ export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle)
   if(key==='foldBend')return style?.profile==='fold'&&style?.independentGuide===true;
   if(key==='guideTilt')return guides&&style?.independentGuide===true;
   if(key==='mainEnd')return style?.railLayout==='transfer';
+  if(key==='hold')return guides&&!style?.profile&&style?.railLayout!=='transfer';
   // A full three-face fold replaces the entire smooth heading schedule.
   if(key==='bend'&&style?.profile==='fold'&&(style.profileStrength??1)===1&&style.profileStart===0)return false;
   return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');

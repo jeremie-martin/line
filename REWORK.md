@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, guided arcs steer the rider down after the hit, not during it (stated before running)
+
+- **Basis.** A single inelastic hit changes the velocity across the line, so a strong hit turns the rider: 0.87 at
+  11 px/frame is about 37°. Gravity turns it back about 12° in an 18-frame gap; a chain of strong beats flattens unless
+  something turns the rider down. Today's strong catches trade one against the other: guided catches in V8 strong
+  chains, by exit heading quartile, own strength 0.718 → 0.662 while the next catch's goes 0.655 → 0.725 (the sum is
+  flat). A guide can steer the rider down, and steering under the strike threshold (about 3° a frame) costs nothing in
+  the account; but the curve bends toward its exit right after the catch's turn, inside the hit's two-frame window.
+- **Physics check** (synthetic, the production strike ruler): 11 px/frame, 40° arrival, 35° catch: no roof, hit 0.89,
+  exit 5°, speed 8.7 after 14 frames; a channel that keeps the heading about 2.5 frames after the hit, then bends 20°
+  down under a roof: hit 0.89, an extra strike of 0.13–0.23, exit 20–27°, speed 9.0–10.3, rider intact.
+- **Change** (`exp/steer-after-the-hit`): a searched control `hold` (0–8 frames) on guided plain arcs: the heading stays
+  at the catch's for `hold` frames before bending toward the exit. Sampled by the guide-and-shape sweep, coordinate
+  and response steps; absent elsewhere (identical geometry when absent).
+- **Hypothesis:** guided strong catches keep their strength and exit steeper; chains steepen, speed and strength rise on
+  dense strong songs (G, P1, P4); V8 up. **Watch:** extra strikes, body drag, crashes.
+
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 
 - **Basis** (V8, `compiler`, loss per section relative to the mean in the same context, strength ask × gap length):

@@ -21,7 +21,7 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
   contactSide?:number;
-  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number;
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; hold?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
 
@@ -97,7 +97,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       const from=foldStation(k/steps,onset,amount,c),to=foldStation((k+1)/steps,onset,amount,c);
       dt=c.support*(to-from);time=c.support*(from+to)/2;
     }
-    const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
+    const hold=c.hold??0, u=clamp(time/first,0,1), w=clamp((time-first-hold)/Math.max(.01,c.support-first-hold),0,1);
     let a=rad(time<first?c.entry+c.turn*easing(u,c.bias):lerp(c.entry+c.turn,c.exit,easing(w,c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,

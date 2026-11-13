@@ -46,7 +46,7 @@ export function connectedArcOptions(spec: Pick<Spec, "duration">, budget: number
   const responseSamples = Math.floor(guidanceSamples * 161 / 176);
   return { budget, samples,
     channel: 12, radius: 24, impactWeight: 1,
-    amplitudeWeight: 1 / 3, arrivalWeight: .3,
+    amplitudeWeight: 1 / 3, arrivalWeight: .45,
     headingWeight: .3, guidance: guidanceSamples ? "clearance" : undefined, guidanceSamples,
     responseSamples,
     // Complete-span correction needs the joint search's room to adjust the

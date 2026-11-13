@@ -15,6 +15,14 @@
   than about 40 frames of asked flight are unchanged.
 - **Hypothesis:** long floats fly closer to their ask; P3 and P6 up, others near zero; the catch after a long float
   may land harder (quiet strength rms, extra impacts to watch). Measure: V8 4 seeds paired against `compiler`; V7.1.
+- **Result: not adopted** (V8, 4 seeds): −2.6 [−8.0, +2.7], 10 specs up, 15 down, 18 unchanged; P6 (the long ride)
+  −19.7. Air rms improved where it changed (P6 −0.011), but speed rms rose (P6 +0.015) and quiet catches landed harder
+  (quiet strength rms +0.019 to +0.069 in P3–P7); strong extra impacts +21%. The ranking was right: a long fall arrives
+  fast and steep, and the next quiet catch pays.
+- **Not a shortage of hops either:** on those spans 44% of the kept supports already launch upward (exit below −10°),
+  with the same air as the drops (0.794 against 0.803). The missing air is the time on the line that a soft catch and
+  a launch need (about 16 frames, where an ask of 0.857 over 60 frames leaves 8.5). The calm specs' air, speed and
+  quiet asks pull against each other there; the search's balance holds.
 
 ## November 13 (late): hypothesis, the lead-in never rises into the arrival path (G2; stated before running)
 

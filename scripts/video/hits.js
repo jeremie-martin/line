@@ -27,9 +27,7 @@ export function prepareHits(account, contacts, centres, byId) {
         }
       }
     }
-    return [{time: e.peak / FPS, strength: e.strength, energy: strength(e.strength), normal: nrm,
-      // where the rider is at the peak, set down on the line it struck (lab, round 48: what flies from an impact starts here)
-      pos: (c => c ? {x: c.x - 14 * nrm.x, y: c.y - 14 * nrm.y} : null)(centres[Math.min(e.peak, centres.length - 1)])}];
+    return [{time: e.peak / FPS, strength: e.strength, energy: strength(e.strength), normal: nrm}];
   });
 }
 
@@ -74,11 +72,4 @@ export function hitHeatAt(hits, time) {
   let heat = 0;
   for (const h of hits) {if (h.time > time) break; heat += h.energy * Math.exp(-(time - h.time) / 0.8);}
   return heat;
-}
-
-/** The located hits of the last `life` seconds, with their age (lab, round 48: what flies from an impact outlives the envelope). */
-export function impactsAt(hits, time, life) {
-  const out = [];
-  for (const h of hits) {if (h.time > time) break; if (time - h.time < life && h.pos && h.strength > 0.4) out.push({hit: h, age: time - h.time});}
-  return out;
 }

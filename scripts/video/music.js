@@ -44,20 +44,8 @@ export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, kick = 0,
       const h = Math.max(2, v * hgt), x = (i + .5) * step - bw / 2; ctx.fillStyle = hot.has(i) ? colours.accent : colours.band;
       ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x, base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x, base + 4, bw, Math.min(h * 0.62, room));
     });
-  } else if (look.band === 'skyline' || look.band === 'wide') {
-    // in the lab (round 48): bars without gaps, or a third as many bars, each the mean of three
-    const g = look.band === 'wide' ? 3 : 1, base = 0.80 * H, hgt = 0.15 * H, room = 0.853 * H - (base + shift) - 6;
-    for (let i = 0; i < n; i += g) {
-      const part = row.slice(i, i + g), v = part.reduce((a, b) => a + b, 0) / part.length, h = Math.max(2, v * hgt), x = i * step, bw = g === 1 ? step + 0.5 : part.length * step - 10;
-      ctx.fillStyle = part.some((_, j) => hot.has(i + j)) ? colours.accent : colours.band;
-      ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x + (g === 1 ? 0 : 5), base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x + (g === 1 ? 0 : 5), base + 4, bw, Math.min(h * 0.62, room));
-    }
-  } else if (look.band === 'mirror') {
-    // bars both ways from a centre line, no reflection
-    const mid = 0.775 * H, hgt = 0.085 * H, bw = step * 0.8;
-    row.forEach((v, i) => {const h = Math.max(2, v * hgt); ctx.fillStyle = hot.has(i) ? colours.accent : colours.band; ctx.globalAlpha = alpha * 0.92; ctx.fillRect((i + .5) * step - bw / 2, mid - h, bw, 2 * h);});
   } else if (look.band === 'dots') {
-    // each band a column of dots, as many as it is loud
+    // in the lab (round 48): each band a column of dots, as many as it is loud
     const base = 0.80 * H, rad = Math.min(8, step * 0.36), pitch = 2 * rad + 5, most = Math.floor(0.15 * H / pitch);
     row.forEach((v, i) => {
       ctx.fillStyle = hot.has(i) ? colours.accent : colours.band; ctx.globalAlpha = alpha * 0.92;

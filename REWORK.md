@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13: rounds 47 and 48 answered; 67 themes
+
+Both rounds were answered the same evening (verbatim in the session memory; summary here).
+
+**The collection** (set `2026-11-13-rounds47-48`): five themes replaced by the version the owner chose over them (Hokusai with a
+black line, Silver and Rust on a lighter ivory, Peony with dusty rose bars on warm white, Cut-outs on half cream, Cerulean and
+Coral on a deeper ground); five versions added beside their theme; fifteen new themes (Linen, Sage, Sky; four rooms after
+Rothko; Sea Moon, Olive Moon; Copper, Bronze, Lantern, Campfire, Ash and Ember, Slate Grey). 24 light and 43 dark: with light
+drawn 75 % of the time, a light theme now comes up about five times as often as a dark one, which the sampling has to settle.
+
+**Round 48's ideas.** Taken, as a minority and to be refined: the moon among stars and the crescent; columns of dots for the
+band; strands in a theme's colours (liked as an idea, "too thick, not slick enough"). Open: the band jumping or lighting on a hit
+(looks good but "cheating"; the lighting's logic unclear); the hits a quarter stronger in the split, the shake starting later or
+rising more slowly, with the curves shown. Refused and removed from the renderer: ring, great disc, sunset, rays, hills, mountain;
+bars both ways, skyline, wide bars; the sun swelling, strokes and dust at the impact; the hot trail. Round 48's pages that used
+them no longer open.
+
 ## November 13: round 48, new ideas as lab values of the look
 
 The owner asked for a more ambitious round: visual ideas besides the sun, moon and title, the hit effects revisited, many more

@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, more proposal slots for memory and remembered responses (stated before running)
+
+- **Basis** (review agent, V8 seed 101 origins): per initial slot, remembered responses give about 145 committed moves,
+  memory of earlier sections 72, the learned sources 26 (slots 4, 16, 96). Where a move started is not its marginal
+  worth, so this is a test, not a conclusion.
+- **Change** (`exp/memory-slots`, `repertoire_search.ts`): memory 32, remembered responses 12, learned 72; total unchanged.
+- **Hypothesis:** V8 up a little (within +3); physics unchanged; variety may narrow (memory repeats what a ride did).
+  Measure: V8, 4 seeds, paired against `compiler`; distinct families and ride character if positive.
+
 ## November 13 (late): compare review shows whole rides and a geometry sheet
 
 The owner could not judge the few-second before/after passages: two compiler versions build entirely different tracks,

@@ -12,6 +12,10 @@
 - **Hypothesis:** dense strong passages trade a little air and speed for strength; long spans gain air and speed. V8 up,
   mostly G and the dense categories; strength on strong asks up; air or speed rms may rise slightly on short spans.
   Measure: V8, 4 seeds, paired against `compiler`; then V7.1 and held out if positive.
+- **Result: not adopted** (V8, 4 seeds): +0.1 [−9.5, +9.8], specs up 17 / down 26; G −4.3, P6 +14.0, P2 −6.4;
+  explicit −12.2. Strong strength rms unchanged (−0.001), air rms −0.004, speed rms +0.002; strong extra impacts +26%,
+  body drag −5%. Matching the grade's span weights moves air against speed and leaves strength where it was, like the
+  weight sweep: the search's balance is flat in its weights. The terminal selection already weighs by length.
 
 ## November 13 (late): compare review shows whole rides and a geometry sheet
 

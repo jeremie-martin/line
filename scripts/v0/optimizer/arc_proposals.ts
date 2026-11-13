@@ -8,8 +8,9 @@ import { tagOrigin, tagOriginIfNew, deriveOrigin } from './arc_origin.ts';
 import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
+import { arcControlsSimilar } from './arc_motion_control.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
-import { evaluate } from './arc_evaluate.ts';
+import { evaluate, steepArrival } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -73,13 +74,30 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
   return control;
 }
 
+/** How much more a learned source is asked for before a strong catch, and where the ask sits in its features. */
+const ASK_RAISE = .15, ASK_FEATURE = 48;
+
 /** The warm start, then `initial` proposals: the centre, learned, remembered
  * and response proposals in their allocated slots, then generic samples. */
 export function proposeInitialControls(s: IntervalSearch) {
   const {options, i, incoming, span, targets, impact, initial, controlMemory} = s;
   s.center = centerControl(s);
-  const remembered = controlMemory.proposeControls(s.inputFeatures, incoming, span, options.memorySamples ?? 0,
-    options.railLayout === 'transfer' ? 'both' : 'relative');
+  // The learned sources were distilled from moves labelled with the asks they faced, and strong catches land softer than
+  // asked (about 0.12 below at every gap length on V8). Before a strong catch, half of each source's slots ask it for a
+  // little more, phased in with the steep arrival; every proposal is still judged against the true ask.
+  const raise = i > 0 && impact !== undefined ? ASK_RAISE * steepArrival(impact, options.impactSearch) : 0;
+  const raised = (features: number[]) => {
+    const out = features.slice();
+    out[ASK_FEATURE] = Math.min(1, out[ASK_FEATURE] + raise);
+    return out;
+  };
+  const halves = (count: number, source: (features: number[], n: number) => ArcMotionControl[], features: number[]) => {
+    if (!raise || count <= 0) return source(features, count);
+    const asked = source(features, Math.ceil(count / 2));
+    return [...asked, ...source(raised(features), count - Math.ceil(count / 2)).filter(c => !asked.some(a => arcControlsSimilar(a, c)))];
+  };
+  const remembered = halves(options.memorySamples ?? 0, (features, n) => controlMemory.proposeControls(features, incoming, span, n,
+    options.railLayout === 'transfer' ? 'both' : 'relative'), s.inputFeatures);
   const responses = controlMemory.proposeResponses(s.inputFeatures, incoming, span,
     [targets.air, targets.speed, targets.amplitude, impact], options.memoryResponseSamples ?? 0,
     {amplitude: options.amplitudeWeight ?? 1, impact: options.impactWeight ?? 2, damping: .0002, axisWeights: s.responseAxisWeights});
@@ -92,7 +110,7 @@ export function proposeInitialControls(s: IntervalSearch) {
   const novelConstructor = !!options.profile || options.railLayout === 'transfer';
   const reservedGeneric = Math.ceil(initial * (novelConstructor ? .25 : 0));
   const counts = allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric));
-  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
+  const policy = counts[0] ? halves(counts[0], (features, n) => arcControlProposals(features, incoming, span, proposalModel, n), s.policyInputFeatures) : [];
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) evaluate(s, tagOrigin(options.warmStart, 'warm'));

@@ -107,7 +107,17 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // Every candidate in this search has the same authored future. Prepare it
   // once; only the physical arrival varies with the candidate.
   const valueFutureFeatures: readonly number[] | undefined = options.futureValueModel ? ctx.futureValueFeatures(i) : undefined;
-  const max = options.samples ?? 160, initial = options.localOnly ? 0 : Math.min(80, Math.ceil(max / 2));
+  const max = options.samples ?? 160;
+  // Combined research policies need room for every source beside memory and
+  // the center, while preserving the generic quarter for novel constructors.
+  // A mixture with only one active source must retain the single-policy search.
+  const policy = options.controlPolicy;
+  const multipleSources = policy?.models && (policy.proposalWeights ?? policy.models.map(() => 1))
+    .filter((weight: number) => weight > 0).length > 1;
+  const mixedPolicySlots = multipleSources
+    ? 1 + (options.policySamples ?? 8) + (options.memorySamples ?? 0) + (options.memoryResponseSamples ?? 0) : 0;
+  const mixedInitial = Math.ceil(mixedPolicySlots / (options.profile || options.railLayout === 'transfer' ? .75 : 1));
+  const initial = options.localOnly ? 0 : Math.min(max, Math.max(Math.min(80, Math.ceil(max / 2)), mixedInitial));
   // Calm landing emphasis changes impact units between adjacent intervals.
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.

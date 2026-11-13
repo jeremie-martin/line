@@ -181,6 +181,21 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
   }
 }
 
+/** A measured catch must beat the committed one's strength by this much to be remembered for it. */
+const HINDSIGHT_MARGIN = .05;
+/** The memory features of a catch relabelled with what it achieved: its strength in place of the ask (feature 48), and the
+ * air, speed and amplitude of the gap it opened in place of their targets (49-51; an untargeted axis stays -1). */
+function achievedFeatures(features: readonly number[], c: MeasuredCandidate) {
+  if (features.length !== ARRIVAL_FEATURES + 10) throw new Error('unexpected memory feature layout');
+  const out = features.slice(), axes = c.trajectoryAxes;
+  out[ARRIVAL_FEATURES + 1] = c.actualImpact!;
+  (['air', 'speed', 'amplitude'] as const).forEach((axis, k) => {
+    if (out[ARRIVAL_FEATURES + 2 + k] !== -1 && axes[axis] !== undefined) out[ARRIVAL_FEATURES + 2 + k] = axes[axis]!;
+  });
+  return out;
+}
+const ARRIVAL_FEATURES = 47;
+
 /** Materialize a selected, already verified physical prefix. */
 function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, interval: IntervalResult, evaluated: EvaluatedCandidate,
   protectedEngines: Engine[] = []) {
@@ -188,8 +203,16 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
   const {failures, frame, next, horizon, incoming} = interval;
   const {candidate: best, child} = evaluated;
   seq.failure = null;
-  if ((options.memorySamples ?? 0) > 0 && i > 0)
-    memoryFor(i).rememberControl({features: interval.inputFeatures, incoming, span: horizon - frame, control: best.c});
+  if ((options.memorySamples ?? 0) > 0 && i > 0) {
+    const memory = memoryFor(i), span = horizon - frame;
+    memory.rememberControl({features: interval.inputFeatures, incoming, span, control: best.c});
+    // Hindsight: the strongest catch measured here is a real move for the strength it reached, from this arrival.
+    // Remembered with what it achieved in place of what was asked, a later strong ask from a similar arrival finds it.
+    const strongest = interval.candidates.reduce<MeasuredCandidate | undefined>((a, c) =>
+      (c.actualImpact ?? -1) > (a?.actualImpact ?? -1) ? c : a, undefined);
+    if (strongest && strongest !== best && (strongest.actualImpact ?? 0) >= (best.actualImpact ?? 0) + HINDSIGHT_MARGIN)
+      memory.rememberControl({features: achievedFeatures(interval.inputFeatures, strongest), incoming, span, control: strongest.c});
+  }
   // Incoming features were captured before candidate construction, which
   // can invalidate cached prefix frames even for a validated child.
   seq.lines.push(...best.lines);

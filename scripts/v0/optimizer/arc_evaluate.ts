@@ -282,9 +282,8 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
-/** Arrival speed and heading priors toward the next catch, and (in repair)
- * the distance to a reference arrival state. Appends residuals; returns the
- * cost with each term added in order, and the heading prior's part of it. */
+/** Arrival speed and heading priors toward the next catch. Appends residuals;
+ * returns the cost with each term added in order, and the heading prior's part of it. */
 function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
   let heading = 0;
   const {ctx, options, i, targets} = s;

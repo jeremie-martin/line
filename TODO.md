@@ -33,7 +33,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
    - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
    - Still open from November 1:
-     - short re-landings at speed (Trouble about half, Circus 1/24 and 0/24);
+     - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
+       quality there is the same strong-too-soft story as elsewhere;
      - geometry hygiene (G1–G4);
      - unwanted impacts (U2, U3; guide touches on beats);
      - the measure (visibility study);

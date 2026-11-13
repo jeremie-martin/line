@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (night): hypothesis, a beam slot for the fastest arrival (stated before running)
+
+- **Basis.** A strong hit removes kinetic energy by its very definition: one inelastic contact of strength s takes about
+  ½(7.55 s)² (20 units at 0.85; measured 16 per strong catch on V8). Only descent gives it back, about 120 px per strong
+  catch, and after strong catches the rider is slower than asked (next span's speed residual −0.05 to −0.08). The arrival
+  prior already asks for √(v² + Δv²) before a strong ask; but a prefix that banks speed earlier pays a speed error at once,
+  and its worth shows only passages later, past the ranking's two-interval prediction.
+- **Change** (`exp/fastest-arrival-slot`, `arc_sequence.ts`). When the beam has room for three prefixes, one slot keeps the
+  distinct continuation arriving fastest at the next catch (beside the existing lowest-measured-cost slot). No extra physics
+  per prefix; which prefixes survive changes.
+- **Hypothesis.** Strong passages entered with more speed: strength and speed up on G and the dense categories.
+- **Risk.** A ranked slot is lost; fast arrivals overshoot speed and air in calm passages.
+- **Measure.** V8, 4 seeds, paired against `compiler`.
+
 ## November 13 (night): hypothesis, ask the learned sources for a little more (stated before running)
 
 - **Basis.** The catalogue, network and memory demonstrations are labelled with the asks their moves faced. Those moves, like
@@ -11,6 +25,9 @@
 - **Hypothesis.** Pools get moves that land near the ask; strength on strong asks up, G up; no new cost in physics.
 - **Risk.** Half the slots leave the situation the sources know best; spans (speed, air) and extras may lose.
 - **Measure.** V8, 4 seeds, paired against `compiler`.
+- **Result: not adopted.** V8 **−4.8 [−6.9, −2.7]**, every block negative, 8 specs up, 35 down; explicit −8.0. Strength
+  itself got worse (G −8.8; strong too soft −1.4), and speed −2.4. The sources are better aimed at the true ask than their
+  labels suggested: moves for the true ask are worth more than moves for a higher one.
 
 ## November 13 (night): hypothesis, hindsight memory (stated before running)
 

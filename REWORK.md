@@ -8,6 +8,17 @@
 - **Hypothesis.** At most one of them moves V8 by more than seed noise; a stronger impact weight trades speed for strength.
 - **Decision rule.** A weight changes only for a gain of about +3 or more whose interval excludes zero on V8, no loss on
   V7.1, and no guard worse; otherwise the archive-era values stay.
+- **Result: none changes** (V8, 4 seeds, paired against `compiler`):
+
+  | arm | V8 | interval | specs up / down | note |
+  |---|---|---|---|---|
+  | impact weight 1.5 | −2.4 | [−5.4, +0.6] | 10 / 33 | G −21.3, explicit −16.8, strong extras ×2 (0.31) |
+  | value weight 0.3 | +1.6 | [−4.3, +7.4] | 27 / 16 | P6 −9.2, P4 +7.6, P5 +8.1 |
+  | value weight 0.6 | −0.3 | [−5.9, +5.4] | 19 / 24 | strong extras +52% |
+  | arrival weight 0.45 | +0.3 | [−6.1, +6.7] | 23 / 20 | |
+
+  The search's weights survived the archive's removal. Weighting strength harder makes everyday songs worse and doubles
+  the strong extra hits: the strength the search gives up is not cheaply available.
 
 ## November 13 (night): hypothesis, a beam slot for the fastest arrival (stated before running)
 

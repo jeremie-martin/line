@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, the guide begins ahead of the sled at the catch (G3; stated before running)
+
+- **Basis:** after main curves, guides are the lines the rider crosses most (about 96 crossings per ride on V8, 51 by
+  the body). 41 per ride are in a guide's first three segments, 6.6 of them 3 px or deeper (a quarter of all deep
+  crossings). The guide is the main curve offset by its clearance, from two vertices past the anchor: right above the
+  landing point, so a rider dropping onto the anchor brings its body down through the guide's leading end from behind.
+- **Change** (`exp/guide-starts-ahead`, `arc_geometry.ts`): the guide's leading vertices that are not ahead of the
+  sled's frontmost point at the catch, along the arrival direction, are dropped (at least two vertices stay). Its
+  clearance, flare, tilt and the searched start and end are unchanged; they apply to what remains.
+- **Hypothesis:** fewer guide crossings at the leading end; score neutral. **Risk:** the body landing under the guide
+  early may be part of what holds the rider on through a strong hit (strong strength, extra impacts and completion to
+  watch). Measure: V8 4 seeds paired against `compiler`, guide crossings.
+
 ## November 13 (late): hypothesis, room for the steep arrival a long float makes (stated before running)
 
 - **Basis** (V8, `compiler`): the calm and long specs (P3, P6) fly too little: 93% and 96% of their air error is too

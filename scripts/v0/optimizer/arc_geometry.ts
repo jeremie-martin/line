@@ -124,6 +124,12 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
       return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
     });
+    // The guide begins ahead of the sled at the catch, along the arrival: a rider dropping onto the anchor then meets
+    // its leading end from below instead of falling through it from behind (docs/research/geometry-hygiene-20261031.md).
+    const along=hypot2(velocity.x,velocity.y)||1,ux=velocity.x/along,uy=velocity.y/along;
+    const front=Math.max(...points.map(p=>p.x*ux+p.y*uy));
+    let lead=0;while(lead<roof.length-2&&roof[lead].x*ux+roof[lead].y*uy<=front)lead++;
+    if(lead)roof.splice(0,lead);
     const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
     const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
     // Every guide remains one substantial connected curve, including when its

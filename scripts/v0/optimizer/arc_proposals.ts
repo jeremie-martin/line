@@ -95,12 +95,7 @@ export function proposeInitialControls(s: IntervalSearch) {
   const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
-  if (options.warmStart) {
-    evaluate(s, tagOrigin(options.warmStart, 'warm'));
-    if (options.warmIncoming !== undefined && options.warmIncoming !== incoming)
-      evaluate(s, tagOrigin({...options.warmStart, entry: options.warmStart.entry + incoming - options.warmIncoming,
-        exit: options.warmStart.exit + incoming - options.warmIncoming}, 'warm'));
-  }
+  if (options.warmStart) evaluate(s, tagOrigin(options.warmStart, 'warm'));
   for (let k = 0; k < initial; k++) {
     const stream = k === 0 ? 'center' : k <= learnedEnd ? 'learned' : k <= memoryEnd ? 'memory' : k <= policy.length ? 'response' : 'generic';
     const accounting = s.ctx.work.initialProposalWork[stream], began = getPhysicsFrameCount();

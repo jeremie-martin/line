@@ -325,18 +325,6 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     cost += r * r;
     heading = r * r;
   }
-  if (options.arrivalReference) {
-    const target = options.arrivalReference, weight = Math.sqrt(1 / 10);
-    const here = state.points.PEG, there = target.state.points.PEG;
-    for (const key of Object.keys(state.points)) {
-      const a = state.points[key], b = target.state.points[key];
-      for (const r of [weight * ((a.x - here.x) - (b.x - there.x)) / 18, weight * ((a.y - here.y) - (b.y - there.y)) / 18,
-        weight * (a.vx - b.vx) / 7.2, weight * (a.vy - b.vy) / 7.2]) {
-        residuals.push(r);
-        cost += r * r;
-      }
-    }
-  }
   return {cost, heading};
 }
 

@@ -1,4 +1,4 @@
-/** The impact account the compiler optimizes: line.strike.v3. Search, refinement,
+/** The impact account the compiler optimizes: line.strike.v3. Search,
  * terminal selection, the production replay and the review all go through
  * `impactRuler`. Observation reads only already simulated frames: it never steps
  * physics. Other rulers are report rows only (tools/measure/strike.ts). */

@@ -65,7 +65,7 @@ function replaceWithFragments(s: IntervalSearch) {
   s.best = null;
   // A verified realization remains eligible when its control was offered in
   // this search. Unrelated cached controls must never enter an exact-control
-  // probe (used by joint refinement and continuation replay).
+  // probe (directControls).
   for (const key of new Set(carriers.map(c => arcControlMemoKey(c.c, s.options.channel)))) {
     const saved = s.memo.get(key + '|fragments');
     const candidate = saved && !('reason' in saved) ? saved : undefined;

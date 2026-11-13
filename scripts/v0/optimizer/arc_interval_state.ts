@@ -117,7 +117,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const mixedPolicySlots = multipleSources
     ? 1 + (options.policySamples ?? 8) + (options.memorySamples ?? 0) + (options.memoryResponseSamples ?? 0) : 0;
   const mixedInitial = Math.ceil(mixedPolicySlots / (options.profile || options.railLayout === 'transfer' ? .75 : 1));
-  const initial = options.localOnly ? 0 : Math.min(max, Math.max(Math.min(80, Math.ceil(max / 2)), mixedInitial));
+  const initial = Math.min(max, Math.max(Math.min(80, Math.ceil(max / 2)), mixedInitial));
   // Calm landing emphasis changes impact units between adjacent intervals.
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.
@@ -157,7 +157,7 @@ function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: 
   const {prefixes, prefixKey, memoContexts} = ctx.lineage;
   let memo = new Map<string, CandidateMemo>();
   const prefix = prefixes.get(engine);
-  if (prefix && !options.arrivalReference &&
+  if (prefix &&
     (!options.futureValueModel || options.futureValueModel === ctx.options.futureValueModel)) {
     const context = prefixKey(prefix) + '|' + evaluationContext(options, i);
     const saved = memoContexts.get(context);

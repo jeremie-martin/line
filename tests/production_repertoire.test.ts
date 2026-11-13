@@ -49,7 +49,7 @@ it('rejects ambiguous creative inputs, mismatched plan seeds and non-intentional
  expect(()=>compileHandoff({...spec,axes:{...spec.axes,elevation:()=>.5}},101,{budget:50000,creative:{}})).toThrow('supports air');
 });
 
-it('refines mixed constructions and preserves functional requests',async()=>{
+it('compiles mixed constructions and preserves functional requests',async()=>{
  const {compileArcMotion}=await import('../scripts/v0/optimizer/arc_motion.ts');
  const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
  const {repertoireSearchOptions}=await import('../scripts/v0/optimizer/repertoire_search.ts');
@@ -60,12 +60,8 @@ it('refines mixed constructions and preserves functional requests',async()=>{
  const {arcRailGroups}=await import('../scripts/v0/optimizer/arc_guidance.ts');
  const {sliceTimeline,effectiveAxes,axesAtFrame}=await import('../scripts/v0/core/substrate.ts');
  const plan=planIntentionalRepertoire(spec,101,{repertoire:['scattered']});
- // 300k: with catches placed mid-frame (2026-11-01) this search uses about 213k unconstrained,
- // so the old 200k left refinement nothing; the old placement used 224k.
- const result=compileArcMotion(spec,101,{...repertoireSearchOptions(spec,plan,300000),
-  refineAttempts:2,refineSamples:0,refineWidth:2});
- expect(result.failure).toBeNull();expect(result.refinementStats.frames).toBeGreaterThan(0);
- expect(result.refinementStats.finalLoss).toBeLessThanOrEqual(result.refinementStats.initialLoss);
+ const result=compileArcMotion(spec,101,repertoireSearchOptions(spec,plan,300000));
+ expect(result.failure).toBeNull();
  const durationFrames=120,contacts=spec.contacts.map(c=>({frame:Math.round(c.t*40),impact:c.impact}));
  const gaps=sliceTimeline(contacts.map(c=>c.frame),durationFrames);
  const music={id:'test',durationFrames,contacts,air:gaps.map(g=>({gap:g.index,target:effectiveAxes(g,spec).air})),samples:{speed:Array.from({length:121},(_,f)=>axesAtFrame(f,spec).speed)}} as any;

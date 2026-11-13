@@ -18,7 +18,7 @@ it.each([false,true])('keeps owned candidate facts through memo reuse, cleanup a
       if(!interval.best)continue;
       const candidate=interval.best.candidate;
       if(futureValue){
-        expect(candidate.valueFeatures).toHaveLength(73);
+        expect(candidate.valueFeatures).toHaveLength(77);
         expect(candidate.valueFeatures!.slice(47)).toStrictEqual(ctx.futureValueFeatures(index));
         Object.freeze(candidate.valueFeatures);
       }

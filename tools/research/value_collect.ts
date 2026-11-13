@@ -54,7 +54,13 @@ export async function trainingCases(): Promise<any[]> {
       .map((x: any) => {const music = c.music.find((m: any) => m.id === x.sourceId)!;
         return {...music, id: x.id, group: `v6:${x.family}-paired:${(music as any).group}`, plans: x.plans};});
   }
-  return trainingData('specifications-v4').filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
+  const v4 = trainingData('specifications-v4').filter((c: any) => !EVAL_GROUPS.includes(c.group) && !/luna|amor|tiki|amour/i.test(c.id));
+  // The same songs with V8's contrast on the strength asks (tools/eval/harden.ts): dense strong runs, as V8 asks them.
+  if (catalog === 'v4contrast') {
+    const {contrast} = await import('../eval/harden.ts');
+    return v4.map((c: any) => ({...c, id: `${c.id}~contrast`, contacts: c.contacts.map((x: any) => x.impact == null ? x : {...x, impact: contrast(x.impact)})}));
+  }
+  return v4;
 }
 
 const digest=(x:unknown)=>createHash('sha256').update(JSON.stringify(x)).digest('hex');
@@ -66,7 +72,7 @@ export function readCollectionCell(dir:string,plan:any,w:any){
  assert.ok(Array.isArray(row.construction),'invalid construction observations');
  assert.ok(Array.isArray(row.probes)&&typeof row.collection?.interrupted==='boolean','missing continuation observations');
  assert.ok(row.probes.length>0||!row.complete,'complete compilation has no continuation observations');
- for(const p of row.probes){assert.equal(p.features.length,57);assert.equal(p.geometry.length,16);
+ for(const p of row.probes){assert.equal(p.features.length,57);assert.ok([16,20].includes(p.geometry.length),'unknown value feature count');
   assert.ok([...p.features,...p.geometry].every(Number.isFinite));assert.ok(p.pureFuture===null||Number.isFinite(p.pureFuture));}
  return row;
 }
@@ -99,7 +105,7 @@ async function worker(id:string,seed:number,dir:string){
       fulfilled: !!check?.fulfilled, control: row.control, incoming: row.incoming, span: row.span, features: row.features};
   });
   const compileMs = performance.now() - began;
-  const collection = collectFutureProbes(spec, seed, options, cp.track.lines, rep.result.rows, budget);
+  const collection = collectFutureProbes(spec, seed, options, cp.track.lines, rep.result.rows, budget, plan.search.depth);
   assert.deepEqual(compilerIdentity('.'),plan.compiler);assert.equal(sourceIdentity(),plan.collector);
   atomicWrite(join(dir,`${id}~${seed}.json.gz`), gzipSync(JSON.stringify({planSha256:digest(plan),inputSha256:w.inputSha256,id, group: c.group, seed, budget, compileMs,
     complete: cp.repertoire!.valid, physicalFrames: cp.repertoire!.physicalFrames,
@@ -113,14 +119,14 @@ async function main(){
  const dir=resolve(arg('out')!),pool=new WorkerPool(workerJobs(arg('jobs','16'))),seeds=Number(arg('seeds','1')),budget=arg('budget','standard')!;
  assert.ok(Number.isSafeInteger(seeds)&&seeds>=1,'invalid seed count');
  assert.ok(budget==='standard'||Number.isSafeInteger(Number(budget))&&Number(budget)>0,'invalid budget');
- assert.ok(['v4','v6transfer','v6paired'].includes(catalog),'unknown training catalog');
+ assert.ok(['v4','v4contrast','v6transfer','v6paired'].includes(catalog),'unknown training catalog');
  const cases=(await trainingCases()).slice(0,Number(arg('limit','1000')));
  const only=arg('only')?new Set<string>(JSON.parse(readFileSync(arg('only')!,'utf8'))):null;
  const declared=cases.flatMap((c:any)=>Array.from({length:seeds},(_,k)=>({id:c.id,seed:c.plans?Number(Object.keys(c.plans)[k]):101*(k+1),inputSha256:digest(c)})));
  assert.ok(declared.every(w=>Number.isSafeInteger(w.seed)&&w.seed>=0),'missing explicit-plan seed');
  const work=declared.filter(w=>!only||only.has(`${w.id}~${w.seed}`));
  assert.ok(work.length>0,'empty collection');if(only)assert.equal(work.length,only.size,'unknown restricted collection case');
- const plan={schema:'line.value-collection.v2',compiler:compilerIdentity('.'),collector:sourceIdentity(),search:VALUE_COLLECTION,
+ const plan={schema:'line.value-collection.v2',compiler:compilerIdentity('.'),collector:sourceIdentity(),search:{...VALUE_COLLECTION,depth:Number(arg('depth',String(VALUE_COLLECTION.depth)))},
   excludedGroups:EVAL_GROUPS,catalog,budget,seeds,cases:cases.map((c:any)=>c.id),work};
  mkdirSync(dir,{recursive:true});const release=lockArtifacts(dir);
  try{

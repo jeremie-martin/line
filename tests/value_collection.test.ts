@@ -19,7 +19,7 @@ it('collects native continuation labels without any production planner hook',()=
  const collected=collectFutureProbes(spec,17,options,compiled.track.lines,compiled.rows,200000);
  expect(collected.probes.length).toBeGreaterThan(0);expect(collected.physicalFrames).toBeGreaterThan(0);
  expect(collected.physicalFrames).toBeLessThanOrEqual(200000);
- expect(collected.probes.every(p=>p.features.length===57&&p.geometry.length===16&&p.depth>=1&&p.depth<=2)).toBe(true);
+ expect(collected.probes.every(p=>p.features.length===57&&p.geometry.length===20&&p.depth>=1&&p.depth<=2)).toBe(true);
  expect(collected.probes.some(p=>Number.isFinite(p.pureFuture))).toBe(true);
  expect(JSON.stringify(compiled.track)).toBe(source);
  expect([0,72].map(frame=>JSON.stringify(caller.getRider(frame).ballisticState()))).toEqual(snapshots);

@@ -59,14 +59,19 @@ it('keeps the learned future feature order, missing values and construction over
   });
   const targets = [1, .3, .5, .75, -1, 1, .4, .5, .75, -1];
   expect(ctx.futureFeatures(0)).toStrictEqual(targets);
-  expect(ctx.futureValueFeatures(0)).toStrictEqual([...targets,
+  expect(ctx.futureValueFeatures(0)).toHaveLength(30);
+  expect(ctx.futureValueFeatures(0).slice(0, 26)).toStrictEqual([...targets,
     1, 0, 0, 1, 0, 0, 0, 0, // guided, paired fold
     1, 1, 0, 0, 0, 0, 0, 1, // explicit undefined overrides guides:false
   ]);
   const absent = [0, -1, -1, -1, -1];
   expect(ctx.futureFeatures(0, 4)).toStrictEqual([...targets, 61 / 40, .5, .5, .75, -1, ...absent]);
   expect(ctx.futureFeatures(-1)).toStrictEqual([39 / 40, -1, -1, -1, -1, ...targets.slice(0, 5)]);
-  expect(ctx.futureValueFeatures(3)).toStrictEqual([...absent, ...absent, ...Array(16).fill(0)]);
+  // Past the last contact: nothing ahead, and an empty run (energy 0, speed ask −1, share 0, length 0).
+  expect(ctx.futureValueFeatures(3)).toStrictEqual([...absent, ...absent, ...Array(16).fill(0), 0, -1, 0, 0]);
+  // The run ahead: energy its asks take per frame, mean speed ask, strong share, seconds.
+  const run = ctx.futureValueFeatures(0).slice(26);
+  expect(run[0]).toBeGreaterThan(0); expect(run[3]).toBeGreaterThan(0); expect(run[2]).toBeGreaterThanOrEqual(0);
   // A study fork owns its vectors; editing an exported vector cannot affect
   // another candidate, interval or context.
   ctx.futureValueFeatures(0).fill(99);

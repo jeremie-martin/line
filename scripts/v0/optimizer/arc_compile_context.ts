@@ -117,7 +117,23 @@ function buildContext(spec: Spec, options: ArcMotionOptions, constructionMemorie
         ...['arcs','fold','serpentine','scallops','terraces','scattered'].map(name=>
           options.constructionRequests?.[index]?.construction===name?1:0)];
     }),
+    ...chainFeatures(i),
   ];
+
+  /** The authored run ahead, past the two supports described one by one: over the next CHAIN contacts, the energy their
+   * asks take per frame (a hit of strength s removes about ½(7.55 s)² of kinetic energy, and only descent refills it),
+   * their mean speed ask, the share asking 0.6 or more, and the run's length in seconds. Models trained before these
+   * existed never read them. */
+  const CHAIN = 8;
+  const chainFeatures = (i: number) => {
+    const ahead = contacts.slice(i + 1, i + 1 + CHAIN);
+    if (!ahead.length) return [0, -1, 0, 0];
+    const frames = Math.max(1, (contacts[i + 1 + CHAIN]?.frame ?? end + 1) - ahead[0].frame);
+    const asks = ahead.map(c => gaps[c.gap]?.targets.impact ?? 0);
+    const speeds = ahead.map(c => planned.find(g => g.startFrame === c.frame)?.targets.speed).filter((x): x is number => x !== undefined);
+    return [asks.reduce((n, s) => n + .5 * (7.55 * s) ** 2, 0) / frames, speeds.length ? speeds.reduce((a, b) => a + b, 0) / speeds.length : -1,
+      asks.filter(s => s >= .6).length / asks.length, frames / 40];
+  };
 
   const reportFor = (trajectory: any, geometry: TrackLine[]) => buildDriftReport(detect(trajectory), spec, gaps, frames, duration, [],
     gaps.map(g => ({lines: geometry.filter(l => Math.floor((l.id - 1000) / 10000) === g.index + 1)})) as any, gaps.map(g => g.targets));

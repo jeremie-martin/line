@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, a future value that sees the run ahead (stated before running)
+
+- **Basis.** On V8's everyday songs 60–76% of beats ask 0.75 or more, 12–20 frames apart, and strong beats land
+  0.15–0.18 soft. A hit of strength s takes about ½(7.55 s)² of kinetic energy (measured: dissipation never below
+  that; curved receivers save ~25%, the compiler's already ~1.08), and only descent refills it, so a run's sustainable
+  strength is set by how fast the chain descends (4.5 px/frame, against about 6.9 the asks need at the asked speed).
+  Within a spec, rides that descend faster on strong runs score higher (+13.5 per px/frame, correlation 0.33).
+  The ranking's learned future value sees two catches ahead, by features (each one's asks) and by label (two-interval
+  continuations): it cannot value banking speed for a run of eight strong beats.
+- **Change** (`exp/long-horizon-value`):
+  - four appended value features: the next eight contacts' energy demand per frame (Σ ½(7.55 ask)² ÷ frames), their
+    mean speed ask, the share asking 0.6 or more, the run's length (models read the prefix they were trained on:
+    parity identical before the new model);
+  - labels four continuations deep (two branches for two levels, then greedy), scaled to two intervals' worth so the
+    ranking's value weight keeps its units;
+  - data: the disjoint training catalogue (v4, 2 seeds) plus the same songs with V8's strength contrast (dense strong
+    runs as V8 asks them), today's compiler: 672 compiles, 64,445 probes.
+  - Held out by song group: regret 0.0525 against 0.0567 for the current model on the same labels; Spearman 0.70
+    against 0.63; mean absolute error 0.072 against 0.080.
+- **Hypothesis:** strong chains descend more and keep speed; G and P1 up most; V8 up. Earlier retrains (two-interval)
+  were null or negative despite better offline numbers: the decisive test is the panel.
+
 ## November 13 (late): hypothesis, the guide begins ahead of the sled at the catch (G3; stated before running)
 
 - **Basis:** after main curves, guides are the lines the rider crosses most (about 96 crossings per ride on V8, 51 by

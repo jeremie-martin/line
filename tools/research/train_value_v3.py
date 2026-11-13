@@ -23,7 +23,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import GroupKFold
 
 p = argparse.ArgumentParser(); p.add_argument('--inputs', required=True); p.add_argument('--out', required=True)
-p.add_argument('--features', choices=['base', 'geometry'], default='geometry')
+p.add_argument('--features', choices=['base', 'geometry', 'chain'], default='geometry')
 p.add_argument('--exclude', default='', help='declared compiles absent on purpose, as id~seed,...; recorded in provenance')
 args = p.parse_args()
 out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
@@ -40,7 +40,7 @@ def export(model, link):
     return {'link': link, 'initial': float(model._baseline_prediction[0, 0]), 'trees': trees}
 
 rows, records, plans, omitted = [], [], [], 0
-feature_count = 73 if args.features == 'geometry' else 57
+feature_count = {'base': 57, 'geometry': 73, 'chain': 77}[args.features]
 collections = []
 excluded = {f'{x}.json.gz' for x in args.exclude.split(',') if x}
 for root in args.inputs.split(','):
@@ -55,7 +55,7 @@ if not excluded <= {name for _, _, _, _, declared in collections for name in dec
 for root, plan_bytes, plan, plan_sha, declared in collections:
     paths = sorted(root.glob('*.json.gz'))
     assert {path.name for path in paths} == set(declared) - excluded, 'incomplete or undeclared collection records'
-    assert plan['search']['depth'] == 2, 'trainer target requires two-interval probes'
+    depth = plan['search']['depth']; assert depth >= 2, 'trainer target requires probes of two intervals or more'
     plans.append({'sha256': hashlib.sha256(plan_bytes).hexdigest(), 'plan': plan})
     for path in paths:
         b = path.read_bytes(); d = json.loads(gzip.decompress(b)); w = declared[path.name]
@@ -70,13 +70,15 @@ for root, plan_bytes, plan, plan_sha, declared in collections:
         for probe in d['probes']:
             if probe['index'] != last: context += 1; last = probe['index']
             f = probe['features']; g = probe['geometry']
-            assert len(f) == 57 and len(g) == 16 and np.isfinite(f + g).all()
+            assert len(f) == 57 and len(g) in (16, 20) and (args.features != 'chain' or len(g) == 20) and np.isfinite(f + g).all()
             assert probe['pureFuture'] is None or np.isfinite(probe['pureFuture'])
-            assert probe['depth'] == min(2, probe['contacts'] - probe['index'] - 1), 'shortened probe target'
-            if args.features == 'geometry': f = f + g
+            assert probe['depth'] == min(depth, probe['contacts'] - probe['index'] - 1), 'shortened probe target'
+            if args.features != 'base': f = f + g[:feature_count - 57]
             # A budget-shortened horizon is a different target; keep full two-interval or terminal labels.
-            if probe['pureFuture'] is not None and probe['depth'] < 2 and f[52] > 0: omitted += 1; continue
-            rows.append({'group': d['group'], 'context': f"{len(plans)}:{path.name}:{context}", 'features': f, 'future': probe['pureFuture'],
+            if probe['pureFuture'] is not None and probe['depth'] < depth and f[52] > 0: omitted += 1; continue
+            # A deeper label is scaled to two intervals' worth (the cost per interval × 2): the ranking's value weight keeps its units.
+            future = None if probe['pureFuture'] is None else probe['pureFuture'] * 2 / max(1, probe['depth'])
+            rows.append({'group': d['group'], 'context': f"{len(plans)}:{path.name}:{context}", 'features': f, 'future': future,
                 'local': probe['localCost'], 'old': probe['predictedFuture'] if probe['predictedFuture'] is not None else 0})
 assert rows and len({r['group'] for r in rows}) >= 5, 'need observations from at least five disjoint groups'
 X = np.asarray([r['features'] for r in rows]); groups = np.asarray([r['group'] for r in rows]); old = np.asarray([r['old'] for r in rows])
@@ -112,8 +114,8 @@ validation = {'heldOutNew': ranking(held), 'oldModel': ranking(old), 'localOnly'
 print(json.dumps(validation), flush=True)
 penalty = max(1, float(np.quantile(finite, .99)) * 2); fitted = model().fit(X, np.log1p(100 * costs(range(len(rows)), penalty)))
 trainer = Path(__file__).read_bytes()
-artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.arc-future-value-features.v2' if feature_count == 73 else 'line.arc-future-value-features.v1', 'featureCount': feature_count,
-    'target': 'log1p(100 * nonnegative two-interval search value under line.strike.v3, leaf = heuristic arrival prior)', 'invalidCost': penalty,
+artifact = {'schema': 'line.arc-future-value-model.v1', 'featureSchema': 'line.arc-future-value-features.v2' if feature_count >= 73 else 'line.arc-future-value-features.v1', 'featureCount': feature_count,
+    'target': f'log1p(100 * nonnegative search value over {depth} intervals, scaled to two, under line.strike.v3, leaf = heuristic arrival prior)', 'invalidCost': penalty,
     'model': export(fitted, 'expm1_div_100'),
     'provenance': {'trainer': 'tools/research/train_value_v3.py', 'trainerSha256': hashlib.sha256(trainer).hexdigest(),
         'collector': 'tools/research/value_collect.ts', 'catalog': 'benchmark/v4 (excluding groups luna_bala, amor_na_praia, tiki_tiki, amour_de_ma_vie)',

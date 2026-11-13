@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, shapes begin after the catch (stated before running)
+
+- **Basis** (V8, `compiler`, loss per section relative to the mean in the same context, strength ask × gap length):
+  arcs offered a guide 0.34–0.90, scattered 0.44–0.85; shapes worse almost everywhere: scallops 0.91–1.13, serpentine
+  0.80–1.25, terraces 0.78–2.10, fold 1.10–2.95. Variety is kept by the planner; each shape costs score where it is
+  drawn. Every shaped family starts its profile at the catch (`profileStart: 0`), so the shape shapes the hit itself;
+  left undefined, a profile begins after the catch's turn (`arc_geometry.ts`), and the catch is an arc's.
+- **Change** (`exp/shapes-after-the-catch`): the four shaped families leave `profileStart` undefined. Their learned
+  sources were trained at `profileStart: 0`, so the construction key maps the two together (`arc_memory.ts`).
+- **Hypothesis:** shaped sections catch like arcs (strength up on strong asks, fewer crashes) and keep their shape after
+  the catch: V8 up, most where shapes are worst (strong asks, long spans). **Watch:** the shapes' look (the geometry
+  sheet), realization (shapes must still realize), fallbacks.
+- **Result: not adopted** (V8, 4 seeds): **−13.0 [−20.3, −5.6]**, 2 specs up, 41 down, every block negative; explicit
+  −11.5; body drag −15%, head-down strong arrivals +14%. A shape that starts at the catch is part of how its section
+  lands the beat (or its learned proposals, trained at the catch, do not transfer): either way the shapes' cost is not
+  their onset.
+
 ## November 14: hypothesis, a future value that sees the run ahead (stated before running)
 
 - **Basis.** On V8's everyday songs 60–76% of beats ask 0.75 or more, 12–20 frames apart, and strong beats land

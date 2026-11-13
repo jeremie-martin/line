@@ -34,17 +34,17 @@ export type GeometryFamily = {label: string;
 
 export const GEOMETRY_FAMILIES = {
   arcs: {label: 'Arcs'},
-  fold: {label: 'Folds', style: {profileStart: 0, profileStrength: 1, faces: 3, foldAngle: 30},
+  fold: {label: 'Folds', style: {profileStrength: 1, faces: 3, foldAngle: 30},
     heading: (base, w, strength, _rippleCycles, endpoints) => {
       if(!endpoints)throw new Error('fold requires its entry and exit headings');
       const target=w<1/3?endpoints.start:w<2/3?(endpoints.start+endpoints.exit)/2+rad(endpoints.foldAngle??50):endpoints.exit;
       return strength===1?target:base+strength*(target-base);
     }},
-  serpentine: {label: 'S sweeps', style: {profileStart: 0, profileStrength: .8},
+  serpentine: {label: 'S sweeps', style: {profileStrength: .8},
     heading: (base, w, strength) => base+rad(24*strength*1.6)*Math.sin(2*Math.PI*w)*Math.sin(Math.PI*w)},
-  scallops: {label: 'Ripples', style: {profileStart: 0, profileStrength: 1, rippleCycles: 1},
+  scallops: {label: 'Ripples', style: {profileStrength: 1, rippleCycles: 1},
     heading: (base, w, strength, rippleCycles) => base+rad(24*strength)*Math.sin(2*rippleCycles*Math.PI*w)},
-  terraces: {label: 'Terraces', style: {profileStart: 0, profileStrength: .8},
+  terraces: {label: 'Terraces', style: {profileStrength: .8},
     heading: (base, w, strength) => {
       const p=(w*2)%1;
       const step=smooth((p-.35)/.12)-smooth((p-.65)/.12);

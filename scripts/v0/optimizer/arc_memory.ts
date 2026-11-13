@@ -21,7 +21,9 @@ export function allocateArcProposalSlots(requested: readonly number[], slots: nu
 export type ArcControlExample = ArcControlReference & { features: readonly number[]; };
 /** Only physically compatible constructors share demonstrations or responses. */
 export function arcConstructionMemoryKey(style:ArcGeometryStyle&{subdivisions?:number}):string{
-  const fields=[style.guides!==false,style.profile,style.profileStrength,style.profileStart,
+  // A shape that starts after the catch's turn keys with the shape that starts at the catch: the learned sources were
+  // trained on the latter, and the catch itself is an arc's in both.
+  const fields=[style.guides!==false,style.profile,style.profileStrength,style.profile&&style.profileStart===undefined?0:style.profileStart,
     style.rippleCycles,style.faces,style.foldAngle,style.subdivisions,style.railLayout,style.independentGuide];
   if(style.alignedFoldEntry&&style.profile==='fold')fields.push(true);
   return JSON.stringify(fields);

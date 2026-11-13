@@ -50,6 +50,9 @@ paired against `compiler`; geometry mix and ride character.
   families per ride 5.88 → 5.76. Open arcs now come in middle and quiet passages only.
 - Parity references refreshed: 13 of 25 cells change (their plans change). For the owner's eye: fewer open arcs in
   intense passages, more upper hits.
+- **Not run:** giving the folds' share of strong phrases to guided arcs too (folds are worst on strong asks: 0.159
+  short). It removes folds from energetic passages, which `intentional_repertoire.test.ts` forbids by design (no
+  expressive choice eliminated by context). Open arcs are kept as a family; only their share in strong phrases moved.
 
 ## November 13 (night): hypothesis, the search weights after the archive's removal (stated before running)
 

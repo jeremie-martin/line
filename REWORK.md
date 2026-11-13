@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, room for the steep arrival a long float makes (stated before running)
+
+- **Basis** (V8, `compiler`): the calm and long specs (P3, P6) fly too little: 93% and 96% of their air error is too
+  little air; air is 28% and 40% of their loss. It sits in long spans (48 frames or more) asking 80% or more air: bias
+  −0.110 (asked 0.857, got 0.799), most of their air error. The kept supports cover 0.267 of the span against the
+  0.143 the ask implies, in every family.
+- **Why** (`loss_attribution.ts` on 10 specs): in 64% of that error the pool held a move with better air and a lower
+  local cost that ranking put below the kept one (rank 0.330 against 0.183). Ranking adds the arrival heading prior in
+  full: arrivals steeper than 45° pay. A float of 50 frames from a 15° release arrives at about 55–60°, whatever the
+  geometry.
+- **Change** (`exp/heading-room-for-long-flights`, `arc_evaluate.ts`): the prior's upper bound becomes the larger of 45°
+  and the heading a flight of the span's asked air time reaches from a 15° release at the asked speed. Spans with less
+  than about 40 frames of asked flight are unchanged.
+- **Hypothesis:** long floats fly closer to their ask; P3 and P6 up, others near zero; the catch after a long float
+  may land harder (quiet strength rms, extra impacts to watch). Measure: V8 4 seeds paired against `compiler`; V7.1.
+- **Result: not adopted** (V8, 4 seeds): −2.6 [−8.0, +2.7], 10 specs up, 15 down, 18 unchanged; P6 (the long ride)
+  −19.7. Air rms improved where it changed (P6 −0.011), but speed rms rose (P6 +0.015) and quiet catches landed harder
+  (quiet strength rms +0.019 to +0.069 in P3–P7); strong extra impacts +21%. The ranking was right: a long fall arrives
+  fast and steep, and the next quiet catch pays.
+- **Not a shortage of hops either:** on those spans 44% of the kept supports already launch upward (exit below −10°),
+  with the same air as the drops (0.794 against 0.803). The missing air is the time on the line that a soft catch and
+  a launch need (about 16 frames, where an ask of 0.857 over 60 frames leaves 8.5). The calm specs' air, speed and
+  quiet asks pull against each other there; the search's balance holds.
+
 ## November 13 (late): hypothesis, the lead-in never rises into the arrival path (G2; stated before running)
 
 - **Basis** (docs/research/geometry-hygiene-20261031.md): each main curve starts with a straight lead-in laid back from

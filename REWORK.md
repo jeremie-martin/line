@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): G1, untouched curve ends trimmed (built, for the owner's eye; not adopted)
+
+- **What** (`exp/trim-untouched-ends`, `arc_guidance.ts`): after the search, each support's main curve keeps only the
+  stretch the final ride touches, with the margin guides already get (two segments each side, at least 24 px or a fifth
+  of the curve). A curve the ride never touches stays whole, so every section's shape stays drawn. The existing check
+  that restores a section whose shape would no longer be realized applies unchanged.
+- **Effect** (V7.1, seed 101, 41 rides): every score, ride, shape check and physics count identical (0.0 on all 41);
+  drawn length per ride 11,042 px against 12,752 (−13%), segments 4,283 against 4,740. The October diagnosis
+  (docs/research/geometry-hygiene-20261031.md) estimated −3,500 px when untouched curves go too.
+- **Review:** whole rides and a geometry sheet, four songs:
+  `/generated/compare/exp_trim-untouched-ends-vs-compiler@34f67bde-v7.1/review.json` and `geometry.html` beside it.
+- **Waits for the owner** (the diagnosis said no geometry change before his look): it changes the look only, by removing
+  lead-ins the rider flies past and runouts it leaves.
+
 ## November 13 (late): which catches the rider does not survive (report only)
 
 `tools/research/crash_edge.ts` (V8, seed 101, the 49 specs, tracks identical to `compiler`): for every interval with a

@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13: round 45, the collection theme by theme
+
+**The round.** Every theme on its own page (`?set=refine1`, `generated/concept-lab/round45.mjs`): the theme as it is and five
+variations. The owner's answers:
+- **Liked as much as their theme** (14, added as themes right after it in `collection.js`): Jungle Moon with a golden moon; Jungle
+  Moon with moonlit bars; Rothko with orange-red bars, the plum room, the pale sun; Cyanotype with white bars, with a white sun;
+  Violet and Marigold deeper; Negoro with gold leaf, Red Lacquer; Forest Green deeper; Paper in ivory, with a red sun; Black Iris
+  with thin strands and a moon (the owner's own combination).
+- **Preferred to their theme** (3, replaced in place): Lily White (fresh green), Cobalt and Chartreuse (white moon), Black Iris
+  (thin strands).
+- **Not loved, kept for now:** Cerulean and Coral, Amber and Purple, Silver and Rust, Seashell ("none of these"); Peony and
+  Cut-outs ("not my favourite at all"). Five of the six are light: the light side needs new themes.
+- **Lesson.** A version picked as the best of its page (rounds 40 to 42) was not thereby loved.
+
+**Collection: 38 themes.** Frozen as set `2026-11-13-round45`; ids reproduced by the test; stills rendered again identical. The two
+Paper variations take Paper's drop partners (not judged apart). Near-identical themes are drawn as often as any other for now
+(owner: to be settled with the sampling, no family concept yet). The lab fingerprint baseline is refreshed (more themes).
+
 ## November 13: the compact sources replace the archive
 
 **Decision (owner).** The 210 KB version is adopted on visual-lab: "reducing it to 200 kilobytes, to me, is completely

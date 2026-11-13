@@ -65,7 +65,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
       const nextSeq: ArcSequence = {...parent, engine: parentEngine, lines: parent.lines.slice(), rows: parent.rows.slice(),
         failure: null};
       const child = ctx.lineage.add(parentEngine, proposal.candidate.lines);
-      commitInterval(ctx, nextSeq, index, {...proposal.interval, candidates: [proposal.candidate]},
+      commitInterval(ctx, nextSeq, index, proposal.interval,
         {candidate: proposal.candidate, child}, [...protectedEngines, ...nodes.map(b => b.seq.engine)]);
       nodes.push({seq: nextSeq, localCost: proposal.localCost});
     }
@@ -183,6 +183,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
 
 /** A measured catch must beat the committed one's strength by this much to be remembered for it. */
 const HINDSIGHT_MARGIN = .05;
+const HINDSIGHT_SEEN = new WeakSet<readonly MeasuredCandidate[]>();
 /** The memory features of a catch relabelled with what it achieved: its strength in place of the ask (feature 48), and the
  * air, speed and amplitude of the gap it opened in place of their targets (49-51; an untargeted axis stays -1). */
 function achievedFeatures(features: readonly number[], c: MeasuredCandidate) {
@@ -208,8 +209,10 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
     memory.rememberControl({features: interval.inputFeatures, incoming, span, control: best.c});
     // Hindsight: the strongest catch measured here is a real move for the strength it reached, from this arrival.
     // Remembered with what it achieved in place of what was asked, a later strong ask from a similar arrival finds it.
-    const strongest = interval.candidates.reduce<MeasuredCandidate | undefined>((a, c) =>
+    // Beam branches share the memory and may commit from one pool: its hindsight move is remembered once.
+    const strongest = HINDSIGHT_SEEN.has(interval.candidates) ? undefined : interval.candidates.reduce<MeasuredCandidate | undefined>((a, c) =>
       (c.actualImpact ?? -1) > (a?.actualImpact ?? -1) ? c : a, undefined);
+    HINDSIGHT_SEEN.add(interval.candidates);
     if (strongest && strongest !== best && (strongest.actualImpact ?? 0) >= (best.actualImpact ?? 0) + HINDSIGHT_MARGIN)
       memory.rememberControl({features: achievedFeatures(interval.inputFeatures, strongest), incoming, span, control: strongest.c});
   }

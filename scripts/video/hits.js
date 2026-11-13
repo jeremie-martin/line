@@ -42,16 +42,17 @@ export const split = s => 14 * Math.min(3, 1.5 * slowRise(s)); // px before the 
 export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
 
 /** The response's settings per value of look.hits. v1 is production; the others are in the lab (round 49): the split a quarter
- * stronger; the shake starting later (`from`, `full`: the strengths where it starts and reaches 24 px) or rising more slowly; shakes
- * spaced (seconds); the band lit on hits of at least `lit`. */
+ * stronger; the shake starting a little later (`from`, `full`: the strengths where it starts and reaches 24 px); shakes spaced
+ * (seconds); the band lit on hits of at least `lit`. */
 export const TUNES = {
   v1: {},
   split125: {split: 1.25},
-  shakeLate: {from: 0.67, full: 0.92},
-  shakeGentle: {from: 0.6, full: 1.0},
+  shakeLater: {from: 0.63, full: 0.88},
+  shakeLatest: {from: 0.66, full: 0.91},
   shakeSpaced: {spaced: 1},
   tuned: {split: 1.25, spaced: 1},
   lit: {lit: 0.8},
+  litOften: {lit: 0.6},
 };
 
 // Hold the peak for at least one 60 fps frame, then recover within 0.25 seconds.
@@ -72,12 +73,15 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
   }
   if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  // spaced (lab): a shake that follows another within `spaced` seconds is reduced in proportion, to a quarter at least, so a run of
-  // strong hits does not blur the picture
+  // spaced (lab): a shake that follows, within `spaced` seconds, another at least three quarters its size is reduced in proportion
+  // to the gap, never below a quarter: a run of like hits is calmed, a hit stronger than the ones before it keeps its shake
   let room = 1;
-  if (tune.spaced) for (const h of hits) {
-    if (h.time >= hit.time) break;
-    if (shake(h.strength, tune.from, tune.full) > 0) room = Math.max(0.25, Math.min(1, (hit.time - h.time) / tune.spaced));
+  if (tune.spaced) {
+    const own = shake(hit.strength, tune.from, tune.full);
+    for (const h of hits) {
+      if (h.time >= hit.time) break;
+      if (shake(h.strength, tune.from, tune.full) >= Math.max(4, 0.75 * own)) room = Math.max(0.25, Math.min(1, (hit.time - h.time) / tune.spaced));
+    }
   }
   const a = amount < 0.002 ? 0 : shake(hit.strength, tune.from, tune.full) * room * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x, dy: a * y,

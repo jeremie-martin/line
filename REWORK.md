@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: round 49, the master round
+
+The owner asked for a step back over the day's four rounds, then one large, carefully made round with analysis around it, and
+an independent review of it before he saw it. Two Opus readers were used: one read the answers of rounds 45–48 without my
+conclusions, one reviewed the finished round from its contact sheets.
+
+**What the first reading changed.** The grounds the owner takes on light themes sit in two narrow zones (tinted at lightness
+0.92–0.946 with little colour, or near-white); new dark themes he took have mid-light bars, not pale ones, and no red or pink
+ground; "recipe" pages built from one pick gave nothing; the pages that gave clear answers change one thing on a theme he
+knows, show one idea on several themes, or offer themes each with its own character. Round 49 keeps to those forms.
+
+**What the review changed.** The hit pages opened on the wrong moments (measured: strong hits in quick succession are in
+Batidão from 38.3 s, Lua from 40.5 s, Tomada from 46.5 s; `analysis/lab-hits.json`); the shake options halved what he likes
+and are now two small steps; "shakes spaced" now ignores small shakes and never cuts a hit stronger than the ones before it;
+the strands got a visible ladder and a wider swing; the wave lost its hard lower edge; the sunset sets behind strands; pages
+that could not be told apart were trimmed; a page of light themes from painters was added.
+
+**The round** (`?set=master`, `round49.mjs`, 22 pages) and its curves page (`hits.html`, drawn from `hits.js` itself). The
+hit options are `TUNES` in `hits.js`; production (`v1`) is the default of every function, and the fingerprint baseline is
+unchanged.
+
+**Open, for the owner:** how themes are drawn now that there are 24 light and 43 dark; whether Seashell leaves the collection.
+
 ## November 13: rounds 47 and 48 answered; 67 themes
 
 Both rounds were answered the same evening (verbatim in the session memory; summary here).

@@ -31,8 +31,8 @@ export const OPTIONS = {
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', medium: 'Medium (lab)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
     // in the lab (round 49; hits.js TUNES)
-    split125: 'v1, the split a quarter stronger', shakeLate: 'v1, the shake starting later', shakeGentle: 'v1, the shake rising more slowly',
-    shakeSpaced: 'v1, shakes in quick succession reduced', tuned: 'v1, split a quarter stronger and shakes spaced', lit: 'v1, and the band lights on the strongest hits'}],
+    split125: 'v1, the split a quarter stronger', shakeLater: 'v1, the shake starting a little later', shakeLatest: 'v1, the shake starting later still',
+    shakeSpaced: 'v1, shakes in quick succession reduced', tuned: 'v1, split a quarter stronger and shakes spaced', lit: 'v1, and the band lights on the strongest hits', litOften: 'v1, and the band lights on every hit that shakes'}],
 };
 
 export const V1 = {

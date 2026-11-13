@@ -92,6 +92,15 @@
    "paper": "#242036",
    "pencil": "#554f74"
   },
+  "r49hitLitC": {
+   "accent": "#fcb315",
+   "ink": "#f9f1e3",
+   "mass": "#dd4027",
+   "nightInk": "#f9f1e3",
+   "nightPaper": "#251949",
+   "paper": "#242036",
+   "pencil": "#554f74"
+  },
   "r49tintedA": {
    "accent": "#c14c35",
    "ink": "#142221",
@@ -123,14 +132,14 @@
    "sun": "#d65a32"
   },
   "r49tintedD": {
-   "accent": "#eb7c33",
+   "accent": "#d56936",
    "ink": "#152127",
    "mass": "#104355",
    "nightInk": "#e3edf1",
    "nightPaper": "#152127",
    "paper": "#e3edf1",
    "pencil": "#a6b0b3",
-   "sun": "#eb7c33"
+   "sun": "#d56936"
   },
   "r49tintedE": {
    "accent": "#e54728",
@@ -152,6 +161,56 @@
    "pencil": "#aba9b2",
    "sun": "#c14c35"
   },
+  "r49paintingsA": {
+   "accent": "#e8c864",
+   "ink": "#1a1f29",
+   "mass": "#243d74",
+   "nightInk": "#f0ebde",
+   "nightPaper": "#1a1f29",
+   "paper": "#f0ebde",
+   "pencil": "#b1aea6",
+   "sun": "#e8c864"
+  },
+  "r49paintingsB": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "r49paintingsC": {
+   "accent": "#d3aa64",
+   "ink": "#192029",
+   "mass": "#2b2e32",
+   "nightInk": "#e3e7ea",
+   "nightPaper": "#192029",
+   "paper": "#e3e7ea",
+   "pencil": "#a3abb0",
+   "sun": "#d3aa64"
+  },
+  "r49paintingsD": {
+   "accent": "#62a0ca",
+   "ink": "#281c19",
+   "mass": "#76392a",
+   "nightInk": "#efeae2",
+   "nightPaper": "#281c19",
+   "paper": "#efeae2",
+   "pencil": "#b2ada5",
+   "sun": "#62a0ca"
+  },
+  "r49paintingsE": {
+   "accent": "#9c522e",
+   "ink": "#16221d",
+   "mass": "#315646",
+   "nightInk": "#e0ebe5",
+   "nightPaper": "#16221d",
+   "paper": "#e0ebe5",
+   "pencil": "#a4ada8",
+   "sun": "#9c522e"
+  },
   "r49brownA": {
    "accent": "#f0c45e",
    "ink": "#f0ebdc",
@@ -163,16 +222,6 @@
    "sun": "#efe8ce"
   },
   "r49brownB": {
-   "accent": "#f9aa60",
-   "ink": "#f0ebdc",
-   "mass": "#af7940",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#201309",
-   "paper": "#201309",
-   "pencil": "#5b544f",
-   "sun": "#efe8ce"
-  },
-  "r49brownC": {
    "accent": "#efe8ce",
    "ink": "#f0ebdc",
    "mass": "#af7940",
@@ -182,17 +231,7 @@
    "pencil": "#5b544f",
    "sun": "#efe8ce"
   },
-  "r49brownD": {
-   "accent": "#efe39d",
-   "ink": "#f0ebdc",
-   "mass": "#af7940",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#201309",
-   "paper": "#201309",
-   "pencil": "#5b544f",
-   "sun": "#efe8ce"
-  },
-  "r49brownE": {
+  "r49brownC": {
    "accent": "#f0c45e",
    "ink": "#f0ebdc",
    "mass": "#af7940",
@@ -283,26 +322,6 @@
    "pencil": "#50535a",
    "sun": "#efe8ce"
   },
-  "r49lanternC": {
-   "accent": "#f2efe0",
-   "ink": "#f0ebdc",
-   "mass": "#dd8b50",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#0a1328",
-   "paper": "#0a1328",
-   "pencil": "#50535a",
-   "sun": "#efe8ce"
-  },
-  "r49lanternD": {
-   "accent": "#efe1b2",
-   "ink": "#f0ebdc",
-   "mass": "#dd8b50",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#0a1328",
-   "paper": "#0a1328",
-   "pencil": "#50535a",
-   "sun": "#efe8ce"
-  },
   "r49amberMixA": {
    "accent": "#f99d1b",
    "ink": "#24211d",
@@ -378,26 +397,6 @@
    "ink": "#f0ebdc",
    "mass": "#d5aa55",
    "nightInk": "#f0ebdc",
-   "nightPaper": "#17181b",
-   "paper": "#17181b",
-   "pencil": "#55585f",
-   "sun": "#d5aa55"
-  },
-  "r49creamBarE": {
-   "accent": "#f5efd8",
-   "ink": "#f0ebdc",
-   "mass": "#d5aa55",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#221314",
-   "paper": "#221314",
-   "pencil": "#5e5555",
-   "sun": "#d5aa55"
-  },
-  "r49creamBarF": {
-   "accent": "#f5efd8",
-   "ink": "#f0ebdc",
-   "mass": "#d5aa55",
-   "nightInk": "#f0ebdc",
    "nightPaper": "#170d08",
    "paper": "#170d08",
    "pencil": "#534c48",
@@ -443,26 +442,6 @@
    "pencil": "#4f575b",
    "sun": "#f0c45e"
   },
-  "r49roomsE": {
-   "accent": "#f0c45e",
-   "ink": "#f0ebdc",
-   "mass": "#a67f3e",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#1c1204",
-   "paper": "#1c1204",
-   "pencil": "#57524c",
-   "sun": "#efe8ce"
-  },
-  "r49roomsF": {
-   "accent": "#f0c45e",
-   "ink": "#f0ebdc",
-   "mass": "#6b7cbc",
-   "nightInk": "#f0ebdc",
-   "nightPaper": "#0c0d12",
-   "paper": "#0c0d12",
-   "pencil": "#484a51",
-   "sun": "#f0c45e"
-  },
   "r49pencilA": {
    "accent": "#e39a1b",
    "ink": "#3a2115",
@@ -494,16 +473,6 @@
    "sun": "#d7352d"
   },
   "r49pencilD": {
-   "accent": "#e7714e",
-   "ink": "#0f1e2f",
-   "mass": "#3e6594",
-   "nightInk": "#fdf5f2",
-   "nightPaper": "#0f1e2f",
-   "paper": "#fdf5f2",
-   "pencil": "#b5b5b9",
-   "sun": "#e7714e"
-  },
-  "r49pencilE": {
    "accent": "#e54728",
    "ink": "#241e14",
    "mass": "#383530",
@@ -625,14 +594,13 @@
    "pencil": "#61413c"
   },
   "r49strandsC": {
-   "accent": "#ffa94f",
-   "ink": "#f2efe0",
-   "mass": "#92a86a",
-   "nightInk": "#f2efe0",
-   "nightPaper": "#0a170f",
-   "paper": "#0a170f",
-   "pencil": "#484f4a",
-   "sun": "#f1ebd5"
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
   },
   "r49strandsD": {
    "accent": "#ffa94f",
@@ -961,15 +929,6 @@
    "sun": "#d8622a"
   },
   "r49sunsetC": {
-   "accent": "#fcb315",
-   "ink": "#f9f1e3",
-   "mass": "#dd4027",
-   "nightInk": "#f9f1e3",
-   "nightPaper": "#251949",
-   "paper": "#242036",
-   "pencil": "#554f74"
-  },
-  "r49sunsetD": {
    "accent": "#f7c15f",
    "ink": "#f0ebdc",
    "mass": "#c0482a",
@@ -979,7 +938,7 @@
    "pencil": "#504845",
    "sun": "#f7c15f"
   },
-  "r49sunsetE": {
+  "r49sunsetD": {
    "accent": "#f0da95",
    "ink": "#f0ebdc",
    "mass": "#dd8b50",
@@ -989,7 +948,7 @@
    "pencil": "#50535a",
    "sun": "#efe8ce"
   },
-  "r49sunsetF": {
+  "r49sunsetE": {
    "accent": "#e54728",
    "ink": "#241e14",
    "mass": "#383530",
@@ -1008,28 +967,28 @@
    "source": "Round 49 · the master round",
    "line": "You said the split could be “maybe a quarter stronger”. Only the split changes; shake and colour boost are as they are. Watch it play.",
    "song": "batidao",
-   "t": 15.2,
+   "t": 38.3,
    "len": 6,
    "moments": [
     [
-     "Batidão, dense hits, 15 s",
-     15.2,
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
      "batidao"
     ],
     [
-     "Circus Minimus, strongest hit, 51 s",
-     50.6,
-     "circus"
-    ],
-    [
-     "Lua, dense hits, 38 s",
-     37.7,
+     "Lua, a run of strong hits, 41 s",
+     40.5,
      "lua"
     ],
     [
-     "Los Voltaje, dense hits, 26 s",
-     26.2,
-     "los"
+     "Tomada, 47 s",
+     46.5,
+     "tomada"
+    ],
+    [
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
     ]
    ],
    "variants": [
@@ -1079,32 +1038,32 @@
   },
   {
    "id": "r49hitShake",
-   "name": "Hits: where the shake starts",
+   "name": "Hits: the shake starting a little later",
    "source": "Round 49 · the master round",
-   "line": "Today the shake starts at strength 0.6 and reaches 24 px at 0.85. Only the shake changes. Watch it play on the dense moments.",
+   "line": "Today the shake starts at strength 0.6 (not 0.5) and reaches 24 px at 0.85; most hits are between 0.5 and 0.8. You suggested starting it a little later. Only the shake changes. Watch it play.",
    "song": "batidao",
-   "t": 15.2,
+   "t": 38.3,
    "len": 6,
    "moments": [
     [
-     "Batidão, dense hits, 15 s",
-     15.2,
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
      "batidao"
     ],
     [
-     "Circus Minimus, strongest hit, 51 s",
-     50.6,
-     "circus"
-    ],
-    [
-     "Lua, dense hits, 38 s",
-     37.7,
+     "Lua, a run of strong hits, 41 s",
+     40.5,
      "lua"
     ],
     [
-     "Los Voltaje, dense hits, 26 s",
-     26.2,
-     "los"
+     "Tomada, 47 s",
+     46.5,
+     "tomada"
+    ],
+    [
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
     ]
    ],
    "variants": [
@@ -1130,14 +1089,14 @@
      "note": "The theme in production."
     },
     {
-     "label": "Starting later",
+     "label": "A little later",
      "look": {
       "accent": "heat",
       "band": "bars",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
-      "hits": "shakeLate",
+      "hits": "shakeLater",
       "irisWeight": "thin",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
@@ -1148,17 +1107,17 @@
       "zoom": "steady",
       "scheme": "r49hitShakeB"
      },
-     "note": "Starts at 0.67, reaches 24 px at 0.92: fewer hits shake, the strongest as much as before… almost."
+     "note": "Starts at 0.63, reaches 24 px at 0.88. A hit of 0.75 shakes 11 px instead of 16."
     },
     {
-     "label": "Rising more slowly",
+     "label": "Later still",
      "look": {
       "accent": "heat",
       "band": "bars",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
-      "hits": "shakeGentle",
+      "hits": "shakeLatest",
       "irisWeight": "thin",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
@@ -1169,7 +1128,7 @@
       "zoom": "steady",
       "scheme": "r49hitShakeC"
      },
-     "note": "Starts at 0.6 as today, reaches 24 px only at 1.0: the same hits shake, most of them less."
+     "note": "Starts at 0.66, reaches 24 px at 0.91. A hit of 0.75 shakes 7 px."
     }
    ]
   },
@@ -1177,30 +1136,30 @@
    "id": "r49hitSpaced",
    "name": "Hits: strong shakes in quick succession",
    "source": "Round 49 · the master round",
-   "line": "You said many strong hits close together make the picture harder to read. Here a shake that follows another within one second is reduced in proportion (by half at half a second, to a quarter at most); a hit on its own shakes as today.",
+   "line": "You said many strong hits close together make the picture harder to read. Here a shake is reduced when it follows a similar or larger one within a second: by half at half a second, never below a quarter. A hit on its own, or stronger than the ones before it, shakes as today.",
    "song": "batidao",
-   "t": 15.2,
+   "t": 38.3,
    "len": 6,
    "moments": [
     [
-     "Batidão, dense hits, 15 s",
-     15.2,
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
      "batidao"
     ],
     [
-     "Circus Minimus, strongest hit, 51 s",
-     50.6,
-     "circus"
-    ],
-    [
-     "Lua, dense hits, 38 s",
-     37.7,
+     "Lua, a run of strong hits, 41 s",
+     40.5,
      "lua"
     ],
     [
-     "Los Voltaje, dense hits, 26 s",
-     26.2,
-     "los"
+     "Tomada, 47 s",
+     46.5,
+     "tomada"
+    ],
+    [
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
     ]
    ],
    "variants": [
@@ -1271,27 +1230,32 @@
   },
   {
    "id": "r49hitLit",
-   "name": "Hits: the band lights on the strongest hits only",
+   "name": "Hits: the band lights",
    "source": "Round 49 · the master round",
-   "line": "Last time the rule was unclear. Here it is simple: on a hit of strength 0.8 or more, every bar takes the hot colour for as long as the hit lasts. That is rare: about one hit in twenty.",
-   "song": "circus",
-   "t": 50.6,
+   "line": "Last time the rule was unclear and you could not tell when it lit. Two simple rules: every bar takes the hot colour for as long as the hit lasts, on the strongest hits only, or on every hit that shakes. Watch it play.",
+   "song": "batidao",
+   "t": 38.3,
    "len": 6,
    "moments": [
     [
-     "Circus Minimus, strongest hit, 51 s",
-     50.6,
-     "circus"
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
+     "batidao"
     ],
     [
-     "Tomada, 7 s",
-     6.5,
+     "Lua, a run of strong hits, 41 s",
+     40.5,
+     "lua"
+    ],
+    [
+     "Tomada, 47 s",
+     46.5,
      "tomada"
     ],
     [
-     "Batidão, 15 s",
-     15.2,
-     "batidao"
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
     ]
    ],
    "variants": [
@@ -1317,7 +1281,7 @@
      "note": "The theme in production."
     },
     {
-     "label": "The band lights",
+     "label": "On the strongest hits",
      "look": {
       "accent": "heat",
       "band": "bars",
@@ -1335,7 +1299,28 @@
       "zoom": "steady",
       "scheme": "r49hitLitB"
      },
-     "note": ""
+     "note": "Strength 0.8 or more: four times in these six seconds of Batidão, once in all of Circus Minimus."
+    },
+    {
+     "label": "On every hit that shakes",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "litOften",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitLitC"
+     },
+     "note": "Strength 0.6 or more: about twice a second in a drop."
     }
    ]
   },
@@ -1427,7 +1412,7 @@
       "zoom": "steady",
       "scheme": "r49tintedD"
      },
-     "note": "Pale ice blue, petrol bars, an orange bar and sun."
+     "note": "Pale ice blue, petrol bars, a burnt-orange bar and sun."
     },
     {
      "label": "Lichen",
@@ -1474,10 +1459,123 @@
    ]
   },
   {
+   "id": "r49paintings",
+   "name": "New light themes: from painters, on quiet grounds",
+   "source": "Round 49 · the master round",
+   "line": "The page “from pictures” gave nothing: white grounds, loud bars. These take a painter’s colours onto the kind of ground you choose. One breaks the habit of a warm sun. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Vermeer",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paintingsA"
+     },
+     "note": "Linen, ultramarine bars, a lead-tin yellow bar and sun."
+    },
+    {
+     "label": "Morandi",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paintingsB"
+     },
+     "note": "Dusty cream, grey-blue bars, a terracotta bar and sun."
+    },
+    {
+     "label": "Hammershøi",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paintingsC"
+     },
+     "note": "Cool grey, black bars, a dull gold bar and sun; the whole course inked."
+    },
+    {
+     "label": "O’Keeffe",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paintingsD"
+     },
+     "note": "Bone, red-earth bars, and a sky-blue sun and hot bar."
+    },
+    {
+     "label": "Celadon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paintingsE"
+     },
+     "note": "Grey-green glaze, deep celadon bars, an iron-brown bar and sun."
+    }
+   ]
+  },
+  {
    "id": "r49brown",
    "name": "Brown Room: another hot bar",
    "source": "Round 49 · the master round",
-   "line": "You said Brown Room “looks great otherwise” but not its vermilion hot bar. The same room with other hot bars; the moon stays cream.",
+   "line": "You said Brown Room “looks great otherwise” but not its vermilion hot bar. The same room with other hot bars.",
    "variants": [
     {
      "label": "Gold",
@@ -1498,28 +1596,7 @@
       "zoom": "steady",
       "scheme": "r49brownA"
      },
-     "note": "A gold hot bar."
-    },
-    {
-     "label": "Apricot",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49brownB"
-     },
-     "note": "An apricot hot bar."
+     "note": "A gold hot bar, the cream moon."
     },
     {
      "label": "Cream",
@@ -1538,30 +1615,9 @@
       "sunRider": "32",
       "top": "sun",
       "zoom": "steady",
-      "scheme": "r49brownC"
+      "scheme": "r49brownB"
      },
      "note": "The hot bar in the moon’s cream."
-    },
-    {
-     "label": "Pale yellow",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49brownD"
-     },
-     "note": "A pale yellow hot bar."
     },
     {
      "label": "Gold, gold sun",
@@ -1580,7 +1636,7 @@
       "sunRider": "32",
       "top": "sun",
       "zoom": "steady",
-      "scheme": "r49brownE"
+      "scheme": "r49brownC"
      },
      "note": "A gold hot bar and a gold sun, as in the other rooms."
     }
@@ -1724,7 +1780,7 @@
    "id": "r49lantern",
    "name": "Lantern: the hot bar",
    "source": "Round 49 · the master round",
-   "line": "You suggested the hot bar in the moon’s colour, or cream.",
+   "line": "You suggested the hot bar in the moon’s colour.",
    "variants": [
     {
      "label": "As it is",
@@ -1766,49 +1822,7 @@
       "zoom": "steady",
       "scheme": "r49lanternB"
      },
-     "note": "The hot bar exactly the moon’s cream."
-    },
-    {
-     "label": "Paler cream",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49lanternC"
-     },
-     "note": "A paler, cooler cream than the moon."
-    },
-    {
-     "label": "Between",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49lanternD"
-     },
-     "note": "Halfway between the pale gold as it is and the moon."
+     "note": "The hot bar exactly the moon’s cream. The difference is one bar: watch it play."
     }
    ]
   },
@@ -1974,7 +1988,7 @@
      "note": "Jungle Moon’s ground."
     },
     {
-     "label": "On charcoal",
+     "label": "On brown-black, cream moon",
      "look": {
       "accent": "heat",
       "band": "bars",
@@ -1992,48 +2006,6 @@
       "zoom": "steady",
       "scheme": "r49creamBarD"
      },
-     "note": "Grey Room’s ground."
-    },
-    {
-     "label": "On Rothko’s maroon",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49creamBarE"
-     },
-     "note": ""
-    },
-    {
-     "label": "On brown-black, cream moon",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49creamBarF"
-     },
      "note": "The moon in cream too; only the bars are gold."
     }
    ]
@@ -2042,7 +2014,7 @@
    "id": "r49rooms",
    "name": "New dark themes: more rooms",
    "source": "Round 49 · the master round",
-   "line": "Four of the six rooms went in. Six more, with bars as light as the ones you chose and no red or pink ground. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "line": "Four of the six rooms went in. Four more, with bars as light as the ones you chose and no red or pink ground. Pick every version you would be happy to see in videos; “none” is an answer too.",
    "variants": [
     {
      "label": "Dusk Room",
@@ -2127,48 +2099,6 @@
       "scheme": "r49roomsD"
      },
      "note": "Deep petrol blue, petrol bars, a gold bar and sun."
-    },
-    {
-     "label": "Umber Room",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49roomsE"
-     },
-     "note": "Deep umber, ochre bars, a gold bar, a cream sun."
-    },
-    {
-     "label": "Night Room",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49roomsF"
-     },
-     "note": "Near-black, violet-blue bars, a gold bar and sun."
     }
    ]
   },
@@ -2242,27 +2172,6 @@
      "note": ""
     },
     {
-     "label": "Seashell",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "inking",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sun",
-      "zoom": "steady",
-      "scheme": "r49pencilD"
-     },
-     "note": ""
-    },
-    {
      "label": "Stone, cool",
      "look": {
       "accent": "heat",
@@ -2279,7 +2188,7 @@
       "sunRider": "32",
       "top": "sun",
       "zoom": "steady",
-      "scheme": "r49pencilE"
+      "scheme": "r49pencilD"
      },
      "note": ""
     }
@@ -2515,10 +2424,10 @@
    "id": "r49strands",
    "name": "Strands, thinner",
    "source": "Round 49 · the master round",
-   "line": "The strands were “too thick, too bold”. Here they are as thin as Black Iris’s own, then one step heavier, a little lower than before, on two themes. Last round’s were nearly twice the heavier one.",
+   "line": "The strands were “too thick, too bold”, “not slick enough”. On Rothko: as last round, then one step and two steps thinner; all swing wider than before and sit a little lower. Then the middle weight on three other themes. Watch it play.",
    "variants": [
     {
-     "label": "Rothko, thin",
+     "label": "Rothko, as last round",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -2526,7 +2435,7 @@
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "bold",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -2536,10 +2445,10 @@
       "zoom": "steady",
       "scheme": "r49strandsA"
      },
-     "note": "As thin as the Iris band in production."
+     "note": "To compare."
     },
     {
-     "label": "Rothko, medium",
+     "label": "Rothko, thinner",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -2560,7 +2469,7 @@
      "note": ""
     },
     {
-     "label": "Jungle Moon, thin",
+     "label": "Rothko, thinnest",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -2578,10 +2487,10 @@
       "zoom": "steady",
       "scheme": "r49strandsC"
      },
-     "note": ""
+     "note": "As thin as the Iris band in production."
     },
     {
-     "label": "Jungle Moon, medium",
+     "label": "Jungle Moon, thinner",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -2602,7 +2511,7 @@
      "note": ""
     },
     {
-     "label": "Black Iris, thin, its own colours",
+     "label": "Black Iris, thinner, its own colours",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -2610,7 +2519,7 @@
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -2623,7 +2532,7 @@
      "note": "Silver strands, the front one red, instead of navy and lavender."
     },
     {
-     "label": "Paper, thin",
+     "label": "Paper, thinner",
      "look": {
       "accent": "loud",
       "band": "strands",
@@ -2631,7 +2540,7 @@
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "inking",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -2649,7 +2558,7 @@
    "id": "r49ribbon",
    "name": "A wave instead of strands",
    "source": "Round 49 · the master round",
-   "line": "Another answer to “not slick enough”: no hairlines at all. The music’s contour is one filled wave in the bars’ colour, with its edge in the hot colour. Watch it play. Pick the themes where it works; “none” is an answer too.",
+   "line": "Another answer to “not slick enough”: no hairlines at all. The music’s contour is one filled wave in the bars’ colour, fading out downward, with its edge in the hot colour. Watch it play. Pick the themes where it works; “none” is an answer too.",
    "variants": [
     {
      "label": "Rothko",
@@ -2875,7 +2784,7 @@
    "id": "r49crescent",
    "name": "The crescent on other nights",
    "source": "Round 49 · the master round",
-   "line": "You were surprised to like the crescent on Old Rose, and suggested it for Winter Moon. Pick the themes where it works; “none” is an answer too. If you keep some: should a night theme show its crescent or stars rarely, or about as often as its full moon?",
+   "line": "You were surprised to like the crescent on Old Rose, and suggested it for Winter Moon. Pick the themes where it works; “none” is an answer too.",
    "variants": [
     {
      "label": "Winter Moon, crescent",
@@ -3167,7 +3076,7 @@
    "line": "You saw potential in Starry Night (ink blue, silver band, a pale gold crescent) but its strands were too thick. The same theme with other bands.",
    "variants": [
     {
-     "label": "Thin strands",
+     "label": "Thinner strands",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -3175,7 +3084,7 @@
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3251,7 +3160,7 @@
      "note": ""
     },
     {
-     "label": "Thin strands, crescent and stars",
+     "label": "Thinner strands, crescent and stars",
      "look": {
       "accent": "heat",
       "band": "strands",
@@ -3259,7 +3168,7 @@
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3275,20 +3184,20 @@
   },
   {
    "id": "r49sunset",
-   "name": "The sunset, on the left and smaller",
+   "name": "The sunset, with less at the bottom",
    "source": "Round 49 · the master round",
-   "line": "You called the sunset “a good idea” but refused it each time: “too much stuff at the bottom right”. Here the half disc is on the left, away from where the rider heads, and smaller. Pick the themes where it works; “none” is an answer too.",
+   "line": "You called the sunset “a good idea” but refused it each time: “too much stuff at the bottom right”, the bars over the disc. Here the half disc is smaller and on the left, and the band is the strands, so the sun sets behind a few lines and not behind a wall of bars. Pick the themes where it works; “none” is an answer too.",
    "variants": [
     {
      "label": "Rothko",
      "look": {
       "accent": "heat",
-      "band": "bars",
+      "band": "strands",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3304,12 +3213,12 @@
      "label": "Dune",
      "look": {
       "accent": "heat",
-      "band": "bars",
+      "band": "strands",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3322,15 +3231,15 @@
      "note": ""
     },
     {
-     "label": "Violet and Marigold",
+     "label": "Campfire",
      "look": {
       "accent": "heat",
-      "band": "bars",
+      "band": "strands",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3343,15 +3252,15 @@
      "note": ""
     },
     {
-     "label": "Campfire",
+     "label": "Lantern, moonrise",
      "look": {
       "accent": "heat",
-      "band": "bars",
+      "band": "strands",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3364,15 +3273,15 @@
      "note": ""
     },
     {
-     "label": "Lantern, moonrise",
+     "label": "Stone",
      "look": {
       "accent": "heat",
-      "band": "bars",
+      "band": "strands",
       "bandHeight": "lowmid",
       "drop": "off",
       "ends": "course",
       "hits": "v1",
-      "irisWeight": "thin",
+      "irisWeight": "medium",
       "line": "ink",
       "paper": "vibranceSoftHalfPaper",
       "riderLower": "0",
@@ -3381,27 +3290,6 @@
       "top": "sunset",
       "zoom": "steady",
       "scheme": "r49sunsetE"
-     },
-     "note": ""
-    },
-    {
-     "label": "Stone",
-     "look": {
-      "accent": "heat",
-      "band": "bars",
-      "bandHeight": "lowmid",
-      "drop": "off",
-      "ends": "course",
-      "hits": "v1",
-      "irisWeight": "thin",
-      "line": "ink",
-      "paper": "vibranceSoftHalfPaper",
-      "riderLower": "0",
-      "sunLift": "16",
-      "sunRider": "32",
-      "top": "sunset",
-      "zoom": "steady",
-      "scheme": "r49sunsetF"
      },
      "note": ""
     }

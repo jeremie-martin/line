@@ -22,7 +22,7 @@
 <h2>The shake starts at 0.6, and most hits are below it</h2>
 <p>Each hit has a measured strength. The split and the colour boost start near 0.3; the shake starts at 0.6 and reaches 24 px at 0.85. The grey bars show how many hits of the six lab songs fall at each strength.</p>
 <div id="shake"></div>
-<div class="legend"><span><i style="background:var(--ink)"></i>As it is</span><span><i style="background:var(--s1)"></i>Starting later</span><span><i style="background:var(--s2)"></i>Rising more slowly</span></div>
+<div class="legend"><span><i style="background:var(--ink)"></i>As it is</span><span><i style="background:var(--s1)"></i>A little later</span><span><i style="background:var(--s2)"></i>Later still</span></div>
 
 <h2>The split a quarter stronger</h2>
 <p>The split (the colour fringe) starts at 0.3 and grows steadily. The second line is the same curve times 1.25.</p>
@@ -33,22 +33,18 @@
 <div id="boost"></div>
 
 <h2>Shakes in quick succession are a matter of the song</h2>
-<p>A hit shakes when its strength is 0.6 or more. The table counts those hits, and how many of them follow another shaking hit within one second. Those are the ones the “shakes spaced” option reduces: by half when the gap is half a second, down to a quarter at most.</p>
+<p>A hit shakes when its strength is 0.6 or more. The table counts those hits, and how many the “shakes spaced” option reduces: those that follow, within one second, a shake at least three quarters their size. The reduction is by half when the gap is half a second, and never below a quarter. A hit stronger than the ones before it keeps its shake.</p>
 <table id="songs"></table>
 
-<h2>Batidão, 12 to 20 seconds: each shake as it is, and spaced</h2>
-<p>One bar per shaking hit: its shake in pixels as it is (grey), and with shakes spaced (blue). A hit more than a second after the last keeps its shake.</p>
+<h2>Batidão, 36 to 46 seconds: each shake as it is, and spaced</h2>
+<p>One bar per shaking hit: its shake in pixels as it is (grey), and with shakes spaced (blue). This is the run round 49’s hit pages open on.</p>
 <div id="run"></div>
 <div class="legend"><span><i style="background:var(--bar);height:10px"></i>As it is</span><span><i style="background:var(--s1);height:10px"></i>Shakes spaced</span></div>
 
-<h2>How often a theme comes up</h2>
-<p>Light themes are drawn for three videos in four. The collection has grown mostly on the dark side, so one dark theme now comes up far less often than one light theme.</p>
-<div class="tiles" id="sampling"></div>
 </main>
 <div id="tip"></div>
 <script type="module">
 import {shake, split, boost, TUNES} from '../../scripts/video/hits.js';
-import {LIGHT, DARK, SHARES} from '../../scripts/video/choose.js';
 const data = await (await fetch('./analysis/lab-hits.json')).json();
 const NAMES = {circus: 'Circus Minimus', tomada: 'Montagem Tomada', petrunko: 'Petrunko', los: 'Los Voltaje', batidao: 'No Batidão', lua: 'Lua na Praça'};
 const all = Object.values(data).flatMap(d => d.hits), tip = document.getElementById('tip');
@@ -82,24 +78,24 @@ function curves(id, unit, max, series) {
 }
 curves('shake', ' px', 32, [
   {name: 'As it is', colour: 'var(--ink)', f: s => shake(s)},
-  {name: 'Later', colour: 'var(--s1)', f: s => shake(s, TUNES.shakeLate.from, TUNES.shakeLate.full)},
-  {name: 'Slower', colour: 'var(--s2)', f: s => shake(s, TUNES.shakeGentle.from, TUNES.shakeGentle.full)}]);
+  {name: 'A little later', colour: 'var(--s1)', f: s => shake(s, TUNES.shakeLater.from, TUNES.shakeLater.full)},
+  {name: 'Later still', colour: 'var(--s2)', f: s => shake(s, TUNES.shakeLatest.from, TUNES.shakeLatest.full)}]);
 curves('split', ' px', 40, [{name: 'As it is', colour: 'var(--ink)', f: split}, {name: '× 1.25', colour: 'var(--s1)', f: s => split(s) * TUNES.split125.split}]);
 curves('boost', '', 2, [{name: 'As it is', colour: 'var(--ink)', f: boost}]);
 
 // per song: hits, shaking hits, and those within half a second of the shaking hit before
-const room = (hits, i) => {let r = 1; for (const h of hits.slice(0, i)) if (shake(h.s) > 0) r = Math.max(0.25, Math.min(1, (hits[i].t - h.t) / TUNES.shakeSpaced.spaced)); return r;};
+const room = (hits, i) => {let r = 1; for (const h of hits.slice(0, i)) if (shake(h.s) >= Math.max(4, 0.75 * shake(hits[i].s))) r = Math.max(0.25, Math.min(1, (hits[i].t - h.t) / TUNES.shakeSpaced.spaced)); return r;};
 const table = document.getElementById('songs');
-table.innerHTML = '<tr><th>Song</th><th>Hits</th><th>That shake (0.6 or more)</th><th>Within 1 s of another</th><th>0.8 or more</th></tr>' + Object.entries(data).map(([k, {hits}]) => {
+table.innerHTML = '<tr><th>Song</th><th>Hits</th><th>That shake (0.6 or more)</th><th>Reduced when spaced</th><th>0.8 or more</th></tr>' + Object.entries(data).map(([k, {hits}]) => {
   const sh = hits.map((h, i) => [h, i]).filter(([h]) => h.s >= 0.6);
   return `<tr><td>${NAMES[k] ?? k}</td><td>${hits.length}</td><td>${sh.length}</td><td>${sh.filter(([, i]) => room(hits, i) < 1).length}</td><td>${hits.filter(h => h.s >= 0.8).length}</td></tr>`;
 }).join('');
 
 // Batidão's dense run
 {
-  const hits = data.batidao.hits, from = 12, to = 20, svg = el('svg', {viewBox: `0 0 ${W} 220`, role: 'img'}), x = t => L + (t - from) / (to - from) * (W - L - 20), y = v => 180 - v / 24 * 150;
+  const hits = data.batidao.hits, from = 36, to = 46, svg = el('svg', {viewBox: `0 0 ${W} 220`, role: 'img'}), x = t => L + (t - from) / (to - from) * (W - L - 20), y = v => 180 - v / 24 * 150; // 24 px: the shake at strength 0.85
   for (const v of [0, 8, 16, 24]) {svg.append(el('line', {x1: L, x2: W - 20, y1: y(v), y2: y(v), stroke: 'var(--grid)'})); svg.append(el('text', {x: L - 6, y: y(v) + 4, 'text-anchor': 'end'}, `${v} px`));}
-  for (let t = from; t <= to; t++) svg.append(el('text', {x: x(t), y: 198, 'text-anchor': 'middle'}, `${t} s`));
+  for (let t = from; t <= to; t += 2) svg.append(el('text', {x: x(t), y: 198, 'text-anchor': 'middle'}, `${t} s`));
   hits.forEach((h, i) => {
     const px = shake(h.s); if (h.t < from || h.t > to || !px) return;
     const spaced = px * room(hits, i), g = el('g');
@@ -112,11 +108,5 @@ table.innerHTML = '<tr><th>Song</th><th>Hits</th><th>That shake (0.6 or more)</t
   document.getElementById('run').append(svg);
 }
 
-// sampling
-const pct = v => (100 * v).toFixed(1) + ' %';
-document.getElementById('sampling').innerHTML = [
-  [LIGHT.length, 'light themes'], [pct(SHARES.light / LIGHT.length), 'of videos for each light theme'],
-  [DARK.length, 'dark themes'], [pct((1 - SHARES.light) / DARK.length), 'of videos for each dark theme'],
-].map(([b, s]) => `<div class="tile"><b>${b}</b><span>${s}</span></div>`).join('');
 </script>
 </html>

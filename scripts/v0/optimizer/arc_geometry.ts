@@ -73,7 +73,13 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const point=points.reduce((a,b)=>side*(a.x*n.x+a.y*n.y)<side*(b.x*n.x+b.y*n.y)?a:b);
   const speed=hypot2(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
   const anchor={x:point.x+side*n.x*c.offset,y:point.y+side*n.y*c.offset};
-  let x=anchor.x-approach*t.x,y=anchor.y-approach*t.y;
+  // The straight lead-in never rises into the rider's arrival path (for a surface met from above, never drops into it):
+  // laid back from the anchor along whichever of the entry and the arrival heading keeps it on the far side of the path,
+  // so the rider cannot pass through it from behind just before the catch (docs/research/geometry-hygiene-20261031.md).
+  // (A rider arriving backward, more than a right angle from the entry, keeps the entry.)
+  const arrival=entry+Math.atan2(Math.sin(Math.atan2(velocity.y,velocity.x)-entry),Math.cos(Math.atan2(velocity.y,velocity.x)-entry));
+  const lead=Math.abs(arrival-entry)>Math.PI/2?entry:side===1?Math.min(entry,arrival):Math.max(entry,arrival);
+  let x=anchor.x-approach*Math.cos(lead),y=anchor.y-approach*Math.sin(lead);
   // Work in connected vertices; materialize each physical line only once,
   // after clipping and orientation have settled its endpoints.
   let main = [{x,y},anchor];

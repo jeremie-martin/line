@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, the lead-in never rises into the arrival path (G2; stated before running)
+
+- **Basis** (docs/research/geometry-hygiene-20261031.md): each main curve starts with a straight lead-in laid back from
+  the anchor along the searched entry heading. When the entry is steeper than the arrival, its free end sticks up into
+  the rider's path and the rider passes through it from behind just before the beat: 40 of 119 fold sections (the
+  fold proposal rotates the entry by the turn), 1–33% of other sections by angle. Folds are also the weakest family in
+  every context today (1.1–3× the mean loss per section, V8).
+- **Change** (`exp/lead-in-below-arrival`, `arc_geometry.ts`): the lead-in is laid along the shallower of the entry and
+  the arrival heading (the steeper for a surface met from above). The curve itself, the anchor and every control are
+  unchanged. A general rule, no threshold beyond "arriving backward keeps the entry".
+- **Hypothesis:** fewer lines crossed by the rider (counted on the saved rides); folds a little better where a catch
+  touches the lead-in early (24% of lead-ins are touched); V8 within noise or up; no family loses its look.
+  Measure: V8 4 seeds paired against `compiler`; crossings per ride.
+
 ## November 13 (late): G1, untouched curve ends trimmed (built, for the owner's eye; not adopted)
 
 - **What** (`exp/trim-untouched-ends`, `arc_guidance.ts`): after the search, each support's main curve keeps only the

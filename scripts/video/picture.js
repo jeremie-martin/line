@@ -18,7 +18,7 @@
 import {W, H, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import {rideIntensity, intensityAt} from './intensity.js';
-import {prepareHits, hitEffectsAt, hitHeatAt} from './hits.js';
+import {prepareHits, hitEffectsAt, hitHeatAt, TUNES} from './hits.js';
 import {createSplit} from './split.js';
 import {prepareTrack, drawTrack} from './track.js';
 import {drawBand} from './music.js';
@@ -111,7 +111,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   function draw(t, look, exaggerate = 1) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
-    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate * (look.hits === 'strong' ? 1.33 : 1));
+    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, TUNES[look.hits] ?? TUNES.v1);
     const colours = themeAt(t, intensity, look), v = frameAt(t, at, look);
     let titleBox = null; // only the title drawn in this frame gets its smaller split
     const boosting = fx.boost;
@@ -122,7 +122,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) titleBox = drawTop(intensity, a, colours, look);}
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
-    if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, look.hits === 'bandKick' ? fx.punch : 0, look.hits === 'wash' && fx.punch > 0.1);
+    if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, fx.lit);
     const cc = {...v, ax: v.ax + fx.dx, ay: v.ay + fx.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     ctx.setTransform(world);
     const visible = track.visibleAt(cc), boosted = boosting > 0.01;

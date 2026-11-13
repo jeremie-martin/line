@@ -128,7 +128,7 @@ async function loadSong(key) {
   }
   $('seek').max = P.span[1]; seconds = Math.min(seconds, P.span[1]);
   status(''); renderUI(); draw();
-  if (shot) {window.__ready = true; window.__duration = P.span[1]; window.__audio = '/' + P.scene.audio;
+  if (shot) {window.__ready = true; window.__duration = P.span[1]; window.__audio = '/' + P.scene.audio; window.__hits = P.hitTimes;
     window.__renderAt = t => {seconds = t; draw(); return canvas.toDataURL('image/png');};}
   return true;
 }

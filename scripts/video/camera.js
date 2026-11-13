@@ -15,7 +15,7 @@ export const W = 1080, H = 1920;
 const DT = 1 / FPS;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** Tops that put a disc where the sun is (sky.js): the rider sits lower under them, as under the sun. */
-export const DISC_TOPS = new Set(['sun', 'crescent', 'stars']);
+export const DISC_TOPS = new Set(['sun', 'crescent', 'stars', 'starsThin', 'starsHigh', 'crescentStars']);
 export const smoothstep = x => {x = clamp(x, 0, 1); return x * x * (3 - 2 * x);};
 
 function smoothSamples(arr, sig) {

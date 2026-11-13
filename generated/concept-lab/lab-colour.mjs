@@ -37,7 +37,7 @@ export function darkScheme({paper, mass, accent, sun = accent, ink = [0.94, 0.02
   return {accent: colour(accent), ink: line, mass: colour(mass), nightInk: line, nightPaper: p, paper: p, pencil: toHex([pl + 0.25, 0.012, ph]), sun: colour(sun)};
 }
 
-/** Write candidates-SET.json. A page: {id, name, line, base?: collection key, versions: [[label, note, colours, look]]}. With a base, the
+/** Write candidates-SET.json. A page: {id, name, line, base?: collection key, song?, t?, len?, moments?, versions: [[label, note, colours, look]]}. With a base, the
  * theme as it is comes first and a version overrides its colours and look; when only the ground changes, the pencil follows it. Without
  * one, a version's colours are a whole scheme and its look is complete. */
 export function writeRound({set, round, about, source, prefix, pages}) {
@@ -56,7 +56,7 @@ export function writeRound({set, round, about, source, prefix, pages}) {
       schemes[scheme] = c;
       return {label, look: {...spec?.look, ...look, scheme}, note};
     });
-    drafts.push({id: `${prefix}${page.id}`, name: page.name, source, line: page.line, ...(page.moments ? {moments: page.moments} : {}), variants});
+    drafts.push({id: `${prefix}${page.id}`, name: page.name, source, line: page.line, ...Object.fromEntries(['song', 't', 'len', 'moments'].filter(k => page[k] !== undefined).map(k => [k, page[k]])), variants});
   }
   writeFileSync(new URL(`./candidates-${set}.json`, import.meta.url), JSON.stringify({round, about, schemes, drops: {}, drafts}, null, 1) + '\n');
   console.log(`${set}: ${drafts.length} pages, ${Object.keys(schemes).length} versions`);

@@ -20,15 +20,15 @@ function smoothPath(ctx, pts) {
   for (let i = 1; i < pts.length - 1; i++) {const mx = (pts[i].x + pts[i + 1].x) / 2, my = (pts[i].y + pts[i + 1].y) / 2; ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);}
   ctx.lineTo(pts.at(-1).x, pts.at(-1).y);
 }
-export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, kick = 0, wash = false) {
+export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, allHot = false) {
   const shift = BAND_SHIFT[look.bandHeight];
   ctx.save(); ctx.translate(0, shift);
   // Iris draws in its own navy and lavender, lit toward white on a dark paper (on Black's paper the navy was nearly invisible,
   // theme study 8 November)
   const onDark = colours.irisLight;
-  const row = spectrumAt(spectrum, t).map(v => Math.min(1, v) * (1 + 0.5 * kick)), n = row.length, step = W / n, lit = c => onDark ? mixHex(c, '#ffffff', 0.62) : c;
+  const row = spectrumAt(spectrum, t).map(v => Math.min(1, v)), n = row.length, step = W / n, lit = c => onDark ? mixHex(c, '#ffffff', 0.62) : c;
   ctx.globalAlpha = alpha; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  const hot = wash ? new Set(row.keys()) : accentedBands(row, look.accent, heat);
+  const hot = allHot ? new Set(row.keys()) : accentedBands(row, look.accent, heat);
   if (look.band === 'fork') {
     // Quiet stems; the accent turns a few dots the accent colour (solid, ≥ 4 px: colour survives only in masses)
     const base = 0.825 * H, hgt = 0.15 * H, radius = 7;
@@ -44,22 +44,31 @@ export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, kick = 0,
       const h = Math.max(2, v * hgt), x = (i + .5) * step - bw / 2; ctx.fillStyle = hot.has(i) ? colours.accent : colours.band;
       ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x, base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x, base + 4, bw, Math.min(h * 0.62, room));
     });
-  } else if (look.band === 'dots') {
-    // in the lab (round 48): each band a column of dots, as many as it is loud
-    const base = 0.80 * H, rad = Math.min(8, step * 0.36), pitch = 2 * rad + 5, most = Math.floor(0.15 * H / pitch);
+  } else if (look.band === 'dots' || look.band === 'dotsLow' || look.band === 'dotsFine') {
+    // in the lab (rounds 48–49): each band a column of dots, as many as it is loud; without a reflection the band can sit lower
+    const fine = look.band === 'dotsFine', base = (look.band === 'dots' ? 0.80 : 0.815) * H, rad = fine ? 5.5 : Math.min(8, step * 0.36), pitch = 2 * rad + (fine ? 4 : 5), most = Math.floor(0.15 * H / pitch);
     row.forEach((v, i) => {
       ctx.fillStyle = hot.has(i) ? colours.accent : colours.band; ctx.globalAlpha = alpha * 0.92;
       for (let d = 0, count = Math.max(1, Math.round(v * most)); d < count; d++) {ctx.beginPath(); ctx.arc((i + .5) * step, base - rad - d * pitch, rad, 0, 2 * Math.PI); ctx.fill();}
     });
+  } else if (look.band === 'ribbon') {
+    // in the lab (round 49): the music's contour as one soft wave, filled down to a level base, with the wave of a quarter of a
+    // second ago paler behind it and the line of now over it in the hot colour: no hairlines, no reflection
+    const base = 0.835 * H, hgt = 0.15 * H, at = vals => vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - 6 - v * hgt * 0.8}));
+    const wave = (pts, a) => {ctx.beginPath(); smoothPath(ctx, pts); ctx.lineTo(W + 10, base); ctx.lineTo(-10, base); ctx.closePath(); ctx.fillStyle = colours.band; ctx.globalAlpha = alpha * a; ctx.fill();};
+    const now = at(row);
+    wave(at(spectrumAt(spectrum, Math.max(0, t - 0.25)).map(v => Math.min(1, v))), 0.3); wave(now, 0.7);
+    ctx.beginPath(); smoothPath(ctx, now); ctx.strokeStyle = colours.accent; ctx.lineWidth = 4.5; ctx.globalAlpha = alpha * 0.95; ctx.stroke();
   } else if (look.band === 'iris' || look.band === 'strands') {
     // bold strands for a phone, where thin ones fade (phone review, 8 November): main line 3.8 → 7 px, echoes 2.6 → 4.5 px
-    const base = 0.82 * H, hgt = 0.14 * H, weight = look.irisWeight === 'bold' || look.band === 'strands' ? 1.8 : 1;
+    // the theme's strands (lab) sit a little lower: there is no reflection under them
+    const base = (look.band === 'strands' ? 0.83 : 0.82) * H, hgt = 0.14 * H, weight = {thin: 1, medium: 1.4, bold: 1.8}[look.irisWeight];
     const contour = (vals, dy) => {const pts = vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - v * hgt * 0.72 + dy})); ctx.beginPath(); smoothPath(ctx, pts);};
     [.06, .12, .18, .24, .3, .36, .42].map((age, i) => ({age, i})).reverse().forEach(({age, i}) => {
       if (t < age) return; contour(spectrumAt(spectrum, t - age), hgt * .04 * (i + 1));
       ctx.strokeStyle = look.band === 'strands' ? colours.band : lit('#8f86c9'); ctx.lineWidth = 2.6 * weight; ctx.globalAlpha = alpha * (.42 - i * .032); ctx.stroke();
     });
-    contour(row, 0); ctx.strokeStyle = look.band === 'strands' ? colours.accent : lit('#2f3a74'); ctx.lineWidth = (look.band === 'strands' ? 6 : 3.8) * weight; ctx.globalAlpha = alpha * .92; ctx.stroke();
+    contour(row, 0); ctx.strokeStyle = look.band === 'strands' ? colours.accent : lit('#2f3a74'); ctx.lineWidth = 3.8 * weight; ctx.globalAlpha = alpha * .92; ctx.stroke();
   }
   ctx.globalAlpha = 1;
   ctx.restore();

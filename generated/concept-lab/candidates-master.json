@@ -1,0 +1,3411 @@
+{
+ "round": 49,
+ "about": "Round 49, the master round: the hits’ curves, new light and dark themes, follow-ups, the band (dots, strands, a ribbon), the sky (stars, crescent, sunset).",
+ "schemes": {
+  "r49hitSplitA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitSplitB": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitShakeA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitShakeB": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitShakeC": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitSpacedA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitSpacedB": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitSpacedC": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49hitLitA": {
+   "accent": "#fcb315",
+   "ink": "#f9f1e3",
+   "mass": "#dd4027",
+   "nightInk": "#f9f1e3",
+   "nightPaper": "#251949",
+   "paper": "#242036",
+   "pencil": "#554f74"
+  },
+  "r49hitLitB": {
+   "accent": "#fcb315",
+   "ink": "#f9f1e3",
+   "mass": "#dd4027",
+   "nightInk": "#f9f1e3",
+   "nightPaper": "#251949",
+   "paper": "#242036",
+   "pencil": "#554f74"
+  },
+  "r49tintedA": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "r49tintedB": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "r49tintedC": {
+   "accent": "#d65a32",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#d65a32"
+  },
+  "r49tintedD": {
+   "accent": "#eb7c33",
+   "ink": "#152127",
+   "mass": "#104355",
+   "nightInk": "#e3edf1",
+   "nightPaper": "#152127",
+   "paper": "#e3edf1",
+   "pencil": "#a6b0b3",
+   "sun": "#eb7c33"
+  },
+  "r49tintedE": {
+   "accent": "#e54728",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#e54728"
+  },
+  "r49tintedF": {
+   "accent": "#c14c35",
+   "ink": "#201d28",
+   "mass": "#3a3545",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#201d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "r49brownA": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#efe8ce"
+  },
+  "r49brownB": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#efe8ce"
+  },
+  "r49brownC": {
+   "accent": "#efe8ce",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#efe8ce"
+  },
+  "r49brownD": {
+   "accent": "#efe39d",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#efe8ce"
+  },
+  "r49brownE": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#f0c45e"
+  },
+  "r49paperFamilyA": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r49paperFamilyB": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#e9e6e0",
+   "pencil": "#aaa397",
+   "tone": "#eef2f8"
+  },
+  "r49paperFamilyC": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#eee9de",
+   "pencil": "#aca69a",
+   "tone": "#eef2f8"
+  },
+  "r49paperFamilyD": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#e6f0e4",
+   "pencil": "#a4ada2",
+   "tone": "#eef2f8"
+  },
+  "r49paperFamilyE": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#e1e9ef",
+   "pencil": "#9ba7b0",
+   "tone": "#eef2f8"
+  },
+  "r49paperFamilyF": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#e9e6e0",
+   "pencil": "#aaa397",
+   "tone": "#eef2f8",
+   "sun": "#d3262e"
+  },
+  "r49lanternA": {
+   "accent": "#f0da95",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49lanternB": {
+   "accent": "#efe8ce",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49lanternC": {
+   "accent": "#f2efe0",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49lanternD": {
+   "accent": "#efe1b2",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49amberMixA": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#064f6e",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r49amberMixB": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#17496c",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r49amberMixC": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#204268",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r49amberMixD": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#273c64",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "r49creamBarA": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#170d08",
+   "paper": "#170d08",
+   "pencil": "#534c48",
+   "sun": "#d5aa55"
+  },
+  "r49creamBarB": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a152a",
+   "paper": "#0a152a",
+   "pencil": "#51555c",
+   "sun": "#d5aa55"
+  },
+  "r49creamBarC": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#4d5450",
+   "sun": "#d5aa55"
+  },
+  "r49creamBarD": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#17181b",
+   "paper": "#17181b",
+   "pencil": "#55585f",
+   "sun": "#d5aa55"
+  },
+  "r49creamBarE": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#221314",
+   "paper": "#221314",
+   "pencil": "#5e5555",
+   "sun": "#d5aa55"
+  },
+  "r49creamBarF": {
+   "accent": "#f5efd8",
+   "ink": "#f0ebdc",
+   "mass": "#d5aa55",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#170d08",
+   "paper": "#170d08",
+   "pencil": "#534c48",
+   "sun": "#efe8ce"
+  },
+  "r49roomsA": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#7478be",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#13122c",
+   "paper": "#13122c",
+   "pencil": "#54545c",
+   "sun": "#f0c45e"
+  },
+  "r49roomsB": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#78884d",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#131809",
+   "paper": "#131809",
+   "pencil": "#53564f",
+   "sun": "#f9aa60"
+  },
+  "r49roomsC": {
+   "accent": "#e85433",
+   "ink": "#f0ebdc",
+   "mass": "#70869a",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#111921",
+   "paper": "#111921",
+   "pencil": "#53595e",
+   "sun": "#e85433"
+  },
+  "r49roomsD": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#46839d",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#001924",
+   "paper": "#001924",
+   "pencil": "#4f575b",
+   "sun": "#f0c45e"
+  },
+  "r49roomsE": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#a67f3e",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#1c1204",
+   "paper": "#1c1204",
+   "pencil": "#57524c",
+   "sun": "#efe8ce"
+  },
+  "r49roomsF": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#6b7cbc",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0c0d12",
+   "paper": "#0c0d12",
+   "pencil": "#484a51",
+   "sun": "#f0c45e"
+  },
+  "r49pencilA": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r49pencilB": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#f9f7ef",
+   "pencil": "#b2b1af",
+   "sun": "#f05940"
+  },
+  "r49pencilC": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "r49pencilD": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "r49pencilE": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "r49dotsA": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "r49dotsB": {
+   "accent": "#ffc83d",
+   "ink": "#f4f1e6",
+   "mass": "#8dadd7",
+   "nightInk": "#f4f1e6",
+   "nightPaper": "#122e57",
+   "paper": "#384c69",
+   "pencil": "#6e7889"
+  },
+  "r49dotsC": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#517cb5",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a152a",
+   "paper": "#0a152a",
+   "pencil": "#51555c",
+   "sun": "#f0c45e"
+  },
+  "r49dotsD": {
+   "accent": "#d96629",
+   "ink": "#efe2cd",
+   "mass": "#ebd3a2",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#140e0b",
+   "paper": "#140e0b",
+   "pencil": "#4b3831"
+  },
+  "r49dotsE": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "r49dotsF": {
+   "accent": "#d4412a",
+   "ink": "#1b1c20",
+   "mass": "#1d3e73",
+   "nightInk": "#f4ecdc",
+   "nightPaper": "#0d1f3f",
+   "paper": "#f4ecdc",
+   "pencil": "#b8b4a4"
+  },
+  "r49dotsPlaceA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49dotsPlaceB": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49dotsPlaceC": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49dotsPlaceD": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49strandsA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49strandsB": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49strandsC": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "r49strandsD": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "r49strandsE": {
+   "accent": "#ff4d3d",
+   "ink": "#eef1f5",
+   "mass": "#c9ced6",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#101216",
+   "paper": "#101216",
+   "pencil": "#4c535f",
+   "sun": "#e3e8f0"
+  },
+  "r49strandsF": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r49ribbonA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49ribbonB": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "r49ribbonC": {
+   "accent": "#ffc83d",
+   "ink": "#f4f1e6",
+   "mass": "#8dadd7",
+   "nightInk": "#f4f1e6",
+   "nightPaper": "#122e57",
+   "paper": "#384c69",
+   "pencil": "#6e7889"
+  },
+  "r49ribbonD": {
+   "accent": "#ffd15a",
+   "ink": "#f8ebeb",
+   "mass": "#c7626f",
+   "nightInk": "#f8ebeb",
+   "nightPaper": "#171226",
+   "paper": "#171226",
+   "pencil": "#5b5361"
+  },
+  "r49ribbonE": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "r49ribbonF": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "tone": "#eef2f8"
+  },
+  "r49starsA": {
+   "accent": "#bbd14a",
+   "ink": "#e2e0d9",
+   "mass": "#7ba0e5",
+   "nightInk": "#e2e0d9",
+   "nightPaper": "#0f131f",
+   "paper": "#0f131f",
+   "pencil": "#434448",
+   "sun": "#ebe8dd"
+  },
+  "r49starsB": {
+   "accent": "#bbd14a",
+   "ink": "#e2e0d9",
+   "mass": "#7ba0e5",
+   "nightInk": "#e2e0d9",
+   "nightPaper": "#0f131f",
+   "paper": "#0f131f",
+   "pencil": "#434448",
+   "sun": "#ebe8dd"
+  },
+  "r49starsC": {
+   "accent": "#bbd14a",
+   "ink": "#e2e0d9",
+   "mass": "#7ba0e5",
+   "nightInk": "#e2e0d9",
+   "nightPaper": "#0f131f",
+   "paper": "#0f131f",
+   "pencil": "#434448",
+   "sun": "#ebe8dd"
+  },
+  "r49starsD": {
+   "accent": "#bbd14a",
+   "ink": "#e2e0d9",
+   "mass": "#7ba0e5",
+   "nightInk": "#e2e0d9",
+   "nightPaper": "#0f131f",
+   "paper": "#0f131f",
+   "pencil": "#434448",
+   "sun": "#ebe8dd"
+  },
+  "r49crescentA": {
+   "accent": "#e9483d",
+   "ink": "#e7ecf0",
+   "mass": "#b4bfca",
+   "nightInk": "#e7ecf0",
+   "nightPaper": "#0c1015",
+   "paper": "#0c1015",
+   "pencil": "#494e54",
+   "sun": "#ebeff4"
+  },
+  "r49crescentB": {
+   "accent": "#e9483d",
+   "ink": "#e7ecf0",
+   "mass": "#8294a7",
+   "nightInk": "#e7ecf0",
+   "nightPaper": "#0c1015",
+   "paper": "#0c1015",
+   "pencil": "#494e54",
+   "sun": "#ebeff4"
+  },
+  "r49crescentC": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#7598ad",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#02111b",
+   "paper": "#02111b",
+   "pencil": "#474e53",
+   "sun": "#efe8ce"
+  },
+  "r49crescentD": {
+   "accent": "#f68c36",
+   "ink": "#f0ebdc",
+   "mass": "#949664",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#111306",
+   "paper": "#111306",
+   "pencil": "#4f5149",
+   "sun": "#efe8ce"
+  },
+  "r49crescentE": {
+   "accent": "#f0da95",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49crescentF": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f5dc98"
+  },
+  "r49crescentG": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#7598ad",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#02111b",
+   "paper": "#02111b",
+   "pencil": "#474e53",
+   "sun": "#efe8ce"
+  },
+  "r49starsNewA": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#7598ad",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#02111b",
+   "paper": "#02111b",
+   "pencil": "#474e53",
+   "sun": "#efe8ce"
+  },
+  "r49starsNewB": {
+   "accent": "#f68c36",
+   "ink": "#f0ebdc",
+   "mass": "#949664",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#111306",
+   "paper": "#111306",
+   "pencil": "#4f5149",
+   "sun": "#efe8ce"
+  },
+  "r49starsNewC": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#517cb5",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a152a",
+   "paper": "#0a152a",
+   "pencil": "#51555c",
+   "sun": "#f0c45e"
+  },
+  "r49starsNewD": {
+   "accent": "#f1d589",
+   "ink": "#f0ebdc",
+   "mass": "#bc754c",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#170d08",
+   "paper": "#170d08",
+   "pencil": "#534c48",
+   "sun": "#efe8ce"
+  },
+  "r49starsNewE": {
+   "accent": "#f0da95",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49starsNewF": {
+   "accent": "#ffa94f",
+   "ink": "#f2efe0",
+   "mass": "#92a86a",
+   "nightInk": "#f2efe0",
+   "nightPaper": "#0a170f",
+   "paper": "#0a170f",
+   "pencil": "#484f4a",
+   "sun": "#f1ebd5"
+  },
+  "r49starryA": {
+   "accent": "#eed286",
+   "ink": "#f0ebdc",
+   "mass": "#abb9cb",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#081025",
+   "paper": "#081025",
+   "pencil": "#4c4f56",
+   "sun": "#eed286"
+  },
+  "r49starryB": {
+   "accent": "#eed286",
+   "ink": "#f0ebdc",
+   "mass": "#abb9cb",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#081025",
+   "paper": "#081025",
+   "pencil": "#4c4f56",
+   "sun": "#eed286"
+  },
+  "r49starryC": {
+   "accent": "#eed286",
+   "ink": "#f0ebdc",
+   "mass": "#abb9cb",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#081025",
+   "paper": "#081025",
+   "pencil": "#4c4f56",
+   "sun": "#eed286"
+  },
+  "r49starryD": {
+   "accent": "#eed286",
+   "ink": "#f0ebdc",
+   "mass": "#abb9cb",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#081025",
+   "paper": "#081025",
+   "pencil": "#4c4f56",
+   "sun": "#eed286"
+  },
+  "r49starryE": {
+   "accent": "#eed286",
+   "ink": "#f0ebdc",
+   "mass": "#abb9cb",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#081025",
+   "paper": "#081025",
+   "pencil": "#4c4f56",
+   "sun": "#eed286"
+  },
+  "r49sunsetA": {
+   "accent": "#ffc46b",
+   "ink": "#f6dcc4",
+   "mass": "#b84a42",
+   "nightInk": "#f6dcc4",
+   "nightPaper": "#1a0709",
+   "paper": "#221314",
+   "pencil": "#61413c"
+  },
+  "r49sunsetB": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "r49sunsetC": {
+   "accent": "#fcb315",
+   "ink": "#f9f1e3",
+   "mass": "#dd4027",
+   "nightInk": "#f9f1e3",
+   "nightPaper": "#251949",
+   "paper": "#242036",
+   "pencil": "#554f74"
+  },
+  "r49sunsetD": {
+   "accent": "#f7c15f",
+   "ink": "#f0ebdc",
+   "mass": "#c0482a",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#130b08",
+   "paper": "#130b08",
+   "pencil": "#504845",
+   "sun": "#f7c15f"
+  },
+  "r49sunsetE": {
+   "accent": "#f0da95",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "r49sunsetF": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  }
+ },
+ "drops": {},
+ "drafts": [
+  {
+   "id": "r49hitSplit",
+   "name": "Hits: the split a quarter stronger",
+   "source": "Round 49 · the master round",
+   "line": "You said the split could be “maybe a quarter stronger”. Only the split changes; shake and colour boost are as they are. Watch it play.",
+   "song": "batidao",
+   "t": 15.2,
+   "len": 6,
+   "moments": [
+    [
+     "Batidão, dense hits, 15 s",
+     15.2,
+     "batidao"
+    ],
+    [
+     "Circus Minimus, strongest hit, 51 s",
+     50.6,
+     "circus"
+    ],
+    [
+     "Lua, dense hits, 38 s",
+     37.7,
+     "lua"
+    ],
+    [
+     "Los Voltaje, dense hits, 26 s",
+     26.2,
+     "los"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitSplitA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Split a quarter stronger",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "split125",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitSplitB"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49hitShake",
+   "name": "Hits: where the shake starts",
+   "source": "Round 49 · the master round",
+   "line": "Today the shake starts at strength 0.6 and reaches 24 px at 0.85. Only the shake changes. Watch it play on the dense moments.",
+   "song": "batidao",
+   "t": 15.2,
+   "len": 6,
+   "moments": [
+    [
+     "Batidão, dense hits, 15 s",
+     15.2,
+     "batidao"
+    ],
+    [
+     "Circus Minimus, strongest hit, 51 s",
+     50.6,
+     "circus"
+    ],
+    [
+     "Lua, dense hits, 38 s",
+     37.7,
+     "lua"
+    ],
+    [
+     "Los Voltaje, dense hits, 26 s",
+     26.2,
+     "los"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitShakeA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Starting later",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "shakeLate",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitShakeB"
+     },
+     "note": "Starts at 0.67, reaches 24 px at 0.92: fewer hits shake, the strongest as much as before… almost."
+    },
+    {
+     "label": "Rising more slowly",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "shakeGentle",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitShakeC"
+     },
+     "note": "Starts at 0.6 as today, reaches 24 px only at 1.0: the same hits shake, most of them less."
+    }
+   ]
+  },
+  {
+   "id": "r49hitSpaced",
+   "name": "Hits: strong shakes in quick succession",
+   "source": "Round 49 · the master round",
+   "line": "You said many strong hits close together make the picture harder to read. Here a shake that follows another within one second is reduced in proportion (by half at half a second, to a quarter at most); a hit on its own shakes as today.",
+   "song": "batidao",
+   "t": 15.2,
+   "len": 6,
+   "moments": [
+    [
+     "Batidão, dense hits, 15 s",
+     15.2,
+     "batidao"
+    ],
+    [
+     "Circus Minimus, strongest hit, 51 s",
+     50.6,
+     "circus"
+    ],
+    [
+     "Lua, dense hits, 38 s",
+     37.7,
+     "lua"
+    ],
+    [
+     "Los Voltaje, dense hits, 26 s",
+     26.2,
+     "los"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitSpacedA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Shakes spaced",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "shakeSpaced",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitSpacedB"
+     },
+     "note": "Only this changes."
+    },
+    {
+     "label": "Shakes spaced, split a quarter stronger",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "tuned",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitSpacedC"
+     },
+     "note": "Both changes together."
+    }
+   ]
+  },
+  {
+   "id": "r49hitLit",
+   "name": "Hits: the band lights on the strongest hits only",
+   "source": "Round 49 · the master round",
+   "line": "Last time the rule was unclear. Here it is simple: on a hit of strength 0.8 or more, every bar takes the hot colour for as long as the hit lasts. That is rare: about one hit in twenty.",
+   "song": "circus",
+   "t": 50.6,
+   "len": 6,
+   "moments": [
+    [
+     "Circus Minimus, strongest hit, 51 s",
+     50.6,
+     "circus"
+    ],
+    [
+     "Tomada, 7 s",
+     6.5,
+     "tomada"
+    ],
+    [
+     "Batidão, 15 s",
+     15.2,
+     "batidao"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitLitA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "The band lights",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49hitLitB"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49tinted",
+   "name": "New light themes: tinted papers",
+   "source": "Round 49 · the master round",
+   "line": "Stone, Linen, Sage and Sky came from a page like this. Six more, each a quiet tinted ground with dark bars of its own family and one warm note. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Eucalyptus",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedA"
+     },
+     "note": "Pale blue-green, deep teal-green bars, a brick bar and sun."
+    },
+    {
+     "label": "Heather",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedB"
+     },
+     "note": "Pale violet-grey, plum bars, an apricot bar and sun."
+    },
+    {
+     "label": "Olive Paper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedC"
+     },
+     "note": "Pale olive, deep olive bars, a red-orange bar and sun."
+    },
+    {
+     "label": "Ice",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedD"
+     },
+     "note": "Pale ice blue, petrol bars, an orange bar and sun."
+    },
+    {
+     "label": "Lichen",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedE"
+     },
+     "note": "Grey-green, charcoal bars, a vermilion bar and sun; the whole course inked."
+    },
+    {
+     "label": "Dove",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49tintedF"
+     },
+     "note": "Violet-grey, deep violet-grey bars, a brick bar and sun."
+    }
+   ]
+  },
+  {
+   "id": "r49brown",
+   "name": "Brown Room: another hot bar",
+   "source": "Round 49 · the master round",
+   "line": "You said Brown Room “looks great otherwise” but not its vermilion hot bar. The same room with other hot bars; the moon stays cream.",
+   "variants": [
+    {
+     "label": "Gold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49brownA"
+     },
+     "note": "A gold hot bar."
+    },
+    {
+     "label": "Apricot",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49brownB"
+     },
+     "note": "An apricot hot bar."
+    },
+    {
+     "label": "Cream",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49brownC"
+     },
+     "note": "The hot bar in the moon’s cream."
+    },
+    {
+     "label": "Pale yellow",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49brownD"
+     },
+     "note": "A pale yellow hot bar."
+    },
+    {
+     "label": "Gold, gold sun",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49brownE"
+     },
+     "note": "A gold hot bar and a gold sun, as in the other rooms."
+    }
+   ]
+  },
+  {
+   "id": "r49paperFamily",
+   "name": "Paper on tinted grounds",
+   "source": "Round 49 · the master round",
+   "line": "Paper’s look (the fork, the title, pencil → ink, one red note) on the grounds you chose today. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "On Stone",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyB"
+     },
+     "note": "Stone’s warm grey."
+    },
+    {
+     "label": "On Linen",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyC"
+     },
+     "note": ""
+    },
+    {
+     "label": "On Sage",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyD"
+     },
+     "note": ""
+    },
+    {
+     "label": "On Sky",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyE"
+     },
+     "note": "Sky’s grey-blue."
+    },
+    {
+     "label": "On Stone, a red sun",
+     "look": {
+      "accent": "loud",
+      "band": "fork",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49paperFamilyF"
+     },
+     "note": "The red sun instead of the title."
+    }
+   ]
+  },
+  {
+   "id": "r49lantern",
+   "name": "Lantern: the hot bar",
+   "source": "Round 49 · the master round",
+   "line": "You suggested the hot bar in the moon’s colour, or cream.",
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49lanternA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Moon colour",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49lanternB"
+     },
+     "note": "The hot bar exactly the moon’s cream."
+    },
+    {
+     "label": "Paler cream",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49lanternC"
+     },
+     "note": "A paler, cooler cream than the moon."
+    },
+    {
+     "label": "Between",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49lanternD"
+     },
+     "note": "Halfway between the pale gold as it is and the moon."
+    }
+   ]
+  },
+  {
+   "id": "r49amberMix",
+   "name": "Amber: between the Prussian bars and the quiet indigo",
+   "source": "Round 49 · the master round",
+   "line": "You asked for a mix of the theme as it is and the quiet indigo (“the best”), which is now in the collection as Amber and Indigo.",
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49amberMixA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "A third of the way",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49amberMixB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Two thirds of the way",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49amberMixC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Quiet indigo",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49amberMixD"
+     },
+     "note": "Amber and Indigo, to compare."
+    }
+   ]
+  },
+  {
+   "id": "r49creamBar",
+   "name": "A cream hot bar on gold bars",
+   "source": "Round 49 · the master round",
+   "line": "On Oxblood and Gold you liked the hot bar in cream but not the ground. The same gold bars and cream hot bar on other grounds. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "On brown-black",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarA"
+     },
+     "note": "Copper’s ground."
+    },
+    {
+     "label": "On navy",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarB"
+     },
+     "note": "Blue Room’s ground."
+    },
+    {
+     "label": "On green-black",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarC"
+     },
+     "note": "Jungle Moon’s ground."
+    },
+    {
+     "label": "On charcoal",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarD"
+     },
+     "note": "Grey Room’s ground."
+    },
+    {
+     "label": "On Rothko’s maroon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarE"
+     },
+     "note": ""
+    },
+    {
+     "label": "On brown-black, cream moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49creamBarF"
+     },
+     "note": "The moon in cream too; only the bars are gold."
+    }
+   ]
+  },
+  {
+   "id": "r49rooms",
+   "name": "New dark themes: more rooms",
+   "source": "Round 49 · the master round",
+   "line": "Four of the six rooms went in. Six more, with bars as light as the ones you chose and no red or pink ground. Pick every version you would be happy to see in videos; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Dusk Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsA"
+     },
+     "note": "Deep blue-violet, periwinkle bars, a gold bar and sun."
+    },
+    {
+     "label": "Moss Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsB"
+     },
+     "note": "Deep moss, moss-green bars, an apricot bar and sun."
+    },
+    {
+     "label": "Steel Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsC"
+     },
+     "note": "Blue-grey steel, steel bars, a vermilion bar and sun."
+    },
+    {
+     "label": "Petrol Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsD"
+     },
+     "note": "Deep petrol blue, petrol bars, a gold bar and sun."
+    },
+    {
+     "label": "Umber Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsE"
+     },
+     "note": "Deep umber, ochre bars, a gold bar, a cream sun."
+    },
+    {
+     "label": "Night Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49roomsF"
+     },
+     "note": "Near-black, violet-blue bars, a gold bar and sun."
+    }
+   ]
+  },
+  {
+   "id": "r49pencil",
+   "name": "Pencil → ink on the inked light themes",
+   "source": "Round 49 · the master round",
+   "line": "On Stone you chose pencil → ink beside the whole course inked. The same change on the other light themes that are inked from the start. Pick the themes where it works; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Dune",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49pencilA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49pencilB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49pencilC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49pencilD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49pencilE"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49dots",
+   "name": "Dots on other themes",
+   "source": "Round 49 · the master round",
+   "line": "You liked the dots on Rothko and on Paper (“very neat, very clean”), not on White and Vermilion. Here on six more themes. Pick the themes where it works; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Jungle Moon",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Blue Room",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Negoro Lacquer",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49dotsD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsE"
+     },
+     "note": ""
+    },
+    {
+     "label": "Hokusai",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "quiet",
+      "scheme": "r49dotsF"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49dotsPlace",
+   "name": "Dots: lower, smaller",
+   "source": "Round 49 · the master round",
+   "line": "The dots have no reflection, so the band can sit a little lower; you suggested that for balance. Bars, then the dots three ways.",
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsPlaceA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Dots as last time",
+     "look": {
+      "accent": "heat",
+      "band": "dots",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsPlaceB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dots, a little lower",
+     "look": {
+      "accent": "heat",
+      "band": "dotsLow",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsPlaceC"
+     },
+     "note": "Lower by 1.5 % of the height."
+    },
+    {
+     "label": "Smaller dots, a little lower",
+     "look": {
+      "accent": "heat",
+      "band": "dotsFine",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49dotsPlaceD"
+     },
+     "note": "Finer dots, more of them in a column."
+    }
+   ]
+  },
+  {
+   "id": "r49strands",
+   "name": "Strands, thinner",
+   "source": "Round 49 · the master round",
+   "line": "The strands were “too thick, too bold”. Here they are as thin as Black Iris’s own, then one step heavier, a little lower than before, on two themes. Last round’s were nearly twice the heavier one.",
+   "variants": [
+    {
+     "label": "Rothko, thin",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49strandsA"
+     },
+     "note": "As thin as the Iris band in production."
+    },
+    {
+     "label": "Rothko, medium",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "medium",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49strandsB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Jungle Moon, thin",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49strandsC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Jungle Moon, medium",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "medium",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49strandsD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Black Iris, thin, its own colours",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49strandsE"
+     },
+     "note": "Silver strands, the front one red, instead of navy and lavender."
+    },
+    {
+     "label": "Paper, thin",
+     "look": {
+      "accent": "loud",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49strandsF"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49ribbon",
+   "name": "A wave instead of strands",
+   "source": "Round 49 · the master round",
+   "line": "Another answer to “not slick enough”: no hairlines at all. The music’s contour is one filled wave in the bars’ colour, with its edge in the hot colour. Watch it play. Pick the themes where it works; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49ribbonA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Jungle Moon",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49ribbonB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49ribbonC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Old Rose",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49ribbonD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49ribbonE"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper",
+     "look": {
+      "accent": "loud",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "r49ribbonF"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49stars",
+   "name": "Stars: smaller toward the rider",
+   "source": "Round 49 · the master round",
+   "line": "You asked for the stars “a little bit thinner near the level where there’s a rider”. The moon alone, then three ways.",
+   "variants": [
+    {
+     "label": "As it is",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "r49starsA"
+     },
+     "note": "The theme in production."
+    },
+    {
+     "label": "Stars as last time",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "stars",
+      "zoom": "steady",
+      "scheme": "r49starsB"
+     },
+     "note": "All the same size, down to the rider’s level."
+    },
+    {
+     "label": "Smaller toward the rider",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsC"
+     },
+     "note": "Full size at the top, less than half at the rider’s level."
+    },
+    {
+     "label": "Only high up",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsHigh",
+      "zoom": "steady",
+      "scheme": "r49starsD"
+     },
+     "note": "No star below the moon."
+    }
+   ]
+  },
+  {
+   "id": "r49crescent",
+   "name": "The crescent on other nights",
+   "source": "Round 49 · the master round",
+   "line": "You were surprised to like the crescent on Old Rose, and suggested it for Winter Moon. Pick the themes where it works; “none” is an answer too. If you keep some: should a night theme show its crescent or stars rarely, or about as often as its full moon?",
+   "variants": [
+    {
+     "label": "Winter Moon, crescent",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentA"
+     },
+     "note": "Winter Moon as last time, with a crescent."
+    },
+    {
+     "label": "Winter Moon, crescent, darker bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentB"
+     },
+     "note": "The bars less pale, as on the themes you chose."
+    },
+    {
+     "label": "Sea Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lantern",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentE"
+     },
+     "note": ""
+    },
+    {
+     "label": "Jungle Moon, golden moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49crescentF"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sea Moon, crescent and stars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescentStars",
+      "zoom": "steady",
+      "scheme": "r49crescentG"
+     },
+     "note": "Both, the stars smaller toward the rider."
+    }
+   ]
+  },
+  {
+   "id": "r49starsNew",
+   "name": "Stars on the new dark themes",
+   "source": "Round 49 · the master round",
+   "line": "The stars, smaller toward the rider, on themes that went in today. Pick the themes where it works; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Sea Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Blue Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewC"
+     },
+     "note": "Its gold sun as a moon among stars."
+    },
+    {
+     "label": "Copper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lantern",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewE"
+     },
+     "note": ""
+    },
+    {
+     "label": "Jungle Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "starsThin",
+      "zoom": "steady",
+      "scheme": "r49starsNewF"
+     },
+     "note": "Last time, beside the moon alone, you kept the moon alone."
+    }
+   ]
+  },
+  {
+   "id": "r49starry",
+   "name": "Starry Night again",
+   "source": "Round 49 · the master round",
+   "line": "You saw potential in Starry Night (ink blue, silver band, a pale gold crescent) but its strands were too thick. The same theme with other bands.",
+   "variants": [
+    {
+     "label": "Thin strands",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49starryA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Wave",
+     "look": {
+      "accent": "heat",
+      "band": "ribbon",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49starryB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dots",
+     "look": {
+      "accent": "heat",
+      "band": "dotsLow",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49starryC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Bars",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "r49starryD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Thin strands, crescent and stars",
+     "look": {
+      "accent": "heat",
+      "band": "strands",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescentStars",
+      "zoom": "steady",
+      "scheme": "r49starryE"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "r49sunset",
+   "name": "The sunset, on the left and smaller",
+   "source": "Round 49 · the master round",
+   "line": "You called the sunset “a good idea” but refused it each time: “too much stuff at the bottom right”. Here the half disc is on the left, away from where the rider heads, and smaller. Pick the themes where it works; “none” is an answer too.",
+   "variants": [
+    {
+     "label": "Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetA"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dune",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetB"
+     },
+     "note": ""
+    },
+    {
+     "label": "Violet and Marigold",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetC"
+     },
+     "note": ""
+    },
+    {
+     "label": "Campfire",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetD"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lantern, moonrise",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetE"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sunset",
+      "zoom": "steady",
+      "scheme": "r49sunsetF"
+     },
+     "note": ""
+    }
+   ]
+  }
+ ]
+}

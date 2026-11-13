@@ -36,9 +36,23 @@ export function prepareHits(account, contacts, centres, byId) {
 const ramp = (s, from, full) => (s - from) / (full - from);
 // Quadratic start, continuing on its tangent above the reference strength.
 const slowRise = s => {const x = ramp(s, 0.3, 0.85); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, 2) : 1 + 2 * (x - 1);};
-const shake = s => Math.min(48, s <= 0.85 ? 24 * smoothstep(ramp(s, 0.6, 0.85)) : 24 + 40 * (s - 0.85)); // px: nothing below 0.6, an S-curve to 24 px at 0.85, gently on (R26)
-const split = s => 14 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15)
-const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
+// px: nothing below `from` (0.6), an S-curve to 24 px at `full` (0.85), gently on (R26)
+export const shake = (s, from = 0.6, full = 0.85) => Math.min(48, s <= full ? 24 * smoothstep(ramp(s, from, full)) : 24 + 40 * (s - full));
+export const split = s => 14 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15)
+export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
+
+/** The response's settings per value of look.hits. v1 is production; the others are in the lab (round 49): the split a quarter
+ * stronger; the shake starting later (`from`, `full`: the strengths where it starts and reaches 24 px) or rising more slowly; shakes
+ * spaced (seconds); the band lit on hits of at least `lit`. */
+export const TUNES = {
+  v1: {},
+  split125: {split: 1.25},
+  shakeLate: {from: 0.67, full: 0.92},
+  shakeGentle: {from: 0.6, full: 1.0},
+  shakeSpaced: {spaced: 1},
+  tuned: {split: 1.25, spaced: 1},
+  lit: {lit: 0.8},
+};
 
 // Hold the peak for at least one 60 fps frame, then recover within 0.25 seconds.
 function envelope(age, energy) {
@@ -49,22 +63,29 @@ function envelope(age, energy) {
 /** One live hit drives all three effects, chosen by strength × remaining envelope; never added together.
  * Output: shake dx/dy and split distance in 1080-wide design pixels, blow direction, colour boost amount.
  * Exaggeration is the lab's viewing aid; it changes amplitudes, never timing or the winning hit. */
-export function hitEffectsAt(hits, time, exaggerate = 1) {
+export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
   let best = 0, hit = null, amount = 0, age = 0;
   for (const h of hits) {
     if (h.time > time) break;
     const elapsed = time - h.time, env = envelope(elapsed, h.energy), score = env * (0.01 + h.strength);
     if (score > best) {best = score; hit = h; amount = env; age = elapsed;}
   }
-  if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, punch: 0};
+  if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  const a = amount < 0.002 ? 0 : shake(hit.strength) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
+  // spaced (lab): a shake that follows another within `spaced` seconds is reduced in proportion, to a quarter at least, so a run of
+  // strong hits does not blur the picture
+  let room = 1;
+  if (tune.spaced) for (const h of hits) {
+    if (h.time >= hit.time) break;
+    if (shake(h.strength, tune.from, tune.full) > 0) room = Math.max(0.25, Math.min(1, (hit.time - h.time) / tune.spaced));
+  }
+  const a = amount < 0.002 ? 0 : shake(hit.strength, tune.from, tune.full) * room * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x, dy: a * y,
-    split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
+    split: amount <= 0.002 ? 0 : split(hit.strength) * (tune.split ?? 1) * exaggerate * amount,
     direction: {x, y},
     boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount,
-    // how hard the picture may answer besides (lab, round 48): nothing below 0.35, full at 0.85
-    punch: Math.min(1.5, smoothstep(ramp(hit.strength, 0.35, 0.85)) * exaggerate) * amount};
+    // lab: the band lights on the strongest hits only, for as long as the hit's own effects last
+    lit: !!tune.lit && hit.strength >= tune.lit && amount > 0.1};
 }
 
 /** The band's heat accumulates recent energy, unlike the single-hit visual response. */

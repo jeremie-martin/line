@@ -33,8 +33,9 @@ const deg = (x: number) => x * 180 / Math.PI;
 type Rejection = {reason: string; near?: Near};
 
 /** Study-only access to rejected evaluations (report only): the search, the normalized
- * control and the reason. Observers must not mutate either. */
-type RejectionObserver = (s: IntervalSearch, c: ArcMotionControl, reason: string) => void;
+ * control, the reason and, for a replay that came apart, its engine (simulated up to the
+ * unbinding). Observers must not mutate any of them, and read the engine inside a physics probe. */
+type RejectionObserver = (s: IntervalSearch, c: ArcMotionControl, reason: string, engine?: Engine) => void;
 let rejectionObserver: RejectionObserver | undefined;
 
 /** Install a rejection observer for one isolated worker task; overlapping studies are rejected. */
@@ -82,12 +83,12 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   work.samples++;
   const saved = memo.get(key);
   if (saved) return reuseMeasurement(s, c, saved);
-  const reject = (reason: string, near?: Near) => {
+  const reject = (reason: string, near?: Near, engine?: Engine) => {
     if (c.receiverFlight !== undefined)
       work.observedReceiverWork.failures[reason] = (work.observedReceiverWork.failures[reason] ?? 0) + 1;
     memo.set(key, {reason, near});
     s.failures[reason] = (s.failures[reason] ?? 0) + 1;
-    rejectionObserver?.(s, c, reason);
+    rejectionObserver?.(s, c, reason, engine);
     return null;
   };
   const built = buildGeometry(s, c, fragments);
@@ -100,7 +101,7 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   // buildable: reject the candidate (before any simulation) rather than fail the compile.
   if (count >= 10000) return reject('id_range');
   const replay = replayCandidate(s, child, prefixFrames);
-  if ('reason' in replay) return reject(replay.reason);
+  if ('reason' in replay) return reject(replay.reason, undefined, child);
   const added = built.added ?? solidPathLines(built.paths);
   s.ctx.lineage.record(s.engine, child, added);
   // Borrowed detector storage is consumed entirely within this evaluation.

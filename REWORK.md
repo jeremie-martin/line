@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): compare review shows whole rides and a geometry sheet
+
+The owner could not judge the few-second before/after passages: two compiler versions build entirely different tracks,
+so there is no single moment to compare. `npm run compare -- review` now writes:
+- the whole rides of a few songs (one per song among those that moved most, `--rides=4`, or `--cases`), both versions in
+  one player that switches between them at the same moment;
+- `geometry.html`, a still sheet of more rides (one per spec, `--sheet=8`) cut into 10-second windows, before left and
+  after right at one scale: lines black, rail guides blue, the sled's path grey, beats red (bigger = stronger ask), and
+  the phrases' constructions under each panel.
+V8 rides are left out (their specs are time-warped away from the recordings): review on V7.1. `passages.ts` and the
+side-by-side composition went with the old review.
+
 ## November 13 (night): strong phrases are offered guides (adopted); why the search keeps strong catches soft
 
 **Why** (`loss_attribution.ts --suite=v8`, seed 101, 2,520 catches before a strong ask):

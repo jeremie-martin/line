@@ -1,5 +1,5 @@
 /** Which candidate source the committed arcs descend from (report only).
- * Compiles V7.1 rides in-process with origin labels enabled (arc_origin.ts):
+ * Compiles V7.1 (or --suite) rides in-process with origin labels enabled (arc_origin.ts):
  * every proposal is labelled with its root source (centre, learned policy
  * lookup, memory, response, generic sweep, opposing entry, compact fold,
  * receiver, recovery, warm start, direct) and every refinement step appends its
@@ -8,7 +8,7 @@
  * read by the compiler; the report checks track identity against a saved arm.
  * Each ride's rows (control, incoming, span, situation features, family) are
  * kept for the variety studies.
- *   node tools/research/candidate_origins.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,...]
+ *   node tools/research/candidate_origins.ts run OUT [--jobs=N] [--seed=101] [--suite=v7.1|v8] [--specs=a~b,...]
  *   node tools/research/candidate_origins.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -19,8 +19,8 @@ import {withSequenceObserver} from '../../scripts/v0/optimizer/arc_sequence.ts';
 import {arcOrigins, originOf, rootOf} from '../../scripts/v0/optimizer/arc_origin.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
-const SUITE = 'tools/eval/suites/v7.1.json';
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
+const SUITE = `tools/eval/suites/${arg('suite', 'v7.1')}.json`;
 
 async function worker(id: string, seed: number) {
   const c = (await v7Cases([seed], '.', SUITE)).find(x => `${x.song}~${x.variant ?? 'spec'}` === id);
@@ -119,5 +119,5 @@ else if (command === 'run') {
   mkdirSync(out);
   writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.candidate-origins.v1', seed, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--suite=${arg('suite', 'v7.1')}`]));
 } else report(out, process.argv[4]);

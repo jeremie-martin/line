@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (night): hypothesis, ask the learned sources for a little more (stated before running)
+
+- **Basis.** The catalogue, network and memory demonstrations are labelled with the asks their moves faced. Those moves, like
+  today's rides, landed softer than asked on strong asks (about 0.12 below at every gap length on V8). Asked for 0.85, a
+  source returns moves that tended to give about 0.73.
+- **Change** (`exp/raised-ask-proposals`, `arc_proposals.ts`). Before a strong catch, half of the policy slots and half of the
+  memory slots query their source with the ask raised by 0.15, phased in like the steep arrival (ask 0.4 none, 0.8 all).
+  Ranking, local search and every cost still use the true ask; the number of proposals is unchanged.
+- **Hypothesis.** Pools get moves that land near the ask; strength on strong asks up, G up; no new cost in physics.
+- **Risk.** Half the slots leave the situation the sources know best; spans (speed, air) and extras may lose.
+- **Measure.** V8, 4 seeds, paired against `compiler`.
+
 ## November 13 (night): hypothesis, hindsight memory (stated before running)
 
 - **Basis.** On V8 the loss is mostly strong asks landing too soft (G 64% of the grade's loss); for 30% of the squared
@@ -13,6 +25,11 @@
   asks up, G and the dense categories up.
 - **Risk.** The 16 memory slots get crowded by hard-hitting moves with poor spans; strong extra impacts rise.
 - **Measure.** V8, 4 seeds, paired against `compiler`; every ruler; ride character if it gains.
+- **Result: not adopted.** A first run measured nothing: the beam commits each interval with its pool reduced to the
+  chosen candidate, so no hindsight move was ever stored (fixed on the branch: about 190 moves per ride). Then, V8:
+  **+1.5 [−3.6, +6.5]**, 23 specs up, 20 down; G 0.0, P1 −6.1, P6 +6.5. Strong asks too soft gain only +0.3; body drag −3%,
+  strong extras −7%. The ride's own strongest candidates had already lost to the same trade-off (mostly speed), and they
+  add nothing where the pool had nothing closer.
 
 ## November 13 (evening): the ending refinement deleted; V8 baselined
 

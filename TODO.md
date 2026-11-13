@@ -57,6 +57,19 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
       enters compile identities (`specSha256`). `select.json` (with its `render`
       block) went with the production characterization (2026-11-11).
 
+12. **Direction (owner, 2026-11-13).**
+    - **Here, on `visual-lab`:** the look. New themes, better versions of the themes not loved, the painting, the hit
+      effects. After that, the specifications (below).
+    - **Compiler: another agent, another machine, a branch from `visual-lab`.** The goal is never the score alone: a
+      950 compiler once made boring, repetitive tracks. Check ride character (`ride_character.ts`) with every gain.
+    - **A harder benchmark** (for that agent; cheap, not a new benchmark from scratch): the current specs made a bit
+      faster and shorter, with more contrast or higher asks, plus some held-out specs or variations of them. Keep a few
+      specs held out.
+    - **Specifications, soon.** The recent ~20 were drafted by agents and reviewed once: good, not production grade.
+      Wanted: more ambitious ones like Circus Minimus.
+      - Circus Minimus: the passage synchronized to the voice is the favourite (many short gaps). The chorus voice goes
+        on 15–20 s longer than the spec follows it: extend it, and try slightly stronger asks there.
+
 ## Open questions kept from the retired night report (asked 2026-10-05)
 
 The compiler has changed since. Answer them against current rides.

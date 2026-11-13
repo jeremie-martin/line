@@ -4,10 +4,8 @@ The project makes videos in bulk: many songs and specifications, many themes, no
 says what every video has in common, how each video's look is chosen, and how the look may change. It is also the brief
 for anyone, person or agent, who refines a theme or adds one.
 
-The settled parts were each chosen by the owner, comparing versions in the lab: rounds 1 to 44, October and November 2026.
-The owner's answers are kept verbatim outside the repository; commits and `REWORK.md` record what changed and why. What
-the owner *likes* is not understood well enough to be written down as rules (see "What we know about taste" below), so
-this page records decisions and evidence, not a theory.
+Every settled part was chosen by the owner, comparing versions in the lab. What the owner *likes* is not understood well
+enough to be written down as rules (see "What we know about taste" below), so this page records decisions, not a theory.
 
 ## One renderer
 
@@ -18,28 +16,25 @@ look (`picture.js`). Videos are 1080 × 1920, encoded once, colour-tagged, and c
 
 ## What every video has
 
-These are fixed for all themes (`look.js` `V1`; round numbers in brackets):
+These are fixed for all themes (`look.js` `V1`):
 
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
-  its strongest frame, and everything it triggers runs from there [R23]. Contacts are compiled at the authored times; the
-  old 15 ms "jolt" is gone (11 November).
-- **Camera.** Follows the rider's direction, 15 % closer than the first videos, a steady zoom, and the whole course shown
-  at the start and the end [R1–R7]. No camera motion except a shake on strong hits.
-- **The line.** Drawn in pencil and inked as the rider passes [R1, R5]; some themes ink the whole course or the whole rail
-  on first touch.
-- **The music.** A band at the bottom, low-middle [R3]: bars in most themes, a fork or the Iris contour in a few. The
-  hottest bars take the accent, following recent hits (heat) [R4].
+  its strongest frame, and everything it triggers runs from there.
+- **Camera.** Follows the rider's direction at a steady zoom, and shows the whole course at the start and the end. No
+  camera motion except a shake on strong hits.
+- **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
+  touch.
+- **The music.** A band at the bottom, low-middle: bars in most themes, a fork or the Iris contour in a few. The hottest
+  bars take the accent, following recent hits.
 - **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. A shake only on
-  strong hits, from 0.6, growing to 24 px at 0.85 [R23–R26].
-- **Colour follows the ride.** When the ride is intense, colour grows more vivid: vibrance on a soft-start curve, nothing
-  below intensity 0.3, full at 0.9, the paper at half strength [R33–R37]. The calm part of a song is the theme exactly as
-  designed. How the intensity is measured: commit 711cb0dc (round 36).
-- **No names on screen.** A theme's name is never shown in a video. Only the collection's demonstration film shows names.
+  strong hits, from 0.6, growing to 24 px at 0.85.
+- **Colour follows the ride.** When the ride is intense, colour grows more vivid: nothing below intensity 0.3, full at
+  0.9, the paper at half strength. The calm part of a song is the theme exactly as designed.
 
 ## The collection
 
-`scripts/video/collection.js` holds the themes in production: 24 on 11 November, 13 dark and 11 light. Each is the exact
-specification judged under its name, copied from the judging registry, with the hash that identifies it.
+`scripts/video/collection.js` holds the themes in production, dark and light. Each is the exact specification the owner
+chose, with the hash that identifies it.
 `tests/video_renderer.test.ts` proves that every production theme draws exactly what was judged. A theme is its colours
 (ground, line, pencil, bars, hot bar, sun) plus a few choices: the band, a sun or the song title on top, how the line is
 inked, and whether colour follows the ride.
@@ -47,9 +42,9 @@ inked, and whether colour follows the ride.
 **Choosing a video's look** (`choose.js`): from the ride's id, so the same ride always gets the same look.
 - 75 % of videos get a light theme.
 - For a light theme whose song has a drop, a drop half the time.
-- These shares are the owner's starting point (11 November), not a finding.
+- These shares are a starting point, not a finding.
 
-**Drops** (`collection.js` `DROPS`, rounds 43–44): only light to dark. At the drop the picture takes a dark partner's
+**Drops** (`collection.js` `DROPS`): only light to dark. At the drop the picture takes a dark partner's
 colours and keeps the light theme's layout, hot note and sun, so nothing moves and the sun never appears or leaves. Each
 light theme lists the partners the owner kept, with weights. Paper Print's pure black and white exists only as a drop
 partner (`DROP_ONLY`).
@@ -71,44 +66,35 @@ registry (`generated/concept-lab/rate/themes.jsonl`) binds each name to one spec
    `collection.js`, and update the theme count in the test. Render its stills by name and check them against the frozen
    ones.
 
-**The judging site** (`/rate/<set>`, pairwise comparisons with a Bradley–Terry fit) ranks many themes at once. It was useful
-for learning what works. It is the wrong tool for fixing a theme, and it is not needed to add one.
-
 **Judging conditions matter.**
 - Colour judgments need a neutral screen. The owner's desktop runs Redshift at 3,500 K at night, which turns white grounds
-  tan and greys pale blues. All of round 38 and the first answers of round 40 were made through it.
-- On a neutral screen, dark against light is about even: the dark theme won 57 % of mixed pairs on desktop by day and 44 %
-  on the phone, against 70 % at night.
+  tan and greys pale blues, so judgments made through it don't hold.
 - Remind the owner before any colour round; the phone is a good default. Judgments of form (the band, a sun, the inking)
   are less affected.
 
-**Comparisons ask one question at a time.** A version differs in what the question is about and nothing else, and the
-lab shows its name on screen. Four-up films are for showing finished looks, not for comparing.
+**What a page compares depends on the request.** To settle one point (this bar colour or that one), the versions differ in
+that point only. To explore ("a blue theme with some green", or "something is off in this one, I can't say what"), the
+versions may differ freely: ten different takes are fine. Each version shows its name on screen.
 
 ## What we know about taste, and what we don't
 
-Two things are measured.
-- **No agent can stand in for the owner's eye.** On 40 of the owner's comparisons, held out and predicted blind, Claude
-  matched 65 % [50, 78]. The rule "the darker theme wins" scores the same; where Claude departed from it, it was right 8
-  times in 16. Agents propose; only the owner judges.
-- **One-variable pairs in the comparisons:** a cream track instead of an orange one (Negoro), about +1.1 in strength, about
-  three comparisons in four.
+**No agent can stand in for the owner's eye.** Asked to predict 40 of the owner's comparisons blind, Claude matched 65 %,
+no better than the rule "the darker theme wins". Agents propose; only the owner judges.
 
-The rest is the owner's own words, which are decisions or observations, not laws:
-- **The track is never a colour.** A coloured track "just doesn't feel right".
+The rest is what the owner has said so far. These are observations and defaults, not laws:
+- **The track is a neutral by default,** not a colour. A cream track beat an orange one clearly. A dark navy or similar is
+  possible if the owner asks for it.
 - **One hot note, vivid like a pigment, never neon.** It stands apart from the bars.
-- **A muted theme has to be exceptional to earn its place.**
-- **A new theme must bring something the collection lacks.** Themes were declined for repeating one already in.
-- **Red grounds**, said through Redshift, are unconfirmed on a neutral screen.
-- **Pencil is a quiet neutral, never a hue of its own.**
-- **Titles are a minority** ("I like it, but don't love it").
+- **No ground that is too red.** None has been liked.
+- **The pencil line** (the track before the rider inks it) **is a quiet neutral,** not a hue of its own.
+- **The song title on top suits few themes.** Most carry a sun or nothing.
 
-Earlier write-ups (`generated/concept-lab/docs/TASTE.md`, `THEME-CRAFT.md`) drew correlations from a few dozen graded looks.
-Read them as history, not as a recipe. The collection's best themes were found by looking, not derived.
+The collection's best themes were found by looking, not derived from rules.
 
 ## Parked
 
-- **New kinds of music visualisation**, an open idea the owner raised on 11 November. Today's bars are liked.
+- **New kinds of music visualisation.** Today's bars are liked.
+- **The collection page's lag.**
 - **Batch scheduling**, ordering and parallelism for overnight runs.
 - **The shares in `choose.js`**, to be tuned once many videos exist.
 

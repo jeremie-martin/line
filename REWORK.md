@@ -13,6 +13,18 @@
 - **Hypothesis:** fewer lines crossed by the rider (counted on the saved rides); folds a little better where a catch
   touches the lead-in early (24% of lead-ins are touched); V8 within noise or up; no family loses its look.
   Measure: V8 4 seeds paired against `compiler`; crossings per ride.
+- **Result: adopted** (a cleaner look at no cost; no ride lost, physics unchanged):
+
+  | panel | change | interval | strong extra impacts |
+  |---|---|---|---|
+  | V8, 4 seeds | +0.0 | [−6.5, +6.5], 23 specs up / 20 down | −12% (0.15 against 0.17 per 100 beats) |
+  | V7.1, 4 seeds | +0.5 | [−0.3, +1.2], support 0.93 | −36% (0.10 against 0.16) |
+
+  - Lead-ins crossed by the rider (`tools/research/crossings.ts`, V8 seeds 101 and 202, 98 rides): 9.6 against 12.9 per
+    ride (−26%). Crossings of 3 px or more overall are unchanged (27.9 against 28.2): most crossings are 1–2 px sled
+    dips on the curve being ridden, and the guides' (51 by the body, 45 by the sled per ride) are next.
+  - Body drag +0% on V8, +2% on V7.1; head-down strong arrivals −4% and 0%.
+  - Parity references refreshed (the lead-in moves wherever an entry is steeper than the arrival).
 
 ## November 13 (late): G1, untouched curve ends trimmed (built, for the owner's eye; not adopted)
 

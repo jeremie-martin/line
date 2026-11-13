@@ -37,7 +37,9 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Still open from November 1:
      - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
        quality there is the same strong-too-soft story as elsewhere;
-     - geometry hygiene (G1–G4);
+     - geometry hygiene (G1–G4): G2 adopted 2026-11-13 (lead-ins never rise into the arrival path: −26% crossed,
+       score neutral, strong extras −12 to −36%); G1 (untouched curve ends trimmed, rides identical, −13% drawn length)
+       built on `exp/trim-untouched-ends` for the owner's eye; G3, G4 open;
      - unwanted impacts (U2, U3; guide touches on beats);
      - the measure (visibility study);
      - benchmark fitness.

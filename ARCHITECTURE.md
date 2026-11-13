@@ -372,6 +372,10 @@ A geometry family is one row of `GEOMETRY_FAMILIES`
   the fulfilment checks and reports see the realized requests. This replaced a
   9-frame threshold on 2026-11-01 (docs/research/overnight-20261101.md).
 
+Every main curve starts with a straight lead-in laid back from its anchor (`arc_geometry.ts`), along the shallower of
+the entry and the arrival heading (the steeper for a surface met from above), so it never rises into the rider's path
+just before the catch (since 2026-11-13; REWORK.md).
+
 Everything else is shared machinery. Plain `arcs` and `scattered` fragments
 are rows without a heading, and the planner, search and layout checks treat
 them by name. Row order is the default repertoire and the planner's draw

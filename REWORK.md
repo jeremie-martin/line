@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (night): hypothesis, the search weights after the archive's removal (stated before running)
+
+- **Basis.** `impactWeight` 1, `valueWeight` 0.45 and `arrivalWeight` 0.3 (`connected_arcs.ts`) were set with the 52 MB
+  archive's proposals. The compact sources propose differently (weaker strong catches), and no weight was checked since.
+- **Arms** (one line each, `exp/w-*`): impact weight 1.5; value weight 0.3 and 0.6; arrival weight 0.45.
+- **Hypothesis.** At most one of them moves V8 by more than seed noise; a stronger impact weight trades speed for strength.
+- **Decision rule.** A weight changes only for a gain of about +3 or more whose interval excludes zero on V8, no loss on
+  V7.1, and no guard worse; otherwise the archive-era values stay.
+
 ## November 13 (night): hypothesis, a beam slot for the fastest arrival (stated before running)
 
 - **Basis.** A strong hit removes kinetic energy by its very definition: one inelastic contact of strength s takes about
@@ -13,6 +22,8 @@
 - **Hypothesis.** Strong passages entered with more speed: strength and speed up on G and the dense categories.
 - **Risk.** A ranked slot is lost; fast arrivals overshoot speed and air in calm passages.
 - **Measure.** V8, 4 seeds, paired against `compiler`.
+- **Result: not adopted.** V8 **−4.7 [−10.6, +1.3]**, 15 specs up, 28 down; P2 −17.6 (Circus `voice-drums` −62), strength
+  −1.8, speed −2.0; strong extras −21%. Keeping a fast prefix costs a ranked one, and the speed it banks is not spent well.
 
 ## November 13 (night): hypothesis, ask the learned sources for a little more (stated before running)
 

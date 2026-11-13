@@ -1,5 +1,35 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (night): why the search keeps strong catches soft, and a hypothesis on open arcs (stated before running)
+
+**Why** (`loss_attribution.ts --suite=v8`, seed 101, 2,520 catches before a strong ask):
+- The arrival prior asks for √(v² + Δv²) before a strong catch, enough to hit and leave at the authored speed. The kept
+  arrival averages 11.1 px/frame against 12.3 asked; 57% arrive more than 1 px/frame short.
+- In 71% of those intervals the pool held an arrival fast enough. Against the kept move, the fastest-enough alternative
+  costs, on average, +0.17 in this catch's squared strength residual, +0.06 in the other preferences, +0.02 air,
+  +0.003 speed. Keeping speed for the next strong hit means hitting softer now: consecutive strong catches share one
+  energy budget, and only descent refills it. The weight sweep agrees: the search sits at its optimum.
+
+**Where the families differ** (strong asks on V8, complete rides; within a context the family is drawn by the seed):
+
+| family | strong catches | short of the ask | speed residual after |
+|---|---|---|---|
+| open arcs (guide forbidden) | 3,264 | 0.147 | −0.054 |
+| arcs offered a guide | 1,382 | 0.101 | −0.029 |
+| scattered | 1,173 | 0.111 | −0.029 |
+| terraces | 1,230 | 0.123 | −0.040 |
+| scallops | 979 | 0.124 | −0.037 |
+| serpentine | 1,139 | 0.131 | −0.050 |
+| fold | 913 | 0.159 | −0.066 |
+
+The planner forbids the guide in about a third of every loud phrase (weight 1 − 11/17), whatever the asks.
+
+**Hypothesis** (`exp/guides-on-strong-phrases`, `intentional_repertoire.ts`). In a strong phrase, the open arcs' share
+becomes arcs offered a guide, phased in over the phrase's mean ask from 0.4 (none) to 0.8 (all). Other families and quiet
+or middle phrases are unchanged. Strength and speed up on strong asks; V8 up, mostly G. **Cost to watch:** fewer open arcs
+in intense passages (variety), more guide lines drawn, upper contact and body drag. Measure: V8 then V7.1, 4 seeds,
+paired against `compiler`; geometry mix and ride character.
+
 ## November 13 (night): hypothesis, the search weights after the archive's removal (stated before running)
 
 - **Basis.** `impactWeight` 1, `valueWeight` 0.45 and `arrivalWeight` 0.3 (`connected_arcs.ts`) were set with the 52 MB

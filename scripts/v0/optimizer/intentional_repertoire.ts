@@ -4,6 +4,7 @@ import {makeRng} from '../../lib/rng.ts';
 import {planRepertoire,creativePreferences,validateProductionPlan,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
 import {repertoireContexts,repertoireMusicHash,type ContextSpec} from './repertoire_context.ts';
 export const INTENTIONAL_REPERTOIRE_POLICY='line.repertoire-policy.v2';
+const smoothstep=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
 export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:CreativePreferences={},boundaries:number[]=[]):ProductionPlan{
   // V1 supplies validated timeline and boundary semantics, never a selected physical ride.
   const scaffold=planRepertoire(spec,seed,input,boundaries),preferences=creativePreferences(input),contexts=repertoireContexts(spec);
@@ -23,13 +24,18 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     // Calmness adjusts a preference, not a hard ban on functional guidance.
     const guided=guidedBalance*(1-.82*quiet),connected=repertoire.filter(c=>c!=='scattered');
     const choices:Array<{construction:Construction;guidance:Guidance;weight:number}>=[];
-    if(repertoire.includes('arcs'))choices.push({construction:'arcs',guidance:'forbidden',weight:(1-scatter)*(1-guided)});
+    // Strong catches land harder and keep more speed with a guide offered (V8: open arcs 0.15 short of strong asks and
+    // 0.054 slow after them; arcs offered a guide 0.10 and 0.029). In a strong phrase the open arcs' share becomes arcs
+    // offered a guide, phased in over the phrase's mean ask from 0.4 (none) to 0.8 (all).
+    const strong=contexts.slice(first,first+count).reduce((n,c)=>n+smoothstep(((c.impact??0)-.4)/.4),0)/count;
+    const open=repertoire.includes('arcs')?(1-scatter)*(1-guided):0;
+    if(open)choices.push({construction:'arcs',guidance:'forbidden',weight:open*(1-strong)});
     for(const construction of connected){
       const fraction=construction==='arcs'?1-variation+variation/connected.length:variation/connected.length;
       // A guide is offered, never required: the search uses it where it helps the
       // catch (most shaped sections do) instead of buying a forced touch, the main
       // source of unwanted impacts (REWORK.md, November 1).
-      choices.push({construction,guidance:'optional',weight:(1-scatter)*guided*fraction});
+      choices.push({construction,guidance:'optional',weight:(1-scatter)*guided*fraction+(construction==='arcs'?open*strong:0)});
     }
     choices.push({construction:'scattered',guidance:'optional',weight:scatter});
     for(const c of choices)if(c.construction+':'+c.guidance===previous)c.weight*=.25;

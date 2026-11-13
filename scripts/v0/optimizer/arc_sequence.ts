@@ -163,6 +163,17 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
         chosen.push(measured);
       }
     }
+    // When the beam has room for three, one more slot keeps the distinct continuation that arrives fastest: speed lost to
+    // strong catches comes back only by descending, so a prefix that banks speed pays locally and only later passages
+    // (past the ranking's two-interval prediction) can show what it was worth.
+    if (width >= 3 && i < contacts.length - 1) {
+      let fastest: Offer | undefined;
+      for (const o of offered) if (!fastest || o.candidate.endSpeed > fastest.candidate.endSpeed) fastest = o;
+      if (fastest && chosen.every(o => o.candidate !== fastest!.candidate && distinctArrival(o.candidate, fastest!.candidate))) {
+        if (chosen.length >= width) chosen.splice(chosen.length - 2, 1);
+        chosen.push(fastest);
+      }
+    }
     sequenceObserver?.(i, offered, chosen, ctx, protectedEngines);
     if (firstComplete) work.terminalSelectionStats = {candidates: offered.length, initialLoss: firstComplete.candidate.terminalLoss,
       finalLoss: chosen[0].candidate.terminalLoss, changed: chosen[0] !== firstComplete};

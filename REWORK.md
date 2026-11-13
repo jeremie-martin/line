@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13: round 46, picks into the collection; round 47
+
+The owner answered round 46 (`?set=refine2`) the same day. Nine versions joined the collection, which now has 47 themes (set
+`2026-11-13-round46`): Cobalt with a lime bar; Forest Green with a cream moon and on a pine night; Amber and Violet, Sumi and
+Amber, Pine and Amber; Cerulean and Coral on a night ground, with the title or a cream moon; Stone (new). The three amber
+themes take Amber and Purple's drop partners, not judged apart.
+
+Not added: the bluer Hokusais and the black line, although picked, because the owner asked to compare the black line on each
+blue first (round 47, page 1); Peony on warm white, picked with "not my favourite".
+
+What did not work: white with one deep colour (page 10) and themes from pictures (page 12): "none". What did: quiet grounds with
+dark near-neutral bars and one warm note (Stone, Sumi, Pine). Round 47 (`?set=refine3`, `round47.mjs`) follows the owner's
+remarks page by page and tries more themes of that kind.
+
 ## November 13: round 45, the collection theme by theme
 
 **The round.** Every theme on its own page (`?set=refine1`, `generated/concept-lab/round45.mjs`): the theme as it is and five

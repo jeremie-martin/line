@@ -1,6 +1,6 @@
 # Foundations rework (started 2026-10-03)
 
-## November 13 (night): why the search keeps strong catches soft, and a hypothesis on open arcs (stated before running)
+## November 13 (night): strong phrases are offered guides (adopted); why the search keeps strong catches soft
 
 **Why** (`loss_attribution.ts --suite=v8`, seed 101, 2,520 catches before a strong ask):
 - The arrival prior asks for √(v² + Δv²) before a strong catch, enough to hit and leave at the authored speed. The kept
@@ -29,6 +29,27 @@ becomes arcs offered a guide, phased in over the phrase's mean ask from 0.4 (non
 or middle phrases are unchanged. Strength and speed up on strong asks; V8 up, mostly G. **Cost to watch:** fewer open arcs
 in intense passages (variety), more guide lines drawn, upper contact and body drag. Measure: V8 then V7.1, 4 seeds,
 paired against `compiler`; geometry mix and ride character.
+
+**Result: adopted.**
+
+| panel | change | interval | specs up / down |
+|---|---|---|---|
+| V8, 8 seeds | **+7.7** | [+4.1, +11.3], support > 0.99 | 40 / 3 |
+| V7.1, 8 seeds | **+4.0** | [+0.4, +7.7], support 0.98 | 31 / 4 |
+| held out (4 songs, 4 seeds) | **+13.9** | [−7.4, +35.1], support 0.94 | 4 / 0 |
+
+- V8 by category (8 seeds): G +16.0, P1 +8.3, P2 +1.1, P3 +5.3, P4 +8.6, P5 +7.1, P6 +11.1, P7 +4.2; explicit +3.8.
+  V7.1: G +12.6, P6 −5.3 (its single long ride), explicit +4.9. No ride lost anywhere; physics unchanged.
+- **Where the points come from** (V8, 4 seeds): strong asks too soft +6.2, speed +1.0, air +0.9, extra hits +0.5.
+- **Costs and guards:** body drag +13% on V8, +16% on V7.1, +10% held out (an eye proxy, reported, not a veto);
+  strong extra impacts 0.19 against 0.16 per 100 beats on V8, 0.14 against 0.12 on V7.1, 0.07 against 0 held out;
+  strong arrivals head-down or backward −12% on V8, −5% on V7.1, −16% held out.
+- **Ride character** (V8, 196 rides paired): strong beats hit from above +3.2 points [2.1, 4.3] (the archive version
+  was +2.3 over today), all beats +2.3; guide contact +1.7 s/min; air −1.2 points; body contact +1.2 s/min.
+- **Variety:** open arcs 35% → 25% of ride time, arcs offered a guide 13% → 23%; other families unchanged; distinct
+  families per ride 5.88 → 5.76. Open arcs now come in middle and quiet passages only.
+- Parity references refreshed: 13 of 25 cells change (their plans change). For the owner's eye: fewer open arcs in
+  intense passages, more upper hits.
 
 ## November 13 (night): hypothesis, the search weights after the archive's removal (stated before running)
 

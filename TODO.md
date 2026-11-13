@@ -27,15 +27,10 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
-9. **Compiler work.** Baseline: the merged main, V7.1 **812.1** (4 seeds; reference `merged`, 2026-11-11). The construction-policy
-   archive is still frozen (REWORK.md, November 8).
-   - **Replacing the archive: the night of November 11** (REWORK.md, "November 11 (night)").
-     - The best archive-free version is `exp/compact-sources-memory` (210 KB): −11.7 [−17.9, −5.5], held out −15.6.
-     - The 107 KB `exp/compact-sources` scores −14.7, held out −19.9, with ride character kept.
-     - Compact sources plateau: more styles, more memory moves and more data don't help.
-     - Generating moves (readable physics, staged probes, a forward model) failed.
-     - **Owner's call:** adopt one of the two (and at what loss), or keep the archive.
-     - Open question: what does the remaining strong-beat gap on everyday songs need?
+9. **Compiler work.** Baseline: visual-lab with the compact construction sources (210 KB, adopted 2026-11-13 in place of the
+   52 MB archive; REWORK.md). It scores −11.7 [−17.9, −5.5] against the archive version (812.1 on V7.1), held out −15.6.
+   - Open question: the remaining strong-beat gap on everyday songs (chain setup). Compact sources plateau (more styles, more
+     memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
    - **Owner's call:** delete the ending refinement. Removing it costs 0.2
      points on today's main, as on November 1; it uses 1% of physics
      frames. The November 1 deletion branch `exp/no-tail-refinement`

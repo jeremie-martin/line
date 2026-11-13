@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13: the compact sources replace the archive
+
+**Decision (owner).** The 210 KB version is adopted on visual-lab: "reducing it to 200 kilobytes, to me, is completely
+acceptable." The 52 MB archive is gone from the tree (last at `ad969bfb`).
+
+- **What it is:** `exp/compact-sources-memory`: the catalogue, the 57-feature network, and 493 representative demonstrations for
+  the memory lookup.
+- **What it costs** (the night of November 11, below): −11.7 [−17.9, −5.5] on V7.1 at 8 seeds, held out −15.6 [−20.9, −10.4];
+  no ride lost; ride character kept. The loss is mostly strong beats too soft on everyday songs.
+- **Parity references refreshed** (9 of 25 cells changed: this is a behavioural change). Tests, typecheck, reach, parity and judge
+  parity pass.
+- **Not judged by eye.** The review clips offered on November 11 could not be judged: the two versions build different tracks
+  for the same song, so there is nothing to compare side by side. The adoption rests on the numbers and the owner's size
+  preference.
+- **A new reference is needed** for later comparisons: the baseline is now this commit, not `merged`.
+
 ## November 11 (night): replacing the archive, what moves the score and what doesn't
 
 **The goal (owner).** A compiler without the 52 MB construction archive that at least matches main. It should be clean and

@@ -39,8 +39,8 @@ and validation are in [music authoring](docs/music-authoring.md).
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section
    by section (`arc_sequence.ts`); for each section it:
    - proposes geometry (`arc_proposals.ts`) from several sources: the
-     parametric centre, learned retrieval from the construction-policy
-     archive (`arc_control_policy.ts`, `arc_memory.ts`; see "Construction
+     parametric centre, learned proposals from the compact
+     construction-policy sources (`arc_control_policy.ts`, `arc_memory.ts`; see "Construction
      policies" below), memory of earlier sections, response directions, a
      generic sweep and observed receivers;
    - measures each proposal by native replay from the section's physical
@@ -446,23 +446,28 @@ log):
 - **Future ranking:** a single geometry-aware model predicts the next two
   intervals. It ranks alternatives; it does not supply local response gradients.
   Its training groups exclude the four production evaluation songs.
-- **Construction policies (the archive):** 79,778 demonstrations, the
-  committed controls of 838 compiles of the November 7 compiler (6e815a57)
-  plus two earlier transfer-layout collections, on songs disjoint from the
-  evaluation panel (`repertoire_policy_model_v3.json`, 52 MB as gzip;
-  trainer `tools/research/train_construction_v3.py`).
-  - Two lookups read it, only to propose starting controls for each
-    section after the first (`proposeInitialControls`): 16 policy
-    proposals (proximity trees) and 16 memory proposals (feature distance,
+- **Construction policies (compact sources, 210 KB):** three small sources
+  distilled from the committed controls of earlier compiles, on songs
+  disjoint from the evaluation panel (`repertoire_policy_model_v3.json`;
+  its `provenance` names each source's commit):
+  - a **catalogue** (a table and 64 styles per situation);
+  - a **network** over 57 features of the arrival, the rider's body and the
+    asks ahead (one hidden layer, 32 residual styles);
+  - **493 representative demonstrations** (medoids per construction group)
+    for the memory lookup.
+  - They are read only to propose starting controls for each section after
+    the first (`proposeInitialControls`): 16 policy proposals (catalogue
+    and network, weights 64:32) and 16 memory proposals (feature distance,
     over the demonstrations and the ride's own earlier commits).
   - Every proposal is replayed and ranked like any other. Local search,
-    ranking, the learned estimate and the priors never read the archive.
-  - It starts 73% of committed arcs, and it is worth about 70 headline
-    points: mostly reliable hard hits on strong beats (REWORK.md,
-    November 8).
-  - **Frozen since 2026-11-08:** no more retrains, pinned by
-    `tests/policy_archive_frozen.test.ts`. Readable mechanisms are to
-    take over its work step by step, until it can be removed.
+    ranking, the learned estimate and the priors never read them.
+  - **History.** Until 2026-11-13 this was a 52 MB archive of 79,778
+    demonstrations (last at `ad969bfb`). The compact sources score
+    −11.7 [−17.9, −5.5] against it on V7.1 at 8 seeds and −15.6 on held-out
+    songs; the owner accepted that for the size. The remaining loss is
+    mostly strong beats too soft on everyday songs (REWORK.md, November 11
+    and 13).
+  - Pinned by `tests/policy_archive_frozen.test.ts`.
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 

@@ -320,7 +320,11 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
   }
   if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && steep < 1) {
     const angle = deg(Math.atan2(finalVelocity.y, finalVelocity.x));
-    const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
+    // Arrivals between −15° and 45° are free, and the upper bound rises to the heading that a flight of the span's
+    // asked air time reaches from a 15° release at the asked speed: a long float cannot help arriving steep.
+    const flight = (targets.air ?? 0) * (s.next - s.frame), speed = authoredSpeedToPx(targets.speed ?? .55);
+    const upper = Math.max(45, deg(Math.atan2(speed * Math.sin(Math.PI / 12) + .175 * flight, speed * Math.cos(Math.PI / 12))));
+    const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, angle - upper, -15 - angle) / 30;
     residuals.push(r);
     cost += r * r;
     heading = r * r;

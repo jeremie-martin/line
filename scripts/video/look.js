@@ -12,11 +12,16 @@ export const OPTIONS = {
   scheme: ['Colour', SCHEME_NAMES],
   // `paper` is the saved look key, including frozen theme identities; the response now covers the whole palette.
   paper: ['Colour response', COLOUR_RESPONSES],
-  line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
-  band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris'}],
+  line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink', trail: 'Pencil → ink, the stretch just ridden in the accent (lab)'}],
+  band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris',
+    // in the lab (round 48)
+    mirror: 'Bars both ways from a centre line', dots: 'Columns of dots', skyline: 'Bars without gaps', wide: 'Fewer, wider bars', strands: 'Strands in the theme’s colours'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
   bandHeight: ['Band height', {lowmid: 'Low-middle'}],
-  top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title'}],
+  top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title',
+    // in the lab (round 48; sky.js)
+    crescent: 'Crescent', stars: 'Moon and stars', ring: 'Ring', great: 'Great pale disc', horizon: 'Sun on the horizon', rays: 'Sun with the music as rays',
+    hills: 'Sun over hills', fuji: 'Sun and a mountain'}],
   riderLower: ['The rider sits lower by', {'0': 'Nothing'}],
   sunRider: ['With a sun, the rider sits lower by', {'32': '32 px'}],
   sunLift: ['The sun sits higher by', {'16': '16 px'}],
@@ -24,7 +29,10 @@ export const OPTIONS = {
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
-  hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing'}],
+  hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
+    // in the lab (round 48): v1 at another strength, or v1 and one more answer
+    soft: 'v1, a third weaker', strong: 'v1, a third stronger', sunKick: 'v1, and the sun swells', bandKick: 'v1, and the band jumps',
+    wash: 'v1, and the whole band takes the accent', burst: 'v1, and strokes fly from the impact', dust: 'v1, and dust flies from the impact'}],
 };
 
 export const V1 = {

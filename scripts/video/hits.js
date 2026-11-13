@@ -27,7 +27,9 @@ export function prepareHits(account, contacts, centres, byId) {
         }
       }
     }
-    return [{time: e.peak / FPS, strength: e.strength, energy: strength(e.strength), normal: nrm}];
+    return [{time: e.peak / FPS, strength: e.strength, energy: strength(e.strength), normal: nrm,
+      // where the rider is at the peak, set down on the line it struck (lab, round 48: what flies from an impact starts here)
+      pos: (c => c ? {x: c.x - 14 * nrm.x, y: c.y - 14 * nrm.y} : null)(centres[Math.min(e.peak, centres.length - 1)])}];
   });
 }
 
@@ -56,13 +58,15 @@ export function hitEffectsAt(hits, time, exaggerate = 1) {
     const elapsed = time - h.time, env = envelope(elapsed, h.energy), score = env * (0.01 + h.strength);
     if (score > best) {best = score; hit = h; amount = env; age = elapsed;}
   }
-  if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0};
+  if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, punch: 0};
   const x = -hit.normal.x, y = -hit.normal.y;
   const a = amount < 0.002 ? 0 : shake(hit.strength) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x, dy: a * y,
     split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},
-    boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount};
+    boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount,
+    // how hard the picture may answer besides (lab, round 48): nothing below 0.35, full at 0.85
+    punch: Math.min(1.5, smoothstep(ramp(hit.strength, 0.35, 0.85)) * exaggerate) * amount};
 }
 
 /** The band's heat accumulates recent energy, unlike the single-hit visual response. */
@@ -70,4 +74,11 @@ export function hitHeatAt(hits, time) {
   let heat = 0;
   for (const h of hits) {if (h.time > time) break; heat += h.energy * Math.exp(-(time - h.time) / 0.8);}
   return heat;
+}
+
+/** The located hits of the last `life` seconds, with their age (lab, round 48: what flies from an impact outlives the envelope). */
+export function impactsAt(hits, time, life) {
+  const out = [];
+  for (const h of hits) {if (h.time > time) break; if (time - h.time < life && h.pos && h.strength > 0.4) out.push({hit: h, age: time - h.time});}
+  return out;
 }

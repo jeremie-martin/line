@@ -18,10 +18,11 @@
 import {W, H, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import {rideIntensity, intensityAt} from './intensity.js';
-import {prepareHits, hitEffectsAt, hitHeatAt} from './hits.js';
+import {prepareHits, hitEffectsAt, hitHeatAt, impactsAt} from './hits.js';
 import {createSplit} from './split.js';
 import {prepareTrack, drawTrack} from './track.js';
-import {drawBand} from './music.js';
+import {drawBand, spectrumAt} from './music.js';
+import {drawSky} from './sky.js';
 import {createTheme, dropSpan} from './theme.js';
 
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -78,10 +79,10 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   // ── drawing ──────────────────────────────────────────────────────────────
   // The top of the frame, behind the ride. The sun is a mass, not a line: it stays colour on a phone; its size follows the ride's
   // intensity at this frame.
-  function drawTop(level, alpha, colours, look) {
+  function drawTop(level, alpha, colours, look, t, kick) {
     let box = null;
     ctx.save(); ctx.globalAlpha = alpha;
-    if (look.top === 'sun') {const r = W * (0.1 + 0.09 * level), sy = 0.17 * H - look.sunLift; ctx.fillStyle = colours.sun; ctx.beginPath(); ctx.arc(0.74 * W, sy, r, 0, 2 * Math.PI); ctx.fill();}
+    if (look.top !== 'title') drawSky(ctx, look.top, level, kick, colours, look, look.top === 'rays' ? spectrumAt(scene.spectrum, t).map(v => Math.min(1, v)) : null);
     if (look.top === 'title') {
       // at most two lines, broken where the two are most even, never wider than 62 % of the frame (smaller type if needed)
       const words = scene.title.split(' '), font = px => `800 ${px}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
@@ -93,6 +94,29 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     }
     ctx.restore();
     return box;
+  }
+  // In the lab (round 48): what flies from an impact, in the world, so it stays where the rider struck. Strokes fan out round the
+  // line's normal and fade in a quarter of a second; dust is thrown up and falls for half a second. Each grain's path is fixed by
+  // its hit and its number, so a frame can be drawn alone.
+  function drawImpacts(kind, r, z, colours) {
+    const life = kind === 'burst' ? 0.25 : 0.55;
+    for (const {hit, age} of impactsAt(hits, r, life)) {
+      const u = age / life, s = Math.min(1.3, hit.strength), base = Math.atan2(hit.normal.y, hit.normal.x), n = kind === 'burst' ? 7 : 11;
+      ctx.save(); ctx.globalAlpha = (1 - u) ** 1.5; ctx.strokeStyle = ctx.fillStyle = kind === 'burst' ? colours.accent : colours.ink; ctx.lineCap = 'round'; ctx.lineWidth = 9 / z;
+      for (let i = 0; i < n; i++) {
+        const seed = Math.sin(hit.time * 91.7 + i * 12.9898) * 43758.5453, rnd = seed - Math.floor(seed);
+        const a = base + (i / (n - 1) - 0.5) * (kind === 'burst' ? 2.3 : 1.9) + (rnd - 0.5) * 0.2;
+        if (kind === 'burst') {
+          const from = (44 + 120 * s * (1 - (1 - u) ** 2)) / z, len = (34 + 60 * s) * (1 - 0.5 * u) / z;
+          ctx.beginPath(); ctx.moveTo(hit.pos.x + from * Math.cos(a), hit.pos.y + from * Math.sin(a)); ctx.lineTo(hit.pos.x + (from + len) * Math.cos(a), hit.pos.y + (from + len) * Math.sin(a)); ctx.stroke();
+        } else {
+          const speed = (800 + 1500 * rnd) * s / z, size = (10 + 9 * rnd) / z;
+          const x = hit.pos.x + speed * Math.cos(a) * age, y = hit.pos.y + speed * Math.sin(a) * age + 0.5 * 2400 / z * age * age;
+          ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        }
+      }
+      ctx.restore();
+    }
   }
   // the rider stays on its own screen point at any zoom
   function riderCamera(v, ox, oy, k) {
@@ -110,7 +134,7 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   function draw(t, look, exaggerate = 1) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
-    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate);
+    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate * (look.hits === 'soft' ? 0.67 : look.hits === 'strong' ? 1.33 : 1));
     const colours = themeAt(t, intensity, look), v = frameAt(t, at, look);
     let titleBox = null; // only the title drawn in this frame gets its smaller split
     const boosting = fx.boost;
@@ -118,14 +142,15 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     // with a colour boost, the content is drawn on a clear canvas and laid on the paper afterwards
     if (boosting > 0.01) ctx.clearRect(0, 0, canvas.width, canvas.height); else {ctx.fillStyle = colours.paper; ctx.fillRect(0, 0, canvas.width, canvas.height);}
     ctx.setTransform(k, 0, 0, k, 0, 0);
-    if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) titleBox = drawTop(intensity, a, colours, look);}
+    if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) titleBox = drawTop(intensity, a, colours, look, t, look.hits === 'sunKick' ? fx.punch : 0);}
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
-    if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look);
+    if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, look.hits === 'bandKick' ? fx.punch : 0, look.hits === 'wash' && fx.punch > 0.1);
     const cc = {...v, ax: v.ax + fx.dx, ay: v.ay + fx.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     ctx.setTransform(world);
     const visible = track.visibleAt(cc), boosted = boosting > 0.01;
     drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, boosted ? 'ink' : 'all');
+    if (look.hits === 'burst' || look.hits === 'dust') drawImpacts(look.hits, r, cc.z, colours);
     drawRider(riderCamera(v, fx.dx, fx.dy, k), at);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (boosted) layBoosted(boosting, colours.paper, () => {ctx.setTransform(world); drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, 'pencil');});

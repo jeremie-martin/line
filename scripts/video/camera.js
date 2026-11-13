@@ -14,6 +14,8 @@ import {FS} from './intensity.js';
 export const W = 1080, H = 1920;
 const DT = 1 / FPS;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+/** Tops that put a disc where the sun is (sky.js): the rider sits lower under them, as under the sun. */
+export const DISC_TOPS = new Set(['sun', 'crescent', 'stars', 'ring', 'rays', 'hills', 'fuji']);
 export const smoothstep = x => {x = clamp(x, 0, 1); return x * x * (3 - 2 * x);};
 
 function smoothSamples(arr, sig) {
@@ -93,7 +95,7 @@ export function createFraming(motion, level, hitTimes, songEnd) {
       level: f => level[clamp(Math.round(f / FPS * FS), 0, level.length - 1)]}));
     const cam = cams.get(look.zoom), i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
     const lerp = (p, q) => p + (q - p) * u;
-    const lower = +look.riderLower + (look.top === 'sun' ? +look.sunRider : 0);
+    const lower = +look.riderLower + (DISC_TOPS.has(look.top) ? +look.sunRider : 0);
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, ending: false};
     if (look.ends === 'none') return c;

@@ -75,4 +75,6 @@ export function drawTrack(ctx, visible, at, z, colours, mode, over, part = 'all'
   const done = mode === 'rail' ? l => l.railFrame <= at : l => l.inkFrame <= at;
   if (part !== 'ink') {path(l => !done(l)); ctx.strokeStyle = over > 0.02 ? mixHex(colours.pencil, colours.ink, 0.25 * over) : colours.pencil; ctx.lineWidth = Math.max(1.3, (3 + 1.4 * over) / z); ctx.stroke();}
   if (part !== 'pencil') {path(done); ctx.strokeStyle = colours.ink; ctx.lineWidth = ink; ctx.stroke();}
+  // in the lab (round 48): the stretch ridden in the last quarter of a second stays in the accent
+  if (mode === 'trail' && part !== 'pencil') {path(l => l.inkFrame <= at && l.inkFrame > at - 10); ctx.strokeStyle = colours.accent; ctx.lineWidth = ink * 1.25; ctx.stroke();}
 }

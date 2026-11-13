@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13: round 48, new ideas as lab values of the look
+
+The owner asked for a more ambitious round: visual ideas besides the sun, moon and title, the hit effects revisited, many more
+themes. Round 48 (`?set=ideas1`, `round48.mjs`, 24 pages) asks them.
+
+The ideas are drawn by the production renderer as new values of existing look options, each marked "in the lab" in `look.js`:
+`top` (crescent, stars, ring, great, horizon, rays, hills, fuji; `sky.js`), `band` (mirror, dots, skyline, wide, strands), `hits`
+(soft, strong, sunKick, bandKick, wash, burst, dust) and `line` (trail). They are values, not new options, because a frozen theme
+spells out every option and its id hashes them: a new option would change what an old specification means. No theme of the
+collection uses them, and the fingerprint baseline is unchanged. Values the owner does not take should be removed again.
+
 ## November 13: round 46, picks into the collection; round 47
 
 The owner answered round 46 (`?set=refine2`) the same day. Nine versions joined the collection, which now has 47 themes (set

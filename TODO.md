@@ -27,14 +27,11 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
-9. **Compiler work.** Baseline: visual-lab with the compact construction sources (210 KB, adopted 2026-11-13 in place of the
-   52 MB archive; REWORK.md). It scores −11.7 [−17.9, −5.5] against the archive version (812.1 on V7.1), held out −15.6.
+9. **Compiler work** (branch `compiler`). Benchmark: V8 (2026-11-13; `docs/benchmark.md`), reference `nov13` = 762.1 on V8,
+   800.8 on V7.1. The archive version (`merged`) scores +14.9 [+6.1, +23.7] above it on V8 (V7.1: +11.7).
    - Open question: the remaining strong-beat gap on everyday songs (chain setup). Compact sources plateau (more styles, more
      memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
-   - **Owner's call:** delete the ending refinement. Removing it costs 0.2
-     points on today's main, as on November 1; it uses 1% of physics
-     frames. The November 1 deletion branch `exp/no-tail-refinement`
-     removes 330 lines.
+   - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
    - Still open from November 1:
      - short re-landings at speed (Trouble about half, Circus 1/24 and 0/24);
      - geometry hygiene (G1–G4);

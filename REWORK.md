@@ -1,6 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
-## November 13 (evening): hypothesis, delete the ending refinement (stated before running)
+## November 13 (evening): the ending refinement deleted; V8 baselined
+
+**V8** (`docs/benchmark.md`, "V8"): every V7.1 spec and eight formerly held-out ones (Trouble, Valhalla, Circus `pairs4` and
+`voice-drums`, four library songs), gaps ×0.85 (never below 6 frames or their own length), impact asks ×1.25 around 0.5,
+frozen as generated files. Held out now: Bones, Dernière Danse coral, Lua na Praça, Petrunko. Reference `nov13` (ca6a0c6a,
+the compact sources).
+- **Baseline, 4 seeds:** V8 **762.1** (G 645.5, P1 767.0, P2 817.1, P3 756.5, P4 794.6, P5 782.9, P6 716.9, P7 816.0;
+  explicit 709.0); every ride complete, Circus `pairs4` included. V7.1 800.8. Guards on V8: strong extra impacts 0.16 per
+  100 beats (V7.1 0.09), strong arrivals head-down or backward 14.6% (V7.1 10.4%).
+- **Where the loss is** (shares of the grade's loss, complete rides): impact strength 42–67% per category, almost all of it
+  strong asks too soft (G 64%); never too hard. Asks of 0.6–0.9 get about 0.12 less at every gap length; asks ≥0.9 at
+  18–24 frames get 0.78, at 6–12 frames 0.67–0.70.
+- **Does it tell compilers apart?** The archive version (`merged`) against `nov13`: **+14.9 [+6.1, +23.7]** on V8, 41 of 43
+  specs up (G +22.8, P7 +23.6, P5 +17.4), strong extra impacts 0.09 against 0.16. On V7.1 the same pair was +11.7
+  [+5.5, +17.9] (8 seeds). A somewhat larger, consistent gap: V8 is at least as sensitive. One known pair is thin evidence.
+
+**The ending refinement is deleted** (my call, delegated by the owner; hypothesis below, stated before running).
+- V8: −0.2 [−0.4, +0.1], 0 specs up, 22 down (lowest −6.9), 21 unchanged; explicit −0.7. V7.1: −0.1 [−0.3, 0.0], lowest −1.1.
+- Physics −0.3%; no ride lost; body drag, strong extras and head-down arrivals unchanged. As predicted.
+- Parity references refreshed: 9 of 25 cells change (8 only in physics frames, which the refinement spent; one track,
+  `luna_bala_44s` automatic #101).
+
+### Hypothesis, stated before running
+
 
 - **Decision delegated** by the owner (brief of November 13): the ending refinement's deletion is mine to decide.
 - **Change** (`exp/delete-ending-refinement`): `arc_refinement.ts`, `arc_complete_refinement.ts`, their five options and

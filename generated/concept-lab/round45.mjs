@@ -1,5 +1,7 @@
 // Round 45: every theme of the collection with five variations, one page per theme (owner, 2026-11-13).
 //   node generated/concept-lab/round45.mjs   → candidates-refine1.json (open /generated/concept-lab/?set=refine1&q=1)
+// Answered on 13 November; the file was written from the collection as it was before the answers (three themes were then replaced),
+// so running this again writes other pages 6, 7 and 9.
 // A variation overrides colours (hex, or [L, C, h] in OKLCH) and look options of the theme as it is. When only the ground changes,
 // the pencil follows it (same distance from the ground as in the theme).
 import {writeFileSync} from 'node:fs';

@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (night): hypothesis, hindsight memory (stated before running)
+
+- **Basis.** On V8 the loss is mostly strong asks landing too soft (G 64% of the grade's loss); for 30% of the squared
+  strength error no candidate in the pool came within 0.05 of the ask (`loss_attribution.ts --suite=v8`). The archive's
+  +14.9 on V8 is mostly there (strong too soft +7.8): coverage of real strong moves near the exact arrival.
+- **Change** (`exp/hindsight-memory`, `arc_sequence.ts`). The ride's memory keeps each committed control, labelled with the
+  asks it faced. Now it also keeps, per interval, the strongest catch measured there when it beat the committed one by 0.05,
+  labelled with what it achieved: its strength in place of the ask, the air, speed and amplitude of its gap in place of
+  their targets. A real move, measured in this ride's physics, for the strength it reached. No storage.
+- **Hypothesis.** Later strong asks from similar arrivals get memory proposals that really hit hard: strength on strong
+  asks up, G and the dense categories up.
+- **Risk.** The 16 memory slots get crowded by hard-hitting moves with poor spans; strong extra impacts rise.
+- **Measure.** V8, 4 seeds, paired against `compiler`; every ruler; ride character if it gains.
+
 ## November 13 (evening): the ending refinement deleted; V8 baselined
 
 **V8** (`docs/benchmark.md`, "V8"): every V7.1 spec and eight formerly held-out ones (Trouble, Valhalla, Circus `pairs4` and

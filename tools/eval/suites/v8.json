@@ -1,0 +1,307 @@
+{
+ "name": "V8",
+ "frozen": "2026-11-13",
+ "design": "docs/benchmark.md (V8)",
+ "generator": "tools/eval/harden.ts: time ×0.85 (no gap below 6 frames or its own length), impact asks ×1.25 around 0.5",
+ "seeds": {
+  "sequence": "101 x k for k = 1, 2, 3, ...",
+  "default": 4
+ },
+ "note": "Every V7.1 spec and eight formerly held-out specs, made faster, shorter and more contrasted, frozen as data. The suite is exactly this list; changing it makes a new version.",
+ "specs": [
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "luna_bala_44s/spec.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "amor_na_praia_46s/spec.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "tiki_tiki_48s/spec.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "amour_de_ma_vie_44s/spec.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-bench-calm",
+   "stratum": "P3",
+   "source": "amor_na_praia_46s/variants/bench-calm.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-bench-restart",
+   "stratum": "P5",
+   "source": "amor_na_praia_46s/variants/bench-restart.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_108s",
+   "variant": "v8-bench-long",
+   "stratum": "P6",
+   "source": "amour_de_ma_vie_108s/variants/bench-long.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-bench-intense",
+   "stratum": "P4",
+   "source": "amour_de_ma_vie_44s/variants/bench-intense.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-bench-pairs",
+   "stratum": "P1",
+   "source": "amour_de_ma_vie_44s/variants/bench-pairs.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-bench-words",
+   "stratum": "P2",
+   "source": "amour_de_ma_vie_44s/variants/bench-words.ts"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-bench-breakdown",
+   "stratum": "P5",
+   "source": "luna_bala_44s/variants/bench-breakdown.ts"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-bench-intense",
+   "stratum": "P4",
+   "source": "luna_bala_44s/variants/bench-intense.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-bench-calm",
+   "stratum": "P3",
+   "source": "tiki_tiki_48s/variants/bench-calm.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-bench-pairs",
+   "stratum": "P1",
+   "source": "tiki_tiki_48s/variants/bench-pairs.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-bench-words",
+   "stratum": "P2",
+   "source": "tiki_tiki_48s/variants/bench-words.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-v7-explicit-handover",
+   "stratum": "E",
+   "source": "amor_na_praia_46s/variants/v7-explicit-handover.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-v7-explicit-sweep",
+   "stratum": "E",
+   "source": "amor_na_praia_46s/variants/v7-explicit-sweep.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-v7-rideout",
+   "stratum": "P7",
+   "source": "amor_na_praia_46s/variants/v7-rideout.ts"
+  },
+  {
+   "song": "amor_na_praia_46s",
+   "variant": "v8-v7-words",
+   "stratum": "P2",
+   "source": "amor_na_praia_46s/variants/v7-words.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-v7-breaks",
+   "stratum": "P5",
+   "source": "amour_de_ma_vie_44s/variants/v7-breaks.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-v7-calm",
+   "stratum": "P3",
+   "source": "amour_de_ma_vie_44s/variants/v7-calm.ts"
+  },
+  {
+   "song": "amour_de_ma_vie_44s",
+   "variant": "v8-v7-explicit-terraces",
+   "stratum": "E",
+   "source": "amour_de_ma_vie_44s/variants/v7-explicit-terraces.ts"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-v7-explicit-fold",
+   "stratum": "E",
+   "source": "luna_bala_44s/variants/v7-explicit-fold.ts"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-v7-explicit-scattered",
+   "stratum": "E",
+   "source": "luna_bala_44s/variants/v7-explicit-scattered.ts"
+  },
+  {
+   "song": "luna_bala_44s",
+   "variant": "v8-v7-rideout",
+   "stratum": "P7",
+   "source": "luna_bala_44s/variants/v7-rideout.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-v7-explicit-ripples",
+   "stratum": "E",
+   "source": "tiki_tiki_48s/variants/v7-explicit-ripples.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-v7-intense",
+   "stratum": "P4",
+   "source": "tiki_tiki_48s/variants/v7-intense.ts"
+  },
+  {
+   "song": "tiki_tiki_48s",
+   "variant": "v8-v7-rideout",
+   "stratum": "P7",
+   "source": "tiki_tiki_48s/variants/v7-rideout.ts"
+  },
+  {
+   "song": "amor_na_praia_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "amor_na_praia_selection/spec.ts"
+  },
+  {
+   "song": "luna_bala_original_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "luna_bala_original_selection/spec.ts"
+  },
+  {
+   "song": "luna_bala_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "luna_bala_slowed_selection/spec.ts"
+  },
+  {
+   "song": "passo_bem_solto_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "passo_bem_solto_selection/spec.ts"
+  },
+  {
+   "song": "passo_bem_solto_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "passo_bem_solto_slowed_selection/spec.ts"
+  },
+  {
+   "song": "passo_bem_solto_super_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "passo_bem_solto_super_slowed_selection/spec.ts"
+  },
+  {
+   "song": "los_voltaje_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "los_voltaje_selection/spec.ts"
+  },
+  {
+   "song": "los_voltaje_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "los_voltaje_slowed_selection/spec.ts"
+  },
+  {
+   "song": "los_voltaje_ultra_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "los_voltaje_ultra_slowed_selection/spec.ts"
+  },
+  {
+   "song": "montagem_tomada_extended_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "montagem_tomada_extended_selection/spec.ts"
+  },
+  {
+   "song": "montagem_tomada_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "montagem_tomada_slowed_selection/spec.ts"
+  },
+  {
+   "song": "montagem_tomada_super_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "montagem_tomada_super_slowed_selection/spec.ts"
+  },
+  {
+   "song": "funk_do_bounce_super_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "funk_do_bounce_super_slowed_selection/spec.ts"
+  },
+  {
+   "song": "trouble_50s",
+   "variant": "v8-spec",
+   "stratum": "P1",
+   "source": "trouble_50s/spec.ts"
+  },
+  {
+   "song": "circus_minimus_77s",
+   "variant": "v8-pairs4",
+   "stratum": "P1",
+   "source": "circus_minimus_77s/variants/pairs4.ts"
+  },
+  {
+   "song": "valhalla_40s",
+   "variant": "v8-spec",
+   "stratum": "P2",
+   "source": "valhalla_40s/spec.ts"
+  },
+  {
+   "song": "circus_minimus_77s",
+   "variant": "v8-voice-drums",
+   "stratum": "P2",
+   "source": "circus_minimus_77s/variants/voice-drums.ts"
+  },
+  {
+   "song": "funk_estranho_super_slowed_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "funk_estranho_super_slowed_selection/spec.ts"
+  },
+  {
+   "song": "let_the_world_burn_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "let_the_world_burn_selection/spec.ts"
+  },
+  {
+   "song": "montagem_coma_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "montagem_coma_selection/spec.ts"
+  },
+  {
+   "song": "no_batidao_selection",
+   "variant": "v8-spec",
+   "stratum": "G",
+   "source": "no_batidao_selection/spec.ts"
+  }
+ ]
+}

@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (evening): hypothesis, delete the ending refinement (stated before running)
+
+- **Decision delegated** by the owner (brief of November 13): the ending refinement's deletion is mine to decide.
+- **Change** (`exp/delete-ending-refinement`): `arc_refinement.ts`, `arc_complete_refinement.ts`, their five options and
+  tests go, with the interval overrides only refinement set (`arrivalReference`, `localOnly`, `completeGuidanceBudget`,
+  `warmIncoming`): 424 lines out.
+- **Hypothesis.** As on November 1 (−0.2) and November 8 (−0.2 [−0.4, −0.0], 0 of 35 specs up): a small loss, uniform over
+  specs, about 1% fewer physics frames, no ride lost, every other ruler unchanged.
+- **Measure.** V8 and V7.1, 4 seeds, paired against `nov13`.
+- **Decision rule.** Delete if the loss is about a point or less on both suites and no category or guard moves beyond seed
+  noise; the code is simpler for it.
+
 ## November 13: the compact sources replace the archive
 
 **Decision (owner).** The 210 KB version is adopted on visual-lab: "reducing it to 200 kilobytes, to me, is completely
@@ -135,7 +147,6 @@ from `rework/foundations` and the jolt removal (November 11) from `visual-lab`. 
 - Adapted: `tools/research/candidate_origins.ts` and `catch_outcomes.ts` no longer pass a jolt to `resolveCase`.
 - V7.1 813.5 (TODO.md, item 9) was measured with the jolt; the merged main needs its own baseline before the next compiler
   comparison.
-||||||| 98f6e5df
 
 ## November 11: the video code keeps only what production draws (structural, owner's decision)
 

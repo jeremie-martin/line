@@ -18,7 +18,7 @@
     "spec-dashboard/main.js",
     "productions/*/spec.ts", "productions/*/variants/*.ts",
     "tools/deps/reach.mjs",
-    "tools/eval/eval.ts", "tools/eval/compare.ts", "tools/eval/remeasure.ts",
+    "tools/eval/eval.ts", "tools/eval/compare.ts", "tools/eval/remeasure.ts", "tools/eval/harden.ts",
     "tools/parity/parity.ts", "tools/parity/engine.ts", "tools/parity/engine_quick.ts",
     "tools/check.ts", "tools/measure/engine.ts", "tools/measure/engine_ab.ts", "tools/measure/profile.ts", "tools/measure/smoke.ts", "tools/measure/score.ts", "tools/measure/build_native_engine.mjs",
     "tools/measure/analyze_labels.ts", "tools/measure/analyze_pairs.ts", "tools/measure/clip_render.ts", "tools/measure/pair_study.ts",

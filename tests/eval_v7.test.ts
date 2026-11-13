@@ -5,7 +5,7 @@ import {afterEach, expect, it} from 'vitest';
 import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {panelCases, V7_SUITE, V71_SUITE, HELDOUT} from '../tools/eval/inputs.ts';
+import {panelCases, V7_SUITE, V71_SUITE, V8_SUITE, HELDOUT} from '../tools/eval/inputs.ts';
 import {readFileSync} from 'node:fs';
 import {headline} from '../tools/eval/summary.ts';
 import {armKey} from '../tools/eval/arms.ts';
@@ -72,4 +72,28 @@ it('V7.1 extends V7.0 exactly, and no held-out song is a development song', () =
   const development = new Set(v71.map((s: {song: string}) => songOf(s.song)));
   expect(HELDOUT.map(h => songOf(h.song)).filter(song => development.has(song))).toEqual([]);
   expect(songOf('luna_bala_slowed_selection')).toBe(songOf('luna_bala_44s'));
+});
+
+it('V8 hardens every V7.1 spec and the joining ones, and keeps the held-out songs out', async () => {
+  const v71 = JSON.parse(readFileSync(V71_SUITE, 'utf8')).specs, v8 = JSON.parse(readFileSync(V8_SUITE, 'utf8')).specs;
+  const {JOINING} = await import('../tools/eval/harden.ts');
+  const source = (s: {song: string; variant: string | null}) => `${s.song}/${s.variant ? `variants/${s.variant}` : 'spec'}.ts`;
+  expect(v8.map((s: any) => s.source)).toEqual([...v71, ...JOINING].map(source));
+  expect(v8.map((s: any) => s.stratum)).toEqual([...v71, ...JOINING].map((s: any) => s.stratum));
+  const development = new Set(v8.map((s: {song: string}) => songOf(s.song)));
+  expect(HELDOUT.map(h => songOf(h.song)).filter(song => development.has(song))).toEqual([]);
+  const cases = await panelCases('v8');
+  expect(cases).toHaveLength(v8.length * 4);
+  expect(cases.every(c => c.variant!.startsWith('v8-'))).toBe(true);
+});
+
+it('V8 warps time on the beats: gaps x0.85, none below 6 frames or its own length', async () => {
+  const {timeWarp, contrast} = await import('../tools/eval/harden.ts');
+  const w = timeWarp([20, 24, 64], 104);   // gaps 20, 4, 40, then 40 to the end
+  expect(w.beats).toEqual([17, 21, 55]);   // 17 (0.85 x 20), 4 kept, 34
+  expect(w.duration).toBe(89);
+  expect(w.map(0.5)).toBeCloseTo(17 / 40, 12);
+  expect(w.map(1.1)).toBeCloseTo(38 / 40, 12);  // halfway between 24 and 64 -> halfway between 21 and 55
+  expect(w.inverse(w.map(1.3))).toBeCloseTo(1.3, 12);
+  expect([0, .1, .5, .8, .9, 1].map(contrast)).toEqual([0, 0, .5, .875, 1, 1]);
 });

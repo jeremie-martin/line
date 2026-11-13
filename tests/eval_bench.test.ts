@@ -29,10 +29,9 @@ it('discovers sealed variants and declares the held-out panel', async () => {
   });
   expect((await panelCases('sealed', root)).map(c => c.id)).toEqual([101, 202, 303].map(s => `amor_na_praia_46s~sealed-pairs~${s}`));
   const heldout = await panelCases('heldout', root);
-  expect(heldout).toHaveLength(52);  // 13 specs (5 from three songs, 8 single-version library songs) x 4 seeds
+  expect(heldout).toHaveLength(16);  // 4 single-version library songs x 4 seeds (since V8)
   expect(heldout.map(c => c.id)).toContain('petrunko_selection~spec~404');
-  expect(heldout.map(c => c.id)).toContain('circus_minimus_77s~pairs4~404');
-  expect(heldout.map(c => c.id)).toContain('trouble_50s~spec~101');
+  expect(heldout.map(c => c.id)).not.toContain('trouble_50s~spec~101');
   for (const retired of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8'])
     await expect(panelCases(retired, root)).rejects.toThrow('unknown evaluation panel');
 });
@@ -56,7 +55,7 @@ it('runs sealed and held-out panels only on their explicit flag', () => {
   expect(() => validateRunOptions('standard', 'heldout', {heldout: true})).not.toThrow();
   expect(() => validateRunOptions('standard', 'heldout', {sealed: true, heldout: true})).toThrow(/--sealed applies only/);
   expect(() => validateRunOptions('standard', 'v7', {heldout: true})).toThrow(/--heldout applies only/);
-  for (const p of ['v7', 'v7-confirm', 'v7.1', 'v7.1-confirm']) expect(() => validateRunOptions('standard', p)).not.toThrow();
+  for (const p of ['v7', 'v7-confirm', 'v7.1', 'v7.1-confirm', 'v8', 'v8-confirm']) expect(() => validateRunOptions('standard', p)).not.toThrow();
   for (const p of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8']) expect(() => validateRunOptions('standard', p)).toThrow(/unknown evaluation panel/);
   expect(() => validateRunOptions('standard', 'patterns')).toThrow(/unknown evaluation panel/);
 });

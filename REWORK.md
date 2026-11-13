@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, more proposal slots for memory and remembered responses (stated before running)
+
+- **Basis** (review agent, V8 seed 101 origins): per initial slot, remembered responses give about 145 committed moves,
+  memory of earlier sections 72, the learned sources 26 (slots 4, 16, 96). Where a move started is not its marginal
+  worth, so this is a test, not a conclusion.
+- **Change** (`exp/memory-slots`, `repertoire_search.ts`): memory 32, remembered responses 12, learned 72; total unchanged.
+- **Hypothesis:** V8 up a little (within +3); physics unchanged; variety may narrow (memory repeats what a ride did).
+  Measure: V8, 4 seeds, paired against `compiler`; distinct families and ride character if positive.
+- **Result: not adopted** (V8, 4 seeds): −1.1 [−8.3, +6.1], specs up 28 / down 15; G +5.1, P4 −10.5, P2 −4.3;
+  explicit +6.5; strong extra impacts −29%. The proposal mix is not where the loss is.
+- Also measured: the archive version (`merged`) still leads today's `compiler` by 6.4 on V8 [−19.0, +6.3] (G −6.6,
+  P7 −12.6, P4 +5.4), with half the strong extra impacts (0.09 against 0.17 per 100 beats).
+
 ## November 13 (late): hypothesis, the search weighs each span by its length, as the grade does (stated before running)
 
 - **Basis** (found by a review agent, checked): the grade weighs a span's air, speed and amplitude errors by its length

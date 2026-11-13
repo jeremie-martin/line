@@ -14,13 +14,13 @@ export function arcSpanLoss(achieved: AxisValues, targets: AxisValues, amplitude
  * neighboring search stages are combined. Residuals retain the actual axes so
  * the local response solver can optimize their effect at the boundary. */
 export function arcBoundaryCorrection(achieved: AxisValues, targets: AxisValues,
-  priorLoss: number, amplitudeWeight: number, initialCost = 0): {cost: number; residuals: number[]} {
+  priorLoss: number, amplitudeWeight: number, initialCost = 0, weight = 1): {cost: number; residuals: number[]} {
   let cost = initialCost;
   const residuals: number[] = [];
   for (const key of ['air', 'speed', 'amplitude'] as const) {
     const target = targets[key], value = achieved[key];
     if (target === undefined || value === undefined) continue;
-    const residual = (value - target) * Math.sqrt(key === 'amplitude' ? amplitudeWeight : 1);
+    const residual = (value - target) * Math.sqrt(weight * (key === 'amplitude' ? amplitudeWeight : 1));
     residuals.push(residual); cost += residual * residual;
   }
   return {cost: cost - priorLoss, residuals};

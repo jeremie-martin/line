@@ -95,7 +95,13 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const priorGap = authoredPrior ? {...authoredPrior, targets: planned.find(g => g.index === authoredPrior.index)?.targets ?? authoredPrior.targets} : undefined;
   const priorAxes = options.completeBoundary && priorGap
     ? objectiveAxes(detect(prefixRaw), priorGap, frame - 1) : undefined;
-  const priorLoss = priorAxes && priorGap ? arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
+  // The grade weighs a span's air, speed and amplitude errors by its length and each beat's strength by one over the beat
+  // count: a span weighs length · beats / (total length) against one beat. The search's span terms carry that weight.
+  const spanFrames = gaps.reduce((n, g) => n + (g.targets.air !== undefined || g.targets.speed !== undefined ? g.endFrame - g.startFrame : 0), 0);
+  const lengthWeight = (g: {startFrame: number; endFrame: number} | undefined) =>
+    g && spanFrames > 0 && impactTargets.length > 0 ? (g.endFrame - g.startFrame) * impactTargets.length / spanFrames : 1;
+  const outgoingWeight = lengthWeight(outgoing), priorWeight = lengthWeight(priorGap);
+  const priorLoss = priorAxes && priorGap ? priorWeight * arcSpanLoss(priorAxes, priorGap.targets, options.amplitudeWeight ?? 1) : 0;
   const normalizeControl = arcControlNormalizer({...options, observedReceiver: true, span: constructionSpan});
 
   // These describe the immutable incoming prefix already measured above.
@@ -122,7 +128,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.
   const responseAxisWeights = options.motionQuality?.calmImpactMultiplier !== undefined
-    ? ['air', 'speed', 'amplitude'].map(key => key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1).concat(options.impactWeight ?? 2)
+    ? ['air', 'speed', 'amplitude'].map(key => outgoingWeight * (key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1)).concat(options.impactWeight ?? 2)
     : undefined;
 
   return {
@@ -134,7 +140,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     /** Candidate trajectories borrow this array; its first `replayIntact` entries match the prefix. */
     replayFrames: prefixRaw.frames.slice(), replayIntact: prefixRaw.frames.length,
     incoming, pace, span, constructionSpan, support, impact, turn,
-    memo, priorGap, priorAxes, priorLoss, normalizeControl,
+    memo, priorGap, priorAxes, priorLoss, outgoingWeight, priorWeight, normalizeControl,
     inputFeatures, policyInputFeatures, valueFutureFeatures, max, initial, responseAxisWeights,
     /** Lowest optimization cost measured so far. */
     best: null as EvaluatedCandidate | null,

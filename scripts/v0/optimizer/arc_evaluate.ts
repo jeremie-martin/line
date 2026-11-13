@@ -236,7 +236,7 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   const achieved = measureTrajectoryAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, s.objectiveEnd);
   const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
-    ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));
+    ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(s.outgoingWeight * (key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1)));
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);
   // Every later interval has an account match: inspectTrajectory rejected the others.
   const actualImpact = impact === undefined ? undefined : impactEvents[impactMatch!.event].strength;
@@ -250,7 +250,7 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   if (options.completeBoundary && s.priorGap) {
     const priorGap = s.priorGap;
     const actual = objectiveAxes(det, priorGap, priorGap.endFrame);
-    const correction = arcBoundaryCorrection(actual, priorGap.targets, s.priorLoss, options.amplitudeWeight ?? 1, cost);
+    const correction = arcBoundaryCorrection(actual, priorGap.targets, s.priorLoss, options.amplitudeWeight ?? 1, cost, s.priorWeight);
     residuals.push(...correction.residuals);
     cost = correction.cost;
   }

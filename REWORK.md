@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 13 (late): hypothesis, the search weighs each span by its length, as the grade does (stated before running)
+
+- **Basis** (found by a review agent, checked): the grade weighs a span's air, speed and amplitude errors by its length
+  and each beat's strength by one over the beat count. The interval search adds each span's errors at weight 1 whatever
+  its length (`arc_evaluate.ts`, `arc_boundary.ts`), while terminal selection (`arc_objective.ts`) already weighs by
+  length. Relative to the grade, the search over-weights short spans' air and speed against strength (2.5× for an
+  8-frame span in a ride averaging 20) and under-weights long floats.
+- **Change** (`exp/gap-length-weights`): span terms, the boundary correction and the remembered-response units carry
+  length · beats / total span length, the grade's own ratio. Nothing else.
+- **Hypothesis:** dense strong passages trade a little air and speed for strength; long spans gain air and speed. V8 up,
+  mostly G and the dense categories; strength on strong asks up; air or speed rms may rise slightly on short spans.
+  Measure: V8, 4 seeds, paired against `compiler`; then V7.1 and held out if positive.
+
 ## November 13 (late): compare review shows whole rides and a geometry sheet
 
 The owner could not judge the few-second before/after passages: two compiler versions build entirely different tracks,

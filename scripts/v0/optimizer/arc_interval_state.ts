@@ -35,7 +35,18 @@ export type Fragments = {lines: CandidateGeometry; guideIds: number[]};
 export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overrides: IntervalOverrides) {
   const compileOptions = ctx.options;
   const options: IntervalOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
-  const constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
+  let constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
+  // A shape's catch comes before its shape: half of a shaped section's learned proposals come from the plain arcs'
+  // sources of the same guidance and layout (REWORK.md, November 14).
+  if (constructionPolicy?.models && options.profile) {
+    const arcs = options.constructionPolicies?.[arcConstructionMemoryKey({...options, profile: undefined, profileStrength: undefined,
+      profileStart: undefined, rippleCycles: undefined, faces: undefined, foldAngle: undefined})];
+    if (arcs?.models) {
+      const half = (w: number[] | undefined, n: number) => (w ?? Array(n).fill(1)).map(x => x / 2);
+      constructionPolicy = {...constructionPolicy, models: [...constructionPolicy.models, ...arcs.models],
+        proposalWeights: [...half(constructionPolicy.proposalWeights, constructionPolicy.models.length), ...half(arcs.proposalWeights, arcs.models.length)]};
+    }
+  }
   if (constructionPolicy) options.controlPolicy = constructionPolicy;
   const nextRequest = options.constructionRequests?.[i + 1];
   if (nextRequest && (nextRequest.context?.quiet ?? 0) < .5 &&

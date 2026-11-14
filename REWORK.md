@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never proposed onto their own support, second result and a third execution (stated before running it)
+
+- **Second execution:** headline −1.6 [−7.2, +4.0]; crossings 0; almost crossing 20 (first: 17); going through 0.56
+  per ride (0.53): no better. The check measured the rail's points against the support, while a rail meeting it at an
+  angle comes closer between its points (the audit measures along the support's normal and sees that).
+- **Third execution:** rail segments against support segments, a meeting when any comes within the margin (crossing
+  included). **Hypothesis:** almost crossing at the rider near 0; going through falls; headline within noise.
+
 ## November 14: rails never proposed onto their own support, first result and a second execution (stated before running it)
 
 - **First execution** (V8, 196 rides, against `foundation`): headline −1.1 [−6.2, +4.0], 18 specs up, 25 down;

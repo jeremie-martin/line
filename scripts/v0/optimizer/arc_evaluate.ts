@@ -11,7 +11,7 @@ import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
 import type {SolidPath} from '../../lib/track.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, motionArcPaths, receiverPoints, railMeetsSupport, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import {ArcObjectiveContinuation} from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
@@ -171,6 +171,8 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   }
   if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines), prefixFrames: s.frame};
   const paths = motionArcPaths(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
+  // A rail drawn onto its own support is seen gone through: such geometry is not proposed (no physics spent on it).
+  if (options.railSupportMargin !== undefined && railMeetsSupport(paths[1].points, paths[0].points, options.railSupportMargin)) return {reason: 'rail_meets_support'};
   return {paths, child: engine.addSolidPaths(paths), prefixFrames: s.frame};
 }
 

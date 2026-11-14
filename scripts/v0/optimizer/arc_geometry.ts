@@ -55,6 +55,27 @@ export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number
   return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
 }
 
+/** Whether a rail crosses, or comes within `margin` px of, the support it was laid beside, along the support's own span
+ * (rail points beyond either end of the support are where the rider has left it). The rail's side is its median
+ * point's; a point on the other side, or nearer than `margin`, is a meeting (REWORK.md, November 14: the rider is seen
+ * going through such a rail). */
+export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support:ReadonlyArray<{x:number;y:number}>,margin:number):boolean{
+  if(rail.length<2||support.length<2)return false;
+  const gaps:number[]=[];
+  for(const p of rail){
+    let best=Infinity,signed=0,inside=false;
+    for(let i=1;i<support.length;i++){
+      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,raw=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(raw,0,1);
+      const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
+      if(d<best){best=d;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
+    }
+    if(inside)gaps.push(signed);
+  }
+  if(!gaps.length)return false;
+  const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;
+  return gaps.some(g=>side*g<margin);
+}
+
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
 export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine[] {

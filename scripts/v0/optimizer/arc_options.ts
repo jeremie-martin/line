@@ -79,6 +79,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   opposingEntryProposals?: number;
   /** A candidate whose rail crosses or comes within this many px of its own support is not built (arc_geometry.ts railMeetsSupport). */
   railSupportMargin?: number;
+  /** After the ride is built, remove the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts). */
+  goneThroughCleanup?: boolean;
 };
 
 /** Set only by the compiler for one interval search. */
@@ -113,7 +115,7 @@ export const EVALUATION_IDENTITY = {
   constructionRequests: 'keySection', motionQuality: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
-  impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed',
+  impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',
 
   budget: 'search', samples: 'search', guidance: 'search',
   guidanceSamples: 'search',

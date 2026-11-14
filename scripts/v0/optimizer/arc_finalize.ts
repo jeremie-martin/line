@@ -7,6 +7,7 @@ import { buildTrackJson } from '../core/substrate.ts';
 import type { TrackLine } from '../types.ts';
 import { createArcEngine } from './arc_engine.ts';
 import { trimUnusedArcGuides, arcRailGroups } from './arc_guidance.ts';
+import { goneThrough } from './arc_gone_through.ts';
 import { arcWholeTrajectoryObjective, arcSelectionObjective } from './arc_objective.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
 import {impactRuler} from './impact_accounts.ts';
@@ -42,6 +43,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
   const coldEngine = createArcEngine(start, lines);
   const raw = extractRawTrajectory(coldEngine, end);
   const guidanceReduction = pruneUntouchedGuides(ctx, lines, coldEngine, raw);
+  const goneThroughRemoved = options.goneThroughCleanup ? removeGoneThrough(ctx, lines, coldEngine, raw) : 0;
   const finalImpactFrames = impactRuler.observe(coldEngine, raw.frames);
   disposeSearch();
   const beforeJudge = getPhysicsFrameCount();
@@ -77,13 +79,31 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
     selectionLoss,
     planningDecisions: work.planningDecisions, sectionFallbacks: work.sectionFallbacks, terminalSelectionStats: work.terminalSelectionStats,
     impactEvaluation, impactTrajectoryLoss,
-    guidanceReduction: guidanceReduction.stats, constructionFrames,
+    guidanceReduction: guidanceReduction.stats, ...(options.goneThroughCleanup ? {goneThroughRemoved} : {}), constructionFrames,
   };
 }
 
 /** Removes guide segments the final ride never touches. Fragment sections
  * have no guide rail; a contextual or transfer construction that pruning
  * would leave unfulfilled keeps its full guide. */
+/** Removes the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts), keeping the
+ * removal only when a replay of the cleaned track is identical to the ride's; returns how many pieces went. */
+function removeGoneThrough(ctx: ArcCompileContext, lines: TrackLine[], coldEngine: Engine, raw: any) {
+  const {options, start, end} = ctx;
+  const names = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
+  const points = raw.frames.map((f: {frame: number}) => {const st = coldEngine.getRider(f.frame).ballisticState(); return names.map(n => ({x: st.points[n].x, y: st.points[n].y}));});
+  const contacts = raw.frames.map((f: {frame: number}) => coldEngine.getAllContactLineIdsAtFrame(f.frame));
+  const fragments = new Set(Object.values(options.constructionRequests ?? {}).filter(r => r.construction === 'scattered').map(r => r.section));
+  const guides = new Set<number>();
+  for (const [, chains] of arcRailGroups(lines.filter(l => !fragments.has(sectionOf(l))))) for (const l of chains[1] ?? []) guides.add(l.id);
+  const drop = goneThrough(lines, points, contacts, l => fragments.has(sectionOf(l)) ? 'fragment' : guides.has(l.id) ? 'rail' : 'main');
+  if (!drop.size) return 0;
+  const cleaned = lines.filter(l => !drop.has(l.id));
+  if (JSON.stringify(extractRawTrajectory(createArcEngine(start, cleaned), end)) !== JSON.stringify(raw)) return 0;
+  lines.splice(0, lines.length, ...cleaned);
+  return drop.size;
+}
+
 function pruneUntouchedGuides(ctx: ArcCompileContext, lines: TrackLine[], coldEngine: Engine, raw: any) {
   const {options, end} = ctx;
   if (coldEngine.getLastFrameIndex() < end) throw new Error('guidance reduction requires a metered full replay');

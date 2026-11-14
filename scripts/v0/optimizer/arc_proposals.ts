@@ -115,8 +115,8 @@ export function proposeInitialControls(s: IntervalSearch) {
  * the rider onto a convex end, the twin releases where and as its geometry says, and nothing is there to touch. Offered on arcs that may have a rail; a twin is not
  * measured when it would draw the same support as its original. They compete under the ordinary checks; nothing
  * prefers them (REWORK.md, November 14: what a rail does). */
-export function proposeRidableTwins(s: IntervalSearch) {
-  const {options, i} = s, count = options.ridableTwins ?? 0;
+export function proposeRidableTwins(s: IntervalSearch, count = s.options.ridableTwins ?? 0) {
+  const {options, i} = s;
   if (!(i > 0 && count > 0 && options.guides !== false && !options.profile && options.railLayout !== 'transfer')) return;
   const work = s.ctx.work.ridableTwinWork, began = getPhysicsFrameCount();
   const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.c.ridable !== 1 && (x.c.exit > x.c.entry + x.c.turn || x.c.bend !== undefined))

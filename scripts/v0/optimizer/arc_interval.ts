@@ -36,6 +36,8 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
       recoverInitialization(s);
       coordinateSearch(s);
       guidanceSearch(s);
+      // the refined best get rail-free ridable twins too (REWORK.md, November 14: R3)
+      if (options.ridableTwins) proposeRidableTwins(s, Math.ceil(options.ridableTwins / 2));
     }
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;

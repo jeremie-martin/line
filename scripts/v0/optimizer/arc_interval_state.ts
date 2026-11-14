@@ -35,6 +35,12 @@ export type Fragments = {lines: CandidateGeometry; guideIds: number[]};
 export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overrides: IntervalOverrides) {
   const compileOptions = ctx.options;
   const options: IntervalOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
+  // A shaped section loses a share of its candidates to its own realization checks: it searches half as wide again,
+  // so its viable pool matches an arc's (REWORK.md, November 14).
+  if (options.profile && !('samples' in overrides)) {
+    options.samples = Math.round((options.samples ?? 160) * 1.5);
+    if (options.guidanceSamples) options.guidanceSamples = Math.round(options.guidanceSamples * 1.5);
+  }
   const constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
   if (constructionPolicy) options.controlPolicy = constructionPolicy;
   const nextRequest = options.constructionRequests?.[i + 1];

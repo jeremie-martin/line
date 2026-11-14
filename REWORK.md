@@ -9,6 +9,14 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, shaped sections search wider (stated before running)
+
+- **Basis.** Shapes are the costliest families in every context; a shaped section loses 15–32 evaluations per section to
+  its realization checks (bypassed shape, missing corners) on top of crashes, so its viable pool is smaller than an
+  arc's at the same sample count. The allowance is not binding (×8 allowance: the search used 35% more).
+- **Change** (`exp/shapes-search-wider`): shaped sections take 1.5× the samples and guide-and-shape samples.
+- **Hypothesis:** shaped sections land closer to their asks; V8 up; physics up a few percent within the allowance.
+
 ## November 14: hypothesis, the placement table counts the catch a section sets up (stated before running)
 
 - **Change** (`exp/families-fit-setup`): a section's fitted loss adds half of the next catch's squared strength error

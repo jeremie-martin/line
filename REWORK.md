@@ -9,6 +9,14 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: what the shaped families cost (diagnostic, not a candidate)
+
+The same compiler with its repertoire limited to arcs and scattered (no folds, serpentines, scallops or terraces;
+`--candidate-creative='{"repertoire":["arcs","scattered"]}'`), V8, 4 seeds: **801.7 against 782.2, +19.4
+[+9.8, +29.0]**, 42 specs up, 1 down; explicit +23.7; body drag +23%. 800 on V8 is within reach today only by giving up
+the shapes, which the goal and the owner rule out (variety over easy-to-score tracks). It locates the gap: the shapes
+cost about 19 points. Closing it means shapes that land their beats as well as arcs do, not fewer shapes.
+
 ## November 14: hypothesis, a step that crashes is retried at half size (stated before running)
 
 - **Basis** (`crash_edge.ts`, V8): about 45% of evaluations end with the rider thrown off, nearly all at the catch; in

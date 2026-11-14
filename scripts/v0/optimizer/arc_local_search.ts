@@ -23,9 +23,15 @@ export function coordinateSearch(s: IntervalSearch) {
     const key = keys[Math.floor((k - initial) / 2) % keys.length], round = Math.floor((k - initial) / (2 * keys.length)), sign = k % 2 === 0 ? -1 : 1;
     // Evaluation can replace the best, but never clears it during refinement.
     const best = s.best!.candidate;
-    const candidate = {...best.c, [key]: best.c[key]! + sign * arcControlStep(key, 'coordinate', best.c.support) *
-      Math.pow(.65, Math.floor(round / 2))};
-    evaluate(s, deriveOrigin(candidate, best.c, 'coordinate'));
+    const step = sign * arcControlStep(key, 'coordinate', best.c.support) * Math.pow(.65, Math.floor(round / 2));
+    const crashed = s.failures.binding ?? 0;
+    evaluate(s, deriveOrigin({...best.c, [key]: best.c[key]! + step}, best.c, 'coordinate'));
+    // A step that threw the rider off stopped at the crash edge, where the hardest survivable catches lie: the next
+    // sample tries half of it instead of the next coordinate (REWORK.md, November 14; the sample count is unchanged).
+    if ((s.failures.binding ?? 0) > crashed && k + 1 < max && s.best) {
+      k++;
+      evaluate(s, deriveOrigin({...s.best.candidate.c, [key]: s.best.candidate.c[key]! + step / 2}, s.best.candidate.c, 'coordinate'));
+    }
     if (k % 10 === 9) retainSearch(s);
   }
 }

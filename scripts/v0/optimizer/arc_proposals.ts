@@ -130,9 +130,10 @@ export function proposeUpperReceivers(s: IntervalSearch) {
   try {
     for (let k = 0; k < count; k++) {
       const frac = (n: number) => ((k + 1) * n) % 1;
-      const entry = clamp(incoming + 4 + frac(.61803398875) * 36, -75, 85), bend = Math.max(6, turn * (.6 + .7 * frac(.41421356237)));
+      // Where catches from above survive (REWORK.md, November 14: survival falls with incidence and contact length).
+      const entry = clamp(incoming + 6 + frac(.61803398875) * 18, -75, 85), bend = Math.max(6, turn * (.5 + .6 * frac(.41421356237)));
       const c: ArcMotionControl = {contactSide: -1, receiverAnchor: k % 2 ? 1 : 2, entry, turn: bend,
-        exit: clamp(entry + bend + frac(.73205080757) * 15, -80, 85), support: support * (.4 + .6 * frac(.2360679775)), bias: 0, offset: .1};
+        exit: clamp(entry + bend + frac(.73205080757) * 15, -80, 85), support: support * (.25 + .4 * frac(.2360679775)), bias: 0, offset: .1};
       // The line's tangent at its anchor, as motionArcPaths lays it: normal n of the entry heading, anchor on the chosen
       // points' extreme toward the line, the surface reaching back over the lead-in and forward over the support.
       const e = c.entry * Math.PI / 180, n = {x: Math.sin(e), y: -Math.cos(e)}, t = {x: Math.cos(e), y: Math.sin(e)};

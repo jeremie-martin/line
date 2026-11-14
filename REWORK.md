@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15 (night): Q10 result, the owner's Tiki spec, and Q11 (stated before running)
+
+- **Q10** (relative pricing with the touchdown floor, no climbing twins), V8 against `foundation-5`:
+
+| | headline | explicit | specs up / down / same | extra impacts | 0–0.1 within ×1.5 / over ×2 | exactly 0 within ×1.5 | all under 0.3 within ×1.5 |
+|---|---|---|---|---|---|---|---|
+| `foundation-5` | 764.5 | 709.2 | | 0.10 | 38% / 42% | 3% | 70% |
+| Q10, reference 0.3 | −5.4 [−12.1, +1.4] | −14.4 | 12 / 22 / 9 | 0.28 | 58% / 25% | 12% | 75% |
+| Q10, reference 0.4 | −5.7 [−16.3, +4.9] | −26.0 | 11 / 28 / 4 | 0.27 | 65% / 13% | 13% | 76% |
+
+  Strong asks, air and speed unchanged (rms within ±0.005); nine specs identical at 0.3 (no quiet asks: the pricing
+  never acts). The loss gathers on a few specs whose quiet stretches ask exactly 0 (Luna Bala spec −42): the first
+  gaps leave too fast and a stray hit appears. Removing the climbing twins saved about one point (Q9 −6.4).
+- **The owner's Tiki voice-drums under Q10 (0.4)**, 4 seeds, produced rides: asks 0–0.1 within ×1.5 85% (today 65%),
+  0.1–0.2 95% (82%); p90 0.14 and 0.18 (0.19, 0.20); mean score 756.7 (764.6; seed 101 753.3 against 754.4). Seed 101
+  rendered beside today's: quiet beats within ×1.5 31 of 32 (25 of 32), hits nobody asked for 1 (3).
+  Review page: `generated/quiet-study/compare.html`.
+- **Q11** (`exp/quiet-floor-extras`): Q10 at 0.4 with hits nobody asked for priced ×1.5 (cost ×2.25; Q1b–Q4's ×9–13
+  cost speed). **Hypothesis:** extra impacts back toward 0.10 at little headline cost.
+
 ## November 15 (night): Q8, Q9 results; Q10 (stated before running)
 
 - **Q8** (relative misses beyond ×1.4, weight 10 and 30): −67.8 and −80.1; speed rms +0.298 and +0.114; strong extra

@@ -32,6 +32,7 @@ export const repertoireSongs=[
  {id:'trouble_50s',title:'Trouble',duration:50.3},
  {id:'valhalla_40s',title:'Valhalla',duration:40.07},
  {id:'circus_minimus_77s',title:'Circus Minimus',duration:77.09},
+ {id:'believer_78s',title:'Believer',duration:78.5},
  {id:'amour_de_ma_vie_108s',title:'L’amour de ma vie (full)',duration:108.528},
 ];
 /** Every geometry family is offered under its label, in the planner's order. */

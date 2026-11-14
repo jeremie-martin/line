@@ -357,7 +357,7 @@ variations. The owner's answers:
 **Collection: 38 themes.** Frozen as set `2026-11-13-round45`; ids reproduced by the test; stills rendered again identical. The two
 Paper variations take Paper's drop partners (not judged apart). Near-identical themes are drawn as often as any other for now
 (owner: to be settled with the sampling, no family concept yet). The lab fingerprint baseline is refreshed (more themes).
-||||||| ca6a0c6a
+
 ## November 14: the targeted cleanup of lines the rider goes through, adopted
 
 `compiler` now removes, after the ride is built, the pieces of lines the whole rider goes through and never touches

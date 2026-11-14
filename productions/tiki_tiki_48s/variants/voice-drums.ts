@@ -9,8 +9,8 @@
  *   7.0–10.5   The build. The beat is already there under the breathy words: the words on it are
  *              firmer, the words between lighter, each pair a step up, into the drop, the hardest
  *              landing of the song.
- *   10.5–24.4  The groove. Every kick, its strength chosen bar by bar (lighter first, the last two bars
- *              the strongest); the backbeat snare after beats 1
+ *   10.5–24.4  The groove. Every kick; every fourth beat from the drop is a fat, heavy hit and lands far
+ *              harder than the ordinary kicks around it; the backbeat snare after beats 1
  *              and 2; the pickup snare 0.22 s before each downbeat ("ta-BOOM"). On top, what makes
  *              each bar different, which the first spec could not ask for:
  *                - the two words that run into beat 3, 0.2 s apart (the first shares the backbeat);
@@ -66,19 +66,23 @@ const BREATH = 5.271, LAST_NOTE = 47.322;
 const AFTER_BOOM = [25.252, 26.122], SWELL_START = 8.731, RUN_END_BACKBEAT = 40.054;
 const kicks = m.KICKS.filter(t => t !== m.DROP && t !== m.REENTRY);
 const fail = (t: number): never => {throw new Error(`no strength for the kick at ${t}`);};
-/** Every kick's strength, chosen one by one. The drum stem is flat (every kick 0.69–0.74), so loudness says little; the
- *  shape is the owner's (2026-11-14): the groove's first two bars lighter, its last two (the instrumental line he hears as
- *  the chorus) the strongest of the groove, 20.94 at 0.9; the run a step above the groove; the last four kicks, alone as
- *  the voice goes down, very strong. Where the mix's own attack is sharpest (15.69, 22.64, 39.60) the kick is a step up. */
+/** Every kick's strength, chosen one by one, in two families the owner hears (2026-11-14, his "impact" marks).
+ *  - The fat ones: a heavy, not-sharp hit every four beats counted from the drop (13.96, 17.43, 20.94; 31.35, 34.82,
+ *    38.30; the drop and the re-entry are two more), the kick half a beat before it where there is one (16.99, 34.38),
+ *    and the last four kicks. These carry the song: 0.90 and up, rising through each half, the very last the highest
+ *    after the drop. In the data they show as a full-level mix peak with a soft attack, four of them with no drum onset.
+ *  - The others: strong but ordinary, deliberately a clear step below (0.60–0.70; a little more in the run), the
+ *    sharpest attacks (15.69, 22.64) one notch up. The kick before the fat pair (16.56, 33.95) sits between, at 0.8.
+ *  The boom at 24.38 falls on a fat slot but is quiet in the song, and stays discreet. */
 const KICK: Record<number, number> = {
-  11.343: 0.76, 12.214: 0.64, 13.073: 0.64, 13.955: 0.66,
-  14.826: 0.78, 15.685: 0.72, 16.556: 0.66, 16.985: 0.62, 17.427: 0.68,
-  18.297: 0.82, 19.168: 0.74, 20.039: 0.80, 20.944: 0.90,
-  21.78: 0.88, 22.639: 0.88, 23.51: 0.80,
-  28.735: 0.84, 29.605: 0.74, 30.476: 0.72, 31.347: 0.74,
-  32.218: 0.84, 33.077: 0.78, 33.948: 0.72, 34.377: 0.66, 34.818: 0.74,
-  35.689: 0.86, 36.56: 0.78, 37.431: 0.78, 38.301: 0.88,
-  39.602: 0.94, 40.472: 0.95, 40.902: 0.92, 41.784: 0.96,
+  11.343: 0.66, 12.214: 0.62, 13.073: 0.62, 13.955: 0.90,
+  14.826: 0.66, 15.685: 0.68, 16.556: 0.80, 16.985: 0.84, 17.427: 0.92,
+  18.297: 0.66, 19.168: 0.64, 20.039: 0.64, 20.944: 0.94,
+  21.78: 0.68, 22.639: 0.70, 23.51: 0.64,
+  28.735: 0.70, 29.605: 0.66, 30.476: 0.66, 31.347: 0.92,
+  32.218: 0.70, 33.077: 0.70, 33.948: 0.80, 34.377: 0.84, 34.818: 0.92,
+  35.689: 0.70, 36.56: 0.68, 37.431: 0.68, 38.301: 0.95,
+  39.602: 0.92, 40.472: 0.94, 40.902: 0.92, 41.784: 0.98,
 };
 
 const authored = [

@@ -83,7 +83,7 @@ function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan
 }
 
 /** At most this share of a ride's gaps (sections) is offered a rail. */
-export const RAIL_BUDGET=.6;
+export const RAIL_BUDGET=.30;
 /** A rail budget: beyond RAIL_BUDGET, offers are withdrawn phrase by phrase, calmest phrase first (lowest mean ask: the
  * placement table rates rails least useful there), from arcs and shaped phrases; scattered keeps its guides (a plan rule)
  * and a required guide stays. Offers the search leaves unused are trimmed anyway, so the rails drawn are fewer still. */

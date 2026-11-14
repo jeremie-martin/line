@@ -9,6 +9,12 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, the placement table counts the catch a section sets up (stated before running)
+
+- **Change** (`exp/families-fit-setup`): a section's fitted loss adds half of the next catch's squared strength error
+  (its exit sets up that arrival); same contexts, same 524 rides.
+- **Hypothesis:** families that prepare strong catches well move before them; V8 up on dense songs.
+
 ## November 14: phrases ending where the strength asked changes (not adopted)
 
 On the refitted placement (`exp/phrases-split-on-strength`): a phrase also ends where the strength asked changes by

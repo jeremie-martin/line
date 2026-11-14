@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: how close rails come to their support where the rider rides (report only; audit before any rule)
+
+- The rider stands about 10 px above the line it rides (highest body point: median 9.6, p90 12.1); the sled about 6 px
+  (median 5.8) (`tools/research/rider_height.ts`). Rails are laid a median 12 px from their support, so a rail that
+  guides the sled runs through the rider's body by design.
+- `tools/research/rail_audit.ts --at=rider`, foundation, V8, 196 rides: for every frame the sled rides a support that
+  has a rail, the rail's height above it at the sled's position; each rail banded by its lowest:
+
+  | band | rails | per ride |
+  |---|---|---|
+  | crossing: the rail on the other side of its support where the rider rides | 0.6% | 0.2 |
+  | under the sled (0–6 px): the rider squeezed between, the body through the rail | 26.7% | 8.8 |
+  | under the rider (6–10 px) | 46.4% | 15.3 |
+  | above the rider (10 px or more) | 26.3% | 8.7 |
+
+- The geometric bands without the rider's position mislead (a rail end converging onto the support after the rider has
+  left; a side test that flips past the support's end): measured at the rider, all sampled crossings are real.
+  Pictures: `generated/upper-review/rail-audit-rider.html`. For the owner: which bands look wrong.
+
 ## November 14: the rider going through a line, results (rule not adopted; cleanup proposed)
 
 Aligned with the owner on pictures (`generated/upper-review/through.html`): the case is the whole rider going through a

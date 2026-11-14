@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q3c result, braking physics, and Q4, Q5, Q6 (stated before running)
+
+- **Q3c** (Q1's pricing + climbing twins): headline −10.6 [−12.9, −8.3] (Q1 −12.1); explicit −46.0; asks 0–0.1 within
+  ×1.5 56%, over ×2 22% (Q1 54%, 21%); strong extra impacts 0.44 (Q1 0.61, `foundation-5` 0.10); speed rms +0.010;
+  P3 −45.6, P6 −28.9, P7 +13.0. Climbing helps a little. On Tiki bench-calm the speed rms doubles (0.065 → 0.130) while
+  the impact rms improves (0.089 → 0.075). (Q3a, Q3b and a first Q4 died when the disk filled; rerun after freeing the
+  comparison tool's 172 cached worktrees, 18 GB.)
+- **Braking physics** (engine probes, report only). Line friction is small: a long gentle concave press sheds 0.1–0.55
+  px/frame. Climbing is the clean brake: a 30° upward curve of radius 600 px takes 10 → 8.1 px/frame in 36 frames with
+  no event. But calm specs ask much air, so supports are 2–5 frames: no room to climb on the support, and the catch's
+  turn is the hit (a quiet 0.1 at 8 px/frame allows about 5° of turn inside the strike's window).
+- **Q4** (`exp/quiet-arrival`, Q3b plus): the arrival speed prior scaled by the next catch's relative price (a quiet
+  catch cannot brake, so arriving at the asked speed matters more). **Hypothesis:** speed held better than Q3b.
+- **Q5** (`exp/quiet-dose-30`, `-40`): Q3c at reference 0.3 and 0.4 (ask 0: ×9 and ×13; 0.1: ×3.2 and ×4.8), no
+  extras pricing. **Hypothesis:** a dose-response between `foundation-5` and Q3c; at 0.3 most of the extra impacts and
+  headline loss gone with part of the quiet gain.
+- **Q6** (`exp/quiet-spread`, today's pricing): spread twins: the 6 best-ranked candidates again with the catch's turn
+  over 45%, 70% and 85% of the support, eased in (bias at least 1): the same redirection and flight, a softer strike.
+  **Hypothesis:** quiet asks softer at no cost (twins win on the impact residual alone); headline unchanged or up.
+
 ## November 14 (night): Q1b, Q1c, Q2 results; Q3: climbing twins (stated before running)
 
 V8 against `foundation-5`; "within ×1.5" and "over ×2" are for asks 0–0.1 (`foundation-5`: 14%, 75%).

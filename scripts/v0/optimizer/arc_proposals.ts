@@ -193,6 +193,18 @@ export function proposeClimbingTwins(s: IntervalSearch) {
   retainSearch(s);
 }
 
+/** Spread twins (REWORK.md, November 14: Q6): the best-ranked candidates again with the catch's turn spread over a
+ * larger share of the support (each of `fractions`) and eased in (bias at least 1), so the same redirection, and the
+ * same flight after it, comes with a softer strike: the ruler reads the largest 2-frame push, and a turn packed into
+ * the first five frames is what makes quiet asks land too hard. The search keeps a twin only where it ranks better. */
+export function proposeSpreadTwins(s: IntervalSearch) {
+  const {options, i} = s, cfg = options.spreadTwins;
+  if (!(i > 0 && cfg && cfg.count > 0 && !options.profile && options.railLayout !== 'transfer')) return;
+  const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1).sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);
+  for (const x of ranked) for (const f of cfg.fractions) evaluate(s, tagOrigin({...x.c, turnFraction: f, bias: Math.max(1, x.c.bias)}, 'spread'));
+  retainSearch(s);
+}
+
 /** Short folded entries before a long runout, for folded transfer layouts. */
 export function proposeCompactFolds(s: IntervalSearch) {
   const {options, support} = s;

@@ -29,6 +29,8 @@
 - **Change** (`exp/shapes-end-early`): serpentines, scallops and terraces complete their profile by 70% of the support;
   the rest eases into the exit as an arc does. Same bends, same count; folds keep their faces.
 - **Hypothesis:** shaped sections hand on an arc's speed and heading; V8 up.
+- **Result: not adopted**, V8 at 8 seeds **−30.2 [−35.8, −24.7]**, 1 spec up, 42 down; strong extra impacts ×2.1. Compressed
+  into 70% of the support, the same bends are sharper and strike: a shape's cost is in its bends, wherever they are.
 
 ## November 14: one shape family removed (diagnostic)
 
@@ -47,6 +49,8 @@ cost follows their total share, not one family.
   | shaped sections search 1.5× wider | −0.7 |
   | shaped sections borrow the arcs' learned catches | −2.0 (8 seeds) |
   | shapes relax under intensity (40% less bend) | −1.8 (8 seeds) |
+  | smooth shapes end at 70% of the support | −30.2 (8 seeds) |
+  | one family removed (serpentines; their share goes to the others) | −0.0 |
   | placement refinements (finer contexts, setup, extras, model) | −1.8, −3.0, −3.5, −24.8 |
 
 - **Why:** with placement, a shape's own section costs little more than an arc's (terraces less, in strong contexts);

@@ -58,9 +58,11 @@ and validation are in [music authoring](docs/music-authoring.md).
      2026-11-14);
    - measures each proposal by native replay from the section's physical
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`); a proposal
-     whose rail crosses or comes within 2 px of its own support is not built
+     whose rail crosses or comes within 6 px of its own support is not built
      (`railMeetsSupport`, option `railSupportMargin`: the rider would be seen
-     going through it; since 2026-11-14);
+     going through it, or be squeezed between rail and support and pushed out
+     with speed gravity does not give; 2 px since 2026-11-14, 6 px the same day,
+     V8 −0.5; rails 6–10 px away still squeeze, `tools/research/rail_squeeze.ts`);
    - refines the best with coordinate, guide and joint-response steps
      (`arc_local_search.ts`);
    - retains up to eight distinct, physically replayed prefixes, ranked by

@@ -55,6 +55,51 @@ export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number
   return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
 }
 
+/** The distance between segments p1–p2 and q1–q2 (0 when they cross). */
+function segmentGap(p1:{x:number;y:number},p2:{x:number;y:number},q1:{x:number;y:number},q2:{x:number;y:number}){
+  const cross=(a:{x:number;y:number},b:{x:number;y:number},c:{x:number;y:number})=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+  const d1=cross(p1,p2,q1),d2=cross(p1,p2,q2),d3=cross(q1,q2,p1),d4=cross(q1,q2,p2);
+  if(d1*d2<0&&d3*d4<0)return 0;
+  const toSeg=(p:{x:number;y:number},a:{x:number;y:number},b:{x:number;y:number})=>{
+    const dx=b.x-a.x,dy=b.y-a.y,u=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);};
+  return Math.min(toSeg(p1,q1,q2),toSeg(p2,q1,q2),toSeg(q1,p1,p2),toSeg(q2,p1,p2));
+}
+
+/** Whether a rail crosses, or comes within `margin` px of, the support it was laid beside (REWORK.md, November 14: the
+ * rider is seen going through such a rail). Along the support's span the rail's side is its median point's there, and
+ * a point on the other side or nearer than `margin` is a meeting, and so is any rail segment coming within `margin` of
+ * a support segment (crossing it included); past either end of the support the side is not
+ * defined, so a point there meets it only by coming within `margin` of the end (a rail converging onto the end of its
+ * support, or starting at the corner where the rider leaves it). */
+export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support:ReadonlyArray<{x:number;y:number}>,margin:number):boolean{
+  if(rail.length<2||support.length<2)return false;
+  const gaps:number[]=[];
+  let atEnd=false;
+  for(const p of rail){
+    let best=Infinity,signed=0,inside=false;
+    for(let i=1;i<support.length;i++){
+      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,raw=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(raw,0,1);
+      const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
+      if(d<best){best=d;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
+    }
+    if(inside)gaps.push(signed);else if(best<margin)atEnd=true;
+  }
+  if(atEnd)return true;
+  // Between its points a rail meeting the support at an angle comes closer than either point: segment against segment.
+  // Only segment pairs whose bounding boxes come within the margin can (a cheap filter: the pairs are many).
+  for(let j=1;j<rail.length;j++){
+    const a=rail[j-1],b=rail[j],ax0=Math.min(a.x,b.x)-margin,ax1=Math.max(a.x,b.x)+margin,ay0=Math.min(a.y,b.y)-margin,ay1=Math.max(a.y,b.y)+margin;
+    for(let i=1;i<support.length;i++){
+      const c=support[i-1],d=support[i];
+      if(Math.max(c.x,d.x)<ax0||Math.min(c.x,d.x)>ax1||Math.max(c.y,d.y)<ay0||Math.min(c.y,d.y)>ay1)continue;
+      if(segmentGap(a,b,c,d)<margin)return true;
+    }
+  }
+  if(!gaps.length)return false;
+  const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;
+  return gaps.some(g=>side*g<margin);
+}
+
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
 export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine[] {

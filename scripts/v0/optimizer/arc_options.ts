@@ -77,6 +77,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   impactPreparationFrames?: number;
   /** Proposals offering the same curve from the opposite contact side. */
   opposingEntryProposals?: number;
+  /** A candidate whose rail crosses or comes within this many px of its own support is not built (arc_geometry.ts railMeetsSupport). */
+  railSupportMargin?: number;
 };
 
 /** Set only by the compiler for one interval search. */
@@ -111,7 +113,7 @@ export const EVALUATION_IDENTITY = {
   constructionRequests: 'keySection', motionQuality: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
-  impactPreparationFrames: 'fixed', sectionStyles: 'fixed',
+  impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed',
 
   budget: 'search', samples: 'search', guidance: 'search',
   guidanceSamples: 'search',

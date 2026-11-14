@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never proposed onto their own support, first result and a second execution (stated before running it)
+
+- **First execution** (V8, 196 rides, against `foundation`): headline −1.1 [−6.2, +4.0], 18 specs up, 25 down;
+  explicit +2.3; physics per ride unchanged. At the rider: crossing rails 39 → 0, almost crossing 52 → 17, ordinary
+  close rails untouched (1,673 → 1,667); the rider going through a line 0.84 → 0.53 per ride (narrow), 0.77 → 0.50 (wide).
+- What remains (`generated/upper-review/rail-touch-left.html`, `through-touch-left.html`): rail ends converging onto the
+  end of their support, and rails starting at the corner where the support ends, both just past the support's span,
+  which the check skipped (past an end the side test is not reliable).
+- **Second execution** (same branch): past either end, a rail point meets the support by coming within the margin of
+  its end. **Hypothesis:** almost crossing at the rider near 0; going through falls further; headline within noise.
+
 ## November 14: hypothesis, rails never proposed onto their own support (stated before running)
 
 - **Basis:** the owner, on pictures (`generated/upper-review/rail-almost.html`): rails crossing their support where the

@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: E1c result, upper receivers where catches from above survive (candidate)
+
+V8, 4 seeds, against `foundation`:
+- **Headline +0.5 [−3.6, +4.5]**, 24 specs up, 19 down; every ride finished; explicit requests +4.1 (216/216).
+- Strong extra impacts 0.10 → 0.15 per 100 beats; body drag and head-down strong arrivals unchanged; rails 55% → 54%.
+- **The new receivers make strong upper hits as strong as floor catches:** chosen in 248 gaps (E1: 180); their clean
+  upper hits on strong beats strike 0.68 (on the sled, 134) and 0.72 (on its front, 68) against 0.70 for floor catches
+  and 0.61 for mirrored ones. They replace weaker mirrored hits more than they add (clean upper 9.6% → 9.8%).
+- Candidates (`upper_candidates.ts`, seed 101): on strong asks 41% survive (E1b 33%) at 0.59 (0.57).
+- **Reading:** a better construction, neutral on the headline; more upper hits need the search to value them, which
+  waits on the owner's held-out check of the gravity-neutral strength. Proposed for adoption with the owner's look.
+
 ## November 14: hypothesis, upper receivers where catches from above survive (E1c; stated before running)
 
 - **Basis** (`upper_candidates.ts`, E1b): survival on strong asks falls with incidence (0–10°: 70%, 10–20°: 44%,

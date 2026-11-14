@@ -5,6 +5,15 @@
 - **Change** (`exp/families-fit-more`): the same 12 contexts, fitted on the V7.1 rides of both compilers (before and
   with placement: 524 rides, 83 cells) instead of 344 rides of the first.
 - **Hypothesis:** a steadier table, and one that knows where placed families now land; V8 up a little.
+- **Result: adopted**, V8 at 8 seeds **+3.7 [+1.0, +6.5]**, support > 0.99, 26 specs up, 17 down; explicit +5.3;
+  strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
+  references refreshed.
+
+## November 14: phrases ending where the strength asked changes (not adopted)
+
+On the refitted placement (`exp/phrases-split-on-strength`): a phrase also ends where the strength asked changes by
+more than 0.4. V8, 4 seeds, against the refit: +0.3 [−8.2, +8.8] (G +2.0, P4 +8.5, P6 −13.3); strong extra impacts
++23%. Null: placement already does what shorter phrases would.
 
 ## November 14: hypothesis, families where they fit, with the next catch in view (stated before running)
 

@@ -43,7 +43,7 @@ export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35,
 
 /** The response's settings per value of look.hits. v1 is production; in the lab (round 51) the band is lit for as long as a hit of
  * at least `lit` lasts (the owner: "from 0.65", "way better on all the dark themes"). */
-export const TUNES = {v1: {}, lit65: {lit: 0.65}};
+export const TUNES = {v1: {}, lit65: {lit: 0.65}, still: {still: true}};
 
 // Hold the peak for at least one 60 fps frame, then recover within 0.25 seconds.
 function envelope(age, energy) {
@@ -63,7 +63,7 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
   }
   if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  const a = amount < 0.002 ? 0 : shake(hit.strength) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
+  const a = amount < 0.002 || tune.still ? 0 : shake(hit.strength) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x, dy: a * y,
     split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},

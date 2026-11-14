@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the rider going through a line, results (rule not adopted; cleanup proposed)
+
+Aligned with the owner on pictures (`generated/upper-review/through.html`): the case is the whole rider going through a
+line, typically a rail starting at or below its own support. Two detections (`tools/research/going_through.ts`: the
+sled's centre crosses a line it does not collide with; `going_through_wide.ts`: 6 of the rider's 10 points cross one
+line within 4 frames) overlap only in part: counted together. V8, 196 rides each:
+
+| | foundation | rails never closer than 6 px to their support (`exp/rail-floor`) |
+|---|---|---|
+| V8 headline | 775.0 | 769.9: −5.2 [−12.2, +1.9], 9 specs up, 34 down; explicit −9.1 |
+| rails starting within 4 px of their support | 1.4 per ride | 0.0 |
+| rails crossing their support | 0.3 | 0.1 |
+| the rider going through a line (narrow / wide) | 0.84 / 0.77 | 0.39 / 0.38 |
+
+- The rule removes rails laid onto their support but only halves the going-through cases: the rest are rails on the
+  wrong side of their support (the rule checked distance, not side) or rails in the flight path just past the support's
+  end (`generated/upper-review/through-after.html`). Not adopted.
+- **Targeted cleanup** (`going_through_cleanup.ts`, the owner's idea): for each case, remove the pieces of that line the
+  rider's points cross, never touched by the rider, to the line's nearer end where that stretch is untouched. On the
+  foundation: replay identical in 196 of 196 (every point, every frame); cases 1.61 → 0.32 per ride; 3.5 pieces removed
+  and 1.2 new breaks per ride; no score change by construction. What remains are pieces the rider also touches (the
+  Circus 17.4 s rail start). Pictures: `generated/upper-review/through-cleaned.html`.
+- The earlier broad cleanup (every untouched piece cutting the rider's figure, 300 pieces per ride) answered another
+  question and is dropped.
+
 ## November 14: hypothesis, rails never drawn onto their own support (stated before running)
 
 - **Basis** (owner, Circus Minimus 17 s; aligned on pictures, `generated/upper-review/through.html`): what he means by

@@ -9,6 +9,15 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, shaped sections borrow the arcs' learned catches (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8 (above). A shaped section's catch comes before its shape; its learned
+  proposals come only from its own group, trained on a fifth of the arcs' demonstrations.
+- **Change** (`exp/shapes-borrow-arc-catches`): a shaped section's learned proposals are half its own group's, half the
+  plain arcs' (same guidance and layout), within the same proposal count.
+- **Hypothesis:** shaped sections catch closer to their asks; V8 up, shapes unchanged in number and look.
+- **Result: not adopted**, V8 at 8 seeds −2.0 [−4.1, +0.2]. The shapes' cost is not their proposals.
+
 ## November 14: what the shaped families cost (diagnostic, not a candidate)
 
 The same compiler with its repertoire limited to arcs and scattered (no folds, serpentines, scallops or terraces;

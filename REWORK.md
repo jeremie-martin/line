@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: how today's upper hits happen (report only; stage 1 of the upper-hit work)
+
+`tools/research/upper_hits.ts` on the foundation (`compiler`, V8, 4 seeds): the 7,771 strong beats (ask 0.6+) caught
+with a clean upper hit (1,240) or on a floor (6,531), each replayed.
+
+| | clean upper | floor |
+|---|---|---|
+| ask / got / bias | 0.81 / 0.61 / −0.20 | 0.80 / 0.70 / −0.10 |
+| receiver from the opposing side (mirrored floor curve) | 100% | 0% |
+| arrives rising | 2% | 0% |
+| speed in (px/frame), turn of the path | 10.8, 26° | 11.5, 26° |
+| contact's own push (change of motion less gravity) | 4.4 | 5.5 |
+| sled touches first | 81% | 99% |
+| head-down | 27% | 12% |
+| speed 8 frames later / before | 0.93 | 0.91 |
+| next strong beat's bias | −0.13 | −0.14 |
+
+- **Today's upper hits are not the owner's.** All come from mirrored floor curves, and 98% meet a falling rider: a
+  steep line coming down ahead deflects the rider further down. The hit the owner describes (thrown up off the
+  geometry, caught from above, sent down) almost never happens: strong beats are reached rising 0–2% of the time.
+- **Why they measure soft.** For the same turn of the path (26°) a line pushing down needs about 20% less push, because
+  gravity already pulls that way. Strength is the contact's push (the deviation from free flight), so it reads them
+  softer; per unit of push they read the same. Whether the eye sees the turn or the push is what the blind study
+  (`upper-hits-2026-11`, pairs matched on measured strength) can tell.
+- They are not slower afterwards, and the next strong catch is no weaker.
+- November 13 (`crash_edge.ts`, the compiler of then): among candidates striking near a strong ask, 83% of catches from
+  above came apart, against 29% overall.
+
 ## November 14: the new foundation (adopted by the owner)
 
 `compiler` now has neither the strong-phrase guide rule nor guides where they clearly fit; it keeps the ending

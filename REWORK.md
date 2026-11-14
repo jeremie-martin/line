@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: R2 result, and R3: ridable as physics allows, twins of the refined best too (stated before running)
+
+- **R2** (V8, against `base`): headline −1.8 [−5.1, +1.4], 15 specs up, 28 down; explicit +1.2; strong extra impacts
+  −30%. Rail-free ridable twins chosen for 8.4% of the arcs that may have a rail (230 of 2,738), none with a rail; rails
+  kept on those arcs 81% → 77% (all gaps 55% → 54%). Rail-free arcs work where chosen, but rarely win.
+- **R3** (same branch): (a) a ridable end may bend downward as far as gravity holds the rider at its arrival speed
+  (0.175 × cos of the exit slope ÷ speed, radians per frame, over the support after the catch's turn) instead of not at
+  all, so a twin can release closer to its original's direction; (b) twins are also offered of the best candidates
+  after local search (4), not only of the early proposals (8), so refined geometry gets a rail-free version.
+  **Hypothesis:** rail-free twins chosen more often (well above 8%); rails on those arcs fall further; headline within
+  a few points.
+
 ## November 14: R1 result, and R2: ridable twins without a rail (stated before running)
 
 - **R1** (V8, 196 rides, against `base`): headline −0.6 [−6.9, +5.7], 21 specs up, 22 down; explicit −2.9; strong

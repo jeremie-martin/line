@@ -31,6 +31,9 @@
     (0.716, exit 20°): it is chosen too rarely to move a chain, and its extra strikes and proposals cost elsewhere.
   - Kept on its branch. A run-level construction (a steering channel for whole strong phrases) is the version that
     could change chains; it is a new family, not a proposal.
+- **Third execution, run-level** (same branch): in a strong chain (this ask and the next 0.6 or more), every guided
+  plain arc steers: its normalized controls hold the catch's heading at least 2 frames (3 unless searched) and exit at
+  least 10° below it. The search tunes everything inside that space; other sections unchanged.
 
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 

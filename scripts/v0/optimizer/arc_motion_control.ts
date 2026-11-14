@@ -13,6 +13,7 @@ export type ArcControlContext = {
   railLayout?:'paired'|'transfer';independentGuide?:boolean;
   observedReceiver?:boolean;
   releaseReserveFrames?:number;
+  steering?:boolean;
 };
 type ControlDefinition = {
   family: 'core' | 'guide' | 'expressive' | 'topology';
@@ -99,6 +100,12 @@ export function arcControlNormalizer(input: ArcControlContext): (control: ArcMot
       const value = c[key];
       if (value === undefined && definition.family !== 'core') continue;
       c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
+    }
+    // In a strong chain a guided arc steers after the hit: it holds the catch's heading at least two frames, then exits
+    // at least 10° below it, under its rail.
+    if (context.steering && arcControlActive('hold', context.guides, context)) {
+      c.hold = clamp(c.hold ?? 3, 2, ARC_CONTROL_DEFINITIONS.hold.max);
+      c.exit = clamp(Math.max(c.exit, c.entry + c.turn + 10), ARC_CONTROL_DEFINITIONS.exit.min, ARC_CONTROL_DEFINITIONS.exit.max);
     }
     return c;
   };

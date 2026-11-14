@@ -44,6 +44,9 @@ export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overri
     options.passiveArrival = true;
     options.headingWeight = 0;
   }
+  // A strong chain: this catch and the next ask 0.6 or more.
+  const ask = (k: number) => ctx.contacts[k] ? ctx.gaps[ctx.contacts[k].gap]?.targets.impact ?? 0 : 0;
+  if (i > 0 && ask(i) >= .6 && ask(i + 1) >= .6 && (options.constructionRequests?.[i]?.construction ?? 'arcs') === 'arcs') options.steering = true;
   return options;
 }
 

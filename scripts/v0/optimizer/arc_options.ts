@@ -84,6 +84,9 @@ export type IntervalOverrides = Partial<Pick<ArcMotionOptions,
   'samples' | 'guidanceSamples' | 'responseSamples' | 'initialRecoverySamples' | 'arrivalWeight' | 'headingWeight' | 'guidance'>> & {
   /** A control evaluated before the ordinary proposals. */
   warmStart?: ArcMotionControl;
+  /** A guided plain arc inside a strong chain steers after the hit: its normalized controls hold the catch's heading
+   * and exit below it (arc_motion_control.ts). Set per interval (arc_interval_state.ts). */
+  steering?: boolean;
   /** Measure exactly these controls and nothing else. */
   directControls?: ArcMotionControl[];
 };
@@ -119,7 +122,7 @@ export const EVALUATION_IDENTITY = {
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
   constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
-  warmStart: 'search', directControls: 'search', controlPolicy: 'search',
+  warmStart: 'search', directControls: 'search', controlPolicy: 'search', steering: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 
 const MEMO_CONTEXT = (Object.entries(EVALUATION_IDENTITY) as Array<[keyof IntervalOptions, EvaluationRole]>)

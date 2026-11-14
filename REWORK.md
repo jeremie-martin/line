@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never closer to their support than 6 px (adopted, the owner's choice)
+
+`exp/rail-margin-6` merged: the rail-support margin is 6 px (was 2). V8 against `foundation-4`: −0.5 [−6.4, +5.4];
+rails 43% → 41% of gaps; strong extra impacts −28%. No rail within 6 px of its own support is built, so the tightest
+squeezes (the two moments the owner flagged on Circus) cannot occur; rails 6–10 px away still squeeze. Tests pass,
+typecheck 0, reach unchanged, parity references refreshed in their own commit, parity and judge parity pass. Named
+reference `foundation-5` = this commit.
+
 ## November 14: middle-ground rail margins (result)
 
 V8, 4 seeds, against `foundation-4` (764.9), the rail-support margin alone changed:

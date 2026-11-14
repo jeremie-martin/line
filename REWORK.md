@@ -14,7 +14,9 @@
 - **Basis.** Shapes are the costliest families in every context; a shaped section loses 15–32 evaluations per section to
   its realization checks (bypassed shape, missing corners) on top of crashes, so its viable pool is smaller than an
   arc's at the same sample count. The allowance is not binding (×8 allowance: the search used 35% more).
-- **Change** (`exp/shapes-search-wider`): shaped sections take 1.5× the samples and guide-and-shape samples.
+- **Change** (`exp/shapes-search-wider`): shaped sections take 1.5× the samples and guide-and-shape samples (in the
+  sequence's per-interval effort, beside the strong catch's ×1.3; a first version set it where the sequence's own
+  sample counts override it, and changed nothing).
 - **Hypothesis:** shaped sections land closer to their asks; V8 up; physics up a few percent within the allowance.
 
 ## November 14: hypothesis, the placement table counts the catch a section sets up (stated before running)

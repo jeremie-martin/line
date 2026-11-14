@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q1 result; Q1b, Q1c, Q2 (stated before running)
+
+The owner asked for a night on quiet asks (0 to 0.3): improve them much, in relative terms (0.05 against 0.1 matters),
+keeping everything else. Quiet asks are now reported by `tools/research/quiet_asks.ts` also in relative terms:
+ln((got + 0.03) / (ask + 0.03)), the share within a factor 1.5 and the share more than twice too hard.
+- **Q1** (`exp/quiet-relative`, V8 against `foundation-5`): headline −12.1 [−20.0, −4.3] (P3 −43.6, P6 −37.4,
+  explicit −58.1). Quiet asks transformed: asks 0–0.1 land at median 0.02 (was 0.09), within ×1.5 54% (14%), over ×2
+  21% (75%); asks 0.1–0.2 within ×1.5 99% (94%). But **strong extra impacts ×6** (0.10 → 0.61 per 100 beats) and
+  speed rms +0.012: the search softened the beat and braked with a hit nobody asked for. Not adoptable.
+- **Q1b, Q1c** (`exp/quiet-relative-b`, `-c`): a hit nobody asked for is an impact where 0 was asked, so its residual
+  takes the same relative scale (× (reference + floor) / floor). Q1b: reference 0.3 (ask 0: ×9, 0.1: ×3.2, 0.2: ×1.7);
+  Q1c: reference 0.5 as Q1 (×18.8, ×6.8, ×3.4). **Hypothesis:** extra impacts back near `foundation-5`; most of Q1's
+  quiet gain kept (Q1c more than Q1b); headline loss well under Q1's.
+- **Q2** (`exp/quiet-faithful`): pricing unchanged; after the interval's search, the best candidate landing within a
+  factor 1.3 of its ask (when the best does not) gets 24 coordinate steps of its own, keeping steps that stay within
+  and rank better. **Hypothesis:** faithful candidates win more often; quiet asks within ×1.5 up (less than Q1);
+  strong asks a little closer too; headline within a few points.
+
 ## November 14: why quiet asks land too hard (measured), and Q1: impact errors priced relative to the ask (stated before running)
 
 The owner: quiet asks have had no attention for a long time; do better, with general mechanisms.

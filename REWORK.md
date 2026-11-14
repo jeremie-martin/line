@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, families where they fit, with the next catch in view (stated before running)
+
+- **Change** (`exp/families-fit-next`): the context also tells whether the next catch asks 0.6 or more (a section sets
+  up that arrival): 24 contexts. Fitted on the V7.1 rides of both the compiler before placement and the one with it
+  (524 rides, 139 cells with 30 sections or more; the rest fall back to the context's mean).
+- **Hypothesis:** placement improves further where a section prepares a strong catch (G, P1, P4); V8 up against
+  `compiler` (which has placement).
+- **Result: not adopted**, −1.8 [−4.0, +0.5] (V8, 4 seeds); explicit +12.3, head-down strong arrivals −8%. Finer
+  contexts thin the table (139 of 168 cells fitted, the rest fall back to the context's mean): the coarse table stays.
+
 ## November 14: hypothesis, families where they fit (stated before running)
 
 - **Basis.** The one lever that moved V8 was what is built where (guides on strong phrases, +7.7). Families differ by

@@ -29,6 +29,8 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
  * Guide extents have no response step: they are searched by coordinates only. */
 export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinition>> = {
   contactSide:{family:'topology',min:-1,max:1,tolerance:0,coordinate:2,normalize:v=>v<0?-1:1},
+  // A support the rider follows unaided (arc_geometry.ts ArcMotionControl.ridable); not searched by steps.
+  ridable:{family:'topology',min:0,max:1,tolerance:0,coordinate:1,normalize:(v,c)=>v>0&&c.contactSide!==-1?1:NaN},
   entry: {family: 'core', min: -75, max: 85, tolerance: 2, coordinate: 3, response: 2},
   turn: {family: 'core', min: -120, max: 120, tolerance: 4, coordinate: 8, response: 5},
   exit: {family: 'core', min: -80, max: 85, tolerance: 4, coordinate: 10, response: 6},
@@ -67,6 +69,7 @@ export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle)
   // Transfer fulfillment currently specifies the forward support followed by
   // its separated receiver. An opposing opening uses the paired constructor.
   if(key==='contactSide')return style?.railLayout!=='transfer';
+  if(key==='ridable')return style?.railLayout!=='transfer'&&!style?.profile;
   if(key.startsWith('receiver'))return guides&&style?.observedReceiver===true&&style.railLayout==='transfer';
   if(key==='foldBias')return style?.profile==='fold'&&style.railLayout==='transfer'&&style.independentGuide===true;
   if(key==='foldTiming')return style?.profile==='fold'&&style?.independentGuide===true&&style?.railLayout==='transfer';
@@ -94,7 +97,9 @@ export function arcControlNormalizer(input: ArcControlContext): (control: ArcMot
       if (key === 'foldBend' && c[key] === undefined) c[key] = context.foldAngle ?? 50;
       const value = c[key];
       if (value === undefined && definition.family !== 'core') continue;
-      c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
+      const normalized = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
+      // NaN from a normalizer: the field has no meaning for this control
+      if (Number.isNaN(normalized)) delete c[key]; else c[key] = normalized;
     }
     return c;
   };

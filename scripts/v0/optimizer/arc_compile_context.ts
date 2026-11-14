@@ -34,6 +34,7 @@ export function createSearchWork() {
     fragmentStats: {intervals: 0, probes: 0, replayFrames: 0},
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
+    ridableTwinWork: {attempts: 0, viable: 0, physicsFrames: 0},
     initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold']
       .map(k => [k, {attempts: 0, viable: 0, physicsFrames: 0}])),
     initializationRecovery: [] as Array<{index: number; frame: number; proposals: number; viable: number; physicalFrames: number}>,

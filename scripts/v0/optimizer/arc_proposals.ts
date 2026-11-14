@@ -11,6 +11,7 @@ import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
+import { searchRank } from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
@@ -106,6 +107,27 @@ export function proposeInitialControls(s: IntervalSearch) {
       accounting.physicsFrames += getPhysicsFrameCount() - began;
     }
     if (k % 10 === 9) retainSearch(s);
+  }
+}
+
+/** Twins of the interval's best proposals so far whose support the rider follows unaided (`ridable`: after the catch's
+ * turn the heading never turns further downward): where the original would need its rail to hold the rider onto a
+ * convex end, the twin releases where and as its geometry says. Offered on arcs that may have a rail; a twin is not
+ * measured when it would draw the same support as its original. They compete under the ordinary checks; nothing
+ * prefers them (REWORK.md, November 14: what a rail does). */
+export function proposeRidableTwins(s: IntervalSearch) {
+  const {options, i} = s, count = options.ridableTwins ?? 0;
+  if (!(i > 0 && count > 0 && options.guides !== false && !options.profile && options.railLayout !== 'transfer')) return;
+  const work = s.ctx.work.ridableTwinWork, began = getPhysicsFrameCount();
+  const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.c.ridable !== 1 && (x.c.exit > x.c.entry + x.c.turn || x.c.bend !== undefined))
+    .sort((a, b) => searchRank(a) - searchRank(b)).slice(0, count);
+  try {
+    for (const x of ranked) {
+      work.attempts++;
+      if (evaluate(s, tagOrigin({...x.c, ridable: 1}, 'ridable'))) work.viable++;
+    }
+  } finally {
+    work.physicsFrames += getPhysicsFrameCount() - began;
   }
 }
 

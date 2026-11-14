@@ -21,6 +21,10 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
   contactSide?:number;
+  /** 1: a support the rider can follow to its end unaided: after the catch's turn its heading never turns further
+   * downward (convex under a rider on top), and no bend is added; the rider leaves where and as the geometry says,
+   * with no rail to hold it (REWORK.md, November 14: what a rail does). Ordinary surfaces only. */
+  ridable?:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
@@ -153,6 +157,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const first=c.turnFraction===undefined?Math.min(5,c.support*.5):c.support*c.turnFraction;
   const profileFirst=style?.profileStart===undefined?first:c.support*style.profileStart;
   const profileContext={start:rad(c.entry+c.turn),exit:rad(c.exit),foldAngle:c.foldBend??style?.foldAngle};
+  const ridable=c.ridable===1&&side===1&&!profile,exit=ridable?Math.min(c.exit,c.entry+c.turn):c.exit;
   for(let k=0;k<steps;k++){
     let dt=uniformDt,time=(k+.5)*dt;
     if(profile==='fold'&&(style?.profileStrength??1)>0){
@@ -161,8 +166,8 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       dt=c.support*(to-from);time=c.support*(from+to)/2;
     }
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
-    let a=rad(time<first?c.entry+c.turn*easing(u,c.bias):lerp(c.entry+c.turn,c.exit,easing(w,c.bias)));
-    if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
+    let a=rad(time<first?c.entry+c.turn*easing(u,c.bias):lerp(c.entry+c.turn,exit,easing(w,c.bias)));
+    if(c.bend!==undefined&&time>=first&&!ridable)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,

@@ -79,6 +79,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   opposingEntryProposals?: number;
   /** A candidate whose rail crosses or comes within this many px of its own support is not built (arc_geometry.ts railMeetsSupport). */
   railSupportMargin?: number;
+  /** Twins of the best proposals with a support the rider follows unaided (arc_proposals.ts proposeRidableTwins). */
+  ridableTwins?: number;
   /** After the ride is built, remove the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts). */
   goneThroughCleanup?: boolean;
 };
@@ -122,7 +124,7 @@ export const EVALUATION_IDENTITY = {
   responseSamples: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
+  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search', ridableTwins: 'search',
   warmStart: 'search', directControls: 'search', controlPolicy: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 

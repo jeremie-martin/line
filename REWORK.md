@@ -1,5 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: fewer rails, first results (exploratory; nothing adopted)
+
+V8, 4 seeds, 196 pairs against `compiler` (782.2); rails = share of gaps keeping a rail, per ride.
+
+| version | V8 | vs today [95%] | rails | most railed ride | clean upper, strong | head-down, strong |
+|---|---|---|---|---|---|---|
+| today (`compiler`) | 782.2 | | 70% | 93% | 7.1% | 11.7% |
+| start (nov13) | 762.1 | −20.2 [−28.5, −11.8] | 54% | 71% | 9.6% | 14.6% |
+| A, strong phrases back to open arcs | 776.9 | −5.4 [−8.7, −2.0] | 65% | 91% | 8.2% | 12.4% |
+| B arcs only, budget 60% | 769.7 | −12.5 [−20.2, −4.9] | 49% | 64% | 10.7% | 13.4% |
+| B, budget 60% (arcs and shapes) | 744.0 | −38.2 [−50.3, −26.1] | 49% | 59% | 8.9% | 13.1% |
+| B, budget 45% | 720.4 | −61.9 [−85.6, −38.1] | 37% | 46% | 10.8% | 14.0% |
+| B, budget 30% | 695.6 | −86.6 [−120.6, −52.7] | 24% | 36% | 13.2% | 16.0% |
+
+- Every ride finished in every version; explicit requests realized 216/216 throughout.
+- A matches its hypothesis (rails 65%, upper hits up, about −5; the table gave a few guides back).
+- B's loss is mostly the shapes built without a rail for the first time: their speed error 0.026 against about 0.005
+  for every other kind of gap (bias −0.09, the rider too slow), half of all speed error at 60%. Its speed rms
+  +0.013 (60%) and +0.033 (30%) carry the loss. This says rail-less shapes do not work as built today, not that a
+  budget cannot.
+- B on arcs only confirms it: the same rail share (49%) for a third of the loss, and against the start fewer rails,
+  more clean upper hits and a higher headline. Arcs alone cannot go much lower (shapes and scattered keep theirs).
+- Branches kept: `exp/strong-phrases-open`, `exp/rail-budget-60`, `-45`, `-30`, `exp/rail-budget-60-arcs`. Geometry
+  sheets: `generated/compare/rails-*/geometry.html`. For the owner: dashboard "Rails and Upper Hits".
+
 ## November 14: hypotheses, fewer rails (stated before running; exploratory)
 
 Getting our feet wet, not choosing a winner: each version is one way of carrying out an idea, and a loss says that way

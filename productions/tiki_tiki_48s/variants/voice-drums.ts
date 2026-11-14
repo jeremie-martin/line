@@ -129,14 +129,22 @@ const spec: Spec = {
   camera: {zoom: {smoothingFrames: 8, keyframes: m.zoom}},
   contacts: beats(authored.sort((a, b) => a.t - b.t)),
   axes: {
-    // one float, where the music is empty (the silence at 4.9 s); a ride-out at the end
+    // Air is how far the rider leaves the line, and follows how much room the music leaves between its sounds:
+    // one float in the silence at 4.9 s; a leap into the drop; an even bounce through the groove and the run, where a
+    // kick or a snare comes every third of a second; longer flights after the boom and between the last four fat kicks,
+    // which stand alone; then down onto the line for the voice's last words, a ride-out.
     air: keyframes(m.kf([
-      [0, 0.50], [4.5, 0.55], [m.SILENCE_T0, 0.70], [5.4, 0.88], [6.8, 0.60], [9.5, 0.55], [m.DROP, 0.52], [24.0, 0.52], [m.BOOM, 0.62], [26.3, 0.60],
-      [m.REENTRY, 0.50], [m.LAST_DRUM, 0.52], [42.6, 0.46], [46.2, 0.36], [46.9, 0.18], [m.DURATION, 0.12],
+      [0, 0.50], [4.5, 0.55], [m.SILENCE_T0, 0.70], [5.4, 0.88], [6.8, 0.60], [9.5, 0.55], [9.95, 0.58], [10.25, 0.74], [m.DROP, 0.54],
+      [24.0, 0.54], [m.BOOM, 0.64], [26.3, 0.62], [m.REENTRY, 0.52], [38.4, 0.52], [39.3, 0.66], [m.LAST_DRUM, 0.66],
+      [42.6, 0.46], [46.2, 0.36], [46.9, 0.18], [m.DURATION, 0.12],
     ])),
+    // Speed is the song's drive, and where the hardest hits are the rider must be fastest: slow under the lone voice,
+    // gathering through the build, fast in the groove and faster toward its fat last bars, held back in the reset, then
+    // the run, climbing to the song's top speed for the last four fat kicks. It only starts to drop at the third of them
+    // (40.9, the owner's limit), is still fast at the last, and falls away under the voice.
     speed: keyframes(m.kf([
-      [0, 0.42], [m.SILENCE_T0, 0.40], [m.BUILD, 0.46], [9.9, 0.62], [m.DROP, 0.74], [24.0, 0.74], [m.BOOM, 0.55], [26.4, 0.50],
-      [m.REENTRY, 0.86], [38.4, 0.84], [m.LAST_DRUM, 0.58], [42.6, 0.44], [46.9, 0.36], [m.DURATION, 0.28],
+      [0, 0.38], [m.SILENCE_T0, 0.36], [m.BUILD, 0.44], [9.9, 0.64], [m.DROP, 0.76], [20.0, 0.80], [24.0, 0.80], [m.BOOM, 0.56], [26.4, 0.50],
+      [27.6, 0.56], [m.REENTRY, 0.86], [38.3, 0.92], [39.6, 0.96], [40.9, 0.96], [m.LAST_DRUM, 0.84], [43.0, 0.46], [46.9, 0.34], [m.DURATION, 0.26],
     ])),
   },
 };

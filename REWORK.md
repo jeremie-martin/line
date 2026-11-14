@@ -14,6 +14,8 @@
 - **Change** (`exp/families-fit-setup`): a section's fitted loss adds half of the next catch's squared strength error
   (its exit sets up that arrival); same contexts, same 524 rides.
 - **Hypothesis:** families that prepare strong catches well move before them; V8 up on dense songs.
+- **Result: not adopted**, −3.0 [−8.9, +3.0] (V8, 4 seeds; P6 −20.7, P3 −8.6, P7 +6.0). Placement is mined at this
+  granularity: finer contexts (−1.8), setup credit (−3.0), shorter phrases (+0.3) all null or worse.
 
 ## November 14: phrases ending where the strength asked changes (not adopted)
 

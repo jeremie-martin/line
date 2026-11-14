@@ -66,13 +66,10 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
-<<<<<<< HEAD
-  /** Refinement of the best candidate landing within a factor `tolerance` of the impact ask (arc_local_search.ts). */
-  faithfulRefinement?: {samples: number; tolerance: number};
-=======
   /** Impact errors priced relative to the ask (arc_interval_state.ts). */
   relativeImpact?: {reference: number; floor: number};
->>>>>>> exp/quiet-relative
+  /** Refinement of the best candidate landing within a factor `tolerance` of the impact ask (arc_local_search.ts). */
+  faithfulRefinement?: {samples: number; tolerance: number};
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -121,11 +118,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-<<<<<<< HEAD
-  constructionRequests: 'keySection', motionQuality: 'key', faithfulRefinement: 'search', impactSearch: 'key',
-=======
-  constructionRequests: 'keySection', motionQuality: 'key', relativeImpact: 'key', impactSearch: 'key',
->>>>>>> exp/quiet-relative
+  constructionRequests: 'keySection', motionQuality: 'key', relativeImpact: 'key', faithfulRefinement: 'search', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',

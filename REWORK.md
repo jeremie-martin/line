@@ -18,6 +18,10 @@
   three compilers (`tools/research/family_model_data.ts`, `family_model.py`; held-out R² by song 0.059: a section's
   loss is noisy, placement compares families in one context). Placement and the guide rule use it in place of the table.
 - **Hypothesis:** better placement where the context the table ignored matters (speed, the next catch); V8 up.
+- **Result: not adopted**, V8 at 8 seeds **−24.8 [−31.7, −17.8]**, 10 specs up, 33 down; P6 −105.9, P7 −34.0, P2
+  −24.3; strong extra impacts ×2. A model that fits noisy section losses on more context extrapolates badly where the
+  training rides are thin (the long ride's spans), and placement trusts it. The coarse table stays: its averages are
+  steady because its cells are coarse.
 
 ## November 14: hypothesis, guides offered where they fit (stated before running)
 

@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: E2 result, and what limits upper hits now (not adopted)
+
+- **E2 (E1 + an upper way into strong catches), V8, 4 seeds, against `foundation`: −16.4 [−23.1, −9.7]**, 1 spec up,
+  42 down; every ride finished; explicit −10.7. Clean upper hits 9.6% → 11.8% of strong beats, head-down strong
+  arrivals 13.5% → 17.2%, arrivals rising before strong upper hits 2% → 8%. Almost all the added upper hits come from
+  mirrored receivers (1,299 of 1,413); the body-clear ones are still rarely chosen (114).
+- **The new receivers are the better construction** (`upper_candidates.ts`, E1b in a worktree, seed 101, 87,299 upper
+  candidates, 57,351 on strong asks): 33% survive on strong asks with strength 0.57, against mirrored ones that come
+  apart 85% of the time near the ask and survive at 0.47. Survival falls with incidence (0–10°: 70%, 10–20°: 44%,
+  20–30°: 18%, 30°+: 10%) while strength rises (0.47 → 0.61): the same trade a floor catch makes. Pressing the sled
+  into the body (E1b's rule) does not predict survival; upright riders survive best (65%), then those past 120° (44%).
+- **What binds now is the ruler.** A catch from above reads about 0.1 weaker than a floor catch that turns the rider
+  as much (gravity helps its push), so the search ranks it as the worse catch, and E2's flatter arrivals mostly cost the
+  floor catches. The owner sees the opposite (14 of 14). Next: a gravity-neutral strength, checked against the owner's
+  labels on fresh pairs before anything optimizes it (CLAUDE.md).
+
 ## November 14: E1 result, upper receivers that keep the body clear (not adopted alone)
 
 V8, 4 seeds, against the foundation (named reference `foundation` = 76e481f7; the name `compiler` is frozen at

@@ -30,6 +30,9 @@
   shape keeps a place in intense passages (the variety test passes).
 - **Hypothesis:** V8 up, G and the strong categories most. **Watch:** shapes' share of ride time, distinct families per
   ride.
+- **Result: not adopted**, V8 at 8 seeds +1.5 [−2.7, +5.7]; shapes 37.5% → 30.7% of ride time (scattered 12.8% →
+  19.5%), distinct families per ride 6.81; strong extra impacts −14%, body drag +7%. Removing all shapes gains 19.4, but
+  halving them in intense phrases gains 1.5: their cost is not proportional to their share.
 
 ## November 14: hypothesis, smooth shapes end before the exit (stated before running)
 

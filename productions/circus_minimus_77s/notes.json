@@ -1,5 +1,5 @@
 {
-  "specPath": "productions/circus_minimus_77s/variants/voice-led.ts",
+  "specPath": "productions/circus_minimus_77s/variants/voice-drums.ts",
   "notes": [
     {
       "id": "moment:38440",
@@ -624,6 +624,406 @@
       ],
       "createdAt": "2026-11-01T13:37:57.865Z",
       "updatedAt": "2026-11-01T13:37:57.865Z"
+    },
+    {
+      "id": "moment:48040",
+      "t": 48.04,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:48.04",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:36:37.248Z",
+      "updatedAt": "2026-11-14T13:36:37.248Z"
+    },
+    {
+      "id": "moment:48270",
+      "t": 48.27,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:48.27",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:37:00.933Z",
+      "updatedAt": "2026-11-14T13:37:00.933Z"
+    },
+    {
+      "id": "moment:48430",
+      "t": 48.43,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:48.43",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:36:04.679Z",
+      "updatedAt": "2026-11-14T13:36:04.679Z"
+    },
+    {
+      "id": "moment:48650",
+      "t": 48.65,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:48.65",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:37:21.481Z",
+      "updatedAt": "2026-11-14T13:37:21.481Z"
+    },
+    {
+      "id": "moment:48890",
+      "t": 48.89,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:48.89",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:37:28.149Z",
+      "updatedAt": "2026-11-14T13:37:28.149Z"
+    },
+    {
+      "id": "moment:49060",
+      "t": 49.06,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:49.06",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:38:38.195Z",
+      "updatedAt": "2026-11-14T13:38:38.195Z"
+    },
+    {
+      "id": "moment:49250",
+      "t": 49.25,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:49.25",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:38:01.417Z",
+      "updatedAt": "2026-11-14T13:38:01.417Z"
+    },
+    {
+      "id": "moment:49710",
+      "t": 49.71,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:49.71",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:38:46.467Z",
+      "updatedAt": "2026-11-14T13:38:46.467Z"
+    },
+    {
+      "id": "moment:49900",
+      "t": 49.9,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:49.90",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:38:47.831Z",
+      "updatedAt": "2026-11-14T13:38:47.831Z"
+    },
+    {
+      "id": "moment:50140",
+      "t": 50.14,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:50.14",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:38:54.747Z",
+      "updatedAt": "2026-11-14T13:38:54.747Z"
+    },
+    {
+      "id": "moment:50280",
+      "t": 50.28,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:50.28",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:51:04.711Z",
+      "updatedAt": "2026-11-14T13:51:04.711Z"
+    },
+    {
+      "id": "moment:50450",
+      "t": 50.45,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:50.45",
+      "text": "voice is mixed with bgm, still a good idea to use it",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-14T13:50:57.636Z",
+      "updatedAt": "2026-11-14T13:51:24.919Z"
+    },
+    {
+      "id": "moment:50630",
+      "t": 50.63,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:50.63",
+      "text": "voice is mixed with bgm, still a good idea to use it",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-14T13:50:39.750Z",
+      "updatedAt": "2026-11-14T13:51:27.507Z"
+    },
+    {
+      "id": "moment:50830",
+      "t": 50.83,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:50.83",
+      "text": "voice is mixed with bgm, still a good idea to use it",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-14T13:50:38.229Z",
+      "updatedAt": "2026-11-14T13:51:30.044Z"
+    },
+    {
+      "id": "moment:51040",
+      "t": 51.04,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:51.04",
+      "text": "voice is mixed with bgm, still a good idea to use it",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-14T13:50:32.980Z",
+      "updatedAt": "2026-11-14T13:51:33.451Z"
+    },
+    {
+      "id": "moment:51240",
+      "t": 51.24,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:51.24",
+      "text": "voice is mixed with bgm, still a good idea to use it",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-14T13:50:30.389Z",
+      "updatedAt": "2026-11-14T13:51:37.177Z"
+    },
+    {
+      "id": "moment:51640",
+      "t": 51.64,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:51.64",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:51:43.315Z",
+      "updatedAt": "2026-11-14T13:51:43.315Z"
+    },
+    {
+      "id": "moment:52040",
+      "t": 52.04,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:52.04",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:51:51.432Z",
+      "updatedAt": "2026-11-14T13:51:51.432Z"
+    },
+    {
+      "id": "moment:52440",
+      "t": 52.44,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:52.44",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:51:55.319Z",
+      "updatedAt": "2026-11-14T13:51:55.319Z"
+    },
+    {
+      "id": "moment:52960",
+      "t": 52.96,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:52.96",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:03.726Z",
+      "updatedAt": "2026-11-14T13:52:03.726Z"
+    },
+    {
+      "id": "moment:53240",
+      "t": 53.24,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:53.24",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:07.423Z",
+      "updatedAt": "2026-11-14T13:52:07.423Z"
+    },
+    {
+      "id": "moment:53700",
+      "t": 53.7,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:53.70",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:15.919Z",
+      "updatedAt": "2026-11-14T13:52:15.919Z"
+    },
+    {
+      "id": "moment:54000",
+      "t": 54,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:54.00",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:25.063Z",
+      "updatedAt": "2026-11-14T13:52:25.063Z"
+    },
+    {
+      "id": "moment:54250",
+      "t": 54.25,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:54.25",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:29.063Z",
+      "updatedAt": "2026-11-14T13:52:29.063Z"
+    },
+    {
+      "id": "moment:54460",
+      "t": 54.46,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:54.46",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-14T13:52:34.598Z",
+      "updatedAt": "2026-11-14T13:52:34.598Z"
     }
   ]
 }

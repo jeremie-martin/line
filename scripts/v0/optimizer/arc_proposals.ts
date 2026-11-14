@@ -118,8 +118,10 @@ const BODY = ['BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
  * entering at an incidence ahead of the arrival and bending down by the turn the ask implies, placed against the sled
  * (odd k) or its front (even k). Before any physics, a proposal is kept only when every body point lies on the line's
  * active side at least BODY_CLEARANCE from it along the line's reach: a body point beyond the line would pass through
- * it while the sled is pushed away, and one near it would be struck first. On a rider rotated past its side the sled
- * faces the line and the body is clear: the catch is a landing on the sled's underside. */
+ * it while the sled is pushed away, and one near it would be struck first. And it is kept only where its push presses
+ * the sled into the rider (the body lies on the push's side of the sled), as every floor landing does: a push from above
+ * on an upright rider pulls the sled away from the body and unbinds it (85% of such catches, REWORK.md). So these are
+ * catches of a rider tilted back or rotated past its side: a landing on the sled's underside, from above. */
 export function proposeUpperReceivers(s: IntervalSearch) {
   const {options, i, initial, incoming, turn, support, trace} = s;
   const count = options.upperReceiverProposals ?? 0;
@@ -138,6 +140,11 @@ export function proposeUpperReceivers(s: IntervalSearch) {
       const e = c.entry * Math.PI / 180, n = {x: Math.sin(e), y: -Math.cos(e)}, t = {x: Math.cos(e), y: Math.sin(e)};
       const points = (c.receiverAnchor === 1 ? ['PEG', 'TAIL', 'NOSE', 'STRING'] : ['NOSE', 'STRING']).map(key => trace[key]);
       const p0 = points.reduce((a, b) => -(a.x * n.x + a.y * n.y) < -(b.x * n.x + b.y * n.y) ? a : b);
+      // The push (−n, out of the line's active side) must point from the sled toward the body.
+      const sled = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(key => trace[key]);
+      const bx = (trace.BUTT.x + trace.SHOULDER.x) / 2 - sled.reduce((a, q) => a + q.x, 0) / 4;
+      const by = (trace.BUTT.y + trace.SHOULDER.y) / 2 - sled.reduce((a, q) => a + q.y, 0) / 4;
+      if (-(bx * n.x + by * n.y) <= 0) {work.pullsAway++; continue;}
       const a0 = {x: p0.x - n.x * c.offset, y: p0.y - n.y * c.offset}, back = Math.max(20, speed * 1.5), ahead = c.support * Math.max(2, speed);
       const clear = BODY.every(key => {
         const q = trace[key], along = (q.x - a0.x) * t.x + (q.y - a0.y) * t.y, depth = -((q.x - a0.x) * n.x + (q.y - a0.y) * n.y);

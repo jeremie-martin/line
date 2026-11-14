@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: quiet asks (measured; compiler unchanged)
+
+The owner feels the compiler lands quiet asks (0–0.2) too strong, on his new Tiki voice-drums spec (voice alone at
+about 0.1 at the start and end). `tools/research/quiet_asks.ts`, by the strike ruler:
+- V8 (`foundation-5` code, 196 rides): 6% of beats ask under 0.2 (3% under 0.1); 34 of 49 specs have some, 17 have at
+  least 10%. Asks 0–0.1 land at median 0.09, p90 0.16, bias +0.083, rms 0.101; asks 0.1–0.2 at median 0.18, p90 0.23.
+  Strong asks are the opposite: 0.8–1.0 land at median 0.71, bias −0.176.
+- Tiki voice-drums (4 seeds, 116 beats under 0.2): asks 0–0.1 land at median 0.11, p90 0.19 (bias +0.049); 0.1–0.2 at
+  0.13, p90 0.20. Few hits nobody asked for (0–4 per ride in the quiet stretches, mostly under 0.15).
+- **Reading:** on the ruler's absolute scale the overshoot is small (about +0.05), and the headline barely sees it (the
+  loss is absolute, so 0.1 → 0.2 counts like 0.7 → 0.8). Whether that matches the eye is unknown: the ruler was never
+  checked against the owner at the low end. Review page for him to point at hits that look too strong:
+  `generated/quiet-study/index.html`. Nothing changed.
+
 ## November 14: rails never closer to their support than 6 px (adopted, the owner's choice)
 
 `exp/rail-margin-6` merged: the rail-support margin is 6 px (was 2). V8 against `foundation-4`: −0.5 [−6.4, +5.4];

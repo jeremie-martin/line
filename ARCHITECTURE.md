@@ -65,7 +65,11 @@ and validation are in [music authoring](docs/music-authoring.md).
      reopening at most eight at a time after a physical dead end; recovery
      shares the allowance and preserves the longest prefix on interruption;
    - finishes with terminal selection, then a cold replay checked against an
-     independent engine (`arc_finalize.ts`). The ending refinement that used
+     independent engine (`arc_finalize.ts`). Before that check, rail pieces the
+     rider never touches are trimmed, and the pieces of lines the whole rider
+     goes through and never touches are removed, shortening a line from its
+     nearer end and never breaking it (`arc_gone_through.ts`, since 2026-11-14);
+     the independent replay proves the cleaned track rides identically. The ending refinement that used
      to follow terminal selection was deleted on 2026-11-13 (REWORK.md).
 
    Every evaluation is native physics, charged to the allowance. Measurements

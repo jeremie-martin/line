@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the targeted cleanup of lines the rider goes through, adopted
+
+`compiler` now removes, after the ride is built, the pieces of lines the whole rider goes through and never touches
+(`arc_gone_through.ts`, `goneThroughCleanup: true`), shortening a line from its nearer end, never breaking it.
+- V8, 196 rides, against `foundation-2`: **every ride's score identical** (0.0 [0.0, 0.0]), same physics; the rider
+  going through a line 0.48 → 0.23 per ride (narrow), 0.44 → 0.27 (wide); 1.3 pieces removed per ride (of about 4,500).
+- Two fixes on the way: removing a piece from a rail's middle split it in two, which the rail grouping refuses ("at
+  most two connected curves"), so lines are only shortened from an end; and the cleanup's own verification replay ran
+  past the allowance, which reserves one replay for the independent judge, so the judge's replay is the check (as for
+  guide pruning). A first run was also void: I edited the compiler while it ran ("measurement code changed").
+- The rail rule's check, profiled: about 13% of compile CPU; made cheaper with identical decisions (parity suite 54 s →
+  39 s; 31 s before the rule).
+- Parity references refreshed; parity, judge, tests (618), typecheck and reach pass.
+
 ## November 14: hypothesis, the targeted cleanup of lines the rider goes through (stated before running)
 
 - **Change** (`exp/gone-through`; `arc_gone_through.ts`, option `goneThroughCleanup`): after the ride is built and its

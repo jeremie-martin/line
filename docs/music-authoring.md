@@ -111,6 +111,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      bass blue, vocals orange, other green);
    - **Clicks** plays a click at every landing, scheduled on the music's own
      clock, so a click sounds exactly where its landing falls in the music;
+     `C` turns them on or off at once, and the choice and both volumes are
+     remembered in the browser;
+   - the usual player keys work: Space plays and pauses, the arrows seek 1 s
+     (5 s with Shift), `,` and `.` 0.1 s, Home and End go to the ends, `<` and
+     `>` step the speed (pitch follows speed); the page lists them;
    - the cursor sits at the position you hear (output latency included), so a
      note placed when you pause takes the time you heard;
    - the spec menu lists each variant;

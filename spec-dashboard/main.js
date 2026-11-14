@@ -40,6 +40,9 @@ const refs = {
   snapSelection: document.getElementById("snap-selection"),
   toggleBeats: document.getElementById("toggle-beats"),
   toggleClicks: document.getElementById("toggle-clicks"),
+  clickVolume: document.getElementById("click-volume"),
+  toggleMusic: document.getElementById("toggle-music"),
+  musicVolume: document.getElementById("music-volume"),
   togglePhases: document.getElementById("toggle-phases"),
   toggleNotes: document.getElementById("toggle-notes"),
   cursorTime: document.getElementById("cursor-time"),
@@ -114,6 +117,37 @@ const state = {
 // still waiting on the audio context counts as playing for the controls (toggle,
 // seek, rate): both are tracked by the shared music (music.load, music.requested).
 const music = createMusic(), onScreen = displayTime();
+/** Landing clicks: scheduled oscillators, how far ahead they are scheduled, and their gain. */
+const clicks = { until: -Infinity, pending: new Set(), out: null };
+
+// Listening preferences (clicks on/off, click and music volume, music muted) survive
+// reloads in this browser; storage may be unavailable, and then the defaults apply.
+const LISTENING_KEY = "spec-dashboard.listening";
+const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false };
+try {
+  Object.assign(listening, JSON.parse(localStorage.getItem(LISTENING_KEY) || "{}"));
+} catch { /* defaults */ }
+function setListening(change) {
+  Object.assign(listening, change);
+  try {
+    localStorage.setItem(LISTENING_KEY, JSON.stringify(listening));
+  } catch { /* not remembered */ }
+  renderListening();
+}
+function renderListening() {
+  refs.toggleClicks.classList.toggle("on", listening.clicks);
+  refs.toggleClicks.setAttribute("aria-pressed", String(listening.clicks));
+  refs.toggleClicks.firstChild.textContent = listening.clicks ? "Clicks on " : "Clicks off ";
+  refs.clickVolume.value = listening.clickVolume;
+  refs.toggleMusic.classList.toggle("on", !listening.musicMuted);
+  refs.toggleMusic.setAttribute("aria-pressed", String(!listening.musicMuted));
+  refs.toggleMusic.textContent = listening.musicMuted ? "Music muted" : "Music on";
+  refs.musicVolume.value = listening.musicVolume;
+  music.volume = listening.musicMuted ? 0 : listening.musicVolume;
+  if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
+  if (!listening.clicks) clearClicks();
+}
+const RATE_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
 init().catch((error) => showFatal(error));
 
@@ -132,12 +166,22 @@ function wireEvents() {
     document.getElementById("listening-rate-value").textContent = `${Number(state.playbackRate.toFixed(2))}×`;
     if (playing) startPlayback(t);
   };
+  /** The next usual speed step up (`dir` 1) or down (-1) from the current speed. */
+  const stepRate = (dir) => {
+    const current = state.playbackRate;
+    const next = dir > 0 ? RATE_STEPS.find((r) => r > current + 1e-6) : RATE_STEPS.findLast((r) => r < current - 1e-6);
+    if (next !== undefined) setRate(next);
+  };
   rate.addEventListener("input", () => setRate(rate.value));
   document.getElementById("listening-rate-reset").onclick = () => setRate(1);
   for (const button of document.querySelectorAll("[data-quick-mark]")) {
     button.onclick = () => quickMark(button.dataset.quickMark);
   }
-  refs.toggleClicks.addEventListener("change", clearClicks);
+  renderListening();
+  refs.toggleClicks.addEventListener("click", () => setListening({ clicks: !listening.clicks }));
+  refs.clickVolume.addEventListener("input", () => setListening({ clickVolume: Number(refs.clickVolume.value), clicks: true }));
+  refs.toggleMusic.addEventListener("click", () => setListening({ musicMuted: !listening.musicMuted }));
+  refs.musicVolume.addEventListener("input", () => setListening({ musicVolume: Number(refs.musicVolume.value), musicMuted: false }));
   refs.specSelect.addEventListener("change", () => loadSpec(refs.specSelect.value, true));
   refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
     cursorT: specTime(),
@@ -278,13 +322,24 @@ function wireEvents() {
       if (!event.repeat) quickMark(mark);
       return;
     }
+    // Keys a focused control handles itself (a button's Space, a slider's arrows) are
+    // taken over, so the shortcuts work wherever the focus was left.
+    const seek = { ArrowLeft: -1, ArrowRight: 1, ",": -0.1, ".": 0.1 }[event.key];
     if (event.key === " ") {
       event.preventDefault();
       if (!event.repeat) togglePlayback();
-    } else if (event.key === "ArrowLeft") {
-      seekTo(specTime() - 1);
-    } else if (event.key === "ArrowRight") {
-      seekTo(specTime() + 1);
+    } else if (seek !== undefined) {
+      event.preventDefault();
+      seekTo(specTime() + seek * (event.shiftKey && event.key.startsWith("Arrow") ? 5 : 1));
+    } else if (event.key === "Home" || event.key === "End") {
+      event.preventDefault();
+      seekTo(event.key === "Home" ? 0 : state.data?.spec.duration ?? 0);
+    } else if (event.key === "<" || event.key === ">") {
+      event.preventDefault();
+      stepRate(event.key === ">" ? 1 : -1);
+    } else if (key === "c") {
+      event.preventDefault();
+      if (!event.repeat) setListening({ clicks: !listening.clicks });
     }
   });
 }
@@ -448,6 +503,8 @@ function isEditableElement(element) {
   if (!element) return false;
   if (element.isContentEditable) return true;
   const tag = element.tagName;
+  // A slider or checkbox keeps focus after use, but takes no text: shortcuts still apply.
+  if (tag === "INPUT" && (element.type === "range" || element.type === "checkbox")) return false;
   return tag === "TEXTAREA" || tag === "INPUT" || tag === "SELECT";
 }
 
@@ -1294,6 +1351,7 @@ function updatePlaybackUi(t = specTime()) {
   refs.timeNow.textContent = formatTime(t);
   refs.scrub.value = String(clamp(t / state.data.spec.duration, 0, 1));
   refs.play.textContent = isPlaying() ? "Pause" : "Play";
+  refs.play.classList.toggle("playing", isPlaying());
   const x = state.timeline?.xFor(t);
   if (x !== undefined) {
     const ph = document.getElementById("playhead");
@@ -2195,15 +2253,21 @@ function tick(ts) {
 // impact, so a landing that misses the music, or music with no landing, is audible
 // rather than only visible. Clicks are scheduled on the music's own clock, slightly
 // ahead of the sound being rendered, so each lands on its spec time in the music.
-const clicks = { until: -Infinity, pending: new Set() };
+// Turning clicks off silences them at once: their gain drops to 0 and those already
+// scheduled are stopped.
 function clearClicks() {
   for (const osc of clicks.pending) osc.stop();
   clicks.pending.clear();
   clicks.until = -Infinity;
 }
 function scheduleClicks() {
-  if (!isPlaying() || !refs.toggleClicks.checked) return;
+  if (!isPlaying() || !listening.clicks) return;
   const ctx = music.context;
+  if (clicks.out?.context !== ctx) {
+    clicks.out = ctx.createGain();
+    clicks.out.gain.value = listening.clickVolume;
+    clicks.out.connect(ctx.destination);
+  }
   const now = music.rendered(), horizon = now + 0.15 * state.playbackRate;
   if (!(clicks.until >= now - 0.05 && clicks.until <= horizon)) clicks.until = now; // after a seek
   for (const contact of state.data.contacts) {
@@ -2215,7 +2279,7 @@ function scheduleClicks() {
     osc.frequency.value = 1800;
     gain.gain.setValueAtTime(0.15 + 0.6 * Math.sqrt(contact.impact ?? 0.5), at);
     gain.gain.exponentialRampToValueAtTime(0.001, at + 0.03);
-    osc.connect(gain).connect(ctx.destination);
+    osc.connect(gain).connect(clicks.out);
     osc.start(at);
     osc.stop(at + 0.035);
   }

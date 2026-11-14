@@ -22,6 +22,9 @@
   7 down; every category but P6 up) and held out +5.9 [−13.3, +25.0]. Open arcs fall from 20.4% to 6.8% of ride time,
   arcs offered a guide rise to 42.9%, distinct families per ride 6.82 → 6.43: rails offered nearly everywhere.
 - **Second execution** (same branch): switch only where the open arc's fitted loss is 30% higher or more.
+- **Result, second execution: adopted**, V8 at 8 seeds +1.2 [−0.2, +2.7], support 0.96, 30 specs up, 10 down (P3
+  +6.5, P7 +3.9, P6 −9.8); strong extra impacts +4%. Open arcs 20.4% → 14.5% of ride time, arcs offered a guide 29.3% →
+  35.1%; distinct families per ride 6.82 → 6.80. Parity references refreshed.
 
 ## November 14: hypothesis, quiet catches laid along the arrival (stated before running)
 

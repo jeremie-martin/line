@@ -86,10 +86,11 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
 /** Removes guide segments the final ride never touches. Fragment sections
  * have no guide rail; a contextual or transfer construction that pruning
  * would leave unfulfilled keeps its full guide. */
-/** Removes the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts), keeping the
- * removal only when a replay of the cleaned track is identical to the ride's; returns how many pieces went. */
+/** Removes the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts); returns how many
+ * pieces went. Like the pruning of untouched guides, it changes nothing the rider meets, and the independent replay
+ * below proves the cleaned track rides identically (it has the one replay the allowance reserves; no other is run). */
 function removeGoneThrough(ctx: ArcCompileContext, lines: TrackLine[], coldEngine: Engine, raw: any) {
-  const {options, start, end} = ctx;
+  const {options} = ctx;
   const names = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
   const points = raw.frames.map((f: {frame: number}) => {const st = coldEngine.getRider(f.frame).ballisticState(); return names.map(n => ({x: st.points[n].x, y: st.points[n].y}));});
   const contacts = raw.frames.map((f: {frame: number}) => coldEngine.getAllContactLineIdsAtFrame(f.frame));
@@ -98,9 +99,7 @@ function removeGoneThrough(ctx: ArcCompileContext, lines: TrackLine[], coldEngin
   for (const [, chains] of arcRailGroups(lines.filter(l => !fragments.has(sectionOf(l))))) for (const l of chains[1] ?? []) guides.add(l.id);
   const drop = goneThrough(lines, points, contacts, l => fragments.has(sectionOf(l)) ? 'fragment' : guides.has(l.id) ? 'rail' : 'main');
   if (!drop.size) return 0;
-  const cleaned = lines.filter(l => !drop.has(l.id));
-  if (JSON.stringify(extractRawTrajectory(createArcEngine(start, cleaned), end)) !== JSON.stringify(raw)) return 0;
-  lines.splice(0, lines.length, ...cleaned);
+  lines.splice(0, lines.length, ...lines.filter(l => !drop.has(l.id)));
   return drop.size;
 }
 

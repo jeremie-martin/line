@@ -34,7 +34,7 @@ export function repertoireSearchOptions(spec:Spec,plan:ProductionPlan,allowance:
  if(plan.policy!==INTENTIONAL_REPERTOIRE_POLICY)throw new Error('the compiler realizes intentional repertoire plans only');
  const {id:_id,...profile}=IMPACT_SEARCH_PROFILE,artifact=loadConstructionArtifact();
  return {...connectedArcOptions(spec,allowance),
-  motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},relativeImpact:{reference:.3,floor:.15,extras:true},
+  motionQuality:{burstWeight:.64,calmWeight:1,calmImpactMultiplier:1.5},climbingTwins:{count:6,steps:[8,16,24]},relativeImpact:{reference:.3,floor:.15,extras:true},
   memorySamples:16,policySamples:96,samples:192,constructionExamples:artifact.examples,constructionPolicies:artifact.policies,
   initialRecoverySamples:160,railSupportMargin:6,goneThroughCleanup:true,
   sectionStyles:Object.fromEntries(plan.requests.map(r=>[r.section,constructionStyle(r)])),

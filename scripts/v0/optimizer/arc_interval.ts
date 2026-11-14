@@ -51,7 +51,9 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
   // [gap, ask, best's strength, best's rank, closest strength, its rank − best's, viable candidates, of them within 0.03 of the ask]
   if (s.best && s.impact !== undefined && s.impact < .3) {
     const viable = s.candidates.filter(c => c.actualImpact !== undefined), err = (c: typeof viable[number]) => Math.abs(c.actualImpact! - s.impact!);
-    const closest = viable.reduce((a, c) => err(c) < err(a) ? c : a, s.best.candidate);
+    // the best-ranked candidate landing within 0.03 of the ask, or failing that the closest
+    const near = viable.filter(c => err(c) < .03).sort((a, b) => searchRank(a) - searchRank(b))[0];
+    const closest = near ?? viable.reduce((a, c) => err(c) < err(a) ? c : a, s.best.candidate);
     ctx.work.quietWork.push([i, s.impact, s.best.candidate.actualImpact ?? NaN, searchRank(s.best.candidate), closest.actualImpact ?? NaN,
       searchRank(closest) - searchRank(s.best.candidate), viable.length, viable.filter(c => err(c) < .03).length,
       // then: local cost − best's, priors (rank − local cost) − best's, and each squared residual − best's (air, speed, amplitude, impact, the rest summed)

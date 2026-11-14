@@ -67,8 +67,10 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
       specs held out.
     - **Specifications, soon.** The recent ~20 were drafted by agents and reviewed once: good, not production grade.
       Wanted: more ambitious ones like Circus Minimus.
-      - Circus Minimus: the passage synchronized to the voice is the favourite (many short gaps). The chorus voice goes
-        on 15–20 s longer than the spec follows it: extend it, and try slightly stronger asks there.
+      - Circus Minimus: done 2026-11-14. `voice-full` follows the voice and drums to the last bar and is the default spec;
+        four seeds compiled complete. The held-out panel's "Circus preferred" case follows `spec.ts`, so its saved
+        results are those of `pairs3`: rerun it before comparing.
+      - Next: Believer, from scratch.
 
 ## Open questions kept from the retired night report (asked 2026-10-05)
 

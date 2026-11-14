@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: Circus Minimus follows the voice to the end (`voice-full`, now the default)
+
+The owner marked 25 moments in 48–54.5 s. A reading written and frozen before opening them matched 24 within 80 ms (22 from
+its firm list). What the misses taught is in the header of `productions/circus_minimus_77s/variants/voice-full.ts`: in the break
+he follows the synth, in the groove every beat gets a landing on its clearest sound, strong voice attacks between beats get
+their own, weak vocal estimates none; his marks sit about 25 ms before detected onsets. 54.5–77 s was then authored alone and
+kept by the owner after listening, with the two voice attacks around the kick at 74.87 added at his request.
+
+Seeds 101–404 at the standard allowance all compiled complete and valid (strength RMS 0.083–0.092; not watched). `spec.ts` now
+points to `voice-full`. The held-out panel's "Circus preferred" case follows `spec.ts`: its saved results are `pairs3`'s.
+
+A 32-theme video of seed 404 (cuts on bar downbeats and section boundaries) is in `generated/videos/circus-voice-full/`
+(`themes32.mjs`, not tracked).
+
 ## November 14: Circus Minimus follows the voice to the end (`voice-full`, the new default)
 
 The owner closed the visual lab for now and returned to specifications. `variants/voice-full.ts` keeps the approved

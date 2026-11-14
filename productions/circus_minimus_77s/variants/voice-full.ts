@@ -136,7 +136,7 @@ export const continued: AuthoredBeat[] = [
   {t: 75.674, impact: .70, source: 'drums'},
   {t: 76.080, impact: .62, source: 'drums'},
   {t: 76.359, impact: .54, source: 'vocals'},
-  {t: 76.684, impact: .54, source: 'drums'},
+  {t: 76.672, impact: .54, source: 'drums'},
   {t: 76.881, impact: .76, source: 'bass'},
 ];
 

@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
 import {planRepertoire,creativePreferences,validateProductionPlan,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
 import {repertoireContexts,repertoireMusicHash,type ContextSpec} from './repertoire_context.ts';
+import {contextOf,familyCost,familyKey} from './family_fit.ts';
 export const INTENTIONAL_REPERTOIRE_POLICY='line.repertoire-policy.v2';
 const smoothstep=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
 export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:CreativePreferences={},boundaries:number[]=[]):ProductionPlan{
@@ -47,7 +48,33 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     for(let i=first;i<first+count;i++)requests[i]={...requests[i],construction,guidance,railLayout};
     previous=construction+':'+guidance;first+=count;
   }
+  placeFamilies(phrases,requests);
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
+}
+
+/** Families where they fit: the drawn families keep their number, and two phrases trade theirs when both are eligible
+ * where they land, no phrase then repeats its neighbour, and the fitted loss of the two falls (family_fit.ts). The
+ * lottery decides what a ride is made of; the music decides where each piece goes. */
+function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
+  const cost=(p:ProductionPlan['phrases'][number],key:string)=>{
+    let total=0;for(let i=p.first;i<p.first+p.count;i++){const r=requests[i];total+=familyCost(key,contextOf(r.context?.impact??0,r.next-r.frame));}
+    return total;
+  };
+  const eligible=(p:ProductionPlan['phrases'][number],q:ProductionPlan['phrases'][number])=>
+    p.choices!.some(c=>c.construction===q.construction&&c.guidance===q.guidance&&c.weight>0);
+  const keyOf=(p:ProductionPlan['phrases'][number])=>familyKey(p.construction,p.guidance);
+  const repeats=(k:number,key:string,other:number)=>[k-1,k+1].some(n=>n!==other&&phrases[n]&&keyOf(phrases[n])===key);
+  for(let round=0,changed=true;changed&&round<20;round++){
+    changed=false;
+    for(let a=0;a<phrases.length;a++)for(let b=a+1;b<phrases.length;b++){
+      const p=phrases[a],q=phrases[b],kp=keyOf(p),kq=keyOf(q);
+      if(kp===kq||!eligible(p,q)||!eligible(q,p)||repeats(a,kq,b)||repeats(b,kp,a))continue;
+      if(cost(p,kq)+cost(q,kp)<cost(p,kp)+cost(q,kq)-1e-12){
+        [p.construction,q.construction]=[q.construction,p.construction];[p.guidance,q.guidance]=[q.guidance,p.guidance];changed=true;
+      }
+    }
+  }
+  for(const p of phrases)for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],construction:p.construction,guidance:p.guidance};
 }
 
 /** Splits each phrase where its sections' requests no longer agree (a phrase

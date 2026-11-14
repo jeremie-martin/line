@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, families where they fit (stated before running)
+
+- **Basis.** The one lever that moved V8 was what is built where (guides on strong phrases, +7.7). Families differ by
+  context far more than the planner's weights do: per section, folds lose 1.1× the context's mean on middle asks and
+  middle spans but 2–3× on long spans; scattered and guided arcs are best on strong asks; terraces lose 2× on long
+  spans. The planner draws each phrase's family by weights that know only calm, strength (guides) and speed.
+- **Change** (`exp/families-where-they-fit`):
+  - `family_fit.json` (fitted by `tools/research/family_fit.ts` on today's compiler's V7.1 rides, 344 rides; V8 is not
+    used): the mean loss of a section by family (open arcs apart) and context (the catch's ask in four bins × the
+    section's length in three), with the grade's span weighting.
+  - The planner draws exactly as before, then places the drawn families: two phrases trade theirs when each is eligible
+    where it lands, no phrase repeats its neighbour, and the fitted loss falls (`intentional_repertoire.ts`).
+    A ride's families keep their number; only where they go changes.
+- **Estimate** (the fitted table, additive, no compile): the modelled loss of V8's sections falls 17.7%; a rough
+  headline 769 → 795. Optimistic by construction (it assumes the table is causal and additive).
+- **Hypothesis:** V8 up clearly, every category; variety unchanged in counts; the look moves shapes from strong and long
+  spans toward middle ones. **Watch:** held out, distinct families per ride, the geometry sheet.
+
 ## November 14: where 800 on V8 is, and what stands in the way
 
 **Bound** (today's `compiler`, V8, 196 rides; each ride re-scored with an error component removed, nothing recompiled):

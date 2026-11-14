@@ -2,66 +2,78 @@
   "schema": "line.arc-compressed-policy.v1",
   "compression": "gzip-file",
   "file": "repertoire_policy_model_v3.json.gz",
-  "compressedBytes": 210575,
-  "compressedSha256": "af1d6a199368563c5d8e6555fbc10fe087caca0ab5e16133507732126fbef2f0",
-  "sha256": "356729bbc5105fd212437e017f2e974fa9c4a92b9fd70b1ebb70b6ef1bff393d",
-  "uncompressedBytes": 792540,
+  "compressedBytes": 226631,
+  "compressedSha256": "81ced8464ce19e4eacf13a8447a3f52ebe7684c803fda6477a3fc444dc25bf41",
+  "sha256": "01e558561a263bfe4c4404216980e388dae13d26487a83f7268c9c7c9f0d5357",
+  "uncompressedBytes": 829359,
   "provenance": {
-    "method": "Catalogue and 57-feature network unchanged for policy proposals with weights [64, 32]; 493 representative demonstrations for memory via group exemplars and memoryGroups indices. Exemplar rows copied unchanged; proximity trees omitted because memory uses feature distance.",
+    "method": "Networks retrained on-policy on today's compiler's committed moves (tools/research/train_network_v4.py, generated/value-v5 collections: training catalogue v4 and its V8-contrast copy, 672 compiles); catalogues and memory exemplars unchanged",
     "sources": [
       {
-        "commit": "b1b7ac3ea4a387343a60cf4bbb1821f144ff84ba",
         "file": "repertoire_policy_model_v3.json.gz",
-        "compressedBytes": 109590,
-        "compressedSha256": "3f5c0cee67e979826900b215914ab1e4e405223d32db461d5c16d4c52f8d9e06",
-        "uncompressedBytes": 443045,
-        "sha256": "68ffc4286af15d8b7f703843efcecc3ff96a7711f0f83f1e0d88bddc16eba86e",
+        "compressedBytes": 210575,
+        "compressedSha256": "af1d6a199368563c5d8e6555fbc10fe087caca0ab5e16133507732126fbef2f0",
+        "sha256": "356729bbc5105fd212437e017f2e974fa9c4a92b9fd70b1ebb70b6ef1bff393d",
+        "uncompressedBytes": 792540,
         "provenance": {
-          "method": "Catalogue and 57-feature network offered together unchanged, with proposal weights [64, 32]",
+          "method": "Catalogue and 57-feature network unchanged for policy proposals with weights [64, 32]; 493 representative demonstrations for memory via group exemplars and memoryGroups indices. Exemplar rows copied unchanged; proximity trees omitted because memory uses feature distance.",
           "sources": [
             {
-              "commit": "489a1661b647ff00dbc95a9001385845e45f590c",
+              "commit": "b1b7ac3ea4a387343a60cf4bbb1821f144ff84ba",
               "file": "repertoire_policy_model_v3.json.gz",
-              "compressedBytes": 45698,
-              "compressedSha256": "246d1e17ae0122c06aeaf744105e6c0bb0ec6cfdcf32ca7931b4307d15081cce",
-              "uncompressedBytes": 234433,
-              "sha256": "3f30660af2935486e85c55a5992c67207ba1d6351f33ec4572d219b1bb652953"
+              "compressedBytes": 109590,
+              "compressedSha256": "3f5c0cee67e979826900b215914ab1e4e405223d32db461d5c16d4c52f8d9e06",
+              "uncompressedBytes": 443045,
+              "sha256": "68ffc4286af15d8b7f703843efcecc3ff96a7711f0f83f1e0d88bddc16eba86e",
+              "provenance": {
+                "method": "Catalogue and 57-feature network offered together unchanged, with proposal weights [64, 32]",
+                "sources": [
+                  {
+                    "commit": "489a1661b647ff00dbc95a9001385845e45f590c",
+                    "file": "repertoire_policy_model_v3.json.gz",
+                    "compressedBytes": 45698,
+                    "compressedSha256": "246d1e17ae0122c06aeaf744105e6c0bb0ec6cfdcf32ca7931b4307d15081cce",
+                    "uncompressedBytes": 234433,
+                    "sha256": "3f30660af2935486e85c55a5992c67207ba1d6351f33ec4572d219b1bb652953"
+                  },
+                  {
+                    "commit": "1bb70e3aad05510904c39c25dd8498152286e31c",
+                    "file": "repertoire_policy_model_v3.json.gz",
+                    "compressedBytes": 57540,
+                    "compressedSha256": "ad5ad91cf3d02b32248f0c3c2b4eb602e0a64de7a657f1d90928ad8fa8e0d21b",
+                    "uncompressedBytes": 207970,
+                    "sha256": "9ac29b2e35864bbbf2254de4da0508a399f550ac26fedaf094631cbc46c31469"
+                  }
+                ]
+              }
             },
             {
-              "commit": "1bb70e3aad05510904c39c25dd8498152286e31c",
+              "commit": "33c4c3172b2292cd6fd82a0f0c6562885e6c83ee",
               "file": "repertoire_policy_model_v3.json.gz",
-              "compressedBytes": 57540,
-              "compressedSha256": "ad5ad91cf3d02b32248f0c3c2b4eb602e0a64de7a657f1d90928ad8fa8e0d21b",
-              "uncompressedBytes": 207970,
-              "sha256": "9ac29b2e35864bbbf2254de4da0508a399f550ac26fedaf094631cbc46c31469"
+              "compressedBytes": 146739,
+              "compressedSha256": "b2d904e1b9747d02afc8b1008ad1ed800d5f0da856e05d08a363ee73f62a7d89",
+              "uncompressedBytes": 512401,
+              "sha256": "754aa6e00ff245a57a78b6fb7e8afa91f85f3e407b88f3c9808efcf36a19e030",
+              "provenance": {
+                "source": "repertoire_policy_model_v3.json.gz",
+                "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
+                "method": "64 representative demonstrations per group (k-means medoids in the joint feature/control space)",
+                "digits": 4,
+                "groups": {
+                  "[true,null,null,null,null,null,null,null,null,true]": 64,
+                  "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]": 64,
+                  "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]": 64,
+                  "[false,null,null,null,null,null,null,null,\"paired\",true]": 64,
+                  "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]": 64,
+                  "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]": 64,
+                  "[true,null,null,null,null,null,null,null,\"paired\",true]": 64,
+                  "[true,null,null,null,null,null,null,null,\"transfer\",true]": 15,
+                  "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]": 15,
+                  "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]": 15
+                }
+              }
             }
           ]
-        }
-      },
-      {
-        "commit": "33c4c3172b2292cd6fd82a0f0c6562885e6c83ee",
-        "file": "repertoire_policy_model_v3.json.gz",
-        "compressedBytes": 146739,
-        "compressedSha256": "b2d904e1b9747d02afc8b1008ad1ed800d5f0da856e05d08a363ee73f62a7d89",
-        "uncompressedBytes": 512401,
-        "sha256": "754aa6e00ff245a57a78b6fb7e8afa91f85f3e407b88f3c9808efcf36a19e030",
-        "provenance": {
-          "source": "repertoire_policy_model_v3.json.gz",
-          "sourceSha256": "1825fb176887f5c9ce4fe27f9614299214b248dd4cdbfaf7baf14320c61060b5",
-          "method": "64 representative demonstrations per group (k-means medoids in the joint feature/control space)",
-          "digits": 4,
-          "groups": {
-            "[true,null,null,null,null,null,null,null,null,true]": 64,
-            "[true,\"terraces\",0.8,0,null,null,null,null,\"paired\",true]": 64,
-            "[true,\"fold\",1,0,null,3,30,null,\"paired\",true]": 64,
-            "[false,null,null,null,null,null,null,null,\"paired\",true]": 64,
-            "[true,\"scallops\",1,0,1,null,null,null,\"paired\",true]": 64,
-            "[true,\"serpentine\",0.8,0,null,null,null,null,\"paired\",true]": 64,
-            "[true,null,null,null,null,null,null,null,\"paired\",true]": 64,
-            "[true,null,null,null,null,null,null,null,\"transfer\",true]": 15,
-            "[true,\"fold\",1,0,null,3,30,null,\"transfer\",true]": 15,
-            "[true,\"serpentine\",0.8,0,null,null,null,null,\"transfer\",true]": 15
-          }
         }
       }
     ]

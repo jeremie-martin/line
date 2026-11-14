@@ -9,6 +9,18 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, the compact networks retrained on today's moves (stated before running)
+
+- **Basis.** The one retrain of learned parts that paid (+15.5, November 1) fitted the construction policies to the
+  compiler of the day. The compact sources' networks were distilled from archive-era moves; retrained on the pooled
+  archive they were null (November 11). Since then: guides on strong phrases, placement, V8-like asks.
+- **Change** (`exp/networks-on-policy`): each paired group's network (57 features → 32 ReLU → the six relative main
+  controls; 32 residual styles by k-means, each with the other controls of its nearest demonstration) retrained on the
+  fulfilled committed sections of today's collections (training catalogue v4 and its V8-contrast copy, 672 compiles;
+  4,386–22,344 demonstrations per group; validation R² 0.45–0.53). Catalogues, memory exemplars and the transfer
+  groups unchanged. 227 KB (was 211 KB). `tools/research/train_network_v4.py`.
+- **Hypothesis:** proposals closer to how today's compiler catches; V8 up, most on dense songs.
+
 ## November 14: hypothesis, phrases of three or four sections (stated before running)
 
 - **Basis.** 17% of committed moves come from the ride's own memory of earlier sections (`candidate_origins.ts`, V8),

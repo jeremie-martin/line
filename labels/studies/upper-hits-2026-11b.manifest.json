@@ -3,7 +3,7 @@
  "kind": "pairs",
  "hitAt": 1,
  "length": 1.8,
- "prompt": "Which one is the bigger impact?",
+ "prompt": "At the marked hit (the light, and 'this hit' on the timeline): which one is the bigger impact? Judge the impact itself, whether the rider is caught from above or from below; ignore the other hits in the clip.",
  "choices": [
   [
    "left",

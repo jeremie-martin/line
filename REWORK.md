@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: correction, the first upper-hit study answered another question
+
+The owner answered `upper-hits-2026-11` as "which clip has the bigger upper hit", not "which marked hit is the bigger
+impact". A clip whose marked hit is a floor catch then loses by construction, so **its 14 of 14 is not evidence that a
+clean upper hit feels bigger**, and the gravity-neutral strength's "12 of 14" agreement means nothing either. What
+stands without it: the physics (a line pushing down needs about 20% less push for the same turn) and everything about
+construction and survival. The question now names the marked hit and says to judge the impact whatever its kind
+(`upper-hits-2026-11b`, held out; `upper-hits-2026-11-redo`, the first study's pairs asked again).
+
 ## November 14: E1c on V7.1 (candidate, for the owner's eye)
 
 V7.1, 4 seeds, 164 pairs against `foundation`: **headline −0.5 [−3.7, +2.8]**, 18 specs up, 17 down; every ride finished;
@@ -156,7 +165,8 @@ The foundation, V8 seed 101, 49 specs, tracks identical to `compiler` (49/49).
 `upper-hits-2026-11` (labels/studies): 14 pairs, a clean upper hit against a floor hit of the same strike strength
 (within 0.03) on a similar ask, plus 4 checks (two floor hits 0.35–0.46 apart). "Which one is the bigger impact?"
 
-- **The clean upper hit was chosen as bigger in 14 of 14 pairs** (no "same"; chance 1 in 16,384).
+- **The clean upper hit was chosen as bigger in 14 of 14 pairs** (no "same"; chance 1 in 16,384). **Void: the owner
+  answered which clip had the bigger upper hit (correction above).**
 - **The 4 checks were all "about the same"**, though their strike strengths differ by 0.35–0.46.
 - Reading: at equal measured strength the owner sees a clean upper hit as the bigger impact, every time; among floor
   hits he does not tell large strength differences apart (as in the October studies,

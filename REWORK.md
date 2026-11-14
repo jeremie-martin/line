@@ -9,6 +9,11 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: guides where they fit at a 15% margin (not adopted)
+
+`exp/guidance-margin-115`: V8 at 8 seeds +1.3 [−0.6, +3.3]; open arcs 14.5% → 9.1% of ride time, distinct families per
+ride 6.80 → 6.69. A small, uncertain gain for a visible loss of open arcs: the 30% margin stays.
+
 ## November 14: where V8 stands (measured)
 
 `compiler` (d0763aa4: guides on strong phrases, lead-ins below the arrival, families where they fit, the refitted

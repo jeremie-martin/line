@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the old specifications rewritten, first batch (Tiki Tiki, Luna Bala, L'amour de ma vie)
+
+The owner asked to revisit the older specs, written when close hits and ride-outs were out of reach, in small batches. Each
+is a new variant written from scratch from the song's measured layers (`music.ts`); `spec.ts` is untouched because the
+benchmark panels compile it.
+
+| song | variant | landings (old) | gaps under 0.25 s (old) | four seeds, headline | ending |
+|---|---|---|---|---|---|
+| Tiki Tiki 48 s | `voice-drums` | 108 (77) | 28 (0) | 764–796 | low air held; on the line 39 of the last 45 frames (seed 202) |
+| Luna Bala 44 s | `voice-drums` | 127 (75) | 21 (0) | 721–750 | on the line the whole last second, every seed |
+| L'amour de ma vie 44 s | `drums-voice` | 101 (85) | 5 (0) | 667–736 | the cut ends mid-fill: no ride-out to ask |
+
+Every seed complete, no landing missing. What the rewrites change, beyond density: no landing where nothing sounds (L'amour's
+old spec had 18, and missed 24 of 90 drum hits); held chords and bass notes count on a half-beat even without a sharp attack;
+floats only where the music is empty; a ride-out is written as low air held to the last frame (most old specs ask 0.8 or more
+air at the end, which asks for a jump). Not heard by the author; videos in `generated/videos/rework-batch1/` for the owner.
+
+Believer (`productions/believer_78s`) is parked by the owner after two drafts.
+
 ## November 14: Circus Minimus follows the voice to the end (`voice-full`, now the default)
 
 The owner marked 25 moments in 48–54.5 s. A reading written and frozen before opening them matched 24 within 80 ms (22 from

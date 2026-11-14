@@ -23,6 +23,14 @@
 - **Second execution** (same branch): `hold` leaves the sweep, the coordinate keys and the response step; instead, when
   the next ask is 0.6 or more, the two best distinct measured moves are offered again as steering moves: hold 2 or 4
   frames, exit 15° or 30° below the catch's heading after its turn, rail clearance at most 14 (8 measured candidates).
+- **Result, second execution: not adopted**, −2.0 [−5.5, +1.5] (V8, 4 seeds; 15 specs up, 28 down; P1 +2.4, P3 +2.4,
+  P5 −5.0, P4 −4.7); strong extra impacts +23% (the rail's steering is sometimes a strike).
+  - The search keeps a steering move in 9% of sections. In strong chains (this ask and the next 0.75 or more), sections
+    with a kept hold land 0.743 and the next catch 0.721, against 0.690 and 0.696 without (the hold is kept where it
+    works: partly selection). The mechanism works where it is chosen, but the panel's mean strong catch is unchanged
+    (0.716, exit 20°): it is chosen too rarely to move a chain, and its extra strikes and proposals cost elsewhere.
+  - Kept on its branch. A run-level construction (a steering channel for whole strong phrases) is the version that
+    could change chains; it is a new family, not a proposal.
 
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 

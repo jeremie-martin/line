@@ -7,8 +7,9 @@
  * holds the rider and the piece is not touched within 3 frames, or (b) 6 of the rider's 10 points cross one line (a
  * gap's main line, rail or fragments) within 4 frames, without touching it then (a main line touched then is the one
  * being ridden). For each such case the pieces of that line the rider's points cross within 4 frames are removed when
- * never touched in the ride, with the untouched stretch between each and the nearer end of its run, so a line ends
- * earlier rather than breaking where it can. Measured on the foundation's V8 rides (tools/research/
+ * never touched in the ride, with the untouched stretch between each and the nearer end of its run: a line ends
+ * earlier, and is never broken (a piece whose stretches to both ends are touched stays; each gap's main line and rail
+ * remain one connected curve, as the rail grouping requires). Measured on the foundation's V8 rides (tools/research/
  * going_through_cleanup.ts): replays identical, cases 1.6 → 0.3 per ride, 3.5 pieces removed per ride. */
 import type {TrackLine} from '../types.ts';
 
@@ -93,8 +94,9 @@ export function goneThrough(lines: readonly TrackLine[], points: ReadonlyArray<R
   for (const c of cases) for (const x of crossings) {
     if (Math.abs(x.f - c.f) > 4 || chainOf(x.l) !== c.chain || touched.has(x.l.id)) continue;
     const back = walk(x.l, z => byEnd.get(`${chainOf(z)}|${k2(z.x1, z.y1)}`)), ahead = walk(x.l, z => byStart.get(`${chainOf(z)}|${k2(z.x2, z.y2)}`));
+    // a line is shortened from its nearer end, never broken: a gap's main line and rail each stay one connected curve
     const side = [back, ahead].filter((s): s is TrackLine[] => !!s).sort((a, b) => a.length - b.length)[0];
-    for (const z of side ?? [x.l]) drop.add(z.id);
+    if (side) for (const z of side) drop.add(z.id);
   }
   return drop;
 }

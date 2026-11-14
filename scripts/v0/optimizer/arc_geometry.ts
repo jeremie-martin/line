@@ -83,24 +83,22 @@ export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support
       for(let iy=Math.floor(Math.min(a.y,b.y)/CELL);iy<=Math.floor(Math.max(a.y,b.y)/CELL);iy++){
         const k=key(ix,iy),list=grid.get(k);if(list)list.push(i);else grid.set(k,[i]);}
   }
-  const nearest=(p:{x:number;y:number},indices:Iterable<number>)=>{
-    let best=Infinity,signed=0,inside=false,at=-1;
-    for(const i of indices){
-      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,raw=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(raw,0,1);
-      const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
-      // ties keep the lower index, as a scan in order does
-      if(d<best||(d===best&&i<at)){best=d;at=i;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
-    }
-    return {best,signed,inside};
+  // squared distances while searching; ties keep the lower index, as a scan in order does
+  let best2=Infinity,at=-1,raw=0;
+  const consider=(p:{x:number;y:number},i:number)=>{
+    const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,r=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(r,0,1);
+    const ex=p.x-a.x-u*dx,ey=p.y-a.y-u*dy,d2=ex*ex+ey*ey;
+    if(d2<best2||(d2===best2&&i<at)){best2=d2;at=i;raw=r;}
   };
-  const all=Array.from({length:support.length-1},(_,k)=>k+1);
+  const seen=new Int32Array(support.length);let stamp=0;
   const gaps:number[]=[];
   let atEnd=false;
   for(const p of rail){
-    const ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL),near=new Set<number>();
-    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const i of grid.get(key(ix+dx,iy+dy))??[])near.add(i);
-    let found=nearest(p,near);
-    if(!(found.best<=CELL))found=nearest(p,all);
+    const ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL);stamp++;best2=Infinity;at=-1;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const list=grid.get(key(ix+dx,iy+dy));if(list)for(const i of list)if(seen[i]!==stamp){seen[i]=stamp;consider(p,i);}}
+    if(!(best2<=CELL*CELL)){best2=Infinity;at=-1;for(let i=1;i<support.length;i++)consider(p,i);}
+    const a=support[at-1],b=support[at],best=Math.sqrt(best2),signed=((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x)>=0?1:-1)*best;
+    const found={best,signed,inside:(raw>=0||at>1)&&(raw<=1||at<support.length-1)};
     if(found.inside)gaps.push(found.signed);else if(found.best<margin)atEnd=true;
   }
   if(atEnd)return true;

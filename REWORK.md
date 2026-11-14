@@ -9,6 +9,16 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, a step that crashes is retried at half size (stated before running)
+
+- **Basis** (`crash_edge.ts`, V8): about 45% of evaluations end with the rider thrown off, nearly all at the catch; in
+  48% of strong-ask intervals a crashed candidate reached the ask while no survivor did. A coordinate step that crashes
+  is simply discarded (the review agent's finding 6).
+- **Change** (`exp/crash-edge-halfstep`): in the coordinate search, a step that throws the rider off is followed by the
+  same step at half size from the current best, in place of the next coordinate (the sample count is unchanged).
+- **Hypothesis:** more viable candidates near the crash edge; strong catches a little harder; V8 up a little.
+- **Result: not adopted**, V8 at 8 seeds −1.7 [−4.7, +1.3] (P3 −10.3).
+
 ## November 14: guides where they fit at a 15% margin (not adopted)
 
 `exp/guidance-margin-115`: V8 at 8 seeds +1.3 [−0.6, +3.3]; open arcs 14.5% → 9.1% of ride time, distinct families per

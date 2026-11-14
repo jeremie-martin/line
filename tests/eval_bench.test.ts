@@ -200,14 +200,14 @@ it('weighs geometry like the stratified report and says when a run predates it',
   expect(r.values.realized['guided, guide never touched per ride'].strata[1]).toMatchObject({a: 0, b: 0});
   const text = geometryReport(A, B).join('\n');
   expect(text).toMatch(/^4\. Geometry/);
-  expect(text).toMatch(/arcs\/required\s+25→25\s+25→33\s+25\.0\s+29\.2\s+-4\.2/);
+  expect(text).toMatch(/arcs\/required\s+25→25\s+33→25\s+25\.0\s+29\.2\s+-4\.2/);
   expect(text).not.toMatch(/better|worse/i);
   expect(stratifiedReport(A, B, 'cand', 'ref').join('\n')).toContain('4. Geometry');
   // A run compiled before geometry facts: not recorded, the other arm still shown.
   const old = run(panel, panel.map(c => cell(c)));
   const half = geometryReport(A, old).join('\n');
   expect(half).toContain('not recorded for B');
-  expect(half).toMatch(/arcs\/required\s+25→—/);
+  expect(half).toMatch(/arcs\/required\s+—→25/);
   expect(geometryReport(old).join('\n')).toMatch(/not recorded: this run predates geometry facts/);
   expect(geometryStrata(old).values.time).toEqual({});
 });

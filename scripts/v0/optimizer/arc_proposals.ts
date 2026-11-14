@@ -111,8 +111,8 @@ export function proposeInitialControls(s: IntervalSearch) {
 }
 
 /** Twins of the interval's best proposals so far whose support the rider follows unaided (`ridable`: after the catch's
- * turn the heading never turns further downward): where the original would need its rail to hold the rider onto a
- * convex end, the twin releases where and as its geometry says. Offered on arcs that may have a rail; a twin is not
+ * turn the heading never turns further downward) and that have no rail: where the original would need its rail to hold
+ * the rider onto a convex end, the twin releases where and as its geometry says, and nothing is there to touch. Offered on arcs that may have a rail; a twin is not
  * measured when it would draw the same support as its original. They compete under the ordinary checks; nothing
  * prefers them (REWORK.md, November 14: what a rail does). */
 export function proposeRidableTwins(s: IntervalSearch) {
@@ -124,7 +124,8 @@ export function proposeRidableTwins(s: IntervalSearch) {
   try {
     for (const x of ranked) {
       work.attempts++;
-      if (evaluate(s, tagOrigin({...x.c, ridable: 1}, 'ridable'))) work.viable++;
+      // drawn without a rail: an empty guide stretch draws none (arc_geometry.ts), and refinements do not search it
+      if (evaluate(s, tagOrigin({...x.c, ridable: 1, guideStart: 0, guideEnd: 0}, 'ridable'))) work.viable++;
     }
   } finally {
     work.physicsFrames += getPhysicsFrameCount() - began;

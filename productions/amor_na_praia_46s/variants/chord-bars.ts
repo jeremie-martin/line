@@ -2,13 +2,14 @@
  * Amor na Praia, handcrafted: "Where the chord changes".
  *
  * Idea. The groove is one kick every 0.55 s for thirty-four seconds, all nearly as loud. What does change is the
- * chord, every four kicks, and the kick under a chord change is the sharpest attack of its bar. The emphasis is that
+ * chord, every four kicks, and the kick under a chord change is the sharpest attack of its bar in the mix (the synth
+ * enters with it), though as a drum it is the lightest of the four. The emphasis is that
  * kick: it lands clearly harder than the three after it, so the ride moves in bars of four, not in single beats.
  *
  * What lands, and how hard:
  * - Intro: the 808 alone at 0.34 (0.45), then the chopped voice as touches (0.08).
- * - The burst, the 808 alone and the loudest thing in the clip: 4.46 is the song's 1; the kicks after it tighten
- *   and climb (0.78 to 0.90).
+ * - The burst, the 808 alone and the loudest thing in the clip: 4.46 is the song's 1; its answer at 4.72 is 0.70, and the kicks after
+ *   tighten and climb (0.78 to 0.90).
  * - The breath: one touch. The drop and the re-drop: 0.95.
  * - Groove: the chord-change kick 0.78, the others 0.58 / 0.64 / 0.62; all a step up after the re-drop.
  * - The fade: two sung notes as touches, the soft kick 0.30, then a ride-out.

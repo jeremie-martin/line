@@ -9,7 +9,7 @@
  *
  * What lands, and how hard:
  * - Intro: the 808 alone (0.50), the chopped voice as touches (0.08).
- * - The burst is the heaviest passage of the clip and is treated as its peak: 4.46 at 1, the rest 0.84–0.95,
+ * - The burst is the heaviest passage of the clip and is treated as its peak: 4.46 at 1, its answer at 4.72 0.78, the rest 0.84–0.95,
  *   climbing as the kicks tighten.
  * - The drop and the re-drop: 0.92.
  * - Groove: kicks 0.54 / 0.60 / 0.82 / 0.76 through the bar (a step up after the re-drop); the bass pickup before

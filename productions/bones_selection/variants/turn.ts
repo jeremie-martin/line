@@ -9,7 +9,7 @@
  * - The bridge: only the clearly sung words, as touches (0.08). The bass entries, each alone in the quiet, 0.30.
  * - The pickup: four words climbing 0.18 to 0.36, three drum strokes 0.50, 0.60, 0.70, the chorus entry 1.
  * - The chorus: the two heavy hits of a bar equal (0.82 and 0.84), the lighter strokes 0.40. A fill bar climbs
- *   through its three hits (0.84, 0.90, 0.95); the last fill ends the song's drums at 0.97.
+ *   through its three hits (0.84, 0.90, 0.95); the last fill ends the heavy hits at 0.97.
  * - The release: two strokes (0.36, 0.40), then nothing: the rider stays on the line while the tail rings.
  * Air: a hang before the chorus entry; an even bounce in the chorus; a ride-out for the tail.
  * Speed: slow, then gathering through the pickup, fast in the chorus, dying in the tail.

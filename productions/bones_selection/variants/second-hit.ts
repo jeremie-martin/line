@@ -2,7 +2,7 @@
  * Bones, handcrafted: "The second hit".
  *
  * Idea. The two heavy hits of a chorus bar are not the same sound. The first is sharp; the second is as loud or
- * louder in the mix but softer in attack: the fat one, with a lighter stroke running into it ("ta-BOOM"). The
+ * louder in the mix but softer in attack in the mix (on the drum stem alone the two are alike): the fat one, with a lighter stroke running into it ("ta-BOOM"). The
  * emphasis is the second hit. It lands near the top in every bar, the first hit a clear step below, and the stroke
  * before it is kept as its pickup. This is the candidate the data points to for "the sound this song wants felt";
  * turn.ts keeps the two hits equal for comparison.

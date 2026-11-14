@@ -10,7 +10,7 @@
  * - The opening hit, closing the low phrase: 0.60.
  * - The figure: each note 0.20–0.48 by its attack (4.68 the sharpest). The faint ticks under it are not landed.
  * - The build: drum hits 0.50 rising to 0.74; the figure notes that fall between two hits 0.34.
- * - The doubled drums 0.62–0.76; the roll as three accents and its last stroke, 0.60–0.78.
+ * - The doubled drums 0.62–0.76; the roll as its three sharpest strokes, 0.64–0.78.
  * - The suspended note, alone in silence: a touch. The return: 1.
  * - The replies: the stroke that opens a bar 0.44, the first full hit of a bar 0.84, the others 0.80.
  * - The decay: five strokes, 0.40 down to 0.16, and a ride-out.
@@ -32,7 +32,7 @@ const ROWS: Row[] = [
   ...m.FIGURE.map(([t, attack]): Row => [t, Number((0.14 + 0.62 * attack).toFixed(2))]),
   ...at(m.BUILD_DRUMS, (_, i) => 0.50 + 0.03 * i), ...at(m.BUILD_FIGURE, 0.34),
   ...at(m.DOUBLED, (_, i) => 0.62 + 0.02 * i),
-  [20.02, 0.60], [20.35, 0.66], [20.70, 0.72], [20.96, 0.78],
+  [20.19, 0.64], [20.54, 0.70], [20.88, 0.78],
   [m.SUSPENDED_NOTE, 0.10],
   [m.RETURN, 1.00],
   ...at(m.BAR_STROKES, 0.44),

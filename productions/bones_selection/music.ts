@@ -7,8 +7,8 @@
  *   15.3–17.3  The pickup: four sharp words (15.28–16.35), then three drum strokes (16.56, 16.82, 17.11).
  *   17.36      The chorus enters (the sharpest attack of the clip).
  *   17.4–49.7  The chorus: sixteen bars of 2.1 s. Each bar has two heavy drum hits 0.8 s apart: the first sharp
- *              (attack 0.5–0.8), the second as loud or louder in the mix but softer in attack (about 0.4), a fatter
- *              sound. A lighter stroke comes 0.27 s before the second hit and another 0.55 s before the next bar.
+ *              (attack 0.5–0.8), the second as loud or louder in the mix but softer in attack there (about 0.4; on the
+ *              drum stem alone the two are alike), a fatter sound. A lighter stroke comes 0.27 s before the second hit and another 0.55 s before the next bar.
  *              Every fourth bar (23.67, 32.09, 40.51, 48.92) plays three heavy hits: a fill.
  *   49.7–54    The release: two soft strokes (50.26, 50.53), then the tail rings out for three seconds.
  */

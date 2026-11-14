@@ -2,16 +2,16 @@
  * Petrunko, handcrafted: "The low replies".
  *
  * Idea. After the return, the heaviest sounds are not the drums but nine bass notes that answer them: as loud as a
- * drum hit in the mix, sharply attacked, each arriving 0.12–0.19 s after a drum. Too close to land both, so the
+ * drum hit in the mix, sharply attacked in the bass, each arriving 0.12–0.19 s after a drum. Too close to land both, so the
  * choice is which half of the pair is felt. Here it is the bass: the rider lands on the low reply, at the top of the
  * range, and the drum just before it is left out. Everything high in the clip is kept light to match: the upper
  * figure is touches. This is the data's candidate for the sound to emphasise; figure.ts lands the drums instead.
  *
  * What lands, and how hard:
  * - The opening hit 0.60. The figure's notes: 0.08–0.14.
- * - The build hits 0.46 rising to 0.66; doubled 0.60–0.70; the roll as four strokes 0.60–0.74.
+ * - The build hits 0.46 rising to 0.66; doubled 0.60–0.70; the roll as its three sharpest strokes 0.62–0.74.
  * - The suspended note: a touch. The return: 0.95.
- * - The replies: the low replies 0.90–1 (33.13, 44.05 and 54.96, the three heaviest, at 0.98, 1 and 0.98); the drum
+ * - The replies: the low replies 0.90–1 (26.98, 33.13, 44.05 and 54.96, the four heaviest, at 0.95, 0.98, 1 and 0.98); the drum
  *   hits that stand without one 0.62; the stroke that opens a bar 0.36.
  * - The decay: five strokes and a ride-out.
  * Air: high under the figure, lower once the bass leads. Speed: as figure.ts, a little faster in the replies.
@@ -25,14 +25,14 @@ export const overlayMeta = m.overlayMeta;
 type Row = [number, number];
 const at = (times: number[], impact: number | ((t: number, i: number) => number)): Row[] =>
   times.map((t, i) => [t, typeof impact === "number" ? impact : impact(t, i)]);
-/** Drum hits within 0.17 s of a low reply give way to it. */
-const DRUMS = m.REPLY_DRUMS.filter(t => !m.LOW_REPLIES.some(b => Math.abs(b - t) < 0.175));
+/** The drum hit up to 0.2 s before a low reply gives way to it; a hit after it stays. */
+const DRUMS = m.REPLY_DRUMS.filter(t => !m.LOW_REPLIES.some(b => b - t > 0 && b - t < 0.2));
 const ROWS: Row[] = [
   [m.OPENING_HIT, 0.60],
   ...m.FIGURE.map(([t, attack]): Row => [t, Number((0.06 + 0.15 * attack).toFixed(2))]),
   ...at(m.BUILD_DRUMS, (_, i) => 0.46 + 0.025 * i),
   ...at(m.DOUBLED, (_, i) => 0.60 + 0.014 * i),
-  [20.02, 0.60], [20.35, 0.64], [20.70, 0.70], [20.96, 0.74],
+  [20.19, 0.62], [20.54, 0.68], [20.88, 0.74],
   [m.SUSPENDED_NOTE, 0.08],
   [m.RETURN, 0.95],
   ...at(m.BAR_STROKES, 0.36), ...at(DRUMS, 0.62),

@@ -2,15 +2,15 @@
  * Valhalla, handcrafted: "Stillness, then the drop".
  *
  * Idea. The song is thirty seconds of voice and ten of drums. The emphasis is the contrast itself: the voice part is
- * kept deliberately almost still, so that the three drum events before the groove (9.32, 19.69, the drop) are the
- * only things that hit.
+ * kept deliberately almost still, so that the three loud events before the groove (the kick and snare at 9.32, the hit at 19.69 that comes
+ * with the voice, the drop) are the only things that hit.
  *
  * What lands, and how hard:
  * - Every word of the voice, as a touch (0.06–0.14). The last word of each phrase, the one the phrase leans on, a
  *   little more (0.20–0.30), growing slowly over the song so the stillness is not flat.
- * - The two lone drum hits, alone in near-silence: 0.70. They should startle.
+ * - The two loud hits before the drop (mix 0.6 against 0.3–0.45 around them): 0.70. They should startle.
  * - The drop: 1. The groove's kicks follow their loudness (0.84–0.95, the loudest at 34.27), snares about half, the
- *   bass entries a third. No voice in the groove: the drums have taken over.
+ *   bass entries a third (two of them carry a syllable). No other voice in the groove: the drums have taken over.
  * Air: the long held notes (4.16, 6.75, 26.65) are flights; words are steps close to the line.
  * Speed: slow under the voice, held back before the drop, then fast to the end.
  */
@@ -25,16 +25,16 @@ const ROWS: Array<[number, number]> = [
   [1.463, 0.06], [4.156, 0.10], [6.745, 0.10], [8.580, 0.08],
   [9.323, 0.70], // lone kick and snare
   // phrase 1
-  [10.298, 0.06], [10.612, 0.07], [10.913, 0.08], [11.262, 0.20], [11.923, 0.06],
+  [9.973, 0.06], [10.298, 0.06], [10.612, 0.07], [10.913, 0.08], [11.262, 0.20], [11.923, 0.06],
   // phrase 2
   [12.562, 0.08], [12.887, 0.07], [13.201, 0.08], [13.851, 0.10], [14.501, 0.22],
   // phrase 3
-  [15.174, 0.08], [15.894, 0.08], [16.138, 0.12], [16.393, 0.22], [17.090, 0.12], [17.752, 0.08], [18.077, 0.08], [18.402, 0.24], [19.029, 0.14],
-  [19.691, 0.70], // lone kick
+  [15.174, 0.08], [15.488, 0.07], [15.894, 0.08], [16.138, 0.12], [16.393, 0.22], [17.090, 0.12], [17.752, 0.08], [18.077, 0.08], [18.402, 0.24], [19.029, 0.14],
+  [19.691, 0.70], // the loud hit with the voice
   // phrase 4
-  [20.364, 0.08], [20.677, 0.08], [21.002, 0.09], [21.304, 0.11], [21.629, 0.14], [21.966, 0.12], [22.280, 0.10],
-  [23.905, 0.10], [24.242, 0.26], [24.892, 0.12],
-  [26.482, 0.10], [26.645, 0.30], // the long held note: the flight before the drop starts here
+  [20.364, 0.08], [20.677, 0.08], [21.002, 0.09], [21.304, 0.11], [21.629, 0.24], [21.966, 0.12], [22.280, 0.10],
+  [23.266, 0.06], [23.591, 0.07], [23.905, 0.10], [24.242, 0.26], [24.892, 0.12],
+  [26.192, 0.08], [26.645, 0.30], // the long held note: the flight before the drop starts here
   [29.373, 0.14],
   // the drop and the groove: kick, snare, bass entry
   [30.058, 1.00], [30.708, 0.46], [31.022, 0.30],

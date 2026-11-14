@@ -24,6 +24,8 @@
  *           breathy chops (x marks on the sheets). Nothing audible sits between the
  *           kicks: this groove has no off-beat layer (checked kick by kick: the
  *           strongest in-between rises are 0.1–0.33 against kicks at 0.8–0.9).
+ *           Revised 2026-11-14: a bass and synth swell does follow the second and third kick of most bars (ANSWER_1,
+ *           ANSWER_2 below); the first is clear in the mix. Whether it is heard as a sound of its own is open.
  *   26.3–26.7 HOLE. After the kick at 26.180 the bass and synth cut out (mix 0.31–0.36);
  *           a sung "hey" (26.285, C♯4, salience 0.90) fills it.
  *   26.726  RE-DROP. Kick+tom, bass and synth back together.

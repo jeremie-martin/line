@@ -7,7 +7,7 @@
  * October): it lands as small steps, so the groove thickens by density, not by force.
  *
  * What lands, and how hard:
- * - Intro: the voice alone on its 0.45 s pulse, every word a touch (0.08), the last four rising a little into the
+ * - Intro: the voice alone on its 0.45 s pulse, every word a touch (0.08), the last five rising a little into the
  *   groove. The opening crash, alone: 0.55.
  * - Groove: cycle kicks 0.70 / 0.58 / 0.62, a little more in the last three cycles; the percussion steps 0.14.
  * - The break: three touches. The drop: 1.
@@ -40,7 +40,7 @@ const BASS_IN = [30.59, 32.39, 34.18, 37.76, 39.55, 41.34];
 const AFTER = [29.94, 31.72, 33.49, 35.29, 37.08, 38.87, 40.67, 42.47];
 /** The last kicks, the 3-3-2 again. */
 const FINAL = [46.95, 47.61, 48.29, 48.74, 49.41, 50.07];
-const TICKS = [18.52, 18.75, 19.19, 19.41, 19.86, 20.53, 20.99, 22.34, 22.79, 23.00, 23.45, 23.91, 24.11, 24.79, 25.24, 25.69, 25.90, 26.36,
+const TICKS = [18.52, 18.75, 19.19, 19.41, 19.86, 20.53, 20.99, 22.79, 23.00, 23.45, 23.91, 24.11, 24.79, 25.24, 25.69, 25.90, 26.36,
   26.57, 27.03];
 const ROWS: Row[] = [
   [0.37, 0.55],
@@ -55,7 +55,7 @@ const ROWS: Row[] = [
     41.56: 0.90, 41.90: 0.94, 42.24: 0.98})[t]!),
   ...at(BASS_IN, 0.40), ...at(AFTER, 0.46),
   ...at([43.77, 44.23, 44.91, 45.62, 46.02], 0.10),
-  ...at(FINAL, (_, i) => [0.72, 0.70, 0.76, 0.74, 0.80, 0.90][i]),
+  ...at(FINAL, (_, i) => [0.72, 0.74, 0.78, 0.82, 0.84, 0.90][i]),
 ];
 const AIR = curve([[0, 0.45], [14.3, 0.45], [14.7, 0.50], [27.3, 0.50], [28.2, 0.80], [m.DROP_T, 0.55], [42.5, 0.55], [44.5, 0.70], [46.6, 0.62], [46.95, 0.50],
   [m.DURATION, 0.50]]);

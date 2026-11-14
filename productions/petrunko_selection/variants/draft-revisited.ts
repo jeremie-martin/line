@@ -4,14 +4,15 @@
  * Kept: its landings, all 79 (the opening hit, the upper figure, the build and the doubled drums, three strokes of
  * the roll, the return, the replies, three decay strokes), and its speed.
  * Changed, and why:
- * - The figure's notes all asked 0.46; they now follow how sharply each is played (0.20–0.48).
+ * - The figure's notes asked 0.46 (one 0.65); they now follow how sharply each is played (0.20–0.48).
  * - The build and the doubled drums were flat at 0.59 for eight seconds while the music grows: now 0.46 rising to
  *   0.70, then 0.62 to 0.76, and the roll's three strokes 0.66, 0.72, 0.78.
  * - The return is the sharpest attack of the clip: 0.92 becomes 1.
  * - All 42 reply landings asked 0.80, the lighter stroke that opens each bar included. Those strokes are a third
  *   quieter than the full hits: now 0.46, the first full hit of a bar 0.84, the others 0.80.
  * - The decay's strokes fade in the song: 0.50 flat becomes 0.40, 0.34, 0.28.
- * - Air rose to 0.82 over the decay, a jump into nothing: it now comes down to the line for a ride-out.
+ * - Air rose to 0.82 over the decay, a jump into nothing: it now comes down to the line for a ride-out. The
+ *   curve is redrawn, so the build, the suspension and the replies differ slightly too (within 0.1).
  */
 import type { Spec } from "../../../scripts/v0/types.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";

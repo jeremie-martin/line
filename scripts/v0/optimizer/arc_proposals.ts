@@ -109,6 +109,16 @@ export function proposeInitialControls(s: IntervalSearch) {
   }
 }
 
+/** A quiet catch (ask 0.15 or less) wants a touchdown along the arrival: its strength is about the arrival speed times
+ * the angle between the two, so a few degrees already overshoot. The best measured moves are offered again with the
+ * receiver laid along the arrival heading, or within two degrees of it (REWORK.md, November 14). */
+export function proposeTangentCatches(s: IntervalSearch) {
+  const {impact, incoming, i} = s;
+  if (!(i > 0 && impact !== undefined && impact <= .15 && s.best)) return;
+  for (const c of [s.best.candidate.c]) for (const delta of [0, -.7, -1.5, -2.5])
+    evaluate(s, deriveOrigin({...c, entry: incoming + delta}, c, 'tangent'));
+}
+
 /** Offer the same curve constructor from the opposite contact side. Both sides
  * compete under the same musical and physical checks; there is no scheduled
  * upper-hit request or different strength definition. */

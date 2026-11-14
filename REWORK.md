@@ -9,6 +9,16 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, quiet catches laid along the arrival (stated before running)
+
+- **Basis** (V8, `compiler`): quiet asks (0.15 or less) land too hard, by +0.10 to +0.11 on the calm specs (P3: 36% of
+  their strength loss; P6: 21%). A touchdown's strength is about speed × the angle between arrival and receiver; for an
+  ask near 0 at 9 px/frame that angle must stay under 2–3°. The search's proposals offset the receiver from the arrival
+  by 2–7°: exactly the overshoot.
+- **Change** (`exp/tangent-quiet-catches`): for a quiet catch, the best measured move is offered again with its receiver
+  laid along the arrival heading, or 0.7°, 1.5°, 2.5° below it (4 more candidates).
+- **Hypothesis:** softer quiet catches; P3, P6 up; others near zero.
+
 ## November 14: hypothesis, the compact networks retrained on today's moves (stated before running)
 
 - **Basis.** The one retrain of learned parts that paid (+15.5, November 1) fitted the construction policies to the

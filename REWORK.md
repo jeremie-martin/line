@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the open-arcs probe, and open arcs with upper receivers (stated before running)
+
+- **Probe** (`exp/arcs-open`, V8 against `base`): headline −11.0 [−13.3, −8.8], 4 specs up, 39 down; explicit −11.6.
+  Rails 55% → 43% of gaps, open arcs 37% → 48%; clean upper hits 9.4 → 11.9% of strong beats; body drag −16%;
+  strong arrivals head-down +12%. The loss: very strong catches softer (bias −0.021, strong −0.007) and flights off
+  their speed (rms +0.004), air and amplitude a little (+0.002, +0.005). So rails on arcs do two jobs: they let strong
+  catches land hard, and they hold the release so the flight keeps its speed.
+- **Reading of R2–R4:** they traded at the probe's rate (about −0.9 points per point of rail share: R4 −1.7 for 2;
+  every axis about a sixth of the probe's). The twins found no better geometry; they took rails off where rails
+  mattered least.
+- **Next** (`exp/arcs-open-upper`: the probe plus E1c's upper receivers, 12 per gap): the rail-free strong catch the
+  owner likes, where rails no longer compete with it. **Hypothesis:** recovers part of the probe's very-strong loss
+  (bias −0.021 closer to 0) and of the headline; clean upper hits rise further.
+
 ## November 14: R4 result, and a probe: arcs without rails (stated before running)
 
 - **R4** (V8, against `base`): headline −1.7 [−7.0, +3.6], 18 specs up, 25 down; explicit −3.1. Rail-free twins chosen

@@ -57,7 +57,8 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
       // then: local cost − best's, priors (rank − local cost) − best's, and each squared residual − best's (air, speed, amplitude, impact, the rest summed)
       closest.localCost - s.best.candidate.localCost, (searchRank(closest) - closest.localCost) - (searchRank(s.best.candidate) - s.best.candidate.localCost),
       ...[0, 1, 2, 3].map(k => (closest.residuals[k] ?? 0) ** 2 - (s.best!.candidate.residuals[k] ?? 0) ** 2),
-      closest.residuals.slice(4).reduce((n, r) => n + r * r, 0) - s.best.candidate.residuals.slice(4).reduce((n, r) => n + r * r, 0)]);
+      closest.residuals.slice(4).reduce((n, r) => n + r * r, 0) - s.best.candidate.residuals.slice(4).reduce((n, r) => n + r * r, 0),
+      closest.residuals.length, ...Array.from({length: 12}, (_, k) => (closest.residuals[4 + k] ?? 0) ** 2 - (s.best!.candidate.residuals[4 + k] ?? 0) ** 2)]);
   }
   if (s.best && options.constructionRequests?.[i]?.construction === 'scattered') replaceWithFragments(s);
   return {best: s.best, candidates: s.candidates, failures: s.failures, frame: s.frame, next: s.next, horizon: s.horizon, gap: s.gap,

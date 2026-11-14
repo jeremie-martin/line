@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {ALIKE, COLLECTION, DROPS, DROP_ONLY, VARIANTS} from '../scripts/video/collection.js';
+import {ALIKE, COLLECTION, DROPS, DROP_ONLY, LIT, VARIANTS} from '../scripts/video/collection.js';
 import {SCHEMES, DROP_SCHEMES} from '../scripts/video/palettes.js';
 import {DARK, GROUPS, LIGHT, SHARES, chooseLook} from '../scripts/video/choose.js';
 import {resolveLook} from '../scripts/video/look.js';
@@ -40,6 +40,12 @@ describe('the look of each video', () => {
     for (const r of withDrop) expect(Object.keys(DROPS[r.theme])).toContain(r.partner);
     expect(new Set(runs.map(r => r.theme)).size).toBe(Object.keys(COLLECTION).length);
     expect(Array.from({length: 500}, (_, i) => chooseLook(`x-${i}`, {hasDrop: false})).every(r => !r.partner && r.look.drop === 'off')).toBe(true);
+  });
+  it('lights the band on strong hits on the dark themes picked for it, while their band is bars', () => {
+    for (const k of LIT) {expect(DARK, k).toContain(k); expect(COLLECTION[k].spec.look.band, k).toBe('bars');}
+    const runs = Array.from({length: 5000}, (_, i) => chooseLook(`lit-${i}`, {hasDrop: true}));
+    for (const r of runs) expect(r.look.hits, r.theme).toBe(LIT.has(r.theme) && !r.variant?.band ? 'lit65' : 'v1');
+    expect(runs.some(r => r.look.hits === 'lit65')).toBe(true);
   });
   it('draws themes too alike as one theme, and a theme\'s approved variants a quarter of the time', () => {
     const listed = ALIKE.flat();

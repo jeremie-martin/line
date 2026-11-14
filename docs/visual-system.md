@@ -40,12 +40,13 @@ chose, with the hash that identifies it.
 inked, and whether colour follows the ride.
 
 **Choosing a video's look** (`choose.js`): from the ride's id, so the same ride always gets the same look.
-- 75 % of videos get a light theme.
+- Half of the videos get a light theme, half a dark one.
 - Themes too alike to tell apart in a batch (`collection.js` `ALIKE`) are drawn as one, then one of them is picked.
 - A theme with approved variants (`VARIANTS`: stars around the moon, a crescent, dots, strands) shows one a quarter of
   the time. `generated/concept-lab/batch.html` shows forty videos drawn this way at three light shares.
 - For a light theme whose song has a drop, a drop half the time.
-- These shares are a starting point, not a finding.
+- On the dark themes picked for it (`collection.js` `LIT`), the whole band takes the hot colour on hits of 0.65 or more,
+  while the band is bars. Themes whose hot colour is red or no lighter than their bars are left out: there the band seems to darken.
 
 **Drops** (`collection.js` `DROPS`): only light to dark. At the drop the picture takes a dark partner's
 colours and keeps the light theme's layout, hot note and sun, so nothing moves and the sun never appears or leaves. Each

@@ -29,7 +29,6 @@ export const OPTIONS = {
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
-    // in the lab (round 51; hits.js TUNES)
     lit65: 'v1, and the band lights on hits of 0.65 or more'}],
 };
 

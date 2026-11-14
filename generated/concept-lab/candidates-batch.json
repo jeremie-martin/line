@@ -22,15 +22,15 @@
    "pencil": "#424648",
    "sun": "#85cf5e"
   },
-  "t-f463f1c7a877": {
-   "accent": "#f4bf3f",
-   "ink": "#192029",
-   "mass": "#1f487c",
-   "nightInk": "#e1e9ef",
-   "nightPaper": "#192029",
-   "paper": "#e1e9ef",
-   "pencil": "#a4acb2",
-   "sun": "#f4bf3f"
+  "t-b861357c81d5": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
   },
   "t-395079d99977": {
    "accent": "#e54728",
@@ -42,15 +42,15 @@
    "pencil": "#a4a9b1",
    "sun": "#e54728"
   },
-  "t-cf3fd20475fa": {
-   "accent": "#f99d1b",
-   "ink": "#1f2016",
-   "mass": "#414622",
-   "nightInk": "#eaebdf",
-   "nightPaper": "#1f2016",
-   "paper": "#eaebdf",
-   "pencil": "#adada5",
-   "sun": "#f99d1b"
+  "t-83bea7587eab": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
   },
   "t-72efcbe97fcb": {
    "accent": "#d96629",
@@ -60,6 +60,26 @@
    "nightPaper": "#140e0b",
    "paper": "#140e0b",
    "pencil": "#4b3831"
+  },
+  "t-f463f1c7a877": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "t-d2b8cd17c297": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
   },
   "t-ff874b93578b": {
    "accent": "#f05940",
@@ -71,16 +91,6 @@
    "pencil": "#b2b1af",
    "sun": "#f05940"
   },
-  "t-4860903eef2c": {
-   "accent": "#e7714e",
-   "ink": "#0f1e2f",
-   "mass": "#3e6594",
-   "nightInk": "#fdf5f2",
-   "nightPaper": "#0f1e2f",
-   "paper": "#fdf5f2",
-   "pencil": "#b5b5b9",
-   "sun": "#e7714e"
-  },
   "t-a0ea6a349059": {
    "accent": "#f9a63e",
    "ink": "#2e171f",
@@ -90,16 +100,6 @@
    "paper": "#fbf6ee",
    "pencil": "#bbb7b1",
    "sun": "#f9a63e"
-  },
-  "t-d2b8cd17c297": {
-   "accent": "#e54728",
-   "ink": "#241e14",
-   "mass": "#383530",
-   "nightInk": "#e9e6e0",
-   "nightPaper": "#241e14",
-   "paper": "#e9e6e0",
-   "pencil": "#ada9a1",
-   "sun": "#e54728"
   },
   "t-cc57d588c18c": {
    "accent": "#f99d1b",
@@ -121,15 +121,15 @@
    "pencil": "#505853",
    "sun": "#f0c45e"
   },
-  "t-8cd5796e6d2e": {
-   "accent": "#f0b135",
-   "ink": "#25201e",
-   "mass": "#89221c",
-   "nightInk": "#faf9f5",
-   "nightPaper": "#25201e",
-   "paper": "#faf9f5",
-   "pencil": "#ada7a1",
-   "sun": "#f0b135"
+  "t-ea30e1e9c046": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
   },
   "t-77f113c03260": {
    "accent": "#c77255",
@@ -160,15 +160,16 @@
    "pencil": "#b1afae",
    "sun": "#f99d1b"
   },
-  "t-ea30e1e9c046": {
-   "accent": "#d7352d",
+  "t-9dbc8a82e9b6": {
+   "accent": "#d3262e",
    "ink": "#15181d",
-   "mass": "#2b2e33",
-   "nightInk": "#ffffff",
-   "nightPaper": "#15181d",
-   "paper": "#ffffff",
-   "pencil": "#b4bcc8",
-   "sun": "#d7352d"
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#e9e6e0",
+   "pencil": "#aaa397",
+   "sun": "#d3262e",
+   "tone": "#eef2f8"
   },
   "t-cd3a1d2e2674": {
    "accent": "#f68c36",
@@ -250,16 +251,6 @@
    "pencil": "#524f48",
    "sun": "#efe8ce"
   },
-  "t-83bea7587eab": {
-   "accent": "#c14c35",
-   "ink": "#19221a",
-   "mass": "#313732",
-   "nightInk": "#e2eae3",
-   "nightPaper": "#19221a",
-   "paper": "#e2eae3",
-   "pencil": "#a6ada6",
-   "sun": "#c14c35"
-  },
   "t-23f122d3d7b3": {
    "accent": "#f8ed43",
    "ink": "#f9f6e3",
@@ -301,15 +292,15 @@
    "sun": "#d3262e",
    "tone": "#eef2f8"
   },
-  "t-7554e9eb5e0e": {
-   "accent": "#e54728",
-   "ink": "#241e14",
-   "mass": "#383530",
-   "nightInk": "#e9e6e0",
-   "nightPaper": "#241e14",
-   "paper": "#e9e6e0",
-   "pencil": "#ada9a1",
-   "sun": "#e54728"
+  "t-161efbe989e2": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
   },
   "t-4df07d74755d": {
    "accent": "#efe8ce",
@@ -452,7 +443,7 @@
      "note": ""
     },
     {
-     "label": "Sky",
+     "label": "Eucalyptus",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -460,7 +451,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-f463f1c7a877",
+      "scheme": "t-b861357c81d5",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -494,15 +485,15 @@
      "note": ""
     },
     {
-     "label": "Olive Paper",
+     "label": "Lichen",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-cf3fd20475fa",
+      "scheme": "t-83bea7587eab",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -557,7 +548,7 @@
      "note": ""
     },
     {
-     "label": "Cut-outs, half cream",
+     "label": "Stone",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -565,7 +556,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-ff874b93578b",
+      "scheme": "t-d2b8cd17c297",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -578,7 +569,7 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Cut-outs, half cream",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -586,7 +577,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-ff874b93578b",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -649,15 +640,15 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Peony, dusty rose on warm white",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "ink",
+      "line": "inking",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-a0ea6a349059",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -706,7 +697,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -733,15 +724,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -754,15 +745,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -811,7 +802,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -846,15 +837,15 @@
    "line": "",
    "variants": [
     {
-     "label": "Paper, black and red print",
+     "label": "Paper on Stone, red sun",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "ink",
-      "band": "bars",
-      "accent": "heat",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
       "bandHeight": "lowmid",
-      "scheme": "t-ea30e1e9c046",
+      "scheme": "t-9dbc8a82e9b6",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -903,7 +894,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -966,7 +957,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1127,15 +1118,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1163,7 +1154,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1205,7 +1196,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1232,7 +1223,7 @@
      "note": ""
     },
     {
-     "label": "Stone, pencil → ink",
+     "label": "Linen",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -1240,7 +1231,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-7554e9eb5e0e",
+      "scheme": "t-161efbe989e2",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1324,7 +1315,7 @@
      "note": ""
     },
     {
-     "label": "Sky",
+     "label": "Eucalyptus",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -1332,7 +1323,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-f463f1c7a877",
+      "scheme": "t-b861357c81d5",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1366,15 +1357,15 @@
      "note": ""
     },
     {
-     "label": "Olive Paper",
+     "label": "Lichen",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-cf3fd20475fa",
+      "scheme": "t-83bea7587eab",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1429,7 +1420,7 @@
      "note": ""
     },
     {
-     "label": "Cut-outs, half cream",
+     "label": "Stone",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -1437,7 +1428,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-ff874b93578b",
+      "scheme": "t-d2b8cd17c297",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1450,7 +1441,7 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Cut-outs, half cream",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -1458,7 +1449,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-ff874b93578b",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1521,15 +1512,15 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Peony, dusty rose on warm white",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "ink",
+      "line": "inking",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-a0ea6a349059",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1578,7 +1569,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1605,15 +1596,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1626,15 +1617,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -1683,7 +1674,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1733,7 +1724,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1754,7 +1745,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1775,7 +1766,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1838,7 +1829,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -1993,7 +1984,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2014,7 +2005,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2035,7 +2026,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2077,7 +2068,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2196,7 +2187,7 @@
      "note": ""
     },
     {
-     "label": "Sky",
+     "label": "Eucalyptus",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -2204,7 +2195,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-f463f1c7a877",
+      "scheme": "t-b861357c81d5",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2238,15 +2229,15 @@
      "note": ""
     },
     {
-     "label": "Olive Paper",
+     "label": "Lichen",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-cf3fd20475fa",
+      "scheme": "t-83bea7587eab",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2301,7 +2292,7 @@
      "note": ""
     },
     {
-     "label": "Cut-outs, half cream",
+     "label": "Stone",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -2309,7 +2300,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-ff874b93578b",
+      "scheme": "t-d2b8cd17c297",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2322,7 +2313,7 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Cut-outs, half cream",
      "look": {
       "zoom": "steady",
       "ends": "course",
@@ -2330,7 +2321,7 @@
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-ff874b93578b",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2393,15 +2384,15 @@
      "note": ""
     },
     {
-     "label": "Seashell, paler, softer jasper",
+     "label": "Peony, dusty rose on warm white",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "ink",
+      "line": "inking",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-4860903eef2c",
+      "scheme": "t-a0ea6a349059",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2450,7 +2441,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2477,15 +2468,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2498,15 +2489,15 @@
      "note": ""
     },
     {
-     "label": "White and Vermilion, deep red and gold",
+     "label": "Paper, black and red print",
      "look": {
       "zoom": "steady",
       "ends": "course",
-      "line": "inking",
+      "line": "ink",
       "band": "bars",
       "accent": "heat",
       "bandHeight": "lowmid",
-      "scheme": "t-8cd5796e6d2e",
+      "scheme": "t-ea30e1e9c046",
       "paper": "vibranceSoftHalfPaper",
       "top": "sun",
       "drop": "off",
@@ -2555,7 +2546,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2605,7 +2596,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2626,7 +2617,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2647,7 +2638,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2689,7 +2680,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2710,7 +2701,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2844,7 +2835,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2865,7 +2856,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2886,7 +2877,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2907,7 +2898,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""
@@ -2949,7 +2940,7 @@
       "riderLower": "0",
       "sunRider": "32",
       "sunLift": "16",
-      "hits": "v1",
+      "hits": "lit65",
       "irisWeight": "thin"
      },
      "note": ""

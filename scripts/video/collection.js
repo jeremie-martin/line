@@ -111,8 +111,6 @@ export const COLLECTION = {
     spec: {"colours": {"accent": "#e2b540","ink": "#f3ead6","mass": "#da525d","nightInk": "#f3ead6","nightPaper": "#1f3229","paper": "#00201c","pencil": "#434f4d","sun": "#f0e8ce"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   forestGoldPineNight: {name: "Forest Green and Gold, pine night", id: "t-edbd286b4fab", line: "Near-black pine, rose-red bars, a gold bar and sun.",
     spec: {"colours": {"accent": "#e2b540","ink": "#f3ead6","mass": "#da525d","nightInk": "#f3ead6","nightPaper": "#071712","paper": "#071712","pencil": "#3c4743","sun": "#e2b540"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
-  amberPurple: {name: "Amber and Purple, Wada 151, no drop · v1", id: "t-c617adb47275", line: "Warm paper, deep Prussian bars, an amber bar and sun.",
-    spec: {"colours": {"accent": "#f99d1b","ink": "#24211d","mass": "#064f6e","nightInk": "#f9f3ec","nightPaper": "#1c170c","paper": "#eeebdd","pencil": "#b1afae","sun": "#f99d1b"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   amberViolet: {name: "Amber and Violet", id: "t-9dc752782fda", line: "Warm paper, deep violet bars, an amber bar and sun.",
     spec: {"colours": {"accent": "#f99d1b","ink": "#24211d","mass": "#4c2d7d","nightInk": "#f9f3ec","nightPaper": "#1c170c","paper": "#eeebdd","pencil": "#b1afae","sun": "#f99d1b"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   amberSumi: {name: "Sumi and Amber", id: "t-3b6125e45c3e", line: "Warm paper, ink-black bars, an amber bar and sun.",
@@ -152,8 +150,6 @@ export const COLLECTION = {
     spec: {"colours": {"accent": "#f0a04f","ink": "#28213a","mass": "#64547f","nightInk": "#eeecf1","nightPaper": "#28213a","paper": "#eeecf1","pencil": "#c2bdcb"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   peony: {name: "Peony, dusty rose on warm white", id: "t-a0ea6a349059", line: "Warm white, dusty rose bars, a marigold bar and sun.",
     spec: {"colours": {"accent": "#f9a63e","ink": "#2e171f","mass": "#aa556f","nightInk": "#e2f2f6","nightPaper": "#2e171f","paper": "#fbf6ee","pencil": "#bbb7b1","sun": "#f9a63e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
-  seashell: {name: "Seashell, paler, softer jasper", id: "t-4860903eef2c", line: "Pale shell, Olympic-blue bars, a soft jasper bar and sun, the whole course inked.",
-    spec: {"colours": {"accent": "#e7714e","ink": "#0f1e2f","mass": "#3e6594","nightInk": "#fdf5f2","nightPaper": "#0f1e2f","paper": "#fdf5f2","pencil": "#b5b5b9","sun": "#e7714e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   // round 42 (owner, 10 November): new, after Matisse’s paper cut-outs; the bars a third of the way from Prussian toward a deeper blue
   cutouts: {name: "Cut-outs, half cream", id: "t-ff874b93578b", line: "Faint cream, a deep blue band, a coral bar and sun, the whole course inked.",
     spec: {"colours": {"accent": "#f05940","ink": "#141414","mass": "#014a7a","nightInk": "#fbfaf6","nightPaper": "#141414","paper": "#f9f7ef","pencil": "#b2b1af","sun": "#f05940"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
@@ -226,7 +222,7 @@ export const ALIKE = [
   ['lantern', 'lanternCream'],
   ['winterMoon', 'winterMoonDarker'],
   ['goldCream', 'goldCreamGreen'],
-  ['amberPurple', 'amberViolet', 'amberIndigo'],
+  ['amberViolet', 'amberIndigo'],
   ['hokusai', 'hokusaiBluer'],
   ['dune', 'dunePencil'],
   ['paper', 'paperIvory', 'paperRedSun', 'paperStone', 'paperSky', 'paperStoneRedSun'],
@@ -262,8 +258,7 @@ export const VARIANTS = {
  * picture takes the partner's colours and keeps the light theme's layout, hot note and sun (look.js drop 'switch'), so a sun never
  * appears or leaves at the drop. Light to dark only. A theme absent here keeps its colours through the drop. */
 export const DROPS = {
-  amberPurple: {cyanotype: 1, cobaltChartreuse: 1},
-  amberViolet: {cyanotype: 1, cobaltChartreuse: 1},  // Amber and Purple's partners, not judged apart
+  amberViolet: {cyanotype: 1, cobaltChartreuse: 1},  // the partners of Amber and Purple (since removed), not judged apart
   amberSumi: {cyanotype: 1, cobaltChartreuse: 1},
   amberPine: {cyanotype: 1, cobaltChartreuse: 1},
   amberIndigo: {cyanotype: 1, cobaltChartreuse: 1},
@@ -275,7 +270,6 @@ export const DROPS = {
   whiteVermilion: {rothko: 1},
   lavender: {violetMarigold: 1},
   peony: {violetMarigold: 1, forestGold: 1},
-  seashell: {cobaltChartreuse: 1},
   cutouts: {cobaltChartreuse: 1, lilyLeaf: 1},
   paper: {blackIris: 2, negoro: 1},  // "strong preference" for Black Iris; Negoro "kinda works"
   paperIvory: {blackIris: 2, negoro: 1},  // Paper's partners, not judged apart
@@ -284,7 +278,33 @@ export const DROPS = {
   paperSky: {blackIris: 2, negoro: 1},
   paperStoneRedSun: {blackIris: 2, negoro: 1},
   paperPrint: {blackIris: 1, blackAndWhite: 1},  // round 44: the owner asked for black and white
+  // round 51: picked on a page of nine partners per theme; a theme's alike versions take its partners, not judged apart
+  stone: {blackIris: 1, negoro: 1, lilyLeaf: 1, violetMarigold: 1},
+  stonePencil: {blackIris: 1, negoro: 1, lilyLeaf: 1, violetMarigold: 1},
+  stoneCool: {blackIris: 1, negoro: 1, lilyLeaf: 1},
+  stoneCoolPencil: {blackIris: 1, negoro: 1, lilyLeaf: 1},
+  linen: {negoro: 1, lilyLeaf: 1},
+  sage: {rothko: 1, lilyLeaf: 1, jungleMoon: 1, forestGold: 1},
+  sky: {cyanotype: 1, cobaltChartreuse: 1, negoro: 1, lilyLeaf: 1},
+  eucalyptus: {blackIris: 1, lilyLeaf: 1},
+  heather: {negoro: 1, violetMarigold: 1},
+  olivePaper: {negoro: 1, lilyLeaf: 1, jungleMoon: 1},
+  lichen: {blackIris: 1, lilyLeaf: 1},
+  dove: {violetMarigold: 1},
+  doveApricot: {violetMarigold: 1},
+  morandi: {negoro: 1, lilyLeaf: 1},
+  morandiGrey: {negoro: 1, lilyLeaf: 1},
 };
+
+/** Dark themes whose whole band takes the hot colour on a strong hit (choose.js; hits.js TUNES.lit65). The owner picked them one
+ * by one (round 51) and left out the themes whose hot colour is red or no lighter than the bars, where the band seems to darken.
+ * The second line: versions too alike to a picked theme, with a hot colour clearly lighter than their bars; not judged apart. */
+export const LIT = new Set(['jungleMoon', 'seaMoon', 'oliveMoon', 'starryNight', 'rothko', 'blueRoom', 'greenRoom', 'violetRoom', 'brownRoom', 'duskRoom',
+  'mossRoom', 'cyanotype', 'ceruleanCoral', 'cobaltChartreuse', 'oldRose', 'violetMarigold', 'giltAmber', 'negoroRedLacquer', 'forestGold', 'copper',
+  'goldCream', 'lantern', 'campfire', 'slate',
+  'jungleMoonGolden', 'rothkoOrangeRed', 'rothkoPlum', 'rothkoPaleSun', 'cyanotypeWhiteSun', 'ceruleanCoralDeeperMoon', 'ceruleanCoralNight',
+  'ceruleanCoralNightMoon', 'cobaltChartreuseLime', 'violetMarigoldDeeper', 'forestGoldDeeper', 'forestGoldCreamMoon', 'forestGoldPineNight',
+  'goldCreamGreen', 'lanternCream']);
 
 /** Colours that are only ever a drop partner, never a theme of their own (round 44). */
 export const DROP_ONLY = {

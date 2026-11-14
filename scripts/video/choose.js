@@ -1,14 +1,14 @@
 // The look of each video in a batch: a theme from the collection, sometimes one of its approved variants, and for a light theme
-// on a song with a drop, sometimes a dark partner at the drop. Mostly light (owner, 11 November), a drop only some of the time,
+// on a song with a drop, sometimes a dark partner at the drop. Half light, half dark (owner, 14 November), a drop only some of the time,
 // never chosen by hand. Themes too alike are drawn as one, then one of them, so a theme with four versions is not four times as
 // frequent as a theme with one. Pure: the same key always gives the same look.
-import {COLLECTION, DROPS, ALIKE, VARIANTS} from './collection.js';
+import {COLLECTION, DROPS, ALIKE, VARIANTS, LIT} from './collection.js';
 import {SCHEMES} from './palettes.js';
 import {resolveLook} from './look.js';
 
 /** The shares the choice follows: light themes in all videos, light-theme videos given a drop when their song has one, and videos
  * of a theme with approved variants that show one of them. */
-export const SHARES = {light: 0.75, drop: 0.5, variant: 0.25};
+export const SHARES = {light: 0.5, drop: 0.5, variant: 0.25};
 
 const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 const lightness = hex => {const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(hex.slice(i, i + 2), 16) / 255));
@@ -44,5 +44,7 @@ export function chooseLook(key, {hasDrop, shares = SHARES} = {}) {
   const partners = DROPS[theme], partner = light && hasDrop && partners && unit(key, 'drop') < shares.drop ? weighted(partners, unit(key, 'partner')) : null;
   const scheme = partner ? `${COLLECTION[theme].id}+${COLLECTION[partner]?.id ?? `drop-${partner}`}` : COLLECTION[theme].id;
   if (!SCHEMES[scheme]) throw new Error(`no scheme for ${theme} → ${partner}`);
-  return {theme, variant, partner, look: resolveLook(theme, {...variant, ...(partner ? {scheme, drop: 'switch'} : {})})};
+  // the band lights on strong hits on the dark themes picked for it, while their band is bars
+  const lit = LIT.has(theme) && !variant?.band ? {hits: 'lit65'} : null;
+  return {theme, variant, partner, look: resolveLook(theme, {...variant, ...lit, ...(partner ? {scheme, drop: 'switch'} : {})})};
 }

@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: round 51 answered; half light, half dark; the band lights on dark themes
+
+**Decided for production (the owner):**
+- Light themes take half of the videos, not three quarters (`choose.js` `SHARES.light`).
+- The band lights on hits of 0.65 or more on 24 dark themes he picked one by one (`collection.js` `LIT`, `hits: lit65`). He left
+  out Winter Moon, Grey Room, Steel Room, Lily White, Negoro, Bronze, Ash and Ember: "the red or the fact that the strong heat
+  makes the surf appear darker". Measured, the themes left out have a hot colour that is red or no lighter than the bars.
+- A dark partner at the drop for the eleven light themes that had none (`DROPS`).
+- Seashell and Amber and Purple are removed (88 themes: 35 light, 53 dark). Round 51's last page no longer opens.
+
+**Mine, not judged:** the 15 versions too alike to a picked theme light too when their hot colour is clearly lighter than their
+bars (Jungle Moon vermilion and moonlit, Cyanotype white bars do not); alike versions take their theme's drop partners; a
+variant with dots or strands does not light.
+
 ## November 14: round 50 answered; the shake earlier and higher; how themes are drawn
 
 **Decided for production:** the shake starts at 0.55 and reaches 28 px at 0.85, shaped as the boost (`hits.js`; the owner's
@@ -12,9 +26,6 @@ Dove (two suns), Morandi (two papers). Ice, Hammershøi and Celadon got "none".
 (`ALIKE`), and a theme's approved variants (`VARIANTS`) appear a quarter of the time on that theme. Measured: with light
 themes at 75 %, a variant reaches 1.9 % of videos, because nearly all variants sit on dark themes; at 50 % it is 3.6 %.
 `generated/concept-lab/batch.html` shows forty videos at 75, 60 and 50 % light (`batch.mjs`).
-
-**Open:** the band lit on hits from 0.65 (`hits: lit65`, a lab value; the owner finds it better on dark themes, "remains to
-be seen"); the light share; drop partners for the light themes added since round 46; themes never picked on their own page.
 
 ## November 14: round 49 answered; the split a fifth stronger; round 50
 

@@ -32,7 +32,7 @@ const TEST_QUESTIONS = [
       ['Whole rail', {...noEnds, band: 'bars', line: 'rail'}, 'A rail lights whole when the rider meets it.'],
       ['All ink', {...noEnds, band: 'bars', line: 'ink'}, 'Inked from the start.']],
     moments: [['Tomada 37 s', 36.5], ['Petrunko 34 s', 33.8, 'petrunko'], ['Los Voltaje 48 s', 47.8, 'los'], ['Los Voltaje 10 s, round 5', 10, 'los', null, 'old']]},
-  ...[['light', 'Which light theme?', ['paper', 'dune', 'seashell', 'peony']], ['dark', 'Which dark theme?', ['rothko', 'cyanotype', 'oldRose', 'negoro']],
+  ...[['light', 'Which light theme?', ['paper', 'dune', 'stone', 'peony']], ['dark', 'Which dark theme?', ['rothko', 'cyanotype', 'oldRose', 'negoro']],
     ['sun', 'Which theme with a sun?', ['jungleMoon', 'cobaltChartreuse', 'lilyLeaf', 'forestGold']]].map(([id, ask, keys]) => (
     {id, ask, why: 'Varies: only the colours.', song: 'lua', t: 36.5, len: 6, multi: true, opts: keys.map(k =>
       [COLLECTION[k].name, {...noEnds, band: 'bars', scheme: scheme(k)}, COLLECTION[k].line]),

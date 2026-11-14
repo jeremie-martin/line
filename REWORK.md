@@ -14,6 +14,8 @@
 - **Change** (`exp/families-fit-852`): the same table, fitted on the V7.1 rides of three compilers (before placement, the
   first placement, today's: 852 rides).
 - **Hypothesis:** more data, and more of it from where placement now puts families: a steadier table; V8 up a little.
+- **Result: not adopted**, +0.4 [−4.7, +5.4] (V8, 4 seeds; P4 +17.5, P6 −21.6); strong extra impacts ×2. The table
+  is saturated: more rides do not change where families go. (P6 is one spec: ±20 on it is ±2.5 on the headline.)
 
 ## November 14: hypothesis, shaped sections search wider (stated before running)
 

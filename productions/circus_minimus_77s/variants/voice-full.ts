@@ -12,11 +12,12 @@
  *   - a strong vocal attack between two beats gets its own landing (52.94, 53.98);
  *   - weak vocal estimates between beats (49.35 after the kick, 49.59, 53.52) get none.
  *
- * 54.5–77.1 s is the author's reading by those four observations, not yet heard by the owner:
+ * 54.5–77.1 s is the author's reading by those four observations; the owner heard it with clicks and
+ * kept it, quiet beats and the ride over the held note included:
  * bars of eight beats from 54.51; the 808 downbeats and kicks firm, snares a little under, the
  * voice's clear attacks between, light landings on beats that only hats or synth mark. Two close
  * pairs keep one landing: a strong voice attack within 0.1 s of a kick or snare shares the drum's
- * (60.07, 68.49, 74.87; at 74.87 the voice attacks at 74.78 and 75.00 are both strong, a listening question). The held note from 70.54 is left to ride (no landing on beat 1 of that bar).
+ * (60.07, 68.49); at 74.87 the owner asked for the voice attacks on both sides of the kick as well. The held note from 70.54 is left to ride (no landing on beat 1 of that bar).
  *
  * Musical intent; compiler feasibility is not a filter here.
  */
@@ -127,7 +128,10 @@ export const continued: AuthoredBeat[] = [
   {t: 73.689, impact: .72, source: 'bass'},
   {t: 74.083, impact: .42, source: 'other'},
   {t: 74.478, impact: .64, source: 'drums'},
+  // the owner: keep the voice around the kick too, ambitious as it is (0.09 s and 0.13 s apart)
+  {t: 74.780, impact: .56, source: 'vocals'},
   {t: 74.873, impact: .74, source: 'bass'},
+  {t: 75.000, impact: .58, source: 'vocals'},
   {t: 75.372, impact: .60, source: 'vocals'},
   {t: 75.674, impact: .70, source: 'drums'},
   {t: 76.080, impact: .62, source: 'drums'},

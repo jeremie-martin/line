@@ -3,9 +3,9 @@
  * The song is slow and spacious (69 BPM, a kick every 0.87 s), and it is framed by a voice alone:
  * the reading keeps that shape instead of filling it.
  *
- *   0.0–4.9    The solo voice. Every word lands, gently but plainly (a quiet voice alone is the
- *              whole music): five words, then the five-word motif 0.26–0.30 s apart, rising.
- *   4.9–7.0    Silence: the one long float.
+ *   0.0–7.0    The solo voice, before any music: every word is touched at about 0.1, no more (the
+ *              owner's wish for this song, not a rule): five words, the five-word motif 0.26–0.30 s
+ *              apart, then silence with one breath at 5.27, touched too. The ride floats around it.
  *   7.0–10.5   The breathy words, each a little firmer and faster; the two loud notes in the drum
  *              cut; then the drop, the hardest landing.
  *   10.5–24.4  The groove. Every kick, with the downbeat firmer; the backbeat snare after beats 1
@@ -22,8 +22,8 @@
  *   27.9–39.2  The run: the groove again and the loudest stretch, so everything a little firmer
  *              and faster.
  *   39.2–41.8  The bar breaks: the weak snare, three kicks, the last soft kick.
- *   41.8–48.0  The voice alone again: its words, the motif, the faint last syllable at 46.92,
- *              and then a ride-out: low air held to the end, the rider slowing on the line.
+ *   41.8–48.0  The voice alone again, as at the start: only the voice, touched at about 0.1, to its
+ *              last note at 47.32; low air held to the end, the rider slowing on the line.
  *
  * Not landed on: hats; bass notes within 0.14 s of a drum hit (they blur into it); vocal estimates
  * with no clear attack. Every time is a measured event (music.ts fails on one that is not).
@@ -50,15 +50,19 @@ const BASS = [13.351];
 /** Voice in the run's last bar, between the kicks (vocals 0.29). */
 const RUN_WORDS = [38.731];
 const EXTRA_KICKS = [16.985, 34.377];
+/** Two sounds of the voice that sung.json measures and events.json does not list: a breath in the silence (unpitched, vocals
+ *  0.06; the owner hears it at about 5.27) and the last sung note (F♯4, salience 0.48). */
+const BREATH = 5.271, LAST_NOTE = 47.322;
 /** The boom's two softer repeats, a beat apart; the swell's first tick; the backbeat inside the run's end. */
 const AFTER_BOOM = [25.252, 26.122], SWELL_START = 8.731, RUN_END_BACKBEAT = 40.054;
 const kicks = m.KICKS.filter(t => t !== m.DROP && t !== m.REENTRY);
 
 const authored = [
-  // the solo voice
-  ...layer(m.INTRO_WORDS, (_, i) => [0.34, 0.36, 0.42, 0.36, 0.38][i]),
-  ...layer(m.INTRO_RUN, (_, i) => 0.36 + 0.03 * i),
-  {t: m.INTRO_TAIL, impact: 0.22},
+  // the solo voice: barely touched (the owner: about 0.1 until there is music, at 7 s)
+  ...layer(m.INTRO_WORDS, 0.10),
+  ...layer(m.INTRO_RUN, (_, i) => 0.08 + 0.01 * i),
+  {t: m.INTRO_TAIL, impact: 0.06},
+  {t: BREATH, impact: 0.08},
   // the build and the cut
   ...layer(m.BUILD_WORDS, (_, i) => 0.30 + 0.04 * i),
   ...layer(m.CUT_WORDS, (_, i) => [0.50, 0.56][i]),
@@ -80,12 +84,13 @@ const authored = [
   {t: RUN_END_BACKBEAT, impact: 0.45},
   ...layer(m.RESET_WORDS, (_, i) => 0.22 + 0.03 * i),
   {t: m.REENTRY, impact: 0.95},
-  // the voice alone again
-  ...layer(m.OUTRO_WORDS, (_, i) => [0.30, 0.36, 0.32, 0.30][i]),
-  ...layer(m.OUTRO_RUN, (_, i) => 0.30 + 0.02 * i),
-  {t: 46.916, impact: 0.2},
+  // the voice alone again, as at the start: only the voice, barely touched
+  ...layer(m.OUTRO_WORDS, 0.10),
+  ...layer(m.OUTRO_RUN, (_, i) => 0.12 - 0.01 * i),
+  {t: 46.916, impact: 0.06},
+  {t: LAST_NOTE, impact: 0.06},
 ];
-for (const {t} of authored) m.event(t); // every landing is a measured event
+for (const {t} of authored) if (t !== BREATH && t !== LAST_NOTE) m.event(t); // every landing is a measured event
 
 const spec: Spec = {
   duration: m.DURATION,
@@ -95,8 +100,8 @@ const spec: Spec = {
   axes: {
     // one float, where the music is empty (the silence at 4.9 s); a ride-out at the end
     air: keyframes(m.kf([
-      [0, 0.50], [4.5, 0.55], [m.SILENCE_T0, 0.88], [6.8, 0.60], [9.5, 0.55], [m.DROP, 0.52], [24.0, 0.52], [m.BOOM, 0.62], [26.3, 0.60],
-      [m.REENTRY, 0.50], [m.LAST_DRUM, 0.52], [42.6, 0.50], [46.2, 0.40], [46.9, 0.15], [m.DURATION, 0.12],
+      [0, 0.50], [4.5, 0.55], [m.SILENCE_T0, 0.70], [5.4, 0.88], [6.8, 0.60], [9.5, 0.55], [m.DROP, 0.52], [24.0, 0.52], [m.BOOM, 0.62], [26.3, 0.60],
+      [m.REENTRY, 0.50], [m.LAST_DRUM, 0.52], [42.6, 0.46], [46.2, 0.36], [46.9, 0.18], [m.DURATION, 0.12],
     ])),
     speed: keyframes(m.kf([
       [0, 0.42], [m.SILENCE_T0, 0.40], [m.BUILD, 0.46], [9.9, 0.62], [m.DROP, 0.74], [24.0, 0.74], [m.BOOM, 0.55], [26.4, 0.50],

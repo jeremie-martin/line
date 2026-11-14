@@ -3,10 +3,12 @@
  * among the phrases where they cost least (intentional_repertoire.ts). */
 import fit from './family_fit.json' with {type: 'json'};
 
-export const ASK_BINS = [.3, .6, .8], LENGTH_BINS = [16, 28];
-/** A section's context: its catch's strength ask × its length in frames. */
-export const contextOf = (ask: number, frames: number) =>
-  ASK_BINS.filter(b => ask >= b).length * (LENGTH_BINS.length + 1) + LENGTH_BINS.filter(b => frames >= b).length;
+export const ASK_BINS = [.3, .6, .8], LENGTH_BINS = [16, 28], NEXT_BINS = [.6];
+/** A section's context: its catch's strength ask × its length in frames × whether the catch it leads to asks 0.6 or more
+ * (the section sets up that arrival). */
+export const contextOf = (ask: number, frames: number, nextAsk: number) =>
+  (ASK_BINS.filter(b => ask >= b).length * (LENGTH_BINS.length + 1) + LENGTH_BINS.filter(b => frames >= b).length) * (NEXT_BINS.length + 1)
+  + NEXT_BINS.filter(b => nextAsk >= b).length;
 export const familyKey = (construction: string, guidance: string) => `${construction}${guidance === 'forbidden' ? ':open' : ''}`;
 
 const table: Record<string, number> = fit.cost, fallback = new Map<number, number>();

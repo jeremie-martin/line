@@ -57,7 +57,7 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
  * lottery decides what a ride is made of; the music decides where each piece goes. */
 function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
   const cost=(p:ProductionPlan['phrases'][number],key:string)=>{
-    let total=0;for(let i=p.first;i<p.first+p.count;i++){const r=requests[i];total+=familyCost(key,contextOf(r.context?.impact??0,r.next-r.frame));}
+    let total=0;for(let i=p.first;i<p.first+p.count;i++){const r=requests[i];total+=familyCost(key,contextOf(r.context?.impact??0,r.next-r.frame,r.context?.nextImpact??0));}
     return total;
   };
   const eligible=(p:ProductionPlan['phrases'][number],q:ProductionPlan['phrases'][number])=>

@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: what a rail does in the ride (report only; before building a geometry that makes it unnecessary)
+
+The owner's direction: not fewer rails by rule, but "a geometry that would make them unnecessary, at least in some
+circumstances". `tools/research/rail_job.ts` on the foundation (`foundation-3` rides, V8, 196): for each gap, whether
+its rail is touched and when, and like-for-like comparisons (same family and ask band). Observational: the search
+chose rails where it judged them useful, so differences are not causal.
+
+- A rail is touched in 44% of gaps with a catch: **at the release (the support's last frames) in 80%** of those, in the
+  catch in 46%, on the support between in 26% (1.7, 0.8 and 0.7 frames on average).
+- **On arcs, the rail's job is the release:** the flight it launches errs less on speed (strong asks: rms 0.077 against
+  0.094; middle: 0.035 against 0.047) and on air (0.045 against 0.052; 0.039 against 0.046); strong arc catches land a
+  little harder (bias −0.125 against −0.142). On shaped families no such benefit shows.
+- **Why:** arcs whose rail is touched at the release mostly end bending downward (convex under the rider: 63%, against
+  40% of arcs with no rail touched; median end bend +5° against −1°). A rider leaves a convex curve early at speed unless
+  held; the rail holds it to the end, so the flight leaves as designed.
+- So a geometry that makes the rail unnecessary is one the rider can follow to its end unaided: an end it is pressed
+  into (concave, or convex no more than gravity holds: speed² × curvature ≤ g × cos of the slope). A catch from above
+  is not the rail's main job.
+
 ## November 14: Circus Minimus follows the voice to the end (`voice-full`, now the default)
 
 The owner marked 25 moments in 48–54.5 s. A reading written and frozen before opening them matched 24 within 80 ms (22 from

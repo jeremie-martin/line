@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the owner's held-out upper-hit study (measured)
+
+`upper-hits-2026-11b`, 18 fresh pairs, the question naming the marked hit ("the bigger impact, whatever its kind"):
+
+| block | today's strength | gravity-neutral | the owner |
+|---|---|---|---|
+| 8 pairs where the two disagree | floor bigger by 0.03–0.10 | upper bigger | upper 4, floor 2, same 2 |
+| 6 pairs, floor clearly bigger | floor by 0.10–0.25 | floor | floor 3, same 2, upper 1 |
+| 4 checks, two floor hits 0.40–0.50 apart | | | right 2, same 2, wrong 0 |
+
+- **Reading:** a catch from above is not seen as a much bigger impact: where the floor hit is clearly stronger, the
+  owner mostly says so. Where the two strengths disagree he leans toward the gravity-neutral one (4 to 2), too few to
+  validate it (a fair coin gives 4 or more of 6 a third of the time), and his resolution is coarse (0.4–0.5 apart is
+  "same" half the time). **The gravity-neutral strength is not validated; nothing optimizes it.** Today's strength is
+  roughly fair to catches from above, perhaps slightly low.
+- So the owner's preference for upper hits is about the ride's character (as with rails), not their impact size: more
+  upper hits is a taste choice to be made by construction and planning, not by re-weighting the ruler.
+
 ## November 14: correction, the first upper-hit study answered another question
 
 The owner answered `upper-hits-2026-11` as "which clip has the bigger upper hit", not "which marked hit is the bigger

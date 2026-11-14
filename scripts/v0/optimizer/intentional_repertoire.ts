@@ -49,6 +49,7 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     previous=construction+':'+guidance;first+=count;
   }
   placeFamilies(phrases,requests);
+  railBudget(phrases,requests);
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }
 
@@ -79,6 +80,23 @@ function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan
   for(const p of phrases)if(p.construction==='arcs'&&p.guidance==='forbidden'&&p.choices!.some(c=>c.construction==='arcs'&&c.guidance==='optional'&&c.weight>0)&&
     1.3*cost(p,familyKey('arcs','optional'))<cost(p,keyOf(p)))p.guidance='optional';
   for(const p of phrases)for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],construction:p.construction,guidance:p.guidance};
+}
+
+/** At most this share of a ride's gaps (sections) is offered a rail. */
+export const RAIL_BUDGET=.6;
+/** A rail budget: beyond RAIL_BUDGET, offers are withdrawn phrase by phrase, calmest phrase first (lowest mean ask: the
+ * placement table rates rails least useful there), from arcs and shaped phrases; scattered keeps its guides (a plan rule)
+ * and a required guide stays. Offers the search leaves unused are trimmed anyway, so the rails drawn are fewer still. */
+function railBudget(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
+  const ask=(p:ProductionPlan['phrases'][number])=>{let n=0;for(let i=p.first;i<p.first+p.count;i++)n+=requests[i].context?.impact??0;return n/p.count;};
+  let offered=requests.filter(r=>r.guidance!=='forbidden').length;
+  const withdrawable=phrases.filter(p=>p.guidance==='optional'&&p.construction!=='scattered')
+    .map(p=>({p,ask:ask(p)})).sort((a,b)=>a.ask-b.ask||a.p.first-b.p.first);
+  for(const {p} of withdrawable){
+    if(offered<=RAIL_BUDGET*requests.length)break;
+    p.guidance='forbidden';offered-=p.count;
+    for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],guidance:'forbidden'};
+  }
 }
 
 /** Splits each phrase where its sections' requests no longer agree (a phrase

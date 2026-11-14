@@ -15,7 +15,10 @@ const foldStation=(station:number,onset:number,amount:number,c:ArcMotionControl)
   onset+(1-onset)*foldTime((station-onset)/(1-onset),c.turnFraction??1/3,c.foldBias??c.bias,
     lerp(.2,Math.min(.2,2/c.support),c.foldTiming??0)),amount);
 export type ArcGeometryStyle=MotionProfileControls&{guides?:boolean;faces?:number;
-  railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean};
+  railLayout?:'paired'|'transfer';independentGuide?:boolean;alignedFoldEntry?:boolean;
+  /** A rail is never drawn closer to its own support than this, px (REWORK.md, November 14: a rail tilted onto its
+   * support is gone through by the rider riding that support). */
+  railClearanceFloor?:number};
 export type ArcSectionStyle=ArcGeometryStyle&{subdivisions?:number};
 export type ArcMotionControl={entry:number; turn:number; exit:number; support:number; bias:number; offset:number;
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
@@ -53,6 +56,27 @@ export function catchReceivers<P extends {x:number;y:number;vx:number;vy:number}
  * first), the sled's four points otherwise. */
 export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number):P[]{
   return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
+}
+
+/** The longest stretch of a rail whose points all lie at least `floor` from its support's polyline, kept only when it
+ * is a substantial curve (24 px, as rail trimming keeps); otherwise no rail. */
+function railBeside(rail:Array<{x:number;y:number}>,support:Array<{x:number;y:number}>,floor:number){
+  const away=(p:{x:number;y:number})=>{
+    let best=Infinity;
+    for(let i=1;i<support.length;i++){
+      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,u=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,0,1);
+      best=Math.min(best,hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy));
+    }
+    return best>=floor;
+  };
+  let bestRun:Array<{x:number;y:number}>=[],run:Array<{x:number;y:number}>=[];
+  const length=(r:Array<{x:number;y:number}>)=>r.reduce((n,p,i)=>i?n+hypot2(p.x-r[i-1].x,p.y-r[i-1].y):0,0);
+  for(const p of [...rail,null]){
+    if(p&&away(p)){run.push(p);continue;}
+    if(length(run)>length(bestRun))bestRun=run;
+    run=[];
+  }
+  return bestRun.length>=2&&length(bestRun)>=24?bestRun:[];
 }
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
@@ -140,6 +164,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
         const pivot=clipped[Math.floor(clipped.length/2)],a=rad(c.guideTilt),co=Math.cos(a),si=Math.sin(a);
         for(const p of clipped){const x=p.x-pivot.x,y=p.y-pivot.y;p.x=pivot.x+co*x-si*y;p.y=pivot.y+si*x+co*y;}
       }
+      if(style?.railClearanceFloor!==undefined)clipped=railBeside(clipped,main,style.railClearanceFloor);
       guide=clipped.reverse();
     }
   }

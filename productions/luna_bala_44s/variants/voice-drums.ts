@@ -11,10 +11,12 @@
  *   8.6        The drop: the hardest landing.
  *   8.6–23.9   Body A. Every kick (0.545 s apart), the bar's downbeat firmer. Between kicks, the
  *              off-beat: on every half-beat where a chord stab, a bass note, a tom or a snare
- *              sounds at 0.3 or more, attack or not (a held chord is heard too). The kick-triplet
+ *              sounds: the measured off-beats, plus the few held chords and bass notes that sit on
+ *              the half-beat itself. About a third of the half-beats stay empty, as in the music. The kick-triplet
  *              fills every sixteen kicks are the bar's event: firmer, into a hard downbeat.
  *   23.9–26.1  The tom break. Bass and voice drop out; four tom hits stand alone, as loud as any
- *              kick, so they land hard, with the quiet chord pulses lightly between and more air.
+ *              kick, so they land hard, out of the space between them (the quiet chord pulse there is
+ *              not landed), with more air.
  *   26.1       The re-entry.
  *   26.1–43.0  Body B: as body A, a step firmer and faster.
  *   43.0–44.0  The music collapses to silence after the last kick: a ride-out, low air held to
@@ -30,11 +32,12 @@ import {beats} from '../../../scripts/v0/core/beats.ts';
 import * as m from '../music.ts';
 export {overlayMeta} from '../music.ts';
 
-/** Half-beats that sound at 0.3 or more without a sharp attack, left out of music.ts's OFFBEATS:
- *  held chords ("other" 0.35–0.43) and bass notes (0.31–0.44). */
-const HELD_OFFBEATS = [9.021, 9.451, 10.008, 11.204, 17.16, 28.642, 29.06, 33.402, 33.994, 37.384, 37.802, 42.144, 42.69];
-/** The tom break: the three tom hits after its downbeat, and the quiet chord pulse between them. */
-const BREAK_TOMS = [24.416, 24.961, 25.507], BREAK_CHORDS = [24.706, 25.252, 25.797];
+/** Half-beats that sound at 0.3 or more without a sharp attack, left out of music.ts's OFFBEATS: held chords and bass
+ *  notes. Only those on the half-beat itself: the first draft also took five sounds 0.13–0.17 s before a kick, which blur
+ *  into it, and three that music.ts names as swells or kick tails (review, 2026-11-14). */
+const HELD_OFFBEATS = [10.008, 29.06, 37.802, 42.144, 42.69];
+/** The tom break: the three tom hits after its downbeat. */
+const BREAK_TOMS = [24.416, 24.961, 25.507];
 
 const B = (t: number) => t > m.REENTRY ? 0.04 : 0;
 const fillKicks = m.FILLS.map(f => f[0]), fillDownbeats = m.FILLS.map(f => f[2]);
@@ -49,7 +52,6 @@ const authored = [
   ...layer(m.OFFBEATS, t => 0.48 + B(t)),
   ...layer(HELD_OFFBEATS, t => 0.40 + B(t)),
   ...layer(BREAK_TOMS, 0.85),
-  ...layer(BREAK_CHORDS, 0.34),
   {t: m.REENTRY, impact: 0.95},
   {t: m.LAST_KICK, impact: 0.85},
 ];
@@ -62,8 +64,8 @@ const spec: Spec = {
   contacts: beats(authored.sort((a, b) => a.t - b.t)),
   axes: {
     air: keyframes(m.kf([
-      [0, 0.55], [3.3, 0.60], [3.6, 0.86], [4.3, 0.70], [m.VOICE_REENTRY, 0.55], [8.1, 0.60], [m.DROP, 0.48], [23.6, 0.48], [m.BREAK_IN, 0.64],
-      [25.8, 0.60], [m.REENTRY, 0.48], [42.6, 0.46], [m.LAST_KICK, 0.25], [43.3, 0.14], [m.DURATION, 0.12],
+      [0, 0.55], [3.3, 0.60], [3.6, 0.86], [4.3, 0.70], [m.VOICE_REENTRY, 0.55], [8.1, 0.60], [m.DROP, 0.48], [23.6, 0.48], [m.BREAK_IN, 0.78],
+      [25.8, 0.70], [m.REENTRY, 0.48], [42.6, 0.46], [m.LAST_KICK, 0.25], [43.3, 0.14], [m.DURATION, 0.12],
     ])),
     speed: keyframes(m.kf([
       [0, 0.44], [3.5, 0.44], [m.VOICE_REENTRY, 0.48], [8.2, 0.62], [m.DROP, 0.78], [23.6, 0.78], [m.BREAK_IN, 0.70], [m.REENTRY, 0.84],

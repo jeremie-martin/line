@@ -26,7 +26,8 @@
  *              last note at 47.32; low air held to the end, the rider slowing on the line.
  *
  * Not landed on: hats; bass notes within 0.14 s of a drum hit (they blur into it); vocal estimates
- * with no clear attack. Every time is a measured event (music.ts fails on one that is not).
+ * with no clear attack. Every time is a measured event (music.ts fails on one that is not), except
+ * the breath at 5.27 and the last note at 47.32, which only sung.json measures; 46.92 is nearly silent.
  * Not heard by the author. Compiler feasibility is not a filter.
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
@@ -42,13 +43,15 @@ const layer = (times: number[], impact: number | ((t: number, i: number) => numb
 /** The second of the two words that run into beat 3 (the first, 0.06 s after the backbeat, shares it). */
 const WORDS_INTO_3 = [12.875, 16.358, 30.279, 33.762];
 /** The syllable 0.21 s before a pickup snare: with the pickup and the downbeat, three in a row. */
-const BEFORE_PICKUP = [14.396, 17.868, 31.788, 35.26];
+const BEFORE_PICKUP = [14.396, 17.868, 28.317, 31.788, 35.26];
 /** The chord stabs of the groove's third bar ("other" 0.29–0.51), the song's only chords in front. */
 const STABS = [19.841, m.STAB, 22.895, 23.324];
 /** The one bass note heard on its own, clear of any drum hit or word: the walk up to the first hook. */
 const BASS = [13.351];
 /** Voice in the run's last bar, between the kicks (vocals 0.29). */
 const RUN_WORDS = [38.731];
+/** The run's last bar fills the slot after beat 3 with a bass note and a drum tick (bass 0.31, mix rise 0.20). */
+const RUN_SLOT = 37.222;
 const EXTRA_KICKS = [16.985, 34.377];
 /** Two sounds of the voice that sung.json measures and events.json does not list: a breath in the silence (unpitched, vocals
  *  0.06; the owner hears it at about 5.27) and the last sung note (F♯4, salience 0.48). */
@@ -70,18 +73,19 @@ const authored = [
   // groove and run
   ...layer(kicks, t => (m.DOWNBEATS.includes(t) ? 0.86 : EXTRA_KICKS.includes(t) ? 0.66 : t >= m.RUN_END ? (t === m.LAST_DRUM ? 0.55 : 0.68) : 0.72) + RUN(t)),
   ...layer(m.PICKUPS, t => 0.55 + RUN(t)),
-  ...layer(m.BACKBEATS, t => t === m.RUN_END ? 0.36 : 0.50 + RUN(t)),
+  ...layer(m.BACKBEATS, t => t === m.RUN_END ? 0.42 : 0.50 + RUN(t)),
   ...layer(WORDS_INTO_3, 0.50),
   ...layer(BEFORE_PICKUP, 0.42),
   ...layer(m.HOOKS, 0.56),
   ...layer(STABS, t => t === m.STAB ? 0.56 : 0.44),
   ...layer(BASS, 0.36),
   ...layer(RUN_WORDS, 0.42),
+  {t: RUN_SLOT, impact: 0.46},
   // the boom and the reset
   {t: m.BOOM, impact: 0.9},
   ...layer(AFTER_BOOM, (_, i) => [0.56, 0.50][i]),
   {t: SWELL_START, impact: 0.30},
-  {t: RUN_END_BACKBEAT, impact: 0.45},
+  {t: RUN_END_BACKBEAT, impact: 0.34},
   ...layer(m.RESET_WORDS, (_, i) => 0.22 + 0.03 * i),
   {t: m.REENTRY, impact: 0.95},
   // the voice alone again, as at the start: only the voice, barely touched

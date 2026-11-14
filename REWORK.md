@@ -21,6 +21,17 @@
   still realize), the geometry sheet.
 - **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
 
+## November 14: hypothesis, smooth shapes end before the exit (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8 through what they hand on (removing them all: +19.4; removing one family:
+  0.0, the share goes to the others; within their sections they do about as well as arcs). A smooth shape's profile runs
+  to the support's very end, so the rider leaves on the shape's heading.
+- **Change** (`exp/shapes-end-early`): serpentines, scallops and terraces complete their profile by 70% of the support;
+  the rest eases into the exit as an arc does. Same bends, same count; folds keep their faces.
+- **Hypothesis:** shaped sections hand on an arc's speed and heading; V8 up.
+- **Result: not adopted**, V8 at 8 seeds **−30.2 [−35.8, −24.7]**, 1 spec up, 42 down; strong extra impacts ×2.1. Compressed
+  into 70% of the support, the same bends are sharper and strike: a shape's cost is in its bends, wherever they are.
+
 ## November 14: one shape family removed (diagnostic)
 
 Repertoire without serpentines (their share passes to the other families), V8, 4 seeds: −0.0 [−2.3, +2.2]. The shapes'
@@ -38,6 +49,8 @@ cost follows their total share, not one family.
   | shaped sections search 1.5× wider | −0.7 |
   | shaped sections borrow the arcs' learned catches | −2.0 (8 seeds) |
   | shapes relax under intensity (40% less bend) | −1.8 (8 seeds) |
+  | smooth shapes end at 70% of the support | −30.2 (8 seeds) |
+  | one family removed (serpentines; their share goes to the others) | −0.0 |
   | placement refinements (finer contexts, setup, extras, model) | −1.8, −3.0, −3.5, −24.8 |
 
 - **Why:** with placement, a shape's own section costs little more than an arc's (terraces less, in strong contexts);

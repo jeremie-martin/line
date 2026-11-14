@@ -34,6 +34,13 @@ event) and 3 checks. Answer at
 change in 50 ms, 8 pairs whole event vs 50 ms, 6 pairs with vs without spin, 3 checks. Answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=impact-pairs-2026-10c`.
 
+`upper-hits-2026-11` asks which of two strong-requested hits is the bigger impact: 14 pairs set a clean upper hit
+(caught on a line's underside, no rail touched; `tools/measure/contact_role.ts`) against a floor hit of the same strike
+strength (within 0.03) on a similar ask, from today's V8 rides (`compiler`, arm 52aabfd62e79d97a), plus 4 checks (one
+kind, strengths 0.35 or more apart). It tests whether the strike measure under-rates clean upper hits, which it measures
+as the softest kind on strong beats. Selected by `tools/measure/select_upper_pairs.ts`; answer at
+`http://127.0.0.1:8767/motion-gallery/pairs.html?study=upper-hits-2026-11`.
+
 ## Sources (reproducibility)
 
 `sources/` holds everything needed to rebuild and re-score the studies without

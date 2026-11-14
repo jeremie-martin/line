@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, upper receivers that keep the body clear (E1; stated before running)
+
+- **Basis** (the entries below): strong catches from above come apart (85% near the ask) when the line meets the
+  shoulder and hands, and hold when it takes the sled; today's only receivers from above are mirrored floor curves
+  placed against whichever rider point is nearest. The owner sees a clean upper hit as the bigger impact (14 of 14).
+- **Change** (`exp/upper-receivers`): a proposal stage after the mirrored entries offers 12 receivers met from above per
+  gap: a line over the catch entering 4–40° ahead of the arrival, bending down by 0.6–1.3× the turn the ask implies,
+  placed against the sled or its front (new control `receiverAnchor`), and built only when every body point is clear of
+  it on its active side (4 px). Option `upperReceiverProposals` (12 in the experiment; off by default: parity identical).
+  The physics allowance is unchanged, so these candidates take frames from the rest of the search.
+- **Hypothesis:** the new candidates survive far more often than the mirrored ones; more strong beats are caught with a
+  clean upper hit; the headline within a few points either way (it under-credits upper hits). The arrival priors still
+  favour steep, upright arrivals before strong catches (`addArrivalPriors`), so the effect may be small: E2 addresses them.
+- **Measured:** V8, 4 seeds, against `compiler`: completion, every ruler, ride character, the new stage's work counts.
+
 ## November 14: what rotates the rider between catches (report only; upper hits, step 1)
 
 `tools/research/rotation.ts` on the foundation (V8, 4 seeds): 16,627 flights of 4 frames or more before a catch.

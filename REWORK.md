@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never closer to their support than 6 px (adopted, the owner's choice)
+
+`exp/rail-margin-6` merged: the rail-support margin is 6 px (was 2). V8 against `foundation-4`: −0.5 [−6.4, +5.4];
+rails 43% → 41% of gaps; strong extra impacts −28%. No rail within 6 px of its own support is built, so the tightest
+squeezes (the two moments the owner flagged on Circus) cannot occur; rails 6–10 px away still squeeze. Tests pass,
+typecheck 0, reach unchanged, parity references refreshed in their own commit, parity and judge parity pass. Named
+reference `foundation-5` = this commit.
+
+## November 14: middle-ground rail margins (result)
+
+V8, 4 seeds, against `foundation-4` (764.9), the rail-support margin alone changed:
+
+| margin | headline | specs up/down | explicit | rails, gaps | strong extra impacts | touched rails within 6 px | pinched frames / speed beyond gravity at 6–8 px |
+|---|---|---|---|---|---|---|---|
+| 2 px (`foundation-4`) | | | | 43% | 0.14 | 22% | 49% / +0.17 |
+| 4 px | +0.1 [−6.9, +7.1] | 25/18 | −3.5 | 43% | 0.14 | 20% | 51% / +0.15 |
+| 6 px | −0.5 [−6.4, +5.4] | 21/22 | −2.8 | 41% | 0.10 (−28%) | 0% | 47% / +0.22 |
+| 8 px | −9.2 [−14.9, −3.5] | 8/35 | −11.6 | 38% | 0.16 | 0% | (none below 8 px) |
+| 10 px (on open arcs, against `base`) | about −22.6 beyond open arcs | | | 33% | | 0% | |
+
+- Hypothesis partly met: 4 px free (as predicted), 6 px free (predicted −5), 8 px −9.2 (predicted −12).
+- **6 px removes the tightest squeezes for nothing**, including both moments the owner flagged (rails 5 px above their
+  support at 12 s and 21 s on Circus). It does not remove the squeeze: the search moves those rails just past the
+  margin, and rails 6–8 px from their support still pinch the rider in 47% of their touched frames, gaining +0.22
+  px/frame beyond gravity. Everything from 8 px up costs score; shaped families lean on the squeeze there.
+- Not adopted yet; for the owner: 6 px is the recommended middle ground.
+
 ## November 14: the old specifications rewritten, first batch (Tiki Tiki, Luna Bala, L'amour de ma vie)
 
 The owner asked to revisit the older specs, written when close hits and ride-outs were out of reach, in small batches. Each
@@ -18,7 +45,7 @@ floats only where the music is empty; a ride-out is written as low air held to t
 air at the end, which asks for a jump). Not heard by the author; videos in `generated/videos/rework-batch1/` for the owner.
 
 Believer (`productions/believer_78s`) is parked by the owner after two drafts.
-||||||| 9b3ca100
+
 ## November 14: middle-ground rail margins (stated before running)
 
 The owner asked for a middle ground between today's 2 px and the rider's height (10 px, −22.6 beyond open arcs).

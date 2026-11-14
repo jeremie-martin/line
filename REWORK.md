@@ -21,6 +21,11 @@
   still realize), the geometry sheet.
 - **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
 
+## November 14: one shape family removed (diagnostic)
+
+Repertoire without serpentines (their share passes to the other families), V8, 4 seeds: −0.0 [−2.3, +2.2]. The shapes'
+cost follows their total share, not one family.
+
 ## November 14: the 800 target and the shapes (synthesis)
 
 - **Measured:** `compiler` 781.9 on V8 at 8 seeds (+20.2 over the brief's start).

@@ -32,7 +32,9 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     const open=repertoire.includes('arcs')?(1-scatter)*(1-guided):0;
     if(open)choices.push({construction:'arcs',guidance:'forbidden',weight:open*(1-strong)});
     for(const construction of connected){
-      const fraction=construction==='arcs'?1-variation+variation/connected.length:variation/connected.length;
+      // In a strong phrase the shapes are drawn at up to half their weight (phased in with the guides, 0.4–0.8): strong
+      // catches in fast succession land best on arcs; every shape keeps its place there (REWORK.md, November 14).
+      const shaped=construction!=='arcs',fraction=(construction==='arcs'?1-variation+variation/connected.length:variation/connected.length)*(shaped?1-.5*strong:1);
       // A guide is offered, never required: the search uses it where it helps the
       // catch (most shaped sections do) instead of buying a forced touch, the main
       // source of unwanted impacts (REWORK.md, November 1).

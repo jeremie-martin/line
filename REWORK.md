@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: step back on taste (owner discussion)
+
+The rail experiments are not pursued: plain open arcs on strong phrases hurt variety, and a budget is the wrong kind of
+answer. What happened, the owner's concerns, how to work on taste and the directions on the table (measurement,
+constructions such as an upper-hit receiver, planning and search together, prices in the search) are in
+`docs/taste-and-the-compiler.md`. Nothing decided.
+
 ## November 14: fewer rails, first results (exploratory; nothing adopted)
 
 V8, 4 seeds, 196 pairs against `compiler` (782.2); rails = share of gaps keeping a rail, per ride.

@@ -16,6 +16,7 @@
 - **Change** (`exp/shapes-borrow-arc-catches`): a shaped section's learned proposals are half its own group's, half the
   plain arcs' (same guidance and layout), within the same proposal count.
 - **Hypothesis:** shaped sections catch closer to their asks; V8 up, shapes unchanged in number and look.
+- **Result: not adopted**, V8 at 8 seeds −2.0 [−4.1, +0.2]. The shapes' cost is not their proposals.
 
 ## November 14: what the shaped families cost (diagnostic, not a candidate)
 

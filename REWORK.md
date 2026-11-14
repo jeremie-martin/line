@@ -1,5 +1,35 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: riding through geometry (report only; understanding before any fix)
+
+A Line Rider line collides from one side only, while every line is drawn solid: a rider seen crossing a drawn line
+looks like it rides through geometry. The owner finds this a serious flaw (Circus Minimus, foundation, 17 s).
+
+- **Measures** (`tools/research/pass_through.ts`): (a) a rider point's motion crossing a line it does not collide with
+  that frame or the next; (b) what is seen: frames in which a drawn line (any pieces of one gap's main line, rail or
+  fragments) cuts the rider's figure (sled frame, torso, arms, legs), lines touching the rider then excepted.
+- **On the foundation** (V8, 196 rides): a line cuts the rider's **body** 26.6 times per ride, 1.26 s per ride, 6.2
+  times lasting 3 frames or more (rails 54%, main lines 45%); the **sled only** 61.8 times, 2.27 s. Point crossings of
+  3 px or more: 35 per ride, almost all a single frame. Calibrated on the owner's case: at 17.35 s a rail cuts the
+  rider's arms, legs, torso and sled for 8 frames.
+- **94% of the pieces that cut the body are never touched in the ride.** Touched pieces are 2.7 px long and touched
+  where they are crossed, so splitting pieces cannot help.
+- **Removal with an identical replay** (`tools/research/pass_through_removal.ts`, seed 101, 49 rides; every rider point
+  in every frame compared): identical in 49 of 49 for every variant.
+
+  | remove the untouched pieces that… | body | sled only | pieces removed | new breaks per ride |
+  |---|---|---|---|---|
+  | cut the body | 24.3 → 0.2 | 58.4 → 69.1 | 0.9% | 27 |
+  | cut the body, shortening from the line's end where possible | 24.3 → 0.2 | 58.4 → 67.5 | 1.7% | 20 |
+  | cut the figure | 24.3 → 0.2 | 58.4 → 5.4 | 3.7% | 104 |
+  | are crossed at all | 24.3 → 0.2 | 58.4 → 5.4 | 6.8% | 185 |
+
+- **Pictures** (`generated/upper-review/pass-circus.html`) show the cause: rails laid inside the rider's space, starting
+  at the support line the rider rides (17.35 s) or lying closer above it than the rider is tall (36.55 s). Removal takes
+  out what crosses the figure; the rest of such a rail still sits in the rider's space.
+- Nothing changed in the compiler. To decide with the owner: the cleanup (which variant), and whether rails should be
+  laid outside the rider's space by construction.
+
 ## November 14: the owner's held-out upper-hit study (measured)
 
 `upper-hits-2026-11b`, 18 fresh pairs, the question naming the marked hit ("the bigger impact, whatever its kind"):

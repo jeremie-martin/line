@@ -58,7 +58,7 @@ for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seed
     const line = first.map(([lid]: number[]) => lines.get(lid)).find((l: Line | undefined) => l && pushSide(l) === want);
     const next = perBeat[j + 1];
     rows.push({ride: id, beat: j, kind: h.contact, ask: b.requested, strength: h.strength, family: s.family, guidance: s.guidance,
-      rail: !!cell.character?.railDrawn?.[j + 1], opposing: control.contactSide === -1,
+      rail: !!cell.character?.railDrawn?.[j + 1], opposing: control.contactSide === -1, anchor: control.receiverAnchor ?? null,
       ...setting(frames[start - 1], deg(Math.atan2(before[1], before[0]))),
       speedIn: Math.hypot(...before), heading: deg(Math.atan2(before[1], before[0])), rising: before[1] < 0, air,
       sledFirst: first.some(([, p]: number[]) => SLED.has(p)), firstPoints: [...new Set(first.map(([, p]: number[]) => POINTS[p]))],
@@ -92,6 +92,9 @@ console.log(summary('clean upper', up));
 console.log(summary('floor', floor));
 console.log(summary('clean upper, receiver from opposing side', up.filter(r => r.opposing)));
 console.log(summary('clean upper, receiver from the usual side', up.filter(r => !r.opposing)));
+console.log(summary('clean upper, body-clear receiver on the sled', up.filter(r => r.anchor === 1)));
+console.log(summary('clean upper, body-clear receiver on its front', up.filter(r => r.anchor === 2)));
+console.log(summary('clean upper, mirrored receiver', up.filter(r => r.opposing && r.anchor === null)));
 for (const fam of [...new Set(up.map(r => r.family))]) console.log(summary(`clean upper, ${fam}`, up.filter(r => r.family === fam)));
 console.log(summary('clean upper, rising arrival', up.filter(r => r.rising)));
 console.log(summary('clean upper, falling arrival', up.filter(r => !r.rising)));

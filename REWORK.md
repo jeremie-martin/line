@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: E1 result, upper receivers that keep the body clear (not adopted alone)
+
+V8, 4 seeds, against the foundation (named reference `foundation` = 76e481f7; the name `compiler` is frozen at
+d0763aa4, the version with the rail rules: a first report against it read −9.3 and is void).
+
+- **Headline −2.1 [−7.1, +3.0]**, 20 specs up, 23 down; every ride finished; explicit requests 216/216.
+- Clean upper hits 9.6% → 10.0% of strong beats (per ride); rails 55% → 54% of gaps; strong extra impacts 0.10 → 0.13
+  per 100 beats; head-down strong arrivals unchanged (13.5%).
+- **Where used, the new receivers do what they were built for:** chosen in 180 of 17,588 gaps; on strong beats they
+  give clean upper hits of 0.66 (on the sled, 113) and 0.72 (on its front, 22) against 0.61 for mirrored ones; the sled
+  touches first in every one; about half the riders are rotated (head-down 43–50%).
+- **But they are rarely chosen.** The arrivals the search prepares before strong catches are steep and upright (the
+  floor priors), so few catches leave the body clear of a line above: E2 addresses that.
+- The stage's own work counts are not saved by the eval adapter (`tools/eval/compile.ts` keeps a fixed list of result
+  fields and is part of every arm's key), so they are read from in-process probes instead.
+
 ## November 14: hypothesis, an upper way into strong catches (E2, with E1; stated before running)
 
 - **Basis:** before a strong catch the release is steered by priors made for floor catches (`addArrivalPriors`): a

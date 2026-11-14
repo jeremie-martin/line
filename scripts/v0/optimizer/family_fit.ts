@@ -16,3 +16,19 @@ for (const ctx of new Set(Object.keys(table).map(k => Number(k.split('|')[1]))))
 }
 /** The fitted loss of family `key` in context `ctx`; the context's mean where the family was too rare to fit. */
 export const familyCost = (key: string, ctx: number) => table[`${key}|${ctx}`] ?? fallback.get(ctx) ?? 0;
+
+import model from './family_model.json' with {type: 'json'};
+/** The placement model (tools/research/family_model.py, fitted on V7.1 rides): a section's expected loss from its family
+ * and its context as the planner sees it. Gradient-boosted trees, evaluated directly. */
+export function familyLoss(construction: string, guidance: string, x: {impact: number | null; speed: number | null;
+  nextImpact: number | null; nextSpeed: number | null; quiet: number}, frames: number): number {
+  const f = [...model.families.map(name => name === construction ? 1 : 0), guidance === 'forbidden' ? 1 : 0,
+    x.impact ?? 0, x.speed ?? .5, x.nextImpact ?? 0, x.nextSpeed ?? .5, x.quiet, frames];
+  let value = model.initial;
+  for (const t of model.trees) {
+    let n = 0;
+    while (!t.leaf[n]) n = f[t.feature[n]] <= t.threshold[n] ? t.left[n] : t.right[n];
+    value += t.value[n];
+  }
+  return value;
+}

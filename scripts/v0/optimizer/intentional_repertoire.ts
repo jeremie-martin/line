@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
 import {planRepertoire,creativePreferences,validateProductionPlan,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
 import {repertoireContexts,repertoireMusicHash,type ContextSpec} from './repertoire_context.ts';
-import {contextOf,familyCost,familyKey} from './family_fit.ts';
+import {familyLoss,familyKey} from './family_fit.ts';
 export const INTENTIONAL_REPERTOIRE_POLICY='line.repertoire-policy.v2';
 const smoothstep=(x:number)=>{const t=Math.max(0,Math.min(1,x));return t*t*(3-2*t);};
 export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:CreativePreferences={},boundaries:number[]=[]):ProductionPlan{
@@ -57,7 +57,8 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
  * lottery decides what a ride is made of; the music decides where each piece goes. */
 function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
   const cost=(p:ProductionPlan['phrases'][number],key:string)=>{
-    let total=0;for(let i=p.first;i<p.first+p.count;i++){const r=requests[i];total+=familyCost(key,contextOf(r.context?.impact??0,r.next-r.frame));}
+    const [construction,open]=key.split(':'),guidance=open?'forbidden':'optional';
+    let total=0;for(let i=p.first;i<p.first+p.count;i++){const r=requests[i];if(r.context)total+=familyLoss(construction,guidance,r.context,r.next-r.frame);}
     return total;
   };
   const eligible=(p:ProductionPlan['phrases'][number],q:ProductionPlan['phrases'][number])=>

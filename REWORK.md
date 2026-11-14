@@ -9,6 +9,16 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, placement by a model instead of a table (stated before running)
+
+- **Basis.** The placement table (family × 12 contexts) works; a finer table (24 contexts) went sparse and lost (−1.8).
+- **Change** (`exp/families-model`): a gradient-boosted model of a section's loss from its family (and whether its
+  guide is forbidden) and its context as the planner sees it (strength and speed asks of its catch and of the next,
+  calm, length): 150 trees of 7 leaves, at least 800 sections a leaf, fitted on 73,720 sections of 852 V7.1 rides of
+  three compilers (`tools/research/family_model_data.ts`, `family_model.py`; held-out R² by song 0.059: a section's
+  loss is noisy, placement compares families in one context). Placement and the guide rule use it in place of the table.
+- **Hypothesis:** better placement where the context the table ignored matters (speed, the next catch); V8 up.
+
 ## November 14: hypothesis, guides offered where they fit (stated before running)
 
 - **Basis** (the placement table): arcs offered a guide lose 15–64% less than open arcs in middle and strong contexts,

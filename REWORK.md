@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the foundation, measured (no rail rules; not yet merged)
+
+`exp/no-rail-rules` = `compiler` without the strong-phrase guide rule and without guides where they clearly fit; it
+keeps the ending refinement's deletion, lead-ins below the arrival and families placed where they fit (refitted table).
+V8, 4 seeds, 196 pairs; every ride finished, explicit requests 216/216.
+
+| | start (nov13) | no rail rules | today (`compiler`) |
+|---|---|---|---|
+| V8 | 762.1 | 775.0 | 782.2 |
+| vs start | | +12.9 [+3.1, +22.8], 39 specs up, 4 down | +20.2 |
+| rails, share of gaps (most railed ride) | 54% (71%) | 55% (73%) | 70% (93%) |
+| open arcs | 38% | 37% | 21% |
+| clean upper hits, strong beats | 9.6% | 9.6% | 7.1% |
+| strong arrivals head-down | 14.6% | 13.5% | 11.7% |
+
+- The ride character is the start's; the +12.9 comes from placement (with the lead-ins and the deletion near zero).
+- What placement still changes: folds 9% → 6% of gaps (strong beats 9% → 4%), scattered 11% → 14% (strong 11% → 17%).
+  For the owner's eye: geometry sheet `generated/compare/no-rail-rules-vs-start/geometry.html`.
+- Proposed as the foundation; merging into `compiler` waits on the owner.
+
 ## November 14: step back on taste (owner discussion)
 
 The rail experiments are not pursued: plain open arcs on strong phrases hurt variety, and a budget is the wrong kind of

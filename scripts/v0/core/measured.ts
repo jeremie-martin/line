@@ -7,6 +7,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { clamp } from "./substrate.ts";
+import { keyframes } from "./curves.ts";
 
 type Source = { t: number; peak: number; rise: number; classes?: string[] };
 export type MusicEvent = { t: number; sources: Record<string, Source>; mix: { peak: number; rise: number } };
@@ -54,5 +55,20 @@ export function measuredSong(dir: string) {
     return notes.filter((n) => n.salience >= minSalience && n.event).map((n) => Number(n.event!.t.toFixed(2)));
   }
 
-  return { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes };
+  /** A handcrafted landing list from `[time (s), strength 0–1]` rows, one row per landing, in any order. Every time
+   *  must be a measured event (within 30 ms; the landing takes the event's time) unless listed in `unmeasured` (a
+   *  sung note with no event). Returns the rows sorted; throws on two landings closer than `minGap` seconds. */
+  function table(rows: Array<[number, number]>, unmeasured: number[] = [], minGap = 0.15): Array<{ t: number; impact: number }> {
+    const out = rows
+      .map(([t, impact]) => ({ t: unmeasured.includes(t) ? t : Number(event(t).t.toFixed(3)), impact }))
+      .sort((a, b) => a.t - b.t);
+    for (let i = 1; i < out.length; i++)
+      if (out[i].t - out[i - 1].t < minGap) throw new Error(`landings ${out[i - 1].t} and ${out[i].t} are too close`);
+    return out;
+  }
+
+  return { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes, table };
 }
+
+/** Smooth keyframes from `[time (s), value 0–1]` pairs, for a spec's air and speed. */
+export const curve = (pairs: Array<[number, number]>) => keyframes(pairs.map(([t, v]) => ({ t, v, ease: "smooth" as const })));

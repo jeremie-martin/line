@@ -84,6 +84,10 @@ export const GROOVE_KICKS = [
   32.229, 32.787, 33.321, 33.89, 34.435, 34.981, 35.538, 36.084, 36.641, 37.187, 37.732, 38.29, 38.835, 39.381,
   39.938, 40.484, 41.03, 41.587, 42.133, 42.69, 43.236,
 ];
+/** The bass and synth figure that answers the second and third kick of every bar, half a beat after each (measured:
+ *  bass 0.45–0.50, mix 0.55–0.60 against 0.9–1.05 for a kick). First and second answer of each bar. */
+export const ANSWER_1 = [9.973, 12.167, 14.385, 16.567, 18.785, 20.968, 23.185, 25.368, 27.574, 29.768, 31.985, 34.168, 36.386, 38.568, 40.774, 42.969];
+export const ANSWER_2 = [10.507, 12.725, 14.907, 17.125, 19.319, 21.525, 23.708, 25.913, 28.108, 30.314, 32.520, 34.725, 36.920, 39.126, 41.320];
 /** The sung "hey" that fills the hole (C♯4, salience 0.90). Too close to the 26.180 kick (0.105 s) to land both. */
 export const HOLE_VOICE = 26.285;
 

@@ -161,7 +161,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   // A ridable end bends downward no faster than gravity holds the rider at its arrival speed: 0.175 cos(slope) / speed
   // radians per frame, over the support after the catch's turn (REWORK.md, November 14: R3).
   const ridable=c.ridable===1&&side===1&&!profile;
-  const held=ridable?Math.max(0,c.support-(c.turnFraction===undefined?Math.min(5,c.support*.5):c.support*c.turnFraction))*.175*Math.max(0,Math.cos(rad(c.exit)))/Math.max(1,hypot2(velocity.x,velocity.y))*180/Math.PI:0;
+  const held=ridable?Math.max(0,c.support-first)*.175*Math.max(0,Math.cos(rad(c.exit)))/Math.max(1,speed)*180/Math.PI:0;
   const exit=ridable?Math.min(c.exit,c.entry+c.turn+held):c.exit;
   for(let k=0;k<steps;k++){
     let dt=uniformDt,time=(k+.5)*dt;

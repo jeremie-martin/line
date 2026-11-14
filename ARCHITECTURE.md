@@ -32,16 +32,16 @@ and validation are in [music authoring](docs/music-authoring.md).
    where it helps the catch (78% of such sections on the bench) instead of
    buying a forced touch. Automatic plans use paired rails only; explicit
    plans may still require guides and later-receiver layouts. It is seeded and reproducible,
-   and it uses the requested impact and speed: calm passages favour open arcs,
-   and in strong phrases (mean ask 0.4 to 0.8, phased in) the open arcs' share
-   becomes arcs offered a guide, which land strong catches harder (since
-   2026-11-13). The families drawn are then placed where they fit: two
-   phrases trade theirs when the fitted loss of a family in each context
-   falls (`family_fit.ts`, a family × context table fitted on V7.1 rides by
-   `tools/research/family_fit.ts`); a ride's families keep their number
-   (since 2026-11-14). An open-arc phrase is then offered its guide where the
-   table says it clearly fits better (30% or more). An explicit plan bypasses
-   this step.
+   and it uses the requested impact and speed: calm passages favour open arcs.
+   The families drawn are then placed where they fit: two phrases trade theirs
+   when the fitted loss of a family in each context falls (`family_fit.ts`, a
+   family × context table fitted on V7.1 rides by `tools/research/family_fit.ts`);
+   a ride's families keep their number (since 2026-11-14). This placement is
+   today's way of tying the plan to what works, one approach among many, not a
+   settled design (`docs/taste-and-the-compiler.md`). Two rules that offered
+   arcs a rail more often (in strong phrases; where the table said it clearly
+   fit) were removed on 2026-11-14: they made rails the default. An explicit plan
+   bypasses this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section

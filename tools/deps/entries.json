@@ -22,7 +22,7 @@
     "tools/parity/parity.ts", "tools/parity/engine.ts", "tools/parity/engine_quick.ts",
     "tools/check.ts", "tools/measure/engine.ts", "tools/measure/engine_ab.ts", "tools/measure/profile.ts", "tools/measure/smoke.ts", "tools/measure/score.ts", "tools/measure/build_native_engine.mjs",
     "tools/measure/analyze_labels.ts", "tools/measure/analyze_pairs.ts", "tools/measure/clip_render.ts", "tools/measure/pair_study.ts",
-    "tools/measure/select_pairs.ts", "tools/measure/visibility/*.ts", "tools/measure/motion_check.ts", "tools/measure/survival_envelope.ts",
+    "tools/measure/select_pairs.ts", "tools/measure/select_upper_pairs.ts", "tools/measure/visibility/*.ts", "tools/measure/motion_check.ts", "tools/measure/survival_envelope.ts",
     "tools/measure/observe.ts", "tools/measure/measures.ts",
     "tools/music/*.ts",
     "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts",

@@ -67,7 +67,8 @@ These work at different levels, and none has been chosen.
   - a receiver for upper hits;
   - shapes that keep their speed without a rail.
   If everything were equally competitive, the tension would go away. That is unlikely, but there is room to improve.
-- **Planning and search together,** kept simple. Some possibilities:
+- **Planning and search together,** kept simple. Families placed where they fit (a fitted table, kept in the
+  foundation) is one such approach, not a settled design: any of these may replace it. Some possibilities:
   - draw two families for a run of gaps, search both, keep the better;
   - give the candidate pool a mix of families, mostly the drawn one and some of the others, with the mix free to vary;
   - keep one geometry over several gaps.

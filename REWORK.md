@@ -1,6 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
-## November 14: the foundation, measured (no rail rules; not yet merged)
+## November 14: the new foundation (adopted by the owner)
+
+`compiler` now has neither the strong-phrase guide rule nor guides where they clearly fit; it keeps the ending
+refinement's deletion, lead-ins below the arrival and families placed where they fit (measured just below: 775.0 on
+V8, +12.9 over the start, the start's ride character). Placement stays as today's planning approach, not a settled
+design: planning, search and how they meet remain open (`docs/taste-and-the-compiler.md`). Parity references
+refreshed; parity, judge, tests (618), typecheck and reach pass. New reference for what follows: `compiler`.
+
+## November 14: the foundation, measured (no rail rules)
 
 `exp/no-rail-rules` = `compiler` without the strong-phrase guide rule and without guides where they clearly fit; it
 keeps the ending refinement's deletion, lead-ins below the arrival and families placed where they fit (refitted table).

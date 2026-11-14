@@ -13,6 +13,14 @@
  * snare .58, toms .36 and .42, voice .42–.62 by its measured peak, guitar .40; the chorus's drums
  * are .05 firmer. Every time is a measured source time (events.json).
  *
+ * After the owner's notes on the first draft (2026-11-14):
+ *   - every beat is landed, not only the drum hits: beats 2 and 4 carry a bass or guitar note that
+ *     the first draft left out (a sustained note has almost no measured rise, yet it is heard), at
+ *     the level of the other landings (.50, .55 in the chorus);
+ *   - the break's two bass notes are far stronger (.80, .95): alone in the silence, they are big;
+ *   - the snares at 60.92 and 70.53 are far stronger (.88, .95);
+ *   - 35.9–38.8 follows the voice on every triplet (0.16 s), his suggestion: seventeen landings in a row.
+ *
  * Not heard by the author. The chorus's voice is the least certain part (see music.ts). Compiler
  * feasibility is not a filter: the four-hit runs every bar are deliberate.
  */
@@ -51,18 +59,21 @@ export const landings: AuthoredBeat[] = [
   // bar 3, 6.19 s (stop bar)
   {t: 6.211, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 6.513, impact: .40, source: 'other', role: 'guitar'},
+  {t: 6.664, impact: .50, source: 'other', role: 'beat 2'},
   {t: 6.989, impact: .54, source: 'vocals', role: 'voice'},
   {t: 7.152, impact: .58, source: 'drums', role: 'snare'},
   {t: 7.465, impact: .40, source: 'other', role: 'guitar'},
   {t: 7.628, impact: .49, source: 'vocals', role: 'voice'},
   // bar 4, 8.11 s
   {t: 8.104, impact: .90, source: 'drums', role: 'downbeat'},
+  {t: 8.615, impact: .50, source: 'bass', role: 'beat 2'},
   {t: 9.067, impact: .62, source: 'drums', role: 'snare+voice'},
   {t: 9.555, impact: .36, source: 'drums', role: 'tom'},
   {t: 9.729, impact: .42, source: 'drums', role: 'tom'},
   {t: 9.880, impact: .70, source: 'drums', role: 'pickup'},
   // bar 5, 10.03 s
   {t: 10.043, impact: .78, source: 'drums', role: 'downbeat'},
+  {t: 10.519, impact: .50, source: 'other', role: 'beat 2'},
   {t: 10.786, impact: .58, source: 'vocals', role: 'voice'},
   {t: 10.995, impact: .58, source: 'drums', role: 'snare'},
   {t: 11.471, impact: .40, source: 'drums', role: 'tom+voice'},
@@ -70,6 +81,7 @@ export const landings: AuthoredBeat[] = [
   {t: 11.807, impact: .70, source: 'drums', role: 'pickup'},
   // bar 6, 11.95 s
   {t: 11.970, impact: .78, source: 'drums', role: 'downbeat'},
+  {t: 12.434, impact: .50, source: 'other', role: 'beat 2'},
   {t: 12.910, impact: .62, source: 'drums', role: 'snare+voice'},
   {t: 13.398, impact: .36, source: 'drums', role: 'tom'},
   {t: 13.572, impact: .42, source: 'drums', role: 'tom'},
@@ -77,9 +89,11 @@ export const landings: AuthoredBeat[] = [
   // bar 7, 13.87 s (stop bar)
   {t: 13.886, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 14.187, impact: .40, source: 'other', role: 'guitar'},
+  {t: 14.362, impact: .50, source: 'other', role: 'beat 2'},
   {t: 14.663, impact: .40, source: 'other', role: 'guitar'},
   {t: 14.838, impact: .58, source: 'drums', role: 'snare'},
   {t: 15.139, impact: .40, source: 'other', role: 'guitar'},
+  {t: 15.290, impact: .50, source: 'other', role: 'beat 4'},
   // ── verse 1, second half: "Second things second" ──
   // bar 8, 15.79 s
   {t: 15.790, impact: .94, source: 'drums', role: 'downbeat+voice'},
@@ -114,15 +128,18 @@ export const landings: AuthoredBeat[] = [
   {t: 22.338, impact: .52, source: 'vocals', role: 'voice'},
   {t: 22.512, impact: .58, source: 'drums', role: 'snare'},
   {t: 22.825, impact: .48, source: 'vocals', role: 'voice'},
+  {t: 23.034, impact: .50, source: 'vocals', role: 'beat 4'},
   {t: 23.301, impact: .52, source: 'vocals', role: 'voice'},
   // bar 12, 23.47 s
   {t: 23.475, impact: .94, source: 'drums', role: 'downbeat+voice'},
+  {t: 23.975, impact: .50, source: 'bass', role: 'beat 2'},
   {t: 24.439, impact: .62, source: 'drums', role: 'snare+voice'},
   {t: 24.915, impact: .36, source: 'drums', role: 'tom'},
   {t: 25.089, impact: .42, source: 'drums', role: 'tom'},
   {t: 25.240, impact: .70, source: 'drums', role: 'pickup'},
   // bar 13, 25.39 s
   {t: 25.403, impact: .78, source: 'drums', role: 'downbeat'},
+  {t: 25.867, impact: .50, source: 'other', role: 'beat 2'},
   {t: 26.157, impact: .59, source: 'vocals', role: 'voice'},
   {t: 26.355, impact: .58, source: 'drums', role: 'snare'},
   {t: 26.680, impact: .53, source: 'vocals', role: 'voice'},
@@ -131,6 +148,7 @@ export const landings: AuthoredBeat[] = [
   {t: 27.167, impact: .70, source: 'drums', role: 'pickup'},
   // bar 14, 27.31 s
   {t: 27.330, impact: .82, source: 'drums', role: 'downbeat+voice'},
+  {t: 27.748, impact: .50, source: 'vocals', role: 'beat 2'},
   {t: 28.270, impact: .62, source: 'drums', role: 'snare+voice'},
   {t: 28.758, impact: .36, source: 'drums', role: 'tom'},
   {t: 28.932, impact: .42, source: 'drums', role: 'tom'},
@@ -138,14 +156,17 @@ export const landings: AuthoredBeat[] = [
   // bar 15, 29.23 s (stop bar)
   {t: 29.246, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 29.547, impact: .40, source: 'other', role: 'guitar'},
+  {t: 29.722, impact: .50, source: 'other', role: 'beat 2'},
   {t: 30.012, impact: .40, source: 'other', role: 'guitar'},
   {t: 30.198, impact: .58, source: 'drums', role: 'snare'},
   {t: 30.499, impact: .40, source: 'other', role: 'guitar'},
+  {t: 30.650, impact: .50, source: 'other', role: 'beat 4'},
   {t: 30.871, impact: .53, source: 'vocals', role: 'voice'},
   // ── pre-chorus: "I was broken from a young age" ──
   // bar 16, 31.15 s
   {t: 31.150, impact: .90, source: 'drums', role: 'downbeat'},
   {t: 31.475, impact: .50, source: 'vocals', role: 'voice'},
+  {t: 31.660, impact: .50, source: 'bass', role: 'beat 2'},
   {t: 31.858, impact: .48, source: 'vocals', role: 'voice'},
   {t: 32.113, impact: .58, source: 'drums', role: 'snare'},
   {t: 32.578, impact: .36, source: 'drums', role: 'tom'},
@@ -154,24 +175,36 @@ export const landings: AuthoredBeat[] = [
   // bar 17, 33.07 s
   {t: 33.088, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 33.402, impact: .54, source: 'vocals', role: 'voice'},
+  {t: 33.553, impact: .50, source: 'drums', role: 'beat 2'},
   {t: 34.029, impact: .58, source: 'drums', role: 'snare'},
   {t: 34.505, impact: .36, source: 'drums', role: 'tom'},
   {t: 34.691, impact: .42, source: 'drums', role: 'tom'},
   {t: 34.842, impact: .70, source: 'drums', role: 'pickup'},
   // bar 18, 34.99 s
   {t: 35.004, impact: .82, source: 'drums', role: 'downbeat+voice'},
+  {t: 35.468, impact: .50, source: 'other', role: 'beat 2'},
   {t: 35.677, impact: .45, source: 'vocals', role: 'voice'},
   {t: 35.944, impact: .62, source: 'drums', role: 'snare+voice'},
-  {t: 36.432, impact: .36, source: 'drums', role: 'tom'},
-  {t: 36.618, impact: .46, source: 'drums', role: 'tom+voice'},
-  {t: 36.769, impact: .70, source: 'drums', role: 'pickup'},
+  {t: 36.281, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 36.432, impact: .46, source: 'drums', role: 'tom'},
+  {t: 36.571, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 36.769, impact: .72, source: 'drums', role: 'pickup+voice'},
   // bar 19, 36.91 s (stop bar)
-  {t: 36.931, impact: .78, source: 'drums', role: 'downbeat'},
-  {t: 37.071, impact: .48, source: 'vocals', role: 'voice'},
-  {t: 37.535, impact: .51, source: 'vocals', role: 'voice'},
-  {t: 37.872, impact: .62, source: 'drums', role: 'snare+voice'},
+  {t: 36.931, impact: .80, source: 'drums', role: 'downbeat+voice'},
+  {t: 37.071, impact: .56, source: 'vocals', role: 'voice'},
+  {t: 37.222, impact: .56, source: 'vocals', role: 'voice'},
+  {t: 37.396, impact: .48, source: 'vocals', role: 'voice'},
+  {t: 37.535, impact: .58, source: 'vocals', role: 'voice'},
+  {t: 37.698, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 37.872, impact: .64, source: 'drums', role: 'snare+voice'},
+  {t: 38.034, impact: .50, source: 'vocals', role: 'voice'},
+  {t: 38.185, impact: .50, source: 'vocals', role: 'voice'},
+  {t: 38.348, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 38.499, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 38.638, impact: .50, source: 'vocals', role: 'voice'},
   // bar 20, 38.83 s
   {t: 38.835, impact: .90, source: 'drums', role: 'downbeat'},
+  {t: 39.335, impact: .50, source: 'bass', role: 'beat 2'},
   {t: 39.544, impact: .46, source: 'vocals', role: 'voice'},
   {t: 39.787, impact: .62, source: 'drums', role: 'snare+voice'},
   {t: 40.275, impact: .36, source: 'drums', role: 'tom'},
@@ -180,6 +213,7 @@ export const landings: AuthoredBeat[] = [
   // bar 21, 40.75 s
   {t: 40.763, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 41.053, impact: .48, source: 'vocals', role: 'voice'},
+  {t: 41.227, impact: .50, source: 'other', role: 'beat 2'},
   {t: 41.436, impact: .49, source: 'vocals', role: 'voice'},
   {t: 41.703, impact: .58, source: 'drums', role: 'snare'},
   {t: 42.179, impact: .36, source: 'drums', role: 'tom'},
@@ -188,6 +222,7 @@ export const landings: AuthoredBeat[] = [
   // bar 22, 42.67 s
   {t: 42.678, impact: .78, source: 'drums', role: 'downbeat'},
   {t: 43.015, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 43.201, impact: .50, source: 'vocals', role: 'beat 2'},
   {t: 43.363, impact: .51, source: 'vocals', role: 'voice'},
   {t: 43.630, impact: .58, source: 'drums', role: 'snare'},
   {t: 44.106, impact: .36, source: 'drums', role: 'tom'},
@@ -195,34 +230,42 @@ export const landings: AuthoredBeat[] = [
   {t: 44.443, impact: .70, source: 'drums', role: 'pickup'},
   // bar 23, 44.59 s (stop bar)
   {t: 44.606, impact: .82, source: 'drums', role: 'downbeat+voice'},
+  {t: 45.070, impact: .50, source: 'other', role: 'beat 2'},
   {t: 45.232, impact: .54, source: 'vocals', role: 'voice'},
   {t: 45.558, impact: .58, source: 'drums', role: 'snare'},
   // ── the break: drums out, the bass alone, then the pickup kick ──
   // bar 24, 46.51 s
-  {t: 46.556, impact: .35, source: 'bass', role: 'bass'},
-  {t: 47.508, impact: .62, source: 'bass', role: 'bass+voice'},
+  {t: 46.556, impact: .80, source: 'bass', role: 'bass'},
+  {t: 47.508, impact: .95, source: 'bass', role: 'bass+voice'},
   {t: 48.274, impact: .74, source: 'drums', role: 'pickup'},
   // ── chorus: "Pain!" ──
   // bar 25, 48.43 s
   {t: 48.437, impact: 1.00, source: 'drums', role: 'downbeat'},
   {t: 48.774, impact: .51, source: 'vocals', role: 'voice'},
+  {t: 48.948, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 49.400, impact: .67, source: 'drums', role: 'snare+voice'},
   {t: 49.714, impact: .53, source: 'vocals', role: 'voice'},
+  {t: 49.900, impact: .55, source: 'bass', role: 'beat 4'},
   {t: 50.051, impact: .42, source: 'drums', role: 'tom'},
   {t: 50.213, impact: .75, source: 'drums', role: 'pickup'},
   // bar 26, 50.35 s
   {t: 50.352, impact: .83, source: 'drums', role: 'downbeat'},
+  {t: 50.852, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 51.316, impact: .63, source: 'drums', role: 'snare'},
   {t: 51.804, impact: .36, source: 'drums', role: 'tom'},
   {t: 51.978, impact: .42, source: 'drums', role: 'tom'},
   {t: 52.129, impact: .79, source: 'drums', role: 'pickup+voice'},
   // bar 27, 52.27 s (stop bar)
   {t: 52.280, impact: .83, source: 'drums', role: 'downbeat'},
+  {t: 52.767, impact: .55, source: 'vocals', role: 'beat 2'},
   {t: 53.069, impact: .40, source: 'other', role: 'guitar'},
   {t: 53.220, impact: .63, source: 'drums', role: 'snare'},
+  {t: 53.743, impact: .55, source: 'bass', role: 'beat 4'},
   // bar 28, 54.19 s
   {t: 54.195, impact: .92, source: 'drums', role: 'downbeat'},
+  {t: 54.683, impact: .55, source: 'other', role: 'beat 2'},
   {t: 55.159, impact: .63, source: 'drums', role: 'snare'},
+  {t: 55.658, impact: .55, source: 'bass', role: 'beat 4'},
   {t: 55.960, impact: .75, source: 'drums', role: 'pickup'},
   // bar 29, 56.11 s
   {t: 56.111, impact: .83, source: 'drums', role: 'downbeat'},
@@ -230,23 +273,29 @@ export const landings: AuthoredBeat[] = [
   {t: 56.622, impact: .51, source: 'vocals', role: 'voice'},
   {t: 57.075, impact: .63, source: 'drums', role: 'snare'},
   {t: 57.377, impact: .54, source: 'vocals', role: 'voice'},
+  {t: 57.574, impact: .55, source: 'bass', role: 'beat 4'},
   {t: 57.736, impact: .42, source: 'drums', role: 'tom'},
   {t: 57.887, impact: .79, source: 'drums', role: 'pickup+voice'},
   // bar 30, 58.03 s
   {t: 58.038, impact: .83, source: 'drums', role: 'downbeat'},
+  {t: 58.526, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 58.990, impact: .63, source: 'drums', role: 'snare'},
   {t: 59.490, impact: .36, source: 'drums', role: 'tom'},
   {t: 59.652, impact: .46, source: 'drums', role: 'tom+voice'},
   {t: 59.803, impact: .75, source: 'drums', role: 'pickup'},
   // bar 31, 59.95 s (stop bar)
   {t: 59.954, impact: .83, source: 'drums', role: 'downbeat'},
+  {t: 60.453, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 60.743, impact: .40, source: 'other', role: 'guitar'},
-  {t: 60.918, impact: .63, source: 'drums', role: 'snare'},
+  {t: 60.918, impact: .88, source: 'drums', role: 'snare'},
   {t: 61.231, impact: .40, source: 'other', role: 'guitar'},
+  {t: 61.405, impact: .55, source: 'bass', role: 'beat 4'},
   // bar 32, 61.87 s
   {t: 61.846, impact: .92, source: 'drums', role: 'downbeat+voice'},
+  {t: 62.357, impact: .55, source: 'other', role: 'beat 2'},
   {t: 62.682, impact: .50, source: 'drums', role: 'fill'},
   {t: 62.833, impact: .63, source: 'drums', role: 'snare'},
+  {t: 63.309, impact: .55, source: 'other', role: 'beat 4'},
   {t: 63.634, impact: .75, source: 'drums', role: 'pickup'},
   // ── chorus, second half ──
   // bar 33, 63.79 s
@@ -255,25 +304,33 @@ export const landings: AuthoredBeat[] = [
   {t: 64.273, impact: .48, source: 'vocals', role: 'voice'},
   {t: 64.749, impact: .63, source: 'drums', role: 'snare'},
   {t: 65.097, impact: .45, source: 'drums', role: 'fill'},
+  {t: 65.236, impact: .55, source: 'other', role: 'beat 4'},
   {t: 65.562, impact: .79, source: 'drums', role: 'pickup+voice'},
   // bar 34, 65.71 s
   {t: 65.712, impact: .83, source: 'drums', role: 'downbeat'},
   {t: 66.049, impact: .45, source: 'drums', role: 'fill'},
+  {t: 66.212, impact: .55, source: 'other', role: 'beat 2'},
   {t: 66.525, impact: .45, source: 'drums', role: 'fill'},
   {t: 66.664, impact: .63, source: 'drums', role: 'snare'},
+  {t: 67.117, impact: .55, source: 'vocals', role: 'beat 4'},
   {t: 67.477, impact: .79, source: 'drums', role: 'pickup+voice'},
   // bar 35, 67.63 s (stop bar)
   {t: 67.640, impact: .83, source: 'drums', role: 'downbeat'},
   {t: 67.930, impact: .51, source: 'vocals', role: 'voice'},
+  {t: 68.116, impact: .55, source: 'other', role: 'beat 2'},
   {t: 68.441, impact: .49, source: 'drums', role: 'fill+voice'},
   {t: 68.592, impact: .67, source: 'drums', role: 'snare+voice'},
+  {t: 69.010, impact: .55, source: 'bass', role: 'beat 4'},
   // bar 36, 69.55 s
   {t: 69.567, impact: .92, source: 'drums', role: 'downbeat'},
-  {t: 70.531, impact: .67, source: 'drums', role: 'snare+voice'},
+  {t: 70.020, impact: .55, source: 'bass', role: 'beat 2'},
+  {t: 70.531, impact: .95, source: 'drums', role: 'snare+voice'},
+  {t: 71.030, impact: .55, source: 'bass', role: 'beat 4'},
   {t: 71.308, impact: .75, source: 'drums', role: 'pickup'},
   // bar 37, 71.47 s
   {t: 71.471, impact: .83, source: 'drums', role: 'downbeat'},
   {t: 71.796, impact: .52, source: 'vocals', role: 'voice'},
+  {t: 71.970, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 72.423, impact: .63, source: 'drums', role: 'snare'},
   {t: 72.760, impact: .50, source: 'vocals', role: 'voice'},
   {t: 72.911, impact: .36, source: 'drums', role: 'tom'},
@@ -281,6 +338,7 @@ export const landings: AuthoredBeat[] = [
   // bar 38, 73.39 s
   {t: 73.398, impact: .83, source: 'drums', role: 'downbeat'},
   {t: 73.723, impact: .45, source: 'drums', role: 'fill'},
+  {t: 73.886, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 74.211, impact: .45, source: 'drums', role: 'fill'},
   {t: 74.350, impact: .63, source: 'drums', role: 'snare'},
   {t: 74.850, impact: .36, source: 'drums', role: 'tom'},
@@ -288,7 +346,9 @@ export const landings: AuthoredBeat[] = [
   {t: 75.163, impact: .75, source: 'drums', role: 'pickup'},
   // bar 39, 75.31 s (stop bar)
   {t: 75.314, impact: .83, source: 'drums', role: 'downbeat'},
+  {t: 75.813, impact: .55, source: 'bass', role: 'beat 2'},
   {t: 76.254, impact: .63, source: 'drums', role: 'snare'},
+  {t: 76.765, impact: .55, source: 'drums', role: 'beat 4'},
   // bar 40, 77.23 s
   {t: 77.241, impact: .92, source: 'drums', role: 'downbeat+voice'},
   {t: 77.415, impact: .45, source: 'drums', role: 'fill'},

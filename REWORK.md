@@ -1,5 +1,11 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, the placement table refitted on more rides (stated before running)
+
+- **Change** (`exp/families-fit-more`): the same 12 contexts, fitted on the V7.1 rides of both compilers (before and
+  with placement: 524 rides, 83 cells) instead of 344 rides of the first.
+- **Hypothesis:** a steadier table, and one that knows where placed families now land; V8 up a little.
+
 ## November 14: hypothesis, families where they fit, with the next catch in view (stated before running)
 
 - **Change** (`exp/families-fit-next`): the context also tells whether the next catch asks 0.6 or more (a section sets

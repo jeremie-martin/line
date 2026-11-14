@@ -109,6 +109,52 @@ export function proposeInitialControls(s: IntervalSearch) {
   }
 }
 
+/** Clearance of the rider's body from a receiver met from above, in px (arc_geometry.ts motionArcPaths places it). */
+const BODY_CLEARANCE = 4;
+const BODY = ['BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];
+
+/** Receivers met from above that keep the rider's body clear (REWORK.md, November 14: strong catches from above come
+ * apart when the line meets the shoulder and hands, and hold when it takes the sled). Each is a line over the catch,
+ * entering at an incidence ahead of the arrival and bending down by the turn the ask implies, placed against the sled
+ * (odd k) or its front (even k). Before any physics, a proposal is kept only when every body point lies on the line's
+ * active side at least BODY_CLEARANCE from it along the line's reach: a body point beyond the line would pass through
+ * it while the sled is pushed away, and one near it would be struck first. On a rider rotated past its side the sled
+ * faces the line and the body is clear: the catch is a landing on the sled's underside. */
+export function proposeUpperReceivers(s: IntervalSearch) {
+  const {options, i, initial, incoming, turn, support, trace} = s;
+  const count = options.upperReceiverProposals ?? 0;
+  if (!(i > 0 && initial > 0 && options.railLayout !== 'transfer' && count > 0)) return;
+  const work = s.ctx.work.upperReceiverWork;
+  const began = getPhysicsFrameCount(), beforeFailures = {...s.failures};
+  const speed = Math.hypot(s.velocity.x, s.velocity.y);
+  try {
+    for (let k = 0; k < count; k++) {
+      const frac = (n: number) => ((k + 1) * n) % 1;
+      const entry = clamp(incoming + 4 + frac(.61803398875) * 36, -75, 85), bend = Math.max(6, turn * (.6 + .7 * frac(.41421356237)));
+      const c: ArcMotionControl = {contactSide: -1, receiverAnchor: k % 2 ? 1 : 2, entry, turn: bend,
+        exit: clamp(entry + bend + frac(.73205080757) * 15, -80, 85), support: support * (.4 + .6 * frac(.2360679775)), bias: 0, offset: .1};
+      // The line's tangent at its anchor, as motionArcPaths lays it: normal n of the entry heading, anchor on the chosen
+      // points' extreme toward the line, the surface reaching back over the lead-in and forward over the support.
+      const e = c.entry * Math.PI / 180, n = {x: Math.sin(e), y: -Math.cos(e)}, t = {x: Math.cos(e), y: Math.sin(e)};
+      const points = (c.receiverAnchor === 1 ? ['PEG', 'TAIL', 'NOSE', 'STRING'] : ['NOSE', 'STRING']).map(key => trace[key]);
+      const p0 = points.reduce((a, b) => -(a.x * n.x + a.y * n.y) < -(b.x * n.x + b.y * n.y) ? a : b);
+      const a0 = {x: p0.x - n.x * c.offset, y: p0.y - n.y * c.offset}, back = Math.max(20, speed * 1.5), ahead = c.support * Math.max(2, speed);
+      const clear = BODY.every(key => {
+        const q = trace[key], along = (q.x - a0.x) * t.x + (q.y - a0.y) * t.y, depth = -((q.x - a0.x) * n.x + (q.y - a0.y) * n.y);
+        return along < -back || along > ahead || depth >= BODY_CLEARANCE;
+      });
+      if (!clear) {work.bodyInTheWay++; continue;}
+      work.attempts++;
+      if (evaluate(s, tagOrigin(c, 'upper'))) work.viable++;
+      if (k % 8 === 7) retainSearch(s);
+    }
+  } finally {
+    work.physicsFrames += getPhysicsFrameCount() - began;
+    for (const [key, n] of Object.entries(s.failures))
+      work.failures[key] = (work.failures[key] ?? 0) + n - (beforeFailures[key] ?? 0);
+  }
+}
+
 /** Offer the same curve constructor from the opposite contact side. Both sides
  * compete under the same musical and physical checks; there is no scheduled
  * upper-hit request or different strength definition. */

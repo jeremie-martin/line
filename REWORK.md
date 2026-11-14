@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, the targeted cleanup of lines the rider goes through (stated before running)
+
+- **Change** (`exp/gone-through`; `arc_gone_through.ts`, option `goneThroughCleanup`): after the ride is built and its
+  rails pruned, the pieces of lines the whole rider goes through (the sled's centre, or 6 of its 10 points) and never
+  touches are removed, with the untouched stretch to the nearer end of their run; kept only when a replay of the
+  cleaned track is identical to the ride's (one extra replay, charged).
+- **Hypothesis:** every ride's score identical to `foundation-2` (the physics is); the rider going through a line falls
+  from about 0.5 to about 0.1 per ride; a few pieces removed per ride; compile time barely moves.
+
 ## November 14: rails never proposed onto their own support, adopted
 
 Merged into `compiler` (the owner: "no negative comment"): a proposal whose rail crosses or comes within 2 px of its

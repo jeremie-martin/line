@@ -39,7 +39,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    phrases trade theirs when the fitted loss of a family in each context
    falls (`family_fit.ts`, a family × context table fitted on V7.1 rides by
    `tools/research/family_fit.ts`); a ride's families keep their number
-   (since 2026-11-14). An explicit plan bypasses this step.
+   (since 2026-11-14). An open-arc phrase is then offered its guide where the
+   table says it clearly fits better (30% or more). An explicit plan bypasses
+   this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section

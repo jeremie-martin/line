@@ -18,6 +18,10 @@
   well (quiet passages).
 - **Hypothesis:** V8 up; open arcs fewer outside quiet passages. **For the owner's eye:** more rails offered (they are
   trimmed when unused).
+- **Result, first execution: not adopted** for its look, though V8 at 8 seeds is **+3.4 [+1.4, +5.3]** (36 specs up,
+  7 down; every category but P6 up) and held out +5.9 [−13.3, +25.0]. Open arcs fall from 20.4% to 6.8% of ride time,
+  arcs offered a guide rise to 42.9%, distinct families per ride 6.82 → 6.43: rails offered nearly everywhere.
+- **Second execution** (same branch): switch only where the open arc's fitted loss is 30% higher or more.
 
 ## November 14: hypothesis, quiet catches laid along the arrival (stated before running)
 

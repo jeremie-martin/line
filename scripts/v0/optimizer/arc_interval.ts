@@ -7,6 +7,7 @@ import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detec
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { refineRidableTwin } from './arc_local_search.ts';
 import { proposeInitialControls, proposeOpposingEntries, proposeRidableTwins, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
 import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
@@ -38,6 +39,8 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
       guidanceSearch(s);
       // the refined best get rail-free ridable twins too (REWORK.md, November 14: R3)
       if (options.ridableTwins) proposeRidableTwins(s, Math.ceil(options.ridableTwins / 2));
+      // the best rail-free twin gets its own refinement (REWORK.md, November 14: R4)
+      refineRidableTwin(s, options.ridableRefinement ?? 0);
     }
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;

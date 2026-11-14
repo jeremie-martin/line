@@ -81,6 +81,7 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   railSupportMargin?: number;
   /** Twins of the best proposals with a support the rider follows unaided (arc_proposals.ts proposeRidableTwins). */
   ridableTwins?: number;
+  ridableRefinement?: number;
   /** After the ride is built, remove the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts). */
   goneThroughCleanup?: boolean;
 };
@@ -124,7 +125,7 @@ export const EVALUATION_IDENTITY = {
   responseSamples: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search', ridableTwins: 'search',
+  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search', ridableTwins: 'search', ridableRefinement: 'search',
   warmStart: 'search', directControls: 'search', controlPolicy: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 

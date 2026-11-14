@@ -30,6 +30,22 @@ export function coordinateSearch(s: IntervalSearch) {
   }
 }
 
+/** The best rail-free ridable twin gets its own coordinate steps on the core controls (REWORK.md, November 14: R4):
+ * its railed original was refined with its rail; without this, the twin competes unrefined. Steps that keep the twin's
+ * shape (ridable, no rail) and rank better replace it; any step may also become the interval's best. */
+export function refineRidableTwin(s: IntervalSearch, samples: number) {
+  let twin = s.candidates.filter(x => x.c.ridable === 1).sort((a, b) => searchRank(a) - searchRank(b))[0];
+  if (!twin || samples <= 0) return;
+  const keys = ARC_CORE_KEYS;
+  for (let k = 0; k < samples; k++) {
+    const key = keys[Math.floor(k / 2) % keys.length], round = Math.floor(k / (2 * keys.length)), sign = k % 2 === 0 ? -1 : 1;
+    const c = {...twin.c, [key]: twin.c[key]! + sign * arcControlStep(key, 'coordinate', twin.c.support) * Math.pow(.65, Math.floor(round / 2))};
+    const r = evaluate(s, deriveOrigin(c, twin.c, 'ridable'));
+    if (r && r.candidate.c.ridable === 1 && searchRank(r.candidate) < searchRank(twin)) twin = r.candidate;
+    if (k % 10 === 9) retainSearch(s);
+  }
+}
+
 /** Guide and shape search, then response steps, within the guidance
  * allowance. Response rounds take their share first; coordinate exploration
  * receives the remainder. */

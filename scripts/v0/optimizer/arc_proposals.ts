@@ -125,7 +125,14 @@ export function proposeRidableTwins(s: IntervalSearch, count = s.options.ridable
     for (const x of ranked) {
       work.attempts++;
       // drawn without a rail: an empty guide stretch draws none (arc_geometry.ts), and refinements do not search it
-      if (evaluate(s, tagOrigin({...x.c, ridable: 1, guideStart: 0, guideEnd: 0}, 'ridable'))) work.viable++;
+      const before = {...s.failures}, bestBefore = s.best ? searchRank(s.best.candidate) : Infinity, r = evaluate(s, tagOrigin({...x.c, ridable: 1, guideStart: 0, guideEnd: 0}, 'ridable'));
+      // report only: why a twin fails, or how it ranks against its original and the interval's best:
+      // [stage (0 early, 1 after refinement), rank − original's, local cost − original's, priors − original's, rank − best's, original has a rail]
+      if (r) {
+        work.viable++; const t = r.candidate;
+        work.rows.push([count === (options.ridableTwins ?? 0) ? 0 : 1, searchRank(t) - searchRank(x), t.localCost - x.localCost,
+          (searchRank(t) - t.localCost) - (searchRank(x) - x.localCost), searchRank(t) - bestBefore, x.lines.length > t.lines.length ? 1 : 0]);
+      } else for (const k of Object.keys(s.failures)) if ((s.failures[k] ?? 0) > (before[k] ?? 0)) work.failures[k] = (work.failures[k] ?? 0) + 1;
     }
   } finally {
     work.physicsFrames += getPhysicsFrameCount() - began;

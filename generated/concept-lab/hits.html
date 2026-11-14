@@ -17,19 +17,18 @@
 </style>
 <main>
 <h1>Hit curves</h1>
-<p class="sub">What a hit does to the picture, by its measured strength, drawn from the renderer's own functions. It goes with the first two pages of <a href="./?set=refine4&amp;q=1">round 50</a>.</p>
+<p class="sub">What a hit does to the picture, by its measured strength, drawn from the renderer's own functions. </p>
 
-<h2>The shake: three ways to make it start earlier and reach 28 px</h2>
-<p>You asked for a shake that starts a little below 0.6 and reaches about 28 px at 0.85 instead of 24, shaped like the colour boost or the split. The grey bars show how many hits of the six lab songs fall at each strength.</p>
+<h2>The shake</h2>
+<p>The shake starts at 0.55 and reaches 28 px at 0.85, shaped as the colour boost. The grey bars show how many hits of the six lab songs fall at each strength.</p>
 <div id="shake"></div>
-<div class="legend"><span><i style="background:var(--ink)"></i>As it is</span><span><i style="background:var(--s1)"></i>From 0.55, shaped as the boost</span><span><i style="background:var(--s2)"></i>From 0.5, shaped as the split</span><span><i style="background:var(--s3)"></i>From 0.6 as today, to 28 px</span></div>
 
-<h2>The split, a fifth stronger since round 49</h2>
-<p>The split (the colour fringe) starts at 0.3 and grows steadily. This is now what videos get.</p>
+<h2>The split</h2>
+<p>The split (the colour fringe) starts at 0.3 and grows steadily.</p>
 <div id="split"></div>
-<div class="legend"><span><i style="background:var(--ink)"></i>As it is now</span><span><i style="background:var(--s1)"></i>Before round 49</span></div>
 
-<h2>The colour boost is unchanged</h2>
+<h2>The colour boost</h2>
+
 <div id="boost"></div>
 
 <h2>How often the band would light</h2>
@@ -38,7 +37,7 @@
 </main>
 <div id="tip"></div>
 <script type="module">
-import {shake, split, boost, TUNES} from '../../scripts/video/hits.js';
+import {shake, split, boost} from '../../scripts/video/hits.js';
 const data = await (await fetch('./analysis/lab-hits.json')).json();
 const NAMES = {circus: 'Circus Minimus', tomada: 'Montagem Tomada', petrunko: 'Petrunko', los: 'Los Voltaje', batidao: 'No Batidão', lua: 'Lua na Praça'};
 const all = Object.values(data).flatMap(d => d.hits), tip = document.getElementById('tip');
@@ -73,15 +72,11 @@ function curves(id, unit, max, series) {
   svg.addEventListener('pointerleave', () => {tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden');});
   document.getElementById(id).append(svg);
 }
-curves('shake', ' px', 48, [
-  {name: 'As it is', colour: 'var(--ink)', f: s => shake(s)},
-  {name: 'As the boost', colour: 'var(--s1)', f: s => shake(s, TUNES.shakeBoost.shake)},
-  {name: 'As the split', colour: 'var(--s2)', f: s => shake(s, TUNES.shakeQuad.shake)},
-  {name: 'To 28 px', colour: 'var(--s3)', f: s => shake(s, TUNES.shakeHigher.shake)}]);
-curves('split', ' px', 48, [{name: 'Now', colour: 'var(--ink)', f: split}, {name: 'Before', colour: 'var(--s1)', f: s => split(s) / 1.2}]);
+curves('shake', ' px', 48, [{name: 'Shake', colour: 'var(--ink)', f: shake}]);
+curves('split', ' px', 48, [{name: 'Split', colour: 'var(--ink)', f: split}]);
 curves('boost', '', 2, [{name: 'As it is', colour: 'var(--ink)', f: boost}]);
 
-document.getElementById('songs').innerHTML = '<tr><th>Song</th><th>Seconds</th><th>Hits</th><th>0.5 or more</th><th>0.6 or more</th><th>0.7 or more</th></tr>' + Object.entries(data).map(([k, {hits, duration}]) =>
-  `<tr><td>${NAMES[k] ?? k}</td><td>${Math.round(duration)}</td><td>${hits.length}</td>${[0.5, 0.6, 0.7].map(t => `<td>${hits.filter(h => h.s >= t).length}</td>`).join('')}</tr>`).join('');
+document.getElementById('songs').innerHTML = '<tr><th>Song</th><th>Seconds</th><th>Hits</th><th>0.6 or more</th><th>0.65 or more</th><th>0.7 or more</th></tr>' + Object.entries(data).map(([k, {hits, duration}]) =>
+  `<tr><td>${NAMES[k] ?? k}</td><td>${Math.round(duration)}</td><td>${hits.length}</td>${[0.6, 0.65, 0.7].map(t => `<td>${hits.filter(h => h.s >= t).length}</td>`).join('')}</tr>`).join('');
 </script>
 </html>

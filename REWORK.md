@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: round 50 answered; the shake earlier and higher; how themes are drawn
+
+**Decided for production:** the shake starts at 0.55 and reaches 28 px at 0.85, shaped as the boost (`hits.js`; the owner's
+pick). Strands are drawn at one weight, between the two shown.
+
+**The collection** (set `2026-11-14-round50`, 90 themes: 37 light, 53 dark): Eucalyptus, Heather Grey, Olive Paper, Lichen,
+Dove (two suns), Morandi (two papers). Ice, Hammershøi and Celadon got "none".
+
+**How themes are drawn** (`choose.js`; my decision, the owner has not judged it): themes too alike count as one draw
+(`ALIKE`), and a theme's approved variants (`VARIANTS`) appear a quarter of the time on that theme. Measured: with light
+themes at 75 %, a variant reaches 1.9 % of videos, because nearly all variants sit on dark themes; at 50 % it is 3.6 %.
+`generated/concept-lab/batch.html` shows forty videos at 75, 60 and 50 % light (`batch.mjs`).
+
+**Open:** the band lit on hits from 0.65 (`hits: lit65`, a lab value; the owner finds it better on dark themes, "remains to
+be seen"); the light share; drop partners for the light themes added since round 46; themes never picked on their own page.
+
 ## November 14: round 49 answered; the split a fifth stronger; round 50
 
 **Decided for production:** the split is a fifth stronger (`hits.js`; the owner: "let's settle on 20% stronger"). The

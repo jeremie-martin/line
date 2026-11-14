@@ -1,0 +1,3023 @@
+{
+ "round": 51,
+ "about": "Forty videos as the chooser draws them, at three light shares.",
+ "schemes": {
+  "t-d2ec694d57ab": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "t-0bddf1e9386b": {
+   "accent": "#85cf5e",
+   "ink": "#e8e3d6",
+   "mass": "#cdc19e",
+   "nightInk": "#e8e3d6",
+   "nightPaper": "#07191d",
+   "paper": "#07191d",
+   "pencil": "#424648",
+   "sun": "#85cf5e"
+  },
+  "t-f463f1c7a877": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "t-395079d99977": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "t-cf3fd20475fa": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "t-72efcbe97fcb": {
+   "accent": "#d96629",
+   "ink": "#efe2cd",
+   "mass": "#e2bc64",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#140e0b",
+   "paper": "#140e0b",
+   "pencil": "#4b3831"
+  },
+  "t-ff874b93578b": {
+   "accent": "#f05940",
+   "ink": "#141414",
+   "mass": "#014a7a",
+   "nightInk": "#fbfaf6",
+   "nightPaper": "#141414",
+   "paper": "#f9f7ef",
+   "pencil": "#b2b1af",
+   "sun": "#f05940"
+  },
+  "t-4860903eef2c": {
+   "accent": "#e7714e",
+   "ink": "#0f1e2f",
+   "mass": "#3e6594",
+   "nightInk": "#fdf5f2",
+   "nightPaper": "#0f1e2f",
+   "paper": "#fdf5f2",
+   "pencil": "#b5b5b9",
+   "sun": "#e7714e"
+  },
+  "t-a0ea6a349059": {
+   "accent": "#f9a63e",
+   "ink": "#2e171f",
+   "mass": "#aa556f",
+   "nightInk": "#e2f2f6",
+   "nightPaper": "#2e171f",
+   "paper": "#fbf6ee",
+   "pencil": "#bbb7b1",
+   "sun": "#f9a63e"
+  },
+  "t-d2b8cd17c297": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "t-cc57d588c18c": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#134e34",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "t-4ac8d7689210": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#478b61",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#061b10",
+   "paper": "#061b10",
+   "pencil": "#505853",
+   "sun": "#f0c45e"
+  },
+  "t-8cd5796e6d2e": {
+   "accent": "#f0b135",
+   "ink": "#25201e",
+   "mass": "#89221c",
+   "nightInk": "#faf9f5",
+   "nightPaper": "#25201e",
+   "paper": "#faf9f5",
+   "pencil": "#ada7a1",
+   "sun": "#f0b135"
+  },
+  "t-77f113c03260": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "t-6dec126bbe54": {
+   "accent": "#f5c252",
+   "ink": "#efe2cd",
+   "mass": "#bc332b",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#140e0b",
+   "paper": "#140e0b",
+   "pencil": "#4b3831"
+  },
+  "t-3b6125e45c3e": {
+   "accent": "#f99d1b",
+   "ink": "#24211d",
+   "mass": "#2b2825",
+   "nightInk": "#f9f3ec",
+   "nightPaper": "#1c170c",
+   "paper": "#eeebdd",
+   "pencil": "#b1afae",
+   "sun": "#f99d1b"
+  },
+  "t-ea30e1e9c046": {
+   "accent": "#d7352d",
+   "ink": "#15181d",
+   "mass": "#2b2e33",
+   "nightInk": "#ffffff",
+   "nightPaper": "#15181d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d7352d"
+  },
+  "t-cd3a1d2e2674": {
+   "accent": "#f68c36",
+   "ink": "#f0ebdc",
+   "mass": "#949664",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#111306",
+   "paper": "#111306",
+   "pencil": "#4f5149",
+   "sun": "#efe8ce"
+  },
+  "t-d4d5e3360587": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "t-b6817f36cea0": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "t-99b5feeb7043": {
+   "accent": "#f9aa60",
+   "ink": "#f0ebdc",
+   "mass": "#7598ad",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#02111b",
+   "paper": "#02111b",
+   "pencil": "#474e53",
+   "sun": "#efe8ce"
+  },
+  "t-f11ca2eb1f74": {
+   "accent": "#e39a1b",
+   "ink": "#3a2115",
+   "mass": "#8c3a1c",
+   "nightInk": "#efe2cd",
+   "nightPaper": "#2a160d",
+   "paper": "#efe2cd",
+   "pencil": "#c4b197",
+   "sun": "#d8622a"
+  },
+  "t-4252d4729d4b": {
+   "accent": "#c26438",
+   "ink": "#1b2525",
+   "mass": "#675928",
+   "nightInk": "#eef4f0",
+   "nightPaper": "#1b2525",
+   "paper": "#f0e9d9",
+   "pencil": "#aca79b",
+   "sun": "#ae5224",
+   "tone": "#cbd8d2"
+  },
+  "t-9d58b06d3f84": {
+   "accent": "#f0a04f",
+   "ink": "#28213a",
+   "mass": "#64547f",
+   "nightInk": "#eeecf1",
+   "nightPaper": "#28213a",
+   "paper": "#eeecf1",
+   "pencil": "#c2bdcb"
+  },
+  "t-636ef987d51a": {
+   "accent": "#ee8545",
+   "ink": "#f0ebdc",
+   "mass": "#a98f57",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#151107",
+   "paper": "#151107",
+   "pencil": "#524f48",
+   "sun": "#efe8ce"
+  },
+  "t-83bea7587eab": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "t-23f122d3d7b3": {
+   "accent": "#f8ed43",
+   "ink": "#f9f6e3",
+   "mass": "#f68c50",
+   "nightInk": "#f9f6e3",
+   "nightPaper": "#08222f",
+   "paper": "#08222f",
+   "pencil": "#36586b",
+   "sun": "#efe8ce"
+  },
+  "t-25fcb3a3ba99": {
+   "accent": "#f2994e",
+   "ink": "#201d28",
+   "mass": "#3a3545",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#201d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#f2994e"
+  },
+  "t-6c151cc9f3ed": {
+   "accent": "#bbd14a",
+   "ink": "#e2e0d9",
+   "mass": "#7ba0e5",
+   "nightInk": "#e2e0d9",
+   "nightPaper": "#0f131f",
+   "paper": "#0f131f",
+   "pencil": "#434448",
+   "sun": "#ebe8dd"
+  },
+  "t-e51081c4de63": {
+   "accent": "#d3262e",
+   "ink": "#15181d",
+   "mass": "#3b414a",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#14171d",
+   "paper": "#ffffff",
+   "pencil": "#b4bcc8",
+   "sun": "#d3262e",
+   "tone": "#eef2f8"
+  },
+  "t-7554e9eb5e0e": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "t-4df07d74755d": {
+   "accent": "#efe8ce",
+   "ink": "#f0ebdc",
+   "mass": "#af7940",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#201309",
+   "paper": "#201309",
+   "pencil": "#5b544f",
+   "sun": "#efe8ce"
+  },
+  "t-33582a6f264c": {
+   "accent": "#ffc83d",
+   "ink": "#f4f1e6",
+   "mass": "#8dadd7",
+   "nightInk": "#f4f1e6",
+   "nightPaper": "#122e57",
+   "paper": "#384c69",
+   "pencil": "#6e7889",
+   "sun": "#f5f2e7"
+  },
+  "t-e254226f5009": {
+   "accent": "#f0c45e",
+   "ink": "#f0ebdc",
+   "mass": "#7478be",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#13122c",
+   "paper": "#13122c",
+   "pencil": "#54545c",
+   "sun": "#f0c45e"
+  },
+  "t-24a70fb5cec1": {
+   "accent": "#ee5e23",
+   "ink": "#f0ebdc",
+   "mass": "#a29e98",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#14110f",
+   "paper": "#14110f",
+   "pencil": "#554e4a",
+   "sun": "#ee5e23"
+  },
+  "t-8095e1ee5926": {
+   "accent": "#ff4d3d",
+   "ink": "#eef1f5",
+   "mass": "#c9ced6",
+   "nightInk": "#eef1f5",
+   "nightPaper": "#101216",
+   "paper": "#101216",
+   "pencil": "#4c535f",
+   "sun": "#e3e8f0"
+  },
+  "t-aeb05155392f": {
+   "accent": "#e9483d",
+   "ink": "#e7ecf0",
+   "mass": "#8294a7",
+   "nightInk": "#e7ecf0",
+   "nightPaper": "#0c1015",
+   "paper": "#0c1015",
+   "pencil": "#494e54",
+   "sun": "#ebeff4"
+  },
+  "t-3ea7c5b1b561": {
+   "accent": "#ffd15a",
+   "ink": "#f8ebeb",
+   "mass": "#c7626f",
+   "nightInk": "#f8ebeb",
+   "nightPaper": "#171226",
+   "paper": "#171226",
+   "pencil": "#5b5361"
+  },
+  "t-02b87efbbf9f": {
+   "accent": "#f0da95",
+   "ink": "#f0ebdc",
+   "mass": "#dd8b50",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#0a1328",
+   "paper": "#0a1328",
+   "pencil": "#50535a",
+   "sun": "#efe8ce"
+  },
+  "t-d5776a5d571a": {
+   "accent": "#e85433",
+   "ink": "#f0ebdc",
+   "mass": "#83868b",
+   "nightInk": "#f0ebdc",
+   "nightPaper": "#17181b",
+   "paper": "#17181b",
+   "pencil": "#55585f",
+   "sun": "#e85433"
+  }
+ },
+ "drops": {},
+ "drafts": [
+  {
+   "id": "batch75-0",
+   "name": "Forty videos, light themes 75 % of the time (1–10)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Dune · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2ec694d57ab",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-0bddf1e9386b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool, pencil → ink",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-395079d99977",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Paper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cf3fd20475fa",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Negoro Lacquer, gold leaf",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-72efcbe97fcb",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs, half cream",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ff874b93578b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Peony, dusty rose on warm white",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-a0ea6a349059",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch75-1",
+   "name": "Forty videos, light themes 75 % of the time (11–20)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Stone",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2b8cd17c297",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Pine and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cc57d588c18c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Green Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4ac8d7689210",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs, half cream",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ff874b93578b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Morandi",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-77f113c03260",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Red Lacquer",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6dec126bbe54",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sumi and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-3b6125e45c3e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch75-2",
+   "name": "Forty videos, light themes 75 % of the time (21–30)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs, half cream",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ff874b93578b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cd3a1d2e2674",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dove",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d4d5e3360587",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-b6817f36cea0",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sea Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-99b5feeb7043",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dune, inked · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f11ca2eb1f74",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Silver and Rust, lighter ivory",
+     "look": {
+      "zoom": "quiet",
+      "ends": "course",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4252d4729d4b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lavender Dusk, violet bars",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-9d58b06d3f84",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Bronze",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-636ef987d51a",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch75-3",
+   "name": "Forty videos, light themes 75 % of the time (31–40)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lichen",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-83bea7587eab",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Peony, dusty rose on warm white",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-a0ea6a349059",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cerulean and Coral, night, cream moon (stars)",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-23f122d3d7b3",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "stars",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dove, apricot sun",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-25fcb3a3ba99",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cobalt and Chartreuse, white moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6c151cc9f3ed",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, red sun",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "t-e51081c4de63",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, pencil → ink",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-7554e9eb5e0e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch60-0",
+   "name": "Forty videos, light themes 60 % of the time (1–10)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Dune · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2ec694d57ab",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-0bddf1e9386b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool, pencil → ink",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-395079d99977",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Paper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cf3fd20475fa",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Negoro Lacquer, gold leaf",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-72efcbe97fcb",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs, half cream",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ff874b93578b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Peony, dusty rose on warm white",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-a0ea6a349059",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch60-1",
+   "name": "Forty videos, light themes 60 % of the time (11–20)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Stone",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2b8cd17c297",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Pine and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cc57d588c18c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Green Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4ac8d7689210",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-0bddf1e9386b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Morandi",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-77f113c03260",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Red Lacquer",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6dec126bbe54",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sumi and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-3b6125e45c3e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch60-2",
+   "name": "Forty videos, light themes 60 % of the time (21–30)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Brown Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4df07d74755d",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cobalt and Chartreuse, white moon (stars)",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6c151cc9f3ed",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "stars",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cd3a1d2e2674",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dove",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d4d5e3360587",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-b6817f36cea0",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sea Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-99b5feeb7043",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dune, inked · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f11ca2eb1f74",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Silver and Rust, lighter ivory",
+     "look": {
+      "zoom": "quiet",
+      "ends": "course",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4252d4729d4b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lavender Dusk, violet bars",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-9d58b06d3f84",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Bronze",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-636ef987d51a",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch60-3",
+   "name": "Forty videos, light themes 60 % of the time (31–40)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lichen",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-83bea7587eab",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cyanotype, white sun",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-33582a6f264c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dusk Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-e254226f5009",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cerulean and Coral, night, cream moon (stars)",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-23f122d3d7b3",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "stars",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Ash and Ember",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-24a70fb5cec1",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cobalt and Chartreuse, white moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6c151cc9f3ed",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, red sun",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "fork",
+      "accent": "loud",
+      "bandHeight": "lowmid",
+      "scheme": "t-e51081c4de63",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Black Iris, thin strands and a moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "iris",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8095e1ee5926",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch50-0",
+   "name": "Forty videos, light themes 50 % of the time (1–10)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Dune · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2ec694d57ab",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-0bddf1e9386b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Stone, cool, pencil → ink",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-395079d99977",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Paper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cf3fd20475fa",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Negoro Lacquer, gold leaf",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-72efcbe97fcb",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sky",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f463f1c7a877",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cut-outs, half cream",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ff874b93578b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Peony, dusty rose on warm white",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-a0ea6a349059",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch50-1",
+   "name": "Forty videos, light themes 50 % of the time (11–20)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Stone",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d2b8cd17c297",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4860903eef2c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Winter Moon, darker bars",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-aeb05155392f",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "crescent",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Green Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4ac8d7689210",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-0bddf1e9386b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "White and Vermilion, deep red and gold",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8cd5796e6d2e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Morandi",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-77f113c03260",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Red Lacquer",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6dec126bbe54",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sumi and Amber",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-3b6125e45c3e",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch50-2",
+   "name": "Forty videos, light themes 50 % of the time (21–30)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Brown Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4df07d74755d",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cobalt and Chartreuse, white moon (stars)",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6c151cc9f3ed",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "stars",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-cd3a1d2e2674",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dove",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d4d5e3360587",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Old Rose · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-3ea7c5b1b561",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sea Moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-99b5feeb7043",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dune, inked · v1",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-f11ca2eb1f74",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Silver and Rust, lighter ivory",
+     "look": {
+      "zoom": "quiet",
+      "ends": "course",
+      "line": "rail",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-4252d4729d4b",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lavender Dusk, violet bars",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "inking",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-9d58b06d3f84",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Bronze",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-636ef987d51a",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "batch50-3",
+   "name": "Forty videos, light themes 50 % of the time (31–40)",
+   "source": "Batch",
+   "line": "",
+   "variants": [
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lantern",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-02b87efbbf9f",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cyanotype, white sun",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-33582a6f264c",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dusk Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-e254226f5009",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cerulean and Coral, night, cream moon (stars)",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-23f122d3d7b3",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "stars",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Ash and Ember",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-24a70fb5cec1",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "title",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cobalt and Chartreuse, white moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-6c151cc9f3ed",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Grey Room",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-d5776a5d571a",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Black Iris, thin strands and a moon",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "iris",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-8095e1ee5926",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    },
+    {
+     "label": "Paper, black and red print",
+     "look": {
+      "zoom": "steady",
+      "ends": "course",
+      "line": "ink",
+      "band": "bars",
+      "accent": "heat",
+      "bandHeight": "lowmid",
+      "scheme": "t-ea30e1e9c046",
+      "paper": "vibranceSoftHalfPaper",
+      "top": "sun",
+      "drop": "off",
+      "riderLower": "0",
+      "sunRider": "32",
+      "sunLift": "16",
+      "hits": "v1",
+      "irisWeight": "thin"
+     },
+     "note": ""
+    }
+   ]
+  }
+ ]
+}

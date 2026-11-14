@@ -27,7 +27,7 @@ These are fixed for all themes (`look.js` `V1`):
 - **The music.** A band at the bottom, low-middle: bars in most themes, a fork or the Iris contour in a few. The hottest
   bars take the accent, following recent hits.
 - **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. A shake only on
-  strong hits, from 0.6, growing to 24 px at 0.85.
+  strong hits, from 0.55, growing to 28 px at 0.85.
 - **Colour follows the ride.** When the ride is intense, colour grows more vivid: nothing below intensity 0.3, full at
   0.9, the paper at half strength. The calm part of a song is the theme exactly as designed.
 
@@ -41,6 +41,9 @@ inked, and whether colour follows the ride.
 
 **Choosing a video's look** (`choose.js`): from the ride's id, so the same ride always gets the same look.
 - 75 % of videos get a light theme.
+- Themes too alike to tell apart in a batch (`collection.js` `ALIKE`) are drawn as one, then one of them is picked.
+- A theme with approved variants (`VARIANTS`: stars around the moon, a crescent, dots, strands) shows one a quarter of
+  the time. `generated/concept-lab/batch.html` shows forty videos drawn this way at three light shares.
 - For a light theme whose song has a drop, a drop half the time.
 - These shares are a starting point, not a finding.
 

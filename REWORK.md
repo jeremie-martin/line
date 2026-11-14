@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, ridable twins (R1; stated before running; a first step toward geometry that needs no rail)
+
+- **Basis** (`tools/research/rail_counterfactual.ts`, seed 101, 2,323 touched rails, each removed alone and the ride
+  replayed): without its rail the rider is thrown off in 14% (arcs 21%); where the rail was touched at the release the
+  rider leaves the support earlier in 63% (median 2 frames); the flight reaches the next beat 7° off (median). Unaided,
+  a rider at about 10 px/frame follows a curve bending downward at no more than about 1° per frame (speed² × curvature
+  ≤ g cos slope); most arc ends bend faster, so the rail holds the rider to the end.
+- **Change** (`exp/ridable`): on arcs that may have a rail, 8 twins of the interval's best proposals whose support the
+  rider follows unaided (control `ridable`: after the catch's turn the heading never turns further downward, no bend):
+  the rider leaves where and as the geometry says without a rail. Refinements of a twin stay ridable. Nothing prefers
+  them; the allowance is unchanged.
+- **Hypothesis:** rails touched and rails kept on arcs fall; the headline within a few points; the launched flights'
+  speed and air errors about unchanged. **Watch:** completion, every ruler, rail share, the geometry sheet.
+
 ## November 14: what a rail does in the ride (report only; before building a geometry that makes it unnecessary)
 
 The owner's direction: not fewer rails by rule, but "a geometry that would make them unnecessary, at least in some

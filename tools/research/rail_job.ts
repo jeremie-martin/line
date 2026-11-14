@@ -39,7 +39,18 @@ for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seed
     const main = track.lines.filter((l: any) => gapOf(l.id) === g && !guides.has(l.id)).sort((a: any, b: any) => a.id - b.id);
     const hd = (l: any) => Math.atan2(l.y2 - l.y1, l.x2 - l.x1) * 180 / Math.PI;
     const endBend = main.length >= 6 ? ((hd(main.at(-1)) - hd(main[Math.floor(main.length * 2 / 3)]) + 540) % 360) - 180 : NaN;
-    rows.push({endBend, airError: axis('air'), speedError: axis('speed'), ride: id, gap: g, family: s.family, guidance: s.guidance, railKept: !!cell.character?.railDrawn?.[g], ask: b.requested,
+    // how hard the end asks to be held: at the release, the rider's speed² × the support's curvature there (the heading
+    // turn per px over the pieces around the release point) against gravity's push into the support (g × cos of the
+    // slope). Above 1 the rider would leave the curve unless held; at or below 1 gravity holds it.
+    let hold = NaN;
+    const relLine = frames[release]?.collisions.map(([lid]: number[]) => main.find((m: any) => m.id === lid)).find(Boolean);
+    if (relLine) {
+      const k = main.indexOf(relLine), a = main[Math.max(0, k - 2)], c = main[Math.min(main.length - 1, k + 2)];
+      const turn = ((hd(c) - hd(a) + 540) % 360) - 180, span = main.slice(Math.max(0, k - 2), Math.min(main.length, k + 3)).reduce((n: number, l: any) => n + Math.hypot(l.x2 - l.x1, l.y2 - l.y1), 0);
+      const curvature = (turn * Math.PI / 180) / Math.max(1, span), slope = hd(relLine) * Math.PI / 180, v = speed(frames[release]);
+      hold = (v * v * curvature) / (.175 * Math.max(.05, Math.cos(slope)));
+    }
+    rows.push({hold, endBend, airError: axis('air'), speedError: axis('speed'), ride: id, gap: g, family: s.family, guidance: s.guidance, railKept: !!cell.character?.railDrawn?.[g], ask: b.requested,
       bias: b.hit.strength - b.requested, keep: vAfter / Math.max(.1, vBefore), atCatch, onSupport, atRelease, touched: atCatch + onSupport + atRelease > 0,
       support: Math.max(0, release - start)});
   }
@@ -64,5 +75,10 @@ const arcs = rows.filter(r => r.family === 'arcs' && Number.isFinite(r.endBend))
 for (const [label, g] of [['rail touched at the release', arcs.filter(r => r.atRelease)], ['no rail touched', arcs.filter(r => !r.touched)]] as const) {
   const q = (p: number) => [...g.map(r => r.endBend)].sort((a, b) => a - b)[Math.floor(p * (g.length - 1))];
   console.log(`arcs, ${label}: ${g.length}; the support's bend over its last third: p10 ${q(.1).toFixed(0)}°, median ${q(.5).toFixed(0)}°, p90 ${q(.9).toFixed(0)}°; bending downward (convex) ${pc(g.filter(r => r.endBend > 2).length / g.length)}, upward ${pc(g.filter(r => r.endBend < -2).length / g.length)}`);
+}
+// how hard the end asks to be held at the release (above 1: the rider would leave the curve unless held)
+for (const [label, g] of [['arcs, rail touched at the release', arcs.filter(r => r.atRelease && Number.isFinite(r.hold))], ['arcs, no rail touched', arcs.filter(r => !r.touched && Number.isFinite(r.hold))]] as const) {
+  const q = (p: number) => [...g.map(r => r.hold)].sort((a, b) => a - b)[Math.floor(p * (g.length - 1))];
+  console.log(`${label}: ${g.length}; speed² × curvature / (g cos slope) at the release: p10 ${q(.1).toFixed(2)}, median ${q(.5).toFixed(2)}, p90 ${q(.9).toFixed(2)}; above 1 ${pc(g.filter(r => r.hold > 1).length / g.length)}`);
 }
 process.exit(0);

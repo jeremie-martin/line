@@ -73,27 +73,47 @@ function segmentGap(p1:{x:number;y:number},p2:{x:number;y:number},q1:{x:number;y
  * support, or starting at the corner where the rider leaves it). */
 export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support:ReadonlyArray<{x:number;y:number}>,margin:number):boolean{
   if(rail.length<2||support.length<2)return false;
+  // Support segments by grid cell (CELL px): a rail point or segment is compared with nearby segments only. A segment
+  // within CELL of a point lies in the 3×3 cells around it, so a nearest found there within CELL is the nearest of all;
+  // otherwise every segment is compared, and the result is exactly the full comparison's.
+  const CELL=16,grid=new Map<number,number[]>(),key=(ix:number,iy:number)=>ix*1048576+iy;
+  for(let i=1;i<support.length;i++){
+    const a=support[i-1],b=support[i];
+    for(let ix=Math.floor(Math.min(a.x,b.x)/CELL);ix<=Math.floor(Math.max(a.x,b.x)/CELL);ix++)
+      for(let iy=Math.floor(Math.min(a.y,b.y)/CELL);iy<=Math.floor(Math.max(a.y,b.y)/CELL);iy++){
+        const k=key(ix,iy),list=grid.get(k);if(list)list.push(i);else grid.set(k,[i]);}
+  }
+  const nearest=(p:{x:number;y:number},indices:Iterable<number>)=>{
+    let best=Infinity,signed=0,inside=false,at=-1;
+    for(const i of indices){
+      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,raw=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(raw,0,1);
+      const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
+      // ties keep the lower index, as a scan in order does
+      if(d<best||(d===best&&i<at)){best=d;at=i;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
+    }
+    return {best,signed,inside};
+  };
+  const all=Array.from({length:support.length-1},(_,k)=>k+1);
   const gaps:number[]=[];
   let atEnd=false;
   for(const p of rail){
-    let best=Infinity,signed=0,inside=false;
-    for(let i=1;i<support.length;i++){
-      const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,raw=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(raw,0,1);
-      const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
-      if(d<best){best=d;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
-    }
-    if(inside)gaps.push(signed);else if(best<margin)atEnd=true;
+    const ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL),near=new Set<number>();
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++)for(const i of grid.get(key(ix+dx,iy+dy))??[])near.add(i);
+    let found=nearest(p,near);
+    if(!(found.best<=CELL))found=nearest(p,all);
+    if(found.inside)gaps.push(found.signed);else if(found.best<margin)atEnd=true;
   }
   if(atEnd)return true;
   // Between its points a rail meeting the support at an angle comes closer than either point: segment against segment.
   // Only segment pairs whose bounding boxes come within the margin can (a cheap filter: the pairs are many).
   for(let j=1;j<rail.length;j++){
     const a=rail[j-1],b=rail[j],ax0=Math.min(a.x,b.x)-margin,ax1=Math.max(a.x,b.x)+margin,ay0=Math.min(a.y,b.y)-margin,ay1=Math.max(a.y,b.y)+margin;
-    for(let i=1;i<support.length;i++){
-      const c=support[i-1],d=support[i];
-      if(Math.max(c.x,d.x)<ax0||Math.min(c.x,d.x)>ax1||Math.max(c.y,d.y)<ay0||Math.min(c.y,d.y)>ay1)continue;
-      if(segmentGap(a,b,c,d)<margin)return true;
-    }
+    for(let ix=Math.floor(ax0/CELL);ix<=Math.floor(ax1/CELL);ix++)for(let iy=Math.floor(ay0/CELL);iy<=Math.floor(ay1/CELL);iy++)
+      for(const i of grid.get(key(ix,iy))??[]){
+        const c=support[i-1],d=support[i];
+        if(Math.max(c.x,d.x)<ax0||Math.min(c.x,d.x)>ax1||Math.max(c.y,d.y)<ay0||Math.min(c.y,d.y)>ay1)continue;
+        if(segmentGap(a,b,c,d)<margin)return true;
+      }
   }
   if(!gaps.length)return false;
   const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;

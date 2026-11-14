@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails and upper hits (measured; compiler unchanged)
+
+The ride-character measures (`tools/measure/contact_role.ts`, `character.ts`) on the 196 V8 rides (4 seeds) of the
+brief's start and of every adopted version since, remeasured from saved cells (`npm run compare -- report`, names
+`character-v8` and `character-step-<commit>`).
+
+| version | rails, ride time | open arcs | clean upper hits, strong beats | longest railed, median | V8 vs start |
+|---|---|---|---|---|---|
+| start (nov13) | 52% | 38% | 9.6% | 4.5 s | |
+| ending refinement deleted | 52% | 38% | 9.6% | 4.5 s | −0.2 |
+| guides offered on strong phrases | 65% | 26% | 5.8% | 7.3 s | +8.5 |
+| lead-ins below the arrival | 65% | 26% | 6.1% | 7.3 s | +8.5 |
+| families placed where they fit | 64% | 28% | 8.0% | 7.1 s | +16.3 |
+| placement table refitted | 64% | 26% | 7.6% | 7.1 s | +18.8 |
+| guides where they clearly fit (today) | 69% | 22% | 7.1% | 8.2 s | +20.2 |
+
+- Rides with rails on more than 70% of their time: 4 → 97 of 196; the most railed ride 72% → 92%.
+- Only strong beats lost clean upper hits (pooled 11.8% → 8.7%); middle beats kept theirs (15.8% → 16.6%).
+- At the start, open arcs (no rail allowed) caught 20.5% of their strong beats with a clean upper hit, about twice any
+  other family; strong phrases left them. Within a family, a section with a rail drawn does not catch fewer upper hits.
+- On strong beats clean upper hits land softest (bias −0.18 against −0.09 for floor catches, same asks) and arrive
+  head-down twice as often (22% against 10%): the score and the head-down guard both count against them.
+- Between seeds of one spec, rail share and clean upper share correlate −0.52 (start), −0.13 (today).
+- Distinct families per ride did not move (5.9 → 5.8): it misses this.
+- For the owner: rail budget, strong phrases back to open arcs, an upper-hit construction, how upper hits are measured.
+  Nothing decided; the compiler is unchanged.
+
 ## November 14: hypothesis, the placement table refitted on more rides (stated before running)
 
 - **Change** (`exp/families-fit-more`): the same 12 contexts, fitted on the V7.1 rides of both compilers (before and

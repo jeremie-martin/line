@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: what rotates the rider between catches (report only; upper hits, step 1)
+
+`tools/research/rotation.ts` on the foundation (V8, 4 seeds): 16,627 flights of 4 frames or more before a catch.
+
+- **The chain is predictable.** The rider leaves the line turning at the line's own rate (correlation 0.84, plus about
+  2°/frame at the release), and that spin carries through the flight (spin × air time against the sled's turn over the
+  flight: 0.96). So the end of a gap's geometry sets the rider's rotation at the next catch.
+
+  | line's turn rate at the release (°/frame) | flights | spin after | turn over the flight | tilt at the catch |
+  |---|---|---|---|---|
+  | under −6 | 2,921 | −5.3 | −52° | 43° |
+  | −6 to −2 | 2,662 | −1.3 | −16° | 32° |
+  | −2 to 2 | 6,019 | +1.4 | +11° | 28° |
+  | 2 to 6 | 3,175 | +5.3 | +41° | 48° |
+  | over 6 | 1,850 | +10.3 | +78° | 64° |
+
+- Flights last 11 frames at the median (5–18). Tilt at the catch (0° upright, 180° upside down): median 32°, over 60°
+  in 24% of catches, over 90° in 6.5%. Strong upper catches arrive more tilted (median 45°) than floor catches (27°).
+- The angle between the last two lines touched (a "lip") does not predict the spin (0.03); the turn rate does.
+- No family releases with markedly more spin than another (mean |spin| 4.0–4.9°/frame).
+
 ## November 14: why strong catches from above come apart (report only; upper hits, stage 2 groundwork)
 
 The foundation, V8 seed 101, 49 specs, tracks identical to `compiler` (49/49).

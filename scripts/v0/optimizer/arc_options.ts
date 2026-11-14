@@ -81,6 +81,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   railSupportMargin?: number;
   /** After the ride is built, remove the pieces of lines the whole rider goes through and never touches (arc_gone_through.ts). */
   goneThroughCleanup?: boolean;
+  /** Proposals of receivers met from above that keep the rider's body clear (arc_proposals.ts proposeUpperReceivers). */
+  upperReceiverProposals?: number;
 };
 
 /** Set only by the compiler for one interval search. */
@@ -122,7 +124,7 @@ export const EVALUATION_IDENTITY = {
   responseSamples: 'search', memorySamples: 'search',
   memoryResponseSamples: 'search', policySamples: 'search', valueWeight: 'search',
   initialRecoverySamples: 'search',
-  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search',
+  constructionExamples: 'search', constructionPolicies: 'search', opposingEntryProposals: 'search', upperReceiverProposals: 'search',
   warmStart: 'search', directControls: 'search', controlPolicy: 'search',
 } as const satisfies Record<keyof IntervalOptions, EvaluationRole>;
 
@@ -145,6 +147,8 @@ export function validateArcOptions(seed: number, options: ArcMotionOptions) {
   validateImpactSearchOptions(options.impactSearch);
   if (options.opposingEntryProposals !== undefined && (!Number.isSafeInteger(options.opposingEntryProposals) ||
     options.opposingEntryProposals < 0 || options.opposingEntryProposals > 64)) throw new Error('invalid opposing-entry allowance');
+  if (options.upperReceiverProposals !== undefined && (!Number.isSafeInteger(options.upperReceiverProposals) ||
+    options.upperReceiverProposals < 0 || options.upperReceiverProposals > 64)) throw new Error('invalid upper-receiver allowance');
   if (options.impactPreparationFrames !== undefined && (!Number.isSafeInteger(options.impactPreparationFrames) ||
     options.impactPreparationFrames < 0 || options.impactPreparationFrames > 2)) throw new Error('invalid impact preparation');
   arcMainSteps(1, undefined, options.faces);

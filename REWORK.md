@@ -7,6 +7,8 @@
   (524 rides, 139 cells with 30 sections or more; the rest fall back to the context's mean).
 - **Hypothesis:** placement improves further where a section prepares a strong catch (G, P1, P4); V8 up against
   `compiler` (which has placement).
+- **Result: not adopted**, −1.8 [−4.0, +0.5] (V8, 4 seeds); explicit +12.3, head-down strong arrivals −8%. Finer
+  contexts thin the table (139 of 168 cells fitted, the rest fall back to the context's mean): the coarse table stays.
 
 ## November 14: hypothesis, families where they fit (stated before running)
 

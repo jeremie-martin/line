@@ -14,7 +14,7 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
   const boundarySections=new Set(boundaries.map(t=>requests.find(r=>r.section>0&&r.frame>=Math.round(t*40))?.section));
   const phrases:ProductionPlan['phrases']=[];let previous='';
   for(let first=1;first<requests.length;){
-    let count=Math.min(rng()<.5?2:3,requests.length-first);
+    let count=Math.min(rng()<.5?3:4,requests.length-first);
     for(let offset=1;offset<count;offset++){
       const a=contexts[first],b=contexts[first+offset];
       if(boundarySections.has(first+offset)||Math.abs(a.quiet-b.quiet)>.4||Math.abs((a.speed??.5)-(b.speed??.5))>.2){count=offset;break;}

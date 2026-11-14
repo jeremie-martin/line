@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: middle-ground rail margins (stated before running)
+
+The owner asked for a middle ground between today's 2 px and the rider's height (10 px, −22.6 beyond open arcs).
+Three branches from `foundation-4`, the rail-support margin alone changed: `exp/rail-margin-4`, `-6`, `-8`; V8 against
+`foundation-4`. Touched rails today lie 0–4 px from their support 3%, 4–6 px 18%, 6–8 px 25%, 8–10 px 23%.
+**Hypothesis:** the cost grows with the share of squeezing rails a margin removes: 4 px about 0, 6 px about −5, 8 px
+about −12; pinched frames and speed beyond gravity on touched rails fall with each step; rails fall below 43% of gaps.
+
 ## November 14: rails kept clear by the rider's height (result: not adopted)
 
 - `exp/arcs-open-clear` (open arcs + upper receivers, rail-support margin 10 px instead of 2), V8 against `base`:

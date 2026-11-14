@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the owner's blind upper-hit study (measured)
+
+`upper-hits-2026-11` (labels/studies): 14 pairs, a clean upper hit against a floor hit of the same strike strength
+(within 0.03) on a similar ask, plus 4 checks (two floor hits 0.35–0.46 apart). "Which one is the bigger impact?"
+
+- **The clean upper hit was chosen as bigger in 14 of 14 pairs** (no "same"; chance 1 in 16,384).
+- **The 4 checks were all "about the same"**, though their strike strengths differ by 0.35–0.46.
+- Reading: at equal measured strength the owner sees a clean upper hit as the bigger impact, every time; among floor
+  hits he does not tell large strength differences apart (as in the October studies,
+  REWORK.md, October). So the strike under-rates clean upper hits as he perceives them, by an amount
+  this study cannot size (it may exceed any floor difference). With the stage-1 finding (a line pushing down needs
+  about 20% less push for the same turn), the turn of the path may be closer to what he sees than the push.
+- Nothing changes in the measure yet: a new definition needs its own held-out check against his labels.
+
 ## November 14: how today's upper hits happen (report only; stage 1 of the upper-hit work)
 
 `tools/research/upper_hits.ts` on the foundation (`compiler`, V8, 4 seeds): the 7,771 strong beats (ask 0.6+) caught

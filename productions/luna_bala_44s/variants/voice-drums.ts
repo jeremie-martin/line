@@ -32,7 +32,7 @@ export {overlayMeta} from '../music.ts';
 
 /** Half-beats that sound at 0.3 or more without a sharp attack, left out of music.ts's OFFBEATS:
  *  held chords ("other" 0.35–0.43) and bass notes (0.31–0.44). */
-const HELD_OFFBEATS = [9.021, 9.451, 10.008, 11.204, 17.16, 28.642, 29.06, 33.402, 33.994, 37.802, 42.144, 42.69];
+const HELD_OFFBEATS = [9.021, 9.451, 10.008, 11.204, 17.16, 28.642, 29.06, 33.402, 33.994, 37.384, 37.802, 42.144, 42.69];
 /** The tom break: the three tom hits after its downbeat, and the quiet chord pulse between them. */
 const BREAK_TOMS = [24.416, 24.961, 25.507], BREAK_CHORDS = [24.706, 25.252, 25.797];
 

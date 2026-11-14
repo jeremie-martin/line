@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: arcs never offered a rail, upper receivers (adopted, the owner's choice)
+
+- **Decided by the owner** after watching whole rides (`generated/rails-review/`): "I know for a fact that I prefer the
+  version with the fewer rails … there's no scenario where I prefer more rails … my perception says that there is no
+  comparison … the effect of a lower score is very minor." Adopted as tested (`exp/arcs-open-upper`):
+  - the planner draws and places families as before; an arc phrase drawn as guided becomes an open arc
+    (`intentional_repertoire.ts`); shaped families and scattered segments keep their optional rail;
+  - 12 receivers met from above per section, the rider's body clear of the line (E1c,
+    `contact_impact_profile.ts` `upperReceiverProposals`).
+- **Measured** (V8 against `base`): headline −9.0 [−14.8, −3.2]; explicit −6.3; every ride finished; rails 55% → 43% of
+  gaps; open arcs 37% → 48%; clean upper hits 9.4% → 12.6% of strong beats; body drag −14%; head-down strong arrivals
+  +8%. Very strong catches land softer (bias −0.016) and flights miss their speed a little more (rms +0.003).
+- Checks: tests pass (the planner test now states the rule), typecheck 0, reach unchanged, parity references refreshed
+  in their own commit, parity and judge parity pass.
+- Named reference `foundation-4` = this commit. The rider-height rail margin (`exp/arcs-open-clear`) runs against
+  `base`; it is a candidate on top of this.
+
 ## November 14: the owner's look at fewer rails, rails that squeeze the rider, and rails kept clear by the rider's height
 
 - **Review** (`generated/rails-review/`, five songs, seed 101, production renderer: `base` against

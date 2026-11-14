@@ -55,13 +55,15 @@ export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number
   return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
 }
 
-/** Whether a rail crosses, or comes within `margin` px of, the support it was laid beside, along the support's own span
- * (rail points beyond either end of the support are where the rider has left it). The rail's side is its median
- * point's; a point on the other side, or nearer than `margin`, is a meeting (REWORK.md, November 14: the rider is seen
- * going through such a rail). */
+/** Whether a rail crosses, or comes within `margin` px of, the support it was laid beside (REWORK.md, November 14: the
+ * rider is seen going through such a rail). Along the support's span the rail's side is its median point's there, and
+ * a point on the other side or nearer than `margin` is a meeting; past either end of the support the side is not
+ * defined, so a point there meets it only by coming within `margin` of the end (a rail converging onto the end of its
+ * support, or starting at the corner where the rider leaves it). */
 export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support:ReadonlyArray<{x:number;y:number}>,margin:number):boolean{
   if(rail.length<2||support.length<2)return false;
   const gaps:number[]=[];
+  let atEnd=false;
   for(const p of rail){
     let best=Infinity,signed=0,inside=false;
     for(let i=1;i<support.length;i++){
@@ -69,8 +71,9 @@ export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support
       const d=hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);
       if(d<best){best=d;signed=(dx*(p.y-a.y)-dy*(p.x-a.x)>=0?1:-1)*d;inside=(raw>=0||i>1)&&(raw<=1||i<support.length-1);}
     }
-    if(inside)gaps.push(signed);
+    if(inside)gaps.push(signed);else if(best<margin)atEnd=true;
   }
+  if(atEnd)return true;
   if(!gaps.length)return false;
   const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;
   return gaps.some(g=>side*g<margin);

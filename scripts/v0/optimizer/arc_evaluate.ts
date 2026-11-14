@@ -304,7 +304,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
     const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
     const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
-    const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
+    let r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail
     // axis past vertical, or pointing against the travel (uprightArrival).
@@ -314,6 +314,14 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
       const backward = Math.max(0, -(ax * finalVelocity.x + ay * finalVelocity.y) / (len * (hypot2(finalVelocity.x, finalVelocity.y) || 1)));
       const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
       r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
+    }
+    // The other way into a strong catch is from above (REWORK.md, November 14): such catches hold on a flatter arrival,
+    // and a rider rotated past its side meets the line with the sled. With upperArrival set, the arrival is charged the
+    // cheaper of the floor setup (the steep, upright arrival above) and the upper one (that heading, rotation free).
+    const upper = options.impactSearch?.upperArrival;
+    if (upper !== undefined && angled > 0) {
+      const ru = weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - upper) / 45;
+      if (ru * ru < r1 * r1 + r3 * r3) {r1 = ru; r3 = 0;}
     }
     residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
     cost += r1 * r1 + r2 * r2 + r3 * r3;

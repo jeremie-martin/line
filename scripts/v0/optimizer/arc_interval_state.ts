@@ -37,6 +37,12 @@ export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overri
   const options: IntervalOptions = {...compileOptions, ...overrides, ...compileOptions.sectionStyles?.[i]};
   const constructionPolicy = i > 0 ? options.constructionPolicies?.[arcConstructionMemoryKey(options)] : undefined;
   if (constructionPolicy) options.controlPolicy = constructionPolicy;
+  // Shapes relax under intensity: a serpentine, scallop or terrace bends up to 40% less as its catch's ask rises from
+  // 0.4 to 0.8 (its learned sources stay those of its family; the look stays its family's). Folds keep their corners.
+  if (i > 0 && options.profile && options.profile !== 'fold') {
+    const ask = ctx.gaps[ctx.contacts[i].gap]?.targets.impact ?? 0, t = Math.max(0, Math.min(1, (ask - .4) / .4));
+    options.profileStrength = (options.profileStrength ?? 1) * (1 - .4 * t * t * (3 - 2 * t));
+  }
   const nextRequest = options.constructionRequests?.[i + 1];
   if (nextRequest && (nextRequest.context?.quiet ?? 0) < .5 &&
     (nextRequest.guidance === 'forbidden' || nextRequest.railLayout === 'transfer')) {

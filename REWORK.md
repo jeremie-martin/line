@@ -9,6 +9,17 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, shapes relax under intensity (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8, more than their sections' own losses explain (with placement, terraces
+  in strong contexts beat guided arcs; serpentines 0.0376 against 0.0298 a section): the cost is downstream, in the speed
+  and heading they hand on, and their reversals strike (serpentine unasked hits 2× an arc's).
+- **Change** (`exp/shapes-relax-under-intensity`): a serpentine, scallop or terrace bends up to 40% less as its catch's
+  ask rises from 0.4 to 0.8 (smooth); its learned sources stay its family's. Folds unchanged. Same families, same count;
+  in intense passages their shapes are calmer.
+- **Hypothesis:** V8 up, mostly G and the strong categories; extras down. **Watch:** fallbacks to plain arcs (a shape must
+  still realize), the geometry sheet.
+
 ## November 14: hypothesis, shaped sections borrow the arcs' learned catches (stated before running)
 
 - **Basis.** Shapes cost about 19 points on V8 (above). A shaped section's catch comes before its shape; its learned

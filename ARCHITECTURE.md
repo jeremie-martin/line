@@ -549,9 +549,31 @@ Known limits of the strike account:
       short-shape fitting changed a section is not recorded; the report
       counts short sections by planned family instead. Remeasurement carries
       the facts over and cannot reconstruct them for older cells.
-  - Every run is scored under every account (v1, v2, v3).
+  - Every run is scored under every account (v1, v2, v3); the report keeps one
+    loss row per account and the v3 detail (R1 rows and v1/v2 sub-rows retired
+    from the report on 2026-11-14; cells still record them).
   - Guard rows from the blind-spot audit: head-down/backward strong
     arrivals, body drag, off-beat kicks.
+  - **Ride character** (report only, never in a headline; since 2026-11-14):
+    - One definition of how the rider meets the track, `tools/measure/contact_role.ts`:
+      a line is a *guide* (a rail; its ids come from the compile, kept in the geometry
+      facts as ranges) or a *main* line, and pushes the rider *up*, *down* or as a
+      *wall*. A matched hit is classified by what touches in its first three frames:
+      floor, floor+rail, upper, upper+rail, rail, other. A *clean upper hit* is
+      `upper`: the beat caught on a line's underside, no rail touched.
+    - `tools/measure/character.ts`, from the replay the measurement already makes:
+      which sections keep a rail in the final track (unused rails are trimmed),
+      and seconds per minute touching a rail, a line from above, or with the body.
+    - `summary.ts` `characterOfCell`: rails, open arcs (arcs keeping no rail) and
+      shapes as shares of ride time, the longest railed stretch, clean upper hits
+      as a share of strong beats (0.6 or more; a beat with no hit counts as not
+      clean) and of all beats. Every comparison prints one "ride character" line
+      beside the guards (rails with the largest single ride, open arcs, shapes,
+      clean upper hits); the detail has every row.
+    - Saved compare cells from before guide ids were kept get them rebuilt from the
+      compile output saved beside them (`arms.ts` `currentGeometry`, which must
+      reproduce every older fact). Runs of `eval.ts` save no compile output: their
+      character is "not recorded".
   - `tools/eval/inputs.ts` resolves authoring and timing before compilation.
     `records.ts` binds every result to that immutable plan and verifies the saved
     track hash. `loadRun` requires exactly the declared panel; only resume may

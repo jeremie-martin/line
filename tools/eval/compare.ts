@@ -453,18 +453,22 @@ async function rides() {
 /** Whole rides of both versions, for review by eye: each ride's video, the reference's and the candidate's (the player switches
  * between them at the same moment), and a still sheet of their geometry (geometry_sheet.ts). The rides are --cases, or one per
  * song (videos, --rides) or per spec (the sheet, --sheet) among those that moved most, either way. Saved rides only. V8 specs are
- * time-warped away from their recordings, so their rides are left out: review on a panel of authored specs (V7.1). */
+ * time-warped away from their recordings, so their rides get no video (review videos on a panel of authored specs, V7.1); the
+ * sheet, which has no sound, takes them. */
 async function review() {
   const k = Number(arg('rides', '4')), sheetRides = Number(arg('sheet', '8')), jobs = Number(arg('jobs', '4')), began = performance.now();
   assert.ok(Number.isSafeInteger(k) && k >= 1 && Number.isSafeInteger(sheetRides) && sheetRides >= 1, '--rides and --sheet must be positive integers');
   const s = await select(), {cells} = loadState(s), cov = coverage(s, cells), caseOf = (id: string) => s.cases.find(c => c.id === id)!;
   // The library songs (*_selection) are long: left out unless --all-songs.
-  const pool = cov.matched.filter(id => !caseOf(id).variant?.startsWith('v8-') && (flag('all-songs') || !caseOf(id).song.endsWith('_selection')));
-  assert.ok(pool.length, 'no matched saved rides of authored specs in this selection (compile them with `run` on --panel=v7.1, or add --all-songs)');
-  const ranked = movedMost(pool, cells, pool.length).map(m => m.id), firstPer = (key: (id: string) => string, n: number) =>
-    ranked.filter((id, i) => ranked.findIndex(x => key(x) === key(id)) === i).slice(0, n);
-  const given = arg('cases')?.split(','), videoIds = given ?? firstPer(id => caseOf(id).song, k), sheetIds = given ?? firstPer(id => specKey(caseOf(id)), sheetRides);
-  for (const id of [...videoIds, ...sheetIds]) assert.ok(pool.includes(id), `${id} is not a matched saved ride of an authored spec`);
+  const sheetPool = cov.matched.filter(id => flag('all-songs') || !caseOf(id).song.endsWith('_selection')), pool = sheetPool.filter(id => !caseOf(id).variant?.startsWith('v8-'));
+  assert.ok(sheetPool.length, 'no matched saved rides in this selection (add --all-songs for the library songs)');
+  const ranked = movedMost(sheetPool, cells, sheetPool.length).map(m => m.id), firstPer = (key: (id: string) => string, n: number, among: string[]) => {
+    const r = ranked.filter(id => among.includes(id));
+    return r.filter((id, i) => r.findIndex(x => key(x) === key(id)) === i).slice(0, n);
+  };
+  const given = arg('cases')?.split(','), videoIds = given?.filter(id => pool.includes(id)) ?? firstPer(id => caseOf(id).song, k, pool),
+    sheetIds = given ?? firstPer(id => specKey(caseOf(id)), sheetRides, sheetPool);
+  for (const id of sheetIds) assert.ok(sheetPool.includes(id), `${id} is not a matched saved ride`);
   const root = resolve('generated/compare', s.name), clips = join(root, 'review');
   const specOf = (id: string) => {const c = caseOf(id); return c.variant ? `productions/${c.song}/variants/${c.variant}.ts` : `productions/${c.song}/spec.ts`;};
   const short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!, frames = (id: string) => s.resolved.get(id)!.music.durationFrames;

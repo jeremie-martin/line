@@ -85,12 +85,12 @@ function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan
 /** At most this share of a ride's gaps (sections) is offered a rail. */
 export const RAIL_BUDGET=.6;
 /** A rail budget: beyond RAIL_BUDGET, offers are withdrawn phrase by phrase, calmest phrase first (lowest mean ask: the
- * placement table rates rails least useful there), from arcs and shaped phrases; scattered keeps its guides (a plan rule)
+ * placement table rates rails least useful there), from arc phrases only: shaped and scattered phrases keep their guides,
  * and a required guide stays. Offers the search leaves unused are trimmed anyway, so the rails drawn are fewer still. */
 function railBudget(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
   const ask=(p:ProductionPlan['phrases'][number])=>{let n=0;for(let i=p.first;i<p.first+p.count;i++)n+=requests[i].context?.impact??0;return n/p.count;};
   let offered=requests.filter(r=>r.guidance!=='forbidden').length;
-  const withdrawable=phrases.filter(p=>p.guidance==='optional'&&p.construction!=='scattered')
+  const withdrawable=phrases.filter(p=>p.guidance==='optional'&&p.construction==='arcs')
     .map(p=>({p,ask:ask(p)})).sort((a,b)=>a.ask-b.ask||a.p.first-b.p.first);
   for(const {p} of withdrawable){
     if(offered<=RAIL_BUDGET*requests.length)break;

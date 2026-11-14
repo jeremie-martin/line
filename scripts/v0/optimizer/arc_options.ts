@@ -66,6 +66,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
+  /** Impact errors priced relative to the ask (arc_interval_state.ts). */
+  relativeImpact?: {reference: number; floor: number};
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -114,7 +116,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-  constructionRequests: 'keySection', motionQuality: 'key', impactSearch: 'key',
+  constructionRequests: 'keySection', motionQuality: 'key', relativeImpact: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',

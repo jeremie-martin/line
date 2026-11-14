@@ -9,6 +9,13 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, the placement table charges unasked hits (stated before running)
+
+- **Change** (`exp/families-fit-extras`): a section's fitted loss also counts the unasked hits inside it (their account
+  cost); same contexts, 852 rides.
+- **Hypothesis:** families that cause unasked hits where they are placed (rails touched on the way) move; extras down,
+  V8 up a little.
+
 ## November 14: hypothesis, placement by a model instead of a table (stated before running)
 
 - **Basis.** The placement table (family × 12 contexts) works; a finer table (24 contexts) went sparse and lost (−1.8).

@@ -1,6 +1,6 @@
 /** Where each construction family costs least: the mean loss of a section by family and context, from saved rides.
  * A section's loss is its catch's squared strength error plus its span's squared air and speed errors, weighted by the
- * span's length as the grade weighs them (length × beats ÷ ride length). Contexts: the catch's strength ask (below
+ * span's length as the grade weighs them (length × beats ÷ ride length), plus the unasked hits inside it. Contexts: the catch's strength ask (below
  * 0.3, 0.3–0.6, 0.6–0.8, 0.8 and above) × the section's length (below 16 frames, 16–28, 28 and above). The planner
  * places the families it drew where they cost least (intentional_repertoire.ts).
  *   node tools/research/family_fit.ts ARM_DIR[,ARM_DIR...] SUITE_REGEX OUT.json */
@@ -23,7 +23,9 @@ import {ASK_BINS, LENGTH_BINS, contextOf, familyKey} from '../../scripts/v0/opti
       const j = t.findIndex((x: any) => x.frame === r.frame), b = j >= 0 ? c.impact3.perBeat[j] : null;
       if (!b?.hit || b.requested == null) continue;
       const frames = r.next - r.frame, span = gap[j + 1] ?? {};
-      const loss = (b.hit.strength - b.requested) ** 2 + frames * m / total * ((span.air ?? 0) + (span.speed ?? 0));
+      // Unasked hits inside the section cost what the account charges them (their strength squared).
+      const extras = (c.impact3.extras ?? []).filter((e: any) => e.onset >= r.frame && e.onset < r.next).reduce((n: number, e: any) => n + e.cost, 0);
+      const loss = (b.hit.strength - b.requested) ** 2 + extras + frames * m / total * ((span.air ?? 0) + (span.speed ?? 0));
       const key = `${familyKey(r.construction, r.guidance)}|${contextOf(b.requested, frames)}`;
       (sums[key] ??= [0, 0])[0] += loss; sums[key][1]++;
     }

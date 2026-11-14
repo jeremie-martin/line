@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15 (night): Q8, Q9 results; Q10 (stated before running)
+
+- **Q8** (relative misses beyond ×1.4, weight 10 and 30): −67.8 and −80.1; speed rms +0.298 and +0.114; strong extra
+  impacts ×6.5 and ×8.5. The tolerance also priced strong asks landing under 0.65 of the ask, and the search wrecked
+  rides to reach them. Not adoptable; strong asks' undershoot must not be priced this way.
+- **Q9** (Q5 ref 0.3 with the touchdown floor, climbing twins on): headline −6.4 [−13.1, +0.2] (P3 −17.7, P6 −5.2
+  instead of Q5's −22.7); explicit −18.4; strong extra impacts 0.23 (`foundation-5` 0.10); speed and air rms flat;
+  small positive asks (0–0.1) within ×1.5 61% (38%), over ×2 22% (42%); 0.1–0.2 within ×1.5 97% (94%); all asks under
+  0.3 within ×1.5 75% (70%). The best trade so far.
+- **Q10** (`exp/quiet-floor-30`, `-40`): Q9's pricing (reference 0.3 and 0.4, touchdown floor 0.07) without the climbing
+  twins, which alone cost 5.1 points (Q3a) and softened nothing. **Hypothesis:** most of Q9's headline loss goes, the
+  quiet gain stays.
+
 ## November 14 (night): Q5, Q7 results, the owner's Tiki spec, and Q9 (stated before running)
 
 Quiet asks now split: asks of exactly 0 (412 on V8, below what any touchdown gives) and small positive asks (0–0.1,

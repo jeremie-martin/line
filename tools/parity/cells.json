@@ -11,7 +11,7 @@
    "id": "canonical-music_luna_bala_44s-arcs-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "d1f1a4638c037336d2f914eee0ff8a07446e64b3e4427180e023e8d3b2fc9cc5",
+   "trackHash": "a881b479a12091af8c495f4ed4aa37c38236d93fc9b74b47f42aab8008214999",
    "physicalFrames": 2990646,
    "quality": 858.322,
    "loss": 0.0020840582750217642
@@ -29,7 +29,7 @@
    "id": "canonical-music_luna_bala_44s-scattered-paired",
    "seed": 404,
    "panel": "fixed",
-   "trackHash": "3144be5616db9bef073f02bb9120c40a8d6114dc57db9456c866e394a41b2885",
+   "trackHash": "1bee03a6bfdee060d1ba6f97cd908860e6879ab25ea7c05e162edbeef628594d",
    "physicalFrames": 2992796,
    "quality": 852.079,
    "loss": 0.0021408675215899703
@@ -47,7 +47,7 @@
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "baa486ea8d13558ee2793896b2527e11e309a82b37f814a4a2f48f066b231fed",
+   "trackHash": "973af5ee925848d0e4c7026b3bb340c1c507852d14516ebdb3b16756c4c0c52e",
    "physicalFrames": 2992266,
    "quality": 773.0016,
    "loss": 0.007032355840475956
@@ -145,7 +145,7 @@
     "song": "luna_bala_44s",
     "variant": "v7-rideout"
    },
-   "trackHash": "f35d9208ce9035c8290046e5b1939356129950069f46a2f2638abd57c9795c83",
+   "trackHash": "a6ba040e098c172dabdf7a76a78c913ffe370b0ec858c05ee57a65bbccef9778",
    "physicalFrames": 3003553,
    "quality": 886.3728,
    "loss": 0.001248734947725112
@@ -218,7 +218,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "2f735443f3b9dc538f8c26b688e0fe1f0d89d6865496dda6488af7c81b42c865",
+   "trackHash": "2610fd1979fa32249dbd61c3d25ebebcb46ead857410ad74f2bd4844ced45dc2",
    "physicalFrames": 149377
   },
   {
@@ -226,7 +226,7 @@
    "seed": 404,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "9c0bb3ac884b9ac16bd901be18749f3a568c0b333dd87217300275f64e351cb3",
+   "trackHash": "4c4e3381fb0c8248c63bd05419b7af182cd1b82ee090d0a79d80c0e70e9281ce",
    "physicalFrames": 148660
   },
   {

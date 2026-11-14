@@ -67,7 +67,7 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   /** Motion-quality residuals and the calm-impact weighting. */
   motionQuality?: MotionSearchOptions;
   /** Impact errors priced relative to the ask (arc_interval_state.ts). */
-  relativeImpact?: {reference: number; floor: number; extras?: boolean; touchdown?: number};
+  relativeImpact?: {reference: number; floor: number; extras?: boolean; extrasScale?: number; touchdown?: number};
   /** Twins of the best-ranked candidates whose support climbs after the catch (arc_proposals.ts). */
   climbingTwins?: {count: number; steps: number[]};
   /** Learned construction memory and policies, by construction memory key. */

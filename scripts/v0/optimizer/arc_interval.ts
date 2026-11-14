@@ -7,6 +7,7 @@ import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detec
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { searchRank } from './arc_candidates.ts';
 import { proposeInitialControls, proposeOpposingEntries, proposeUpperReceivers, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
 import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
@@ -45,6 +46,14 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
     // Discard only the interrupted probe, preserving the best valid geometry.
     Engine.retainOnly([...protectedEngines, engine, ...(s.best ? [s.best.child] : [])]);
     if (!s.best) throw error;
+  }
+  // PROBE (report only): for a quiet ask, the best candidate's strength against the softest-landing viable candidate's
+  // [gap, ask, best's strength, best's rank, closest strength, its rank − best's, viable candidates, of them within 0.03 of the ask]
+  if (s.best && s.impact !== undefined && s.impact < .3) {
+    const viable = s.candidates.filter(c => c.actualImpact !== undefined), err = (c: typeof viable[number]) => Math.abs(c.actualImpact! - s.impact!);
+    const closest = viable.reduce((a, c) => err(c) < err(a) ? c : a, s.best.candidate);
+    ctx.work.quietWork.push([i, s.impact, s.best.candidate.actualImpact ?? NaN, searchRank(s.best.candidate), closest.actualImpact ?? NaN,
+      searchRank(closest) - searchRank(s.best.candidate), viable.length, viable.filter(c => err(c) < .03).length]);
   }
   if (s.best && options.constructionRequests?.[i]?.construction === 'scattered') replaceWithFragments(s);
   return {best: s.best, candidates: s.candidates, failures: s.failures, frame: s.frame, next: s.next, horizon: s.horizon, gap: s.gap,

@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, rails never proposed onto their own support (stated before running)
+
+- **Basis:** the owner, on pictures (`generated/upper-review/rail-almost.html`): rails crossing their support where the
+  rider passes (0.2 per V8 ride) and rails coming within 2 px of it there (0.27 per ride: starting on the support,
+  converging onto it, lying on it) look the same: the rider is seen going through. Ordinary close rails (2–10 px) are fine.
+- **Change** (`exp/rail-touch`): before any physics, a candidate whose rail crosses or comes within 2 px of its own
+  support, along the support's span, is not built (`railMeetsSupport`, rejection `rail_meets_support`). Option
+  `railSupportMargin` (off by default: parity identical). Unlike `exp/rail-floor` nothing is cut: the geometry is not
+  proposed, and the search measures the others.
+- **Hypothesis:** crossing and almost-crossing rails at the rider fall to near 0 (audit `rail_audit.ts --at=rider`);
+  the rider going through a line falls; headline within a few points (about one candidate rail in a hundred is affected).
+
 ## November 14: how close rails come to their support where the rider rides (report only; audit before any rule)
 
 - The rider stands about 10 px above the line it rides (highest body point: median 9.6, p90 12.1); the sled about 6 px

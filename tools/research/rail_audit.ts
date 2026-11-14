@@ -15,7 +15,7 @@ import {observe} from '../measure/observe.ts';
 
 const arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
 const gz = (p: string) => JSON.parse(gunzipSync(readFileSync(p)).toString()), gapOf = (id: number) => Math.floor((id - 1000) / 10000);
-export const SLED_HEIGHT = 6, RIDER_HEIGHT = 10;
+export const SLED_HEIGHT = 6, RIDER_HEIGHT = 10, NEAR = 2;
 
 /** Signed distance of point p from the polyline: magnitude to the nearest piece, sign by that piece's left/right side. */
 function signedDistance(p: {x: number; y: number}, pieces: any[]) {
@@ -84,12 +84,12 @@ if (import.meta.filename === process.argv[1]) {
         const low = lowest.get(r.gap);
         if (!low) continue;
         r.closest = +low.h.toFixed(2); r.crossing = low.h < 0;
-        r.band = low.h < 0 ? 'crossing' : low.h < SLED_HEIGHT ? 'under the sled' : low.h < RIDER_HEIGHT ? 'under the rider' : 'above the rider';
+        r.band = low.h < 0 ? 'crossing' : low.h < NEAR ? 'almost crossing' : low.h < SLED_HEIGHT ? 'under the sled' : low.h < RIDER_HEIGHT ? 'under the rider' : 'above the rider';
         all.push({ride: id, ...r, frame: Math.max(0, low.f - 20), next: low.f + 12});
       }
     } else for (const r of rails) all.push({ride: id, ...r, frame: production.plan?.requests?.[r.gap]?.frame, next: production.plan?.requests?.[r.gap]?.next});
   }
-  const bands = ['crossing', 'under the sled', 'under the rider', 'above the rider'];
+  const bands = arg('bands', '') ? arg('bands', '').split(',') : ['crossing', 'almost crossing', 'under the sled', 'under the rider', 'above the rider'];
   console.log(`${rides.length} rides, ${all.length} rails kept (${(all.length / rides.length).toFixed(1)} per ride); closest approach to their own support:`);
   for (const b of bands) {const n = all.filter(r => r.band === b).length; console.log(`  ${b.padEnd(16)} ${n} (${(100 * n / all.length).toFixed(1)}%, ${(n / rides.length).toFixed(2)} per ride)`);}
   const page = arg('page', '');

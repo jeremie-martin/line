@@ -38,7 +38,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      table refitted on 524 rides: +3.7 [+1.0, +6.5]; guides where they clearly fit: +1.2 [−0.2, +2.7], open arcs
      20% → 15% of ride time).
      For the owner's eye: folds now mostly in calmer passages.
-   - Where 800 on V8 is: REWORK.md, November 14 (the bound and the physical conflicts).
+   - Where 800 on V8 is: REWORK.md, November 14 (the bound and the physical conflicts). Measured 2026-11-14:
+     `compiler` 781.9 on V8 at 8 seeds (+20.2 over the start).
    - Still open from November 1:
      - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
        quality there is the same strong-too-soft story as elsewhere;

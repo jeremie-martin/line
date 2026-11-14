@@ -9,6 +9,13 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: where V8 stands (measured)
+
+`compiler` (d0763aa4: guides on strong phrases, lead-ins below the arrival, families where they fit, the refitted
+table, guides where they clearly fit) against the brief's start (`nov13`), V8, 8 seeds, 392 pairs:
+**781.9 against 761.7, +20.2 [+17.3, +23.2]**; every category up (G +27.6, P1 +25.4, P2 +15.2, P3 +17.5, P4 +11.5,
+P5 +16.4, P6 +35.2, P7 +13.0). The goal is 800.
+
 ## November 14: hypothesis, the placement table charges unasked hits (stated before running)
 
 - **Change** (`exp/families-fit-extras`): a section's fitted loss also counts the unasked hits inside it (their account

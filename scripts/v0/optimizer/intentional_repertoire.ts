@@ -17,7 +17,10 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     let count=Math.min(rng()<.5?2:3,requests.length-first);
     for(let offset=1;offset<count;offset++){
       const a=contexts[first],b=contexts[first+offset];
-      if(boundarySections.has(first+offset)||Math.abs(a.quiet-b.quiet)>.4||Math.abs((a.speed??.5)-(b.speed??.5))>.2){count=offset;break;}
+      // A phrase also ends where the strength asked changes as much as calm does, so each family can be placed where
+      // it fits (placeFamilies below).
+      if(boundarySections.has(first+offset)||Math.abs(a.quiet-b.quiet)>.4||Math.abs((a.speed??.5)-(b.speed??.5))>.2||
+        Math.abs((a.impact??0)-(b.impact??0))>.4){count=offset;break;}
     }
     const quiet=contexts.slice(first,first+count).reduce((n,c)=>n+c.quiet,0)/count;
     const {repertoire,variation,guidedBalance}=preferences;

@@ -1,5 +1,13 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, phrases end where the strength asked changes (stated before running)
+
+- **Basis.** Phrases (2–3 sections of one family) end where calm or speed change a lot, not where strength does: a phrase
+  can join a 0.9 and a 0.3 catch, and no family fits both. Placement can only match whole phrases.
+- **Change** (`exp/phrases-split-on-strength`, on the refitted placement): a phrase also ends where the strength asked
+  changes by more than 0.4 between two sections (the calm rule's size).
+- **Hypothesis:** placement fits better; V8 up; phrases a little shorter (variety: the same families, shorter runs).
+
 ## November 14: hypothesis, the placement table refitted on more rides (stated before running)
 
 - **Change** (`exp/families-fit-more`): the same 12 contexts, fitted on the V7.1 rides of both compilers (before and

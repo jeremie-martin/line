@@ -9,6 +9,41 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, shapes relax under intensity (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8, more than their sections' own losses explain (with placement, terraces
+  in strong contexts beat guided arcs; serpentines 0.0376 against 0.0298 a section): the cost is downstream, in the speed
+  and heading they hand on, and their reversals strike (serpentine unasked hits 2× an arc's).
+- **Change** (`exp/shapes-relax-under-intensity`): a serpentine, scallop or terrace bends up to 40% less as its catch's
+  ask rises from 0.4 to 0.8 (smooth); its learned sources stay its family's. Folds unchanged. Same families, same count;
+  in intense passages their shapes are calmer.
+- **Hypothesis:** V8 up, mostly G and the strong categories; extras down. **Watch:** fallbacks to plain arcs (a shape must
+  still realize), the geometry sheet.
+- **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
+
+## November 14: the 800 target and the shapes (synthesis)
+
+- **Measured:** `compiler` 781.9 on V8 at 8 seeds (+20.2 over the brief's start).
+- **The remaining gap is the shapes.** The same compiler with arcs and scattered only reaches 801.7 (+19.4). Removing the
+  shapes is what the goal and the owner rule out; every attempt to make them cheaper while keeping them failed:
+
+  | attempt | V8 |
+  |---|---|
+  | shapes begin after the catch | −13.0 |
+  | shaped sections search 1.5× wider | −0.7 |
+  | shaped sections borrow the arcs' learned catches | −2.0 (8 seeds) |
+  | shapes relax under intensity (40% less bend) | −1.8 (8 seeds) |
+  | placement refinements (finer contexts, setup, extras, model) | −1.8, −3.0, −3.5, −24.8 |
+
+- **Why:** with placement, a shape's own section costs little more than an arc's (terraces less, in strong contexts);
+  its cost is in riding it: a shape must be ridden through its reversals or corners to be realized, which spends speed
+  and heading the next catches need. That is what a shape is, not a fault in how it is searched.
+- **Physics** (above): strong-beat strength on dense songs is bound by energy and turning; perfect strong beats alone
+  would reach 795.5.
+- **So:** 800 on V8 with today's families means either fewer shapes (a variety decision, the owner's), or a way to ride a
+  shape that hands on speed and heading as an arc does (open research), or asks within what a chain can deliver (the
+  strength-scale question, TODO).
+
 ## November 14: hypothesis, shaped sections borrow the arcs' learned catches (stated before running)
 
 - **Basis.** Shapes cost about 19 points on V8 (above). A shaped section's catch comes before its shape; its learned

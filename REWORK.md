@@ -17,6 +17,7 @@
 - **Change** (`exp/crash-edge-halfstep`): in the coordinate search, a step that throws the rider off is followed by the
   same step at half size from the current best, in place of the next coordinate (the sample count is unchanged).
 - **Hypothesis:** more viable candidates near the crash edge; strong catches a little harder; V8 up a little.
+- **Result: not adopted**, V8 at 8 seeds −1.7 [−4.7, +1.3] (P3 −10.3).
 
 ## November 14: guides where they fit at a 15% margin (not adopted)
 

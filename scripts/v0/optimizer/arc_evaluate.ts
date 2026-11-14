@@ -245,6 +245,16 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   const actualImpact = impact === undefined ? undefined : impactEvents[impactMatch!.event].strength;
   if (actualImpact !== undefined) cost += (options.impactWeight ?? 2) * (actualImpact - impact!) ** 2;
   residuals.push(actualImpact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact - impact!));
+  // A relative miss beyond tolerance (REWORK.md, November 14: Q8): the eye reads impact in proportion, so 0.2 on an ask
+  // of 0.1 is as wrong as 0.9 on an ask of 0.45. Asks below a touchdown's floor (a landing from flight reads at least
+  // about 0.07) count as that floor. Priced only beyond the factor `tolerance`, as ln((got + 0.03) / (ask + 0.03)).
+  const hinge = options.relativeMiss;
+  if (hinge && actualImpact !== undefined) {
+    const ask = Math.max(impact!, hinge.floor), miss = Math.abs(Math.log((actualImpact + .03) / (ask + .03)));
+    const r = Math.sqrt(hinge.weight) * Math.max(0, miss - Math.log(hinge.tolerance));
+    residuals.push(r);
+    cost += r * r;
+  }
   const extra = impactSearchResiduals(impactEvents, impactAccount, impactMatch,
     frame - impactRuler.matchFrames, i < contacts.length - 1 ? next - impactRuler.matchFrames : duration + 1);
   extra.push(...engagementGainResiduals([...s.impactPrefix.pending, ...observedImpacts] as any, frame, Math.min(duration, horizon), options.impactSearch));

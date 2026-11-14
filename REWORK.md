@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, upper receivers where catches from above survive (E1c; stated before running)
+
+- **Basis** (`upper_candidates.ts`, E1b): survival on strong asks falls with incidence (0–10°: 70%, 10–20°: 44%,
+  20–30°: 18%, 30°+: 10%) and with longer contact (support under 0.3 of the span: 40%; 0.3–0.5: 29%), while strength
+  rises with incidence and bend. E1 drew incidence 4–40° and support 0.4–1.0 × the default: mostly where they come apart.
+- **Change** (`exp/upper-receivers-2`, from E1, without E2 or the press rule): incidence 6–24°, support 0.25–0.65 × the
+  default, bend 0.5–1.1 × the ask's turn; the body check and the 12 proposals unchanged.
+- **Hypothesis:** more of these receivers survive and are chosen than in E1 (180 gaps); clean upper hits a little above
+  E1 (10.0%); headline within noise of the foundation (the ruler still under-credits them).
+
 ## November 14: a gravity-neutral strength (report only; awaiting the owner's held-out check)
 
 - **Definition** (`tools/research/gravity_neutral.ts`): today's strength is the contact's push over the strongest two

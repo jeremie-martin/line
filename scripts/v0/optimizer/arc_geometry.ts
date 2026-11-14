@@ -86,7 +86,15 @@ export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support
   }
   if(atEnd)return true;
   // Between its points a rail meeting the support at an angle comes closer than either point: segment against segment.
-  for(let j=1;j<rail.length;j++)for(let i=1;i<support.length;i++)if(segmentGap(rail[j-1],rail[j],support[i-1],support[i])<margin)return true;
+  // Only segment pairs whose bounding boxes come within the margin can (a cheap filter: the pairs are many).
+  for(let j=1;j<rail.length;j++){
+    const a=rail[j-1],b=rail[j],ax0=Math.min(a.x,b.x)-margin,ax1=Math.max(a.x,b.x)+margin,ay0=Math.min(a.y,b.y)-margin,ay1=Math.max(a.y,b.y)+margin;
+    for(let i=1;i<support.length;i++){
+      const c=support[i-1],d=support[i];
+      if(Math.max(c.x,d.x)<ax0||Math.min(c.x,d.x)>ax1||Math.max(c.y,d.y)<ay0||Math.min(c.y,d.y)>ay1)continue;
+      if(segmentGap(a,b,c,d)<margin)return true;
+    }
+  }
   if(!gaps.length)return false;
   const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;
   return gaps.some(g=>side*g<margin);

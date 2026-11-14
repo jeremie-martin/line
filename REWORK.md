@@ -18,6 +18,8 @@
 - **Change** (`exp/tangent-quiet-catches`): for a quiet catch, the best measured move is offered again with its receiver
   laid along the arrival heading, or 0.7°, 1.5°, 2.5° below it (4 more candidates).
 - **Hypothesis:** softer quiet catches; P3, P6 up; others near zero.
+- **Result: not adopted**, V8 at 8 seeds −0.1 [−2.5, +2.3]; quiet bias unchanged (+0.003). Tangent receivers do not
+  soften quiet catches: the overshoot is not the receiver's angle but how the rider lands (the body's settling).
 
 ## November 14: hypothesis, the compact networks retrained on today's moves (stated before running)
 

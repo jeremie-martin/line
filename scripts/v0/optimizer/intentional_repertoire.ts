@@ -43,7 +43,8 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
     previous=construction+':'+guidance;first+=count;
   }
   placeFamilies(phrases,requests);
-  // PROBE (REWORK.md, November 14): arcs never offered a rail, to measure what rails on arcs buy with the whole search rail-free
+  // Arcs are never offered a rail (REWORK.md, November 14: the owner prefers the rides by eye, V8 −9.0). An arc phrase
+  // drawn and placed as guided keeps its place and becomes an open arc; shaped families keep their optional rail.
   for(const p of phrases)if(p.construction==='arcs'&&p.guidance==='optional'){p.guidance='forbidden';for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],guidance:'forbidden'};}
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }

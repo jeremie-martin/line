@@ -12,6 +12,8 @@
  *    on evaluation songs); better on all four panels, body drag +30% (REWORK.md log).
  *    Retrained on 2026-11-01 from demonstrations of the compiler of that day
  *    (V7 +15.5 at 8 seeds, held out +10.5; REWORK.md).
+ *  - upperReceiverProposals 12: receivers met from above where catches from above survive, the rider's body clear of
+ *    the line (arc_proposals.ts; REWORK.md, November 14, E1c), adopted with arcs never offered a rail;
  * Preparation 2 was selected on the song-level evaluation (docs/research/
  * strike-definition-20261004.md); the rest is inherited from October 2. */
 export const IMPACT_SEARCH_PROFILE = Object.freeze({

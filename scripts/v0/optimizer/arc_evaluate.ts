@@ -307,7 +307,10 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     const kinetic = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden' ? 1 : steep;
     const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
     const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
-    const weight = Math.sqrt(options.arrivalWeight ?? 0), angled = options.passiveArrival ? 1 : steep;
+    // A quiet next catch cannot brake: arriving at the asked speed matters as much more as its impact error is priced
+    // (the relative impact scale of the next ask; REWORK.md, November 14: Q4).
+    const rel = options.relativeImpact, nextScale = rel?.arrival ? Math.max(1, ((rel.reference + rel.floor) / (nextImpact + rel.floor)) ** 2) : 1;
+    const weight = Math.sqrt((options.arrivalWeight ?? 0) * nextScale), angled = options.passiveArrival ? 1 : steep;
     const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail

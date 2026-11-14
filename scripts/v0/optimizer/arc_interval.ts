@@ -53,7 +53,11 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
     const viable = s.candidates.filter(c => c.actualImpact !== undefined), err = (c: typeof viable[number]) => Math.abs(c.actualImpact! - s.impact!);
     const closest = viable.reduce((a, c) => err(c) < err(a) ? c : a, s.best.candidate);
     ctx.work.quietWork.push([i, s.impact, s.best.candidate.actualImpact ?? NaN, searchRank(s.best.candidate), closest.actualImpact ?? NaN,
-      searchRank(closest) - searchRank(s.best.candidate), viable.length, viable.filter(c => err(c) < .03).length]);
+      searchRank(closest) - searchRank(s.best.candidate), viable.length, viable.filter(c => err(c) < .03).length,
+      // then: local cost − best's, priors (rank − local cost) − best's, and each squared residual − best's (air, speed, amplitude, impact, the rest summed)
+      closest.localCost - s.best.candidate.localCost, (searchRank(closest) - closest.localCost) - (searchRank(s.best.candidate) - s.best.candidate.localCost),
+      ...[0, 1, 2, 3].map(k => (closest.residuals[k] ?? 0) ** 2 - (s.best!.candidate.residuals[k] ?? 0) ** 2),
+      closest.residuals.slice(4).reduce((n, r) => n + r * r, 0) - s.best.candidate.residuals.slice(4).reduce((n, r) => n + r * r, 0)]);
   }
   if (s.best && options.constructionRequests?.[i]?.construction === 'scattered') replaceWithFragments(s);
   return {best: s.best, candidates: s.candidates, failures: s.failures, frame: s.frame, next: s.next, horizon: s.horizon, gap: s.gap,

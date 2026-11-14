@@ -89,7 +89,7 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   // An impact error counts relative to the ask's size (REWORK.md, November 14: quiet asks): weight × ((reference + floor) /
   // (ask + floor))², never below 1, so 0.1 too hard on an ask of 0.1 costs more than on an ask of 0.7. Replaces the calm multiplier.
   if (impact !== undefined && options.relativeImpact)
-    options.impactWeight = (options.impactWeight ?? 2) * Math.max(1, ((options.relativeImpact.reference + options.relativeImpact.floor) / (impact + options.relativeImpact.floor)) ** 2);
+    options.impactWeight = (options.impactWeight ?? 2) * Math.max(1, ((options.relativeImpact.reference + options.relativeImpact.floor) / (Math.max(impact, options.relativeImpact.touchdown ?? 0) + options.relativeImpact.floor)) ** 2);
   else if (impact !== undefined && options.motionQuality?.calmImpactMultiplier !== undefined)
     options.impactWeight = (options.impactWeight ?? 2) * (1 + (options.motionQuality.calmImpactMultiplier - 1) * Math.max(0, 1 - impact / .2));
   const turn = impact === undefined ? 5 : deg(impactToRawPx(impact) / Math.max(3, pace));

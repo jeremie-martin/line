@@ -6,7 +6,7 @@
  * (black), the section rail guides (blue), the sled's path (grey), and each
  * authored beat where the sled is at its frame (red, its area growing with the
  * ask; hollow when no strength is asked). Under each panel: the phrases'
- * constructions in that window, as the planner chose them. Nothing is scored. */
+ * constructions in that window, and whether each keeps a rail in the final track. Nothing is scored. */
 import {observe} from '../measure/observe.ts';
 
 export const WINDOW = 10;
@@ -16,13 +16,17 @@ export type SheetRide = {title: string; durationFrames: number; targets: {frame:
 
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]!));
 
-function phrasesIn(production: any, from: number, to: number) {
+function phrasesIn(production: any, drawn: Set<number>, from: number, to: number) {
   const plan = production?.plan;
   if (!plan) return '';
+  // A phrase is named by its family and whether its final track keeps a rail (unused rails are trimmed).
   const names = plan.phrases.filter((p: any) => {
     const r = plan.requests.slice(p.first, p.first + p.count);
     return r.length && r[0].frame < to && r.at(-1).next > from;
-  }).map((p: any) => p.guidance && p.guidance !== 'forbidden' ? `${p.construction} (guide ${p.guidance})` : p.construction);
+  }).map((p: any) => {
+    const rail = plan.requests.slice(p.first, p.first + p.count).some((r: any) => (production.railGuides?.[r.section] ?? []).some((id: number) => drawn.has(id)));
+    return `${p.construction}${rail ? ' with rail' : ''}`;
+  });
   return [...new Set(names)].join(', ');
 }
 
@@ -52,7 +56,7 @@ function panel(side: Side, path: [number, number][], box: number[], scale: numbe
   const ended = path.length - 1 < to && path.length - 1 < ride.durationFrames ? `<text x="8" y="${h - 8}" fill="#d33" font-size="12">ride ended at ${((path.length - 1) / FPS).toFixed(1)} s</text>` : '';
   return `<figure><svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><path d="${trail}" stroke="#bbb" stroke-width="1" fill="none"/>` +
     `<path d="${plain}" stroke="#111" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="${guide}" stroke="#2a6fdb" stroke-width="1.6" fill="none" stroke-linecap="round"/>` +
-    `${beats}${ended}</svg><figcaption>${esc(side.label)} · ${esc(phrasesIn(side.production, from, to))}</figcaption></figure>`;
+    `${beats}${ended}</svg><figcaption>${esc(side.label)} · ${esc(phrasesIn(side.production, new Set(side.track.lines.map((l: any) => l.id)), from, to))}</figcaption></figure>`;
 }
 
 /** The whole sheet as one HTML page. */

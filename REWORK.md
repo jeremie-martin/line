@@ -1,5 +1,42 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: where 800 on V8 is, and what stands in the way
+
+**Bound** (today's `compiler`, V8, 196 rides; each ride re-scored with an error component removed, nothing recompiled):
+
+| removed | headline |
+|---|---|
+| nothing (today) | 769.3 |
+| strength error on asks 0.75 or more | 795.5 |
+| air error | 792.4 |
+| speed error | 794.4 |
+| all strength error | 823.6 |
+| air and speed error | 822.4 |
+| extra hits and timing | 781.4 |
+
+800 needs, for example, the strong-beat, air and speed errors each about halved at once. Each sits on a measured
+physical conflict:
+- **Strong beats on dense songs** (G, 60–76% of beats asking 0.75 or more, 12–20 frames apart, at about 11 px/frame):
+  a hit of strength s dissipates at least ½(7.55 s)² (measured: never less; the compiler's catches are already at
+  1.08 of that), and turns the rider about 37° at 0.87; gravity gives back about 12° and the refill per beat in an
+  18-frame gap. Sustaining 0.87 needs about 44° of mean heading and some 25° of downward turning per beat from
+  contact. Today's runs: 4.5 px/frame descent, strength 0.72; the archive's: the same (0.714).
+- **Air on calm and long specs** (P3, P6): long floats asking 80% or more air with quiet catches; a soft catch and a
+  relaunch take about 16 frames on the line, where the ask leaves 8–9. Letting floats fall steeper buys air and loses
+  it in speed and quiet strength (−2.6).
+- **Speed** on strong runs is below its ask because the hits spend it.
+
+**What was tried against them** (all V8, 4 seeds, against `compiler`; REWORK above): search budget ×8 (+2.5 on six
+dense rides, the search uses only +35% of it), search weights (null), span weights by length (+0.1), proposal slots
+(−1.1), steep-arrival room for long floats (−2.6), a long-horizon future value with chain features and hardened training
+data (−6.9), shapes after the catch (−13.0), the guide ahead of the sled (−2.0), steering after the hit (−6.0, −2.0,
+−3.3). Adopted: guides offered on strong phrases (+7.7), lead-ins below the arrival (+0.0, cleaner look).
+
+**Reading.** Every lever that re-ranks, re-weights or re-proposes inside today's vocabulary is null or negative; the
+one gain came from what is built where. What would move V8 toward 800 is a construction that turns a fast rider down
+between strong catches without a strike and without the search having to stumble on it, or asks that stay within what a
+chain of hits can physically deliver (TODO's open question 1, the strength scale). Neither is a weight.
+
 ## November 14: hypothesis, guided arcs steer the rider down after the hit, not during it (stated before running)
 
 - **Basis.** A single inelastic hit changes the velocity across the line, so a strong hit turns the rider: 0.87 at
@@ -34,6 +71,9 @@
 - **Third execution, run-level** (same branch): in a strong chain (this ask and the next 0.6 or more), every guided
   plain arc steers: its normalized controls hold the catch's heading at least 2 frames (3 unless searched) and exit at
   least 10° below it. The search tunes everything inside that space; other sections unchanged.
+- **Result, third execution: not adopted**, −3.3 [−5.8, −0.9] (V8, 4 seeds; 13 specs up, 30 down; P6 −11.9, P5 −7.4).
+  Imposed on every guided arc of a strong chain, steering loses: the second execution's positive comparison was the
+  search choosing it where it helps. The steering line is closed on this evidence.
 
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 

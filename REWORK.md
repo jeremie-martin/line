@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: R3 result, a probe of why twins lose, and R4: the best twin refined (stated before running)
+
+- **R3** (V8, against `base`): headline −1.3 [−4.5, +2.0], 13 specs up, 30 down; explicit −2.5. Rails 55% → 53% of
+  gaps; rail-free twins chosen on 10.1% of the arcs that may have a rail (R2 8.4%), none with a rail; rails kept on
+  those arcs 81% → 76%. Body drag −2%, clean upper hits 9.4 → 9.8% of strong beats. Hypothesis (well above 8%) not met.
+- **Why twins lose** (`tools/research/ridable_work.ts`, V8 seed 101, report only): 88% of twins are viable (binding
+  9%, missed impact 3%), so a rail is rarely needed for the rider to hold. They lose by small margins: the median rank
+  is 0.015 worse than the railed original for early twins and 0.038 for twins of the refined best, split about 60/40
+  between local cost and priors. Twins copy a candidate refined with its rail and are not refined themselves.
+- **R4** (same branch): after the twins, the best rail-free twin gets 24 coordinate steps of its own on the core
+  controls. **Hypothesis:** twins chosen well above R3's 10%, rails fall further, headline within a few points.
+
 ## November 14: R2 result, and R3: ridable as physics allows, twins of the refined best too (stated before running)
 
 - **R2** (V8, against `base`): headline −1.8 [−5.1, +1.4], 15 specs up, 28 down; explicit +1.2; strong extra impacts

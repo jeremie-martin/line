@@ -18,6 +18,8 @@
   sequence's per-interval effort, beside the strong catch's ×1.3; a first version set it where the sequence's own
   sample counts override it, and changed nothing).
 - **Hypothesis:** shaped sections land closer to their asks; V8 up; physics up a few percent within the allowance.
+- **Result: not adopted**, −0.7 [−3.5, +2.1] (V8, 4 seeds; P4 +12.7, P6 −12.8); physics +0% (the allowance's pacing
+  scales every interval down to what is left), strong extra impacts +73%.
 
 ## November 14: hypothesis, the placement table counts the catch a section sets up (stated before running)
 

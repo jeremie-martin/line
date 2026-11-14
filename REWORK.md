@@ -1,5 +1,37 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, guided arcs steer the rider down after the hit, not during it (stated before running)
+
+- **Basis.** A single inelastic hit changes the velocity across the line, so a strong hit turns the rider: 0.87 at
+  11 px/frame is about 37°. Gravity turns it back about 12° in an 18-frame gap; a chain of strong beats flattens unless
+  something turns the rider down. Today's strong catches trade one against the other: guided catches in V8 strong
+  chains, by exit heading quartile, own strength 0.718 → 0.662 while the next catch's goes 0.655 → 0.725 (the sum is
+  flat). A guide can steer the rider down, and steering under the strike threshold (about 3° a frame) costs nothing in
+  the account; but the curve bends toward its exit right after the catch's turn, inside the hit's two-frame window.
+- **Physics check** (synthetic, the production strike ruler): 11 px/frame, 40° arrival, 35° catch: no roof, hit 0.89,
+  exit 5°, speed 8.7 after 14 frames; a channel that keeps the heading about 2.5 frames after the hit, then bends 20°
+  down under a roof: hit 0.89, an extra strike of 0.13–0.23, exit 20–27°, speed 9.0–10.3, rider intact.
+- **Change** (`exp/steer-after-the-hit`): a searched control `hold` (0–8 frames) on guided plain arcs: the heading stays
+  at the catch's for `hold` frames before bending toward the exit. Sampled by the guide-and-shape sweep, coordinate
+  and response steps; absent elsewhere (identical geometry when absent).
+- **Hypothesis:** guided strong catches keep their strength and exit steeper; chains steepen, speed and strength rise on
+  dense strong songs (G, P1, P4); V8 up. **Watch:** extra strikes, body drag, crashes.
+- **Result, first execution: −6.0 [−10.0, −2.0]** (V8, 4 seeds; 10 specs up, 33 down; P6 −19.7, P3 −7.5). The search
+  hardly used it: 966 of 4,397 sections carry a hold, median 0, 90% at 1.5 frames or less; strong catches unchanged
+  (strength 0.717, exit 20° against 0.720 and 20°). A random coordinate cannot find the combination that steers (hold
+  with a steeper exit under a close rail), and the extra dimension diluted the sweep.
+- **Second execution** (same branch): `hold` leaves the sweep, the coordinate keys and the response step; instead, when
+  the next ask is 0.6 or more, the two best distinct measured moves are offered again as steering moves: hold 2 or 4
+  frames, exit 15° or 30° below the catch's heading after its turn, rail clearance at most 14 (8 measured candidates).
+- **Result, second execution: not adopted**, −2.0 [−5.5, +1.5] (V8, 4 seeds; 15 specs up, 28 down; P1 +2.4, P3 +2.4,
+  P5 −5.0, P4 −4.7); strong extra impacts +23% (the rail's steering is sometimes a strike).
+  - The search keeps a steering move in 9% of sections. In strong chains (this ask and the next 0.75 or more), sections
+    with a kept hold land 0.743 and the next catch 0.721, against 0.690 and 0.696 without (the hold is kept where it
+    works: partly selection). The mechanism works where it is chosen, but the panel's mean strong catch is unchanged
+    (0.716, exit 20°): it is chosen too rarely to move a chain, and its extra strikes and proposals cost elsewhere.
+  - Kept on its branch. A run-level construction (a steering channel for whole strong phrases) is the version that
+    could change chains; it is a new family, not a proposal.
+
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 
 - **Basis** (V8, `compiler`, loss per section relative to the mean in the same context, strength ask × gap length):

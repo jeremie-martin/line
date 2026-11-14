@@ -49,6 +49,7 @@ export const ARC_CONTROL_DEFINITIONS: Readonly<Record<ControlKey, ControlDefinit
   // Frames after the catch's turn that keep its heading before the curve bends toward the exit: a guided curve can then
   // steer the rider down after the hit, not during it (REWORK.md, November 14).
   hold: {family: 'expressive', min: 0, max: 8, tolerance: .5, coordinate: 1.5, searchDefault: () => 0},
+  guideDive: {family: 'guide', min: 0, max: 45, tolerance: 2, coordinate: 6, searchDefault: () => 0},
   guideFlare: {family: 'expressive', min: -16, max: 16, tolerance: 2, coordinate: 4, response: 2.5},
   guideTilt: {family:'guide',min:-25,max:25,tolerance:2,coordinate:5,response:3},
   foldBias: {family:'expressive',min:-6,max:6,tolerance:.3,coordinate:1,response:.6,searchDefault:c=>c.bias},
@@ -77,7 +78,7 @@ export function arcControlActive(key:ControlKey,guides=true,style?:ControlStyle)
   if(key==='foldBend')return style?.profile==='fold'&&style?.independentGuide===true;
   if(key==='guideTilt')return guides&&style?.independentGuide===true;
   if(key==='mainEnd')return style?.railLayout==='transfer';
-  if(key==='hold')return guides&&!style?.profile&&style?.railLayout!=='transfer';
+  if(key==='hold'||key==='guideDive')return guides&&!style?.profile&&style?.railLayout!=='transfer';
   // A full three-face fold replaces the entire smooth heading schedule.
   if(key==='bend'&&style?.profile==='fold'&&(style.profileStrength??1)===1&&style.profileStart===0)return false;
   return guides || (ARC_CONTROL_DEFINITIONS[key].family!=='guide' && key!=='guideFlare');
@@ -101,12 +102,9 @@ export function arcControlNormalizer(input: ArcControlContext): (control: ArcMot
       if (value === undefined && definition.family !== 'core') continue;
       c[key] = definition.normalize ? definition.normalize(value!, c, context) : clamp(value!, definition.min, definition.max);
     }
-    // In a strong chain a guided arc steers after the hit: it holds the catch's heading at least two frames, then exits
-    // at least 10° below it, under its rail.
-    if (context.steering && arcControlActive('hold', context.guides, context)) {
-      c.hold = clamp(c.hold ?? 3, 2, ARC_CONTROL_DEFINITIONS.hold.max);
-      c.exit = clamp(Math.max(c.exit, c.entry + c.turn + 10), ARC_CONTROL_DEFINITIONS.exit.min, ARC_CONTROL_DEFINITIONS.exit.max);
-    }
+    // In a strong chain a guided arc's rail dives past the floor's end (10–45°, 25 unless searched).
+    if (context.steering && arcControlActive('guideDive', context.guides, context))
+      c.guideDive = clamp(c.guideDive || 25, 10, ARC_CONTROL_DEFINITIONS.guideDive.max);
     return c;
   };
 }

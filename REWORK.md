@@ -73,7 +73,13 @@ chain of hits can physically deliver (TODO's open question 1, the strength scale
   least 10° below it. The search tunes everything inside that space; other sections unchanged.
 - **Result, third execution: not adopted**, −3.3 [−5.8, −0.9] (V8, 4 seeds; 13 specs up, 30 down; P6 −11.9, P5 −7.4).
   Imposed on every guided arc of a strong chain, steering loses: the second execution's positive comparison was the
-  search choosing it where it helps. The steering line is closed on this evidence.
+  search choosing it where it helps.
+  - Why: forced steering did not steepen exits (guided strong catches leave at 20°, against 21.7° without). In dense
+    passages a support is 4–5 frames; the hold runs past the curve's end and nothing bends. The synthetic channel that
+    worked continued beyond the hit.
+- **Fourth execution** (same branch): the guide itself runs on past the floor curve's end and bends down (`guideDive`,
+  25° over about four frames of travel) on every guided plain arc in a strong chain: the rider leaving the floor meets
+  it from below and is turned down. No hold, no steering proposals.
 
 ## November 14: hypothesis, shapes begin after the catch (stated before running)
 

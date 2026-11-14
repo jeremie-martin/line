@@ -21,7 +21,7 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
   contactSide?:number;
-  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; hold?:number;
+  clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number; hold?:number; guideDive?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
 
@@ -124,6 +124,12 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
       const separation=c.guideFlare===undefined?clearance:clamp(clearance+c.guideFlare*i/Math.max(1,vertices.length-3),6,30);
       return{x:p.x+side*separation*Math.sin(a),y:p.y-side*separation*Math.cos(a)};
     });
+    // A diving guide runs on past the floor curve's end and bends down by `guideDive` over about four frames of travel:
+    // the rider leaving the floor meets it from below and is turned down between catches (REWORK.md, November 14).
+    if(c.guideDive&&side===1&&roof.length>=2&&main.length>=2){
+      const a0=Math.atan2(main.at(-1)!.y-main.at(-2)!.y,main.at(-1)!.x-main.at(-2)!.x),reach=Math.max(30,4*hypot2(velocity.x,velocity.y));
+      let p=roof.at(-1)!;for(let k=1;k<=6;k++){const a=a0+rad(c.guideDive)*k/6;p={x:p.x+reach/6*Math.cos(a),y:p.y+reach/6*Math.sin(a)};roof.push(p);}
+    }
     const distances=[0];for(let i=1;i<roof.length;i++)distances.push(distances.at(-1)!+hypot2(roof[i].x-roof[i-1].x,roof[i].y-roof[i-1].y));
     const length=distances.at(-1)!,from=clamp(c.guideStart??0,0,1)*length,to=clamp(c.guideEnd??1,0,1)*length;
     // Every guide remains one substantial connected curve, including when its

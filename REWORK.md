@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypotheses, fewer rails (stated before running; exploratory)
+
+Getting our feet wet, not choosing a winner: each version is one way of carrying out an idea, and a loss says that way
+did not work, not that the idea cannot. Unit: a gap (one beat to the next) is railed when its final track keeps a rail;
+each counts as one, whatever its length or family. Today 70% of gaps are railed and 87% are offered a rail (start 54%
+and 67%). Rails are offered on every family; only arcs are ever built without one.
+
+- **A, strong phrases back to open arcs** (`exp/strong-phrases-open`): the November 13 rule that turns open arcs into
+  arcs offered a guide in strong phrases is removed; everything else stays.
+  - **Hypothesis:** railed gaps 70% → about 60%; clean upper hits on strong beats up toward 9%; V8 down by up to 8.5
+    (that rule's measured worth); the placement table may give some guides back (it rates guides well on strong asks).
+- **B, a planner rail budget at three levels** (`exp/rail-budget-60`, `-45`, `-30`): after placement, when more than
+  that share of a ride's gaps is offered a rail, offers are withdrawn phrase by phrase, calmest phrase first (lowest mean
+  ask: the table rates rails least useful there), from arcs and shaped phrases; scattered keeps its guides (a plan rule).
+  - **Hypothesis:** railed gaps fall with the budget (about 50%, 38%, 25%); V8 falls more at each level; at 45% and 30%
+    shaped families are built without a rail for the first time, and may cost more than open arcs do.
+- **Measured:** V8, 4 seeds, against `compiler`; every ruler, completion apart, ride character, a geometry sheet.
+
 ## November 14: rails and upper hits (measured; compiler unchanged)
 
 The ride-character measures (`tools/measure/contact_role.ts`, `character.ts`) on the 196 V8 rides (4 seeds) of the

@@ -81,9 +81,11 @@ function buildContext(spec: Spec, options: ArcMotionOptions, constructionMemorie
   const lineage = createArcLineage(start);
   const contacts = [{frame: 1, gap: -1}, ...planned.filter(g => g.endsWithContact).map(g => ({frame: g.endFrame, gap: g.index}))];
 
-  /** Learned responses stay local to their physical constructor and guide permission. */
+  /** Learned responses stay local to their guide permission and rail layout; shapes and arcs share one memory, so every
+   * section learns from all the ride's earlier sections (moves are measured before use; REWORK.md, November 14). */
   const memoryFor = (index: number) => {
-    const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index]});
+    const key = arcConstructionMemoryKey({...options, ...options.sectionStyles?.[index], profile: undefined, profileStrength: undefined,
+      profileStart: undefined, rippleCycles: undefined, faces: undefined, foldAngle: undefined});
     let memory = constructionMemories.get(key);
     if (!memory) {
       memory = new ArcControlMemory(options.constructionExamples?.[key]);

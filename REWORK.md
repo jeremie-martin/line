@@ -21,6 +21,15 @@
   still realize), the geometry sheet.
 - **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
 
+## November 14: hypothesis, one ride memory for arcs and shapes (stated before running)
+
+- **Basis.** Removing every shape gains 19.4 on V8, halving them in intense phrases only 1.5: the cost is not
+  proportional. The ride's own memory (17% of committed moves) is kept per construction key, so with seven families each
+  section learns only from its own family's earlier sections; with arcs alone, every section learns from all of them.
+- **Change** (`exp/shared-ride-memory`): the memory key drops the shape fields: arcs and shapes of one guidance and
+  layout share a memory (its seed demonstrations are the arcs' group's).
+- **Hypothesis:** shaped and arc sections both find better moves from the whole ride; V8 up, variety untouched.
+
 ## November 14: hypothesis, intense phrases draw shapes at half weight (stated before running)
 
 - **Basis.** The goal puts strong impacts and fast consecutive landings first, with variety. Shapes cost about 19 points

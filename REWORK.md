@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q3a, Q3b, Q4 results
+
+| | headline | explicit | asks 0–0.1 within ×1.5 / over ×2 | strong extra impacts | speed rms |
+|---|---|---|---|---|---|
+| Q3a (climbing twins, today's pricing) | −5.1 | −3.3 | 12% / 73% | 0.12 | +0.001 |
+| Q3b (climbing + Q1b pricing) | −19.0 | −68.7 | 23% / 60% | 0.06 | +0.015 |
+| Q4 (Q3b + arrival prior scaled) | −19.9 | −33.4 | 22% / 58% | 0.05 | +0.010 |
+
+Climbing twins alone cost 5 points and soften nothing; pricing the hits nobody asked for keeps costing (Q1b, Q3b, Q4);
+scaling the arrival prior does not help. Not adopted.
+
 ## November 14 (night): Q3c result, braking physics, and Q4, Q5, Q6 (stated before running)
 
 - **Q3c** (Q1's pricing + climbing twins): headline −10.6 [−12.9, −8.3] (Q1 −12.1); explicit −46.0; asks 0–0.1 within

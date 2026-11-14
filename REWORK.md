@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: the owner's look at fewer rails, rails that squeeze the rider, and rails kept clear by the rider's height
+
+- **Review** (`generated/rails-review/`, five songs, seed 101, production renderer: `base` against
+  `exp/arcs-open-upper`). Not blind: the side draw was broken, and fewer rails was ride B on every song. The owner
+  watched Circus, Trouble and Valhalla. He preferred ride B on Circus ("significantly") and Trouble ("a bit
+  cleaner"), and saw a pattern: "the slightly worse … score is … more than largely compensated by the fact that I
+  just vastly prefer the tracks." Rail-free arcs are preferred by eye despite −9 on V8.
+- **What he flagged in ride B (Circus):** at about 12 s a rail where "at the very end there is a sharp change of turn,
+  almost acceleration … like cheating with the physics"; at 21 s an "almost" (a rail almost on the geometry below);
+  in general, rails cause small unwanted impacts that shift direction without a musical reason.
+- **Measured** (`tools/research/rail_squeeze.ts`, V8 4 seeds, report only). Both moments are rails 5 px above their
+  own support, closer than the rider is tall (about 10 px). The rider touches rail and support together (6 of 6 and
+  3 of 5 frames) and gains speed beyond what gravity gives (+0.9 and +0.6 px/frame). Across V8 (`base`, 9,714
+  touched rails), 69% of touched rails lie within 10 px of their support. Below 10 px the rider is pinched in 41–63%
+  of the touched frames and gains +0.16 to +0.24 px/frame beyond gravity on average. From 12 px it is pinched in at
+  most 17% and gains nothing on average (−0.31 at 12–16 px). The scene has no acceleration lines (all lines type 0);
+  this speed comes from the pinch.
+- **Next** (`exp/arcs-open-clear`: `exp/arcs-open-upper` with the rail-support rule's margin raised from 2 px to the
+  rider's height, 10 px). A rail is then never built inside the rider's space, by construction, with no physics spent.
+  **Hypothesis:** pinched frames and speed beyond gravity on touched rails fall to the 12 px level; rails fall below
+  43% of gaps; headline within a few points of `exp/arcs-open-upper` (−9.0).
+
 ## November 14: open arcs with upper receivers (result); where the rail-free attempt stands
 
 - **Open arcs + upper receivers** (`exp/arcs-open-upper`, V8 against `base`): headline −9.0 [−14.8, −3.2], 7 specs up,

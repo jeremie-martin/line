@@ -16,6 +16,7 @@
 - **Change** (`exp/longer-phrases`): 3 or 4 sections (the same draw; the same breaks at calm, speed and boundaries).
 - **Hypothesis:** more within-ride memory per family, better later sections; V8 up. Variety: the same families, in
   longer runs.
+- **Result: not adopted**, −1.6 [−8.7, +5.4] (V8, 4 seeds; P6 −17.6, P4 +5.4); strong extra impacts +36%.
 
 ## November 14: hypothesis, the placement table refitted on 852 rides (stated before running)
 

@@ -25,7 +25,7 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    (rider crossing a line from its non-colliding side) and untouched geometry.
 8. ~~**New songs**~~ (2026-10-31).
    - Valhalla: `words3`, production ready.
-   - Circus Minimus: `pairs3` is preferred (realizable: 1 seed in 24).
+   - Circus Minimus: `voice-full` is preferred since 2026-11-14 (the voice to the end; 4 seeds of 4 complete); `pairs3` before.
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
 9. **Compiler work.** Baseline: visual-lab with the compact construction sources (210 KB, adopted 2026-11-13 in place of the
    52 MB archive; REWORK.md). It scores −11.7 [−17.9, −5.5] against the archive version (812.1 on V7.1), held out −15.6.

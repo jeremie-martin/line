@@ -1,5 +1,14 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: Circus Minimus follows the voice to the end (`voice-full`, the new default)
+
+The owner closed the visual lab for now and returned to specifications. `variants/voice-full.ts` keeps the approved
+voice-and-drums hook and carries the reading to the last bar: 48–54.5 s from 25 new listening marks, the rest authored from the
+measurements by what those marks showed (the header of the file lists it). A reading written before opening the marks matched
+24 of 25 within 80 ms. The owner heard it with clicks and approved it; four seeds (101–404) compiled complete and valid at the
+standard allowance, strength RMS 0.083–0.092. `spec.ts` now points to it, so the held-out panel's "Circus preferred spec"
+(`tools/eval/inputs.ts`, `variant: null`) is this spec from now on; `pairs3` remains as a variant.
+
 ## November 14: round 51 answered; half light, half dark; the band lights on dark themes
 
 **Decided for production (the owner):**

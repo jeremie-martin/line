@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {expect, it} from 'vitest';
 import draft, {vocalHook, hookBass} from '../productions/circus_minimus_77s/variants/voice-led.ts';
-import preferred from '../productions/circus_minimus_77s/spec.ts';
+import preferred from '../productions/circus_minimus_77s/variants/pairs3.ts';
 
 it('keeps the vocal attacks at their measured vocal times, including the fast pitch turns', () => {
   const sung = JSON.parse(readFileSync('productions/circus_minimus_77s/sung.json', 'utf8'));

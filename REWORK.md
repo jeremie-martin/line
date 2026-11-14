@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: E1c on V7.1 (candidate, for the owner's eye)
+
+V7.1, 4 seeds, 164 pairs against `foundation`: **headline −0.5 [−3.7, +2.8]**, 18 specs up, 17 down; every ride finished;
+explicit −4.3 (V8 +4.1); clean upper hits 8.1% → 8.8% of strong beats; strong extra impacts 0.09 → 0.13 per 100 beats;
+head-down and body drag unchanged. Neutral on both panels. Whole rides and a sheet:
+`generated/compare/upper-e1c-v71/` (`review.json`, `geometry.html`).
+
 ## November 14: E1c result, upper receivers where catches from above survive (candidate)
 
 V8, 4 seeds, against `foundation`:

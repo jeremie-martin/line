@@ -81,8 +81,9 @@ All on V8, 196 rides, unless stated.
 
 - **The strong-phrase guide rule** did most of the rails' rise, in one step. It is also the step where clean upper hits
   fell most.
-- **At the start, open arcs were where clean upper hits came from:** about 20% of their strong beats, twice any other
-  family. Inside one family, a kept rail does not lower the rate.
+- **Where clean upper hits come from:** only arcs and scattered. Open arcs catch 29% of their strong beats with one;
+  shaped families never do (0 of about 4,000). Within arcs and scattered, gaps keeping a rail catch 7–11% clean, those
+  without 22–33%. (A beat is caught by the lines of the gap that starts at it.)
 - **Clean upper hits by the strike measure:** the softest catch on strong beats (bias −0.18 against −0.09 for floor
   catches at the same asks), and head-down twice as often.
 - **Shapes built without a rail:** speed error about 5× that of any other gap; the rider is too slow.

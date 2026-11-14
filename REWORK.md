@@ -100,8 +100,10 @@ brief's start and of every adopted version since, remeasured from saved cells (`
 
 - Rides with rails on more than 70% of their time: 4 → 97 of 196; the most railed ride 72% → 92%.
 - Only strong beats lost clean upper hits (pooled 11.8% → 8.7%); middle beats kept theirs (15.8% → 16.6%).
-- At the start, open arcs (no rail allowed) caught 20.5% of their strong beats with a clean upper hit, about twice any
-  other family; strong phrases left them. Within a family, a section with a rail drawn does not catch fewer upper hits.
+- At the start, open arcs (no rail allowed) caught 29% of their strong beats with a clean upper hit; strong phrases left
+  them. Shaped families (fold, scallops, serpentine, terraces) never catch one (0 of about 4,000 strong beats). Within
+  arcs and scattered, gaps keeping a rail catch 7–11% clean, without one 22–33%. (Corrected the same day: a beat is
+  caught by the lines of the gap that starts at it; the first count used the gap ending there.)
 - On strong beats clean upper hits land softest (bias −0.18 against −0.09 for floor catches, same asks) and arrive
   head-down twice as often (22% against 10%): the score and the head-down guard both count against them.
 - Between seeds of one spec, rail share and clean upper share correlate −0.52 (start), −0.13 (today).

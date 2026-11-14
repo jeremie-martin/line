@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: open arcs with upper receivers (result); where the rail-free attempt stands
+
+- **Open arcs + upper receivers** (`exp/arcs-open-upper`, V8 against `base`): headline −9.0 [−14.8, −3.2], 7 specs up,
+  36 down; explicit −6.3. Against the open-arcs probe (−11.0): very-strong bias −0.021 → −0.016, speed rms +0.004 →
+  +0.003, air and amplitude back to `base`; clean upper hits 12.6% of strong beats (base 9.4%); rails 43% of gaps;
+  body drag −14%. Hypothesis met in direction (part of the strong loss recovered), small in size: about 2 of 11 points.
+- **Where it stands:** rails on arcs carry about 11 points. Rail-free twins (R1–R4) traded at the removal rate; upper
+  receivers replace a fifth of the rail's strong-catch job. Two open questions decide what comes next: whether the
+  ruler under-credits catches from above (the gravity-neutral strength, unvalidated; the owner's held-out study
+  `upper-hits-2026-11-redo` is unanswered), and whether the owner prefers the open-arcs rides by eye despite the score.
+  Nothing adopted; `base` unchanged.
+
 ## November 14: the open-arcs probe, and open arcs with upper receivers (stated before running)
 
 - **Probe** (`exp/arcs-open`, V8 against `base`): headline −11.0 [−13.3, −8.8], 4 specs up, 39 down; explicit −11.6.

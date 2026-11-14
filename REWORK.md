@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q1b, Q1c, Q2 results; Q3: climbing twins (stated before running)
+
+V8 against `foundation-5`; "within ×1.5" and "over ×2" are for asks 0–0.1 (`foundation-5`: 14%, 75%).
+
+| | headline | explicit | within ×1.5 | over ×2 | strong extra impacts | speed rms |
+|---|---|---|---|---|---|---|
+| Q1 | −12.1 | −58.1 | 54% | 21% | 0.61 (×6) | +0.012 |
+| Q1b (ref 0.3, extras priced) | −16.5 [−29.3, −3.6] | −50.7 | 23% | 61% | 0.06 | +0.013 |
+| Q1c (ref 0.5, extras priced) | −65.4 [−130, −0.6] | −139.9 | 31% | 45% | 0.07 | +0.055 |
+| Q2 (faithful refinement) | −3.0 [−7.6, +1.6] | −4.9 | 13% | 75% | 0.12 | 0.000 |
+
+- **Pricing alone is a dead end.** When braking by touchdown costs more, the search either brakes with a hit nobody asked
+  for (Q1) or, when that costs too, leaves the flights too fast (Q1c: speed rms +0.055, the long spec −293).
+  Refinement alone (Q2) changes nothing. With today's geometry a quiet passage has nowhere to put the speed the
+  descending flights give it: on quiet gaps the flight is too fast already on `foundation-5` (speed +0.058) and much
+  more under Q1 (+0.137). In Tiki voice-drums the quiet intro descends 8–50 px a gap at a steady 8 px/frame: each
+  0.1–0.19 touchdown removes what the descent adds.
+- **Q3** (`exp/quiet-climb-a`, `-b`, `-c`): climbing twins. After the early proposals, the 6 best-ranked candidates are
+  offered again with their support's exit raised 8°, 16° and 24° (upward), so the rider climbs after the catch and
+  the ride stays level instead of gaining speed. The search keeps a twin only where it ranks better. Q3a: today's
+  pricing; Q3b: with Q1b's pricing; Q3c: with Q1's. **Hypothesis:** with pricing that makes braking by touchdown
+  costly, climbing twins carry the speed: quiet asks close to Q1's gain, speed rms and the headline loss well
+  under Q1's, no rise in extra impacts (Q3b). Alone (Q3a), little changes.
+
 ## November 14 (night): Q1 result; Q1b, Q1c, Q2 (stated before running)
 
 The owner asked for a night on quiet asks (0 to 0.3): improve them much, in relative terms (0.05 against 0.1 matters),

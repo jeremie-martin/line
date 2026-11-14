@@ -9,6 +9,16 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, guides offered where they fit (stated before running)
+
+- **Basis** (the placement table): arcs offered a guide lose 15–64% less than open arcs in middle and strong contexts,
+  about the same in quiet ones (0.94–1.34).
+- **Change** (`exp/guidance-where-it-fits`): after placement, an open-arc phrase is offered its guide when that is
+  among its eligible choices and fits better by the table. The family stays arcs; open arcs remain where they fit as
+  well (quiet passages).
+- **Hypothesis:** V8 up; open arcs fewer outside quiet passages. **For the owner's eye:** more rails offered (they are
+  trimmed when unused).
+
 ## November 14: hypothesis, quiet catches laid along the arrival (stated before running)
 
 - **Basis** (V8, `compiler`): quiet asks (0.15 or less) land too hard, by +0.10 to +0.11 on the calm specs (P3: 36% of

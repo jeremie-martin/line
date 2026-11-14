@@ -74,6 +74,9 @@ function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan
       }
     }
   }
+  // An open-arc phrase is offered its guide where that is eligible and fits better (the family stays arcs).
+  for(const p of phrases)if(p.construction==='arcs'&&p.guidance==='forbidden'&&p.choices!.some(c=>c.construction==='arcs'&&c.guidance==='optional'&&c.weight>0)&&
+    cost(p,familyKey('arcs','optional'))<cost(p,keyOf(p)))p.guidance='optional';
   for(const p of phrases)for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],construction:p.construction,guidance:p.guidance};
 }
 

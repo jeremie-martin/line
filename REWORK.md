@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails kept clear by the rider's height (result: not adopted)
+
+- `exp/arcs-open-clear` (open arcs + upper receivers, rail-support margin 10 px instead of 2), V8 against `base`:
+  headline **−31.6** [−36.4, −26.8], 0 specs up, 43 down (about −22.6 beyond the adopted open arcs' −9.0); explicit
+  −31.1; every ride finished. Rails 33% of gaps; clean upper hits 13.2% of strong beats; body drag −26%; head-down
+  strong arrivals +22%.
+- The squeeze is gone as predicted (`rail_squeeze.ts`): no touched rail within 10 px of its support, pinched frames
+  23% at 10–12 px, speed beyond gravity +0.04 on average.
+- **Reading:** today's shaped families (fold, serpentine, scallops, terraces, scattered) get much of their score from
+  rails inside the rider's space: the squeeze holds and pushes the rider. Without it they lose about 22 points. A
+  rule this blunt is not adoptable on the score; whether the owner's eye prefers it is open. Rails that do not squeeze
+  need geometry that works without the push.
+
 ## November 14: arcs never offered a rail, upper receivers (adopted, the owner's choice)
 
 - **Decided by the owner** after watching whole rides (`generated/rails-review/`): "I know for a fact that I prefer the

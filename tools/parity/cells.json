@@ -38,19 +38,19 @@
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "a842cfc3d01950e9c679a401a79849865c21a68a43c448c16e24f62970d6da9d",
-   "physicalFrames": 2961104,
-   "quality": 816.235,
-   "loss": 0.004770284895293306
+   "trackHash": "563bc0a0ea978335e921bfdfbcdab70792d9c9057159f0944968b1fd62310a30",
+   "physicalFrames": 2999997,
+   "quality": 845.4752,
+   "loss": 0.002781404760967274
   },
   {
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "0dfe05d196896ea18bd7284a9fcc37e2334ac7bbc8ec9ba27758eda110b4f4b3",
-   "physicalFrames": 2997879,
-   "quality": 749.1213,
-   "loss": 0.0072601360883492415
+   "trackHash": "546584fd9fe6ffcd0cd58a2c52efa7ddde8122479f077c4d56fe8a08ef5c07ae",
+   "physicalFrames": 2994607,
+   "quality": 763.4632,
+   "loss": 0.006563373488567879
   },
   {
    "id": "canonical-music_luna_bala_44s-fold-paired",
@@ -89,16 +89,16 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "4f7aae522f136bc87e07d6ebd488b6b62b3f92bf41120a45c61d5d7dcea91cce",
-   "physicalFrames": 149873
+   "trackHash": "b0cdb12577efaadb1e981854e868c41d81746dfcca5edbdba77c981b41db835b",
+   "physicalFrames": 148063
   },
   {
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "cf8d5653665f95742906b34d13f8f002a98a49cd701758344c9c005973d89563",
-   "physicalFrames": 742568
+   "trackHash": "be24f33afb4fb21aa950a090825fa86bf7b2804c211c6028a832e805b217f60d",
+   "physicalFrames": 749997
   },
   {
    "id": "amour_de_ma_vie_108s/bench-long",
@@ -109,7 +109,7 @@
     "variant": "bench-long"
    },
    "budget": 150000,
-   "trackHash": "badbd58134371dd24beb27af34b961928ce9e21e2f082a97244998ffc0de9078",
+   "trackHash": "9ef00f5f7de4eaa7015d531a6ec6677b8be1165faa5b6b63bac75f555a6c171b",
    "physicalFrames": 149997
   },
   {
@@ -121,8 +121,8 @@
     "variant": "bench-pairs"
    },
    "budget": 150000,
-   "trackHash": "65f1d3d7a6fe6858cda8252ee57f106eabda0aad690c3c37ec488ddc269d1db8",
-   "physicalFrames": 148547
+   "trackHash": "103fa0503cf8fb59495bd48035c92b249c0d0bc4014c9954ba0d9fef9cc31be7",
+   "physicalFrames": 149075
   },
   {
    "id": "tiki_tiki_48s/bench-pairs",
@@ -132,10 +132,10 @@
     "song": "tiki_tiki_48s",
     "variant": "bench-pairs"
    },
-   "trackHash": "ed04ba2f24dfd5e95a2e090f68767f3b3d48686260d6d1c607de2a2f6fc9cf54",
-   "physicalFrames": 3287952,
-   "quality": 826.865,
-   "loss": 0.003873418269841476
+   "trackHash": "0cb66e539f8069fc851eac83ee1c04679ae8310c4dbca0dc6ebcf33b0bb20db6",
+   "physicalFrames": 3299697,
+   "quality": 845.8862,
+   "loss": 0.002244237400329774
   },
   {
    "id": "luna_bala_44s/v7-rideout",
@@ -145,10 +145,10 @@
     "song": "luna_bala_44s",
     "variant": "v7-rideout"
    },
-   "trackHash": "b22442c1fe4d900595c2b525398925e08ebfbce0008590228c82f66109bffb50",
+   "trackHash": "6b08b707cbbad7af92d4f4947bdde128bf7a002658d59bfa1b5b9a39f6b79fbd",
    "physicalFrames": 3027697,
-   "quality": 807.5239,
-   "loss": 0.003953922722964749
+   "quality": 883.0047,
+   "loss": 0.0012140873089843485
   },
   {
    "id": "amor_na_praia_46s/v7-explicit-handover",
@@ -158,28 +158,28 @@
     "song": "amor_na_praia_46s",
     "variant": "v7-explicit-handover"
    },
-   "trackHash": "7ed50bf95921a961111b41a36b5b86f21ea122a0c0a0e938c158f5fe940e8224",
-   "physicalFrames": 3163697,
-   "quality": 788.0285,
-   "loss": 0.005711386828445193
+   "trackHash": "a0c372ca8f21ced12ff80df72a8f011eed28fc2606de83686129d6b5326abdb3",
+   "physicalFrames": 3135547,
+   "quality": 790.3285,
+   "loss": 0.007313347472076539
   },
   {
    "id": "canonical-bridge_frontier_low_air_endurance-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "66306c8fbf08f1363033bb14cb63f63771784c8d2ebd7baa81b0ddc98ce02ba2",
-   "physicalFrames": 2948161,
-   "quality": 701.9111,
-   "loss": 0.011921540799986082
+   "trackHash": "f4ff9361652dbc4f7effe18ceb5700e3c8649c36a79c406edc05e3d8a0d136f9",
+   "physicalFrames": 2971608,
+   "quality": 711.5545,
+   "loss": 0.011390240272982704
   },
   {
    "id": "canonical-bridge_frontier_dense_recovery-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "a80a125e755bb56e3053c7b6fb8e962198a6e8e6268e3f755407f07815b18de4",
+   "trackHash": "f5f71e3283bac13280cfe030adf913d373381d91f1ea801af9510044275048bd",
    "physicalFrames": 2999997,
-   "quality": 739.0357,
-   "loss": 0.008327624630994585
+   "quality": 748.6778,
+   "loss": 0.007194036445585773
   },
   {
    "id": "canonical-music_amor_na_praia_46s-fold-transfer",
@@ -194,7 +194,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "2031b5cedf61942b6bbfadcd39ba3d7ad2aa328472bd172c7af51e89feeee95f",
+   "trackHash": "b8ab8abfc0edccb8bae5203c7039716b754f6e8cc049e8c5487864d6d8b1379b",
    "physicalFrames": 149997
   },
   {
@@ -202,8 +202,8 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "f2387b9648aa5267f3d8171af65aa82f7fbb03a3fa38af07b0ff4c51f86cf13c",
-   "physicalFrames": 749678
+   "trackHash": "91feef96493787cdfb7657b20e93f881497622ba3ee44b17a1234d9b58136ce7",
+   "physicalFrames": 749997
   },
   {
    "id": "canonical-music_luna_bala_44s-serpentine-paired",

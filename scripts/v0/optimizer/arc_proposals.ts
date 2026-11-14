@@ -10,6 +10,7 @@ import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { searchRank } from './arc_candidates.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -178,6 +179,18 @@ export function proposeOpposingEntries(s: IntervalSearch) {
     for (const [key, count] of Object.entries(s.failures))
       work.failures[key] = (work.failures[key] ?? 0) + count - (beforeFailures[key] ?? 0);
   }
+}
+
+/** Climbing twins (REWORK.md, November 14: Q3): the best-ranked candidates again with their support's exit raised by
+ * each of `steps` degrees (upward), so the rider climbs after the catch. A ride sheds speed without a hit only by
+ * climbing; quiet asks land too hard because the search brakes with touchdowns where it is too fast. The search keeps
+ * a twin only where it ranks better. */
+export function proposeClimbingTwins(s: IntervalSearch) {
+  const {options, i} = s, cfg = options.climbingTwins;
+  if (!(i > 0 && cfg && cfg.count > 0 && !options.profile && options.railLayout !== 'transfer')) return;
+  const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1).sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);
+  for (const x of ranked) for (const step of cfg.steps) evaluate(s, tagOrigin({...x.c, exit: x.c.exit - step}, 'climbing'));
+  retainSearch(s);
 }
 
 /** Short folded entries before a long runout, for folded transfer layouts. */

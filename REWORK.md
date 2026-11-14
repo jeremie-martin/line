@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q6 result; Q8: relative misses beyond a tolerance (stated before running)
+
+- **Q6** (spread twins, today's pricing): headline −2.1 [−4.4, +0.2]; quiet asks unchanged (asks 0–0.1 within ×1.5
+  13%). Spreading the catch's turn does not soften a touchdown, as "quiet catches laid along the arrival" found for the
+  angle: a landing from flight reads at least about 0.07–0.09 (the line takes over gravity, the body settles; engine
+  probe). Asks of exactly 0 (412 of the 604 under 0.1 on V8) cannot be met by any touchdown: Q1 and Q3c met them by
+  keeping the rider on the line, which is what cost air and speed.
+- **Q8** (`exp/quiet-hinge-10`, `-30`; today's pricing kept): a matched catch's miss is priced in proportion only beyond
+  a factor 1.4, as ln((got + 0.03) / (ask + 0.03)), with asks under 0.07 read as 0.07 (a touchdown's floor); residual
+  √weight × the excess, weight 10 and 30. It leaves near misses and the touchdown floor alone and presses on the
+  visibly wrong hits (0.2 and more on an ask of 0.1; strong asks landing at under 0.65 of the ask too).
+  **Hypothesis:** the tail of quiet asks falls (over ×2 and p90 down, within ×1.5 up) without Q1's escape into extra
+  hits or flat rides; headline within a few points.
+
 ## November 14 (night): Q3a, Q3b, Q4 results
 
 | | headline | explicit | asks 0–0.1 within ×1.5 / over ×2 | strong extra impacts | speed rms |

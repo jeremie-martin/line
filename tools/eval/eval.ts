@@ -134,17 +134,21 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
     r.strata.map(s => `${s.stratum} ${s.quality.reduce((n, q) => n + q.n, 0)}`).join(', ')}); "strata" = mean over strata`,
   `${pad('metric', 44)}${r.strata.map(s => pad(s.stratum, 11)).join('')}strata`);
   for (const k of r.metricNames) out.push(`${pad(k, 44)}${r.strata.map(s => pad(num(s.value[k][field], paired), 11)).join('')}${num(r.overall[k][field], paired)}`);
-  out.push('', `3. Per spec: ${paired ? 'A − B (seed mean) and seed signs' : 'seed mean'}, on the same cells`);
+  // Section 3 keeps the rows that matter spec by spec; section 2 has them all.
+  const perSpec = r.metricNames.filter(k => PER_SPEC.includes(k));
+  out.push('', `3. Per spec: ${paired ? 'A − B (seed mean) and seed signs' : 'seed mean'}, on the same cells (${perSpec.length} key rows; section 2 has every row)`);
   for (const s of r.strata) {
     out.push(`[${s.stratum}] ${s.quality.map((q, i) => `(${i + 1}) ${q.spec} n=${q.n}`).join('  ')}`,
       `  ${pad('', 42)}${s.quality.map((_, i) => pad(`(${i + 1})`, 22)).join('')}`.trimEnd());
-    for (const k of r.metricNames) out.push(`  ${pad(k, 42)}${s.quality.map(q => {
+    for (const k of perSpec) out.push(`  ${pad(k, 42)}${s.quality.map(q => {
       const m = q.metrics[k], value = paired ? m?.diff : m?.a;
       return pad(!Number.isFinite(value) ? '—' : paired ? `${num(m.diff, true)} +${m.up}−${m.down}=${m.same}` : num(m.a), 22);
     }).join('')}`.trimEnd());
   }
   return [...out, '', ...geometryReport(a, b)];
 }
+const PER_SPEC = ['score', 'impact loss (v3)', 'v3 strong bias (req>=0.6)', 'air rms', 'speed rms', 'rails, share of ride time',
+  'clean upper hits, share of strong beats'];
 const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
 /** Section 4 of the stratified report: how rides use the geometry families.
  * Single run: values. Paired: A→B per stratum, then A, B and A − B over strata. */

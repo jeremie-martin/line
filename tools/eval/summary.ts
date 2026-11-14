@@ -30,30 +30,15 @@ export function headline(r: Run, strata: string[]) {
 }
 /** Song-level summary of one cell: the numbers a decision would be based on. */
 export function summarize(cell: any) {
-  const b = cell.beats.filter((r: any) => r.requested != null), strong = b.filter((r: any) => r.requested >= .6), quiet = b.filter((r: any) => r.requested <= .15);
-  const strengthErr = (rows: any[]) => Math.sqrt(mean(rows.map((r: any) => ((r.r1?.strength ?? 0) - r.requested) ** 2)));
   return {
     complete: cell.complete ? 1 : 0, fulfilled: cell.fulfilled ? 1 : 0,
     score: headlineScore(cell),
-    frozenScore: cell.frozen.valid ? cell.frozen.score : NaN,
-    'strength rms (R1)': strengthErr(b), 'strong strength rms': strengthErr(strong), 'quiet strength rms': strengthErr(quiet),
-    'R1 bend peak lag ms (median)': median(b.map((r: any) => (r.r1?.peak ?? NaN) * 25)),
-    'R1 bend peaks >100 ms late': mean(b.map((r: any) => r.r1 ? (r.r1.peak * 25 > 100 ? 1 : 0) : NaN)),
-    'contested strong beats': mean(strong.map((r: any) => r.impulse.competitor >= .5 * r.impulse.hit ? 1 : 0)),
-    'strong extra hits / beat': mean(b.map((r: any) => r.extrasR1.filter((e: any) => e.strength >= .25).length)),
-    'hidden contacted bend / beat': mean(b.map((r: any) => r.hiddenBend)),
+    // One loss per impact ruler, so every ruler stays visible; the headline's (v3) in detail below.
     'contact-impact loss': cell.contact.loss,
     'strike loss': cell.strike?.loss ?? NaN,
-    'strike strength rms': cell.strike ? Math.sqrt(cell.strike.strengthMse) : NaN,
-    'strike extra (mse)': cell.strike?.extraMse ?? NaN,
-    'strong extra strikes / beat': mean(b.map((r: any) => r.strike ? r.strike.extras.filter((e: any) => e.strength >= .25).length : NaN)),
     'impact loss (v2)': cell.impact?.loss ?? NaN,
-    'impact strength rms (v2)': cell.impact ? Math.sqrt(cell.impact.strengthMse) : NaN,
-    'impact extra (v2, mse)': cell.impact?.extraMse ?? NaN,
-    'strong extra impacts / beat (v2)': cell.impact ? cell.impact.strongExtras / cell.impact.beats : NaN,
     'impact loss (v3)': cell.impact3?.loss ?? NaN,
     'strong extra impacts / beat (v3)': cell.impact3 ? cell.impact3.strongExtras / cell.impact3.beats : NaN,
-    'opposite-push boundaries / beat (v3)': cell.impact3.reversals.length / cell.impact3.beats,
     'opposite-push pairs >=0.2 / beat (v3)': cell.impact3.reversals.filter((r: any) => r.beforeStrength >= .2 && r.afterStrength >= .2).length / cell.impact3.beats,
     ...(() => {
       // Per-beat v3 strength by requested band; a beat with no matched impact counts as strength 0.
@@ -63,15 +48,14 @@ export function summarize(cell: any) {
       return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
         'v3 very strong bias (req>=0.8)': bias(band(.8, 2)), 'v3 quiet bias (req<0.15)': bias(band(0, .15))};
     })(),
+    'air rms': cell.frozen.axes?.air?.rmsError ?? NaN,
+    'speed rms': cell.frozen.axes?.speed?.rmsError ?? NaN,
+    'amplitude rms': cell.frozen.axes?.amplitude?.rmsError ?? NaN,
     ...characterOfCell(cell),
     'strong arrivals inverted/backward': cell.guards?.strongInverted ?? NaN,
     'body drag s/min': cell.guards?.dragSecondsPerMinute ?? NaN,
     'off-beat kicks / ride': cell.guards?.offBeatKicks ?? NaN,
-    'air rms': cell.frozen.axes?.air?.rmsError ?? NaN,
-    'speed rms': cell.frozen.axes?.speed?.rmsError ?? NaN,
-    'amplitude rms': cell.frozen.axes?.amplitude?.rmsError ?? NaN,
-    'burst excess (100 ms)': cell.motion?.bursts?.[1]?.excessIntegral ?? NaN,
-    'physics frames (M)': cell.physicalFrames / 1e6, 'compile s': cell.compileMs / 1000,
+    'physics frames (M)': cell.physicalFrames / 1e6,
   };
 }
 const SHAPES = new Set(['fold', 'serpentine', 'scallops', 'terraces']);
@@ -118,8 +102,9 @@ export function windowImpact(cell: any) {
 export function benchMetrics(cell: any): Record<string, number> {
   const {complete: _, ...rows} = summarize(cell), v3 = cell.impact3;
   const missing = v3.perBeat.filter((b: any) => !b.hit).length / Math.max(1, v3.beats);
+  const w = windowImpact(cell);
   return {...rows, 'v3 strength (mse)': v3.strengthMse, 'v3 timing (mse)': v3.timingMse ?? v3.loss - v3.strengthMse - v3.extraMse - missing,
-    'v3 extra (mse)': v3.extraMse, ...windowImpact(cell)};
+    'v3 extra (mse)': v3.extraMse, 'window v3 loss': w['window v3 loss'], 'window v3 strong bias (req>=0.6)': w['window v3 strong bias (req>=0.6)']};
 }
 /** Where an incomplete ride failed: the earlier of the crash (the replay ended
  * before the spec) and the first beat without a matched impact; `reached` is the

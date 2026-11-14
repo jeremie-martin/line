@@ -35,7 +35,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    and it uses the requested impact and speed: calm passages favour open arcs,
    and in strong phrases (mean ask 0.4 to 0.8, phased in) the open arcs' share
    becomes arcs offered a guide, which land strong catches harder (since
-   2026-11-13). An explicit plan bypasses this step.
+   2026-11-13). The families drawn are then placed where they fit: two
+   phrases trade theirs when the fitted loss of a family in each context
+   falls (`family_fit.ts`, a family × context table fitted on V7.1 rides by
+   `tools/research/family_fit.ts`); a ride's families keep their number
+   (since 2026-11-14). An explicit plan bypasses this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section

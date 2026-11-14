@@ -17,6 +17,24 @@
   headline 769 → 795. Optimistic by construction (it assumes the table is causal and additive).
 - **Hypothesis:** V8 up clearly, every category; variety unchanged in counts; the look moves shapes from strong and long
   spans toward middle ones. **Watch:** held out, distinct families per ride, the geometry sheet.
+- **Result: adopted.**
+
+  | panel | change | interval | specs up / down |
+  |---|---|---|---|
+  | V8, 8 seeds | **+8.5** | [+3.2, +13.8], support > 0.99 | 35 / 8 |
+  | held out (4 songs, 4 seeds) | **+8.1** | [−15.4, +31.6], support 0.82 | 4 / 0 |
+  | V7.1, 4 seeds (where the table was fitted) | +12.5 | [+9.5, +15.6] | 27 / 8 |
+
+  - V8 by category (4 seeds): G +6.2, P1 +19.0, P5 +9.8, P6 +12.3, P7 +13.4, P2 −2.5; explicit requests +1.1 (8 seeds).
+  - Costs: strong extra impacts +29% on V8 (0.19 against 0.15 per 100 beats), −23% on V7.1, same held out; body drag
+    +4%; head-down strong arrivals +3%.
+  - **Variety:** distinct families per ride unchanged (6.83 against 6.83). Ride time per family: folds 9.5% → 6.8%,
+    terraces 11.4% → 8.1%, arcs offered a guide 26.2% → 28.7%, scattered 11.1% → 12.6%. Where they go changes most:
+    folds now come mostly in calmer passages (their time in strong ones 46% → 8%), serpentines and scattered more in
+    strong ones (34% → 50%, 42% → 50%). For the owner's eye: intense passages carry fewer folds.
+  - A variant trading only between phrases of as many sections (every family keeps its share of sections) gives +4.1
+    [−2.4, +10.5] on V8: half the gain; not chosen.
+  - Parity references refreshed (plans change).
 
 ## November 14: where 800 on V8 is, and what stands in the way
 
@@ -51,7 +69,7 @@ data (−6.9), shapes after the catch (−13.0), the guide ahead of the sled (�
 −3.3, and a diving rail −5.2 with strong extra hits ×3). Adopted: guides offered on strong phrases (+7.7), lead-ins below the arrival (+0.0, cleaner look).
 
 **Reading.** Every lever that re-ranks, re-weights or re-proposes inside today's vocabulary is null or negative; the
-one gain came from what is built where. What would move V8 toward 800 is a construction that turns a fast rider down
+gains came from what is built where (guides on strong phrases; then families where they fit, +8.5, adopted above). What would move V8 toward 800 is a construction that turns a fast rider down
 between strong catches without a strike and without the search having to stumble on it, or asks that stay within what a
 chain of hits can physically deliver (TODO's open question 1, the strength scale). Neither is a weight.
 

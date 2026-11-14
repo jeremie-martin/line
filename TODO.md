@@ -34,6 +34,9 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
    - ~~Strong phrases offered guides~~ (adopted 2026-11-13: V8 +7.7, V7.1 +4.0, held out +13.9; body drag +13%,
      strong extras +16%, more upper hits). For the owner's eye: intense passages now rarely use open arcs.
+   - ~~Families where they fit~~ (adopted 2026-11-14: V8 +8.5 [+3.2, +13.8] at 8 seeds, held out +8.1, V7.1 +12.5).
+     For the owner's eye: folds now mostly in calmer passages.
+   - Where 800 on V8 is: REWORK.md, November 14 (the bound and the physical conflicts).
    - Still open from November 1:
      - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
        quality there is the same strong-too-soft story as elsewhere;

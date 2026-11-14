@@ -62,6 +62,9 @@ export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine
 }
 
 /** Native candidate evaluation can register these vertices directly. */
+/** A smooth shape completes its profile by this share of the support; the rest eases into the exit as an arc does, so
+ * the rider leaves a shape with an arc's speed and heading (REWORK.md, November 14). Folds keep their faces. */
+const SHAPE_END=.7;
 export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):SolidPath[]{
   const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
@@ -102,7 +105,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
-      style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
+      style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,SHAPE_END*c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,
       profileContext);
     // Fixed angular folds have actual corners. Applying a smooth-curve radius
     // per face would weaken their angle whenever search shortened that face.

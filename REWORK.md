@@ -21,6 +21,15 @@
   still realize), the geometry sheet.
 - **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
 
+## November 14: hypothesis, smooth shapes end before the exit (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8 through what they hand on (removing them all: +19.4; removing one family:
+  0.0, the share goes to the others; within their sections they do about as well as arcs). A smooth shape's profile runs
+  to the support's very end, so the rider leaves on the shape's heading.
+- **Change** (`exp/shapes-end-early`): serpentines, scallops and terraces complete their profile by 70% of the support;
+  the rest eases into the exit as an arc does. Same bends, same count; folds keep their faces.
+- **Hypothesis:** shaped sections hand on an arc's speed and heading; V8 up.
+
 ## November 14: one shape family removed (diagnostic)
 
 Repertoire without serpentines (their share passes to the other families), V8, 4 seeds: −0.0 [−2.3, +2.2]. The shapes'

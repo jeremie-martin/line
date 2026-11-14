@@ -1,5 +1,15 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never proposed onto their own support, adopted
+
+Merged into `compiler` (the owner: "no negative comment"): a proposal whose rail crosses or comes within 2 px of its
+own support (segment against segment, the support's ends included) is not built (`railSupportMargin: 2`). Measured just
+below: V8 −1.1 [−8.6, +6.4]; crossing rails at the rider 39 → 0, almost crossing 52 → 14, the rider going through a
+line 0.84 → 0.48 per ride. Compile time: +9% on a V8 ride; the check's support segments sit in a grid (exact, parity
+identical), which brought the longest parity ride from +77% to +32%. Parity references refreshed; parity, judge,
+tests (618), typecheck and reach pass. Next, for what remains (rails in the flight path past a support's end, a few
+main lines): the targeted cleanup of pieces the rider goes through and never touches (identical replay).
+
 ## November 14: rails never proposed onto their own support, third result (candidate)
 
 V8, 196 rides, against `foundation` (`exp/rail-touch`, segment against segment, 2 px):

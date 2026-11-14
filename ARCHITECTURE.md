@@ -52,7 +52,10 @@ and validation are in [music authoring](docs/music-authoring.md).
      policies" below), memory of earlier sections, response directions, a
      generic sweep and observed receivers;
    - measures each proposal by native replay from the section's physical
-     start (`arc_evaluate.ts`, state in `arc_interval_state.ts`);
+     start (`arc_evaluate.ts`, state in `arc_interval_state.ts`); a proposal
+     whose rail crosses or comes within 2 px of its own support is not built
+     (`railMeetsSupport`, option `railSupportMargin`: the rider would be seen
+     going through it; since 2026-11-14);
    - refines the best with coordinate, guide and joint-response steps
      (`arc_local_search.ts`);
    - retains up to eight distinct, physically replayed prefixes, ranked by

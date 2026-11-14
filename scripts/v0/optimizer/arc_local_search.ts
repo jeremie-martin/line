@@ -30,6 +30,28 @@ export function coordinateSearch(s: IntervalSearch) {
   }
 }
 
+/** The best candidate that lands its catch close to the ask gets coordinate steps of its own (REWORK.md, November 14:
+ * Q2). The interval's best often misses the ask (quiet asks land twice too hard) because what lands it well was never
+ * refined: those candidates lose on the flight after them. Close means within a factor `tolerance` of the ask, read as
+ * (strength + 0.03) / (ask + 0.03); a step is kept when it stays close and ranks better. Any step may also become the
+ * interval's best. Nothing happens when no candidate is close or the best already is. */
+export function refineFaithful(s: IntervalSearch, samples: number, tolerance: number) {
+  if (s.impact === undefined || samples <= 0 || !s.best) return;
+  const close = (c: MeasuredCandidate) => c.actualImpact !== undefined &&
+    Math.abs(Math.log((c.actualImpact + .03) / (s.impact! + .03))) < Math.log(tolerance);
+  if (close(s.best.candidate)) return;
+  let faithful = s.candidates.filter(close).sort((a, b) => searchRank(a) - searchRank(b))[0];
+  if (!faithful) return;
+  const keys = ARC_CORE_KEYS;
+  for (let k = 0; k < samples; k++) {
+    const key = keys[Math.floor(k / 2) % keys.length], round = Math.floor(k / (2 * keys.length)), sign = k % 2 === 0 ? -1 : 1;
+    const c = {...faithful.c, [key]: faithful.c[key]! + sign * arcControlStep(key, 'coordinate', faithful.c.support) * Math.pow(.65, Math.floor(round / 2))};
+    const r = evaluate(s, deriveOrigin(c, faithful.c, 'faithful'));
+    if (r && close(r.candidate) && searchRank(r.candidate) < searchRank(faithful)) faithful = r.candidate;
+    if (k % 10 === 9) retainSearch(s);
+  }
+}
+
 /** Guide and shape search, then response steps, within the guidance
  * allowance. Response rounds take their share first; coordinate exploration
  * receives the remainder. */

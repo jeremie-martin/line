@@ -7,6 +7,7 @@ import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detec
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { refineFaithful } from './arc_local_search.ts';
 import { proposeInitialControls, proposeOpposingEntries, proposeUpperReceivers, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
 import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
@@ -36,6 +37,8 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
       recoverInitialization(s);
       coordinateSearch(s);
       guidanceSearch(s);
+      // the best candidate landing close to the ask gets its own refinement (REWORK.md, November 14: Q2)
+      if (options.faithfulRefinement) refineFaithful(s, options.faithfulRefinement.samples, options.faithfulRefinement.tolerance);
     }
   } catch (error) {
     if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;

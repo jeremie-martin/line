@@ -247,6 +247,8 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   residuals.push(actualImpact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact - impact!));
   const extra = impactSearchResiduals(impactEvents, impactAccount, impactMatch,
     frame - impactRuler.matchFrames, i < contacts.length - 1 ? next - impactRuler.matchFrames : duration + 1);
+  // A hit nobody asked for is an impact where 0 was asked: priced on the same relative scale (REWORK.md, November 14: Q1b).
+  if (options.relativeImpact?.extras) extra[1] *= (options.relativeImpact.reference + options.relativeImpact.floor) / options.relativeImpact.floor;
   extra.push(...engagementGainResiduals([...s.impactPrefix.pending, ...observedImpacts] as any, frame, Math.min(duration, horizon), options.impactSearch));
   residuals.push(...extra);
   cost += extra.reduce((sum, r) => sum + r * r, 0);

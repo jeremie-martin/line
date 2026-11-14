@@ -1,0 +1,4043 @@
+{
+ "round": 51,
+ "about": "Round 51, toward closing: the band lit on strong hits, drop partners for the newer light themes, two themes to keep or remove.",
+ "schemes": {
+  "c51-stone+rothko": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+cyanotype": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+cobaltChartreuse": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+blackIris": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+negoro": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+lilyLeaf": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+jungleMoon": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+violetMarigold": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stone+forestGold": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e9e6e0",
+   "pencil": "#ada9a1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+rothko": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+cyanotype": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+cobaltChartreuse": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+blackIris": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+negoro": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+lilyLeaf": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+jungleMoon": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+violetMarigold": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-stoneCool+forestGold": {
+   "accent": "#e54728",
+   "ink": "#241e14",
+   "mass": "#383530",
+   "nightInk": "#e9e6e0",
+   "nightPaper": "#241e14",
+   "paper": "#e4e6e9",
+   "pencil": "#a4a9b1",
+   "sun": "#e54728"
+  },
+  "c51-linen+rothko": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+cyanotype": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+cobaltChartreuse": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+blackIris": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+negoro": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+lilyLeaf": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+jungleMoon": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+violetMarigold": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-linen+forestGold": {
+   "accent": "#c14c35",
+   "ink": "#261d16",
+   "mass": "#4c3827",
+   "nightInk": "#eee9de",
+   "nightPaper": "#261d16",
+   "paper": "#eee9de",
+   "pencil": "#b0aca4",
+   "sun": "#c14c35"
+  },
+  "c51-sage+rothko": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+cyanotype": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+cobaltChartreuse": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+blackIris": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+negoro": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+lilyLeaf": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+jungleMoon": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+violetMarigold": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sage+forestGold": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#2f5838",
+   "nightInk": "#e6f0e4",
+   "nightPaper": "#19221a",
+   "paper": "#e6f0e4",
+   "pencil": "#abb1aa",
+   "sun": "#c14c35"
+  },
+  "c51-sky+rothko": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+cyanotype": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+cobaltChartreuse": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+blackIris": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+negoro": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+lilyLeaf": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+jungleMoon": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+violetMarigold": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-sky+forestGold": {
+   "accent": "#f4bf3f",
+   "ink": "#192029",
+   "mass": "#1f487c",
+   "nightInk": "#e1e9ef",
+   "nightPaper": "#192029",
+   "paper": "#e1e9ef",
+   "pencil": "#a4acb2",
+   "sun": "#f4bf3f"
+  },
+  "c51-eucalyptus+rothko": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+cyanotype": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+cobaltChartreuse": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+blackIris": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+negoro": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+lilyLeaf": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+jungleMoon": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+violetMarigold": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-eucalyptus+forestGold": {
+   "accent": "#c14c35",
+   "ink": "#142221",
+   "mass": "#174c49",
+   "nightInk": "#e1ecea",
+   "nightPaper": "#142221",
+   "paper": "#e1ecea",
+   "pencil": "#a4afad",
+   "sun": "#c14c35"
+  },
+  "c51-heather+rothko": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+cyanotype": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+cobaltChartreuse": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+blackIris": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+negoro": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+lilyLeaf": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+jungleMoon": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+violetMarigold": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-heather+forestGold": {
+   "accent": "#f2994e",
+   "ink": "#241c25",
+   "mass": "#513353",
+   "nightInk": "#ece7ef",
+   "nightPaper": "#241c25",
+   "paper": "#ece7ef",
+   "pencil": "#afaab2",
+   "sun": "#f2994e"
+  },
+  "c51-olivePaper+rothko": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+cyanotype": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+cobaltChartreuse": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+blackIris": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+negoro": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+lilyLeaf": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+jungleMoon": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+violetMarigold": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-olivePaper+forestGold": {
+   "accent": "#f99d1b",
+   "ink": "#1f2016",
+   "mass": "#414622",
+   "nightInk": "#eaebdf",
+   "nightPaper": "#1f2016",
+   "paper": "#eaebdf",
+   "pencil": "#adada5",
+   "sun": "#f99d1b"
+  },
+  "c51-lichen+rothko": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+cyanotype": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+cobaltChartreuse": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+blackIris": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+negoro": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+lilyLeaf": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+jungleMoon": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+violetMarigold": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-lichen+forestGold": {
+   "accent": "#c14c35",
+   "ink": "#19221a",
+   "mass": "#313732",
+   "nightInk": "#e2eae3",
+   "nightPaper": "#19221a",
+   "paper": "#e2eae3",
+   "pencil": "#a6ada6",
+   "sun": "#c14c35"
+  },
+  "c51-dove+rothko": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+cyanotype": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+cobaltChartreuse": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+blackIris": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+negoro": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+lilyLeaf": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+jungleMoon": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+violetMarigold": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-dove+forestGold": {
+   "accent": "#c14c35",
+   "ink": "#211d28",
+   "mass": "#423658",
+   "nightInk": "#e8e7ec",
+   "nightPaper": "#211d28",
+   "paper": "#e8e7ec",
+   "pencil": "#aba9b2",
+   "sun": "#c14c35"
+  },
+  "c51-morandi+rothko": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+cyanotype": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+cobaltChartreuse": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+blackIris": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+negoro": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+lilyLeaf": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+jungleMoon": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+violetMarigold": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  },
+  "c51-morandi+forestGold": {
+   "accent": "#c77255",
+   "ink": "#172128",
+   "mass": "#4c5d6a",
+   "nightInk": "#ede7de",
+   "nightPaper": "#172128",
+   "paper": "#ede7de",
+   "pencil": "#afaaa3",
+   "sun": "#c77255"
+  }
+ },
+ "drops": {
+  "c51-stone+rothko": "t-2938b354e6e8",
+  "c51-stone+cyanotype": "t-fdc7a911c6b3",
+  "c51-stone+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-stone+blackIris": "t-378699b32aff",
+  "c51-stone+negoro": "t-dca82d1cc303",
+  "c51-stone+lilyLeaf": "t-0bddf1e9386b",
+  "c51-stone+jungleMoon": "t-5dc2a46a3f84",
+  "c51-stone+violetMarigold": "t-d292d74da185",
+  "c51-stone+forestGold": "t-82ffe91688a8",
+  "c51-stoneCool+rothko": "t-2938b354e6e8",
+  "c51-stoneCool+cyanotype": "t-fdc7a911c6b3",
+  "c51-stoneCool+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-stoneCool+blackIris": "t-378699b32aff",
+  "c51-stoneCool+negoro": "t-dca82d1cc303",
+  "c51-stoneCool+lilyLeaf": "t-0bddf1e9386b",
+  "c51-stoneCool+jungleMoon": "t-5dc2a46a3f84",
+  "c51-stoneCool+violetMarigold": "t-d292d74da185",
+  "c51-stoneCool+forestGold": "t-82ffe91688a8",
+  "c51-linen+rothko": "t-2938b354e6e8",
+  "c51-linen+cyanotype": "t-fdc7a911c6b3",
+  "c51-linen+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-linen+blackIris": "t-378699b32aff",
+  "c51-linen+negoro": "t-dca82d1cc303",
+  "c51-linen+lilyLeaf": "t-0bddf1e9386b",
+  "c51-linen+jungleMoon": "t-5dc2a46a3f84",
+  "c51-linen+violetMarigold": "t-d292d74da185",
+  "c51-linen+forestGold": "t-82ffe91688a8",
+  "c51-sage+rothko": "t-2938b354e6e8",
+  "c51-sage+cyanotype": "t-fdc7a911c6b3",
+  "c51-sage+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-sage+blackIris": "t-378699b32aff",
+  "c51-sage+negoro": "t-dca82d1cc303",
+  "c51-sage+lilyLeaf": "t-0bddf1e9386b",
+  "c51-sage+jungleMoon": "t-5dc2a46a3f84",
+  "c51-sage+violetMarigold": "t-d292d74da185",
+  "c51-sage+forestGold": "t-82ffe91688a8",
+  "c51-sky+rothko": "t-2938b354e6e8",
+  "c51-sky+cyanotype": "t-fdc7a911c6b3",
+  "c51-sky+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-sky+blackIris": "t-378699b32aff",
+  "c51-sky+negoro": "t-dca82d1cc303",
+  "c51-sky+lilyLeaf": "t-0bddf1e9386b",
+  "c51-sky+jungleMoon": "t-5dc2a46a3f84",
+  "c51-sky+violetMarigold": "t-d292d74da185",
+  "c51-sky+forestGold": "t-82ffe91688a8",
+  "c51-eucalyptus+rothko": "t-2938b354e6e8",
+  "c51-eucalyptus+cyanotype": "t-fdc7a911c6b3",
+  "c51-eucalyptus+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-eucalyptus+blackIris": "t-378699b32aff",
+  "c51-eucalyptus+negoro": "t-dca82d1cc303",
+  "c51-eucalyptus+lilyLeaf": "t-0bddf1e9386b",
+  "c51-eucalyptus+jungleMoon": "t-5dc2a46a3f84",
+  "c51-eucalyptus+violetMarigold": "t-d292d74da185",
+  "c51-eucalyptus+forestGold": "t-82ffe91688a8",
+  "c51-heather+rothko": "t-2938b354e6e8",
+  "c51-heather+cyanotype": "t-fdc7a911c6b3",
+  "c51-heather+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-heather+blackIris": "t-378699b32aff",
+  "c51-heather+negoro": "t-dca82d1cc303",
+  "c51-heather+lilyLeaf": "t-0bddf1e9386b",
+  "c51-heather+jungleMoon": "t-5dc2a46a3f84",
+  "c51-heather+violetMarigold": "t-d292d74da185",
+  "c51-heather+forestGold": "t-82ffe91688a8",
+  "c51-olivePaper+rothko": "t-2938b354e6e8",
+  "c51-olivePaper+cyanotype": "t-fdc7a911c6b3",
+  "c51-olivePaper+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-olivePaper+blackIris": "t-378699b32aff",
+  "c51-olivePaper+negoro": "t-dca82d1cc303",
+  "c51-olivePaper+lilyLeaf": "t-0bddf1e9386b",
+  "c51-olivePaper+jungleMoon": "t-5dc2a46a3f84",
+  "c51-olivePaper+violetMarigold": "t-d292d74da185",
+  "c51-olivePaper+forestGold": "t-82ffe91688a8",
+  "c51-lichen+rothko": "t-2938b354e6e8",
+  "c51-lichen+cyanotype": "t-fdc7a911c6b3",
+  "c51-lichen+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-lichen+blackIris": "t-378699b32aff",
+  "c51-lichen+negoro": "t-dca82d1cc303",
+  "c51-lichen+lilyLeaf": "t-0bddf1e9386b",
+  "c51-lichen+jungleMoon": "t-5dc2a46a3f84",
+  "c51-lichen+violetMarigold": "t-d292d74da185",
+  "c51-lichen+forestGold": "t-82ffe91688a8",
+  "c51-dove+rothko": "t-2938b354e6e8",
+  "c51-dove+cyanotype": "t-fdc7a911c6b3",
+  "c51-dove+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-dove+blackIris": "t-378699b32aff",
+  "c51-dove+negoro": "t-dca82d1cc303",
+  "c51-dove+lilyLeaf": "t-0bddf1e9386b",
+  "c51-dove+jungleMoon": "t-5dc2a46a3f84",
+  "c51-dove+violetMarigold": "t-d292d74da185",
+  "c51-dove+forestGold": "t-82ffe91688a8",
+  "c51-morandi+rothko": "t-2938b354e6e8",
+  "c51-morandi+cyanotype": "t-fdc7a911c6b3",
+  "c51-morandi+cobaltChartreuse": "t-6c151cc9f3ed",
+  "c51-morandi+blackIris": "t-378699b32aff",
+  "c51-morandi+negoro": "t-dca82d1cc303",
+  "c51-morandi+lilyLeaf": "t-0bddf1e9386b",
+  "c51-morandi+jungleMoon": "t-5dc2a46a3f84",
+  "c51-morandi+violetMarigold": "t-d292d74da185",
+  "c51-morandi+forestGold": "t-82ffe91688a8"
+ },
+ "drafts": [
+  {
+   "id": "c51lit1",
+   "name": "The band lights on strong hits: dark themes, 1 of 2",
+   "source": "Round 51",
+   "line": "On every hit of strength 0.65 or more, the whole band takes the hot colour for as long as the hit lasts. You found it better on dark themes. Watch it play, change the song with the moments, and pick every theme that should get it; the others stay as they are.",
+   "song": "batidao",
+   "t": 38.3,
+   "len": 6,
+   "moments": [
+    [
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
+     "batidao"
+    ],
+    [
+     "Lua, a run of strong hits, 41 s",
+     40.5,
+     "lua"
+    ],
+    [
+     "Tomada, 47 s",
+     46.5,
+     "tomada"
+    ],
+    [
+     "Petrunko, 30 s",
+     30.2,
+     "petrunko"
+    ],
+    [
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-5dc2a46a3f84"
+     },
+     "note": ""
+    },
+    {
+     "label": "Sea Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-99b5feeb7043"
+     },
+     "note": ""
+    },
+    {
+     "label": "Olive Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-cd3a1d2e2674"
+     },
+     "note": ""
+    },
+    {
+     "label": "Winter Moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "t-bf8b796c5177"
+     },
+     "note": ""
+    },
+    {
+     "label": "Starry Night",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "crescent",
+      "zoom": "steady",
+      "scheme": "t-7659ec00d080"
+     },
+     "note": ""
+    },
+    {
+     "label": "Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-2938b354e6e8"
+     },
+     "note": ""
+    },
+    {
+     "label": "Blue Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-d6977dc830bb"
+     },
+     "note": ""
+    },
+    {
+     "label": "Green Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-4ac8d7689210"
+     },
+     "note": ""
+    },
+    {
+     "label": "Violet Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-ffaa6eb0b71d"
+     },
+     "note": ""
+    },
+    {
+     "label": "Grey Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-d5776a5d571a"
+     },
+     "note": ""
+    },
+    {
+     "label": "Brown Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-4df07d74755d"
+     },
+     "note": ""
+    },
+    {
+     "label": "Dusk Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-e254226f5009"
+     },
+     "note": ""
+    },
+    {
+     "label": "Moss Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-3e2e75d31490"
+     },
+     "note": ""
+    },
+    {
+     "label": "Steel Room",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-9ef593622299"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-fdc7a911c6b3"
+     },
+     "note": ""
+    },
+    {
+     "label": "Cerulean and Coral, deeper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "t-705f93a932b1"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51lit2",
+   "name": "The band lights on strong hits: dark themes, 2 of 2",
+   "source": "Round 51",
+   "line": "On every hit of strength 0.65 or more, the whole band takes the hot colour for as long as the hit lasts. You found it better on dark themes. Watch it play, change the song with the moments, and pick every theme that should get it; the others stay as they are.",
+   "song": "batidao",
+   "t": 38.3,
+   "len": 6,
+   "moments": [
+    [
+     "Batidão, a run of strong hits, 38 s",
+     38.3,
+     "batidao"
+    ],
+    [
+     "Lua, a run of strong hits, 41 s",
+     40.5,
+     "lua"
+    ],
+    [
+     "Tomada, 47 s",
+     46.5,
+     "tomada"
+    ],
+    [
+     "Petrunko, 30 s",
+     30.2,
+     "petrunko"
+    ],
+    [
+     "Circus Minimus, its strongest hit, 51 s",
+     50.6,
+     "circus"
+    ]
+   ],
+   "variants": [
+    {
+     "label": "Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-6c151cc9f3ed"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-0bddf1e9386b"
+     },
+     "note": ""
+    },
+    {
+     "label": "Old Rose",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "t-3ea7c5b1b561"
+     },
+     "note": ""
+    },
+    {
+     "label": "Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-d292d74da185"
+     },
+     "note": ""
+    },
+    {
+     "label": "Gilt and Amber",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "t-32fabe4d1ffb"
+     },
+     "note": ""
+    },
+    {
+     "label": "Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "t-dca82d1cc303"
+     },
+     "note": ""
+    },
+    {
+     "label": "Red Lacquer",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-6dec126bbe54"
+     },
+     "note": ""
+    },
+    {
+     "label": "Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-82ffe91688a8"
+     },
+     "note": ""
+    },
+    {
+     "label": "Copper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-3d7182dc9ac2"
+     },
+     "note": ""
+    },
+    {
+     "label": "Bronze",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-636ef987d51a"
+     },
+     "note": ""
+    },
+    {
+     "label": "Gold and Cream",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-55073a907db4"
+     },
+     "note": ""
+    },
+    {
+     "label": "Lantern",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-02b87efbbf9f"
+     },
+     "note": ""
+    },
+    {
+     "label": "Campfire",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-1cb4530ea0c6"
+     },
+     "note": ""
+    },
+    {
+     "label": "Ash and Ember",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "title",
+      "zoom": "steady",
+      "scheme": "t-24a70fb5cec1"
+     },
+     "note": ""
+    },
+    {
+     "label": "Slate Grey",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "lit65",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-e471e8d52403"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropstone",
+   "name": "Stone: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Stone has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stone+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropstoneCool",
+   "name": "Stone, cool: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Stone, cool has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-stoneCool+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51droplinen",
+   "name": "Linen: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Linen has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-linen+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropsage",
+   "name": "Sage: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Sage has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sage+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropsky",
+   "name": "Sky: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Sky has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-sky+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropeucalyptus",
+   "name": "Eucalyptus: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Eucalyptus has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-eucalyptus+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropheather",
+   "name": "Heather Grey: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Heather Grey has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-heather+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropolivePaper",
+   "name": "Olive Paper: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Olive Paper has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-olivePaper+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51droplichen",
+   "name": "Lichen: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Lichen has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-lichen+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropdove",
+   "name": "Dove: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Dove has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-dove+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51dropmorandi",
+   "name": "Morandi: a dark partner at the drop",
+   "source": "Round 51",
+   "line": "Morandi has no partner for the drop, so it never changes. Here it hands over to nine dark themes at the drop and keeps its own hot bar and sun. Play through the drop and pick every partner you would be happy to see; “none” keeps it without a drop.",
+   "variants": [
+    {
+     "label": "→ Rothko",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+rothko"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cyanotype",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+cyanotype"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Cobalt and Chartreuse, white moon",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+cobaltChartreuse"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Black Iris",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+blackIris"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Negoro Lacquer, cream line",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+negoro"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Lily White and Leaf Green, fresh green",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+lilyLeaf"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Jungle Moon, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+jungleMoon"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Violet and Marigold, tuned",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+violetMarigold"
+     },
+     "note": ""
+    },
+    {
+     "label": "→ Forest Green and Gold, Wada 325",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "switch",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "c51-morandi+forestGold"
+     },
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "c51keep",
+   "name": "Two themes you passed over: still wanted?",
+   "source": "Round 51",
+   "line": "Seashell and Amber and Purple are in the collection from the early rounds, and neither was picked when it came back on a page of its own. As they are today. Pick the ones to keep; “none” removes both.",
+   "variants": [
+    {
+     "label": "Seashell, paler, softer jasper",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "ink",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-4860903eef2c"
+     },
+     "note": ""
+    },
+    {
+     "label": "Amber and Purple, Wada 151, no drop",
+     "look": {
+      "accent": "heat",
+      "band": "bars",
+      "bandHeight": "lowmid",
+      "drop": "off",
+      "ends": "course",
+      "hits": "v1",
+      "irisWeight": "thin",
+      "line": "inking",
+      "paper": "vibranceSoftHalfPaper",
+      "riderLower": "0",
+      "sunLift": "16",
+      "sunRider": "32",
+      "top": "sun",
+      "zoom": "steady",
+      "scheme": "t-c617adb47275"
+     },
+     "note": ""
+    }
+   ]
+  }
+ ]
+}

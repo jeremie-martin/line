@@ -41,12 +41,13 @@ export function outputClock() {
  * loaded, plays as silence on the same clock. Music that finishes decoding
  * during a run joins it at the position the run has reached. */
 export function createMusic() {
-  let context, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0, requested = false;
+  let context, output, buffer, source, clock, run, stopped = 0, loads = 0, plays = 0, requested = false, volume = 1;
   const stopSource = () => {source?.stop(); source = undefined;};
   /** Starts the buffer at music position `at` (≥ 0) on the current run's clock. */
   const startSource = (at) => {
     source = context.createBufferSource(); source.buffer = buffer; source.playbackRate.value = run.rate;
-    source.connect(context.destination);
+    if (!output) {output = context.createGain(); output.gain.value = volume; output.connect(context.destination);}
+    source.connect(output);
     source.start(music.when(at), at);
   };
   const music = {
@@ -55,6 +56,9 @@ export function createMusic() {
     /** Playing, or a play still waiting for the audio context to resume. */
     get requested() {return requested;},
     get context() {return context;},
+    /** Music gain, 0–1; takes effect at once, also mid-playback. */
+    get volume() {return volume;},
+    set volume(value) {volume = value; if (output) output.gain.value = value;},
     /** Loads music from bytes or a URL. Returns false when a later load or
      * clear superseded it (a superseded load never applies, nor fails). */
     async load(bytesOrUrl) {

@@ -55,6 +55,69 @@ export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number
   return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
 }
 
+/** The distance between segments p1–p2 and q1–q2 (0 when they cross). */
+function segmentGap(p1:{x:number;y:number},p2:{x:number;y:number},q1:{x:number;y:number},q2:{x:number;y:number}){
+  const cross=(a:{x:number;y:number},b:{x:number;y:number},c:{x:number;y:number})=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+  const d1=cross(p1,p2,q1),d2=cross(p1,p2,q2),d3=cross(q1,q2,p1),d4=cross(q1,q2,p2);
+  if(d1*d2<0&&d3*d4<0)return 0;
+  const toSeg=(p:{x:number;y:number},a:{x:number;y:number},b:{x:number;y:number})=>{
+    const dx=b.x-a.x,dy=b.y-a.y,u=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);return hypot2(p.x-a.x-u*dx,p.y-a.y-u*dy);};
+  return Math.min(toSeg(p1,q1,q2),toSeg(p2,q1,q2),toSeg(q1,p1,p2),toSeg(q2,p1,p2));
+}
+
+/** Whether a rail crosses, or comes within `margin` px of, the support it was laid beside (REWORK.md, November 14: the
+ * rider is seen going through such a rail). Along the support's span the rail's side is its median point's there, and
+ * a point on the other side or nearer than `margin` is a meeting, and so is any rail segment coming within `margin` of
+ * a support segment (crossing it included); past either end of the support the side is not
+ * defined, so a point there meets it only by coming within `margin` of the end (a rail converging onto the end of its
+ * support, or starting at the corner where the rider leaves it). */
+export function railMeetsSupport(rail:ReadonlyArray<{x:number;y:number}>,support:ReadonlyArray<{x:number;y:number}>,margin:number):boolean{
+  if(rail.length<2||support.length<2)return false;
+  // Support segments by grid cell (CELL px): a rail point or segment is compared with nearby segments only. A segment
+  // within CELL of a point lies in the 3×3 cells around it, so a nearest found there within CELL is the nearest of all;
+  // otherwise every segment is compared, and the result is exactly the full comparison's.
+  const CELL=16,grid=new Map<number,number[]>(),key=(ix:number,iy:number)=>ix*1048576+iy;
+  for(let i=1;i<support.length;i++){
+    const a=support[i-1],b=support[i];
+    for(let ix=Math.floor(Math.min(a.x,b.x)/CELL);ix<=Math.floor(Math.max(a.x,b.x)/CELL);ix++)
+      for(let iy=Math.floor(Math.min(a.y,b.y)/CELL);iy<=Math.floor(Math.max(a.y,b.y)/CELL);iy++){
+        const k=key(ix,iy),list=grid.get(k);if(list)list.push(i);else grid.set(k,[i]);}
+  }
+  // squared distances while searching; ties keep the lower index, as a scan in order does
+  let best2=Infinity,at=-1,raw=0;
+  const consider=(p:{x:number;y:number},i:number)=>{
+    const a=support[i-1],b=support[i],dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1,r=((p.x-a.x)*dx+(p.y-a.y)*dy)/len2,u=clamp(r,0,1);
+    const ex=p.x-a.x-u*dx,ey=p.y-a.y-u*dy,d2=ex*ex+ey*ey;
+    if(d2<best2||(d2===best2&&i<at)){best2=d2;at=i;raw=r;}
+  };
+  const seen=new Int32Array(support.length);let stamp=0;
+  const gaps:number[]=[];
+  let atEnd=false;
+  for(const p of rail){
+    const ix=Math.floor(p.x/CELL),iy=Math.floor(p.y/CELL);stamp++;best2=Infinity;at=-1;
+    for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){const list=grid.get(key(ix+dx,iy+dy));if(list)for(const i of list)if(seen[i]!==stamp){seen[i]=stamp;consider(p,i);}}
+    if(!(best2<=CELL*CELL)){best2=Infinity;at=-1;for(let i=1;i<support.length;i++)consider(p,i);}
+    const a=support[at-1],b=support[at],best=Math.sqrt(best2),signed=((b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x)>=0?1:-1)*best;
+    const found={best,signed,inside:(raw>=0||at>1)&&(raw<=1||at<support.length-1)};
+    if(found.inside)gaps.push(found.signed);else if(found.best<margin)atEnd=true;
+  }
+  if(atEnd)return true;
+  // Between its points a rail meeting the support at an angle comes closer than either point: segment against segment.
+  // Only segment pairs whose bounding boxes come within the margin can (a cheap filter: the pairs are many).
+  for(let j=1;j<rail.length;j++){
+    const a=rail[j-1],b=rail[j],ax0=Math.min(a.x,b.x)-margin,ax1=Math.max(a.x,b.x)+margin,ay0=Math.min(a.y,b.y)-margin,ay1=Math.max(a.y,b.y)+margin;
+    for(let ix=Math.floor(ax0/CELL);ix<=Math.floor(ax1/CELL);ix++)for(let iy=Math.floor(ay0/CELL);iy<=Math.floor(ay1/CELL);iy++)
+      for(const i of grid.get(key(ix,iy))??[]){
+        const c=support[i-1],d=support[i];
+        if(Math.max(c.x,d.x)<ax0||Math.min(c.x,d.x)>ax1||Math.max(c.y,d.y)<ay0||Math.min(c.y,d.y)>ay1)continue;
+        if(segmentGap(a,b,c,d)<margin)return true;
+      }
+  }
+  if(!gaps.length)return false;
+  const side=Math.sign([...gaps].sort((a,b)=>a-b)[Math.floor(gaps.length/2)])||1;
+  return gaps.some(g=>side*g<margin);
+}
+
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions
  * make angular facets; their actual geometry must be searched and replayed. */
 export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine[] {
@@ -73,7 +136,13 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
   const point=points.reduce((a,b)=>side*(a.x*n.x+a.y*n.y)<side*(b.x*n.x+b.y*n.y)?a:b);
   const speed=hypot2(velocity.x,velocity.y), approach=Math.max(20,speed*1.5);
   const anchor={x:point.x+side*n.x*c.offset,y:point.y+side*n.y*c.offset};
-  let x=anchor.x-approach*t.x,y=anchor.y-approach*t.y;
+  // The straight lead-in never rises into the rider's arrival path (for a surface met from above, never drops into it):
+  // laid back from the anchor along whichever of the entry and the arrival heading keeps it on the far side of the path,
+  // so the rider cannot pass through it from behind just before the catch (docs/research/geometry-hygiene-20261031.md).
+  // (A rider arriving backward, more than a right angle from the entry, keeps the entry.)
+  const arrival=entry+Math.atan2(Math.sin(Math.atan2(velocity.y,velocity.x)-entry),Math.cos(Math.atan2(velocity.y,velocity.x)-entry));
+  const lead=Math.abs(arrival-entry)>Math.PI/2?entry:side===1?Math.min(entry,arrival):Math.max(entry,arrival);
+  let x=anchor.x-approach*Math.cos(lead),y=anchor.y-approach*Math.sin(lead);
   // Work in connected vertices; materialize each physical line only once,
   // after clipping and orientation have settled its endpoints.
   let main = [{x,y},anchor];

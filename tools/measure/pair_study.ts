@@ -6,7 +6,8 @@
  *
  * The key lists pairs as {pair, left, right}, each side a hit {set, song, seed,
  * frame} from tools/measure/observe.ts sources (July, previous library, strike
- * library) or `eval:<run>` (a track saved by tools/eval). The first study's key names sides instead ({left: 'body-first' |
+ * library), `eval:<run>` (a track saved by tools/eval) or `arm:<arm id>` with `cell` (a ride saved by
+ * `npm run compare`, generated/eval/arms). The first study's key names sides instead ({left: 'body-first' |
  * 'clean-sled', a, b}, a being the body-first hit, all from the strike library). */
 import {mkdirSync, readFileSync, writeFileSync, existsSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
@@ -14,6 +15,7 @@ import {join, resolve} from 'node:path';
 import {renderClips, momentClip, clipBeats, specBeats, assertReviewSources, CLIP_BEFORE, CLIP_LENGTH, type Clip} from './clip_render.ts';
 import assert from 'node:assert/strict';
 import {loadRun} from '../eval/records.ts';
+import {readArmTrack} from '../eval/arms.ts';
 import {digest} from '../eval/inputs.ts';
 import {sources} from './observe.ts';
 import {lockArtifacts} from '../../scripts/lib/artifact_lock.ts';
@@ -29,11 +31,11 @@ try {
   assert.ok(!existsSync(join(out, 'manifest.json')), 'study already published; use a fresh study id');
 
   const side = (p: any, s: 'left' | 'right') => typeof p[s] === 'object' ? p[s] : p[s] === 'body-first' ? {set: 'strike', ...p.a} : {set: 'strike', ...p.b};
-  const rideId = (h: any) => `${h.set ?? 'strike'}~${h.song}~${h.seed}`;
+  const rideId = (h: any) => h.cell ? `${h.set}~${h.cell}` : `${h.set ?? 'strike'}~${h.song}~${h.seed}`;
   const hits = key.flatMap((p: any) => [side(p, 'left'), side(p, 'right')]);
   const ids = [...new Set(hits.map(rideId))] as string[];
   // A set 'eval:<run>' reads the track an eval run saved beside its cell.
-  const tracks = new Map<string, any>(sources([...new Set(hits.map((h: any) => h.set ?? 'strike').filter((x: string) => !x.startsWith('eval:')))] as string[]).map(s => [`${s.set}~${s.song}~${s.seed}`, s.track]));
+  const tracks = new Map<string, any>(sources([...new Set(hits.map((h: any) => h.set ?? 'strike').filter((x: string) => !/^(eval|arm):/.test(x)))] as string[]).map(s => [`${s.set}~${s.song}~${s.seed}`, s.track]));
   const evalRuns = new Map<string, ReturnType<typeof loadRun>>();
   // the spec each ride was compiled from: an eval cell's own (its variant), otherwise the song's spec.ts
   const specs = new Map<string, string>();
@@ -47,6 +49,17 @@ try {
     const hit = cell.impact3.perBeat[h.beat]?.hit;
     assert.ok(hit && hit.onset === h.frame && hit.strength === h.strength, 'blind key names another impact');
     if (!tracks.has(rideId(h))) tracks.set(rideId(h), JSON.parse(gunzipSync(readFileSync(join(evalRuns.get(run)!.dir, 'cells', `${h.song}~${h.seed}.track.json.gz`))).toString()));
+  }
+  // A set 'arm:<id>' reads a ride `npm run compare` saved (its cell `h.cell`).
+  for (const h of hits) if ((h.set ?? '').startsWith('arm:')) {
+    const dir = join('generated/eval/arms', h.set.slice(4)), cell = JSON.parse(readFileSync(join(dir, 'cells', `${h.cell}.json`), 'utf8'));
+    assert.equal(h.trackHash, cell.trackHash, 'blind key names another track');
+    assert.equal(h.inputHash, digest(cell.case.input), 'blind key names different authoring');
+    const spec = cell.case.variant ? `productions/${h.song}/variants/${cell.case.variant}.ts` : `productions/${h.song}/spec.ts`;
+    assertReviewSources(h.song, cell.case.input, spec); specs.set(rideId(h), spec);
+    const hit = cell.impact3.perBeat[h.beat]?.hit;
+    assert.ok(hit && hit.onset === h.frame && hit.strength === h.strength, 'blind key names another impact');
+    if (!tracks.has(rideId(h))) tracks.set(rideId(h), readArmTrack({dir}, h.cell));
   }
   for (const id of ids) if (!tracks.has(id)) throw new Error(`no source ride ${id}`);
   const passages = new Map<string, Clip>(key.flatMap((p: any) => (['left', 'right'] as const).map(s => {

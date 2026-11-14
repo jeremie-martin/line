@@ -9,7 +9,7 @@
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
  *   npm run compare -- rides   (same selection flags) [--top=6 | --cases=ID,ID]  side-by-side rides on the dashboard
- *   npm run compare -- review  (same selection flags) [--passages=6] [--all-songs] [--jobs=4]  the passages that differ most, stacked before/after
+ *   npm run compare -- review  (same selection flags) [--rides=4] [--sheet=8] [--cases=ID,ID] [--all-songs] [--jobs=4]  whole rides, before/after, and a geometry sheet
  *   npm run compare -- reference set NAME [--from=REF] [--note=TEXT] | reference list
  *
  * --candidate=. (the default) compiles this checkout as it is, uncommitted
@@ -29,7 +29,7 @@ import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts'
 import type {Clip} from '../measure/clip_render.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, readArmMeta, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
-import {headline, headlineScore, specKey, mean, strataOf, summarize} from './summary.ts';
+import {headline, headlineScore, specKey, mean, strataOf, summarize, characterOfCell} from './summary.ts';
 import {validateRunOptions, stratifiedReport, pad} from './eval.ts';
 import {seedBlocks, formatSupport, MIN_BLOCKS} from './uncertainty.ts';
 
@@ -164,7 +164,10 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
     compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)],
     // Costs and guards that no headline counts, per ride, with the same
     // definitions as the detail section (summary.ts `summarize`).
-    guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key])))};
+    guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key]))),
+    // The ride's character (summary.ts `characterOfCell`), per ride, and the largest single ride's rail share.
+    character: CHARACTER.map(([key]) => SIDES.map(side => perRide(side, c => characterOfCell(c)[key]))),
+    railsMax: SIDES.map(side => Math.max(...ids.map(id => characterOfCell(cells[side].get(id))['rails, share of gaps'])))};
 }
 /** How different the rides of different random starts are, within one arm:
  * for every spec and every pair of its seeds, the share of gaps whose realized
@@ -241,8 +244,19 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
     `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M, ${relative(e.frames[0], e.frames[1])}); ` +
     `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`,
     `  costs and guards per ride (not in any headline): ` + GUARDS.map(([, label, digits, unit, scale], k) =>
-      `${label} ${(scale * e.guards[k][0]).toFixed(digits)} vs ${(scale * e.guards[k][1]).toFixed(digits)}${unit} (${relative(e.guards[k][0], e.guards[k][1])})`).join('; ')];
+      `${label} ${(scale * e.guards[k][0]).toFixed(digits)} vs ${(scale * e.guards[k][1]).toFixed(digits)}${unit} (${relative(e.guards[k][0], e.guards[k][1])})`).join('; '),
+    `  ride character per ride (not in any headline): ` + (e.character.every(([a, b]) => Number.isFinite(a) && Number.isFinite(b))
+      ? CHARACTER.map(([, label, digits, unit, scale], k) => `${label} ${(scale * e.character[k][0]).toFixed(digits)} vs ${(scale * e.character[k][1]).toFixed(digits)}${unit}` +
+        (k === 0 ? ` (largest ride ${(100 * e.railsMax[0]).toFixed(0)} vs ${(100 * e.railsMax[1]).toFixed(0)}%)` : '')).join('; ')
+      : 'not recorded (rides measured before guide ids were kept)')];
 }
+/** The ride's character the summary shows: [characterOfCell() key, label, decimals, unit, scale]. */
+const CHARACTER: Array<[string, string, number, string, number]> = [
+  ['rails, share of gaps', 'rails', 0, '% of gaps', 100],
+  ['open arcs, share of gaps', 'open arcs', 0, '%', 100],
+  ['shapes, share of gaps', 'shapes', 0, '%', 100],
+  ['clean upper hits, share of strong beats', 'clean upper hits', 1, '% of strong beats', 100],
+];
 
 /** The guards the summary shows: [summarize() key, label, decimals, unit, scale]. */
 const GUARDS: Array<[keyof ReturnType<typeof summarize>, string, number, string, number]> = [
@@ -436,60 +450,50 @@ async function rides() {
   console.log(`rides: http://10.77.77.30:8767/motion-gallery/production.html?collection=/generated/compare/${s.name}/collection.json`);
 }
 
-/** The passages where the two versions differ most (tools/eval/passages.ts),
- * from the rides that moved most, each rendered as one plain clip with the
- * reference left of the candidate, in a video-compare collection. Saved rides only. */
+/** Whole rides of both versions, for review by eye: each ride's video, the reference's and the candidate's (the player switches
+ * between them at the same moment), and a still sheet of their geometry (geometry_sheet.ts). The rides are --cases, or one per
+ * song (videos, --rides) or per spec (the sheet, --sheet) among those that moved most, either way. Saved rides only. V8 specs are
+ * time-warped away from their recordings, so their rides get no video (review videos on a panel of authored specs, V7.1); the
+ * sheet, which has no sound, takes them. */
 async function review() {
-  const k = Number(arg('passages', '6')), jobs = Number(arg('jobs', '4')), began = performance.now();
-  assert.ok(Number.isSafeInteger(k) && k >= 1, '--passages must be a positive integer');
+  const k = Number(arg('rides', '4')), sheetRides = Number(arg('sheet', '8')), jobs = Number(arg('jobs', '4')), began = performance.now();
+  assert.ok(Number.isSafeInteger(k) && k >= 1 && Number.isSafeInteger(sheetRides) && sheetRides >= 1, '--rides and --sheet must be positive integers');
   const s = await select(), {cells} = loadState(s), cov = coverage(s, cells), caseOf = (id: string) => s.cases.find(c => c.id === id)!;
-  // The library songs (*_selection) are long and hard to judge by eye: left out unless --all-songs.
-  const pool = cov.matched.filter(id => flag('all-songs') || !caseOf(id).song.endsWith('_selection'));
-  assert.ok(pool.length, 'no matched saved rides in this selection (compile them with `run`, or add --all-songs)');
-  const {passages, choose, LENGTH} = await import('./passages.ts'), {renderClips, sideBySide, assertReviewSources} = await import('../measure/clip_render.ts');
-  const chosen = choose(movedMost(pool, cells, Math.max(12, 2 * k)).flatMap(({id}) =>
-    passages(id, cells.reference.get(id), cells.candidate.get(id), s.resolved.get(id)!.music.durationFrames).map(p => ({...p, spec: specKey(caseOf(id))}))), k);
-  assert.ok(chosen.length, 'the two versions do not differ in any scored quantity on these rides');
-  const root = resolve('generated/compare', s.name), clips = join(root, 'review'), passageDir = join(root, 'review-passages');
-  mkdirSync(clips, {recursive: true});
+  // The library songs (*_selection) are long: left out unless --all-songs.
+  const sheetPool = cov.matched.filter(id => flag('all-songs') || !caseOf(id).song.endsWith('_selection')), pool = sheetPool.filter(id => !caseOf(id).variant?.startsWith('v8-'));
+  assert.ok(sheetPool.length, 'no matched saved rides in this selection (add --all-songs for the library songs)');
+  const ranked = movedMost(sheetPool, cells, sheetPool.length).map(m => m.id), firstPer = (key: (id: string) => string, n: number, among: string[]) => {
+    const r = ranked.filter(id => among.includes(id));
+    return r.filter((id, i) => r.findIndex(x => key(x) === key(id)) === i).slice(0, n);
+  };
+  const given = arg('cases')?.split(','), videoIds = given?.filter(id => pool.includes(id)) ?? firstPer(id => caseOf(id).song, k, pool),
+    sheetIds = given ?? firstPer(id => specKey(caseOf(id)), sheetRides, sheetPool);
+  for (const id of sheetIds) assert.ok(sheetPool.includes(id), `${id} is not a matched saved ride`);
+  const root = resolve('generated/compare', s.name), clips = join(root, 'review');
   const specOf = (id: string) => {const c = caseOf(id); return c.variant ? `productions/${c.song}/variants/${c.variant}.ts` : `productions/${c.song}/spec.ts`;};
-  const clipId = (side: Side, p: {id: string; from: number; to: number}) => `${side}-${p.id.replace(/~/g, '-')}-${cells[side].get(p.id).trackHash.slice(0, 12)}-${p.from}-${p.to}`;
-  const tracks = new Map<string, any>(), passageClips = new Map<string, Clip>();
-  for (const id of new Set(chosen.map(p => p.id))) {
+  const short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!, frames = (id: string) => s.resolved.get(id)!.music.durationFrames;
+  const clipId = (side: Side, id: string) => `${side}-${id.replace(/~/g, '-')}-${cells[side].get(id).trackHash.slice(0, 12)}`;
+  const BEFORE_AFTER: Side[] = ['reference', 'candidate'], rideClips = new Map<string, Clip>(), {renderClips, assertReviewSources} = await import('../measure/clip_render.ts');
+  for (const id of videoIds) {
     assertReviewSources(caseOf(id).song, caseOf(id).input, specOf(id));
-    for (const side of SIDES) tracks.set(`${side}~${id}`, readArmTrack(s.arms[side], id));
+    for (const side of SIDES) rideClips.set(clipId(side, id), {song: caseOf(id).song, track: readArmTrack(s.arms[side], id), from: 0, to: frames(id) / 40});
   }
-  for (const p of chosen) for (const side of SIDES)
-    // both sides of a passage share its bounds on the compile timeline and one soundtrack (study clips are shown as compiled)
-    passageClips.set(clipId(side, p), {song: caseOf(p.id).song, track: tracks.get(`${side}~${p.id}`), from: p.from / 40, to: p.to / 40});
-  const rendering = performance.now();
-  await renderClips(passageClips, passageDir, jobs);
-  const ridesSeconds = (performance.now() - rendering) / 1000, short = (side: Side) => side === 'reference' ? s.reference.name : arg('candidate', '.')!;
-  const entries = chosen.map((p, n) => {
-    const started = performance.now(), file = `${n + 1}-${p.id.replace(/~/g, '-')}-${(p.from / 40).toFixed(1)}s.mp4`;
-    sideBySide(join(passageDir, clipId('reference', p) + '.mp4'), join(passageDir, clipId('candidate', p) + '.mp4'),
-      [`before  ${short('reference')}`, `after  ${short('candidate')}`], (p.items[0].at - p.from) / 40, join(clips, file));
-    const d = headlineScore(cells.candidate.get(p.id)) - headlineScore(cells.reference.get(p.id));
-    // The player shows one paragraph: the changes first, then where and why.
-    const description = [...p.items.slice(0, 6).map(x => `${x.text} (error ${signed(x.error[1] - x.error[0], 3)})`),
-      `${p.id}, ${(p.from / 40).toFixed(1)}–${(p.to / 40).toFixed(1)} s of the song; the tag marks the first change listed`,
-      `ride score ${headlineScore(cells.reference.get(p.id)).toFixed(0)} → ${headlineScore(cells.candidate.get(p.id)).toFixed(0)} (${signed(d)})`,
-      `chosen for a change of ${p.change.toFixed(3)} (sum over the scored items here of |after − before| squared error; error ${p.error[0].toFixed(3)} → ${p.error[1].toFixed(3)})`].join(' · ');
-    const seconds = (performance.now() - started) / 1000;
-    console.log(`clip ${n + 1}/${chosen.length} ${file} · ${seconds.toFixed(1)} s · ${p.items[0].text}`);
-    return {seconds, passage: {id: String(n + 1), label: `${n + 1}. ${caseOf(p.id).song} ${caseOf(p.id).variant ?? ''} ${caseOf(p.id).seed} · ${(p.from / 40).toFixed(0)} s`,
-      description: p.items[0].text, videos: [{id: 'stacked', label: 'before left, after right', src: `review/${file}`, description}]}};
-  });
-  const collection = resolve(root, 'review.json');
-  writeFileSync(collection, JSON.stringify({title: `${short('candidate')} vs ${s.reference.name}: where they differ`,
-    description: `The ${chosen.length} passages of ${LENGTH} s where the scored quantities changed most, from the ${s.panel} rides that moved most` +
-      `${flag('all-songs') ? '' : ' (library songs left out)'}. Reference left, candidate right, same moment, the reference's sound; the yellow tag marks the largest change.`,
-    groups: [{id: 'stacked', label: 'Before / after', variants: ['stacked']}], passages: entries.map(e => e.passage)}, null, 1) + '\n');
-  const size = (dir: string) => Number(execFileSync('du', ['-sb', dir]).toString().split('\t')[0]) / 1e6;
-  console.log(`\n${chosen.length} passages in ${((performance.now() - began) / 1000).toFixed(0)} s: passages rendered in ${ridesSeconds.toFixed(0)} s ` +
-    `(${passageClips.size} passages, ${jobs} at a time, cached passages reused), clips ${entries.map(e => e.seconds.toFixed(1)).join(', ')} s each; ` +
-    `disk: clips ${size(clips).toFixed(1)} MB, rendered passages ${size(passageDir).toFixed(0)} MB (${passageDir})`);
-  console.log(`review: http://10.77.77.30:8767/motion-gallery/video-compare.html?collection=/generated/compare/${s.name}/review.json`);
+  await renderClips(rideClips, clips, jobs);
+  const score = (side: Side, id: string) => headlineScore(cells[side].get(id)), title = (id: string) => `${caseOf(id).song} ${caseOf(id).variant ?? 'spec'} · seed ${caseOf(id).seed}`;
+  writeFileSync(resolve(root, 'review.json'), JSON.stringify({title: `${short('candidate')} vs ${s.reference.name}: whole rides`,
+    description: `${videoIds.length} rides of ${s.panel}, one per song among those whose score moved most, either way. Switch between the two versions; the player keeps the moment.`,
+    groups: [{id: 'versions', label: 'Before / after', variants: BEFORE_AFTER}],
+    passages: videoIds.map(id => ({id, label: title(id), description: `score ${score('reference', id).toFixed(0)} → ${score('candidate', id).toFixed(0)} (${signed(score('candidate', id) - score('reference', id))})`,
+      videos: BEFORE_AFTER.map(side => ({id: side, label: `${side === 'reference' ? 'before' : 'after'} · ${short(side)} · ${score(side, id).toFixed(0)}`, src: `review/${clipId(side, id)}.mp4`}))}))}, null, 1) + '\n');
+  const {geometrySheet, WINDOW} = await import('./geometry_sheet.ts');
+  writeFileSync(join(root, 'geometry.html'), geometrySheet(`${short('candidate')} vs ${s.reference.name}: geometry`,
+    `${sheetIds.length} rides of ${s.panel}, one per spec among those whose score moved most, either way, cut into ${WINDOW}-second windows: before (${short('reference')}) left, ` +
+    'after right, at one scale. Black: lines; blue: rail guides; grey: the sled\'s path; red: each beat where the sled is then (bigger = stronger ask). Under each: the phrases\' constructions.',
+    sheetIds.map(id => ({title: `${title(id)} · score ${score('reference', id).toFixed(0)} → ${score('candidate', id).toFixed(0)}`, durationFrames: frames(id), targets: cells.reference.get(id).case.targets,
+      sides: BEFORE_AFTER.map(side => ({label: `${side === 'reference' ? 'before' : 'after'} ${short(side)}`, track: readArmTrack(s.arms[side], id), production: readArmGallery(s.arms[side], id)?.production})) as any}))));
+  console.log(`${videoIds.length} rides and a sheet of ${sheetIds.length} in ${((performance.now() - began) / 1000).toFixed(0)} s`);
+  console.log(`rides: http://10.77.77.30:8767/motion-gallery/video-compare.html?collection=/generated/compare/${s.name}/review.json`);
+  console.log(`geometry: http://10.77.77.30:8767/generated/compare/${s.name}/geometry.html`);
 }
 
 async function main() {

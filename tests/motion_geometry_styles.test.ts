@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest';
-import {motionArc,arcMainSteps} from '../scripts/v0/optimizer/arc_geometry.ts';
+import {motionArc,motionArcPaths,arcMainSteps} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {MOTION_PROFILES,foldTime} from '../scripts/v0/optimizer/motion_profiles.ts';
 import {compileArcMotion} from '../scripts/v0/optimizer/arc_motion.ts';
 import {constructionStyle} from '../scripts/v0/optimizer/repertoire_policy.ts';
@@ -134,4 +134,18 @@ it.each(MOTION_PROFILES)('searches and independently replays %s within the same 
   expect(result.track.lines.length).toBeGreaterThan(0);
   expect(result.track.lines.every(l=>l.type===0)).toBe(true);
   expect(result.stats.sim_frames).toBeLessThanOrEqual(options.budget);
+});
+
+it('lays the lead-in along the shallower of the entry and the arrival, so it never rises into the arrival path',()=>{
+ // A surface met from above is emitted reversed (its colliding side): its lead-in is then the path's last segment.
+ const lead=(c:any)=>{const ps=motionArcPaths(points,v,c,1000,12,24)[0].points,[a,b]=c.contactSide===-1?[ps.at(-1)!,ps.at(-2)!]:ps;
+  return Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;};
+ const arrival=Math.atan2(v.y,v.x)*180/Math.PI;
+ // An entry steeper than the arrival (12.5°) would stick up into the path: the lead-in follows the arrival.
+ expect(lead({...control,entry:40})).toBeCloseTo(arrival,9);
+ // A shallower entry already lies below the path: unchanged.
+ expect(lead({...control,entry:-5})).toBeCloseTo(-5,9);
+ // A surface met from above mirrors the rule.
+ expect(lead({...control,entry:-5,contactSide:-1})).toBeCloseTo(arrival,9);
+ expect(lead({...control,entry:40,contactSide:-1})).toBeCloseTo(40,9);
 });

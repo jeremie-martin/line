@@ -27,17 +27,25 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - Valhalla: `words3`, production ready.
    - Circus Minimus: `voice-full` is preferred since 2026-11-14 (the voice to the end; 4 seeds of 4 complete); `pairs3` before.
    - `pairs4` is the intended spec (0 in 24): a target for item 9.
-9. **Compiler work.** Baseline: visual-lab with the compact construction sources (210 KB, adopted 2026-11-13 in place of the
-   52 MB archive; REWORK.md). It scores −11.7 [−17.9, −5.5] against the archive version (812.1 on V7.1), held out −15.6.
+9. **Compiler work** (branch `compiler`). Benchmark: V8 (2026-11-13; `docs/benchmark.md`), reference `nov13` = 762.1 on V8,
+   800.8 on V7.1. The archive version (`merged`) scores +14.9 [+6.1, +23.7] above it on V8 (V7.1: +11.7).
    - Open question: the remaining strong-beat gap on everyday songs (chain setup). Compact sources plateau (more styles, more
      memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
-   - **Owner's call:** delete the ending refinement. Removing it costs 0.2
-     points on today's main, as on November 1; it uses 1% of physics
-     frames. The November 1 deletion branch `exp/no-tail-refinement`
-     removes 330 lines.
+   - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
+   - ~~Strong phrases offered guides~~ (adopted 2026-11-13, **removed 2026-11-14**: the main source of rails; clean
+     upper hits on strong beats fell 9.6% → 5.8%).
+   - ~~Families where they fit~~ (adopted 2026-11-14: V8 +8.5 [+3.2, +13.8] at 8 seeds, held out +8.1, V7.1 +12.5;
+     table refitted on 524 rides: +3.7 [+1.0, +6.5]). Kept in the foundation as today's planning approach, open to
+     replacement (`docs/taste-and-the-compiler.md`). For the owner's eye: folds now mostly in calmer passages.
+   - ~~Guides where they clearly fit~~ (adopted 2026-11-14, **removed the same day**: more rails for about +1).
+   - **Foundation since 2026-11-14:** `compiler` = 775.0 on V8 (4 seeds), +12.9 [+3.1, +22.8] over the start with the
+     start's ride character (rails 55% of gaps, clean upper hits 9.6% of strong beats). REWORK.md, November 14.
    - Still open from November 1:
-     - short re-landings at speed (Trouble about half, Circus 1/24 and 0/24);
-     - geometry hygiene (G1–G4);
+     - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
+       quality there is the same strong-too-soft story as elsewhere;
+     - geometry hygiene (G1–G4): G2 adopted 2026-11-13 (lead-ins never rise into the arrival path: −26% crossed,
+       score neutral, strong extras −12 to −36%); G1 (untouched curve ends trimmed, rides identical, −13% drawn length)
+       built on `exp/trim-untouched-ends` for the owner's eye; G3, G4 open;
      - unwanted impacts (U2, U3; guide touches on beats);
      - the measure (visibility study);
      - benchmark fitness.

@@ -5,13 +5,14 @@
  *   - on a guide: the line is one of the section's rail guides;
  *   - sled or body: which rider points touch.
  * Per ride it reports, per minute of ride or as shares:
- *   upper-hit beats    beats whose matched hit touches a line from above (strong beats apart)
+ *   upper-hit beats    beats whose matched hit touches a line from above, rails included (strong beats apart)
+ *   clean upper hits   strong beats caught on a line's underside with no rail touched (contact_role.ts)
  *   upper contact      seconds per minute with any contact from above
  *   guide contact      seconds per minute touching a guide
  *   riding             share of time with the sled on a line; long ride-outs = unbroken sled
  *                      contact of 1 s or more (seconds per minute)
  *   air                share of time with no contact; flights of 1 s or more per minute
- *   body contact       seconds per minute with body points touching
+ *   body contact       seconds per minute with body points touching (BUTT, SHOULDER, hands: the body-drag guard's points)
  * Then each arm against the first, paired by ride (bootstrap over rides).
  *   node tools/research/ride_character.ts NAME=ARM_DIR NAME2=ARM_DIR2 ... [--jobs=N] */
 import {readFileSync, readdirSync, writeFileSync, mkdtempSync} from 'node:fs';
@@ -20,8 +21,9 @@ import {tmpdir} from 'node:os';
 import {gunzipSync} from 'node:zlib';
 import {observe} from '../measure/observe.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
+import {pushSide, hitKind} from '../measure/contact_role.ts';
 
-const SLED = [0, 1, 2, 3], BODY = [4, 5, 6, 7, 8, 9];
+const SLED = [0, 1, 2, 3], BODY = [4, 5, 6, 7]; // BODY as the body-drag guard and the reports count it
 
 function character(armDir: string, ride: string) {
   const cell = JSON.parse(readFileSync(join(armDir, 'cells', `${ride}.json`), 'utf8'));
@@ -31,20 +33,15 @@ function character(armDir: string, ride: string) {
   const guides = new Set<number>(Object.values(gallery.production?.railGuides ?? {}).flat() as number[]);
   const obs = observe(track, duration, targets);
   const last = Math.min(duration, obs.frames.length - 1);
-  // A contact is "from above" when the line pushes the rider down. The engine (line.rs) gives a
-  // line the normal (−dy, dx)/length, negated when flipped; a colliding point is pushed against
-  // that normal. "From above" = the push points down (y down) by more than 0.2 of its length,
-  // so near-vertical walls count as neither.
-  const fromAbove = (lineId: number, _p: number[]) => {
-    const l = lines.get(lineId); if (!l) return false;
-    const dx = l.x2 - l.x1, dy = l.y2 - l.y1, len = Math.hypot(dx, dy) || 1;
-    return -(dx / len) * (l.flipped ? -1 : 1) > .2;
-  };
+  // Contact kinds and push sides: tools/measure/contact_role.ts (the reports' definition). "From above" here is any line
+  // pushing the rider down, rails included; a clean upper hit touches no rail (hitKind).
+  const fromAbove = (lineId: number) => {const l = lines.get(lineId); return !!l && pushSide(l) === 'down';};
+  const collisions = obs.frames.map((fr: any) => fr.collisions);
   let upper = 0, guide = 0, sled = 0, air = 0, body = 0, longRide = 0, longFlight = 0, run = 0, flight = 0;
   const upperFrames = new Set<number>();
   for (let f = 1; f <= last; f++) {
-    const c = obs.frames[f].collisions, pts = obs.frames[f].points;
-    const up = c.some(([id, k]: number[]) => fromAbove(id, pts[k]));
+    const c = obs.frames[f].collisions;
+    const up = c.some(([id]: number[]) => fromAbove(id));
     if (up) { upper++; upperFrames.add(f); }
     if (c.some(([id]: number[]) => guides.has(id))) guide++;
     const onSled = c.some(([, k]: number[]) => SLED.includes(k));
@@ -57,16 +54,19 @@ function character(armDir: string, ride: string) {
   const perMinute = (frames: number) => frames / 40 / (last / 40 / 60);
   const beats = cell.impact3?.perBeat ?? [];
   const hitAbove = (b: any) => b.hit && [0, 1, 2].some(d => upperFrames.has(b.hit.contactStart + d));
+  const clean = (b: any) => b.hit && hitKind(collisions, b.hit.contactStart, lines, guides) === 'upper';
   const hit = beats.filter((b: any) => b.hit), strong = hit.filter((b: any) => b.requested >= .6);
   return {ride, song: ride.split('~')[0],
     upperBeats: hit.filter(hitAbove).length / Math.max(1, hit.length), upperStrong: strong.filter(hitAbove).length / Math.max(1, strong.length),
+    cleanStrong: strong.filter(clean).length / Math.max(1, strong.length),
     upperContact: perMinute(upper), guideContact: perMinute(guide), riding: sled / last, longRides: perMinute(longRide),
     air: air / last, longFlights: longFlight / (last / 40 / 60), bodyContact: perMinute(body)};
 }
 
 const FIELDS: Array<[string, string, (v: number) => string]> = [
-  ['upperBeats', 'beats hit from above', v => `${(100 * v).toFixed(1)}%`],
-  ['upperStrong', 'strong beats hit from above', v => `${(100 * v).toFixed(1)}%`],
+  ['upperBeats', 'beats hit from above, rails included', v => `${(100 * v).toFixed(1)}%`],
+  ['upperStrong', 'strong beats hit from above, rails included', v => `${(100 * v).toFixed(1)}%`],
+  ['cleanStrong', 'strong beats, clean upper hits', v => `${(100 * v).toFixed(1)}%`],
   ['upperContact', 'contact from above, s/min', v => v.toFixed(2)],
   ['guideContact', 'guide contact, s/min', v => v.toFixed(2)],
   ['riding', 'time with the sled on a line', v => `${(100 * v).toFixed(1)}%`],
@@ -99,7 +99,7 @@ if (args[0] === 'worker') {
     for (const [key, label] of FIELDS) {
       const d = [...rides].map(r => results[n][r][key] - results[names[0]][r][key]);
       const boots = Array.from({length: 2000}, () => mean(Array.from({length: d.length}, () => d[Math.floor(rand() * d.length)]))).sort((a, b) => a - b);
-      const scale = key.startsWith('upper') && !key.endsWith('Contact') || key === 'riding' || key === 'air' ? 100 : 1, unit = scale === 100 ? ' pts' : '';
+      const scale = (key.startsWith('upper') || key === 'cleanStrong') && !key.endsWith('Contact') || key === 'riding' || key === 'air' ? 100 : 1, unit = scale === 100 ? ' pts' : '';
       console.log(`  ${label.padEnd(34)} ${(scale * mean(d)).toFixed(2).padStart(7)}${unit} [${(scale * boots[50]).toFixed(2)}, ${(scale * boots[1949]).toFixed(2)}]`);
     }
   }

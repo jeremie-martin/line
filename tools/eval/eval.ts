@@ -134,20 +134,24 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
     r.strata.map(s => `${s.stratum} ${s.quality.reduce((n, q) => n + q.n, 0)}`).join(', ')}); "strata" = mean over strata`,
   `${pad('metric', 44)}${r.strata.map(s => pad(s.stratum, 11)).join('')}strata`);
   for (const k of r.metricNames) out.push(`${pad(k, 44)}${r.strata.map(s => pad(num(s.value[k][field], paired), 11)).join('')}${num(r.overall[k][field], paired)}`);
-  out.push('', `3. Per spec: ${paired ? 'A − B (seed mean) and seed signs' : 'seed mean'}, on the same cells`);
+  // Section 3 keeps the rows that matter spec by spec; section 2 has them all.
+  const perSpec = r.metricNames.filter(k => PER_SPEC.includes(k));
+  out.push('', `3. Per spec: ${paired ? 'A − B (seed mean) and seed signs' : 'seed mean'}, on the same cells (${perSpec.length} key rows; section 2 has every row)`);
   for (const s of r.strata) {
     out.push(`[${s.stratum}] ${s.quality.map((q, i) => `(${i + 1}) ${q.spec} n=${q.n}`).join('  ')}`,
       `  ${pad('', 42)}${s.quality.map((_, i) => pad(`(${i + 1})`, 22)).join('')}`.trimEnd());
-    for (const k of r.metricNames) out.push(`  ${pad(k, 42)}${s.quality.map(q => {
+    for (const k of perSpec) out.push(`  ${pad(k, 42)}${s.quality.map(q => {
       const m = q.metrics[k], value = paired ? m?.diff : m?.a;
       return pad(!Number.isFinite(value) ? '—' : paired ? `${num(m.diff, true)} +${m.up}−${m.down}=${m.same}` : num(m.a), 22);
     }).join('')}`.trimEnd());
   }
   return [...out, '', ...geometryReport(a, b)];
 }
+const PER_SPEC = ['score', 'impact loss (v3)', 'v3 strong bias (req>=0.6)', 'air rms', 'speed rms', 'rails, share of gaps',
+  'clean upper hits, share of strong beats'];
 const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
 /** Section 4 of the stratified report: how rides use the geometry families.
- * Single run: values. Paired: A→B per stratum, then A, B and A − B over strata. */
+ * Single run: values. Paired: B→A per stratum (reference, then candidate), then A, B and A − B over strata. */
 export function geometryReport(a: Run, b?: Run): string[] {
   const g = geometryStrata(a, b), paired = !!b, missing = [g.recorded.a ? '' : 'A', paired && !g.recorded.b ? 'B' : ''].filter(Boolean);
   const out = [`4. Geometry: planned sections on every cell; realized facts on cells complete in ${paired ? 'both arms' : 'this run'} (${
@@ -157,6 +161,7 @@ export function geometryReport(a: Run, b?: Run): string[] {
   if (missing.length) out.push(`not recorded for ${missing[0]}: that run predates geometry facts (compiler output; remeasure cannot recover them).`);
   out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames (a reporting band: a 0.2 s pair is 8–9 frames). Families are the realized ones: a shaped`,
     'section the search simplified at a dead end shows as arcs, and is counted in "shapes simplified at a dead end".',
+    ...(paired ? ['Per stratum: B→A (reference, then candidate).'] : []),
     `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 10 : 8)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
   for (const {group, rows} of g.groups) {
     const percent = (row: string) => group === 'time' || group === 'sections' || row.includes('share');
@@ -164,7 +169,7 @@ export function geometryReport(a: Run, b?: Run): string[] {
     for (const row of rows) {
       const v = g.values[group][row], scale = percent(row) ? 100 : 1, digits = percent(row) ? 0 : 1;
       const f = (x: number, d = digits, signed = false) => !Number.isFinite(x) ? '—' : (signed && x * scale > 0 ? '+' : '') + (x * scale).toFixed(d);
-      out.push(`  ${pad(row, 38)}${v.strata.map(s => pad(paired ? `${f(s.a)}→${f(s.b)}` : f(s.a), paired ? 10 : 8)).join('')}${
+      out.push(`  ${pad(row, 38)}${v.strata.map(s => pad(paired ? `${f(s.b)}→${f(s.a)}` : f(s.a), paired ? 10 : 8)).join('')}${
         paired ? `${pad(f(v.overall.a, digits + 1), 10)}${pad(f(v.overall.b, digits + 1), 9)}${f(v.overall.diff, digits + 1, true)}` : f(v.overall.a, digits + 1)}`);
     }
   }

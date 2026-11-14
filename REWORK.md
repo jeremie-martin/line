@@ -14,15 +14,6 @@ points to `voice-full`. The held-out panel's "Circus preferred" case follows `sp
 A 32-theme video of seed 404 (cuts on bar downbeats and section boundaries) is in `generated/videos/circus-voice-full/`
 (`themes32.mjs`, not tracked).
 
-## November 14: Circus Minimus follows the voice to the end (`voice-full`, the new default)
-
-The owner closed the visual lab for now and returned to specifications. `variants/voice-full.ts` keeps the approved
-voice-and-drums hook and carries the reading to the last bar: 48–54.5 s from 25 new listening marks, the rest authored from the
-measurements by what those marks showed (the header of the file lists it). A reading written before opening the marks matched
-24 of 25 within 80 ms. The owner heard it with clicks and approved it; four seeds (101–404) compiled complete and valid at the
-standard allowance, strength RMS 0.083–0.092. `spec.ts` now points to it, so the held-out panel's "Circus preferred spec"
-(`tools/eval/inputs.ts`, `variant: null`) is this spec from now on; `pairs3` remains as a variant.
-
 ## November 14: round 51 answered; half light, half dark; the band lights on dark themes
 
 **Decided for production (the owner):**
@@ -154,6 +145,1220 @@ variations. The owner's answers:
 **Collection: 38 themes.** Frozen as set `2026-11-13-round45`; ids reproduced by the test; stills rendered again identical. The two
 Paper variations take Paper's drop partners (not judged apart). Near-identical themes are drawn as often as any other for now
 (owner: to be settled with the sampling, no family concept yet). The lab fingerprint baseline is refreshed (more themes).
+||||||| ca6a0c6a
+## November 14: the targeted cleanup of lines the rider goes through, adopted
+
+`compiler` now removes, after the ride is built, the pieces of lines the whole rider goes through and never touches
+(`arc_gone_through.ts`, `goneThroughCleanup: true`), shortening a line from its nearer end, never breaking it.
+- V8, 196 rides, against `foundation-2`: **every ride's score identical** (0.0 [0.0, 0.0]), same physics; the rider
+  going through a line 0.48 → 0.23 per ride (narrow), 0.44 → 0.27 (wide); 1.3 pieces removed per ride (of about 4,500).
+- Two fixes on the way: removing a piece from a rail's middle split it in two, which the rail grouping refuses ("at
+  most two connected curves"), so lines are only shortened from an end; and the cleanup's own verification replay ran
+  past the allowance, which reserves one replay for the independent judge, so the judge's replay is the check (as for
+  guide pruning). A first run was also void: I edited the compiler while it ran ("measurement code changed").
+- The rail rule's check, profiled: about 13% of compile CPU; made cheaper with identical decisions (parity suite 54 s →
+  39 s; 31 s before the rule).
+- Parity references refreshed; parity, judge, tests (618), typecheck and reach pass.
+
+## November 14: hypothesis, the targeted cleanup of lines the rider goes through (stated before running)
+
+- **Change** (`exp/gone-through`; `arc_gone_through.ts`, option `goneThroughCleanup`): after the ride is built and its
+  rails pruned, the pieces of lines the whole rider goes through (the sled's centre, or 6 of its 10 points) and never
+  touches are removed, with the untouched stretch to the nearer end of their run; kept only when a replay of the
+  cleaned track is identical to the ride's (one extra replay, charged).
+- **Hypothesis:** every ride's score identical to `foundation-2` (the physics is); the rider going through a line falls
+  from about 0.5 to about 0.1 per ride; a few pieces removed per ride; compile time barely moves.
+
+## November 14: rails never proposed onto their own support, adopted
+
+Merged into `compiler` (the owner: "no negative comment"): a proposal whose rail crosses or comes within 2 px of its
+own support (segment against segment, the support's ends included) is not built (`railSupportMargin: 2`). Measured just
+below: V8 −1.1 [−8.6, +6.4]; crossing rails at the rider 39 → 0, almost crossing 52 → 14, the rider going through a
+line 0.84 → 0.48 per ride. Compile time: +9% on a V8 ride; the check's support segments sit in a grid (exact, parity
+identical), which brought the longest parity ride from +77% to +32%. Parity references refreshed; parity, judge,
+tests (618), typecheck and reach pass. Next, for what remains (rails in the flight path past a support's end, a few
+main lines): the targeted cleanup of pieces the rider goes through and never touches (identical replay).
+
+## November 14: rails never proposed onto their own support, third result (candidate)
+
+V8, 196 rides, against `foundation` (`exp/rail-touch`, segment against segment, 2 px):
+
+| | foundation | rails never onto their support |
+|---|---|---|
+| V8 headline | 775.0 | 773.9: −1.1 [−8.6, +6.4], 20 specs up, 23 down; explicit +4.6 |
+| rails crossing their support where the rider passes | 39 (0.20 per ride) | 0 |
+| rails within 2 px of it there (almost crossing) | 52 (0.27 per ride) | 14 (0.07) |
+| ordinary close rails (2–6 px) | 1,673 | 1,606 |
+| the rider going through a line (narrow / wide) | 0.84 / 0.77 per ride | 0.48 / 0.44 |
+| physics per ride | 3.09M | 3.08M |
+
+- Compile time: +50% with the plain segment check, +9% with a bounding-box filter that skips pairs which cannot come
+  within the margin (one ride: 22.9 s against 21.0 s; the same ride, score and physics, so the measured results stand).
+- Strong extra impacts 0.10 → 0.15 per 100 beats, body drag +4%, head-down unchanged; rails 55% of gaps unchanged.
+- What remains of going through: rails in the flight path past the support's end, and a few main lines: the targeted
+  cleanup (`going_through_cleanup.ts`, identical replay) applies to those the rider never touches.
+
+## November 14: rails never proposed onto their own support, second result and a third execution (stated before running it)
+
+- **Second execution:** headline −1.6 [−7.2, +4.0]; crossings 0; almost crossing 20 (first: 17); going through 0.56
+  per ride (0.53): no better. The check measured the rail's points against the support, while a rail meeting it at an
+  angle comes closer between its points (the audit measures along the support's normal and sees that).
+- **Third execution:** rail segments against support segments, a meeting when any comes within the margin (crossing
+  included). **Hypothesis:** almost crossing at the rider near 0; going through falls; headline within noise.
+
+## November 14: rails never proposed onto their own support, first result and a second execution (stated before running it)
+
+- **First execution** (V8, 196 rides, against `foundation`): headline −1.1 [−6.2, +4.0], 18 specs up, 25 down;
+  explicit +2.3; physics per ride unchanged. At the rider: crossing rails 39 → 0, almost crossing 52 → 17, ordinary
+  close rails untouched (1,673 → 1,667); the rider going through a line 0.84 → 0.53 per ride (narrow), 0.77 → 0.50 (wide).
+- What remains (`generated/upper-review/rail-touch-left.html`, `through-touch-left.html`): rail ends converging onto the
+  end of their support, and rails starting at the corner where the support ends, both just past the support's span,
+  which the check skipped (past an end the side test is not reliable).
+- **Second execution** (same branch): past either end, a rail point meets the support by coming within the margin of
+  its end. **Hypothesis:** almost crossing at the rider near 0; going through falls further; headline within noise.
+
+## November 14: hypothesis, rails never proposed onto their own support (stated before running)
+
+- **Basis:** the owner, on pictures (`generated/upper-review/rail-almost.html`): rails crossing their support where the
+  rider passes (0.2 per V8 ride) and rails coming within 2 px of it there (0.27 per ride: starting on the support,
+  converging onto it, lying on it) look the same: the rider is seen going through. Ordinary close rails (2–10 px) are fine.
+- **Change** (`exp/rail-touch`): before any physics, a candidate whose rail crosses or comes within 2 px of its own
+  support, along the support's span, is not built (`railMeetsSupport`, rejection `rail_meets_support`). Option
+  `railSupportMargin` (off by default: parity identical). Unlike `exp/rail-floor` nothing is cut: the geometry is not
+  proposed, and the search measures the others.
+- **Hypothesis:** crossing and almost-crossing rails at the rider fall to near 0 (audit `rail_audit.ts --at=rider`);
+  the rider going through a line falls; headline within a few points (about one candidate rail in a hundred is affected).
+
+## November 14: how close rails come to their support where the rider rides (report only; audit before any rule)
+
+- The rider stands about 10 px above the line it rides (highest body point: median 9.6, p90 12.1); the sled about 6 px
+  (median 5.8) (`tools/research/rider_height.ts`). Rails are laid a median 12 px from their support, so a rail that
+  guides the sled runs through the rider's body by design.
+- `tools/research/rail_audit.ts --at=rider`, foundation, V8, 196 rides: for every frame the sled rides a support that
+  has a rail, the rail's height above it at the sled's position; each rail banded by its lowest:
+
+  | band | rails | per ride |
+  |---|---|---|
+  | crossing: the rail on the other side of its support where the rider rides | 0.6% | 0.2 |
+  | under the sled (0–6 px): the rider squeezed between, the body through the rail | 26.7% | 8.8 |
+  | under the rider (6–10 px) | 46.4% | 15.3 |
+  | above the rider (10 px or more) | 26.3% | 8.7 |
+
+- The geometric bands without the rider's position mislead (a rail end converging onto the support after the rider has
+  left; a side test that flips past the support's end): measured at the rider, all sampled crossings are real.
+  Pictures: `generated/upper-review/rail-audit-rider.html`. For the owner: which bands look wrong.
+
+## November 14: the rider going through a line, results (rule not adopted; cleanup proposed)
+
+Aligned with the owner on pictures (`generated/upper-review/through.html`): the case is the whole rider going through a
+line, typically a rail starting at or below its own support. Two detections (`tools/research/going_through.ts`: the
+sled's centre crosses a line it does not collide with; `going_through_wide.ts`: 6 of the rider's 10 points cross one
+line within 4 frames) overlap only in part: counted together. V8, 196 rides each:
+
+| | foundation | rails never closer than 6 px to their support (`exp/rail-floor`) |
+|---|---|---|
+| V8 headline | 775.0 | 769.9: −5.2 [−12.2, +1.9], 9 specs up, 34 down; explicit −9.1 |
+| rails starting within 4 px of their support | 1.4 per ride | 0.0 |
+| rails crossing their support | 0.3 | 0.1 |
+| the rider going through a line (narrow / wide) | 0.84 / 0.77 | 0.39 / 0.38 |
+
+- The rule removes rails laid onto their support but only halves the going-through cases: the rest are rails on the
+  wrong side of their support (the rule checked distance, not side) or rails in the flight path just past the support's
+  end (`generated/upper-review/through-after.html`). Not adopted.
+- **Targeted cleanup** (`going_through_cleanup.ts`, the owner's idea): for each case, remove the pieces of that line the
+  rider's points cross, never touched by the rider, to the line's nearer end where that stretch is untouched. On the
+  foundation: replay identical in 196 of 196 (every point, every frame); cases 1.61 → 0.32 per ride; 3.5 pieces removed
+  and 1.2 new breaks per ride; no score change by construction. What remains are pieces the rider also touches (the
+  Circus 17.4 s rail start). Pictures: `generated/upper-review/through-cleaned.html`.
+- The earlier broad cleanup (every untouched piece cutting the rider's figure, 300 pieces per ride) answered another
+  question and is dropped.
+
+## November 14: hypothesis, rails never drawn onto their own support (stated before running)
+
+- **Basis** (owner, Circus Minimus 17 s; aligned on pictures, `generated/upper-review/through.html`): what he means by
+  riding through geometry is the whole rider going through a line, typically a rail that starts at or below the support
+  it belongs to. Measured (`generated/upper-review/through2.ts`): the sled's centre goes through a line it does not
+  collide with about once per V8 ride (88 of 91 cases a rail); a rail touches or starts within 4 px of its own support
+  in about 1 ride in 1. Those rails are all tilted (mean |tilt| 13.6° against 3.9° for all rails kept; folds 44%
+  against 13%): the tilt turns the rail about its middle and can swing an end onto or through the support.
+- **Change** (`exp/rail-floor`): a rail is never drawn closer to its own support than 6 px, the smallest clearance a
+  rail may have; the longest stretch beside the support is kept if it is a substantial curve (24 px), else no rail.
+  Option `railClearanceFloor` (off by default: parity identical). The tilt stays available to the search.
+- **Hypothesis:** the rider going through a rail falls from about 1 per ride to near 0, and rails touching their
+  support to 0; the headline within noise (a few rails lose their tilted end, a few go); rail share slightly down.
+
+## November 14: riding through geometry (report only; understanding before any fix)
+
+A Line Rider line collides from one side only, while every line is drawn solid: a rider seen crossing a drawn line
+looks like it rides through geometry. The owner finds this a serious flaw (Circus Minimus, foundation, 17 s).
+
+- **Measures** (`tools/research/pass_through.ts`): (a) a rider point's motion crossing a line it does not collide with
+  that frame or the next; (b) what is seen: frames in which a drawn line (any pieces of one gap's main line, rail or
+  fragments) cuts the rider's figure (sled frame, torso, arms, legs), lines touching the rider then excepted.
+- **On the foundation** (V8, 196 rides): a line cuts the rider's **body** 26.6 times per ride, 1.26 s per ride, 6.2
+  times lasting 3 frames or more (rails 54%, main lines 45%); the **sled only** 61.8 times, 2.27 s. Point crossings of
+  3 px or more: 35 per ride, almost all a single frame. Calibrated on the owner's case: at 17.35 s a rail cuts the
+  rider's arms, legs, torso and sled for 8 frames.
+- **94% of the pieces that cut the body are never touched in the ride.** Touched pieces are 2.7 px long and touched
+  where they are crossed, so splitting pieces cannot help.
+- **Removal with an identical replay** (`tools/research/pass_through_removal.ts`, seed 101, 49 rides; every rider point
+  in every frame compared): identical in 49 of 49 for every variant.
+
+  | remove the untouched pieces that… | body | sled only | pieces removed | new breaks per ride |
+  |---|---|---|---|---|
+  | cut the body | 24.3 → 0.2 | 58.4 → 69.1 | 0.9% | 27 |
+  | cut the body, shortening from the line's end where possible | 24.3 → 0.2 | 58.4 → 67.5 | 1.7% | 20 |
+  | cut the figure | 24.3 → 0.2 | 58.4 → 5.4 | 3.7% | 104 |
+  | are crossed at all | 24.3 → 0.2 | 58.4 → 5.4 | 6.8% | 185 |
+
+- **Pictures** (`generated/upper-review/pass-circus.html`) show the cause: rails laid inside the rider's space, starting
+  at the support line the rider rides (17.35 s) or lying closer above it than the rider is tall (36.55 s). Removal takes
+  out what crosses the figure; the rest of such a rail still sits in the rider's space.
+- Nothing changed in the compiler. To decide with the owner: the cleanup (which variant), and whether rails should be
+  laid outside the rider's space by construction.
+
+## November 14: the owner's held-out upper-hit study (measured)
+
+`upper-hits-2026-11b`, 18 fresh pairs, the question naming the marked hit ("the bigger impact, whatever its kind"):
+
+| block | today's strength | gravity-neutral | the owner |
+|---|---|---|---|
+| 8 pairs where the two disagree | floor bigger by 0.03–0.10 | upper bigger | upper 4, floor 2, same 2 |
+| 6 pairs, floor clearly bigger | floor by 0.10–0.25 | floor | floor 3, same 2, upper 1 |
+| 4 checks, two floor hits 0.40–0.50 apart | | | right 2, same 2, wrong 0 |
+
+- **Reading:** a catch from above is not seen as a much bigger impact: where the floor hit is clearly stronger, the
+  owner mostly says so. Where the two strengths disagree he leans toward the gravity-neutral one (4 to 2), too few to
+  validate it (a fair coin gives 4 or more of 6 a third of the time), and his resolution is coarse (0.4–0.5 apart is
+  "same" half the time). **The gravity-neutral strength is not validated; nothing optimizes it.** Today's strength is
+  roughly fair to catches from above, perhaps slightly low.
+- So the owner's preference for upper hits is about the ride's character (as with rails), not their impact size: more
+  upper hits is a taste choice to be made by construction and planning, not by re-weighting the ruler.
+
+## November 14: correction, the first upper-hit study answered another question
+
+The owner answered `upper-hits-2026-11` as "which clip has the bigger upper hit", not "which marked hit is the bigger
+impact". A clip whose marked hit is a floor catch then loses by construction, so **its 14 of 14 is not evidence that a
+clean upper hit feels bigger**, and the gravity-neutral strength's "12 of 14" agreement means nothing either. What
+stands without it: the physics (a line pushing down needs about 20% less push for the same turn) and everything about
+construction and survival. The question now names the marked hit and says to judge the impact whatever its kind
+(`upper-hits-2026-11b`, held out; `upper-hits-2026-11-redo`, the first study's pairs asked again).
+
+## November 14: E1c on V7.1 (candidate, for the owner's eye)
+
+V7.1, 4 seeds, 164 pairs against `foundation`: **headline −0.5 [−3.7, +2.8]**, 18 specs up, 17 down; every ride finished;
+explicit −4.3 (V8 +4.1); clean upper hits 8.1% → 8.8% of strong beats; strong extra impacts 0.09 → 0.13 per 100 beats;
+head-down and body drag unchanged. Neutral on both panels. Whole rides and a sheet:
+`generated/compare/upper-e1c-v71/` (`review.json`, `geometry.html`).
+
+## November 14: E1c result, upper receivers where catches from above survive (candidate)
+
+V8, 4 seeds, against `foundation`:
+- **Headline +0.5 [−3.6, +4.5]**, 24 specs up, 19 down; every ride finished; explicit requests +4.1 (216/216).
+- Strong extra impacts 0.10 → 0.15 per 100 beats; body drag and head-down strong arrivals unchanged; rails 55% → 54%.
+- **The new receivers make strong upper hits as strong as floor catches:** chosen in 248 gaps (E1: 180); their clean
+  upper hits on strong beats strike 0.68 (on the sled, 134) and 0.72 (on its front, 68) against 0.70 for floor catches
+  and 0.61 for mirrored ones. They replace weaker mirrored hits more than they add (clean upper 9.6% → 9.8%).
+- Candidates (`upper_candidates.ts`, seed 101): on strong asks 41% survive (E1b 33%) at 0.59 (0.57).
+- **Reading:** a better construction, neutral on the headline; more upper hits need the search to value them, which
+  waits on the owner's held-out check of the gravity-neutral strength. Proposed for adoption with the owner's look.
+
+## November 14: hypothesis, upper receivers where catches from above survive (E1c; stated before running)
+
+- **Basis** (`upper_candidates.ts`, E1b): survival on strong asks falls with incidence (0–10°: 70%, 10–20°: 44%,
+  20–30°: 18%, 30°+: 10%) and with longer contact (support under 0.3 of the span: 40%; 0.3–0.5: 29%), while strength
+  rises with incidence and bend. E1 drew incidence 4–40° and support 0.4–1.0 × the default: mostly where they come apart.
+- **Change** (`exp/upper-receivers-2`, from E1, without E2 or the press rule): incidence 6–24°, support 0.25–0.65 × the
+  default, bend 0.5–1.1 × the ask's turn; the body check and the 12 proposals unchanged.
+- **Hypothesis:** more of these receivers survive and are chosen than in E1 (180 gaps); clean upper hits a little above
+  E1 (10.0%); headline within noise of the foundation (the ruler still under-credits them).
+
+## November 14: a gravity-neutral strength (report only; awaiting the owner's held-out check)
+
+- **Definition** (`tools/research/gravity_neutral.ts`): today's strength is the contact's push over the strongest two
+  frames (motion change less gravity, with spin) ÷ 7.55. The gravity-neutral one is the push a surface would need for
+  the same turn with gravity against it: the push's length plus 2 × window × g × max(0, ĝ·p̂). Floors are unchanged by
+  construction; a push with a downward part gains up to 0.093. Continuous in the push's direction, no kinds.
+- **On the foundation** (V8, 4 seeds; today's strength reproduced on 97% of 17,392 hits): strong floor 0.700 → 0.700,
+  clean upper 0.612 → 0.661, rail only 0.601 → 0.651. It halves the upper-against-floor gap (0.09 → 0.04).
+- **On the owner's 14 judged pairs** (in-sample: they motivated it): it calls the upper hit bigger in 12 of 14; the two
+  others are head-down riders whose push has no downward part.
+- **Held-out check prepared:** `upper-hits-2026-11b`, 18 fresh pairs (8 where the two strengths disagree, 6 where both
+  call the floor hit bigger by 0.10–0.25, 4 checks). Nothing optimizes this strength until it agrees there.
+
+## November 14: E2 result, and what limits upper hits now (not adopted)
+
+- **E2 (E1 + an upper way into strong catches), V8, 4 seeds, against `foundation`: −16.4 [−23.1, −9.7]**, 1 spec up,
+  42 down; every ride finished; explicit −10.7. Clean upper hits 9.6% → 11.8% of strong beats, head-down strong
+  arrivals 13.5% → 17.2%, arrivals rising before strong upper hits 2% → 8%. Almost all the added upper hits come from
+  mirrored receivers (1,299 of 1,413); the body-clear ones are still rarely chosen (114).
+- **The new receivers are the better construction** (`upper_candidates.ts`, E1b in a worktree, seed 101, 87,299 upper
+  candidates, 57,351 on strong asks): 33% survive on strong asks with strength 0.57, against mirrored ones that come
+  apart 85% of the time near the ask and survive at 0.47. Survival falls with incidence (0–10°: 70%, 10–20°: 44%,
+  20–30°: 18%, 30°+: 10%) while strength rises (0.47 → 0.61): the same trade a floor catch makes. Pressing the sled
+  into the body (E1b's rule) does not predict survival; upright riders survive best (65%), then those past 120° (44%).
+- **What binds now is the ruler.** A catch from above reads about 0.1 weaker than a floor catch that turns the rider
+  as much (gravity helps its push), so the search ranks it as the worse catch, and E2's flatter arrivals mostly cost the
+  floor catches. The owner sees the opposite (14 of 14). Next: a gravity-neutral strength, checked against the owner's
+  labels on fresh pairs before anything optimizes it (CLAUDE.md).
+
+## November 14: E1 result, upper receivers that keep the body clear (not adopted alone)
+
+V8, 4 seeds, against the foundation (named reference `foundation` = 76e481f7; the name `compiler` is frozen at
+d0763aa4, the version with the rail rules: a first report against it read −9.3 and is void).
+
+- **Headline −2.1 [−7.1, +3.0]**, 20 specs up, 23 down; every ride finished; explicit requests 216/216.
+- Clean upper hits 9.6% → 10.0% of strong beats (per ride); rails 55% → 54% of gaps; strong extra impacts 0.10 → 0.13
+  per 100 beats; head-down strong arrivals unchanged (13.5%).
+- **Where used, the new receivers do what they were built for:** chosen in 180 of 17,588 gaps; on strong beats they
+  give clean upper hits of 0.66 (on the sled, 113) and 0.72 (on its front, 22) against 0.61 for mirrored ones; the sled
+  touches first in every one; about half the riders are rotated (head-down 43–50%).
+- **But they are rarely chosen.** The arrivals the search prepares before strong catches are steep and upright (the
+  floor priors), so few catches leave the body clear of a line above: E2 addresses that.
+- The stage's own work counts are not saved by the eval adapter (`tools/eval/compile.ts` keeps a fixed list of result
+  fields and is part of every arm's key), so they are read from in-process probes instead.
+
+## November 14: hypothesis, an upper way into strong catches (E2, with E1; stated before running)
+
+- **Basis:** before a strong catch the release is steered by priors made for floor catches (`addArrivalPriors`): a
+  steep arrival (20–70°) and a penalty on a sled axis past vertical or pointing backward (`uprightArrival`). Catches
+  from above hold on flatter arrivals (survivors 18°, crashes 34°) and a rotated rider meets them with the sled.
+- **Change** (`exp/upper-arrival` = E1 + this): `impactSearch.upperArrival` = 15°; the arrival into a strong catch is
+  charged the cheaper of the floor setup (as before) and an upper one (a 15° arrival, rotation free). One prior with two
+  acceptable shapes, chosen per candidate by cost; nothing else changes.
+- **Hypothesis:** flatter and more rotated arrivals before strong catches; more strong beats caught clean from above
+  than with E1 alone; the headline may fall (floor catches lose their preferred setup where no upper receiver takes the
+  beat); head-down arrivals rise (expected, by design). **Watch:** completion, every ruler, the geometry sheet.
+
+## November 14: hypothesis, upper receivers that keep the body clear (E1; stated before running)
+
+- **Basis** (the entries below): strong catches from above come apart (85% near the ask) when the line meets the
+  shoulder and hands, and hold when it takes the sled; today's only receivers from above are mirrored floor curves
+  placed against whichever rider point is nearest. The owner sees a clean upper hit as the bigger impact (14 of 14).
+- **Change** (`exp/upper-receivers`): a proposal stage after the mirrored entries offers 12 receivers met from above per
+  gap: a line over the catch entering 4–40° ahead of the arrival, bending down by 0.6–1.3× the turn the ask implies,
+  placed against the sled or its front (new control `receiverAnchor`), and built only when every body point is clear of
+  it on its active side (4 px). Option `upperReceiverProposals` (12 in the experiment; off by default: parity identical).
+  The physics allowance is unchanged, so these candidates take frames from the rest of the search.
+- **Hypothesis:** the new candidates survive far more often than the mirrored ones; more strong beats are caught with a
+  clean upper hit; the headline within a few points either way (it under-credits upper hits). The arrival priors still
+  favour steep, upright arrivals before strong catches (`addArrivalPriors`), so the effect may be small: E2 addresses them.
+- **Measured:** V8, 4 seeds, against `compiler`: completion, every ruler, ride character, the new stage's work counts.
+
+## November 14: what rotates the rider between catches (report only; upper hits, step 1)
+
+`tools/research/rotation.ts` on the foundation (V8, 4 seeds): 16,627 flights of 4 frames or more before a catch.
+
+- **The chain is predictable.** The rider leaves the line turning at the line's own rate (correlation 0.84, plus about
+  2°/frame at the release), and that spin carries through the flight (spin × air time against the sled's turn over the
+  flight: 0.96). So the end of a gap's geometry sets the rider's rotation at the next catch.
+
+  | line's turn rate at the release (°/frame) | flights | spin after | turn over the flight | tilt at the catch |
+  |---|---|---|---|---|
+  | under −6 | 2,921 | −5.3 | −52° | 43° |
+  | −6 to −2 | 2,662 | −1.3 | −16° | 32° |
+  | −2 to 2 | 6,019 | +1.4 | +11° | 28° |
+  | 2 to 6 | 3,175 | +5.3 | +41° | 48° |
+  | over 6 | 1,850 | +10.3 | +78° | 64° |
+
+- Flights last 11 frames at the median (5–18). Tilt at the catch (0° upright, 180° upside down): median 32°, over 60°
+  in 24% of catches, over 90° in 6.5%. Strong upper catches arrive more tilted (median 45°) than floor catches (27°).
+- The angle between the last two lines touched (a "lip") does not predict the spin (0.03); the turn rate does.
+- No family releases with markedly more spin than another (mean |spin| 4.0–4.9°/frame).
+
+## November 14: why strong catches from above come apart (report only; upper hits, stage 2 groundwork)
+
+The foundation, V8 seed 101, 49 specs, tracks identical to `compiler` (49/49).
+
+- **The candidate pools** (`crash_edge.ts`, 1,382 sampled intervals asking 0.75+):
+
+  | | floor side | upper side (`contactSide` −1) |
+  |---|---|---|
+  | share of candidates | 81% | 19% |
+  | struck near the ask (within 0.1) and came apart | 25% | **85%** |
+  | survivors' strength, median / top 10% | 0.63 / 0.81 | 0.47 / 0.65 |
+  | strongest survivor per interval | 0.74 | 0.53 |
+
+  Half the intervals have no upper survivor; in 16% the best upper survivor is at least as strong as the best floor one.
+- **What separates them** (`upper_survival.ts`, the 78,332 upper candidates that struck near the ask and came apart,
+  against the 1,240 accepted clean upper hits of `upper_hits.ts`):
+
+  | | came apart | survived |
+  |---|---|---|
+  | arrival (falling) | 34° | 18° |
+  | sled pitch against the arrival | +2° | −21° (nose up) |
+  | shoulder / hands touch first | 56% / 47% | 26% / 24% |
+  | frames to coming apart | 3.4 (75% within 3) | — |
+
+- **Reading:** a catch from above is survived when the line takes the sled's front on a flatter arrival, and thrown off
+  when it meets the shoulder and hands. Today's opposing receivers are placed against the rider point nearest the line
+  among all ten (`receiverPoints`, contactSide −1), which on an upright rider is usually the shoulder. The survivors are
+  accepted hits (also chosen for cost), the crashes all candidates: indicative, not causal.
+
+## November 14: the owner's blind upper-hit study (measured)
+
+`upper-hits-2026-11` (labels/studies): 14 pairs, a clean upper hit against a floor hit of the same strike strength
+(within 0.03) on a similar ask, plus 4 checks (two floor hits 0.35–0.46 apart). "Which one is the bigger impact?"
+
+- **The clean upper hit was chosen as bigger in 14 of 14 pairs** (no "same"; chance 1 in 16,384). **Void: the owner
+  answered which clip had the bigger upper hit (correction above).**
+- **The 4 checks were all "about the same"**, though their strike strengths differ by 0.35–0.46.
+- Reading: at equal measured strength the owner sees a clean upper hit as the bigger impact, every time; among floor
+  hits he does not tell large strength differences apart (as in the October studies,
+  REWORK.md, October). So the strike under-rates clean upper hits as he perceives them, by an amount
+  this study cannot size (it may exceed any floor difference). With the stage-1 finding (a line pushing down needs
+  about 20% less push for the same turn), the turn of the path may be closer to what he sees than the push.
+- Nothing changes in the measure yet: a new definition needs its own held-out check against his labels.
+
+## November 14: how today's upper hits happen (report only; stage 1 of the upper-hit work)
+
+`tools/research/upper_hits.ts` on the foundation (`compiler`, V8, 4 seeds): the 7,771 strong beats (ask 0.6+) caught
+with a clean upper hit (1,240) or on a floor (6,531), each replayed.
+
+| | clean upper | floor |
+|---|---|---|
+| ask / got / bias | 0.81 / 0.61 / −0.20 | 0.80 / 0.70 / −0.10 |
+| receiver from the opposing side (mirrored floor curve) | 100% | 0% |
+| arrives rising | 2% | 0% |
+| speed in (px/frame), turn of the path | 10.8, 26° | 11.5, 26° |
+| contact's own push (change of motion less gravity) | 4.4 | 5.5 |
+| sled touches first | 81% | 99% |
+| head-down | 27% | 12% |
+| speed 8 frames later / before | 0.93 | 0.91 |
+| next strong beat's bias | −0.13 | −0.14 |
+
+- **Today's upper hits are not the owner's.** All come from mirrored floor curves, and 98% meet a falling rider: a
+  steep line coming down ahead deflects the rider further down. The hit the owner describes (thrown up off the
+  geometry, caught from above, sent down) almost never happens: strong beats are reached rising 0–2% of the time.
+- **Why they measure soft.** For the same turn of the path (26°) a line pushing down needs about 20% less push, because
+  gravity already pulls that way. Strength is the contact's push (the deviation from free flight), so it reads them
+  softer; per unit of push they read the same. Whether the eye sees the turn or the push is what the blind study
+  (`upper-hits-2026-11`, pairs matched on measured strength) can tell.
+- They are not slower afterwards, and the next strong catch is no weaker.
+- November 13 (`crash_edge.ts`, the compiler of then): among candidates striking near a strong ask, 83% of catches from
+  above came apart, against 29% overall.
+
+## November 14: the new foundation (adopted by the owner)
+
+`compiler` now has neither the strong-phrase guide rule nor guides where they clearly fit; it keeps the ending
+refinement's deletion, lead-ins below the arrival and families placed where they fit (measured just below: 775.0 on
+V8, +12.9 over the start, the start's ride character). Placement stays as today's planning approach, not a settled
+design: planning, search and how they meet remain open (`docs/taste-and-the-compiler.md`). Parity references
+refreshed; parity, judge, tests (618), typecheck and reach pass. New reference for what follows: `compiler`.
+
+## November 14: the foundation, measured (no rail rules)
+
+`exp/no-rail-rules` = `compiler` without the strong-phrase guide rule and without guides where they clearly fit; it
+keeps the ending refinement's deletion, lead-ins below the arrival and families placed where they fit (refitted table).
+V8, 4 seeds, 196 pairs; every ride finished, explicit requests 216/216.
+
+| | start (nov13) | no rail rules | today (`compiler`) |
+|---|---|---|---|
+| V8 | 762.1 | 775.0 | 782.2 |
+| vs start | | +12.9 [+3.1, +22.8], 39 specs up, 4 down | +20.2 |
+| rails, share of gaps (most railed ride) | 54% (71%) | 55% (73%) | 70% (93%) |
+| open arcs | 38% | 37% | 21% |
+| clean upper hits, strong beats | 9.6% | 9.6% | 7.1% |
+| strong arrivals head-down | 14.6% | 13.5% | 11.7% |
+
+- The ride character is the start's; the +12.9 comes from placement (with the lead-ins and the deletion near zero).
+- What placement still changes: folds 9% → 6% of gaps (strong beats 9% → 4%), scattered 11% → 14% (strong 11% → 17%).
+  For the owner's eye: geometry sheet `generated/compare/no-rail-rules-vs-start/geometry.html`.
+- Proposed as the foundation; merging into `compiler` waits on the owner.
+
+## November 14: step back on taste (owner discussion)
+
+The rail experiments are not pursued: plain open arcs on strong phrases hurt variety, and a budget is the wrong kind of
+answer. What happened, the owner's concerns, how to work on taste and the directions on the table (measurement,
+constructions such as an upper-hit receiver, planning and search together, prices in the search) are in
+`docs/taste-and-the-compiler.md`. Nothing decided.
+
+## November 14: fewer rails, first results (exploratory; nothing adopted)
+
+V8, 4 seeds, 196 pairs against `compiler` (782.2); rails = share of gaps keeping a rail, per ride.
+
+| version | V8 | vs today [95%] | rails | most railed ride | clean upper, strong | head-down, strong |
+|---|---|---|---|---|---|---|
+| today (`compiler`) | 782.2 | | 70% | 93% | 7.1% | 11.7% |
+| start (nov13) | 762.1 | −20.2 [−28.5, −11.8] | 54% | 71% | 9.6% | 14.6% |
+| A, strong phrases back to open arcs | 776.9 | −5.4 [−8.7, −2.0] | 65% | 91% | 8.2% | 12.4% |
+| B arcs only, budget 60% | 769.7 | −12.5 [−20.2, −4.9] | 49% | 64% | 10.7% | 13.4% |
+| B, budget 60% (arcs and shapes) | 744.0 | −38.2 [−50.3, −26.1] | 49% | 59% | 8.9% | 13.1% |
+| B, budget 45% | 720.4 | −61.9 [−85.6, −38.1] | 37% | 46% | 10.8% | 14.0% |
+| B, budget 30% | 695.6 | −86.6 [−120.6, −52.7] | 24% | 36% | 13.2% | 16.0% |
+
+- Every ride finished in every version; explicit requests realized 216/216 throughout.
+- A matches its hypothesis (rails 65%, upper hits up, about −5; the table gave a few guides back).
+- B's loss is mostly the shapes built without a rail for the first time: their speed error 0.026 against about 0.005
+  for every other kind of gap (bias −0.09, the rider too slow), half of all speed error at 60%. Its speed rms
+  +0.013 (60%) and +0.033 (30%) carry the loss. This says rail-less shapes do not work as built today, not that a
+  budget cannot.
+- B on arcs only confirms it: the same rail share (49%) for a third of the loss, and against the start fewer rails,
+  more clean upper hits and a higher headline. Arcs alone cannot go much lower (shapes and scattered keep theirs).
+- Branches kept: `exp/strong-phrases-open`, `exp/rail-budget-60`, `-45`, `-30`, `exp/rail-budget-60-arcs`. Geometry
+  sheets: `generated/compare/rails-*/geometry.html`. For the owner: dashboard "Rails and Upper Hits".
+
+## November 14: hypotheses, fewer rails (stated before running; exploratory)
+
+Getting our feet wet, not choosing a winner: each version is one way of carrying out an idea, and a loss says that way
+did not work, not that the idea cannot. Unit: a gap (one beat to the next) is railed when its final track keeps a rail;
+each counts as one, whatever its length or family. Today 70% of gaps are railed and 87% are offered a rail (start 54%
+and 67%). Rails are offered on every family; only arcs are ever built without one.
+
+- **A, strong phrases back to open arcs** (`exp/strong-phrases-open`): the November 13 rule that turns open arcs into
+  arcs offered a guide in strong phrases is removed; everything else stays.
+  - **Hypothesis:** railed gaps 70% → about 60%; clean upper hits on strong beats up toward 9%; V8 down by up to 8.5
+    (that rule's measured worth); the placement table may give some guides back (it rates guides well on strong asks).
+- **B, a planner rail budget at three levels** (`exp/rail-budget-60`, `-45`, `-30`): after placement, when more than
+  that share of a ride's gaps is offered a rail, offers are withdrawn phrase by phrase, calmest phrase first (lowest mean
+  ask: the table rates rails least useful there), from arcs and shaped phrases; scattered keeps its guides (a plan rule).
+  - **Hypothesis:** railed gaps fall with the budget (about 50%, 38%, 25%); V8 falls more at each level; at 45% and 30%
+    shaped families are built without a rail for the first time, and may cost more than open arcs do.
+- **Measured:** V8, 4 seeds, against `compiler`; every ruler, completion apart, ride character, a geometry sheet.
+- **Added after B's first results** (stated before running): **B, arcs only** (`exp/rail-budget-60-arcs`): the 60%
+  budget withdraws offers from arc phrases only; shaped phrases keep theirs. Basis: in B the rail-less shapes left the
+  rider slow (speed error 0.026 against about 0.005 elsewhere; half of all speed error at 60%). **Hypothesis:** most of
+  B60's loss goes; railed gaps settle near 55% (arcs alone cannot reach 60% offered on every ride).
+
+## November 14: rails and upper hits (measured; compiler unchanged)
+
+The ride-character measures (`tools/measure/contact_role.ts`, `character.ts`) on the 196 V8 rides (4 seeds) of the
+brief's start and of every adopted version since, remeasured from saved cells (`npm run compare -- report`, names
+`character-v8` and `character-step-<commit>`).
+
+| version | rails, ride time | open arcs | clean upper hits, strong beats | longest railed, median | V8 vs start |
+|---|---|---|---|---|---|
+| start (nov13) | 52% | 38% | 9.6% | 4.5 s | |
+| ending refinement deleted | 52% | 38% | 9.6% | 4.5 s | −0.2 |
+| guides offered on strong phrases | 65% | 26% | 5.8% | 7.3 s | +8.5 |
+| lead-ins below the arrival | 65% | 26% | 6.1% | 7.3 s | +8.5 |
+| families placed where they fit | 64% | 28% | 8.0% | 7.1 s | +16.3 |
+| placement table refitted | 64% | 26% | 7.6% | 7.1 s | +18.8 |
+| guides where they clearly fit (today) | 69% | 22% | 7.1% | 8.2 s | +20.2 |
+
+- Rides with rails on more than 70% of their time: 4 → 97 of 196; the most railed ride 72% → 92%.
+- Only strong beats lost clean upper hits (pooled 11.8% → 8.7%); middle beats kept theirs (15.8% → 16.6%).
+- At the start, open arcs (no rail allowed) caught 29% of their strong beats with a clean upper hit; strong phrases left
+  them. Shaped families (fold, scallops, serpentine, terraces) never catch one (0 of about 4,000 strong beats). Within
+  arcs and scattered, gaps keeping a rail catch 7–11% clean, without one 22–33%. (Corrected the same day: a beat is
+  caught by the lines of the gap that starts at it; the first count used the gap ending there.)
+- On strong beats clean upper hits land softest (bias −0.18 against −0.09 for floor catches, same asks) and arrive
+  head-down twice as often (22% against 10%): the score and the head-down guard both count against them.
+- Between seeds of one spec, rail share and clean upper share correlate −0.52 (start), −0.13 (today).
+- Distinct families per ride did not move (5.9 → 5.8): it misses this.
+- For the owner: rail budget, strong phrases back to open arcs, an upper-hit construction, how upper hits are measured.
+  Nothing decided; the compiler is unchanged.
+
+## November 14: hypothesis, the placement table refitted on more rides (stated before running)
+
+- **Change** (`exp/families-fit-more`): the same 12 contexts, fitted on the V7.1 rides of both compilers (before and
+  with placement: 524 rides, 83 cells) instead of 344 rides of the first.
+- **Hypothesis:** a steadier table, and one that knows where placed families now land; V8 up a little.
+- **Result: adopted**, V8 at 8 seeds **+3.7 [+1.0, +6.5]**, support > 0.99, 26 specs up, 17 down; explicit +5.3;
+  strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
+  references refreshed.
+
+## November 14: hypothesis, shapes relax under intensity (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8, more than their sections' own losses explain (with placement, terraces
+  in strong contexts beat guided arcs; serpentines 0.0376 against 0.0298 a section): the cost is downstream, in the speed
+  and heading they hand on, and their reversals strike (serpentine unasked hits 2× an arc's).
+- **Change** (`exp/shapes-relax-under-intensity`): a serpentine, scallop or terrace bends up to 40% less as its catch's
+  ask rises from 0.4 to 0.8 (smooth); its learned sources stay its family's. Folds unchanged. Same families, same count;
+  in intense passages their shapes are calmer.
+- **Hypothesis:** V8 up, mostly G and the strong categories; extras down. **Watch:** fallbacks to plain arcs (a shape must
+  still realize), the geometry sheet.
+- **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
+
+## November 14: hypothesis, intense phrases draw shapes at half weight (stated before running)
+
+- **Basis.** The goal puts strong impacts and fast consecutive landings first, with variety. Shapes cost about 19 points
+  on V8 through their bends; in strong contexts serpentines, scallops and folds lose more per section than guided arcs.
+- **Change** (`exp/intense-phrases-fewer-shapes`): in a strong phrase (mean ask 0.4 to 0.8, phased in like the guides),
+  the four shapes are drawn at up to half their weight; arcs take the rest. Calm and middle phrases unchanged; every
+  shape keeps a place in intense passages (the variety test passes).
+- **Hypothesis:** V8 up, G and the strong categories most. **Watch:** shapes' share of ride time, distinct families per
+  ride.
+- **Result: not adopted**, V8 at 8 seeds +1.5 [−2.7, +5.7]; shapes 37.5% → 30.7% of ride time (scattered 12.8% →
+  19.5%), distinct families per ride 6.81; strong extra impacts −14%, body drag +7%. Removing all shapes gains 19.4, but
+  halving them in intense phrases gains 1.5: their cost is not proportional to their share.
+
+## November 14: hypothesis, smooth shapes end before the exit (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8 through what they hand on (removing them all: +19.4; removing one family:
+  0.0, the share goes to the others; within their sections they do about as well as arcs). A smooth shape's profile runs
+  to the support's very end, so the rider leaves on the shape's heading.
+- **Change** (`exp/shapes-end-early`): serpentines, scallops and terraces complete their profile by 70% of the support;
+  the rest eases into the exit as an arc does. Same bends, same count; folds keep their faces.
+- **Hypothesis:** shaped sections hand on an arc's speed and heading; V8 up.
+- **Result: not adopted**, V8 at 8 seeds **−30.2 [−35.8, −24.7]**, 1 spec up, 42 down; strong extra impacts ×2.1. Compressed
+  into 70% of the support, the same bends are sharper and strike: a shape's cost is in its bends, wherever they are.
+
+## November 14: one shape family removed (diagnostic)
+
+Repertoire without serpentines (their share passes to the other families), V8, 4 seeds: −0.0 [−2.3, +2.2]. The shapes'
+cost follows their total share, not one family.
+
+## November 14: the 800 target and the shapes (synthesis)
+
+- **Measured:** `compiler` 781.9 on V8 at 8 seeds (+20.2 over the brief's start).
+- **The remaining gap is the shapes.** The same compiler with arcs and scattered only reaches 801.7 (+19.4). Removing the
+  shapes is what the goal and the owner rule out; every attempt to make them cheaper while keeping them failed:
+
+  | attempt | V8 |
+  |---|---|
+  | shapes begin after the catch | −13.0 |
+  | shaped sections search 1.5× wider | −0.7 |
+  | shaped sections borrow the arcs' learned catches | −2.0 (8 seeds) |
+  | shapes relax under intensity (40% less bend) | −1.8 (8 seeds) |
+  | smooth shapes end at 70% of the support | −30.2 (8 seeds) |
+  | one family removed (serpentines; their share goes to the others) | −0.0 |
+  | placement refinements (finer contexts, setup, extras, model) | −1.8, −3.0, −3.5, −24.8 |
+
+- **Why:** with placement, a shape's own section costs little more than an arc's (terraces less, in strong contexts);
+  its cost is in riding it: a shape must be ridden through its reversals or corners to be realized, which spends speed
+  and heading the next catches need. That is what a shape is, not a fault in how it is searched.
+- **Physics** (above): strong-beat strength on dense songs is bound by energy and turning; perfect strong beats alone
+  would reach 795.5.
+- **So:** 800 on V8 with today's families means either fewer shapes (a variety decision, the owner's), or a way to ride a
+  shape that hands on speed and heading as an arc does (open research), or asks within what a chain can deliver (the
+  strength-scale question, TODO).
+
+## November 14: hypothesis, shaped sections borrow the arcs' learned catches (stated before running)
+
+- **Basis.** Shapes cost about 19 points on V8 (above). A shaped section's catch comes before its shape; its learned
+  proposals come only from its own group, trained on a fifth of the arcs' demonstrations.
+- **Change** (`exp/shapes-borrow-arc-catches`): a shaped section's learned proposals are half its own group's, half the
+  plain arcs' (same guidance and layout), within the same proposal count.
+- **Hypothesis:** shaped sections catch closer to their asks; V8 up, shapes unchanged in number and look.
+- **Result: not adopted**, V8 at 8 seeds −2.0 [−4.1, +0.2]. The shapes' cost is not their proposals.
+
+## November 14: what the shaped families cost (diagnostic, not a candidate)
+
+The same compiler with its repertoire limited to arcs and scattered (no folds, serpentines, scallops or terraces;
+`--candidate-creative='{"repertoire":["arcs","scattered"]}'`), V8, 4 seeds: **801.7 against 782.2, +19.4
+[+9.8, +29.0]**, 42 specs up, 1 down; explicit +23.7; body drag +23%. 800 on V8 is within reach today only by giving up
+the shapes, which the goal and the owner rule out (variety over easy-to-score tracks). It locates the gap: the shapes
+cost about 19 points. Closing it means shapes that land their beats as well as arcs do, not fewer shapes.
+
+## November 14: hypothesis, a step that crashes is retried at half size (stated before running)
+
+- **Basis** (`crash_edge.ts`, V8): about 45% of evaluations end with the rider thrown off, nearly all at the catch; in
+  48% of strong-ask intervals a crashed candidate reached the ask while no survivor did. A coordinate step that crashes
+  is simply discarded (the review agent's finding 6).
+- **Change** (`exp/crash-edge-halfstep`): in the coordinate search, a step that throws the rider off is followed by the
+  same step at half size from the current best, in place of the next coordinate (the sample count is unchanged).
+- **Hypothesis:** more viable candidates near the crash edge; strong catches a little harder; V8 up a little.
+- **Result: not adopted**, V8 at 8 seeds −1.7 [−4.7, +1.3] (P3 −10.3).
+
+## November 14: guides where they fit at a 15% margin (not adopted)
+
+`exp/guidance-margin-115`: V8 at 8 seeds +1.3 [−0.6, +3.3]; open arcs 14.5% → 9.1% of ride time, distinct families per
+ride 6.80 → 6.69. A small, uncertain gain for a visible loss of open arcs: the 30% margin stays.
+
+## November 14: where V8 stands (measured)
+
+`compiler` (d0763aa4: guides on strong phrases, lead-ins below the arrival, families where they fit, the refitted
+table, guides where they clearly fit) against the brief's start (`nov13`), V8, 8 seeds, 392 pairs:
+**781.9 against 761.7, +20.2 [+17.3, +23.2]**; every category up (G +27.6, P1 +25.4, P2 +15.2, P3 +17.5, P4 +11.5,
+P5 +16.4, P6 +35.2, P7 +13.0). The goal is 800.
+
+## November 14: hypothesis, the placement table charges unasked hits (stated before running)
+
+- **Change** (`exp/families-fit-extras`): a section's fitted loss also counts the unasked hits inside it (their account
+  cost); same contexts, 852 rides.
+- **Hypothesis:** families that cause unasked hits where they are placed (rails touched on the way) move; extras down,
+  V8 up a little.
+- **Result: not adopted**, V8 at 8 seeds −3.5 [−5.6, −1.5] (P3 −11.0, P6 −10.8); extras unchanged (+3%).
+
+## November 14: hypothesis, placement by a model instead of a table (stated before running)
+
+- **Basis.** The placement table (family × 12 contexts) works; a finer table (24 contexts) went sparse and lost (−1.8).
+- **Change** (`exp/families-model`): a gradient-boosted model of a section's loss from its family (and whether its
+  guide is forbidden) and its context as the planner sees it (strength and speed asks of its catch and of the next,
+  calm, length): 150 trees of 7 leaves, at least 800 sections a leaf, fitted on 73,720 sections of 852 V7.1 rides of
+  three compilers (`tools/research/family_model_data.ts`, `family_model.py`; held-out R² by song 0.059: a section's
+  loss is noisy, placement compares families in one context). Placement and the guide rule use it in place of the table.
+- **Hypothesis:** better placement where the context the table ignored matters (speed, the next catch); V8 up.
+- **Result: not adopted**, V8 at 8 seeds **−24.8 [−31.7, −17.8]**, 10 specs up, 33 down; P6 −105.9, P7 −34.0, P2
+  −24.3; strong extra impacts ×2. A model that fits noisy section losses on more context extrapolates badly where the
+  training rides are thin (the long ride's spans), and placement trusts it. The coarse table stays: its averages are
+  steady because its cells are coarse.
+
+## November 14: hypothesis, guides offered where they fit (stated before running)
+
+- **Basis** (the placement table): arcs offered a guide lose 15–64% less than open arcs in middle and strong contexts,
+  about the same in quiet ones (0.94–1.34).
+- **Change** (`exp/guidance-where-it-fits`): after placement, an open-arc phrase is offered its guide when that is
+  among its eligible choices and fits better by the table. The family stays arcs; open arcs remain where they fit as
+  well (quiet passages).
+- **Hypothesis:** V8 up; open arcs fewer outside quiet passages. **For the owner's eye:** more rails offered (they are
+  trimmed when unused).
+- **Result, first execution: not adopted** for its look, though V8 at 8 seeds is **+3.4 [+1.4, +5.3]** (36 specs up,
+  7 down; every category but P6 up) and held out +5.9 [−13.3, +25.0]. Open arcs fall from 20.4% to 6.8% of ride time,
+  arcs offered a guide rise to 42.9%, distinct families per ride 6.82 → 6.43: rails offered nearly everywhere.
+- **Second execution** (same branch): switch only where the open arc's fitted loss is 30% higher or more.
+- **Result, second execution: adopted**, V8 at 8 seeds +1.2 [−0.2, +2.7], support 0.96, 30 specs up, 10 down (P3
+  +6.5, P7 +3.9, P6 −9.8); strong extra impacts +4%. Open arcs 20.4% → 14.5% of ride time, arcs offered a guide 29.3% →
+  35.1%; distinct families per ride 6.82 → 6.80. Parity references refreshed.
+
+## November 14: hypothesis, quiet catches laid along the arrival (stated before running)
+
+- **Basis** (V8, `compiler`): quiet asks (0.15 or less) land too hard, by +0.10 to +0.11 on the calm specs (P3: 36% of
+  their strength loss; P6: 21%). A touchdown's strength is about speed × the angle between arrival and receiver; for an
+  ask near 0 at 9 px/frame that angle must stay under 2–3°. The search's proposals offset the receiver from the arrival
+  by 2–7°: exactly the overshoot.
+- **Change** (`exp/tangent-quiet-catches`): for a quiet catch, the best measured move is offered again with its receiver
+  laid along the arrival heading, or 0.7°, 1.5°, 2.5° below it (4 more candidates).
+- **Hypothesis:** softer quiet catches; P3, P6 up; others near zero.
+- **Result: not adopted**, V8 at 8 seeds −0.1 [−2.5, +2.3]; quiet bias unchanged (+0.003). Tangent receivers do not
+  soften quiet catches: the overshoot is not the receiver's angle but how the rider lands (the body's settling).
+
+## November 14: hypothesis, the compact networks retrained on today's moves (stated before running)
+
+- **Basis.** The one retrain of learned parts that paid (+15.5, November 1) fitted the construction policies to the
+  compiler of the day. The compact sources' networks were distilled from archive-era moves; retrained on the pooled
+  archive they were null (November 11). Since then: guides on strong phrases, placement, V8-like asks.
+- **Change** (`exp/networks-on-policy`): each paired group's network (57 features → 32 ReLU → the six relative main
+  controls; 32 residual styles by k-means, each with the other controls of its nearest demonstration) retrained on the
+  fulfilled committed sections of today's collections (training catalogue v4 and its V8-contrast copy, 672 compiles;
+  4,386–22,344 demonstrations per group; validation R² 0.45–0.53). Catalogues, memory exemplars and the transfer
+  groups unchanged. 227 KB (was 211 KB). `tools/research/train_network_v4.py`.
+- **Hypothesis:** proposals closer to how today's compiler catches; V8 up, most on dense songs.
+- **Result: not adopted**, V8 at 8 seeds +0.3 [−2.2, +2.9] (G +5.2, P1 +4.1, P3 −3.3, P6 −5.8); body drag +5%. On-policy
+  networks change little: the compact sources' limit is not their training data's age.
+
+## November 14: hypothesis, phrases of three or four sections (stated before running)
+
+- **Basis.** 17% of committed moves come from the ride's own memory of earlier sections (`candidate_origins.ts`, V8),
+  which matches by style: a phrase's later sections learn from its earlier ones. Phrases are 2 or 3 sections.
+- **Change** (`exp/longer-phrases`): 3 or 4 sections (the same draw; the same breaks at calm, speed and boundaries).
+- **Hypothesis:** more within-ride memory per family, better later sections; V8 up. Variety: the same families, in
+  longer runs.
+- **Result: not adopted**, −1.6 [−8.7, +5.4] (V8, 4 seeds; P6 −17.6, P4 +5.4); strong extra impacts +36%.
+
+## November 14: hypothesis, the placement table refitted on 852 rides (stated before running)
+
+- **Change** (`exp/families-fit-852`): the same table, fitted on the V7.1 rides of three compilers (before placement, the
+  first placement, today's: 852 rides).
+- **Hypothesis:** more data, and more of it from where placement now puts families: a steadier table; V8 up a little.
+- **Result: not adopted**, +0.4 [−4.7, +5.4] (V8, 4 seeds; P4 +17.5, P6 −21.6); strong extra impacts ×2. The table
+  is saturated: more rides do not change where families go. (P6 is one spec: ±20 on it is ±2.5 on the headline.)
+
+## November 14: hypothesis, shaped sections search wider (stated before running)
+
+- **Basis.** Shapes are the costliest families in every context; a shaped section loses 15–32 evaluations per section to
+  its realization checks (bypassed shape, missing corners) on top of crashes, so its viable pool is smaller than an
+  arc's at the same sample count. The allowance is not binding (×8 allowance: the search used 35% more).
+- **Change** (`exp/shapes-search-wider`): shaped sections take 1.5× the samples and guide-and-shape samples (in the
+  sequence's per-interval effort, beside the strong catch's ×1.3; a first version set it where the sequence's own
+  sample counts override it, and changed nothing).
+- **Hypothesis:** shaped sections land closer to their asks; V8 up; physics up a few percent within the allowance.
+- **Result: not adopted**, −0.7 [−3.5, +2.1] (V8, 4 seeds; P4 +12.7, P6 −12.8); physics +0% (the allowance's pacing
+  scales every interval down to what is left), strong extra impacts +73%.
+
+## November 14: hypothesis, the placement table counts the catch a section sets up (stated before running)
+
+- **Change** (`exp/families-fit-setup`): a section's fitted loss adds half of the next catch's squared strength error
+  (its exit sets up that arrival); same contexts, same 524 rides.
+- **Hypothesis:** families that prepare strong catches well move before them; V8 up on dense songs.
+- **Result: not adopted**, −3.0 [−8.9, +3.0] (V8, 4 seeds; P6 −20.7, P3 −8.6, P7 +6.0). Placement is mined at this
+  granularity: finer contexts (−1.8), setup credit (−3.0), shorter phrases (+0.3) all null or worse.
+
+## November 14: phrases ending where the strength asked changes (not adopted)
+
+On the refitted placement (`exp/phrases-split-on-strength`): a phrase also ends where the strength asked changes by
+more than 0.4. V8, 4 seeds, against the refit: +0.3 [−8.2, +8.8] (G +2.0, P4 +8.5, P6 −13.3); strong extra impacts
++23%. Null: placement already does what shorter phrases would.
+
+## November 14: hypothesis, families where they fit, with the next catch in view (stated before running)
+
+- **Change** (`exp/families-fit-next`): the context also tells whether the next catch asks 0.6 or more (a section sets
+  up that arrival): 24 contexts. Fitted on the V7.1 rides of both the compiler before placement and the one with it
+  (524 rides, 139 cells with 30 sections or more; the rest fall back to the context's mean).
+- **Hypothesis:** placement improves further where a section prepares a strong catch (G, P1, P4); V8 up against
+  `compiler` (which has placement).
+- **Result: not adopted**, −1.8 [−4.0, +0.5] (V8, 4 seeds); explicit +12.3, head-down strong arrivals −8%. Finer
+  contexts thin the table (139 of 168 cells fitted, the rest fall back to the context's mean): the coarse table stays.
+
+## November 14: hypothesis, families where they fit (stated before running)
+
+- **Basis.** The one lever that moved V8 was what is built where (guides on strong phrases, +7.7). Families differ by
+  context far more than the planner's weights do: per section, folds lose 1.1× the context's mean on middle asks and
+  middle spans but 2–3× on long spans; scattered and guided arcs are best on strong asks; terraces lose 2× on long
+  spans. The planner draws each phrase's family by weights that know only calm, strength (guides) and speed.
+- **Change** (`exp/families-where-they-fit`):
+  - `family_fit.json` (fitted by `tools/research/family_fit.ts` on today's compiler's V7.1 rides, 344 rides; V8 is not
+    used): the mean loss of a section by family (open arcs apart) and context (the catch's ask in four bins × the
+    section's length in three), with the grade's span weighting.
+  - The planner draws exactly as before, then places the drawn families: two phrases trade theirs when each is eligible
+    where it lands, no phrase repeats its neighbour, and the fitted loss falls (`intentional_repertoire.ts`).
+    A ride's families keep their number; only where they go changes.
+- **Estimate** (the fitted table, additive, no compile): the modelled loss of V8's sections falls 17.7%; a rough
+  headline 769 → 795. Optimistic by construction (it assumes the table is causal and additive).
+- **Hypothesis:** V8 up clearly, every category; variety unchanged in counts; the look moves shapes from strong and long
+  spans toward middle ones. **Watch:** held out, distinct families per ride, the geometry sheet.
+- **Result: adopted.**
+
+  | panel | change | interval | specs up / down |
+  |---|---|---|---|
+  | V8, 8 seeds | **+8.5** | [+3.2, +13.8], support > 0.99 | 35 / 8 |
+  | held out (4 songs, 4 seeds) | **+8.1** | [−15.4, +31.6], support 0.82 | 4 / 0 |
+  | V7.1, 4 seeds (where the table was fitted) | +12.5 | [+9.5, +15.6] | 27 / 8 |
+
+  - V8 by category (4 seeds): G +6.2, P1 +19.0, P5 +9.8, P6 +12.3, P7 +13.4, P2 −2.5; explicit requests +1.1 (8 seeds).
+  - Costs: strong extra impacts +29% on V8 (0.19 against 0.15 per 100 beats), −23% on V7.1, same held out; body drag
+    +4%; head-down strong arrivals +3%.
+  - **Variety:** distinct families per ride unchanged (6.83 against 6.83). Ride time per family: folds 9.5% → 6.8%,
+    terraces 11.4% → 8.1%, arcs offered a guide 26.2% → 28.7%, scattered 11.1% → 12.6%. Where they go changes most:
+    folds now come mostly in calmer passages (their time in strong ones 46% → 8%), serpentines and scattered more in
+    strong ones (34% → 50%, 42% → 50%). For the owner's eye: intense passages carry fewer folds.
+  - A variant trading only between phrases of as many sections (every family keeps its share of sections) gives +4.1
+    [−2.4, +10.5] on V8: half the gain; not chosen.
+  - Parity references refreshed (plans change).
+
+## November 14: where 800 on V8 is, and what stands in the way
+
+**Bound** (today's `compiler`, V8, 196 rides; each ride re-scored with an error component removed, nothing recompiled):
+
+| removed | headline |
+|---|---|
+| nothing (today) | 769.3 |
+| strength error on asks 0.75 or more | 795.5 |
+| air error | 792.4 |
+| speed error | 794.4 |
+| all strength error | 823.6 |
+| air and speed error | 822.4 |
+| extra hits and timing | 781.4 |
+
+800 needs, for example, the strong-beat, air and speed errors each about halved at once. Each sits on a measured
+physical conflict:
+- **Strong beats on dense songs** (G, 60–76% of beats asking 0.75 or more, 12–20 frames apart, at about 11 px/frame):
+  a hit of strength s dissipates at least ½(7.55 s)² (measured: never less; the compiler's catches are already at
+  1.08 of that), and turns the rider about 37° at 0.87; gravity gives back about 12° and the refill per beat in an
+  18-frame gap. Sustaining 0.87 needs about 44° of mean heading and some 25° of downward turning per beat from
+  contact. Today's runs: 4.5 px/frame descent, strength 0.72; the archive's: the same (0.714).
+- **Air on calm and long specs** (P3, P6): long floats asking 80% or more air with quiet catches; a soft catch and a
+  relaunch take about 16 frames on the line, where the ask leaves 8–9. Letting floats fall steeper buys air and loses
+  it in speed and quiet strength (−2.6).
+- **Speed** on strong runs is below its ask because the hits spend it.
+
+**What was tried against them** (all V8, 4 seeds, against `compiler`; REWORK above): search budget ×8 (+2.5 on six
+dense rides, the search uses only +35% of it), search weights (null), span weights by length (+0.1), proposal slots
+(−1.1), steep-arrival room for long floats (−2.6), a long-horizon future value with chain features and hardened training
+data (−6.9), shapes after the catch (−13.0), the guide ahead of the sled (−2.0), steering after the hit (−6.0, −2.0,
+−3.3, and a diving rail −5.2 with strong extra hits ×3). Adopted: guides offered on strong phrases (+7.7), lead-ins below the arrival (+0.0, cleaner look).
+
+**Reading.** Every lever that re-ranks, re-weights or re-proposes inside today's vocabulary is null or negative; the
+gains came from what is built where (guides on strong phrases; then families where they fit, +8.5, adopted above). What would move V8 toward 800 is a construction that turns a fast rider down
+between strong catches without a strike and without the search having to stumble on it, or asks that stay within what a
+chain of hits can physically deliver (TODO's open question 1, the strength scale). Neither is a weight.
+
+## November 14: hypothesis, guided arcs steer the rider down after the hit, not during it (stated before running)
+
+- **Basis.** A single inelastic hit changes the velocity across the line, so a strong hit turns the rider: 0.87 at
+  11 px/frame is about 37°. Gravity turns it back about 12° in an 18-frame gap; a chain of strong beats flattens unless
+  something turns the rider down. Today's strong catches trade one against the other: guided catches in V8 strong
+  chains, by exit heading quartile, own strength 0.718 → 0.662 while the next catch's goes 0.655 → 0.725 (the sum is
+  flat). A guide can steer the rider down, and steering under the strike threshold (about 3° a frame) costs nothing in
+  the account; but the curve bends toward its exit right after the catch's turn, inside the hit's two-frame window.
+- **Physics check** (synthetic, the production strike ruler): 11 px/frame, 40° arrival, 35° catch: no roof, hit 0.89,
+  exit 5°, speed 8.7 after 14 frames; a channel that keeps the heading about 2.5 frames after the hit, then bends 20°
+  down under a roof: hit 0.89, an extra strike of 0.13–0.23, exit 20–27°, speed 9.0–10.3, rider intact.
+- **Change** (`exp/steer-after-the-hit`): a searched control `hold` (0–8 frames) on guided plain arcs: the heading stays
+  at the catch's for `hold` frames before bending toward the exit. Sampled by the guide-and-shape sweep, coordinate
+  and response steps; absent elsewhere (identical geometry when absent).
+- **Hypothesis:** guided strong catches keep their strength and exit steeper; chains steepen, speed and strength rise on
+  dense strong songs (G, P1, P4); V8 up. **Watch:** extra strikes, body drag, crashes.
+- **Result, first execution: −6.0 [−10.0, −2.0]** (V8, 4 seeds; 10 specs up, 33 down; P6 −19.7, P3 −7.5). The search
+  hardly used it: 966 of 4,397 sections carry a hold, median 0, 90% at 1.5 frames or less; strong catches unchanged
+  (strength 0.717, exit 20° against 0.720 and 20°). A random coordinate cannot find the combination that steers (hold
+  with a steeper exit under a close rail), and the extra dimension diluted the sweep.
+- **Second execution** (same branch): `hold` leaves the sweep, the coordinate keys and the response step; instead, when
+  the next ask is 0.6 or more, the two best distinct measured moves are offered again as steering moves: hold 2 or 4
+  frames, exit 15° or 30° below the catch's heading after its turn, rail clearance at most 14 (8 measured candidates).
+- **Result, second execution: not adopted**, −2.0 [−5.5, +1.5] (V8, 4 seeds; 15 specs up, 28 down; P1 +2.4, P3 +2.4,
+  P5 −5.0, P4 −4.7); strong extra impacts +23% (the rail's steering is sometimes a strike).
+  - The search keeps a steering move in 9% of sections. In strong chains (this ask and the next 0.75 or more), sections
+    with a kept hold land 0.743 and the next catch 0.721, against 0.690 and 0.696 without (the hold is kept where it
+    works: partly selection). The mechanism works where it is chosen, but the panel's mean strong catch is unchanged
+    (0.716, exit 20°): it is chosen too rarely to move a chain, and its extra strikes and proposals cost elsewhere.
+  - Kept on its branch. A run-level construction (a steering channel for whole strong phrases) is the version that
+    could change chains; it is a new family, not a proposal.
+- **Third execution, run-level** (same branch): in a strong chain (this ask and the next 0.6 or more), every guided
+  plain arc steers: its normalized controls hold the catch's heading at least 2 frames (3 unless searched) and exit at
+  least 10° below it. The search tunes everything inside that space; other sections unchanged.
+- **Result, third execution: not adopted**, −3.3 [−5.8, −0.9] (V8, 4 seeds; 13 specs up, 30 down; P6 −11.9, P5 −7.4).
+  Imposed on every guided arc of a strong chain, steering loses: the second execution's positive comparison was the
+  search choosing it where it helps.
+  - Why: forced steering did not steepen exits (guided strong catches leave at 20°, against 21.7° without). In dense
+    passages a support is 4–5 frames; the hold runs past the curve's end and nothing bends. The synthetic channel that
+    worked continued beyond the hit.
+- **Fourth execution** (same branch): the guide itself runs on past the floor curve's end and bends down (`guideDive`,
+  25° over about four frames of travel) on every guided plain arc in a strong chain: the rider leaving the floor meets
+  it from below and is turned down. No hold, no steering proposals.
+- **Result, fourth execution: not adopted**, −5.2 [−10.9, +0.5] (V8, 4 seeds; 6 specs up, 34 down; G −14.5); strong
+  extra impacts ×3.2 (0.48 against 0.15 per 100 beats), body drag +9%. A fast rider meets a diving rail as a strike,
+  not as a steer: the free steering of the synthetic channel needs the rider already in contact with both rails, which
+  short dense spans do not give. **The steering line is closed** (four executions).
+
+## November 14: hypothesis, shapes begin after the catch (stated before running)
+
+- **Basis** (V8, `compiler`, loss per section relative to the mean in the same context, strength ask × gap length):
+  arcs offered a guide 0.34–0.90, scattered 0.44–0.85; shapes worse almost everywhere: scallops 0.91–1.13, serpentine
+  0.80–1.25, terraces 0.78–2.10, fold 1.10–2.95. Variety is kept by the planner; each shape costs score where it is
+  drawn. Every shaped family starts its profile at the catch (`profileStart: 0`), so the shape shapes the hit itself;
+  left undefined, a profile begins after the catch's turn (`arc_geometry.ts`), and the catch is an arc's.
+- **Change** (`exp/shapes-after-the-catch`): the four shaped families leave `profileStart` undefined. Their learned
+  sources were trained at `profileStart: 0`, so the construction key maps the two together (`arc_memory.ts`).
+- **Hypothesis:** shaped sections catch like arcs (strength up on strong asks, fewer crashes) and keep their shape after
+  the catch: V8 up, most where shapes are worst (strong asks, long spans). **Watch:** the shapes' look (the geometry
+  sheet), realization (shapes must still realize), fallbacks.
+- **Result: not adopted** (V8, 4 seeds): **−13.0 [−20.3, −5.6]**, 2 specs up, 41 down, every block negative; explicit
+  −11.5; body drag −15%, head-down strong arrivals +14%. A shape that starts at the catch is part of how its section
+  lands the beat (or its learned proposals, trained at the catch, do not transfer): either way the shapes' cost is not
+  their onset.
+
+## November 14: hypothesis, a future value that sees the run ahead (stated before running)
+
+- **Basis.** On V8's everyday songs 60–76% of beats ask 0.75 or more, 12–20 frames apart, and strong beats land
+  0.15–0.18 soft. A hit of strength s takes about ½(7.55 s)² of kinetic energy (measured: dissipation never below
+  that; curved receivers save ~25%, the compiler's already ~1.08), and only descent refills it, so a run's sustainable
+  strength is set by how fast the chain descends (4.5 px/frame, against about 6.9 the asks need at the asked speed).
+  Within a spec, rides that descend faster on strong runs score higher (+13.5 per px/frame, correlation 0.33).
+  The ranking's learned future value sees two catches ahead, by features (each one's asks) and by label (two-interval
+  continuations): it cannot value banking speed for a run of eight strong beats.
+- **Change** (`exp/long-horizon-value`):
+  - four appended value features: the next eight contacts' energy demand per frame (Σ ½(7.55 ask)² ÷ frames), their
+    mean speed ask, the share asking 0.6 or more, the run's length (models read the prefix they were trained on:
+    parity identical before the new model);
+  - labels four continuations deep (two branches for two levels, then greedy), scaled to two intervals' worth so the
+    ranking's value weight keeps its units;
+  - data: the disjoint training catalogue (v4, 2 seeds) plus the same songs with V8's strength contrast (dense strong
+    runs as V8 asks them), today's compiler: 672 compiles, 64,445 probes.
+  - Held out by song group: regret 0.0525 against 0.0567 for the current model on the same labels; Spearman 0.70
+    against 0.63; mean absolute error 0.072 against 0.080.
+- **Hypothesis:** strong chains descend more and keep speed; G and P1 up most; V8 up. Earlier retrains (two-interval)
+  were null or negative despite better offline numbers: the decisive test is the panel.
+- **Result: not adopted** (V8, 4 seeds): **−6.9 [−10.0, −3.8]**, every block negative, 11 specs up, 32 down; every
+  category down (G −6.9, P6 −19.7, P7 −8.8); explicit −8.2; strong extra impacts +21%.
+  - Strong strength rms unchanged (−0.001); quiet strength rms +0.020 (every category worse), speed rms +0.003.
+  - Same signature as the steep-arrival room for long floats: valuing energy for later makes quiet beats land harder
+    now, and strong beats gain nothing. The pools do not hold strength that a longer view could unlock; a third
+    retrain of the future value (after November 1 and 7) loses on whole rides despite better held-out ranking.
+  - Kept on the branch (`exp/long-horizon-value`, the data in `generated/value-v5/`); not merged: with the old model the
+    appended features would be unused inputs.
+
+## November 13 (late): hypothesis, the guide begins ahead of the sled at the catch (G3; stated before running)
+
+- **Basis:** after main curves, guides are the lines the rider crosses most (about 96 crossings per ride on V8, 51 by
+  the body). 41 per ride are in a guide's first three segments, 6.6 of them 3 px or deeper (a quarter of all deep
+  crossings). The guide is the main curve offset by its clearance, from two vertices past the anchor: right above the
+  landing point, so a rider dropping onto the anchor brings its body down through the guide's leading end from behind.
+- **Change** (`exp/guide-starts-ahead`, `arc_geometry.ts`): the guide's leading vertices that are not ahead of the
+  sled's frontmost point at the catch, along the arrival direction, are dropped (at least two vertices stay). Its
+  clearance, flare, tilt and the searched start and end are unchanged; they apply to what remains.
+- **Hypothesis:** fewer guide crossings at the leading end; score neutral. **Risk:** the body landing under the guide
+  early may be part of what holds the rider on through a strong hit (strong strength, extra impacts and completion to
+  watch). Measure: V8 4 seeds paired against `compiler`, guide crossings.
+- **Result: not adopted.** V8, 4 seeds: −2.0 [−7.0, +2.9], 19 specs up, 24 down (Valhalla −30.6); strong extra
+  impacts −5%, head-down strong arrivals +5%, body drag −2%. The leading-end crossings barely move (first three
+  segments 41.2 → 38.2 per ride, 3 px or deeper 6.6 → 5.9): the sled's position at the catch is not where the body
+  meets the guide. A body-aware rule would need the body's points, which the floor curve is not built from.
+
+## November 13 (late): hypothesis, room for the steep arrival a long float makes (stated before running)
+
+- **Basis** (V8, `compiler`): the calm and long specs (P3, P6) fly too little: 93% and 96% of their air error is too
+  little air; air is 28% and 40% of their loss. It sits in long spans (48 frames or more) asking 80% or more air: bias
+  −0.110 (asked 0.857, got 0.799), most of their air error. The kept supports cover 0.267 of the span against the
+  0.143 the ask implies, in every family.
+- **Why** (`loss_attribution.ts` on 10 specs): in 64% of that error the pool held a move with better air and a lower
+  local cost that ranking put below the kept one (rank 0.330 against 0.183). Ranking adds the arrival heading prior in
+  full: arrivals steeper than 45° pay. A float of 50 frames from a 15° release arrives at about 55–60°, whatever the
+  geometry.
+- **Change** (`exp/heading-room-for-long-flights`, `arc_evaluate.ts`): the prior's upper bound becomes the larger of 45°
+  and the heading a flight of the span's asked air time reaches from a 15° release at the asked speed. Spans with less
+  than about 40 frames of asked flight are unchanged.
+- **Hypothesis:** long floats fly closer to their ask; P3 and P6 up, others near zero; the catch after a long float
+  may land harder (quiet strength rms, extra impacts to watch). Measure: V8 4 seeds paired against `compiler`; V7.1.
+- **Result: not adopted** (V8, 4 seeds): −2.6 [−8.0, +2.7], 10 specs up, 15 down, 18 unchanged; P6 (the long ride)
+  −19.7. Air rms improved where it changed (P6 −0.011), but speed rms rose (P6 +0.015) and quiet catches landed harder
+  (quiet strength rms +0.019 to +0.069 in P3–P7); strong extra impacts +21%. The ranking was right: a long fall arrives
+  fast and steep, and the next quiet catch pays.
+- **Not a shortage of hops either:** on those spans 44% of the kept supports already launch upward (exit below −10°),
+  with the same air as the drops (0.794 against 0.803). The missing air is the time on the line that a soft catch and
+  a launch need (about 16 frames, where an ask of 0.857 over 60 frames leaves 8.5). The calm specs' air, speed and
+  quiet asks pull against each other there; the search's balance holds.
+
+## November 13 (late): hypothesis, the lead-in never rises into the arrival path (G2; stated before running)
+
+- **Basis** (docs/research/geometry-hygiene-20261031.md): each main curve starts with a straight lead-in laid back from
+  the anchor along the searched entry heading. When the entry is steeper than the arrival, its free end sticks up into
+  the rider's path and the rider passes through it from behind just before the beat: 40 of 119 fold sections (the
+  fold proposal rotates the entry by the turn), 1–33% of other sections by angle. Folds are also the weakest family in
+  every context today (1.1–3× the mean loss per section, V8).
+- **Change** (`exp/lead-in-below-arrival`, `arc_geometry.ts`): the lead-in is laid along the shallower of the entry and
+  the arrival heading (the steeper for a surface met from above). The curve itself, the anchor and every control are
+  unchanged. A general rule, no threshold beyond "arriving backward keeps the entry".
+- **Hypothesis:** fewer lines crossed by the rider (counted on the saved rides); folds a little better where a catch
+  touches the lead-in early (24% of lead-ins are touched); V8 within noise or up; no family loses its look.
+  Measure: V8 4 seeds paired against `compiler`; crossings per ride.
+- **Result: adopted** (a cleaner look at no cost; no ride lost, physics unchanged):
+
+  | panel | change | interval | strong extra impacts |
+  |---|---|---|---|
+  | V8, 4 seeds | +0.0 | [−6.5, +6.5], 23 specs up / 20 down | −12% (0.15 against 0.17 per 100 beats) |
+  | V7.1, 4 seeds | +0.5 | [−0.3, +1.2], support 0.93 | −36% (0.10 against 0.16) |
+
+  - Lead-ins crossed by the rider (`tools/research/crossings.ts`, V8 seeds 101 and 202, 98 rides): 9.6 against 12.9 per
+    ride (−26%). Crossings of 3 px or more overall are unchanged (27.9 against 28.2): most crossings are 1–2 px sled
+    dips on the curve being ridden, and the guides' (51 by the body, 45 by the sled per ride) are next.
+  - Body drag +0% on V8, +2% on V7.1; head-down strong arrivals −4% and 0%.
+  - Parity references refreshed (the lead-in moves wherever an entry is steeper than the arrival).
+
+## November 13 (late): G1, untouched curve ends trimmed (built, for the owner's eye; not adopted)
+
+- **What** (`exp/trim-untouched-ends`, `arc_guidance.ts`): after the search, each support's main curve keeps only the
+  stretch the final ride touches, with the margin guides already get (two segments each side, at least 24 px or a fifth
+  of the curve). A curve the ride never touches stays whole, so every section's shape stays drawn. The existing check
+  that restores a section whose shape would no longer be realized applies unchanged.
+- **Effect** (V7.1, seed 101, 41 rides): every score, ride, shape check and physics count identical (0.0 on all 41);
+  drawn length per ride 11,042 px against 12,752 (−13%), segments 4,283 against 4,740. The October diagnosis
+  (docs/research/geometry-hygiene-20261031.md) estimated −3,500 px when untouched curves go too.
+- **Review:** whole rides and a geometry sheet, four songs:
+  `/generated/compare/exp_trim-untouched-ends-vs-compiler@34f67bde-v7.1/review.json` and `geometry.html` beside it.
+- **Waits for the owner** (the diagnosis said no geometry change before his look): it changes the look only, by removing
+  lead-ins the rider flies past and runouts it leaves.
+- **Not merged (November 14):** it breaks the construction-integrity contract: `verify_construction` and two tests
+  rebuild every main curve from its committed controls and require the exact curve, so a trimmed curve fails
+  verification. Adopting it means teaching the verifier that a final curve is a contiguous part of the rebuilt one; left
+  on its branch, cosmetic only.
+
+## November 13 (late): which catches the rider does not survive (report only)
+
+`tools/research/crash_edge.ts` (V8, seed 101, the 49 specs, tracks identical to `compiler`): for every interval with a
+strength ask, the candidates rejected because the rider or sled came apart, the strongest impact each struck near the
+catch before that, and the strongest survivor.
+
+| ask | came apart / interval | survived | kept | strongest survivor | crash struck harder than every survivor |
+|---|---|---|---|---|---|
+| 0–0.3 | 54 | 176 | 0.187 | 0.568 | 54% of intervals |
+| 0.3–0.6 | 82 | 162 | 0.421 | 0.622 | 73% |
+| 0.6–0.75 | 125 | 177 | 0.617 | 0.735 | 77% |
+| 0.75–0.9 | 140 | 174 | 0.695 | 0.762 | 75% |
+| 0.9+ | 152 | 164 | 0.765 | 0.797 | 72% |
+
+- 90–98% come apart within 12 frames of the catch: the hit itself throws the rider off. About 45% of all evaluations
+  end that way, more as the ask rises (the review agent's finding 6, confirmed).
+- On asks ≥0.75, 48% of intervals have a crash that reached the ask (within 0.05) while no survivor did.
+- But the kept catch (0.695) is well below the strongest survivor (0.762): what binds the kept strength is still the
+  energy trade-off with the next catches, not survival. Rescuing crashes would add options the ranking mostly would
+  not take.
+- Among candidates that struck within 0.1 of the ask, 29% came apart; no control separates them cleanly (receiver
+  entry against the sled axis, against the incoming heading, turn, guide clearance, support length: 19–49% at the
+  extremes), except contact from above: 83% come apart.
+- The review agent's finding 1 (span weights by length) and 5 (proposal slots) were tested above: both null.
+
+## November 13 (late): hypothesis, more proposal slots for memory and remembered responses (stated before running)
+
+- **Basis** (review agent, V8 seed 101 origins): per initial slot, remembered responses give about 145 committed moves,
+  memory of earlier sections 72, the learned sources 26 (slots 4, 16, 96). Where a move started is not its marginal
+  worth, so this is a test, not a conclusion.
+- **Change** (`exp/memory-slots`, `repertoire_search.ts`): memory 32, remembered responses 12, learned 72; total unchanged.
+- **Hypothesis:** V8 up a little (within +3); physics unchanged; variety may narrow (memory repeats what a ride did).
+  Measure: V8, 4 seeds, paired against `compiler`; distinct families and ride character if positive.
+- **Result: not adopted** (V8, 4 seeds): −1.1 [−8.3, +6.1], specs up 28 / down 15; G +5.1, P4 −10.5, P2 −4.3;
+  explicit +6.5; strong extra impacts −29%. The proposal mix is not where the loss is.
+- Also measured: the archive version (`merged`) still leads today's `compiler` by 6.4 on V8 [−19.0, +6.3] (G −6.6,
+  P7 −12.6, P4 +5.4), with half the strong extra impacts (0.09 against 0.17 per 100 beats).
+
+## November 13 (late): hypothesis, the search weighs each span by its length, as the grade does (stated before running)
+
+- **Basis** (found by a review agent, checked): the grade weighs a span's air, speed and amplitude errors by its length
+  and each beat's strength by one over the beat count. The interval search adds each span's errors at weight 1 whatever
+  its length (`arc_evaluate.ts`, `arc_boundary.ts`), while terminal selection (`arc_objective.ts`) already weighs by
+  length. Relative to the grade, the search over-weights short spans' air and speed against strength (2.5× for an
+  8-frame span in a ride averaging 20) and under-weights long floats.
+- **Change** (`exp/gap-length-weights`): span terms, the boundary correction and the remembered-response units carry
+  length · beats / total span length, the grade's own ratio. Nothing else.
+- **Hypothesis:** dense strong passages trade a little air and speed for strength; long spans gain air and speed. V8 up,
+  mostly G and the dense categories; strength on strong asks up; air or speed rms may rise slightly on short spans.
+  Measure: V8, 4 seeds, paired against `compiler`; then V7.1 and held out if positive.
+- **Result: not adopted** (V8, 4 seeds): +0.1 [−9.5, +9.8], specs up 17 / down 26; G −4.3, P6 +14.0, P2 −6.4;
+  explicit −12.2. Strong strength rms unchanged (−0.001), air rms −0.004, speed rms +0.002; strong extra impacts +26%,
+  body drag −5%. Matching the grade's span weights moves air against speed and leaves strength where it was, like the
+  weight sweep: the search's balance is flat in its weights. The terminal selection already weighs by length.
+
+## November 13 (late): compare review shows whole rides and a geometry sheet
+
+The owner could not judge the few-second before/after passages: two compiler versions build entirely different tracks,
+so there is no single moment to compare. `npm run compare -- review` now writes:
+- the whole rides of a few songs (one per song among those that moved most, `--rides=4`, or `--cases`), both versions in
+  one player that switches between them at the same moment;
+- `geometry.html`, a still sheet of more rides (one per spec, `--sheet=8`) cut into 10-second windows, before left and
+  after right at one scale: lines black, rail guides blue, the sled's path grey, beats red (bigger = stronger ask), and
+  the phrases' constructions under each panel.
+V8 rides are left out (their specs are time-warped away from the recordings): review on V7.1. `passages.ts` and the
+side-by-side composition went with the old review.
+
+## November 13 (night): strong phrases are offered guides (adopted); why the search keeps strong catches soft
+
+**Why** (`loss_attribution.ts --suite=v8`, seed 101, 2,520 catches before a strong ask):
+- The arrival prior asks for √(v² + Δv²) before a strong catch, enough to hit and leave at the authored speed. The kept
+  arrival averages 11.1 px/frame against 12.3 asked; 57% arrive more than 1 px/frame short.
+- In 71% of those intervals the pool held an arrival fast enough. Against the kept move, the fastest-enough alternative
+  costs, on average, +0.17 in this catch's squared strength residual, +0.06 in the other preferences, +0.02 air,
+  +0.003 speed. Keeping speed for the next strong hit means hitting softer now: consecutive strong catches share one
+  energy budget, and only descent refills it. The weight sweep agrees: the search sits at its optimum.
+
+**Where the families differ** (strong asks on V8, complete rides; within a context the family is drawn by the seed):
+
+| family | strong catches | short of the ask | speed residual after |
+|---|---|---|---|
+| open arcs (guide forbidden) | 3,264 | 0.147 | −0.054 |
+| arcs offered a guide | 1,382 | 0.101 | −0.029 |
+| scattered | 1,173 | 0.111 | −0.029 |
+| terraces | 1,230 | 0.123 | −0.040 |
+| scallops | 979 | 0.124 | −0.037 |
+| serpentine | 1,139 | 0.131 | −0.050 |
+| fold | 913 | 0.159 | −0.066 |
+
+The planner forbids the guide in about a third of every loud phrase (weight 1 − 11/17), whatever the asks.
+
+**Hypothesis** (`exp/guides-on-strong-phrases`, `intentional_repertoire.ts`). In a strong phrase, the open arcs' share
+becomes arcs offered a guide, phased in over the phrase's mean ask from 0.4 (none) to 0.8 (all). Other families and quiet
+or middle phrases are unchanged. Strength and speed up on strong asks; V8 up, mostly G. **Cost to watch:** fewer open arcs
+in intense passages (variety), more guide lines drawn, upper contact and body drag. Measure: V8 then V7.1, 4 seeds,
+paired against `compiler`; geometry mix and ride character.
+
+**Result: adopted.**
+
+| panel | change | interval | specs up / down |
+|---|---|---|---|
+| V8, 8 seeds | **+7.7** | [+4.1, +11.3], support > 0.99 | 40 / 3 |
+| V7.1, 8 seeds | **+4.0** | [+0.4, +7.7], support 0.98 | 31 / 4 |
+| held out (4 songs, 4 seeds) | **+13.9** | [−7.4, +35.1], support 0.94 | 4 / 0 |
+
+- V8 by category (8 seeds): G +16.0, P1 +8.3, P2 +1.1, P3 +5.3, P4 +8.6, P5 +7.1, P6 +11.1, P7 +4.2; explicit +3.8.
+  V7.1: G +12.6, P6 −5.3 (its single long ride), explicit +4.9. No ride lost anywhere; physics unchanged.
+- **Where the points come from** (V8, 4 seeds): strong asks too soft +6.2, speed +1.0, air +0.9, extra hits +0.5.
+- **Costs and guards:** body drag +13% on V8, +16% on V7.1, +10% held out (an eye proxy, reported, not a veto);
+  strong extra impacts 0.19 against 0.16 per 100 beats on V8, 0.14 against 0.12 on V7.1, 0.07 against 0 held out;
+  strong arrivals head-down or backward −12% on V8, −5% on V7.1, −16% held out.
+- **Ride character** (V8, 196 rides paired): strong beats hit from above +3.2 points [2.1, 4.3] (the archive version
+  was +2.3 over today), all beats +2.3; guide contact +1.7 s/min; air −1.2 points; body contact +1.2 s/min.
+- **Variety:** open arcs 35% → 25% of ride time, arcs offered a guide 13% → 23%; other families unchanged; distinct
+  families per ride 5.88 → 5.76. Open arcs now come in middle and quiet passages only.
+- Parity references refreshed: 13 of 25 cells change (their plans change). For the owner's eye: fewer open arcs in
+  intense passages, more upper hits.
+- **Not run:** giving the folds' share of strong phrases to guided arcs too (folds are worst on strong asks: 0.159
+  short). It removes folds from energetic passages, which `intentional_repertoire.test.ts` forbids by design (no
+  expressive choice eliminated by context). Open arcs are kept as a family; only their share in strong phrases moved.
+
+## November 13 (night): hypothesis, the search weights after the archive's removal (stated before running)
+
+- **Basis.** `impactWeight` 1, `valueWeight` 0.45 and `arrivalWeight` 0.3 (`connected_arcs.ts`) were set with the 52 MB
+  archive's proposals. The compact sources propose differently (weaker strong catches), and no weight was checked since.
+- **Arms** (one line each, `exp/w-*`): impact weight 1.5; value weight 0.3 and 0.6; arrival weight 0.45.
+- **Hypothesis.** At most one of them moves V8 by more than seed noise; a stronger impact weight trades speed for strength.
+- **Decision rule.** A weight changes only for a gain of about +3 or more whose interval excludes zero on V8, no loss on
+  V7.1, and no guard worse; otherwise the archive-era values stay.
+- **Result: none changes** (V8, 4 seeds, paired against `compiler`):
+
+  | arm | V8 | interval | specs up / down | note |
+  |---|---|---|---|---|
+  | impact weight 1.5 | −2.4 | [−5.4, +0.6] | 10 / 33 | G −21.3, explicit −16.8, strong extras ×2 (0.31) |
+  | value weight 0.3 | +1.6 | [−4.3, +7.4] | 27 / 16 | P6 −9.2, P4 +7.6, P5 +8.1 |
+  | value weight 0.6 | −0.3 | [−5.9, +5.4] | 19 / 24 | strong extras +52% |
+  | arrival weight 0.45 | +0.3 | [−6.1, +6.7] | 23 / 20 | |
+
+  The search's weights survived the archive's removal. Weighting strength harder makes everyday songs worse and doubles
+  the strong extra hits: the strength the search gives up is not cheaply available.
+
+## November 13 (night): hypothesis, a beam slot for the fastest arrival (stated before running)
+
+- **Basis.** A strong hit removes kinetic energy by its very definition: one inelastic contact of strength s takes about
+  ½(7.55 s)² (20 units at 0.85; measured 16 per strong catch on V8). Only descent gives it back, about 120 px per strong
+  catch, and after strong catches the rider is slower than asked (next span's speed residual −0.05 to −0.08). The arrival
+  prior already asks for √(v² + Δv²) before a strong ask; but a prefix that banks speed earlier pays a speed error at once,
+  and its worth shows only passages later, past the ranking's two-interval prediction.
+- **Change** (`exp/fastest-arrival-slot`, `arc_sequence.ts`). When the beam has room for three prefixes, one slot keeps the
+  distinct continuation arriving fastest at the next catch (beside the existing lowest-measured-cost slot). No extra physics
+  per prefix; which prefixes survive changes.
+- **Hypothesis.** Strong passages entered with more speed: strength and speed up on G and the dense categories.
+- **Risk.** A ranked slot is lost; fast arrivals overshoot speed and air in calm passages.
+- **Measure.** V8, 4 seeds, paired against `compiler`.
+- **Result: not adopted.** V8 **−4.7 [−10.6, +1.3]**, 15 specs up, 28 down; P2 −17.6 (Circus `voice-drums` −62), strength
+  −1.8, speed −2.0; strong extras −21%. Keeping a fast prefix costs a ranked one, and the speed it banks is not spent well.
+
+## November 13 (night): hypothesis, ask the learned sources for a little more (stated before running)
+
+- **Basis.** The catalogue, network and memory demonstrations are labelled with the asks their moves faced. Those moves, like
+  today's rides, landed softer than asked on strong asks (about 0.12 below at every gap length on V8). Asked for 0.85, a
+  source returns moves that tended to give about 0.73.
+- **Change** (`exp/raised-ask-proposals`, `arc_proposals.ts`). Before a strong catch, half of the policy slots and half of the
+  memory slots query their source with the ask raised by 0.15, phased in like the steep arrival (ask 0.4 none, 0.8 all).
+  Ranking, local search and every cost still use the true ask; the number of proposals is unchanged.
+- **Hypothesis.** Pools get moves that land near the ask; strength on strong asks up, G up; no new cost in physics.
+- **Risk.** Half the slots leave the situation the sources know best; spans (speed, air) and extras may lose.
+- **Measure.** V8, 4 seeds, paired against `compiler`.
+- **Result: not adopted.** V8 **−4.8 [−6.9, −2.7]**, every block negative, 8 specs up, 35 down; explicit −8.0. Strength
+  itself got worse (G −8.8; strong too soft −1.4), and speed −2.4. The sources are better aimed at the true ask than their
+  labels suggested: moves for the true ask are worth more than moves for a higher one.
+
+## November 13 (night): hypothesis, hindsight memory (stated before running)
+
+- **Basis.** On V8 the loss is mostly strong asks landing too soft (G 64% of the grade's loss); for 30% of the squared
+  strength error no candidate in the pool came within 0.05 of the ask (`loss_attribution.ts --suite=v8`). The archive's
+  +14.9 on V8 is mostly there (strong too soft +7.8): coverage of real strong moves near the exact arrival.
+- **Change** (`exp/hindsight-memory`, `arc_sequence.ts`). The ride's memory keeps each committed control, labelled with the
+  asks it faced. Now it also keeps, per interval, the strongest catch measured there when it beat the committed one by 0.05,
+  labelled with what it achieved: its strength in place of the ask, the air, speed and amplitude of its gap in place of
+  their targets. A real move, measured in this ride's physics, for the strength it reached. No storage.
+- **Hypothesis.** Later strong asks from similar arrivals get memory proposals that really hit hard: strength on strong
+  asks up, G and the dense categories up.
+- **Risk.** The 16 memory slots get crowded by hard-hitting moves with poor spans; strong extra impacts rise.
+- **Measure.** V8, 4 seeds, paired against `compiler`; every ruler; ride character if it gains.
+- **Result: not adopted.** A first run measured nothing: the beam commits each interval with its pool reduced to the
+  chosen candidate, so no hindsight move was ever stored (fixed on the branch: about 190 moves per ride). Then, V8:
+  **+1.5 [−3.6, +6.5]**, 23 specs up, 20 down; G 0.0, P1 −6.1, P6 +6.5. Strong asks too soft gain only +0.3; body drag −3%,
+  strong extras −7%. The ride's own strongest candidates had already lost to the same trade-off (mostly speed), and they
+  add nothing where the pool had nothing closer.
+
+## November 13 (evening): the ending refinement deleted; V8 baselined
+
+**V8** (`docs/benchmark.md`, "V8"): every V7.1 spec and eight formerly held-out ones (Trouble, Valhalla, Circus `pairs4` and
+`voice-drums`, four library songs), gaps ×0.85 (never below 6 frames or their own length), impact asks ×1.25 around 0.5,
+frozen as generated files. Held out now: Bones, Dernière Danse coral, Lua na Praça, Petrunko. Reference `nov13` (ca6a0c6a,
+the compact sources).
+- **Baseline, 4 seeds:** V8 **762.1** (G 645.5, P1 767.0, P2 817.1, P3 756.5, P4 794.6, P5 782.9, P6 716.9, P7 816.0;
+  explicit 709.0); every ride complete, Circus `pairs4` included. V7.1 800.8. Guards on V8: strong extra impacts 0.16 per
+  100 beats (V7.1 0.09), strong arrivals head-down or backward 14.6% (V7.1 10.4%).
+- **Where the loss is** (shares of the grade's loss, complete rides): impact strength 42–67% per category, almost all of it
+  strong asks too soft (G 64%); never too hard. Asks of 0.6–0.9 get about 0.12 less at every gap length; asks ≥0.9 at
+  18–24 frames get 0.78, at 6–12 frames 0.67–0.70.
+- **Does it tell compilers apart?** The archive version (`merged`) against `nov13`: **+14.9 [+6.1, +23.7]** on V8, 41 of 43
+  specs up (G +22.8, P7 +23.6, P5 +17.4), strong extra impacts 0.09 against 0.16. On V7.1 the same pair was +11.7
+  [+5.5, +17.9] (8 seeds). A somewhat larger, consistent gap: V8 is at least as sensitive. One known pair is thin evidence.
+
+**The ending refinement is deleted** (my call, delegated by the owner; hypothesis below, stated before running).
+- V8: −0.2 [−0.4, +0.1], 0 specs up, 22 down (lowest −6.9), 21 unchanged; explicit −0.7. V7.1: −0.1 [−0.3, 0.0], lowest −1.1.
+- Physics −0.3%; no ride lost; body drag, strong extras and head-down arrivals unchanged. As predicted.
+- Parity references refreshed: 9 of 25 cells change (8 only in physics frames, which the refinement spent; one track,
+  `luna_bala_44s` automatic #101).
+
+### Hypothesis, stated before running
+
+
+- **Decision delegated** by the owner (brief of November 13): the ending refinement's deletion is mine to decide.
+- **Change** (`exp/delete-ending-refinement`): `arc_refinement.ts`, `arc_complete_refinement.ts`, their five options and
+  tests go, with the interval overrides only refinement set (`arrivalReference`, `localOnly`, `completeGuidanceBudget`,
+  `warmIncoming`): 424 lines out.
+- **Hypothesis.** As on November 1 (−0.2) and November 8 (−0.2 [−0.4, −0.0], 0 of 35 specs up): a small loss, uniform over
+  specs, about 1% fewer physics frames, no ride lost, every other ruler unchanged.
+- **Measure.** V8 and V7.1, 4 seeds, paired against `nov13`.
+- **Decision rule.** Delete if the loss is about a point or less on both suites and no category or guard moves beyond seed
+  noise; the code is simpler for it.
 
 ## November 13: the compact sources replace the archive
 
@@ -290,7 +1495,6 @@ from `rework/foundations` and the jolt removal (November 11) from `visual-lab`. 
 - Adapted: `tools/research/candidate_origins.ts` and `catch_outcomes.ts` no longer pass a jolt to `resolveCase`.
 - V7.1 813.5 (TODO.md, item 9) was measured with the jolt; the merged main needs its own baseline before the next compiler
   comparison.
-||||||| 98f6e5df
 
 ## November 11: the video code keeps only what production draws (structural, owner's decision)
 

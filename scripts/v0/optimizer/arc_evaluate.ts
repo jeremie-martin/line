@@ -11,7 +11,7 @@ import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
 import type {SolidPath} from '../../lib/track.ts';
 import type { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
-import { motionArc, motionArcPaths, receiverPoints, type ArcMotionControl } from './arc_geometry.ts';
+import { motionArc, motionArcPaths, receiverPoints, railMeetsSupport, type ArcMotionControl } from './arc_geometry.ts';
 import { arcRailGroups } from './arc_guidance.ts';
 import {ArcObjectiveContinuation} from './arc_objective.ts';
 import { arcBoundaryCorrection } from './arc_boundary.ts';
@@ -33,8 +33,9 @@ const deg = (x: number) => x * 180 / Math.PI;
 type Rejection = {reason: string; near?: Near};
 
 /** Study-only access to rejected evaluations (report only): the search, the normalized
- * control and the reason. Observers must not mutate either. */
-type RejectionObserver = (s: IntervalSearch, c: ArcMotionControl, reason: string) => void;
+ * control, the reason and, for a replay that came apart, its engine (simulated up to the
+ * unbinding). Observers must not mutate any of them, and read the engine inside a physics probe. */
+type RejectionObserver = (s: IntervalSearch, c: ArcMotionControl, reason: string, engine?: Engine) => void;
 let rejectionObserver: RejectionObserver | undefined;
 
 /** Install a rejection observer for one isolated worker task; overlapping studies are rejected. */
@@ -82,12 +83,12 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   work.samples++;
   const saved = memo.get(key);
   if (saved) return reuseMeasurement(s, c, saved);
-  const reject = (reason: string, near?: Near) => {
+  const reject = (reason: string, near?: Near, engine?: Engine) => {
     if (c.receiverFlight !== undefined)
       work.observedReceiverWork.failures[reason] = (work.observedReceiverWork.failures[reason] ?? 0) + 1;
     memo.set(key, {reason, near});
     s.failures[reason] = (s.failures[reason] ?? 0) + 1;
-    rejectionObserver?.(s, c, reason);
+    rejectionObserver?.(s, c, reason, engine);
     return null;
   };
   const built = buildGeometry(s, c, fragments);
@@ -100,7 +101,7 @@ function evaluateCandidate(s: IntervalSearch, c: ArcMotionControl, fragments?: F
   // buildable: reject the candidate (before any simulation) rather than fail the compile.
   if (count >= 10000) return reject('id_range');
   const replay = replayCandidate(s, child, prefixFrames);
-  if ('reason' in replay) return reject(replay.reason);
+  if ('reason' in replay) return reject(replay.reason, undefined, child);
   const added = built.added ?? solidPathLines(built.paths);
   s.ctx.lineage.record(s.engine, child, added);
   // Borrowed detector storage is consumed entirely within this evaluation.
@@ -170,6 +171,8 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   }
   if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines), prefixFrames: s.frame};
   const paths = motionArcPaths(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
+  // A rail drawn onto its own support is seen gone through: such geometry is not proposed (no physics spent on it).
+  if (options.railSupportMargin !== undefined && railMeetsSupport(paths[1].points, paths[0].points, options.railSupportMargin)) return {reason: 'rail_meets_support'};
   return {paths, child: engine.addSolidPaths(paths), prefixFrames: s.frame};
 }
 
@@ -282,9 +285,8 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
-/** Arrival speed and heading priors toward the next catch, and (in repair)
- * the distance to a reference arrival state. Appends residuals; returns the
- * cost with each term added in order, and the heading prior's part of it. */
+/** Arrival speed and heading priors toward the next catch. Appends residuals;
+ * returns the cost with each term added in order, and the heading prior's part of it. */
 function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
   let heading = 0;
   const {ctx, options, i, targets} = s;
@@ -324,18 +326,6 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
     residuals.push(r);
     cost += r * r;
     heading = r * r;
-  }
-  if (options.arrivalReference) {
-    const target = options.arrivalReference, weight = Math.sqrt(1 / 10);
-    const here = state.points.PEG, there = target.state.points.PEG;
-    for (const key of Object.keys(state.points)) {
-      const a = state.points[key], b = target.state.points[key];
-      for (const r of [weight * ((a.x - here.x) - (b.x - there.x)) / 18, weight * ((a.y - here.y) - (b.y - there.y)) / 18,
-        weight * (a.vx - b.vx) / 7.2, weight * (a.vy - b.vy) / 7.2]) {
-        residuals.push(r);
-        cost += r * r;
-      }
-    }
   }
   return {cost, heading};
 }

@@ -9,7 +9,6 @@ import { normalizeCompilerTimeline } from './compiler_input.ts';
 import { validateArcOptions, validateSectionStyles, type ArcMotionOptions } from './arc_options.ts';
 import { createArcCompileContext } from './arc_compile_context.ts';
 import { startSequence, runIntervalSequence } from './arc_sequence.ts';
-import { refineCommittedTrack } from './arc_complete_refinement.ts';
 import { finalizeArcTrack, disposeJudge } from './arc_finalize.ts';
 import { arcAttemptTelemetry } from './arc_attempts.ts';
 import type { Spec } from '../types.ts';
@@ -23,8 +22,8 @@ export function compileArcMotion(spec: Spec, seed: number, options: ArcMotionOpt
   return {...result, ...arcAttemptTelemetry(result, options), budget: options.budget};
 }
 
-/** One complete search: validate, construct interval by interval, refine
- * the complete track when configured, then replay and measure it. Two cold
+/** One complete search: validate, construct interval by interval, then
+ * replay and measure it. Two cold
  * replays are reserved out of the allowance for the final stage. */
 function compileArcMotionOnce(spec: Spec, seed: number, options: ArcMotionOptions) {
   validateArcOptions(seed, options);
@@ -41,7 +40,6 @@ function compileArcMotionOnce(spec: Spec, seed: number, options: ArcMotionOption
     validateSectionStyles(options, ctx.contacts.length);
     try {
       runIntervalSequence(ctx, seq);
-      if (!seq.failure && (options.refineAttempts ?? 0) > 0 && seq.rows.length === ctx.contacts.length) refineCommittedTrack(ctx, seq);
     } catch (error) {
       if (!(error instanceof PhysicsFrameLimitExceeded)) throw error;
       ctx.work.searchBudgetExhausted = true;

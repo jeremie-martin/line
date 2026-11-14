@@ -7,7 +7,7 @@
  * replayed for the rider's mechanical energy per frame (½v² − g·y, body mean).
  * Nothing is simulated beyond the compile and the replay; the report checks
  * track identity against a saved arm.
- *   node tools/research/loss_attribution.ts run OUT [--jobs=N] [--seed=101] [--specs=a~b,...]
+ *   node tools/research/loss_attribution.ts run OUT [--jobs=N] [--seed=101] [--suite=v7.1|v8] [--specs=a~b,...]
  *   node tools/research/loss_attribution.ts report OUT [ARM_DIR] */
 import assert from 'node:assert/strict';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -19,8 +19,8 @@ import {valueRank} from '../../scripts/v0/optimizer/arc_candidates.ts';
 import {observe} from '../measure/observe.ts';
 import {WorkerPool, workerJobs} from '../../scripts/lib/workers.ts';
 
-const SUITE = 'tools/eval/suites/v7.1.json';
 const [command, out] = process.argv.slice(2), arg = (k: string, d: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3) ?? d;
+const SUITE = `tools/eval/suites/${arg('suite', 'v7.1')}.json`;
 const r4 = (x: number | undefined | null) => x === undefined || x === null || !Number.isFinite(x) ? null : Math.round(x * 1e4) / 1e4;
 /** One candidate: strength, local cost, signed air and speed residuals, then the squared parts
  * (amplitude, strength, timing, unmatched hits, motion, rest), contact side, ranking value, and
@@ -198,5 +198,5 @@ else if (command === 'run') {
   mkdirSync(out);
   writeFileSync(join(out, 'study.json'), JSON.stringify({schema: 'line.loss-attribution.v1', seed, suite: SUITE, specs: queue}, null, 2) + '\n');
   console.log(`${queue.length} rides`);
-  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`]));
+  await pool.run(queue, spec => pool.worker([import.meta.filename, 'worker', out, `--spec=${spec}`, `--seed=${seed}`, `--suite=${arg('suite', 'v7.1')}`]));
 } else report(out, process.argv[4]);

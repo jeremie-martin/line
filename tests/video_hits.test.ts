@@ -34,13 +34,13 @@ describe('approved hit response', () => {
   it('keeps weak hits still, starts each effect at its own threshold, and grows past the reference strength', () => {
     expect(amount(0.3).split).toBe(0);
     expect(amount(0.35).boost).toBe(0);
-    expect(amount(0.6).dy).toBe(0);
+    expect(amount(0.55).dy).toBe(0);
     expect(amount(0.31).split).toBeGreaterThan(0);
     expect(amount(0.36).boost).toBeGreaterThan(0);
-    expect(amount(0.61).dy).toBeGreaterThan(0);
-    expect(amount(0.85)).toMatchObject({dy: 24, boost: 1.5});
+    expect(amount(0.56).dy).toBeGreaterThan(0);
+    expect(amount(0.85)).toMatchObject({dy: 28, boost: 1.5}); // from 0.55 to 28 px since round 50
     expect(amount(0.85).split).toBeCloseTo(25.2); // a fifth stronger than 21 (owner, round 49)
-    expect(amount(1).dy).toBe(30);
+    expect(amount(1).dy).toBe(34);
     expect(amount(1).split).toBeCloseTo(38.9454545454);
     expect(amount(1).boost).toBeCloseTo(1.8375);
     expect(amount(10)).toMatchObject({dy: 48, boost: 3});

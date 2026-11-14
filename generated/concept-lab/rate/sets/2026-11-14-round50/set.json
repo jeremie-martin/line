@@ -1,0 +1,300 @@
+{
+ "set": "2026-11-14-round50",
+ "title": "Themes chosen in round 50 for the collection",
+ "round": 50,
+ "created": "2026-11-14",
+ "song": "circus",
+ "renderer": "v7.1-266-ge03bb421",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "themes": [
+  {
+   "id": "t-b861357c81d5",
+   "label": "Eucalyptus",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c14c35",
+     "ink": "#142221",
+     "mass": "#174c49",
+     "nightInk": "#e1ecea",
+     "nightPaper": "#142221",
+     "paper": "#e1ecea",
+     "pencil": "#a4afad",
+     "sun": "#c14c35"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-04eed81c59cf",
+   "label": "Heather Grey",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f2994e",
+     "ink": "#241c25",
+     "mass": "#513353",
+     "nightInk": "#ece7ef",
+     "nightPaper": "#241c25",
+     "paper": "#ece7ef",
+     "pencil": "#afaab2",
+     "sun": "#f2994e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-cf3fd20475fa",
+   "label": "Olive Paper",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f99d1b",
+     "ink": "#1f2016",
+     "mass": "#414622",
+     "nightInk": "#eaebdf",
+     "nightPaper": "#1f2016",
+     "paper": "#eaebdf",
+     "pencil": "#adada5",
+     "sun": "#f99d1b"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-83bea7587eab",
+   "label": "Lichen",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c14c35",
+     "ink": "#19221a",
+     "mass": "#313732",
+     "nightInk": "#e2eae3",
+     "nightPaper": "#19221a",
+     "paper": "#e2eae3",
+     "pencil": "#a6ada6",
+     "sun": "#c14c35"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d4d5e3360587",
+   "label": "Dove",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c14c35",
+     "ink": "#211d28",
+     "mass": "#423658",
+     "nightInk": "#e8e7ec",
+     "nightPaper": "#211d28",
+     "paper": "#e8e7ec",
+     "pencil": "#aba9b2",
+     "sun": "#c14c35"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-25fcb3a3ba99",
+   "label": "Dove, apricot sun",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f2994e",
+     "ink": "#201d28",
+     "mass": "#3a3545",
+     "nightInk": "#e8e7ec",
+     "nightPaper": "#201d28",
+     "paper": "#e8e7ec",
+     "pencil": "#aba9b2",
+     "sun": "#f2994e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-77f113c03260",
+   "label": "Morandi",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c77255",
+     "ink": "#172128",
+     "mass": "#4c5d6a",
+     "nightInk": "#ede7de",
+     "nightPaper": "#172128",
+     "paper": "#ede7de",
+     "pencil": "#afaaa3",
+     "sun": "#c77255"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-39b2b400c047",
+   "label": "Morandi, greyer paper",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#c77255",
+     "ink": "#172128",
+     "mass": "#4c5d6a",
+     "nightInk": "#e9e6e0",
+     "nightPaper": "#172128",
+     "paper": "#e9e6e0",
+     "pencil": "#ada9a1",
+     "sun": "#c77255"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

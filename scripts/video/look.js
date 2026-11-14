@@ -14,24 +14,23 @@ export const OPTIONS = {
   paper: ['Colour response', COLOUR_RESPONSES],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris',
-    // approved on some themes (rounds 48–49), not yet drawn in production
+    // variants of some themes (collection.js VARIANTS)
     dots: 'Columns of dots', strands: 'Strands in the theme’s colours'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
   bandHeight: ['Band height', {lowmid: 'Low-middle'}],
   top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title', crescent: 'Crescent',
-    // approved on some themes (rounds 48–49; sky.js), not yet drawn in production; starsInk is in the lab (round 50)
-    stars: 'Moon and stars, smaller toward the rider', crescentStars: 'Crescent and stars', starsInk: 'Moon and stars in the line’s colour'}],
+    // variants of some themes (collection.js VARIANTS; sky.js)
+    stars: 'Moon and stars, smaller toward the rider', crescentStars: 'Crescent and stars'}],
   riderLower: ['The rider sits lower by', {'0': 'Nothing'}],
   sunRider: ['With a sun, the rider sits lower by', {'32': '32 px'}],
   sunLift: ['The sun sits higher by', {'16': '16 px'}],
   drop: ['At the drop', {off: 'Nothing', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
-  irisWeight: ['Iris strands', {thin: 'Thin (v1)', fine: 'A fifth heavier (lab)', bold: 'Bold'}],
+  irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
-    // in the lab (round 50; hits.js TUNES)
-    shakeHigher: 'v1, the shake reaching 28 px', shakeBoost: 'v1, the shake from 0.55 to 28 px, shaped as the boost', shakeQuad: 'v1, the shake from 0.5 to 28 px, shaped as the split',
-    lit50: 'v1, and the band lights on hits of 0.5 or more', lit60: 'v1, and the band lights on hits of 0.6 or more', lit70: 'v1, and the band lights on hits of 0.7 or more'}],
+    // in the lab (round 51; hits.js TUNES)
+    lit65: 'v1, and the band lights on hits of 0.65 or more'}],
 };
 
 export const V1 = {

@@ -17,6 +17,5 @@ export function drawSky(ctx, kind, level, colours, look) {
     ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.arc(sx + 0.42 * r, sy - 0.2 * r, 0.9 * r, 0, 2 * Math.PI); ctx.fill('evenodd'); ctx.restore();
   } else disc(sx, sy, r);
   if (kind === 'sun' || kind === 'crescent') return;
-  if (kind === 'starsInk') ctx.fillStyle = colours.ink; // in the lab (round 50): the stars in the line's colour, not the moon's
   for (const [x, y, s] of STARS) disc(x * W, y * H, s * starSize(y) * (0.8 + 0.5 * level));
 }

@@ -21,6 +21,7 @@
 // Round 49 (owner, 14 November). Added: Brown Room with a cream hot bar, Dusk, Moss and Steel Room; Paper on Stone's and Sky's
 // grounds; Dune and cool Stone with pencil → ink; Lantern with a cream bar; Gold and Cream on two grounds; Winter Moon (two bars)
 // and Starry Night, which carry a crescent.
+// Round 50: Eucalyptus, Heather Grey, Olive Paper, Lichen, Dove (two) and Morandi (two).
 export const COLLECTION = {
   jungleMoon: {name: "Jungle Moon, tuned · v1", id: "t-5dc2a46a3f84", line: "Green-black night, sage bars, a cream moon; the loudest bar in apricot.",
     spec: {"colours": {"accent": "#ffa94f","ink": "#f2efe0","mass": "#92a86a","nightInk": "#f2efe0","nightPaper": "#0a170f","paper": "#0a170f","pencil": "#484f4a","sun": "#f1ebd5"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
@@ -172,6 +173,22 @@ export const COLLECTION = {
     spec: {"colours": {"accent": "#c14c35","ink": "#19221a","mass": "#2f5838","nightInk": "#e6f0e4","nightPaper": "#19221a","paper": "#e6f0e4","pencil": "#abb1aa","sun": "#c14c35"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   sky: {name: "Sky", id: "t-f463f1c7a877", line: "Grey-blue paper, deep blue bars, a warm gold bar and sun.",
     spec: {"colours": {"accent": "#f4bf3f","ink": "#192029","mass": "#1f487c","nightInk": "#e1e9ef","nightPaper": "#192029","paper": "#e1e9ef","pencil": "#a4acb2","sun": "#f4bf3f"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  eucalyptus: {name: "Eucalyptus", id: "t-b861357c81d5", line: "Pale blue-green, deep teal-green bars, a brick bar and sun.",
+    spec: {"colours": {"accent": "#c14c35","ink": "#142221","mass": "#174c49","nightInk": "#e1ecea","nightPaper": "#142221","paper": "#e1ecea","pencil": "#a4afad","sun": "#c14c35"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  heather: {name: "Heather Grey", id: "t-04eed81c59cf", line: "Pale violet-grey, plum bars, an apricot bar and sun.",
+    spec: {"colours": {"accent": "#f2994e","ink": "#241c25","mass": "#513353","nightInk": "#ece7ef","nightPaper": "#241c25","paper": "#ece7ef","pencil": "#afaab2","sun": "#f2994e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  olivePaper: {name: "Olive Paper", id: "t-cf3fd20475fa", line: "Pale olive, deep olive bars, an amber bar and sun.",
+    spec: {"colours": {"accent": "#f99d1b","ink": "#1f2016","mass": "#414622","nightInk": "#eaebdf","nightPaper": "#1f2016","paper": "#eaebdf","pencil": "#adada5","sun": "#f99d1b"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  lichen: {name: "Lichen", id: "t-83bea7587eab", line: "Grey-green, charcoal bars, a brick bar and sun, the whole course inked.",
+    spec: {"colours": {"accent": "#c14c35","ink": "#19221a","mass": "#313732","nightInk": "#e2eae3","nightPaper": "#19221a","paper": "#e2eae3","pencil": "#a6ada6","sun": "#c14c35"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  dove: {name: "Dove", id: "t-d4d5e3360587", line: "Violet-grey, violet bars, a brick bar and sun.",
+    spec: {"colours": {"accent": "#c14c35","ink": "#211d28","mass": "#423658","nightInk": "#e8e7ec","nightPaper": "#211d28","paper": "#e8e7ec","pencil": "#aba9b2","sun": "#c14c35"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  doveApricot: {name: "Dove, apricot sun", id: "t-25fcb3a3ba99", line: "Violet-grey, deep violet-grey bars, an apricot bar and sun.",
+    spec: {"colours": {"accent": "#f2994e","ink": "#201d28","mass": "#3a3545","nightInk": "#e8e7ec","nightPaper": "#201d28","paper": "#e8e7ec","pencil": "#aba9b2","sun": "#f2994e"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  morandi: {name: "Morandi", id: "t-77f113c03260", line: "Dusty cream, grey-blue bars, a terracotta bar and sun.",
+    spec: {"colours": {"accent": "#c77255","ink": "#172128","mass": "#4c5d6a","nightInk": "#ede7de","nightPaper": "#172128","paper": "#ede7de","pencil": "#afaaa3","sun": "#c77255"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+  morandiGrey: {name: "Morandi, greyer paper", id: "t-39b2b400c047", line: "Dusty grey, grey-blue bars, a terracotta bar and sun.",
+    spec: {"colours": {"accent": "#c77255","ink": "#172128","mass": "#4c5d6a","nightInk": "#e9e6e0","nightPaper": "#172128","paper": "#e9e6e0","pencil": "#ada9a1","sun": "#c77255"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "inking","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
   // round 48 (owner, 13 November): new dark themes
   copper: {name: "Copper", id: "t-3d7182dc9ac2", line: "Brown-black, copper bars, a cream moon; the hot bar in pale gold.",
     spec: {"colours": {"accent": "#f1d589","ink": "#f0ebdc","mass": "#bc754c","nightInk": "#f0ebdc","nightPaper": "#170d08","paper": "#170d08","pencil": "#534c48","sun": "#efe8ce"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
@@ -191,6 +208,54 @@ export const COLLECTION = {
     spec: {"colours": {"accent": "#ee5e23","ink": "#f0ebdc","mass": "#a29e98","nightInk": "#f0ebdc","nightPaper": "#14110f","paper": "#14110f","pencil": "#554e4a","sun": "#ee5e23"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "title","zoom": "steady"}}},
   slate: {name: "Slate Grey", id: "t-e471e8d52403", line: "Slate grey, pale grey bars, a yellow bar and sun.",
     spec: {"colours": {"accent": "#f3d268","ink": "#f0ebdc","mass": "#d4d8dd","nightInk": "#f0ebdc","nightPaper": "#484e55","paper": "#484e55","pencil": "#90969d","sun": "#f3d268"},"drop": null,"look": {"accent": "heat","band": "bars","bandHeight": "lowmid","drop": "off","ends": "course","hits": "v1","irisWeight": "thin","line": "ink","paper": "vibranceSoftHalfPaper","riderLower": "0","sunLift": "16","sunRider": "32","top": "sun","zoom": "steady"}}},
+};
+
+/** Themes too alike to count as separate themes when a video's look is drawn (choose.js): one of these lists is drawn as one theme,
+ * then one of its members. A version with a character of its own (Red Lacquer, Sumi and Amber, Pine and Amber, Paper's black and red
+ * print) is a theme of its own and is not listed. */
+export const ALIKE = [
+  ['jungleMoon', 'jungleMoonGolden', 'jungleMoonVermilion', 'jungleMoonMoonlit'],
+  ['rothko', 'rothkoOrangeRed', 'rothkoPlum', 'rothkoPaleSun'],
+  ['cyanotype', 'cyanotypeWhiteBars', 'cyanotypeWhiteSun'],
+  ['ceruleanCoral', 'ceruleanCoralDeeperMoon', 'ceruleanCoralNight', 'ceruleanCoralNightMoon'],
+  ['cobaltChartreuse', 'cobaltChartreuseLime'],
+  ['blackIris', 'blackIrisMoon'],
+  ['violetMarigold', 'violetMarigoldDeeper'],
+  ['negoro', 'negoroGoldLeaf'],
+  ['forestGold', 'forestGoldDeeper', 'forestGoldCreamMoon', 'forestGoldPineNight'],
+  ['lantern', 'lanternCream'],
+  ['winterMoon', 'winterMoonDarker'],
+  ['goldCream', 'goldCreamGreen'],
+  ['amberPurple', 'amberViolet', 'amberIndigo'],
+  ['hokusai', 'hokusaiBluer'],
+  ['dune', 'dunePencil'],
+  ['paper', 'paperIvory', 'paperRedSun', 'paperStone', 'paperSky', 'paperStoneRedSun'],
+  ['stone', 'stoneCool', 'stonePencil', 'stoneCoolPencil'],
+  ['dove', 'doveApricot'],
+  ['morandi', 'morandiGrey'],
+];
+
+/** What the owner approved on a theme beside its own look (rounds 48–50): the moon among stars, a crescent, columns of dots, or
+ * strands in the theme's colours. A minority: a video of the theme shows one of them some of the time (choose.js SHARES.variant),
+ * its own look otherwise. Each is the theme's look with these options changed. */
+const STARS = {top: 'stars'}, CRESCENT = {top: 'crescent'}, DOTS = {band: 'dots'}, STRANDS = {band: 'strands'};
+export const VARIANTS = {
+  jungleMoon: [STARS, DOTS, STRANDS],
+  jungleMoonGolden: [STARS, CRESCENT],
+  rothko: [DOTS, STRANDS],
+  cyanotype: [DOTS, STRANDS],
+  cyanotypeWhiteSun: [STARS],
+  blueRoom: [STARS, DOTS, STRANDS],
+  oldRose: [CRESCENT, STRANDS],
+  seaMoon: [STARS, CRESCENT, {top: 'crescentStars'}],
+  oliveMoon: [STARS, CRESCENT],
+  lantern: [STARS, CRESCENT],
+  copper: [STARS],
+  cobaltChartreuse: [STARS],
+  lilyLeaf: [STARS],
+  blackIrisMoon: [STARS],
+  ceruleanCoralNightMoon: [STARS],
+  paper: [DOTS],
 };
 
 /** Each light theme's dark partners at the drop (round 43, owner, 11 November), with their weights when one is drawn. At the drop the

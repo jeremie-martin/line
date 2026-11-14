@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14 (night): Q5, Q7 results, the owner's Tiki spec, and Q9 (stated before running)
+
+Quiet asks now split: asks of exactly 0 (412 on V8, below what any touchdown gives) and small positive asks (0–0.1,
+192). `foundation-5`: within ×1.5 3% and 38%; over ×2 91% and 42%.
+
+| | headline | explicit | extra impacts | exactly 0: within ×1.5 | 0–0.1: within ×1.5 / over ×2 |
+|---|---|---|---|---|---|
+| Q1 (ref 0.5) | −12.1 | −58.1 | 0.61 | 39% | 85% / 5% |
+| Q3c (Q1 + climbing) | −10.6 | −46.0 | 0.44 | 47% | 74% / 14% |
+| Q5 ref 0.3 (+ climbing) | −7.3 [P3 −18, P6 −23] | −29.5 | 0.35 | 22% | 71% / 15% |
+| Q5 ref 0.4 (+ climbing) | −7.5 | −34.0 | 0.34 | 30% | 73% / 12% |
+| Q7 (ref 0.3 + climbing + spread) | −9.6 | −31.9 | 0.24 | 24% | 69% / 15% |
+
+- **The owner's Tiki voice-drums** (4 seeds, produced rides, report only): Q5 ref 0.3 scores 764.7 against 764.6 today;
+  asks 0–0.1 within ×1.5 83% (65%), p90 0.13 (0.19); asks 0.1–0.2 p90 0.18 (0.20). Q3c: 90% and 99% but 755.2.
+- **Where Q5 loses on V8:** a few specs that ask exactly 0 (Luna Bala spec and its explicit fold and scattered −40 to
+  −50, Tiki bench-calm −48, Amor na Praia −24 to −33), each with about one more extra hit per ride. An ask of 0 gets
+  the largest weight (×9) and cannot be met by a touchdown, so the search bends the ride around it.
+- **Q9** (`exp/quiet-dose-floor`): Q5 ref 0.3 with asks under a touchdown's floor (0.07) weighted as 0.07 (×4.2 instead
+  of ×9). **Hypothesis:** most of Q5's loss and extra hits go, the gain on small positive asks stays.
+
 ## November 14 (night): Q6 result; Q8: relative misses beyond a tolerance (stated before running)
 
 - **Q6** (spread twins, today's pricing): headline −2.1 [−4.4, +0.2]; quiet asks unchanged (asks 0–0.1 within ×1.5

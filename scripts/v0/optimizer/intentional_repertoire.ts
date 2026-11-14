@@ -52,7 +52,7 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }
 
-/** Families where they fit: the drawn families keep their number, and two phrases trade theirs when both are eligible
+/** Families where they fit: the drawn families keep their number, and two phrases of as many sections trade theirs when both are eligible
  * where they land, no phrase then repeats its neighbour, and the fitted loss of the two falls (family_fit.ts). The
  * lottery decides what a ride is made of; the music decides where each piece goes. */
 function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan['requests']){
@@ -68,7 +68,7 @@ function placeFamilies(phrases:ProductionPlan['phrases'],requests:ProductionPlan
     changed=false;
     for(let a=0;a<phrases.length;a++)for(let b=a+1;b<phrases.length;b++){
       const p=phrases[a],q=phrases[b],kp=keyOf(p),kq=keyOf(q);
-      if(kp===kq||!eligible(p,q)||!eligible(q,p)||repeats(a,kq,b)||repeats(b,kp,a))continue;
+      if(kp===kq||p.count!==q.count||!eligible(p,q)||!eligible(q,p)||repeats(a,kq,b)||repeats(b,kp,a))continue;
       if(cost(p,kq)+cost(q,kp)<cost(p,kp)+cost(q,kq)-1e-12){
         [p.construction,q.construction]=[q.construction,p.construction];[p.guidance,q.guidance]=[q.guidance,p.guidance];changed=true;
       }

@@ -1,0 +1,851 @@
+{
+ "study": "upper-hits-2026-11b",
+ "kind": "pairs",
+ "hitAt": 1,
+ "length": 1.8,
+ "prompt": "Which one is the bigger impact?",
+ "choices": [
+  [
+   "left",
+   "A is bigger"
+  ],
+  [
+   "right",
+   "B is bigger"
+  ],
+  [
+   "same",
+   "About the same"
+  ]
+ ],
+ "questions": [
+  {
+   "id": "bigger",
+   "options": [
+    "left",
+    "right",
+    "same"
+   ]
+  }
+ ],
+ "clips": [
+  {
+   "id": "pair1",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair1-left.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.984
+     },
+     {
+      "t": 0.225,
+      "impact": 0.444
+     },
+     {
+      "t": 1,
+      "impact": 0.978
+     },
+     {
+      "t": 1.775,
+      "impact": 0.402
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair1-right.mp4",
+    "beats": [
+     {
+      "t": 0.2,
+      "impact": 0.863
+     },
+     {
+      "t": 0.575,
+      "impact": 0.863
+     },
+     {
+      "t": 0.975,
+      "impact": 0.863
+     },
+     {
+      "t": 1.35,
+      "impact": 0.863
+     },
+     {
+      "t": 1.725,
+      "impact": 0.863
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair2",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair2-left.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.863
+     },
+     {
+      "t": 0.525,
+      "impact": 0.863
+     },
+     {
+      "t": 1,
+      "impact": 0.863
+     },
+     {
+      "t": 1.45,
+      "impact": 0.863
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair2-right.mp4",
+    "beats": [
+     {
+      "t": 0,
+      "impact": 0.925
+     },
+     {
+      "t": 0.5,
+      "impact": 0.925
+     },
+     {
+      "t": 1,
+      "impact": 0.925
+     },
+     {
+      "t": 1.525,
+      "impact": 0.925
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair3",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair3-left.mp4",
+    "beats": [
+     {
+      "t": 0.175,
+      "impact": 0.546
+     },
+     {
+      "t": 0.45,
+      "impact": 0.533
+     },
+     {
+      "t": 1,
+      "impact": 0.938
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair3-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.813
+     },
+     {
+      "t": 0.575,
+      "impact": 0.813
+     },
+     {
+      "t": 1,
+      "impact": 0.813
+     },
+     {
+      "t": 1.425,
+      "impact": 0.813
+     },
+     {
+      "t": 1.65,
+      "impact": 0.813
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair4",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair4-left.mp4",
+    "beats": [
+     {
+      "t": 0.275,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.846
+     },
+     {
+      "t": 1.75,
+      "impact": 0.586
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair4-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.85
+     },
+     {
+      "t": 0.55,
+      "impact": 0.85
+     },
+     {
+      "t": 1,
+      "impact": 0.85
+     },
+     {
+      "t": 1.45,
+      "impact": 0.85
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair5",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair5-left.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.875
+     },
+     {
+      "t": 1,
+      "impact": 0.875
+     },
+     {
+      "t": 1.5,
+      "impact": 0.875
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair5-right.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.875
+     },
+     {
+      "t": 1,
+      "impact": 0.875
+     },
+     {
+      "t": 1.5,
+      "impact": 0.875
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair6",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair6-left.mp4",
+    "beats": [
+     {
+      "t": 0.2,
+      "impact": 1
+     },
+     {
+      "t": 0.475,
+      "impact": 0.344
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.55,
+      "impact": 0.331
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair6-right.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.825
+     },
+     {
+      "t": 0.375,
+      "impact": 0.325
+     },
+     {
+      "t": 0.625,
+      "impact": 0.825
+     },
+     {
+      "t": 1,
+      "impact": 0.825
+     },
+     {
+      "t": 1.4,
+      "impact": 0.825
+     },
+     {
+      "t": 1.8,
+      "impact": 0.825
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair7",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair7-left.mp4",
+    "beats": [
+     {
+      "t": 0.2,
+      "impact": 1
+     },
+     {
+      "t": 0.475,
+      "impact": 0.344
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.55,
+      "impact": 0.331
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair7-right.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.763
+     },
+     {
+      "t": 0.625,
+      "impact": 0.763
+     },
+     {
+      "t": 1,
+      "impact": 0.763
+     },
+     {
+      "t": 1.5,
+      "impact": 0.763
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair8",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair8-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.913
+     },
+     {
+      "t": 0.625,
+      "impact": 0.913
+     },
+     {
+      "t": 1,
+      "impact": 0.913
+     },
+     {
+      "t": 1.375,
+      "impact": 0.913
+     },
+     {
+      "t": 1.775,
+      "impact": 0.913
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair8-right.mp4",
+    "beats": [
+     {
+      "t": 0.075,
+      "impact": 0.295
+     },
+     {
+      "t": 0.525,
+      "impact": 0.29
+     },
+     {
+      "t": 1,
+      "impact": 1
+     },
+     {
+      "t": 1.475,
+      "impact": 0.29
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair9",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair9-left.mp4",
+    "beats": [
+     {
+      "t": 0.075,
+      "impact": 0.506
+     },
+     {
+      "t": 0.55,
+      "impact": 0.509
+     },
+     {
+      "t": 1,
+      "impact": 0.713
+     },
+     {
+      "t": 1.5,
+      "impact": 0.509
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair9-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.85
+     },
+     {
+      "t": 0.525,
+      "impact": 0.85
+     },
+     {
+      "t": 1,
+      "impact": 0.85
+     },
+     {
+      "t": 1.5,
+      "impact": 0.85
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair10",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair10-left.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.513
+     },
+     {
+      "t": 0.275,
+      "impact": 0.513
+     },
+     {
+      "t": 0.625,
+      "impact": 0.8
+     },
+     {
+      "t": 1,
+      "impact": 0.8
+     },
+     {
+      "t": 1.425,
+      "impact": 0.513
+     },
+     {
+      "t": 1.775,
+      "impact": 0.513
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair10-right.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.85
+     },
+     {
+      "t": 0.5,
+      "impact": 0.85
+     },
+     {
+      "t": 1,
+      "impact": 0.85
+     },
+     {
+      "t": 1.5,
+      "impact": 0.85
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair11",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair11-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.913
+     },
+     {
+      "t": 0.625,
+      "impact": 0.913
+     },
+     {
+      "t": 1,
+      "impact": 0.913
+     },
+     {
+      "t": 1.375,
+      "impact": 0.913
+     },
+     {
+      "t": 1.775,
+      "impact": 0.913
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair11-right.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.863
+     },
+     {
+      "t": 0.6,
+      "impact": 0.863
+     },
+     {
+      "t": 1,
+      "impact": 0.863
+     },
+     {
+      "t": 1.375,
+      "impact": 0.863
+     },
+     {
+      "t": 1.775,
+      "impact": 0.863
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair12",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair12-left.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.707
+     },
+     {
+      "t": 0.525,
+      "impact": 0.706
+     },
+     {
+      "t": 1,
+      "impact": 0.633
+     },
+     {
+      "t": 1.5,
+      "impact": 0.68
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair12-right.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.47
+     },
+     {
+      "t": 0.525,
+      "impact": 0.514
+     },
+     {
+      "t": 1,
+      "impact": 0.625
+     },
+     {
+      "t": 1.475,
+      "impact": 0.612
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair13",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair13-left.mp4",
+    "beats": [
+     {
+      "t": 0.275,
+      "impact": 0.67
+     },
+     {
+      "t": 0.625,
+      "impact": 0.825
+     },
+     {
+      "t": 1,
+      "impact": 0.8
+     },
+     {
+      "t": 1.35,
+      "impact": 0.824
+     },
+     {
+      "t": 1.725,
+      "impact": 0.691
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair13-right.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.327
+     },
+     {
+      "t": 0.7,
+      "impact": 0.783
+     },
+     {
+      "t": 1,
+      "impact": 0.829
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair14",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair14-left.mp4",
+    "beats": [
+     {
+      "t": 0.225,
+      "impact": 0.913
+     },
+     {
+      "t": 0.625,
+      "impact": 0.913
+     },
+     {
+      "t": 1,
+      "impact": 0.913
+     },
+     {
+      "t": 1.4,
+      "impact": 0.913
+     },
+     {
+      "t": 1.775,
+      "impact": 0.913
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair14-right.mp4",
+    "beats": [
+     {
+      "t": 0.475,
+      "impact": 0.913
+     },
+     {
+      "t": 1,
+      "impact": 0.913
+     },
+     {
+      "t": 1.525,
+      "impact": 0.913
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair15",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair15-left.mp4",
+    "beats": [
+     {
+      "t": 0.1,
+      "impact": 1
+     },
+     {
+      "t": 0.45,
+      "impact": 1
+     },
+     {
+      "t": 1,
+      "impact": 0.858
+     },
+     {
+      "t": 1.55,
+      "impact": 1
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair15-right.mp4",
+    "beats": [
+     {
+      "t": 0.05,
+      "impact": 0.875
+     },
+     {
+      "t": 0.525,
+      "impact": 0.875
+     },
+     {
+      "t": 1,
+      "impact": 0.875
+     },
+     {
+      "t": 1.475,
+      "impact": 0.875
+     },
+     {
+      "t": 1.7,
+      "impact": 0.875
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair16",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair16-left.mp4",
+    "beats": [
+     {
+      "t": 0.35,
+      "impact": 0.869
+     },
+     {
+      "t": 1.025,
+      "impact": 0.878
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair16-right.mp4",
+    "beats": [
+     {
+      "t": 0.15,
+      "impact": 0.813
+     },
+     {
+      "t": 0.575,
+      "impact": 0.813
+     },
+     {
+      "t": 1,
+      "impact": 0.813
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair17",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair17-left.mp4",
+    "beats": [
+     {
+      "t": 0.025,
+      "impact": 0.984
+     },
+     {
+      "t": 0.225,
+      "impact": 0.444
+     },
+     {
+      "t": 1,
+      "impact": 0.978
+     },
+     {
+      "t": 1.775,
+      "impact": 0.402
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair17-right.mp4",
+    "beats": [
+     {
+      "t": 0.325,
+      "impact": 0.063
+     },
+     {
+      "t": 0.675,
+      "impact": 0.638
+     },
+     {
+      "t": 1.025,
+      "impact": 0.723
+     },
+     {
+      "t": 1.7,
+      "impact": 0.71
+     }
+    ]
+   }
+  },
+  {
+   "id": "pair18",
+   "left": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair18-left.mp4",
+    "beats": [
+     {
+      "t": 0.45,
+      "impact": 0.913
+     },
+     {
+      "t": 1,
+      "impact": 0.913
+     },
+     {
+      "t": 1.5,
+      "impact": 0.913
+     }
+    ]
+   },
+   "right": {
+    "src": "/generated/label-studies/upper-hits-2026-11b/clips/pair18-right.mp4",
+    "beats": [
+     {
+      "t": 0.125,
+      "impact": 0.775
+     },
+     {
+      "t": 0.575,
+      "impact": 0.775
+     },
+     {
+      "t": 1,
+      "impact": 0.775
+     },
+     {
+      "t": 1.45,
+      "impact": 0.775
+     }
+    ]
+   }
+  }
+ ]
+}

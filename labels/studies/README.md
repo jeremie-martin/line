@@ -41,6 +41,13 @@ kind, strengths 0.35 or more apart). It tests whether the strike measure under-r
 as the softest kind on strong beats. Selected by `tools/measure/select_upper_pairs.ts`; answer at
 `http://127.0.0.1:8767/motion-gallery/pairs.html?study=upper-hits-2026-11`.
 
+`upper-hits-2026-11b` is the held-out check of a gravity-neutral strike strength (`tools/research/gravity_neutral.ts`:
+the push a surface would need for the same turn with gravity against it; floors unchanged, catches from above about
++0.05). Fresh hits from the foundation's V8 rides (arm 2fee4728896e469a): 8 pairs where today's strength calls the
+floor hit bigger (0.03–0.10) and the gravity-neutral one the clean upper hit; 6 where both call the floor hit bigger by
+0.10–0.25; 4 checks of two floor hits 0.45 or more apart. Selected by `tools/measure/select_upper_pairs.ts --neutral`;
+answer at `http://127.0.0.1:8767/motion-gallery/pairs.html?study=upper-hits-2026-11b`.
+
 ## Sources (reproducibility)
 
 `sources/` holds everything needed to rebuild and re-score the studies without

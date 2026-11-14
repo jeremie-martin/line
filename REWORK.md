@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: a gravity-neutral strength (report only; awaiting the owner's held-out check)
+
+- **Definition** (`tools/research/gravity_neutral.ts`): today's strength is the contact's push over the strongest two
+  frames (motion change less gravity, with spin) ÷ 7.55. The gravity-neutral one is the push a surface would need for
+  the same turn with gravity against it: the push's length plus 2 × window × g × max(0, ĝ·p̂). Floors are unchanged by
+  construction; a push with a downward part gains up to 0.093. Continuous in the push's direction, no kinds.
+- **On the foundation** (V8, 4 seeds; today's strength reproduced on 97% of 17,392 hits): strong floor 0.700 → 0.700,
+  clean upper 0.612 → 0.661, rail only 0.601 → 0.651. It halves the upper-against-floor gap (0.09 → 0.04).
+- **On the owner's 14 judged pairs** (in-sample: they motivated it): it calls the upper hit bigger in 12 of 14; the two
+  others are head-down riders whose push has no downward part.
+- **Held-out check prepared:** `upper-hits-2026-11b`, 18 fresh pairs (8 where the two strengths disagree, 6 where both
+  call the floor hit bigger by 0.10–0.25, 4 checks). Nothing optimizes this strength until it agrees there.
+
 ## November 14: E2 result, and what limits upper hits now (not adopted)
 
 - **E2 (E1 + an upper way into strong catches), V8, 4 seeds, against `foundation`: −16.4 [−23.1, −9.7]**, 1 spec up,

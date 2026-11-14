@@ -68,6 +68,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   motionQuality?: MotionSearchOptions;
   /** Twins of the best-ranked candidates whose support climbs after the catch (arc_proposals.ts). */
   climbingTwins?: {count: number; steps: number[]};
+  /** Twins of the best-ranked candidates with the catch's turn spread over more of the support (arc_proposals.ts). */
+  spreadTwins?: {count: number; fractions: number[]};
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -116,7 +118,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-  constructionRequests: 'keySection', motionQuality: 'key', climbingTwins: 'search', impactSearch: 'key',
+  constructionRequests: 'keySection', motionQuality: 'key', climbingTwins: 'search', spreadTwins: 'search', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',

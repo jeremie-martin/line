@@ -14,25 +14,24 @@ export const OPTIONS = {
   paper: ['Colour response', COLOUR_RESPONSES],
   line: ['Line', {inking: 'Pencil → ink', rail: 'Whole rail on first touch', ink: 'All ink'}],
   band: ['Lower band', {none: 'None', bars: 'Bars, the loudest in the accent', fork: 'Tuning fork, the loudest in the accent', iris: 'Iris',
-    // in the lab (rounds 48–49)
-    dots: 'Columns of dots', dotsLow: 'Dots, a little lower', dotsFine: 'Smaller dots, a little lower', strands: 'Strands in the theme’s colours', ribbon: 'A filled wave in the theme’s colours'}],
+    // approved on some themes (rounds 48–49), not yet drawn in production
+    dots: 'Columns of dots', strands: 'Strands in the theme’s colours'}],
   accent: ['What takes the accent', {heat: 'Heat (follows recent hits)', loud: 'The loudest three'}],
   bandHeight: ['Band height', {lowmid: 'Low-middle'}],
-  top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title',
-    // in the lab (rounds 48–49; sky.js)
-    crescent: 'Crescent', stars: 'Moon and stars', starsThin: 'Moon and stars, smaller toward the rider', starsHigh: 'Moon and stars, only high up',
-    crescentStars: 'Crescent and stars, smaller toward the rider', sunset: 'A sun half set behind the band, on the left'}],
+  top: ['Top of the frame', {none: 'Nothing', sun: 'Sun', title: 'Song title', crescent: 'Crescent',
+    // approved on some themes (rounds 48–49; sky.js), not yet drawn in production; starsInk is in the lab (round 50)
+    stars: 'Moon and stars, smaller toward the rider', crescentStars: 'Crescent and stars', starsInk: 'Moon and stars in the line’s colour'}],
   riderLower: ['The rider sits lower by', {'0': 'Nothing'}],
   sunRider: ['With a sun, the rider sits lower by', {'32': '32 px'}],
   sunLift: ['The sun sits higher by', {'16': '16 px'}],
   drop: ['At the drop', {off: 'Nothing', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun'}],
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
-  irisWeight: ['Iris strands', {thin: 'Thin (v1)', medium: 'Medium (lab)', bold: 'Bold'}],
+  irisWeight: ['Iris strands', {thin: 'Thin (v1)', fine: 'A fifth heavier (lab)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
-    // in the lab (round 49; hits.js TUNES)
-    split125: 'v1, the split a quarter stronger', shakeLater: 'v1, the shake starting a little later', shakeLatest: 'v1, the shake starting later still',
-    shakeSpaced: 'v1, shakes in quick succession reduced', tuned: 'v1, split a quarter stronger and shakes spaced', lit: 'v1, and the band lights on the strongest hits', litOften: 'v1, and the band lights on every hit that shakes'}],
+    // in the lab (round 50; hits.js TUNES)
+    shakeHigher: 'v1, the shake reaching 28 px', shakeBoost: 'v1, the shake from 0.55 to 28 px, shaped as the boost', shakeQuad: 'v1, the shake from 0.5 to 28 px, shaped as the split',
+    lit50: 'v1, and the band lights on hits of 0.5 or more', lit60: 'v1, and the band lights on hits of 0.6 or more', lit70: 'v1, and the band lights on hits of 0.7 or more'}],
 };
 
 export const V1 = {

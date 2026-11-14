@@ -1,0 +1,546 @@
+{
+ "set": "2026-11-14-round49",
+ "title": "Versions and themes chosen in round 49 for the collection",
+ "round": 49,
+ "created": "2026-11-14",
+ "song": "circus",
+ "renderer": "v7.1-265-g6a6d4164",
+ "moments": [
+  {
+   "label": "Verse",
+   "t": 18
+  },
+  {
+   "label": "Inside the drop",
+   "t": 44.65
+  }
+ ],
+ "themes": [
+  {
+   "id": "t-4df07d74755d",
+   "label": "Brown Room",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#efe8ce",
+     "ink": "#f0ebdc",
+     "mass": "#af7940",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#201309",
+     "paper": "#201309",
+     "pencil": "#5b544f",
+     "sun": "#efe8ce"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-e254226f5009",
+   "label": "Dusk Room",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f0c45e",
+     "ink": "#f0ebdc",
+     "mass": "#7478be",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#13122c",
+     "paper": "#13122c",
+     "pencil": "#54545c",
+     "sun": "#f0c45e"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-3e2e75d31490",
+   "label": "Moss Room",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f9aa60",
+     "ink": "#f0ebdc",
+     "mass": "#78884d",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#131809",
+     "paper": "#131809",
+     "pencil": "#53564f",
+     "sun": "#f9aa60"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9ef593622299",
+   "label": "Steel Room",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e85433",
+     "ink": "#f0ebdc",
+     "mass": "#70869a",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#111921",
+     "paper": "#111921",
+     "pencil": "#53595e",
+     "sun": "#e85433"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-34201eb4791a",
+   "label": "Paper on Stone",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d3262e",
+     "ink": "#15181d",
+     "mass": "#3b414a",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#14171d",
+     "paper": "#e9e6e0",
+     "pencil": "#aaa397",
+     "tone": "#eef2f8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-792e99d7f18a",
+   "label": "Paper on Sky",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d3262e",
+     "ink": "#15181d",
+     "mass": "#3b414a",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#14171d",
+     "paper": "#e1e9ef",
+     "pencil": "#9ba7b0",
+     "tone": "#eef2f8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "title",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-9dbc8a82e9b6",
+   "label": "Paper on Stone, red sun",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#d3262e",
+     "ink": "#15181d",
+     "mass": "#3b414a",
+     "nightInk": "#eef1f5",
+     "nightPaper": "#14171d",
+     "paper": "#e9e6e0",
+     "pencil": "#aaa397",
+     "sun": "#d3262e",
+     "tone": "#eef2f8"
+    },
+    "drop": null,
+    "look": {
+     "accent": "loud",
+     "band": "fork",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-d2ec694d57ab",
+   "label": "Dune · v1",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e39a1b",
+     "ink": "#3a2115",
+     "mass": "#8c3a1c",
+     "nightInk": "#efe2cd",
+     "nightPaper": "#2a160d",
+     "paper": "#efe2cd",
+     "pencil": "#c4b197",
+     "sun": "#d8622a"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-395079d99977",
+   "label": "Stone, cool, pencil → ink",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e54728",
+     "ink": "#241e14",
+     "mass": "#383530",
+     "nightInk": "#e9e6e0",
+     "nightPaper": "#241e14",
+     "paper": "#e4e6e9",
+     "pencil": "#a4a9b1",
+     "sun": "#e54728"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "inking",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-0b30cb155194",
+   "label": "Lantern, cream bar",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#efe8ce",
+     "ink": "#f0ebdc",
+     "mass": "#dd8b50",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#0a1328",
+     "paper": "#0a1328",
+     "pencil": "#50535a",
+     "sun": "#efe8ce"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-55073a907db4",
+   "label": "Gold and Cream",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f5efd8",
+     "ink": "#f0ebdc",
+     "mass": "#d5aa55",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#170d08",
+     "paper": "#170d08",
+     "pencil": "#534c48",
+     "sun": "#d5aa55"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-deebe832a3e7",
+   "label": "Gold and Cream, green night",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#f5efd8",
+     "ink": "#f0ebdc",
+     "mass": "#d5aa55",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#0a170f",
+     "paper": "#0a170f",
+     "pencil": "#4d5450",
+     "sun": "#d5aa55"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "sun",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-bf8b796c5177",
+   "label": "Winter Moon",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e9483d",
+     "ink": "#e7ecf0",
+     "mass": "#b4bfca",
+     "nightInk": "#e7ecf0",
+     "nightPaper": "#0c1015",
+     "paper": "#0c1015",
+     "pencil": "#494e54",
+     "sun": "#ebeff4"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "crescent",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-aeb05155392f",
+   "label": "Winter Moon, darker bars",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#e9483d",
+     "ink": "#e7ecf0",
+     "mass": "#8294a7",
+     "nightInk": "#e7ecf0",
+     "nightPaper": "#0c1015",
+     "paper": "#0c1015",
+     "pencil": "#494e54",
+     "sun": "#ebeff4"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "crescent",
+     "zoom": "steady"
+    }
+   }
+  },
+  {
+   "id": "t-7659ec00d080",
+   "label": "Starry Night",
+   "group": null,
+   "parents": [],
+   "spec": {
+    "colours": {
+     "accent": "#eed286",
+     "ink": "#f0ebdc",
+     "mass": "#abb9cb",
+     "nightInk": "#f0ebdc",
+     "nightPaper": "#081025",
+     "paper": "#081025",
+     "pencil": "#4c4f56",
+     "sun": "#eed286"
+    },
+    "drop": null,
+    "look": {
+     "accent": "heat",
+     "band": "bars",
+     "bandHeight": "lowmid",
+     "drop": "off",
+     "ends": "course",
+     "hits": "v1",
+     "irisWeight": "thin",
+     "line": "ink",
+     "paper": "vibranceSoftHalfPaper",
+     "riderLower": "0",
+     "sunLift": "16",
+     "sunRider": "32",
+     "top": "crescent",
+     "zoom": "steady"
+    }
+   }
+  }
+ ]
+}

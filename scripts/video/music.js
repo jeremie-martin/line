@@ -44,26 +44,17 @@ export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, allHot = 
       const h = Math.max(2, v * hgt), x = (i + .5) * step - bw / 2; ctx.fillStyle = hot.has(i) ? colours.accent : colours.band;
       ctx.globalAlpha = alpha * 0.92; ctx.fillRect(x, base - h, bw, h); ctx.globalAlpha = alpha * 0.28; ctx.fillRect(x, base + 4, bw, Math.min(h * 0.62, room));
     });
-  } else if (look.band === 'dots' || look.band === 'dotsLow' || look.band === 'dotsFine') {
-    // in the lab (rounds 48–49): each band a column of dots, as many as it is loud; without a reflection the band can sit lower
-    const fine = look.band === 'dotsFine', base = (look.band === 'dots' ? 0.80 : 0.815) * H, rad = fine ? 5.5 : Math.min(8, step * 0.36), pitch = 2 * rad + (fine ? 4 : 5), most = Math.floor(0.15 * H / pitch);
+  } else if (look.band === 'dots') {
+    // each band a column of dots, as many as it is loud; without a reflection the band sits a little lower than the bars (round 49)
+    const base = 0.815 * H, rad = Math.min(8, step * 0.36), pitch = 2 * rad + 5, most = Math.floor(0.15 * H / pitch);
     row.forEach((v, i) => {
       ctx.fillStyle = hot.has(i) ? colours.accent : colours.band; ctx.globalAlpha = alpha * 0.92;
       for (let d = 0, count = Math.max(1, Math.round(v * most)); d < count; d++) {ctx.beginPath(); ctx.arc((i + .5) * step, base - rad - d * pitch, rad, 0, 2 * Math.PI); ctx.fill();}
     });
-  } else if (look.band === 'ribbon') {
-    // in the lab (round 49): the music's contour as one filled wave that fades out downward, the wave of a quarter of a second ago
-    // paler behind it, and its edge in the hot colour: no hairlines, no reflection, no hard lower edge
-    const base = 0.86 * H, hgt = 0.17 * H, at = vals => vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - 0.045 * H - v * hgt * 0.8}));
-    const fade = ctx.createLinearGradient(0, base - 0.045 * H - hgt * 0.8, 0, base); fade.addColorStop(0, colours.band); fade.addColorStop(0.45, colours.band); fade.addColorStop(1, colours.band + '00');
-    const wave = (pts, a) => {ctx.beginPath(); smoothPath(ctx, pts); ctx.lineTo(W + 10, base); ctx.lineTo(-10, base); ctx.closePath(); ctx.fillStyle = fade; ctx.globalAlpha = alpha * a; ctx.fill();};
-    const now = at(row);
-    wave(at(spectrumAt(spectrum, Math.max(0, t - 0.25)).map(v => Math.min(1, v))), 0.3); wave(now, 0.75);
-    ctx.beginPath(); smoothPath(ctx, now); ctx.strokeStyle = colours.accent; ctx.lineWidth = 4.5; ctx.globalAlpha = alpha * 0.95; ctx.stroke();
   } else if (look.band === 'iris' || look.band === 'strands') {
     // bold strands for a phone, where thin ones fade (phone review, 8 November): main line 3.8 → 7 px, echoes 2.6 → 4.5 px
     // the theme's strands (lab) sit a little lower: there is no reflection under them
-    const base = (look.band === 'strands' ? 0.83 : 0.82) * H, hgt = 0.14 * H, weight = {thin: 1, medium: 1.4, bold: 1.8}[look.irisWeight];
+    const base = (look.band === 'strands' ? 0.83 : 0.82) * H, hgt = 0.14 * H, weight = {thin: 1, fine: 1.2, bold: 1.8}[look.irisWeight];
     const swing = look.band === 'strands' ? 1.0 : 0.72; // the theme's strands (lab) swing wider
     const contour = (vals, dy) => {const pts = vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - v * hgt * swing + dy})); ctx.beginPath(); smoothPath(ctx, pts);};
     [.06, .12, .18, .24, .3, .36, .42].map((age, i) => ({age, i})).reverse().forEach(({age, i}) => {

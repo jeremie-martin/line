@@ -36,23 +36,27 @@ export function prepareHits(account, contacts, centres, byId) {
 const ramp = (s, from, full) => (s - from) / (full - from);
 // Quadratic start, continuing on its tangent above the reference strength.
 const slowRise = s => {const x = ramp(s, 0.3, 0.85); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, 2) : 1 + 2 * (x - 1);};
-// px: nothing below `from` (0.6), an S-curve to 24 px at `full` (0.85), gently on (R26)
-export const shake = (s, from = 0.6, full = 0.85) => Math.min(48, s <= full ? 24 * smoothstep(ramp(s, from, full)) : 24 + 40 * (s - full));
-export const split = s => 14 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15)
+// px: nothing below `from` (0.6), an S-curve to `peak` (24 px) at `full` (0.85), gently on (R26). In the lab, `quad` rises as the
+// split does: a quadratic start that continues on its tangent.
+export const shake = (s, {from = 0.6, full = 0.85, peak = 24, quad = false} = {}) => {
+  const x = ramp(s, from, full);
+  if (quad) return Math.min(48, x <= 0 ? 0 : x <= 1 ? peak * x * x : peak * (1 + 2 * (x - 1)));
+  return Math.min(48, s <= full ? peak * smoothstep(x) : peak + 40 * (s - full));
+};
+export const split = s => 16.8 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15), a fifth stronger since round 49
 export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
 
-/** The response's settings per value of look.hits. v1 is production; the others are in the lab (round 49): the split a quarter
- * stronger; the shake starting a little later (`from`, `full`: the strengths where it starts and reaches 24 px); shakes spaced
- * (seconds); the band lit on hits of at least `lit`. */
+/** The response's settings per value of look.hits. v1 is production; the others are in the lab (round 50): the shake rising
+ * earlier and to 28 px at 0.85, shaped as the colour boost (an S-curve), as the split (a quadratic) or as it is; the band lit for
+ * as long as a hit of at least `lit` lasts. */
 export const TUNES = {
   v1: {},
-  split125: {split: 1.25},
-  shakeLater: {from: 0.63, full: 0.88},
-  shakeLatest: {from: 0.66, full: 0.91},
-  shakeSpaced: {spaced: 1},
-  tuned: {split: 1.25, spaced: 1},
-  lit: {lit: 0.8},
-  litOften: {lit: 0.6},
+  shakeHigher: {shake: {peak: 28}},
+  shakeBoost: {shake: {from: 0.55, peak: 28}},
+  shakeQuad: {shake: {from: 0.5, peak: 28, quad: true}},
+  lit50: {lit: 0.5},
+  lit60: {lit: 0.6},
+  lit70: {lit: 0.7},
 };
 
 // Hold the peak for at least one 60 fps frame, then recover within 0.25 seconds.
@@ -73,22 +77,12 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
   }
   if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  // spaced (lab): a shake that follows, within `spaced` seconds, another at least three quarters its size is reduced in proportion
-  // to the gap, never below a quarter: a run of like hits is calmed, a hit stronger than the ones before it keeps its shake
-  let room = 1;
-  if (tune.spaced) {
-    const own = shake(hit.strength, tune.from, tune.full);
-    for (const h of hits) {
-      if (h.time >= hit.time) break;
-      if (shake(h.strength, tune.from, tune.full) >= Math.max(4, 0.75 * own)) room = Math.max(0.25, Math.min(1, (hit.time - h.time) / tune.spaced));
-    }
-  }
-  const a = amount < 0.002 ? 0 : shake(hit.strength, tune.from, tune.full) * room * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
+  const a = amount < 0.002 ? 0 : shake(hit.strength, tune.shake) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x, dy: a * y,
-    split: amount <= 0.002 ? 0 : split(hit.strength) * (tune.split ?? 1) * exaggerate * amount,
+    split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},
     boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount,
-    // lab: the band lights on the strongest hits only, for as long as the hit's own effects last
+    // lab: the band lights on hits above a strength, for as long as the hit's own effects last
     lit: !!tune.lit && hit.strength >= tune.lit && amount > 0.1};
 }
 

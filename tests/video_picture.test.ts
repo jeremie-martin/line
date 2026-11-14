@@ -76,8 +76,9 @@ it('a hit starts at its peak, settles, and disabling effects does not disable ba
 
 it('colour boost changes content but keeps the paper and pencilled rail intact on light and dark grounds', async () => {
   const result = await page.evaluate(() => {
-    // Strength 0.5: colour boost, no shake, split below the half-pixel visibility threshold at this resolution.
-    const f = (window as any).fixture(0.5), results = [];
+    // Strength 0.48: colour boost, no shake, split below the half-pixel visibility threshold at this resolution (0.5 crossed it once
+    // the split grew a fifth stronger, round 49).
+    const f = (window as any).fixture(0.48), results = [];
     for (const scheme of ['graphite', ROTHKO]) {
       const options = {scheme, top: 'sun', accent: 'loud'};
       const {png: off, world} = f.render(1, {...options, hits: 'none'});

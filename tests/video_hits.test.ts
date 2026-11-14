@@ -38,11 +38,13 @@ describe('approved hit response', () => {
     expect(amount(0.31).split).toBeGreaterThan(0);
     expect(amount(0.36).boost).toBeGreaterThan(0);
     expect(amount(0.61).dy).toBeGreaterThan(0);
-    expect(amount(0.85)).toMatchObject({dy: 24, split: 21, boost: 1.5});
+    expect(amount(0.85)).toMatchObject({dy: 24, boost: 1.5});
+    expect(amount(0.85).split).toBeCloseTo(25.2); // a fifth stronger than 21 (owner, round 49)
     expect(amount(1).dy).toBe(30);
-    expect(amount(1).split).toBeCloseTo(32.4545454545);
+    expect(amount(1).split).toBeCloseTo(38.9454545454);
     expect(amount(1).boost).toBeCloseTo(1.8375);
-    expect(amount(10)).toMatchObject({dy: 48, split: 42, boost: 3});
+    expect(amount(10)).toMatchObject({dy: 48, boost: 3});
+    expect(amount(10).split).toBeCloseTo(50.4);
   });
   it('starts exactly at the peak, holds for a display frame, and recovers within a quarter second', () => {
     for (const s of [0.4, 0.6, 0.85, 1]) {

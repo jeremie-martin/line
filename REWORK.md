@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: round 49 answered; the split a fifth stronger; round 50
+
+**Decided for production:** the split is a fifth stronger (`hits.js`; the owner: "let's settle on 20% stronger"). The
+fingerprint baseline is refreshed for it.
+
+**The collection** (set `2026-11-14-round49`, 82 themes: 29 light, 53 dark): Brown Room with a cream hot bar, Dusk, Moss and
+Steel Room; Paper on Stone's and Sky's grounds; Dune and cool Stone with pencil → ink; Lantern with a cream bar; Gold and
+Cream on two grounds; Winter Moon (two bars) and Starry Night, which carry a crescent, so `top: crescent` is now a production
+value.
+
+**Approved on named themes, not yet drawn in production:** the moon among stars (smaller toward the rider), the crescent in
+place of a full moon, columns of dots (a little lower than the bars), strands in the theme's colours. The owner wants them as
+a minority beside the plain theme, so they wait for the decision on how themes are drawn; the list per theme is in the
+session memory and in round 49's answers.
+
+**Refused and removed:** shakes spaced ("simpler, more predictable, following the realized impact"), the band lit only on the
+strongest hits, the wave, the sunset, finer dots, stars only high up.
+
+**Round 50** (`?set=refine4`, `round50.mjs`, 15 pages): the shake starting earlier and reaching 28 px at 0.85 in three shapes
+(`TUNES` in `hits.js`, curves in `hits.html`); the band lit from strength 0.5, 0.6 or 0.7 and on six themes; a page of
+variations for each of nine new light themes; the strands' weight; the stars in the moon's colour or the line's.
+
 ## November 14: round 49, the master round
 
 The owner asked for a step back over the day's four rounds, then one large, carefully made round with analysis around it, and

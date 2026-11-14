@@ -21,7 +21,11 @@ describe('intentional arrangement',()=>{
   const lively={...spec,contacts:spec.contacts.map(c=>({...c,impact:.8}))};
   const all=(s:typeof spec)=>Array.from({length:40},(_,i)=>planIntentionalRepertoire(s,i).requests.slice(1)).flat();
   const quiet=all(spec),energetic=all(lively);
-  expect(quiet.filter(r=>r.guidance==='forbidden').length).toBeGreaterThan(energetic.filter(r=>r.guidance==='forbidden').length*2);
+  // Quiet music draws more open arcs, energetic music more shaped families with a guide offered.
+  expect(quiet.filter(r=>r.construction==='arcs').length).toBeGreaterThan(energetic.filter(r=>r.construction==='arcs').length*1.5);
+  expect(energetic.filter(r=>r.guidance==='optional').length).toBeGreaterThan(quiet.filter(r=>r.guidance==='optional').length*1.5);
+  // Arcs are never offered a rail (REWORK.md, November 14).
+  expect([...quiet,...energetic].every(r=>r.construction!=='arcs'||r.guidance==='forbidden')).toBe(true);
   // Guided families are offered a guide; none is required, and no transfer is drawn.
   expect(quiet.some(r=>r.guidance==='optional'&&r.construction!=='scattered')).toBe(true);
   expect([...quiet,...energetic].every(r=>r.guidance!=='required'&&r.railLayout!=='transfer')).toBe(true);

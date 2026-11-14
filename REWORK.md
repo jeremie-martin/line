@@ -18,6 +18,172 @@ floats only where the music is empty; a ride-out is written as low air held to t
 air at the end, which asks for a jump). Not heard by the author; videos in `generated/videos/rework-batch1/` for the owner.
 
 Believer (`productions/believer_78s`) is parked by the owner after two drafts.
+||||||| 9b3ca100
+## November 14: middle-ground rail margins (stated before running)
+
+The owner asked for a middle ground between today's 2 px and the rider's height (10 px, −22.6 beyond open arcs).
+Three branches from `foundation-4`, the rail-support margin alone changed: `exp/rail-margin-4`, `-6`, `-8`; V8 against
+`foundation-4`. Touched rails today lie 0–4 px from their support 3%, 4–6 px 18%, 6–8 px 25%, 8–10 px 23%.
+**Hypothesis:** the cost grows with the share of squeezing rails a margin removes: 4 px about 0, 6 px about −5, 8 px
+about −12; pinched frames and speed beyond gravity on touched rails fall with each step; rails fall below 43% of gaps.
+
+## November 14: rails kept clear by the rider's height (result: not adopted)
+
+- `exp/arcs-open-clear` (open arcs + upper receivers, rail-support margin 10 px instead of 2), V8 against `base`:
+  headline **−31.6** [−36.4, −26.8], 0 specs up, 43 down (about −22.6 beyond the adopted open arcs' −9.0); explicit
+  −31.1; every ride finished. Rails 33% of gaps; clean upper hits 13.2% of strong beats; body drag −26%; head-down
+  strong arrivals +22%.
+- The squeeze is gone as predicted (`rail_squeeze.ts`): no touched rail within 10 px of its support, pinched frames
+  23% at 10–12 px, speed beyond gravity +0.04 on average.
+- **Reading:** today's shaped families (fold, serpentine, scallops, terraces, scattered) get much of their score from
+  rails inside the rider's space: the squeeze holds and pushes the rider. Without it they lose about 22 points. A
+  rule this blunt is not adoptable on the score; whether the owner's eye prefers it is open. Rails that do not squeeze
+  need geometry that works without the push.
+
+## November 14: arcs never offered a rail, upper receivers (adopted, the owner's choice)
+
+- **Decided by the owner** after watching whole rides (`generated/rails-review/`): "I know for a fact that I prefer the
+  version with the fewer rails … there's no scenario where I prefer more rails … my perception says that there is no
+  comparison … the effect of a lower score is very minor." Adopted as tested (`exp/arcs-open-upper`):
+  - the planner draws and places families as before; an arc phrase drawn as guided becomes an open arc
+    (`intentional_repertoire.ts`); shaped families and scattered segments keep their optional rail;
+  - 12 receivers met from above per section, the rider's body clear of the line (E1c,
+    `contact_impact_profile.ts` `upperReceiverProposals`).
+- **Measured** (V8 against `base`): headline −9.0 [−14.8, −3.2]; explicit −6.3; every ride finished; rails 55% → 43% of
+  gaps; open arcs 37% → 48%; clean upper hits 9.4% → 12.6% of strong beats; body drag −14%; head-down strong arrivals
+  +8%. Very strong catches land softer (bias −0.016) and flights miss their speed a little more (rms +0.003).
+- Checks: tests pass (the planner test now states the rule), typecheck 0, reach unchanged, parity references refreshed
+  in their own commit, parity and judge parity pass.
+- Named reference `foundation-4` = this commit. The rider-height rail margin (`exp/arcs-open-clear`) runs against
+  `base`; it is a candidate on top of this.
+
+## November 14: the owner's look at fewer rails, rails that squeeze the rider, and rails kept clear by the rider's height
+
+- **Review** (`generated/rails-review/`, five songs, seed 101, production renderer: `base` against
+  `exp/arcs-open-upper`). Not blind: the side draw was broken, and fewer rails was ride B on every song. The owner
+  watched Circus, Trouble and Valhalla. He preferred ride B on Circus ("significantly") and Trouble ("a bit
+  cleaner"), and saw a pattern: "the slightly worse … score is … more than largely compensated by the fact that I
+  just vastly prefer the tracks." Rail-free arcs are preferred by eye despite −9 on V8.
+- **What he flagged in ride B (Circus):** at about 12 s a rail where "at the very end there is a sharp change of turn,
+  almost acceleration … like cheating with the physics"; at 21 s an "almost" (a rail almost on the geometry below);
+  in general, rails cause small unwanted impacts that shift direction without a musical reason.
+- **Measured** (`tools/research/rail_squeeze.ts`, V8 4 seeds, report only). Both moments are rails 5 px above their
+  own support, closer than the rider is tall (about 10 px). The rider touches rail and support together (6 of 6 and
+  3 of 5 frames) and gains speed beyond what gravity gives (+0.9 and +0.6 px/frame). Across V8 (`base`, 9,714
+  touched rails), 69% of touched rails lie within 10 px of their support. Below 10 px the rider is pinched in 41–63%
+  of the touched frames and gains +0.16 to +0.24 px/frame beyond gravity on average. From 12 px it is pinched in at
+  most 17% and gains nothing on average (−0.31 at 12–16 px). The scene has no acceleration lines (all lines type 0);
+  this speed comes from the pinch.
+- **Next** (`exp/arcs-open-clear`: `exp/arcs-open-upper` with the rail-support rule's margin raised from 2 px to the
+  rider's height, 10 px). A rail is then never built inside the rider's space, by construction, with no physics spent.
+  **Hypothesis:** pinched frames and speed beyond gravity on touched rails fall to the 12 px level; rails fall below
+  43% of gaps; headline within a few points of `exp/arcs-open-upper` (−9.0).
+
+## November 14: open arcs with upper receivers (result); where the rail-free attempt stands
+
+- **Open arcs + upper receivers** (`exp/arcs-open-upper`, V8 against `base`): headline −9.0 [−14.8, −3.2], 7 specs up,
+  36 down; explicit −6.3. Against the open-arcs probe (−11.0): very-strong bias −0.021 → −0.016, speed rms +0.004 →
+  +0.003, air and amplitude back to `base`; clean upper hits 12.6% of strong beats (base 9.4%); rails 43% of gaps;
+  body drag −14%. Hypothesis met in direction (part of the strong loss recovered), small in size: about 2 of 11 points.
+- **Where it stands:** rails on arcs carry about 11 points. Rail-free twins (R1–R4) traded at the removal rate; upper
+  receivers replace a fifth of the rail's strong-catch job. Two open questions decide what comes next: whether the
+  ruler under-credits catches from above (the gravity-neutral strength, unvalidated; the owner's held-out study
+  `upper-hits-2026-11-redo` is unanswered), and whether the owner prefers the open-arcs rides by eye despite the score.
+  Nothing adopted; `base` unchanged.
+
+## November 14: the open-arcs probe, and open arcs with upper receivers (stated before running)
+
+- **Probe** (`exp/arcs-open`, V8 against `base`): headline −11.0 [−13.3, −8.8], 4 specs up, 39 down; explicit −11.6.
+  Rails 55% → 43% of gaps, open arcs 37% → 48%; clean upper hits 9.4 → 11.9% of strong beats; body drag −16%;
+  strong arrivals head-down +12%. The loss: very strong catches softer (bias −0.021, strong −0.007) and flights off
+  their speed (rms +0.004), air and amplitude a little (+0.002, +0.005). So rails on arcs do two jobs: they let strong
+  catches land hard, and they hold the release so the flight keeps its speed.
+- **Reading of R2–R4:** they traded at the probe's rate (about −0.9 points per point of rail share: R4 −1.7 for 2;
+  every axis about a sixth of the probe's). The twins found no better geometry; they took rails off where rails
+  mattered least.
+- **Next** (`exp/arcs-open-upper`: the probe plus E1c's upper receivers, 12 per gap): the rail-free strong catch the
+  owner likes, where rails no longer compete with it. **Hypothesis:** recovers part of the probe's very-strong loss
+  (bias −0.021 closer to 0) and of the headline; clean upper hits rise further.
+
+## November 14: R4 result, and a probe: arcs without rails (stated before running)
+
+- **R4** (V8, against `base`): headline −1.7 [−7.0, +3.6], 18 specs up, 25 down; explicit −3.1. Rail-free twins chosen
+  on 12.1% of the arcs that may have a rail (R3 10.1%, R2 8.4%); rails kept on those arcs 81% → 75%; all gaps 55% →
+  53%. Body drag −6%, strong extra impacts −21%, clean upper hits 9.4 → 9.8%. Each step adds a little; twins remain a
+  marginal mechanism.
+- **Probe, not a candidate** (`exp/arcs-open`, from `base`): arc phrases never offered a rail (after placement, arcs
+  with a rail offered become open arcs), so the whole search on those phrases is rail-free. It measures what rails on
+  arcs buy today, the ceiling a rail-free arc geometry has to close. **Expectation:** rails fall to about 30% of
+  gaps; headline falls by more than the twins' −2, but less than the +8.5 that offering guides on strong phrases
+  brought.
+
+## November 14: R3 result, a probe of why twins lose, and R4: the best twin refined (stated before running)
+
+- **R3** (V8, against `base`): headline −1.3 [−4.5, +2.0], 13 specs up, 30 down; explicit −2.5. Rails 55% → 53% of
+  gaps; rail-free twins chosen on 10.1% of the arcs that may have a rail (R2 8.4%), none with a rail; rails kept on
+  those arcs 81% → 76%. Body drag −2%, clean upper hits 9.4 → 9.8% of strong beats. Hypothesis (well above 8%) not met.
+- **Why twins lose** (`tools/research/ridable_work.ts`, V8 seed 101, report only): 88% of twins are viable (binding
+  9%, missed impact 3%), so a rail is rarely needed for the rider to hold. They lose by small margins: the median rank
+  is 0.015 worse than the railed original for early twins and 0.038 for twins of the refined best, split about 60/40
+  between local cost and priors. Twins copy a candidate refined with its rail and are not refined themselves.
+- **R4** (same branch): after the twins, the best rail-free twin gets 24 coordinate steps of its own on the core
+  controls. **Hypothesis:** twins chosen well above R3's 10%, rails fall further, headline within a few points.
+
+## November 14: R2 result, and R3: ridable as physics allows, twins of the refined best too (stated before running)
+
+- **R2** (V8, against `base`): headline −1.8 [−5.1, +1.4], 15 specs up, 28 down; explicit +1.2; strong extra impacts
+  −30%. Rail-free ridable twins chosen for 8.4% of the arcs that may have a rail (230 of 2,738), none with a rail; rails
+  kept on those arcs 81% → 77% (all gaps 55% → 54%). Rail-free arcs work where chosen, but rarely win.
+- **R3** (same branch): (a) a ridable end may bend downward as far as gravity holds the rider at its arrival speed
+  (0.175 × cos of the exit slope ÷ speed, radians per frame, over the support after the catch's turn) instead of not at
+  all, so a twin can release closer to its original's direction; (b) twins are also offered of the best candidates
+  after local search (4), not only of the early proposals (8), so refined geometry gets a rail-free version.
+  **Hypothesis:** rail-free twins chosen more often (well above 8%); rails on those arcs fall further; headline within
+  a few points.
+
+## November 14: R1 result, and R2: ridable twins without a rail (stated before running)
+
+- **R1** (V8, 196 rides, against `base`): headline −0.6 [−6.9, +5.7], 21 specs up, 22 down; explicit −2.9; strong
+  extra impacts −21%. Rails unchanged (55% of gaps). The search chose a ridable twin for 22% of the arcs that may have
+  a rail (590 of 2,736), but 469 of those still keep the rail: the catch throws the rider up into it, and a rail
+  touched anywhere is kept. A ridable end alone does not make the rail unnecessary.
+- **R2** (same branch): the twins are drawn without a rail (`guideStart` = `guideEnd` = 0: no stretch, no rail;
+  refinements do not search those two), so the search weighs a rail-free ridable arc against its railed original.
+  **Hypothesis:** rail share on arcs that may have a rail falls; the headline within a few points; flights' speed
+  error on those arcs up a little where the rail held the rider.
+
+## November 14: hypothesis, ridable twins (R1; stated before running; a first step toward geometry that needs no rail)
+
+- **Basis** (`tools/research/rail_counterfactual.ts`, seed 101, 2,323 touched rails, each removed alone and the ride
+  replayed): without its rail the rider is thrown off in 14% (arcs 21%); where the rail was touched at the release the
+  rider leaves the support earlier in 63% (median 2 frames); the flight reaches the next beat 7° off (median). Unaided,
+  a rider at about 10 px/frame follows a curve bending downward at no more than about 1° per frame (speed² × curvature
+  ≤ g cos slope); most arc ends bend faster, so the rail holds the rider to the end.
+- **Change** (`exp/ridable`): on arcs that may have a rail, 8 twins of the interval's best proposals whose support the
+  rider follows unaided (control `ridable`: after the catch's turn the heading never turns further downward, no bend):
+  the rider leaves where and as the geometry says without a rail. Refinements of a twin stay ridable. Nothing prefers
+  them; the allowance is unchanged.
+- **Hypothesis:** rails touched and rails kept on arcs fall; the headline within a few points; the launched flights'
+  speed and air errors about unchanged. **Watch:** completion, every ruler, rail share, the geometry sheet.
+
+## November 14: what a rail does in the ride (report only; before building a geometry that makes it unnecessary)
+
+The owner's direction: not fewer rails by rule, but "a geometry that would make them unnecessary, at least in some
+circumstances". `tools/research/rail_job.ts` on the foundation (`foundation-3` rides, V8, 196): for each gap, whether
+its rail is touched and when, and like-for-like comparisons (same family and ask band). Observational: the search
+chose rails where it judged them useful, so differences are not causal.
+
+- A rail is touched in 44% of gaps with a catch: **at the release (the support's last frames) in 80%** of those, in the
+  catch in 46%, on the support between in 26% (1.7, 0.8 and 0.7 frames on average).
+- **On arcs, the rail's job is the release:** the flight it launches errs less on speed (strong asks: rms 0.077 against
+  0.094; middle: 0.035 against 0.047) and on air (0.045 against 0.052; 0.039 against 0.046); strong arc catches land a
+  little harder (bias −0.125 against −0.142). On shaped families no such benefit shows.
+- **Why:** arcs whose rail is touched at the release mostly end bending downward (convex under the rider: 63%, against
+  40% of arcs with no rail touched; median end bend +5° against −1°). A rider leaves a convex curve early at speed unless
+  held; the rail holds it to the end, so the flight leaves as designed.
+- So a geometry that makes the rail unnecessary is one the rider can follow to its end unaided: an end it is pressed
+  into (concave, or convex no more than gravity holds: speed² × curvature ≤ g × cos of the slope). A catch from above
+  is not the rail's main job.
 
 ## November 14: Circus Minimus follows the voice to the end (`voice-full`, now the default)
 

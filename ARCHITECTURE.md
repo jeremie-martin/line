@@ -26,8 +26,8 @@ and validation are in [music authoring](docs/music-authoring.md).
    supported.
 2. **Plan.** `planIntentionalRepertoire` (`intentional_repertoire.ts`, built on
    `repertoire_policy.ts`) chooses a construction for each support section
-   from the geometry families (below): an open arc, a shape or arc offered a
-   guide rail, or scattered segments, grouped into short repeated phrases.
+   from the geometry families (below): an open arc, a shape offered a guide
+   rail, or scattered segments, grouped into short repeated phrases.
    Since 2026-11-01 a guide is offered, never required: the search uses it
    where it helps the catch (78% of such sections on the bench) instead of
    buying a forced touch. Automatic plans use paired rails only; explicit
@@ -40,8 +40,11 @@ and validation are in [music authoring](docs/music-authoring.md).
    today's way of tying the plan to what works, one approach among many, not a
    settled design (`docs/taste-and-the-compiler.md`). Two rules that offered
    arcs a rail more often (in strong phrases; where the table said it clearly
-   fit) were removed on 2026-11-14: they made rails the default. An explicit plan
-   bypasses this step.
+   fit) were removed on 2026-11-14: they made rails the default. Since the same
+   day **arcs are never offered a rail**: an arc phrase drawn and placed as guided
+   becomes an open arc (the owner prefers these rides by eye; V8 −9.0, rails 55% →
+   43% of gaps). Shaped families and scattered segments keep their optional rail.
+   An explicit plan bypasses this step.
 3. **Construct.** `compileProductionRepertoire` (`production_repertoire.ts`)
    gives one total physics allowance to `compileArcMotion` (`arc_motion.ts`),
    configured by `ArcMotionOptions` (`arc_options.ts`). The search runs section
@@ -50,7 +53,9 @@ and validation are in [music authoring](docs/music-authoring.md).
      parametric centre, learned proposals from the compact
      construction-policy sources (`arc_control_policy.ts`, `arc_memory.ts`; see "Construction
      policies" below), memory of earlier sections, response directions, a
-     generic sweep and observed receivers;
+     generic sweep, observed receivers, and receivers met from above that keep
+     the rider's body clear (12 per section, `upperReceiverProposals`, since
+     2026-11-14);
    - measures each proposal by native replay from the section's physical
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`); a proposal
      whose rail crosses or comes within 2 px of its own support is not built

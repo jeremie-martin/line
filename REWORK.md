@@ -15,6 +15,7 @@
   cost); same contexts, 852 rides.
 - **Hypothesis:** families that cause unasked hits where they are placed (rails touched on the way) move; extras down,
   V8 up a little.
+- **Result: not adopted**, V8 at 8 seeds −3.5 [−5.6, −1.5] (P3 −11.0, P6 −10.8); extras unchanged (+3%).
 
 ## November 14: hypothesis, placement by a model instead of a table (stated before running)
 

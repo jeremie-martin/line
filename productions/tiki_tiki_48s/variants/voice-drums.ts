@@ -6,9 +6,11 @@
  *   0.0–7.0    The solo voice, before any music: every word is touched at about 0.1, no more (the
  *              owner's wish for this song, not a rule): five words, the five-word motif 0.26–0.30 s
  *              apart, then silence with one breath at 5.27, touched too. The ride floats around it.
- *   7.0–10.5   The breathy words, each a little firmer and faster; the two loud notes in the drum
- *              cut; then the drop, the hardest landing.
- *   10.5–24.4  The groove. Every kick, with the downbeat firmer; the backbeat snare after beats 1
+ *   7.0–10.5   The build. The beat is already there under the breathy words: the words on it are
+ *              firmer, the words between lighter, each pair a step up, into the drop, the hardest
+ *              landing of the song.
+ *   10.5–24.4  The groove. Every kick, its strength chosen bar by bar (lighter first, the last two bars
+ *              the strongest); the backbeat snare after beats 1
  *              and 2; the pickup snare 0.22 s before each downbeat ("ta-BOOM"). On top, what makes
  *              each bar different, which the first spec could not ask for:
  *                - the two words that run into beat 3, 0.2 s apart (the first shares the backbeat);
@@ -19,9 +21,9 @@
  *              drum stem 0.35 and 0.31, slow attacks, no drum class), then the three murmured
  *              syllables, lightly, and the re-entry. The first draft floated over this passage and
  *              landed neither boom: the owner asked why (they are on the beat, and heard).
- *   27.9–39.2  The run: the groove again and the loudest stretch, so everything a little firmer
- *              and faster.
- *   39.2–41.8  The bar breaks: the weak snare, three kicks, the last soft kick.
+ *   27.9–39.2  The run: the groove again and the loudest stretch, a step above the groove.
+ *   39.2–41.8  The bar breaks: the weak snare, then the last four kicks, alone as the voice goes
+ *              down: very strong, the second peak of the song.
  *   41.8–48.0  The voice alone again, as at the start: only the voice, touched at about 0.1, to its
  *              last note at 47.32; low air held to the end, the rider slowing on the line.
  *
@@ -46,19 +48,38 @@ const WORDS_INTO_3 = [12.875, 16.358, 30.279, 33.762];
 const BEFORE_PICKUP = [14.396, 17.868, 28.317, 31.788, 35.26];
 /** The chord stabs of the groove's third bar ("other" 0.29–0.51), the song's only chords in front. */
 const STABS = [19.841, m.STAB, 22.895, 23.324];
+const STAB_STRENGTH: Record<number, number> = {19.841: 0.50, [m.STAB]: 0.62, 22.895: 0.50, 23.324: 0.52};
+/** Notes of the instrumental line the owner marked and the first drafts left out (soft attacks in the "other" stem), and
+ *  three more he named: before the first pickup, in the stab bars, in the run's end, and two faint ones in the outro. */
+const LINE_EXTRA = [10.913, 21.351, 23.975, 38.975, 41.366, 42.237, 46.602];
+const LINE_STRENGTH: Record<number, number> = {10.913: 0.40, 21.351: 0.46, 23.975: 0.42, 38.975: 0.42, 41.366: 0.38, 42.237: 0.10, 46.602: 0.06};
 /** The one bass note heard on its own, clear of any drum hit or word: the walk up to the first hook. */
 const BASS = [13.351];
 /** Voice in the run's last bar, between the kicks (vocals 0.29). */
 const RUN_WORDS = [38.731];
 /** The run's last bar fills the slot after beat 3 with a bass note and a drum tick (bass 0.31, mix rise 0.20). */
 const RUN_SLOT = 37.222;
-const EXTRA_KICKS = [16.985, 34.377];
 /** Two sounds of the voice that sung.json measures and events.json does not list: a breath in the silence (unpitched, vocals
  *  0.06; the owner hears it at about 5.27) and the last sung note (F♯4, salience 0.48). */
 const BREATH = 5.271, LAST_NOTE = 47.322;
 /** The boom's two softer repeats, a beat apart; the swell's first tick; the backbeat inside the run's end. */
 const AFTER_BOOM = [25.252, 26.122], SWELL_START = 8.731, RUN_END_BACKBEAT = 40.054;
 const kicks = m.KICKS.filter(t => t !== m.DROP && t !== m.REENTRY);
+const fail = (t: number): never => {throw new Error(`no strength for the kick at ${t}`);};
+/** Every kick's strength, chosen one by one. The drum stem is flat (every kick 0.69–0.74), so loudness says little; the
+ *  shape is the owner's (2026-11-14): the groove's first two bars lighter, its last two (the instrumental line he hears as
+ *  the chorus) the strongest of the groove, 20.94 at 0.9; the run a step above the groove; the last four kicks, alone as
+ *  the voice goes down, very strong. Where the mix's own attack is sharpest (15.69, 22.64, 39.60) the kick is a step up. */
+const KICK: Record<number, number> = {
+  11.343: 0.76, 12.214: 0.64, 13.073: 0.64, 13.955: 0.66,
+  14.826: 0.78, 15.685: 0.72, 16.556: 0.66, 16.985: 0.62, 17.427: 0.68,
+  18.297: 0.82, 19.168: 0.74, 20.039: 0.80, 20.944: 0.90,
+  21.78: 0.88, 22.639: 0.88, 23.51: 0.80,
+  28.735: 0.84, 29.605: 0.74, 30.476: 0.72, 31.347: 0.74,
+  32.218: 0.84, 33.077: 0.78, 33.948: 0.72, 34.377: 0.66, 34.818: 0.74,
+  35.689: 0.86, 36.56: 0.78, 37.431: 0.78, 38.301: 0.88,
+  39.602: 0.94, 40.472: 0.95, 40.902: 0.92, 41.784: 0.96,
+};
 
 const authored = [
   // the solo voice: barely touched (the owner: about 0.1 until there is music, at 7 s)
@@ -66,27 +87,29 @@ const authored = [
   ...layer(m.INTRO_RUN, (_, i) => 0.08 + 0.01 * i),
   {t: m.INTRO_TAIL, impact: 0.06},
   {t: BREATH, impact: 0.08},
-  // the build and the cut
-  ...layer(m.BUILD_WORDS, (_, i) => 0.30 + 0.04 * i),
-  ...layer(m.CUT_WORDS, (_, i) => [0.50, 0.56][i]),
+  // the build and the cut: the beat already runs under the voice (0.87 s back from the drop: 7.00, 7.87, 8.73, 9.6), so the
+  // words on it are firmer than the words between, each pair a step up (the owner heard it; two carry a faint drum tick)
+  {t: 7.001, impact: 0.34}, {t: 7.372, impact: 0.18}, {t: 7.872, impact: 0.40}, {t: 8.243, impact: 0.22},
+  {t: SWELL_START, impact: 0.46}, {t: 9.102, impact: 0.26}, {t: 9.66, impact: 0.54}, {t: 9.961, impact: 0.30},
   {t: m.DROP, impact: 1},
   // groove and run
-  ...layer(kicks, t => (m.DOWNBEATS.includes(t) ? 0.86 : EXTRA_KICKS.includes(t) ? 0.66 : t >= m.RUN_END ? (t === m.LAST_DRUM ? 0.55 : 0.68) : 0.72) + RUN(t)),
-  ...layer(m.PICKUPS, t => 0.55 + RUN(t)),
-  ...layer(m.BACKBEATS, t => t === m.RUN_END ? 0.42 : 0.50 + RUN(t)),
+  ...layer(kicks, t => KICK[t] ?? fail(t)),
+  ...layer(m.PICKUPS, t => 0.54 + RUN(t)),
+  ...layer(m.BACKBEATS, t => t === m.RUN_END ? 0.42 : 0.48 + RUN(t)),
   ...layer(WORDS_INTO_3, 0.50),
   ...layer(BEFORE_PICKUP, 0.42),
   ...layer(m.HOOKS, 0.56),
-  ...layer(STABS, t => t === m.STAB ? 0.56 : 0.44),
+  ...layer(STABS, t => STAB_STRENGTH[t]),
+  ...layer(LINE_EXTRA, t => LINE_STRENGTH[t]),
   ...layer(BASS, 0.36),
   ...layer(RUN_WORDS, 0.42),
   {t: RUN_SLOT, impact: 0.46},
   // the boom and the reset
-  {t: m.BOOM, impact: 0.9},
-  ...layer(AFTER_BOOM, (_, i) => [0.56, 0.50][i]),
-  {t: SWELL_START, impact: 0.30},
+  {t: m.BOOM, impact: 0.55}, // the owner: quite discreet (the mix agrees: 0.62, attack 0.16, against 1.0 and 0.7 for a kick)
+  ...layer(AFTER_BOOM, (_, i) => [0.40, 0.36][i]),
   {t: RUN_END_BACKBEAT, impact: 0.34},
-  ...layer(m.RESET_WORDS, (_, i) => 0.22 + 0.03 * i),
+  ...layer(m.RESET_WORDS, (_, i) => 0.16 + 0.02 * i),
+  {t: 27.458, impact: 0.12}, // one more syllable before the re-entry, very small
   {t: m.REENTRY, impact: 0.95},
   // the voice alone again, as at the start: only the voice, barely touched
   ...layer(m.OUTRO_WORDS, 0.10),

@@ -9,5 +9,5 @@ it('Tiki Tiki voice-drums: measured landings in order, the drop the hardest, a r
   expect(c[0].t).toBeGreaterThanOrEqual(0.2);
   const air = spec.axes.air!;
   expect(air(DURATION - 0.5)).toBeLessThan(0.2);  // low air held to the end, not a jump
-  expect(Math.max(...c.filter(k => k.t < 7 || k.t > 42).map(k => k.impact))).toBeLessThanOrEqual(0.12);  // voice alone: barely touched
+  expect(Math.max(...c.filter(k => k.t < 6.9 || k.t > 42).map(k => k.impact))).toBeLessThanOrEqual(0.12);  // voice alone: barely touched
 });

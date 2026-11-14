@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: why quiet asks land too hard (measured), and Q1: impact errors priced relative to the ask (stated before running)
+
+The owner: quiet asks have had no attention for a long time; do better, with general mechanisms.
+- **Not physics, not proposals** (`tools/research/quiet_work.ts`, branch `exp/quiet-probe`, V8 seed 101, report only):
+  in the search, where the best candidate for an ask under 0.2 lands more than 0.06 too hard, a viable candidate within
+  0.03 of the ask exists in 79% (asks 0–0.1) and 94% (0.1–0.2) of cases. The best-ranked of them ranks behind by a
+  median 0.136 and 0.077. Touchdowns as soft as 0.06–0.09 are physically reachable (an engine probe;
+  `tools/research/quiet_catches.ts` finds no geometric cause: incidence, pose, spin and family barely move the overshoot,
+  as "quiet catches laid along the arrival" found).
+- **The search brakes with touchdowns.** What the soft candidate pays is mostly the flight after it: speed residual²
+  +0.121 (mean), air +0.027, timing +0.022, extra hits +0.041, priors +0.039, against −0.029 on impact. The soft
+  candidate leaves too fast in 84% of cases (speed residual +0.26 against +0.09) and flies higher in 74%. Quiet
+  passages ask moderate speed (median 0.44) while descending flights add speed; a hard touchdown is how the search
+  sheds it.
+- **Q1** (`exp/quiet-relative`): the search prices an impact error relative to the ask's size: the impact weight ×
+  ((0.5 + 0.15) / (ask + 0.15))², never below 1 (ask 0.1: ×6.8; 0.2: ×3.4; 0.5 and up: ×1), replacing the calm
+  multiplier (×1.5 under 0.2). The ruler is unchanged. **Hypothesis:** quiet bias (asks under 0.2) falls by half or
+  more; flight speed error rises on quiet passages; headline within a few points; strong asks unchanged.
+- The other route, for after: geometry that sheds speed without a hit (a soft touchdown, then a long gentle climb;
+  floats that land near their launch height gain no speed).
+
 ## November 14: quiet asks (measured; compiler unchanged)
 
 The owner feels the compiler lands quiet asks (0–0.2) too strong, on his new Tiki voice-drums spec (voice alone at

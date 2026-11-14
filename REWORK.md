@@ -9,6 +9,15 @@
   strong extra impacts −29% (0.14 against 0.19 per 100 beats), head-down strong arrivals −7%, body drag −1%. Parity
   references refreshed.
 
+## November 14: hypothesis, phrases of three or four sections (stated before running)
+
+- **Basis.** 17% of committed moves come from the ride's own memory of earlier sections (`candidate_origins.ts`, V8),
+  which matches by style: a phrase's later sections learn from its earlier ones. Phrases are 2 or 3 sections.
+- **Change** (`exp/longer-phrases`): 3 or 4 sections (the same draw; the same breaks at calm, speed and boundaries).
+- **Hypothesis:** more within-ride memory per family, better later sections; V8 up. Variety: the same families, in
+  longer runs.
+- **Result: not adopted**, −1.6 [−8.7, +5.4] (V8, 4 seeds; P6 −17.6, P4 +5.4); strong extra impacts +36%.
+
 ## November 14: hypothesis, the placement table refitted on 852 rides (stated before running)
 
 - **Change** (`exp/families-fit-852`): the same table, fitted on the V7.1 rides of three compilers (before placement, the

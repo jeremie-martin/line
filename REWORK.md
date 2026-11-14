@@ -17,6 +17,10 @@ and 67%). Rails are offered on every family; only arcs are ever built without on
   - **Hypothesis:** railed gaps fall with the budget (about 50%, 38%, 25%); V8 falls more at each level; at 45% and 30%
     shaped families are built without a rail for the first time, and may cost more than open arcs do.
 - **Measured:** V8, 4 seeds, against `compiler`; every ruler, completion apart, ride character, a geometry sheet.
+- **Added after B's first results** (stated before running): **B, arcs only** (`exp/rail-budget-60-arcs`): the 60%
+  budget withdraws offers from arc phrases only; shaped phrases keep theirs. Basis: in B the rail-less shapes left the
+  rider slow (speed error 0.026 against about 0.005 elsewhere; half of all speed error at 60%). **Hypothesis:** most of
+  B60's loss goes; railed gaps settle near 55% (arcs alone cannot reach 60% offered on every ride).
 
 ## November 14: rails and upper hits (measured; compiler unchanged)
 

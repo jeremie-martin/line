@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: R1 result, and R2: ridable twins without a rail (stated before running)
+
+- **R1** (V8, 196 rides, against `base`): headline −0.6 [−6.9, +5.7], 21 specs up, 22 down; explicit −2.9; strong
+  extra impacts −21%. Rails unchanged (55% of gaps). The search chose a ridable twin for 22% of the arcs that may have
+  a rail (590 of 2,736), but 469 of those still keep the rail: the catch throws the rider up into it, and a rail
+  touched anywhere is kept. A ridable end alone does not make the rail unnecessary.
+- **R2** (same branch): the twins are drawn without a rail (`guideStart` = `guideEnd` = 0: no stretch, no rail;
+  refinements do not search those two), so the search weighs a rail-free ridable arc against its railed original.
+  **Hypothesis:** rail share on arcs that may have a rail falls; the headline within a few points; flights' speed
+  error on those arcs up a little where the rail held the rider.
+
 ## November 14: hypothesis, ridable twins (R1; stated before running; a first step toward geometry that needs no rail)
 
 - **Basis** (`tools/research/rail_counterfactual.ts`, seed 101, 2,323 touched rails, each removed alone and the ride

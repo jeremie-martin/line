@@ -15,7 +15,7 @@ import {join, resolve} from 'node:path';
 import {ENGINE_PATH} from '../../scripts/lib/compiler_identity.ts';
 import {digest} from './inputs.ts';
 import {atomicWrite, compiledOutputs, readJson, readJsonGz, readTrack, type PlannedCase} from './records.ts';
-import {measureCell} from './measure.ts';
+import {measureCell, geometryFacts} from './measure.ts';
 import {ADAPTER_SHA256, type ArmSettings} from './compile.ts';
 import {gzipSync} from 'node:zlib';
 
@@ -143,9 +143,19 @@ export function savedCell(arm: Arm, c: PlannedCase, evaluator: string, resolved:
   const track = readArmTrack(arm, c.id);
   assert.equal(digest(track), cell.trackHash, `${cellPath(arm, c.id)}: saved track differs from its cell`);
   const {spec, music} = resolved();
-  const remeasured = measureCell({c, spec, music, track, ...compiledOutputs(cell)});
+  const remeasured = measureCell({c, spec, music, track, ...compiledOutputs(cell), geometry: currentGeometry(arm, c.id, cell.geometry)});
   writeArmCell(arm, c, remeasured, cell.trackHash, evaluator, {...cell.provenance, remeasuredFrom: cell.evaluator});
   return {cell: readJson(cellPath(arm, c.id)), remeasured: true};
+}
+/** Geometry facts as today's measurement reads them. Facts saved before guide ids were recorded (2026-11-14) are rebuilt
+ * from the compile output saved beside the cell, and must reproduce every fact they had. */
+function currentGeometry(arm: Arm, id: string, geometry: any) {
+  if (!geometry || geometry.sections.every((s: any) => Array.isArray(s.guides))) return geometry;
+  const gallery = readArmGallery(arm, id);
+  if (!gallery) return geometry;
+  const rebuilt = geometryFacts(gallery.production);
+  assert.deepEqual({...rebuilt, sections: rebuilt.sections.map(({guides: _, ...s}: any) => s)}, geometry, `${id}: rebuilt geometry facts differ`);
+  return rebuilt;
 }
 function describeInputChange(old: any, now: any) {
   const keys = [...new Set([...Object.keys(old), ...Object.keys(now)])].filter(k => JSON.stringify(old[k]) !== JSON.stringify(now[k]));

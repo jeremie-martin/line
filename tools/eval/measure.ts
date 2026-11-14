@@ -8,16 +8,19 @@ import {arrivalPose} from '../measure/arrival.ts';
 import {strikeFrames, strikeMotionFrames, detectStrikes, accountStrikes, STRIKE_V2_CONTRACT, STRIKE_V3_CONTRACT} from '../measure/strike.ts';
 // The account's own scale: an unmatched event costs (raw / veryStrong)².
 import {CONTACT_IMPACT_CONTRACT} from '../../scripts/lib/contact_impact.ts';
+import {idRanges} from '../measure/contact_role.ts';
+import {rideCharacter} from '../measure/character.ts';
 const SHORT_SECTION_FRAMES = 9;
 /** Compact geometry facts of one compile, for the report only: per section, the
- * planned family, guidance, rail layout and length in frames, and what the
+ * planned family, guidance, rail layout and length in frames, its guide line ids, and what the
  * realization check found (fulfilled, its reasons, guide contact frames, turn
  * reversals, and for transfer layouts the engaged corners). `shapedMinFrames` is
  * the shortest section any shaped family accepts in the compiler's table. The
  * plan is the fitted one: whether short-shape fitting changed a section is not
  * recoverable from it, so it is not recorded. Compiler output, like `motion`:
  * remeasurement carries it over unchanged. */
-export function geometryFacts({plan, realization, sectionFallbacks}: {plan: any; realization: any; sectionFallbacks?: any[]}) {
+export function geometryFacts({plan, realization, sectionFallbacks, railGuides}: {plan: any; realization: any; sectionFallbacks?: any[];
+  railGuides?: Record<string, number[]>}) {
   if (realization.sections.length !== plan.requests.length) throw new Error('realization does not cover the plan');
   // "Short" is a reporting band (a 0.2 s pair is 8–9 frames), not a compiler rule.
   return {shapedMinFrames: SHORT_SECTION_FRAMES, fallbacks: sectionFallbacks ?? [], sections: plan.requests.map((r: any, i: number) => {
@@ -25,7 +28,10 @@ export function geometryFacts({plan, realization, sectionFallbacks}: {plan: any;
     if (s.section !== r.section) throw new Error('realization sections out of order');
     return {family: r.construction, guidance: r.guidance, rail: r.railLayout ?? null, frames: r.next - r.frame,
       fulfilled: s.fulfilled, reasons: s.reasons, guideFrames: s.guideContactFrames, reversals: s.turnReversals,
-      ...(s.transfer ? {engagedTurns: s.transfer.engagedTurns} : {})};
+      ...(s.transfer ? {engagedTurns: s.transfer.engagedTurns} : {}),
+      // The section's guide line ids as the compile laid them (scattered fragments' included), before any trimming:
+      // which ones the final track keeps is measured from the track.
+      guides: idRanges(railGuides?.[r.section] ?? [])};
   })};
 }
 export function measureCell({c, track, spec, music, physicalFrames, compileMs, complete, fulfilled, motion, geometry}: any) {
@@ -55,6 +61,9 @@ export function measureCell({c, track, spec, music, physicalFrames, compileMs, c
     return {requested: t.impact ?? null, hit: e ? {strength: +e.strength.toFixed(4), onset: e.onset,
       offset: e.onset - t.frame, timingError: m!.timingError, peakFrame: e.peakFrame, ...arrivalPose(observation.frames, e.contactStart)} : null};
   });
+  // How each matched hit is made (floor, upper, rail...; contact_role.ts) and the ride's character (character.ts).
+  const character = rideCharacter(track, geometry, observation.frames, music.durationFrames);
+  for (const b of perBeat) if (b.hit && character) b.hit.contact = character.hit(b.hit.contactStart);
   const strongPose = perBeat.filter((b: any) => b.requested >= .6 && b.hit).map((b: any) => b.hit.headDown);
   const last = Math.min(music.durationFrames, observation.frames.length - 1);
   let dragFrames = 0, run = 0, kicks = 0;
@@ -87,6 +96,9 @@ export function measureCell({c, track, spec, music, physicalFrames, compileMs, c
     // Where the replayed ride ended (frame, reason): the failure time of an incomplete ride.
     terminus: observation.terminus,
     motion, guards, beats,
+    // Report only; null without the geometry facts' guide ids.
+    character: character && {railDrawn: character.railDrawn, guideContact: character.guideContact, upperContact: character.upperContact,
+      bodyContact: character.bodyContact},
     // Absent on cells compiled before geometry facts were recorded.
     ...(geometry ? {geometry} : {})};
 }

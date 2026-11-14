@@ -63,6 +63,7 @@ export function summarize(cell: any) {
       return {'v3 strong bias (req>=0.6)': bias(band(.6, 2)), 'v3 strong rms (req>=0.6)': rms(band(.6, 2)),
         'v3 very strong bias (req>=0.8)': bias(band(.8, 2)), 'v3 quiet bias (req<0.15)': bias(band(0, .15))};
     })(),
+    ...characterOfCell(cell),
     'strong arrivals inverted/backward': cell.guards?.strongInverted ?? NaN,
     'body drag s/min': cell.guards?.dragSecondsPerMinute ?? NaN,
     'off-beat kicks / ride': cell.guards?.offBeatKicks ?? NaN,
@@ -72,6 +73,27 @@ export function summarize(cell: any) {
     'burst excess (100 ms)': cell.motion?.bursts?.[1]?.excessIntegral ?? NaN,
     'physics frames (M)': cell.physicalFrames / 1e6, 'compile s': cell.compileMs / 1000,
   };
+}
+const SHAPES = new Set(['fold', 'serpentine', 'scallops', 'terraces']);
+/** One ride's character (tools/measure/character.ts, contact_role.ts), NaN where the cell predates it. Rails: sections
+ * whose final track keeps a guide line, weighted by their frames; open arcs: arcs keeping none; shapes: the four shaped
+ * families; the longest railed stretch: consecutive sections keeping a rail, in seconds. A clean upper hit: a beat
+ * caught on a line's underside with no rail touched; a strong beat asks 0.6 or more, and one with no matched hit counts
+ * as not clean. */
+export function characterOfCell(cell: any): Record<string, number> {
+  const ch = cell.character, sections: any[] = cell.geometry?.sections ?? [];
+  const keys = ['rails, share of ride time', 'open arcs, share of ride time', 'shapes, share of ride time', 'longest railed stretch s',
+    'clean upper hits, share of strong beats', 'clean upper hits, share of beats', 'rail contact s/min', 'upper contact s/min'];
+  if (!ch || ch.railDrawn.length !== sections.length) return Object.fromEntries(keys.map(k => [k, NaN]));
+  const frames = sections.reduce((n, x) => n + x.frames, 0), time = (keep: (x: any, i: number) => boolean) =>
+    sections.reduce((n, x, i) => n + (keep(x, i) ? x.frames : 0), 0) / frames;
+  let run = 0, longest = 0;
+  sections.forEach((x, i) => {run = ch.railDrawn[i] ? run + x.frames : 0; longest = Math.max(longest, run);});
+  const asked = (cell.impact3?.perBeat ?? []).filter((b: any) => b.requested != null), strong = asked.filter((b: any) => b.requested >= .6);
+  const clean = (rows: any[]) => rows.length ? rows.filter(b => b.hit?.contact === 'upper').length / rows.length : NaN;
+  return {[keys[0]]: time((_, i) => ch.railDrawn[i]), [keys[1]]: time((x, i) => x.family === 'arcs' && !ch.railDrawn[i]),
+    [keys[2]]: time(x => SHAPES.has(x.family)), [keys[3]]: longest / 40,
+    [keys[4]]: clean(strong), [keys[5]]: clean(asked), [keys[6]]: ch.guideContact, [keys[7]]: ch.upperContact};
 }
 export function windowTest(c: any) {
   const windows: Array<[number, number]> = c.bench?.windows ?? [];

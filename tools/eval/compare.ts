@@ -29,7 +29,7 @@ import {ADAPTER_SHA256, compileAndMeasure, type ArmSettings} from './compile.ts'
 import type {Clip} from '../measure/clip_render.ts';
 import {compilerContent, commitContent, resolveCommit, worktreeFor, openArm, readArmMeta, savedCell, saveArmCell, readArmTrack, readArmGallery, setReference, getReference,
   listReferences, type Arm} from './arms.ts';
-import {headline, headlineScore, specKey, mean, strataOf, summarize} from './summary.ts';
+import {headline, headlineScore, specKey, mean, strataOf, summarize, characterOfCell} from './summary.ts';
 import {validateRunOptions, stratifiedReport, pad} from './eval.ts';
 import {seedBlocks, formatSupport, MIN_BLOCKS} from './uncertainty.ts';
 
@@ -164,7 +164,10 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
     compile: [perRide('candidate', c => c.compileMs), perRide('reference', c => c.compileMs)],
     // Costs and guards that no headline counts, per ride, with the same
     // definitions as the detail section (summary.ts `summarize`).
-    guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key])))};
+    guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key]))),
+    // The ride's character (summary.ts `characterOfCell`), per ride, and the largest single ride's rail share.
+    character: CHARACTER.map(([key]) => SIDES.map(side => perRide(side, c => characterOfCell(c)[key]))),
+    railsMax: SIDES.map(side => Math.max(...ids.map(id => characterOfCell(cells[side].get(id))['rails, share of ride time'])))};
 }
 /** How different the rides of different random starts are, within one arm:
  * for every spec and every pair of its seeds, the share of gaps whose realized
@@ -241,8 +244,19 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
     `  compute per ride: physics ${(e.frames[0] / 1e6).toFixed(2)}M vs ${(e.frames[1] / 1e6).toFixed(2)}M frames (${signed((e.frames[0] - e.frames[1]) / 1e6, 2)}M, ${relative(e.frames[0], e.frames[1])}); ` +
     `compile ${(e.compile[0] / 1000).toFixed(0)} s vs ${(e.compile[1] / 1000).toFixed(0)} s (wall time: depends on how many rides ran at once)`,
     `  costs and guards per ride (not in any headline): ` + GUARDS.map(([, label, digits, unit, scale], k) =>
-      `${label} ${(scale * e.guards[k][0]).toFixed(digits)} vs ${(scale * e.guards[k][1]).toFixed(digits)}${unit} (${relative(e.guards[k][0], e.guards[k][1])})`).join('; ')];
+      `${label} ${(scale * e.guards[k][0]).toFixed(digits)} vs ${(scale * e.guards[k][1]).toFixed(digits)}${unit} (${relative(e.guards[k][0], e.guards[k][1])})`).join('; '),
+    `  ride character per ride (not in any headline): ` + (e.character.every(([a, b]) => Number.isFinite(a) && Number.isFinite(b))
+      ? CHARACTER.map(([, label, digits, unit, scale], k) => `${label} ${(scale * e.character[k][0]).toFixed(digits)} vs ${(scale * e.character[k][1]).toFixed(digits)}${unit}` +
+        (k === 0 ? ` (largest ride ${(100 * e.railsMax[0]).toFixed(0)} vs ${(100 * e.railsMax[1]).toFixed(0)}%)` : '')).join('; ')
+      : 'not recorded (rides measured before guide ids were kept)')];
 }
+/** The ride's character the summary shows: [characterOfCell() key, label, decimals, unit, scale]. */
+const CHARACTER: Array<[string, string, number, string, number]> = [
+  ['rails, share of ride time', 'rails', 0, '% of ride time', 100],
+  ['open arcs, share of ride time', 'open arcs', 0, '%', 100],
+  ['shapes, share of ride time', 'shapes', 0, '%', 100],
+  ['clean upper hits, share of strong beats', 'clean upper hits', 1, '% of strong beats', 100],
+];
 
 /** The guards the summary shows: [summarize() key, label, decimals, unit, scale]. */
 const GUARDS: Array<[keyof ReturnType<typeof summarize>, string, number, string, number]> = [

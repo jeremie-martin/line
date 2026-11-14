@@ -1,5 +1,34 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: why strong catches from above come apart (report only; upper hits, stage 2 groundwork)
+
+The foundation, V8 seed 101, 49 specs, tracks identical to `compiler` (49/49).
+
+- **The candidate pools** (`crash_edge.ts`, 1,382 sampled intervals asking 0.75+):
+
+  | | floor side | upper side (`contactSide` −1) |
+  |---|---|---|
+  | share of candidates | 81% | 19% |
+  | struck near the ask (within 0.1) and came apart | 25% | **85%** |
+  | survivors' strength, median / top 10% | 0.63 / 0.81 | 0.47 / 0.65 |
+  | strongest survivor per interval | 0.74 | 0.53 |
+
+  Half the intervals have no upper survivor; in 16% the best upper survivor is at least as strong as the best floor one.
+- **What separates them** (`upper_survival.ts`, the 78,332 upper candidates that struck near the ask and came apart,
+  against the 1,240 accepted clean upper hits of `upper_hits.ts`):
+
+  | | came apart | survived |
+  |---|---|---|
+  | arrival (falling) | 34° | 18° |
+  | sled pitch against the arrival | +2° | −21° (nose up) |
+  | shoulder / hands touch first | 56% / 47% | 26% / 24% |
+  | frames to coming apart | 3.4 (75% within 3) | — |
+
+- **Reading:** a catch from above is survived when the line takes the sled's front on a flatter arrival, and thrown off
+  when it meets the shoulder and hands. Today's opposing receivers are placed against the rider point nearest the line
+  among all ten (`receiverPoints`, contactSide −1), which on an upright rider is usually the shoulder. The survivors are
+  accepted hits (also chosen for cost), the crashes all candidates: indicative, not causal.
+
 ## November 14: the owner's blind upper-hit study (measured)
 
 `upper-hits-2026-11` (labels/studies): 14 pairs, a clean upper hit against a floor hit of the same strike strength

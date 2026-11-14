@@ -30,6 +30,14 @@ function incidence([vx, vy]: [number, number], l: Line) {
   return deg(Math.min(a, Math.PI - a));
 }
 
+/** As upper_survival.ts: the body's offset below the sled's centre (negative = above) and the sled's pitch against the
+ * arrival heading, the frame before the catch. */
+function setting(frame: any, heading: number) {
+  const p = (k: string) => frame.points[POINTS.indexOf(k)], sled = ['PEG', 'TAIL', 'NOSE', 'STRING'].map(p);
+  const cy = sled.reduce((a: number, q: number[]) => a + q[1], 0) / 4;
+  const pitch = deg(Math.atan2(p('NOSE')[1] - p('TAIL')[1], p('NOSE')[0] - p('TAIL')[0])) - heading;
+  return {bodyBelow: p('SHOULDER')[1] - cy, pitch: ((pitch + 540) % 360) - 180};
+}
 const rows: any[] = [];
 for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seeds.some(s => f.endsWith(`~${s}.json`))).sort()) {
   const id = f.slice(0, -5), cell = JSON.parse(readFileSync(join(dir, f), 'utf8'));
@@ -51,6 +59,7 @@ for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seed
     const next = perBeat[j + 1];
     rows.push({ride: id, beat: j, kind: h.contact, ask: b.requested, strength: h.strength, family: s.family, guidance: s.guidance,
       rail: !!cell.character?.railDrawn?.[j + 1], opposing: control.contactSide === -1,
+      ...setting(frames[start - 1], deg(Math.atan2(before[1], before[0]))),
       speedIn: Math.hypot(...before), heading: deg(Math.atan2(before[1], before[0])), rising: before[1] < 0, air,
       sledFirst: first.some(([, p]: number[]) => SLED.has(p)), firstPoints: [...new Set(first.map(([, p]: number[]) => POINTS[p]))],
       points4: points.size, build: h.peakFrame - start, incidence: line ? incidence(before, line) : null, headDown: !!h.headDown,
@@ -93,5 +102,6 @@ for (const r of up) for (const p of r.firstPoints) firsts.set(p, (firsts.get(p) 
 console.log('clean upper, points touching in the first frame:', [...firsts].sort((a, b) => b[1] - a[1]).map(([p, n]) => `${p} ${pc(n / up.length)}`).join(' · '));
 const ff = new Map<string, number>();
 for (const r of floor) for (const p of r.firstPoints) ff.set(p, (ff.get(p) ?? 0) + 1);
+console.log('clean upper (survived): body above the sled', pc(share(up.map(r => r.bodyBelow < 0))), '· pitch', f2(mean(up.map(r => r.pitch))));
 console.log('floor, points touching in the first frame:', [...ff].sort((a, b) => b[1] - a[1]).map(([p, n]) => `${p} ${pc(n / floor.length)}`).join(' · '));
 process.exit(0);

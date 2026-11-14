@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15 (night): Q11 result, and where the quiet-ask work stands (nothing adopted)
+
+- **Q11** (Q10 at 0.4, hits nobody asked for priced ×1.5): headline −9.7 [−16.4, −2.9]; explicit −44.1; strong extra
+  impacts 0.15 (Q10 0.27, `foundation-5` 0.10); speed rms +0.010; asks 0–0.1 within ×1.5 68% / over ×2 17%. Pricing
+  the stray hits brings them down and the speed error back up, as every time tonight.
+- **Where it stands.** Quiet asks land too hard because the search uses touchdowns to brake: soft alternatives exist
+  in 79–94% of intervals and leave the flight too fast. Every pricing of quiet misses moves that energy, into flight
+  speed and air, or into hits nobody asked for. Geometry that sheds it (climbing twins, spread catches) did not help
+  as built: calm specs ask much air, which leaves 2–5-frame supports and no room to climb. The best trade, **Q10**
+  (relative pricing with a touchdown floor), lands small quiet asks within ×1.5 58–65% of the time (38%) and the
+  owner's Tiki voice-drums 85–95% (65–82%), with strong asks, air and speed unchanged, for −5.4 on V8 and 2.8× the
+  stray strong hits. It is a candidate for the owner's eye (`generated/quiet-study/compare.html`), not adopted.
+- **Next, if pursued:** the energy has to be planned, not priced: passages asking quiet catches and much air need
+  either longer supports (where a catch's turn can be spread and the ride can climb) or flights that land at their
+  launch height; that is a construction and planning question, not a ranking one.
+
 ## November 15 (night): Q10 result, the owner's Tiki spec, and Q11 (stated before running)
 
 - **Q10** (relative pricing with the touchdown floor, no climbing twins), V8 against `foundation-5`:

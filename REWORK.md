@@ -21,6 +21,19 @@
   still realize), the geometry sheet.
 - **Result: not adopted**, V8 at 8 seeds −1.8 [−4.4, +0.8]; strong extra impacts +10%.
 
+## November 14: hypothesis, intense phrases draw shapes at half weight (stated before running)
+
+- **Basis.** The goal puts strong impacts and fast consecutive landings first, with variety. Shapes cost about 19 points
+  on V8 through their bends; in strong contexts serpentines, scallops and folds lose more per section than guided arcs.
+- **Change** (`exp/intense-phrases-fewer-shapes`): in a strong phrase (mean ask 0.4 to 0.8, phased in like the guides),
+  the four shapes are drawn at up to half their weight; arcs take the rest. Calm and middle phrases unchanged; every
+  shape keeps a place in intense passages (the variety test passes).
+- **Hypothesis:** V8 up, G and the strong categories most. **Watch:** shapes' share of ride time, distinct families per
+  ride.
+- **Result: not adopted**, V8 at 8 seeds +1.5 [−2.7, +5.7]; shapes 37.5% → 30.7% of ride time (scattered 12.8% →
+  19.5%), distinct families per ride 6.81; strong extra impacts −14%, body drag +7%. Removing all shapes gains 19.4, but
+  halving them in intense phrases gains 1.5: their cost is not proportional to their share.
+
 ## November 14: hypothesis, smooth shapes end before the exit (stated before running)
 
 - **Basis.** Shapes cost about 19 points on V8 through what they hand on (removing them all: +19.4; removing one family:

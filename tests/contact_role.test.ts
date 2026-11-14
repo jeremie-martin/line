@@ -45,11 +45,11 @@ it('reports a ride\'s character from its sections and hits', () => {
     character: {railDrawn: [false, true, true, false], guideContact: 3, upperContact: 1, bodyContact: 9},
     impact3: {perBeat: [{requested: .8, hit: {contact: 'upper'}}, {requested: .7, hit: {contact: 'floor+rail'}}, {requested: .9, hit: null}, {requested: .2, hit: {contact: 'upper'}}]}};
   const ch = characterOfCell(cell);
-  expect(ch['rails, share of ride time']).toBeCloseTo(.6);
-  expect(ch['open arcs, share of ride time']).toBeCloseTo(.2);
-  expect(ch['shapes, share of ride time']).toBeCloseTo(.4);
-  expect(ch['longest railed stretch s']).toBeCloseTo(60 / 40);
+  // shares count gaps, each as one: a 40-frame fold weighs as much as a 20-frame arc
+  expect(ch['rails, share of gaps']).toBeCloseTo(.5);
+  expect(ch['open arcs, share of gaps']).toBeCloseTo(.25);
+  expect(ch['shapes, share of gaps']).toBeCloseTo(.25);
   expect(ch['clean upper hits, share of strong beats']).toBeCloseTo(1 / 3);   // an unmatched strong beat counts as not clean
   expect(ch['clean upper hits, share of beats']).toBeCloseTo(.5);
-  expect(characterOfCell({geometry: cell.geometry})['rails, share of ride time']).toBeNaN();
+  expect(characterOfCell({geometry: cell.geometry})['rails, share of gaps']).toBeNaN();
 });

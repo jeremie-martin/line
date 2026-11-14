@@ -564,8 +564,9 @@ Known limits of the strike account:
     - `tools/measure/character.ts`, from the replay the measurement already makes:
       which sections keep a rail in the final track (unused rails are trimmed),
       and seconds per minute touching a rail, a line from above, or with the body.
-    - `summary.ts` `characterOfCell`: rails, open arcs (arcs keeping no rail) and
-      shapes as shares of ride time, the longest railed stretch, clean upper hits
+    - `summary.ts` `characterOfCell`: rails (gaps keeping a rail, any family), open
+      arcs (arcs keeping no rail) and shapes as shares of gaps, each gap one whatever
+      its length (the owner's unit: a short rail is as much a rail as a long one); clean upper hits
       as a share of strong beats (0.6 or more; a beat with no hit counts as not
       clean) and of all beats. Every comparison prints one "ride character" line
       beside the guards (rails with the largest single ride, open arcs, shapes,

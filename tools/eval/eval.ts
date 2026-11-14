@@ -147,7 +147,7 @@ export function stratifiedReport(a: Run, b: Run | undefined, nameA: string, name
   }
   return [...out, '', ...geometryReport(a, b)];
 }
-const PER_SPEC = ['score', 'impact loss (v3)', 'v3 strong bias (req>=0.6)', 'air rms', 'speed rms', 'rails, share of ride time',
+const PER_SPEC = ['score', 'impact loss (v3)', 'v3 strong bias (req>=0.6)', 'air rms', 'speed rms', 'rails, share of gaps',
   'clean upper hits, share of strong beats'];
 const GEOMETRY_TITLES = {time: 'share of ride time (frames), %', sections: 'share of sections, %', plan: 'planned', realized: 'realized (complete cells)'};
 /** Section 4 of the stratified report: how rides use the geometry families.

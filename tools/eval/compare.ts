@@ -167,7 +167,7 @@ function evidence(s: Selection, cells: Record<Side, Map<string, any>>, ids: stri
     guards: GUARDS.map(([key]) => SIDES.map(side => perRide(side, c => summarize(c)[key]))),
     // The ride's character (summary.ts `characterOfCell`), per ride, and the largest single ride's rail share.
     character: CHARACTER.map(([key]) => SIDES.map(side => perRide(side, c => characterOfCell(c)[key]))),
-    railsMax: SIDES.map(side => Math.max(...ids.map(id => characterOfCell(cells[side].get(id))['rails, share of ride time'])))};
+    railsMax: SIDES.map(side => Math.max(...ids.map(id => characterOfCell(cells[side].get(id))['rails, share of gaps'])))};
 }
 /** How different the rides of different random starts are, within one arm:
  * for every spec and every pair of its seeds, the share of gaps whose realized
@@ -252,9 +252,9 @@ function evidenceLines(e: ReturnType<typeof evidence>) {
 }
 /** The ride's character the summary shows: [characterOfCell() key, label, decimals, unit, scale]. */
 const CHARACTER: Array<[string, string, number, string, number]> = [
-  ['rails, share of ride time', 'rails', 0, '% of ride time', 100],
-  ['open arcs, share of ride time', 'open arcs', 0, '%', 100],
-  ['shapes, share of ride time', 'shapes', 0, '%', 100],
+  ['rails, share of gaps', 'rails', 0, '% of gaps', 100],
+  ['open arcs, share of gaps', 'open arcs', 0, '%', 100],
+  ['shapes, share of gaps', 'shapes', 0, '%', 100],
   ['clean upper hits, share of strong beats', 'clean upper hits', 1, '% of strong beats', 100],
 ];
 

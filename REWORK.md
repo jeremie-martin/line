@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, an upper way into strong catches (E2, with E1; stated before running)
+
+- **Basis:** before a strong catch the release is steered by priors made for floor catches (`addArrivalPriors`): a
+  steep arrival (20–70°) and a penalty on a sled axis past vertical or pointing backward (`uprightArrival`). Catches
+  from above hold on flatter arrivals (survivors 18°, crashes 34°) and a rotated rider meets them with the sled.
+- **Change** (`exp/upper-arrival` = E1 + this): `impactSearch.upperArrival` = 15°; the arrival into a strong catch is
+  charged the cheaper of the floor setup (as before) and an upper one (a 15° arrival, rotation free). One prior with two
+  acceptable shapes, chosen per candidate by cost; nothing else changes.
+- **Hypothesis:** flatter and more rotated arrivals before strong catches; more strong beats caught clean from above
+  than with E1 alone; the headline may fall (floor catches lose their preferred setup where no upper receiver takes the
+  beat); head-down arrivals rise (expected, by design). **Watch:** completion, every ruler, the geometry sheet.
+
 ## November 14: hypothesis, upper receivers that keep the body clear (E1; stated before running)
 
 - **Basis** (the entries below): strong catches from above come apart (85% near the ask) when the line meets the

@@ -19,7 +19,7 @@ export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>
       const base=new Engine().setStart(track.startPosition,track.riders![0].startVelocity),engine=prefix.length?base.addLine(prefix):base;
       const free=engine.getRider(row.frame);engine.prepareCollisionTrace(row.frame);engine.getRider(row.frame);
       // The same receivers the compiler built the rail from (half a frame past the collision pass).
-      const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control.contactSide);
+      const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control);
       const style={...options,...options.sectionStyles?.[i]};
       const expected=arcRailGroups(motionArc(points,free.velocity,row.control,1000+i*10000,style.channel,style.radius,style.subdivisions,style)).get(i)![0];
       assert.deepEqual(groups.get(i)![0],expected,`main construction differs at support ${i}`);checked++;

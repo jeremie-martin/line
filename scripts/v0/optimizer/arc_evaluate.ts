@@ -157,7 +157,7 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
   const {ctx, options, i, engine} = s;
   const {add, prefixes} = ctx.lineage;
   if (c.receiverFlight !== undefined && options.railLayout === 'transfer' && !fragments) {
-    const main = motionArc(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
+    const main = motionArc(receiverPoints(s.trace, c), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, {...options, guides: false});
     const supportEngine = add(engine, main), id = Math.max(...main.map(l => l.id)) + 1;
     // Receiver placement simulates before adding its guide. Remember what the
     // first edit preserved; the guide's later cache boundary cannot recover it.
@@ -170,7 +170,7 @@ function buildGeometry(s: IntervalSearch, c: ArcMotionControl, fragments?: Fragm
     return {added, child, prefixFrames};
   }
   if (fragments) return {added: fragments.lines, child: add(engine, fragments.lines), prefixFrames: s.frame};
-  const paths = motionArcPaths(receiverPoints(s.trace, c.contactSide), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
+  const paths = motionArcPaths(receiverPoints(s.trace, c), s.velocity, c, 1000 + i * 10000, options.channel, options.radius, undefined, options);
   return {paths, child: engine.addSolidPaths(paths), prefixFrames: s.frame};
 }
 

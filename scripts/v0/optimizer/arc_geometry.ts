@@ -21,6 +21,10 @@ export type ArcMotionControl={entry:number; turn:number; exit:number; support:nu
   /** Active normal of the receiving surface: +1 ordinary, -1 opposing.
    * This is a physical construction choice, not a distinct impact category. */
   contactSide?:number;
+  /** Which rider points a receiver met from the opposing side is placed against (contactSide −1 only): absent, every
+   * point (the body can touch first); 1, the sled's four points; 2, the sled's front (NOSE, STRING). Absent for an
+   * ordinary surface, which is always placed against the sled. */
+  receiverAnchor?:number;
   clearance?:number; guideStart?:number; guideEnd?:number; turnFraction?:number; bend?:number; guideFlare?:number;
   guideTilt?:number;mainEnd?:number;foldBend?:number;foldTiming?:number;foldBias?:number;
   receiverFlight?:number;receiverEntry?:number;receiverTurn?:number;receiverExit?:number;receiverDuration?:number};
@@ -48,11 +52,13 @@ export function arcMainSteps(support:number,subdivisions=4,faces?:number):number
 export function catchReceivers<P extends {x:number;y:number;vx:number;vy:number}>(trace:Record<string,P>):Record<string,P>{
   return Object.fromEntries(Object.entries(trace).map(([key,p])=>[key,{...p,x:p.x+.5*p.vx,y:p.y+.5*p.vy}]));
 }
-/** The receivers a catch's rail is placed against: every rider point for a
- * surface met from the opposing side (contactSide −1: the body can touch it
- * first), the sled's four points otherwise. */
-export function receiverPoints<P>(receivers:Record<string,P>,contactSide?:number):P[]{
-  return contactSide===-1?Object.values(receivers):['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
+/** The receivers a catch's line is placed against: the sled's four points for an ordinary surface; for a surface met
+ * from the opposing side (contactSide −1), every rider point (the body can touch first) unless `receiverAnchor` names
+ * the sled (1) or its front (2). */
+export function receiverPoints<P>(receivers:Record<string,P>,c:Pick<ArcMotionControl,'contactSide'|'receiverAnchor'>):P[]{
+  if(c.contactSide!==-1||c.receiverAnchor===1)return ['PEG','TAIL','NOSE','STRING'].map(key=>receivers[key]);
+  if(c.receiverAnchor===2)return ['NOSE','STRING'].map(key=>receivers[key]);
+  return Object.values(receivers);
 }
 
 /** Integrate a tangent schedule into one contiguous polyline. Fewer subdivisions

@@ -26,7 +26,7 @@ it('keeps committed controls synchronized with the geometry that follows them',(
     const engine=createArcEngine({position:r.track.startPosition,velocity:r.track.riders[0].startVelocity},r.track.lines.filter(l=>group(l)<i));
     const row=r.rows[i],velocity=getRiderMetered(engine,row.frame).velocity;
     engine.prepareCollisionTrace(row.frame);getRiderMetered(engine,row.frame);
-    const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control.contactSide);
+    const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control);
     const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,12,24)).get(i)!;
     const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
     expect(actual[0]).toEqual(rebuilt[0]);

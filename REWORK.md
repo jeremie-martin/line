@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: R4 result, and a probe: arcs without rails (stated before running)
+
+- **R4** (V8, against `base`): headline −1.7 [−7.0, +3.6], 18 specs up, 25 down; explicit −3.1. Rail-free twins chosen
+  on 12.1% of the arcs that may have a rail (R3 10.1%, R2 8.4%); rails kept on those arcs 81% → 75%; all gaps 55% →
+  53%. Body drag −6%, strong extra impacts −21%, clean upper hits 9.4 → 9.8%. Each step adds a little; twins remain a
+  marginal mechanism.
+- **Probe, not a candidate** (`exp/arcs-open`, from `base`): arc phrases never offered a rail (after placement, arcs
+  with a rail offered become open arcs), so the whole search on those phrases is rail-free. It measures what rails on
+  arcs buy today, the ceiling a rail-free arc geometry has to close. **Expectation:** rails fall to about 30% of
+  gaps; headline falls by more than the twins' −2, but less than the +8.5 that offering guides on strong phrases
+  brought.
+
 ## November 14: R3 result, a probe of why twins lose, and R4: the best twin refined (stated before running)
 
 - **R3** (V8, against `base`): headline −1.3 [−4.5, +2.0], 13 specs up, 30 down; explicit −2.5. Rails 55% → 53% of

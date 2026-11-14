@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: hypothesis, rails never drawn onto their own support (stated before running)
+
+- **Basis** (owner, Circus Minimus 17 s; aligned on pictures, `generated/upper-review/through.html`): what he means by
+  riding through geometry is the whole rider going through a line, typically a rail that starts at or below the support
+  it belongs to. Measured (`generated/upper-review/through2.ts`): the sled's centre goes through a line it does not
+  collide with about once per V8 ride (88 of 91 cases a rail); a rail touches or starts within 4 px of its own support
+  in about 1 ride in 1. Those rails are all tilted (mean |tilt| 13.6° against 3.9° for all rails kept; folds 44%
+  against 13%): the tilt turns the rail about its middle and can swing an end onto or through the support.
+- **Change** (`exp/rail-floor`): a rail is never drawn closer to its own support than 6 px, the smallest clearance a
+  rail may have; the longest stretch beside the support is kept if it is a substantial curve (24 px), else no rail.
+  Option `railClearanceFloor` (off by default: parity identical). The tilt stays available to the search.
+- **Hypothesis:** the rider going through a rail falls from about 1 per ride to near 0, and rails touching their
+  support to 0; the headline within noise (a few rails lose their tilted end, a few go); rail share slightly down.
+
 ## November 14: riding through geometry (report only; understanding before any fix)
 
 A Line Rider line collides from one side only, while every line is drawn solid: a rider seen crossing a drawn line

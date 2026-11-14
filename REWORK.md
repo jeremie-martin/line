@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 14: rails never proposed onto their own support, third result (candidate)
+
+V8, 196 rides, against `foundation` (`exp/rail-touch`, segment against segment, 2 px):
+
+| | foundation | rails never onto their support |
+|---|---|---|
+| V8 headline | 775.0 | 773.9: −1.1 [−8.6, +6.4], 20 specs up, 23 down; explicit +4.6 |
+| rails crossing their support where the rider passes | 39 (0.20 per ride) | 0 |
+| rails within 2 px of it there (almost crossing) | 52 (0.27 per ride) | 14 (0.07) |
+| ordinary close rails (2–6 px) | 1,673 | 1,606 |
+| the rider going through a line (narrow / wide) | 0.84 / 0.77 per ride | 0.48 / 0.44 |
+| physics per ride | 3.09M | 3.08M |
+
+- Compile time: +50% with the plain segment check, +9% with a bounding-box filter that skips pairs which cannot come
+  within the margin (one ride: 22.9 s against 21.0 s; the same ride, score and physics, so the measured results stand).
+- Strong extra impacts 0.10 → 0.15 per 100 beats, body drag +4%, head-down unchanged; rails 55% of gaps unchanged.
+- What remains of going through: rails in the flight path past the support's end, and a few main lines: the targeted
+  cleanup (`going_through_cleanup.ts`, identical replay) applies to those the rider never touches.
+
 ## November 14: rails never proposed onto their own support, second result and a third execution (stated before running it)
 
 - **Second execution:** headline −1.6 [−7.2, +4.0]; crossings 0; almost crossing 20 (first: 17); going through 0.56

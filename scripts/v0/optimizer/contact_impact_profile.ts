@@ -1,10 +1,12 @@
 /** Search configuration applied with the impact account. The measurement contract
  * lives separately: changing search work or preferences never moves its ruler.
  * Selected on the song-level evaluation (REWORK.md log):
- *  - steepArrivalFrom .6: the catch before a strong ask gets a steep, ask-driven
- *    arrival at the ordinary arrival weight, phased in smoothly from ask 0.4 (none)
- *    to 0.8 (all). It was a hard threshold at 0.6 until 2026-11-01 (V7: +0.2 and
- *    +3.8 on two seed sets, held out +4.7; docs/research/v7-rejudge-20261101.md);
+ *  - steepArrivalFrom .6: the catch before a strong ask gets a kinetic (faster)
+ *    arrival speed, the upright preference and more search effort, phased in smoothly
+ *    from ask 0.4 (none) to 0.8 (all). Its arrival heading is now the arrival law's
+ *    (repertoire_search.ts arrivalLaw; REWORK.md, November 15). It was a hard threshold
+ *    at 0.6 until 2026-11-01 (V7: +0.2 and +3.8 on two seed sets, held out +4.7;
+ *    docs/research/v7-rejudge-20261101.md);
  *  - uprightArrival 1: steep and unguided passive catches prefer an upright arrival (judged
  *    by the same geometric test as the eval guard row; perceptual confirmation pending);
  *  - learned construction policies rebuilt under line.strike.v3

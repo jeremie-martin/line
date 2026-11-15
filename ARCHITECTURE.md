@@ -463,20 +463,25 @@ also compute speed-gain diagnostics. Its search profile is in
 log):
 
 - **Preparation:** 2 frames.
-- **Steep arrival before strong asks:** the catch before a strong beat gets a
-  steep, ask-driven arrival heading and speed, phased in smoothly from ask 0.4
-  (none) to 0.8 (all) rather than switched on at 0.6.
-- **Level arrival before quiet asks** (since 2026-11-15): the mirror of the
-  steep arrival. Before a quiet beat the arrival heading is drawn toward level,
-  near the top of the flight, phased in from ask 0.3 (none) to 0 (all): a level
-  arrival lands softly and brings no excess speed, where a steep falling one
-  must be braked by a hard touchdown.
+- **The arrival law** (since 2026-11-15; `arrivalLaw` in `repertoire_search.ts`,
+  `arrivalTargets` and `arrivalLawHeading` in `arc_evaluate.ts`): every catch
+  wants one arrival heading, 5° + the angle whose tangent is 2 × the ask's push
+  over the next beat's speed: nearly level for a whisper, steep for a hard hit,
+  shallower for a fast rider than a slow one for the same hit (a catch's push is
+  the speed carried into the line). Ranking prefers it with one weight at every
+  ask, and **aimed launches** (`proposeAimedLaunches`, arcs and scattered
+  sections) offer the best candidates again with their support's exit turned so
+  the flight arrives closer to it (all and half the way; aimed by gravity, then
+  corrected once by measurement). It replaced three rules: the steep heading
+  before strong asks, the level heading before quiet asks and the broad heading
+  prior. The steep step (ask 0.4 to 0.8) still sets the kinetic arrival speed,
+  the upright preference and the search effort before strong asks.
 - **Quiet misses priced in proportion** (since 2026-11-15; `relativeImpact` in
   `repertoire_search.ts`, applied in `openInterval`): the impact weight is
   multiplied by ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07
-  counting as 0.07; it replaced the calm multiplier (×1.5 under 0.2). Not a
-  finished answer to quiet asks: specs asking much air before quiet beats lose
-  air, because a level arrival is usually a short flight (REWORK.md).
+  counting as 0.07; it replaced the calm multiplier (×1.5 under 0.2). Specs
+  asking long floats before quiet beats still trade some air for soft catches
+  (REWORK.md).
 - **Upright arrival:** steep and unguided passive catches share a soft
   preference against head-down or backward arrivals. This does not forbid
   inverted geometry or guided upper contacts.

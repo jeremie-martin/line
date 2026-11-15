@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law, cleaned and measured on every panel (ready for the owner's eye; not adopted yet)
+
+- **Design.** One arrival law for every catch: the heading it wants is 5° + the angle whose tangent is 2 × the ask's
+  push over the next beat's speed (`arrivalLawHeading`, `arrivalTargets` in `arc_evaluate.ts`; `arrivalLaw` in
+  `repertoire_search.ts`). Ranking prefers it with one weight at every ask; aimed launches (`proposeAimedLaunches`,
+  arcs and scattered sections) offer the 6 best candidates again with their support's exit turned toward it, all and
+  half the way, aimed by gravity and corrected once by measurement. It replaces three rules: the steep heading before
+  strong asks, the level heading before quiet asks (removed with `levelArrivalBelow`) and the broad heading prior
+  (kept only for configurations without the law). The steep step still sets the kinetic arrival speed, the upright
+  preference and the search effort before strong asks. Quiet misses priced in proportion (`relativeImpact`) stay.
+- **Proof of the cleanup.** Parity references were taken from the tested candidate (`exp/law-impulse2`), then the
+  cleanup checked against them: identical. On V8 (784 rides) the cleaned branch reproduces the candidate's result to
+  the decimal. A unit test pins the law (`tests/arrival_law.test.ts`). Tests 625 (+1), typecheck 0, reach clean,
+  judge parity passes.
+- **Against `foundation-6`** (branch `adopt/arrival-law`):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+5.3 [+3.6, +7.0]**, every seed block up | 38 / 5 | +12.5 | 3.40 → 4.13 (+22%) | 0.18 → 0.20 | −0.177 → −0.166 |
+| V7.1 | 8 | +2.5 [−0.3, +5.3], support 0.96 | 24 / 11 | +1.6 | 3.80 → 4.83 (+27%) | 0.08 → 0.13 | better by 0.014 |
+| held out | 4 | −0.4 [−34.0, +33.3] | 2 / 2 | – | 3.31 → 3.96 (+20%) | 7 against 1 in 1,460 beats | – |
+
+  Every ride finished on every panel. Air, speed, rails, families, clean upper hits and head-down arrivals unchanged.
+  The held-out extra impacts are 7 against 1 over 1,460 beats, 6 in one song (Petrunko), all just above the 0.25
+  threshold (0.25–0.31): small, real, and consistent with the other panels.
+- **Body drag** (an unvalidated proxy; the owner: "not a huge issue for me") rises with the steeper strong arrivals
+  that carry the gain: the catch folds the rider onto the line; rails' share of it is unchanged.
+
 ## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
 
 V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds), all with aimed launches:

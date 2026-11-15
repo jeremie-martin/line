@@ -22,6 +22,9 @@ await p.evaluate(async()=>{
   createPicture(canvas,scene,replay,sheet,N.riderPainter()).draw(18.1,resolveLook('hokusai',{ends:'none',hits:'v1'}));
   if(canvas.toDataURL()!==document.querySelector('#baseline').toDataURL())throw Error('Full HD study baseline differs from production picture');
 });
+await p.evaluate(()=>{const song=document.querySelector('#song');for(const key of ['tiki','circus']){song.value=key;song.dispatchEvent(new Event('change'));}});
+await p.waitForFunction(()=>window.__ready&&window.hitStudy.state().song==='circus');
+const changed=await p.evaluate(()=>{window.hitStudy.seek(5);const a=document.querySelector('#candidate').toDataURL();window.hitStudy.seek(6);return a!==document.querySelector('#candidate').toDataURL();});assert(changed,'cached-song reload left a stale picture');
 await p.emulateMedia({colorScheme:'dark'});assert.equal(await p.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(242, 243, 245)');
 const phone=await b.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});phone.on('pageerror',e=>errors.push(e.message));await phone.goto(url);await phone.waitForFunction(()=>window.__ready);await phone.locator('#variants').scrollIntoViewIfNeeded();await phone.selectOption('#quickEffect','spring');assert.equal(await phone.evaluate(()=>window.hitStudy.state().mode),'spring');const quick=await phone.locator('#quickEffect').boundingBox();assert(quick.y>=0 && quick.y+quick.height<844);await phone.screenshot({path:'generated/hit-effects/revised-phone.png'});assert(await phone.locator('#candidate').isVisible());assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
 assert.deepEqual(errors,[]);console.log('PASS desktop/phone layout, full-resolution canvas, playing switches, A/B equality, chart series, both songs, light chrome, no page errors');await b.close();

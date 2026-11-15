@@ -35,7 +35,7 @@ function rebuild() {
   const {scene, replay, sheet: sprites} = entry;
   responses = ['current', mode].map(m => effectsAt(m, gain(), $('colour').checked, scene.timing.offset, $('split').checked));
   // Keep the renderer's large scratch canvases and prepared ride across effect switches.
-  if (pictureEntry !== entry || pictureCamera !== $('camera').value) {
+  if (!pictures.length || pictureEntry !== entry || pictureCamera !== $('camera').value) {
     pictureEntry = entry; pictureCamera = $('camera').value;
     pictures = ['baseline', 'candidate'].map((id, i) => createPicture($(id), scene, replay, sprites, N.riderPainter(), {
       effectsAt: (...args) => responses[i](...args), framing: framingFor(pictureCamera, replay, scene),

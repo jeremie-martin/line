@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: camera and impact study checkpoint
+
+- Record the owner's falling/bouncing impression as a hypothesis, not a settled explanation. Preserve the current camera's direction/readability constraints during comparisons.
+- Organize the next study by follower, song zoom, bookends, realized punch, added movement and split; distinguish existing controls from planned combinations in `docs/research/hit-movement-20261115.md`.
+- Audit confirms the hit lab disables bookends, and split deliberately mixes horizontal and surface-normal directions while adding enlargement. Neither is evidence of a production bug; both need isolated comparisons.
+- Housekeeping only. Previous full checks and the 180-frame screen-transform validation passed; no camera, effect or compiler default changes.
+
 ## November 15: realized punch and rider-screen measurements
 
 - The owner finds steady-rider punch weak, wants to try larger doses, and requires an absolute realized-strength response for future work. Keep historical percentile/request logic only for comparison. Rename slow zoom to song zoom keyframes.

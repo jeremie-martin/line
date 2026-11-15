@@ -267,3 +267,87 @@ the actual world matrix returned by `picture.draw`; maximum discrepancy is below
 all-camera table. Prepared-picture/observer caches are cleared on response changes
 so interactive tuning does not retain unbounded camera paths. Production renderer,
 compiler, physics and rulers are unchanged.
+
+
+## Next study: camera, zoom and felt weight
+
+The owner reports that the historical song zoom plus punch feels like the rider
+falls into the geometry and bounces, especially on lower hits. Steady-rider punch
+feels weaker, even though it enlarges the scene. This is a perceptual observation,
+not evidence that a particular follower, amplitude or split direction is correct.
+The goal is to improve the whole response, not to adopt the historical stack.
+
+### Separate the layers before comparing combinations
+
+| Layer | Current contract / available comparison | Next controlled comparison |
+| --- | --- | --- |
+| Follow and composition | Current direction follower uses the raw ten-point centre; historical six/ten-point followers are references | Same zoom and pulse, current vs historical follower; inspect descent, rebound and spins |
+| Song-scale zoom | Current steady/quiet zoom; historical explicit song keyframes | Current follower × steady / keyframes / keyframes with bounded intensity modulation |
+| Opening and ending | Production blends overview and ride framing; this study forces `ends: none` | Apply the same overview transitions to each candidate, including hits during transitions |
+| Hit punch | Historical requested-strength gate only for reference; new absolute realized-strength curve | Same measured hits and pulse timing; vary amplitude, attack and release separately |
+| Added movement | Translation, rotation and scale curves already isolated | Add one component at a time to a promising camera/punch combination |
+| Colour split | Angled channel separation, edge-cover enlargement and half-clean rider overlay | Off / existing / surface-normal alignment; isolate enlargement from channel separation |
+
+These are planned comparisons, not implemented controls or validated combinations.
+In particular, current follower plus song keyframes is not yet available. The
+`measured-current` study mode multiplies the current framing's zoom with a pulse;
+it does not implement a composed song-zoom or transition policy.
+
+### Preserve the reasons for the current camera
+
+`scripts/video/camera.js` documents the current direction follower. It pivots on
+the raw body centre to avoid introducing artificial motion through smoothing.
+Its target follows smoothed travel direction, with offsets fading at low speed.
+It moves readily with travel and limits motion against it; while descending,
+upward screen movement is limited to 45 design px/s. These are deliberate
+readability choices, not incidental constants to discard for more bounce.
+The earlier ten-point-centre repair and spin measurements are recorded in
+[camera-20261031.md](camera-20261031.md); that older follower study is not the
+specification of today's direction follower.
+
+Production bookends use one camera representation, blending zoom logarithmically
+between an overview and the ride camera while blending rider screen placement.
+A candidate song zoom should feed the ride zoom before this blend. Decide
+explicitly whether a hit pulse fades with the ride blend, rather than accidentally
+magnifying the overview. Check the first/last hits and transition continuity.
+
+### Direction is more than a screen arrow
+
+`prepareHits` in `scripts/video/hits.js` estimates a surface normal toward the
+rider from contacts around onset, while the response fires at the measured peak.
+This is a geometric estimate, not a measured impulse vector. Missing geometry
+falls back to upward. `scripts/video/split.js` deliberately combines that normal
+with a horizontal direction before separating red and blue. For an exactly
+vertical normal this produces a diagonal split. The operation also enlarges the
+image to hide edges and overlays half of the clean rider. Thus changing split
+angle alone cannot isolate all of its effect on perceived weight.
+
+Before changing direction, inspect contact selection and normal orientation on
+lower, upper and side hits. Compare the normal, incoming velocity and camera
+screen axes explicitly. Keep the existing split as a reference; no direction
+bug has yet been established by the owner's observation.
+
+### Order and evidence
+
+1. Keep the same Tiki/Circus rides, audio clock, theme and resolution. Compare
+   follow × song zoom first, with shake and split off and the same realized pulse.
+   Include pulse-off versions to isolate following from punch. Hold the pulse
+   curve fixed while comparing cameras, then tune it on the preferred context.
+2. Review isolated strong lower hits, weak hits, upper/side hits, dense sequences,
+   spins and quiet travel. Identify actual matching passages before calling this
+   scenario coverage; do not assume both songs contain every case.
+3. Verify opening and ending transitions, then add shake/rotation and split one
+   at a time. Repeat promising combinations with production colour and layout.
+
+Report rider displacement/size, peak speed, recovery and framing/clipping beside
+moving video with music. Existing screen metrics stop before split and do not
+measure track clearance or perceptual weight. Add those diagnostics where needed;
+do not collapse them into a quality score. The owner judges whether the added
+weight preserves readability. Historical controls remain references, and no
+candidate becomes a production default through this housekeeping step.
+
+Checkpoint: full repository checks passed at the realized-punch implementation
+(682 JS tests, 32 Rust tests, physics/engine/compile/judge parity and smoke).
+The subsequent all-camera browser check covers 180 frames across both songs.
+This section records the next experiment and limitations; it changes no runtime
+behaviour.

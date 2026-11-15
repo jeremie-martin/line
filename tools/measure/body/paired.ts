@@ -8,7 +8,7 @@ const specs = fs.readFileSync('generated/visible/picks.txt', 'utf8').trim().spli
 const dirOf = (tag: string, s: string, v: string, seed: number) => tag === 'before' ? `generated/handcraft/${s}/${v}/s${seed}` : `generated/visible/${tag}/${s}/${v}/s${seed}`;
 const KEYS = ['score', 'hitError', 'air', 'speed', 'extras', 'bumps', 'lips', 'either', 'hitBumps', 'lateJolt', 'shaped'] as const;
 type Row = Record<typeof KEYS[number], number>;
-function measure(dir: string): Row | null {
+export function measure(dir: string): Row | null {
   if (!fs.existsSync(dir) || !fs.readdirSync(dir).some(f => f.endsWith('-production.json'))) return null;
   const r = ride(dir), p = r.p, tg = p.impactEvaluation.targets, n = r.raw.frames.length;
   let bumps = 0, lips = 0, either = 0, secs = 0, hitBumps = 0;
@@ -27,10 +27,10 @@ function measure(dir: string): Row | null {
   return {score: p.score.score, hitError: p.impactEvaluation.account.strengthMse, air: p.score.components.air.rmsError, speed: p.score.components.speed.rmsError,
     extras: p.impactEvaluation.account.extraMse, bumps: bumps / secs, lips: lips / secs, either: either / secs, hitBumps: hitBumps / secs, lateJolt, shaped};
 }
-const tags = process.argv.slice(2), data: Record<string, Array<Array<Row | null>>> = {};
+const tags = process.argv[1].endsWith("paired.ts") ? process.argv.slice(2) : [], data: Record<string, Array<Array<Row | null>>> = {};
 for (const tag of tags) data[tag] = specs.map(([s, v]) => SEEDS.map(seed => measure(dirOf(tag, s, v, seed))));
 const fmt = (k: string, v: number) => k === 'score' ? v.toFixed(1) : ['bumps', 'lips', 'either', 'hitBumps', 'shaped'].includes(k) ? (100 * v).toFixed(1) + '%' : k === 'lateJolt' ? v.toFixed(2) : v.toFixed(4);
-console.log('bumps = sections whose ground touched after the hit\'s frames reverses more than', REVERSAL_LIMIT + '° within 60 px (hitBumps: the same on ground touched within them); lips = sections whose ground touched after the hit\'s frames turns more than', LATE_TURN_LIMIT + '° within 30 px; lateJolt = unrecorded pushes of 0.4 or more per ride\n');
+if (tags.length) console.log('bumps = sections whose ground touched after the hit\'s frames reverses more than', REVERSAL_LIMIT + '° within 60 px (hitBumps: the same on ground touched within them); lips = sections whose ground touched after the hit\'s frames turns more than', LATE_TURN_LIMIT + '° within 30 px; lateJolt = unrecorded pushes of 0.4 or more per ride\n');
 for (const tag of tags) {const rows = data[tag].flat(), ok = rows.filter(Boolean) as Row[];
   console.log(tag.padEnd(9), `complete ${ok.length}/${rows.length}`, KEYS.map(k => `${k} ${fmt(k, ok.reduce((s, r) => s + r[k], 0) / ok.length)}`).join('  '));}
 let seed = 7; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;

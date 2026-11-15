@@ -42,7 +42,7 @@
 
 <section id="intro">
   <h1>Motion review</h1>
-  <p>41 short stretches from the handcrafted videos, each about two to four seconds, played in a loop with the music.</p>
+  <p><span id="howMany">Short</span> stretches from the handcrafted videos, each about two to four seconds, played in a loop with the music.</p>
   <p>The part to judge is where the rider is on the track between two asked hits, not the jump before or after. It is highlighted under the video, and the video gets a yellow frame while it plays. The question is the same every time: in that part, does the rider move in ways the music does not call for?</p>
   <p class="sub">Answer with the keys 1 to 4. Click or drag on the bar to move in the clip; the arrow keys step back and forward. The tags and the note are optional. Your answers are saved as you go, and you can stop and come back. It takes about ten minutes.</p>
   <button class="primary" id="start">Start</button>
@@ -79,12 +79,13 @@
 </section>
 
 <script type="module">
-const STUDY = 'motion-2026-11';
+const STUDY = new URLSearchParams(location.search).get('study') ?? 'motion-2026-11';
 const ANSWERS = [['clean', 'No, it is clean'], ['little', 'A little'], ['clearly', 'Clearly'], ['badly', 'Badly']];
 const TAGS = [['jolt', 'Jolt or sharp turn', 'q'], ['rocking', 'Rocks back and forth', 'w'], ['ground', 'Undulating ground', 'e'], ['busy', 'Hard to read', 'r']];
 const $ = id => document.getElementById(id), v = $('v'), bar = $('bar'), ctx = bar.getContext('2d');
 const manifest = await (await fetch(`/generated/label-studies/${STUDY}/manifest.json`, {cache: 'no-store'})).json();
 const clips = manifest.clips;
+$('howMany').textContent = `${clips.length} short`;
 let labeled = new Set((await (await fetch(`/api/labels/${STUDY}`)).json()).labeled);
 let index = -1, answer = null, tags = new Set(), shownAt = 0, history = [];
 

@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the limit's cost curve, songs outside the 20 specs, a second review round (experiment)
+
+- **Limit 15° instead of 10°** (`LINE_GROUND_LIMIT=15`, 3 seeds): −4.1 [−8.8, +0.5] against the baseline (10°: −9.7);
+  12.3% of sections then exceed the 10° rule (turning after the hit 8.6%), unrecorded pushes 0.18 per ride (10°: 0.03).
+- **Default specs of Luna Bala, Tiki Tiki, L'amour de ma vie**, seeds 101–303, terraces and folds out in both arms:
+  the rule holds in every section; score differences −13, −40, −18, −20, −14, −3, −31, +12 (8 pairs, mean −16).
+  One baseline ride (Luna Bala 303) stopped on the compiler's own check ("main construction differs at support 65"),
+  the second sighting of that fault (the first: Petrunko `build` 101).
+- **Second review** `/motion-review/index.html?study=motion-2026-11b`: 38 fresh stretches, seed 202 of 8 specs, plain
+  look, blind. Classes in the key: baseline with a turn after the hit above 15° (8), baseline with a reversal after the
+  hit above 12° (6), baseline within the rule (6), rides compiled under the rule (10), turns of 10–15° from the looser
+  limit (8). It tests the rule on clips it was not fitted on and places the limit.
+
 ## November 15: the smooth-ground rule, what it costs and why (experiment, not adopted)
 
 All on 20 specs × seeds 101, 202, 303, v3 account, terraces and folds out; differences against that baseline

@@ -13,7 +13,8 @@ import {lanesFor} from './zoom-lanes.mjs';
 const STUDY = 'zoom-2026-11';
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const q = new URLSearchParams(location.hash.slice(1));
-if (['petrunko', 'trouble', 'tiki', 'circus'].includes(q.get('song'))) $('song').value = q.get('song');
+// the songs are the menu's options (zoom.html); each has a scene in generated/hit-effects/data/<song>.json (zoom-prepare.mjs)
+if ([...$('song').options].some(o => o.value === q.get('song'))) $('song').value = q.get('song');
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {hits: 'v1'});
 // the zoom being looked at: a draft's id and its keyframes, which may have been moved

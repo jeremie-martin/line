@@ -38,10 +38,12 @@ percentage improvements should not be compared directly.
 
 ## Where things stand
 
-The compiler optimizes one definition of a hit, `line.strike.v3`. Its baseline is
-the saved reference `lean-foundation`: V7 headline 782.3, explicit requests 766.5,
-all 112 rides finished. Compare any change with
-`npm run compare -- run --reference=lean-foundation`. `TODO.md` holds the next
+The compiler optimizes one definition of a hit, `line.strike.v3`. Compiler decisions
+read the V8 panel, with V7.1 beside it. The current compiler is named by the newest
+`foundation-N` entry of `REWORK.md` (since 2026-11-15, `foundation-10`); references are
+local, so set it on each machine (`npm run compare -- reference set foundation-10
+--from=COMMIT`), then compare any change with
+`npm run compare -- run --reference=foundation-10 --panel=v8`. `TODO.md` holds the next
 compiler work and open questions, and `REWORK.md` the decision log.
 
 ## Setup

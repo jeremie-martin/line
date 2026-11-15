@@ -169,6 +169,11 @@ it('computes one ride\'s geometry shares and realized facts', () => {
   expect(g.realized['guided, guide never touched, share']).toBeCloseTo(1 / 4);
   expect(g.realized['shaped, turns realized, share']).toBeCloseTo(1 / 2);
   expect(g.realized['shaped, turn reversals per section']).toBeCloseTo(3 / 2);
+  expect(g.realized['shapes caught from above per ride']).toBe(0);
+  // A shaped section caught from above counts as the arc it was drawn as, and is counted apart.
+  const above = geometryOfCell(withGeometry(cell(c), [sec('arcs', 'optional', 10), {...sec('arcs', 'optional', 12), caughtFromAbove: true}]))!;
+  expect(above.realized['shapes caught from above per ride']).toBe(1);
+  expect(above.sections['arcs/optional']).toBeCloseTo(1);
   expect(geometryOfCell(cell(c))).toBeNull();
 });
 

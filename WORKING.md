@@ -32,11 +32,13 @@ that must not change what the compiler produces.
 
 ## Panels
 
-- `v7.1` is the development panel, and `v7.1-confirm` re-runs it at fresh seeds
-  (`v7` and `v7-confirm` keep V7.0, which V7.1 extends).
+- `v8` is the development panel since 2026-11-13 (V7.1 made faster, shorter and more contrasted), read with `v7.1`
+  beside it; `v8-confirm` and `v7.1-confirm` re-run them at fresh seeds (`v7` and `v7-confirm` keep V7.0, which V7.1
+  extends).
   `npm run eval -- --name=X` compiles one panel with this checkout.
-- To compare a change: `npm run compare -- run --reference=main
-  --candidate=<branch> --panel=v7.1` (`docs/benchmark.md`). Stop it once the
+- To compare a change: `npm run compare -- run --reference=NAME
+  --candidate=<branch> --panel=v8` (`docs/benchmark.md`; `NAME` is the newest
+  `foundation-N` of `REWORK.md`, set locally), with V7.1 beside it. Stop it once the
   evidence reads clearly; the same command resumes. Agents run it as a
   tracked background task.
 - Bench specs are variants named `bench-<pattern>.ts` with a `bench` export

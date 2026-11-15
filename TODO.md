@@ -7,68 +7,44 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    zoom that follows the song or the spec, where carry and the shake should probably scale with the zoom.
 
 00. **Where things stand (2026-11-15).** One compiler on `visual-lab`: gentle exits, terraces and folds parked, the
-   arrival law (reference `foundation-8`). Next, in order:
+   arrival law, aimed launches removed, catches from above in shaped phrases (reference `foundation-10`). Next, in order:
    - ~~the owner's review of the 20 handcrafted specs~~ (done 2026-11-15: production specs chosen, REWORK.md). Next: a
      second round of readings for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones);
    - ~~the compiler's consistency stop ("main construction differs at support N")~~ (fixed 2026-11-15: the check did
      not know the gone-through cleanup shortens main lines; REWORK.md);
-   - the long-float trade (the 108 s long spec): measured as a ceiling (REWORK.md, November 15): under the 0.6 push
-     cap a float before a quiet catch gets at most about 0.74 air on these gaps; the rides are at it and the asks
-     0.15 above it. Moves only with the cap, harder quiet catches or the asks. Open lever: launching floats from the
+   - the long-float trade (the 108 s long spec): a momentum model of today's supports (REWORK.md, November 15): under
+     the 0.6 push cap it gives a float before a quiet catch about 0.74 air on these gaps; the rides are at it, the asks
+     0.15 above it. A model, not a bound: a different construction may get past it. Open lever: launching floats from the
      strong hit that starts them.
 
-0a. ~~**Aimed launches under gentle exits**~~ (removed 2026-11-15: V8 16 seeds +0.4 [−3.5, +4.4] without them;
-   nothing separates consistently; REWORK.md).
+0b. **Rails left by geometry** (2026-11-15). Catches from above in shaped phrases took rails from 39 to 34% of gaps
+   on V8 (`foundation-10`, owner's choice; REWORK.md). The rails left mostly hold shaped supports at the release before
+   a strong beat (`tools/research/rail_job.ts --census`); which of those jobs another geometry could take over is open.
 
-0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
-   misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
-   (the long spec −26) lose air and their neighbouring strong beats, because a level arrival is usually a short
-   flight. Tried 2026-11-15 (REWORK.md, apex launches): releases launching toward an apex arrival are taken up (11%
-   of arcs) and cost nothing on V8 or V7.1; quiet asks closer on V8 and on the owner's Tiki spec, not on V7.1; not
-   adopted yet. The long spec's quiet beats follow 2–3 s floats asking 80–92% air: no apex arrival exists there and a
-   soft catch cannot turn the rider up for the next float, so the loss is a trade in its asks, not a missing shape.
-   Apex launches were then generalized into the arrival law (one speed-aware arrival heading for every ask, with
-   aimed launches): adopted and merged into `visual-lab` with gentle exits (2026-11-15; reference `foundation-8`). Aimed launches
-   removed the same day (no effect under gentle exits, item 0a).
+0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted on the way: level arrivals before quiet catches
+   and quiet misses priced in proportion, then the arrival law (one speed-aware arrival heading for every ask); aimed
+   launches were removed under gentle exits (REWORK.md, November 15). Still open: the softest asks on slow passages
+   (the owner's Tiki spec), and specs asking much air before quiet beats (the long spec, item 00).
 
-1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
-   to −11% CPU, long case −27%, identical tracks).
-2. ~~**Owner review of the Trouble spec variants**~~ (rounds 1–4,
-   2026-10-31). Preferred: `contrast-clusters` (spec.ts); lessons in
-   docs/music-authoring.md. Open: about half of its seeds fail at the short
-   two-hit pairs.
-3. ~~**Diagnosis of unwanted impacts**~~ (done 2026-10-30:
-   docs/research/unwanted-impacts-20261030.md). Next, for the owner:
-   - look at the example collection
-     (`/generated/unwanted-impacts-20261030/collection.json`);
-   - U1 stopped (worse than v3 on his labels); step back done
-     (docs/research/measure-step-back-20261031.md). Next: night study, then
-     the visibility study it proposes. No compiler fix (U2, U3) before that.
-4. ~~**Dashboard playback**~~ (done 2026-10-31: one shared player,
-   shared/playback.js).
+2. **Trouble** (owner's review, 2026-10-31): `contrast-clusters` preferred (spec.ts); lessons in
+   docs/music-authoring.md. Open: about half of its seeds failed at the short two-hit pairs then; check against today's
+   compiler.
+3. **Unwanted impacts** (diagnosis 2026-10-30, docs/research/unwanted-impacts-20261030.md). For the owner: the example
+   collection (`/generated/unwanted-impacts-20261030/collection.json`). U1 stopped (worse than v3 on his labels); next
+   the visibility study (item 5). No compiler fix (U2, U3) before that.
 
 5. **Owner: answer `impact-visibility-2026-11`** (55 pairs, about 20 min).
 6. **Dashboard camera** (agent, 2026-10-31): the viewer follows the sled's peg,
    so spins make the world lurch; check whether videos are affected.
 7. **Geometry hygiene diagnosis** (agent, report only): pass-throughs
    (rider crossing a line from its non-colliding side) and untouched geometry.
-8. ~~**New songs**~~ (2026-10-31).
-   - Valhalla: `words3`, production ready.
-   - Circus Minimus: `voice-full` is preferred since 2026-11-14 (the voice to the end; 4 seeds of 4 complete); `pairs3` before.
-   - `pairs4` is the intended spec (0 in 24): a target for item 9.
-9. **Compiler work** (branch `compiler`). Benchmark: V8 (2026-11-13; `docs/benchmark.md`), reference `nov13` = 762.1 on V8,
-   800.8 on V7.1. The archive version (`merged`) scores +14.9 [+6.1, +23.7] above it on V8 (V7.1: +11.7).
+8. **Circus Minimus `pairs4`** is the intended spec (0 complete in 24 when last tried, before November): a target for
+   item 9. (`voice-full` is the default spec since 2026-11-14.)
+9. **Compiler work** (branch `compiler`). Benchmark: V8 (`docs/benchmark.md`); reference `foundation-10` (2026-11-15).
+   References are local: set one on each machine (`npm run compare -- reference set NAME --from=COMMIT`). Families
+   placed where they fit is today's planning approach, open to replacement (`docs/taste-and-the-compiler.md`).
    - Open question: the remaining strong-beat gap on everyday songs (chain setup). Compact sources plateau (more styles, more
      memory moves, more data don't help) and generating moves failed (REWORK.md, "November 11 (night)").
-   - ~~Delete the ending refinement~~ (done 2026-11-13: −0.2 on V8, −0.1 on V7.1; 424 lines out).
-   - ~~Strong phrases offered guides~~ (adopted 2026-11-13, **removed 2026-11-14**: the main source of rails; clean
-     upper hits on strong beats fell 9.6% → 5.8%).
-   - ~~Families where they fit~~ (adopted 2026-11-14: V8 +8.5 [+3.2, +13.8] at 8 seeds, held out +8.1, V7.1 +12.5;
-     table refitted on 524 rides: +3.7 [+1.0, +6.5]). Kept in the foundation as today's planning approach, open to
-     replacement (`docs/taste-and-the-compiler.md`). For the owner's eye: folds now mostly in calmer passages.
-   - ~~Guides where they clearly fit~~ (adopted 2026-11-14, **removed the same day**: more rails for about +1).
-   - **Foundation since 2026-11-14:** `compiler` = 775.0 on V8 (4 seeds), +12.9 [+3.1, +22.8] over the start with the
-     start's ride character (rails 55% of gaps, clean upper hits 9.6% of strong beats). REWORK.md, November 14.
    - Still open from November 1:
      - short re-landings at speed: completion solved on November 1 (every V8 ride completes, Circus `pairs4` included);
        quality there is the same strong-too-soft story as elsewhere;
@@ -78,8 +54,6 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      - unwanted impacts (U2, U3; guide touches on beats);
      - the measure (visibility study);
      - benchmark fitness.
-10. ~~**New benchmark**~~ (2026-10-31): built and baselined (`bench-base-20261031`, `pairs8-base-20261031`).
-
 11. **Videos: one renderer** (2026-11-08, branch `visual-lab`; REWORK.md).
     Open:
     - ~~**Timing**~~ (`generated/concept-lab/docs/TIMING-DESIGN.md`, all on
@@ -121,9 +95,10 @@ The compiler has changed since. Answer them against current rides.
    tail. Re-author, or keep as stretch goals?
 3. **Air against impact.** Weighting air 1.5× recovered air accuracy but gave back
    about a third of the strong-beat gain. Which matters more?
-4. **Body drag.** The rider's body drags along rails more than before (about 1.6 to
-   2.1 s/min at the time). Is it visible or objectionable? If so, it becomes a guard.
-5. **Lines through the rider.** 6 to 8 per ride at the time. Worth fixing?
+4. **Body drag.** Answered (owner, 2026-11-01 and 2026-11-15: "not a huge issue for me"): an unvalidated proxy,
+   reported in every comparison, never optimized.
+5. **Lines through the rider.** Answered: worth fixing; the gone-through cleanup (2026-11-14) took the cases from 1.6
+   to 0.3 per ride on V8.
 
 ## Blind studies with no saved answers
 
@@ -146,7 +121,11 @@ Note friction here as it happens; fix what is tiny.
   during a 15-minute panel. Separate work happens in another worktree, and a
   `node_modules` symlink there once replaced the real directory on cherry-pick (now ignored).
 - `compare` keeps one worktree per compared commit in `generated/eval/worktrees/` and never
-  prunes them; it could drop those no saved run needs.
+  prunes them; it could drop those no saved run needs. (Pruned by hand 2026-11-15, with the saved rides no
+  comparison can reuse: every arm's identity includes `tools/eval/compile.ts`.)
+- `compare` refuses every ride once the measurement code changes under it (anything `tools/eval/measure.ts` imports,
+  compiler geometry included): edit those files only between runs, or in another worktree. A worktree made by hand
+  for tests or parity needs `node_modules` linked and the engine's built `lr_engine.wasm` copied.
 - Eight-round paired timings resolve about 2%, so changes meant to be neutral come back
   unclear. Accepted: about 8 minutes a run is the right cost.
 

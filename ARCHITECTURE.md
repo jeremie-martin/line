@@ -55,7 +55,8 @@ and validation are in [music authoring](docs/music-authoring.md).
      policies" below), memory of earlier sections, response directions, a
      generic sweep, observed receivers, and receivers met from above that keep
      the rider's body clear (12 per section, `upperReceiverProposals`, since
-     2026-11-14);
+     2026-11-14). A receiver met from above is drawn as a plain line with no
+     rail in every family (`arc_geometry.ts`, since 2026-11-15);
    - measures each proposal by native replay from the section's physical
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`); a proposal
      whose rail crosses or comes within 6 px of its own support is not built
@@ -395,6 +396,17 @@ A geometry family is one row of `GEOMETRY_FAMILIES`
   The plan is then rewritten to what the ride realized (`splitPhrases`), so
   the fulfilment checks and reports see the realized requests. This replaced a
   9-frame threshold on 2026-11-01 (docs/research/overnight-20261101.md).
+- **A catch from above may stand for a shape** (since 2026-11-15; REWORK.md).
+  In a shaped phrase the rail before a strong beat mostly drives the rider down
+  into the hit; a line above does that job at the hit itself. The automatic
+  planner grants each shaped request whose rail is not required and that is no
+  transfer `catchFromAbove` (`mayCatchFromAbove` in `repertoire_policy.ts`;
+  plan validation refuses it anywhere else). Where granted, a candidate met
+  from above passes the section's shape check, and the final realization
+  checks the section as the plain arc it is and records it as
+  `caughtFromAbove`. An explicit request (a plan supplied whole, a benchmark
+  construction window: `explicitPlan`) does not carry the permission and keeps
+  its shape; a section simplified at a dead end loses it with its shape.
 
 Every main curve starts with a straight lead-in laid back from its anchor (`arc_geometry.ts`), along the shallower of
 the entry and the arrival heading (the steeper for a surface met from above), so it never rises into the rider's path
@@ -426,7 +438,8 @@ What the table deliberately does not hold:
   compact proposals and its receiving-fold geometry (`arc_motion_control.ts`,
   `arc_proposals.ts`, `observed_receiver.ts`).
 - The realization checks, shared with the frozen judge: a fold needs its
-  corners, and every other shaped family needs two turn reversals
+  corners, and every other shaped family needs two turn reversals, unless the
+  section was caught from above where the plan allows it
   (`repertoire_realization.ts`, `repertoire_layout.ts`).
 - The future-value model's construction features: a one-hot over the six
   families it was trained on (`arc_compile_context.ts`). A new family encodes
@@ -585,7 +598,9 @@ Known limits of the strike account:
       compact geometry facts from the compile (`geometryFacts`: per section
       the planned family, guidance, rail layout, length in frames, and the
       realization's fulfilled, reasons, guide contact frames and turn
-      reversals). The plan holds only the fitted family, so whether
+      reversals). A shaped section caught from above is recorded as the arc it
+      was drawn as (`caughtFromAbove`) and counted in "shapes caught from
+      above". The plan holds only the fitted family, so whether
       short-shape fitting changed a section is not recorded; the report
       counts short sections by planned family instead. Remeasurement carries
       the facts over and cannot reconstruct them for older cells.

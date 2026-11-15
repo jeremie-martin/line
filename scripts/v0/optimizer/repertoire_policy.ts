@@ -16,8 +16,11 @@ export const PARKED:readonly Construction[]=['terraces','fold'];
 export type {Construction};
 export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
+/** `catchFromAbove`: the beat may be caught from above (a plain line met from above, arc_geometry.ts) instead of the
+ * section drawing its shape. The automatic planner grants it wherever `mayCatchFromAbove` holds; an explicit request
+ * (a plan supplied whole, a benchmark's construction window) does not carry it and keeps its shape. */
 export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance;
-  railLayout?:'paired'|'transfer';context?:RepertoireContext};
+  railLayout?:'paired'|'transfer';context?:RepertoireContext;catchFromAbove?:true};
 export type ProductionPlan={schema:'line.production-plan.v1';policy:string;seed:number;timelineSha256:string;
   phraseBoundaries:number[];
   musicalSha256?:string;
@@ -74,6 +77,11 @@ export function planRepertoire(spec:Pick<Spec,'duration'|'contacts'>,seed:number
   }
   return {schema:'line.production-plan.v1',policy:REPERTOIRE_POLICY,seed,timelineSha256:hash(timeline),phraseBoundaries:[...phraseBoundaries],preferences,phrases,requests};
 }
+/** Where a catch from above may stand for a section's shape (REWORK.md, November 15: in shaped phrases a line above
+ * does the rail's job of driving the rider down into the hit): a shaped family (arcs are caught from above as arcs
+ * already; scattered keeps its fragments), its rail not required, not a transfer. */
+export const mayCatchFromAbove=(r:Pick<ConstructionRequest,'construction'|'guidance'|'railLayout'>)=>
+  r.construction!=='arcs'&&r.construction!=='scattered'&&r.guidance!=='required'&&r.railLayout!=='transfer';
 /** Fixed benchmark requests use exactly the same realization route as automatic plans. */
 export function validateProductionPlan(spec:ContextSpec,input:ProductionPlan):ProductionPlan{
   const timeline=supportTimeline(spec);
@@ -91,7 +99,8 @@ export function validateProductionPlan(spec:ContextSpec,input:ProductionPlan):Pr
     (r.construction==='scattered'&&r.guidance!=='optional')||
     (r.railLayout!==undefined&&!['paired','transfer'].includes(r.railLayout))||
     (r.railLayout==='transfer'&&(r.guidance!=='required'||r.construction==='scattered'))||
-    (input.policy===REPERTOIRE_POLICY&&(r.railLayout!==undefined||r.context!==undefined)))throw new Error('invalid construction request');
+    (input.policy===REPERTOIRE_POLICY&&(r.railLayout!==undefined||r.context!==undefined))||
+    (r.catchFromAbove!==undefined&&(r.catchFromAbove!==true||input.policy===REPERTOIRE_POLICY||!mayCatchFromAbove(r))))throw new Error('invalid construction request');
   let first=1;
   if(!Array.isArray(input.phrases))throw new Error('missing production phrases');
   for(const p of input.phrases){

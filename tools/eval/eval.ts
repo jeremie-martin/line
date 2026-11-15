@@ -160,7 +160,8 @@ export function geometryReport(a: Run, b?: Run): string[] {
     + ' (plan and realization), so remeasure cannot recover them; recompile to see them.'];
   if (missing.length) out.push(`not recorded for ${missing[0]}: that run predates geometry facts (compiler output; remeasure cannot recover them).`);
   out.push(`"short" = under ${g.shapedMinFrames.join('/')} frames (a reporting band: a 0.2 s pair is 8–9 frames). Families are the realized ones: a shaped`,
-    'section the search simplified at a dead end shows as arcs, and is counted in "shapes simplified at a dead end".',
+    'section the search simplified at a dead end shows as arcs, and is counted in "shapes simplified at a dead end"; one',
+    'caught from above shows as arcs too, and is counted in "shapes caught from above".',
     ...(paired ? ['Per stratum: B→A (reference, then candidate).'] : []),
     `${pad('', 40)}${g.strata.map(s => pad(s, paired ? 10 : 8)).join('')}${paired ? `${pad('strata A', 10)}${pad('B', 9)}A − B` : 'strata'}`);
   for (const {group, rows} of g.groups) {

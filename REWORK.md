@@ -51,6 +51,80 @@ more, four at 7. Each song's `spec.ts` now names its best reading:
   strength difference of 0.15–0.2 between otherwise equal landings, or on a selection whose rule cannot be seen. Marks
   do not follow the score (`build` 683, Valhalla `still-drop` 835).
 
+## November 15: catches from above in shaped phrases, adopted (owner's choice; `foundation-10`)
+
+**Accepted by the owner** on the whole rides ("I do like the after"), with explicit requests keeping their shape.
+
+**Design.** A shaped request in an automatic plan may be caught from above instead of drawing its shape:
+- The plan carries it: the planner grants `catchFromAbove` to shaped requests whose rail is not required and that
+  are no transfer (`mayCatchFromAbove`, `repertoire_policy.ts`); validation refuses it anywhere else and in plans of
+  the first policy. An explicit request keeps its shape: a plan supplied whole has no permission, and a benchmark
+  construction window drops it (`explicitPlan`); a section simplified at a dead end loses it with its shape.
+- A receiver met from above is drawn as a plain line with no rail in every family (`arc_geometry.ts`).
+- Where granted, the search's shape check and the final realization accept the plain catch; the realization records
+  the section as `caughtFromAbove`. Reports count it as the arc it was drawn as (ride character, Section 4) and per
+  ride in "shapes caught from above"; the ride page shows it as arcs.
+- Tests: `tests/catch_from_above.test.ts` (the grant and its refusals, explicit windows, the drawing, the
+  realization), Section 4's count; one test that turns a planner plan into an explicit one drops the permission.
+
+**Checks.** Tests 660, typecheck, reach, parity (all 25 cells move: candidates met from above are drawn differently
+everywhere; references updated), judge parity. On V8 (4 seeds) the 181 non-explicit rides are byte-identical to the
+tested experiment (`exp/plain-catches-from-above`); in the 24 explicit rides no window section is caught from above
+(144 kept their shape; 59 catches from above outside the windows). Against `foundation-9`: headline −0.6, explicit
++2.6 (the experiment: −2.9), rails 35 → 30% of gaps, shapes 31 → 28% and open arcs 54 → 57% (now counted as
+realized), clean upper hits 14.4 → 15.7% of strong beats, hard unrecorded pushes 0.24 → 0.21, 2.4 shapes caught from
+above per ride, dead-end simplifications 0.19 → 0 per ride. The 16-seed and V7.1 results of the experiment hold for
+every non-explicit ride: V8 +0.6 [−4.5, +5.6], V7.1 +7.0 [+1.2, +12.7]; the long spec −11 on V8.
+
+## November 15: rails today, and catches from above in shaped phrases (stated before running)
+
+**Where rails stand on `foundation-9`** (V8, 4 seeds, 17,392 gaps; `tools/research/rail_job.ts --census`, which now
+prints this): 36% of gaps keep a rail, 31–38% in every category. By family: scallops 82%, serpentine 76%, scattered
+72%, arcs 1% (not offered one). The rail's job, by when it is touched: at the release 53% (it holds the rider to the
+end of the support), only in the catch 11%, only on the support 4%, never between catch and release 33%. Removed alone
+(`rail_counterfactual.ts`, 2 seeds), a release rail lets the rider leave earlier in 66% of cases (median 2 frames) and
+changes the flight in 84%. In shaped families rails gather before strong beats: 87% of gaps before a strong beat keep
+one, 70% before a middle one, 46% before a quiet one; release rails launch the rider 25° downward, unrailed shaped
+supports 18°, arcs 26° without any rail. So in shaped phrases the rail's main job is driving the rider down into the
+next strong hit.
+- **Catches from above never happen in shaped phrases:** arcs catch 29% of their strong beats from above, scattered
+  17%, scallops 0.1% and serpentines 0% (of 2,640 strong beats). The upper receivers are proposed there too, but drawn
+  with the section's shape (a scalloped or serpentine roof) and its rail.
+- **Hypothesis** (`exp/plain-catches-from-above`): a catch from above does the rail's job at the hit itself (the line
+  above drives the rider down). Drawn as a plain open line in any family (no shape, no rail), it becomes available in
+  shaped phrases; strong beats there are caught from above more often, the gap before them needs no release rail, and
+  rails per gap fall in scallops and serpentines. Rulers: rails per gap, clean upper hits on strong beats, hard
+  unrecorded pushes, the headline (V8, 4 seeds, against `foundation-9`). A headline gain with more rails would be the
+  mistake of November 14.
+- **First run (plain drawing only), V8 4 seeds:** headline −1.8 [−21.1, +17.4] (the long spec −31 on 4 rides), rails
+  35 → 33% of gaps, clean upper hits 14.4 → 14.5%, pushes 0.24 both; scallops and serpentines still 0% from above.
+  The premise was wrong: a probe (10 gaps, one family) shows why. Upper candidates there are refused by the shape
+  check (a scallop section must show its reversals) or come apart (binding: 140 of 171 in scallops against 62 of 150
+  in arcs); none is viable. Only scattered sections moved (rails 72 → 62%).
+- **Second run, stated before running:** in an automatic plan, a shaped section may be caught from above instead of
+  drawing its shape (`fromAboveMayReplaceShape`, adopted as `mayCatchFromAbove`: not arcs or scattered, not required
+  rails, not transfers); the
+  candidate check and the final realization both accept it and record it (`caughtFromAbove`). In the probe this gives
+  3 of 10 scallop gaps and 1 of 10 serpentine gaps caught from above. Same hypothesis and rulers; also reported: how
+  many shaped sections are caught from above (the plan's family is not drawn there), and explicit requests (E).
+- **Result** (against `foundation-9`; every ride finished on every panel):
+
+| panel | seeds | headline | specs up / down | rails, share of gaps | clean upper hits, strong beats | hard unrecorded pushes / ride | body drag |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | +0.6 [−4.5, +5.6] | 30 / 13 | 39 → 34% (every category −3.9 to −6.0) | 13.9 → 15.4% | 0.22 → 0.21 | +3% |
+| V7.1 | 4 | **+7.0 [+1.2, +12.7]**, every seed block up | 26 / 9 | 34 → 30% | 11.9 → 13.3% | 0.29 → 0.21 | +2% |
+
+  Shaped phrases now catch strong beats from above (V8, 4 seeds: scallops 0 → 8%, serpentines 0 → 9%); before a strong
+  beat they keep a rail in 73% of gaps (87%). Clean upper hits rise as a share of all beats in every category. Air,
+  speed and the strong and quiet biases within noise (very strong bias +0.005, better). Losses: the long spec −11.0 on
+  V8 (4 seeds up, 12 down: a real loss there; +17.6 on V7.1), Tiki calm −14.0. Strong extra impacts unchanged on V8,
+  0.02 → 0.04 per 100 beats on V7.1.
+- **Explicit requests:** E −1.9 on V8, still 864/864 "realized", but that count now accepts a shaped window caught
+  from above (the Tiki ripples ride below has six). Before adoption the rule should leave explicit requests their
+  shape, or the owner says it may apply there too. (Settled at adoption: explicit requests keep their shape; entry above.)
+- **For the owner's eye** (adopted after it; entry above): five whole rides, plain look, before and after, with the
+  times of the catches from above: `/motion-gallery/video-compare.html?collection=/generated/watch/plain-catches-from-above.json`.
+
 ## November 15: aimed launches removed (no measurable effect under gentle exits)
 
 **Hypothesis** (handoff): with exits drawn gently, aimed launches (which work by turning a support's exit) no longer
@@ -71,33 +145,37 @@ them (`exp/no-aimed-launches`; the removal `exp/remove-aimed-launches` gives byt
 - **Removed** (`proposeAimedLaunches`, its option and work counter: 52 lines). Parity references updated (tracks
   move); judge parity, tests 652, typecheck, reach pass. The arrival law itself stays (ranking prefers its heading).
 
-## November 15: long floats before quiet catches — a ceiling, not a missing shape (rejected experiment)
+## November 15: long floats before quiet catches — a momentum model of today's supports (rejected experiment)
 
 **Measured on saved V8 rides first** (`foundation-8`, the long spec and the three calm specs, gaps of 60 frames or
 more asking air ≥ 0.75; replayed). Over a gap the line must give back what gravity took during the flight: the
 rider's vertical speed changes by g × flight frames, and only the line can reverse it. After the hit's six frames a
 gentle support pushes up by at most g + 0.6 px/frame² (its own weight plus the push cap), so the support must last at
-least (g × gap − the hit frames' upward impulse) ÷ (g + 0.6) frames. For these gaps that puts the most air any
-support can give at **0.74 on average**. The rides get **0.715** (0.02 below it); the asks are **0.88**, 0.15 above it.
-The rides before gentle exits got 0.80, 0.08 above the ceiling, through pushes above the cap (their supports turned
+least (g × gap − the hit frames' upward impulse) ÷ (g + 0.6) frames. Under this model the most air today's
+supports can give on these gaps is **0.74 on average**. The rides get **0.715** (0.02 below it); the asks are **0.88**, 0.15 above it.
+The rides before gentle exits got 0.80, 0.08 above the model's limit, through pushes above the cap (their supports turned
 the rider at up to 1.6 px/frame²). Today's supports push at the cap through most of their length (0.55–0.64 px/frame²
 in the first four fifths after the hit, 0.34 in the last fifth, where the support eases into its exit).
-- So neither receivers that follow the falling path nor longer supports can change the budget: the upward
-  momentum a float needs is fixed by its flight time. Within the cap, air beyond the ceiling can only be paid for by a
+- Under this model, receivers that follow the falling path and longer supports do not change the budget: the
+  upward momentum a float needs is set by its flight time. Within the cap, air beyond the limit is paid for by a
   harder catch (about g + 0.6 of hit impulse per frame of extra air), or by a higher cap.
 - **Hypothesis** (experiment `exp/full-limit-supports`): the strongest shape within the cap, a support that turns
   toward its exit at the full gentle limit from the end of the hit's frames and then runs straight (instead of an eased
-  path that the limit clips), recovers at most the 0.02 left below the ceiling on the four float specs; the hard
+  path that the limit clips), recovers at most the 0.02 left below the model's limit on the four float specs; the hard
   unrecorded pushes stay where they are; elsewhere on V8 it changes the look of gentle supports (sharper, then
   straight) and is not a candidate for adoption by itself.
+- **What the model leaves out** (worded as a model, not a bound): pushes from other lines during the flight or the
+  support (rails, upper receivers, later supports), the body's own springs, catches that are not quiet, and supports the
+  compiler does not draw today (anything beyond one support per gap, or shapes whose push the cap does not see). A
+  different construction may get past it.
 - **Result** (the four float specs, 16 seeds, 64 pairs, against `foundation-8`): headline −10.6 [−26.2, +5.0] (calm
   −5.3, long −16.0). Air on long gaps before quiet beats: long spec −0.148 → −0.143, Tiki calm −0.155 → −0.132, Amor
-  calm −0.058 → −0.052, Amour calm −0.004 → −0.082. Both arms sit at the ceiling (0.01 below it on average) and the
-  asks 0.14–0.15 above it. Hard unrecorded pushes 0.59 → 0.36 per ride. **Rejected:** no shape within the cap recovers
-  the air; the ceiling holds.
+  calm −0.058 → −0.052, Amour calm −0.004 → −0.082. Both arms sit at the model's limit (0.01 below it on average) and
+  the asks 0.14–0.15 above it. Hard unrecorded pushes 0.59 → 0.36 per ride. **Rejected:** the strongest shape of today's supports within
+  the cap does not recover the air.
 - **What would move it** (none taken): a higher cap (each 0.1 px/frame² buys about 0.02 of air on these gaps; the asks
   need about 2.3, four times today's and above what the rides before gentle exits used); harder catches on quiet
-  beats; or asks within the ceiling. One lever is legitimate and unused: a float that starts on a strong beat can be
+  beats; or asks within the limit. One lever is legitimate and unused: a float that starts on a strong beat can be
   launched by that hit, in its own frames. Today such hits give no more upward impulse than quiet ones (3.8 against
   4.5 px/frame over the hit's frames, V8 float specs, 16 seeds), and those gaps get 0.75 for asks of 0.94. Only 48 of
   288 such gaps on the float specs start strong, so it would not rescue the long spec.

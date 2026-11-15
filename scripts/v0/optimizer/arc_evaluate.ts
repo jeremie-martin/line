@@ -214,7 +214,8 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
   const impactMatch = impactAccount.matches.find(m => m.target === s.currentImpactTarget);
   if (i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
   const request = options.constructionRequests?.[i];
-  if (request && (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
+  if (request && !(c.contactSide === -1 && request.catchFromAbove) &&
+    (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
     const guideIds = fragments?.guideIds ?? (arcRailGroups(added).get(i)![1] ?? []).map(l => l.id);
     const allContacts = request.context || request.railLayout === 'transfer'
       ? (frame: number) => child.getAllContactLineIdsAtFrame(frame) : undefined;

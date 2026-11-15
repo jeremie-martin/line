@@ -88,7 +88,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;beats:num
       if(!fragmented&&styles[i]?.railLayout!=='transfer'&&i>=(composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0))assert.equal(normal.length+(geometryVerification.shortened[i]??0),1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
-        shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),
+        shape:fragmented?'fragments':production?.realization?.sections?.[i]?.caughtFromAbove?'arcs':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),
         profileStrength:styles[i]?.profileStrength??(method===geometry?strength:undefined)??1,
         layout:styles[i]?.railLayout??'paired',
         guidePermission:styles[i]?.guides===false?'forbidden':'allowed',

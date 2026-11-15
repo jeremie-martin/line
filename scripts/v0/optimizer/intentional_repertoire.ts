@@ -1,7 +1,7 @@
 /** Context-sensitive seeded arrangement. Frozen V1 plans remain reproducible. */
 import {createHash} from 'node:crypto';
 import {makeRng} from '../../lib/rng.ts';
-import {planRepertoire,creativePreferences,validateProductionPlan,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
+import {planRepertoire,creativePreferences,validateProductionPlan,mayCatchFromAbove,type CreativePreferences,type ProductionPlan,type Construction,type Guidance} from './repertoire_policy.ts';
 import {repertoireContexts,repertoireMusicHash,type ContextSpec} from './repertoire_context.ts';
 import {contextOf,familyCost,familyKey} from './family_fit.ts';
 export const INTENTIONAL_REPERTOIRE_POLICY='line.repertoire-policy.v2';
@@ -46,6 +46,8 @@ export function planIntentionalRepertoire(spec:ContextSpec,seed:number,input:Cre
   // Arcs are never offered a rail (REWORK.md, November 14: the owner prefers the rides by eye, V8 −9.0). An arc phrase
   // drawn and placed as guided keeps its place and becomes an open arc; shaped families keep their optional rail.
   for(const p of phrases)if(p.construction==='arcs'&&p.guidance==='optional'){p.guidance='forbidden';for(let i=p.first;i<p.first+p.count;i++)requests[i]={...requests[i],guidance:'forbidden'};}
+  // The planner's shapes are chosen for variety, so a catch from above may stand for one (repertoire_policy.ts).
+  for(const [i,r]of requests.entries())if(mayCatchFromAbove(r))requests[i]={...r,catchFromAbove:true};
   return validateProductionPlan(spec,{...scaffold,policy:INTENTIONAL_REPERTOIRE_POLICY,musicalSha256:repertoireMusicHash(spec),phrases,requests});
 }
 

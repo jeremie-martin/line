@@ -193,9 +193,10 @@ export function proposeOpposingEntries(s: IntervalSearch) {
 export function proposeAimedLaunches(s: IntervalSearch) {
   const {options, ctx} = s, cfg = options.aimedLaunches, aim = arrivalTargets(s);
   if (!(cfg && cfg.count > 0 && aim && !options.profile && options.railLayout !== 'transfer')) return;
-  const pull = aim.angled + aim.level;
+  // `levelOnly`: aim only where the level prior applies (before quiet beats), at level
+  const angled = cfg.levelOnly ? 0 : aim.angled, pull = angled + aim.level;
   if (pull < .05) return;
-  const target = aim.angled * aim.desiredArrival / pull;   // the heading minimizing the steep and level priors together
+  const target = angled * aim.desiredArrival / pull;   // the heading minimizing the steep and level priors together
   const G = .175, deg = (r: number) => r * 180 / Math.PI;
   const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.release !== undefined)
     .sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);

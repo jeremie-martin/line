@@ -67,7 +67,7 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   /** Motion-quality residuals. */
   motionQuality?: MotionSearchOptions;
   /** Twins of the best-ranked candidates launching toward the arrival the next catch asks for (arc_proposals.ts). */
-  aimedLaunches?: {count: number; fractions: number[]};
+  aimedLaunches?: {count: number; fractions: number[]; levelOnly?: boolean};
   /** Quiet misses priced in proportion to the ask (arc_interval_state.ts openInterval). */
   relativeImpact?: {reference: number; softness: number; askFloor: number};
   /** Learned construction memory and policies, by construction memory key. */

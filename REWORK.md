@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: apex launches, first result; the air-length twin (stated before running)
+
+- **Apex launches** (V8 against `foundation-6`, 758.8): headline +0.7 [−2.8, +4.2], 19 specs up, 24 down; explicit
+  +7.0; strong extra impacts 0.11 → 0.14; air, speed and strong asks unchanged. Small quiet asks (0–0.1) within ×1.5
+  54% → 70%, over ×2 22% → 15%; 0.1–0.2 within ×1.5 99%. Taken up: 11% of committed arcs descend from an apex launch
+  (seed 101, `candidate_origins.ts`).
+- **But not on the long spec:** 722.4 → 726.8 (748.7 before the quiet-hit adoption); air before asks under 0.1 still
+  −0.19. The twin keeps its candidate's release frame, hence its flight time, and those flights were already too short.
+- **Next** (`exp/apex-launch-air`, option `apexLaunches.airFlight`): each twin is also offered with its support set to
+  the length the air ask implies (the interval's nominal support), launched for an apex arrival over that longer
+  flight. **Hypothesis:** air before quiet beats recovers on the long spec (toward −0.14) and its score toward 748.7;
+  the quiet gain stays; headline up against `foundation-6`.
+
 ## November 15: apex launches (stated before running)
 
 The owner asked to try, properly and ambitiously, the missing shape noted at the adoption above: a release that

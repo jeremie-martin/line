@@ -70,18 +70,6 @@ export function genericControl(s: IntervalSearch, k: number): ArcMotionControl {
     control.receiverExit = -60 + 130 * frac(.3247179572);
     control.receiverDuration = .25 + .7 * frac(.4384471872);
   }
-  if (options.profile === 'fold' && options.railLayout !== 'transfer' && k % 4 === 0) {
-    // Both corners turn upward: the support can push the sled through them
-    // from below, instead of needing a roof to follow a downward corner.
-    // Spend existing generic slots; the ordinary search still decides whether
-    // this construction fits the arrival, release and musical request.
-    control.entry = clamp(incoming - (1 + 19 * frac(.61803398875)), -45, 80);
-    control.turn = 0;
-    control.exit = Math.max(-80, control.entry - (30 + 40 * frac(.73205080757)));
-    control.foldBend = 0;
-    control.turnFraction = .15 + .65 * frac(.2718281828);
-    control.clearance = 12 + 10 * frac(.7548776662);
-  }
   return control;
 }
 

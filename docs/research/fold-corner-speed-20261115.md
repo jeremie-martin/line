@@ -1,5 +1,10 @@
 # Upward folds and speed lost at corners
 
+**Status: parked.** After reconsidering folds versus arcs, the owner moved this
+workstream to performance. The experiment is preserved at
+`archive/upward-folds-20261115` (`5f860649`); its production changes were removed
+from `geometry-improvements`. The adoption described below is historical.
+
 The owner strongly preferred the first upward-fold diagrams for their cleaner,
 smoother appearance. This is explicit visual feedback on selected passages, not
 a blind preference study. It supersedes the initial decision to reject that

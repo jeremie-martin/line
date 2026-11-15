@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: park the fold experiment; begin throughput and memory work
+
+- The owner questioned whether smoothing folds adds anything beyond arcs and moved
+  this workstream to throughput and memory. Preserve the complete fold experiment at
+  `archive/upward-folds-20261115` (`5f860649`), with its separate experiment branches
+  and dashboard. Restore pre-fold compiler code and parity references on
+  `geometry-improvements`; unused-end trimming remains. Fold adoption entries below
+  are historical, superseded by this decision. No uncommitted compiler work remains.
+- Performance hypothesis, before measurement: parallel slowdowns may combine P/E
+  core differences, SMT, package power limits and per-process runtime overhead;
+  do not assume memory bandwidth is responsible. Measure fixed real compile work,
+  identical outputs and charged frames, CPU topology/affinity, batch throughput,
+  single-track latency and process/aggregate memory. No score or allowance changes.
+- Start with topology-controlled baseline sweeps on this i7-12800H (six P cores
+  with SMT, eight E cores, 20 logical CPUs, 61 GiB RAM). Prefer throughput gains
+  without a material single-track regression; any resource tradeoff needs explicit
+  measurement. Do not retain complexity for an inconclusive small timing change.
+
 ## November 15: adopt upward folds with lengths estimated at corners
 
 - After the owner's visual preference, test cosine projection of speed at supporting

@@ -178,13 +178,6 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     // Their full corner geometry must pass physical evaluation instead.
     const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
     if(radius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/radius,previousAngle+v*dt/radius);
-    // A sharp corner turning into the active surface removes normal velocity.
-    // Size the following face for that slower traversal. A receding surface
-    // cannot supply this impulse; the real replay still decides contact.
-    if(angularFold&&k>0){
-      const corner=Math.atan2(Math.sin(a-previousAngle),Math.cos(a-previousAngle));
-      if(side*corner<0)v*=Math.max(0,Math.cos(corner));
-    }
     previousAngle=a;
     const sine=Math.sin(a);
     v=Math.max(1,v+.175*sine*dt);

@@ -102,3 +102,7 @@ This is feedback on selected paired diagrams, not a blind judgment of the whole
 panel. It does not establish a general automatic aesthetic score.
 Keep the successful geometry visible while measuring completion, every score
 ruler, rails and upper hits. Study record: `docs/research/folds-carried-from-below-20261115.md`.
+
+The owner subsequently clarified that smoother geometry was the aim and questioned
+what folds contribute if made increasingly like arcs. Fold work is now parked,
+not a standing preference to increase upward-fold frequency.

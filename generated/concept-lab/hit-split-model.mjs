@@ -5,7 +5,7 @@ import {split as todaySplit} from '../../scripts/video/hits.js';
 /** dir: one of DIRECTIONS; swap: 1 puts red where blue would be; size: multiple of today's curve; start: strength under which
  * there is no split (today 0.3). */
 export const SPLIT_DEFAULT = Object.freeze({dir: 'today', swap: 0, size: 1, start: 0.3});
-export const DIRECTIONS = Object.freeze(['today', 'into', 'out', 'outHalf', 'side', 'travel', 'turn']);
+export const DIRECTIONS = Object.freeze(['today', 'half', 'out', 'outHalf', 'side', 'travel', 'turn']);
 /** split.js moves each colour HALF × split px (its constant, copied for the charts). */
 export const HALF = 0.61;
 /** "Into, then out": red into the surface for the shake's first knock (a quarter of its 6 Hz swing), out of it after. s */
@@ -18,7 +18,7 @@ const ramp = (s, from, full) => (s - from) / (full - from);
 /** px before split.js's HALF: today's curve (hits.js `split`) with its start moved, times p.size. */
 export function splitAmount(s, p = SPLIT_DEFAULT) {
   const x = ramp(s, p.start, 0.85), rise = x <= 0 ? 0 : x <= 1 ? x * x : 1 + 2 * (x - 1);
-  return p.size * 16.8 * Math.min(3, 1.5 * rise);
+  return p.size * 17.64 * Math.min(3, 1.5 * rise);
 }
 
 /** Unit vector (screen axes, y down) on which red lies, before the swap. normal: the surface's normal toward the rider (out of
@@ -26,25 +26,23 @@ export function splitAmount(s, p = SPLIT_DEFAULT) {
 export function redSide(dir, normal, age = 0, travel = null) {
   const b = {x: -normal.x, y: -normal.y}, side = sg(b.x);
   switch (dir) {
-    case 'into': return unit(b.x, b.y);
+    case 'half': return unit(b.x + side, b.y); // production before 2026-11-15: halfway between sideways and the blow
     case 'out': return unit(normal.x, normal.y);
-    case 'outHalf': return unit(side + normal.x, normal.y); // today's sideways, out of the surface instead of into it
+    case 'outHalf': return unit(side + normal.x, normal.y); // halfway between sideways and out of the surface
     case 'side': return {x: side, y: 0};
     case 'travel': return travel && Math.hypot(travel.x, travel.y) > 1e-9 ? unit(travel.x, travel.y) : unit(b.x, b.y);
     case 'turn': return age < KNOCK ? unit(b.x, b.y) : unit(normal.x, normal.y);
-    default: return unit(b.x + side, b.y); // today: halfway between sideways and the blow
+    default: return unit(b.x, b.y); // production: into the surface, along the blow
   }
 }
 
-/** split.js turns fx.direction d into the red offset ∝ (d.x + sign d.x, d.y). This returns a d whose offset points along the
- * unit vector u, to within a millionth of a radian (an offset with no sideways part cannot be met exactly). */
+/** split.js moves red along fx.direction; this is the direction for red on the unit vector u. */
 export function directionFor(u) {
-  const L = 1e6, hx = L * u.x;
-  return {x: hx >= 1 ? hx - 1 : hx < -1 ? hx + 1 : 0, y: L * u.y};
+  return {x: u.x, y: u.y};
 }
 /** What split.js does with fx.direction: the unit vector on which red lies. */
 export function offsetOf(d) {
-  return unit(d.x + sg(d.x), d.y);
+  return unit(d.x, d.y);
 }
 
 // hits.js's envelope and choice of hit, copied so the page knows which hit is live and how old it is (the test holds them equal).

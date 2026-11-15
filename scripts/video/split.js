@@ -1,6 +1,6 @@
 // Canvas colour separation, shared by every picture. Scratch canvases are reused, but every input
 // that affects the image is passed for this frame. The feather cache depends only on size and title box.
-const HALF = 0.61; // matched fringe size, halfway direction vs sideways (R8)
+const HALF = 0.61; // each colour moves this share of the split's size (set when the direction was halfway to sideways, kept)
 const TITLE_SPLIT = 0.65, TITLE_PULSE = 0.45; // R16 / R19: smaller split and overscan on the title
 
 export function createSplit(canvas) {
@@ -30,9 +30,10 @@ export function createSplit(canvas) {
       if (preCanvas.width !== w || preCanvas.height !== h) {preCanvas.width = w; preCanvas.height = h;}
       preCanvas.getContext('2d').drawImage(canvas, 0, 0);
     }
-    // Halfway between sideways and the blow, with red on the blow's side.
-    const {x, y} = fx.direction, hx = x + (x < 0 ? -1 : 1), n = Math.hypot(hx, y) || 1;
-    const ox = HALF * a * hx / n, oy = HALF * a * y / n;
+    // Red moves along the blow, into the surface that was hit, and blue the opposite way (the owner, 2026-11-15; before, halfway
+    // between sideways and the blow).
+    const {x, y} = fx.direction, n = Math.hypot(x, y) || 1;
+    const ox = HALF * a * x / n, oy = HALF * a * y / n;
     const m = Math.ceil(Math.hypot(ox, oy)) + 2;
     splitInto(ctx, canvas, ox, oy, m);
     // Retain half the clean rider, in the same place, through the split (R4 / R12).

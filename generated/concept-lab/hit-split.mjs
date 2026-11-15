@@ -11,8 +11,8 @@ import {SPLIT_DEFAULT, DIRECTIONS, HALF, KNOCK, splitAmount, splitAt, redSide, t
 
 const STUDY = 'hit-split-2026-11', KEYS = ['dir', 'swap', 'size', 'start'];
 const TELL = {
-  today: 'Production: red goes halfway between sideways and into the surface.',
-  into: 'Red goes into the surface, the way the hit pushes.',
+  today: 'Production: red goes into the surface, the way the hit pushes.',
+  half: 'Red goes halfway between sideways and into the surface (production before).',
   out: 'Red goes out of the surface, the way the picture is carried after the hit.',
   outHalf: 'Red goes halfway between sideways and out of the surface.',
   side: 'Red goes sideways only, to the same side as production.',

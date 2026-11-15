@@ -26,7 +26,8 @@ These are fixed for all themes (`look.js` `V1`):
   touch.
 - **The music.** A band at the bottom, low-middle: bars in most themes, a fork or the Iris contour in a few. The hottest
   bars take the accent, following recent hits.
-- **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. On strong hits
+- **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. The split moves
+  red into the surface that was hit and blue the opposite way. On strong hits
   the picture also moves: a shake knocks it into the surface that was hit (from strength 0.55, 14 px at 0.85), and
   **carry** moves it back out and lets it settle over about a second (from 0.5, 100 px at 0.85), as if the camera
   carried on for a moment when the rider was stopped. Every amount follows the measured strength of the hit, never the
@@ -127,5 +128,5 @@ are `MOVEMENT` in `scripts/video/hits.js`; the page opens on them. `/generated/c
 curve. The earlier study pages (`hit-motion`, `hit-pairs`, `hit-dial`) show the response they were judged against, the
 full shake without carry.
 
-Next, one layer at a time: the split's direction (it points into the surface while the picture now moves out of it);
-then a zoom that follows the song. When the zoom varies, carry and the shake should probably scale with it.
+The split is settled the same way on `/generated/concept-lab/hit-split.html` (red into the surface, a twentieth bigger).
+Next: a zoom that follows the song. When the zoom varies, carry and the shake should probably scale with it.

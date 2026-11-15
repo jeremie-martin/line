@@ -39,12 +39,12 @@ describe('approved hit response', () => {
     expect(amount(0.36).boost).toBeGreaterThan(0);
     expect(amount(0.56).dy).toBeGreaterThan(0);
     expect(amount(0.85)).toMatchObject({dy: 14, boost: 1.5}); // half of 28 px since carry (2026-11-15); carry itself starts from nothing at the peak
-    expect(amount(0.85).split).toBeCloseTo(25.2); // a fifth stronger than 21 (owner, round 49)
+    expect(amount(0.85).split).toBeCloseTo(26.46); // 21, a fifth stronger (round 49), a twentieth stronger again (2026-11-15)
     expect(amount(1).dy).toBe(17);
-    expect(amount(1).split).toBeCloseTo(38.9454545454);
+    expect(amount(1).split).toBeCloseTo(40.8927272727);
     expect(amount(1).boost).toBeCloseTo(1.8375);
     expect(amount(10)).toMatchObject({dy: 24, boost: 3});
-    expect(amount(10).split).toBeCloseTo(50.4);
+    expect(amount(10).split).toBeCloseTo(52.92);
   });
   it('starts exactly at the peak, holds for a display frame; split and boost recover within a quarter second, the movement settles', () => {
     for (const s of [0.4, 0.6, 0.85, 1]) {

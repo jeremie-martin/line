@@ -38,7 +38,7 @@ const ramp = (s, from, full) => (s - from) / (full - from);
 const slowRise = s => {const x = ramp(s, 0.3, 0.85); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, 2) : 1 + 2 * (x - 1);};
 // px: nothing below 0.55, an S-curve to 28 px at 0.85, gently on (R26; earlier and higher since round 50: "from 0.55, as the boost")
 export const shake = s => Math.min(48, s <= 0.85 ? 28 * smoothstep(ramp(s, 0.55, 0.85)) : 28 + 40 * (s - 0.85));
-export const split = s => 16.8 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15), a fifth stronger since round 49
+export const split = s => 17.64 * Math.min(3, 1.5 * slowRise(s)); // px (each colour moves 0.61 of it, split.js): a slow start from 0.3; a twentieth stronger since 2026-11-15
 export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
 
 // The movement at a hit (2026-11-15, the owner's settings on the hit movement page, then whole rides): half the shake above,

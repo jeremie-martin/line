@@ -23,10 +23,10 @@ it('size scales the curve and start moves where it begins', () => {
 it('each direction puts red where it says, on level ground and on a slope', () => {
   const ground = {x: 0, y: -1}, slope = {x: r, y: -r};
   const close = (a: {x: number, y: number}, b: {x: number, y: number}) => {expect(a.x).toBeCloseTo(b.x, 6); expect(a.y).toBeCloseTo(b.y, 6);};
-  close(redSide('today', ground), {x: r, y: r});
-  close(redSide('into', ground), {x: 0, y: 1}); close(redSide('out', ground), {x: 0, y: -1});
+  close(redSide('half', ground), {x: r, y: r});
+  close(redSide('today', ground), {x: 0, y: 1}); close(redSide('out', ground), {x: 0, y: -1});
   close(redSide('outHalf', ground), {x: r, y: -r}); close(redSide('side', ground), {x: 1, y: 0});
-  close(redSide('into', slope), {x: -r, y: r}); close(redSide('side', slope), {x: -1, y: 0});
+  close(redSide('today', slope), {x: -r, y: r}); close(redSide('side', slope), {x: -1, y: 0});
   close(redSide('travel', ground, 0, {x: 3, y: 4}), {x: 0.6, y: 0.8});
   close(redSide('turn', ground, KNOCK / 2), {x: 0, y: 1}); close(redSide('turn', ground, KNOCK * 2), {x: 0, y: -1});
   for (const d of DIRECTIONS) {const u = redSide(d, slope, 0.1, {x: 1, y: 0}); expect(Math.hypot(u.x, u.y)).toBeCloseTo(1);}
@@ -36,7 +36,7 @@ it('split.js draws the asked offset, straight up or down included, and the swap 
     const u = {x: Math.cos(a), y: Math.sin(a)}, o = offsetOf(directionFor(u));
     expect(o.x).toBeCloseTo(u.x, 5); expect(o.y).toBeCloseTo(u.y, 5);
   }
-  const hits = [hit(0, 0.9)], a = splitAt(hits, 0.02, {...SPLIT_DEFAULT, dir: 'into'}), b = splitAt(hits, 0.02, {...SPLIT_DEFAULT, dir: 'into', swap: 1});
+  const hits = [hit(0, 0.9)], a = splitAt(hits, 0.02, {...SPLIT_DEFAULT}), b = splitAt(hits, 0.02, {...SPLIT_DEFAULT, swap: 1});
   expect(offsetOf(a.direction).y).toBeCloseTo(1, 5); expect(offsetOf(b.direction).y).toBeCloseTo(-1, 5);
   expect(a.split).toBeCloseTo(b.split);
 });

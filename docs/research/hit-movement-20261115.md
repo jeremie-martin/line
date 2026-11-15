@@ -67,7 +67,7 @@ it is a mechanism, not a demonstrated explanation of the owner's judgments.
 There is another source of movement: colour split enlarges its composited image
 to hide edge gaps. `split.js` uses `m = ceil(0.61 * split * canvasScale) + 2`.
 At strength 0.85 this is 18 px on a 1080-wide frame, about 3.33% enlargement;
-at the study's 360-wide preview it is 8 px, about 4.44%. The clean rider is
+at the initial study's 360-wide preview it was 8 px, about 4.44%. The revised preview uses the production 1080-wide canvas. The clean rider is
 partially overlaid afterwards. Thus no-shake still has a small image pulse and
 its edge padding is resolution-dependent. This is unchanged here to preserve
 released output. The study has separate colour and split switches to isolate it.
@@ -151,3 +151,26 @@ compile/judge parity and smoke, 2.4 min). The subsequent authored-punch override
 regression brings the focused video suite to 30 passing tests; typecheck and
 the complete browser comparison pass again. Phone startup, large-picture A/B
 switching and split-off links also pass on the WireGuard address.
+
+## Review layout correction
+
+The owner found the separate dark dashboard, low-resolution preview, distant
+switches and stacked curves difficult to use. The page now imports the visual
+lab's component stylesheet, uses light review chrome, and places effect controls
+beside a sticky large picture. On phones an effect selector stays with the picture.
+The full current theme registry supplies the looks. All previews draw at 1080 ×
+1920, matching production output dimensions, instead of enlarging 360 × 640.
+
+Single-picture mode renders only the visible arm. Effect switches reuse prepared
+pictures and scratch canvases, and keep the audio clock running. A switches the
+reference/candidate picture; paired viewing remains available. Charts overlay
+current (grey dashed) and candidate (blue), one quantity at a time with shared
+axes, explicit units and direction explanations. Clicking the chart seeks the
+picture. Detailed measurements and historical notes are collapsed.
+
+`node tests/browser/hit-motion.mjs` checks both songs, desktop and phone controls,
+light chrome even with a dark OS setting, 1080 canvas dimensions, switching during
+playback, paired identity, chart series, and a full-resolution study frame against
+the production picture. It requires prepared study data and the review server;
+`HIT_STUDY_URL` overrides the address. Screenshots and results stay in
+`generated/hit-effects/`. Effect laws and production rendering code are unchanged.

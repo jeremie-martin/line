@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the compile stop "main construction differs" explained and fixed (structural)
+
+- **Cause:** the gone-through cleanup (`arc_finalize.ts` `removeGoneThrough`, adopted November 14) shortens a support's
+  main line at an end when the rider passes through that end and never touches it. The producer's check
+  (`verifyMainConstruction`) redrew each support and required the saved main line to equal the whole drawing, so a
+  shortened line stopped the ride. The tracks were right; the check was out of date.
+- **Evidence** (the check run over saved benchmark rides, each arm with its own commit's code): the arrival-law arm
+  (`67be9a98`, 1128 rides) 23 refusals (2.0%); in every one the saved line is the drawn one to the bit, with 1–8 pieces
+  missing at its start or its end. Arms compiled before the cleanup (`foundation-2` 196 rides, the upper-receiver
+  experiment 360): 0 refusals, where 2% would give about 11. `foundation-8`: the same signature (Amor `bench-restart`
+  202, support 63: 12 pieces).
+- **Fix:** the check accepts a main line shortened at either end, piece for piece equal to the drawing, never broken
+  (a break, a moved point or an extra piece is still refused), and reports the pieces lost by support
+  (`geometryVerification.shortened`); the producer's piece count accounts for them. With the fix, all 1128 rides pass
+  and exactly the 23 report a shortening; the `foundation-8` ride above goes through the producer's writer. Test
+  extended (shortened end accepted, broken line refused). Tracks unchanged: parity, judge parity, tests 652, typecheck,
+  reach pass.
+
 ## November 15: closing the track-motion work (housekeeping)
 
 - **The benchmark now shows the problem.** `tools/eval/measure.ts` counts hard pushes the impact account does not

@@ -6,8 +6,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    arrival law (reference `foundation-8`). Next, in order:
    - the owner's review of the 20 handcrafted specs, recompiled with this compiler
      (`/motion-gallery/video-compare.html?collection=/generated/watch/handcraft.json`);
-   - the compiler's consistency stop ("main construction differs at support N"): about one ride in sixty on the
-     handcrafted specs, whatever the compiler version; not yet investigated;
+   - ~~the compiler's consistency stop ("main construction differs at support N")~~ (fixed 2026-11-15: the check did
+     not know the gone-through cleanup shortens main lines; REWORK.md);
    - the long-float trade (the 108 s long spec): air given for soft catches and for fewer unasked pushes; the owner
      prefers the look, the spec's asks may need rethinking.
 

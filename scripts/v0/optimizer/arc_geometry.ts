@@ -137,7 +137,11 @@ export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine
  * faster than EXIT_RADIUS (px; 30 px of ground turn 18°) and no faster than keeps the centripetal push under
  * EXIT_PUSH (px/frame²): radius ≥ speed² ÷ EXIT_PUSH. */
 export const HIT_FRAMES=6,EXIT_RADIUS=95,EXIT_PUSH=.6;
+/** A receiver met from above (contactSide −1) is a plain line in every family: no shape, no rail. The line above is
+ * itself what drives the rider down into the hit (REWORK.md, November 15); the drawing resolution is kept. */
+const plainFromAbove=({profile:_p,profileStrength:_s,profileStart:_t,rippleCycles:_r,foldAngle:_f,...style}:ArcGeometryStyle):ArcGeometryStyle=>({...style,guides:false});
 export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):SolidPath[]{
+  if(c.contactSide===-1&&style)style=plainFromAbove(style);
   const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);

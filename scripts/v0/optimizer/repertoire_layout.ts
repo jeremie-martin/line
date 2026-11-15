@@ -4,7 +4,10 @@ import {inspectConstruction} from './repertoire_realization.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
 import type {TrackLine} from '../types.ts';
 const length=(l:TrackLine)=>hypot2(l.x2-l.x1,l.y2-l.y1);
-export function inspectLayout(request:ConstructionRequest,lines:readonly TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[],positions?:readonly ({x:number;y:number}|undefined)[]){
+/** `fromAbove`: the section's beat was caught by a receiver met from above. Where the plan lets that stand for the shape
+ * (`catchFromAbove`), the section is checked as the plain arc it is and recorded as caught from above. */
+export function inspectLayout(request:ConstructionRequest,lines:readonly TrackLine[],guideIds:ReadonlySet<number>,collisions:readonly (readonly number[])[],positions?:readonly ({x:number;y:number}|undefined)[],fromAbove=false){
+  if(fromAbove&&request.catchFromAbove)return {...inspectConstruction({...request,construction:'arcs'},lines,guideIds,collisions),construction:request.construction,caughtFromAbove:true};
   if(request.railLayout!=='transfer')return inspectConstruction(request,lines,guideIds,collisions);
   const base=inspectConstruction({...request,construction:'arcs'},lines,guideIds,collisions),reasons=[...base.reasons];
   const main=lines.filter(l=>!guideIds.has(l.id)),guide=lines.filter(l=>guideIds.has(l.id));
@@ -57,9 +60,10 @@ export function inspectLayout(request:ConstructionRequest,lines:readonly TrackLi
   return {...base,construction:request.construction,fulfilled:!reasons.length,reasons,turning,turnReversals:reversals,
     transfer:{lastMain,firstReceive,receivingFrames:receivingFrames.length,uncoveredReceivingFrames,freeBetween,receivingClearance,engagedTurns,contactTurning,contactReversals}};
 }
-export function inspectRepertoireLayout(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[],positions?:readonly {x:number;y:number}[]){
+/** `fromAbove`: the sections whose beat a receiver met from above caught (the compile's rows, contactSide −1). */
+export function inspectRepertoireLayout(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[],positions?:readonly {x:number;y:number}[],fromAbove:ReadonlySet<number>=new Set()){
   const sections=plan.requests.map(r=>inspectLayout(r,lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),
-    new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next),positions?.slice(r.frame,r.next)));
+    new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next),positions?.slice(r.frame,r.next),fromAbove.has(r.section)));
   return {schema:'line.repertoire-realization.v2',fulfilled:sections.every(s=>s.fulfilled),
     requested:sections.length,fulfilledSections:sections.filter(s=>s.fulfilled).length,sections};
 }

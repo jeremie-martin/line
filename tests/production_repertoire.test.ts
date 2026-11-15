@@ -23,7 +23,7 @@ it('realizes a shaped final impact near the music boundary using the existing ph
   const {planIntentionalRepertoire}=await import('../scripts/v0/optimizer/intentional_repertoire.ts');
   const ending={...spec,contacts:[.6,1.2,1.8,2.4,2.95].map(t=>({t,impact:.4}))};
   const plan=planIntentionalRepertoire(ending,101);
-  for(const r of plan.requests){r.construction='arcs';r.guidance='optional';delete r.railLayout;}
+  for(const r of plan.requests){r.construction='arcs';r.guidance='optional';delete r.railLayout;delete r.catchFromAbove;}
   Object.assign(plan.requests.at(-1)!,{construction:'scallops',guidance:'required'});
   plan.phrases=plan.requests.slice(1).map(r=>({first:r.section,count:1,construction:r.construction,guidance:r.guidance}));
   const compiled=compileHandoff(ending,101,{budget:120000,constructionPlan:plan}),r=compiled.repertoire!;

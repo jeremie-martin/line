@@ -82,7 +82,8 @@ All on V8, 196 rides, unless stated.
 - **The strong-phrase guide rule** did most of the rails' rise, in one step. It is also the step where clean upper hits
   fell most.
 - **Where clean upper hits come from:** only arcs and scattered. Open arcs catch 29% of their strong beats with one;
-  shaped families never do (0 of about 4,000). Within arcs and scattered, gaps keeping a rail catch 7–11% clean, those
+  shaped families never do (0 of about 4,000). Since November 15 a shaped phrase may catch a beat from above instead
+  of drawing its shape for that gap (about 9% of its strong beats on V8), with fewer rails (REWORK.md). Within arcs and scattered, gaps keeping a rail catch 7–11% clean, those
   without 22–33%. (A beat is caught by the lines of the gap that starts at it.)
 - **Clean upper hits by the strike measure:** the softest catch on strong beats (bias −0.18 against −0.09 for floor
   catches at the same asks), and head-down twice as often.

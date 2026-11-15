@@ -35,8 +35,9 @@ export async function explicitPlan(root: string, spec: any, seed: number, creati
   const requests = plan.requests.map((r: any) => {
     const w = r.section > 0 && windows.find(w => r.frame >= Math.round(w.from * 40) && r.frame < Math.round(w.to * 40));
     if (!w) return r;
-    const rail = w.family === 'scattered' ? {guidance: 'optional'} : RAILS[w.rail];
-    return {...r, construction: w.family, ...rail, ...(w.family === 'scattered' ? {railLayout: 'paired'} : {})};
+    // An explicit window asks for its shape: the planner's permission to catch from above instead does not carry over.
+    const rail = w.family === 'scattered' ? {guidance: 'optional'} : RAILS[w.rail], {catchFromAbove: _planned, ...planned} = r;
+    return {...planned, construction: w.family, ...rail, ...(w.family === 'scattered' ? {railLayout: 'paired'} : {})};
   });
   // One phrase per run of identical requests (a phrase has one construction, guidance and rail layout).
   const phrases: any[] = [];

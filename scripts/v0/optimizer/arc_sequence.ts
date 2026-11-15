@@ -110,7 +110,7 @@ export function runIntervalSequence(ctx: ArcCompileContext, seq: ArcSequence) {
     // length. The request is updated where every later stage reads it.
     const request = options.constructionRequests?.[i];
     if (!offered.length && !work.searchBudgetExhausted && request && request.construction !== 'arcs') {
-      const simpler = {...request, construction: 'arcs' as const};
+      const {catchFromAbove: _shapeMayYield, ...asked} = request, simpler = {...asked, construction: 'arcs' as const};
       work.sectionFallbacks.push([i, request.construction, simpler.construction]);
       options.constructionRequests![i] = simpler;
       if (options.sectionStyles) options.sectionStyles[i] = constructionStyle(simpler);

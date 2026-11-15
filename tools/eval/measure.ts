@@ -26,7 +26,9 @@ export function geometryFacts({plan, realization, sectionFallbacks, railGuides}:
   return {shapedMinFrames: SHORT_SECTION_FRAMES, fallbacks: sectionFallbacks ?? [], sections: plan.requests.map((r: any, i: number) => {
     const s = realization.sections[i];
     if (s.section !== r.section) throw new Error('realization sections out of order');
-    return {family: r.construction, guidance: r.guidance, rail: r.railLayout ?? null, frames: r.next - r.frame,
+    // Families are the realized ones: a shaped section caught from above is the plain arc it was drawn as.
+    return {family: s.caughtFromAbove ? 'arcs' : r.construction, ...(s.caughtFromAbove ? {caughtFromAbove: true} : {}),
+      guidance: r.guidance, rail: r.railLayout ?? null, frames: r.next - r.frame,
       fulfilled: s.fulfilled, reasons: s.reasons, guideFrames: s.guideContactFrames, reversals: s.turnReversals,
       ...(s.transfer ? {engagedTurns: s.transfer.engagedTurns} : {}),
       // The section's guide line ids as the compile laid them (scattered fragments' included), before any trimming:

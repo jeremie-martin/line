@@ -194,7 +194,8 @@ export function geometryOfCell(cell: any) {
       'guided, guide never touched per ride': untouched,
       'guided, guide never touched, share': share(untouched, guided.length),
       'shaped, turns realized, share': share(shaped.filter(s => !s.reasons.some((r: string) => SHAPE_MISSES.has(r))).length, shaped.length),
-      'shaped, turn reversals per section': share(shaped.reduce((n, s) => n + s.reversals, 0), shaped.length)}};
+      'shaped, turn reversals per section': share(shaped.reduce((n, s) => n + s.reversals, 0), shaped.length),
+      'shapes caught from above per ride': all.filter(s => s.caughtFromAbove).length}};
 }
 export type GeometryValue = {strata: Array<{a: number; b: number; diff: number}>; overall: {a: number; b: number; diff: number}};
 /** Geometry use by stratum, with the stratified report's weights (seeds

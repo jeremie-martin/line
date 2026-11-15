@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: Q12 result, and the softest touchdown (measured)
+
+- **Q12** (Q10 with asks under 0.07 aimed at 0.07): headline −5.8 [−12.5, +1.0]; strong extra impacts back to 0.10;
+  but the quiet gain is gone (asks 0–0.1 within ×1.5 38%, as `foundation-5`). Not adopted. The 0.07 "floor" was
+  wrong as a target.
+- **0.07 is not a physical limit.** It is what today's touchdowns give (their median on asks of 0: 0.08; 10% land
+  under 0.032; Q1 landed them at 0.02, mostly where the rider was already on the line). The ruler reads the push a
+  line adds when it starts carrying the rider; taking over gravity within two frames reads about 0.046 on its own.
+  A receiver that follows the rider's falling path, then bends less than gravity until straight, hands gravity over
+  gradually. Engine probe (one clean case, v = (8, 2)): sudden takeover 0.16, eased over 16–32 frames 0.044–0.048.
+  The other cases were muddied by the probe (the rider touched the line before the ease). Today's receivers have a
+  straight lead-in (`motionArcPaths`), so none of this is available to the search.
+
 ## November 15: step back; where Q10 loses; Q12 (stated before running)
 
 - **Honest account of the night:** comparison runs take 4–14 minutes (V8 alone at 40 jobs: 4.4), not the hour or two

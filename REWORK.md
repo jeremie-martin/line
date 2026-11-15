@@ -48,6 +48,16 @@ next strong hit.
   rails per gap fall in scallops and serpentines. Rulers: rails per gap, clean upper hits on strong beats, hard
   unrecorded pushes, the headline (V8, 4 seeds, against `foundation-9`). A headline gain with more rails would be the
   mistake of November 14.
+- **First run (plain drawing only), V8 4 seeds:** headline −1.8 [−21.1, +17.4] (the long spec −31 on 4 rides), rails
+  35 → 33% of gaps, clean upper hits 14.4 → 14.5%, pushes 0.24 both; scallops and serpentines still 0% from above.
+  The premise was wrong: a probe (10 gaps, one family) shows why. Upper candidates there are refused by the shape
+  check (a scallop section must show its reversals) or come apart (binding: 140 of 171 in scallops against 62 of 150
+  in arcs); none is viable. Only scattered sections moved (rails 72 → 62%).
+- **Second run, stated before running:** in an automatic plan, a shaped section may be caught from above instead of
+  drawing its shape (`fromAboveMayReplaceShape`: not arcs or scattered, not required rails, not transfers); the
+  candidate check and the final realization both accept it and record it (`caughtFromAbove`). In the probe this gives
+  3 of 10 scallop gaps and 1 of 10 serpentine gaps caught from above. Same hypothesis and rulers; also reported: how
+  many shaped sections are caught from above (the plan's family is not drawn there), and explicit requests (E).
 
 ## November 15: aimed launches removed (no measurable effect under gentle exits)
 

@@ -55,7 +55,7 @@ that must not change what the compiler produces.
 - Section 4 of a bench report, Geometry, shows how the rides use the geometry
   families: shares of ride time and of sections by family × guidance, the
   transfer share of guided sections, distinct families per ride, sections
-  shorter than the shaped `minFrames`, and on complete cells the realization
+  shorter than the shaped minimum (9 frames), and on complete cells the realization
   facts (fulfilled, guide never touched, shaped turns realized). A/B shows
   A→B per stratum, then A, B and A − B over strata. It is descriptive: variety
   is part of taste, not a number to maximize, and nothing in it is a target.

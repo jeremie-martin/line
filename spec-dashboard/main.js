@@ -43,28 +43,6 @@ const refs = {
   cursorTime: document.getElementById("cursor-time"),
   cursorGrid: document.getElementById("cursor-grid"),
   axisReadouts: document.getElementById("axis-readouts"),
-  editorAnchor: document.getElementById("editor-anchor"),
-  editState: document.getElementById("edit-state"),
-  editTime: document.getElementById("edit-time"),
-  editAxis: document.getElementById("edit-axis"),
-  editValue: document.getElementById("edit-value"),
-  editEase: document.getElementById("edit-ease"),
-  editImpact: document.getElementById("edit-impact"),
-  stageEdit: document.getElementById("stage-edit"),
-  clearEdits: document.getElementById("clear-edits"),
-  undoEdit: document.getElementById("undo-edit"),
-  redoEdit: document.getElementById("redo-edit"),
-  editList: document.getElementById("edit-list"),
-  calibrationState: document.getElementById("calibration-state"),
-  calibrationSummary: document.getElementById("calibration-summary"),
-  calibrationBudget: document.getElementById("calibration-budget"),
-  calibrationSeeds: document.getElementById("calibration-seeds"),
-  calibrationCandidate: document.getElementById("calibration-candidate"),
-  calibrationRun: document.getElementById("calibration-run"),
-  calibrationApply: document.getElementById("calibration-apply"),
-  calibrationDisable: document.getElementById("calibration-disable"),
-  calibrationReport: document.getElementById("calibration-report"),
-  calibrationLogs: document.getElementById("calibration-logs"),
   scopeTabs: document.getElementById("scope-tabs"),
   noteAnchor: document.getElementById("note-anchor"),
   notePath: document.getElementById("note-path"),
@@ -84,8 +62,6 @@ const state = {
   data: null,
   notes: [],
   notesPath: null,
-  edits: [],
-  history: null,
   analysis: null,
   timeline: null,
   cursorT: 0,
@@ -102,8 +78,6 @@ const state = {
   activeTags: [],
   saveTimer: null,
   pendingNoteSave: null,
-  calibrationJob: null,
-  calibrationPoll: null,
   followPlayhead: true,
   followSuspended: false,
 };
@@ -248,27 +222,6 @@ function wireEvents() {
   });
   refs.deleteNote.addEventListener("click", () => deleteActiveNote());
   refs.clearNotes.addEventListener("click", () => clearAllNotes());
-  refs.stageEdit.addEventListener("click", () => applyActiveEdit());
-  refs.clearEdits.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
-    cursorT: specTime(),
-    viewStart: state.viewStart,
-    viewEnd: state.viewEnd,
-    selectedScope: state.selectedScope,
-  }));
-  refs.undoEdit.addEventListener("click", () => applyHistoryAction("undo"));
-  refs.redoEdit.addEventListener("click", () => applyHistoryAction("redo"));
-  document.querySelector(".editor-grid")?.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    event.preventDefault();
-    applyActiveEdit();
-  });
-  refs.calibrationRun.addEventListener("click", () => runCalibration());
-  refs.calibrationApply.addEventListener("click", () => applyCalibrationSelection());
-  refs.calibrationDisable.addEventListener("click", () => disableCalibrationSelection());
-  refs.editTime.addEventListener("change", () => {
-    const snapped = snapTime(Number(refs.editTime.value));
-    if (Number.isFinite(snapped)) refs.editTime.value = String(round(snapped, 3));
-  });
   refs.notesList.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-note-id]");
     if (!button) return;
@@ -301,14 +254,6 @@ function wireEvents() {
   });
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
-    if ((event.ctrlKey || event.metaKey) && (key === "z" || key === "y")) {
-      if (isEditableElement(document.activeElement)) return;
-      event.preventDefault();
-      if (key === "z" && event.shiftKey) applyHistoryAction("redo");
-      else if (key === "z") applyHistoryAction("undo");
-      else applyHistoryAction("redo");
-      return;
-    }
     if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.defaultPrevented) return;
     // Auto-repeat would add duplicate marks or toggle playback repeatedly; held arrows keep seeking.
     const mark = {m: "mark", v: "voice", i: "impact"}[key];
@@ -369,7 +314,6 @@ async function loadSpecList() {
 
 async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
-  stopCalibrationPolling();
   pausePlayback();
   refs.subtitle.textContent = "Loading " + specPath;
   refs.saveState.textContent = "";
@@ -377,13 +321,10 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.data = null;
   state.notes = [];
   state.notesPath = null;
-  state.edits = [];
-  state.history = null;
   state.analysis = null;
   state.activeAnchor = null;
   state.activeNoteId = null;
   state.activeTags = [];
-  state.calibrationJob = null;
   state.viewStart = 0;
   state.viewEnd = 0;
   state.selection = null;
@@ -391,17 +332,13 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.suppressNextClick = false;
   if (restore?.selectedScope) state.selectedScope = restore.selectedScope;
 
-  const [view, notes, edits, historyStatus] = await Promise.all([
+  const [view, notes] = await Promise.all([
     fetch(`/api/spec-view?spec=${encodeURIComponent(specPath)}&samples=1400`, { cache: "no-cache" }).then(readJsonOk),
     fetch(`/api/spec-notes?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
-    fetch(`/api/spec-edits?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
-    fetch(`/api/spec-history?spec=${encodeURIComponent(specPath)}`, { cache: "no-cache" }).then(readJsonOk),
   ]);
   state.data = view;
   state.notes = notes.notes || [];
   state.notesPath = notes.notesPath || null;
-  state.edits = edits.edits || [];
-  state.history = historyStatus.history || null;
   state.cursorT = clamp(Number(restore?.cursorT ?? 0), 0, view.spec.duration);
   state.viewStart = clamp(Number(restore?.viewStart ?? 0), 0, view.spec.duration);
   state.viewEnd = clamp(Number(restore?.viewEnd ?? view.spec.duration), state.viewStart + 1e-6, view.spec.duration);
@@ -575,18 +512,7 @@ function onTimelinePointerDown(event) {
     renderScopeTabs();
     seekTo(anchor.t, { select: false, reveal: true });
     setActiveAnchor(anchor);
-    const editable = Boolean(anchorEdit(anchor)?.editable);
-    state.pointerDrag = {
-      mode: "mark",
-      pointerId: event.pointerId,
-      clientX: event.clientX,
-      clientY: event.clientY,
-      anchor,
-      editable,
-      laneY: Number(mark.dataset.laneY),
-      laneH: Number(mark.dataset.laneH),
-      moved: false,
-    };
+    state.pointerDrag = { mode: "mark", pointerId: event.pointerId };
     refs.timeline.setPointerCapture?.(event.pointerId);
     state.suppressNextClick = true;
     return;
@@ -612,13 +538,7 @@ function onTimelinePointerMove(event) {
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
   clearNativeSelection();
-  if (drag.mode === "mark") {
-    const distance = Math.hypot(event.clientX - drag.clientX, event.clientY - drag.clientY);
-    if (distance < 3 && !drag.moved) return;
-    drag.moved = true;
-    if (drag.editable) updateEditorFieldsFromMarkDrag(drag, event);
-    return;
-  }
+  if (drag.mode === "mark") return;
   const distance = Math.abs(event.clientX - drag.clientX);
   if (distance < 4 && !drag.moved) return;
   drag.moved = true;
@@ -640,12 +560,6 @@ function onTimelinePointerUp(event) {
     setTimeout(() => {
       state.suppressNextClick = false;
     }, 0);
-    const edit = anchorEdit(drag.anchor);
-    if (!drag.editable) {
-      toast(edit?.readOnlyReason || "Selection is read-only");
-    } else if (drag.moved) {
-      applyActiveEdit();
-    }
     return;
   }
   if (!drag.moved) return;
@@ -704,28 +618,6 @@ function anchorForMarkElement(mark) {
     };
   }
   return null;
-}
-
-function anchorEdit(anchor) {
-  if (!anchor) return null;
-  if (anchor.scope === "keyframe") return keyframeByAnchor(anchor)?.edit || null;
-  if (anchor.scope === "contact" && typeof anchor.index === "number") return state.data?.contacts?.[anchor.index]?.edit || null;
-  return null;
-}
-
-function updateEditorFieldsFromMarkDrag(drag, event) {
-  const t = event.shiftKey ? state.timeline.tAtClient(event.clientX) : snapTime(state.timeline.tAtClient(event.clientX));
-  if (drag.anchor.scope === "keyframe") {
-    refs.editTime.value = String(round(t, 3));
-    const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
-    const u = clamp((drag.laneY + drag.laneH - 5 - y) / Math.max(1e-9, drag.laneH - 10), 0, 1);
-    refs.editValue.value = String(round(u, 3));
-  } else if (drag.anchor.scope === "contact") {
-    const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
-    const base = drag.laneY + drag.laneH - 8;
-    const value = clamp((base - y) / Math.max(1e-9, drag.laneH - 14), 0, 1);
-    refs.editImpact.value = String(round(value, 3));
-  }
 }
 
 function onTimelineWheel(event) {
@@ -832,12 +724,7 @@ function renderAll() {
   renderScopeTabs();
   renderTags();
   renderNotesList();
-  renderEditAxisOptions();
-  renderEditsList();
-  renderHistoryControls();
-  renderCalibration();
   renderInspector();
-  renderEditor();
   selectAnchorAtCursor();
 }
 
@@ -1105,7 +992,6 @@ function drawImpactLane(svg, L, plotW, y, h) {
     const v = contact.impact ?? 0;
     const barH = Math.max(contact.impact === null ? 4 : 6, v * (h - 14));
     const active = state.activeNoteId === `contact:${index}`;
-    const editable = Boolean(contact.edit?.editable);
     add(svg, "line", {
       x1: x,
       y1: y + h - 8,
@@ -1120,12 +1006,10 @@ function drawImpactLane(svg, L, plotW, y, h) {
       cy: y + h - 8 - barH,
       r: active ? 6.2 : contact.impact === null ? 2.2 : 2.8 + v * 2.8,
       fill: active ? "#a8442f" : contact.impact === null ? "#b8ab95" : impactColor(v),
-      class: `svg-editable-impact${editable ? "" : " svg-readonly"}`,
+      class: "svg-readonly",
       opacity: 0.95,
       "data-mark-kind": "contactImpact",
       "data-index": index,
-      "data-lane-y": y,
-      "data-lane-h": h,
     });
   }
 }
@@ -1207,13 +1091,11 @@ function drawAxisKeyframes(svg, axis, y, h, color) {
       cy,
       r: active ? 5.2 : 3.6,
       fill: active ? "#a8442f" : color,
-      class: `svg-keyframe${point.edit?.editable ? "" : " svg-readonly"}`,
+      class: "svg-keyframe svg-readonly",
       opacity: active ? 1 : 0.92,
       "data-mark-kind": "axisKeyframe",
       "data-axis": point.axis,
       "data-index": point.index,
-      "data-lane-y": y,
-      "data-lane-h": h,
     });
   }
 }
@@ -1306,395 +1188,6 @@ function detail(label, value) {
   return `<div class="detail"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(String(value ?? "-"))}</div></div>`;
 }
 
-function renderEditAxisOptions() {
-  refs.editAxis.innerHTML = "";
-  const axes = state.data?.summary.activeAxes?.length ? state.data.summary.activeAxes : AXES;
-  for (const axis of axes) {
-    const opt = document.createElement("option");
-    opt.value = axis;
-    opt.textContent = axis;
-    refs.editAxis.appendChild(opt);
-  }
-}
-
-function renderEditor() {
-  if (!state.data || !state.activeAnchor) return;
-  const anchor = state.activeAnchor;
-  const keyframe = anchor.scope === "keyframe" ? keyframeByAnchor(anchor) : null;
-  const contact = anchor.scope === "contact" && typeof anchor.index === "number"
-    ? state.data.contacts[anchor.index]
-    : null;
-  const edit = keyframe?.edit || contact?.edit || null;
-  const editable = Boolean(edit?.editable);
-  const isKeyframe = Boolean(keyframe);
-  const isContact = Boolean(contact);
-
-  refs.editorAnchor.textContent = anchor.title;
-  refs.editTime.value = String(round(anchor.t ?? specTime(), 3));
-  refs.editAxis.value = anchor.axis || keyframe?.axis || refs.editAxis.value || state.data.summary.activeAxes[0] || "";
-  refs.editValue.value = keyframe ? String(round(keyframe.v, 3)) : "";
-  refs.editEase.value = keyframe?.sourceEase || "";
-  refs.editImpact.value = contact?.impact === null || contact?.impact === undefined ? "" : String(round(contact.impact, 3));
-
-  refs.editAxis.disabled = true;
-  refs.editValue.disabled = !(isKeyframe && editable);
-  refs.editEase.disabled = !(isKeyframe && editable);
-  refs.editImpact.disabled = !(isContact && editable);
-  refs.editTime.disabled = !(isKeyframe && editable);
-  refs.stageEdit.disabled = !editable;
-  refs.editState.textContent = editable ? "editable" : (edit?.readOnlyReason || "select an editable keyframe or impact");
-}
-
-function renderEditsList() {
-  refs.editList.innerHTML = "";
-  refs.editList.hidden = true;
-}
-
-function renderHistoryControls() {
-  const history = state.history;
-  const undoLabel = history?.nextUndo?.label;
-  const redoLabel = history?.nextRedo?.label;
-  refs.undoEdit.disabled = !history?.canUndo;
-  refs.redoEdit.disabled = !history?.canRedo;
-  refs.undoEdit.title = undoLabel ? `Ctrl+Z - ${undoLabel}` : "Ctrl+Z";
-  refs.redoEdit.title = redoLabel ? `Ctrl+Shift+Z / Ctrl+Y - ${redoLabel}` : "Ctrl+Shift+Z / Ctrl+Y";
-}
-
-function renderCalibration() {
-  const cal = state.data?.calibration;
-  const previousValue = refs.calibrationCandidate.value;
-  refs.calibrationCandidate.innerHTML = "";
-  refs.calibrationReport.innerHTML = "";
-  refs.calibrationLogs.textContent = state.calibrationJob?.logs?.join("\n") || "";
-
-  if (!cal?.available) {
-    refs.calibrationState.textContent = "not configured";
-    refs.calibrationSummary.textContent = "This spec has no calibration export.";
-    refs.calibrationRun.disabled = true;
-    refs.calibrationApply.disabled = true;
-    refs.calibrationDisable.disabled = true;
-    refs.calibrationCandidate.disabled = true;
-    return;
-  }
-
-  const latest = cal.latestReport?.report || null;
-  const ranked = Array.isArray(latest?.candidates) ? latest.candidates : [];
-  const candidates = candidateOptions(cal, ranked);
-  for (const candidate of candidates) {
-    const option = document.createElement("option");
-    option.value = candidate.id;
-    option.textContent = candidateText(candidate, ranked);
-    refs.calibrationCandidate.appendChild(option);
-  }
-  const activeSelected = cal.enabled && cal.selection?.selected ? cal.selection.selected : null;
-  const latestBest = latest?.best?.id || ranked[0]?.id || null;
-  const validIds = new Set(candidates.map((candidate) => candidate.id));
-  refs.calibrationCandidate.value = validIds.has(activeSelected) ? activeSelected
-    : validIds.has(latestBest) ? latestBest
-    : validIds.has(previousValue) ? previousValue
-    : "identity";
-
-  const job = state.calibrationJob;
-  const jobActive = job && (job.status === "queued" || job.status === "running");
-  refs.calibrationRun.disabled = Boolean(jobActive);
-  refs.calibrationApply.disabled = !refs.calibrationCandidate.value || Boolean(jobActive);
-  refs.calibrationDisable.disabled = Boolean(jobActive) || !cal.enabled;
-  refs.calibrationCandidate.disabled = Boolean(jobActive);
-  refs.calibrationState.textContent = jobActive ? job.status : cal.enabled ? `enabled: ${cal.selection?.selected}` : "identity";
-  refs.calibrationSummary.textContent = latest
-    ? `latest ${latest.best?.label || latest.best?.id || "candidate"} score ${fmt(latest.best?.score)} (${signed(latest.best?.delta || 0)})`
-    : "No calibration report yet.";
-  renderCalibrationReport(latest, cal.latestReport?.path || null);
-}
-
-function candidateOptions(cal, ranked) {
-  const map = new Map();
-  for (const candidate of cal.candidates || []) map.set(candidate.id, candidate);
-  for (const candidate of ranked || []) {
-    if (!map.has(candidate.id)) {
-      map.set(candidate.id, { id: candidate.id, label: candidate.label || candidate.id, description: candidate.description || null });
-    }
-  }
-  if (!map.has("identity")) map.set("identity", { id: "identity", label: "identity", description: "No modifier." });
-  return [...map.values()];
-}
-
-function candidateText(candidate, ranked) {
-  const summary = ranked.find((row) => row.id === candidate.id);
-  if (!summary) return candidate.label || candidate.id;
-  return `${summary.rank}. ${candidate.label || candidate.id}  ${fmt(summary.score)} (${signed(summary.delta)})`;
-}
-
-function renderCalibrationReport(report, path) {
-  if (!report) return;
-  const rows = (Array.isArray(report.candidates) ? report.candidates : []).slice(0, 6);
-  const tableRows = rows.map((row) => `
-    <tr>
-      <td>${escapeHtml(String(row.rank ?? ""))}</td>
-      <td>${escapeHtml(row.label || row.id)}</td>
-      <td>${fmt(row.score)}</td>
-      <td>${signed(row.delta || 0)}</td>
-      <td>${escapeHtml(`${row.passed ?? 0}/${row.total ?? 0}`)}</td>
-      <td>${fmt(row.speed_error_mean)}</td>
-      <td>${fmt(row.impact_error_mean)}</td>
-      <td>${fmt(row.distortion?.mean_abs_delta)}</td>
-    </tr>`).join("");
-  const best = rows[0];
-  const axisRows = (best?.axis_compare || []).map((axis) => `
-    <tr>
-      <td>${escapeHtml(axis.axis)}</td>
-      <td>${fmt(axis.mean_abs_error_before)}</td>
-      <td>${fmt(axis.mean_abs_error_after)}</td>
-      <td>${signed(axis.target_shift_mean || 0)}</td>
-      <td>${signed(axis.achieved_shift_mean || 0)}</td>
-    </tr>`).join("");
-  refs.calibrationReport.innerHTML = `
-    <table class="calibration-table">
-      <thead><tr><th>#</th><th>candidate</th><th>score</th><th>delta</th><th>pass</th><th>speed</th><th>impact</th><th>shift</th></tr></thead>
-      <tbody>${tableRows || `<tr><td colspan="8">No candidates.</td></tr>`}</tbody>
-    </table>
-    <table class="calibration-table calibration-axis-table">
-      <thead><tr><th>axis</th><th>err before</th><th>err after</th><th>target</th><th>achieved</th></tr></thead>
-      <tbody>${axisRows || `<tr><td colspan="5">No axis detail.</td></tr>`}</tbody>
-    </table>
-    ${path ? `<a class="calibration-link" href="${escapeHtml(path)}" target="_blank" rel="noreferrer">open report JSON</a>` : ""}`;
-}
-
-async function runCalibration() {
-  if (!state.data?.calibration?.available) return;
-  const budget = Math.trunc(Number(refs.calibrationBudget.value));
-  const seeds = refs.calibrationSeeds.value.trim();
-  try {
-    const res = await fetch("/api/spec-calibration/jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: state.data.spec.path, budget, seeds }),
-    }).then(readJsonOk);
-    state.calibrationJob = res.job;
-    toast("Calibration started");
-    renderCalibration();
-    pollCalibrationJob();
-  } catch (error) {
-    toast(String(error));
-  }
-}
-
-function pollCalibrationJob() {
-  stopCalibrationPolling();
-  if (!state.calibrationJob?.id) return;
-  const tick = async () => {
-    try {
-      const res = await fetch(`/api/spec-calibration/jobs/${encodeURIComponent(state.calibrationJob.id)}`, { cache: "no-cache" }).then(readJsonOk);
-      state.calibrationJob = res.job;
-      renderCalibration();
-      if (res.job.status === "queued" || res.job.status === "running") {
-        state.calibrationPoll = setTimeout(tick, 1500);
-      } else {
-        await refreshCalibrationLatest();
-        toast(res.job.status === "succeeded" ? "Calibration finished" : "Calibration failed");
-      }
-    } catch (error) {
-      refs.calibrationState.textContent = "poll failed";
-      refs.calibrationLogs.textContent += `\n${String(error)}`;
-    }
-  };
-  state.calibrationPoll = setTimeout(tick, 500);
-}
-
-function stopCalibrationPolling() {
-  if (state.calibrationPoll) clearTimeout(state.calibrationPoll);
-  state.calibrationPoll = null;
-}
-
-async function refreshCalibrationLatest() {
-  if (!state.data) return;
-  const latest = await fetch(`/api/spec-calibration/latest?spec=${encodeURIComponent(state.data.spec.path)}`, { cache: "no-cache" }).then(readJsonOk);
-  state.data.calibration.latestReport = latest.latest;
-  renderCalibration();
-}
-
-async function applyCalibrationSelection() {
-  if (!state.data?.calibration?.available) return;
-  const selected = refs.calibrationCandidate.value || "identity";
-  const latestPath = state.data.calibration.latestReport?.path || null;
-  try {
-    await fetch("/api/spec-calibration/selection", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        spec: state.data.spec.path,
-        selected,
-        enabled: selected !== "identity",
-        sourceReport: latestPath,
-      }),
-    }).then(readJsonOk);
-    toast(selected === "identity" ? "Calibration set to identity" : "Calibration applied");
-    await loadSpec(state.data.spec.path, false);
-  } catch (error) {
-    toast(String(error));
-  }
-}
-
-async function disableCalibrationSelection() {
-  if (!state.data?.calibration?.available) return;
-  try {
-    await fetch("/api/spec-calibration/selection", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: state.data.spec.path, selected: state.data.calibration.selection?.selected || "identity", enabled: false }),
-    }).then(readJsonOk);
-    toast("Calibration disabled");
-    await loadSpec(state.data.spec.path, false);
-  } catch (error) {
-    toast(String(error));
-  }
-}
-
-function editDetail(edit) {
-  if (edit.target === "keyframe") {
-    return `${edit.axis || "axis"} #${edit.index ?? "-"} -> ${fmt(edit.value)}${edit.ease ? ` ${edit.ease}` : ""}`;
-  }
-  if (edit.target === "contact") {
-    return `contact #${edit.index ?? "-"} impact ${fmt(edit.impact)}`;
-  }
-  if (edit.target === "range" && typeof edit.t0 === "number" && typeof edit.t1 === "number") {
-    return `range ${formatTime(edit.t0)}-${formatTime(edit.t1)}`;
-  }
-  return edit.title || edit.target;
-}
-
-async function applyActiveEdit() {
-  if (!state.data || !state.activeAnchor) return;
-  const edit = buildApplyEdit();
-  if (!edit) return;
-  refs.editState.textContent = "applying";
-  refs.stageEdit.disabled = true;
-  const restore = {
-    cursorT: typeof edit.t === "number" ? edit.t : specTime(),
-    viewStart: state.viewStart,
-    viewEnd: state.viewEnd,
-    selectedScope: state.selectedScope,
-  };
-  try {
-    const res = await fetch("/api/spec-apply-edit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: state.data.spec.path, ...edit }),
-    }).then(readJsonOk);
-    state.history = res.history || state.history;
-    renderHistoryControls();
-    await loadSpec(state.data.spec.path, false, restore);
-    toast("Applied edit");
-  } catch (error) {
-    renderEditor();
-    toast(String(error));
-  }
-}
-
-async function applyHistoryAction(action) {
-  if (!state.data) return;
-  const specPath = state.data.spec.path;
-  const restore = {
-    cursorT: specTime(),
-    viewStart: state.viewStart,
-    viewEnd: state.viewEnd,
-    selectedScope: state.selectedScope,
-  };
-  refs.undoEdit.disabled = true;
-  refs.redoEdit.disabled = true;
-  try {
-    await flushPendingNoteSave();
-    const res = await fetch("/api/spec-history", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: specPath, action }),
-    }).then(readJsonOk);
-    state.history = res.history || state.history;
-    renderHistoryControls();
-    if (!res.entry) {
-      toast(action === "undo" ? "Nothing to undo" : "Nothing to redo");
-      return;
-    }
-    await loadSpec(specPath, false, restore);
-    toast(`${action === "undo" ? "Undid" : "Redid"} ${res.entry.label}`);
-  } catch (error) {
-    await refreshHistoryStatus();
-    toast(String(error));
-  }
-}
-
-async function refreshHistoryStatus() {
-  if (!state.data) return;
-  try {
-    const res = await fetch(`/api/spec-history?spec=${encodeURIComponent(state.data.spec.path)}`, { cache: "no-cache" }).then(readJsonOk);
-    state.history = res.history || null;
-  } catch {
-    state.history = null;
-  }
-  renderHistoryControls();
-}
-
-function buildApplyEdit() {
-  const anchor = state.activeAnchor;
-  if (!anchor) return null;
-  const keyframe = anchor.scope === "keyframe" ? keyframeByAnchor(anchor) : null;
-  const contact = anchor.scope === "contact" && typeof anchor.index === "number"
-    ? state.data.contacts[anchor.index]
-    : null;
-  const edit = keyframe?.edit || contact?.edit || null;
-  if (!edit?.editable) {
-    toast(edit?.readOnlyReason || "Selection is not editable");
-    return null;
-  }
-  if (edit.editKind === "axisKeyframe") {
-    const value = Number(refs.editValue.value);
-    const t = snapTime(Number(refs.editTime.value));
-    return {
-      id: edit.id,
-      editKind: edit.editKind,
-      t: Number.isFinite(t) ? round(t, 4) : anchor.t,
-      value: Number.isFinite(value) ? value : null,
-      ease: edit.editKind === "axisKeyframe" ? refs.editEase.value || null : null,
-    };
-  }
-  if (edit.editKind === "contactImpact") {
-    const impact = Number(refs.editImpact.value);
-    return {
-      id: edit.id,
-      editKind: edit.editKind,
-      impact: Number.isFinite(impact) ? clamp(impact, 0, 1) : null,
-    };
-  }
-  return null;
-}
-
-function upsertLocalEdit(edit) {
-  state.edits = state.edits.filter((item) => item.id !== edit.id);
-  state.edits.push({
-    ...edit,
-    createdAt: edit.createdAt || new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  });
-  state.edits.sort((a, b) => a.t - b.t || a.id.localeCompare(b.id));
-}
-
-async function clearStagedEdits() {
-  if (!state.data) return;
-  state.edits = [];
-  renderEditsList();
-  renderAgentContext();
-  try {
-    await fetch("/api/spec-edits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ spec: state.data.spec.path, clear: true }),
-    }).then(readJsonOk);
-    toast("Cleared edits");
-  } catch (error) {
-    toast(String(error));
-  }
-}
-
 function selectAnchorAtCursor() {
   setActiveAnchor(anchorFor(state.selectedScope, specTime()));
 }
@@ -1708,7 +1201,6 @@ function setActiveAnchor(anchor) {
   refs.noteText.value = note?.text || "";
   renderTags();
   renderNotesList();
-  renderEditor();
   renderTimeline();
   renderAgentContext();
 }
@@ -1896,8 +1388,6 @@ async function deleteActiveNote() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ spec: state.data.spec.path, id, note: null }),
     }).then(readJsonOk);
-    state.history = res.history || state.history;
-    renderHistoryControls();
     refs.saveState.textContent = "deleted";
   } catch (error) {
     refs.saveState.textContent = "delete failed";
@@ -1925,8 +1415,6 @@ async function clearAllNotes() {
       body: JSON.stringify({ spec: state.data.spec.path, clear: true }),
     }).then(readJsonOk);
     state.notesPath = res.notesPath || state.notesPath;
-    state.history = res.history || state.history;
-    renderHistoryControls();
     refs.saveState.textContent = "cleared";
   } catch (error) {
     refs.saveState.textContent = "clear failed";
@@ -2042,7 +1530,6 @@ function renderAgentContext() {
       nearbySources: (state.analysis?.onsets ?? []).filter(event => Math.abs(event.t - t) <= .25),
       nearbyVocalCandidates: (state.analysis?.vocal?.candidates ?? []).filter(c => Math.abs(c.t - t) <= .25),
     },
-    stagedEdits: state.edits,
     nearbyContacts: state.data.contacts
       .map((contact, index) => ({ index, t: contact.t, dt: round(contact.t - t, 3), impact: contact.impact }))
       .filter((contact) => Math.abs(contact.dt) <= 2)
@@ -2218,12 +1705,6 @@ function nearestKeyframe(t) {
   return best;
 }
 
-function keyframeByAnchor(anchor) {
-  return (state.data?.keyframes || []).find((point) =>
-    point.axis === anchor.axis && point.index === anchor.index
-  ) || null;
-}
-
 function axisAt(axis, t) {
   const points = state.data?.axes?.[axis]?.points;
   if (!points?.length) return null;
@@ -2254,10 +1735,6 @@ function setHover(x) {
 
 function svgXAtClient(svg, clientX, fallbackWidth) {
   return svgPointAtClient(svg, clientX, svg.getBoundingClientRect().top, fallbackWidth, 1).x;
-}
-
-function svgYAtClient(svg, clientY, fallbackHeight) {
-  return svgPointAtClient(svg, svg.getBoundingClientRect().left, clientY, 1, fallbackHeight).y;
 }
 
 function svgPointAtClient(svg, clientX, clientY, fallbackWidth, fallbackHeight) {

@@ -12,14 +12,13 @@ import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
 import {createHash} from 'node:crypto';
-import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
+import {AXES, type Spec, type SpecMusic} from '../v0/types.ts';
 
 type SpecEntry = {path: string; name: string; label: string; group: string};
 type Note = {id: string; t: number; scope: string; index: number | null; t0: number | null; t1: number | null;
   axis: string | null; title: string; text: string; tags: string[]; createdAt: string; updatedAt: string};
 
 const SCOPES = new Set(['moment', 'contact', 'gap', 'range', 'keyframe']);
-const READ_ONLY = {editable: false, editKind: null, id: null, readOnlyReason: 'Edit the spec source; the dashboard is read-only'};
 const round = (x: number, digits = 4) => Math.round(x * 10 ** digits) / 10 ** digits;
 const reply = (res: ServerResponse, data: unknown, status = 200) => {
   res.writeHead(status, {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}); res.end(JSON.stringify(data));
@@ -77,56 +76,47 @@ export function createSpecApi(root = process.cwd()) {
       if (validVocalEvidence(root, evidencePath, m.audio)) vocalEvidenceUrl = url(evidencePath);
       else vocalEvidenceError = 'Vocal evidence is stale or its source files are missing. Regenerate it before using it.';
     }
-    const beats = asset(m.beats), image = asset(m.spectrogram?.image), meta = asset(m.spectrogram?.metadata);
+    const image = asset(m.spectrogram?.image), meta = asset(m.spectrogram?.metadata);
     return {title: m.title ?? null, artist: m.artist ?? null, tempo: m.tempo ?? null,
-      audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beats: m.beats ?? null, beatsUrl: beats?.url ?? null, eventsUrl: events?.url ?? null,
+      audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beatsUrl: asset(m.beats)?.url ?? null, eventsUrl: events?.url ?? null,
       vocalEvidenceUrl, vocalEvidenceError,
-      spectrogram: image || meta ? {image: image?.ref ?? null, imageUrl: image?.url ?? null, metadata: meta?.ref ?? null,
-        metadataUrl: meta?.url ?? null, meta: meta && existsSync(meta.abs) ? JSON.parse(readFileSync(meta.abs, 'utf8')) : null} : null};
+      spectrogram: image || meta ? {imageUrl: image?.url ?? null,
+        meta: meta && existsSync(meta.abs) ? JSON.parse(readFileSync(meta.abs, 'utf8')) : null} : null};
   }
 
   async function computeView(entry: SpecEntry, requested: number) {
     const abs = join(root, entry.path);
     const mod = await import(pathToFileURL(abs).href);
     const spec = mod.default as Spec, duration = spec.duration, samples = Math.max(80, Math.min(3000, Math.trunc(requested)));
-    const contacts = spec.contacts.map((c, i) => ({i, t: round(c.t), frame: Math.round(c.t * FPS),
-      impact: Number.isFinite(c.impact) ? round(c.impact!) : null, edit: READ_ONLY})).sort((a, b) => a.t - b.t);
-    const axes: Record<string, unknown> = {}, keyframes: unknown[] = [], axisRanges: Record<string, unknown> = {};
+    const contacts = spec.contacts.map(c => ({t: round(c.t), impact: Number.isFinite(c.impact) ? round(c.impact!) : null}))
+      .sort((a, b) => a.t - b.t);
+    const axes: Record<string, unknown> = {}, keyframes: unknown[] = [];
     for (const axis of AXES) {
       const curve = spec.axes?.[axis];
       if (typeof curve !== 'function') continue;
       const meta = (curve as any).meta, metaPoints = Array.isArray(meta?.points) ? meta.points : [];
-      metaPoints.forEach((p: any, i: number) => keyframes.push({id: `${axis}:${i}`, axis, index: i, t: round(p.t), v: round(p.v),
-        ease: p.ease ?? meta.defaultEase ?? null, sourceEase: p.ease ?? null, kind: meta.kind ?? 'unknown', edit: READ_ONLY}));
+      metaPoints.forEach((p: any, i: number) => keyframes.push({axis, index: i, t: round(p.t), v: round(p.v),
+        ease: p.ease ?? meta.defaultEase ?? null}));
       const points: [number, number | null][] = [];
       for (let i = 0; i < samples; i++) {
         const t = duration * i / (samples - 1), v = curve(t);
         points.push([round(t), typeof v === 'number' && Number.isFinite(v) ? round(v) : null]);
       }
-      const values = points.map(p => p[1]).filter((v): v is number => v !== null);
-      const range = values.length ? {min: Math.min(...values), max: Math.max(...values), count: values.length} : null;
-      axes[axis] = {points, min: range?.min ?? null, max: range?.max ?? null, count: values.length,
-        meta: metaPoints.length ? {kind: meta.kind ?? 'unknown', defaultEase: meta.defaultEase ?? null, points: metaPoints} : null};
-      if (range) axisRanges[axis] = range;
+      axes[axis] = {points};
     }
     const gaps = contacts.map((c, i) => {
-      const t0 = i === 0 ? 0 : contacts[i - 1].t, mid = (t0 + c.t) / 2, targets: Record<string, number> = {};
-      for (const axis of AXES) {
-        const v = spec.axes?.[axis]?.(mid);
-        if (typeof v === 'number' && Number.isFinite(v)) targets[axis] = round(v);
-      }
-      return {i, t0: round(t0), t1: c.t, duration: round(c.t - t0), contactIndex: c.i, contactT: c.t, impact: c.impact, targets};
+      const t0 = i === 0 ? 0 : contacts[i - 1].t;
+      return {i, t0: round(t0), t1: c.t, duration: round(c.t - t0)};
     });
     const impacts = contacts.map(c => c.impact).filter((v): v is number => v !== null), durations = gaps.map(g => g.duration);
     return {
-      spec: {name: entry.name, label: entry.label, path: entry.path, group: entry.group, duration, frameRate: FPS,
-        preroll: spec.preroll ?? null, start: spec.start ?? null},
-      summary: {contacts: contacts.length, gaps: gaps.length, activeAxes: Object.keys(axes), keyframes: keyframes.length,
+      spec: {label: entry.label, path: entry.path, duration},
+      summary: {contacts: contacts.length, activeAxes: Object.keys(axes), keyframes: keyframes.length,
         impactTargets: impacts.length,
         minImpact: impacts.length ? Math.min(...impacts) : null, maxImpact: impacts.length ? Math.max(...impacts) : null,
-        shortestGap: durations.length ? Math.min(...durations) : null, longestGap: durations.length ? Math.max(...durations) : null, axisRanges},
-      contacts, gaps, axes, keyframes, calibration: null,
-      overlayMeta: mod.overlayMeta ?? null, benchmark: null, music: music(spec.music, songDir(entry.path)),
+        shortestGap: durations.length ? Math.min(...durations) : null, longestGap: durations.length ? Math.max(...durations) : null},
+      contacts, gaps, axes, keyframes,
+      overlayMeta: mod.overlayMeta ?? null, music: music(spec.music, songDir(entry.path)),
     };
   }
 
@@ -157,8 +147,6 @@ export function createSpecApi(root = process.cwd()) {
 
   const handle = async function handle(req: IncomingMessage, res: ServerResponse, u: URL): Promise<boolean> {
     if (u.pathname === '/api/specs') {reply(res, {specs: specs()}); return true;}
-    if (u.pathname === '/api/spec-edits') {reply(res, {edits: []}); return true;}
-    if (u.pathname === '/api/spec-history') {reply(res, {history: null}); return true;}
     if (u.pathname === '/api/spec-view') {
       const entry = resolveSpec(u.searchParams.get('spec') ?? '');
       if (!entry) {reply(res, {error: 'unknown spec'}, 400); return true;}
@@ -176,7 +164,7 @@ export function createSpecApi(root = process.cwd()) {
     for await (const chunk of req) {text += chunk; if (text.length > 65536) {reply(res, {error: 'note too large'}, 413); return true;}}
     const body = JSON.parse(text), entry = resolveSpec(body.spec ?? '');
     if (!entry) {reply(res, {error: 'unknown spec'}, 400); return true;}
-    const notes = readNotes(entry.path), base = {ok: true, specPath: entry.path, notesPath: relative(root, notesFile(entry.path)), history: null};
+    const notes = readNotes(entry.path), base = {ok: true, specPath: entry.path, notesPath: relative(root, notesFile(entry.path))};
     if (body.clear === true) {writeNotes(entry.path, []); reply(res, {...base, count: 0, notes: []}); return true;}
     if (body.note == null) {
       if (typeof body.id !== 'string') {reply(res, {error: 'missing note or id'}, 400); return true;}

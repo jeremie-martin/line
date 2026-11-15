@@ -15,7 +15,6 @@ body {
 .app-header,
 .timeline-panel,
 .readout,
-.editor,
 .notes-list,
 .scope-tabs,
 .tag-row,
@@ -446,117 +445,6 @@ h2 {
   font-variant-numeric: tabular-nums;
 }
 
-.editor-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.calibration-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.editor-grid label {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  display: grid;
-  gap: 3px;
-}
-
-.editor-grid input,
-.editor-grid select,
-.calibration-grid input,
-.calibration-grid select {
-  min-width: 0;
-  width: 100%;
-  height: 32px;
-  padding: 0 8px;
-  font-size: 13px;
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.editor-grid input:disabled,
-.editor-grid select:disabled {
-  color: #a99b84;
-  background: #f3ead8;
-}
-
-.calibration-grid label {
-  color: var(--muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  display: grid;
-  gap: 3px;
-}
-
-.calibration-grid label:last-child {
-  grid-column: 1 / -1;
-}
-
-.calibration-actions {
-  gap: 8px;
-  justify-content: flex-start;
-}
-
-.calibration-report {
-  display: grid;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.calibration-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
-.calibration-table th,
-.calibration-table td {
-  border-top: 1px solid var(--line);
-  padding: 5px 4px;
-  text-align: right;
-}
-
-.calibration-table th:nth-child(2),
-.calibration-table td:nth-child(2),
-.calibration-axis-table th:first-child,
-.calibration-axis-table td:first-child {
-  text-align: left;
-}
-
-.calibration-link {
-  color: var(--blue);
-  font-size: 12px;
-}
-
-.calibration-logs {
-  max-height: 150px;
-  overflow: auto;
-  margin: 10px 0 0;
-  padding: 8px;
-  border: 1px solid var(--line);
-  background: #2a251f;
-  color: #f8edd5;
-  border-radius: 6px;
-  font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  white-space: pre-wrap;
-}
-
-#edit-state {
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-
 .section-title-row {
   justify-content: space-between;
   gap: 10px;
@@ -625,8 +513,7 @@ textarea {
   min-height: 34px;
 }
 
-.notes-list,
-.edit-list {
+.notes-list {
   list-style: none;
   padding: 0;
   margin: 8px 0 0;
@@ -636,8 +523,7 @@ textarea {
   overflow: auto;
 }
 
-.notes-list li,
-.edit-list li {
+.notes-list li {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface-strong);
@@ -674,25 +560,6 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.edit-list {
-  max-height: 170px;
-}
-
-.edit-list li {
-  padding: 8px;
-  display: grid;
-  gap: 3px;
-}
-
-.edit-line {
-  display: flex;
-  gap: 8px;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
 }
 
 .agent-context pre {
@@ -762,16 +629,11 @@ textarea {
 .svg-keyframe {
   stroke: #fffdfa;
   stroke-width: 1.4;
-  cursor: grab;
 }
 
 .svg-readonly {
   stroke-dasharray: 3 2;
   cursor: pointer;
-}
-
-.svg-editable-impact {
-  cursor: ns-resize;
 }
 
 .empty-state {

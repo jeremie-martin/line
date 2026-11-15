@@ -4,6 +4,14 @@
  "note": "answers: the zoom saved for a song: the draft it started from and its keyframes ({t song seconds, wide 0 closest to 1 widest}).",
  "clips": [
   {
+   "id": "petrunko",
+   "song": "petrunko"
+  },
+  {
+   "id": "trouble",
+   "song": "trouble"
+  },
+  {
    "id": "tiki",
    "song": "tiki"
   },

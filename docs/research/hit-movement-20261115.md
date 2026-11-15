@@ -541,3 +541,18 @@ it changes (at most 2.5 times between closest and widest), how slowly, and which
 - **What exists elsewhere:** the spec type has `camera.zoom` (keyframes in the first renderer's units) and
   `camera.beatPunch`; about twenty spec files still carry them; today's renderer reads neither. Three themes use the
   "out when quiet" zoom (12% at most).
+
+## Opening and ending faster; zoom lanes with an intention (owner, 2026-11-15)
+
+- **Bookends** (`camera.js` `createFraming`): the opening's move in is a tenth faster and the ending's move out a
+  fifth faster (2.17 s instead of 2.6, still holding the whole course for the last 0.4 s). Before and after:
+  `/motion-gallery/video-compare.html?collection=/generated/watch/bookends.json`. A zoom lane needs nothing in the last
+  three seconds: the picture goes to the whole course whatever the lane says.
+- **The first drafts were mechanical** (one number per section, four arithmetic variations) and the owner felt it:
+  neither a formula over sections nor a signal carries an intention. He does not want the most intense parts to be
+  the closest.
+- **Lanes are now written like readings** (`zoom-lanes.mjs`): each follows one thing in the music, from the song's
+  `music.ts`, with a sentence of intent. Petrunko `build`: one pull-back through the build; a held breath (closing in
+  through the build, opening in the silence so the return lands widest); leaning in for the bars the bass answers.
+  Trouble: voice close and drums wide; a step wider at each climbing triple of kicks. Tiki: the two drops; one slow
+  breath. Unjudged. `zoom-prepare.mjs` prepares the Petrunko and Trouble rides for the page.

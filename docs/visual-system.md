@@ -20,7 +20,8 @@ These are fixed for all themes (`look.js` `V1`):
 
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
-- **Camera.** Follows the rider's direction at a steady zoom, and shows the whole course at the start and the end. No
+- **Camera.** Follows the rider's direction at a steady zoom, and shows the whole course at the start (moving in until
+  about the first hit) and at the end (moving out over the last 2.6 s). No
   camera motion except the movement at strong hits.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
   touch.

@@ -13,7 +13,7 @@ import {lanesFor} from './zoom-lanes.mjs';
 const STUDY = 'zoom-2026-11';
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const q = new URLSearchParams(location.hash.slice(1));
-if (['tiki', 'circus'].includes(q.get('song'))) $('song').value = q.get('song');
+if (['petrunko', 'trouble', 'tiki', 'circus'].includes(q.get('song'))) $('song').value = q.get('song');
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {hits: 'v1'});
 // the zoom being looked at: a draft's id and its keyframes, which may have been moved
@@ -109,8 +109,7 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1];
-  const sections = ride.scene.phases.map(ph => ({t0: ph.t0, t1: Math.min(ride.scene.span[1], ph.t1)}));
-  lanes = lanesFor(song, sections, ride.scene.authoredCamera?.zoom?.keyframes ?? null);
+  lanes = lanesFor(song, ride.scene.authoredCamera?.zoom?.keyframes ?? null);
   $('sources').replaceChildren(...lanes.map(l => {const b = Object.assign(document.createElement('button'), {textContent: l.name, onclick: () => choose(l.id)}); b.dataset.id = l.id; return b;}));
   if (!lanes.some(l => l.id === lane) || !keys.length || keys.at(-1).t > ride.scene.span[1]) {lane = lanes.some(l => l.id === lane) ? lane : 'steady'; keys = lanes.find(l => l.id === lane).keyframes.map(k => ({...k}));}
   today = createPicture($('today'), ride.scene, ride.replay, ride.sprites, N.riderPainter());

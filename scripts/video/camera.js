@@ -91,7 +91,10 @@ export function createFraming(motion, level, hitTimes, songEnd, scale) {
   x0 -= 80; y0 -= 80; x1 += 80; y1 += 80;
   const overviewZoom = Math.min(0.78 * W / (x1 - x0), 0.5 * H / (y1 - y0));
   const centre = {x: (x0 + x1) / 2, y: (y0 + y1) / 2};
-  const openingEnd = Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6), endingStart = songEnd - 3;
+  // Opening: from the whole course to the rider, starting at 0.25 s and arriving by the first hit after 1.3 s (2.2 s at most),
+  // then a tenth faster. Ending: back out over 2.6 s, a fifth faster, holding the whole course for the last 0.4 s (2026-11-15).
+  const OPEN_FROM = 0.25, openingEnd = OPEN_FROM + (Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6) - OPEN_FROM) / 1.1;
+  const ENDING = 2.6 / 1.2, endingStart = songEnd - ENDING - 0.4;
 
   return function frameAt(time, at, look) {
     if (!cams.has(look.zoom)) cams.set(look.zoom, followCamera(motion, {base: BASE, zoom: look.zoom, scale,
@@ -106,8 +109,8 @@ export function createFraming(motion, level, hitTimes, songEnd, scale) {
     if (scale) c.move = c.z / BASE;
     if (look.ends === 'none') return c;
     let follow = 1;
-    if (time < openingEnd) follow = smoothstep((time - 0.25) / (openingEnd - 0.25));
-    else if (time > endingStart) follow = 1 - smoothstep((time - endingStart) / 2.6);
+    if (time < openingEnd) follow = smoothstep((time - OPEN_FROM) / (openingEnd - OPEN_FROM));
+    else if (time > endingStart) follow = 1 - smoothstep((time - endingStart) / ENDING);
     if (follow >= 1) return c;
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
     const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);

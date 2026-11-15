@@ -28,11 +28,17 @@ it('drafted lanes hold through sections or close in through them, inside the sca
   expect(wideAt(held, 5)).toBe(0.2); expect(wideAt(held, 15)).toBe(1); expect(wideAt(held, 10)).toBeCloseTo(0.6); expect(wideAt(held, 29.9)).toBeCloseTo(0.4);
   const push = pushIn(sections, [0.5, 1, 0.6]);
   expect(wideAt(push, 12)).toBeGreaterThan(wideAt(push, 19)); expect(wideAt(push, 10.5)).toBeGreaterThan(wideAt(push, 9.5));
-  for (const lane of lanesFor('tiki', [0, 6.9, 10.43, 24.35, 27.83, 41.74].map((t0, i, a) => ({t0, t1: a[i + 1] ?? 48})), [{t: 0, zoom: 2.8}, {t: 10, zoom: 1.7}])) {
-    expect(lane.keyframes.every(k => k.wide >= 0 && k.wide <= 1)).toBe(true);
-    expect(lane.keyframes.every((k, i, a) => !i || k.t > a[i - 1].t)).toBe(true);
+  const ends = {petrunko: 60, trouble: 50.3, tiki: 48};
+  for (const [song, end] of Object.entries(ends)) {
+    const lanes = lanesFor(song, [{t: 0, zoom: 2.8}, {t: 10, zoom: 1.7}]);
+    expect(lanes.length).toBeGreaterThanOrEqual(4); expect(lanes.slice(0, 2).map(l => l.id)).toEqual(['steady', 'written']);
+    for (const lane of lanes) {
+      expect(lane.about.length).toBeGreaterThan(20);
+      expect(lane.keyframes.every(k => k.wide >= 0 && k.wide <= 1 && k.t >= 0 && k.t <= end)).toBe(true);
+      expect(lane.keyframes.every((k, i, a) => !i || k.t > a[i - 1].t)).toBe(true);
+    }
   }
-  expect(lanesFor('other', sections, null).map(l => l.id)).toEqual(['steady', 'open', 'push', 'near']);
+  expect(lanesFor('other', null).map(l => l.id)).toEqual(['steady']);
 });
 it('the camera takes a study\'s zoom, sizes the hit movement by it, and is untouched without one', () => {
   const n = 800, level = new Float64Array(200).fill(0.5);

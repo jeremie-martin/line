@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law ≤ 55° at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds): headline **+6.8 [+4.8, +8.7]**, every one of the
+16 seed blocks positive, 35 specs up, 8 down; explicit +5.4; very strong bias −0.177 → −0.169; small quiet asks within
+×1.5 58% → 61%, over ×2 21% → 14%; asks of 0 within ×1.5 8% → 10%; air, speed, ride character, head-down arrivals
+unchanged; body drag 3.40 → 4.21 s/min (+24%); strong extra impacts 0.18 → 0.20 (+14%).
+- One continuous law (5° + 80° × ask, at most 55°) replaces the steep and level arrival headings (two switched
+  priors), and launches are aimed at it before every beat: no threshold between quiet and other beats.
+- Not adopted: the owner judges by eye (`strong-pairs.html`; body drag is an unvalidated proxy); V7.1 and held out not
+  yet run. If adopted, the cleanup removes the level prior and the steep prior's heading (its speed and upright parts
+  stay) and keeps `arrivalTargets` as the one definition.
+
 ## November 15: the arrival law's cap (measured)
 
 V8, 8 seeds, against `foundation-6`, the law 5° + 80° × ask with aimed launches, capped at:

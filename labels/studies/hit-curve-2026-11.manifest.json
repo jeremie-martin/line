@@ -1,0 +1,15 @@
+{
+ "study": "hit-curve-2026-11",
+ "questions": [],
+ "note": "answers: the hit movement settings saved for a song (start, amount px at 0.85, out s, back s, shake multiple).",
+ "clips": [
+  {
+   "id": "tiki",
+   "song": "tiki"
+  },
+  {
+   "id": "circus",
+   "song": "circus"
+  }
+ ]
+}

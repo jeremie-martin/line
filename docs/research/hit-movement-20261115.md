@@ -484,3 +484,16 @@ Measured on every hit of the two rides (77 on Tiki, 199 on Circus):
   px). A medium hit gets nearly a strong hit's carry.
 - So carry can be defined like the other hit effects: along the hit's normal, sized by a curve of measured strength,
   with its own start, reference amount and timing. It then needs nothing the shake does not already have.
+
+## The hit movement page (`/generated/concept-lab/hit-move.html`)
+
+The owner asked to go on with carry as a curve of strength. `hit-move-model.mjs` (tested in
+`tests/video_hit_move.test.ts`) defines the movement under study: today's shake times a multiple, plus carry along the
+hit's surface normal, sized by a curve of measured strength (nothing up to `start`, an S-curve to `amount` px at 0.85,
+then growing as the shake does, at most 1.7 × amount; several hits together are held to the same bound), out in `out`
+seconds and back over `back`. Carry no longer reads the rider's change of velocity. The punch is dropped.
+
+The page plays the whole song under today's camera with this movement, today's picture on hold or beside. One chart
+shows the two curves by strength with every hit of the song as a dot that lights when it plays, and two handles (start,
+amount); a second shows one hit over time. Settings live in the address and are saved per song by the labels API
+(study `hit-curve-2026-11`). First values, unjudged: start 0.4, 60 px, out 70 ms, back 0.3 s, today's shake.

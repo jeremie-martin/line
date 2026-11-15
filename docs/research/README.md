@@ -12,6 +12,7 @@ Links to documents that are no longer in the tree resolve at tag
 
 | document | why it matters |
 |---|---|
+| [folds-carried-from-below-20261115.md](folds-carried-from-below-20261115.md) | upward-corner proposals make some folds fully ridden without rails; complete V7.1 shows the local gain offset elsewhere, so not adopted |
 | [impact_definition.md](impact_definition.md) | the frozen landing-impact definition (the cArc strength formula, its window and its calibration) |
 | [beat-salience-investigation-20261001.md](beat-salience-investigation-20261001.md) | the owner's per-passage judgments of hit timing, clarity, upper hits and merged hits; the 16-passage review |
 | [motion-quality-investigation-20261001.md](motion-quality-investigation-20261001.md) | friction-driven speed bursts on normal lines, calm openings, separated-rail transfers |

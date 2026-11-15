@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: folds carried from below (experiment, not adopted)
+
+- On `geometry-improvements`, baseline `e06720f9`, inspect all 164 saved V7.1 rides after trimming unused ends.
+  Among 908 intact four-segment folds (lead-in plus three faces), 80.95% touch a guide, 56.17% touch main and guide
+  in the same frame, and 47.47% touch all three faces with the sled. Dip folds touch the middle face 48.92%; ridge
+  folds touch it 100% but touch the last face only 36.11%. These are contact diagnostics, not preference judgments.
+  Windows include three frames before the authored start to capture early catches. Pictures: `generated/fold-study/diagnosis.html`.
+- Hypothesis: three faces with two upward turns can carry the sled through both corners from below and launch it
+  from the exit, reducing reliance on a rail while keeping two substantial corners. Existing generic proposals
+  mostly offer dips and ridges; reserve every fourth generic paired-fold proposal for this construction. Place
+  its entry along the actual first face, split the heading change equally, and let the ordinary search judge it.
+  No new controls, score terms, rail prohibition or family-placement changes. Same proposal count and allowance;
+  no speed claim, reject a large compute increase without compensating evidence.
+- Test the complete V7.1 panel, four seeds, paired against `e06720f9`: completion separately, every score ruler,
+  guards, rail use, actual face contacts, whole-ride sheets and playable examples. A worse score is disclosed;
+  fewer rails alone is not acceptance. No geometry verification or judge rule is relaxed.
+- Result: 164/164 complete in both arms, 216/216 explicit gaps fulfilled. Headline −1.32 [−6.2, +3.5],
+  15 headline specs up / 20 down; contact, strike, impact v2 and v3 losses all slightly worse. Explicit score +1.94.
+  Body drag −1%, strong extras −13%, but whole-ride rails 41% → 42% and clean upper hits 10.3% → 9.8%.
+- Locally, the mechanism works: 17 folds have two upward corners, all touch all three faces with the sled,
+  13 without a rail. Across 908 folds, guide touches 735 → 717; three-face sled contact 431 → 457.
+  Other families add 100 rails, offsetting the 18 removed from folds. No reliable headline improvement.
+- Not adopted on this long-running branch. Candidate preserved on `experiment/folds-carried-from-below` with
+  refreshed parity references for reproduction; the prior compiler remains on `geometry-improvements`.
+  Full ruler results and limits: `docs/research/folds-carried-from-below-20261115.md`. All 164 candidate
+  constructions verify (12,178 supports), and six review pages pass browser loading/seeking. The candidate
+  passes full `npm run check`: 627 tests, 32 Rust tests, engine/compile/judge parity and end-to-end smoke (2.4 min).
+
 ## November 15: trim unused curve ends
 
 - Long-running branch `geometry-improvements`, from `9d46793e`; quiet-impact work stays separate.

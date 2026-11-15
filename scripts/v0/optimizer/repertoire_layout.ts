@@ -1,6 +1,6 @@
 import {hypot2} from '../../lib/hypot2.ts';
 /** New-layout checks. The frozen V5 realization module remains untouched. */
-import {inspectConstruction} from './repertoire_realization.ts';
+import {inspectConstruction,fromAboveMayReplaceShape} from './repertoire_realization.ts';
 import type {ConstructionRequest,ProductionPlan} from './repertoire_policy.ts';
 import type {TrackLine} from '../types.ts';
 const length=(l:TrackLine)=>hypot2(l.x2-l.x1,l.y2-l.y1);
@@ -57,8 +57,8 @@ export function inspectLayout(request:ConstructionRequest,lines:readonly TrackLi
   return {...base,construction:request.construction,fulfilled:!reasons.length,reasons,turning,turnReversals:reversals,
     transfer:{lastMain,firstReceive,receivingFrames:receivingFrames.length,uncoveredReceivingFrames,freeBetween,receivingClearance,engagedTurns,contactTurning,contactReversals}};
 }
-export function inspectRepertoireLayout(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[],positions?:readonly {x:number;y:number}[]){
-  const sections=plan.requests.map(r=>inspectLayout(r,lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),
+export function inspectRepertoireLayout(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[],positions?:readonly {x:number;y:number}[],fromAbove:ReadonlySet<number>=new Set()){
+  const sections=plan.requests.map(r=>fromAbove.has(r.section)&&fromAboveMayReplaceShape(r)?{...inspectConstruction({...r,construction:'arcs'},lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next)),construction:r.construction,caughtFromAbove:true}:inspectLayout(r,lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),
     new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next),positions?.slice(r.frame,r.next)));
   return {schema:'line.repertoire-realization.v2',fulfilled:sections.every(s=>s.fulfilled),
     requested:sections.length,fulfilledSections:sections.filter(s=>s.fulfilled).length,sections};

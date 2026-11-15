@@ -119,6 +119,11 @@ export function inspectConstruction(request:ConstructionRequest,lines:readonly T
     mainLength:totalLength,guideLength:guide.reduce((n,l)=>n+length(l),0),turning,turnReversals,orderedTraversal:[early,middle,late],
     contactedMainSegments:main.filter(l=>touched.has(l.id)).length};
 }
+/** Experiment: a shaped section of an automatic plan may be caught from above instead of drawing its shape (the catch
+ * from above does the rail's job of driving the rider down into the hit). Required rails and transfers keep their
+ * shape. */
+export const fromAboveMayReplaceShape=(r:Pick<ConstructionRequest,'construction'|'guidance'|'railLayout'>)=>
+  r.construction!=='arcs'&&r.construction!=='scattered'&&r.guidance!=='required'&&r.railLayout!=='transfer';
 export function inspectRepertoire(plan:ProductionPlan,lines:readonly TrackLine[],railGuides:Record<number,number[]>,collisions:readonly (readonly number[])[]){
   const sections=plan.requests.map(r=>inspectConstruction(r,lines.filter(l=>Math.floor((l.id-1000)/10000)===r.section),
     new Set(railGuides[r.section]??[]),collisions.slice(r.frame,r.next)));

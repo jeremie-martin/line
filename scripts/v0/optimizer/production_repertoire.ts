@@ -48,7 +48,7 @@ export function compileProductionRepertoire(input:Spec,seed:number,options:Reper
     motion={full:summarizeMotion(samples,1),sections:plan.requests.map(r=>({section:r.section,
       summary:summarizeMotion(samples.filter(s=>s.frame>=r.frame&&s.frame<r.next),r.frame)}))};
     const collisions=Array.from({length:end+1},(_,f)=>engine.getAllContactLineIdsAtFrame(f));
-    realization=inspectRepertoire(plan,result.track.lines,railGuides,collisions,raw.frames.map(f=>f.position));
+    realization=inspectRepertoire(plan,result.track.lines,railGuides,collisions,raw.frames.map(f=>f.position),new Set(result.rows.flatMap((r:any,i:number)=>r.control.contactSide===-1?[i]:[])));
     const frames=getPhysicsFrameCount();physicalFrames+=frames;work.push({stage:'realization-replay',allowance:replay,physicalFrames:frames,complete:result.impactEvaluation.valid});
   }finally{dispose();setPhysicsFrameLimit(null);}
   if(physicalFrames>budget)throw new Error('production repertoire exceeded its whole-compile allowance');

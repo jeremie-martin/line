@@ -18,6 +18,7 @@ import { arcBoundaryCorrection } from './arc_boundary.ts';
 import { arcArrivalFeatures } from './arc_value.ts';
 import { arcControlMemoKey, arcControlsSimilar } from './arc_motion_control.ts';
 import { inspectConstructionWindow } from './repertoire_candidate.ts';
+import { fromAboveMayReplaceShape } from './repertoire_realization.ts';
 import { motionSamples, effectiveBodyVelocity, MOTION_BANDS } from './motion_quality.ts';
 import { constructionDeficit } from './repertoire_feasibility.ts';
 import { motionResiduals, intervalMotionSummary } from './motion_objective.ts';
@@ -214,7 +215,7 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
   const impactMatch = impactAccount.matches.find(m => m.target === s.currentImpactTarget);
   if (i > 0 && !impactMatch) return {reason: 'missed_impact'} as Rejection;
   const request = options.constructionRequests?.[i];
-  if (request && (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
+  if (request && !(c.contactSide === -1 && fromAboveMayReplaceShape(request)) && (request.construction === 'scattered' ? !!fragments : request.guidance === 'required' || request.construction !== 'arcs')) {
     const guideIds = fragments?.guideIds ?? (arcRailGroups(added).get(i)![1] ?? []).map(l => l.id);
     const allContacts = request.context || request.railLayout === 'transfer'
       ? (frame: number) => child.getAllContactLineIdsAtFrame(frame) : undefined;

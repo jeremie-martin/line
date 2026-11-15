@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: hit movement study, not adopted
+
+- On `hit-effects`, integrate released visual lab first; full foundation checks pass. Prepare original-spec Tiki and voice-full Circus, seed 101, for identical-ride comparisons.
+- Recover June/September vibration and authored zoom laws inside the current canvas renderer; retain an actual September video as reference only. Compare six new movement families with current shake, no shake and old vibration. Camera and colour-split controls isolate distinct sources of motion.
+- Find that current reference-strength shake jumps +28 px then reaches -19.44 px at 83.3 ms. Colour split also enlarges the picture, with resolution-dependent edge padding; unchanged to preserve approved output.
+- Browser checks: 90 default frames match released renderer bytes; 9 modes × 4 cameras × 2 songs are seek-order independent. No production hit response or theme is adopted. Details and reconstruction limits: `docs/research/hit-movement-20261115.md`.
+
 ## November 15: integrate released visual lab into hit-effects
 
 - Merge `visual-lab` at `5b94a34a`, including its accepted arrival law and gentle exits, before preparing new study rides. Renderer and collection match that release.

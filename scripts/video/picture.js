@@ -46,7 +46,9 @@ export function riderAt(frames, at) {
     framesSinceStringDetached: m(a.framesSinceStringDetached, b.framesSinceStringDetached)};
 }
 
-export function createPicture(canvas, scene, replay, sheet, paint) {
+// A study may inject pure hit/framing functions. Production callers omit this argument;
+// candidates live in the lab, never in the production look registry.
+export function createPicture(canvas, scene, replay, sheet, paint, study = {}) {
   const ctx = canvas.getContext('2d'), overlay = document.createElement('canvas'), octx = overlay.getContext('2d');
   const frames = replay.frames, {offset} = scene.timing, [, songEnd] = scene.span;
 
@@ -59,7 +61,9 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   // Hit metadata and hand-authored cues share the song clock; ride signals stay on the ride clock.
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
-  const frameAt = createFraming(motion, level, hitTimes, songEnd);
+  const frameAt = study.framing?.(motion, level, hitTimes, songEnd) ?? createFraming(motion, level, hitTimes, songEnd);
+  const effectsAt = study.effectsAt ?? hitEffectsAt;
+  let turnedRider = null;
 
   const applySplit = createSplit(canvas);
   // the colour boost: everything drawn on the paper (ink, line, rider, band, sun, title) gets more saturated and more contrasted for
@@ -100,10 +104,18 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     const zr = v.z, px = v.ax + ox, py = v.ay + oy;
     return {x: v.x + (W / 2 - px) / zr, y: v.y + (H / 2 - py) / zr, z: zr * k, w: canvas.width, h: canvas.height, r: 1};
   }
-  function drawRider(rc, at) {
+  function drawRider(rc, at, turn) {
     if (overlay.width !== canvas.width || overlay.height !== canvas.height) {overlay.width = canvas.width; overlay.height = canvas.height;}
     paint(octx, rc, sheet, riderAt(frames, at), at);
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(overlay, 0, 0);
+    let rider = overlay;
+    if (turn) {
+      turnedRider ??= document.createElement('canvas');
+      if (turnedRider.width !== canvas.width || turnedRider.height !== canvas.height) {turnedRider.width = canvas.width; turnedRider.height = canvas.height;}
+      const g = turnedRider.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, canvas.width, canvas.height);
+      g.setTransform(turn); g.drawImage(overlay, 0, 0); rider = turnedRider;
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(rider, 0, 0);
+    return rider;
   }
 
   /** Draw the frame at song time t (s). `exaggerate` is the lab's viewing aid: it multiplies every hit effect alike and is never
@@ -111,8 +123,9 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
   function draw(t, look, exaggerate = 1) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
-    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, TUNES[look.hits] ?? TUNES.v1);
-    const colours = themeAt(t, intensity, look), v = frameAt(t, at, look);
+    const fx = effectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, TUNES[look.hits] ?? TUNES.v1);
+    const colours = themeAt(t, intensity, look), base = frameAt(t, at, look);
+    const v = fx.scale ? {...base, z: base.z * fx.scale} : base;
     let titleBox = null; // only the title drawn in this frame gets its smaller split
     const boosting = fx.boost;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
@@ -123,14 +136,18 @@ export function createPicture(canvas, scene, replay, sheet, paint) {
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
     if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, fx.lit);
-    const cc = {...v, ax: v.ax + fx.dx, ay: v.ay + fx.dy}, world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
+    const cc = {...v, ax: v.ax + fx.dx, ay: v.ay + fx.dy};
+    const turn = fx.rotation ? new DOMMatrix().translate(cc.ax * k, cc.ay * k).rotate(fx.rotation).translate(-cc.ax * k, -cc.ay * k) : null;
+    let world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
+    if (turn) world = turn.multiply(world);
     ctx.setTransform(world);
-    const visible = track.visibleAt(cc), boosted = boosting > 0.01;
+    // Rotated study frames use all lines: no unrotated culling box can clip a corner.
+    const visible = turn ? track.lines : track.visibleAt(cc), boosted = boosting > 0.01;
     drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, boosted ? 'ink' : 'all');
-    drawRider(riderCamera(v, fx.dx, fx.dy, k), at);
+    const rider = drawRider(riderCamera(v, fx.dx, fx.dy, k), at, turn);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (boosted) layBoosted(boosting, colours.paper, () => {ctx.setTransform(world); drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, 'pencil');});
-    applySplit(k, fx, overlay, titleBox);
+    applySplit(k, fx, rider, titleBox);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     return world;
   }

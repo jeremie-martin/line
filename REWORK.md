@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: aimed launches only before quiet beats (the cleanest form; exploratory, not adopted)
+
+V8, 8 seeds, against `foundation-6` (758.3): headline **+2.3 [−1.2, +5.9]**, support 0.92, 16 specs up, 16 down, **11
+identical** (no quiet asks: the proposal never acts); explicit +2.8; small quiet asks within ×1.5 55% → 63%, over ×2
+22% → 17%; asks of 0 within ×1.5 8% → 13%; strong asks unchanged (−0.176); stray strong hits 0.13 → 0.15; ride
+character unchanged.
+- Of the three forms (level before every beat +1.1, steep and level +1.5, level before quiet beats only +2.3), this
+  one is the most consistent with the compiler: one definition of the wanted arrival shared with ranking
+  (`arrivalTargets`), acting only where a beat asks a soft hit, rides without quiet asks untouched. Level before every
+  beat gave the most quiet gain (69%) by also changing arcs before ordinary beats (345 of 427 at seed 101).
+- 73 of 4,397 committed arcs (seed 101) come from it. Gallery for the owner: `generated/quiet-study/aimed-level.html`.
+- Kept on `exp/aimed-arrivals` (option `aimedLaunches`, off: parity identical) and `exp/aimed-level-on` (on).
+
 ## November 15: aimed apex launches and aimed launches at 8 seeds; variety (measured)
 
 V8, 8 seeds (392 rides), against `foundation-6` (758.3 at 8 seeds):

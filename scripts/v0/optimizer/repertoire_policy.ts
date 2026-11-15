@@ -27,7 +27,7 @@ export function supportTimeline(spec:Pick<Spec,'duration'|'contacts'>){
 }
 export function creativePreferences(input:CreativePreferences={}):Required<CreativePreferences>{
   if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['repertoire','variation','guidedBalance'].includes(k)))throw new Error('invalid creative preferences');
-  const repertoire=input.repertoire??[...constructions],variation=input.variation??1,guidedBalance=input.guidedBalance??11/17;
+  const repertoire=input.repertoire??(process.env.LINE_REPERTOIRE?process.env.LINE_REPERTOIRE.split(',') as typeof constructions[number][]:[...constructions]),variation=input.variation??1,guidedBalance=input.guidedBalance??11/17;
   if(!Array.isArray(repertoire)||!repertoire.length||new Set(repertoire).size!==repertoire.length||repertoire.some(x=>!constructions.includes(x)))throw new Error('invalid repertoire');
   if(![variation,guidedBalance].every(x=>Number.isFinite(x)&&x>=0&&x<=1))throw new Error('creative amounts must be in [0, 1]');
   return {repertoire:[...repertoire],variation,guidedBalance};

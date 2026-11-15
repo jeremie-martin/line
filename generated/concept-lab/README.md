@@ -41,7 +41,7 @@ rounds are in git history, and the reasons for each choice in `LEDGER.md`. A new
 | Lower band | per theme | bars or fork with the loudest in the accent (`accent`: heat or loudest three), Iris (thin or bold); height low-middle |
 | Top of the frame | per theme | sun (the rider 32 px lower, the sun 16 px higher: round 21), title |
 | At the drop | nothing | a switch to the scheme's drop partner |
-| Zoom over time | steady | out when quiet |
+| Zoom over time | the song's lanes (`productions/<song>/zooms.ts`), one per video; steady without | |
 | Opening and ending | the whole course at both ends | none |
 | On each hit | split, colour boost, and a shake on strong hits (below) | nothing |
 

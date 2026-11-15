@@ -133,10 +133,8 @@ that today's camera holds the rider still at a hit, and comparing versions led t
 `/generated/concept-lab/hit-move.html`: the song plays with the production response held or beside, the curves of
 strength are drawn with every hit of the song on them, and the settings can be dragged and saved. The production values
 are `MOVEMENT` in `scripts/video/hits.js`; the page opens on them. `/generated/concept-lab/hits.html` draws every hit
-curve. The earlier study pages (`hit-motion`, `hit-pairs`, `hit-dial`) show the response they were judged against, the
-full shake without carry.
-
-The split is settled the same way on `/generated/concept-lab/hit-split.html` (red into the surface, a twentieth bigger).
+curve. A page that tunes the movement hands the picture its own settings (`createPicture`'s last argument); everything else
+is production's. The split (red into the surface) is `split` in `hits.js` and `split.js`.
 
 ## Writing a song's zoom lanes
 

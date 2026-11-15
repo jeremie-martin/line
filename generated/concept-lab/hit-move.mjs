@@ -4,8 +4,15 @@ import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture, BODY_POINTS} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
-import {prepareHits, hitEffectsAt, shake as shakeAmount} from '/scripts/video/hits.js';
-import {MOVE_DEFAULT, carryAmount, movementAt, singleHit} from './hit-move-model.mjs';
+import {prepareHits, hitEffectsAt, carryAmount, shake as shakeAmount, TUNES} from '/scripts/video/hits.js';
+import {strength as energyOf} from '/scripts/video/intensity.js';
+
+// The settings under the owner's hand, starting from production's (hits.js): carry's start, amount, out and back, and the shake's
+// multiple. The picture reads them at every frame, as the tune of the hit movement.
+const MOVE_DEFAULT = {...TUNES.v1.carry, shake: TUNES.v1.shake};
+/** One hit of strength `s` on level ground: px out of the surface (negative: into it) at `age` seconds. For the charts. */
+const singleHit = (s, age, p) => -hitEffectsAt([{time: 0, strength: s, energy: energyOf(s), normal: {x: 0, y: -1}}], age, 1, tuneOf(p)).dy;
+const tuneOf = p => ({shake: p.shake, carry: p});
 
 const STUDY = 'hit-curve-2026-11', KEYS = ['start', 'amount', 'shake', 'out', 'back'];
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
@@ -94,8 +101,8 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1]; loopFrom = null;
-  const make = (id, effectsAt) => createPicture($(id), ride.scene, ride.replay, ride.sprites, N.riderPainter(), effectsAt ? {effectsAt} : {});
-  mine = make('mine', (hits, t) => ({...hitEffectsAt(hits, t), ...movementAt(hits, t, p)})); today = make('today');
+  const make = (id, tune) => createPicture($(id), ride.scene, ride.replay, ride.sprites, N.riderPainter(), tune);
+  mine = make('mine', {get shake() {return p.shake;}, carry: p}); today = make('today');
   $('play').disabled = false; $('status').textContent = ''; show(); layout(); window.__ready = true;
 }
 $('song').onchange = () => {time = 0; void load();};

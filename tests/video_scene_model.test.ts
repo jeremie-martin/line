@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {prepareTrack} from '../scripts/video/track.js';
-import {W, H, rideSignals, followCamera, createFraming} from '../scripts/video/camera.js';
+import {W, H, rideSignals, createFraming} from '../scripts/video/camera.js';
 import {FS, strength, rawSignals, intensity, intensityAt, rideIntensity} from '../scripts/video/intensity.js';
 import {spectrumAt, accentedBands} from '../scripts/video/music.js';
 import {createTheme, dropSpan} from '../scripts/video/theme.js';
@@ -71,31 +71,27 @@ describe('intensity and music signals', () => {
 describe('camera and framing', () => {
   const centres = Array.from({length: 801}, (_, f) => ({x: f * 8, y: f < 400 ? f * 4 : 1600}));
   const motion = rideSignals(centres);
-  it('shares finite differences, holds steady zoom exactly and limits quiet zoom change', () => {
+  it('shares finite differences, holds the steady zoom exactly and never lets a descending rider climb fast', () => {
     expect(motion.velocity[0]).toEqual({x: 320, y: 160, speed: Math.hypot(8, 4) * 40});
-    const steady = followCamera(motion, {base: 6.2, zoom: 'steady', level: () => {throw new Error('steady needs no intensity');}});
+    const frame = createFraming(motion, [], 20), look = {...resolveLook(), ends: 'none'}, steady = centres.map((_, f) => frame(f / 40, f, look));
     expect(steady.every(c => c.z === 6.2)).toBe(true);
-    const quiet = followCamera(motion, {base: 6.2, zoom: 'quiet', level: f => f < 400 ? 0 : 1});
-    expect(quiet[0].z).toBeCloseTo(6.2 * Math.exp(-0.12)); expect(quiet.at(-1).z).toBeCloseTo(6.2);
-    for (let f = 1; f < quiet.length; f++) expect(Math.abs(Math.log(quiet[f].z / quiet[f - 1].z))).toBeLessThanOrEqual(0.025 / 40 + 1e-12);
     // While descending, the rider never climbs faster than the approved 45 design px/s.
     for (let f = 1; f < 400; f++) expect(steady[f].ay - steady[f - 1].ay).toBeGreaterThanOrEqual(-45 / 40 - 1e-9);
   });
   it('uses the same rider/world transform through bookends and handles seek, zoom and layout changes independently', () => {
-    const level = new Float64Array(200).fill(0.5), times = [{t: 1.8, s: 0.8}];
-    const frame = createFraming(motion, level, times, 20), look = resolveLook();
+    const times = [{t: 1.8, s: 0.8}];
+    const frame = createFraming(motion, times, 20), look = resolveLook();
     const overview = frame(0, 0, look), riding = frame(4, 160, look);
     expect(overview.over).toBe(1); expect(overview.z).toBeLessThan(riding.z);
     expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0, ending: false});
     expect(frame(20, 800, look)).toMatchObject({over: 1, ending: true});
     const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));
     expect(lower.ay - riding.ay).toBe(32);
-    for (const t of [0, 0.7, 1.8, 10, 18, 20]) for (const zoom of ['quiet', 'steady']) {
-      const options = {...look, zoom};
-      const c = frame(t, t * 40, options);
+    for (const t of [0, 0.7, 1.8, 10, 18, 20]) {
+      const options = look, c = frame(t, t * 40, options);
       expect(c.ax).toBeGreaterThan(0); expect(c.ax).toBeLessThan(W);
       expect(c.ay).toBeGreaterThan(0); expect(c.ay).toBeLessThan(H);
-      expect(c).toEqual(createFraming(motion, level, times, 20)(t, t * 40, options));
+      expect(c).toEqual(createFraming(motion, times, 20)(t, t * 40, options));
     }
     expect(frame(0, 0, {...look, ends: 'none'})).toMatchObject({over: 0, z: 6.2});
   });

@@ -13,7 +13,7 @@ A **theme** is a complete direction for one video: everything that isn't the rid
 | Top of the frame | nothing, the title, the sun | `top` |
 | Line | pencil → ink, whole rail, all ink | `line` |
 | The drop | nothing, Night, a switch to a partner scheme | `drop` (+ `DROP_SCHEMES`) |
-| Zoom over time | steady, out when quiet | `zoom` |
+| Zoom over time | not a theme's choice: the song's lanes decide (the key stays in judged specifications) | `zoom` |
 | Colour response | soft-start vibrance (v1), plain, Whisper and the live comparison variants | `paper` (saved key), `grade.js` |
 
 A production theme is an entry of `THEMES` in `scripts/video/look.js`: a few options on top of `V1`, which supplies everything else. `presets.js` derives the lab's named looks from those entries, and `npm run video -- --look=NAME` ships them. Proposed variants live in the lab's candidate files; judging freezes their full resolved look, palette and drop partner. Later default changes must not reinterpret a judged theme.

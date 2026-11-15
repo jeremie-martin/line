@@ -291,14 +291,14 @@ and validation are in [music authoring](docs/music-authoring.md).
      and rider. It owns the colour-boost order (paper and pencil excluded) and
      applies the hit split last. Frames and colour queries are independent of
      previous draws or seeks.
-   - `camera.js` computes shared ride velocity/speed, the fixed follow camera and
-     steady/quiet zoom, then samples framing and the whole-course bookends.
+   - `camera.js` computes shared ride velocity/speed and the fixed follow camera
+     at the video's zoom (the steady zoom, or the song's lane chosen for this
+     video: `zoom.js`), then samples framing and the whole-course bookends.
      Every view uses the same representation: rider world position, rider screen
      position and zoom. No airborne zoom branch or separate bookend transform.
      `intensity.js` samples measured speed and hit peaks on its 10 Hz grid and
      applies the calibrated absolute metric; its study helpers remain in use by
-     the lab's diagnostic sweeps. Camera zoom uses nearest intensity samples,
-     colour and sun interpolate them, preserving their approved responses.
+     the lab's diagnostic sweeps. Colour and sun interpolate its samples.
    - `track.js` prepares connected rails, first contact and ink frames, and the
      visibility index once. Drawing reads those frames; it never updates inking
      during playback. `music.js` interpolates the spectrum on song time and
@@ -326,8 +326,9 @@ and validation are in [music authoring](docs/music-authoring.md).
      these hits and samples the single winning hit's shake, split and colour
      boost; carry (the picture moving out of the surface after a hit and
      settling back) adds up over recent hits, as band heat does. The shake and
-     carry shrink with the picture in the opening and ending (the camera's
-     `move`). `split.js` owns channel separation,
+     carry were set at the steady zoom and keep their size against the scene:
+     the picture scales them by its zoom, along a lane and in the opening and
+     ending. `split.js` owns channel separation,
      the clean rider overlay and the title's smaller split, with explicit inputs
      for this frame.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to

@@ -1,14 +1,13 @@
-// Zoom: the whole song plays with a zoom written for it (keyframes on one fixed scale, zoom-model.mjs; drafts in zoom-lanes.mjs),
+// Zoom: the whole song plays with a zoom written for it (keyframes on one fixed scale, scripts/video/zoom.js; the song's lanes come with the scene),
 // against the production picture (held or beside). The zoom is drawn over the whole song and its points can be moved. Settings live in the address and are saved per song.
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture, BODY_POINTS} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
 import {prepareHits} from '/scripts/video/hits.js';
-import {createFraming, rideSignals} from '/scripts/video/camera.js';
+import {rideSignals} from '/scripts/video/camera.js';
 import {rideIntensity} from '/scripts/video/intensity.js';
-import {RANGE, wideAt, laneScale, zoomOfWide} from './zoom-model.mjs';
-import {lanesFor} from './zoom-lanes.mjs';
+import {RANGE, wideAt, laneScale, zoomOfWide} from '/scripts/video/zoom.js';
 
 const STUDY = 'zoom-2026-11';
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
@@ -72,8 +71,8 @@ $('line').addEventListener('dblclick', e => {
 // ── settings ─────────────────────────────────────────────────────────────
 function build() {
   const {scene, replay, sprites} = ride; scale = laneScale(keys, ride.frames, scene.timing.offset);
-  const zoom = scale; // this picture keeps the zoom it was built with
-  mine = createPicture($('mine'), {...scene, zoom: null}, replay, sprites, N.riderPainter(), {framing: (motion, level, hitTimes, songEnd) => createFraming(motion, level, hitTimes, songEnd, f => zoom[Math.max(0, Math.min(zoom.length - 1, f))])});
+  // the picture takes the zoom as a video does: the scene's lane. It keeps the keyframes it was built with.
+  mine = createPicture($('mine'), {...scene, zoom: {keyframes: keys.map(k => ({...k}))}}, replay, sprites, N.riderPainter());
   if (!playing) draw();
 }
 const same = (a, b) => a.length === b.length && a.every((k, i) => Math.abs(k.t - b[i].t) < 0.005 && Math.abs(k.wide - b[i].wide) < 0.0005);
@@ -109,7 +108,7 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1];
-  lanes = lanesFor(ride.scene.authoredCamera?.zoom?.keyframes ?? null, ride.scene.zooms);
+  lanes = [{id: 'steady', name: 'Steady', about: 'One zoom for the whole ride: what a song without lanes gets.', keyframes: [{t: 0, wide: 0.5}]}, ...ride.scene.zooms];
   $('sources').replaceChildren(...lanes.map(l => {const b = Object.assign(document.createElement('button'), {textContent: l.name, onclick: () => choose(l.id)}); b.dataset.id = l.id; return b;}));
   if (!lanes.some(l => l.id === lane) || !keys.length || keys.at(-1).t > ride.scene.span[1]) {lane = lanes.some(l => l.id === lane) ? lane : 'steady'; keys = lanes.find(l => l.id === lane).keyframes.map(k => ({...k}));}
   today = createPicture($('today'), {...ride.scene, zoom: null}, ride.replay, ride.sprites, N.riderPainter()); // beside: the steady zoom

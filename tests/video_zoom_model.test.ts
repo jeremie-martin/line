@@ -1,7 +1,5 @@
 import {expect, it} from 'vitest';
 import {RANGE, zoomOfWide, wideAt, laneScale} from '../scripts/video/zoom.js';
-import {legacyWide} from '../generated/concept-lab/zoom-model.mjs';
-import {lanesFor} from '../generated/concept-lab/zoom-lanes.mjs';
 import {createFraming, rideSignals, BASE} from '../scripts/video/camera.js';
 
 it('the scale is fixed: 0.5 is today, and the widest shows 1.4 times more than the closest, whatever the lane', () => {
@@ -19,10 +17,6 @@ it('the zoom holds before the first keyframe and after the last, and eases betwe
   expect(wideAt([], 3)).toBe(0.5);
   expect(laneScale(k, 400, 0.5)[100]).toBeCloseTo(zoomOfWide(wideAt(k, 2))); // frame 100 is ride second 2.5, song second 2
 });
-it('old spec zooms come onto the scale by one fixed conversion', () => {
-  expect(legacyWide(2.9)).toBe(0); expect(legacyWide(1.55)).toBe(1); expect(legacyWide(9)).toBe(0);
-  expect(legacyWide(2.05)).toBeGreaterThan(0.5);
-});
 it('every song\'s lanes are inside the scale and the song, in time order, with an intention; a ride always gets the same one', async () => {
   const {ZOOMS} = await import('../scripts/video/zooms.ts'), {chooseZoom} = await import('../scripts/video/choose.js');
   const ends: Record<string, number> = {petrunko_selection: 60, trouble_50s: 50.3, tiki_tiki_48s: 48};
@@ -39,14 +33,9 @@ it('every song\'s lanes are inside the scale and the song, in time order, with a
     expect(chooseZoom('ride-7', lanes)).toBe(chooseZoom('ride-7', lanes));
   }
   expect(chooseZoom('ride-7', [])).toBeNull();
-  expect(lanesFor(null, ZOOMS.tiki_tiki_48s).map(l => l.id)).toEqual(['steady', 'drops', 'breath']);
-  expect(lanesFor([{t: 0, zoom: 2.9}, {t: 9, zoom: 1.55}]).map(l => l.id)).toEqual(['steady', 'written']);
 });
-it('the camera takes a study\'s zoom, sizes the hit movement by it, and is untouched without one', () => {
-  const n = 800, level = new Float64Array(200).fill(0.5);
-  const centres = Array.from({length: n}, (_, f) => ({x: f * 8, y: f * 3})), motion = rideSignals(centres), look = {zoom: 'steady', riderLower: '0', top: 'none', sunRider: '32', ends: 'none'};
-  const plain = createFraming(motion, level, [], 20)(10, 400, look);
-  expect(plain.z).toBe(BASE); expect(plain.move).toBeUndefined();
-  const half = createFraming(motion, level, [], 20, () => 0.5)(10, 400, look);
-  expect(half.z).toBeCloseTo(BASE / 2); expect(half.move).toBeCloseTo(0.5);
+it('the camera takes a lane as a multiple of the steady zoom per frame, and is the steady zoom without one', () => {
+  const n = 800, centres = Array.from({length: n}, (_, f) => ({x: f * 8, y: f * 3})), motion = rideSignals(centres), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'none'};
+  expect(createFraming(motion, [], 20)(10, 400, look).z).toBe(BASE);
+  expect(createFraming(motion, [], 20, new Float64Array(n).fill(0.5))(10, 400, look).z).toBeCloseTo(BASE / 2);
 });

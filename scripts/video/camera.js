@@ -9,10 +9,9 @@
 // Pure: no DOM. Frames are 1080 × 1920 design pixels; the picture scales them to the canvas.
 
 import {FPS} from './timing.js';
-import {FS} from './intensity.js';
 
 export const W = 1080, H = 1920;
-/** The ride's zoom: design pixels per world unit. */
+/** The steady zoom: design pixels per world unit. The hit movement was set at this zoom (picture.js scales it with the frame's). */
 export const BASE = 6.2;
 const DT = 1 / FPS;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -66,25 +65,13 @@ function placed(motion, zs) {
   return out;
 }
 
-/** One camera per physics frame. Steady zoom is constant; quiet zoom follows intensity with a
- * one-second smoothing and a 2.5 %/s log-zoom limit. Neither mode depends on airborne state. */
-export function followCamera(motion, {base, zoom, level, scale}) {
-  const n = motion.centres.length;
-  // scale: a study's zoom over the ride, a multiple of the base per physics frame (the zoom page); production passes none
-  if (scale) return placed(motion, Float64Array.from({length: n}, (_, f) => base * scale(f)));
-  if (zoom === 'steady') return placed(motion, new Float64Array(n).fill(base));
-  if (zoom !== 'quiet') throw new Error(`Unknown zoom: ${zoom}`);
-  const want = Float64Array.from({length: n}, (_, f) => -0.12 * (1 - clamp((level(f) - 0.2) / 0.35, 0, 1)));
-  const g = smoothSamples(want, FPS), lz = new Float64Array(n); lz[0] = g[0];
-  for (let f = 1; f < n; f++) lz[f] = clamp(g[f], lz[f - 1] - 0.025 * DT, lz[f - 1] + 0.025 * DT);
-  return placed(motion, Float64Array.from(lz, v => base * Math.exp(v)));
-}
-
-/** A frame has one camera representation: rider world position x/y, rider screen position ax/ay,
- * and zoom z (and, in the opening and ending, `move`: how much smaller the picture is than the ride's own). Opening/ending interpolate that same representation, not a second camera or rider transform.
- * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state. */
-export function createFraming(motion, level, hitTimes, songEnd, scale) {
-  const cams = new Map(), centres = motion.centres;
+/** A frame has one camera representation: rider world position x/y, rider screen position ax/ay, and zoom z.
+ * Opening/ending interpolate that same representation, not a second camera or rider transform.
+ * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state.
+ * `lane` is the song's zoom lane for this video (zoom.js laneScale: a multiple of BASE per physics frame); without one the
+ * zoom is BASE throughout. */
+export function createFraming(motion, hitTimes, songEnd, lane = null) {
+  const centres = motion.centres, cam = placed(motion, Float64Array.from(centres, (_, f) => BASE * (lane ? lane[Math.min(f, lane.length - 1)] : 1)));
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of centres) {x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);}
   // Frame the ride, with an 80-unit margin; rails extending past it can crop.
@@ -97,16 +84,11 @@ export function createFraming(motion, level, hitTimes, songEnd, scale) {
   const ENDING = 2.6 / 1.2, endingStart = songEnd - ENDING - 0.4;
 
   return function frameAt(time, at, look) {
-    if (!cams.has(look.zoom)) cams.set(look.zoom, followCamera(motion, {base: BASE, zoom: look.zoom, scale,
-      // The camera was calibrated with nearest intensity samples, while colour and sun interpolate them.
-      level: f => level[clamp(Math.round(f / FPS * FS), 0, level.length - 1)]}));
-    const cam = cams.get(look.zoom), i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
+    const i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
     const lerp = (p, q) => p + (q - p) * u;
     const lower = +look.riderLower + (DISC_TOPS.has(look.top) ? +look.sunRider : 0);
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, ending: false};
-    // with a study's zoom the hit movement keeps its size against the scene: it was set at the base zoom
-    if (scale) c.move = c.z / BASE;
     if (look.ends === 'none') return c;
     let follow = 1;
     if (time < openingEnd) follow = smoothstep((time - OPEN_FROM) / (openingEnd - OPEN_FROM));
@@ -114,7 +96,6 @@ export function createFraming(motion, level, hitTimes, songEnd, scale) {
     if (follow >= 1) return c;
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
     const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);
-    // move: the scale of this frame against the ride's own, so a hit moves the overview by as much of the course, not as many pixels
-    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart, move: z / c.z * (c.move ?? 1)};
+    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart};
   };
 }

@@ -25,7 +25,8 @@ export const OPTIONS = {
   sunRider: ['With a sun, the rider sits lower by', {'32': '32 px'}],
   sunLift: ['The sun sits higher by', {'16': '16 px'}],
   drop: ['At the drop', {off: 'Nothing', switch: 'Switch to the scheme’s drop partner, keeping its hot note and sun'}],
-  zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
+  // not read: the zoom is written per song (zoom.js). The key stays because every judged specification names one.
+  zoom: ['Zoom over time (the song\'s lanes decide)', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, and on strong hits a shake and carry (v1)', none: 'Nothing',
@@ -35,8 +36,7 @@ export const OPTIONS = {
 };
 
 export const V1 = {
-  // camera: Follows direction (fixed in camera.js), 15 % closer than the first videos, a steady zoom, the whole course at both
-  // ends (R1–R7)
+  // camera: Follows direction (fixed in camera.js), the whole course at both ends (R1–R7); the zoom is the song's (zoom.js)
   zoom: 'steady', ends: 'course',
   // line: pencil → ink as the rider passes (R1, R5); whole rail and all ink are themes' choices (R5–R6)
   line: 'inking',

@@ -44,10 +44,10 @@ export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35,
 // The movement at a hit (2026-11-15, the owner's settings on the hit movement page, then whole rides): half the shake above,
 // and carry from strength 0.5 to 100 px at 0.85, out in 70 ms, settling back over 0.3 s.
 const MOVEMENT = {shake: 0.5, carry: {start: 0.5, amount: 100, out: 0.07, back: 0.3}};
-/** The response's settings per value of look.hits. v1 is production; lit65 also lights the band for as long as a hit of at least
- * 0.65 lasts (the dark themes picked for it, choose.js); still is a viewing aid without any movement. `shakeOnly` is the response
- * before carry, full shake and nothing else: not a look, kept so the hit studies in the lab show what was judged. */
-export const TUNES = {v1: MOVEMENT, lit65: {...MOVEMENT, lit: 0.65}, still: {still: true}, shakeOnly: {}};
+/** The movement's settings per value of look.hits: {shake: multiple of the shake above; carry: its settings, or none; lit: the
+ * strength from which a hit lights the band}. v1 is production; lit65 also lights the band for as long as a hit of at least 0.65
+ * lasts (the dark themes picked for it, choose.js); still is a viewing aid without any movement. */
+export const TUNES = {v1: MOVEMENT, lit65: {...MOVEMENT, lit: 0.65}, still: {shake: 0}};
 
 // Carry: after a hit the picture moves out of the surface that was hit and settles back, as if the camera carried on for a
 // moment when the rider was stopped. The shake knocks into the surface, fast; carry answers it, slower.
@@ -84,7 +84,8 @@ function envelope(age, energy) {
 
 /** One live hit drives all three effects, chosen by strength × remaining envelope; never added together.
  * Output: shake dx/dy and split distance in 1080-wide design pixels, blow direction, colour boost amount.
- * Exaggeration is the lab's viewing aid; it changes amplitudes, never timing or the winning hit. */
+ * Exaggeration is the lab's viewing aid; it changes amplitudes, never timing or the winning hit. `tune` is one of TUNES, or
+ * the settings a tuning page is trying. */
 export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
   let best = 0, hit = null, amount = 0, age = 0;
   for (const h of hits) {
@@ -93,10 +94,10 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
     if (score > best) {best = score; hit = h; amount = env; age = elapsed;}
   }
   // carry outlasts the winning hit's envelope, so it is added whether or not a hit is live
-  const carried = tune.carry && !tune.still ? carryAt(hits, time, tune.carry) : null, cx = carried ? carried.x * exaggerate : 0, cy = carried ? carried.y * exaggerate : 0;
+  const carried = tune.carry ? carryAt(hits, time, tune.carry) : null, cx = carried ? carried.x * exaggerate : 0, cy = carried ? carried.y * exaggerate : 0;
   if (!hit) return {dx: cx, dy: cy, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  const a = amount < 0.002 || tune.still ? 0 : shake(hit.strength) * (tune.shake ?? 1) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
+  const a = amount < 0.002 ? 0 : shake(hit.strength) * tune.shake * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
   return {dx: a * x + cx, dy: a * y + cy,
     split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},

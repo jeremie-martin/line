@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law's soft end (stated before running)
+
+On the owner's Tiki voice-drums (4 seeds), the cleaned law lands quiet beats less well than `foundation-6`: asks
+0–0.1 within ×1.5 63% (83%), 0.1–0.2 86% (95%); mean score 766.1 (762.9). Its quiet stretches are slow (speed asked
+about 0.38), where the law wants 14–18° for asks near 0.1 (a slow rider needs a steeper arrival for the same push);
+arrivals before its quiet beats: median 13°, p90 24° (`foundation-6` with the level prior: 10°, 17°). The data table
+(`arrival_law.ts`) has whispers landing best at 0–10°. The law starts too steep at the soft end.
+- **Variants** (`exp/law-0g2`, `exp/law-0g24`): the law from level, base 0° (instead of 5°), gain 2 and 2.4 (the
+  second keeps the strong end where it was). **Hypothesis:** quiet asks on the Tiki spec back to `foundation-6`'s level
+  or better; V8 headline and strong asks about as before.
+
 ## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
 
 V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds), all with aimed launches:

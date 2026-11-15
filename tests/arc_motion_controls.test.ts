@@ -31,7 +31,7 @@ it('reuses a measured trajectory without forcing a demonstration or losing field
     arrivalWeight: .3, headingWeight: .3};
   const original = compileArcMotion(spec, 17, options);
   expect(original.failure).toBeNull();
-  const replay = compileArcMotion(spec, 17, {...options, samples: 8, memorySamples: 2,
+  const replay = compileArcMotion(spec, 17, {...options, samples: 8, memorySamples: 4,   // 4 since gentle exits (2026-11-15): with 2, two hits are missed
     controlExamples: original.rows.map(r => ({control: r.control, incoming: r.incoming, span: r.span, features: r.features}))});
   expect(replay.failure).toBeNull();
   expect(replay.report.contacts.every(c => c.status === "hit")).toBe(true);

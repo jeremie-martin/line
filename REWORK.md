@@ -1,5 +1,291 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: gentle exits and parked families, adopted
+
+**Accepted by the owner on 2026-11-15** on full rides, including the float pair (he prefers the gentle exits there too,
+knowing the benchmark cost below). Parity references updated: supports are drawn differently after a catch.
+
+**What changed in the compiler** (branch `exp/visible-motion`):
+- `arc_geometry.ts`: from 6 frames after a catch, a support turns no faster than a 95 px radius and no faster than
+  keeps the push on the rider under 0.6 px/frame² (radius ≥ speed² ÷ 0.6). Three constants and one line.
+- `repertoire_policy.ts` `PARKED`: terraces and folds are left out of the default repertoire; a request can still name them.
+- Removed: the v5 account, the rejection rule and every environment switch of the experiments. The ground readings
+  moved to `tools/measure/body/ground_readings.ts` (analysis only).
+
+**Hypothesis, stated before the run:** drawing exits gently removes the sharp turns after a hit and most of the hard
+pushes the account does not record, at no cost in score, air, speed or completion.
+
+**Result** (20 handcrafted specs × seeds 101, 202, 303; paired by spec, 95 % bootstrap over specs):
+
+| | complete | score | air rms | sections with a turn above 20° after the hit | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| default before (all six families) | 59/60 | 754.2 | 0.0412 | 10.5 % | 0.71 |
+| without terraces and folds | 60/60 | 754.6 | 0.0400 | 6.7 % | 0.57 |
+| adopted | 59/60 | 757.0 | 0.0393 | 0.4 % | 0.22 |
+
+- Adopted − default before: score +4.7 [+1.1, +8.0], air −0.0021 [−0.0042, +0.0001], hit error −0.0002, speed +0.0011
+  (neither separable from 0), pushes −0.49 [−0.93, −0.13].
+- Completion: the one incomplete ride of each arm stopped on the compiler's consistency check ("main construction
+  differs"), a fault that predates this work and moves between rides.
+- **Is a check needed on top of the drawing?** Refusing candidates whose rider touches a turn above 20° after the hit
+  gave 0 % instead of 0.4 % and nothing else separable (score −1.6 [−6.4, +2.8] without it). Not kept: one mechanism.
+- Three tests tied to exact small compiles were re-derived; `npm run parity` changed as expected (references updated), `parity:judge`, tests, typecheck and reach pass.
+
+**The benchmark** (`npm run compare`, panel v8, 196 matched pairs, no ride lost in any arm; reference = visual-lab at
+the fork, saved as `visual-lab-1115`; the saved reference `visual-lab` is a commit of November 10 and must not be used):
+
+| against the reference | headline | 95 % over seed blocks | specs up/down |
+|---|---|---|---|
+| terraces and folds parked, nothing else | +3.4 | [−6.6, +13.5] | 24/19 |
+| parked and gentle exits (adopted) | −5.1 | [−14.6, +4.3] | 23/20 |
+
+- Parking is free here too. The exits cost about 8 points, almost all in the specs that ask for long floats after
+  quiet hits: calm (P3) −30 and the long ride (P6) −38 against parking alone; airtime error rises on every seed there.
+  The other categories do not move.
+- On those specs (28 pairs; parking alone +8.6): radius floor alone −3.2; push cap 0.6 alone −14.0; floor and cap 1.0
+  −5.3; floor and cap 1.5 −4.1. No form of the rule is free there.
+- **Why** (the same specs compiled both ways, 4 seeds, `tools/measure/body/paired.ts` `measure`): the float rides were
+  full of hard pushes the account does not record. Per ride, without → with gentle exits: Tiki Tiki calm 4.25 → 0.50,
+  the 108 s long ride 7.75 → 1.00, Amor calm 1.00 → 0.00 (the 20 handcrafted specs: 0.57). Almost none of them is a
+  sharp turn of the ground (turns above 20° in 30 px: 0.2 % of sections): they are fast riders on moderate curves, which
+  is why only the speed-aware cap reaches them. A long float after a quiet hit needs a strong redirection upward; the
+  compiler was taking it after the hit's frames, where nothing charges it. Part of the old score on these specs was
+  earned that way.
+- So the cost is a real trade: airtime closer to the ask with unasked hard pushes, or fewer pushes with shorter
+  floats. The owner chose fewer pushes.
+
+**What this does not claim.** The owner's second blind round did not separate compliant from non-compliant clips; the
+evidence that it reads better is his remark on full rides and the measured removal of the turns he pointed at. Quiet
+pushes below 0.4 and motion inside a hit's own frames are untouched.
+
+## November 15: gentle exits by speed (experiment; the candidate to adopt)
+
+After the second review, lighter forms, all by construction in `arc_geometry.ts` (from 6 frames after the catch, a
+support's turning radius is at least the largest of: the old 24 px; a degrees cap; speed² ÷ a push cap). No reversal
+part, nothing rejected for the push cap. 20 specs × 3 seeds against the baseline without terraces and folds:
+
+| variant | complete | score | air rms | turns above 20° after the hit, per ride | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| baseline | 60/60 | 754.6 | 0.040 | 5.6 (above 30°: 2.1) | 0.57 |
+| degrees cap 20° | 60/60 | −1.4 [−5.9, +3.1] | −0.0009 | 0 | 0.42 |
+| 20° and push cap 0.6 px/frame² | 60/60 | +3.0 [−1.8, +7.5] | −0.0012 | 0 | 0.18 (−0.38 [−0.82, −0.02]) |
+| 20° and push cap 0.4 | 59/60 | −4.0 [−9.3, +1.5] | +0.0018 | 0 | 0.08 |
+| 20° and push cap 0.25 | 59/60 | −5.9 [−16.5, +3.0] | +0.0050 | 0 | 0.10 |
+| for reference: the 10° rule after the hit | 60/60 | −9.7 [−14.2, −5.3] | +0.0036 | 0 | 0.03 |
+
+- A degrees cap alone leaves the hard pushes: the push of a turn grows with speed. The push cap is the speed-aware
+  form; a slow rider keeps a tight exit (and its air), a fast one gets a gentle one.
+- 0.6 costs nothing measurable and removes two thirds of the unrecorded hard pushes; tighter caps start to cost air.
+- The two incomplete rides stopped on the compiler's consistency check ("main construction differs"), the fault seen
+  before in baseline rides.
+- **Candidate:** terraces and folds out; degrees cap 20°; push cap 0.6. Not yet done: proper options instead of
+  environment switches, the abandoned v5 account and the rejection rule removed, parity references, the benchmark
+  panel, the owner's look at full rides.
+
+## November 15: the second review does not confirm the 10° rule
+
+38 answers (`labels/studies/motion-2026-11b.jsonl`): 35 clean, 3 "a little", none "clearly". By class: baseline with a
+turn after the hit above 15° (up to 35°): 7 of 8 clean; baseline with a reversal above 12° (up to 27°): 5 of 6 clean;
+baseline within the rule 6 of 6; turns of 10–15°: 8 of 8; rides under the rule: 9 of 10. Within the rule 16 of 17 clean,
+outside it 19 of 21. Calm 6 of 8 clean, intense 18 of 19. Owner: some answers sat between clean and a little; "let's
+not read too much into it"; on the full rides he finds the rule "definitely cleaner".
+
+- **What it shows:** once terraces and folds are out, stretch by stretch he finds almost everything clean, whatever my
+  readings say. In the first round the readings mostly separated terraces and folds from the rest; that was the
+  family, not a property I had isolated. The 10° limits are not supported.
+- **What stays supported:** terraces and folds out (both rounds, no cost); the large upturned tips he named on full
+  rides (48°, 63°, and three of 21–29° in a row in a calm passage), which are also where the unrecorded hard pushes are.
+- **Not explained:** why the full rides under the rule read cleaner to him when the stretches do not differ.
+
+## November 15: the limit's cost curve, songs outside the 20 specs, a second review round (experiment)
+
+- **Limit 15° instead of 10°** (`LINE_GROUND_LIMIT=15`, 3 seeds): −4.1 [−8.8, +0.5] against the baseline (10°: −9.7);
+  12.3% of sections then exceed the 10° rule (turning after the hit 8.6%), unrecorded pushes 0.18 per ride (10°: 0.03).
+- **Default specs of Luna Bala, Tiki Tiki, L'amour de ma vie**, seeds 101–303, terraces and folds out in both arms:
+  the rule holds in every section; score differences −13, −40, −18, −20, −14, −3, −31, +12 (8 pairs, mean −16).
+  One baseline ride (Luna Bala 303) stopped on the compiler's own check ("main construction differs at support 65"),
+  the second sighting of that fault (the first: Petrunko `build` 101).
+- **Second review** `/motion-review/index.html?study=motion-2026-11b`: 38 fresh stretches, seed 202 of 8 specs, plain
+  look, blind. Classes in the key: baseline with a turn after the hit above 15° (8), baseline with a reversal after the
+  hit above 12° (6), baseline within the rule (6), rides compiled under the rule (10), turns of 10–15° from the looser
+  limit (8). It tests the rule on clips it was not fitted on and places the limit.
+
+## November 15: the smooth-ground rule, what it costs and why (experiment, not adopted)
+
+All on 20 specs × seeds 101, 202, 303, v3 account, terraces and folds out; differences against that baseline
+(`notf3`, 754.6), paired by spec, 95% bootstrap over specs (`paired.ts`, `cost.ts`, `bumpsrc.ts`, `airloss.ts`).
+
+| variant | score | hit error | air rms | speed rms | viable candidates | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|
+| baseline | 754.6 | 0.0092 | 0.040 | 0.060 | 66% | 0.57 |
+| both parts on all touched ground, by rejection | −23.1 [−27.7, −18.7] | +0.0022 | +0.0034 | +0.0062 | 53% | 0.05 |
+| the same, supports drawn with gentle exits | −16.6 [−21.7, −11.7] | +0.0017 | +0.0038 | +0.0045 | 58% | 0.00 |
+| reversal part alone | −12.7 [−17.5, −8.2] | +0.0014 | +0.0002 | +0.0038 | | 0.58 |
+| late-turn part alone (gentle exits) | −5.9 [−11.0, −1.1] | +0.0006 | +0.0025 | +0.0024 | | 0.05 |
+| **both parts, only on ground touched after the hit's frames, gentle exits** | −9.7 [−14.2, −5.3] | +0.0007 | +0.0036 | +0.0027 | 61% | 0.03 |
+| the same at twice the budget, against the baseline at twice the budget | −6.5 [−11.6, −1.3] | +0.0006 | +0.0051 | +0.0009 | | 0.08 |
+
+- **Gentle exits by construction** (`LATE_RADIUS` in `arc_geometry.ts`: from 6 frames after the catch the heading
+  changes no faster than 9° per 30 px) recover a third of the rejection's cost: the search is offered compliant
+  supports instead of refusing lips.
+- **Two thirds of the refused reversals sat on ground touched within the hit's own frames** (in the baseline: 22%
+  of sections there, 10% after). On the owner's answers, judging only the ground after the hit is more precise (15
+  flagged, 2 clean, against 21 flagged, 6 clean) and misses, among his "clearly", only two folds. Hence the rule's
+  final form: what the ground does within the hit's frames belongs to the hit.
+- **What is left is air.** With the final form the loss is in gaps asking 0.6 air or more (rms 0.046 → 0.052, bias
+  −0.018 → −0.023): a gentle launch needs more ground than a lip. Twice the budget returns 5.6 points to the rule and
+  2.4 to the baseline; at twice the budget the difference is air alone.
+- In every variant with the rule, every ride completes and no section breaks the rule in the final track.
+- Open: the 10° limits (the owner's clean stretches stop at 8°, his named lips start at 21°; nothing judged between);
+  songs outside these 20 specs; the owner's eye on the result.
+
+## November 15: the smooth-ground rule, three seeds (experiment, not adopted)
+
+**The rule** (`ground_smoothness.ts`, on with `LINE_GROUND=on`), on the lines the rider touches in a section:
+no reversal of more than 10° within 60 px anywhere; after the hit's own 6 frames, no turning of more than 10° within
+30 px. A candidate that breaks it is rejected. On the owner's 41 answers (fitted after the fact): "turning after the
+hit above 8°" flags 11 stretches, 1 of them clean; "reversal of 12° or more" flags 17, 4 clean; either flags 15 of
+the 18 not-clean stretches and passes 18 of the 23 clean ones. The upturned tips he named (5 s, 7 s, 23 s) measure
+48°, 63°, 21–29° after the hit.
+
+**Where lips come from:** a support's heading goes from the catch to the exit by `easing(w, bias)`; a large bias puts
+the whole turn in the last frames, limited only by a 24 px minimum radius.
+
+**20 specs × seeds 101, 202, 303**, v3 account (`tools/measure/body/paired.ts`; paired by spec, 95% bootstrap over specs):
+
+| | complete | score | hit error | air rms | speed rms | sections breaking the rule | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|---|
+| today | 59/60 | 754.2 | 0.0090 | 0.041 | 0.059 | 45.4% (bumps 35.3%, lips 23.2%) | 0.71 |
+| no terraces, no fold | 60/60 | 754.6 | 0.0092 | 0.040 | 0.060 | 35.8% | 0.57 |
+| no terraces, no fold, the rule | 60/60 | 731.5 | 0.0114 | 0.043 | 0.066 | 0.0% | 0.05 |
+
+- Leaving terraces and folds out: score +2.2 [−2.1, +6.8], 11 specs up, 9 down. No measurable cost.
+- The rule on top: −21.1 [−26.3, −15.9] against today, all 20 specs down; hit error +0.0022 (20 of 20 up), speed
+  +0.0064 (17 up), air +0.0021 [−0.0006, +0.0048]. Every ride completes and no section breaks the rule in the final
+  tracks.
+- The hard pushes the account does not record nearly vanish without any change to the account.
+- Corrected during the analysis: a first count gave 21% of lips left; it had counted the next support, touched up to
+  two frames before its beat, as ground after the hit.
+- Not shown: that the owner sees the difference (videos in `generated/videos/smooth3/`, a fresh blind round is the
+  test); the usual benchmark panel; whether aiming at the rule instead of rejecting recovers score.
+
+## November 15: a smoothness limit on the ground the rider touches (experiment, not adopted)
+
+`ground_smoothness.ts` `roughestReversal`: along each chain of lines, at every change of the bend's direction, the
+degrees undone within 60 px each side; only turning points within 30 px of a touched line count. `LINE_GROUND=10`
+rejects a candidate above 10°; `LINE_REPERTOIRE` limits the planner's families. 20 picked specs, one seed, v3 account
+(`tools/measure/body/ground.mjs`; rough = a section whose ground under the rider reverses 12° or more within 60 px):
+
+| | rough sections | score | hit error | air rms | speed rms | fallbacks per ride |
+|---|---|---|---|---|---|---|
+| today | 28.9% | 763.1 | 0.0086 | 0.039 | 0.058 | 0 |
+| limit 10° | 8.3% | 665.6 | 0.0162 | 0.074 | 0.084 | 4.0 |
+| no terraces, no fold | 19.0% | 756.0 | 0.0091 | 0.040 | 0.059 | 0 |
+| no terraces, no fold, limit 10° | 0.1% | 739.6 | 0.0108 | 0.040 | 0.065 | 0 |
+
+- Terraces and folds cannot meet the limit (corners and steps by definition): with it they stay rough (74%, 85%) or
+  fall back, and the search pays about 100 points fighting them.
+- Without them the limit costs 16 points and removes rough ground (arcs 12% → 0%, scallops 46% → 1%, serpentine
+  46% → 0%). Leaving them out alone costs 7.
+- Rejection is a blunt form; the reading fitted the owner's 41 answers after the fact and is not confirmed on fresh
+  clips. Videos: `generated/videos/smooth/` (plain look).
+
+## November 15: the owner's motion review (41 answers) and what they say
+
+`/motion-review/` (blind page, plain renders, one hit-to-hit stretch per clip, the part judged = the rider on the
+track). Answers in `labels/studies/motion-2026-11.jsonl`, key beside it; `tools/measure/body/answers.mjs`,
+`answers_fit.mjs`, `wiggle.mjs`. Scale: 0 clean, 1 a little, 2 clearly, 3 badly (never used).
+
+- **The family decides.** Terraces mean 1.38 (7 of 8 not clean), fold 1.13 (6 of 8), scallops 0.67 (4 of 6 "a
+  little"), arcs 0.25 (7 of 8 clean), fragments 0 (7 of 7 clean), serpentine 0 (4 of 4 clean).
+- **My measures predict little.** Stretches where they saw much unasked motion: mean 0.79; where they saw almost
+  none: 0.50. Correlation with the answer: loudest unasked push 0.42, rocking degrees 0.14. Terraces and folds are
+  marked where the measures see nothing; fragments, serpentines and arcs are clean where they see a lot.
+- **Calm against intense:** 0.76 against 0.54. No sign that intense passages are worse (17 and 24 clips).
+- **What does predict them (found after the answers, so a hypothesis):** the sharpest reversal of the ground's
+  direction within 60 px under the rider, in degrees undone: correlation 0.67. At 12° or more, 14 of 18 stretches are
+  not clean, including all 8 "clearly" but one arc; under 12°, 19 of 23 are clean (the 4 misses are scallops marked
+  "a little"). In frames: a terrace is a row of small bumps, a fold a zigzag of straight pieces; an arc marked clean
+  has the rider upside down on a smooth curve. He reads the small-scale shape of the ground, not the momentum.
+- The serpentines he remembered as smooth are smooth: their reversals are 7–11° within 60 px.
+- Owner's note: he does not love the guide rail, not new, not marked each time.
+- Consequence: the unasked-motion account (v5) is not what answers this complaint. The late hard turn stays a
+  defect of the measure to fix on its own.
+
+## November 15: independent review of the unasked-motion work (Opus 5.5; findings, nothing changed)
+
+- **The shaped families are required to turn back and forth between beats** (verified in the code). One section is one
+  gap between two hits. A family's heading is a function of the position along the section only
+  (`geometry_families.ts`: fold corners at 1/3 and 2/3, scallops and serpentine sine reversals, terraces four steps
+  each about one frame long in a short section). The construction check rejects a shaped section that does not
+  reverse (`repertoire_layout.ts`: at least 2 turn reversals, 20° of turning in contact, 1 reversal of 8° or more in
+  contact; `repertoire_realization.ts`: the early, middle and late parts all ridden). A charge can only shrink these
+  toward the check's minimum; it cannot put them on the music. Under v5 they are already shrinking (degrees undone
+  per contact-second: terraces 14 → 9, scallops 12 → 7, serpentine 9 → 4), which is a risk to variety.
+- **v5's form is wrong in two ways.** The 0.06 floor applies per 2-frame window, so it is a threshold: a 0.2 push
+  spread over 6 frames is charged 0.012. And a steady push is charged with the root of its duration: an even curved
+  slide (Valhalla `still-drop`, 4.3–5.2 s) costs 0.23, more than the hit asked there; 46% of v5's motion cost is in
+  runs longer than 10 frames, 45% on arcs. The reviewer's proposal: charge the change of the push, no floor.
+- **Motion moved rather than vanished, in part:** second pushes inside event windows 8 → 22; unmatched touchdowns
+  327 → 489, most after 3 or fewer air frames (micro-hops); quiet hits louder (bias +0.034 → +0.069), which accounts
+  for part of "drowned 41% → 9%".
+- **Rocking:** a per-contact charge misses the owner's own example (11.25 s: up in one contact, back in the next, one
+  air frame between; verified). Proposal: the whole-ride angle path cut at sign changes of the rotation rate, each
+  swing after the first charged (|swing| / 180°)², only the swing starting at a matched hit exempt, the charge deferred
+  until the swing ends. Scale uncalibrated.
+- **A different structure for the objective** (proposal): one motion allowance over time, rising to the ask at each
+  beat and zero between; the charge is the sudden motion above it. No event identity, so no windows or hops.
+- Checked and sound: incremental and cold detection agree; the matching exclusion; event order.
+- Not met: the rule that a measure is validated on the owner's labels before it is optimized.
+
+## November 15: the unasked-motion measure on 20 specs, and rocking (experiment, not adopted)
+
+Owner on the v5 videos: the hard turns at the end of long slides are largely gone; the rider still rotates back and
+forth within one geometry (Valhalla `still-drop` at 9 s and 11 s), unrelated to the music; rotation in the air is fine.
+
+- **20 picked specs, one seed, v3 compiler against v5** (`tools/measure/body/panel.ts before v5`):
+
+| | quiet hits drowned | hits followed by louder unasked motion | hit error (mse) | air rms | speed rms | rocking |
+|---|---|---|---|---|---|---|
+| v3 | 41% | 9.5% | 0.0086 | 0.039 | 0.058 | 22.9°/s |
+| v5 | 9% | 2.2% | 0.0109 | 0.050 | 0.066 | 19.8°/s |
+
+- **Rocking** (`rocking.mjs`): the sled angle cut into swings of 4° or more; at each reversal, the degrees undone.
+  Both sections the owner named are terraces with 26° and 36°. Over the 59 v3 rides: arcs 17°/s (18% of sections
+  with 20° or more), fragments 27, serpentine 29 (50%), scallops 32, terraces 34, fold 36. The same at every ask level.
+- **Why v5 misses it:** v5 charges whole-body momentum change per 2 frames, squared, above 0.06. A rotation pushed
+  one way then back cancels inside a window, and spread over several frames each part is under the floor.
+- **A momentum reading of it is weak:** spin impulse that cancels within a contact correlates 0.45–0.60 with the
+  angle rocking and fires on landings that do not rock. The angle (or the whole-body rotation, which the account's
+  frames already hold) is the direct reading.
+
+## November 15: unasked motion charged (experiment on `exp/visible-motion`, not adopted)
+
+- **First attempt, rejected:** events redefined (floor 0.8 → 0.2, a renewed strike starts at most 3 frames before
+  its peak). The account's extras fell 36×on Valhalla `still-drop`, the independent readability measure barely moved
+  (quiet hits drowned 55% → 39%; Trouble `cycle` unchanged): within one compile the search put its pushes just past
+  the event window behind a shallow valley. Any rule about what counts as an event leaves such a place.
+- **Second attempt, `line.strike.v5`:** v3's events, plus one `motion` event for every run of contact frames that
+  belongs to no event: strength = root of Σ max(0, m − 0.06)² ÷ 1.5, m the 2-frame whole-body motion change that
+  measures a hit. It never matches a beat, so it is charged as an extra. Every contact frame is in a hit or charged.
+- **Existing 59 rides recounted:** hit error 0.0090, extras 0.0008 under v3, 0.0165 under v5.
+- **Compiled under v5, one seed each** (`tools/measure/body/clarity.ts`, replayed through the engine):
+
+| | quiet hits drowned | unasked ≥ the hit | mean loudest unasked | hit error | air / speed rms |
+|---|---|---|---|---|---|
+| Valhalla `still-drop` 303, before | 55% | 35% | 0.150 | 0.0013 | 0.047 / 0.041 |
+| after | 24% | 13% | 0.100 | 0.0039 | 0.067 / 0.058 |
+| Trouble `cycle` 202, before | 40% | 19% | 0.088 | 0.0085 | 0.039 / 0.076 |
+| after | 12% | 6% | 0.073 | 0.0139 | 0.043 / 0.065 |
+
+- The two hard turns at 5 s and 7 s are gone; between 10.5 and 16.5 s no unasked motion above 0.09.
+- **Costs:** hit error up (quiet touchdowns in the opening land at 0.22–0.33 for asks of 0.1); air and speed a
+  little worse. The search's learned proposals and ranking were built under v3 and are not adapted.
+- **Test of the form:** body shape moves with the push (r 0.57) about as much as with its change (0.60); a steady
+  push moves it 60% as much per unit. No case for charging only changes; the soft floor keeps resting on a line free.
+- Videos: `generated/videos/visible/`. Not yet done: more songs and seeds, loud songs, the paired panel, parity
+  references, an independent review.
+
 ## November 15: how far the unseen body motion goes (measured; corrects the entry below)
 
 Owner: treat the root cause, check its extent first, own the investigation. Measured on the 59 handcrafted rides with

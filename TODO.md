@@ -6,7 +6,10 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    - **Trimming unused track** (branch `exp/trim-support-ends`, local): the trim of `e06720f9` brought onto
      `foundation-10`, and one commit further a version with no margin (a support ends at the rider's last touch). Rides
      identical on four songs (score and recorded path); drawn length −13 to −22% with the two-piece margin, −25 to −30%
-     without. For the owner's eye: `/motion-gallery/video-compare.html?collection=/generated/watch/trim.json`. Not adopted:
+     without. For the owner's eye: `/motion-gallery/video-compare.html?collection=/generated/watch/trim.json` and the side-by-side map
+     `/generated/concept-lab/trim-map.html` (data from `trim-prepare.mjs`; the branch reads `TRIM_KEEP=n` for n pieces kept).
+     Owner, first look: prefers two pieces kept; the last-touch version is too aggressive (it leaves minuscule pieces, e.g.
+     Circus at 37 s) and a few curves stay longer there because a cut that breaks a fulfilled shape is undone. Not adopted:
      needs his choice of margin, then parity references, `npm run parity`, `parity:judge`, and a REWORK entry.
    - **Catches from above, reservations from an independent read** (not a reason to revert): the final code was measured
      at 4 seeds only (16 seeds and V7.1 are the experiment's); explicit result given as −1.9 and −2.9 in two entries;

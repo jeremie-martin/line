@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the unasked-motion measure on 20 specs, and rocking (experiment, not adopted)
+
+Owner on the v5 videos: the hard turns at the end of long slides are largely gone; the rider still rotates back and
+forth within one geometry (Valhalla `still-drop` at 9 s and 11 s), unrelated to the music; rotation in the air is fine.
+
+- **20 picked specs, one seed, v3 compiler against v5** (`tools/measure/body/panel.ts before v5`):
+
+| | quiet hits drowned | hits followed by louder unasked motion | hit error (mse) | air rms | speed rms | rocking |
+|---|---|---|---|---|---|---|
+| v3 | 41% | 9.5% | 0.0086 | 0.039 | 0.058 | 22.9°/s |
+| v5 | 9% | 2.2% | 0.0109 | 0.050 | 0.066 | 19.8°/s |
+
+- **Rocking** (`rocking.mjs`): the sled angle cut into swings of 4° or more; at each reversal, the degrees undone.
+  Both sections the owner named are terraces with 26° and 36°. Over the 59 v3 rides: arcs 17°/s (18% of sections
+  with 20° or more), fragments 27, serpentine 29 (50%), scallops 32, terraces 34, fold 36. The same at every ask level.
+- **Why v5 misses it:** v5 charges whole-body momentum change per 2 frames, squared, above 0.06. A rotation pushed
+  one way then back cancels inside a window, and spread over several frames each part is under the floor.
+- **A momentum reading of it is weak:** spin impulse that cancels within a contact correlates 0.45–0.60 with the
+  angle rocking and fires on landings that do not rock. The angle (or the whole-body rotation, which the account's
+  frames already hold) is the direct reading.
+
 ## November 15: unasked motion charged (experiment on `exp/visible-motion`, not adopted)
 
 - **First attempt, rejected:** events redefined (floor 0.8 → 0.2, a renewed strike starts at most 3 frames before

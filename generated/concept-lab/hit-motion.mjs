@@ -23,7 +23,7 @@ const gain = () => Number($('gain').value), offset = () => entry.scene.timing.of
 const look = () => resolveLook($('theme').value, {ends: 'none', hits: 'v1'});
 function error(e) {pause(); $('status').textContent = String(e.message ?? e); window.__loadError = String(e);}
 function pause() {if (playing) time = Math.max(0, Math.min(end, music.pause())); else music.pause(); playing = false; $('play').textContent = 'Play';}
-async function play() {if (!entry) return; playing = true; $('play').textContent = 'Pause'; try {await music.play(time, Number($('rate').value));} catch(e) {error(e);}}
+async function play() {if (!entry) return; $('archive').pause(); playing = true; $('play').textContent = 'Pause'; try {await music.play(time, Number($('rate').value));} catch(e) {error(e);}}
 function seek(t) {const resume = playing; pause(); time = Math.max(0, Math.min(end, t)); draw(); if (resume) void play();}
 function rebuild() {
   if (!entry) return;

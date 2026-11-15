@@ -60,3 +60,11 @@ describe('recovered authored zoom', () => {
     expect(legacyZoomAt(camera,contacts,2.6)).toBeCloseTo(3.6);
   });
 });
+
+it('respects an authored punch threshold, direction and envelope over the historical defaults', () => {
+  const camera={zoom:{keyframes:[{t:0,zoom:2}]},beatPunch:{threshold:.8,amp:.2,floor:.5,attack:0,decay:0,dir:'out'}};
+  const contacts=[{t:1,impact:.7},{t:2,impact:1}];
+  expect(legacyZoomAt(camera,contacts,1)).toBeCloseTo(3.6);
+  expect(legacyZoomAt(camera,contacts,2)).toBeCloseTo(3.6*.8);
+  expect(legacyZoomAt(camera,contacts,2.025)).toBeCloseTo(3.6);
+});

@@ -13,13 +13,15 @@ export function legacyZoomAt(camera, contacts = [], time) {
   const base = 1.8 * 2 ** (Math.log2(a.zoom) + (Math.log2(b.zoom) - Math.log2(a.zoom)) * u);
   const impacts = contacts.map(c => c.impact ?? 0).filter(v => v > 0).sort((a, b) => a - b);
   if (!impacts.length) return base;
-  const gate = impacts[Math.min(impacts.length - 1, Math.floor(.7 * impacts.length))], max = impacts.at(-1);
+  const bp = {threshold: 0, amp: .13, floor: .5, decay: 4, attack: 1, dir: 'in', ...camera.beatPunch};
+  const gate = bp.threshold > 0 ? bp.threshold : impacts[Math.min(impacts.length - 1, Math.floor(.7 * impacts.length))], max = impacts.at(-1);
   let punch = 0;
   for (const c of contacts) {
     if (!(c.impact >= gate)) continue;
-    const age = f - Math.round(c.t * 40); if (age < -1 || age > 20) continue;
-    const amplitude = .13 * (.5 + .5 * clamp((c.impact - gate) / Math.max(1e-6, max - gate)));
-    punch = Math.max(punch, amplitude * (age < 0 ? cubic(age + 1) : Math.exp(-age / 4)));
+    const age = f - Math.round(c.t * 40); if (age < -Math.ceil(bp.attack) || age > Math.ceil(bp.decay * 5)) continue;
+    const amplitude = bp.amp * (bp.floor + (1 - bp.floor) * clamp((c.impact - gate) / Math.max(1e-6, max - gate)));
+    const shape = age < 0 ? (bp.attack > 0 ? cubic((age + bp.attack) / bp.attack) : 0) : age === 0 ? 1 : bp.decay > 0 ? Math.exp(-age / bp.decay) : 0;
+    punch = Math.max(punch, amplitude * shape);
   }
-  return base * (1 + punch);
+  return base * Math.max(.05, 1 + (bp.dir === 'out' ? -1 : 1) * punch);
 }

@@ -3,7 +3,7 @@ import {hitEffectsAt, shake} from '../../scripts/video/hits.js';
 export const MODES = {
   current: ['Current shake', '28 px at strength 0.85; 6 Hz along the blow. One winning hit.'],
   still: ['No shake', 'Keeps the colour response; the ride stays steady.'],
-  old: ['Old vibration', 'Recovered June–September law: 9 / 12.33 Hz, 10 px, 0.4°; accumulating decay. Current measured peaks and camera, no old zoom or overscan.'],
+  old: ['Old vibration', 'Recovered June–September law: 9 / 12.33 Hz, 10 px, 0.4°; accumulating decay. Measured peaks and the selected camera; no constant old overscan.'],
   recoil: ['Single recoil', 'One 18 px kick, then a smooth return without crossing rest.'],
   press: ['Press and release', 'A smooth 45 ms push into a 16 px displacement; settles by 220 ms, no reversal.'],
   spring: ['Soft spring', 'One small rebound, with a continuous attack; at most 18 px.'],

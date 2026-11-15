@@ -111,7 +111,7 @@ split/boost remain identical across arms unless disabled for inspection.
 The camera selector changes both arms: current placement, old follower on six
 points, that follower on ten, and old follower with recovered authored zoom/punch.
 Fixed-camera comparisons share zoom 6.2. The recovered authored mode uses the
-original production defaults and the scene's authored contacts, without old jolt
+original production defaults, any authored punch overrides, and the scene's contacts, without old jolt
 shifts; it falls back to 6.2 if no authored lane exists. Rotation pivots around the
 rider here, and constant old overscan is omitted. The reconstructed old law uses
 today's measured strengths/peaks and absolute song-time phase. These limitations
@@ -145,3 +145,9 @@ Reproduction: compile `npm run produce -- --song=<song> --seed=101
 scene builder and bundles only the vendored follower, not a second renderer.
 Raw scenes, movies, screenshots and ad hoc browser checks remain ignored under
 `generated/hit-effects/`. The lab source and regression tests live on this branch.
+
+Final study check: full `npm run check` passes (672 tests, Rust, physics, engine,
+compile/judge parity and smoke, 2.4 min). The subsequent authored-punch override
+regression brings the focused video suite to 30 passing tests; typecheck and
+the complete browser comparison pass again. Phone startup, large-picture A/B
+switching and split-off links also pass on the WireGuard address.

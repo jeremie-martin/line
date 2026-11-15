@@ -465,3 +465,22 @@ The second question is now whether the hit looks wrong in either version.
   strength 0.85, shake 0–2 times today's) start at random places; the chosen and the starting settings are saved. 12
   passages over the two songs: three strongest hits, two medium hits (0.55–0.7) and the densest 4 s of each. Today's
   picture can be held or shown beside. Every amount follows the measured strength of the hit.
+
+## Carry is the mechanism (owner, 2026-11-15); what it follows today
+
+On the dials the owner recognised carry at once as the bounce he was looking for ("here is my bounciness… falling
+into… the track is pushing everything up"), too much at the dial's top. He wants the punch negligible or off (clutter),
+the hit movement to be carry and perhaps the shake, and the layers taken one at a time. Open for him: how carry should
+grow with the hit (where it starts, how far it goes), as for the shake.
+
+Measured on every hit of the two rides (77 on Tiki, 199 on Circus):
+
+- **The rider's change of velocity points along the surface normal** (cosine 0.99–1.00 from strength 0.3 up). So carry
+  moves the picture out of the surface and the shake knocks it into the surface: the same axis, opposite senses, the
+  shake first and fast, carry after and slower.
+- **Carry as built barely follows strength.** It is sized by the change of velocity, which grows slowly with the
+  measured strength: about 30 px at strength 0.5, 37 at 0.6, 43 at 0.8, 49 above 0.85 (Tiki, scene 6.2), where the
+  shake gives 0, 6, 21 and 30. On Circus the two are loosely related (r = 0.47; hits of 0.55–0.7 range from 8 to 60
+  px). A medium hit gets nearly a strong hit's carry.
+- So carry can be defined like the other hit effects: along the hit's normal, sized by a curve of measured strength,
+  with its own start, reference amount and timing. It then needs nothing the shake does not already have.

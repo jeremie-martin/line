@@ -4,7 +4,10 @@
  * at its start): the strength against the ask, and the rider's speed 8 frames after the catch against before it.
  * Railed and rail-free gaps are compared within the same ask band and family, so what the rail buys is read in like
  * for like. Screen y down; speeds in px/frame.
- *   node tools/research/rail_job.ts [--arm=ARM] [--seeds=101,202,303,404] */
+ * --census first prints where rails are kept, by V8 category and family: the share of gaps keeping a rail (the ride
+ * character's definition) and, among them, the rail's job by when it is touched: only in the catch, on the support or
+ * at the release (holding the rider to the end of the support), or never between the catch and the release.
+ *   node tools/research/rail_job.ts [--arm=ARM] [--seeds=101,202,303,404] [--census] */
 import {readFileSync, readdirSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {join} from 'node:path';
@@ -50,13 +53,33 @@ for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seed
       const curvature = (turn * Math.PI / 180) / Math.max(1, span), slope = hd(relLine) * Math.PI / 180, v = speed(frames[release]);
       hold = (v * v * curvature) / (.175 * Math.max(.05, Math.cos(slope)));
     }
-    rows.push({hold, endBend, airError: axis('air'), speedError: axis('speed'), ride: id, gap: g, family: s.family, guidance: s.guidance, railKept: !!cell.character?.railDrawn?.[g], ask: b.requested,
+    rows.push({nextAsk: perBeat[g]?.requested ?? null, launch: (() => {const a = frames[Math.min(frames.length - 1, release + 1)], b = frames[Math.min(frames.length - 1, release + 2)]; if (!a || !b) return NaN; let vx = 0, vy = 0; b.points.forEach((p: number[], i: number) => {vx += p[0] - a.points[i][0]; vy += p[1] - a.points[i][1];}); return Math.atan2(vy, vx) * 180 / Math.PI;})(), hold, endBend, airError: axis('air'), speedError: axis('speed'), ride: id, gap: g, family: s.family, guidance: s.guidance, railKept: !!cell.character?.railDrawn?.[g], ask: b.requested,
       bias: b.hit.strength - b.requested, keep: vAfter / Math.max(.1, vBefore), atCatch, onSupport, atRelease, touched: atCatch + onSupport + atRelease > 0,
       support: Math.max(0, release - start)});
   }
 }
 const mean = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN, pc = (x: number) => `${(100 * x).toFixed(0)}%`;
 const band = (a: number) => a >= .6 ? 'strong' : a >= .3 ? 'middle' : 'quiet';
+if (process.argv.includes('--census')) {
+  const strata = new Map<string, string>((JSON.parse(readFileSync('tools/eval/suites/v8.json', 'utf8')).specs as any[]).map(c => [`${c.song}~${c.variant}`, c.stratum]));
+  const stratum = (r: any) => strata.get(r.ride.split('~').slice(0, 2).join('~')) ?? '?';
+  const line = (label: string, g: any[]) => {
+    const kept = g.filter(r => r.railKept), n = Math.max(1, kept.length);
+    console.log(label.padEnd(22), String(g.length).padStart(6), pc(kept.length / Math.max(1, g.length)).padStart(6), '|',
+      pc(kept.filter(r => r.atRelease).length / n).padStart(8), pc(kept.filter(r => r.onSupport && !r.atRelease).length / n).padStart(8),
+      pc(kept.filter(r => r.atCatch && !r.onSupport && !r.atRelease).length / n).padStart(8), pc(kept.filter(r => !r.touched).length / n).padStart(8));
+  };
+  console.log('census'.padEnd(22), 'gaps'.padStart(6), 'railed'.padStart(6), '| railed gaps whose rail is touched: at release, on support only, in catch only, not between catch and release');
+  for (const st of [...new Set(rows.map(stratum))].sort()) line(`category ${st}`, rows.filter(r => stratum(r) === st));
+  for (const fam of [...new Set(rows.map(r => r.family))].sort()) line(`family ${fam}`, rows.filter(r => r.family === fam));
+  for (const b of ['strong', 'middle', 'quiet']) line(`ask ${b}`, rows.filter(r => band(r.ask) === b));
+  line('all', rows);
+  const shaped = rows.filter(r => r.family !== 'arcs');
+  for (const b of ['strong', 'middle', 'quiet']) line(`shaped, next ${b}`, shaped.filter(r => r.nextAsk != null && band(r.nextAsk) === b));
+  const q50 = (xs: number[]) => {const v = xs.filter(Number.isFinite).sort((a, b) => a - b); return v.length ? v[v.length >> 1].toFixed(0) : '—';};
+  console.log(`launch heading (screen y down, + = downward), shaped families: rail at release ${q50(shaped.filter(r => r.atRelease).map(r => r.launch))}°, no rail touched ${q50(shaped.filter(r => !r.touched).map(r => r.launch))}°; arcs ${q50(rows.filter(r => r.family === 'arcs').map(r => r.launch))}°`);
+  console.log();
+}
 const touched = rows.filter(r => r.touched);
 console.log(`${new Set(rows.map(r => r.ride)).size} rides, ${rows.length} gaps with a catch; rail touched in ${touched.length} (${pc(touched.length / rows.length)})`);
 console.log(`when the rail is touched: in the catch ${pc(touched.filter(r => r.atCatch).length / touched.length)}, on the support ${pc(touched.filter(r => r.onSupport).length / touched.length)}, at the release ${pc(touched.filter(r => r.atRelease).length / touched.length)}; frames touched: catch ${mean(touched.map(r => r.atCatch)).toFixed(1)}, support ${mean(touched.map(r => r.onSupport)).toFixed(1)}, release ${mean(touched.map(r => r.atRelease)).toFixed(1)}`);
@@ -73,11 +96,13 @@ for (const fam of ['arcs', 'fold', 'serpentine', 'scallops', 'terraces', 'scatte
 // the support's end bend, for arcs: rail touched at the release against no rail touched
 const arcs = rows.filter(r => r.family === 'arcs' && Number.isFinite(r.endBend));
 for (const [label, g] of [['rail touched at the release', arcs.filter(r => r.atRelease)], ['no rail touched', arcs.filter(r => !r.touched)]] as const) {
+  if (!g.length) {console.log(`arcs, ${label}: none`); continue;}
   const q = (p: number) => [...g.map(r => r.endBend)].sort((a, b) => a - b)[Math.floor(p * (g.length - 1))];
   console.log(`arcs, ${label}: ${g.length}; the support's bend over its last third: p10 ${q(.1).toFixed(0)}°, median ${q(.5).toFixed(0)}°, p90 ${q(.9).toFixed(0)}°; bending downward (convex) ${pc(g.filter(r => r.endBend > 2).length / g.length)}, upward ${pc(g.filter(r => r.endBend < -2).length / g.length)}`);
 }
 // how hard the end asks to be held at the release (above 1: the rider would leave the curve unless held)
 for (const [label, g] of [['arcs, rail touched at the release', arcs.filter(r => r.atRelease && Number.isFinite(r.hold))], ['arcs, no rail touched', arcs.filter(r => !r.touched && Number.isFinite(r.hold))]] as const) {
+  if (!g.length) {console.log(`${label}: none`); continue;}
   const q = (p: number) => [...g.map(r => r.hold)].sort((a, b) => a - b)[Math.floor(p * (g.length - 1))];
   console.log(`${label}: ${g.length}; speed² × curvature / (g cos slope) at the release: p10 ${q(.1).toFixed(2)}, median ${q(.5).toFixed(2)}, p90 ${q(.9).toFixed(2)}; above 1 ${pc(g.filter(r => r.hold > 1).length / g.length)}`);
 }

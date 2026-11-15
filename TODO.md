@@ -8,9 +8,9 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      second round of readings for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones);
    - ~~the compiler's consistency stop ("main construction differs at support N")~~ (fixed 2026-11-15: the check did
      not know the gone-through cleanup shortens main lines; REWORK.md);
-   - the long-float trade (the 108 s long spec): measured as a ceiling (REWORK.md, November 15): under the 0.6 push
-     cap a float before a quiet catch gets at most about 0.74 air on these gaps; the rides are at it and the asks
-     0.15 above it. Moves only with the cap, harder quiet catches or the asks. Open lever: launching floats from the
+   - the long-float trade (the 108 s long spec): a momentum model of today's supports (REWORK.md, November 15): under
+     the 0.6 push cap it gives a float before a quiet catch about 0.74 air on these gaps; the rides are at it, the asks
+     0.15 above it. A model, not a bound: a different construction may get past it. Open lever: launching floats from the
      strong hit that starts them.
 
 0a. ~~**Aimed launches under gentle exits**~~ (removed 2026-11-15: V8 16 seeds +0.4 [−3.5, +4.4] without them;

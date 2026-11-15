@@ -2,6 +2,9 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+0a. **Aimed launches under gentle exits** (2026-11-15): no measurable effect at 4 seeds on V8 once exits are drawn
+   gently (REWORK.md). Measure at 16 seeds and by eye before keeping or removing them.
+
 0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
    misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
    (the long spec −26) lose air and their neighbouring strong beats, because a level arrival is usually a short

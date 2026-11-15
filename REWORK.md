@@ -1,5 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the compiler branch integrated with gentle exits (merged)
+
+`origin/compiler` (46 commits: the arrival law, aimed launches, quiet misses priced in proportion; its entries are
+below) merged onto gentle exits and parked families. The code does not overlap: its changes act on the arrival into a
+catch and on pricing, ours on a support's exit and on the plan. One interaction: aimed launches work by turning the
+exit, which is now drawn gently.
+
+**Hypotheses, stated before running:** (1) the merged compiler gains over gentle exits alone by about what the
+arrival law gained on its branch; (2) aimed launches lose some of their effect; (3) sharp exits and hard unrecorded
+pushes stay as low as with gentle exits alone.
+
+**V8, 4 seeds, 196 matched pairs, no ride lost in any arm** (references `gentle-exits` = visual-lab before this merge,
+`foundation-7` = the compiler branch, `merged-1115`):
+
+| | headline | against gentle exits alone | specs up/down | strong extra impacts per 100 beats | body drag s/min |
+|---|---|---|---|---|---|
+| gentle exits alone | 759.3 | | | 0.05 | 3.72 |
+| compiler branch alone | 764.7 | +5.4 [+0.1, +10.7] | 30/13 | 0.17 | 4.15 |
+| merged | 760.8 | +1.5 [−10.0, +13.0] | 33/10 | 0.11 | 4.47 |
+
+- (1) holds in seven of eight categories (G +10.2, P1 +2.5, P2 +0.5, P3 +0.6, P4 +6.5, P5 +8.5, P7 +8.4; mean +5.3).
+  The long ride (P6, one spec) loses 25 against gentle exits alone and 53 against the compiler branch alone: it asks
+  2–3 s floats before whispers, where the compiler branch already gave air for soft catches and gentle exits give air
+  for fewer unasked pushes. The two costs add. Both records call it a trade in that spec's asks.
+- **The 20 handcrafted specs × 3 seeds, merged − gentle exits alone:** score +6.7 [+2.1, +11.2], 60/60 complete
+  (59/60); hit error −0.0012 [−0.0017, −0.0007] (better on 19 specs); speed −0.0027 [−0.0048, −0.0007]; air +0.0040
+  [+0.0018, +0.0064] (worse); (3) holds: sections with a turn above 20° after the hit 0.3 % (0.4 %), hard unrecorded
+  pushes 0.15 per ride (0.22).
+- (2) **Aimed launches no longer show a measurable effect.** Merged without them against merged: +2.8 [−8.3, +13.8],
+  22 specs up, 21 down, quiet and strong biases within 0.003. Kept as adopted on the compiler branch (the owner liked
+  the look of aimed apex launches); 4 seeds cannot tell a small gain from none. Open in TODO.
+- Body drag and strong extra impacts rise with the arrival law, as its own record says (steeper strong arrivals).
+- Checks on the merge: tests 660, typecheck, reach, parity (references regenerated: both changes move tracks), judge
+  parity.
+
 ## November 15: gentle exits and parked families, adopted
 
 **Accepted by the owner on 2026-11-15** on full rides, including the float pair (he prefers the gentle exits there too,

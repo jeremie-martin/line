@@ -130,3 +130,15 @@ Each is a simplification to try, kept only if a paired compile and parity allow 
 - When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
 - Try Bun soon: 35% less memory at equal speed matters to the owner, but not yet. It
   means a track rebaseline and moving the toolchain.
+
+## Parked idea: motion the music asks for between hits (owner, 2026-11-15)
+
+Today a specification asks for hits, air and speed; everything a shape does between two hits is unasked. Two ideas
+that may be one mechanism, both for later, after the unasked-motion work is closed:
+
+- **Features on the beat:** a shape spans several hits and its corners, steps and reversals land on them. Strongest
+  in calm passages, where every small movement could be specified; not to be built for calm passages only.
+- **Held sounds:** a held, modulated note (a voice, a trumpet) matched by a sustained, undulating ride.
+
+Neither has a measure or a place in the specification yet. The owner is also building a better fold and one more
+geometry on other branches.

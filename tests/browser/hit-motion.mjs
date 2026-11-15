@@ -10,7 +10,7 @@ await p.evaluate(()=>window.hitStudy.seek(10.45));
 await p.screenshot({path:'generated/hit-effects/revised-desktop.png',fullPage:true});
 console.log(await p.evaluate(()=>({canvas:[document.querySelector('#candidate').width,document.querySelector('#candidate').height],bg:getComputedStyle(document.body).backgroundColor,themeOptions:document.querySelector('#theme').options.length,overflow:document.documentElement.scrollWidth>innerWidth})));
 const timing=await p.evaluate(()=>{const ts=[];for(let i=0;i<30;i++){const t=performance.now();window.hitStudy.seek(10.4+i/60);ts.push(performance.now()-t);}return {median:ts.sort((a,b)=>a-b)[15],max:Math.max(...ts)};});console.log('1080 frame draw ms',timing);
-await p.click('#play');await p.waitForTimeout(250);await p.click('#variants button[data-mode=press]');await p.waitForTimeout(250);assert.equal(await p.locator('#play').textContent(),'Pause');await p.click('#switch');assert(await p.locator('#baseline').isVisible());await p.click('#play');
+await p.click('#play');await p.waitForTimeout(250);await p.click('#variants button[data-mode=press]');await p.waitForTimeout(250);assert.equal(await p.locator('#play').textContent(),'Pause');await p.keyboard.press('a');assert(await p.locator('#baseline').isVisible());await p.click('#play');
 await p.selectOption('#signal','rotation');await p.locator('#curves').scrollIntoViewIfNeeded();await p.screenshot({path:'generated/hit-effects/revised-curves.png'});
 assert.equal(await p.locator('#curves svg').count(),1);assert.equal(await p.locator('#curves path').count(),2);
 await p.selectOption('#song','circus');await p.waitForFunction(()=>window.__ready&&window.hitStudy.state().song==='circus');

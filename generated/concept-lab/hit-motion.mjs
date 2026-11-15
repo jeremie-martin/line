@@ -146,7 +146,8 @@ $('view').onchange=view;$('switch').onclick=()=>{showCurrent=!showCurrent;view()
 view();
 new ResizeObserver(()=>{if(entry){charts();draw();}}).observe($('curves'));
 $('share').onclick=async()=>{const u=new URL(location.href);u.search=new URLSearchParams({song:$('song').value,effect:mode,theme:$('theme').value,camera:$('camera').value,t:home.toFixed(3),gain:String(gain()),colour:$('colour').checked?'on':'off',split:$('split').checked?'on':'off',rate:$('rate').value,view:$('view').value,signal:$('signal').value});history.replaceState(null,'',u);try{await navigator.clipboard.writeText(u.href);$('status').textContent='Comparison link copied';}catch{$('status').textContent=u.href;}};
-document.addEventListener('keydown',e=>{if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName))return;if(e.code==='KeyA' && $('view').value==='single'){$('switch').click();}if(e.code==='Space'){e.preventDefault();playing?pause():void play();}});
+document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;if(e.code==='KeyA' && $('view').value==='single'){e.preventDefault();$('switch').click();}if(e.code==='Space' && e.target.tagName!=='BUTTON'){e.preventDefault();playing?pause():void play();}});
+for (const id of ['baseline','candidate']) $(id).onclick=()=>playing?pause():void play();
 function tick(ts){try{if(playing&&entry){time=Math.min(end,music.position(shown(ts)));if(time>=($('loop').checked?Math.min(end,home+6):end)){pause();time=$('loop').checked?home:end;if($('loop').checked)void play();}draw();}}catch(e){error(e);}requestAnimationFrame(tick);}
 // Browser checks use the same public transport/model, without a second implementation.
 window.hitStudy={seek:t=>{pause();seek(t);},select:m=>{mode=m;showCurrent=false;rebuild();view();},state:()=>({time,mode,song:$('song').value,hits,offset:entry?.scene.timing.offset}),draw};

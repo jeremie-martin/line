@@ -376,3 +376,11 @@ Compare the same strong hit at 0.5×, 1× and 1.5× first with no shake and the
 historical keyframes/punch, then compare current / more vertical / downward hit.
 A song-wide change or a different hit cannot isolate scene-size preference.
 Production defaults remain unchanged; the owner has not judged these trials yet.
+
+Validation: all repository gates pass (683 JS tests, 32 Rust tests, compile/judge
+parity, physics/engine and smoke). Browser checks cover 900 rendered frames across
+both songs, ten cameras, three magnifications and five movement modes, with
+projection discrepancy below 0.000001 design pixel. They also assert unchanged
+follower placement at each magnification. Desktop/phone layout, playback
+switching and production-reference equality pass. These establish implementation
+correctness, not a perceptual verdict.

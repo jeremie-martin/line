@@ -5,7 +5,7 @@
  *
  * Each ride gets its full video and its excerpt, both written directly by the video writer, a publication bundle
  * (videos/<song>/<song>-s<seed>/: video.mp4, work.json, upload.json) and a record <id>.video.json. A ride that already has a
- * record is done when the record names this ride (its inputs) and this presentation (the look and the ride's timing), and its
+ * record is done when the record names this ride (its inputs) and this presentation (the look, the zoom lane and the ride's timing), and its
  * videos are intact; a record of another presentation is not reused: move it away to render this one.
  * A render is the output of its inputs (the ride, its account, the recording) and a look; the renderer's commit is recorded for
  * information, never checked. */
@@ -49,8 +49,8 @@ for (const id of ids) {
     // a record is only as good as the videos it names: a deleted or changed file is not "already rendered"
     for (const {path, sha256} of [saved.full, saved.excerpt]) assert.ok(existsSync(join(root, path)) && hash(join(root, path)) === sha256,
       `${id}.video.json names ${path}, which is missing or changed; move the record away to render it again`);
-    assert.deepEqual({look: saved.look, timing: saved.timing}, {look, timing: scene.timing},
-      `${id}.video.json is a video in another presentation (look or timing); move it away to render this one`);
+    assert.deepEqual({look: saved.look, zoom: saved.zoom ?? null, timing: saved.timing}, {look, zoom: scene.zoom?.id ?? null, timing: scene.timing},
+      `${id}.video.json is a video in another presentation (look, zoom or timing); move it away to render this one`);
     console.log(`already rendered ${id} (${saved.theme ?? saved.lookName})`); continue;
   }
   // the excerpt as it will be written, inside the song span the ride covers: checked before any video is made, recorded as written
@@ -58,7 +58,7 @@ for (const id of ids) {
   assert.ok(end > start, `${id}: the excerpt ${c.excerpt.join('–')} s lies outside the ride's ${scene.span.join('–')} s`);
   rmSync(work, {recursive: true, force: true}); mkdirSync(work, {recursive: true});
   const full = join(work, 'video.mp4'), excerpt = join(work, 'excerpt.mp4');
-  console.log(`render ${id} · ${lookName} · ${scene.span[1].toFixed(1)} s · ${scene.timing.aligned ? `offset ${(scene.timing.offset * 1000).toFixed(1)} ms` : `as compiled (${scene.timing.reason})`}`);
+  console.log(`render ${id} · ${lookName} · zoom ${scene.zoom?.id ?? 'steady'} · ${scene.span[1].toFixed(1)} s · ${scene.timing.aligned ? `offset ${(scene.timing.offset * 1000).toFixed(1)} ms` : `as compiled (${scene.timing.reason})`}`);
   await writeVideo({scene, look, out: full});
   await writeVideo({scene, look, out: excerpt, from: start, to: end});
   // the publication bundle: staged, then moved into place whole
@@ -73,7 +73,7 @@ for (const id of ids) {
   rmSync(folder, {recursive: true, force: true}); mkdirSync(join(root, 'videos', id), {recursive: true}); renameSync(staging, folder);
   rmSync(work, {recursive: true, force: true});
   const media = (file: string) => ({path: relative(root, join(folder, file)), sha256: hash(join(folder, file))});
-  writeGalleryJson(root, id + '.video.json', {schema: 'line.production-video.v3', id, inputs, theme, partner, look, timing: scene.timing, renderedAt: gitSha,
+  writeGalleryJson(root, id + '.video.json', {schema: 'line.production-video.v3', id, inputs, theme, partner, look, zoom: scene.zoom?.id ?? null, timing: scene.timing, renderedAt: gitSha,
     full: media('video.mp4'), excerpt: {...media('excerpt.mp4'), start, end}, visualApproval: null});
   console.log(`complete ${id}`);
 }

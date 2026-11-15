@@ -146,5 +146,6 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   /** The ride's intensity (0–1) at song time t. */
   const levelAt = t => intensityAt(level, rideTime(t, offset));
   const schemeAt = (t, look) => themeAt(t, levelAt(t), look).scheme;
-  return {draw, span: scene.span, timing: scene.timing, hitTimes, schemeAt, levelAt};
+  // hits and level: the ride's prepared hits (ride clock) and its intensity samples, for pages that chart them
+  return {draw, span: scene.span, timing: scene.timing, hits, level, hitTimes, schemeAt, levelAt};
 }

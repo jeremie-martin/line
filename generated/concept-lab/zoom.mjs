@@ -2,11 +2,8 @@
 // against the production picture (held or beside). The zoom is drawn over the whole song and its points can be moved. Settings live in the address and are saved per song.
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
-import {createPicture, BODY_POINTS} from '/scripts/video/picture.js';
+import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
-import {prepareHits} from '/scripts/video/hits.js';
-import {rideSignals} from '/scripts/video/camera.js';
-import {rideIntensity} from '/scripts/video/intensity.js';
 import {RANGE, wideAt, laneScale, zoomOfWide} from '/scripts/video/zoom.js';
 
 const STUDY = 'zoom-2026-11';
@@ -24,10 +21,7 @@ function loadRide(song) {
   if (!rides.has(song)) rides.set(song, (async () => {
     const scene = await (await fetch(`/generated/lab-rides/${song}.json`)).json();
     const [replay, sprites] = await Promise.all([N.replay(scene.track, scene.trace), sheet]);
-    const centres = replay.frames.map(f => {const ps = f.points.filter(q => BODY_POINTS.includes(q.name)); return {x: ps.reduce((s, q) => s + q.pos.x, 0) / ps.length, y: ps.reduce((s, q) => s + q.pos.y, 0) / ps.length};});
-    const hits = prepareHits(scene.account, replay.contacts, centres, new Map(scene.track.lines.map(l => [l.id, l]))), motion = rideSignals(centres);
-    const level = rideIntensity(motion.velocity.map(v => v.speed), hits, scene.track.duration / 40);
-    return {scene, replay, sprites, hits, level, frames: centres.length};
+    return {scene, replay, sprites, frames: replay.frames.length};
   })());
   return rides.get(song);
 }
@@ -44,7 +38,7 @@ function drawLine() {
   let area = `M${tx(0)},${L.H - L.B}`; ride.level.forEach((v, i) => {area += `L${tx(Math.min(end(), Math.max(0, i / 10 - off))).toFixed(1)},${(L.H - L.B - v * 34).toFixed(1)}`;}); area += `L${tx(end())},${L.H - L.B}Z`;
   g.append(svg('path', {d: area, fill: 'var(--soft)', opacity: 0.18}));
   for (const h of ride.hits) if (h.strength >= 0.55) g.append(svg('line', {x1: tx(h.time - off), x2: tx(h.time - off), y1: L.H - L.B, y2: L.H - L.B - 4 - 14 * Math.min(1, (h.strength - 0.55) / 0.45), stroke: 'var(--hot)', 'stroke-width': 1.5}));
-  for (const [w, name] of [[0, 'closest'], [0.5, 'today'], [1, 'widest']]) {g.append(svg('line', {x1: L.L, x2: L.W - L.R, y1: wy(w), y2: wy(w), stroke: w === 0.5 ? 'var(--soft)' : 'var(--line)', 'stroke-dasharray': w === 0.5 ? '4 4' : ''})); g.append(svg('text', {x: L.L - 5, y: wy(w) + 4, 'text-anchor': 'end'}, name));}
+  for (const [w, name] of [[0, 'closest'], [0.5, 'steady'], [1, 'widest']]) {g.append(svg('line', {x1: L.L, x2: L.W - L.R, y1: wy(w), y2: wy(w), stroke: w === 0.5 ? 'var(--soft)' : 'var(--line)', 'stroke-dasharray': w === 0.5 ? '4 4' : ''})); g.append(svg('text', {x: L.L - 5, y: wy(w) + 4, 'text-anchor': 'end'}, name));}
   for (let t = 0; t <= end(); t += 10) g.append(svg('text', {x: tx(t), y: L.H - 6, 'text-anchor': 'middle'}, `${t} s`));
   let d = ''; for (let t = 0; t <= end(); t += 0.1) d += `${d ? 'L' : 'M'}${tx(t).toFixed(1)},${wy(wideAt(keys, t)).toFixed(1)}`;
   g.append(svg('path', {d, fill: 'none', stroke: 'var(--zoom)', 'stroke-width': 2.5}));
@@ -83,7 +77,7 @@ function change() {
   for (const b of $('sources').children) b.classList.toggle('on', b.dataset.id === lane);
   $('about').textContent = (draft?.about ?? '') + (edited ? ' You have moved its points.' : ''); $('reset').disabled = !edited;
   const w = keys.map(k => k.wide), lo = Math.min(...w), hi = Math.max(...w);
-  $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${zoomOfWide(lo).toFixed(2)} to ${zoomOfWide(hi).toFixed(2)} times today's zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE}).` : `One zoom for the whole ride, ${zoomOfWide(lo).toFixed(2)} times today's.`;
+  $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${zoomOfWide(lo).toFixed(2)} to ${zoomOfWide(hi).toFixed(2)} times the steady zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE}).` : `One zoom for the whole ride, ${zoomOfWide(lo).toFixed(2)} times today's.`;
   history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, lane, k: keys.map(k => `${k.t}:${k.wide}`).join(',')}));
   drawLine();
   // a new zoom means a new camera path: rebuild the picture shortly after the last change
@@ -114,6 +108,7 @@ async function load() {
   $('sources').replaceChildren(...lanes.map(l => {const b = Object.assign(document.createElement('button'), {textContent: l.name, onclick: () => choose(l.id)}); b.dataset.id = l.id; return b;}));
   if (!lanes.some(l => l.id === lane) || !keys.length || keys.at(-1).t > ride.scene.span[1]) {lane = lanes.some(l => l.id === lane) ? lane : 'steady'; keys = lanes.find(l => l.id === lane).keyframes.map(k => ({...k}));}
   today = createPicture($('today'), {...ride.scene, zoom: null}, ride.replay, ride.sprites, N.riderPainter()); // beside: the steady zoom
+  ride.hits = today.hits; ride.level = today.level;
   build(); change(); $('play').disabled = false; $('status').textContent = ''; layout(); window.__ready = true;
 }
 $('song').onchange = () => {time = 0; keys = []; void load();};

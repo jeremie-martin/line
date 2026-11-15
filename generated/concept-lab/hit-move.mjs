@@ -2,9 +2,9 @@
 // (start, amount at 0.85), its timing and the shake's amount, against the production response (held or beside). Settings live in the address, and are saved per song.
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
-import {createPicture, BODY_POINTS} from '/scripts/video/picture.js';
+import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
-import {prepareHits, hitEffectsAt, carryAmount, shake as shakeAmount, TUNES} from '/scripts/video/hits.js';
+import {hitEffectsAt, carryAmount, shake as shakeAmount, TUNES} from '/scripts/video/hits.js';
 import {strength as energyOf} from '/scripts/video/intensity.js';
 
 // The settings under the owner's hand, starting from production's (hits.js): carry's start, amount, out and back, and the shake's
@@ -79,8 +79,7 @@ function loadRide(song) {
   if (!rides.has(song)) rides.set(song, (async () => {
     const scene = await (await fetch(`/generated/lab-rides/${song}.json`)).json();
     const [replay, sprites] = await Promise.all([N.replay(scene.track, scene.trace), sheet]);
-    const centres = replay.frames.map(f => {const ps = f.points.filter(q => BODY_POINTS.includes(q.name)); return {x: ps.reduce((s, q) => s + q.pos.x, 0) / ps.length, y: ps.reduce((s, q) => s + q.pos.y, 0) / ps.length};});
-    return {scene, replay, sprites, hits: prepareHits(scene.account, replay.contacts, centres, new Map(scene.track.lines.map(l => [l.id, l])))};
+    return {scene, replay, sprites};
   })());
   return rides.get(song);
 }
@@ -102,7 +101,7 @@ async function load() {
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1]; loopFrom = null;
   const make = (id, tune) => createPicture($(id), ride.scene, ride.replay, ride.sprites, N.riderPainter(), tune);
-  mine = make('mine', {get shake() {return p.shake;}, carry: p}); today = make('today');
+  mine = make('mine', {get shake() {return p.shake;}, carry: p}); today = make('today'); ride.hits = today.hits;
   $('play').disabled = false; $('status').textContent = ''; show(); layout(); window.__ready = true;
 }
 $('song').onchange = () => {time = 0; void load();};

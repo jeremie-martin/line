@@ -514,3 +514,11 @@ Whole rides held up ("they definitely hold up"). Carry with half the shake is th
 with the picture in the opening and ending. The pages of this study call the earlier response explicitly, so they
 still show what was judged; the hit movement page opens on the production settings and compares against production.
 The carry of the pairs and dials (sized by the rider's change of velocity) is history. `REWORK.md` has the summary.
+
+## Next layer started: the zoom (`/generated/concept-lab/zoom.html`)
+
+A first page to look at a zoom that changes over the song, in the manner of the hit movement page. The camera takes an
+optional zoom per frame from a study (`createFraming`'s `scale`; production passes none and is unchanged) and then sizes
+the hit movement by it. `zoom-model.mjs` (tested) offers five things the zoom can follow: steady (today), the keyframes
+written in the spec, one zoom per section, the ride's intensity, the rider's speed; with an overall closeness, how much
+it changes (at most 2.5 times between closest and widest), how slowly, and which way. Nothing is judged or adopted.

@@ -12,6 +12,8 @@ import {FPS} from './timing.js';
 import {FS} from './intensity.js';
 
 export const W = 1080, H = 1920;
+/** The ride's zoom: design pixels per world unit. */
+export const BASE = 6.2;
 const DT = 1 / FPS;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** Tops that put a disc where the sun is (sky.js): the rider sits lower under them, as under the sun. */
@@ -66,8 +68,10 @@ function placed(motion, zs) {
 
 /** One camera per physics frame. Steady zoom is constant; quiet zoom follows intensity with a
  * one-second smoothing and a 2.5 %/s log-zoom limit. Neither mode depends on airborne state. */
-export function followCamera(motion, {base, zoom, level}) {
+export function followCamera(motion, {base, zoom, level, scale}) {
   const n = motion.centres.length;
+  // scale: a study's zoom over the ride, a multiple of the base per physics frame (the zoom page); production passes none
+  if (scale) return placed(motion, Float64Array.from({length: n}, (_, f) => base * scale(f)));
   if (zoom === 'steady') return placed(motion, new Float64Array(n).fill(base));
   if (zoom !== 'quiet') throw new Error(`Unknown zoom: ${zoom}`);
   const want = Float64Array.from({length: n}, (_, f) => -0.12 * (1 - clamp((level(f) - 0.2) / 0.35, 0, 1)));
@@ -79,7 +83,7 @@ export function followCamera(motion, {base, zoom, level}) {
 /** A frame has one camera representation: rider world position x/y, rider screen position ax/ay,
  * and zoom z (and, in the opening and ending, `move`: how much smaller the picture is than the ride's own). Opening/ending interpolate that same representation, not a second camera or rider transform.
  * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state. */
-export function createFraming(motion, level, hitTimes, songEnd) {
+export function createFraming(motion, level, hitTimes, songEnd, scale) {
   const cams = new Map(), centres = motion.centres;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of centres) {x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);}
@@ -90,7 +94,7 @@ export function createFraming(motion, level, hitTimes, songEnd) {
   const openingEnd = Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6), endingStart = songEnd - 3;
 
   return function frameAt(time, at, look) {
-    if (!cams.has(look.zoom)) cams.set(look.zoom, followCamera(motion, {base: 6.2, zoom: look.zoom,
+    if (!cams.has(look.zoom)) cams.set(look.zoom, followCamera(motion, {base: BASE, zoom: look.zoom, scale,
       // The camera was calibrated with nearest intensity samples, while colour and sun interpolate them.
       level: f => level[clamp(Math.round(f / FPS * FS), 0, level.length - 1)]}));
     const cam = cams.get(look.zoom), i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
@@ -98,6 +102,8 @@ export function createFraming(motion, level, hitTimes, songEnd) {
     const lower = +look.riderLower + (DISC_TOPS.has(look.top) ? +look.sunRider : 0);
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, ending: false};
+    // with a study's zoom the hit movement keeps its size against the scene: it was set at the base zoom
+    if (scale) c.move = c.z / BASE;
     if (look.ends === 'none') return c;
     let follow = 1;
     if (time < openingEnd) follow = smoothstep((time - 0.25) / (openingEnd - 0.25));
@@ -106,6 +112,6 @@ export function createFraming(motion, level, hitTimes, songEnd) {
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
     const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);
     // move: the scale of this frame against the ride's own, so a hit moves the overview by as much of the course, not as many pixels
-    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart, move: z / c.z};
+    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart, move: z / c.z * (c.move ?? 1)};
   };
 }

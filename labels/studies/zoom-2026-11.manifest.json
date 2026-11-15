@@ -1,0 +1,15 @@
+{
+ "study": "zoom-2026-11",
+ "questions": [],
+ "note": "answers: the zoom settings saved for a song (source, close, amount, ease, flip).",
+ "clips": [
+  {
+   "id": "tiki",
+   "song": "tiki"
+  },
+  {
+   "id": "circus",
+   "song": "circus"
+  }
+ ]
+}

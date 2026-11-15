@@ -21,5 +21,5 @@ export const IMPACT_SEARCH_PROFILE = Object.freeze({
   impactPreparationFrames: 2,
   opposingEntryProposals: 24,
   upperReceiverProposals: 12,
-  impactSearch: Object.freeze({engagementGainWeight: .64, steepArrivalFrom: .6, uprightArrival: 1, levelArrivalBelow: .15}),
+  impactSearch: Object.freeze({engagementGainWeight: .64, steepArrivalFrom: .6, uprightArrival: 1}),
 } as const);

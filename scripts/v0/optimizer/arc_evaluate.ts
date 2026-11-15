@@ -285,40 +285,28 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
-/** How much of the level arrival prior applies before a catch asked at `ask` (REWORK.md, November 15: level arrivals
- * before quiet catches): the mirror of `steepArrival`. A quiet catch lands softly and keeps its asked speed when the
- * rider arrives level, near the top of its flight (V8: arrivals within 5° of level leave the next flight's speed error
- * at −0.02, arrivals falling 30° or more at +0.05, and at +0.14 when quiet misses are priced harder). A smooth step:
- * all of it at `levelArrivalBelow` − 0.15 and under, none 0.15 above. */
-export function levelArrival(ask: number, search: {levelArrivalBelow?: number} | undefined) {
-  if (search?.levelArrivalBelow === undefined) return 0;
-  const t = Math.max(0, Math.min(1, (search.levelArrivalBelow + .15 - ask) / .3));
-  return t * t * (3 - 2 * t);
-}
-
-/** What the next catch asks of the arrival into it: how much of the steep and of the level prior applies, the steep
- * prior's heading and the arrival speed. Shared by the arrival priors (ranking) and by aimed launches (proposals), so
- * both mean the same arrival. Undefined after the last catch. */
+/** What the next catch asks of the arrival into it: its heading (the arrival law), the arrival speed, and how much of
+ * the steep prior applies (its kinetic speed, its upright preference, and its heading when no law is set). Shared by
+ * the arrival priors (ranking) and by aimed launches (proposals), so both mean the same arrival. Undefined after the
+ * last catch. */
 export function arrivalTargets(s: IntervalSearch) {
   const {ctx, options, i, targets} = s;
   const {contacts, gaps, planned} = ctx;
   if (i >= contacts.length - 1) return undefined;
   const nextImpact = gaps[contacts[i + 1].gap].targets.impact ?? 0;
-  const steep = steepArrival(nextImpact, options.impactSearch), level = levelArrival(nextImpact, options.impactSearch);
+  const steep = steepArrival(nextImpact, options.impactSearch);
   const nextSpeed = authoredSpeedToPx(planned[contacts[i + 1].gap + 1]?.targets.speed ?? targets.speed ?? .55);
   const kinetic = options.passiveArrival && options.constructionRequests?.[i + 1]?.guidance === 'forbidden' ? 1 : steep;
   const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
   const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
   const angled = options.passiveArrival ? 1 : steep;
-  // One continuous arrival law (REWORK.md, November 15): the heading that goes with well-landed catches rises with the
-  // ask, level for a whisper, steep for the hardest hit (V8: asks under 0.2 land best from 0–10°, asks 0.6 and up from
-  // 45° and more). Replaces the steep and level priors' headings when set.
-  // Linear: base + perAsk × ask, at most max. Impulse: base + the angle whose tangent is gain × the ask's push over
-  // the next beat's speed, so a fast rider needs a shallower arrival for the same hit and a slow one a steeper one
-  // (a catch's push is about the speed carried into the line, speed × sin of the arrival against it).
-  const L = options.arrivalLaw, law = !L ? undefined : L.kind === 'impulse'
-    ? L.base + deg(Math.atan2(L.gain! * impulse, nextSpeed)) : clamp(L.base + L.perAsk! * nextImpact, 0, L.max!);
-  return {nextImpact, steep, level, kinetic, arrivalSpeed, desiredArrival, angled, law};
+  // The arrival law (REWORK.md, November 15): one heading for every catch, rising with the ask and falling with the
+  // next beat's speed: base + the angle whose tangent is gain × the ask's push over that speed. A catch's push is about
+  // the speed the rider carries into the line, so a whisper wants a nearly level arrival, a hard hit a steep one, and a
+  // fast rider a shallower one than a slow rider for the same hit (V8: well-landed catches arrive at 0–10° for asks
+  // under 0.2, at 45° and more for asks of 0.6 and up). It replaces the steep prior's heading and the broad heading prior.
+  const law = options.arrivalLaw ? options.arrivalLaw.base + deg(Math.atan2(options.arrivalLaw.gain * impulse, nextSpeed)) : undefined;
+  return {nextImpact, steep, kinetic, arrivalSpeed, desiredArrival, angled, law};
 }
 
 /** Arrival speed and heading priors toward the next catch. Appends residuals;
@@ -334,7 +322,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
   // for an unguided landing). These are proposal priors; native continuation decides merit.
   const aim = arrivalTargets(s), steep = aim?.steep ?? 0;
   if (aim && (options.arrivalWeight ?? 0) > 0) {
-    const {kinetic, arrivalSpeed, desiredArrival, angled, level, law} = aim;
+    const {kinetic, arrivalSpeed, desiredArrival, angled, law} = aim;
     const weight = Math.sqrt(options.arrivalWeight ?? 0);
     // with the arrival law, one heading residual for every ask; otherwise the steep one (strong asks)
     const r1 = law !== undefined ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - law) / 45
@@ -349,13 +337,11 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
       const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
       r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
     }
-    // before a quiet catch, the arrival is drawn toward level (the mirror of the steep prior above)
-    const r4 = level > 0 && law === undefined ? weight * Math.sqrt(level) * deg(Math.atan2(finalVelocity.y, finalVelocity.x)) / 45 : 0;
-    residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []), ...(options.impactSearch?.levelArrivalBelow !== undefined ? [r4] : []));
-    cost += r1 * r1 + r2 * r2 + r3 * r3 + r4 * r4;
+    residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
+    cost += r1 * r1 + r2 * r2 + r3 * r3;
   }
-  // with an arrival law that replaces it, the broad heading prior (which penalizes arrivals beyond 45°) is not applied
-  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && steep < 1 && !options.arrivalLaw?.replacesHeading) {
+  // the broad heading prior (a penalty beyond −15° and 45°) applies only without the arrival law, which supersedes it
+  if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && steep < 1 && !options.arrivalLaw) {
     const angle = deg(Math.atan2(finalVelocity.y, finalVelocity.x));
     const r = Math.sqrt(options.headingWeight! * (1 - steep)) * Math.max(0, Math.abs(angle - 15) - 30) / 30;
     residuals.push(r);

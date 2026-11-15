@@ -182,9 +182,8 @@ export function proposeOpposingEntries(s: IntervalSearch) {
 }
 
 /** Aimed launches (REWORK.md, November 15): the best-ranked candidates again with their support's exit turned so the
- * flight arrives at the next catch closer to the heading that catch asks for: the heading that best satisfies the
- * arrival priors (steep before a strong beat, level before a quiet one, weighted as in ranking); nothing between.
- * Each candidate is moved each of `fractions` of the way. The release frame (flight time, air) is kept; horizontal
+ * flight arrives at the next catch closer to the heading that catch asks for: the arrival law's (arrivalTargets, the
+ * same heading ranking prefers). Each candidate is moved each of `fractions` of the way. The release frame (flight time, air) is kept; horizontal
  * speed is constant in flight, so the launch heading for an arrival heading follows from gravity: vy at release =
  * vy at arrival − g × flight frames. The exit carries into the launch only in part (the rider leaves before the
  * support's end, which eases into its exit), so the aim is corrected once from the measured response of the arrival
@@ -192,12 +191,8 @@ export function proposeOpposingEntries(s: IntervalSearch) {
  * first). The search keeps a twin only where it ranks better. */
 export function proposeAimedLaunches(s: IntervalSearch) {
   const {options, ctx} = s, cfg = options.aimedLaunches, aim = arrivalTargets(s);
-  if (!(cfg && cfg.count > 0 && aim && !options.profile && options.railLayout !== 'transfer')) return;
-  // `levelOnly`: aim only where the level prior applies (before quiet beats), at level
-  const angled = cfg.levelOnly ? 0 : aim.angled, pull = angled + aim.level;
-  if (aim.law === undefined && pull < .05) return;
-  // the arrival law's heading when set, else the heading minimizing the steep and level priors together
-  const target = aim.law ?? angled * aim.desiredArrival / pull;
+  if (!(cfg && cfg.count > 0 && aim?.law !== undefined && !options.profile && options.railLayout !== 'transfer')) return;
+  const target = aim.law;
   const G = .175, deg = (r: number) => r * 180 / Math.PI;
   const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.release !== undefined)
     .sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);

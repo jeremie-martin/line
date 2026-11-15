@@ -1,50 +1,26 @@
 # line
 
-Line Rider tracks composed automatically from music. A spec describes a song:
-beat times, the requested impact at each beat, and per-gap targets for air
-time, speed and amplitude. The compiler draws normal (type-0) Line Rider lines,
-arranged as a seeded variety of constructions (arcs, guided arcs, folds, ripples,
-serpentines, terraces, scattered segments). The native Line Rider physics engine
-then measures whether the physical contacts match the requested beats and strengths.
-Upper contacts can count as impacts too; visual review remains essential.
+Music videos of Line Rider tracks composed automatically from music.
 
-The repository is being rebuilt on clean foundations; see [REWORK.md](REWORK.md)
-for the plan and its current phase.
-
-## Returning to the project
-
-The latest completed compiler campaign ended on **October 6, 2026**, on
-`rework/foundations`. Codex integrated the selected compiler in `abdad07e`;
-`c22e8df4` records the final verification and archive closure. This followed
-Claude Code's October 3–5 foundations rework and overnight compiler campaign.
-
-Start the review server with `npm run serve`, then open:
-
-- **Production library:** http://127.0.0.1:8767/motion-gallery/production.html
-  — saved October 5 rides and controls to generate a ride with the current compiler.
-  The saved collection predates the latest compiler adoption.
-
-For other devices on the same network, use `HOST=0.0.0.0 npm run serve`
-and replace `127.0.0.1` in these links with this machine's LAN address.
-
-**Still open:** visual acceptance of body contact and individual hit regressions,
-the trade between impact and air, the authored impact scale and difficult song
-requests, and generalization to new music. The next major direction has not been
-chosen. Start with the latest review's full-song pairs and counterexamples.
-
-`REWORK.md` holds the latest campaign log; `PROGRESS.md` describes the earlier
-October 4–5 overnight campaign. The two reports use different baselines, so their
-percentage improvements should not be compared directly.
+- A **spec** describes a song: beat times, the requested impact at each beat, and targets for air time, speed and
+  amplitude between beats (`productions/<song>/`, written from the music: [docs/music-authoring.md](docs/music-authoring.md)).
+- The **compiler** draws normal (type-0) Line Rider lines, arranged as a seeded variety of constructions (arcs with or without a
+  guide rail, serpentines, scallops, scattered segments; folds and terraces are parked). The native Line Rider
+  physics engine then measures whether the physical contacts match the requested beats and strengths.
+- The **renderer** (`scripts/video/`) draws the ride as a 9:16 video over the song: a theme chosen for the ride, hits
+  that move the picture by their measured strength, and a zoom written for the song
+  ([docs/visual-system.md](docs/visual-system.md)).
 
 ## Where things stand
 
-The compiler optimizes one definition of a hit, `line.strike.v3`. Compiler decisions
-read the V8 panel, with V7.1 beside it. The current compiler is named by the newest
-`foundation-N` entry of `REWORK.md` (since 2026-11-15, `foundation-10`); references are
-local, so set it on each machine (`npm run compare -- reference set foundation-10
---from=COMMIT`), then compare any change with
-`npm run compare -- run --reference=foundation-10 --panel=v8`. `TODO.md` holds the next
-compiler work and open questions, and `REWORK.md` the decision log.
+The compiler optimizes one definition of a hit, `line.strike.v3`. Compiler decisions read the V8 panel, with V7.1
+beside it. The current compiler is named by the newest `foundation-N` entry of `REWORK.md`; references are local, so
+set it on each machine (`npm run compare -- reference set foundation-N --from=COMMIT`), then compare any change with
+`npm run compare -- run --reference=foundation-N --panel=v8`. `TODO.md` holds the next work and open questions,
+`REWORK.md` the decision log, newest first.
+
+Start the review server with `npm run serve` (`HOST=0.0.0.0` to reach it from other devices), then see
+[WORKING.md](WORKING.md) for which page shows what.
 
 ## Setup
 
@@ -71,7 +47,7 @@ paired timing protocol and interpretation of resource measurements.
 the complete structural gate: types, reachability, JavaScript and Rust tests,
 live physics verification, compiler parity and judge parity. Evaluation,
 comparison and parity use a conservative CPU/memory worker count; `--jobs=N`
-overrides it (eight by default on this 16 GB host). `npm run perf:engine` answers
+overrides it (the default follows the machine: [WORKING.md](WORKING.md), Compute). `npm run perf:engine` answers
 whether a change is faster, `npm run perf:profile` shows where a real compile spends
 its time, and `npm run bench:engine` is a workload diagnostic.
 
@@ -93,8 +69,8 @@ Chromium installation instead of Playwright's default browser.
 | `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
 | `npm run library` | (re)generate the production review library |
 | `npm run render -- --study=DIR [--look=THEME]` | render a compiled study's videos, excerpts and upload bundles |
-| `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on the V7 panel ([docs/benchmark.md](docs/benchmark.md)) |
-| `npm run eval -- --name=DIR [--panel=v7\|v7-confirm]` | compile one panel with this checkout |
+| `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on a panel, V8 for decisions ([docs/benchmark.md](docs/benchmark.md)) |
+| `npm run eval -- --name=DIR [--panel=v8\|v8-confirm\|v7.1]` | compile one panel with this checkout |
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run video -- --song=petrunko_selection --seed=404 --look=hokusai` | compile a fresh ride and make its video |
 | `npm run video -- --study=DIR --look=plain --from=20 --to=35` | make a video of a saved production, whole or a span (`--id=CELL` for a study with several rides) |
@@ -103,9 +79,10 @@ Chromium installation instead of Playwright's default browser.
 
 `video` also accepts `--track=FILE --music=SONG` for a bare track over a song's
 recording. Each video's look is chosen for its ride (`scripts/video/choose.js`): a theme
-of the collection (`scripts/video/collection.js`), mostly light, and for a light
-theme on a song with a drop, sometimes a dark partner at the drop. `--look=THEME`
-or `plain` names one instead, and
+of the collection (`scripts/video/collection.js`), half light and half dark, for a light
+theme on a song with a drop, sometimes a dark partner at the drop, and one of the song's
+zoom lanes (`productions/<song>/zooms.ts`). `--look=THEME` or `plain` names the look,
+`--zoom=ID` or `steady` the zoom, and
 `--set=key:value,…` changes single options; `--width=N` sets the size (1080 by
 default; videos are 9:16). `--help` lists the interface. Without a seed, a fresh
 seed is recorded. The video's `.json` sidecar says what it is of; compilation
@@ -140,9 +117,10 @@ spectrum, Python with numpy (`LR_SPECTRUM_PYTHON` can select it).
 | `scripts/v0/optimizer/` | the compiler (entry: `handoff.ts` → `production_repertoire.ts` → `arc_motion.ts`) |
 | `scripts/lib/` | engines (`_lr_engine*.ts`, `native_motion/`), detector, the strike impact account |
 | `scripts/v0/` | spec types, measurement and scoring shared with the judge |
-| `scripts/produce/` | production CLI, music artifacts, video rendering |
+| `scripts/produce/` | production CLI, the saved record of a ride, batch rendering |
+| `scripts/video/` | the renderer: picture, camera, hits, zoom, themes, the video writer |
 | `scripts/gallery/`, `motion-gallery/` | review server API and the native production player |
-| `productions/` | production songs: spec, measured events and analysis, render settings (the four evaluation songs, plus new music held out from compiler tuning) |
+| `productions/` | production songs: spec and variants, measured events and analysis, zoom lanes |
 | `labels/` | the owner's felt-impact labels and blind labelling studies (perceptual ground truth) |
 | `engine-rs/` | the Rust physics engine (judge); `vendor/lr-core` is the JS reference |
 | `tools/` | parity harness, reachability guard, measurement instruments, behavioural evaluation |

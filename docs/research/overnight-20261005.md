@@ -1,8 +1,7 @@
 # Overnight, 2026-10-04 → 05: impact measured as the owner sees it, and a compiler that delivers more of it
 
 Dashboard: `npm run serve`, then http://127.0.0.1:8767/motion-gallery/night.html
-(data from `tools/report/night.ts`). The minute-by-minute log is
-`PROGRESS.md`; the full ledger is `REWORK.md`.
+(data from `tools/report/night.ts`). The full ledger is `REWORK.md`.
 
 ## 1. The measure (settled with the owner's blind pairs)
 

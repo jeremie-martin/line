@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: aimed launches, the general form of apex launches (exploratory; stated before running)
+
+The owner liked how aimed apex launches look, kept them out of the compiler, and asked to refine, generalize,
+simplify, measure with more seeds, challenge the logic, and keep rides from becoming uniform.
+- **The logic, challenged:** apex launches aim every launch at a level arrival, but the compiler already states what
+  arrival each catch wants, in its arrival priors: steep and fast before a strong beat, level before a quiet one,
+  nothing between. Strong beats still land too soft (asks 0.8–1.0 at −0.18). One mechanism serves both: aim each
+  launch at the heading that best satisfies those priors, weighted as in ranking.
+- **Change** (`exp/aimed-arrivals`, option `aimedLaunches`, off by default; on in `exp/aimed-arrivals-on`): the arrival
+  targets moved into one helper (`arrivalTargets`) used by the priors and the proposal (pure refactor: parity identical);
+  the 6 best-ranked candidates get twins moved all and half the way to that heading, aimed by gravity and corrected
+  once by measurement (as in aimed apex launches). Nothing is proposed where neither prior applies.
+- **Measured** at 8 seeds on V8 against `foundation-6`, beside aimed apex launches at 8 seeds; quiet and strong asks;
+  arrival headings; variety (spread of launch and arrival headings, flight lengths, families).
+- **Hypothesis:** quiet asks as close as aimed apex launches; strong asks closer (very strong bias less negative);
+  headline up; no loss of variety.
+
 ## November 15: apex launches aimed by measurement (result; exploratory, not adopted)
 
 Against `foundation-6` (V8 758.8, V7.1 798.8), 4 seeds:

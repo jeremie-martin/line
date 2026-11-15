@@ -1,13 +1,13 @@
 import {describe, expect, it} from 'vitest';
 import {MODES, motionAt, effectsAt} from '../generated/concept-lab/hit-motion-model.mjs';
-import {hitEffectsAt} from '../scripts/video/hits.js';
+import {hitEffectsAt, TUNES} from '../scripts/video/hits.js';
 import {strength} from '../scripts/video/intensity.js';
 const hit = (time = 1, s = .85, normal = {x: 0, y: -1}) => ({time, strength: s, energy: strength(s), normal});
 describe('hit movement study contracts', () => {
-  it('current arm is the production response; colour and timing stay identical in every arm', () => {
+  it('current arm is the response the study was judged against (full shake, no carry); colour and timing stay identical in every arm', () => {
     const hs = [hit(),hit(1.08,.7,{x:-.6,y:-.8})];
     for(const t of [.9,1,1.02,1.08,1.15,1.4]) {
-      const current=hitEffectsAt(hs,t), got=effectsAt('current')(hs,t);
+      const current=hitEffectsAt(hs,t,1,TUNES.shakeOnly), got=effectsAt('current')(hs,t);
       for(const k of Object.keys(current)) expect(got[k]).toEqual(current[k]);
       for(const mode of Object.keys(MODES)) {
         const fx=effectsAt(mode)(hs,t);

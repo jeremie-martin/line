@@ -77,7 +77,7 @@ export function followCamera(motion, {base, zoom, level}) {
 }
 
 /** A frame has one camera representation: rider world position x/y, rider screen position ax/ay,
- * and zoom z. Opening/ending interpolate that same representation, not a second camera or rider transform.
+ * and zoom z (and, in the opening and ending, `move`: how much smaller the picture is than the ride's own). Opening/ending interpolate that same representation, not a second camera or rider transform.
  * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state. */
 export function createFraming(motion, level, hitTimes, songEnd) {
   const cams = new Map(), centres = motion.centres;
@@ -104,7 +104,8 @@ export function createFraming(motion, level, hitTimes, songEnd) {
     else if (time > endingStart) follow = 1 - smoothstep((time - endingStart) / 2.6);
     if (follow >= 1) return c;
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
-    return {...c, z: Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow),
-      ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart};
+    const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);
+    // move: the scale of this frame against the ride's own, so a hit moves the overview by as much of the course, not as many pixels
+    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart, move: z / c.z};
   };
 }

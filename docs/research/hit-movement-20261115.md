@@ -506,3 +506,11 @@ and half today's shake. `scripts/video/hits.js` now holds carry (`carryAmount`, 
 functions. `v1` stays the production response and draws as before (the renderer test). Whole rides in both versions
 (Tiki, Circus, Petrunko `build`, Trouble `contrast-clusters-revisited`):
 `/motion-gallery/video-compare.html?collection=/generated/watch/carry.json`. Not adopted until he has seen whole rides.
+
+## Adopted (2026-11-15)
+
+Whole rides held up ("they definitely hold up"). Carry with half the shake is the production response (`MOVEMENT` in
+`scripts/video/hits.js`, `v1` and `lit65`); the trial responses `carry` and `carryLit65` are gone. The movement shrinks
+with the picture in the opening and ending. The pages of this study call the earlier response explicitly, so they
+still show what was judged; the hit movement page opens on the production settings and compares against production.
+The carry of the pairs and dials (sized by the rider's change of velocity) is history. `REWORK.md` has the summary.

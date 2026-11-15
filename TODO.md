@@ -2,6 +2,10 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+000. **The look, one layer at a time** (owner, 2026-11-15). Carry is adopted (REWORK.md). Next: the split's direction
+   (it points into the surface while the picture now moves out of it; the owner feels it goes the wrong way); then a
+   zoom that follows the song or the spec, where carry and the shake should probably scale with the zoom.
+
 00. **Where things stand (2026-11-15).** One compiler on `visual-lab`: gentle exits, terraces and folds parked, the
    arrival law (reference `foundation-8`). Next, in order:
    - ~~the owner's review of the 20 handcrafted specs~~ (done 2026-11-15: production specs chosen, REWORK.md). Next: a

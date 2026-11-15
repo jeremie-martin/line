@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {prepareHits, hitEffectsAt, hitHeatAt} from '../scripts/video/hits.js';
+import {prepareHits, hitEffectsAt, hitHeatAt, carryAt, TUNES} from '../scripts/video/hits.js';
 
 const hit = (strength: number, time = 1, normal = {x: 0, y: -1}) => prepareHits({
   targets: [{}], events: [{onset: 0, peak: time * 40, strength}], matches: [{target: 0, event: 0}],
@@ -38,28 +38,35 @@ describe('approved hit response', () => {
     expect(amount(0.31).split).toBeGreaterThan(0);
     expect(amount(0.36).boost).toBeGreaterThan(0);
     expect(amount(0.56).dy).toBeGreaterThan(0);
-    expect(amount(0.85)).toMatchObject({dy: 28, boost: 1.5}); // from 0.55 to 28 px since round 50
+    expect(amount(0.85)).toMatchObject({dy: 14, boost: 1.5}); // half of 28 px since carry (2026-11-15); carry itself starts from nothing at the peak
     expect(amount(0.85).split).toBeCloseTo(25.2); // a fifth stronger than 21 (owner, round 49)
-    expect(amount(1).dy).toBe(34);
+    expect(amount(1).dy).toBe(17);
     expect(amount(1).split).toBeCloseTo(38.9454545454);
     expect(amount(1).boost).toBeCloseTo(1.8375);
-    expect(amount(10)).toMatchObject({dy: 48, boost: 3});
+    expect(amount(10)).toMatchObject({dy: 24, boost: 3});
     expect(amount(10).split).toBeCloseTo(50.4);
   });
-  it('starts exactly at the peak, holds for a display frame, and recovers within a quarter second', () => {
+  it('starts exactly at the peak, holds for a display frame; split and boost recover within a quarter second, the movement settles', () => {
     for (const s of [0.4, 0.6, 0.85, 1]) {
       const h = hit(s), before = hitEffectsAt([h], 1 - 1e-8), peak = amount(s);
       expect(before).toMatchObject({dx: 0, dy: 0, split: 0, boost: 0});
       expect(amount(s, 1 / 60).split).toBe(peak.split);
       expect(amount(s, 0.1).split).toBeLessThan(peak.split);
-      expect(amount(s, 0.25)).toMatchObject({dx: 0, dy: 0, split: 0, boost: 0});
+      expect(amount(s, 0.25)).toMatchObject({split: 0, boost: 0});
+      expect(amount(s, 3)).toMatchObject({dx: 0, dy: 0, split: 0, boost: 0});
     }
-    expect(amount(0.85, 1 / 12).dy).toBeLessThan(0); // the 6 Hz shake springs through rest
+    expect(amount(0.85, 1 / 12).dy).toBeLessThan(0); // the shake has swung back and carry is out: the picture is on the far side of rest
+    expect(amount(0.5, 0.15).dy).toBe(0); // no carry up to 0.5
+    expect(amount(0.85, 0.15).dy).toBeLessThan(-80); // close to 100 px out of the surface
+    expect(Math.abs(amount(0.85, 1).dy)).toBeLessThan(10); // a twentieth is left after a second
   });
-  it('one winning hit drives every effect; heat alone accumulates', () => {
+  it('one winning hit drives the shake, split and boost; carry and heat accumulate', () => {
     const a = hit(0.85, 1, {x: -1, y: 0}), b = hit(0.6, 1.15);
     expect(hitEffectsAt([a, b], 1.05)).toEqual(hitEffectsAt([a], 1.05));
-    expect(hitEffectsAt([a, b], 1.15)).toEqual(hitEffectsAt([b], 1.15));
+    const both = hitEffectsAt([a, b], 1.15), second = hitEffectsAt([b], 1.15), out = carryAt([a], 1.15, TUNES.v1.carry);
+    for (const k of ['split', 'boost', 'direction', 'lit'] as const) expect(both[k]).toEqual(second[k]);
+    expect(both.dx).toBeCloseTo(second.dx + out.x); expect(both.dy).toBeCloseTo(second.dy + out.y); // b's shake alone, and a's carry still out
+    expect(Math.abs(out.x)).toBeGreaterThan(50);
     const tie = hit(0.85, 1);
     expect(hitEffectsAt([a, tie], 1)).toEqual(hitEffectsAt([a], 1)); // stable tie: first wins
     expect(hitHeatAt([a, b], 1.2)).toBeCloseTo(hitHeatAt([a], 1.2) + hitHeatAt([b], 1.2));

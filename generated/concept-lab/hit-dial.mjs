@@ -4,7 +4,8 @@ import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
-import {hitEffectsAt} from '/scripts/video/hits.js';
+import {hitEffectsAt as respond, TUNES} from '/scripts/video/hits.js';
+const hitEffectsAt = (hits, t) => respond(hits, t, 1, TUNES.shakeOnly); // the response this study was judged against
 import {motionAt} from './hit-motion-model.mjs';
 import {realizedHits} from './hit-motion-realized.mjs';
 import {versionFraming} from './hit-pairs-camera.mjs';

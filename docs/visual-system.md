@@ -21,13 +21,16 @@ These are fixed for all themes (`look.js` `V1`):
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
 - **Camera.** Follows the rider's direction at a steady zoom, and shows the whole course at the start and the end. No
-  camera motion except a shake on strong hits.
+  camera motion except the movement at strong hits.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
   touch.
 - **The music.** A band at the bottom, low-middle: bars in most themes, a fork or the Iris contour in a few. The hottest
   bars take the accent, following recent hits.
-- **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. A shake only on
-  strong hits, from 0.55, growing to 28 px at 0.85.
+- **Hits.** A colour split and a colour boost on every hit, which leave the paper and the pencil alone. On strong hits
+  the picture also moves: a shake knocks it into the surface that was hit (from strength 0.55, 14 px at 0.85), and
+  **carry** moves it back out and lets it settle over about a second (from 0.5, 100 px at 0.85), as if the camera
+  carried on for a moment when the rider was stopped. Every amount follows the measured strength of the hit, never the
+  spec. In the opening and ending the movement shrinks with the picture.
 - **Colour follows the ride.** When the ride is intense, colour grows more vivid: nothing below intensity 0.3, full at
   0.9, the paper at half strength. The calm part of a song is the theme exactly as designed.
 
@@ -114,10 +117,15 @@ The collection's best themes were found by looking, not derived from rules.
 | `scripts/produce/render_repertoire.ts` | a batch: every valid ride of a study, each with its chosen look and a record |
 | `generated/concept-lab/` | the lab (`index.html`, `lab.js`), the collection page, the judging site (`rate/`) |
 
-## Hit movement study (not production defaults)
+## The hit movement: how it was found, and how to change it
 
-`generated/concept-lab/hit-motion.html` compares current, recovered older, and new hit
-movement on original-spec Tiki and Circus Minimus. It uses the same canvas renderer
-and current themes. Camera following, hit movement and colour split can be isolated;
-curves use the same functions as playback. Reconstruction limits and verification:
-`docs/research/hit-movement-20261115.md`. No candidate is adopted automatically.
+`docs/research/hit-movement-20261115.md` is the record. The owner missed the weight of older videos; measuring showed
+that today's camera holds the rider still at a hit, and comparing versions led to carry. To change the movement, open
+`/generated/concept-lab/hit-move.html`: the song plays with the production response held or beside, the curves of
+strength are drawn with every hit of the song on them, and the settings can be dragged and saved. The production values
+are `MOVEMENT` in `scripts/video/hits.js`; the page opens on them. `/generated/concept-lab/hits.html` draws every hit
+curve. The earlier study pages (`hit-motion`, `hit-pairs`, `hit-dial`) show the response they were judged against, the
+full shake without carry.
+
+Next, one layer at a time: the split's direction (it points into the surface while the picture now moves out of it);
+then a zoom that follows the song. When the zoom varies, carry and the shake should probably scale with it.

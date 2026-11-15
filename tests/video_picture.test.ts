@@ -69,9 +69,9 @@ it('seeking, changing the top and resizing give exactly the same pixels as a fre
 it('a hit starts at its peak, settles, and disabling effects does not disable band heat', async () => {
   const result = await page.evaluate(() => {
     const f = (window as any).fixture(), equal = (t: number) => f.render(t).png === f.render(t, {hits: 'none'}).png;
-    return [equal(0.95), equal(0.99999), equal(1), equal(1.25), equal(1.5)];
+    return [equal(0.95), equal(0.99999), equal(1), equal(1.25), equal(3.9)];
   });
-  expect(result).toEqual([true, true, false, true, true]);
+  expect(result).toEqual([true, true, false, false, true]); // at 1.25 carry is still out; by 3.9 the picture has settled
 });
 
 it('colour boost changes content but keeps the paper and pencilled rail intact on light and dark grounds', async () => {

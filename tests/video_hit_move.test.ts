@@ -25,21 +25,32 @@ it('carry moves the picture out of the surface, the shake into it first, and not
   const side = movementAt([hit(0, 0.9, {x: 1, y: 0})], 0.15, {...p, shake: 0});
   expect(side.dx).toBeGreaterThan(20); expect(side.dy).toBeCloseTo(0);
 });
-it('many hits together stay within 1.7 times the amount, and a zero amount with shake 1 is today\'s shake', async () => {
+it('many hits together stay within 1.7 times the amount, and a zero amount with shake 1 is the full shake alone', async () => {
   const {hitEffectsAt} = await import('../scripts/video/hits.js');
   const hits = Array.from({length: 12}, (_, i) => hit(i * 0.05, 1));
   const m = movementAt(hits, 0.7, {...MOVE_DEFAULT, shake: 0});
   expect(Math.hypot(m.dx, m.dy)).toBeLessThanOrEqual(1.7 * MOVE_DEFAULT.amount + 1e-9);
-  const today = hitEffectsAt(hits, 0.31), same = movementAt(hits, 0.31, {...MOVE_DEFAULT, amount: 0, shake: 1});
+  const {TUNES} = await import('../scripts/video/hits.js');
+  const today = hitEffectsAt(hits, 0.31, 1, TUNES.shakeOnly), same = movementAt(hits, 0.31, {...MOVE_DEFAULT, amount: 0, shake: 1});
   expect(same.dx).toBeCloseTo(today.dx); expect(same.dy).toBeCloseTo(today.dy);
 });
-it('the renderer\'s carry response is the page\'s movement, lasts past the hit\'s own effects, and leaves v1 alone', async () => {
+it('production is the page\'s movement at its opening settings, lasts past the hit\'s other effects, and still is still', async () => {
   const {hitEffectsAt, TUNES} = await import('../scripts/video/hits.js');
-  const hits = [hit(0, 0.9), hit(0.4, 0.6, {x: 0.6, y: -0.8})], p = {...TUNES.carry.carry, shake: TUNES.carry.shake};
+  const hits = [hit(0, 0.9), hit(0.4, 0.6, {x: 0.6, y: -0.8})];
   for (const t of [0.01, 0.1, 0.3, 0.45, 0.8, 1.5]) {
-    const a = hitEffectsAt(hits, t, 1, TUNES.carry), b = movementAt(hits, t, p);
-    expect(a.dx).toBeCloseTo(b.dx); expect(a.dy).toBeCloseTo(b.dy);
+    const a = hitEffectsAt(hits, t), lit = hitEffectsAt(hits, t, 1, TUNES.lit65), b = movementAt(hits, t);
+    expect(a.dx).toBeCloseTo(b.dx); expect(a.dy).toBeCloseTo(b.dy); expect(lit.dx).toBe(a.dx); expect(lit.dy).toBe(a.dy);
   }
-  expect(Math.abs(hitEffectsAt(hits, 0.9, 1, TUNES.carry).dy)).toBeGreaterThan(1); // every other effect of these hits is over
-  expect(hitEffectsAt(hits, 0.9)).toEqual({dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false});
+  expect(Math.abs(hitEffectsAt(hits, 0.9).dy)).toBeGreaterThan(1); // every other effect of these hits is over
+  expect(hitEffectsAt(hits, 0.9, 1, TUNES.shakeOnly)).toEqual({dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false});
+  for (const t of [0.01, 0.1, 0.9]) {const s = hitEffectsAt(hits, t, 1, TUNES.still); expect(s.dx).toBe(0); expect(s.dy).toBe(0);}
+});
+it('in the opening and ending the camera says how much smaller the picture is, and nothing during the ride', async () => {
+  const {createFraming, rideSignals} = await import('../scripts/video/camera.js');
+  const centres = Array.from({length: 40 * 20}, (_, f) => ({x: f * 8, y: f * 3}));
+  const frame = createFraming(rideSignals(centres), new Float64Array(200).fill(0.5), [{t: 1.5, s: 0.6}], 20), look = {zoom: 'steady', riderLower: '0', top: 'none', sunRider: '32', ends: 'course'};
+  expect(frame(10, 400, look).move).toBeUndefined();
+  const early = frame(0.3, 12, look), late = frame(19.5, 780, look);
+  expect(early.move).toBeGreaterThan(0); expect(early.move).toBeLessThan(0.5); expect(late.move).toBeLessThan(1);
+  expect(frame(10, 400, {...look, ends: 'none'}).move).toBeUndefined();
 });

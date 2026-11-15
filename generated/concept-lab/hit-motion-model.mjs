@@ -1,5 +1,7 @@
 // Experimental presentation only. No compiler/scorer input or production look changes.
-import {hitEffectsAt, shake} from '../../scripts/video/hits.js';
+import {hitEffectsAt as respond, shake, TUNES} from '../../scripts/video/hits.js';
+// These studies were judged against the response before carry: full shake, nothing else.
+const hitEffectsAt = (hits, time, gain = 1) => respond(hits, time, gain, TUNES.shakeOnly);
 export const MODES = {
   current: ['Current shake', '28 px at strength 0.85; 6 Hz along the blow. One winning hit.'],
   vertical: ['More vertical', 'Same current strength, timing and total displacement; horizontal direction reduced to one quarter, then normalized. Pure side hits remain sideways.'],

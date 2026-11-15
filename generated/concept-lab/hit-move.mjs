@@ -1,5 +1,5 @@
-// Hit movement: the whole song plays under today's camera while the owner shapes carry's curve of measured strength
-// (start, amount at 0.85), its timing and the shake's amount. Settings live in the address, and are saved per song.
+// Hit movement: the whole song plays while the owner shapes carry's curve of measured strength
+// (start, amount at 0.85), its timing and the shake's amount, against the production response (held or beside). Settings live in the address, and are saved per song.
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture, BODY_POINTS} from '/scripts/video/picture.js';
@@ -30,7 +30,7 @@ function drawCurve() {
   dots = (ride?.hits ?? []).map(h => {const c = svg('circle', {class: 'dot', cx: cx(Math.min(C.s1, Math.max(C.s0, h.strength))), cy: cy(carryAmount(h.strength, p)), r: 3}); g.append(c); return {h, c, lit: false};});
   g.append(svg('circle', {class: 'handle', id: 'hStart', cx: cx(p.start), cy: cy(0), r: 8}), svg('circle', {class: 'handle', id: 'hAmount', cx: cx(0.85), cy: cy(p.amount), r: 8}));
   if (ride) {const moved = ride.hits.filter(h => carryAmount(h.strength, p) >= 5).length;
-    $('readout').textContent = `${moved} of ${ride.hits.length} hits of this song carry the picture 5 px or more. A medium hit (0.62) goes ${carryAmount(0.62, p).toFixed(0)} px, a strong one (0.85) ${p.amount.toFixed(0)} px; today's shake gives them ${(shakeAmount(0.62) * p.shake).toFixed(0)} and ${(shakeAmount(0.85) * p.shake).toFixed(0)} px.`;}
+    $('readout').textContent = `${moved} of ${ride.hits.length} hits of this song carry the picture 5 px or more. A medium hit (0.62) goes ${carryAmount(0.62, p).toFixed(0)} px, a strong one (0.85) ${p.amount.toFixed(0)} px; the shake gives them ${(shakeAmount(0.62) * p.shake).toFixed(0)} and ${(shakeAmount(0.85) * p.shake).toFixed(0)} px.`;}
 }
 const X = {W: 440, H: 190, L: 34, R: 10, T: 10, B: 24, t0: -0.05, t1: 1};
 function drawTrace() {
@@ -42,7 +42,7 @@ function drawTrace() {
   for (const [s, o] of [[0.62, 0.45], [0.85, 1]]) {let d = ''; for (let t = X.t0; t <= X.t1; t += 1 / 480) d += `${d ? 'L' : 'M'}${tx(t).toFixed(1)},${ty(singleHit(s, t, p)).toFixed(1)}`; g.append(svg('path', {d, fill: 'none', stroke: 'var(--carry)', 'stroke-width': 2.2, opacity: o}));}
 }
 function show() {
-  $('startOut').textContent = p.start.toFixed(2); $('amountOut').textContent = `${p.amount.toFixed(0)} px`; $('shakeOut').textContent = p.shake === 1 ? "today's" : p.shake === 0 ? 'none' : `${p.shake.toFixed(2)} × today's`;
+  $('startOut').textContent = p.start.toFixed(2); $('amountOut').textContent = `${p.amount.toFixed(0)} px`; $('shakeOut').textContent = p.shake === 0 ? 'none' : `${p.shake.toFixed(2)} × the full shake`;
   $('outOut').textContent = `${Math.round(p.out * 1000)} ms`; $('backOut').textContent = `${p.back.toFixed(2)} s`;
   for (const k of KEYS) $(k).value = p[k];
   drawCurve(); drawTrace(); light();

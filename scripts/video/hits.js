@@ -31,7 +31,7 @@ export function prepareHits(account, contacts, centres, byId) {
   });
 }
 
-// Approved response (R26): split, colour boost, shake only on strong hits. Values keep growing above
+// The response: split, colour boost, and on strong hits a shake into the surface answered by carry out of it. Values keep growing above
 // 0.85; the high caps are safety nets. The rejected flash and rider zoom are recorded in the lab, not options.
 const ramp = (s, from, full) => (s - from) / (full - from);
 // Quadratic start, continuing on its tangent above the reference strength.
@@ -41,12 +41,13 @@ export const shake = s => Math.min(48, s <= 0.85 ? 28 * smoothstep(ramp(s, 0.55,
 export const split = s => 16.8 * Math.min(3, 1.5 * slowRise(s)); // px before the direction's match: a slow start from 0.3 (R15), a fifth stronger since round 49
 export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
 
-/** The response's settings per value of look.hits. v1 is production; in the lab (round 51) the band is lit for as long as a hit of
- * at least `lit` lasts (the owner: "from 0.65", "way better on all the dark themes"). */
-export const TUNES = {v1: {}, lit65: {lit: 0.65}, still: {still: true},
-  // under review (2026-11-15, the owner's settings on the hit movement page): half the shake, and carry
-  carry: {shake: 0.5, carry: {start: 0.5, amount: 100, out: 0.07, back: 0.3}}};
-TUNES.carryLit65 = {...TUNES.carry, lit: 0.65}; // for the dark themes whose band lights
+// The movement at a hit (2026-11-15, the owner's settings on the hit movement page, then whole rides): half the shake above,
+// and carry from strength 0.5 to 100 px at 0.85, out in 70 ms, settling back over 0.3 s.
+const MOVEMENT = {shake: 0.5, carry: {start: 0.5, amount: 100, out: 0.07, back: 0.3}};
+/** The response's settings per value of look.hits. v1 is production; lit65 also lights the band for as long as a hit of at least
+ * 0.65 lasts (the dark themes picked for it, choose.js); still is a viewing aid without any movement. `shakeOnly` is the response
+ * before carry, full shake and nothing else: not a look, kept so the hit studies in the lab show what was judged. */
+export const TUNES = {v1: MOVEMENT, lit65: {...MOVEMENT, lit: 0.65}, still: {still: true}, shakeOnly: {}};
 
 // Carry: after a hit the picture moves out of the surface that was hit and settles back, as if the camera carried on for a
 // moment when the rider was stopped. The shake knocks into the surface, fast; carry answers it, slower.
@@ -92,7 +93,7 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
     if (score > best) {best = score; hit = h; amount = env; age = elapsed;}
   }
   // carry outlasts the winning hit's envelope, so it is added whether or not a hit is live
-  const carried = tune.carry ? carryAt(hits, time, tune.carry) : null, cx = carried ? carried.x * exaggerate : 0, cy = carried ? carried.y * exaggerate : 0;
+  const carried = tune.carry && !tune.still ? carryAt(hits, time, tune.carry) : null, cx = carried ? carried.x * exaggerate : 0, cy = carried ? carried.y * exaggerate : 0;
   if (!hit) return {dx: cx, dy: cy, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
   const a = amount < 0.002 || tune.still ? 0 : shake(hit.strength) * (tune.shake ?? 1) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);

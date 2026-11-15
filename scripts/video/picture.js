@@ -136,7 +136,9 @@ export function createPicture(canvas, scene, replay, sheet, paint, study = {}) {
     // the band is drawn before the ride, so the split catches it with the title and sun (R11)
     const band = v.ending ? (1 - v.over) ** 2 : 1;
     if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, fx.lit);
-    const cc = {...v, ax: v.ax + fx.dx, ay: v.ay + fx.dy};
+    // the hit's movement (shake and carry) shrinks with the picture in the opening and ending
+    const move = v.move ?? 1, mx = fx.dx * move, my = fx.dy * move;
+    const cc = {...v, ax: v.ax + mx, ay: v.ay + my};
     const turn = fx.rotation ? new DOMMatrix().translate(cc.ax * k, cc.ay * k).rotate(fx.rotation).translate(-cc.ax * k, -cc.ay * k) : null;
     let world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     if (turn) world = turn.multiply(world);
@@ -144,7 +146,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, study = {}) {
     // Rotated study frames use all lines: no unrotated culling box can clip a corner.
     const visible = turn ? track.lines : track.visibleAt(cc), boosted = boosting > 0.01;
     drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, boosted ? 'ink' : 'all');
-    const rider = drawRider(riderCamera(v, fx.dx, fx.dy, k), at, turn);
+    const rider = drawRider(riderCamera(v, mx, my, k), at, turn);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (boosted) layBoosted(boosting, colours.paper, () => {ctx.setTransform(world); drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, 'pencil');});
     applySplit(k, fx, rider, titleBox);

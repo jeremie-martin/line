@@ -19,9 +19,9 @@
 <h1>Hit curves</h1>
 <p class="sub">What a hit does to the picture, by its measured strength, drawn from the renderer's own functions. </p>
 
-<h2>The shake</h2>
-<p>The shake starts at 0.55 and reaches 28 px at 0.85, shaped as the colour boost. The grey bars show how many hits of the six lab songs fall at each strength.</p>
-<div id="shake"></div>
+<h2>The movement: shake and carry</h2>
+<p>At a strong hit the picture is knocked into the surface (the shake: from 0.55, 14 px at 0.85), then moves out of it and settles back over about a second (carry: from 0.5, 100 px at 0.85). The grey bars show how many hits of the six lab songs fall at each strength.</p>
+<div id="move"></div>
 
 <h2>The split</h2>
 <p>The split (the colour fringe) starts at 0.3 and grows steadily.</p>
@@ -37,7 +37,7 @@
 </main>
 <div id="tip"></div>
 <script type="module">
-import {shake, split, boost} from '../../scripts/video/hits.js';
+import {shake, split, boost, carryAmount, TUNES} from '../../scripts/video/hits.js';
 const data = await (await fetch('./analysis/lab-hits.json')).json();
 const NAMES = {circus: 'Circus Minimus', tomada: 'Montagem Tomada', petrunko: 'Petrunko', los: 'Los Voltaje', batidao: 'No Batidão', lua: 'Lua na Praça'};
 const all = Object.values(data).flatMap(d => d.hits), tip = document.getElementById('tip');
@@ -72,7 +72,7 @@ function curves(id, unit, max, series) {
   svg.addEventListener('pointerleave', () => {tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden');});
   document.getElementById(id).append(svg);
 }
-curves('shake', ' px', 48, [{name: 'Shake', colour: 'var(--ink)', f: shake}]);
+curves('move', ' px', 180, [{name: 'Carry', colour: 'var(--s1)', f: s => carryAmount(s, TUNES.v1.carry)}, {name: 'Shake', colour: 'var(--ink)', f: s => shake(s) * TUNES.v1.shake}]);
 curves('split', ' px', 48, [{name: 'Split', colour: 'var(--ink)', f: split}]);
 curves('boost', '', 2, [{name: 'As it is', colour: 'var(--ink)', f: boost}]);
 

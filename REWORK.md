@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: carry, the movement at a hit (adopted by the owner)
+
+The owner missed the weight older videos gave a hit ("falling into the geometry, then bouncing") and handed over a
+study from another agent (`hit-effects`; only its study files were taken). Record:
+`docs/research/hit-movement-20261115.md`.
+
+- **Found by measuring, then by his eye.** Today's camera holds the rider still on screen at a hit; the version he
+  felt let the rider move. Two rounds of blind pairs (37 answers) agreed on directions but not on single answers (0 of
+  3 repeats identical); dials on playing video settled it at once.
+- **Adopted** (`scripts/video/hits.js` `MOVEMENT`; his settings, then four whole rides): at strong hits the picture
+  is knocked into the surface (the shake, now half: 14 px at 0.85) and **carry** moves it back out and lets it settle
+  (from strength 0.5, 100 px at 0.85, out in 70 ms, back over 0.3 s). Carry runs along the surface normal, follows
+  measured strength only, adds up over close hits (at most 1.7 × the amount). The zoom punch was dropped (clutter).
+- **Opening and ending:** the shake and carry shrink with the picture (the camera's `move`), so a hit moves the
+  overview by as much of the course, not as many pixels. This also changes the shake there, which was full size.
+- **Checked:** a Circus render with the production response equals the version he approved, frame for frame, at two
+  mid-ride moments. Five tests that pinned the old response re-derived; 679 tests, typecheck, reach and judge parity
+  pass. The lab's earlier study pages keep the response they were judged against (`TUNES.shakeOnly`).
+- **Showing:** `/motion-gallery/video-compare.html?collection=/generated/watch/carry.json` (whole rides before and
+  with carry; Circus's opening and ending before and after the fix). To retune: `/generated/concept-lab/hit-move.html`.
+- **Open, in his order:** the split's direction; then a zoom that follows the song (carry and shake should probably
+  scale with it). The first study page loads one missing file (an archive video that exists only on the other machine).
+
 ## November 15: production specs chosen from the handcrafted readings
 
 The owner marked the 20 handcrafted readings on full rides (`labels/studies/handcraft-2026-11-15.json`): 11 at 9 or

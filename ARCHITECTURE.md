@@ -323,7 +323,10 @@ and validation are in [music authoring](docs/music-authoring.md).
    - **A hit happens at its strongest frame** (round 23), sized by measured
      strength and directed along the line struck at onset. `hits.js` prepares
      these hits and samples the single winning hit's shake, split and colour
-     boost; band heat accumulates separately. `split.js` owns channel separation,
+     boost; carry (the picture moving out of the surface after a hit and
+     settling back) adds up over recent hits, as band heat does. The shake and
+     carry shrink with the picture in the opening and ending (the camera's
+     `move`). `split.js` owns channel separation,
      the clean rider overlay and the title's smaller split, with explicit inputs
      for this frame.
    - `write.ts` draws each frame in a headless page, sends it once, losslessly, to

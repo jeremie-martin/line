@@ -28,12 +28,10 @@ export const OPTIONS = {
   zoom: ['Zoom over time', {steady: 'Steady', quiet: 'Out when quiet'}],
   ends: ['Opening & ending', {course: 'Whole course at both ends', none: 'None'}],
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
-  hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
+  hits: ['On each hit', {v1: 'Split, colour boost, and on strong hits a shake and carry (v1)', none: 'Nothing',
     lit65: 'v1, and the band lights on hits of 0.65 or more',
-    carry: 'v1 with half the shake, and carry: the picture moves out of the surface and settles (under review)',
-    carryLit65: 'carry, and the band lights on hits of 0.65 or more',
     // a viewing aid, to read a ride without the camera moving
-    still: 'v1 without the shake'}],
+    still: 'v1 without the shake and carry'}],
 };
 
 export const V1 = {
@@ -50,8 +48,8 @@ export const V1 = {
   // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
   // higher (R21). Round 22 confirmed the whole layout as it is.
   riderLower: '0', sunRider: '32', sunLift: '16',
-  // hits: each on its own, driven by what the ride did, from its strongest frame (R23): the split and the colour boost, and a shake
-  // on strong hits only; no camera motion otherwise (R26; hits.js has the response)
+  // hits: each on its own, driven by what the ride did, from its strongest frame: the split and the colour boost, and on strong
+  // hits a shake into the surface and carry out of it; no camera motion otherwise (hits.js has the response)
   hits: 'v1', irisWeight: 'thin',
 };
 

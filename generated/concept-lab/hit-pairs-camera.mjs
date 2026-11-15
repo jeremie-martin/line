@@ -1,4 +1,6 @@
 // Camera versions for the hit-weight pairs (study only; production callers never import this).
+// HISTORY: `carry` here is the first version, sized by the rider's change of velocity. The carry that was adopted is a curve of
+// measured strength in scripts/video/hits.js; this file stays so the pairs and dials show what was judged.
 // A version is {follow, zoom, punch, shake}:
 //   follow 'pinned': today's camera (the rider is the pivot and does not move on screen at a hit);
 //          'old':    the historical follower on the ten-point centre, its dead zone reading the zoom (punch included);

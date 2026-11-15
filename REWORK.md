@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law challenged (results at 8 seeds)
+
+V8, 8 seeds, against `foundation-6`, all with aimed launches:
+
+| | headline | explicit | body drag | strong extra impacts | small quiet asks within ×1.5 / over ×2 | very strong bias |
+|---|---|---|---|---|---|---|
+| linear ≤ 55°, heading prior kept | +8.8 [+6.3, +11.3] | +7.4 | +26% | +26% | 62% / 15% | −0.168 |
+| linear ≤ 55°, heading prior dropped | +8.7 [+7.0, +10.4] | +9.6 | +31% | +41% | 63% / 17% | −0.169 |
+| speed-aware, gain 1.5, heading prior dropped | +0.9 [−2.1, +3.9] | +7.8 | +4% | +55% | 62% / 18% | −0.177 |
+| speed-aware, gain 2, heading prior dropped | +7.4 [+5.3, +9.5] | +12.4 | +24% | +35% | 67% / 15% | −0.164 |
+
+- Dropping the contradictory heading prior is neutral: it goes. What carries the gain is how steep strong beats arrive
+  (about 50–55°): every form that gets there gains 7–9; those that stay shallower (gain 1.5, cap 45°) lose it; body
+  drag follows steepness in every case.
+- Running: the two finalists (linear ≤ 55° and speed-aware gain 2, both without the heading prior) at 16 seeds.
+
 ## November 15: where body drag comes from; the arrival law challenged (stated before running)
 
 - **Body drag** (`tools/research/body_drag.ts`, V8 4 seeds; `foundation-6` against the law ≤ 55° with aimed launches):

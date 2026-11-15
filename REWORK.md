@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: body jolts the score does not see (diagnosis, nothing changed)
+
+The owner, on the handcrafted videos: sharp turns that compress the rider with nothing in the music (Valhalla
+`still-drop` at 5 s and 7 s), and undulating ground that keeps the body moving (11–16 s; Trouble `cycle` near 8.4 s).
+He ranks this above specification work. Measured on the 59 handcrafted rides (`tools/measure/body/`, rough scripts
+over a ride's recorded trace):
+
+- **Hard hits recorded as nothing.** Valhalla `still-drop` seed 303: whole-body motion change of 0.83 at 5.00 s and
+  0.93 at 7.28 s (the account's own strength formula, any 2 frames); the account records 0.09 at 4.53 s and 7.10 s.
+  Cause, in `detectStrikes`: a renewed strike starts at the valley before its peak and its strength is read in the 6
+  frames after that start. On a long slide the push rises slowly for 20 frames, then the lip turns about 50° in 30 px;
+  the peak falls outside the window. 36 such hits of 0.4 or more in 59 rides, 16 of 0.6 or more, mostly at the end of
+  long slides in calm openings (all four Valhalla variants, 2–7 s).
+- **Why the search builds them:** the lip sheds speed (10.9 → 7.5 px/frame) and launches the rider, which serves the
+  speed and air targets, at no impact cost. The motion preference charges speed gains, not losses.
+- **Undulation.** The six sections the owner called hovering between 11 and 16 s are terraces and a fold; the ones he
+  called smooth are arcs. Per second of quiet section (ask ≤ 0.3): arcs 2.1 pushes of 0.3 or more and 102° of sled
+  swing; terraces 4.2 and 166°; folds 4.6 and 150°; scallops 3.4 and 101°. Pushes under 0.8 px/frame² inside a contact
+  are steering in the account and cost nothing.
+- **What the account cannot see at all:** the body's shape. It reads the centre of mass and the spin; the owner reads
+  compression of the body as impact.
+
 ## November 15: five songs, four handcrafted specifications each
 
 Valhalla, Trouble, Amor na Praia (46 s), Bones and Petrunko each have three new variants built on one stated idea, and

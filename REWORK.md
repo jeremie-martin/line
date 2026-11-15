@@ -1,6 +1,9 @@
 # Foundations rework (started 2026-10-03)
 
-## November 15: gentle exits and parked families, integrated (awaiting the owner's look)
+## November 15: gentle exits and parked families, adopted
+
+**Accepted by the owner on 2026-11-15** on full rides, including the float pair (he prefers the gentle exits there too,
+knowing the benchmark cost below). Parity references updated: supports are drawn differently after a catch.
 
 **What changed in the compiler** (branch `exp/visible-motion`):
 - `arc_geometry.ts`: from 6 frames after a catch, a support turns no faster than a 95 px radius and no faster than
@@ -26,8 +29,7 @@ pushes the account does not record, at no cost in score, air, speed or completio
   differs"), a fault that predates this work and moves between rides.
 - **Is a check needed on top of the drawing?** Refusing candidates whose rider touches a turn above 20° after the hit
   gave 0 % instead of 0.4 % and nothing else separable (score −1.6 [−6.4, +2.8] without it). Not kept: one mechanism.
-- Three tests tied to exact small compiles were re-derived; `npm run parity` changes as expected (references to update
-  on acceptance), `parity:judge`, tests, typecheck and reach pass.
+- Three tests tied to exact small compiles were re-derived; `npm run parity` changed as expected (references updated), `parity:judge`, tests, typecheck and reach pass.
 
 **The benchmark** (`npm run compare`, panel v8, 196 matched pairs, no ride lost in any arm; reference = visual-lab at
 the fork, saved as `visual-lab-1115`; the saved reference `visual-lab` is a commit of November 10 and must not be used):
@@ -49,8 +51,8 @@ the fork, saved as `visual-lab-1115`; the saved reference `visual-lab` is a comm
   is why only the speed-aware cap reaches them. A long float after a quiet hit needs a strong redirection upward; the
   compiler was taking it after the hit's frames, where nothing charges it. Part of the old score on these specs was
   earned that way.
-- So the cost is a real trade, and the owner's to judge on the rides: airtime closer to the ask with unasked hard
-  pushes, or fewer pushes with shorter floats. Not settled here.
+- So the cost is a real trade: airtime closer to the ask with unasked hard pushes, or fewer pushes with shorter
+  floats. The owner chose fewer pushes.
 
 **What this does not claim.** The owner's second blind round did not separate compliant from non-compliant clips; the
 evidence that it reads better is his remark on full rides and the measured removal of the turns he pointed at. Quiet

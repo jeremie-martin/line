@@ -186,9 +186,11 @@ export function proposeOpposingEntries(s: IntervalSearch) {
  * (1: at the apex). Flight time is kept (same release frame), so the air is kept; horizontal speed is constant in
  * flight, so the launch heading that gives an arrival heading follows from gravity alone: vy at release = vy at
  * arrival − g × flight frames. A flight caught near its top lands softly and has climbed instead of gained speed. The
- * exit is shifted by the change of launch heading, which absorbs the offset between the control and the real launch. */
+ * exit is shifted by the change of launch heading, which absorbs the offset between the control and the real launch.
+ * With `airFlight`, each is also offered with its support set to the length the air ask implies (the interval's
+ * nominal support), so a flight shorter than asked becomes the asked length, launched for an apex arrival over it. */
 export function proposeApexLaunches(s: IntervalSearch) {
-  const {options, i, ctx} = s, cfg = options.apexLaunches;
+  const {options, i, ctx} = s, cfg = options.apexLaunches, nominal = s.support;
   if (!(cfg && cfg.count > 0 && i < ctx.contacts.length - 1 && !options.profile && options.railLayout !== 'transfer')) return;
   const G = .175, deg = (r: number) => r * 180 / Math.PI;
   const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.release !== undefined)
@@ -198,11 +200,16 @@ export function proposeApexLaunches(s: IntervalSearch) {
     const frames = s.horizon - x.release!, vx = x.endSpeed * Math.cos(x.heading * Math.PI / 180), vy = x.endSpeed * Math.sin(x.heading * Math.PI / 180);
     if (!(frames > 2 && vx > 1)) continue;
     const launched = deg(Math.atan2(vy - G * frames, vx));
-    for (const f of cfg.fractions) {
-      const wanted = deg(Math.atan2(vy * (1 - f) - G * frames, vx)), exit = x.c.exit + (wanted - launched);
-      if (Math.abs(exit - x.c.exit) < 1) continue;
+    // the release offset from the support's end, measured on this candidate, carried to a changed support
+    const offset = x.release! - (s.frame + x.c.support);
+    const supports = [x.c.support, ...(cfg.airFlight && Math.abs(nominal - x.c.support) > 2 ? [nominal] : [])];
+    for (const support of supports) for (const f of cfg.fractions) {
+      const flight = s.horizon - (s.frame + support + offset);
+      if (flight <= 2) continue;
+      const wanted = deg(Math.atan2(vy * (1 - f) - G * flight, vx)), exit = x.c.exit + (wanted - launched);
+      if (support === x.c.support && Math.abs(exit - x.c.exit) < 1) continue;
       work.attempts++;
-      if (evaluate(s, tagOrigin({...x.c, exit}, 'apex'))) work.viable++;
+      if (evaluate(s, tagOrigin({...x.c, support, exit}, 'apex'))) work.viable++;
     }
   }
   retainSearch(s);

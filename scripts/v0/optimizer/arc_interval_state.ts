@@ -49,7 +49,7 @@ export function resolveIntervalOptions(ctx: ArcCompileContext, i: number, overri
 
 /** Reads the physical boundary of interval `i` from `engine` and derives its
  * targets, nominal support and turn. Returns null when the interval is too
- * short to hold a support. The calm-impact multiplier is applied to
+ * short to hold a support. Quiet misses priced in proportion are applied to
  * `options.impactWeight` here. */
 export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, options: IntervalOptions,
   controlMemory: ArcControlMemory, protectedEngines: Engine[]) {

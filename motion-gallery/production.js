@@ -154,12 +154,7 @@ async function openResult(path,job,initialTime=0){
   $('record-link').href=new URL(ride.path,url).href;$('render').hidden=!job||!ride.valid;$('render').disabled=['queued','rendering','complete'].includes(job?.render);$('render').textContent=job?.render==='complete'?'Video ready':job?.render==='rendering'?'Rendering…':'Render finished video';
   const motion=p.motion?.full;$('motion-detail').hidden=!motion;
   if(motion)$('motion-summary').textContent=motion.bursts.map(b=>`${b.frames*25} ms: ${b.episodes} above-band episodes; largest excess ${fmt(b.maxExcess)} px/frame`).join(' · ')+'. These measurements separate extra speed gain from gravity. They describe motion; they do not rate its artistic quality.';
-  const song=data[0].case.id,moments=[];
-  if(['luna_bala_44s','tiki_tiki_48s'].includes(song))moments.push(['Calm opening',0]);
-  if(song==='amour_de_ma_vie_44s'&&ride.seed===303)moments.push(['Reported acceleration · 9.4s',8.7]);
-  if(song==='amour_de_ma_vie_44s'&&ride.seed===101)moments.push(['Reported acceleration · 5.95s',5.3]);
-  if(song==='tiki_tiki_48s'&&ride.seed===101)moments.push(['Reported acceleration · 15.32s',14.7]);
-  const reviewMoments=libraryEntry?.moments??moments.map(([title,at])=>({title,at}));
+  const reviewMoments=libraryEntry?.moments??[];
   $('review-moments').replaceChildren(...reviewMoments.map(({title,at,reason})=>{const b=el('button',title);b.title=reason??'';b.onclick=()=>jump(at);return b;}));
   seek(initialTime);
   let audioFailure;
@@ -192,7 +187,7 @@ async function loadLibrary(){try{
  if(collection.origin!==location.origin)throw new Error('Review collections must be served from this gallery.');
  let data;
  if(params.has('collection'))data=await checked(collection.href);
- else{const response=await fetch(collection.href);if(!response.ok)throw new Error('The review collection is being generated.');data=await response.json();}
+ else{const response=await fetch(collection.href);data=response.ok?await response.json():{entries:[],description:'No review library on this machine (npm run library makes one). Generate a track below, or open a collection with ?collection=.'};}
  libraryEntries=data.entries;
  $('default-collection-note').hidden=params.has('collection');
  let collectionNote=$('collection-note');

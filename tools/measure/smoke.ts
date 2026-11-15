@@ -56,10 +56,10 @@ async function pages() {
         await new Promise(done => setTimeout(done, 100));
       }
     }
-    const open = async (path: string, ready: (page: import('playwright').Page) => Promise<unknown>, optional = /\.video\.json$/) => {
+    const open = async (path: string, ready: (page: import('playwright').Page) => Promise<unknown>, optional = /\.video\.json$|\/production-library\.json$/) => {
       const page = await browser.newPage(), failures: string[] = [];
       page.on('pageerror', error => failures.push(error.message));
-      // Rides probe for an optional movie record; everything else must exist.
+      // Rides probe for an optional movie record, and the player for a local review library; everything else must exist.
       page.on('response', r => {if (r.status() >= 400 && !optional.test(r.url())) failures.push(`${r.status()} ${r.url()}`);});
       await page.goto(base + path);
       await ready(page);

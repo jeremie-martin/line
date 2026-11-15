@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: a smoothness limit on the ground the rider touches (experiment, not adopted)
+
+`ground_smoothness.ts` `roughestReversal`: along each chain of lines, at every change of the bend's direction, the
+degrees undone within 60 px each side; only turning points within 30 px of a touched line count. `LINE_GROUND=10`
+rejects a candidate above 10°; `LINE_REPERTOIRE` limits the planner's families. 20 picked specs, one seed, v3 account
+(`tools/measure/body/ground.mjs`; rough = a section whose ground under the rider reverses 12° or more within 60 px):
+
+| | rough sections | score | hit error | air rms | speed rms | fallbacks per ride |
+|---|---|---|---|---|---|---|
+| today | 28.9% | 763.1 | 0.0086 | 0.039 | 0.058 | 0 |
+| limit 10° | 8.3% | 665.6 | 0.0162 | 0.074 | 0.084 | 4.0 |
+| no terraces, no fold | 19.0% | 756.0 | 0.0091 | 0.040 | 0.059 | 0 |
+| no terraces, no fold, limit 10° | 0.1% | 739.6 | 0.0108 | 0.040 | 0.065 | 0 |
+
+- Terraces and folds cannot meet the limit (corners and steps by definition): with it they stay rough (74%, 85%) or
+  fall back, and the search pays about 100 points fighting them.
+- Without them the limit costs 16 points and removes rough ground (arcs 12% → 0%, scallops 46% → 1%, serpentine
+  46% → 0%). Leaving them out alone costs 7.
+- Rejection is a blunt form; the reading fitted the owner's 41 answers after the fact and is not confirmed on fresh
+  clips. Videos: `generated/videos/smooth/` (plain look).
+
 ## November 15: the owner's motion review (41 answers) and what they say
 
 `/motion-review/` (blind page, plain renders, one hit-to-hit stretch per clip, the part judged = the rider on the

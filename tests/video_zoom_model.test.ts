@@ -25,9 +25,11 @@ it('old spec zooms come onto the scale by one fixed conversion', () => {
 });
 it('every song\'s lanes are inside the scale and the song, in time order, with an intention; a ride always gets the same one', async () => {
   const {ZOOMS} = await import('../scripts/video/zooms.ts'), {chooseZoom} = await import('../scripts/video/choose.js');
-  const ends: Record<string, number> = {petrunko_selection: 60, trouble_50s: 50.3, tiki_tiki_48s: 48};
-  expect(Object.keys(ZOOMS).sort()).toEqual(Object.keys(ends).sort());
+  expect(Object.keys(ZOOMS).length).toBeGreaterThan(3);
+  const ends: Record<string, number> = {};
+  for (const song of Object.keys(ZOOMS)) ends[song] = (await import(`../productions/${song}/spec.ts`)).default.duration;
   for (const [song, lanes] of Object.entries(ZOOMS)) {
+    expect(ends[song]).toBeGreaterThan(10);
     expect(lanes.length).toBeGreaterThanOrEqual(2); expect(new Set(lanes.map(l => l.id)).size).toBe(lanes.length);
     for (const lane of lanes) {
       expect(lane.about.length).toBeGreaterThan(20);

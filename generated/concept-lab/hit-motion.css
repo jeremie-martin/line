@@ -22,3 +22,6 @@ summary{cursor:pointer;font-weight:600;font-size:14px}details .fields{margin-top
 @media(max-width:800px){main{padding:12px}.workspace{grid-template-columns:1fr;gap:14px}.viewer{top:0;background:var(--bg);z-index:2;padding:8px 0;position:sticky}.screen{height:min(45svh,calc((100vw - 24px)*16/9))}.pair:not(.single) .screen{height:min(40svh,calc((100vw - 40px)*8/9));width:auto}.card{padding:14px}.viewbar{margin-bottom:6px;flex-wrap:wrap}.quick-effect{display:flex;width:100%}.quick-effect select{flex:1}.transport{margin-top:8px}.tools{margin-top:6px}.hint{display:none}.row{grid-template-columns:1fr}.analysis{margin-top:18px}.viewer .tools{gap:6px}.legend{flex-wrap:wrap}header{margin-bottom:8px}.chart-tools{gap:8px}}
 
 @media(max-width:650px){#curves,#single{grid-template-columns:1fr;gap:12px}}
+
+#cameraCurves{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px}#cameraCurves h3{font-size:14px;margin:8px 0 0}#cameraCurves svg{display:block;width:100%;height:190px}#punchComparisons button{border:1px solid var(--line);border-radius:999px;background:var(--card);padding:6px 10px}#punchComparisons button.on{background:var(--on);color:var(--onText)}
+@media(max-width:650px){#cameraCurves{grid-template-columns:1fr}}

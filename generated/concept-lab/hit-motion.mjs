@@ -5,13 +5,14 @@ import {resolveLook, THEMES} from '/scripts/video/look.js';
 import {prepareHits} from '/scripts/video/hits.js';
 import {strength} from '/scripts/video/intensity.js';
 import {MODES, effectsAt, motionAt} from './hit-motion-model.mjs';
+import {cameraZoomAt} from './hit-motion-zoom.mjs';
 import {framingFor} from './hit-motion-camera.mjs';
 const $ = id => document.getElementById(id), q = new URLSearchParams(location.search);
 const choose = (id, key, allowed) => {const v = q.get(key); if (allowed.includes(v)) $(id).value = v;};
 $('theme').replaceChildren(...Object.entries(THEMES).map(([id, theme]) => new Option(theme.name, id)), new Option('Plain', 'plain'));
 $('theme').value = 'hokusai';
 choose('song', 'song', ['tiki', 'circus']); choose('theme', 'theme', [...Object.keys(THEMES), 'plain']);
-choose('camera', 'camera', ['current', 'old-six', 'old-ten', 'old-authored']);
+choose('camera', 'camera', ['current', 'old-six', 'old-ten', 'old-authored', 'old-zoom', 'old-punch', 'old-punch-locked']);
 const g = Number(q.get('gain')); if (q.has('gain') && Number.isFinite(g)) $('gain').value = Math.max(0, Math.min(2, g));
 $('gainValue').textContent = `×${$('gain').value}`;
 if (q.get('colour') === 'off') $('colour').checked = false;
@@ -41,15 +42,17 @@ function rebuild() {
     }));
   }
   $('quickEffect').value=mode;
-  $('candidateName').textContent = MODES[mode][0]; $('candidateNote').textContent = MODES[mode][1];
+  $('candidateName').textContent = mode==='still' ? (PUNCH_COMPARISONS.find(c=>c[0]===pictureCamera)?.[1] ?? MODES[mode][0]) : MODES[mode][0]; $('candidateNote').textContent = MODES[mode][1];
   for (const b of $('variants').children) {b.classList.toggle('on', b.dataset.mode === mode); b.setAttribute('aria-pressed', b.dataset.mode === mode);}
+  for(const b of $('punchComparisons').children)b.classList.toggle('on',b.dataset.camera===pictureCamera&&mode==='still');
+  $('punchNote').textContent=PUNCH_COMPARISONS.find(c=>c[0]===pictureCamera)?.[2] ?? 'Choose a comparison to isolate the older punch.';
   charts(); draw();
 }
 function draw() {
   if (!pictures.length) return;
   const l = look(); pictures.forEach((p, i) => {if ($('view').value === 'pair' || i === (showCurrent ? 0 : 1)) p.draw(time, l);});
   $('seek').value = time; $('clock').textContent = `${time.toFixed(3)} s`;
-  for (const line of document.querySelectorAll('#curves .cursor')) {
+  for (const line of document.querySelectorAll('#curves .cursor, #cameraCurves .cursor')) {
     const width = Number(line.closest('svg').getAttribute('viewBox').split(' ')[2]);
     const x = 54 + (time - home) / Math.min(6, end - home) * (width - 72);
     line.setAttribute('x1', x); line.setAttribute('x2', x); line.style.display = time >= home && time <= home + 6 ? '' : 'none';
@@ -88,6 +91,8 @@ function moments() {
 }
 const svgEl = (tag, attrs={}, text) => {const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
 const SIGNALS = {
+  punch: {name: 'Short punch', unit: '%', limit: 15},
+  cameraZoom: {name: 'Camera zoom', unit: '%', limit: 100},
   dx: {name: 'Horizontal movement', unit: 'px', limit: 48, help: 'Horizontal displacement of the ride: positive moves right, negative moves left.'},
   dy: {name: 'Vertical movement', unit: 'px', limit: 48, help: 'Vertical displacement of the ride: positive moves down, negative moves up.'},
   rotation: {name: 'Rotation', unit: '°', limit: 1, help: 'Rotation around the rider: positive turns clockwise, negative turns counterclockwise.'},
@@ -95,7 +100,7 @@ const SIGNALS = {
 };
 function chart(container, from, duration, rows, key, synthetic=false) {
   const signal = SIGNALS[key], width = Math.max(300, container.clientWidth), height = 190;
-  const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `${signal.name} (${signal.unit}): current shake versus ${MODES[mode][0]}`});
+  const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `${signal.name} (${signal.unit}) comparison`});
   const L=54, R=width-18, top=16, bottom=154, max=signal.limit*Math.max(1,gain());
   const x=t=>L+t/duration*(R-L), y=v=>(top+bottom)/2-v/max*(bottom-top)/2;
   for(const v of [-max,-max/2,0,max/2,max]) {
@@ -134,8 +139,42 @@ function charts() {
 
   $('curveNote').textContent=`${home.toFixed(2)}–${(home+duration).toFixed(2)} s · dotted vertical lines mark hits; the dark cursor follows playback. Click any chart to seek. All four show added hit movement only; camera following and colour split are excluded.`;
   $('metrics').innerHTML='<table><tr><th>This passage</th><th>Max displacement · px</th><th>Translation travel · px</th><th>Moving · s</th><th>Max roll · °</th><th>Max zoom · %</th></tr>'+rows.map((r,i)=>`<tr><td>${MODES[i?mode:'current'][0]}</td>${metrics(r).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')+'</table>';
+  cameraCharts(duration);
   single();
 }
+function cameraCharts(duration) {
+  const box=$('cameraCurves'), camera=$('camera').value; box.replaceChildren();
+  $('cameraAnalysis').hidden=!['old-authored','old-zoom','old-punch','old-punch-locked'].includes(camera);
+  if($('cameraAnalysis').hidden)return;
+  const rows=[[],[]];
+  const start=home+offset(), times=new Set([0,duration]);
+  for(let i=0;i/240<duration;i++)times.add(i/240);
+  // Include every physics-frame vertex: a uniform plot grid can miss the pulse peak.
+  for(let f=Math.ceil(start*40);f<=(start+duration)*40;f++)times.add(f/40-start);
+  for(const t of [...times].sort((a,b)=>a-b)) {
+    const z=cameraZoomAt(camera,entry.scene,(start+t)*40);
+    rows[0].push({t,v:{punch:0,cameraZoom:100*(z.base/6.2-1)}});
+    rows[1].push({t,v:{punch:z.punch,cameraZoom:100*(z.zoom/6.2-1)}});
+  }
+  for(const [key,title,description] of [
+    ['punch','The short punch','Extra zoom from the beat pulse; 0% means no punch.'],
+    ['cameraZoom','The overall camera zoom','Relative to today’s steady zoom. Positive is closer; negative is farther away.'],
+  ]) {
+    const panel=document.createElement('section'), h=document.createElement('h3'), p=document.createElement('p'), plot=document.createElement('div');
+    h.textContent=title;p.className='help';p.textContent=description;panel.append(h,p,plot);box.append(panel);chart(plot,home,duration,rows,key);
+  }
+  const max=Math.max(...rows[1].map(r=>r.v.punch));
+  $('cameraReadout').textContent=`This passage reaches +${max.toFixed(1)}% punch. The pulse follows authored beats and requested strengths, not the measured impacts that drive the newer shake. It can therefore happen slightly before the measured contact peak.`;
+}
+const PUNCH_COMPARISONS = [
+  ['old-six','No zoom or punch','The old follower at a fixed zoom, with no added shake.'],
+  ['old-zoom','Slow zoom only','The authored zoom lane, without its short beat punches.'],
+  ['old-authored','Slow zoom + punch','The combination you liked: the authored lane and its fast punches, with the old follower responding.'],
+  ['old-punch','Punch only','Keep a fixed base zoom; retain the beat pulse and the follower’s response to it.'],
+  ['old-punch-locked','Punch · steady rider','Exactly the same zoom pulse, but keep the no-punch rider screen position. This isolates the follower/position interaction.'],
+];
+for(const [camera,label] of PUNCH_COMPARISONS){const b=document.createElement('button');b.textContent=label;b.dataset.camera=camera;b.onclick=()=>{mode='still';$('camera').value=camera;showCurrent=false;rebuild();view();};$('punchComparisons').append(b);}
+
 function single(){const s=Number($('strength').value);$('strengthValue').textContent=s.toFixed(2);$('single').replaceChildren();movementCharts($('single'),0,.4,['current',mode].map(m=>samples(m,[{time:0,strength:s,energy:strength(s),normal:{x:0,y:-1}}],0,.4)),true);}
 
 for(const [key,[name]] of Object.entries(MODES)){const b=document.createElement('button');b.textContent=name;b.dataset.mode=key;b.onclick=()=>{mode=key;showCurrent=false;rebuild();view();};$('variants').append(b);}

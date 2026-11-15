@@ -175,3 +175,41 @@ playback, paired identity, chart series, and a full-resolution study frame again
 the production picture. It requires prepared study data and the review server;
 `HIT_STUDY_URL` overrides the address. Screenshots and results stay in
 `generated/hit-effects/`. Effect laws and production rendering code are unchanged.
+
+## The owner finds the weight in the punch
+
+The owner reports a strong, satisfying impact on most strong hits in both songs
+with “No shake” and “Old follower + authored zoom / punch”. Other followers and
+current shake do not recover that feeling. The owner is not deciding on the slow
+authored zoom yet. This feedback isolates shake as unnecessary, but does not yet
+separate the slow lane, short pulse, and follower response. Review uses moving
+video with music; asking for words such as “thump” was not helpful.
+
+The recovered pulse reaches 13% extra zoom in both songs. Its default attack is
+one physics frame (25 ms), beginning before the authored beat. Its exponential
+recovery has time constant four frames (100 ms), with a finite 500 ms tail. It
+uses authored contact requests: Tiki's gate is the 70th percentile; Circus has an
+explicit 0.8 gate. Larger requests above the gate scale the pulse from 6.5% to 13%.
+Overlapping pulses take the maximum, not the sum. These are presentation settings,
+not new physics or impact measurements. Normal production does not use this lane
+or pulse.
+
+New one-click, no-added-shake comparisons: no zoom/punch, slow lane only, lane plus
+pulse, pulse at fixed base zoom, and the identical pulse with the rider's screen
+position following the no-pulse path. The last pair isolates the follower/position
+interaction. At every half frame, its two zoom paths are identical and its held
+position exactly matches the fixed-zoom follower. Over the whole rides, the coupled
+rider position differs vertically from the held position by −3.33…+13.57 design px
+on Tiki and −3.84…+13.90 px on Circus (positive down). This supports testing the
+owner's “falling camera” intuition; it does not establish a perceptual explanation.
+
+Camera graphs now show the pulse separately and the overall camera zoom, including
+the slow lane. They use actual interpolated camera samples and include every
+physics-frame vertex so a plot sampling grid cannot miss the peak. The previous
+four graphs still describe only added hit motion, with this exclusion explicit.
+
+The extraction preserves the old combined zoom exactly at every physics frame of
+both saved rides. Unit tests cover decomposition, gating, decay, and interpolation.
+`tests/browser/hit-punch.mjs` verifies the five controls on both songs and the exact
+same-zoom/fixed-position contracts at every half frame, without browser errors.
+No production effect or slow authored zoom has been adopted.

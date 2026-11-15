@@ -1,5 +1,12 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: isolate the punch the owner feels
+
+- The owner feels strong weight on most strong hits in both songs with no shake and the recovered authored zoom/punch; slow zoom remains undecided. Compare moving video with music, not stills or verbal descriptors.
+- Separate slow lane, short pulse, and follower/position response in one-click comparisons. Add explicit camera-punch graphs; the earlier four charts excluded this source of motion.
+- The pulse reaches 13% in both rides. Its coupling to the follower shifts the rider screen position by up to about 14 design pixels downward in these runs, a hypothesis for the feeling, not a perceptual verdict.
+- Old combined zoom remains exact at every physics frame. Tests prove the coupled and held-position comparisons use identical zoom, with the latter preserving the no-punch screen position. Nothing adopted in production.
+
 ## November 15: align the hit study with the visual lab
 
 - Replace the standalone dark dashboard with the lab's shared components and a light review surface. Keep effect switching beside a large preview; add a selector that stays with the picture on phones.

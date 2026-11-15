@@ -68,3 +68,31 @@ it('respects an authored punch threshold, direction and envelope over the histor
   expect(legacyZoomAt(camera,contacts,2)).toBeCloseTo(3.6*.8);
   expect(legacyZoomAt(camera,contacts,2.025)).toBeCloseTo(3.6);
 });
+
+import {legacyPunchAt, cameraZoomAt} from '../generated/concept-lab/hit-motion-zoom.mjs';
+describe('isolating the old punch', () => {
+  const camera={zoom:{keyframes:[{t:0,zoom:2},{t:3,zoom:4}]},beatPunch:{threshold:.5}};
+  const contacts=[{t:1,impact:.5},{t:2,impact:1}];
+  const scene={authoredCamera:camera,authoredContacts:contacts};
+  it('separates the slow lane without changing the combined zoom', () => {
+    for(const t of [0,.99,1,1.05,1.975,2,2.1,2.6])expect(legacyZoomAt(camera,contacts,t)).toBe(legacyZoomAt(camera,contacts,t,false)*legacyPunchAt(camera,contacts,t));
+    expect(legacyPunchAt(camera,contacts,1)).toBeCloseTo(1.065);
+    expect(legacyPunchAt(camera,contacts,2)).toBeCloseTo(1.13);
+    expect(legacyPunchAt(camera,contacts,2.1)-1).toBeCloseTo(.13/Math.E);
+  });
+  it('shows the same pulse for the coupled and steady-position comparisons', () => {
+    for(let f=0;f<120;f+=.25){
+      expect(cameraZoomAt('old-punch',scene,f)).toEqual(cameraZoomAt('old-punch-locked',scene,f));
+      expect(cameraZoomAt('old-zoom',scene,f).punch).toBe(0);
+      expect(cameraZoomAt('old-six',scene,f)).toEqual({base:6.2,zoom:6.2,punch:0});
+    }
+  });
+  it('uses actual interpolated camera samples for the displayed curves', () => {
+    for(const mode of ['old-authored','old-zoom','old-punch']){
+      const a=cameraZoomAt(mode,scene,79),b=cameraZoomAt(mode,scene,80),m=cameraZoomAt(mode,scene,79.5);
+      expect(m.zoom).toBe((a.zoom+b.zoom)/2);
+      expect(m.base).toBe((a.base+b.base)/2);
+      expect(m.punch).toBe(100*(m.zoom/m.base-1));
+    }
+  });
+});

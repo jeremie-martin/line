@@ -1,6 +1,6 @@
 // Historical follower through today's picture. The exact vendored step is bundled by prepare.
 import step from '/generated/hit-effects/follower.js';
-import {legacyZoomAt} from './hit-motion-zoom.mjs';
+import {cameraZoomAt} from './hit-motion-zoom.mjs';
 import {W, H, createFraming} from '../../scripts/video/camera.js';
 const BODY = new Set(['BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT']);
 export function framingFor(mode, replay, scene) {
@@ -12,10 +12,11 @@ export function framingFor(mode, replay, scene) {
     }) : motion.centres;
     let c = centres[0];
     const cams = centres.map((p, f) => {
-      const z = mode === 'old-authored' ? legacyZoomAt(scene.authoredCamera, scene.authoredContacts, f / 40) : 6.2;
-      c = step(c, p, {zoom: z, width: W, height: H});
+      const z = cameraZoomAt(mode, scene, f).zoom;
+      const followZoom = mode === 'old-punch-locked' ? 6.2 : z;
+      c = step(c, p, {zoom: followZoom, width: W, height: H});
       const r = motion.centres[f];
-      return {x: r.x, y: r.y, z, ax: W / 2 + (r.x - c.x) * z, ay: H * 0.36 + (r.y - c.y) * z};
+      return {x: r.x, y: r.y, z, ax: W / 2 + (r.x - c.x) * followZoom, ay: H * 0.36 + (r.y - c.y) * followZoom};
     });
     return (time, at) => {
       const f = Math.max(0, Math.min(at, cams.length - 1)), i = Math.floor(f), j = Math.min(i + 1, cams.length - 1), u = f - i;

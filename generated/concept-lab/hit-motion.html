@@ -19,15 +19,20 @@
 </section>
 <aside>
 <div class="card"><div class="fields"><label>Song <select id="song"><option value="tiki">Tiki Tiki · original specification</option><option value="circus">Circus Minimus · voice-full</option></select></label><label>Look <select id="theme"><option value="hokusai">Hokusai</option><option value="rothko">Rothko</option><option value="plain">Plain</option></select></label></div><p id="status" role="status">Loading…</p></div>
+<div class="card"><h2>Where does the weight come from?</h2><p class="help">These comparisons turn off added shake and keep the same look. Switch without stopping the music.</p><div id="punchComparisons" class="presets"></div><p id="punchNote" class="help"></p></div>
 <div class="card"><h2>Choose a hit effect</h2><p class="help">Switch while the music plays. Use “Show current shake” to compare in the same picture.</p><div id="variants" class="presets"></div><p id="candidateNote" class="description"></p></div>
 <div class="card"><h2>Choose a passage</h2><div id="moments" class="moments"></div></div>
 <details class="card"><summary>Comparison settings</summary>
-<div class="fields"><label>Movement amount <input id="gain" type="range" min="0" max="2" step="0.1" value="1"><output id="gainValue">×1</output></label><label><input id="colour" type="checkbox" checked>Colour effects</label><label><input id="split" type="checkbox" checked>Include colour split</label><label>Camera <select id="camera"><option value="current">Current · follows direction</option><option value="old-six">Old follower · six body points</option><option value="old-ten">Old follower · ten points</option><option value="old-authored">Old follower + authored zoom / punch</option></select></label></div>
+<div class="fields"><label>Added effect amount <input id="gain" type="range" min="0" max="2" step="0.1" value="1"><output id="gainValue">×1</output></label><label><input id="colour" type="checkbox" checked>Colour effects</label><label><input id="split" type="checkbox" checked>Include colour split</label><label>Camera <select id="camera"><option value="current">Current · follows direction</option><option value="old-six">Old follower · six body points</option><option value="old-ten">Old follower · ten points</option><option value="old-authored">Old follower + authored zoom / punch</option><option value="old-zoom">Old follower + slow zoom only</option><option value="old-punch">Old follower + punch only</option><option value="old-punch-locked">Punch only · rider position steady</option></select></label></div>
 <p class="help">Both versions share these settings. The colour split has its own small image enlargement: disable it to isolate the hit movement. The old authored camera also changes zoom.</p></details>
 <button id="share" class="tool">Copy comparison link</button>
 <p class="help">Experimental effects. Production defaults are unchanged.</p>
 </aside>
 </div>
+<section class="analysis card" id="cameraAnalysis">
+<h2>The camera’s punch</h2><p class="help">The short zoom pulse, separate from the slower authored zoom. This camera setting is shared by both pictures. These curves use the camera’s actual interpolated frame samples.</p>
+<div class="legend"><i class="reference"></i>Without punch <i class="candidate"></i>With punch</div><div id="cameraCurves"></div><p class="help" id="cameraReadout"></p>
+</section>
 <section class="analysis card">
 <h2>Understand the movement</h2>
 <div class="chart-tools"><span class="legend"><i class="reference"></i>Current shake <i class="candidate"></i><span id="legendName">Candidate</span></span></div>

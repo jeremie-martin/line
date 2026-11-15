@@ -162,6 +162,775 @@
   values are identical. Register five existing research entry points so the inherited reachability gate passes.
   Full `npm run check` passes: 626 tests, 32 Rust tests, exact engine checks, compile and judge parity,
   and end-to-end timing/production/review smoke checks (2.4 minutes). Six browser playback checks also pass.
+## November 15: the compiler branch integrated with gentle exits (merged)
+
+`origin/compiler` (46 commits: the arrival law, aimed launches, quiet misses priced in proportion; its entries are
+below) merged onto gentle exits and parked families. The code does not overlap: its changes act on the arrival into a
+catch and on pricing, ours on a support's exit and on the plan. One interaction: aimed launches work by turning the
+exit, which is now drawn gently.
+
+**Hypotheses, stated before running:** (1) the merged compiler gains over gentle exits alone by about what the
+arrival law gained on its branch; (2) aimed launches lose some of their effect; (3) sharp exits and hard unrecorded
+pushes stay as low as with gentle exits alone.
+
+**V8, 4 seeds, 196 matched pairs, no ride lost in any arm** (references `gentle-exits` = visual-lab before this merge,
+`foundation-7` = the compiler branch, `merged-1115`):
+
+| | headline | against gentle exits alone | specs up/down | strong extra impacts per 100 beats | body drag s/min |
+|---|---|---|---|---|---|
+| gentle exits alone | 759.3 | | | 0.05 | 3.72 |
+| compiler branch alone | 764.7 | +5.4 [+0.1, +10.7] | 30/13 | 0.17 | 4.15 |
+| merged | 760.8 | +1.5 [−10.0, +13.0] | 33/10 | 0.11 | 4.47 |
+
+- (1) holds in seven of eight categories (G +10.2, P1 +2.5, P2 +0.5, P3 +0.6, P4 +6.5, P5 +8.5, P7 +8.4; mean +5.3).
+  The long ride (P6, one spec) loses 25 against gentle exits alone and 53 against the compiler branch alone: it asks
+  2–3 s floats before whispers, where the compiler branch already gave air for soft catches and gentle exits give air
+  for fewer unasked pushes. The two costs add. Both records call it a trade in that spec's asks.
+- **The 20 handcrafted specs × 3 seeds, merged − gentle exits alone:** score +6.7 [+2.1, +11.2], 60/60 complete
+  (59/60); hit error −0.0012 [−0.0017, −0.0007] (better on 19 specs); speed −0.0027 [−0.0048, −0.0007]; air +0.0040
+  [+0.0018, +0.0064] (worse); (3) holds: sections with a turn above 20° after the hit 0.3 % (0.4 %), hard unrecorded
+  pushes 0.15 per ride (0.22).
+- (2) **Aimed launches no longer show a measurable effect.** Merged without them against merged: +2.8 [−8.3, +13.8],
+  22 specs up, 21 down, quiet and strong biases within 0.003. Kept as adopted on the compiler branch (the owner liked
+  the look of aimed apex launches); 4 seeds cannot tell a small gain from none. Open in TODO.
+- Body drag and strong extra impacts rise with the arrival law, as its own record says (steeper strong arrivals).
+- Checks on the merge: tests 660, typecheck, reach, parity (references regenerated: both changes move tracks), judge
+  parity.
+
+## November 15: gentle exits and parked families, adopted
+
+**Accepted by the owner on 2026-11-15** on full rides, including the float pair (he prefers the gentle exits there too,
+knowing the benchmark cost below). Parity references updated: supports are drawn differently after a catch.
+
+**What changed in the compiler** (branch `exp/visible-motion`):
+- `arc_geometry.ts`: from 6 frames after a catch, a support turns no faster than a 95 px radius and no faster than
+  keeps the push on the rider under 0.6 px/frame² (radius ≥ speed² ÷ 0.6). Three constants and one line.
+- `repertoire_policy.ts` `PARKED`: terraces and folds are left out of the default repertoire; a request can still name them.
+- Removed: the v5 account, the rejection rule and every environment switch of the experiments. The ground readings
+  moved to `tools/measure/body/ground_readings.ts` (analysis only).
+
+**Hypothesis, stated before the run:** drawing exits gently removes the sharp turns after a hit and most of the hard
+pushes the account does not record, at no cost in score, air, speed or completion.
+
+**Result** (20 handcrafted specs × seeds 101, 202, 303; paired by spec, 95 % bootstrap over specs):
+
+| | complete | score | air rms | sections with a turn above 20° after the hit | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| default before (all six families) | 59/60 | 754.2 | 0.0412 | 10.5 % | 0.71 |
+| without terraces and folds | 60/60 | 754.6 | 0.0400 | 6.7 % | 0.57 |
+| adopted | 59/60 | 757.0 | 0.0393 | 0.4 % | 0.22 |
+
+- Adopted − default before: score +4.7 [+1.1, +8.0], air −0.0021 [−0.0042, +0.0001], hit error −0.0002, speed +0.0011
+  (neither separable from 0), pushes −0.49 [−0.93, −0.13].
+- Completion: the one incomplete ride of each arm stopped on the compiler's consistency check ("main construction
+  differs"), a fault that predates this work and moves between rides.
+- **Is a check needed on top of the drawing?** Refusing candidates whose rider touches a turn above 20° after the hit
+  gave 0 % instead of 0.4 % and nothing else separable (score −1.6 [−6.4, +2.8] without it). Not kept: one mechanism.
+- Three tests tied to exact small compiles were re-derived; `npm run parity` changed as expected (references updated), `parity:judge`, tests, typecheck and reach pass.
+
+**The benchmark** (`npm run compare`, panel v8, 196 matched pairs, no ride lost in any arm; reference = visual-lab at
+the fork, saved as `visual-lab-1115`; the saved reference `visual-lab` is a commit of November 10 and must not be used):
+
+| against the reference | headline | 95 % over seed blocks | specs up/down |
+|---|---|---|---|
+| terraces and folds parked, nothing else | +3.4 | [−6.6, +13.5] | 24/19 |
+| parked and gentle exits (adopted) | −5.1 | [−14.6, +4.3] | 23/20 |
+
+- Parking is free here too. The exits cost about 8 points, almost all in the specs that ask for long floats after
+  quiet hits: calm (P3) −30 and the long ride (P6) −38 against parking alone; airtime error rises on every seed there.
+  The other categories do not move.
+- On those specs (28 pairs; parking alone +8.6): radius floor alone −3.2; push cap 0.6 alone −14.0; floor and cap 1.0
+  −5.3; floor and cap 1.5 −4.1. No form of the rule is free there.
+- **Why** (the same specs compiled both ways, 4 seeds, `tools/measure/body/paired.ts` `measure`): the float rides were
+  full of hard pushes the account does not record. Per ride, without → with gentle exits: Tiki Tiki calm 4.25 → 0.50,
+  the 108 s long ride 7.75 → 1.00, Amor calm 1.00 → 0.00 (the 20 handcrafted specs: 0.57). Almost none of them is a
+  sharp turn of the ground (turns above 20° in 30 px: 0.2 % of sections): they are fast riders on moderate curves, which
+  is why only the speed-aware cap reaches them. A long float after a quiet hit needs a strong redirection upward; the
+  compiler was taking it after the hit's frames, where nothing charges it. Part of the old score on these specs was
+  earned that way.
+- So the cost is a real trade: airtime closer to the ask with unasked hard pushes, or fewer pushes with shorter
+  floats. The owner chose fewer pushes.
+
+**What this does not claim.** The owner's second blind round did not separate compliant from non-compliant clips; the
+evidence that it reads better is his remark on full rides and the measured removal of the turns he pointed at. Quiet
+pushes below 0.4 and motion inside a hit's own frames are untouched.
+
+## November 15: gentle exits by speed (experiment; the candidate to adopt)
+
+After the second review, lighter forms, all by construction in `arc_geometry.ts` (from 6 frames after the catch, a
+support's turning radius is at least the largest of: the old 24 px; a degrees cap; speed² ÷ a push cap). No reversal
+part, nothing rejected for the push cap. 20 specs × 3 seeds against the baseline without terraces and folds:
+
+| variant | complete | score | air rms | turns above 20° after the hit, per ride | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| baseline | 60/60 | 754.6 | 0.040 | 5.6 (above 30°: 2.1) | 0.57 |
+| degrees cap 20° | 60/60 | −1.4 [−5.9, +3.1] | −0.0009 | 0 | 0.42 |
+| 20° and push cap 0.6 px/frame² | 60/60 | +3.0 [−1.8, +7.5] | −0.0012 | 0 | 0.18 (−0.38 [−0.82, −0.02]) |
+| 20° and push cap 0.4 | 59/60 | −4.0 [−9.3, +1.5] | +0.0018 | 0 | 0.08 |
+| 20° and push cap 0.25 | 59/60 | −5.9 [−16.5, +3.0] | +0.0050 | 0 | 0.10 |
+| for reference: the 10° rule after the hit | 60/60 | −9.7 [−14.2, −5.3] | +0.0036 | 0 | 0.03 |
+
+- A degrees cap alone leaves the hard pushes: the push of a turn grows with speed. The push cap is the speed-aware
+  form; a slow rider keeps a tight exit (and its air), a fast one gets a gentle one.
+- 0.6 costs nothing measurable and removes two thirds of the unrecorded hard pushes; tighter caps start to cost air.
+- The two incomplete rides stopped on the compiler's consistency check ("main construction differs"), the fault seen
+  before in baseline rides.
+- **Candidate:** terraces and folds out; degrees cap 20°; push cap 0.6. Not yet done: proper options instead of
+  environment switches, the abandoned v5 account and the rejection rule removed, parity references, the benchmark
+  panel, the owner's look at full rides.
+
+## November 15: the second review does not confirm the 10° rule
+
+38 answers (`labels/studies/motion-2026-11b.jsonl`): 35 clean, 3 "a little", none "clearly". By class: baseline with a
+turn after the hit above 15° (up to 35°): 7 of 8 clean; baseline with a reversal above 12° (up to 27°): 5 of 6 clean;
+baseline within the rule 6 of 6; turns of 10–15°: 8 of 8; rides under the rule: 9 of 10. Within the rule 16 of 17 clean,
+outside it 19 of 21. Calm 6 of 8 clean, intense 18 of 19. Owner: some answers sat between clean and a little; "let's
+not read too much into it"; on the full rides he finds the rule "definitely cleaner".
+
+- **What it shows:** once terraces and folds are out, stretch by stretch he finds almost everything clean, whatever my
+  readings say. In the first round the readings mostly separated terraces and folds from the rest; that was the
+  family, not a property I had isolated. The 10° limits are not supported.
+- **What stays supported:** terraces and folds out (both rounds, no cost); the large upturned tips he named on full
+  rides (48°, 63°, and three of 21–29° in a row in a calm passage), which are also where the unrecorded hard pushes are.
+- **Not explained:** why the full rides under the rule read cleaner to him when the stretches do not differ.
+
+## November 15: the limit's cost curve, songs outside the 20 specs, a second review round (experiment)
+
+- **Limit 15° instead of 10°** (`LINE_GROUND_LIMIT=15`, 3 seeds): −4.1 [−8.8, +0.5] against the baseline (10°: −9.7);
+  12.3% of sections then exceed the 10° rule (turning after the hit 8.6%), unrecorded pushes 0.18 per ride (10°: 0.03).
+- **Default specs of Luna Bala, Tiki Tiki, L'amour de ma vie**, seeds 101–303, terraces and folds out in both arms:
+  the rule holds in every section; score differences −13, −40, −18, −20, −14, −3, −31, +12 (8 pairs, mean −16).
+  One baseline ride (Luna Bala 303) stopped on the compiler's own check ("main construction differs at support 65"),
+  the second sighting of that fault (the first: Petrunko `build` 101).
+- **Second review** `/motion-review/index.html?study=motion-2026-11b`: 38 fresh stretches, seed 202 of 8 specs, plain
+  look, blind. Classes in the key: baseline with a turn after the hit above 15° (8), baseline with a reversal after the
+  hit above 12° (6), baseline within the rule (6), rides compiled under the rule (10), turns of 10–15° from the looser
+  limit (8). It tests the rule on clips it was not fitted on and places the limit.
+
+## November 15: the smooth-ground rule, what it costs and why (experiment, not adopted)
+
+All on 20 specs × seeds 101, 202, 303, v3 account, terraces and folds out; differences against that baseline
+(`notf3`, 754.6), paired by spec, 95% bootstrap over specs (`paired.ts`, `cost.ts`, `bumpsrc.ts`, `airloss.ts`).
+
+| variant | score | hit error | air rms | speed rms | viable candidates | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|
+| baseline | 754.6 | 0.0092 | 0.040 | 0.060 | 66% | 0.57 |
+| both parts on all touched ground, by rejection | −23.1 [−27.7, −18.7] | +0.0022 | +0.0034 | +0.0062 | 53% | 0.05 |
+| the same, supports drawn with gentle exits | −16.6 [−21.7, −11.7] | +0.0017 | +0.0038 | +0.0045 | 58% | 0.00 |
+| reversal part alone | −12.7 [−17.5, −8.2] | +0.0014 | +0.0002 | +0.0038 | | 0.58 |
+| late-turn part alone (gentle exits) | −5.9 [−11.0, −1.1] | +0.0006 | +0.0025 | +0.0024 | | 0.05 |
+| **both parts, only on ground touched after the hit's frames, gentle exits** | −9.7 [−14.2, −5.3] | +0.0007 | +0.0036 | +0.0027 | 61% | 0.03 |
+| the same at twice the budget, against the baseline at twice the budget | −6.5 [−11.6, −1.3] | +0.0006 | +0.0051 | +0.0009 | | 0.08 |
+
+- **Gentle exits by construction** (`LATE_RADIUS` in `arc_geometry.ts`: from 6 frames after the catch the heading
+  changes no faster than 9° per 30 px) recover a third of the rejection's cost: the search is offered compliant
+  supports instead of refusing lips.
+- **Two thirds of the refused reversals sat on ground touched within the hit's own frames** (in the baseline: 22%
+  of sections there, 10% after). On the owner's answers, judging only the ground after the hit is more precise (15
+  flagged, 2 clean, against 21 flagged, 6 clean) and misses, among his "clearly", only two folds. Hence the rule's
+  final form: what the ground does within the hit's frames belongs to the hit.
+- **What is left is air.** With the final form the loss is in gaps asking 0.6 air or more (rms 0.046 → 0.052, bias
+  −0.018 → −0.023): a gentle launch needs more ground than a lip. Twice the budget returns 5.6 points to the rule and
+  2.4 to the baseline; at twice the budget the difference is air alone.
+- In every variant with the rule, every ride completes and no section breaks the rule in the final track.
+- Open: the 10° limits (the owner's clean stretches stop at 8°, his named lips start at 21°; nothing judged between);
+  songs outside these 20 specs; the owner's eye on the result.
+
+## November 15: the smooth-ground rule, three seeds (experiment, not adopted)
+
+**The rule** (`ground_smoothness.ts`, on with `LINE_GROUND=on`), on the lines the rider touches in a section:
+no reversal of more than 10° within 60 px anywhere; after the hit's own 6 frames, no turning of more than 10° within
+30 px. A candidate that breaks it is rejected. On the owner's 41 answers (fitted after the fact): "turning after the
+hit above 8°" flags 11 stretches, 1 of them clean; "reversal of 12° or more" flags 17, 4 clean; either flags 15 of
+the 18 not-clean stretches and passes 18 of the 23 clean ones. The upturned tips he named (5 s, 7 s, 23 s) measure
+48°, 63°, 21–29° after the hit.
+
+**Where lips come from:** a support's heading goes from the catch to the exit by `easing(w, bias)`; a large bias puts
+the whole turn in the last frames, limited only by a 24 px minimum radius.
+
+**20 specs × seeds 101, 202, 303**, v3 account (`tools/measure/body/paired.ts`; paired by spec, 95% bootstrap over specs):
+
+| | complete | score | hit error | air rms | speed rms | sections breaking the rule | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|---|
+| today | 59/60 | 754.2 | 0.0090 | 0.041 | 0.059 | 45.4% (bumps 35.3%, lips 23.2%) | 0.71 |
+| no terraces, no fold | 60/60 | 754.6 | 0.0092 | 0.040 | 0.060 | 35.8% | 0.57 |
+| no terraces, no fold, the rule | 60/60 | 731.5 | 0.0114 | 0.043 | 0.066 | 0.0% | 0.05 |
+
+- Leaving terraces and folds out: score +2.2 [−2.1, +6.8], 11 specs up, 9 down. No measurable cost.
+- The rule on top: −21.1 [−26.3, −15.9] against today, all 20 specs down; hit error +0.0022 (20 of 20 up), speed
+  +0.0064 (17 up), air +0.0021 [−0.0006, +0.0048]. Every ride completes and no section breaks the rule in the final
+  tracks.
+- The hard pushes the account does not record nearly vanish without any change to the account.
+- Corrected during the analysis: a first count gave 21% of lips left; it had counted the next support, touched up to
+  two frames before its beat, as ground after the hit.
+- Not shown: that the owner sees the difference (videos in `generated/videos/smooth3/`, a fresh blind round is the
+  test); the usual benchmark panel; whether aiming at the rule instead of rejecting recovers score.
+
+## November 15: a smoothness limit on the ground the rider touches (experiment, not adopted)
+
+`ground_smoothness.ts` `roughestReversal`: along each chain of lines, at every change of the bend's direction, the
+degrees undone within 60 px each side; only turning points within 30 px of a touched line count. `LINE_GROUND=10`
+rejects a candidate above 10°; `LINE_REPERTOIRE` limits the planner's families. 20 picked specs, one seed, v3 account
+(`tools/measure/body/ground.mjs`; rough = a section whose ground under the rider reverses 12° or more within 60 px):
+
+| | rough sections | score | hit error | air rms | speed rms | fallbacks per ride |
+|---|---|---|---|---|---|---|
+| today | 28.9% | 763.1 | 0.0086 | 0.039 | 0.058 | 0 |
+| limit 10° | 8.3% | 665.6 | 0.0162 | 0.074 | 0.084 | 4.0 |
+| no terraces, no fold | 19.0% | 756.0 | 0.0091 | 0.040 | 0.059 | 0 |
+| no terraces, no fold, limit 10° | 0.1% | 739.6 | 0.0108 | 0.040 | 0.065 | 0 |
+
+- Terraces and folds cannot meet the limit (corners and steps by definition): with it they stay rough (74%, 85%) or
+  fall back, and the search pays about 100 points fighting them.
+- Without them the limit costs 16 points and removes rough ground (arcs 12% → 0%, scallops 46% → 1%, serpentine
+  46% → 0%). Leaving them out alone costs 7.
+- Rejection is a blunt form; the reading fitted the owner's 41 answers after the fact and is not confirmed on fresh
+  clips. Videos: `generated/videos/smooth/` (plain look).
+
+## November 15: the owner's motion review (41 answers) and what they say
+
+`/motion-review/` (blind page, plain renders, one hit-to-hit stretch per clip, the part judged = the rider on the
+track). Answers in `labels/studies/motion-2026-11.jsonl`, key beside it; `tools/measure/body/answers.mjs`,
+`answers_fit.mjs`, `wiggle.mjs`. Scale: 0 clean, 1 a little, 2 clearly, 3 badly (never used).
+
+- **The family decides.** Terraces mean 1.38 (7 of 8 not clean), fold 1.13 (6 of 8), scallops 0.67 (4 of 6 "a
+  little"), arcs 0.25 (7 of 8 clean), fragments 0 (7 of 7 clean), serpentine 0 (4 of 4 clean).
+- **My measures predict little.** Stretches where they saw much unasked motion: mean 0.79; where they saw almost
+  none: 0.50. Correlation with the answer: loudest unasked push 0.42, rocking degrees 0.14. Terraces and folds are
+  marked where the measures see nothing; fragments, serpentines and arcs are clean where they see a lot.
+- **Calm against intense:** 0.76 against 0.54. No sign that intense passages are worse (17 and 24 clips).
+- **What does predict them (found after the answers, so a hypothesis):** the sharpest reversal of the ground's
+  direction within 60 px under the rider, in degrees undone: correlation 0.67. At 12° or more, 14 of 18 stretches are
+  not clean, including all 8 "clearly" but one arc; under 12°, 19 of 23 are clean (the 4 misses are scallops marked
+  "a little"). In frames: a terrace is a row of small bumps, a fold a zigzag of straight pieces; an arc marked clean
+  has the rider upside down on a smooth curve. He reads the small-scale shape of the ground, not the momentum.
+- The serpentines he remembered as smooth are smooth: their reversals are 7–11° within 60 px.
+- Owner's note: he does not love the guide rail, not new, not marked each time.
+- Consequence: the unasked-motion account (v5) is not what answers this complaint. The late hard turn stays a
+  defect of the measure to fix on its own.
+
+## November 15: independent review of the unasked-motion work (Opus 5.5; findings, nothing changed)
+
+- **The shaped families are required to turn back and forth between beats** (verified in the code). One section is one
+  gap between two hits. A family's heading is a function of the position along the section only
+  (`geometry_families.ts`: fold corners at 1/3 and 2/3, scallops and serpentine sine reversals, terraces four steps
+  each about one frame long in a short section). The construction check rejects a shaped section that does not
+  reverse (`repertoire_layout.ts`: at least 2 turn reversals, 20° of turning in contact, 1 reversal of 8° or more in
+  contact; `repertoire_realization.ts`: the early, middle and late parts all ridden). A charge can only shrink these
+  toward the check's minimum; it cannot put them on the music. Under v5 they are already shrinking (degrees undone
+  per contact-second: terraces 14 → 9, scallops 12 → 7, serpentine 9 → 4), which is a risk to variety.
+- **v5's form is wrong in two ways.** The 0.06 floor applies per 2-frame window, so it is a threshold: a 0.2 push
+  spread over 6 frames is charged 0.012. And a steady push is charged with the root of its duration: an even curved
+  slide (Valhalla `still-drop`, 4.3–5.2 s) costs 0.23, more than the hit asked there; 46% of v5's motion cost is in
+  runs longer than 10 frames, 45% on arcs. The reviewer's proposal: charge the change of the push, no floor.
+- **Motion moved rather than vanished, in part:** second pushes inside event windows 8 → 22; unmatched touchdowns
+  327 → 489, most after 3 or fewer air frames (micro-hops); quiet hits louder (bias +0.034 → +0.069), which accounts
+  for part of "drowned 41% → 9%".
+- **Rocking:** a per-contact charge misses the owner's own example (11.25 s: up in one contact, back in the next, one
+  air frame between; verified). Proposal: the whole-ride angle path cut at sign changes of the rotation rate, each
+  swing after the first charged (|swing| / 180°)², only the swing starting at a matched hit exempt, the charge deferred
+  until the swing ends. Scale uncalibrated.
+- **A different structure for the objective** (proposal): one motion allowance over time, rising to the ask at each
+  beat and zero between; the charge is the sudden motion above it. No event identity, so no windows or hops.
+- Checked and sound: incremental and cold detection agree; the matching exclusion; event order.
+- Not met: the rule that a measure is validated on the owner's labels before it is optimized.
+
+## November 15: the unasked-motion measure on 20 specs, and rocking (experiment, not adopted)
+
+Owner on the v5 videos: the hard turns at the end of long slides are largely gone; the rider still rotates back and
+forth within one geometry (Valhalla `still-drop` at 9 s and 11 s), unrelated to the music; rotation in the air is fine.
+
+- **20 picked specs, one seed, v3 compiler against v5** (`tools/measure/body/panel.ts before v5`):
+
+| | quiet hits drowned | hits followed by louder unasked motion | hit error (mse) | air rms | speed rms | rocking |
+|---|---|---|---|---|---|---|
+| v3 | 41% | 9.5% | 0.0086 | 0.039 | 0.058 | 22.9°/s |
+| v5 | 9% | 2.2% | 0.0109 | 0.050 | 0.066 | 19.8°/s |
+
+- **Rocking** (`rocking.mjs`): the sled angle cut into swings of 4° or more; at each reversal, the degrees undone.
+  Both sections the owner named are terraces with 26° and 36°. Over the 59 v3 rides: arcs 17°/s (18% of sections
+  with 20° or more), fragments 27, serpentine 29 (50%), scallops 32, terraces 34, fold 36. The same at every ask level.
+- **Why v5 misses it:** v5 charges whole-body momentum change per 2 frames, squared, above 0.06. A rotation pushed
+  one way then back cancels inside a window, and spread over several frames each part is under the floor.
+- **A momentum reading of it is weak:** spin impulse that cancels within a contact correlates 0.45–0.60 with the
+  angle rocking and fires on landings that do not rock. The angle (or the whole-body rotation, which the account's
+  frames already hold) is the direct reading.
+
+## November 15: unasked motion charged (experiment on `exp/visible-motion`, not adopted)
+
+- **First attempt, rejected:** events redefined (floor 0.8 → 0.2, a renewed strike starts at most 3 frames before
+  its peak). The account's extras fell 36×on Valhalla `still-drop`, the independent readability measure barely moved
+  (quiet hits drowned 55% → 39%; Trouble `cycle` unchanged): within one compile the search put its pushes just past
+  the event window behind a shallow valley. Any rule about what counts as an event leaves such a place.
+- **Second attempt, `line.strike.v5`:** v3's events, plus one `motion` event for every run of contact frames that
+  belongs to no event: strength = root of Σ max(0, m − 0.06)² ÷ 1.5, m the 2-frame whole-body motion change that
+  measures a hit. It never matches a beat, so it is charged as an extra. Every contact frame is in a hit or charged.
+- **Existing 59 rides recounted:** hit error 0.0090, extras 0.0008 under v3, 0.0165 under v5.
+- **Compiled under v5, one seed each** (`tools/measure/body/clarity.ts`, replayed through the engine):
+
+| | quiet hits drowned | unasked ≥ the hit | mean loudest unasked | hit error | air / speed rms |
+|---|---|---|---|---|---|
+| Valhalla `still-drop` 303, before | 55% | 35% | 0.150 | 0.0013 | 0.047 / 0.041 |
+| after | 24% | 13% | 0.100 | 0.0039 | 0.067 / 0.058 |
+| Trouble `cycle` 202, before | 40% | 19% | 0.088 | 0.0085 | 0.039 / 0.076 |
+| after | 12% | 6% | 0.073 | 0.0139 | 0.043 / 0.065 |
+
+- The two hard turns at 5 s and 7 s are gone; between 10.5 and 16.5 s no unasked motion above 0.09.
+- **Costs:** hit error up (quiet touchdowns in the opening land at 0.22–0.33 for asks of 0.1); air and speed a
+  little worse. The search's learned proposals and ranking were built under v3 and are not adapted.
+- **Test of the form:** body shape moves with the push (r 0.57) about as much as with its change (0.60); a steady
+  push moves it 60% as much per unit. No case for charging only changes; the soft floor keeps resting on a line free.
+- Videos: `generated/videos/visible/`. Not yet done: more songs and seeds, loud songs, the paired panel, parity
+  references, an independent review.
+
+## November 15: how far the unseen body motion goes (measured; corrects the entry below)
+
+Owner: treat the root cause, check its extent first, own the investigation. Measured on the 59 handcrafted rides with
+`tools/measure/body/` (`visual.mjs`: travel, spin and shape push per frame from the trace, independent of the account;
+`extent.mjs`, `contrast.mjs`, `extent2.mjs`, `rows.mjs`).
+
+- **The window hole is the small part.** Of 4,477 whole-body motion changes of 0.25 or more, 93% are asked hits
+  recorded fairly; 3.6% (159, 19 of them ≥ 0.5) are the late-in-contact hits the 6-frame window misses.
+- **The large part: motion that is not an "event" is free, and it has a constant size.** Between asked hits, the
+  loudest unasked motion averages 0.11–0.15 whatever the music asks. After a hit asked above 0.7 it is never as large
+  as the hit; after a hit asked at 0.15 or less it is at least as large as the hit 46% of the time, at least half of
+  it 69%. Quiet passages are where the beat cannot be read.
+- **Where it comes from:** the launch off the support the rider landed on (57%), bumps while riding it (39%).
+  16% of contacts hold two or more separate pushes of 0.3 px/frame² or more.
+- **The search sits under the threshold.** Unasked push peaks by smoothed size: 355 at 0.6–0.7, 283 at 0.7–0.8, 144 at
+  0.8–0.9 (the event floor is 0.8).
+- **By family** (loudest unasked motion ≥ 0.25 after a hit): arcs 7%, serpentine 7%, fold 8%, scallops 11%, fragments
+  14%, terraces 19%. Arcs are cleaner, not clean.
+- **Not separate causes:** body shape change (93% during contact, 7% within 0.2 s after, 0.2% later: it follows the
+  pushes); timing (for asks ≥ 0.3 the visible peak is on the beat frame 78%, within one frame 94%).
+- **Open:** rotation in the air (mean 2.4°/frame, 10% of air frames above 6°/frame) is smooth and uncharged; strong
+  asks come out softer (0.74 seen for 0.85 asked). One smooth launch push the size of a quiet hit: the owner called
+  such a section smooth, so separate pushes and reversals matter more than one push's size.
+- **Squared motion:** error of asked hits against their ask 54; unasked motion over all frames between hits 389
+  (overlapping 2-frame windows, so several times, not seven).
+
+## November 15: body jolts the score does not see (diagnosis, nothing changed)
+
+The owner, on the handcrafted videos: sharp turns that compress the rider with nothing in the music (Valhalla
+`still-drop` at 5 s and 7 s), and undulating ground that keeps the body moving (11–16 s; Trouble `cycle` near 8.4 s).
+He ranks this above specification work. Measured on the 59 handcrafted rides (`tools/measure/body/`, rough scripts
+over a ride's recorded trace):
+
+- **Hard hits recorded as nothing.** Valhalla `still-drop` seed 303: whole-body motion change of 0.83 at 5.00 s and
+  0.93 at 7.28 s (the account's own strength formula, any 2 frames); the account records 0.09 at 4.53 s and 7.10 s.
+  Cause, in `detectStrikes`: a renewed strike starts at the valley before its peak and its strength is read in the 6
+  frames after that start. On a long slide the push rises slowly for 20 frames, then the lip turns about 50° in 30 px;
+  the peak falls outside the window. 36 such hits of 0.4 or more in 59 rides, 16 of 0.6 or more, mostly at the end of
+  long slides in calm openings (all four Valhalla variants, 2–7 s).
+- **Why the search builds them:** the lip sheds speed (10.9 → 7.5 px/frame) and launches the rider, which serves the
+  speed and air targets, at no impact cost. The motion preference charges speed gains, not losses.
+- **Undulation.** The six sections the owner called hovering between 11 and 16 s are terraces and a fold; the ones he
+  called smooth are arcs. Per second of quiet section (ask ≤ 0.3): arcs 2.1 pushes of 0.3 or more and 102° of sled
+  swing; terraces 4.2 and 166°; folds 4.6 and 150°; scallops 3.4 and 101°. Pushes under 0.8 px/frame² inside a contact
+  are steering in the account and cost nothing.
+- **What the account cannot see at all:** the body's shape. It reads the centre of mass and the spin; the owner reads
+  compression of the body as impact.
+- **Inventory** (`tools/measure/body/inventory.mjs`, 6,316 recorded events): the body's shape change over 3 frames
+  correlates 0.60 with the account's motion change at the same events, so hits of equal strength compress the body
+  very differently. Asked hits are measured about right where they are recorded (asks 0.8–1: recorded 0.74, real
+  0.75); the quietest asks peak 2 frames after their recorded start. Which of the two the owner's eye follows is not
+  known; no labels of his exist on body compression.
+
+## November 15: five songs, four handcrafted specifications each
+
+Valhalla, Trouble, Amor na Praia (46 s), Bones and Petrunko each have three new variants built on one stated idea, and
+one revisit of their best earlier specification (`productions/<song>/variants/`; the idea and the reason for each number
+are in each file's header). Landing tables use `table` (`core/measured.ts`), which snaps each row to its measured event.
+An independent review checked every header claim against the data; its findings are applied.
+
+Compiled on seeds 101, 202, 303; all 20 match every asked landing. Videos and numbers:
+`generated/videos/handcraft/index.html`. Scores 658–869.
+
+- **Where the ride falls short:** landings asked at 0.8 or more come out at 0.70–0.86 on average; worst on Petrunko
+  `build` (0.52: seven roll strokes 0.3 s apart) and wherever strong hits are closer than about 0.45 s.
+- **A compiler fault:** Petrunko `build`, seed 101 fails every time with "main construction differs at support 70"
+  (the consistency check in `automatic.ts`), on a clean tree. For the compiler work.
+- Close pairs, by the reviewer: Valhalla `two-voices` and `still-drop` after 30 s; Trouble `stop-go` and `cycle`
+  (curves and sparseness differ, landings less); Bones `turn` and `draft-revisited`.
+## November 15: the arrival law from level (adopted on the owner's go-ahead; `foundation-7`)
+
+- **Soft-end variants** (V8, 8 seeds, against `foundation-6`; the owner's Tiki voice-drums, 4 seeds): law from 5°,
+  gain 2: +7.4, Tiki asks 0–0.1 within ×1.5 63%, 0.1–0.2 86%, score 766.1; from level, gain 2: +3.4 [+1.3, +5.4],
+  Tiki 80% / 89%, 758.8; **from level, gain 2.4: +6.3 [+3.2, +9.4], Tiki 70% / 89%, 774.9** (`foundation-6`: 83% / 95%,
+  762.9; 40 Tiki beats under 0.1, about ±7 points of noise). Chosen: from level, gain 2.4, now one parameter:
+  the arrival heading is the angle whose tangent is 2.4 × the ask's push over the next beat's speed.
+- **The adopted law against `foundation-6`** (branch `adopt/arrival-law`; checks: tests 626, typecheck 0, reach
+  clean, parity references refreshed in their own commit, judge parity passes):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | other |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+6.2 [+4.3, +8.1]** | 35 / 8 | +12.0 | 3.40 → 4.13 (+22%) | 0.18 → 0.16 (−8%) | very strong bias −0.177 → −0.169; small quiet asks within ×1.5 58% → 64%, over ×2 21% → 16%; asks of 0 8% → 12% |
+| V7.1 | 8 | +3.4 [−1.7, +8.6], support 0.92 | 25 / 10 | +6.0 | 3.80 → 4.85 (+27%) | 0.08 → 0.12 | head-down strong arrivals −6% |
+| held out | 4 | +11.4 [−12.7, +35.5] | 4 / 0 | – | 3.31 → 4.04 (+22%) | 0.08 → 0.24 (a few events) | head-down −18% |
+
+  Every ride finished on every panel; air, speed, rails, families and clean upper hits unchanged. The owner's Tiki
+  voice-drums: score 762.9 → 774.9; quiet asks 0–0.1 within ×1.5 83% → 70% (the one measure that is worse; small
+  sample), 0.1–0.2 95% → 89%.
+- **Merged into `compiler` on the owner's go-ahead** before his look at the pages ("if there is anything to fix, we
+  can do it after the merge"). Named reference `foundation-7`. Open: his eye on the pages; the softest asks on slow
+  passages (his Tiki spec); aimed launches for shaped families (parked).
+
+## November 15: the arrival law's soft end (stated before running)
+
+On the owner's Tiki voice-drums (4 seeds), the cleaned law lands quiet beats less well than `foundation-6`: asks
+0–0.1 within ×1.5 63% (83%), 0.1–0.2 86% (95%); mean score 766.1 (762.9). Its quiet stretches are slow (speed asked
+about 0.38), where the law wants 14–18° for asks near 0.1 (a slow rider needs a steeper arrival for the same push);
+arrivals before its quiet beats: median 13°, p90 24° (`foundation-6` with the level prior: 10°, 17°). The data table
+(`arrival_law.ts`) has whispers landing best at 0–10°. The law starts too steep at the soft end.
+- **Variants** (`exp/law-0g2`, `exp/law-0g24`): the law from level, base 0° (instead of 5°), gain 2 and 2.4 (the
+  second keeps the strong end where it was). **Hypothesis:** quiet asks on the Tiki spec back to `foundation-6`'s level
+  or better; V8 headline and strong asks about as before.
+## November 15: the arrival law, cleaned and measured on every panel (ready for the owner's eye; not adopted yet)
+
+- **Design.** One arrival law for every catch: the heading it wants is 5° + the angle whose tangent is 2 × the ask's
+  push over the next beat's speed (`arrivalLawHeading`, `arrivalTargets` in `arc_evaluate.ts`; `arrivalLaw` in
+  `repertoire_search.ts`). Ranking prefers it with one weight at every ask; aimed launches (`proposeAimedLaunches`,
+  arcs and scattered sections) offer the 6 best candidates again with their support's exit turned toward it, all and
+  half the way, aimed by gravity and corrected once by measurement. It replaces three rules: the steep heading before
+  strong asks, the level heading before quiet asks (removed with `levelArrivalBelow`) and the broad heading prior
+  (kept only for configurations without the law). The steep step still sets the kinetic arrival speed, the upright
+  preference and the search effort before strong asks. Quiet misses priced in proportion (`relativeImpact`) stay.
+- **Proof of the cleanup.** Parity references were taken from the tested candidate (`exp/law-impulse2`), then the
+  cleanup checked against them: identical. On V8 (784 rides) the cleaned branch reproduces the candidate's result to
+  the decimal. A unit test pins the law (`tests/arrival_law.test.ts`). Tests 625 (+1), typecheck 0, reach clean,
+  judge parity passes.
+- **Against `foundation-6`** (branch `adopt/arrival-law`):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+5.3 [+3.6, +7.0]**, every seed block up | 38 / 5 | +12.5 | 3.40 → 4.13 (+22%) | 0.18 → 0.20 | −0.177 → −0.166 |
+| V7.1 | 8 | +2.5 [−0.3, +5.3], support 0.96 | 24 / 11 | +1.6 | 3.80 → 4.83 (+27%) | 0.08 → 0.13 | better by 0.014 |
+| held out | 4 | −0.4 [−34.0, +33.3] | 2 / 2 | – | 3.31 → 3.96 (+20%) | 7 against 1 in 1,460 beats | – |
+
+  Every ride finished on every panel. Air, speed, rails, families, clean upper hits and head-down arrivals unchanged.
+  The held-out extra impacts are 7 against 1 over 1,460 beats, 6 in one song (Petrunko), all just above the 0.25
+  threshold (0.25–0.31): small, real, and consistent with the other panels.
+- **Body drag** (an unvalidated proxy; the owner: "not a huge issue for me") rises with the steeper strong arrivals
+  that carry the gain: the catch folds the rider onto the line; rails' share of it is unchanged.
+
+## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds), all with aimed launches:
+
+| | headline | seed blocks up | specs up / down | explicit | body drag | strong extra impacts | very strong bias | small quiet asks within ×1.5 / over ×2 |
+|---|---|---|---|---|---|---|---|---|
+| `foundation-6` | | | | | 3.40 s/min | 0.18 | −0.177 | 58% / 21% |
+| linear ≤ 55°, heading prior kept | +6.8 [+4.8, +8.7] | 16 / 16 | 35 / 8 | +5.4 | +24% | +14% | −0.169 | 61% / 14% |
+| linear ≤ 55°, heading prior dropped | +7.2 [+4.5, +9.9] | 15 / 16 | 35 / 8 | +6.4 | +29% | +24% | −0.170 | 63% / 16% |
+| speed-aware gain 2, heading prior dropped | +5.3 [+3.6, +7.0] | 16 / 16 | 38 / 5 | +12.5 | +22% | +15% | −0.166 | 65% / 15% |
+
+- The three are within each other's noise on the headline. The speed-aware law is the most principled (no cap,
+  adapts to the next beat's speed, one rule fewer) and the most consistent (every seed block and 38 of 43 specs up),
+  with the best explicit requests and quiet asks and the least body drag and extra impacts of the three.
+- Air, speed, rails, families and head-down arrivals unchanged in all.
+
+## November 15: the arrival law challenged (results at 8 seeds)
+
+V8, 8 seeds, against `foundation-6`, all with aimed launches:
+
+| | headline | explicit | body drag | strong extra impacts | small quiet asks within ×1.5 / over ×2 | very strong bias |
+|---|---|---|---|---|---|---|
+| linear ≤ 55°, heading prior kept | +8.8 [+6.3, +11.3] | +7.4 | +26% | +26% | 62% / 15% | −0.168 |
+| linear ≤ 55°, heading prior dropped | +8.7 [+7.0, +10.4] | +9.6 | +31% | +41% | 63% / 17% | −0.169 |
+| speed-aware, gain 1.5, heading prior dropped | +0.9 [−2.1, +3.9] | +7.8 | +4% | +55% | 62% / 18% | −0.177 |
+| speed-aware, gain 2, heading prior dropped | +7.4 [+5.3, +9.5] | +12.4 | +24% | +35% | 67% / 15% | −0.164 |
+
+- Dropping the contradictory heading prior is neutral: it goes. What carries the gain is how steep strong beats arrive
+  (about 50–55°): every form that gets there gains 7–9; those that stay shallower (gain 1.5, cap 45°) lose it; body
+  drag follows steepness in every case.
+- Running: the two finalists (linear ≤ 55° and speed-aware gain 2, both without the heading prior) at 16 seeds.
+
+## November 15: where body drag comes from; the arrival law challenged (stated before running)
+
+- **Body drag** (`tools/research/body_drag.ts`, V8 4 seeds; `foundation-6` against the law ≤ 55° with aimed launches):
+  3.35 → 4.10 s/min. 94% of it starts within 10 frames of a catch (3.14 → 3.82): it is the catch folding the rider
+  onto the line. Half is on a rail in both (1.62 → 2.00 on a rail, 1.73 → 2.10 on main lines only): rails are where
+  the body often lands, and the law does not change that share. The rise comes from catches arriving at 30° or more
+  (30–45°: 0.45 → 1.04; 45°+: 0.47 → 0.78; under 30°: 2.43 → 2.28), most after strong beats (+0.41 s/min), then middle
+  (+0.25), quiet (+0.09). Catches from above carry a large share in both (1.45 → 1.75).
+- **The law challenged** (owner: keep the idea, make the implementation sounder): (a) the broad heading prior
+  (penalty beyond 45° for asks under 0.8) contradicts the law (up to 55°) and is superseded by it; (b) a catch's push
+  is about the speed carried into the line, speed × sin of the arrival against it, so the wanted angle should depend on
+  the next beat's speed too: base + atan(gain × push(ask) / speed), no cap needed (it saturates). Gain 1.5 matches the
+  linear law at a typical speed (5° at ask 0, 36° at 0.5, 55° at 1 for 9.4 px/frame), steeper when slow, shallower
+  when fast.
+- **Runs** (V8, 8 seeds, against `foundation-6`; beside the law ≤ 55° at the same seeds, +8.8): `exp/law-noheading`
+  (linear law ≤ 55°, heading prior dropped); `exp/law-impulse15` and `exp/law-impulse2` (speed-aware law, gain 1.5 and
+  2, heading prior dropped); all with aimed launches. **Hypothesis:** dropping the contradictory prior helps or is
+  neutral; the speed-aware law matches or beats the linear one with no cap.
+
+## November 15: the arrival law ≤ 55° at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds): headline **+6.8 [+4.8, +8.7]**, every one of the
+16 seed blocks positive, 35 specs up, 8 down; explicit +5.4; very strong bias −0.177 → −0.169; small quiet asks within
+×1.5 58% → 61%, over ×2 21% → 14%; asks of 0 within ×1.5 8% → 10%; air, speed, ride character, head-down arrivals
+unchanged; body drag 3.40 → 4.21 s/min (+24%); strong extra impacts 0.18 → 0.20 (+14%).
+- One continuous law (5° + 80° × ask, at most 55°) replaces the steep and level arrival headings (two switched
+  priors), and launches are aimed at it before every beat: no threshold between quiet and other beats.
+- Not adopted: the owner judges by eye (`strong-pairs.html`; body drag is an unvalidated proxy); V7.1 and held out not
+  yet run. If adopted, the cleanup removes the level prior and the steep prior's heading (its speed and upright parts
+  stay) and keeps `arrivalTargets` as the one definition.
+
+## November 15: the arrival law's cap (measured)
+
+V8, 8 seeds, against `foundation-6`, the law 5° + 80° × ask with aimed launches, capped at:
+
+| cap | headline | specs up / down | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|
+| 70° | +8.6 [+6.5, +10.7] | 39 / 4 | +40% | +48% | −0.160 |
+| 55° | +8.8 [+6.3, +11.3] | 36 / 7 | +26% | +26% | −0.168 |
+| 45° | +0.3 [−3.3, +3.9] | 17 / 26 | +7% | +37% | −0.178 |
+| 40° | −5.0 [−9.2, −0.7] | 7 / 36 | −2% | +54% | −0.185 |
+
+- The gain is strong beats arriving at 45–55° and more; the extra body contact comes with exactly those arrivals (a
+  harder catch folds the rider onto the line). Below 45° the gain disappears and extra impacts stay. 55° is the best
+  trade measured. Quiet asks are about the same at every cap (small asks within ×1.5 62–64%).
+- Matched strong beats (same beat, same ride, seed 101; 40 drawn at random): body-contact frames 379 today, 437 with
+  the law ≤ 55°. Page for the owner: `generated/quiet-study/strong-pairs.html`.
+- Running: the law ≤ 55° at 16 seeds.
+
+## November 15: the arrival law (results so far)
+
+V8 against `foundation-6`:
+
+| | seeds | headline | specs up / down | explicit | very strong bias (−0.176) | body drag s/min (3.42) | strong extra impacts |
+|---|---|---|---|---|---|---|---|
+| law (5° + 80° × ask, ≤ 70°), prior only | 8 | +6.1 [+3.7, +8.5] | 38 / 5 | +8.3 | −0.161 | 4.88 (+43%) | +43% |
+| law ≤ 70° + aimed launches | 8 | +8.6 [+6.5, +10.7] | 39 / 4 | +12.0 | −0.160 | 4.80 (+40%) | +48% |
+| law ≤ 70° + aimed launches | 16 | **+6.9 [+4.4, +9.4]** | 37 / 6 | +12.1 | −0.160 | 4.66 (+37%) | +27% |
+| law ≤ 55° + aimed launches | 8 | **+8.8 [+6.3, +11.3]** | 36 / 7 | +7.4 | −0.168 | 4.31 (+26%) | +26% |
+
+- The gain is mostly strong beats landing closer to their ask; clean upper hits 11.6% → 12.3–13.0%; air and speed
+  flat; quiet asks about as close as `foundation-6` with the level pull (small asks within ×1.5 59–63%).
+- Body drag (6+ frames of butt, shoulder or hands on a line; an unvalidated eye proxy, reported, never optimized) and
+  strong extra impacts rise; the steepest arrivals cause most of that and little of the gain (≤ 55° keeps the gain
+  with two thirds of the drag rise and half the extra-impact rise).
+- Running: caps 45° and 40° at 8 seeds.
+
+## November 15: one continuous arrival law (stated before running)
+
+The owner challenged the cliff between quiet and other beats (the level prior acts under 0.3, the steep one from 0.4,
+nothing between) and asked for something more general, measured with more seeds and on every statistic.
+- **Data** (`tools/research/arrival_law.ts`, `foundation-6`, V8 4 seeds, 17,392 catches): the arrival heading that goes
+  with well-landed catches (smallest relative miss, speed kept after) rises smoothly with the ask: 0–10° for asks under
+  0.2; anywhere 10–30° lands well for 0.2–0.45; 30–60° for 0.45–0.6; 45° and steeper for 0.6–1.0 (asks 0.8–1.0: 95%
+  within ×1.5 from 60°+, 53% from 0–10°). Today's median arrival is 17–36° whatever the ask: too steep for whispers,
+  too shallow for hard hits.
+- **Change** (`exp/arrival-law`, option `arrivalLaw`, off by default: parity identical): one arrival heading for every
+  ask, 5° + 80° × ask, at most 70°, pulled with the same weight at every ask; it replaces the steep and level
+  priors' headings (their speed and upright parts stay). Variant **prior** (`exp/arrival-law-prior`): the law only;
+  variant **aimed** (`exp/arrival-law-aimed`): plus launches aimed at it before every beat.
+- **Measured** at 8 seeds on V8 against `foundation-6`, then 16 for the better one: every ruler; quiet and strong asks;
+  stray hits; variety; arrivals by ask.
+- **Hypothesis:** strong asks closer (very strong bias above −0.176) and quiet asks closer; headline up; no cliff in
+  arrivals by ask; variety kept.
+
+## November 15: aimed launches only before quiet beats (the cleanest form; exploratory, not adopted)
+
+V8, 8 seeds, against `foundation-6` (758.3): headline **+2.3 [−1.2, +5.9]**, support 0.92, 16 specs up, 16 down, **11
+identical** (no quiet asks: the proposal never acts); explicit +2.8; small quiet asks within ×1.5 55% → 63%, over ×2
+22% → 17%; asks of 0 within ×1.5 8% → 13%; strong asks unchanged (−0.176); stray strong hits 0.13 → 0.15; ride
+character unchanged.
+- Of the three forms (level before every beat +1.1, steep and level +1.5, level before quiet beats only +2.3), this
+  one is the most consistent with the compiler: one definition of the wanted arrival shared with ranking
+  (`arrivalTargets`), acting only where a beat asks a soft hit, rides without quiet asks untouched. Level before every
+  beat gave the most quiet gain (69%) by also changing arcs before ordinary beats (345 of 427 at seed 101).
+- 73 of 4,397 committed arcs (seed 101) come from it. Gallery for the owner: `generated/quiet-study/aimed-level.html`.
+- Kept on `exp/aimed-arrivals` (option `aimedLaunches`, off: parity identical) and `exp/aimed-level-on` (on).
+
+## November 15: aimed apex launches and aimed launches at 8 seeds; variety (measured)
+
+V8, 8 seeds (392 rides), against `foundation-6` (758.3 at 8 seeds):
+
+| | headline | small quiet asks (0–0.1) within ×1.5 / over ×2 | asks of 0 within ×1.5 | very strong bias | stray strong hits |
+|---|---|---|---|---|---|
+| `foundation-6` | | 55% / 22% | 8% | −0.176 | 0.13 |
+| aimed apex launches (level before every beat) | +1.1 [−2.4, +4.7] | 69% / 13% | 11% | −0.177 | 0.14 |
+| aimed launches (steep before strong, level before quiet) | +1.5 [−0.5, +3.5], support 0.94 | 61% / 17% | 16% | −0.177 | 0.19 |
+
+- Aiming steeper before strong beats does not help them (very strong bias unchanged) and adds stray hits (+39%): their
+  shortfall is in the catch, not the arrival (as the November impact studies found: the push is speed × turn at the
+  catch). The steep half is dropped from the idea.
+- **Variety** (`tools/research/flight_variety.ts`, V8 4 seeds): no version makes rides more uniform. Spread of arrival
+  headings within a ride: median 15.0° (`foundation-5`), 15.1° (`foundation-6`), 15.2° (aimed apex), 15.1° (aimed).
+  Launch, arrival and flight-length quantiles match within a degree or a frame. Before quiet beats arrivals moved from
+  −23° (median, `foundation-5`) to −19° (`foundation-6`); the launch proposals barely move that median (−20°): of 427
+  winning apex arcs (seed 101) 345 sit before ordinary or strong beats, and refinement keeps their exit (median shift
+  1.4°).
+- Running: aimed launches only before quiet beats (`aimedLaunches.levelOnly`, `exp/aimed-level-on`).
+
+## November 15: aimed launches, the general form of apex launches (exploratory; stated before running)
+
+The owner liked how aimed apex launches look, kept them out of the compiler, and asked to refine, generalize,
+simplify, measure with more seeds, challenge the logic, and keep rides from becoming uniform.
+- **The logic, challenged:** apex launches aim every launch at a level arrival, but the compiler already states what
+  arrival each catch wants, in its arrival priors: steep and fast before a strong beat, level before a quiet one,
+  nothing between. Strong beats still land too soft (asks 0.8–1.0 at −0.18). One mechanism serves both: aim each
+  launch at the heading that best satisfies those priors, weighted as in ranking.
+- **Change** (`exp/aimed-arrivals`, option `aimedLaunches`, off by default; on in `exp/aimed-arrivals-on`): the arrival
+  targets moved into one helper (`arrivalTargets`) used by the priors and the proposal (pure refactor: parity identical);
+  the 6 best-ranked candidates get twins moved all and half the way to that heading, aimed by gravity and corrected
+  once by measurement (as in aimed apex launches). Nothing is proposed where neither prior applies.
+- **Measured** at 8 seeds on V8 against `foundation-6`, beside aimed apex launches at 8 seeds; quiet and strong asks;
+  arrival headings; variety (spread of launch and arrival headings, flight lengths, families).
+- **Hypothesis:** quiet asks as close as aimed apex launches; strong asks closer (very strong bias less negative);
+  headline up; no loss of variety.
+
+## November 15: apex launches aimed by measurement (result; exploratory, not adopted)
+
+Against `foundation-6` (V8 758.8, V7.1 798.8), 4 seeds:
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5 / over ×2, V8 | same, V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|---|
+| `foundation-6` | | | 54% / 22% | 69% / 7% | 0.11 |
+| apex launches, first version | +0.7 | −0.5 | 70% / 15% | 65% / 5% | 0.14 |
+| **aimed by measurement** | −0.1 [−9.1, +8.9] | −1.2 [−10.8, +8.4] | **71% / 11%** | **74% / 7%** | **0.11** |
+
+- V7.1 asks 0.1–0.2 within ×1.5 87% → 88%, over ×2 3% → 0%. The quiet gain now holds on both panels; stray hits back
+  to `foundation-6`'s level.
+- The long spec: seeds 739, 750, 728, 722 (mean 734.8; `foundation-6` 722.4, `foundation-5` 748.7): about half the
+  loss recovered; impact rms on asks under 0.1 0.053 (0.086; 0.146 before the quiet-hit adoption); air before them
+  still short (−0.183): the trade in its asks remains.
+- 440 of 4,397 committed arcs (seed 101) come from aimed apex launches. Gallery for the owner's eye:
+  `generated/quiet-study/apex-aimed.html`.
+- Not adopted (the owner: new geometry needs great care); kept on `exp/apex-aim` (which also carries the report-only
+  probe rows).
+- Process: a V7.1 run started 20 s after a V8 run of the same candidate failed on the arm's generation lock, the second
+  time today. Comparisons that compile the same candidate must run one after the other.
+
+## November 15: apex launches aimed by measurement (exploratory; stated before running)
+
+The owner keeps apex launches out of the compiler ("new geometry has to be done very carefully") and asked to keep
+improving them. `tools/research/apex_work.ts` (V8 seed 101, report only) shows the first version never tried the
+shape it meant: its twins realised a third of the aimed change of arrival heading (aimed level from 16.8° falling,
+achieved 7.9°; halfway: aimed 9.1°, achieved 13.6°). The exit carries into the launch only in part: the rider leaves
+before the support's end, which eases into its exit.
+- **Change** (`exp/apex-aim`, `apexLaunches.aim`): after a twin is measured, its exit is corrected once by a secant
+  step through the original and the twin (the change at most three times the first). Measured: arrival 0.8° for a
+  level aim (median miss 0.8°, p90 23.6°), 83% of the aimed change realised; the twins rank better than their original
+  11% (level) and 16% (halfway) of the time.
+- **Hypothesis:** with the real shape tried, quiet asks closer than the first version on V8 (small asks within ×1.5
+  over 70%), and on V7.1; headline neutral or better against `foundation-6`.
+
+## November 15: apex launches, final round (not adopted yet; for the owner)
+
+All against `foundation-6` (V8 758.8, V7.1 798.8):
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5, V8 / V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|
+| `foundation-6` | | | 54% / 69% | 0.11 |
+| apex launches (6 candidates; all and half the way to an apex arrival) | +0.7 [−2.8, +4.2] | −0.5 [−9.7, +8.6] | 70% / 65% | 0.14 |
+| larger variant (12 candidates; a third, two thirds, all) | −1.7 [−9.6, +6.3] | | 62% / – | 0.17 |
+| air-length twin added | −1.5 [−4.1, +1.1] | | 70% / – | 0.15 |
+
+- V7.1, asks 0.1–0.2 within ×1.5: 87% → 92%; all asks under 0.3: 89% → 88%.
+- The owner's Tiki voice-drums (4 seeds): asks 0–0.1 within ×1.5 83% → 88%, 0.1–0.2 95% → 97%; mean score 762.9 →
+  768.5.
+- **Reading:** the shape is used (11% of committed arcs) and costs nothing on either panel, but its quiet gain holds on
+  V8 and the owner's spec, not on V7.1. Mixed evidence; more candidates did worse. The long spec's loss is a trade in
+  its asks (previous entry), which no launch shape removes.
+
+## November 15: the air-length twin (result), and why the long spec cannot be fixed by a shape
+
+- **Air-length twin** (`exp/apex-launch-air`; V8 against `foundation-6`): −1.5 [−4.1, +1.1]; quiet asks as with the
+  first apex launches; the long spec 725.5 (air before asks under 0.1 still −0.19). Dropped.
+- **The long spec's quiet beats follow very long gaps** (seed 101: spans 69–138 frames, 1.7–3.5 s, asking 80–92% air,
+  i.e. flights of 55–125 frames). No apex arrival exists there: a 125-frame flight caught at its top needs a launch of
+  about 22 px/frame upward. The energy-neutral flight (landing at its launch height, no speed gained) arrives falling
+  at about 54°; a soft catch there must then turn the rider up for the next long flight, and on a support of about 10
+  frames (10% of the gap) that turn is a hard hit. A long float, a whisper of a catch and a steady moderate speed
+  cannot all hold: something gives. `foundation-5` gave impact (+0.125 on asks under 0.1, air −0.14), `foundation-6`
+  gives air (−0.19, impact +0.07). This is a trade in the asks, not a missing shape.
+- Apex launches remain useful on shorter gaps (first version: small quiet asks within ×1.5 54% → 70% on V8, headline
+  +0.7). Running now: a larger variant (12 candidates; a third, two thirds and all the way) on V8, and the first
+  version on V7.1, both against `foundation-6`.
+
+## November 15: apex launches, first result; the air-length twin (stated before running)
+
+- **Apex launches** (V8 against `foundation-6`, 758.8): headline +0.7 [−2.8, +4.2], 19 specs up, 24 down; explicit
+  +7.0; strong extra impacts 0.11 → 0.14; air, speed and strong asks unchanged. Small quiet asks (0–0.1) within ×1.5
+  54% → 70%, over ×2 22% → 15%; 0.1–0.2 within ×1.5 99%. Taken up: 11% of committed arcs descend from an apex launch
+  (seed 101, `candidate_origins.ts`).
+- **But not on the long spec:** 722.4 → 726.8 (748.7 before the quiet-hit adoption); air before asks under 0.1 still
+  −0.19. The twin keeps its candidate's release frame, hence its flight time, and those flights were already too short.
+- **Next** (`exp/apex-launch-air`, option `apexLaunches.airFlight`): each twin is also offered with its support set to
+  the length the air ask implies (the interval's nominal support), launched for an apex arrival over that longer
+  flight. **Hypothesis:** air before quiet beats recovers on the long spec (toward −0.14) and its score toward 748.7;
+  the quiet gain stays; headline up against `foundation-6`.
+
+## November 15: apex launches (stated before running)
+
+The owner asked to try, properly and ambitiously, the missing shape noted at the adoption above: a release that
+launches steeply upward before a quiet beat, so the flight is long and caught near its top.
+- **Change** (`exp/apex-launch`, option `apexLaunches`, off by default: parity identical; on in
+  `exp/apex-launch-on`): after the early proposals, each of the 6 best-ranked candidates is offered again with its
+  support's exit turned so the flight it launches arrives at the next beat level (at its apex) or halfway to level.
+  The release frame, hence the flight time and the air, is kept; the launch heading follows from gravity (horizontal
+  speed is constant in flight: vy at release = vy at arrival − g × flight frames); the exit moves by the change of
+  launch heading. Not gated on the ask: offered before every catch, kept only where it ranks better (the level-arrival
+  preference rewards it before quiet beats; the steep one penalizes it before strong beats).
+- **Measured** against `foundation-6`, V8: every ruler; arrival headings and air and speed errors before quiet catches
+  (`tools/research/quiet_catches.ts`); quiet asks (`quiet_asks.ts`); the long spec.
+- **Hypothesis:** before quiet beats, more level arrivals from long flights; the air lost by `foundation-6` there comes
+  back (air error before asks under 0.1 back toward −0.14); the long spec recovers much of its −26; quiet asks stay
+  as close or closer; headline up against `foundation-6`.
+
+## November 15: level arrivals before quiet catches and quiet misses priced in proportion (adopted, the owner's choice; not finished)
+
+- **Adopted** (`exp/quiet-level-b`, cleaned): before a quiet beat the arrival is drawn toward level (the mirror of the
+  steep arrival before strong beats; full at ask 0, none from 0.3); the impact weight is multiplied by
+  ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07 counting as 0.07. It replaces the calm multiplier
+  (×1.5 under 0.2), now removed, with its `calmImpactMultiplier` option. The cleanup's tracks are byte-identical to
+  the tested candidate's (parity references taken from the candidate, then checked against the cleaned code).
+- **Measured against today's compiler** (`foundation-5`, 764.5), V8, 4 seeds: headline −5.7 [−10.5, −0.8]; explicit
+  −9.8; strong extra impacts 0.11 (0.10); speed and air rms flat; small quiet asks (0–0.1) within ×1.5 54% (38%),
+  over ×2 22% (42%); asks 0.1–0.2 within ×1.5 98% (94%). The owner's Tiki voice-drums: within ×1.5 83% and 95% (65%,
+  82%), mean score 762.9 (764.6).
+- **Not finished (the owner):** the loss gathers on specs asking much air before quiet beats (the long spec −26, all
+  four seeds): flights into quiet catches fly even less than before (air error −0.139 → −0.189 before asks under 0.1)
+  and the strong catches around them land weaker (impact rms 0.069 → 0.083). A level arrival is usually a short
+  flight. One possible answer, not tried: a release launching steeply upward before a quiet catch, so the flight is
+  long and caught near its top. Other answers may exist (TODO.md item 0).
+- Checks: tests 625 pass; typecheck 0; reach clean (the five research tools added these two days registered as
+  entries: rail_squeeze, ridable_work, quiet_asks, quiet_catches, quiet_work); parity references refreshed in their own
+  commit; parity and judge parity pass. Named reference `foundation-6`.
+
+## November 15: Q13 result (level arrival before quiet catches)
+
+V8 against `foundation-5` (a first run of both failed: the impact-search option validator did not know the new key;
+fixed, and a one-ride compile is now run before every comparison):
+
+| | headline | explicit | extra impacts | 0–0.1 within ×1.5 / over ×2 | exactly 0 within ×1.5 | speed rms |
+|---|---|---|---|---|---|---|
+| Q10 (pricing alone) | −5.4 | −14.4 | 0.28 | 58% / 25% | 12% | +0.003 |
+| Q13a (level prior alone) | −5.4 [−11.2, +0.3] | +6.2 | 0.07 | 34% / 38% | 2% | −0.002 |
+| Q13b (level prior + Q10 pricing) | −5.7 [−10.5, −0.8] | −9.8 | 0.11 | 54% / 22% | 8% | +0.001 |
+
+- The prior moves arrivals before quiet catches flatter: falling 30° or more 377 → 137 (Q13a) and 192 (Q13b) of 1,072;
+  5–15° 173 → 358 and 339; level (within 5°) only 24 → 37. The flight after a quiet catch is less fast (Q13a +0.023
+  against +0.045).
+- Q13b keeps Q10's quiet gain without Q10's stray hits (0.28 → 0.11, `foundation-5` 0.10), with speed and air flat.
+  The headline loss stays about 5.5, largest on the long spec (P6 −26 to −28 in both Q13 runs).
+- Small perturbations of the search have cost about 1–3 points throughout these weeks (R1–R4, Q2, Q6); part of any
+  loss here may be that, not the mechanism. Unproven.
+- **The owner's Tiki voice-drums under Q13b** (4 seeds): asks 0–0.1 within ×1.5 83% (today 65%), 0.1–0.2 95% (82%);
+  mean score 762.9 (764.6).
+
+## November 15: `foundation-5` (fewer rails, 6 px margin) on V7.1 and held out (measured; owner's choice stands)
+
+Against `foundation-3` (before the two rail changes), 4 seeds:
+- **V7.1:** headline −11.1 [−13.3, −8.9], 2 specs up, 33 down; explicit −6.1; every ride finished; rails 55% → 41% of
+  gaps, open arcs 36% → 47%, clean upper hits 8.1% → 10.3%; body drag −15%; strong extra impacts 0.07 → 0.10.
+- **Held out** (16 rides): −8.2 [−46.2, +29.8], 1 up, 3 down; rails 59% → 45%; clean upper hits 11.5% → 14.0%; body
+  drag −13%; head-down strong arrivals +11%.
+- Consistent with V8 (−9.0 then −0.5): the owner chose fewer rails knowing the score cost; nothing changes.
+- (A first held-out run failed on a generation lock: it shared the candidate's arm with the V7.1 run started 30 s
+  earlier. Runs that compile the same arm must not overlap.)
 
 ## November 15: what makes a quiet catch soft, and Q13: a level arrival before quiet catches (stated before running)
 
@@ -427,6 +1196,25 @@ V8, 4 seeds, against `foundation-4` (764.9), the rail-support margin alone chang
   margin, and rails 6–8 px from their support still pinch the rider in 47% of their touched frames, gaining +0.22
   px/frame beyond gravity. Everything from 8 px up costs score; shaped families lean on the squeeze there.
 - Not adopted yet; for the owner: 6 px is the recommended middle ground.
+
+## November 14: the old specifications rewritten, first batch (Tiki Tiki, Luna Bala, L'amour de ma vie)
+
+The owner asked to revisit the older specs, written when close hits and ride-outs were out of reach, in small batches. Each
+is a new variant written from scratch from the song's measured layers (`music.ts`); `spec.ts` is untouched because the
+benchmark panels compile it.
+
+| song | variant | landings (old) | gaps under 0.25 s (old) | four seeds, headline | ending |
+|---|---|---|---|---|---|
+| Tiki Tiki 48 s | `voice-drums` | 108 (77) | 28 (0) | 764–796 | low air held; on the line 39 of the last 45 frames (seed 202) |
+| Luna Bala 44 s | `voice-drums` | 127 (75) | 21 (0) | 721–750 | on the line the whole last second, every seed |
+| L'amour de ma vie 44 s | `drums-voice` | 101 (85) | 5 (0) | 667–736 | the cut ends mid-fill: no ride-out to ask |
+
+Every seed complete, no landing missing. What the rewrites change, beyond density: no landing where nothing sounds (L'amour's
+old spec had 18, and missed 24 of 90 drum hits); held chords and bass notes count on a half-beat even without a sharp attack;
+floats only where the music is empty; a ride-out is written as low air held to the last frame (most old specs ask 0.8 or more
+air at the end, which asks for a jump). Not heard by the author; videos in `generated/videos/rework-batch1/` for the owner.
+
+Believer (`productions/believer_78s`) is parked by the owner after two drafts.
 
 ## November 14: middle-ground rail margins (stated before running)
 
@@ -739,7 +1527,7 @@ variations. The owner's answers:
 **Collection: 38 themes.** Frozen as set `2026-11-13-round45`; ids reproduced by the test; stills rendered again identical. The two
 Paper variations take Paper's drop partners (not judged apart). Near-identical themes are drawn as often as any other for now
 (owner: to be settled with the sampling, no family concept yet). The lab fingerprint baseline is refreshed (more themes).
-||||||| ca6a0c6a
+
 ## November 14: the targeted cleanup of lines the rider goes through, adopted
 
 `compiler` now removes, after the ride is built, the pieces of lines the whole rider goes through and never touches

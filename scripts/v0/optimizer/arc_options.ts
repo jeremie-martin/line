@@ -64,8 +64,15 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   sectionStyles?: Record<number, SectionStyle>;
   /** Physical construction requirements by support index. */
   constructionRequests?: Record<number, ConstructionRequest>;
-  /** Motion-quality residuals and the calm-impact weighting. */
+  /** Motion-quality residuals. */
   motionQuality?: MotionSearchOptions;
+  /** Twins of the best-ranked candidates launching toward the arrival the next catch asks for (arc_proposals.ts). */
+  aimedLaunches?: {count: number; fractions: number[]};
+  /** The arrival law: the heading each catch wants, atan(gain × the ask's push / the next speed), in degrees
+   * (arc_evaluate.ts arrivalTargets). Supersedes the steep prior's heading and the broad heading prior. */
+  arrivalLaw?: {gain: number};
+  /** Quiet misses priced in proportion to the ask (arc_interval_state.ts openInterval). */
+  relativeImpact?: {reference: number; softness: number; askFloor: number};
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;
@@ -114,7 +121,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-  constructionRequests: 'keySection', motionQuality: 'key', impactSearch: 'key',
+  constructionRequests: 'keySection', motionQuality: 'key', aimedLaunches: 'search', arrivalLaw: 'key', relativeImpact: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',

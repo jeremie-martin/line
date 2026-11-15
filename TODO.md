@@ -2,6 +2,20 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+0a. **Aimed launches under gentle exits** (2026-11-15): no measurable effect at 4 seeds on V8 once exits are drawn
+   gently (REWORK.md). Measure at 16 seeds and by eye before keeping or removing them.
+
+0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
+   misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
+   (the long spec −26) lose air and their neighbouring strong beats, because a level arrival is usually a short
+   flight. Tried 2026-11-15 (REWORK.md, apex launches): releases launching toward an apex arrival are taken up (11%
+   of arcs) and cost nothing on V8 or V7.1; quiet asks closer on V8 and on the owner's Tiki spec, not on V7.1; not
+   adopted yet. The long spec's quiet beats follow 2–3 s floats asking 80–92% air: no apex arrival exists there and a
+   soft catch cannot turn the rider up for the next float, so the loss is a trade in its asks, not a missing shape.
+   Apex launches were then generalized into the arrival law (one speed-aware arrival heading for every ask, with
+   aimed launches): branch `adopt/arrival-law`, V8 +5.3 at 16 seeds, waiting for the owner's eye. Aimed launches for
+   shaped families: parked (owner).
+
 1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
    to −11% CPU, long case −27%, identical tracks).
 2. ~~**Owner review of the Trouble spec variants**~~ (rounds 1–4,
@@ -134,3 +148,15 @@ Each is a simplification to try, kept only if a paired compile and parity allow 
 - When TypeScript 7.1 ships its API, drop `@typescript/typescript6` from `reach`.
 - Try Bun soon: 35% less memory at equal speed matters to the owner, but not yet. It
   means a track rebaseline and moving the toolchain.
+
+## Parked idea: motion the music asks for between hits (owner, 2026-11-15)
+
+Today a specification asks for hits, air and speed; everything a shape does between two hits is unasked. Two ideas
+that may be one mechanism, both for later, after the unasked-motion work is closed:
+
+- **Features on the beat:** a shape spans several hits and its corners, steps and reversals land on them. Strongest
+  in calm passages, where every small movement could be specified; not to be built for calm passages only.
+- **Held sounds:** a held, modulated note (a voice, a trumpet) matched by a sustained, undulating ride.
+
+Neither has a measure or a place in the specification yet. The owner is also building a better fold and one more
+geometry on other branches.

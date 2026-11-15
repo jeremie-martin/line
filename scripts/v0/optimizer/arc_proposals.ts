@@ -9,7 +9,8 @@ import type { ArcMotionControl } from './arc_geometry.ts';
 import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
-import { evaluate } from './arc_evaluate.ts';
+import { evaluate, arrivalTargets } from './arc_evaluate.ts';
+import { searchRank } from './arc_candidates.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -178,6 +179,46 @@ export function proposeOpposingEntries(s: IntervalSearch) {
     for (const [key, count] of Object.entries(s.failures))
       work.failures[key] = (work.failures[key] ?? 0) + count - (beforeFailures[key] ?? 0);
   }
+}
+
+/** Aimed launches (REWORK.md, November 15): the best-ranked candidates again with their support's exit turned so the
+ * flight arrives at the next catch closer to the heading that catch asks for: the arrival law's (arrivalTargets, the
+ * same heading ranking prefers). Each candidate is moved each of `fractions` of the way. The release frame (flight time, air) is kept; horizontal
+ * speed is constant in flight, so the launch heading for an arrival heading follows from gravity: vy at release =
+ * vy at arrival − g × flight frames. The exit carries into the launch only in part (the rider leaves before the
+ * support's end, which eases into its exit), so the aim is corrected once from the measured response of the arrival
+ * heading to the exit (a secant step through the candidate and its first twin, the change at most three times the
+ * first). The search keeps a twin only where it ranks better. */
+export function proposeAimedLaunches(s: IntervalSearch) {
+  const {options, ctx} = s, cfg = options.aimedLaunches, aim = arrivalTargets(s);
+  if (!(cfg && cfg.count > 0 && aim?.law !== undefined && !options.profile && options.railLayout !== 'transfer')) return;
+  const target = aim.law;
+  const G = .175, deg = (r: number) => r * 180 / Math.PI;
+  const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.release !== undefined)
+    .sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);
+  const work = ctx.work.aimedLaunchWork;
+  for (const x of ranked) {
+    const frames = s.horizon - x.release!, vx = x.endSpeed * Math.cos(x.heading * Math.PI / 180);
+    if (!(frames > 2 && vx > 1)) continue;
+    const launched = deg(Math.atan2(vx * Math.tan(x.heading * Math.PI / 180) - G * frames, vx));
+    for (const f of cfg.fractions) {
+      const aimed = x.heading + f * (target - x.heading);
+      if (Math.abs(aimed - x.heading) < 1) continue;
+      const wanted = deg(Math.atan2(vx * Math.tan(aimed * Math.PI / 180) - G * frames, vx)), exit = x.c.exit + (wanted - launched);
+      work.attempts++;
+      const first = evaluate(s, tagOrigin({...x.c, exit}, 'aimed'));
+      if (!first) continue;
+      work.viable++;
+      const reached = first.candidate.heading;
+      if (Math.abs(reached - x.heading) <= .5) continue;
+      const step = (aimed - x.heading) * (exit - x.c.exit) / (reached - x.heading);
+      const corrected = x.c.exit + Math.sign(step) * Math.min(Math.abs(step), 3 * Math.abs(exit - x.c.exit));
+      if (!Number.isFinite(corrected) || Math.abs(corrected - exit) <= 1) continue;
+      work.attempts++;
+      if (evaluate(s, deriveOrigin({...x.c, exit: corrected}, x.c, 'aimed'))) work.viable++;
+    }
+  }
+  retainSearch(s);
 }
 
 /** Short folded entries before a long runout, for folded transfer layouts. */

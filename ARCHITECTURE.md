@@ -408,9 +408,18 @@ Every main curve starts with a straight lead-in laid back from its anchor (`arc_
 the entry and the arrival heading (the steeper for a surface met from above), so it never rises into the rider's path
 just before the catch (since 2026-11-13; REWORK.md).
 
+**Gentle exits** (`arc_geometry.ts`, since 2026-11-15; REWORK.md). The first 6 frames after a catch are the hit's
+own (the impact account's event window): there a support turns as sharply as the hit needs. After them it is drawn
+turning no faster than a 95 px radius (30 px of ground turn 18°) and no faster than keeps the push on the rider under
+0.6 px/frame² (radius ≥ speed² ÷ 0.6): a slow rider keeps a tight exit, a fast one gets a wide one. Nothing is
+refused for it: the rule is in how supports are drawn.
+
+**Parked families** (`repertoire_policy.ts` `PARKED`): terraces and folds stay defined and can be requested by name, but
+the default repertoire leaves them out. Their turns sit at fixed places of a section, where the music asks for nothing.
+
 Everything else is shared machinery. Plain `arcs` and `scattered` fragments
 are rows without a heading, and the planner, search and layout checks treat
-them by name. Row order is the default repertoire and the planner's draw
+them by name. Row order (without the parked families) is the default repertoire and the planner's draw
 order, so adding or reordering a row changes seeded plans. Adding a family is
 therefore a behavioural change, even though it touches only this module:
 
@@ -475,9 +484,25 @@ also compute speed-gain diagnostics. Its search profile is in
 log):
 
 - **Preparation:** 2 frames.
-- **Steep arrival before strong asks:** the catch before a strong beat gets a
-  steep, ask-driven arrival heading and speed, phased in smoothly from ask 0.4
-  (none) to 0.8 (all) rather than switched on at 0.6.
+- **The arrival law** (since 2026-11-15; `arrivalLaw` in `repertoire_search.ts`,
+  `arrivalTargets` and `arrivalLawHeading` in `arc_evaluate.ts`): every catch
+  wants one arrival heading, the angle whose tangent is 2.4 × the ask's push
+  over the next beat's speed: level for a whisper, steep for a hard hit,
+  shallower for a fast rider than a slow one for the same hit (a catch's push is
+  the speed carried into the line). Ranking prefers it with one weight at every
+  ask, and **aimed launches** (`proposeAimedLaunches`, arcs and scattered
+  sections) offer the best candidates again with their support's exit turned so
+  the flight arrives closer to it (all and half the way; aimed by gravity, then
+  corrected once by measurement). It replaced three rules: the steep heading
+  before strong asks, the level heading before quiet asks and the broad heading
+  prior. The steep step (ask 0.4 to 0.8) still sets the kinetic arrival speed,
+  the upright preference and the search effort before strong asks.
+- **Quiet misses priced in proportion** (since 2026-11-15; `relativeImpact` in
+  `repertoire_search.ts`, applied in `openInterval`): the impact weight is
+  multiplied by ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07
+  counting as 0.07; it replaced the calm multiplier (×1.5 under 0.2). Specs
+  asking long floats before quiet beats still trade some air for soft catches
+  (REWORK.md).
 - **Upright arrival:** steep and unguided passive catches share a soft
   preference against head-down or backward arrivals. This does not forbid
   inverted geometry or guided upper contacts.

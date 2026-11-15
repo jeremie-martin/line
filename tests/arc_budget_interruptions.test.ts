@@ -33,14 +33,15 @@ it('does not invent a usable curve when the first proposal cannot finish', () =>
 });
 
 it('commits a validated final curve without spending another frame to remember its arrival', () => {
-  // 1925: re-derived when local search began judging like ranking, 2026-11-07 (1850-2025 hold; it was 2100).
-  const result = compileArcMotion(spec, 17, {...options, memorySamples: 4, budget: 1925});
+  // Re-derived when supports took gentle exits, 2026-11-15: 2 remembered samples and 1975 (1900-2050 hold; with 4
+  // remembered samples no allowance ends on a retained curve any more). It was 4 and 1925.
+  const result = compileArcMotion(spec, 17, {...options, memorySamples: 2, budget: 1975});
   expect(result.failure).toBeNull();
   expect(result.rows).toHaveLength(spec.contacts.length + 1);
   expect(result.budgetInterruptions.at(-1)).toMatchObject({index: 6, retained: true});
   expect(result.impactEvaluation.valid).toBe(true);
   expect(result.report.terminus.reason).toBe('endOfSpec');
-  expect(result.stats.sim_frames).toBeLessThanOrEqual(1925);
+  expect(result.stats.sim_frames).toBeLessThanOrEqual(1975);
 });
 
 it('propagates non-budget evaluation errors', () => {

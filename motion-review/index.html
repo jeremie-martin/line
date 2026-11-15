@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motion review</title>
+<style>
+  :root{--bg:#f6f5f2;--panel:#ffffff;--ink:#141413;--ink2:#5d5c58;--line:#dddbd5;--accent:#2a6fd6;--focus:#e9b949;--on:#141413;--onink:#ffffff}
+  @media (prefers-color-scheme:dark){:root{--bg:#161615;--panel:#212120;--ink:#f0efec;--ink2:#a9a8a1;--line:#3a3a37;--accent:#5b9bf0;--focus:#d9a93a;--on:#f0efec;--onink:#161615}}
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+  main{height:100%;display:grid;grid-template-columns:auto minmax(280px,420px);gap:28px;justify-content:center;align-items:center;padding:16px}
+  .stage{display:flex;flex-direction:column;gap:8px;align-items:stretch;width:calc(min(78vh,860px)*9/16)}
+  video{height:min(78vh,860px);width:calc(min(78vh,860px)*9/16);background:#000;border-radius:6px;display:block;cursor:pointer}
+  video{outline:4px solid transparent;outline-offset:0;transition:outline-color .06s}
+  video.judge{outline-color:var(--focus)}
+  canvas{width:100%;height:44px;display:block;border-radius:4px;background:var(--panel);border:1px solid var(--line);cursor:pointer;touch-action:none}
+  .side{display:flex;flex-direction:column;gap:14px}
+  h1{font-size:20px;margin:0}
+  .count{color:var(--ink2);font-size:14px}
+  .q{font-size:18px;font-weight:600;margin:0}
+  .sub{color:var(--ink2);font-size:14px;margin:0}
+  .answers{display:grid;gap:8px}
+  button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:11px 12px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center}
+  button:hover{border-color:var(--ink2)}
+  button kbd{font:12px ui-monospace,monospace;color:var(--ink2);border:1px solid var(--line);border-radius:4px;padding:1px 6px;min-width:22px;text-align:center}
+  button.on{background:var(--on);color:var(--onink);border-color:var(--on)}
+  button.on kbd{color:var(--onink);border-color:var(--onink)}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tags button{padding:6px 10px;font-size:14px}
+  input[type=text]{font:inherit;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row button{padding:7px 10px;font-size:14px;color:var(--ink2)}
+  .primary{background:var(--accent);color:#fff;border-color:var(--accent);justify-content:center;font-weight:600}
+  .primary:disabled{opacity:.4;cursor:default}
+  #intro,#done{max-width:560px;margin:auto;padding:24px;display:flex;flex-direction:column;gap:14px}
+  #intro p,#done p{margin:0}
+  .hidden{display:none !important}
+  .legend{font-size:13px;color:var(--ink2);display:flex;gap:14px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:14px;height:8px;border-radius:2px;vertical-align:middle;margin-right:5px}
+  @media (max-width:760px){main{grid-template-columns:1fr;align-items:start}video{height:auto;width:100%;aspect-ratio:9/16}.stage{width:100%}}
+</style>
+
+<section id="intro">
+  <h1>Motion review</h1>
+  <p><span id="howMany">Short</span> stretches from the handcrafted videos, each about two to four seconds, played in a loop with the music.</p>
+  <p>The part to judge is where the rider is on the track between two asked hits, not the jump before or after. It is highlighted under the video, and the video gets a yellow frame while it plays. The question is the same every time: in that part, does the rider move in ways the music does not call for?</p>
+  <p class="sub">Answer with the keys 1 to 4. Click or drag on the bar to move in the clip; the arrow keys step back and forward. The tags and the note are optional. Your answers are saved as you go, and you can stop and come back. It takes about ten minutes.</p>
+  <button class="primary" id="start">Start</button>
+</section>
+
+<main id="app" class="hidden">
+  <div class="stage">
+    <video id="v" playsinline preload="auto"></video>
+    <canvas id="bar" width="1200" height="88"></canvas>
+    <div class="legend"><span><i style="background:var(--focus)"></i>the part to judge (rider on the track)</span><span><i style="background:var(--ink)"></i>asked hits (taller = stronger)</span></div>
+  </div>
+  <div class="side">
+    <div class="count" id="count"></div>
+    <p class="q">While the rider is on the track in the highlighted part, does it move in ways the music does not call for?</p>
+    <div class="answers" id="answers"></div>
+    <p class="sub">What it is, if anything (optional):</p>
+    <div class="tags" id="tags"></div>
+    <input type="text" id="note" placeholder="Note (optional)" autocomplete="off">
+    <button class="primary" id="next" disabled>Save and next <kbd style="color:#fff;border-color:#fff">Enter</kbd></button>
+    <div class="row">
+      <button id="pause"><kbd>Space</kbd> pause</button>
+      <button id="slow"><kbd>S</kbd> half speed</button>
+      <button id="left"><kbd>←</kbd> <kbd>→</kbd> step</button>
+      <button id="back"><kbd>B</kbd> previous</button>
+      <button id="skip"><kbd>N</kbd> skip</button>
+    </div>
+  </div>
+</main>
+
+<section id="done" class="hidden">
+  <h1>Done</h1>
+  <p id="doneText"></p>
+  <button id="again">Review the skipped ones</button>
+</section>
+
+<script type="module">
+const STUDY = new URLSearchParams(location.search).get('study') ?? 'motion-2026-11';
+const ANSWERS = [['clean', 'No, it is clean'], ['little', 'A little'], ['clearly', 'Clearly'], ['badly', 'Badly']];
+const TAGS = [['jolt', 'Jolt or sharp turn', 'q'], ['rocking', 'Rocks back and forth', 'w'], ['ground', 'Undulating ground', 'e'], ['busy', 'Hard to read', 'r']];
+const $ = id => document.getElementById(id), v = $('v'), bar = $('bar'), ctx = bar.getContext('2d');
+const manifest = await (await fetch(`/generated/label-studies/${STUDY}/manifest.json`, {cache: 'no-store'})).json();
+const clips = manifest.clips;
+$('howMany').textContent = `${clips.length} short`;
+let labeled = new Set((await (await fetch(`/api/labels/${STUDY}`)).json()).labeled);
+let index = -1, answer = null, tags = new Set(), shownAt = 0, history = [];
+
+$('answers').innerHTML = ANSWERS.map(([id, text], i) => `<button data-a="${id}"><kbd>${i + 1}</kbd>${text}</button>`).join('');
+$('tags').innerHTML = TAGS.map(([id, text, key]) => `<button data-t="${id}"><kbd>${key.toUpperCase()}</kbd>${text}</button>`).join('');
+
+function paint() {
+  const c = clips[index]; if (!c) return;
+  const css = getComputedStyle(document.documentElement), W = bar.width, H = bar.height, x = t => (t - c.from) / (c.to - c.from) * W;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = css.getPropertyValue('--focus'); ctx.globalAlpha = .6; for (const [a, b] of c.contact) ctx.fillRect(x(a), 0, Math.max(3, x(b) - x(a)), H); ctx.globalAlpha = 1;
+  ctx.fillStyle = css.getPropertyValue('--ink');
+  for (const h of c.hits) {const hh = 20 + h.impact * (H - 24); ctx.fillRect(x(h.t) - 2, H - hh, 4, hh);}
+  ctx.fillStyle = css.getPropertyValue('--accent'); ctx.fillRect(x(Math.min(c.to, Math.max(c.from, v.currentTime))) - 1.5, 0, 3, H);
+}
+function tick() {
+  const c = clips[index];
+  if (c && (v.currentTime >= c.to || v.currentTime < c.from - .05)) v.currentTime = c.from;   // loops without stopping
+  v.classList.toggle('judge', !!c && c.contact.some(([a, b]) => v.currentTime >= a - .04 && v.currentTime <= b + .04));
+  paint(); requestAnimationFrame(tick);
+}
+function refresh() {
+  for (const b of $('answers').children) b.classList.toggle('on', b.dataset.a === answer);
+  for (const b of $('tags').children) b.classList.toggle('on', tags.has(b.dataset.t));
+  $('next').disabled = !answer;
+  $('count').textContent = `${labeled.size} of ${clips.length} answered`;
+}
+function show(i) {
+  index = i; answer = null; tags = new Set(); $('note').value = '';
+  const c = clips[i];
+  if (!v.src.endsWith(c.video)) v.src = c.video;
+  const go = () => {v.currentTime = c.from; v.play().catch(() => {});};
+  if (v.readyState >= 1) go(); else v.addEventListener('loadedmetadata', go, {once: true});
+  shownAt = performance.now(); refresh();
+}
+function advance() {
+  const next = clips.findIndex((c, i) => !labeled.has(c.id) && !skipped.has(c.id) && i !== index);
+  if (next < 0) {
+    v.pause(); $('app').classList.add('hidden'); $('done').classList.remove('hidden');
+    $('doneText').textContent = `${labeled.size} of ${clips.length} stretches answered` + (skipped.size ? `, ${skipped.size} skipped.` : '. Thank you.');
+    $('again').classList.toggle('hidden', !skipped.size);
+  } else show(next);
+}
+const skipped = new Set();
+async function save() {
+  if (!answer) return;
+  const c = clips[index], note = [tags.size ? 'tags: ' + [...tags].join(',') : '', $('note').value.trim()].filter(Boolean).join(' | ');
+  const res = await fetch(`/api/labels/${STUDY}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({clip: c.id, skipped: false, answers: {unasked: answer}, note, viewMs: Math.round(performance.now() - shownAt), at: new Date().toISOString()})});
+  if (!res.ok) {alert('Could not save this answer. Check the server and try again.'); return;}
+  labeled.add(c.id); skipped.delete(c.id); history.push(index); advance();
+}
+function skip() {skipped.add(clips[index].id); history.push(index); advance();}
+function back() {const i = history.pop(); if (i === undefined) return; labeled.delete(clips[i].id); skipped.delete(clips[i].id); show(i);}
+function pause() {if (v.paused) v.play().catch(() => {}); else v.pause();}
+/** Move in the clip without changing whether it is playing. */
+function seek(t) {const c = clips[index]; if (c) v.currentTime = Math.min(c.to - .02, Math.max(c.from, t));}
+function seekAt(e) {const c = clips[index], box = bar.getBoundingClientRect(); if (c) seek(c.from + (e.clientX - box.left) / box.width * (c.to - c.from));}
+bar.addEventListener('pointerdown', e => {bar.setPointerCapture(e.pointerId); seekAt(e);});
+bar.addEventListener('pointermove', e => {if (bar.hasPointerCapture(e.pointerId)) seekAt(e);});
+function slow() {v.playbackRate = v.playbackRate === 1 ? .5 : 1; $('slow').classList.toggle('on', v.playbackRate !== 1);}
+
+$('answers').addEventListener('click', e => {const b = e.target.closest('button'); if (b) {answer = b.dataset.a; refresh();}});
+$('tags').addEventListener('click', e => {const b = e.target.closest('button'); if (b) {tags.has(b.dataset.t) ? tags.delete(b.dataset.t) : tags.add(b.dataset.t); refresh();}});
+$('left').onclick = () => seek(v.currentTime - .25);
+$('next').onclick = save; $('skip').onclick = skip; $('back').onclick = back; $('pause').onclick = pause; $('slow').onclick = slow; v.onclick = pause;
+$('again').onclick = () => {skipped.clear(); $('done').classList.add('hidden'); $('app').classList.remove('hidden'); advance();};
+document.addEventListener('keydown', e => {
+  if ($('app').classList.contains('hidden')) return;
+  if (e.target === $('note')) {if (e.key === 'Enter') save(); if (e.key === 'Escape') $('note').blur(); return;}
+  const k = e.key.toLowerCase();
+  if (k >= '1' && k <= '4') {answer = ANSWERS[+k - 1][0]; refresh();}
+  else if (k === 'enter') save();
+  else if (k === ' ') {e.preventDefault(); pause();}
+  else if (k === 'arrowleft') {e.preventDefault(); seek(v.currentTime - .25);} else if (k === 'arrowright') {e.preventDefault(); seek(v.currentTime + .25);}
+  else if (k === 's') slow(); else if (k === 'b') back(); else if (k === 'n') skip();
+  else {const t = TAGS.find(t => t[2] === k); if (t) {tags.has(t[0]) ? tags.delete(t[0]) : tags.add(t[0]); refresh();}}
+});
+$('start').onclick = () => {$('intro').classList.add('hidden'); $('app').classList.remove('hidden'); requestAnimationFrame(tick); advance();};
+</script>
+</html>

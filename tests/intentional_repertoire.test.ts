@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import {planIntentionalRepertoire} from '../scripts/v0/optimizer/intentional_repertoire.ts';
-import {constructions,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
+import {constructions,PARKED,planRepertoire,validateProductionPlan} from '../scripts/v0/optimizer/repertoire_policy.ts';
 import {inspectLayout} from '../scripts/v0/optimizer/repertoire_layout.ts';
 import {motionArc} from '../scripts/v0/optimizer/arc_geometry.ts';
 import {arcControlNormalizer} from '../scripts/v0/optimizer/arc_motion_control.ts';
@@ -29,7 +29,9 @@ describe('intentional arrangement',()=>{
   // Guided families are offered a guide; none is required, and no transfer is drawn.
   expect(quiet.some(r=>r.guidance==='optional'&&r.construction!=='scattered')).toBe(true);
   expect([...quiet,...energetic].every(r=>r.guidance!=='required'&&r.railLayout!=='transfer')).toBe(true);
-  expect(new Set(energetic.map(r=>r.construction)).size).toBe(constructions.length);
+  // Parked families (terraces, folds) are drawn only when a request names them.
+  expect(new Set(energetic.map(r=>r.construction)).size).toBe(constructions.length-PARKED.length);
+  expect([...quiet,...energetic].some(r=>PARKED.includes(r.construction))).toBe(false);
  });
 });
 describe('independent guide geometry and deliberate transfer',()=>{

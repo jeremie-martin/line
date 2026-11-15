@@ -27,7 +27,7 @@ import { clamp, measuredSong } from "../../scripts/v0/core/measured.ts";
 const song = measuredSong(import.meta.dirname);
 export type { MusicEvent } from "../../scripts/v0/core/measured.ts";
 export { clamp };
-export const { event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } = song;
+export const { event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes, table } = song;
 
 export const DURATION = 40.07;
 export const PHRASES_T = 9.97;

@@ -1,0 +1,368 @@
+{
+ "study": "hit-weight-2026-11",
+ "questions": [
+  {
+   "id": "weight",
+   "text": "Which hit has more weight?",
+   "options": [
+    "left",
+    "same",
+    "right"
+   ]
+  },
+  {
+   "id": "prefer",
+   "text": "Which do you prefer to watch?",
+   "options": [
+    "left",
+    "same",
+    "right"
+   ]
+  }
+ ],
+ "note": "In each clip, `second` names the side showing the second version of `tests` (the one with the named thing added, or the smaller scene, or carry).",
+ "clips": [
+  {
+   "id": "circus-move-large",
+   "song": "circus",
+   "tests": "The rider moves in the frame (old follower), large scene",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-move-small",
+   "song": "tiki",
+   "tests": "The rider moves in the frame (old follower), small scene",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-size-old",
+   "song": "tiki",
+   "tests": "Scene size, old follower",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-shake-liked",
+   "song": "tiki",
+   "tests": "Shake on the liked combination",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": true
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-shake-today",
+   "song": "tiki",
+   "tests": "Today's shake on and off",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-punch-old-small",
+   "song": "circus",
+   "tests": "Punch, old follower, small scene",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-size-pinned",
+   "song": "circus",
+   "tests": "Scene size, today's camera",
+   "left": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-carry-large",
+   "song": "tiki",
+   "tests": "The camera carries on at a hit, large scene",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-punch-old-large",
+   "song": "tiki",
+   "tests": "Punch, old follower, large scene",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-move-large",
+   "song": "tiki",
+   "tests": "The rider moves in the frame (old follower), large scene",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-liked-today",
+   "song": "tiki",
+   "tests": "The liked combination against today's camera, no shake",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-size-pinned",
+   "song": "tiki",
+   "tests": "Scene size, today's camera",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-liked-today",
+   "song": "circus",
+   "tests": "The liked combination against today's camera, no shake",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-punch-pinned-small",
+   "song": "tiki",
+   "tests": "Punch, today's camera, small scene",
+   "left": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-punch-old-small",
+   "song": "tiki",
+   "tests": "Punch, old follower, small scene",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-carry-old",
+   "song": "tiki",
+   "tests": "Carry against the old follower, small scene, punch",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-punch-pinned-large",
+   "song": "tiki",
+   "tests": "Punch, today's camera, large scene",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-carry-old",
+   "song": "circus",
+   "tests": "Carry against the old follower, small scene, punch",
+   "left": {
+    "follow": "old",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-carry-small",
+   "song": "tiki",
+   "tests": "The camera carries on at a hit, small scene, punch",
+   "left": {
+    "follow": "pinned",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 3.7,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  }
+ ]
+}

@@ -415,3 +415,15 @@ under every old-follower version, 15 px under today's.
   carrying on a little when the rider is stopped), against a ground slow enough to read; the punch strengthens it and
   is not enough alone. Three separate causes are confounded in the liked version: the follower, the smaller scene and
   the punch.
+
+## The pairs session (`hit-weight-2026-11`)
+
+`/generated/concept-lab/hit-pairs.html`: one strong hit looping with the music in two versions, switched in place, sides
+shuffled. Two answers per pair (which hit has more weight; which he prefers to watch), saved by the labels API to
+`labels/studies/hit-weight-2026-11.jsonl`; the list of pairs and which side holds which version is
+`labels/studies/hit-weight-2026-11.manifest.json`. 19 pairs (14 on Tiki, 5 repeated on Circus), each changing one thing:
+the rider moving in the frame (old follower against today's), scene size (6.2 against 3.7), the punch (13% at realized
+strength 0.85, at most 16%, centred on the rider or read by the old follower), today's shake, and **carry**
+(`hit-pairs-camera.mjs`): today's camera, where at each hit the rider moves on screen by its own change of velocity
+(0.033 s of it at the peak, out in about 0.1 s, back in about 0.5 s, from strength 0.3, full at 0.55). Carry is a first
+guess at getting the old follower's rebound from the measured hit alone; it is in three pairs.

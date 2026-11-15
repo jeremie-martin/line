@@ -1,0 +1,79 @@
+{
+ "study": "hit-dial-2026-11",
+ "questions": [],
+ "note": "answers: the settings chosen (carry as a multiple, punch as a fraction at strength 0.85, shake as a multiple of today's) and the random settings each trial started from.",
+ "clips": [
+  {
+   "id": "tiki-strong1",
+   "song": "tiki",
+   "kind": "strong",
+   "index": 0
+  },
+  {
+   "id": "circus-strong1",
+   "song": "circus",
+   "kind": "strong",
+   "index": 0
+  },
+  {
+   "id": "tiki-medium1",
+   "song": "tiki",
+   "kind": "medium",
+   "index": 0
+  },
+  {
+   "id": "circus-medium1",
+   "song": "circus",
+   "kind": "medium",
+   "index": 0
+  },
+  {
+   "id": "tiki-dense",
+   "song": "tiki",
+   "kind": "dense",
+   "index": 0
+  },
+  {
+   "id": "circus-dense",
+   "song": "circus",
+   "kind": "dense",
+   "index": 0
+  },
+  {
+   "id": "tiki-strong2",
+   "song": "tiki",
+   "kind": "strong",
+   "index": 1
+  },
+  {
+   "id": "circus-strong2",
+   "song": "circus",
+   "kind": "strong",
+   "index": 1
+  },
+  {
+   "id": "tiki-medium2",
+   "song": "tiki",
+   "kind": "medium",
+   "index": 1
+  },
+  {
+   "id": "circus-medium2",
+   "song": "circus",
+   "kind": "medium",
+   "index": 1
+  },
+  {
+   "id": "tiki-strong3",
+   "song": "tiki",
+   "kind": "strong",
+   "index": 2
+  },
+  {
+   "id": "circus-strong3",
+   "song": "circus",
+   "kind": "strong",
+   "index": 2
+  }
+ ]
+}

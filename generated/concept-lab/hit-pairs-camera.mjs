@@ -32,12 +32,13 @@ export function carryAt(kicks, time, zoom, {gain = 1, side = 1, dip = 0} = {}) {
     if (dip && age > -0.15 && age < 0.2) {const d = age < 0 ? smoothstep((age + 0.15) / 0.15) : Math.exp(-age / 0.03); dx += k.ux * d; dy += k.uy * d;}
   }
   x *= CARRY.gain * zoom * gain * side; y *= CARRY.gain * zoom * gain;
-  const d = Math.hypot(x, y), c = d > CARRY.cap ? CARRY.cap / d : 1;
+  const cap = CARRY.cap * Math.max(1, gain), d = Math.hypot(x, y), c = d > cap ? cap / d : 1;
   return {x: x * c + dx * dip * side, y: y * c + dy * dip};
 }
 export function versionFraming(v, scene) {
-  const hits = realizedHits(scene), P = punchSettings({peak: v.punch || 0.13, cap: 0.16}); // the historical punch never passed 13%
-  const punchAt = time => v.punch ? realizedPunchAt(hits, time, P) : 1;
+  // v.punch and v.carry are read at every frame, so a page may change them while playing; the punch never passes 1.25 × its peak
+  const hits = realizedHits(scene);
+  const punchAt = time => v.punch ? realizedPunchAt(hits, time, punchSettings({peak: v.punch, cap: v.punch * 1.25})) : 1;
   return (motion, level, hitTimes, songEnd) => {
     if (v.follow === 'old') {
       let c = motion.centres[0];

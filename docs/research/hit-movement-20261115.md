@@ -450,3 +450,18 @@ The second round (`hit-weight-2026-11-b`, 18 pairs, `?study=hit-weight-2026-11-b
 steady single answers are, builds on today's camera (carry on top of the shake, against the old follower with shake,
 7% and 13% punch), varies carry (less sideways, one and a half times, a drift into the hit) and the shake's direction.
 The second question is now whether the hit looks wrong in either version.
+
+## Answers to the second pairs (18), and the dials
+
+- **Single answers are not steady:** of three repeated pairs none came back identical (two moved to "same", the punch
+  on today's camera reversed). Only directions that agree across pairs are used.
+- **Across both rounds:** carry better in 4 pairs, same in 1, worse in 1 (better on top of the shake on both songs);
+  the shake alone beats carry alone, and today's direction beats "always downward" and "more vertical"; today's camera
+  with shake and carry equals the old follower with shake on both songs; the punch better in 5 of 8, and 7% beats 13%;
+  carry one and a half times beats carry, with its sideways part beats without, the drift into the hit changes nothing.
+  Nothing looked wrong in any pair.
+- **The dials** (`/generated/concept-lab/hit-dial.html`, study `hit-dial-2026-11`): because two close versions are hard
+  to tell apart, the owner sets the amounts himself. A passage loops; three dials (carry 0–3 times, punch 0–20% at
+  strength 0.85, shake 0–2 times today's) start at random places; the chosen and the starting settings are saved. 12
+  passages over the two songs: three strongest hits, two medium hits (0.55–0.7) and the densest 4 s of each. Today's
+  picture can be held or shown beside. Every amount follows the measured strength of the hit.

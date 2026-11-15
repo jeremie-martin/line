@@ -96,3 +96,18 @@ describe('isolating the old punch', () => {
     }
   });
 });
+
+it('vertical comparisons preserve current timing, amplitude and rebound', () => {
+  for (const normal of [{x:.6,y:-.8},{x:0,y:-1},{x:0,y:1},{x:1,y:0}]) {
+    const hs=[hit(1,.85,normal)];
+    for(const t of [.9,1,1.04,1.0833,1.2,2]) {
+      const a=motionAt('current',hs,t), b=motionAt('vertical',hs,t), c=motionAt('falling',hs,t);
+      expect(Math.hypot(b.dx,b.dy)).toBeCloseTo(Math.hypot(a.dx,a.dy),10);
+      expect(Math.abs(c.dy)).toBeCloseTo(Math.hypot(a.dx,a.dy),10);
+      expect(Math.abs(c.dx)).toBe(0);
+      expect(Math.abs(b.dx)).toBeLessThanOrEqual(Math.abs(a.dx)+1e-10);
+    }
+    expect(motionAt('falling',hs,1).dy).toBeGreaterThan(0);
+    expect(motionAt('falling',hs,1+1/12).dy).toBeLessThan(0);
+  }
+});

@@ -2,6 +2,8 @@
 import {hitEffectsAt, shake} from '../../scripts/video/hits.js';
 export const MODES = {
   current: ['Current shake', '28 px at strength 0.85; 6 Hz along the blow. One winning hit.'],
+  vertical: ['More vertical', 'Same current strength, timing and total displacement; horizontal direction reduced to one quarter, then normalized. Pure side hits remain sideways.'],
+  falling: ['Downward hit', 'Same current strength and oscillation; first movement always down, then the same rebound. A deliberate screen-direction experiment, including upper hits.'],
   still: ['No shake', 'No added shake; camera and colour effects remain.'],
   old: ['Old vibration', 'Recovered June–September law: 9 / 12.33 Hz, 10 px, 0.4°; accumulating decay. Measured peaks and the selected camera; no constant old overscan.'],
   recoil: ['Single recoil', 'One 18 px kick, then a smooth return without crossing rest.'],
@@ -23,6 +25,14 @@ const bump = (age, peak, end) => smooth(age / peak) * release(age, peak, end);
 export function motionAt(mode, hits, time, gain = 1, songTime = time) {
   if (!Object.hasOwn(MODES, mode)) throw new Error(`Unknown hit motion: ${mode}`);
   if (mode === 'current') {const {dx, dy} = hitEffectsAt(hits, time, gain); return {dx, dy, rotation: 0, scale: 1};}
+  if (mode === 'vertical' || mode === 'falling') {
+    const v = hitEffectsAt(hits, time, gain), d = v.direction;
+    // Signed amplitude preserves the exact winning hit, envelope and rebound.
+    const a = v.dx * d.x + v.dy * d.y;
+    const x = mode === 'falling' ? 0 : d.x * .25, y = mode === 'falling' ? 1 : d.y;
+    const n = Math.hypot(x, y) || 1;
+    return {dx: a * x / n, dy: a * y / n, rotation: 0, scale: 1};
+  }
   let dx = 0, dy = 0, rotation = 0, zoom = 0;
   if (mode === 'old') {
     let trauma = 0;

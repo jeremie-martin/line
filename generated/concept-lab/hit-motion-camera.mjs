@@ -3,7 +3,17 @@ import step from '/generated/hit-effects/follower.js';
 import {cameraZoomAt} from './hit-motion-zoom.mjs';
 import {W, H, createFraming} from '../../scripts/video/camera.js';
 const BODY = new Set(['BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT']);
+// Study magnification changes image scale only: keep the follower path identical.
 export function framingFor(mode, replay, scene, settings) {
+  const factor = settings?.viewZoom ?? 1;
+  const factory = baseFramingFor(mode, replay, scene, {...settings, viewZoom: 1});
+  if (factor === 1) return factory;
+  return (...args) => {
+    const frame = factory(...args);
+    return (...input) => {const v = frame(...input); return {...v, z: v.z * factor};};
+  };
+}
+function baseFramingFor(mode, replay, scene, settings) {
   if (mode === 'current') return createFraming;
   if (mode === 'measured-current') return (...args) => {
     const frame = createFraming(...args);

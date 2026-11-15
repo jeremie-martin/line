@@ -351,3 +351,28 @@ Checkpoint: full repository checks passed at the realized-punch implementation
 The subsequent all-camera browser check covers 180 frames across both songs.
 This section records the next experiment and limitations; it changes no runtime
 behaviour.
+
+
+## Scene size and vertical movement trials
+
+Hypothesis from the owner: a percentage zoom pulse may feel better when the rider
+starts smaller, because its absolute enlargement is smaller. The new scene
+magnification slider (0.5–1.5×) scales the final camera zoom around the rider while
+preserving the exact follower screen path, historical keyframe lane and percentage
+pulse. At half magnification, the rider's pixel-size increase is also halved.
+This is an isolation experiment, not a full historical-camera retuning: changing
+the historical follower's internal zoom would also change its dead zone and path.
+The setting is shared by both comparison arms and saved in comparison links.
+
+Two movement variants retain the current realized-strength response, winning hit,
+envelope, frequency and displacement magnitude. “More vertical” quarters the
+horizontal direction component then normalizes; exactly sideways hits stay
+sideways. “Downward hit” uses a downward initial displacement on every hit,
+including upper hits, with the original oscillating rebound. It deliberately
+ignores surface direction to test the falling impression. Neither changes split,
+colour or camera punch. Disable split when isolating these movements.
+
+Compare the same strong hit at 0.5×, 1× and 1.5× first with no shake and the
+historical keyframes/punch, then compare current / more vertical / downward hit.
+A song-wide change or a different hit cannot isolate scene-size preference.
+Production defaults remain unchanged; the owner has not judged these trials yet.

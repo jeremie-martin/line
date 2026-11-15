@@ -26,8 +26,8 @@ let mode = Object.hasOwn(MODES, q.get('effect')) ? q.get('effect') : 'recoil';
 let time = Math.max(0, Number(q.get('t')) || 9), home = time, playing = false, ticket = 0, entry, pictures = [];
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), cache = new Map();
 let hits = [], end = 48;
-for(const [id,key,min,max] of [['punchThreshold','threshold',.2,.8],['punchPeak','punch',0,30]]) {const v=Number(q.get(key));if(q.has(key)&&Number.isFinite(v))$(id).value=Math.max(min,Math.min(max,v));}
-const settings = () => punchSettings({threshold:Number($('punchThreshold').value),peak:Number($('punchPeak').value)/100});
+for(const [id,key,min,max] of [['punchThreshold','threshold',.2,.8],['punchPeak','punch',0,30],['viewZoom','magnification',.5,1.5]]) {const v=Number(q.get(key));if(q.has(key)&&Number.isFinite(v))$(id).value=Math.max(min,Math.min(max,v));}
+const settings = () => ({...punchSettings({threshold:Number($('punchThreshold').value),peak:Number($('punchPeak').value)/100}),viewZoom:Number($('viewZoom').value)});
 const gain = () => Number($('gain').value), offset = () => entry.scene.timing.offset;
 const look = () => resolveLook($('theme').value, {ends: 'none', hits: 'v1'});
 function error(e) {pause(); $('status').textContent = String(e.message ?? e); window.__loadError = String(e);}
@@ -38,6 +38,7 @@ let pictureEntry, pictureCamera, pictureSettings, responses = [];
 function rebuild() {
   if (!entry) return;
   const {scene, replay, sheet: sprites} = entry, responseSettings=settings(), settingsKey=JSON.stringify(responseSettings);
+  $('viewZoomValue').textContent=`×${responseSettings.viewZoom.toFixed(2)}`;
   $('thresholdValue').textContent=responseSettings.threshold.toFixed(2);$('peakValue').textContent=`${Math.round(responseSettings.peak*100)}%`;
   responses = ['current', mode].map(m => effectsAt(m, gain(), $('colour').checked, scene.timing.offset, $('split').checked));
   // Keep the renderer's large scratch canvases and prepared ride across effect switches.
@@ -253,6 +254,7 @@ for(const [key,[name]] of Object.entries(MODES)){const b=document.createElement(
 $('quickEffect').replaceChildren(...Object.entries(MODES).map(([key,[name]])=>new Option(name,key)));
 $('quickEffect').onchange=()=>{mode=$('quickEffect').value;showCurrent=false;rebuild();view();};
 $('song').onchange=()=>void load();$('theme').onchange=()=>{charts();draw();};$('camera').onchange=rebuild;
+$('viewZoom').oninput=()=>{showCurrent=false;rebuild();view();};
 $('gain').oninput=()=>{$('gainValue').textContent=`×${gain().toFixed(1)}`;rebuild();};$('colour').onchange=rebuild;$('split').onchange=rebuild;$('strength').oninput=single;
 $('single').closest('details').addEventListener('toggle', e=>{if(e.target.open)single();});
 $('play').onclick=()=>playing?pause():void play();$('rate').onchange=()=>{if(playing){pause();void play();}};
@@ -264,7 +266,7 @@ function view() {const single=$('view').value==='single';document.querySelector(
 $('view').onchange=view;$('switch').onclick=()=>{showCurrent=!showCurrent;view();};
 view();
 new ResizeObserver(()=>{if(entry){charts();draw();}}).observe($('curves'));
-$('share').onclick=async()=>{const u=new URL(location.href);u.search=new URLSearchParams({song:$('song').value,effect:mode,theme:$('theme').value,camera:$('camera').value,t:home.toFixed(3),gain:String(gain()),colour:$('colour').checked?'on':'off',split:$('split').checked?'on':'off',rate:$('rate').value,view:$('view').value,threshold:$('punchThreshold').value,punch:$('punchPeak').value});history.replaceState(null,'',u);try{await navigator.clipboard.writeText(u.href);$('status').textContent='Comparison link copied';}catch{$('status').textContent=u.href;}};
+$('share').onclick=async()=>{const u=new URL(location.href);u.search=new URLSearchParams({song:$('song').value,effect:mode,theme:$('theme').value,camera:$('camera').value,t:home.toFixed(3),gain:String(gain()),colour:$('colour').checked?'on':'off',split:$('split').checked?'on':'off',rate:$('rate').value,view:$('view').value,threshold:$('punchThreshold').value,punch:$('punchPeak').value,magnification:$('viewZoom').value});history.replaceState(null,'',u);try{await navigator.clipboard.writeText(u.href);$('status').textContent='Comparison link copied';}catch{$('status').textContent=u.href;}};
 document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;if(e.code==='KeyA' && $('view').value==='single'){e.preventDefault();$('switch').click();}if(e.code==='Space' && e.target.tagName!=='BUTTON'){e.preventDefault();playing?pause():void play();}});
 for (const id of ['baseline','candidate']) $(id).onclick=()=>playing?pause():void play();
 function tick(ts){try{if(playing&&entry){time=Math.min(end,music.position(shown(ts)));if(time>=($('loop').checked?Math.min(end,home+6):end)){pause();time=$('loop').checked?home:end;if($('loop').checked)void play();}draw();}}catch(e){error(e);}requestAnimationFrame(tick);}

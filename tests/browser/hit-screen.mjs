@@ -16,9 +16,16 @@ const result=await page.evaluate(async()=>{
     const centres=replay.frames.map(f=>{const ps=f.points.filter(p=>BODY_POINTS.includes(p.name));return {x:ps.reduce((s,p)=>s+p.pos.x,0)/ps.length,y:ps.reduce((s,p)=>s+p.pos.y,0)/ps.length};});
     const hits=prepareHits(scene.account,replay.contacts,centres,new Map(scene.track.lines.map(l=>[l.id,l]))),motion=rideSignals(centres),level=rideIntensity(motion.velocity.map(v=>v.speed),hits,scene.track.duration/40),hitTimes=hits.map(h=>({t:h.time-scene.timing.offset,s:h.strength}));
     const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1920;const look=resolveLook('hokusai',{ends:'none',hits:'v1'}),settings={threshold:.55,reference:.85,peak:.26,cap:.35,attack:.025,decay:.1};let count=0,maxError=0;
+    for (const viewZoom of [.5,1,1.5]) {
+    settings.viewZoom=viewZoom;
     for(const camera of ['current','old-six','old-ten','old-zoom','old-authored','old-punch','old-punch-locked','measured-punch','measured-locked','measured-current']){
       const factory=framingFor(camera,replay,scene,settings),frame=factory(motion,level,hitTimes,scene.span[1]);
-      for(const mode of ['still','roll','lens']){
+      const original=framingFor(camera,replay,scene,{...settings,viewZoom:1})(motion,level,hitTimes,scene.span[1]);
+      for(const t of [10.45,13.95,27.84]) {
+        const at=(t+scene.timing.offset)*40,a=frame(t,at,look),b=original(t,at,look);
+        if(a.ax!==b.ax||a.ay!==b.ay||Math.abs(a.z-b.z*viewZoom)>1e-12)throw Error('Magnification changed follower path');
+      }
+      for(const mode of ['still','roll','lens','vertical','falling']){
         const effects=effectsAt(mode,1,false,scene.timing.offset),picture=createPicture(canvas,scene,replay,sheet,N.riderPainter(),{effectsAt:effects,framing:factory});
         for(const t of [10.45,13.95,27.84]){
           const at=(t+scene.timing.offset)*40,pose=riderAt(replay.frames,at),world=picture.draw(t,look),expected=riderOnScreen(frame(t,at,look),effects(hits,t+scene.timing.offset),pose);
@@ -28,12 +35,14 @@ const result=await page.evaluate(async()=>{
         }
       }
     }
+    }
     out.push({song,frames:count,maxError});
   }
   return out;
 });console.log('Screen metrics agree with actual rendered transforms:',result);
 for(const song of ['tiki','circus']){
   await page.selectOption('#song',song);await page.waitForFunction(s=>window.__ready&&window.hitStudy.state().song===s,song);
+  await page.locator('#viewZoom').fill('0.5');await page.locator('#viewZoom').dispatchEvent('input');assert.equal(await page.locator('#viewZoomValue').textContent(),'×0.50');
   await page.click('#realizedComparisons button[data-camera="measured-locked"]');await page.click('#largerPunch');
   assert.equal(await page.locator('#punchPeak').inputValue(),'26');assert.equal(await page.locator('#screenCurves svg').count(),4);
   await page.locator('#screenComparison summary').click();await page.waitForSelector('#screenTable tr');assert.equal(await page.locator('#screenTable tbody tr').count(),11);

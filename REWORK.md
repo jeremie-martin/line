@@ -1,5 +1,11 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: scene size and vertical hit trials
+
+- Test the owner's scene-size hypothesis with a 0.5–1.5× magnification control that preserves follower screen position and percentage punch, including the historical combination. Share links retain the setting.
+- Add more-vertical and downward-first movement comparisons, retaining current realized strength, hit selection, timing and total displacement. Keep pure side-hit behaviour and the deliberately direction-agnostic downward mode explicit.
+- No production adoption. Compare the same passage with split off; use actual screen size and displacement diagnostics alongside the moving video.
+
 ## November 15: camera and impact study checkpoint
 
 - Record the owner's falling/bouncing impression as a hypothesis, not a settled explanation. Preserve the current camera's direction/readability constraints during comparisons.

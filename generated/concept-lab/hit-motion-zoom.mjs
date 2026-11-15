@@ -48,5 +48,5 @@ export function cameraZoomAt(mode, scene, frame, settings = PUNCH_DEFAULT) {
   };
   const f = Math.max(0, frame), i = Math.floor(f), a = sample(i), b = sample(i + 1), u = f - i;
   const base = a.base + (b.base - a.base) * u, zoom = a.zoom + (b.zoom - a.zoom) * u;
-  return {base, zoom, punch: 100 * (zoom / base - 1)};
+  return {base: base * (settings.viewZoom ?? 1), zoom: zoom * (settings.viewZoom ?? 1), punch: 100 * (zoom / base - 1)};
 }

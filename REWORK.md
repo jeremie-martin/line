@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: apex launches aimed by measurement (exploratory; stated before running)
+
+The owner keeps apex launches out of the compiler ("new geometry has to be done very carefully") and asked to keep
+improving them. `tools/research/apex_work.ts` (V8 seed 101, report only) shows the first version never tried the
+shape it meant: its twins realised a third of the aimed change of arrival heading (aimed level from 16.8° falling,
+achieved 7.9°; halfway: aimed 9.1°, achieved 13.6°). The exit carries into the launch only in part: the rider leaves
+before the support's end, which eases into its exit.
+- **Change** (`exp/apex-aim`, `apexLaunches.aim`): after a twin is measured, its exit is corrected once by a secant
+  step through the original and the twin (the change at most three times the first). Measured: arrival 0.8° for a
+  level aim (median miss 0.8°, p90 23.6°), 83% of the aimed change realised; the twins rank better than their original
+  11% (level) and 16% (halfway) of the time.
+- **Hypothesis:** with the real shape tried, quiet asks closer than the first version on V8 (small asks within ×1.5
+  over 70%), and on V7.1; headline neutral or better against `foundation-6`.
+
 ## November 15: apex launches, final round (not adopted yet; for the owner)
 
 All against `foundation-6` (V8 758.8, V7.1 798.8):

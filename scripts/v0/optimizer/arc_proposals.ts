@@ -205,8 +205,21 @@ export function proposeApexLaunches(s: IntervalSearch) {
       const r = evaluate(s, tagOrigin({...x.c, exit}, 'apex'));
       if (r) {
         work.viable++;
+        const aimed = deg(Math.atan2(vy * (1 - f), vx));
+        let t = r.candidate;
+        // The exit carries into the launch only in part (the rider leaves before the support's end, which eases into
+        // its exit): correct the aim once from the measured response of the arrival heading to the exit (a secant
+        // step through the original and this twin), the change at most three times the first.
+        if (cfg.aim && Math.abs(t.heading - x.heading) > .5) {
+          const slope = (t.heading - x.heading) / (exit - x.c.exit), step = (aimed - x.heading) / slope;
+          const corrected = x.c.exit + Math.sign(step) * Math.min(Math.abs(step), 3 * Math.abs(exit - x.c.exit));
+          if (Number.isFinite(corrected) && Math.abs(corrected - exit) > 1) {
+            work.attempts++;
+            const r2 = evaluate(s, deriveOrigin({...x.c, exit: corrected}, x.c, 'apex'));
+            if (r2) {work.viable++; t = r2.candidate;}
+          }
+        }
         // report only: [fraction, original arrival heading, aimed arrival heading, achieved, flight frames before/after, rank − original's]
-        const t = r.candidate, aimed = deg(Math.atan2(vy * (1 - f), vx));
         work.rows.push([f, x.heading, aimed, t.heading, frames, t.release !== undefined ? s.horizon - t.release : NaN, searchRank(t) - searchRank(x)]);
       }
     }

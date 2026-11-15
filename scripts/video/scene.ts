@@ -26,7 +26,7 @@ const SPECTRUM = {fps: 30, bands: 56};
 /** A requested impact: its physics frame as compiled, its requested strength, and its authored beat (seconds) when recorded. */
 export type Target = {frame: number; impact?: number; beat?: number};
 /** A measured impact (scripts/lib/strike_impact.ts), in physics frames: its half-rise onset (where the strike begins: the line
- * struck there gives its direction), its strongest frame (maximum contact acceleration: when the hit happens, round 23), and its
+ * struck there gives its direction), its strongest frame (maximum contact acceleration: when the hit happens), and its
  * strength. */
 export type ImpactEvent = {onset: number; peak: number; strength: number};
 export type Account = {targets: Target[]; events: ImpactEvent[]; matches: {target: number; event: number}[]};

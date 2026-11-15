@@ -1,5 +1,5 @@
 // The look of each video in a batch: a theme from the collection, sometimes one of its approved variants, and for a light theme
-// on a song with a drop, sometimes a dark partner at the drop. Half light, half dark (owner, 14 November), a drop only some of the time,
+// on a song with a drop, sometimes a dark partner at the drop. Half light, half dark, a drop only some of the time,
 // never chosen by hand. Themes too alike are drawn as one, then one of them, so a theme with four versions is not four times as
 // frequent as a theme with one. Pure: the same key always gives the same look.
 import {COLLECTION, DROPS, ALIKE, VARIANTS, LIT} from './collection.js';

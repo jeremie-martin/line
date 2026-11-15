@@ -1,13 +1,12 @@
 // A look: everything the picture can vary, as named options. One source of truth for the concept lab, the films and the
 // finished videos. V1 is the settled default, chosen with the owner in the visual lab (generated/concept-lab/LEDGER.md
-// has the owner's words per piece); a theme is a judged look of the collection. Pure: no DOM.
+// has his words per piece); a theme is a judged look of the collection. Pure: no DOM.
 import {SCHEMES, SCHEME_NAMES} from './palettes.js';
 import {COLOUR_RESPONSES} from './grade.js';
 import {COLLECTION} from './collection.js';
 
 /** Every option of every parameter, with its label (the lab shows these). Every frozen theme specification spells out every key
- * (rate/freeze.mjs), so the keys stay; the values are the ones production uses (those of earlier rounds are in git history before
- * 11 November). */
+ * (rate/freeze.mjs), so the keys stay; the values are the ones production uses. */
 export const OPTIONS = {
   scheme: ['Colour', SCHEME_NAMES],
   // `paper` is the saved look key, including frozen theme identities; the response now covers the whole palette.
@@ -36,17 +35,17 @@ export const OPTIONS = {
 };
 
 export const V1 = {
-  // camera: Follows direction (fixed in camera.js), the whole course at both ends (R1–R7); the zoom is the song's (zoom.js)
+  // camera: Follows direction (fixed in camera.js), the whole course at both ends; the zoom is the song's (zoom.js)
   zoom: 'steady', ends: 'course',
-  // line: pencil → ink as the rider passes (R1, R5); whole rail and all ink are themes' choices (R5–R6)
+  // line: pencil → ink as the rider passes; whole rail and all ink are themes' choices
   line: 'inking',
-  // band: low-middle (R3); the heat logic decides how many bars take the accent (R4); each theme chooses its form
+  // band: low-middle; the heat logic decides how many bars take the accent; each theme chooses its form
   band: 'none', accent: 'heat', bandHeight: 'lowmid',
-  // paper: how the colours answer the ride's intensity: vibrance on the soft-start curve, the paper half (R37, "a pure banger";
-  // grade.js); nothing at the top unless a theme asks; no drop treatment unless a theme asks
+  // paper: how the colours answer the ride's intensity: vibrance on the soft-start curve, the paper half (grade.js);
+  // nothing at the top unless a theme asks; no drop treatment unless a theme asks
   scheme: 'graphite', paper: 'vibranceSoftHalfPaper', top: 'none', drop: 'off',
-  // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun 16 px
-  // higher (R21). Round 22 confirmed the whole layout as it is.
+  // the rider's height (design pixels of 1080 × 1920, added to the camera's); with a sun, 32 px lower still and the sun
+  // 16 px higher
   riderLower: '0', sunRider: '32', sunLift: '16',
   // hits: each on its own, driven by what the ride did, from its strongest frame: the split and the colour boost, and on strong
   // hits a shake into the surface and carry out of it; no camera motion otherwise (hits.js has the response)

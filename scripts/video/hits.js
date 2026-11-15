@@ -1,5 +1,5 @@
-// Measured hits on the ride clock. No canvas, song offset, theme or recipe registry here.
-// Round 23: fire at the force peak; keep the direction of the line struck at onset.
+// Measured hits on the ride clock. No canvas, song offset or theme here. A hit happens at its force peak and keeps the direction
+// of the line struck at its onset.
 import {FPS} from './timing.js';
 import {smoothstep} from './camera.js';
 import {strength} from './intensity.js';
@@ -32,17 +32,17 @@ export function prepareHits(account, contacts, centres, byId) {
 }
 
 // The response: split, colour boost, and on strong hits a shake into the surface answered by carry out of it. Values keep growing above
-// 0.85; the high caps are safety nets. The rejected flash and rider zoom are recorded in the lab, not options.
+// 0.85; the high caps are safety nets.
 const ramp = (s, from, full) => (s - from) / (full - from);
 // Quadratic start, continuing on its tangent above the reference strength.
 const slowRise = s => {const x = ramp(s, 0.3, 0.85); return x <= 0 ? 0 : x <= 1 ? Math.pow(x, 2) : 1 + 2 * (x - 1);};
-// px: nothing below 0.55, an S-curve to 28 px at 0.85, gently on (R26; earlier and higher since round 50: "from 0.55, as the boost")
+// px: nothing below 0.55, an S-curve to 28 px at 0.85, gently on
 export const shake = s => Math.min(48, s <= 0.85 ? 28 * smoothstep(ramp(s, 0.55, 0.85)) : 28 + 40 * (s - 0.85));
-export const split = s => 17.64 * Math.min(3, 1.5 * slowRise(s)); // px (each colour moves 0.61 of it, split.js): a slow start from 0.3; a twentieth stronger since 2026-11-15
-export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on (R24–R26)
+export const split = s => 17.64 * Math.min(3, 1.5 * slowRise(s)); // px (each colour moves 0.61 of it, split.js): a slow start from 0.3
+export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35, 0.85)) : 1 + 1.5 * (s - 0.85)); // from 0.35, full ×1.5 at 0.85, gently on
 
-// The movement at a hit (2026-11-15, the owner's settings on the hit movement page, then whole rides): half the shake above,
-// and carry from strength 0.5 to 100 px at 0.85, out in 70 ms, settling back over 0.3 s.
+// The movement at a hit, as the owner set it on the hit movement page (generated/concept-lab/hit-move.html): half the shake
+// above, and carry from strength 0.5 to 100 px at 0.85, out in 70 ms, settling back over 0.3 s.
 const MOVEMENT = {shake: 0.5, carry: {start: 0.5, amount: 100, out: 0.07, back: 0.3}};
 /** The movement's settings per value of look.hits: {shake: multiple of the shake above; carry: its settings, or none; lit: the
  * strength from which a hit lights the band}. v1 is production; lit65 also lights the band for as long as a hit of at least 0.65

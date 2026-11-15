@@ -30,13 +30,12 @@ export function createSplit(canvas) {
       if (preCanvas.width !== w || preCanvas.height !== h) {preCanvas.width = w; preCanvas.height = h;}
       preCanvas.getContext('2d').drawImage(canvas, 0, 0);
     }
-    // Red moves along the blow, into the surface that was hit, and blue the opposite way (the owner, 2026-11-15; before, halfway
-    // between sideways and the blow).
+    // Red moves along the blow, into the surface that was hit, and blue the opposite way.
     const {x, y} = fx.direction, n = Math.hypot(x, y) || 1;
     const ox = HALF * a * x / n, oy = HALF * a * y / n;
     const m = Math.ceil(Math.hypot(ox, oy)) + 2;
     splitInto(ctx, canvas, ox, oy, m);
-    // Retain half the clean rider, in the same place, through the split (R4 / R12).
+    // Retain half the clean rider, in the same place, through the split.
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 0.5; ctx.drawImage(rider, 0, 0); ctx.restore();
     if (!titleBox) return;
     for (const c of [maskCanvas, smallCanvas]) if (c.width !== w || c.height !== h) {c.width = w; c.height = h;}

@@ -12,9 +12,9 @@
 //
 // Two clocks (timing.js, docs/TIMING-DESIGN.md): the ride (rider, camera, line inking, the intensity metric, and everything a hit
 // triggers) is drawn at ride time r = t + offset; the song (the band, the drop's cue, the title, the sun's place, the opening and
-// the ending) at song time t. A hit happens at its strongest frame (round 23): its split, colour boost, accent heat and (on
+// the ending) at song time t. A hit happens at its strongest frame: its split, colour boost, accent heat and (on
 // strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
-// pushed along the line struck at its onset. Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
+// pushed along the line struck at its onset.
 import {laneScale} from './zoom.js';
 import {W, H, BASE, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
@@ -70,7 +70,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   // through the filter. It reads on any palette, a dark drop included.
   const boostCanvas = document.createElement('canvas');
   // `under` draws, on the paper itself, what the boost must leave alone: the pencilled course ahead (a contrast boost pushes a
-  // light pencil toward the paper, so on strong hits the course ahead blinked out as the rider landed: phone review, 8 November)
+  // light pencil toward the paper, so on strong hits the course ahead would blink out as the rider lands)
   function layBoosted(a, paper, under) {
     const w = canvas.width, hh = canvas.height;
     if (boostCanvas.width !== w || boostCanvas.height !== hh) {boostCanvas.width = w; boostCanvas.height = hh;}
@@ -124,7 +124,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     if (boosting > 0.01) ctx.clearRect(0, 0, canvas.width, canvas.height); else {ctx.fillStyle = colours.paper; ctx.fillRect(0, 0, canvas.width, canvas.height);}
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) titleBox = drawTop(intensity, a, colours, look);}
-    // the band is drawn before the ride, so the split catches it with the title and sun (R11)
+    // the band is drawn before the ride, so the split catches it with the title and sun
     const band = v.ending ? (1 - v.over) ** 2 : 1;
     if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, fx.lit);
     // the hit's movement (shake and carry) was set at the steady zoom and keeps its size against the scene: it grows and shrinks

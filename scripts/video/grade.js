@@ -1,7 +1,6 @@
 // How a theme's colours answer the ride's intensity (look.paper). Pure: a scheme and an intensity (0–1, intensity.js) in, the
-// scheme as it is drawn at that moment out. One response is in production, vibrance on the soft-start curve with the paper half
-// (R37, "a pure banger"); 'plain' draws the scheme as it is. The responses compared in rounds 3–37 (Whisper, saturation,
-// contrast, brightness, the other vibrance curves) are in git history before 11 November.
+// scheme as it is drawn at that moment out. One response is in production, vibrance on the soft-start curve with the paper half;
+// 'plain' draws the scheme as it is.
 // Colour is worked in OKLCH and mapped into sRGB. Chroma increases stop at 0.2; colours already
 // more vivid are not desaturated to enforce that cap (pigment, never neon: docs/TASTE.md).
 import {toOklch, fromOklch} from './colour.js';
@@ -27,7 +26,7 @@ export function monotone(pts) {
     return (2 * u ** 3 - 3 * u ** 2 + 1) * pts[i][1] + (u ** 3 - 2 * u ** 2 + u) * h * t[i] + (-2 * u ** 3 + 3 * u ** 2) * pts[i + 1][1] + (u ** 3 - u ** 2) * h * t[i + 1];
   };
 }
-// Round 37's soft start (round36.html): nothing up to 0.3, 15 % at 0.6 (the median moment of 22 production rides), full at 0.9
+// The soft start: nothing up to 0.3, 15 % at 0.6 (the median moment of 22 production rides), full at 0.9
 // (above 99 % of their time)
 export const SOFT = monotone([[0.3, 0], [0.6, 0.15], [0.9, 1]]);
 /** Each response owns its label, intensity curve and colour transform together. */

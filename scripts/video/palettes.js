@@ -2,7 +2,6 @@
 // pairing is its own scheme; graphite is the default look's (V1, the plain review clips and the lab's Swatch).
 // A scheme is colours only. Tokens: paper, ink, pencil, mass (the bars), accent, sun?, tone?, nightPaper, nightInk. The last
 // three are part of each judged specification (its identity), though no response draws them any more.
-// The library of earlier rounds (about 200 named schemes, their variants and tiers) is in git history before 11 November.
 import {COLLECTION, DROPS, DROP_ONLY} from './collection.js';
 
 export const SCHEMES = {

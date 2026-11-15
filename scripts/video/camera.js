@@ -1,4 +1,4 @@
-// The camera: "Follows direction" (concept lab rounds 1–7), computed offline for the whole ride, which is known in advance.
+// The camera follows the rider's direction, computed offline for the whole ride, which is known in advance.
 //
 // The camera is the rider's SCREEN POSITION p(t) and the zoom z(t), pivoting on the rider:
 //   screen(P) = p + z·(P − R),   R = the rider's raw body centre (never smoothed: smoothing leaks fake motion).
@@ -78,8 +78,8 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
   x0 -= 80; y0 -= 80; x1 += 80; y1 += 80;
   const overviewZoom = Math.min(0.78 * W / (x1 - x0), 0.5 * H / (y1 - y0));
   const centre = {x: (x0 + x1) / 2, y: (y0 + y1) / 2};
-  // Opening: from the whole course to the rider, starting at 0.25 s and arriving by the first hit after 1.3 s (2.2 s at most),
-  // then a tenth faster. Ending: back out over 2.6 s, a fifth faster, holding the whole course for the last 0.4 s (2026-11-15).
+  // Opening: from the whole course to the rider, starting at 0.25 s and arriving a tenth sooner than the first hit after 1.3 s
+  // (2.2 s at most). Ending: back out over about 2.2 s, then the whole course held for the last 0.4 s.
   const OPEN_FROM = 0.25, openingEnd = OPEN_FROM + (Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6) - OPEN_FROM) / 1.1;
   const ENDING = 2.6 / 1.2, endingStart = songEnd - ENDING - 0.4;
 

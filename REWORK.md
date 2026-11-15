@@ -1,5 +1,11 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: integrate released visual lab into hit-effects
+
+- Merge `visual-lab` at `5b94a34a`, including its accepted arrival law and gentle exits, before preparing new study rides. Renderer and collection match that release.
+- Keep accepted unused-support trimming and memory ownership fixes. Regenerate the 25 compile references for the combined compiler: only track hashes change against the released references; scores, charged work and other parity fields remain exact. Finalization independently replays the trimmed geometry.
+- Hit-effect candidates remain an experiment; no production theme or hit default is adopted here.
+
 ## November 15: close throughput and memory work for delivery
 
 - Keep `861a1917`'s two small ownership/resource fixes. Final code review requires

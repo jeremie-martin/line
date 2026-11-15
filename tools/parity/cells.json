@@ -11,7 +11,7 @@
    "id": "canonical-music_luna_bala_44s-arcs-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "61e56f7ded1fbb8c3219a619eefac6e44f51c09b139e8c2c5799f23900358865",
+   "trackHash": "98e5baa294214b8c8ab2235da9273eedef82d97573ab35b7215a4f1239f9c4d2",
    "physicalFrames": 2961600,
    "quality": 850.8263,
    "loss": 0.0017086369308193274
@@ -20,7 +20,7 @@
    "id": "canonical-music_luna_bala_44s-fold-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "529836b169bb467e5b98d721240beaf0769e6c78b2e8b5a13b257caa7480693b",
+   "trackHash": "95c32349747d2f380bd0b6bfdeda38270472255f853a8f1b769115ab66e9df7c",
    "physicalFrames": 2969238,
    "quality": 861.8614,
    "loss": 0.0012200689043252875
@@ -29,7 +29,7 @@
    "id": "canonical-music_luna_bala_44s-scattered-paired",
    "seed": 404,
    "panel": "fixed",
-   "trackHash": "6fab39c38f61aad3eb0778cf8394eaf364f7e2a9134cf5299dd7104d8508dd13",
+   "trackHash": "80568813d36594f3f3d70e64fc748d4c5276c7daf7ad7459531bbf0448734ed1",
    "physicalFrames": 2957679,
    "quality": 845.7667,
    "loss": 0.0016847813571407206
@@ -38,7 +38,7 @@
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "b45bfb23664eb67a80a5031c36df155b35197825e29093e41b9e2fdc0be616c6",
+   "trackHash": "ad52489779d4b98c64769e3830d149251baa8bcbb1215d42de80cb859edfaddd",
    "physicalFrames": 2954513,
    "quality": 829.7671,
    "loss": 0.0030720961317577265
@@ -47,7 +47,7 @@
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "bec4d501d4339119792341dc27ec5064209bb078684cee9762b7c202fc7aa852",
+   "trackHash": "2149cfc3ba98d029134b7c4ad71d2218b9b4f6a5bd2d7dd349dbdf3c4d6eeb28",
    "physicalFrames": 2993917,
    "quality": 771.5301,
    "loss": 0.004470276359790557
@@ -57,7 +57,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "d58aa606e0a71ab07dec67cb7402ee8b5004af0421e35bf1dc591e0d4510c149",
+   "trackHash": "3d59337b4d37955411e0e3f5678ba850d7859118e01cc95d282676b69592cb56",
    "physicalFrames": 146126
   },
   {
@@ -65,7 +65,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "15d15d1958ea2791fde9d73b882fa5436df31bfd2d654fee062ca8ba2db1b9d9",
+   "trackHash": "f7ac633713d24dbae1f2acbd91d97cd2b8008537b048a7b29346e8d075e487eb",
    "physicalFrames": 736208
   },
   {
@@ -73,7 +73,7 @@
    "seed": 101,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "62a81158022f85e4cec00951827d7440a6b26ed99e9b1500942681143850a779",
+   "trackHash": "b911b000521708ef0a19c463039d87670e043bbdf780d32d81f33e56c26f8df3",
    "physicalFrames": 146480
   },
   {
@@ -81,7 +81,7 @@
    "seed": 101,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "5428aeb35db4f7a65601a4aac3c045db971b34ecddb85cc37f1020b1999cd82a",
+   "trackHash": "82577afc1340405979a1337fc481364e534d9056d7af649ab2d03c89b6bfb162",
    "physicalFrames": 734556
   },
   {
@@ -89,7 +89,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "1c91be3c72185d115c55e1b5493412aa4f738ae975cf4ec59741b2566e543fea",
+   "trackHash": "93d36400246b34951f50ee606e47d1757c2db45637f160c650759289832b6d45",
    "physicalFrames": 144513
   },
   {
@@ -97,7 +97,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "126562680dfff06fef0fa57be6f85d2371e18f62fbecc8bf6eed1009b69aa877",
+   "trackHash": "61a90c9c0f694e68c3dee0bea3484babbf3e5366c6a2008c9f81855cfff9473e",
    "physicalFrames": 730238
   },
   {
@@ -109,7 +109,7 @@
     "variant": "bench-long"
    },
    "budget": 150000,
-   "trackHash": "fb6c6fd95f2daf662dc26c3f50eedba1c5a311b1c1bb66131e6ec4e2aabbf7da",
+   "trackHash": "1f8a568f05612f43bc4c59d9323c4b1792d8639e0a084322b66d32b9c6f222c4",
    "physicalFrames": 149997
   },
   {
@@ -121,7 +121,7 @@
     "variant": "bench-pairs"
    },
    "budget": 150000,
-   "trackHash": "952c5c88ddcc15dd8af7bea4226bff380476ec6efd89575bba63fa2cc990f80a",
+   "trackHash": "1662f97bb7726a5ff9e37e05d9508b36b4876be0cf6020e76d8d4dab977d0f04",
    "physicalFrames": 148703
   },
   {
@@ -132,7 +132,7 @@
     "song": "tiki_tiki_48s",
     "variant": "bench-pairs"
    },
-   "trackHash": "3886a748fb9bda3e582e2f526ac5e809259ea7e8f7d3044b534d5d12990e5a14",
+   "trackHash": "077af73cf55c2f0526e5b9a9d9e58a63d36229a53f3e3f80491144f7e64a305b",
    "physicalFrames": 3299697,
    "quality": 841.4416,
    "loss": 0.0025297175240608866
@@ -145,7 +145,7 @@
     "song": "luna_bala_44s",
     "variant": "v7-rideout"
    },
-   "trackHash": "12a76ad56115813e5115c0a4a238726b66589cbddb932d8de28fe8fd515698f7",
+   "trackHash": "3f741bf185eb28fd8d2be82bf661977a7a3a1b2f029c81a639660df784c3f8bd",
    "physicalFrames": 2995973,
    "quality": 869.5986,
    "loss": 0.0010785100584244961
@@ -158,7 +158,7 @@
     "song": "amor_na_praia_46s",
     "variant": "v7-explicit-handover"
    },
-   "trackHash": "70bb9d6e795801f5a1d4af5006944e2bdf740af299c3843f8e6d68ad6991ba2c",
+   "trackHash": "6ac8e9a035498ad54abdeea5f292a1cf67470ffe91f421b4dbabce6fc0823ede",
    "physicalFrames": 3163697,
    "quality": 787.2582,
    "loss": 0.006347916519473803
@@ -167,7 +167,7 @@
    "id": "canonical-bridge_frontier_low_air_endurance-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "f2176c073209ba9fdd7901592067679e421aad6671dc900eb278eaf87a62f965",
+   "trackHash": "68b9c49a674f066fc8de91c62e2ade1d25891d6126174140be2da2dcd2dcc586",
    "physicalFrames": 2905082,
    "quality": 776.6292,
    "loss": 0.006175463801225203
@@ -176,7 +176,7 @@
    "id": "canonical-bridge_frontier_dense_recovery-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "98f90e755b74037cd2a5f11795d5f791ef635dd0678d02510bb4e2819134198f",
+   "trackHash": "6dc20f7ec441a6cf7d4e82ae16edc1e9a0bc8a23ae63fffa10bf11ff8a732edf",
    "physicalFrames": 2999997,
    "quality": 761.5589,
    "loss": 0.006368362374837189
@@ -186,7 +186,7 @@
    "seed": 202,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "86ee030847aecc099432e2eee42fa773f744e3c146fc85042b2b673104b687e0",
+   "trackHash": "2f9c6f53520facd3da576f779302fea9f6c12e7afed2f994d71187a1be80039a",
    "physicalFrames": 735942
   },
   {
@@ -194,7 +194,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "b46ee929d48ad78a446bb4edd0eabf359f9426181afbbed446384609f21da6fa",
+   "trackHash": "c6d46c8aca16c2eb59100a6675bb5555ba802234197f9454b97f8568b26d79e4",
    "physicalFrames": 149997
   },
   {
@@ -202,7 +202,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "5f68372b40378a23eff1ed8e259954718822b7551c5093524c62b7d95c8128f3",
+   "trackHash": "afe09c08346754f72b68d07896e293614a9fc6fbaf8b38237b73d0be8aec3ea5",
    "physicalFrames": 749271
   },
   {
@@ -210,7 +210,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "c8533d7ce1b241f7222e9f28ceff98a36e8ebc8d74086faa408bc84121ff591e",
+   "trackHash": "cc6707d0a0138b122aefa9eebfb6c0c852a38b4a22ec1c3f0890ceb4f776e51b",
    "physicalFrames": 147174
   },
   {
@@ -218,7 +218,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "1bea70f7f4c0c173b3609ec4200524d6f02c1d13642e76ad5f3f5d10e1fd5214",
+   "trackHash": "8526aa0a5735693ae9708e09cb5d31e70acbab9f3df3b4fd938c9724c9e2c377",
    "physicalFrames": 146992
   },
   {
@@ -226,7 +226,7 @@
    "seed": 404,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "f7fe5557571b40d7e3fcc5a3d055a08ba39d639209d0ee3759e23eb4b2d91c25",
+   "trackHash": "fb9f060a3599441eff52d613adab8bd5c497037063f1afb0c319fb66d13e63b5",
    "physicalFrames": 148457
   },
   {
@@ -234,7 +234,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "8c7d467d42a2cf6dda50f6c37cb199663479bde5706a2e65af85f65d2eebea21",
+   "trackHash": "44344fe729cc19e9ca5087db96019b1c741cd71c6cb3ee5fba8c9208ad9cb8cb",
    "physicalFrames": 146261
   }
  ]

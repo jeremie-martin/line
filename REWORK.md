@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law (results so far)
+
+V8 against `foundation-6`:
+
+| | seeds | headline | specs up / down | explicit | very strong bias (−0.176) | body drag s/min (3.42) | strong extra impacts |
+|---|---|---|---|---|---|---|---|
+| law (5° + 80° × ask, ≤ 70°), prior only | 8 | +6.1 [+3.7, +8.5] | 38 / 5 | +8.3 | −0.161 | 4.88 (+43%) | +43% |
+| law ≤ 70° + aimed launches | 8 | +8.6 [+6.5, +10.7] | 39 / 4 | +12.0 | −0.160 | 4.80 (+40%) | +48% |
+| law ≤ 70° + aimed launches | 16 | **+6.9 [+4.4, +9.4]** | 37 / 6 | +12.1 | −0.160 | 4.66 (+37%) | +27% |
+| law ≤ 55° + aimed launches | 8 | **+8.8 [+6.3, +11.3]** | 36 / 7 | +7.4 | −0.168 | 4.31 (+26%) | +26% |
+
+- The gain is mostly strong beats landing closer to their ask; clean upper hits 11.6% → 12.3–13.0%; air and speed
+  flat; quiet asks about as close as `foundation-6` with the level pull (small asks within ×1.5 59–63%).
+- Body drag (6+ frames of butt, shoulder or hands on a line; an unvalidated eye proxy, reported, never optimized) and
+  strong extra impacts rise; the steepest arrivals cause most of that and little of the gain (≤ 55° keeps the gain
+  with two thirds of the drag rise and half the extra-impact rise).
+- Running: caps 45° and 40° at 8 seeds.
+
 ## November 15: one continuous arrival law (stated before running)
 
 The owner challenged the cliff between quiet and other beats (the level prior acts under 0.3, the steep one from 0.4,

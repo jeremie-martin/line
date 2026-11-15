@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16: one source for each thing (structural consolidation; reference `foundation-11`)
+
+A step back over the compiler's contract, the renderer, the production record and the pages, asked by the owner:
+nothing outdated, nothing kept for compatibility, one implementation of each thing. About 4,700 lines were
+deleted and under 1,000 added (code, tests and pages; the 28 new zoom lane files are not counted).
+
+- **Specs hold no camera.** The renderer never read `Spec.camera`; it is gone from the type, the validation, 79
+  production files and the spec dashboard. A song's zoom is its lanes (`productions/<song>/zooms.ts`), now written
+  for all 31 songs, two each.
+- **Renderer: one zoom, one hit response.** The intensity zoom ("out when quiet") is removed: three themes used it
+  (both Hokusai, Silver and Rust lighter ivory) and every song now has lanes. The study hooks in the picture, the
+  rejected responses and the pages that compared them (hit motion, pairs, dial, split) are gone; the tuning pages
+  that remain (`hit-move.html`, `zoom.html`, `trim-video.html`) call the production functions.
+- **Compiler contract.** Grain and elevation, the report-only axes, the environment overrides and the legacy caps
+  are removed from `scripts/v0/types.ts` and their readers; the axes are air, speed, amplitude and impact.
+- **Production record.** A saved ride no longer carries fields nothing reads (historical grade, prefix and
+  changed-motion frames, base track hash, guide permission, validation time).
+- **Pages.** The spec dashboard lost its dead editing, history and calibration (−750 lines; the timeline and the
+  data it shows are unchanged). The review player starts without a library: the tracked October library and its
+  built-in moments are gone (`npm run library` makes a local one).
+- **Documents.** README, TODO and the renderer's comments say what is, not how it came to be; `PROGRESS.md` is gone.
+
+**Evidence that no ride moved.** `npm run check` passes whole (types, reach, 664 tests, engine, compile parity,
+judge parity, smoke). On V8 against `foundation-10`, two seeds: 98 of 98 rides have the same track hash, every
+score, completion and physics frame count equal (759.4 against 759.4). On V7.1, one seed: 41 of 41 pairs equal
+(808.4 against 808.4). Seven videos rendered before and
+after are identical frame for frame, except Hokusai on a song that had no lane (the removed intensity zoom, as
+intended). All 31 songs render end to end with their chosen look and lane.
+
+`foundation-11` names this code (set at `ea828919`): the same tracks as `foundation-10`.
+
 ## November 15: carry, the movement at a hit (adopted by the owner)
 
 The owner missed the weight older videos gave a hit ("falling into the geometry, then bouncing") and handed over a

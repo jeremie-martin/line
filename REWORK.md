@@ -1,5 +1,31 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: how far the unseen body motion goes (measured; corrects the entry below)
+
+Owner: treat the root cause, check its extent first, own the investigation. Measured on the 59 handcrafted rides with
+`tools/measure/body/` (`visual.mjs`: travel, spin and shape push per frame from the trace, independent of the account;
+`extent.mjs`, `contrast.mjs`, `extent2.mjs`, `rows.mjs`).
+
+- **The window hole is the small part.** Of 4,477 whole-body motion changes of 0.25 or more, 93% are asked hits
+  recorded fairly; 3.6% (159, 19 of them ≥ 0.5) are the late-in-contact hits the 6-frame window misses.
+- **The large part: motion that is not an "event" is free, and it has a constant size.** Between asked hits, the
+  loudest unasked motion averages 0.11–0.15 whatever the music asks. After a hit asked above 0.7 it is never as large
+  as the hit; after a hit asked at 0.15 or less it is at least as large as the hit 46% of the time, at least half of
+  it 69%. Quiet passages are where the beat cannot be read.
+- **Where it comes from:** the launch off the support the rider landed on (57%), bumps while riding it (39%).
+  16% of contacts hold two or more separate pushes of 0.3 px/frame² or more.
+- **The search sits under the threshold.** Unasked push peaks by smoothed size: 355 at 0.6–0.7, 283 at 0.7–0.8, 144 at
+  0.8–0.9 (the event floor is 0.8).
+- **By family** (loudest unasked motion ≥ 0.25 after a hit): arcs 7%, serpentine 7%, fold 8%, scallops 11%, fragments
+  14%, terraces 19%. Arcs are cleaner, not clean.
+- **Not separate causes:** body shape change (93% during contact, 7% within 0.2 s after, 0.2% later: it follows the
+  pushes); timing (for asks ≥ 0.3 the visible peak is on the beat frame 78%, within one frame 94%).
+- **Open:** rotation in the air (mean 2.4°/frame, 10% of air frames above 6°/frame) is smooth and uncharged; strong
+  asks come out softer (0.74 seen for 0.85 asked). One smooth launch push the size of a quiet hit: the owner called
+  such a section smooth, so separate pushes and reversals matter more than one push's size.
+- **Squared motion:** error of asked hits against their ask 54; unasked motion over all frames between hits 389
+  (overlapping 2-frame windows, so several times, not seven).
+
 ## November 15: body jolts the score does not see (diagnosis, nothing changed)
 
 The owner, on the handcrafted videos: sharp turns that compress the rider with nothing in the music (Valhalla

@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds), all with aimed launches:
+
+| | headline | seed blocks up | specs up / down | explicit | body drag | strong extra impacts | very strong bias | small quiet asks within ×1.5 / over ×2 |
+|---|---|---|---|---|---|---|---|---|
+| `foundation-6` | | | | | 3.40 s/min | 0.18 | −0.177 | 58% / 21% |
+| linear ≤ 55°, heading prior kept | +6.8 [+4.8, +8.7] | 16 / 16 | 35 / 8 | +5.4 | +24% | +14% | −0.169 | 61% / 14% |
+| linear ≤ 55°, heading prior dropped | +7.2 [+4.5, +9.9] | 15 / 16 | 35 / 8 | +6.4 | +29% | +24% | −0.170 | 63% / 16% |
+| speed-aware gain 2, heading prior dropped | +5.3 [+3.6, +7.0] | 16 / 16 | 38 / 5 | +12.5 | +22% | +15% | −0.166 | 65% / 15% |
+
+- The three are within each other's noise on the headline. The speed-aware law is the most principled (no cap,
+  adapts to the next beat's speed, one rule fewer) and the most consistent (every seed block and 38 of 43 specs up),
+  with the best explicit requests and quiet asks and the least body drag and extra impacts of the three.
+- Air, speed, rails, families and head-down arrivals unchanged in all.
+
 ## November 15: the arrival law challenged (results at 8 seeds)
 
 V8, 8 seeds, against `foundation-6`, all with aimed launches:

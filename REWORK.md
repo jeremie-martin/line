@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law's cap (measured)
+
+V8, 8 seeds, against `foundation-6`, the law 5° + 80° × ask with aimed launches, capped at:
+
+| cap | headline | specs up / down | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|
+| 70° | +8.6 [+6.5, +10.7] | 39 / 4 | +40% | +48% | −0.160 |
+| 55° | +8.8 [+6.3, +11.3] | 36 / 7 | +26% | +26% | −0.168 |
+| 45° | +0.3 [−3.3, +3.9] | 17 / 26 | +7% | +37% | −0.178 |
+| 40° | −5.0 [−9.2, −0.7] | 7 / 36 | −2% | +54% | −0.185 |
+
+- The gain is strong beats arriving at 45–55° and more; the extra body contact comes with exactly those arrivals (a
+  harder catch folds the rider onto the line). Below 45° the gain disappears and extra impacts stay. 55° is the best
+  trade measured. Quiet asks are about the same at every cap (small asks within ×1.5 62–64%).
+- Matched strong beats (same beat, same ride, seed 101; 40 drawn at random): body-contact frames 379 today, 437 with
+  the law ≤ 55°. Page for the owner: `generated/quiet-study/strong-pairs.html`.
+- Running: the law ≤ 55° at 16 seeds.
+
 ## November 15: the arrival law (results so far)
 
 V8 against `foundation-6`:

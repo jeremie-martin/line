@@ -368,7 +368,8 @@ and validation are in [music authoring](docs/music-authoring.md).
    versions stop at their end; failed loads leave the current version in place.
    Grouped studies add `groups: [{id, label, variants: [styleId]}]` and
    `passages: [{id, label, videos: [{id: styleId, label, src}]}]`. A passage change
-   keeps the selected style when available and resets playback time. Group changes
+   keeps the selected style when available and resets playback time. A passage may carry a `description` and a
+   `link: {label, href}` (its spec, a report). Group changes
    preserve time. Optional `recipe` details stay collapsed; `links` connect related
    review collections.
 

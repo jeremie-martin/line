@@ -2,6 +2,15 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+00. **Where things stand (2026-11-15).** One compiler on `visual-lab`: gentle exits, terraces and folds parked, the
+   arrival law (reference `foundation-8`). Next, in order:
+   - the owner's review of the 20 handcrafted specs, recompiled with this compiler
+     (`/motion-gallery/video-compare.html?collection=/generated/watch/handcraft.json`);
+   - the compiler's consistency stop ("main construction differs at support N"): about one ride in sixty on the
+     handcrafted specs, whatever the compiler version; not yet investigated;
+   - the long-float trade (the 108 s long spec): air given for soft catches and for fewer unasked pushes; the owner
+     prefers the look, the spec's asks may need rethinking.
+
 0a. **Aimed launches under gentle exits** (2026-11-15): no measurable effect at 4 seeds on V8 once exits are drawn
    gently (REWORK.md). Measure at 16 seeds and by eye before keeping or removing them.
 
@@ -13,7 +22,7 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    adopted yet. The long spec's quiet beats follow 2–3 s floats asking 80–92% air: no apex arrival exists there and a
    soft catch cannot turn the rider up for the next float, so the loss is a trade in its asks, not a missing shape.
    Apex launches were then generalized into the arrival law (one speed-aware arrival heading for every ask, with
-   aimed launches): branch `adopt/arrival-law`, V8 +5.3 at 16 seeds, waiting for the owner's eye. Aimed launches for
+   aimed launches): adopted and merged into `visual-lab` with gentle exits (2026-11-15; reference `foundation-8`). Aimed launches for
    shaped families: parked (owner).
 
 1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8

@@ -100,6 +100,22 @@ Keep `README.md`, `ARCHITECTURE.md` and this file current with the code. When
 they disagree with the code, the documents are the bug. `REWORK.md` holds the
 plan and its log.
 
+## Showing work to the owner
+
+Pick the page that fits what is shown; look here before building one. Every handover gives its link on the review
+server (`npm run serve`).
+
+| to show | use |
+|---|---|
+| full rides in two or more versions (before/after, compiler A/B, looks) | `/motion-gallery/video-compare.html?collection=/generated/watch/NAME.json`: one player, rides as passages, versions switched at the same moment. The collection format is in ARCHITECTURE.md. |
+| a blind question on short stretches, with saved answers | `/motion-review/?study=NAME`: clips from `generated/label-studies/NAME/manifest.json`, answers in `labels/studies/NAME.jsonl` |
+| a compiler change, ride by ride | `npm run compare -- rides` or `review` with the comparison's flags |
+| looks and themes | the concept lab, `/rate/`, `/collection` (docs/visual-system.md) |
+| a spec against its music | `/spec-dashboard/?spec=productions/SONG/variants/NAME.ts` |
+
+Rides for the owner's eye on motion are rendered in the plain look (`npm run video -- --look=plain`): no theme, no
+hit effects. Loose links to single videos are for one or two files, not for a comparison.
+
 ## Compute
 
 - Check the current machine before choosing concurrency or reading old timings.

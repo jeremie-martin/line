@@ -191,6 +191,8 @@ async function changePassage(index) {
   // even before the first frame arrives (including after a failed preload).
   $('play').disabled = false; $('seek').disabled = true; $('seek').value = '0'; $('time').textContent = '0:00'; describe(null);
   $('passage-description').textContent = passages[index].description ?? '';
+  // an optional link for the passage (its spec, a report), opened beside the player
+  if (passages[index].link) $('passage-description').append(' ', Object.assign(document.createElement('a'), {href: passages[index].link.href, textContent: passages[index].link.label, target: '_blank'}));
   if (groups.length && !entries.some(e => groups[groupIndex].variants.includes(e.id)))
     groupIndex = groups.findIndex(g => entries.some(e => g.variants.includes(e.id)));
   if (groups.length) $('intent').textContent = groups[groupIndex].description ?? '';

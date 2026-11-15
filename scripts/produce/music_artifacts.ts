@@ -85,7 +85,7 @@ export function saveMusicCell(args:{out:string;planSha256:string;c:any;beats:num
       const mainFrames=collisionIds!.flatMap((ids,f)=>ids.some(id=>mainIds.has(id))?[f]:[]);
       const subdivision=styles[i]?.subdivisions??(method===geometry?(subdivisions??4):4);
       const faceCount=styles[i]?.faces??(method===geometry?faces:undefined);
-      if(!fragmented&&styles[i]?.railLayout!=='transfer'&&i>=(composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0))assert.equal(normal.length,1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
+      if(!fragmented&&styles[i]?.railLayout!=='transfer'&&i>=(composition?.attempts?0:composition?.fragmentConstruction?Math.max(...fragmentSections)+1:composition?.changedSections?.[0]??0))assert.equal(normal.length+(geometryVerification.shortened[i]??0),1+arcMainSteps(r.control.support,subdivision,faceCount),'emitted shape differs from requested construction');
       if(styles[i]?.guides===false)assert.equal(guides.length,0,'forbidden guide emitted');
       return {section:i,start:r.frame/40,end:(result.rows[i+1]?.frame??c.durationFrames)/40,
         shape:fragmented?'fragments':styles[i]?.profile??(method===geometry?profile:undefined)??(faceCount!==undefined||subdivision===.5?'facets':'arcs'),

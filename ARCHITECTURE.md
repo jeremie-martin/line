@@ -479,10 +479,7 @@ log):
   over the next beat's speed: level for a whisper, steep for a hard hit,
   shallower for a fast rider than a slow one for the same hit (a catch's push is
   the speed carried into the line). Ranking prefers it with one weight at every
-  ask, and **aimed launches** (`proposeAimedLaunches`, arcs and scattered
-  sections) offer the best candidates again with their support's exit turned so
-  the flight arrives closer to it (all and half the way; aimed by gravity, then
-  corrected once by measurement). It replaced three rules: the steep heading
+  ask. It replaced three rules: the steep heading
   before strong asks, the level heading before quiet asks and the broad heading
   prior. The steep step (ask 0.4 to 0.8) still sets the kinetic arrival speed,
   the upright preference and the search effort before strong asks.

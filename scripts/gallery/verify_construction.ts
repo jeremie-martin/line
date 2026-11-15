@@ -1,5 +1,9 @@
 /** Reconstruct main rails from the saved controls and their actual incoming
  * state. This verifies applied geometry, including a return to ordinary arcs.
+ * The gone-through cleanup (arc_gone_through.ts) may shorten a main line at
+ * either end after the ride is built, never break or move it: the saved line
+ * must be one unbroken run of the drawn one, piece for piece. `shortened`
+ * counts the pieces it lost, by support.
  * Validation work is separate from the recorded compilation allowance. */
 import assert from 'node:assert/strict';
 import {catchReceivers, receiverPoints, motionArc, type ArcMotionControl, type ArcSectionStyle} from '../v0/optimizer/arc_geometry.ts';
@@ -12,6 +16,7 @@ export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>
   {sectionStyles?:Record<number,ArcSectionStyle>;radius?:number;channel?:number;fragmentSections?:number[]},from=0){
   const fragments=new Set(options.fragmentSections??[]);
   const groups=arcRailGroups(track.lines.filter(l=>!fragments.has(Math.floor((l.id-1000)/10000))));let checked=0;
+  const shortened:Record<number,number>={};
   for(let i=from;i<rows.length;i++){
     if(fragments.has(i))continue;
     const row=rows[i],prefix=track.lines.filter(l=>Math.floor((l.id-1000)/10000)<i);
@@ -22,8 +27,12 @@ export function verifyMainConstruction(track:ReturnType<typeof compileArcMotion>
       const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control);
       const style={...options,...options.sectionStyles?.[i]};
       const expected=arcRailGroups(motionArc(points,free.velocity,row.control,1000+i*10000,style.channel,style.radius,style.subdivisions,style)).get(i)![0];
-      assert.deepEqual(groups.get(i)![0],expected,`main construction differs at support ${i}`);checked++;
+      const [main=[],rail=[]]=groups.get(i)??[],at=expected.findIndex(l=>l.id===main[0]?.id),drawn=new Set(expected.map(l=>l.id));
+      assert.ok(at>=0&&!rail.some(l=>drawn.has(l.id)),`main construction differs at support ${i}`);
+      assert.deepEqual(main,expected.slice(at,at+main.length),`main construction differs at support ${i}`);
+      if(main.length<expected.length)shortened[i]=expected.length-main.length;
+      checked++;
     }finally{dispose();}
   }
-  return {mainSupportsVerified:checked,exactGeometry:true};
+  return {mainSupportsVerified:checked,exactGeometry:true,shortened};
 }

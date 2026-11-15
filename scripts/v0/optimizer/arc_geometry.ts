@@ -1,4 +1,4 @@
-import {HIT_FRAMES,LATE_RADIUS} from './ground_smoothness.ts';
+import {HIT_FRAMES,LATE_RADIUS,LATE_PUSH} from './ground_smoothness.ts';
 import {hypot2} from '../../lib/hypot2.ts';
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
@@ -178,7 +178,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     // per face would weaken their angle whenever search shortened that face.
     // Their full corner geometry must pass physical evaluation instead.
     const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
-    const turnRadius=time>=HIT_FRAMES?Math.max(radius,LATE_RADIUS):radius;
+    const turnRadius=time>=HIT_FRAMES?Math.max(radius,LATE_RADIUS,LATE_PUSH>0?v*v/LATE_PUSH:0):radius;
     if(turnRadius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/turnRadius,previousAngle+v*dt/turnRadius);
     previousAngle=a;
     const sine=Math.sin(a);

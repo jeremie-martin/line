@@ -76,3 +76,7 @@ export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (fr
   for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}
   return (process.env.LINE_GROUND_PART === 'late' || roughestReversal(lines, process.env.LINE_GROUND_PART === 'all' ? all : late) <= REVERSAL_LIMIT) && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
 }
+/** LINE_GROUND_PUSH (px/frame² of centripetal push): with LINE_GROUND=built, after the catch a support also turns no
+ * faster than its rider's speed allows for this push (radius ≥ speed² / push). A turn of the same angle pushes a fast
+ * rider harder than a slow one; the degrees limit alone is blind to that. 0 = off. */
+export const LATE_PUSH = process.env.LINE_GROUND === 'built' ? Number(process.env.LINE_GROUND_PUSH ?? 0) : 0;

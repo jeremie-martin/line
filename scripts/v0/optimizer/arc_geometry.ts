@@ -138,6 +138,8 @@ export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine
  * EXIT_PUSH (px/frame²): radius ≥ speed² ÷ EXIT_PUSH. */
 export const HIT_FRAMES=6,EXIT_RADIUS=95,EXIT_PUSH=.6;
 export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):SolidPath[]{
+  // Experiment: a receiver met from above is a plain open line in every family (no shape, no rail).
+  if(c.contactSide===-1&&style)style={...style,profile:undefined,profileStrength:undefined,profileStart:undefined,rippleCycles:undefined,foldAngle:undefined,guides:false};
   const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
   const steps=arcMainSteps(c.support,subdivisions,style?.faces);

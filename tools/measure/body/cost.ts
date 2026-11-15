@@ -6,7 +6,7 @@ const dirOf = (tag: string, s: string, v: string, seed: number) => tag === 'befo
 const band = (a: number) => a <= .15 ? '≤0.15' : a <= .4 ? '0.15–0.4' : a <= .7 ? '0.4–0.7' : '>0.7';
 for (const tag of process.argv.slice(2)) {
   let n = 0, samples = 0, viable = 0, rebuilds = 0, ms = 0; const b: Record<string, {n: number; bias: number; sq: number}> = {};
-  const gapAir: number[] = [], sup: number[] = [];
+  const sup: number[] = [];
   for (const [s, v] of specs) for (const seed of SEEDS) {
     const d = dirOf(tag, s, v, seed), f = fs.existsSync(d) && fs.readdirSync(d).find(f => f.endsWith('-production.json')); if (!f) continue;
     const p = JSON.parse(fs.readFileSync(path.join(d, f), 'utf8')); n++;

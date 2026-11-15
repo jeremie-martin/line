@@ -13,6 +13,12 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      0.15 above it. A model, not a bound: a different construction may get past it. Open lever: launching floats from the
      strong hit that starts them.
 
+0b. **Fewer rails by geometry: catches from above in shaped phrases** (2026-11-15, branch
+   `exp/plain-catches-from-above`, waiting for the owner's eye): rails 39 → 34% of gaps on V8, clean upper hits up,
+   headline +0.6 on V8 (16 seeds), +7.0 on V7.1; the long spec −11. Rides:
+   `/motion-gallery/video-compare.html?collection=/generated/watch/plain-catches-from-above.json`. Open before adoption:
+   explicit shape requests (E) should keep their shape.
+
 0a. ~~**Aimed launches under gentle exits**~~ (removed 2026-11-15: V8 16 seeds +0.4 [−3.5, +4.4] without them;
    nothing separates consistently; REWORK.md).
 

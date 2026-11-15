@@ -58,6 +58,23 @@ next strong hit.
   candidate check and the final realization both accept it and record it (`caughtFromAbove`). In the probe this gives
   3 of 10 scallop gaps and 1 of 10 serpentine gaps caught from above. Same hypothesis and rulers; also reported: how
   many shaped sections are caught from above (the plan's family is not drawn there), and explicit requests (E).
+- **Result** (against `foundation-9`; every ride finished on every panel):
+
+| panel | seeds | headline | specs up / down | rails, share of gaps | clean upper hits, strong beats | hard unrecorded pushes / ride | body drag |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | +0.6 [−4.5, +5.6] | 30 / 13 | 39 → 34% (every category −3.9 to −6.0) | 13.9 → 15.4% | 0.22 → 0.21 | +3% |
+| V7.1 | 4 | **+7.0 [+1.2, +12.7]**, every seed block up | 26 / 9 | 34 → 30% | 11.9 → 13.3% | 0.29 → 0.21 | +2% |
+
+  Shaped phrases now catch strong beats from above (V8, 4 seeds: scallops 0 → 8%, serpentines 0 → 9%); before a strong
+  beat they keep a rail in 73% of gaps (87%). Clean upper hits rise as a share of all beats in every category. Air,
+  speed and the strong and quiet biases within noise (very strong bias +0.005, better). Losses: the long spec −11.0 on
+  V8 (4 seeds up, 12 down: a real loss there; +17.6 on V7.1), Tiki calm −14.0. Strong extra impacts unchanged on V8,
+  0.02 → 0.04 per 100 beats on V7.1.
+- **Explicit requests:** E −1.9 on V8, still 864/864 "realized", but that count now accepts a shaped window caught
+  from above (the Tiki ripples ride below has six). Before adoption the rule should leave explicit requests their
+  shape, or the owner says it may apply there too.
+- **For the owner's eye** (not adopted; the look decides): five whole rides, plain look, before and after, with the
+  times of the catches from above: `/motion-gallery/video-compare.html?collection=/generated/watch/plain-catches-from-above.json`.
 
 ## November 15: aimed launches removed (no measurable effect under gentle exits)
 

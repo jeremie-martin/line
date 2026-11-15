@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the air-length twin (result), and why the long spec cannot be fixed by a shape
+
+- **Air-length twin** (`exp/apex-launch-air`; V8 against `foundation-6`): −1.5 [−4.1, +1.1]; quiet asks as with the
+  first apex launches; the long spec 725.5 (air before asks under 0.1 still −0.19). Dropped.
+- **The long spec's quiet beats follow very long gaps** (seed 101: spans 69–138 frames, 1.7–3.5 s, asking 80–92% air,
+  i.e. flights of 55–125 frames). No apex arrival exists there: a 125-frame flight caught at its top needs a launch of
+  about 22 px/frame upward. The energy-neutral flight (landing at its launch height, no speed gained) arrives falling
+  at about 54°; a soft catch there must then turn the rider up for the next long flight, and on a support of about 10
+  frames (10% of the gap) that turn is a hard hit. A long float, a whisper of a catch and a steady moderate speed
+  cannot all hold: something gives. `foundation-5` gave impact (+0.125 on asks under 0.1, air −0.14), `foundation-6`
+  gives air (−0.19, impact +0.07). This is a trade in the asks, not a missing shape.
+- Apex launches remain useful on shorter gaps (first version: small quiet asks within ×1.5 54% → 70% on V8, headline
+  +0.7). Running now: a larger variant (12 candidates; a third, two thirds and all the way) on V8, and the first
+  version on V7.1, both against `foundation-6`.
+
 ## November 15: apex launches, first result; the air-length twin (stated before running)
 
 - **Apex launches** (V8 against `foundation-6`, 758.8): headline +0.7 [−2.8, +4.2], 19 specs up, 24 down; explicit

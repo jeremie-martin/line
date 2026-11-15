@@ -86,12 +86,14 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
   const constructionSpan = options.constructionRequests && i === contacts.length - 1 ? horizon - frame : span;
   const support = clamp((1 - (targets.air ?? .5)) * (constructionSpan + 1), 3, Math.max(3, constructionSpan - RELEASE_FRAMES));
   const impact = gap >= 0 ? gaps[gap].targets.impact : undefined;
-  // An impact error counts relative to the ask's size (REWORK.md, November 14: quiet asks): weight × ((reference + floor) /
-  // (ask + floor))², never below 1, so 0.1 too hard on an ask of 0.1 costs more than on an ask of 0.7. Replaces the calm multiplier.
-  if (impact !== undefined && options.relativeImpact)
-    options.impactWeight = (options.impactWeight ?? 2) * Math.max(1, ((options.relativeImpact.reference + options.relativeImpact.floor) / (Math.max(impact, options.relativeImpact.touchdown ?? 0) + options.relativeImpact.floor)) ** 2);
-  else if (impact !== undefined && options.motionQuality?.calmImpactMultiplier !== undefined)
-    options.impactWeight = (options.impactWeight ?? 2) * (1 + (options.motionQuality.calmImpactMultiplier - 1) * Math.max(0, 1 - impact / .2));
+  // Quiet misses priced in proportion (REWORK.md, November 15): the eye reads an impact relative to its ask, so 0.2 on
+  // an ask of 0.1 is a large miss and 0.8 on 0.7 a small one. The impact weight is multiplied by
+  // ((reference + softness) / (ask + softness))², never below 1 (asks of `reference` and up keep it); asks under
+  // `askFloor` count as `askFloor`, so the weight stays bounded where an ask is close to zero.
+  if (impact !== undefined && options.relativeImpact) {
+    const {reference, softness, askFloor} = options.relativeImpact;
+    options.impactWeight = (options.impactWeight ?? 2) * Math.max(1, ((reference + softness) / (Math.max(impact, askFloor) + softness)) ** 2);
+  }
   const turn = impact === undefined ? 5 : deg(impactToRawPx(impact) / Math.max(3, pace));
 
   const memo = selectMemo(ctx, engine, i, options);
@@ -122,10 +124,10 @@ export function openInterval(ctx: ArcCompileContext, engine: Engine, i: number, 
     ? 1 + (options.policySamples ?? 8) + (options.memorySamples ?? 0) + (options.memoryResponseSamples ?? 0) : 0;
   const mixedInitial = Math.ceil(mixedPolicySlots / (options.profile || options.railLayout === 'transfer' ? .75 : 1));
   const initial = Math.min(max, Math.max(Math.min(80, Math.ceil(max / 2)), mixedInitial));
-  // Calm landing emphasis changes impact units between adjacent intervals.
+  // Quiet misses priced in proportion change impact units between adjacent intervals.
   // Store those weights so response reuse can recover physical residuals
   // before applying this interval's weights.
-  const responseAxisWeights = options.motionQuality?.calmImpactMultiplier !== undefined
+  const responseAxisWeights = options.relativeImpact !== undefined
     ? ['air', 'speed', 'amplitude'].map(key => key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1).concat(options.impactWeight ?? 2)
     : undefined;
 

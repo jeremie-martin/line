@@ -285,11 +285,11 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
-/** How much of the level arrival prior applies before a catch asked at `ask` (REWORK.md, November 15: Q13): the
- * mirror of `steepArrival`. A quiet catch lands softly and keeps its asked speed when the rider arrives level, near the
- * top of its flight (V8: arrivals within 5° of level leave the next flight's speed error at −0.02, arrivals falling 30°
- * or more at +0.05, and at +0.14 when quiet catches are priced harder). A smooth step: all of it at
- * `levelArrivalBelow` − 0.15 and under, none 0.15 above. */
+/** How much of the level arrival prior applies before a catch asked at `ask` (REWORK.md, November 15: level arrivals
+ * before quiet catches): the mirror of `steepArrival`. A quiet catch lands softly and keeps its asked speed when the
+ * rider arrives level, near the top of its flight (V8: arrivals within 5° of level leave the next flight's speed error
+ * at −0.02, arrivals falling 30° or more at +0.05, and at +0.14 when quiet misses are priced harder). A smooth step:
+ * all of it at `levelArrivalBelow` − 0.15 and under, none 0.15 above. */
 export function levelArrival(ask: number, search: {levelArrivalBelow?: number} | undefined) {
   if (search?.levelArrivalBelow === undefined) return 0;
   const t = Math.max(0, Math.min(1, (search.levelArrivalBelow + .15 - ask) / .3));

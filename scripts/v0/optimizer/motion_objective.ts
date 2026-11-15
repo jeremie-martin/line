@@ -1,6 +1,6 @@
 /** Search decisions remain independent of the frozen motion observations. */
 import {summarizeMotion,motionBurst,MOTION_BANDS,type MotionSample} from './motion_quality.ts';
-export type MotionSearchOptions={burstWeight:number;calmWeight?:number;calmLanding?:boolean;calmImpactMultiplier?:number};
+export type MotionSearchOptions={burstWeight:number;calmWeight?:number;calmLanding?:boolean};
 /** A landing does not reset a speed burst. Include preceding history only for
  * windows ending inside this interval; calm-passage totals remain local. */
 export function intervalMotionSummary(samples:readonly MotionSample[],from:number,to:number){

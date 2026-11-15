@@ -64,10 +64,10 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   sectionStyles?: Record<number, SectionStyle>;
   /** Physical construction requirements by support index. */
   constructionRequests?: Record<number, ConstructionRequest>;
-  /** Motion-quality residuals and the calm-impact weighting. */
+  /** Motion-quality residuals. */
   motionQuality?: MotionSearchOptions;
-  /** Impact errors priced relative to the ask (arc_interval_state.ts). */
-  relativeImpact?: {reference: number; floor: number; extras?: boolean; touchdown?: number};
+  /** Quiet misses priced in proportion to the ask (arc_interval_state.ts openInterval). */
+  relativeImpact?: {reference: number; softness: number; askFloor: number};
   /** Learned construction memory and policies, by construction memory key. */
   constructionExamples?: Readonly<Record<string, readonly ArcControlExample[]>>;
   constructionPolicies?: Readonly<Record<string, any>>;

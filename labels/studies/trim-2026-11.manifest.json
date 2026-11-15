@@ -1,0 +1,35 @@
+{
+ "study": "trim-2026-11",
+ "questions": [],
+ "note": "answers: the trim version chosen for a song (version id, gentlest to strongest: base, end, trim, one, startone, min, exact) and the look it was watched in; from generated/concept-lab/trim-video.html.",
+ "clips": [
+  {
+   "id": "petrunko",
+   "song": "petrunko"
+  },
+  {
+   "id": "trouble",
+   "song": "trouble"
+  },
+  {
+   "id": "tiki",
+   "song": "tiki"
+  },
+  {
+   "id": "circus",
+   "song": "circus"
+  },
+  {
+   "id": "amor",
+   "song": "amor"
+  },
+  {
+   "id": "bones",
+   "song": "bones"
+  },
+  {
+   "id": "valhalla",
+   "song": "valhalla"
+  }
+ ]
+}

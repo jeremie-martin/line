@@ -31,5 +31,41 @@ export function roughestReversal(lines: readonly GroundLine[], touched: Readonly
   }
   return worst;
 }
-/** The experiment's limit in degrees, from LINE_GROUND; undefined = no limit (today's behaviour). */
-export const GROUND_LIMIT = process.env.LINE_GROUND ? Number(process.env.LINE_GROUND) : undefined;
+/** The sharpest turning of touched ground: the largest spread of heading within `window` px centred on a touched
+ * line, in degrees, whatever its direction. A gentle arc gives `window` / radius; a lip or a corner many degrees. */
+export function sharpestTurn(lines: readonly GroundLine[], touched: ReadonlySet<number>, window = 30): number {
+  let worst = 0;
+  for (let first = 0; first < lines.length;) {
+    let last = first;
+    while (last + 1 < lines.length && lines[last + 1].x1 === lines[last].x2 && lines[last + 1].y1 === lines[last].y2) last++;
+    const h: number[] = [], d: number[] = [];
+    let along = 0;
+    for (let k = first; k <= last; k++) {
+      const l = lines[k], length = Math.hypot(l.x2 - l.x1, l.y2 - l.y1);
+      let heading = Math.atan2(l.y2 - l.y1, l.x2 - l.x1) * 180 / Math.PI;
+      if (h.length) {while (heading - h.at(-1)! > 180) heading -= 360; while (heading - h.at(-1)! < -180) heading += 360;}
+      h.push(heading); d.push(along + length / 2); along += length;
+    }
+    for (let i = 0; i < h.length; i++) {
+      if (!touched.has(lines[first + i].id)) continue;
+      let low = h[i], high = h[i];
+      for (let k = i; k >= 0 && d[i] - d[k] <= window / 2; k--) {low = Math.min(low, h[k]); high = Math.max(high, h[k]);}
+      for (let k = i; k < h.length && d[k] - d[i] <= window / 2; k++) {low = Math.min(low, h[k]); high = Math.max(high, h[k]);}
+      worst = Math.max(worst, high - low);
+    }
+    first = last + 1;
+  }
+  return worst;
+}
+
+/** The rule (experiment, on with LINE_GROUND=on): the ground the rider touches is smooth.
+ *  - Anywhere: no reversal of more than REVERSAL_LIMIT degrees within 60 px (bumps, zigzags).
+ *  - After a hit's own frames (HIT_FRAMES, the account's event window): no turning of more than LATE_TURN_LIMIT
+ *    degrees within 30 px (a lip at the end of a support, a corner). Sharp turning belongs to the hit.
+ * Fitted to the owner's 41 answers of 2026-11-15 (15 of 18 not-clean stretches flagged, 18 of 23 clean ones passed). */
+export const GROUND_RULE = process.env.LINE_GROUND === 'on', REVERSAL_LIMIT = 10, LATE_TURN_LIMIT = 10, HIT_FRAMES = 6;
+export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (frame: number) => readonly number[], hit: number, to: number): boolean {
+  const all = new Set<number>(), late = new Set<number>();
+  for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}
+  return roughestReversal(lines, all) <= REVERSAL_LIMIT && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
+}

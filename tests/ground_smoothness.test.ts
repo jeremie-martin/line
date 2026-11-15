@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {roughestReversal} from '../scripts/v0/optimizer/ground_smoothness.ts';
+import {roughestReversal, sharpestTurn, groundIsSmooth} from '../scripts/v0/optimizer/ground_smoothness.ts';
 
 /** A chain of 10 px lines with the given headings in degrees. */
 function chain(headings: number[], id0 = 1) {
@@ -32,5 +32,29 @@ describe('roughestReversal', () => {
   it('treats chains separately', () => {
     const a = chain([0, 0, 0]), b = chain([40, 40, 40], 100).map(l => ({...l, x1: l.x1 + 500, x2: l.x2 + 500}));
     expect(roughestReversal([...a, ...b], all([...a, ...b]))).toBe(0);
+  });
+});
+
+describe('sharpestTurn', () => {
+  it('reads a gentle arc by its radius and a lip by its angle', () => {
+    const arc = chain(Array.from({length: 20}, (_, i) => i * 2)), lip = chain([0, 0, 0, 0, 0, 15, 30, 45]);
+    expect(sharpestTurn(arc, all(arc))).toBeCloseTo(4);
+    expect(sharpestTurn(lip, all(lip))).toBeGreaterThan(29);
+  });
+  it('judges only the touched lines', () => {
+    const lip = chain([0, 0, 0, 0, 0, 0, 0, 0, 15, 30, 45]);
+    expect(sharpestTurn(lip, new Set([1, 2, 3]))).toBe(0);
+  });
+});
+describe('groundIsSmooth', () => {
+  const lip = chain([0, 0, 0, 0, 0, 0, 15, 30, 45]);
+  it('allows sharp turning within the hit\'s own frames and refuses it after', () => {
+    const during = (f: number) => f < 6 ? [7, 8, 9] : [], after = (f: number) => f >= 6 ? [7, 8, 9] : [1];
+    expect(groundIsSmooth(lip, during, 0, 10)).toBe(true);
+    expect(groundIsSmooth(lip, after, 0, 10)).toBe(false);
+  });
+  it('refuses a bump anywhere', () => {
+    const bump = chain([0, 0, 12, 24, 12, 0, 0]);
+    expect(groundIsSmooth(bump, f => f < 3 ? [3, 4, 5] : [], 0, 10)).toBe(false);
   });
 });

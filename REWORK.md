@@ -4,7 +4,7 @@
 
 - Replace the standalone dark dashboard with the lab's shared components and a light review surface. Keep effect switching beside a large preview; add a selector that stays with the picture on phones.
 - Render 1080 × 1920 instead of enlarging 360 × 640. Reuse prepared pictures across effect switches and draw only the visible arm in single-picture mode. Preserve the audio clock while switching.
-- Use the full current theme registry. Overlay current and candidate on one chart, one quantity at a time, with consistent colours, units, direction explanations and click-to-seek. No effect law or production default changes.
+- Use the full current theme registry. Overlay current and candidate in four charts visible together (vertical, horizontal, rotation, zoom), with consistent colours, units, direction explanations, a shared cursor and click-to-seek. No effect law or production default changes.
 - Browser regression covers both songs, desktop/phone, switching during playback, full-resolution production equivalence and comparison controls.
 
 ## November 15: hit movement study, not adopted

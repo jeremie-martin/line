@@ -164,8 +164,9 @@ The full current theme registry supplies the looks. All previews draw at 1080 ×
 Single-picture mode renders only the visible arm. Effect switches reuse prepared
 pictures and scratch canvases, and keep the audio clock running. A switches the
 reference/candidate picture; paired viewing remains available. Charts overlay
-current (grey dashed) and candidate (blue), one quantity at a time with shared
-axes, explicit units and direction explanations. Clicking the chart seeks the
+current (grey dashed) and candidate (blue) in four charts shown together: vertical,
+horizontal, rotation and zoom. Each has shared axes, explicit units and direction
+explanations; all four share the playback cursor. Clicking the chart seeks the
 picture. Detailed measurements and historical notes are collapsed.
 
 `node tests/browser/hit-motion.mjs` checks both songs, desktop and phone controls,

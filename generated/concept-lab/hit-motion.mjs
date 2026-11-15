@@ -18,7 +18,6 @@ if (q.get('colour') === 'off') $('colour').checked = false;
 if (q.get('split') === 'off') $('split').checked = false;
 choose('rate', 'rate', ['1', '0.5', '0.25']);
 choose('view', 'view', ['single', 'pair']);
-choose('signal', 'signal', ['dx', 'dy', 'rotation', 'scale']);
 let mode = Object.hasOwn(MODES, q.get('effect')) ? q.get('effect') : 'recoil';
 let time = Math.max(0, Number(q.get('t')) || 9), home = time, playing = false, ticket = 0, entry, pictures = [];
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), cache = new Map();
@@ -89,21 +88,21 @@ function moments() {
 }
 const svgEl = (tag, attrs={}, text) => {const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
 const SIGNALS = {
-  dx: {unit: 'px', limit: 48, help: 'Horizontal displacement of the ride: positive moves right, negative moves left.'},
-  dy: {unit: 'px', limit: 48, help: 'Vertical displacement of the ride: positive moves down, negative moves up.'},
-  rotation: {unit: '°', limit: 1, help: 'Rotation around the rider: positive turns clockwise, negative turns counterclockwise.'},
-  scale: {unit: '%', limit: 6, help: 'Zoom relative to the camera: 0% is unchanged; positive enlarges the ride around the rider.'},
+  dx: {name: 'Horizontal movement', unit: 'px', limit: 48, help: 'Horizontal displacement of the ride: positive moves right, negative moves left.'},
+  dy: {name: 'Vertical movement', unit: 'px', limit: 48, help: 'Vertical displacement of the ride: positive moves down, negative moves up.'},
+  rotation: {name: 'Rotation', unit: '°', limit: 1, help: 'Rotation around the rider: positive turns clockwise, negative turns counterclockwise.'},
+  scale: {name: 'Zoom', unit: '%', limit: 6, help: 'Zoom relative to the camera: 0% is unchanged; positive enlarges the ride around the rider.'},
 };
-function chart(container, from, duration, rows, synthetic=false) {
-  const key = $('signal').value, signal = SIGNALS[key], width = Math.max(320, container.clientWidth), height = 230;
-  const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `${$('signal').selectedOptions[0].textContent}: current shake versus ${MODES[mode][0]}`});
-  const L=54, R=width-18, top=20, bottom=194, max=signal.limit*Math.max(1,gain());
+function chart(container, from, duration, rows, key, synthetic=false) {
+  const signal = SIGNALS[key], width = Math.max(300, container.clientWidth), height = 190;
+  const svg = svgEl('svg', {viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': `${signal.name} (${signal.unit}): current shake versus ${MODES[mode][0]}`});
+  const L=54, R=width-18, top=16, bottom=154, max=signal.limit*Math.max(1,gain());
   const x=t=>L+t/duration*(R-L), y=v=>(top+bottom)/2-v/max*(bottom-top)/2;
   for(const v of [-max,-max/2,0,max/2,max]) {
     svg.append(svgEl('line',{x1:L,x2:R,y1:y(v),y2:y(v),stroke:v===0?'#a8b0bb':'#e4e7ec'}));
     svg.append(svgEl('text',{x:L-8,y:y(v)+4,'text-anchor':'end'},`${+v.toFixed(2)}${signal.unit}`));
   }
-  for(let i=0;i<=4;i++)svg.append(svgEl('text',{x:x(duration*i/4),y:218,'text-anchor':'middle'},synthetic?`${(duration*i/4*1000).toFixed(0)} ms`:`${(from+duration*i/4).toFixed(1)} s`));
+  for(let i=0;i<=4;i++)svg.append(svgEl('text',{x:x(duration*i/4),y:180,'text-anchor':'middle'},synthetic?`${(duration*i/4*1000).toFixed(0)} ms`:`${(from+duration*i/4).toFixed(1)} s`));
   if(!synthetic)for(const h of hits){const t=h.time-offset()-from;if(t>=0&&t<=duration)svg.append(svgEl('line',{x1:x(t),x2:x(t),y1:top,y2:bottom,stroke:'#d4d9e0','stroke-dasharray':'2 4'}));}
   rows.forEach((values,i)=>{
     const value=v=>key==='scale'?(v.scale-1)*100:v[key];
@@ -116,25 +115,34 @@ function chart(container, from, duration, rows, synthetic=false) {
   }
   container.append(svg);
 }
+function movementCharts(container, from, duration, rows, synthetic=false) {
+  for (const key of ['dy', 'dx', 'rotation', 'scale']) {
+    const panel=document.createElement('section'), title=document.createElement('h3'), help=document.createElement('p'), plot=document.createElement('div');
+    title.textContent=SIGNALS[key].name; help.className='help';
+    help.textContent={dy:'Pixels · positive down, negative up',dx:'Pixels · positive right, negative left',rotation:'Degrees · positive clockwise',scale:'Percent · positive enlarges the ride'}[key];
+    panel.append(title,help,plot); container.append(panel); chart(plot,from,duration,rows,key,synthetic);
+  }
+}
+
 function samples(m, hs, start, duration, off = 0) {return Array.from({length:Math.ceil(duration*240)+1},(_,i)=>({t:i/240,v:motionAt(m,hs,start+i/240,gain(),start+i/240-off)}));}
 function metrics(rows) {let travel=0,moving=0;for(let i=1;i<rows.length;i++){const a=rows[i-1].v,b=rows[i].v;travel+=Math.hypot(b.dx-a.dx,b.dy-a.dy);if(Math.hypot(b.dx,b.dy)>.5||Math.abs(b.rotation)>.02||Math.abs(b.scale-1)>.001)moving++;}return [Math.max(...rows.map(r=>Math.hypot(r.v.dx,r.v.dy))).toFixed(1),travel.toFixed(1),(moving/240).toFixed(2),Math.max(...rows.map(r=>Math.abs(r.v.rotation))).toFixed(2),(100*Math.max(...rows.map(r=>Math.abs(r.v.scale-1)))).toFixed(2)];}
 function charts() {
   if(!entry)return; const duration=Math.min(6,end-home),box=$('curves');box.replaceChildren();
   const rows=['current',mode].map(m=>samples(m,hits,home+offset(),duration,offset()));
-  chart(box,home,duration,rows);
+  movementCharts(box,home,duration,rows);
   $('legendName').textContent=MODES[mode][0];
-  $('signalHelp').textContent=SIGNALS[$('signal').value].help+' This excludes camera following and colour-split enlargement. Pixels refer to the 1080-wide output.';
-  $('curveNote').textContent=`${home.toFixed(2)}–${(home+duration).toFixed(2)} s · dotted vertical lines mark hits; the dark cursor follows playback. Click the curve to seek.`;
+
+  $('curveNote').textContent=`${home.toFixed(2)}–${(home+duration).toFixed(2)} s · dotted vertical lines mark hits; the dark cursor follows playback. Click any chart to seek. All four show added hit movement only; camera following and colour split are excluded.`;
   $('metrics').innerHTML='<table><tr><th>This passage</th><th>Max displacement · px</th><th>Translation travel · px</th><th>Moving · s</th><th>Max roll · °</th><th>Max zoom · %</th></tr>'+rows.map((r,i)=>`<tr><td>${MODES[i?mode:'current'][0]}</td>${metrics(r).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')+'</table>';
   single();
 }
-function single(){const s=Number($('strength').value);$('strengthValue').textContent=s.toFixed(2);$('single').replaceChildren();chart($('single'),0,.4,['current',mode].map(m=>samples(m,[{time:0,strength:s,energy:strength(s),normal:{x:0,y:-1}}],0,.4)),true);}
+function single(){const s=Number($('strength').value);$('strengthValue').textContent=s.toFixed(2);$('single').replaceChildren();movementCharts($('single'),0,.4,['current',mode].map(m=>samples(m,[{time:0,strength:s,energy:strength(s),normal:{x:0,y:-1}}],0,.4)),true);}
 
 for(const [key,[name]] of Object.entries(MODES)){const b=document.createElement('button');b.textContent=name;b.dataset.mode=key;b.onclick=()=>{mode=key;showCurrent=false;rebuild();view();};$('variants').append(b);}
 $('quickEffect').replaceChildren(...Object.entries(MODES).map(([key,[name]])=>new Option(name,key)));
 $('quickEffect').onchange=()=>{mode=$('quickEffect').value;showCurrent=false;rebuild();view();};
 $('song').onchange=()=>void load();$('theme').onchange=draw;$('camera').onchange=rebuild;
-$('gain').oninput=()=>{$('gainValue').textContent=`×${gain().toFixed(1)}`;rebuild();};$('colour').onchange=rebuild;$('split').onchange=rebuild;$('strength').oninput=single;$('signal').onchange=()=>{charts();draw();};
+$('gain').oninput=()=>{$('gainValue').textContent=`×${gain().toFixed(1)}`;rebuild();};$('colour').onchange=rebuild;$('split').onchange=rebuild;$('strength').oninput=single;
 $('single').closest('details').addEventListener('toggle', e=>{if(e.target.open)single();});
 $('play').onclick=()=>playing?pause():void play();$('rate').onchange=()=>{if(playing){pause();void play();}};
 $('seek').oninput=()=>{seek(Number($('seek').value));};$('seek').onchange=()=>{home=Math.min(time,Math.max(0,end-6));charts();};
@@ -145,7 +153,7 @@ function view() {const single=$('view').value==='single';document.querySelector(
 $('view').onchange=view;$('switch').onclick=()=>{showCurrent=!showCurrent;view();};
 view();
 new ResizeObserver(()=>{if(entry){charts();draw();}}).observe($('curves'));
-$('share').onclick=async()=>{const u=new URL(location.href);u.search=new URLSearchParams({song:$('song').value,effect:mode,theme:$('theme').value,camera:$('camera').value,t:home.toFixed(3),gain:String(gain()),colour:$('colour').checked?'on':'off',split:$('split').checked?'on':'off',rate:$('rate').value,view:$('view').value,signal:$('signal').value});history.replaceState(null,'',u);try{await navigator.clipboard.writeText(u.href);$('status').textContent='Comparison link copied';}catch{$('status').textContent=u.href;}};
+$('share').onclick=async()=>{const u=new URL(location.href);u.search=new URLSearchParams({song:$('song').value,effect:mode,theme:$('theme').value,camera:$('camera').value,t:home.toFixed(3),gain:String(gain()),colour:$('colour').checked?'on':'off',split:$('split').checked?'on':'off',rate:$('rate').value,view:$('view').value});history.replaceState(null,'',u);try{await navigator.clipboard.writeText(u.href);$('status').textContent='Comparison link copied';}catch{$('status').textContent=u.href;}};
 document.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;if(e.code==='KeyA' && $('view').value==='single'){e.preventDefault();$('switch').click();}if(e.code==='Space' && e.target.tagName!=='BUTTON'){e.preventDefault();playing?pause():void play();}});
 for (const id of ['baseline','candidate']) $(id).onclick=()=>playing?pause():void play();
 function tick(ts){try{if(playing&&entry){time=Math.min(end,music.position(shown(ts)));if(time>=($('loop').checked?Math.min(end,home+6):end)){pause();time=$('loop').checked?home:end;if($('loop').checked)void play();}draw();}}catch(e){error(e);}requestAnimationFrame(tick);}

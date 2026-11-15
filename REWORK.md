@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: apex launches (stated before running)
+
+The owner asked to try, properly and ambitiously, the missing shape noted at the adoption above: a release that
+launches steeply upward before a quiet beat, so the flight is long and caught near its top.
+- **Change** (`exp/apex-launch`, option `apexLaunches`, off by default: parity identical; on in
+  `exp/apex-launch-on`): after the early proposals, each of the 6 best-ranked candidates is offered again with its
+  support's exit turned so the flight it launches arrives at the next beat level (at its apex) or halfway to level.
+  The release frame, hence the flight time and the air, is kept; the launch heading follows from gravity (horizontal
+  speed is constant in flight: vy at release = vy at arrival − g × flight frames); the exit moves by the change of
+  launch heading. Not gated on the ask: offered before every catch, kept only where it ranks better (the level-arrival
+  preference rewards it before quiet beats; the steep one penalizes it before strong beats).
+- **Measured** against `foundation-6`, V8: every ruler; arrival headings and air and speed errors before quiet catches
+  (`tools/research/quiet_catches.ts`); quiet asks (`quiet_asks.ts`); the long spec.
+- **Hypothesis:** before quiet beats, more level arrivals from long flights; the air lost by `foundation-6` there comes
+  back (air error before asks under 0.1 back toward −0.14); the long spec recovers much of its −26; quiet asks stay
+  as close or closer; headline up against `foundation-6`.
+
 ## November 15: level arrivals before quiet catches and quiet misses priced in proportion (adopted, the owner's choice; not finished)
 
 - **Adopted** (`exp/quiet-level-b`, cleaned): before a quiet beat the arrival is drawn toward level (the mirror of the

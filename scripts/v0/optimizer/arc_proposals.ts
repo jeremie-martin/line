@@ -202,7 +202,13 @@ export function proposeApexLaunches(s: IntervalSearch) {
       const wanted = deg(Math.atan2(vy * (1 - f) - G * frames, vx)), exit = x.c.exit + (wanted - launched);
       if (Math.abs(exit - x.c.exit) < 1) continue;
       work.attempts++;
-      if (evaluate(s, tagOrigin({...x.c, exit}, 'apex'))) work.viable++;
+      const r = evaluate(s, tagOrigin({...x.c, exit}, 'apex'));
+      if (r) {
+        work.viable++;
+        // report only: [fraction, original arrival heading, aimed arrival heading, achieved, flight frames before/after, rank − original's]
+        const t = r.candidate, aimed = deg(Math.atan2(vy * (1 - f), vx));
+        work.rows.push([f, x.heading, aimed, t.heading, frames, t.release !== undefined ? s.horizon - t.release : NaN, searchRank(t) - searchRank(x)]);
+      }
     }
   }
   retainSearch(s);

@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: five songs, four handcrafted specifications each
+
+Valhalla, Trouble, Amor na Praia (46 s), Bones and Petrunko each have three new variants built on one stated idea, and
+one revisit of their best earlier specification (`productions/<song>/variants/`; the idea and the reason for each number
+are in each file's header). Landing tables use `table` (`core/measured.ts`), which snaps each row to its measured event.
+An independent review checked every header claim against the data; its findings are applied.
+
+Compiled on seeds 101, 202, 303; all 20 match every asked landing. Videos and numbers:
+`generated/videos/handcraft/index.html`. Scores 658–869.
+
+- **Where the ride falls short:** landings asked at 0.8 or more come out at 0.70–0.86 on average; worst on Petrunko
+  `build` (0.52: seven roll strokes 0.3 s apart) and wherever strong hits are closer than about 0.45 s.
+- **A compiler fault:** Petrunko `build`, seed 101 fails every time with "main construction differs at support 70"
+  (the consistency check in `automatic.ts`), on a clean tree. For the compiler work.
+- Close pairs, by the reviewer: Valhalla `two-voices` and `still-drop` after 30 s; Trouble `stop-go` and `cycle`
+  (curves and sparseness differ, landings less); Bones `turn` and `draft-revisited`.
+
 ## November 14: rails never closer to their support than 6 px (adopted, the owner's choice)
 
 `exp/rail-margin-6` merged: the rail-support margin is 6 px (was 2). V8 against `foundation-4`: −0.5 [−6.4, +5.4];

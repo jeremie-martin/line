@@ -1,10 +1,10 @@
-/** The grade behind the V7 headline. Span observations retain their established units; the impact contribution is
- * the shared one-to-one account, including timing and unmatched-event energy. */
+/** The grade behind the headline. Air, speed and amplitude come from the span observations (span_grade.ts), in their
+ * units; the impact contribution is the shared one-to-one account, including timing and unmatched-event energy. */
 import type {ImpactEvaluation} from '../v0/optimizer/impact_accounts.ts';
 import type {evaluateDetection,Score,Observation} from './span_grade.ts';
-export function contactImpactGrade(historical:ReturnType<typeof evaluateDetection>,impact:ImpactEvaluation){
+export function contactImpactGrade(spans:ReturnType<typeof evaluateDetection>,impact:ImpactEvaluation){
   const {events,targets,account}=impact;
-  const observations:Observation[]=historical.observations.filter(o=>o.axis!=='impact');
+  const observations:Observation[]=spans.observations.filter(o=>o.axis!=='impact');
   const contacts=targets.map((target,i)=>{
     const match=account.matches.find(m=>m.target===i),event=match?events[match.event]:undefined;
     if(target.impact!==undefined)observations.push({gap:i,startFrame:i?targets[i-1].frame:0,endFrame:target.frame,tail:false,
@@ -12,7 +12,7 @@ export function contactImpactGrade(historical:ReturnType<typeof evaluateDetectio
     return {targetFrame:target.frame,actualFrame:event?.onset??null,offset:match?.offset??null};
   });
   const failures:string[]=[];
-  if(historical.terminus.reason!=='endOfSpec')failures.push(`terminus:${historical.terminus.reason}`);
+  if(spans.terminus.reason!=='endOfSpec')failures.push(`terminus:${spans.terminus.reason}`);
   if(!impact.valid)failures.push('incomplete_impact_account');
   const components:Score['components']={};let loss=0,mass=1;
   for(const axis of ['air','speed','amplitude'] as const){
@@ -30,6 +30,6 @@ export function contactImpactGrade(historical:ReturnType<typeof evaluateDetectio
   const score:Score={valid,hardFailures:failures,weightedAxisRms:Number.isFinite(rms)?rms:null,components,
     score:valid?Math.round(1000*Math.exp(-rms/.25)*10000)/10000:0};
   return {contract:impact.contract,score,observations,contacts,
-    offBeat:account.unmatchedEvents.map(i=>events[i].onset),terminus:historical.terminus,
+    offBeat:account.unmatchedEvents.map(i=>events[i].onset),terminus:spans.terminus,
     note:'Impact-account quality. Impact loss includes strength, timing, missing targets and extra events.'};
 }

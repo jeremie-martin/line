@@ -432,8 +432,8 @@ async function rides() {
         const requests = production.plan.requests.slice(p.first, p.first + p.count);
         return {...p, title: p.construction, window: [requests[0].frame / 40, Math.min(musicCase.durationFrames / 40, requests.at(-1)!.next / 40)], sections: requests.map((r: any) => r.section)};
       });
-      const saved = saveMusicCell({out, planSha256, c: musicCase, beats, method: 'production', seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
-        result: gallery.result, reference: null, referenceTrace: null, compileMs: gallery.compileMs, physicalFrames: gallery.physicalFrames,
+      const saved = saveMusicCell({out, planSha256, c: musicCase, beats, seed: c.seed, budget: gallery.budget, allowance: gallery.budget,
+        result: gallery.result, compileMs: gallery.compileMs, physicalFrames: gallery.physicalFrames,
         production, styles: production.styles, phrases, work: gallery.work});
       assert.equal(saved.cell.trackHash, digest(readArmTrack(arm, id)), `${side} ${id}: the exported track is not the compared one`);
       writeGalleryJson(out, 'manifest.json', {schema: 'line.motion-gallery.v1', planSha256, plan, cells: [saved.cell],

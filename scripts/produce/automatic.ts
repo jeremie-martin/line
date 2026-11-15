@@ -41,7 +41,7 @@ const repertoire=checkpoint.repertoire!;
 const {result,...production}=repertoire;
 const phrases=repertoire.plan.phrases.map(p=>{const requests=repertoire.plan.requests.slice(p.first,p.first+p.count);return {...p,title:p.construction,
  window:[requests[0].frame/40,Math.min(spec.duration,requests.at(-1)!.next/40)],sections:requests.map(r=>r.section)};});
-const alternative=saveMusicCell({out,planSha256,c,beats,method:'production',seed,budget,allowance:budget,result,reference:null,referenceTrace:null,
+const alternative=saveMusicCell({out,planSha256,c,beats,seed,budget,allowance:budget,result,
  compileMs,physicalFrames:repertoire.physicalFrames,production,styles:repertoire.styles,phrases,work:checkpoint.work});
 assert.deepEqual(galleryCompilerIdentity(compilerRoot),compiler,'compiler changed during generation');assert.deepEqual(judgeIdentity(),judge);assert.deepEqual(galleryHarnessIdentity(paths),harness);
 const current=await loadMusicCase({song,variant,title,moments:[]});for(const key of ['specSha256','audioSha256','analysisSha256'] as const)assert.equal(current.musicCase[key],c[key],'authored input changed during generation');

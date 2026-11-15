@@ -522,3 +522,22 @@ optional zoom per frame from a study (`createFraming`'s `scale`; production pass
 the hit movement by it. `zoom-model.mjs` (tested) offers five things the zoom can follow: steady (today), the keyframes
 written in the spec, one zoom per section, the ride's intensity, the rider's speed; with an overall closeness, how much
 it changes (at most 2.5 times between closest and widest), how slowly, and which way. Nothing is judged or adopted.
+
+## The split adopted; the zoom written for the song (owner, 2026-11-15)
+
+- **Split:** on the split page the owner chose red into the surface at 1.05 times the size. `split.js` now moves red
+  along the blow (before: halfway between sideways and the blow) and `hits.js` `split` is a twentieth bigger. The split
+  page's "production" is this; the earlier direction is its option "half sideways, half into".
+- **Zoom:** of the five sources he prefers a zoom written for the song, for its intention ("there's something to it
+  that you cannot replicate"); following intensity or speed would have to be so subtle as to be pointless, since the
+  picture should not always open or close with them. He asked for absolute values: a lane must not be stretched to its
+  own range. So `zoom-model.mjs` is now keyframes `{t, wide}` on one scale for every song: 0 closest, 1 widest, 0.5
+  today's zoom, the widest showing 1.4 times more than the closest (his figure; today's zoom in the middle is my
+  choice). The other sources are gone from the page.
+- **Drafts** (`zoom-lanes.mjs`, four per song, unjudged): the old spec's lane brought onto the scale by one fixed
+  conversion (old zooms ran from 1.55 to 2.9 over all specs); opening with the song (close when calm, wide when full,
+  changing at section starts); pushing in through each section; and the reverse reading. The page lets him drag, add
+  and remove points and saves the keyframes.
+- **What exists elsewhere:** the spec type has `camera.zoom` (keyframes in the first renderer's units) and
+  `camera.beatPunch`; about twenty spec files still carry them; today's renderer reads neither. Three themes use the
+  "out when quiet" zoom (12% at most).

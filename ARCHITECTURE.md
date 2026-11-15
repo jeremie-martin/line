@@ -73,11 +73,20 @@ and validation are in [music authoring](docs/music-authoring.md).
      shares the allowance and preserves the longest prefix on interruption;
    - finishes with terminal selection, then a cold replay checked against an
      independent engine (`arc_finalize.ts`). Before that check, rail pieces the
-     rider never touches are trimmed, and the pieces of lines the whole rider
+     rider never touches are trimmed. Touched main supports also lose unused ends,
+     keeping a contiguous span with two neighboring segments on either side and
+     at least 24 px or a fifth of their original length (short curves stay whole).
+     Untouched supports and fragments stay drawn; any trim that breaks a fulfilled
+     construction request is restored. The pieces of lines the whole rider
      goes through and never touches are removed, shortening a line from its
      nearer end and never breaking it (`arc_gone_through.ts`, since 2026-11-14);
      the independent replay proves the cleaned track rides identically. The ending refinement that used
      to follow terminal selection was deleted on 2026-11-13 (REWORK.md).
+
+   Production verification rebuilds each main support from its committed controls.
+   Retained segments must be an exact contiguous span of that original. If ends were
+   removed, restoring them must add no contact and change no rider state throughout
+   the saved track. This verification runs outside the compiler's frame allowance.
 
    Every evaluation is native physics, charged to the allowance. Measurements
    are memoized per physical prefix; `EVALUATION_IDENTITY` (`arc_options.ts`)

@@ -7,6 +7,9 @@ arranged as a seeded variety of constructions (arcs, guided arcs, folds, ripples
 serpentines, terraces, scattered segments). The native Line Rider physics engine
 then measures whether the physical contacts match the requested beats and strengths.
 Upper contacts can count as impacts too; visual review remains essential.
+After searching, the compiler trims unused curve ends while preserving the ride
+and the requested shapes. Independent replay checks the cleaned track, and
+production verification checks its retained geometry against the original controls.
 
 The repository is being rebuilt on clean foundations; see [REWORK.md](REWORK.md)
 for the plan and its current phase.

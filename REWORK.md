@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: trim unused curve ends
+
+- Long-running branch `geometry-improvements`, from `9d46793e`; quiet-impact work stays separate.
+- Finish the earlier untouched-support-end experiment, including construction verification and production artifacts.
+  Keep a contiguous span with the existing guide-pruning margin, leave untouched supports whole, and restore trims
+  that break a requested shape. No search, impact-account or physics changes.
+- Hypothesis: less drawn geometry with identical rider motion, completion, scores under every ruler and charged
+  physics frames. Compare paired V7.1 rides against the branch point; quantify drawn length and segments, and inspect
+  before/after geometry. The independent final replay must remain exact. Track hashes deliberately change.
+- Verification must reject altered coordinates, interior deletions and removal of contacted segments. A retained
+  curve is an unchanged contiguous part of its reconstructed original, not an arbitrary subset.
+- This is visual cleanup, not a speed claim; no extra compiler physics replay is allowed.
+- Result: complete V7.1, 41 specs × 4 seeds = 164 paired rides against `9d46793e`: headline 798.21 in both
+  arms, difference 0.00, seed-block 95% interval [0.00, 0.00]. Completion 164/164 in both; every score ruler,
+  guard, motion metric, ride-character metric and charged physics frame count is exactly unchanged in every pair.
+  Independent binary64 state and ordered-collision fingerprints match for all 164 pairs.
+- Drawn length falls 16.85%; 87,126 segments removed (10.52%). Every retained line is unchanged. Construction
+  verification passes on all 164 candidate tracks (12,178 supports); before/after sheets and six playable examples
+  are under `generated/trim-unused-ends` and `generated/compare/trim-unused-ends`.
+- Geometry diagnostics do change: shaped reversals per section fall 3.77 → 3.46 as unused ends disappear.
+  One automatic terrace on `los_voltaje_ultra_slowed_selection~spec~303` changes from bypassed to fulfilled
+  because the shape checker measures the remaining span. This is not improved riding; explicit requests remain
+  216/216 in both arms. No previously fulfilled ride becomes unfulfilled.
+- Accept the cleanup on this branch. All 25 parity track hashes intentionally change; all other stored cell
+  values are identical. Register five existing research entry points so the inherited reachability gate passes.
+  Full `npm run check` passes: 626 tests, 32 Rust tests, exact engine checks, compile and judge parity,
+  and end-to-end timing/production/review smoke checks (2.4 minutes). Six browser playback checks also pass.
+
 ## November 15: what makes a quiet catch soft, and Q13: a level arrival before quiet catches (stated before running)
 
 - **Correction:** an engine probe suggested a soft touchdown needs the sled lying along its path (an apex landing read

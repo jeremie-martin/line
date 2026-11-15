@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { compileArcMotion, motionArc } from '../scripts/v0/optimizer/arc_motion.ts';
-import { trimUnusedArcGuides } from '../scripts/v0/optimizer/arc_guidance.ts';
+import { trimUnusedArcGuides, trimUnusedArcSupports } from '../scripts/v0/optimizer/arc_guidance.ts';
 import { LineRiderEngine as Engine, disposeAllWasmEnginesForStudy } from '../scripts/lib/_lr_engine_wasm.ts';
 import { extractRawTrajectory, resetFrameCount, setPhysicsFrameLimit } from '../scripts/lib/detector.ts';
 import type { Spec, TrackLine } from '../scripts/v0/types.ts';
@@ -8,6 +8,18 @@ import type { Spec, TrackLine } from '../scripts/v0/types.ts';
 const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={budget:65000,samples:100,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3,};
 const chains=(lines:TrackLine[])=>{const result:TrackLine[][]=[[]];for(const l of lines){const p=result.at(-1)!.at(-1);if(p&&(p.x2!==l.x1||p.y2!==l.y1))result.push([]);result.at(-1)!.push(l);}return result;};
+
+it('shortens only untouched support ends, preserving interior spans, guides and fragments',()=>{
+  const main:TrackLine[]=Array.from({length:20},(_,i)=>({id:1000+i,type:0,x1:i*10,y1:0,x2:(i+1)*10,y2:0}));
+  const guide:TrackLine={id:1100,type:0,x1:200,y1:-12,x2:0,y2:-12};
+  const lines=[...main,guide],contacts=[[],[1007],[1011]];
+  expect(trimUnusedArcSupports(lines,contacts)).toEqual([...main.slice(5,14),guide]);
+  expect(trimUnusedArcSupports(lines,[])).toEqual(lines);
+  expect(trimUnusedArcSupports(lines,[[1007]])).toEqual(lines); // initial frame isn't a collision
+  expect(trimUnusedArcSupports(lines,contacts,new Set([0]))).toEqual(lines);
+  expect(trimUnusedArcSupports(lines,[[],[1007,1007],[1011]])).toEqual(trimUnusedArcSupports(lines,contacts));
+  expect(trimUnusedArcSupports(main.slice(0,3),[[],[1001]])).toEqual(main.slice(0,3));
+});
 
 it('expresses single, partial and paired guidance as substantial connected normal curves',()=>{
   const control={entry:5,turn:55,exit:20,support:18,bias:0,offset:.1};

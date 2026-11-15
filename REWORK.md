@@ -1,5 +1,35 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the smooth-ground rule, three seeds (experiment, not adopted)
+
+**The rule** (`ground_smoothness.ts`, on with `LINE_GROUND=on`), on the lines the rider touches in a section:
+no reversal of more than 10° within 60 px anywhere; after the hit's own 6 frames, no turning of more than 10° within
+30 px. A candidate that breaks it is rejected. On the owner's 41 answers (fitted after the fact): "turning after the
+hit above 8°" flags 11 stretches, 1 of them clean; "reversal of 12° or more" flags 17, 4 clean; either flags 15 of
+the 18 not-clean stretches and passes 18 of the 23 clean ones. The upturned tips he named (5 s, 7 s, 23 s) measure
+48°, 63°, 21–29° after the hit.
+
+**Where lips come from:** a support's heading goes from the catch to the exit by `easing(w, bias)`; a large bias puts
+the whole turn in the last frames, limited only by a 24 px minimum radius.
+
+**20 specs × seeds 101, 202, 303**, v3 account (`tools/measure/body/paired.ts`; paired by spec, 95% bootstrap over specs):
+
+| | complete | score | hit error | air rms | speed rms | sections breaking the rule | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|---|
+| today | 59/60 | 754.2 | 0.0090 | 0.041 | 0.059 | 45.4% (bumps 35.3%, lips 23.2%) | 0.71 |
+| no terraces, no fold | 60/60 | 754.6 | 0.0092 | 0.040 | 0.060 | 35.8% | 0.57 |
+| no terraces, no fold, the rule | 60/60 | 731.5 | 0.0114 | 0.043 | 0.066 | 0.0% | 0.05 |
+
+- Leaving terraces and folds out: score +2.2 [−2.1, +6.8], 11 specs up, 9 down. No measurable cost.
+- The rule on top: −21.1 [−26.3, −15.9] against today, all 20 specs down; hit error +0.0022 (20 of 20 up), speed
+  +0.0064 (17 up), air +0.0021 [−0.0006, +0.0048]. Every ride completes and no section breaks the rule in the final
+  tracks.
+- The hard pushes the account does not record nearly vanish without any change to the account.
+- Corrected during the analysis: a first count gave 21% of lips left; it had counted the next support, touched up to
+  two frames before its beat, as ground after the hit.
+- Not shown: that the owner sees the difference (videos in `generated/videos/smooth3/`, a fresh blind round is the
+  test); the usual benchmark panel; whether aiming at the rule instead of rejecting recovers score.
+
 ## November 15: a smoothness limit on the ground the rider touches (experiment, not adopted)
 
 `ground_smoothness.ts` `roughestReversal`: along each chain of lines, at every change of the bend's direction, the

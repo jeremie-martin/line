@@ -34,7 +34,7 @@ for (const [song, variant, s] of picks) {
       const last = contact.at(-1); if (last && i / 40 - last[1] <= .1) last[1] = +((j + 1) / 40).toFixed(3); else contact.push([+(i / 40).toFixed(3), +((j + 1) / 40).toFixed(3)]); i = j + 1;}
     if (!contact.length) continue;
     const sec = p.sections.find((x: any) => Math.abs(Math.round(x.start * 40) - f) <= 3); if (!sec) continue;
-    cands.push({id: '', video: `/generated/videos/handcraft/${song}-${variant}.mp4`, song, from: +from.toFixed(3), to: +to.toFixed(3), focus: [contact[0][0], contact.at(-1)![1]], contact, hits,
+    cands.push({id: '', video: `/generated/videos/handcraft-plain/${song}-${variant}.mp4`, song, from: +from.toFixed(3), to: +to.toFixed(3), focus: [contact[0][0], contact.at(-1)![1]], contact, hits,
       family: sec.shape, context, level, ask: tg[k].impact, seen: +seen.toFixed(3), rest: +rest.toFixed(3), rock: +rock.toFixed(1)});
   }
 }

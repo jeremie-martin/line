@@ -74,5 +74,5 @@ export const LATE_RADIUS = process.env.LINE_GROUND === 'built' ? 30 / (.9 * LATE
 export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (frame: number) => readonly number[], hit: number, to: number): boolean {
   const all = new Set<number>(), late = new Set<number>();
   for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}
-  return roughestReversal(lines, process.env.LINE_GROUND_PART === 'all' ? all : late) <= REVERSAL_LIMIT && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
+  return (process.env.LINE_GROUND_PART === 'late' || roughestReversal(lines, process.env.LINE_GROUND_PART === 'all' ? all : late) <= REVERSAL_LIMIT) && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
 }

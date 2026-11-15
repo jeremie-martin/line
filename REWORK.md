@@ -1,5 +1,20 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the second review does not confirm the 10° rule
+
+38 answers (`labels/studies/motion-2026-11b.jsonl`): 35 clean, 3 "a little", none "clearly". By class: baseline with a
+turn after the hit above 15° (up to 35°): 7 of 8 clean; baseline with a reversal above 12° (up to 27°): 5 of 6 clean;
+baseline within the rule 6 of 6; turns of 10–15°: 8 of 8; rides under the rule: 9 of 10. Within the rule 16 of 17 clean,
+outside it 19 of 21. Calm 6 of 8 clean, intense 18 of 19. Owner: some answers sat between clean and a little; "let's
+not read too much into it"; on the full rides he finds the rule "definitely cleaner".
+
+- **What it shows:** once terraces and folds are out, stretch by stretch he finds almost everything clean, whatever my
+  readings say. In the first round the readings mostly separated terraces and folds from the rest; that was the
+  family, not a property I had isolated. The 10° limits are not supported.
+- **What stays supported:** terraces and folds out (both rounds, no cost); the large upturned tips he named on full
+  rides (48°, 63°, and three of 21–29° in a row in a calm passage), which are also where the unrecorded hard pushes are.
+- **Not explained:** why the full rides under the rule read cleaner to him when the stretches do not differ.
+
 ## November 15: the limit's cost curve, songs outside the 20 specs, a second review round (experiment)
 
 - **Limit 15° instead of 10°** (`LINE_GROUND_LIMIT=15`, 3 seeds): −4.1 [−8.8, +0.5] against the baseline (10°: −9.7);

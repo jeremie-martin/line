@@ -2,6 +2,17 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
+   misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
+   (the long spec −26) lose air and their neighbouring strong beats, because a level arrival is usually a short
+   flight. Tried 2026-11-15 (REWORK.md, apex launches): releases launching toward an apex arrival are taken up (11%
+   of arcs) and cost nothing on V8 or V7.1; quiet asks closer on V8 and on the owner's Tiki spec, not on V7.1; not
+   adopted yet. The long spec's quiet beats follow 2–3 s floats asking 80–92% air: no apex arrival exists there and a
+   soft catch cannot turn the rider up for the next float, so the loss is a trade in its asks, not a missing shape.
+   Apex launches were then generalized into the arrival law (one speed-aware arrival heading for every ask, with
+   aimed launches): branch `adopt/arrival-law`, V8 +5.3 at 16 seeds, waiting for the owner's eye. Aimed launches for
+   shaped families: parked (owner).
+
 1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
    to −11% CPU, long case −27%, identical tracks).
 2. ~~**Owner review of the Trouble spec variants**~~ (rounds 1–4,

@@ -355,6 +355,623 @@ Compiled on seeds 101, 202, 303; all 20 match every asked landing. Videos and nu
   (the consistency check in `automatic.ts`), on a clean tree. For the compiler work.
 - Close pairs, by the reviewer: Valhalla `two-voices` and `still-drop` after 30 s; Trouble `stop-go` and `cycle`
   (curves and sparseness differ, landings less); Bones `turn` and `draft-revisited`.
+## November 15: the arrival law from level (adopted on the owner's go-ahead; `foundation-7`)
+
+- **Soft-end variants** (V8, 8 seeds, against `foundation-6`; the owner's Tiki voice-drums, 4 seeds): law from 5°,
+  gain 2: +7.4, Tiki asks 0–0.1 within ×1.5 63%, 0.1–0.2 86%, score 766.1; from level, gain 2: +3.4 [+1.3, +5.4],
+  Tiki 80% / 89%, 758.8; **from level, gain 2.4: +6.3 [+3.2, +9.4], Tiki 70% / 89%, 774.9** (`foundation-6`: 83% / 95%,
+  762.9; 40 Tiki beats under 0.1, about ±7 points of noise). Chosen: from level, gain 2.4, now one parameter:
+  the arrival heading is the angle whose tangent is 2.4 × the ask's push over the next beat's speed.
+- **The adopted law against `foundation-6`** (branch `adopt/arrival-law`; checks: tests 626, typecheck 0, reach
+  clean, parity references refreshed in their own commit, judge parity passes):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | other |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+6.2 [+4.3, +8.1]** | 35 / 8 | +12.0 | 3.40 → 4.13 (+22%) | 0.18 → 0.16 (−8%) | very strong bias −0.177 → −0.169; small quiet asks within ×1.5 58% → 64%, over ×2 21% → 16%; asks of 0 8% → 12% |
+| V7.1 | 8 | +3.4 [−1.7, +8.6], support 0.92 | 25 / 10 | +6.0 | 3.80 → 4.85 (+27%) | 0.08 → 0.12 | head-down strong arrivals −6% |
+| held out | 4 | +11.4 [−12.7, +35.5] | 4 / 0 | – | 3.31 → 4.04 (+22%) | 0.08 → 0.24 (a few events) | head-down −18% |
+
+  Every ride finished on every panel; air, speed, rails, families and clean upper hits unchanged. The owner's Tiki
+  voice-drums: score 762.9 → 774.9; quiet asks 0–0.1 within ×1.5 83% → 70% (the one measure that is worse; small
+  sample), 0.1–0.2 95% → 89%.
+- **Merged into `compiler` on the owner's go-ahead** before his look at the pages ("if there is anything to fix, we
+  can do it after the merge"). Named reference `foundation-7`. Open: his eye on the pages; the softest asks on slow
+  passages (his Tiki spec); aimed launches for shaped families (parked).
+
+## November 15: the arrival law's soft end (stated before running)
+
+On the owner's Tiki voice-drums (4 seeds), the cleaned law lands quiet beats less well than `foundation-6`: asks
+0–0.1 within ×1.5 63% (83%), 0.1–0.2 86% (95%); mean score 766.1 (762.9). Its quiet stretches are slow (speed asked
+about 0.38), where the law wants 14–18° for asks near 0.1 (a slow rider needs a steeper arrival for the same push);
+arrivals before its quiet beats: median 13°, p90 24° (`foundation-6` with the level prior: 10°, 17°). The data table
+(`arrival_law.ts`) has whispers landing best at 0–10°. The law starts too steep at the soft end.
+- **Variants** (`exp/law-0g2`, `exp/law-0g24`): the law from level, base 0° (instead of 5°), gain 2 and 2.4 (the
+  second keeps the strong end where it was). **Hypothesis:** quiet asks on the Tiki spec back to `foundation-6`'s level
+  or better; V8 headline and strong asks about as before.
+## November 15: the arrival law, cleaned and measured on every panel (ready for the owner's eye; not adopted yet)
+
+- **Design.** One arrival law for every catch: the heading it wants is 5° + the angle whose tangent is 2 × the ask's
+  push over the next beat's speed (`arrivalLawHeading`, `arrivalTargets` in `arc_evaluate.ts`; `arrivalLaw` in
+  `repertoire_search.ts`). Ranking prefers it with one weight at every ask; aimed launches (`proposeAimedLaunches`,
+  arcs and scattered sections) offer the 6 best candidates again with their support's exit turned toward it, all and
+  half the way, aimed by gravity and corrected once by measurement. It replaces three rules: the steep heading before
+  strong asks, the level heading before quiet asks (removed with `levelArrivalBelow`) and the broad heading prior
+  (kept only for configurations without the law). The steep step still sets the kinetic arrival speed, the upright
+  preference and the search effort before strong asks. Quiet misses priced in proportion (`relativeImpact`) stay.
+- **Proof of the cleanup.** Parity references were taken from the tested candidate (`exp/law-impulse2`), then the
+  cleanup checked against them: identical. On V8 (784 rides) the cleaned branch reproduces the candidate's result to
+  the decimal. A unit test pins the law (`tests/arrival_law.test.ts`). Tests 625 (+1), typecheck 0, reach clean,
+  judge parity passes.
+- **Against `foundation-6`** (branch `adopt/arrival-law`):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+5.3 [+3.6, +7.0]**, every seed block up | 38 / 5 | +12.5 | 3.40 → 4.13 (+22%) | 0.18 → 0.20 | −0.177 → −0.166 |
+| V7.1 | 8 | +2.5 [−0.3, +5.3], support 0.96 | 24 / 11 | +1.6 | 3.80 → 4.83 (+27%) | 0.08 → 0.13 | better by 0.014 |
+| held out | 4 | −0.4 [−34.0, +33.3] | 2 / 2 | – | 3.31 → 3.96 (+20%) | 7 against 1 in 1,460 beats | – |
+
+  Every ride finished on every panel. Air, speed, rails, families, clean upper hits and head-down arrivals unchanged.
+  The held-out extra impacts are 7 against 1 over 1,460 beats, 6 in one song (Petrunko), all just above the 0.25
+  threshold (0.25–0.31): small, real, and consistent with the other panels.
+- **Body drag** (an unvalidated proxy; the owner: "not a huge issue for me") rises with the steeper strong arrivals
+  that carry the gain: the catch folds the rider onto the line; rails' share of it is unchanged.
+
+## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds), all with aimed launches:
+
+| | headline | seed blocks up | specs up / down | explicit | body drag | strong extra impacts | very strong bias | small quiet asks within ×1.5 / over ×2 |
+|---|---|---|---|---|---|---|---|---|
+| `foundation-6` | | | | | 3.40 s/min | 0.18 | −0.177 | 58% / 21% |
+| linear ≤ 55°, heading prior kept | +6.8 [+4.8, +8.7] | 16 / 16 | 35 / 8 | +5.4 | +24% | +14% | −0.169 | 61% / 14% |
+| linear ≤ 55°, heading prior dropped | +7.2 [+4.5, +9.9] | 15 / 16 | 35 / 8 | +6.4 | +29% | +24% | −0.170 | 63% / 16% |
+| speed-aware gain 2, heading prior dropped | +5.3 [+3.6, +7.0] | 16 / 16 | 38 / 5 | +12.5 | +22% | +15% | −0.166 | 65% / 15% |
+
+- The three are within each other's noise on the headline. The speed-aware law is the most principled (no cap,
+  adapts to the next beat's speed, one rule fewer) and the most consistent (every seed block and 38 of 43 specs up),
+  with the best explicit requests and quiet asks and the least body drag and extra impacts of the three.
+- Air, speed, rails, families and head-down arrivals unchanged in all.
+
+## November 15: the arrival law challenged (results at 8 seeds)
+
+V8, 8 seeds, against `foundation-6`, all with aimed launches:
+
+| | headline | explicit | body drag | strong extra impacts | small quiet asks within ×1.5 / over ×2 | very strong bias |
+|---|---|---|---|---|---|---|
+| linear ≤ 55°, heading prior kept | +8.8 [+6.3, +11.3] | +7.4 | +26% | +26% | 62% / 15% | −0.168 |
+| linear ≤ 55°, heading prior dropped | +8.7 [+7.0, +10.4] | +9.6 | +31% | +41% | 63% / 17% | −0.169 |
+| speed-aware, gain 1.5, heading prior dropped | +0.9 [−2.1, +3.9] | +7.8 | +4% | +55% | 62% / 18% | −0.177 |
+| speed-aware, gain 2, heading prior dropped | +7.4 [+5.3, +9.5] | +12.4 | +24% | +35% | 67% / 15% | −0.164 |
+
+- Dropping the contradictory heading prior is neutral: it goes. What carries the gain is how steep strong beats arrive
+  (about 50–55°): every form that gets there gains 7–9; those that stay shallower (gain 1.5, cap 45°) lose it; body
+  drag follows steepness in every case.
+- Running: the two finalists (linear ≤ 55° and speed-aware gain 2, both without the heading prior) at 16 seeds.
+
+## November 15: where body drag comes from; the arrival law challenged (stated before running)
+
+- **Body drag** (`tools/research/body_drag.ts`, V8 4 seeds; `foundation-6` against the law ≤ 55° with aimed launches):
+  3.35 → 4.10 s/min. 94% of it starts within 10 frames of a catch (3.14 → 3.82): it is the catch folding the rider
+  onto the line. Half is on a rail in both (1.62 → 2.00 on a rail, 1.73 → 2.10 on main lines only): rails are where
+  the body often lands, and the law does not change that share. The rise comes from catches arriving at 30° or more
+  (30–45°: 0.45 → 1.04; 45°+: 0.47 → 0.78; under 30°: 2.43 → 2.28), most after strong beats (+0.41 s/min), then middle
+  (+0.25), quiet (+0.09). Catches from above carry a large share in both (1.45 → 1.75).
+- **The law challenged** (owner: keep the idea, make the implementation sounder): (a) the broad heading prior
+  (penalty beyond 45° for asks under 0.8) contradicts the law (up to 55°) and is superseded by it; (b) a catch's push
+  is about the speed carried into the line, speed × sin of the arrival against it, so the wanted angle should depend on
+  the next beat's speed too: base + atan(gain × push(ask) / speed), no cap needed (it saturates). Gain 1.5 matches the
+  linear law at a typical speed (5° at ask 0, 36° at 0.5, 55° at 1 for 9.4 px/frame), steeper when slow, shallower
+  when fast.
+- **Runs** (V8, 8 seeds, against `foundation-6`; beside the law ≤ 55° at the same seeds, +8.8): `exp/law-noheading`
+  (linear law ≤ 55°, heading prior dropped); `exp/law-impulse15` and `exp/law-impulse2` (speed-aware law, gain 1.5 and
+  2, heading prior dropped); all with aimed launches. **Hypothesis:** dropping the contradictory prior helps or is
+  neutral; the speed-aware law matches or beats the linear one with no cap.
+
+## November 15: the arrival law ≤ 55° at 16 seeds (exploratory; for the owner)
+
+V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds): headline **+6.8 [+4.8, +8.7]**, every one of the
+16 seed blocks positive, 35 specs up, 8 down; explicit +5.4; very strong bias −0.177 → −0.169; small quiet asks within
+×1.5 58% → 61%, over ×2 21% → 14%; asks of 0 within ×1.5 8% → 10%; air, speed, ride character, head-down arrivals
+unchanged; body drag 3.40 → 4.21 s/min (+24%); strong extra impacts 0.18 → 0.20 (+14%).
+- One continuous law (5° + 80° × ask, at most 55°) replaces the steep and level arrival headings (two switched
+  priors), and launches are aimed at it before every beat: no threshold between quiet and other beats.
+- Not adopted: the owner judges by eye (`strong-pairs.html`; body drag is an unvalidated proxy); V7.1 and held out not
+  yet run. If adopted, the cleanup removes the level prior and the steep prior's heading (its speed and upright parts
+  stay) and keeps `arrivalTargets` as the one definition.
+
+## November 15: the arrival law's cap (measured)
+
+V8, 8 seeds, against `foundation-6`, the law 5° + 80° × ask with aimed launches, capped at:
+
+| cap | headline | specs up / down | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|
+| 70° | +8.6 [+6.5, +10.7] | 39 / 4 | +40% | +48% | −0.160 |
+| 55° | +8.8 [+6.3, +11.3] | 36 / 7 | +26% | +26% | −0.168 |
+| 45° | +0.3 [−3.3, +3.9] | 17 / 26 | +7% | +37% | −0.178 |
+| 40° | −5.0 [−9.2, −0.7] | 7 / 36 | −2% | +54% | −0.185 |
+
+- The gain is strong beats arriving at 45–55° and more; the extra body contact comes with exactly those arrivals (a
+  harder catch folds the rider onto the line). Below 45° the gain disappears and extra impacts stay. 55° is the best
+  trade measured. Quiet asks are about the same at every cap (small asks within ×1.5 62–64%).
+- Matched strong beats (same beat, same ride, seed 101; 40 drawn at random): body-contact frames 379 today, 437 with
+  the law ≤ 55°. Page for the owner: `generated/quiet-study/strong-pairs.html`.
+- Running: the law ≤ 55° at 16 seeds.
+
+## November 15: the arrival law (results so far)
+
+V8 against `foundation-6`:
+
+| | seeds | headline | specs up / down | explicit | very strong bias (−0.176) | body drag s/min (3.42) | strong extra impacts |
+|---|---|---|---|---|---|---|---|
+| law (5° + 80° × ask, ≤ 70°), prior only | 8 | +6.1 [+3.7, +8.5] | 38 / 5 | +8.3 | −0.161 | 4.88 (+43%) | +43% |
+| law ≤ 70° + aimed launches | 8 | +8.6 [+6.5, +10.7] | 39 / 4 | +12.0 | −0.160 | 4.80 (+40%) | +48% |
+| law ≤ 70° + aimed launches | 16 | **+6.9 [+4.4, +9.4]** | 37 / 6 | +12.1 | −0.160 | 4.66 (+37%) | +27% |
+| law ≤ 55° + aimed launches | 8 | **+8.8 [+6.3, +11.3]** | 36 / 7 | +7.4 | −0.168 | 4.31 (+26%) | +26% |
+
+- The gain is mostly strong beats landing closer to their ask; clean upper hits 11.6% → 12.3–13.0%; air and speed
+  flat; quiet asks about as close as `foundation-6` with the level pull (small asks within ×1.5 59–63%).
+- Body drag (6+ frames of butt, shoulder or hands on a line; an unvalidated eye proxy, reported, never optimized) and
+  strong extra impacts rise; the steepest arrivals cause most of that and little of the gain (≤ 55° keeps the gain
+  with two thirds of the drag rise and half the extra-impact rise).
+- Running: caps 45° and 40° at 8 seeds.
+
+## November 15: one continuous arrival law (stated before running)
+
+The owner challenged the cliff between quiet and other beats (the level prior acts under 0.3, the steep one from 0.4,
+nothing between) and asked for something more general, measured with more seeds and on every statistic.
+- **Data** (`tools/research/arrival_law.ts`, `foundation-6`, V8 4 seeds, 17,392 catches): the arrival heading that goes
+  with well-landed catches (smallest relative miss, speed kept after) rises smoothly with the ask: 0–10° for asks under
+  0.2; anywhere 10–30° lands well for 0.2–0.45; 30–60° for 0.45–0.6; 45° and steeper for 0.6–1.0 (asks 0.8–1.0: 95%
+  within ×1.5 from 60°+, 53% from 0–10°). Today's median arrival is 17–36° whatever the ask: too steep for whispers,
+  too shallow for hard hits.
+- **Change** (`exp/arrival-law`, option `arrivalLaw`, off by default: parity identical): one arrival heading for every
+  ask, 5° + 80° × ask, at most 70°, pulled with the same weight at every ask; it replaces the steep and level
+  priors' headings (their speed and upright parts stay). Variant **prior** (`exp/arrival-law-prior`): the law only;
+  variant **aimed** (`exp/arrival-law-aimed`): plus launches aimed at it before every beat.
+- **Measured** at 8 seeds on V8 against `foundation-6`, then 16 for the better one: every ruler; quiet and strong asks;
+  stray hits; variety; arrivals by ask.
+- **Hypothesis:** strong asks closer (very strong bias above −0.176) and quiet asks closer; headline up; no cliff in
+  arrivals by ask; variety kept.
+
+## November 15: aimed launches only before quiet beats (the cleanest form; exploratory, not adopted)
+
+V8, 8 seeds, against `foundation-6` (758.3): headline **+2.3 [−1.2, +5.9]**, support 0.92, 16 specs up, 16 down, **11
+identical** (no quiet asks: the proposal never acts); explicit +2.8; small quiet asks within ×1.5 55% → 63%, over ×2
+22% → 17%; asks of 0 within ×1.5 8% → 13%; strong asks unchanged (−0.176); stray strong hits 0.13 → 0.15; ride
+character unchanged.
+- Of the three forms (level before every beat +1.1, steep and level +1.5, level before quiet beats only +2.3), this
+  one is the most consistent with the compiler: one definition of the wanted arrival shared with ranking
+  (`arrivalTargets`), acting only where a beat asks a soft hit, rides without quiet asks untouched. Level before every
+  beat gave the most quiet gain (69%) by also changing arcs before ordinary beats (345 of 427 at seed 101).
+- 73 of 4,397 committed arcs (seed 101) come from it. Gallery for the owner: `generated/quiet-study/aimed-level.html`.
+- Kept on `exp/aimed-arrivals` (option `aimedLaunches`, off: parity identical) and `exp/aimed-level-on` (on).
+
+## November 15: aimed apex launches and aimed launches at 8 seeds; variety (measured)
+
+V8, 8 seeds (392 rides), against `foundation-6` (758.3 at 8 seeds):
+
+| | headline | small quiet asks (0–0.1) within ×1.5 / over ×2 | asks of 0 within ×1.5 | very strong bias | stray strong hits |
+|---|---|---|---|---|---|
+| `foundation-6` | | 55% / 22% | 8% | −0.176 | 0.13 |
+| aimed apex launches (level before every beat) | +1.1 [−2.4, +4.7] | 69% / 13% | 11% | −0.177 | 0.14 |
+| aimed launches (steep before strong, level before quiet) | +1.5 [−0.5, +3.5], support 0.94 | 61% / 17% | 16% | −0.177 | 0.19 |
+
+- Aiming steeper before strong beats does not help them (very strong bias unchanged) and adds stray hits (+39%): their
+  shortfall is in the catch, not the arrival (as the November impact studies found: the push is speed × turn at the
+  catch). The steep half is dropped from the idea.
+- **Variety** (`tools/research/flight_variety.ts`, V8 4 seeds): no version makes rides more uniform. Spread of arrival
+  headings within a ride: median 15.0° (`foundation-5`), 15.1° (`foundation-6`), 15.2° (aimed apex), 15.1° (aimed).
+  Launch, arrival and flight-length quantiles match within a degree or a frame. Before quiet beats arrivals moved from
+  −23° (median, `foundation-5`) to −19° (`foundation-6`); the launch proposals barely move that median (−20°): of 427
+  winning apex arcs (seed 101) 345 sit before ordinary or strong beats, and refinement keeps their exit (median shift
+  1.4°).
+- Running: aimed launches only before quiet beats (`aimedLaunches.levelOnly`, `exp/aimed-level-on`).
+
+## November 15: aimed launches, the general form of apex launches (exploratory; stated before running)
+
+The owner liked how aimed apex launches look, kept them out of the compiler, and asked to refine, generalize,
+simplify, measure with more seeds, challenge the logic, and keep rides from becoming uniform.
+- **The logic, challenged:** apex launches aim every launch at a level arrival, but the compiler already states what
+  arrival each catch wants, in its arrival priors: steep and fast before a strong beat, level before a quiet one,
+  nothing between. Strong beats still land too soft (asks 0.8–1.0 at −0.18). One mechanism serves both: aim each
+  launch at the heading that best satisfies those priors, weighted as in ranking.
+- **Change** (`exp/aimed-arrivals`, option `aimedLaunches`, off by default; on in `exp/aimed-arrivals-on`): the arrival
+  targets moved into one helper (`arrivalTargets`) used by the priors and the proposal (pure refactor: parity identical);
+  the 6 best-ranked candidates get twins moved all and half the way to that heading, aimed by gravity and corrected
+  once by measurement (as in aimed apex launches). Nothing is proposed where neither prior applies.
+- **Measured** at 8 seeds on V8 against `foundation-6`, beside aimed apex launches at 8 seeds; quiet and strong asks;
+  arrival headings; variety (spread of launch and arrival headings, flight lengths, families).
+- **Hypothesis:** quiet asks as close as aimed apex launches; strong asks closer (very strong bias less negative);
+  headline up; no loss of variety.
+
+## November 15: apex launches aimed by measurement (result; exploratory, not adopted)
+
+Against `foundation-6` (V8 758.8, V7.1 798.8), 4 seeds:
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5 / over ×2, V8 | same, V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|---|
+| `foundation-6` | | | 54% / 22% | 69% / 7% | 0.11 |
+| apex launches, first version | +0.7 | −0.5 | 70% / 15% | 65% / 5% | 0.14 |
+| **aimed by measurement** | −0.1 [−9.1, +8.9] | −1.2 [−10.8, +8.4] | **71% / 11%** | **74% / 7%** | **0.11** |
+
+- V7.1 asks 0.1–0.2 within ×1.5 87% → 88%, over ×2 3% → 0%. The quiet gain now holds on both panels; stray hits back
+  to `foundation-6`'s level.
+- The long spec: seeds 739, 750, 728, 722 (mean 734.8; `foundation-6` 722.4, `foundation-5` 748.7): about half the
+  loss recovered; impact rms on asks under 0.1 0.053 (0.086; 0.146 before the quiet-hit adoption); air before them
+  still short (−0.183): the trade in its asks remains.
+- 440 of 4,397 committed arcs (seed 101) come from aimed apex launches. Gallery for the owner's eye:
+  `generated/quiet-study/apex-aimed.html`.
+- Not adopted (the owner: new geometry needs great care); kept on `exp/apex-aim` (which also carries the report-only
+  probe rows).
+- Process: a V7.1 run started 20 s after a V8 run of the same candidate failed on the arm's generation lock, the second
+  time today. Comparisons that compile the same candidate must run one after the other.
+
+## November 15: apex launches aimed by measurement (exploratory; stated before running)
+
+The owner keeps apex launches out of the compiler ("new geometry has to be done very carefully") and asked to keep
+improving them. `tools/research/apex_work.ts` (V8 seed 101, report only) shows the first version never tried the
+shape it meant: its twins realised a third of the aimed change of arrival heading (aimed level from 16.8° falling,
+achieved 7.9°; halfway: aimed 9.1°, achieved 13.6°). The exit carries into the launch only in part: the rider leaves
+before the support's end, which eases into its exit.
+- **Change** (`exp/apex-aim`, `apexLaunches.aim`): after a twin is measured, its exit is corrected once by a secant
+  step through the original and the twin (the change at most three times the first). Measured: arrival 0.8° for a
+  level aim (median miss 0.8°, p90 23.6°), 83% of the aimed change realised; the twins rank better than their original
+  11% (level) and 16% (halfway) of the time.
+- **Hypothesis:** with the real shape tried, quiet asks closer than the first version on V8 (small asks within ×1.5
+  over 70%), and on V7.1; headline neutral or better against `foundation-6`.
+
+## November 15: apex launches, final round (not adopted yet; for the owner)
+
+All against `foundation-6` (V8 758.8, V7.1 798.8):
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5, V8 / V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|
+| `foundation-6` | | | 54% / 69% | 0.11 |
+| apex launches (6 candidates; all and half the way to an apex arrival) | +0.7 [−2.8, +4.2] | −0.5 [−9.7, +8.6] | 70% / 65% | 0.14 |
+| larger variant (12 candidates; a third, two thirds, all) | −1.7 [−9.6, +6.3] | | 62% / – | 0.17 |
+| air-length twin added | −1.5 [−4.1, +1.1] | | 70% / – | 0.15 |
+
+- V7.1, asks 0.1–0.2 within ×1.5: 87% → 92%; all asks under 0.3: 89% → 88%.
+- The owner's Tiki voice-drums (4 seeds): asks 0–0.1 within ×1.5 83% → 88%, 0.1–0.2 95% → 97%; mean score 762.9 →
+  768.5.
+- **Reading:** the shape is used (11% of committed arcs) and costs nothing on either panel, but its quiet gain holds on
+  V8 and the owner's spec, not on V7.1. Mixed evidence; more candidates did worse. The long spec's loss is a trade in
+  its asks (previous entry), which no launch shape removes.
+
+## November 15: the air-length twin (result), and why the long spec cannot be fixed by a shape
+
+- **Air-length twin** (`exp/apex-launch-air`; V8 against `foundation-6`): −1.5 [−4.1, +1.1]; quiet asks as with the
+  first apex launches; the long spec 725.5 (air before asks under 0.1 still −0.19). Dropped.
+- **The long spec's quiet beats follow very long gaps** (seed 101: spans 69–138 frames, 1.7–3.5 s, asking 80–92% air,
+  i.e. flights of 55–125 frames). No apex arrival exists there: a 125-frame flight caught at its top needs a launch of
+  about 22 px/frame upward. The energy-neutral flight (landing at its launch height, no speed gained) arrives falling
+  at about 54°; a soft catch there must then turn the rider up for the next long flight, and on a support of about 10
+  frames (10% of the gap) that turn is a hard hit. A long float, a whisper of a catch and a steady moderate speed
+  cannot all hold: something gives. `foundation-5` gave impact (+0.125 on asks under 0.1, air −0.14), `foundation-6`
+  gives air (−0.19, impact +0.07). This is a trade in the asks, not a missing shape.
+- Apex launches remain useful on shorter gaps (first version: small quiet asks within ×1.5 54% → 70% on V8, headline
+  +0.7). Running now: a larger variant (12 candidates; a third, two thirds and all the way) on V8, and the first
+  version on V7.1, both against `foundation-6`.
+
+## November 15: apex launches, first result; the air-length twin (stated before running)
+
+- **Apex launches** (V8 against `foundation-6`, 758.8): headline +0.7 [−2.8, +4.2], 19 specs up, 24 down; explicit
+  +7.0; strong extra impacts 0.11 → 0.14; air, speed and strong asks unchanged. Small quiet asks (0–0.1) within ×1.5
+  54% → 70%, over ×2 22% → 15%; 0.1–0.2 within ×1.5 99%. Taken up: 11% of committed arcs descend from an apex launch
+  (seed 101, `candidate_origins.ts`).
+- **But not on the long spec:** 722.4 → 726.8 (748.7 before the quiet-hit adoption); air before asks under 0.1 still
+  −0.19. The twin keeps its candidate's release frame, hence its flight time, and those flights were already too short.
+- **Next** (`exp/apex-launch-air`, option `apexLaunches.airFlight`): each twin is also offered with its support set to
+  the length the air ask implies (the interval's nominal support), launched for an apex arrival over that longer
+  flight. **Hypothesis:** air before quiet beats recovers on the long spec (toward −0.14) and its score toward 748.7;
+  the quiet gain stays; headline up against `foundation-6`.
+
+## November 15: apex launches (stated before running)
+
+The owner asked to try, properly and ambitiously, the missing shape noted at the adoption above: a release that
+launches steeply upward before a quiet beat, so the flight is long and caught near its top.
+- **Change** (`exp/apex-launch`, option `apexLaunches`, off by default: parity identical; on in
+  `exp/apex-launch-on`): after the early proposals, each of the 6 best-ranked candidates is offered again with its
+  support's exit turned so the flight it launches arrives at the next beat level (at its apex) or halfway to level.
+  The release frame, hence the flight time and the air, is kept; the launch heading follows from gravity (horizontal
+  speed is constant in flight: vy at release = vy at arrival − g × flight frames); the exit moves by the change of
+  launch heading. Not gated on the ask: offered before every catch, kept only where it ranks better (the level-arrival
+  preference rewards it before quiet beats; the steep one penalizes it before strong beats).
+- **Measured** against `foundation-6`, V8: every ruler; arrival headings and air and speed errors before quiet catches
+  (`tools/research/quiet_catches.ts`); quiet asks (`quiet_asks.ts`); the long spec.
+- **Hypothesis:** before quiet beats, more level arrivals from long flights; the air lost by `foundation-6` there comes
+  back (air error before asks under 0.1 back toward −0.14); the long spec recovers much of its −26; quiet asks stay
+  as close or closer; headline up against `foundation-6`.
+
+## November 15: level arrivals before quiet catches and quiet misses priced in proportion (adopted, the owner's choice; not finished)
+
+- **Adopted** (`exp/quiet-level-b`, cleaned): before a quiet beat the arrival is drawn toward level (the mirror of the
+  steep arrival before strong beats; full at ask 0, none from 0.3); the impact weight is multiplied by
+  ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07 counting as 0.07. It replaces the calm multiplier
+  (×1.5 under 0.2), now removed, with its `calmImpactMultiplier` option. The cleanup's tracks are byte-identical to
+  the tested candidate's (parity references taken from the candidate, then checked against the cleaned code).
+- **Measured against today's compiler** (`foundation-5`, 764.5), V8, 4 seeds: headline −5.7 [−10.5, −0.8]; explicit
+  −9.8; strong extra impacts 0.11 (0.10); speed and air rms flat; small quiet asks (0–0.1) within ×1.5 54% (38%),
+  over ×2 22% (42%); asks 0.1–0.2 within ×1.5 98% (94%). The owner's Tiki voice-drums: within ×1.5 83% and 95% (65%,
+  82%), mean score 762.9 (764.6).
+- **Not finished (the owner):** the loss gathers on specs asking much air before quiet beats (the long spec −26, all
+  four seeds): flights into quiet catches fly even less than before (air error −0.139 → −0.189 before asks under 0.1)
+  and the strong catches around them land weaker (impact rms 0.069 → 0.083). A level arrival is usually a short
+  flight. One possible answer, not tried: a release launching steeply upward before a quiet catch, so the flight is
+  long and caught near its top. Other answers may exist (TODO.md item 0).
+- Checks: tests 625 pass; typecheck 0; reach clean (the five research tools added these two days registered as
+  entries: rail_squeeze, ridable_work, quiet_asks, quiet_catches, quiet_work); parity references refreshed in their own
+  commit; parity and judge parity pass. Named reference `foundation-6`.
+
+## November 15: Q13 result (level arrival before quiet catches)
+
+V8 against `foundation-5` (a first run of both failed: the impact-search option validator did not know the new key;
+fixed, and a one-ride compile is now run before every comparison):
+
+| | headline | explicit | extra impacts | 0–0.1 within ×1.5 / over ×2 | exactly 0 within ×1.5 | speed rms |
+|---|---|---|---|---|---|---|
+| Q10 (pricing alone) | −5.4 | −14.4 | 0.28 | 58% / 25% | 12% | +0.003 |
+| Q13a (level prior alone) | −5.4 [−11.2, +0.3] | +6.2 | 0.07 | 34% / 38% | 2% | −0.002 |
+| Q13b (level prior + Q10 pricing) | −5.7 [−10.5, −0.8] | −9.8 | 0.11 | 54% / 22% | 8% | +0.001 |
+
+- The prior moves arrivals before quiet catches flatter: falling 30° or more 377 → 137 (Q13a) and 192 (Q13b) of 1,072;
+  5–15° 173 → 358 and 339; level (within 5°) only 24 → 37. The flight after a quiet catch is less fast (Q13a +0.023
+  against +0.045).
+- Q13b keeps Q10's quiet gain without Q10's stray hits (0.28 → 0.11, `foundation-5` 0.10), with speed and air flat.
+  The headline loss stays about 5.5, largest on the long spec (P6 −26 to −28 in both Q13 runs).
+- Small perturbations of the search have cost about 1–3 points throughout these weeks (R1–R4, Q2, Q6); part of any
+  loss here may be that, not the mechanism. Unproven.
+- **The owner's Tiki voice-drums under Q13b** (4 seeds): asks 0–0.1 within ×1.5 83% (today 65%), 0.1–0.2 95% (82%);
+  mean score 762.9 (764.6).
+
+## November 15: `foundation-5` (fewer rails, 6 px margin) on V7.1 and held out (measured; owner's choice stands)
+
+Against `foundation-3` (before the two rail changes), 4 seeds:
+- **V7.1:** headline −11.1 [−13.3, −8.9], 2 specs up, 33 down; explicit −6.1; every ride finished; rails 55% → 41% of
+  gaps, open arcs 36% → 47%, clean upper hits 8.1% → 10.3%; body drag −15%; strong extra impacts 0.07 → 0.10.
+- **Held out** (16 rides): −8.2 [−46.2, +29.8], 1 up, 3 down; rails 59% → 45%; clean upper hits 11.5% → 14.0%; body
+  drag −13%; head-down strong arrivals +11%.
+- Consistent with V8 (−9.0 then −0.5): the owner chose fewer rails knowing the score cost; nothing changes.
+- (A first held-out run failed on a generation lock: it shared the candidate's arm with the V7.1 run started 30 s
+  earlier. Runs that compile the same arm must not overlap.)
+
+## November 15: what makes a quiet catch soft, and Q13: a level arrival before quiet catches (stated before running)
+
+- **Correction:** an engine probe suggested a soft touchdown needs the sled lying along its path (an apex landing read
+  0.005–0.037). Ride data does not support the sled part: Q1's quiet catches (asks under 0.1) land at 0.026–0.045
+  whatever the arrival heading or sled angle, from real flights (11 frames median), with a nearly tangent receiver
+  (incidence 1–2°) and a small turn. Today's construction can already make ultra-soft touchdowns.
+- **What decides the energy is the arrival heading** (`tools/research/quiet_catches.ts`, asks under 0.2): the speed
+  error of the flight after the catch, `foundation-5` / Q1: arriving level (within 5°) −0.020 / −0.009; falling 5–15°
+  +0.025 / +0.022; 15–30° +0.050 / +0.063; 30° and more +0.045 / **+0.140** (half of Q1's quiet catches). Only 2% of
+  today's quiet catches arrive level. A level arrival is a flight caught near its top: it has climbed, so it brings
+  no excess speed, and it lands soft.
+- **Q13** (`exp/quiet-level-a`, `-b`): the mirror of the steep arrival prior before strong catches: before a quiet catch
+  the arrival heading is drawn toward level, √weight × √level × heading / 45 with the arrival weight, `level` a smooth
+  step from 1 at ask 0 to 0 at ask 0.3 (`levelArrivalBelow` 0.15). Q13a: today's pricing; Q13b: with Q10's pricing.
+  **Hypothesis:** more level arrivals before quiet catches; Q13b keeps Q10's quiet gain with the speed error and the
+  headline loss mostly gone; Q13a alone softens a little.
+
+## November 15: Q12 result, and the softest touchdown (measured)
+
+- **Q12** (Q10 with asks under 0.07 aimed at 0.07): headline −5.8 [−12.5, +1.0]; strong extra impacts back to 0.10;
+  but the quiet gain is gone (asks 0–0.1 within ×1.5 38%, as `foundation-5`). Not adopted. The 0.07 "floor" was
+  wrong as a target.
+- **0.07 is not a physical limit.** It is what today's touchdowns give (their median on asks of 0: 0.08; 10% land
+  under 0.032; Q1 landed them at 0.02, mostly where the rider was already on the line). The ruler reads the push a
+  line adds when it starts carrying the rider; taking over gravity within two frames reads about 0.046 on its own.
+  A receiver that follows the rider's falling path, then bends less than gravity until straight, hands gravity over
+  gradually. Engine probe (one clean case, v = (8, 2)): sudden takeover 0.16, eased over 16–32 frames 0.044–0.048.
+  The other cases were muddied by the probe (the rider touched the line before the ease). Today's receivers have a
+  straight lead-in (`motionArcPaths`), so none of this is available to the search.
+
+## November 15: step back; where Q10 loses; Q12 (stated before running)
+
+- **Honest account of the night:** comparison runs take 4–14 minutes (V8 alone at 40 jobs: 4.4), not the hour or two
+  reported; the quiet-ask work ran 22:45–00:19 and stopped, not eight hours. The rail adoptions (`foundation-4`, `-5`)
+  were judged on V8 only; V7.1 and held out are now running.
+- **Disk:** 86 GB of unreferenced folders from July–October deleted with the owner's agreement (`legacy`,
+  `benchmark-v4`, `reviews`, `analysis`, `studies`, `budget-telemetry`, three September workspaces, `archive`'s
+  untracked agent checkouts). Kept: anything a doc or tool points to.
+- **Where Q10 (reference 0.3) loses, by spec:** no quiet asks (9 specs) 0.0; quiet asks none exactly 0 (25) −1.0; some
+  asks exactly 0 (15) −15.7 (correlation with the share of zero asks −0.59). Proportional pricing is nearly free where
+  the ask is reachable; the cost is the search bending rides to undercut a touchdown's floor (about 0.07), which an ask
+  of 0 still demands as a target.
+- **Q12** (`exp/quiet-target-floor`): Q10 at 0.3 with the search's target for an ask below the floor set at the floor
+  (an ask of 0 asks for the softest touchdown). The ruler is unchanged. **Hypothesis:** specs with zero asks lose
+  little (about today's landings there); positive quiet asks keep Q10's gain; headline within about −1.
+
+## November 15 (night): Q11 result, and where the quiet-ask work stands (nothing adopted)
+
+- **Q11** (Q10 at 0.4, hits nobody asked for priced ×1.5): headline −9.7 [−16.4, −2.9]; explicit −44.1; strong extra
+  impacts 0.15 (Q10 0.27, `foundation-5` 0.10); speed rms +0.010; asks 0–0.1 within ×1.5 68% / over ×2 17%. Pricing
+  the stray hits brings them down and the speed error back up, as every time tonight.
+- **Where it stands.** Quiet asks land too hard because the search uses touchdowns to brake: soft alternatives exist
+  in 79–94% of intervals and leave the flight too fast. Every pricing of quiet misses moves that energy, into flight
+  speed and air, or into hits nobody asked for. Geometry that sheds it (climbing twins, spread catches) did not help
+  as built: calm specs ask much air, which leaves 2–5-frame supports and no room to climb. The best trade, **Q10**
+  (relative pricing with a touchdown floor), lands small quiet asks within ×1.5 58–65% of the time (38%) and the
+  owner's Tiki voice-drums 85–95% (65–82%), with strong asks, air and speed unchanged, for −5.4 on V8 and 2.8× the
+  stray strong hits. It is a candidate for the owner's eye (`generated/quiet-study/compare.html`), not adopted.
+- **Next, if pursued:** the energy has to be planned, not priced: passages asking quiet catches and much air need
+  either longer supports (where a catch's turn can be spread and the ride can climb) or flights that land at their
+  launch height; that is a construction and planning question, not a ranking one.
+
+## November 15 (night): Q10 result, the owner's Tiki spec, and Q11 (stated before running)
+
+- **Q10** (relative pricing with the touchdown floor, no climbing twins), V8 against `foundation-5`:
+
+| | headline | explicit | specs up / down / same | extra impacts | 0–0.1 within ×1.5 / over ×2 | exactly 0 within ×1.5 | all under 0.3 within ×1.5 |
+|---|---|---|---|---|---|---|---|
+| `foundation-5` | 764.5 | 709.2 | | 0.10 | 38% / 42% | 3% | 70% |
+| Q10, reference 0.3 | −5.4 [−12.1, +1.4] | −14.4 | 12 / 22 / 9 | 0.28 | 58% / 25% | 12% | 75% |
+| Q10, reference 0.4 | −5.7 [−16.3, +4.9] | −26.0 | 11 / 28 / 4 | 0.27 | 65% / 13% | 13% | 76% |
+
+  Strong asks, air and speed unchanged (rms within ±0.005); nine specs identical at 0.3 (no quiet asks: the pricing
+  never acts). The loss gathers on a few specs whose quiet stretches ask exactly 0 (Luna Bala spec −42): the first
+  gaps leave too fast and a stray hit appears. Removing the climbing twins saved about one point (Q9 −6.4).
+- **The owner's Tiki voice-drums under Q10 (0.4)**, 4 seeds, produced rides: asks 0–0.1 within ×1.5 85% (today 65%),
+  0.1–0.2 95% (82%); p90 0.14 and 0.18 (0.19, 0.20); mean score 756.7 (764.6; seed 101 753.3 against 754.4). Seed 101
+  rendered beside today's: quiet beats within ×1.5 31 of 32 (25 of 32), hits nobody asked for 1 (3).
+  Review page: `generated/quiet-study/compare.html`.
+- **Q11** (`exp/quiet-floor-extras`): Q10 at 0.4 with hits nobody asked for priced ×1.5 (cost ×2.25; Q1b–Q4's ×9–13
+  cost speed). **Hypothesis:** extra impacts back toward 0.10 at little headline cost.
+
+## November 15 (night): Q8, Q9 results; Q10 (stated before running)
+
+- **Q8** (relative misses beyond ×1.4, weight 10 and 30): −67.8 and −80.1; speed rms +0.298 and +0.114; strong extra
+  impacts ×6.5 and ×8.5. The tolerance also priced strong asks landing under 0.65 of the ask, and the search wrecked
+  rides to reach them. Not adoptable; strong asks' undershoot must not be priced this way.
+- **Q9** (Q5 ref 0.3 with the touchdown floor, climbing twins on): headline −6.4 [−13.1, +0.2] (P3 −17.7, P6 −5.2
+  instead of Q5's −22.7); explicit −18.4; strong extra impacts 0.23 (`foundation-5` 0.10); speed and air rms flat;
+  small positive asks (0–0.1) within ×1.5 61% (38%), over ×2 22% (42%); 0.1–0.2 within ×1.5 97% (94%); all asks under
+  0.3 within ×1.5 75% (70%). The best trade so far.
+- **Q10** (`exp/quiet-floor-30`, `-40`): Q9's pricing (reference 0.3 and 0.4, touchdown floor 0.07) without the climbing
+  twins, which alone cost 5.1 points (Q3a) and softened nothing. **Hypothesis:** most of Q9's headline loss goes, the
+  quiet gain stays.
+
+## November 14 (night): Q5, Q7 results, the owner's Tiki spec, and Q9 (stated before running)
+
+Quiet asks now split: asks of exactly 0 (412 on V8, below what any touchdown gives) and small positive asks (0–0.1,
+192). `foundation-5`: within ×1.5 3% and 38%; over ×2 91% and 42%.
+
+| | headline | explicit | extra impacts | exactly 0: within ×1.5 | 0–0.1: within ×1.5 / over ×2 |
+|---|---|---|---|---|---|
+| Q1 (ref 0.5) | −12.1 | −58.1 | 0.61 | 39% | 85% / 5% |
+| Q3c (Q1 + climbing) | −10.6 | −46.0 | 0.44 | 47% | 74% / 14% |
+| Q5 ref 0.3 (+ climbing) | −7.3 [P3 −18, P6 −23] | −29.5 | 0.35 | 22% | 71% / 15% |
+| Q5 ref 0.4 (+ climbing) | −7.5 | −34.0 | 0.34 | 30% | 73% / 12% |
+| Q7 (ref 0.3 + climbing + spread) | −9.6 | −31.9 | 0.24 | 24% | 69% / 15% |
+
+- **The owner's Tiki voice-drums** (4 seeds, produced rides, report only): Q5 ref 0.3 scores 764.7 against 764.6 today;
+  asks 0–0.1 within ×1.5 83% (65%), p90 0.13 (0.19); asks 0.1–0.2 p90 0.18 (0.20). Q3c: 90% and 99% but 755.2.
+- **Where Q5 loses on V8:** a few specs that ask exactly 0 (Luna Bala spec and its explicit fold and scattered −40 to
+  −50, Tiki bench-calm −48, Amor na Praia −24 to −33), each with about one more extra hit per ride. An ask of 0 gets
+  the largest weight (×9) and cannot be met by a touchdown, so the search bends the ride around it.
+- **Q9** (`exp/quiet-dose-floor`): Q5 ref 0.3 with asks under a touchdown's floor (0.07) weighted as 0.07 (×4.2 instead
+  of ×9). **Hypothesis:** most of Q5's loss and extra hits go, the gain on small positive asks stays.
+
+## November 14 (night): Q6 result; Q8: relative misses beyond a tolerance (stated before running)
+
+- **Q6** (spread twins, today's pricing): headline −2.1 [−4.4, +0.2]; quiet asks unchanged (asks 0–0.1 within ×1.5
+  13%). Spreading the catch's turn does not soften a touchdown, as "quiet catches laid along the arrival" found for the
+  angle: a landing from flight reads at least about 0.07–0.09 (the line takes over gravity, the body settles; engine
+  probe). Asks of exactly 0 (412 of the 604 under 0.1 on V8) cannot be met by any touchdown: Q1 and Q3c met them by
+  keeping the rider on the line, which is what cost air and speed.
+- **Q8** (`exp/quiet-hinge-10`, `-30`; today's pricing kept): a matched catch's miss is priced in proportion only beyond
+  a factor 1.4, as ln((got + 0.03) / (ask + 0.03)), with asks under 0.07 read as 0.07 (a touchdown's floor); residual
+  √weight × the excess, weight 10 and 30. It leaves near misses and the touchdown floor alone and presses on the
+  visibly wrong hits (0.2 and more on an ask of 0.1; strong asks landing at under 0.65 of the ask too).
+  **Hypothesis:** the tail of quiet asks falls (over ×2 and p90 down, within ×1.5 up) without Q1's escape into extra
+  hits or flat rides; headline within a few points.
+
+## November 14 (night): Q3a, Q3b, Q4 results
+
+| | headline | explicit | asks 0–0.1 within ×1.5 / over ×2 | strong extra impacts | speed rms |
+|---|---|---|---|---|---|
+| Q3a (climbing twins, today's pricing) | −5.1 | −3.3 | 12% / 73% | 0.12 | +0.001 |
+| Q3b (climbing + Q1b pricing) | −19.0 | −68.7 | 23% / 60% | 0.06 | +0.015 |
+| Q4 (Q3b + arrival prior scaled) | −19.9 | −33.4 | 22% / 58% | 0.05 | +0.010 |
+
+Climbing twins alone cost 5 points and soften nothing; pricing the hits nobody asked for keeps costing (Q1b, Q3b, Q4);
+scaling the arrival prior does not help. Not adopted.
+
+## November 14 (night): Q3c result, braking physics, and Q4, Q5, Q6 (stated before running)
+
+- **Q3c** (Q1's pricing + climbing twins): headline −10.6 [−12.9, −8.3] (Q1 −12.1); explicit −46.0; asks 0–0.1 within
+  ×1.5 56%, over ×2 22% (Q1 54%, 21%); strong extra impacts 0.44 (Q1 0.61, `foundation-5` 0.10); speed rms +0.010;
+  P3 −45.6, P6 −28.9, P7 +13.0. Climbing helps a little. On Tiki bench-calm the speed rms doubles (0.065 → 0.130) while
+  the impact rms improves (0.089 → 0.075). (Q3a, Q3b and a first Q4 died when the disk filled; rerun after freeing the
+  comparison tool's 172 cached worktrees, 18 GB.)
+- **Braking physics** (engine probes, report only). Line friction is small: a long gentle concave press sheds 0.1–0.55
+  px/frame. Climbing is the clean brake: a 30° upward curve of radius 600 px takes 10 → 8.1 px/frame in 36 frames with
+  no event. But calm specs ask much air, so supports are 2–5 frames: no room to climb on the support, and the catch's
+  turn is the hit (a quiet 0.1 at 8 px/frame allows about 5° of turn inside the strike's window).
+- **Q4** (`exp/quiet-arrival`, Q3b plus): the arrival speed prior scaled by the next catch's relative price (a quiet
+  catch cannot brake, so arriving at the asked speed matters more). **Hypothesis:** speed held better than Q3b.
+- **Q5** (`exp/quiet-dose-30`, `-40`): Q3c at reference 0.3 and 0.4 (ask 0: ×9 and ×13; 0.1: ×3.2 and ×4.8), no
+  extras pricing. **Hypothesis:** a dose-response between `foundation-5` and Q3c; at 0.3 most of the extra impacts and
+  headline loss gone with part of the quiet gain.
+- **Q6** (`exp/quiet-spread`, today's pricing): spread twins: the 6 best-ranked candidates again with the catch's turn
+  over 45%, 70% and 85% of the support, eased in (bias at least 1): the same redirection and flight, a softer strike.
+  **Hypothesis:** quiet asks softer at no cost (twins win on the impact residual alone); headline unchanged or up.
+
+## November 14 (night): Q1b, Q1c, Q2 results; Q3: climbing twins (stated before running)
+
+V8 against `foundation-5`; "within ×1.5" and "over ×2" are for asks 0–0.1 (`foundation-5`: 14%, 75%).
+
+| | headline | explicit | within ×1.5 | over ×2 | strong extra impacts | speed rms |
+|---|---|---|---|---|---|---|
+| Q1 | −12.1 | −58.1 | 54% | 21% | 0.61 (×6) | +0.012 |
+| Q1b (ref 0.3, extras priced) | −16.5 [−29.3, −3.6] | −50.7 | 23% | 61% | 0.06 | +0.013 |
+| Q1c (ref 0.5, extras priced) | −65.4 [−130, −0.6] | −139.9 | 31% | 45% | 0.07 | +0.055 |
+| Q2 (faithful refinement) | −3.0 [−7.6, +1.6] | −4.9 | 13% | 75% | 0.12 | 0.000 |
+
+- **Pricing alone is a dead end.** When braking by touchdown costs more, the search either brakes with a hit nobody asked
+  for (Q1) or, when that costs too, leaves the flights too fast (Q1c: speed rms +0.055, the long spec −293).
+  Refinement alone (Q2) changes nothing. With today's geometry a quiet passage has nowhere to put the speed the
+  descending flights give it: on quiet gaps the flight is too fast already on `foundation-5` (speed +0.058) and much
+  more under Q1 (+0.137). In Tiki voice-drums the quiet intro descends 8–50 px a gap at a steady 8 px/frame: each
+  0.1–0.19 touchdown removes what the descent adds.
+- **Q3** (`exp/quiet-climb-a`, `-b`, `-c`): climbing twins. After the early proposals, the 6 best-ranked candidates are
+  offered again with their support's exit raised 8°, 16° and 24° (upward), so the rider climbs after the catch and
+  the ride stays level instead of gaining speed. The search keeps a twin only where it ranks better. Q3a: today's
+  pricing; Q3b: with Q1b's pricing; Q3c: with Q1's. **Hypothesis:** with pricing that makes braking by touchdown
+  costly, climbing twins carry the speed: quiet asks close to Q1's gain, speed rms and the headline loss well
+  under Q1's, no rise in extra impacts (Q3b). Alone (Q3a), little changes.
+
+## November 14 (night): Q1 result; Q1b, Q1c, Q2 (stated before running)
+
+The owner asked for a night on quiet asks (0 to 0.3): improve them much, in relative terms (0.05 against 0.1 matters),
+keeping everything else. Quiet asks are now reported by `tools/research/quiet_asks.ts` also in relative terms:
+ln((got + 0.03) / (ask + 0.03)), the share within a factor 1.5 and the share more than twice too hard.
+- **Q1** (`exp/quiet-relative`, V8 against `foundation-5`): headline −12.1 [−20.0, −4.3] (P3 −43.6, P6 −37.4,
+  explicit −58.1). Quiet asks transformed: asks 0–0.1 land at median 0.02 (was 0.09), within ×1.5 54% (14%), over ×2
+  21% (75%); asks 0.1–0.2 within ×1.5 99% (94%). But **strong extra impacts ×6** (0.10 → 0.61 per 100 beats) and
+  speed rms +0.012: the search softened the beat and braked with a hit nobody asked for. Not adoptable.
+- **Q1b, Q1c** (`exp/quiet-relative-b`, `-c`): a hit nobody asked for is an impact where 0 was asked, so its residual
+  takes the same relative scale (× (reference + floor) / floor). Q1b: reference 0.3 (ask 0: ×9, 0.1: ×3.2, 0.2: ×1.7);
+  Q1c: reference 0.5 as Q1 (×18.8, ×6.8, ×3.4). **Hypothesis:** extra impacts back near `foundation-5`; most of Q1's
+  quiet gain kept (Q1c more than Q1b); headline loss well under Q1's.
+- **Q2** (`exp/quiet-faithful`): pricing unchanged; after the interval's search, the best candidate landing within a
+  factor 1.3 of its ask (when the best does not) gets 24 coordinate steps of its own, keeping steps that stay within
+  and rank better. **Hypothesis:** faithful candidates win more often; quiet asks within ×1.5 up (less than Q1);
+  strong asks a little closer too; headline within a few points.
+
+## November 14: why quiet asks land too hard (measured), and Q1: impact errors priced relative to the ask (stated before running)
+
+The owner: quiet asks have had no attention for a long time; do better, with general mechanisms.
+- **Not physics, not proposals** (`tools/research/quiet_work.ts`, branch `exp/quiet-probe`, V8 seed 101, report only):
+  in the search, where the best candidate for an ask under 0.2 lands more than 0.06 too hard, a viable candidate within
+  0.03 of the ask exists in 79% (asks 0–0.1) and 94% (0.1–0.2) of cases. The best-ranked of them ranks behind by a
+  median 0.136 and 0.077. Touchdowns as soft as 0.06–0.09 are physically reachable (an engine probe;
+  `tools/research/quiet_catches.ts` finds no geometric cause: incidence, pose, spin and family barely move the overshoot,
+  as "quiet catches laid along the arrival" found).
+- **The search brakes with touchdowns.** What the soft candidate pays is mostly the flight after it: speed residual²
+  +0.121 (mean), air +0.027, timing +0.022, extra hits +0.041, priors +0.039, against −0.029 on impact. The soft
+  candidate leaves too fast in 84% of cases (speed residual +0.26 against +0.09) and flies higher in 74%. Quiet
+  passages ask moderate speed (median 0.44) while descending flights add speed; a hard touchdown is how the search
+  sheds it.
+- **Q1** (`exp/quiet-relative`): the search prices an impact error relative to the ask's size: the impact weight ×
+  ((0.5 + 0.15) / (ask + 0.15))², never below 1 (ask 0.1: ×6.8; 0.2: ×3.4; 0.5 and up: ×1), replacing the calm
+  multiplier (×1.5 under 0.2). The ruler is unchanged. **Hypothesis:** quiet bias (asks under 0.2) falls by half or
+  more; flight speed error rises on quiet passages; headline within a few points; strong asks unchanged.
+- The other route, for after: geometry that sheds speed without a hit (a soft touchdown, then a long gentle climb;
+  floats that land near their launch height gain no speed).
+
+## November 14: quiet asks (measured; compiler unchanged)
+
+The owner feels the compiler lands quiet asks (0–0.2) too strong, on his new Tiki voice-drums spec (voice alone at
+about 0.1 at the start and end). `tools/research/quiet_asks.ts`, by the strike ruler:
+- V8 (`foundation-5` code, 196 rides): 6% of beats ask under 0.2 (3% under 0.1); 34 of 49 specs have some, 17 have at
+  least 10%. Asks 0–0.1 land at median 0.09, p90 0.16, bias +0.083, rms 0.101; asks 0.1–0.2 at median 0.18, p90 0.23.
+  Strong asks are the opposite: 0.8–1.0 land at median 0.71, bias −0.176.
+- Tiki voice-drums (4 seeds, 116 beats under 0.2): asks 0–0.1 land at median 0.11, p90 0.19 (bias +0.049); 0.1–0.2 at
+  0.13, p90 0.20. Few hits nobody asked for (0–4 per ride in the quiet stretches, mostly under 0.15).
+- **Reading:** on the ruler's absolute scale the overshoot is small (about +0.05), and the headline barely sees it (the
+  loss is absolute, so 0.1 → 0.2 counts like 0.7 → 0.8). Whether that matches the eye is unknown: the ruler was never
+  checked against the owner at the low end. Review page for him to point at hits that look too strong:
+  `generated/quiet-study/index.html`. Nothing changed.
 
 ## November 14: rails never closer to their support than 6 px (adopted, the owner's choice)
 

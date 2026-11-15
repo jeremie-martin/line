@@ -73,6 +73,7 @@ export function finalizeArcTrack(ctx: ArcCompileContext, track: CommittedTrack) 
       gap_commits: report.contacts.filter(c => c.status === 'hit').length},
     rows, initialProposalWork: work.initialProposalWork, observedReceiverWork: work.observedReceiverWork,
     ...(options.opposingEntryProposals ? {opposingEntryWork: work.opposingEntryWork} : {}),
+    ...(options.aimedLaunches ? {aimedLaunchWork: work.aimedLaunchWork} : {}),
     ...(options.upperReceiverProposals ? {upperReceiverWork: work.upperReceiverWork} : {}),
     failure, budget,
     searchBudgetExhausted: work.searchBudgetExhausted, budgetInterruptions: work.budgetInterruptions,

@@ -115,3 +115,18 @@ CPU and wall clocks enclose `compileHandoff` with prepared inputs, excluding loa
 hashing and output. Memory is each compile's peak process RSS. Full ns per charged frame
 includes search and observations, not only the solver. Records in `docs/research/` keep
 their original protocols and are not current baselines.
+
+## Parallel throughput and memory
+
+Single-track latency and batch throughput answer different questions. On the
+20-logical-CPU i7-12800H, the November 15 comparison kept the default twenty
+workers: 21.08 tracks/minute versus 19.83 with twelve, on repeated standard
+Luna/Tiki compiles. Explicit `--jobs=12` reduced sampled peak aggregate RSS by
+39% for about 6% less throughput. These are local observations, not a portable
+worker-count rule; full benchmark reporting adds work outside these timings.
+
+Check P/E cores, SMT, affinity and thermal behavior before diagnosing contention.
+Use identical fixed batches, balanced order and exact track/work checks; measure
+aggregate memory as well as per-process peak RSS. A small batch can hide the
+benefit of more workers through its finishing tail. Details and rejected allocation
+trials: [throughput study](research/compiler-throughput-20261115.md).

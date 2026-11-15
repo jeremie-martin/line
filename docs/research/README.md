@@ -12,6 +12,7 @@ Links to documents that are no longer in the tree resolve at tag
 
 | document | why it matters |
 |---|---|
+| [compiler-throughput-20261115.md](compiler-throughput-20261115.md) | P/E-core throughput and memory measurements; fold code parked, allocation prototypes rejected |
 | [fold-corner-speed-20261115.md](fold-corner-speed-20261115.md) | eight-seed upward-fold experiment; initially adopted, then parked after owner reconsidered folds versus arcs |
 | [folds-carried-from-below-20261115.md](folds-carried-from-below-20261115.md) | upward-corner proposals make some folds fully ridden without rails; complete V7.1 shows the local gain offset elsewhere, initially rejected, later superseded by owner feedback and refinement |
 | [impact_definition.md](impact_definition.md) | the frozen landing-impact definition (the cArc strength formula, its window and its calibration) |

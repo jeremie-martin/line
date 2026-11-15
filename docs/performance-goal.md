@@ -25,3 +25,8 @@ ideas. Never commit raw results. `WORKING.md` has the rules, and
 `docs/engine-validation.md` the timing protocol.
 
 Note any friction with the tools in `TODO.md` as you go, and fix what is tiny.
+
+November 15 follow-up: [parallel throughput and memory](research/compiler-throughput-20261115.md)
+were measured separately from the closed single-track target. The mixed-core
+laptop retains its default twenty workers for large batches; twelve is an
+explicit memory/throughput tradeoff. No new compiler optimization qualified.

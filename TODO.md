@@ -112,8 +112,9 @@ them before answering.
 
 Note friction here as it happens; fix what is tiny.
 
-- A compile takes about twice as long in an eight-worker panel as alone (33 s against
-  16 s). Expected with shared memory bandwidth; panel throughput was never measured.
+- Parallel compile throughput and memory measured on the i7-12800H (2026-11-15):
+  see `docs/research/compiler-throughput-20261115.md`. Mixed P/E cores and thermal
+  throttling matter; the earlier attribution to shared memory bandwidth was unproven.
 - A compile needs the independent judge (`npm run build:wasm`): it replays the final
   track on it twice, as its own check.
 - `compare` compiles both arms with this checkout's built engine, so nothing may be rebuilt

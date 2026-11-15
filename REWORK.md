@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: throughput and memory measured; no compiler optimization retained
+
+- Restored foundation `704dd39c` passes full `npm run check` (626 tests, 32 Rust,
+  exact physics/engine, compile/judge parity and smoke). Compiler source remains
+  identical to that checked foundation after all trials; fold experiments are parked.
+- i7-12800H: six P cores with SMT and eight E cores. Single compile median
+  16.5 s on P versus 27.9 s on E. Package reaches 100°C and throttle counters rise;
+  do not attribute the parallel slowdown solely to memory bandwidth or E cores.
+- Declared 60-track AB/BA comparison, 12 / 20 / 20 / 12 workers: twenty averages
+  21.08 tracks/minute, twelve 19.83. Twelve costs 5.9% throughput for 39% less mean
+  peak aggregate RSS (7.64 vs 12.55 GiB). Two pairs, no precise confidence interval;
+  keep default twenty for throughput, explicit `--jobs=12` for memory headroom here.
+  All 392 complete timed compiles match expected tracks and charged work exactly.
+- Allocation hypotheses were declared before profiling: reusable clearance scratch,
+  fewer inner-loop temporaries, nested grid keys, and hoisted segment helpers.
+  No material/qualified benefit; all reverted. The scratch timing run was stopped
+  incomplete after rejecting its allocation/design tradeoff, not used as speed evidence.
+- Correct stale machine guidance and the unsupported memory-bandwidth explanation.
+  Protocol, limits and rejected trials: `docs/research/compiler-throughput-20261115.md`.
+
 ## November 15: park the fold experiment; begin throughput and memory work
 
 - The owner questioned whether smoothing folds adds anything beyond arcs and moved

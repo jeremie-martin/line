@@ -5,7 +5,6 @@ import type { ArcMotionOptions } from './arc_options.ts';
 import type {ArcMotionControl} from './arc_geometry.ts';
 import type {TrackLine, AxisValues} from '../types.ts';
 import type {intervalMotionSummary} from './motion_objective.ts';
-import {withGrain} from '../core/measure.ts';
 import {arcFutureValue} from './arc_value.ts';
 
 /** Geometry is immutable once it identifies a measured physical prefix. */
@@ -29,12 +28,6 @@ export type EvaluatedCandidate = Readonly<{candidate: MeasuredCandidate; child: 
 export type CandidateMemo =
   | {reason: string; near?: Near}
   | MeasuredCandidate;
-
-/** Grain depends only on geometry and never enters search. Measure it when
- * a selected candidate becomes a report row, preserving all reported axes. */
-export function reportedAxes(candidate: MeasuredCandidate): AxisValues {
-  return withGrain(candidate.trajectoryAxes, candidate.lines);
-}
 
 /** Native candidate cost plus half of what is predicted for the future.
  * The prediction is the heading prior (which prices extras two catches ahead

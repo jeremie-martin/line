@@ -37,7 +37,7 @@ function trajectoryObjective(det: Detection, gaps: Gap[], amplitudeWeight: numbe
       // Only measure axes used by the objective. Completed span reductions are prefix-local.
       const cached = prefix && g.endFrame < prefix.raw.frames.length;
       const saved = cached ? (prefix.axes[g.index] ??= {}) : undefined;
-      const value = saved?.[axis] ?? AXIS_MEASURE[axis]({det, gap: g, gapLines: [], rangeEndFrame: g.endFrame});
+      const value = saved?.[axis] ?? AXIS_MEASURE[axis]({det, gap: g, rangeEndFrame: g.endFrame});
       if (saved) saved[axis] = value;
       if(value===undefined||!Number.isFinite(value))return {loss:Infinity,regrets};
       const contribution=importance*(g.endFrame-g.startFrame)*(value-g.targets[axis]!)**2/mass;

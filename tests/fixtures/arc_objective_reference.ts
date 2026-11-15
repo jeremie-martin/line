@@ -12,7 +12,7 @@ import type {ArcCompileContext} from '../../scripts/v0/optimizer/arc_compile_con
 
 /** Whole authored-axis loss for an already detected physical trajectory. */
 export function arcDetectedTrajectoryObjective(det:ReturnType<typeof detect>,gaps:Gap[],amplitudeWeight=1/3,impacts?:MusicalImpactEvaluation){
-  const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,[],g.endFrame));
+  const regrets=Array(gaps.length+1).fill(0),measured=gaps.map(g=>measureGapAxes(det,g,g.endFrame));
   let loss=0,normalizer=0;
   for(const axis of ['air','speed','amplitude','impact'] as const){
     if(axis==='impact'&&impacts){

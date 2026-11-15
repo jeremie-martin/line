@@ -1,31 +1,24 @@
-/** Per-gap axis reductions. Trajectory measurements are independent of geometry;
- * reporting adds grain from the selected lines. Objectives can measure individual
- * axes through the registry below. */
-import {hypot2} from '../../lib/hypot2.ts';
+/** Per-gap axis reductions, from the trajectory alone. Objectives can measure individual axes through the registry
+ * below. */
 import type { Detection } from "../../lib/detector.ts";
 import {
   type AxisName,
   type AxisValues,
   type Gap,
-  type TrackLine,
   CALIB,
-  AXES,
   IMPACT_WINDOW,
   normImpact,
   speedPxToAuthored,
 } from "../types.ts";
-import { netDyToElevation } from "../types.ts";
 import {
   airborneAt, contactRedirArcPxAtLanding, findAuthoredContactNearFrame, meanSpeedPxOverRange,
-  measurementLastFrame, median, speedAt, velocityAt,
+  measurementLastFrame, speedAt, velocityAt,
 } from "./substrate.ts";
 
 /** Everything a per-gap reduction may need. Each reduction uses the subset it cares about. */
 export type GapMeasureCtx = {
   det: Detection;
   gap: Gap;
-  /** The catch lines placed for this gap (for geometry axes: grain). */
-  gapLines: readonly TrackLine[];
   /** Inclusive last frame for span axes (air, speed). Defaults to gap.endFrame at the call site. */
   rangeEndFrame: number;
 };
@@ -51,46 +44,10 @@ const measureSpeed: AxisReduction = ({ det, gap, rangeEndFrame }) => {
   return speedPx !== null ? speedPxToAuthored(speedPx) : undefined;
 };
 
-/** Median catch-line length, normalized by LINE_LENGTH_CAP. */
-const measureGrain: AxisReduction = ({ gapLines }) =>
-  measureGrainFromLines(gapLines);
-
-/** Geometry-only grain reduction for consumers without a simulation context. */
-export function measureGrainFromLines(gapLines: readonly TrackLine[]): number | undefined {
-  const lineLens = gapLines.map((l) => hypot2(l.x2 - l.x1, l.y2 - l.y1));
-  return lineLens.length > 0 ? Math.min(1, median(lineLens) / CALIB.LINE_LENGTH_CAP) : undefined;
-}
-
-/**
- * Altitude trend over [gap.start, rangeEndFrame], on the relative climb-effort
- * scale: net vertical displacement (Δy = ∫vy, the fingerprinted displacement
- * definition) normalized against the speed-relative
- * elevation band for this gap (entering speed × gap length). 0.5 = level, →1 the
- * steepest climb this speed supports, →0 the steepest plunge. See types.ts
- * `netDyToElevation` / `elevationBand` — the same band the launch generator uses,
- * so achieved and target share one model.
- */
-const measureElevation: AxisReduction = ({ det, gap, rangeEndFrame }) => {
-  const a = gap.startFrame;
-  const b = Math.min(rangeEndFrame, measurementLastFrame(det));
-  if (b <= a) return undefined;
-  const v0 = velocityAt(det, a);
-  if (v0 === undefined) return undefined;
-  const speed = hypot2(v0.x, v0.y);
-  let dy = 0;
-  for (let f = a + 1; f <= b; f++) {
-    const v = velocityAt(det, f);
-    if (v === undefined) return undefined;
-    dy += v.y;
-  }
-  return netDyToElevation(dy, speed, b - a);
-};
-
 /**
  * Peak upward bow of the trajectory above the straight chord from the gap's
  * takeoff to its landing, normalized by `CALIB.AMPLITUDE_CAP`. This is the jump
- * arc's sagitta: how *high* the rider soared, independent of net `elevation`
- * trend and orthogonal to `air` (which is how *long* it stayed aloft). Frames
+ * arc's sagitta: how *high* the rider soared, orthogonal to `air` (which is how *long* it stayed aloft). Frames
  * below the chord contribute nothing (clamped at 0 = no upward arc).
  *
  * Vertical displacement is reconstructed by integrating `vy` from the gap start.
@@ -166,48 +123,19 @@ function measureImpact(det: Detection, gap: Gap): number | undefined {
 export const AXIS_MEASURE: Record<AxisName, AxisReduction> = {
   air: measureAir,
   speed: measureSpeed,
-  grain: measureGrain,
-  elevation: measureElevation,
   amplitude: measureAmplitude,
   impact: ({det, gap}) => measureImpact(det, gap),
 };
 
-/** All gap axes, including geometry-only grain. Preserve the canonical field
- * order and omit undefined axes in reports. */
+/** Every axis of a gap, in the canonical order, undefined axes left out. The shared scan preserves each reduction's
+ * arithmetic order. */
 export function measureGapAxes(
   det: Detection,
   gap: Gap,
-  gapLines: readonly TrackLine[],
-  rangeEndFrame = gap.endFrame,
-): AxisValues {
-  return withGrain(measureTrajectoryAxes(det, gap, rangeEndFrame), gapLines);
-}
-
-/** Add the geometry measurement only when a consumer needs it. Search scores
- * trajectory axes; selecting a candidate for reporting measures its grain. */
-export function withGrain(axes: AxisValues, gapLines: readonly TrackLine[]): AxisValues {
-  const grain = measureGrainFromLines(gapLines);
-  if (grain === undefined) return axes;
-  const out: AxisValues = {};
-  for (const axis of AXES) {
-    const value = axis === 'grain' ? grain : axes[axis];
-    if (value !== undefined) out[axis] = value;
-  }
-  return out;
-}
-
-/** Measure trajectory axes without sorting line lengths for an unselected
- * candidate. The shared scan preserves each reduction's arithmetic order. */
-export function measureTrajectoryAxes(
-  det: Detection,
-  gap: Gap,
   rangeEndFrame = gap.endFrame,
 ): AxisValues {
   const out: AxisValues = {};
 
-  // Trajectory path: preserve AXES output order while sharing the common frame
-  // scan across air/speed/elevation/amplitude. AXIS_MEASURE remains the per-axis
-  // registry for callers that need individual reductions.
   const a = gap.startFrame;
   const b = Math.min(rangeEndFrame, measurementLastFrame(det));
   let airFrames = 0;
@@ -240,9 +168,6 @@ export function measureTrajectoryAxes(
   if (span > 0) {
     const v0 = velocityAt(det, a);
     if (v0 !== undefined && Number.isFinite(dyTotal)) {
-      const speed = hypot2(v0.x, v0.y);
-      out.elevation = netDyToElevation(dyTotal, speed, span);
-
       let dy = 0, peak = 0;
       for (let f = a + 1; f <= b; f++) {
         dy += velocityAt(det, f)!.y;

@@ -1,5 +1,5 @@
 /**
- * v0 types — Spec, Contact, axis curves, Arc, DriftReport.
+ * The compiler's contract: Spec, Contact, axis curves, Arc, DriftReport, and the rulers that give authored values their meaning.
  */
 
 
@@ -67,38 +67,13 @@ export type Contact = {
   /** Seconds, must be in [0, duration]. */
   t: number;
   /**
-   * Optional per-beat landing intensity ("how hard the rider slams into the arc" —
-   * "claquage"), absolute [0, 1] on a FELT scale: **0 = a perfectly smooth catch,
-   * 1 = very strong**. Defined as the rider's **redirection IMPULSE**
-   * `cArc = Σ v̄·|Δθ|` — the per-frame CoM heading change × midpoint speed, ACCUMULATED
-   * over the CONTACTED frames of the `IMPACT_WINDOW`-frame (~0.15s) episode after
-   * touchdown (airborne frames contribute zero — flight is not impact) — mapped to
-   * [0,1] by `normImpact` against `IMPACT_RULER.SOFT`/`IMPACT_RULER.VERY_STRONG` (read the
-   * live values from the `IMPACT_RULER` block below rather than a number copied into
-   * prose; gentler than SOFT clamps to 0, harder than VERY_STRONG to 1).
-   * PROMOTED 2026-07-31 over the net-form `redirArc = v·Δθ` (LOCKED 2026-06-14);
-   * history, adjudication and calibration in `docs/impact_definition.md`.
+   * The landing's intensity at this beat, absolute on the felt scale [0, 1]: 0 is a perfectly smooth catch, 1 is very
+   * strong. It is the rider's redirection impulse (`IMPACT` below): the surface redirecting the rider's path at speed,
+   * read from the centre of mass only, so a rotating sled or a whipping limb, which look violent but are not felt, do
+   * not count; slowing along a straight line reads about 0, and a bend followed by an unbend adds up.
    *
-   * Why the redirection impulse (not perpendicular `redir = v·sinΔθ`, nor normal closing,
-   * nor body force): the felt hit is the surface *redirecting* the rider's path at speed;
-   * `v·Δθ` keeps the speed weighting with no sin-compression of the biggest slams, beats
-   * `redir`/`turn` and generalizes across tracks (incl. flat-drop slams), and stays
-   * CoM-velocity-only so it's immune to sled rotation / limb whip (which look violent but
-   * aren't felt). Accumulating |Δθ| rather than taking the net endpoint turn means a
-   * bend-then-unbend contact (S-bend, bounce reflection) adds instead of cancelling to 0.
-   * Decelerating *along* the path (a glide slowing on a straight line) builds no Δθ →
-   * reads ~0. See `docs/impact_definition.md`.
-   *
-   * Authored on the beat (NOT an axis): impact is an adjective on a discrete landing
-   * event, where the axes (air/speed/elevation/amplitude) are continuous fields over
-   * the span *between* beats. Internally it is resolved into the terminating gap's
-   * target bag so it reuses the per-gap axis measurement/report plumbing (each contact
-   * gap ends in exactly one beat, so per-gap scalar ≡ per-beat value).
-   *
-   * Status: SCORED (folds into the contract `axis_quality`). Measured by
-   * `contactRedirArcPxAtLanding` (substrate.ts) → `normImpact`; reported with target/achieved/
-   * error/ceiling. The compiler steers toward it via the arc-placement redir lever
-   * (target → needed CoM turn = impactToRawPx(target)/speed) and candidate ranking.
+   * Authored on the beat, not as a curve: impact qualifies one landing, where the axes are continuous between beats.
+   * The compiler resolves it into the targets of the gap that ends at this beat and steers toward it; it is scored.
    */
   impact?: number;
 };
@@ -118,23 +93,14 @@ export type CurveMeta = {
 export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
 
 /**
- * The creative axes, in canonical order. Single source of iteration. New axes
- * are *appended* (never reordered), so appending keeps existing specs byte-identical.
+ * The creative axes, in canonical order. Single source of iteration.
  * Axis semantics:
  *   - `air`           — airborne-frame fraction, [0, 0.99].
  *   - `speed`         — authored pace, [0, 1], mapped to raw px/frame by
  *                       `authoredSpeedToPx`.
- *   - `grain`         — median(line_length) / LINE_LENGTH_CAP, [0, 1].
- *   - `elevation`     — altitude trend on a *relative climb-effort* scale, [0, 1]:
- *                       0.5 = level (net-zero altitude), →1 = climb as steeply as
- *                       the current speed safely allows, →0 = dive hard. Resolved
- *                       per-gap against the speed-supported vertical-velocity band
- *                       (see `ELEVATION` / `elevationBand` / `netDyToElevation`).
- *                       Asymmetric: free fall ≈ 0.33 (not 0.5), and plunge covers a
- *                       much larger altitude range than climb — see `ELEVATION`.
  *   - `amplitude`     — peak upward bow of the trajectory above the takeoff→
  *                       landing chord (jump arc height / sagitta), normalized by
- *                       `CALIB.AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
+ *                       `AMPLITUDE_CAP`, [0, 1]. Orthogonal to `air`:
  *                       `air` is how *long* aloft, `amplitude` is how *high*.
  *   - `impact`        — landing intensity at a beat: the rider's redirection
  *                       IMPULSE `cArc = Σ v̄·|Δθ|` accumulated over the CONTACTED frames
@@ -143,41 +109,19 @@ export type Curve = ((t: number) => number | undefined) & { meta?: CurveMeta };
  *                       (0 = perfectly smooth, 1 = very strong). NOT
  *                       authored as a curve — it is a per-beat qualifier
  *                       (`Contact.impact`) resolved into the terminating gap so it
- *                       can reuse this per-gap plumbing. SCORED. In AXES and scored,
- *                       but kept out of `TARGET_AXES` — it draws no sampling RNG and
- *                       isn't curve-authored (a per-beat qualifier).
+ *                       can reuse this per-gap plumbing. Scored, but not in
+ *                       `TARGET_AXES`: it is not authored as a curve.
  */
-export const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"] as const;
+export const AXES = ["air", "speed", "amplitude", "impact"] as const;
 export type AxisName = (typeof AXES)[number];
 
-/**
- * Axes that can be authored as active optimization targets. `grain` remains in
- * AXES for measured legacy data, but spec-authored grain is intentionally
- * ignored while the grain axis is being removed from the compiler.
- */
-export const TARGET_AXES = ["air", "speed", "elevation", "amplitude"] as const satisfies readonly AxisName[];
-
-/**
- * Axes that are MEASURED and surfaced in the drift report but EXCLUDED from the
- * scored `axis_quality`. `scoreDriftReport` filters these out of the `axis_error_*`
- * aggregation, so the report-only boundary lives in one place, not as a string
- * literal in the scorer.
- *
- * v2: now EMPTY — `impact` has been PROMOTED to a scored target (the golden suite
- * authors per-beat impact; the optimizer is expected to steer toward it). impact
- * stays in AXES (measured/reported) and out of TARGET_AXES, so it draws no
- * target-sampling RNG. The register's true scorer now rewards hitting it, and
- * the compiler may use impact in deterministic ranking/geometry bias.
- */
-export const REPORT_ONLY_AXES = [] as const satisfies readonly AxisName[];
-export const REPORT_ONLY_AXIS_SET: ReadonlySet<string> = new Set<string>(REPORT_ONLY_AXES);
+/** Axes authored as curves. */
+export const TARGET_AXES = ["air", "speed", "amplitude"] as const satisfies readonly AxisName[];
 
 /** Upper bound for each normalized authored target/sample value. */
 export const AXIS_VALUE_MAX = {
   air: 0.99,
   speed: 1,
-  grain: 1,
-  elevation: 1,
   amplitude: 1,
   impact: 1,
 } as const satisfies Record<AxisName, number>;
@@ -272,10 +216,10 @@ export type GapAxisValueReport = {
   achieved: number;
   error: number;
   /** Maximum achievable value of this axis at this gap, in the same [0,1] units —
-   *  the physical ceiling given the rider's state here. Currently populated for
-   *  `elevation` (the speed-supported climb ceiling): a target above `ceiling`
-   *  asked for more than physics allowed at this gap, so the shortfall is expected,
-   *  not a compiler miss. Absent for axes without a meaningful per-gap ceiling. */
+   *  the physical ceiling given the rider's state here. Populated for `impact` (the
+   *  speed-bounded catchable redirection): a target above `ceiling` asked for more
+   *  than physics allowed at this gap, so the shortfall is expected, not a compiler
+   *  miss. Absent for axes without a meaningful per-gap ceiling. */
   ceiling?: number;
   /** Static planning estimate for the hardest target likely to fit around this
    *  beat. Unlike `ceiling`, this is derived from authored neighboring gaps and
@@ -337,272 +281,44 @@ export function speedPxToAuthored(pxPerFrame: number): number {
 }
 
 /**
- * Elevation axis model (relative climb-effort). At a given entering speed and gap
- * length there is an achievable vertical-velocity *band*; the authored elevation
- * [0,1] is resolved against THAT band, so the meaning is speed-relative:
- *   1.0 = climb as steeply as the current speed safely allows (apex-at-next-beat,
- *         capped by a stall/reach margin),
- *   0.5 = level (net-zero altitude over the gap),
- *   0.0 = dive as steeply as the band allows.
+ * Landing impact. Impact is the rider's redirection impulse `cArc = Σ v̄·|Δθ|`: the centre of mass's heading change per
+ * frame times its midpoint speed, summed over the frames in contact during the `IMPACT_WINDOW` frames after touchdown
+ * (how hard the ground bends the path; bending in the air, which is gravity, never counts). `contactRedirArcPxAtLanding`
+ * (substrate.ts) measures it and `normImpact` maps it to the felt scale [0, 1].
  *
- * Two things that surprise authors, both honest consequences of gravity:
- *
- *  - **0.5 (level) is NOT "do nothing".** Between beats the rider is always
- *    falling, so net-zero altitude needs an active *upward* launch to cancel the
- *    drop. "Release and let gravity work" (free fall) lands around ~0.33, not 0.5.
- *
- *  - **The two halves are physically asymmetric**, even though each maps to a
- *    [0,0.5] span of the axis. Climb (0.5→1) fights gravity and is tightly
- *    speed-capped, so it covers a *small* altitude range; plunge (0.5→0) has
- *    gravity helping, so it covers a *much larger* range (typically several× the
- *    climb range). Concretely on a ~0.5s gap at mid speed: 0.5→1 ≈ a few tens of
- *    px up, while 0.5→0 ≈ a few hundred px down. So 0.5→~0.33 is the gentle "ease
- *    off into a fall" zone, and ~0.33→0 is an *active* dive steeper than free
- *    fall. The band normalizes each side to a half so authoring *feels* uniform;
- *    the underlying physics is not (down is the free direction). Plunge is
- *    currently capped *symmetrically* with climb (same `VERTICAL_FRACTION` /
- *    apex cap) for catchability — it could be opened up for a more violent
- *    nosedive if a spec ever wants it.
- *
- * Both the launch generator (`arc_placement`) and the achieved measurement
- * (`core/measure`) resolve against this same band so they agree. Up is −y.
+ * What can be reached is bounded by speed: the turn the engine delivers reliably inside the window is at most
+ * `MAX_RELIABLE_TURN_RAD` (measured: the ceiling is about speed × 1.0 rad across the `SPEED_RULER` range, and beyond it
+ * the hit ejects the rider). `impactCeiling` reports that bound per beat, so a target above it reads as physics.
  */
-export const ELEVATION = {
-  /** Gravity model (px/frame²). Matches the launch model in `arc_placement` so the
-   *  generator and the measurement share one band. */
-  GRAVITY_PX_PER_FRAME2: 0.175,
-  /** Cap on |vy| as a fraction of total speed: the stall/reach margin that keeps
-   *  enough horizontal speed to carry the rider to the next catch. Conservative —
-   *  climbing bleeds speed across gaps, so over-committing vertical stalls the ride. */
-  VERTICAL_FRACTION: 0.5,
-  /** Fraction of the per-gap *apex* climb (the kinematic max a single isolated gap
-   *  could net) that the compiler can realistically deliver. The apex is optimistic
-   *  because sustained climbing bleeds speed across gaps and the multi-gap forward
-   *  search avoids speed-stranding climbs — so on the elevation benchmark, climb
-   *  tops out around ~0.6–0.65 on the axis scale regardless of how hard it's asked.
-   *  Used only for the reported `ceiling` diagnostic (never scored), to tell an
-   *  author "the realistic best climb here" vs the unreachable apex. Empirical,
-   *  grain-cap style — calibrate against study_elevation.ts, not intuition. */
-  ACHIEVABLE_CLIMB_FRACTION: 0.3,
-} as const;
+export const IMPACT = {MAX_RELIABLE_TURN_RAD: 1.0} as const;
 
-export type ElevationBand = {
-  /** Launch vy (px/frame, up = −) for the steepest safe climb. */
-  vyClimb: number;
-  /** Launch vy for net-zero altitude (the symmetric arc). */
-  vyLevel: number;
-  /** Launch vy for the steepest plunge. */
-  vyPlunge: number;
-  g: number;
-  frames: number;
-};
-
-/** Achievable vertical-velocity band for a gap of `frames` at entering `speedPx`. */
-export function elevationBand(speedPx: number, frames: number): ElevationBand {
-  const g = ELEVATION.GRAVITY_PX_PER_FRAME2;
-  const N = Math.max(1, frames);
-  const cap = Math.min(g * N, ELEVATION.VERTICAL_FRACTION * Math.max(1, speedPx));
-  return { vyClimb: -cap, vyLevel: -0.5 * g * N, vyPlunge: cap, g, frames: N };
-}
-
-/**
- * Net vertical displacement Δy (px, down = +) over a gap → achieved elevation
- * [0,1], normalized against the same band. Level (Δy=0) anchors at 0.5; the band's
- * steepest climb maps to 1.0, steepest plunge to 0.0. In the genuinely-too-slow
- * regime (can't reach level) the climb side compresses below 0.5 — honest signal.
- */
-export function netDyToElevation(dy: number, speedPx: number, frames: number): number {
-  const b = elevationBand(speedPx, frames);
-  const sag = 0.5 * b.g * b.frames * b.frames;
-  const dyClimb = b.vyClimb * b.frames + sag; // most-up the band allows (usually < 0)
-  const dyPlunge = b.vyPlunge * b.frames + sag; // most-down (> 0)
-  const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
-  if (dy <= 0) {
-    const denom = dyClimb < 0 ? dyClimb : -1;
-    return clamp01(0.5 + 0.5 * (dy / denom));
-  }
-  const denom = dyPlunge > 0 ? dyPlunge : 1;
-  return clamp01(0.5 - 0.5 * (dy / denom));
-}
-
-/**
- * Realistically-achievable elevation (normalized [0,1]) for a gap at the given
- * entering speed — the honest "best climb you can expect here". NOT the band's
- * apex (which is tautologically ~1.0): the apex is a single-gap kinematic max the
- * compiler can't sustain, so this discounts it by `ACHIEVABLE_CLIMB_FRACTION`
- * (empirically ≈ the benchmark's observed climb cap). Drops below 0.5 only when
- * the rider is genuinely too slow to climb. Report-only; never scored.
- * `target > ceiling` ⇒ the shortfall is physics, not an optimizer miss.
- */
-export function elevationCeiling(speedPx: number, frames: number): number {
-  const b = elevationBand(speedPx, frames);
-  const sag = 0.5 * b.g * b.frames * b.frames;
-  const dyApex = b.vyClimb * b.frames + sag; // optimistic single-gap kinematic climb
-  const dyAchievable = ELEVATION.ACHIEVABLE_CLIMB_FRACTION * dyApex;
-  return netDyToElevation(dyAchievable, speedPx, frames);
-}
-
-/** Maximum RELIABLE CoM turn (rad) the engine can deliver within the impact window —
- *  MEASURED by the catchability atlas (study_catchability_atlas.ts, 2026-07-31):
- *  ceiling(speed) ≈ speed × 1.0 rad within ±6% across the SPEED_RULER envelope
- *  (flat-slam frontier at normal closing ≈ 6–7 px/f; scoop frontier at centripetal
- *  ≈ 3 px/f²; ≥80% catch across pose phases). Replaces the inherited 0.9-fraction
- *  guess (asin(0.9) ≈ 1.12 rad). Revalidated: 0 of ~13k real landings exceed it.
- *
- *  Hoisted out of the `IMPACT` literal so `CATCHABLE_REDIR_FRACTION` can DERIVE from
- *  it: the two are one bound in two forms, and a retune must move both together.
- *  Must stay in (0, π/2] — `asin(sin(x)) === x` only holds there, and every aim clamp
- *  recovers the turn that way (asserted below). */
-const MAX_RELIABLE_TURN_RAD = 1.0;
-if (!(MAX_RELIABLE_TURN_RAD > 0) || MAX_RELIABLE_TURN_RAD > Math.PI / 2) {
-  // Beyond π/2 the sin() round-trip folds back (asin(sin(2.0)) = 1.14), so the aim
-  // clamps would silently disagree with impactCeiling/impactFeasibilityBound.
-  throw new Error(`IMPACT.MAX_RELIABLE_TURN_RAD must be in (0, π/2]; got ${MAX_RELIABLE_TURN_RAD}`);
-}
-
-/**
- * Landing-impact model (absolute, speed-bounded). Impact is the rider's **redirection
- * impulse** `cArc = Σ v̄·|Δθ|` — per-frame CoM heading change × midpoint speed,
- * accumulated over CONTACTED frames of the `IMPACT_WINDOW` episode after touchdown
- * (how hard the ground bends the path; airborne bending — gravity — never counts),
- * mapped to felt [0,1] by `normImpact` (`IMPACT_RULER.SOFT`/`VERY_STRONG`). Scored by
- * `contactRedirArcPxAtLanding` (substrate.ts); promoted 2026-07-31 over the net-form
- * `redirArc = v·Δθ` (divergence-label adjudication + felt-rank edge — see
- * `docs/impact_definition.md`).
- *
- * The achievable impact is bounded ABOVE by speed: the reliable in-window turn is
- * capped (`IMPACT.MAX_RELIABLE_TURN_RAD`, atlas-measured), and beyond it the hit
- * ejects (the catch fails). `impactCeiling` reports that honest per-beat bound so
- * a target above it reads as physics, not an optimizer miss.
- */
-export const IMPACT = {
-  /** See `MAX_RELIABLE_TURN_RAD` above — the atlas-measured reliable in-window turn (rad).
-   *  Consumed directly by `impactCeiling` and `impactFeasibilityBound`. */
-  MAX_RELIABLE_TURN_RAD,
-  /** = sin(MAX_RELIABLE_TURN_RAD) — DERIVED, never hand-written. The same bound
-   *  expressed as a redirection FRACTION, because the aim/feasibility clamps and the
-   *  sealed `PostimpactImpactConvention` consume it as `asin(fraction)` — keeping the
-   *  fraction form means every consumer and frozen fixture keeps its shape while the
-   *  effective clamp is exactly the measured turn. Deriving it (rather than pinning the
-   *  literal `Math.sin(1.0)`) is what keeps `asin(CATCHABLE_REDIR_FRACTION) ===
-   *  MAX_RELIABLE_TURN_RAD` true through a future retune — the invariant
-   *  tests/v0_impact.test.ts pins and the six aim clamps depend on. */
-  CATCHABLE_REDIR_FRACTION: Math.sin(MAX_RELIABLE_TURN_RAD),
-  /** [LEGACY — NOT SCORED] catchable fraction for the OLD one-frame normal-closing
-   *  metric. Kept only for `calibrate_impact.ts` (the point-baseline study tool).
-   *  The scored impact uses CATCHABLE_REDIR_FRACTION above — don't tune this one. */
-  CATCHABLE_NORMAL_FRACTION: 0.6,
-} as const;
-
-/** Window (frames, ~0.15s at FPS=40) over which the redirection impact is measured.
- *  The felt redirection episode; label-validated (study_impact_labels.ts: the felt
- *  match peaks at W≈6). Canonical home; impact_support re-exports it. */
+/** Frames (0.15 s at 40 fps) over which the redirection impulse is measured: where the felt match peaks. */
 export const IMPACT_WINDOW = 6;
 
-/**
- * Felt impact scale (PROMOTED 2026-07-31, user decision): impact = the **redirection
- * impulse** `cArc = Σ v̄·|Δθ|` accumulated over CONTACTED frames of the IMPACT_WINDOW
- * episode (`contactRedirArcPxAtLanding`, substrate.ts), mapped affine to [0,1] so
- * 0 = a perfectly smooth catch (zero path bending) and 1 = "very strong". Successor
- * to the 2026-06-14 net-form `redirArc = v·Δθ` lock — same anchors structure, same
- * window; the accumulated contacted-only form won the divergence-label adjudication
- * and never cancels on bend-then-unbend contacts. History + calibration:
- * docs/impact_definition.md.
- */
-/** Calibration anchors are env-tunable so they can be A/B'd without a recompile
- *  (LR_IMPACT_SOFT / LR_IMPACT_VSTRONG). Defaults = the shipped values. */
-/** Parse a numeric env knob (`name`), falling back to `dflt` when unset, empty,
- *  or non-finite. Shared single source of truth for env-tunable float knobs. */
-export function impactEnvNum(name: string, dflt: number): number {
-  const raw = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.[name];
-  if (raw === undefined || raw === "") return dflt;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : dflt;
-}
-export const IMPACT_RULER = {
-  /** Raw scored impulse (px/frame) at a felt "soft" landing → impact 0. SOFT = 0:
-   *  the PHYSICAL floor — zero
-   *  redirection is zero impact. Derived 2026-06-15: the achievable-range fit wanted SOFT < 0
-   *  (unphysical), so it's floored at 0; a non-redirecting catch reads 0. Env-overridable for study. */
-  SOFT: impactEnvNum("LR_IMPACT_SOFT", 0),
-  /** Scored-impulse px/frame at a felt "very strong" landing → impact 1. VSTRONG = 7.55
-   *  (2026-07-31, the cArc promotion): the combined-corpus compatibility optimum V* —
-   *  equal-weight over the canonical V2 inventory (12,168 landings, V* 7.45) and the
-   *  production/labeled corpus (937 landings, V* 7.85) — inside a FLAT valley [7.3, 7.9]
-   *  (mean meaning-shift ≤ 0.05 anywhere in it, so existing authored specs keep their
-   *  meaning with NO migration), mid-CI of the felt "very strong" [6.4, 13.4], and
-   *  deliberately BELOW the atlas physics top (~11.3): [0,1] is the felt/compatibility
-   *  scale; physical headroom above it saturates. Linear map (isotonic-vs-linear found
-   *  no defensible curvature). See docs/impact_definition.md Calibration. */
-  VERY_STRONG: impactEnvNum("LR_IMPACT_VSTRONG", 7.55),
-} as const;
-// Fail fast on a degenerate env-set anchor pair: a non-positive span makes
-// normImpact divide by zero (silently clamped to 0/1) or, when SOFT > VERY_STRONG,
-// inverts the scored impact axis — both silently corrupt the headline.
-if (!(IMPACT_RULER.VERY_STRONG > IMPACT_RULER.SOFT)) {
-  throw new Error(
-    `Invalid impact anchors: LR_IMPACT_VSTRONG (${IMPACT_RULER.VERY_STRONG}) must be > ` +
-      `LR_IMPACT_SOFT (${IMPACT_RULER.SOFT}); a non-positive span corrupts the scored impact axis.`,
-  );
-}
-/**
- * Stable identity carried by production preview payloads. Bump `version` only
- * when the raw measurement or normalization contract changes.
- */
-export const IMPACT_METRIC = Object.freeze({
-  id: "contact-redirection-impulse",
-  version: 1,
-  rawUnit: "px/frame",
-  windowFrames: IMPACT_WINDOW,
-  soft: IMPACT_RULER.SOFT,
-  veryStrong: IMPACT_RULER.VERY_STRONG,
-});
+/** The felt scale of impact, linear in the raw impulse (px/frame): SOFT, zero redirection, is impact 0; VERY_STRONG is
+ * impact 1, chosen inside a flat valley [7.3, 7.9] of the landings measured, in the middle of what was felt as "very
+ * strong", and below the physical top (about 11.3), so values above 1 saturate. */
+export const IMPACT_RULER = {SOFT: 0, VERY_STRONG: 7.55} as const;
 
-/** Raw scored contact-redirection impulse (px/frame) → felt impact [0,1]. */
+/** Raw contact-redirection impulse (px/frame) → felt impact [0, 1]. */
 export function normImpact(rawImpactPx: number): number {
-  return Math.max(
-    0,
-    Math.min(
-      1,
-      (rawImpactPx - IMPACT_RULER.SOFT) /
-        (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT),
-    ),
-  );
+  return Math.max(0, Math.min(1, (rawImpactPx - IMPACT_RULER.SOFT) / (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT)));
 }
-/** Inverse: raw scored impulse (px/frame) requested by authored impact [0,1]. */
+/** Inverse: the raw impulse (px/frame) an authored impact [0, 1] asks for. */
 export function impactToRawPx(impact: number): number {
-  return IMPACT_RULER.SOFT + Math.max(0, Math.min(1, impact)) *
-    (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT);
+  return IMPACT_RULER.SOFT + Math.max(0, Math.min(1, impact)) * (IMPACT_RULER.VERY_STRONG - IMPACT_RULER.SOFT);
 }
-/** Wrap an angle (radians) to (−π, π]. Canonical home (the scored impact's per-frame
- *  heading-change terms and the study harnesses' turnNetDeg share this definition). */
+/** Wrap an angle (radians) to (−π, π]. */
 export const wrapPi = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
-/**
- * Maximum catchable normalized impact [0,1] at the given entering speed (px/frame).
- * `target > impactCeiling(speed)` ⇒ the shortfall is physics (too slow to redirect at all,
- * or the hit would eject), not a compiler miss. Max reliable impulse = entering speed ×
- * `IMPACT.MAX_RELIABLE_TURN_RAD` (the atlas-measured window-turn bound).
- */
+/** The largest impact [0, 1] that can be caught at an entering speed (px/frame): a target above it is physics (too
+ * slow to redirect that much, or the hit would eject), not a compiler miss. */
 export function impactCeiling(speedPx: number): number {
-  return normImpact(Math.max(0, speedPx) * IMPACT.MAX_RELIABLE_TURN_RAD); // atlas: ceil(s) ≈ s × 1.0 rad
+  return normImpact(Math.max(0, speedPx) * IMPACT.MAX_RELIABLE_TURN_RAD);
 }
 
 export const CALIB = {
-  /** Divisor for `grain` axis. units. */
-  LINE_LENGTH_CAP: 49,
-  /** [LEGACY — NOT SCORED as of 2026-06-14] Cap for the OLD perpendicular `redir`
-   *  metric (v·sin Δθ). The scored impact is the contacted-frame impulse on the felt
-   *  `IMPACT_RULER` scale. Kept only for explicit analysis comparisons. */
-  REDIR_CAP: 8.5,
-  /** [LEGACY — NOT SCORED] Divisor for the OLD one-frame normal-closing impact
-   *  ("point"). Do not tune this for scoring; it is retained only for explicit
-   *  analysis comparisons. */
-  IMPACT_CAP: 5,
-  /** Divisor for `amplitude` axis: peak upward chord-relative sagitta (px) that
-   *  maps to a normalized amplitude of 1.0. Provisional — calibrate against the
-   *  achieved envelope on a soaring-arc probe spec, the same way grain's cap was
-   *  set. */
+  /** Divisor of the `amplitude` axis: the peak upward sagitta (px) above the takeoff→landing chord that reads 1.0. */
   AMPLITUDE_CAP: 60,
 } as const;
 

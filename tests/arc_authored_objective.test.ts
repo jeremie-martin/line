@@ -16,7 +16,7 @@ it('reuses capped span measurements without losing excess amplitude or including
   const lines=[{id:1,type:0,x1:0,y1:0,x2:20,y2:0}];
   for(const end of [20,80]) for(const amplitude of [undefined,.5]) {
     const gap:Gap={index:0,startFrame:0,endFrame:120,endsWithContact:false,targets:{amplitude}};
-    const achieved=Object.freeze(measureGapAxes(det,{...gap,endFrame:end},lines,end));
+    const achieved=Object.freeze(measureGapAxes(det,{...gap,endFrame:end},end));
     const objective=uncappedObjectiveAxes(det,gap,end,achieved),reference=objectiveAxes(det,gap,end);
     for(const axis of ['air','speed','amplitude'] as const) expect(objective[axis]).toBe(reference[axis]);
     expect(achieved.amplitude).toBeCloseTo(Math.min(1,.175*end*end/8/CALIB.AMPLITUDE_CAP),12);
@@ -39,7 +39,7 @@ it('measures the authored ending while physically validating the complete surviv
     const det=detect(extractRawTrajectory(engine,180));
     expect(det.terminus.reason).toBe('endOfSpec');expect(det.terminus.frame).toBe(180);
     const tail=sliceTimeline(spec.contacts.map(c=>Math.round(c.t*40)),160).at(-1)!;
-    const expected=measureGapAxes(det,tail,[],160),grace=measureGapAxes(det,tail,[],180),actual=result.rows.at(-1)!.achieved;
+    const expected=measureGapAxes(det,tail,160),grace=measureGapAxes(det,tail,180),actual=result.rows.at(-1)!.achieved;
     expect(actual.air).toBe(expected.air);expect(actual.speed).toBe(expected.speed);expect(actual.amplitude).toBe(expected.amplitude);
     expect(actual.air).not.toBe(grace.air);
   }finally{disposeEngines();}

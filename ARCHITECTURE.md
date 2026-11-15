@@ -86,8 +86,7 @@ and validation are in [music authoring](docs/music-authoring.md).
    `arc_candidates.ts` shares one owned, read-only fact record between the
    candidate list and memo. A live evaluation pairs that record with its engine;
    selecting saved facts rebuilds the engine. One residual vector retains its
-   local partition count. Report rows add geometry-only grain when selected,
-   using the same reduction as full gap reports. Geometry used in cached prefix
+   local partition count. Geometry used in cached prefix
    identities is read-only at the compiler boundary.
    Each interval prepares the fixed authored-future features once; candidates
    append these to their physical-arrival features. Preparing them per search

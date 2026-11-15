@@ -180,7 +180,7 @@ function selectMemo(ctx: ArcCompileContext, engine: Engine, i: number, options: 
 /** Span axes of `g` over [g.startFrame, rangeEnd]; a capped amplitude keeps
  * its raw excess as search pressure. */
 export function objectiveAxes(det: ReturnType<typeof detect>, g: Gap, rangeEnd: number) {
-  const axes = measureGapAxes(det, g, [], rangeEnd);
+  const axes = measureGapAxes(det, g, rangeEnd);
   return uncappedObjectiveAxes(det, g, rangeEnd, axes);
 }
 

@@ -47,7 +47,7 @@ export function evaluateDetection(c: Case, det: Detection, materialFailures: str
   if (offBeat.length) failures.push(`off_beat_landings:${offBeat.length}`);
   const observations: Observation[] = [];
   for (const gap of gaps) {
-    const wanted = targets(c, gap), ctx = { det, gap, rangeEndFrame: gap.endFrame, gapLines: [] };
+    const wanted = targets(c, gap), ctx = { det, gap, rangeEndFrame: gap.endFrame };
     for (const axis of ['air', 'speed', 'amplitude', 'impact'] as const) {
       const target = wanted[axis]; if (target === undefined) continue;
       let achieved: number | undefined;

@@ -6,7 +6,7 @@ import {hypot2} from '../../lib/hypot2.ts';
  * are memoized by control within the search's memo context. */
 import { getBallisticStateMetered, matchesBallisticStateMetered, boundThroughMetered, getPhysicsFrameCount, extractRawTrajectoryWindow, DetectionContinuation, type Detection, type RawFrame } from '../../lib/detector.ts';
 import { carryOrigin } from './arc_origin.ts';
-import { measureTrajectoryAxes } from '../core/measure.ts';
+import { measureGapAxes } from '../core/measure.ts';
 import { authoredSpeedToPx, impactToRawPx } from '../types.ts';
 import {solidPathLines} from '../arc.ts';
 import type {SolidPath} from '../../lib/track.ts';
@@ -237,7 +237,7 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   const {ctx, options, i, frame, next, horizon, targets, impact} = s;
   const {contacts, duration} = ctx;
   const {det, raw, state, impactEvents, impactAccount, impactMatch, observedImpacts, request} = traced;
-  const achieved = measureTrajectoryAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, s.objectiveEnd);
+  const achieved = measureGapAxes(det, {...s.outgoing, endFrame: s.objectiveEnd}, s.objectiveEnd);
   const measuredObjective = uncappedObjectiveAxes(det, s.outgoing, s.objectiveEnd, achieved);
   const residuals: number[] = ['air', 'speed', 'amplitude'].map(key => targets[key as keyof typeof targets] === undefined ? 0 :
     ((measuredObjective as any)[key] - (targets as any)[key]) * Math.sqrt(key === 'amplitude' ? (options.amplitudeWeight ?? 1) : 1));

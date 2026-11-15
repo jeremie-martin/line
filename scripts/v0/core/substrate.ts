@@ -17,7 +17,7 @@ import {
   type ContactReport, type GapAxisReport,
   AXES, TARGET_AXES, AXIS_VALUE_MAX, CALIB, FPS, IMPACT, IMPACT_WINDOW, START_DEFAULTS, PREROLL,
   secToFrame,
-  authoredSpeedToPx, elevationCeiling, impactCeiling, normImpact, wrapPi,
+  authoredSpeedToPx, impactCeiling, normImpact, wrapPi,
 } from "../types.ts";
 import {
   measureAmplitudePeakPx,
@@ -356,13 +356,6 @@ export function clamp(x: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, x));
 }
 
-export function median(xs: number[]): number {
-  if (xs.length === 0) return 0;
-  const s = [...xs].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-}
-
 // ─────────── Spec validation ───────────
 
 export function validateSpec(spec: Spec): void {
@@ -383,8 +376,7 @@ export function validateSpec(spec: Spec): void {
 /**
  * Validate axis curves stay in range across the track. A curve is continuous,
  * so we sample it at every frame (the resolution the compiler actually sees)
- * and bound-check each defined value. Axes outside TARGET_AXES are deliberately
- * skipped here, so authored `grain` curves are ignored instead of validated.
+ * and bound-check each defined value.
  */
 function validateAxisCurves(spec: Spec): void {
   const durationFrames = secToFrame(spec.duration);
@@ -498,7 +490,7 @@ export function buildDriftReport(
     const f = fits[j];
     if (!g.endsWithContact || f === null) continue;
     const targets = gapAxisTargets?.[g.index] ?? effectiveAxes(g, spec);
-    const achievedAll = measureGapAxes(det, g, f.lines, g.endFrame);
+    const achievedAll = measureGapAxes(det, g, g.endFrame);
     const axes: GapAxisReport["axes"] = {};
     for (const name of AXES) {
       let t = targets[name];
@@ -506,11 +498,6 @@ export function buildDriftReport(
       const a = achievedAll[name];
       if (a === undefined) continue;
       axes[name] = { target: t, achieved: a, error: Math.abs(t - a) };
-      if (name === "elevation") {
-        const v0 = velocityAt(det, g.startFrame);
-        const speed = v0 !== undefined ? hypot2(v0.x, v0.y) : 0;
-        axes[name].ceiling = elevationCeiling(speed, g.endFrame - g.startFrame);
-      }
       if (name === "impact") {
         const nextContact = contactFrames.find((frame) => frame > g.endFrame);
         const nextGapSeconds = nextContact === undefined ? 1.5 : (nextContact - g.endFrame) / FPS;

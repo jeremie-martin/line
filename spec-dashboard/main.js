@@ -3,16 +3,14 @@ import { sourceEvents, vocalFrame } from "./music-evidence.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
-const AXES = ["air", "speed", "grain", "elevation", "amplitude", "impact"];
+const AXES = ["air", "speed", "amplitude", "impact"];
 const AXIS_META = {
   air: { label: "air", color: "#1f6b73" },
   speed: { label: "speed", color: "#a8442f" },
-  grain: { label: "grain", color: "#5d7a43" },
-  elevation: { label: "elevation", color: "#57508d" },
   amplitude: { label: "amplitude", color: "#b57d1d" },
   impact: { label: "impact", color: "#a8442f" },
 };
-const NOTE_TAGS = ["mark", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "elevation", "music", "flat", "too much"];
+const NOTE_TAGS = ["mark", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "music", "flat", "too much"];
 
 const refs = {
   specSelect: document.getElementById("spec-select"),

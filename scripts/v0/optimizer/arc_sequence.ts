@@ -5,7 +5,7 @@ import { LineRiderEngine as Engine } from '../../lib/native_motion/engine.ts';
 import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detector.ts';
 import type { TrackLine } from '../types.ts';
 import { searchInterval, type IntervalResult } from './arc_interval.ts';
-import { distinctArrival, distinctCandidates, valueRank, reportedAxes, type MeasuredCandidate, type EvaluatedCandidate } from './arc_candidates.ts';
+import { distinctArrival, distinctCandidates, valueRank, type MeasuredCandidate, type EvaluatedCandidate } from './arc_candidates.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
 import { constructionStyle } from './repertoire_policy.ts';
 import { steepArrival } from './arc_evaluate.ts';
@@ -196,7 +196,7 @@ function commitInterval(ctx: ArcCompileContext, seq: ArcSequence, i: number, int
   seq.engine = ctx.lineage.detach(child);
   Engine.retainOnly([...protectedEngines, seq.engine]);
   seq.rows.push({frame, next, incoming, span: interval.span, features: interval.inputFeatures, cost: best.cost, control: best.c,
-    achieved: reportedAxes(best), impact: best.actualImpact, release: best.release, lines: best.lines.length,
+    achieved: best.trajectoryAxes, impact: best.actualImpact, release: best.release, lines: best.lines.length,
     railGuides: best.railGuides,
     ...(options.motionQuality ? {motion: best.motion, motionCost: best.motionCost} : {}),
     failures, spent: getPhysicsFrameCount()});

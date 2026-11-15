@@ -1,5 +1,9 @@
 # Compiler memory ownership audit
 
+**Status: closed for delivery on `geometry-improvements`.** The two production
+fixes are in `861a1917`; the closeout adds failure-path coverage and documentation,
+with no further production-code changes.
+
 Continue from the checked throughput foundation, `89be84e6`. Prefer removing
 unneeded ownership and respecting resource limits to pools, packed representations,
 runtime flags or low-level tuning. Geometry, search decisions, physics work and
@@ -75,10 +79,40 @@ expected tracks and charged work. After dropping each result and collecting,
 live JS heap stays between 12.37 and 12.71 MiB. That provides no evidence of
 large per-compile live-heap accumulation in this sample; it is not a proof against
 all leaks, and RSS need not fall when the runtime retains reserved pages.
-Full `npm run check` passes in 2.4 minutes: 628 tests, 32 Rust tests, exact
+Final closeout `npm run check` passes in 2.4 minutes: 630 tests, 32 Rust tests, exact
 physics/engine checks, all 25 compile parity cases, 10 judge parity tracks and
 end-to-end smoke. Parity references are unchanged.
 
 Raw diagnostics live under `generated/memory-audit/`. The temporary boundary test
 and its instrumentation were removed. No output labels, scoring definitions,
 parity expectations, speculative tuning or diagnostic GC calls are changed.
+
+## Delivery boundary
+
+Accepted: release the search memo at the search/verification boundary, and bound
+implicit worker counts by host RAM and the OS memory constraint. The implementation
+adds no dependency, tuning option, shared pool, forced GC or changed scoring rule.
+The original parity expectations remain the acceptance oracle.
+
+Coverage includes normal search, real budget exhaustion, preserved candidate
+facts and a deliberately thrown finalization error followed by a byte-for-byte
+identical complete result on the next compile. Existing engine-scope, session,
+interruption and observer-failure tests cover the surrounding cleanup contracts.
+Worker tests cover finite/unknown/unlimited constraints and explicit overrides.
+
+The retained measurements establish a reduction in live data at one verification
+boundary. They do not establish a speedup, lower production peak RSS, absence of
+all leaks, or a universally optimal worker count. Worker sizing remains an estimate,
+not a memory reservation; explicit overrides can exceed it. These are documented
+limits, not unfinished acceptance work.
+
+The earlier unused-end trimming remains independently accepted (`e06720f9`). Fold
+experiments stay parked at `archive/upward-folds-20261115`; allocation prototypes
+stay out of production. No benchmark task or diagnostic instrumentation remains
+active. Raw research artifacts remain ignored under `generated/` for reproduction.
+
+For a branch that needs only these memory fixes, integrate `861a1917` and this
+closeout's tests/documentation; do not pull the historical fold adoption commit.
+Other machines/branches were not modified. Integration with their unseen changes
+requires resolving any conflicts there and running `npm run check` on the combined
+source; this local qualification does not substitute for that check.

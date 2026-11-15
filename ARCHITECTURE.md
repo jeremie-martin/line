@@ -124,6 +124,9 @@ and validation are in [music authoring](docs/music-authoring.md).
    Native replay performs that binding-stop loop; the shared meter still checks
    allowance and charges the actual cache extension. Prefix comparisons read
    native state directly, preserving the former serialized-number semantics.
+   Once search finishes (including budget exhaustion), its memo is cleared before
+   final verification. Committed geometry and candidate facts remain owned by
+   their consumers; clearing the lookup does not mutate them.
 
    Construction memory retrieves exact stable nearest neighborhoods with a
    bounded heap, expanding when adaptation consumes a page. Immutable model rows

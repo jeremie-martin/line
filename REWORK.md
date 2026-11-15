@@ -1,5 +1,19 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: close throughput and memory work for delivery
+
+- Keep `861a1917`'s two small ownership/resource fixes. Final code review requires
+  no further runtime changes. Add regression coverage for real budget exhaustion
+  and a finalizer failure followed by an identical complete result on retry.
+- Correct README's obsolete fixed machine example and distinguish per-frame cost
+  from batch throughput. Document acceptance, operational limits and integration
+  separately from the earlier experiments. Fold code and allocation prototypes
+  remain parked; unused-end trimming remains independently accepted.
+- Closed: final full `npm run check` passes in 2.4 minutes, including 630 tests,
+  32 Rust tests, exact physics/engine, 25 compile parity cases, 10 judge parity
+  tracks and end-to-end smoke. No parity references changed for the memory work.
+  Delivery record: `docs/research/compiler-memory-ownership-20261115.md`.
+
 ## November 15: memory ownership audit (hypothesis before changes)
 
 - Audit simple ownership/data-flow opportunities, not low-level tuning. Diagnostic

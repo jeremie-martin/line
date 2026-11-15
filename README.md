@@ -71,14 +71,17 @@ paired timing protocol and interpretation of resource measurements.
 `npm run check:physics` is the quick saved-reference check. `npm run check` runs
 the complete structural gate: types, reachability, JavaScript and Rust tests,
 live physics verification, compiler parity and judge parity. Evaluation,
-comparison and parity use a conservative CPU/memory worker count; `--jobs=N`
-overrides it (eight by default on this 16 GB host). `npm run perf:engine` answers
+comparison and parity detect a conservative worker count from available CPUs and
+host RAM bounded by the OS memory limit (2 GB per worker, at most 23). `--jobs=N`
+overrides it. `npm run perf:engine` answers
 whether a change is faster, `npm run perf:profile` shows where a real compile spends
 its time, and `npm run bench:engine` is a workload diagnostic.
 
-Compiler throughput is full compile time per charged physics frame, including
-search and observation work. It is distinct from isolated solver time. Structural
-optimizations preserve exact output and charged work.
+Compiler cost per charged physics frame includes search and observation work,
+not just solver time. Batch throughput measures completed tracks per unit of wall
+time; it can rise while each track takes longer. Structural optimizations preserve
+exact output and charged work. See the [throughput measurements](docs/research/compiler-throughput-20261115.md)
+and [closed memory audit](docs/research/compiler-memory-ownership-20261115.md).
 
 With `npm run serve` running, `node tests/browser/async-loading.mjs` checks
 concurrent gallery loading, cancellation, and audio-failure recovery using

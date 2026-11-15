@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: aimed apex launches and aimed launches at 8 seeds; variety (measured)
+
+V8, 8 seeds (392 rides), against `foundation-6` (758.3 at 8 seeds):
+
+| | headline | small quiet asks (0–0.1) within ×1.5 / over ×2 | asks of 0 within ×1.5 | very strong bias | stray strong hits |
+|---|---|---|---|---|---|
+| `foundation-6` | | 55% / 22% | 8% | −0.176 | 0.13 |
+| aimed apex launches (level before every beat) | +1.1 [−2.4, +4.7] | 69% / 13% | 11% | −0.177 | 0.14 |
+| aimed launches (steep before strong, level before quiet) | +1.5 [−0.5, +3.5], support 0.94 | 61% / 17% | 16% | −0.177 | 0.19 |
+
+- Aiming steeper before strong beats does not help them (very strong bias unchanged) and adds stray hits (+39%): their
+  shortfall is in the catch, not the arrival (as the November impact studies found: the push is speed × turn at the
+  catch). The steep half is dropped from the idea.
+- **Variety** (`tools/research/flight_variety.ts`, V8 4 seeds): no version makes rides more uniform. Spread of arrival
+  headings within a ride: median 15.0° (`foundation-5`), 15.1° (`foundation-6`), 15.2° (aimed apex), 15.1° (aimed).
+  Launch, arrival and flight-length quantiles match within a degree or a frame. Before quiet beats arrivals moved from
+  −23° (median, `foundation-5`) to −19° (`foundation-6`); the launch proposals barely move that median (−20°): of 427
+  winning apex arcs (seed 101) 345 sit before ordinary or strong beats, and refinement keeps their exit (median shift
+  1.4°).
+- Running: aimed launches only before quiet beats (`aimedLaunches.levelOnly`, `exp/aimed-level-on`).
+
 ## November 15: aimed launches, the general form of apex launches (exploratory; stated before running)
 
 The owner liked how aimed apex launches look, kept them out of the compiler, and asked to refine, generalize,

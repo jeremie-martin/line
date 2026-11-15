@@ -9,8 +9,8 @@ export type ImpactSearchOptions = {engagementGainWeight?: number; steepArrivalFr
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['engagementGainWeight','steepArrivalFrom','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
-      (key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
+    if(!['engagementGainWeight','steepArrivalFrom','uprightArrival','levelArrivalBelow'].includes(key)||!Number.isFinite(value)||value<0||
+      ((key==='steepArrivalFrom'||key==='levelArrivalBelow')&&value>1))throw new Error('invalid impact search options');
   }
 }
 /** Additional local residuals supplement the first four musical coordinates;

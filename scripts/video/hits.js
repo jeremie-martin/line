@@ -43,7 +43,37 @@ export const boost = s => 1.5 * Math.min(2, s <= 0.85 ? smoothstep(ramp(s, 0.35,
 
 /** The response's settings per value of look.hits. v1 is production; in the lab (round 51) the band is lit for as long as a hit of
  * at least `lit` lasts (the owner: "from 0.65", "way better on all the dark themes"). */
-export const TUNES = {v1: {}, lit65: {lit: 0.65}, still: {still: true}};
+export const TUNES = {v1: {}, lit65: {lit: 0.65}, still: {still: true},
+  // under review (2026-11-15, the owner's settings on the hit movement page): half the shake, and carry
+  carry: {shake: 0.5, carry: {start: 0.5, amount: 100, out: 0.07, back: 0.3}}};
+TUNES.carryLit65 = {...TUNES.carry, lit: 0.65}; // for the dark themes whose band lights
+
+// Carry: after a hit the picture moves out of the surface that was hit and settles back, as if the camera carried on for a
+// moment when the rider was stopped. The shake knocks into the surface, fast; carry answers it, slower.
+// c = {start: strength under which there is none; amount: px at strength 0.85; out, back: seconds out and settling back}.
+/** px: nothing up to c.start, an S-curve to c.amount at 0.85, then growing as the shake does, at most 1.7 × c.amount. */
+export function carryAmount(s, c) {
+  if (s <= c.start) return 0;
+  if (s <= 0.85) return c.amount * smoothstep(ramp(s, c.start, 0.85));
+  return Math.min(1.7 * c.amount, c.amount * (1 + 40 / 28 * (s - 0.85)));
+}
+/** 0 at the hit, 1 at the peak (soon after c.out), back toward 0 over a few c.back. */
+export function carryShape(age, c) {
+  if (age <= 0 || age > 6 * c.back + 1) return 0;
+  const out = Math.min(c.out, c.back * 0.9), f = t => Math.exp(-t / c.back) - Math.exp(-t / out);
+  return f(age) / f(Math.log(c.back / out) * c.back * out / (c.back - out));
+}
+/** Every recent hit's carry along its surface normal (toward the rider), together at most 1.7 × c.amount. px, screen axes. */
+export function carryAt(hits, time, c) {
+  let x = 0, y = 0;
+  for (const h of hits) {
+    if (h.time > time) break;
+    const a = carryAmount(h.strength, c) * carryShape(time - h.time, c);
+    if (a) {x += a * h.normal.x; y += a * h.normal.y;}
+  }
+  const d = Math.hypot(x, y), cap = 1.7 * c.amount, k = d > cap ? cap / d : 1;
+  return {x: x * k, y: y * k};
+}
 
 // Hold the peak for at least one 60 fps frame, then recover within 0.25 seconds.
 function envelope(age, energy) {
@@ -61,10 +91,12 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
     const elapsed = time - h.time, env = envelope(elapsed, h.energy), score = env * (0.01 + h.strength);
     if (score > best) {best = score; hit = h; amount = env; age = elapsed;}
   }
-  if (!hit) return {dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
+  // carry outlasts the winning hit's envelope, so it is added whether or not a hit is live
+  const carried = tune.carry ? carryAt(hits, time, tune.carry) : null, cx = carried ? carried.x * exaggerate : 0, cy = carried ? carried.y * exaggerate : 0;
+  if (!hit) return {dx: cx, dy: cy, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false};
   const x = -hit.normal.x, y = -hit.normal.y;
-  const a = amount < 0.002 || tune.still ? 0 : shake(hit.strength) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
-  return {dx: a * x, dy: a * y,
+  const a = amount < 0.002 || tune.still ? 0 : shake(hit.strength) * (tune.shake ?? 1) * exaggerate * amount * Math.cos(2 * Math.PI * 6 * age);
+  return {dx: a * x + cx, dy: a * y + cy,
     split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},
     boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount,

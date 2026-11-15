@@ -30,6 +30,8 @@ export const OPTIONS = {
   irisWeight: ['Iris strands', {thin: 'Thin (v1)', bold: 'Bold'}],
   hits: ['On each hit', {v1: 'Split, colour boost, shake on strong hits (v1)', none: 'Nothing',
     lit65: 'v1, and the band lights on hits of 0.65 or more',
+    carry: 'v1 with half the shake, and carry: the picture moves out of the surface and settles (under review)',
+    carryLit65: 'carry, and the band lights on hits of 0.65 or more',
     // a viewing aid, to read a ride without the camera moving
     still: 'v1 without the shake'}],
 };

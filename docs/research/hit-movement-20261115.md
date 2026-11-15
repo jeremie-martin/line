@@ -497,3 +497,12 @@ The page plays the whole song under today's camera with this movement, today's p
 shows the two curves by strength with every hit of the song as a dot that lights when it plays, and two handles (start,
 amount); a second shows one hit over time. Settings live in the address and are saved per song by the labels API
 (study `hit-curve-2026-11`). First values, unjudged: start 0.4, 60 px, out 70 ms, back 0.3 s, today's shake.
+
+## The owner's settings, and carry in the renderer (under review)
+
+On the hit movement page the owner chose: carry from strength 0.5, 100 px at a strong hit, out in 70 ms, back over 0.3 s,
+and half today's shake. `scripts/video/hits.js` now holds carry (`carryAmount`, `carryShape`, `carryAt`) and a response
+`hits: 'carry'` with these settings (`carryLit65` for dark themes whose band lights); the page's model uses the same
+functions. `v1` stays the production response and draws as before (the renderer test). Whole rides in both versions
+(Tiki, Circus, Petrunko `build`, Trouble `contrast-clusters-revisited`):
+`/motion-gallery/video-compare.html?collection=/generated/watch/carry.json`. Not adopted until he has seen whole rides.

@@ -18,7 +18,7 @@ it('carry rises to one soon after the hit and settles back', () => {
   expect(carryShape(1.5)).toBeLessThan(0.02);
 });
 it('carry moves the picture out of the surface, the shake into it first, and nothing moves before the hit', () => {
-  const p = {...MOVE_DEFAULT};
+  const p = {...MOVE_DEFAULT, shake: 1};
   expect(movementAt([hit(1, 0.9)], 0.99, p)).toEqual({dx: 0, dy: 0});
   expect(singleHit(0.9, 0.005, p)).toBeLessThan(0);   // the knock: into the surface
   expect(singleHit(0.9, 0.15, p)).toBeGreaterThan(20); // the rebound: out of it
@@ -30,6 +30,16 @@ it('many hits together stay within 1.7 times the amount, and a zero amount with 
   const hits = Array.from({length: 12}, (_, i) => hit(i * 0.05, 1));
   const m = movementAt(hits, 0.7, {...MOVE_DEFAULT, shake: 0});
   expect(Math.hypot(m.dx, m.dy)).toBeLessThanOrEqual(1.7 * MOVE_DEFAULT.amount + 1e-9);
-  const today = hitEffectsAt(hits, 0.31), same = movementAt(hits, 0.31, {...MOVE_DEFAULT, amount: 0});
+  const today = hitEffectsAt(hits, 0.31), same = movementAt(hits, 0.31, {...MOVE_DEFAULT, amount: 0, shake: 1});
   expect(same.dx).toBeCloseTo(today.dx); expect(same.dy).toBeCloseTo(today.dy);
+});
+it('the renderer\'s carry response is the page\'s movement, lasts past the hit\'s own effects, and leaves v1 alone', async () => {
+  const {hitEffectsAt, TUNES} = await import('../scripts/video/hits.js');
+  const hits = [hit(0, 0.9), hit(0.4, 0.6, {x: 0.6, y: -0.8})], p = {...TUNES.carry.carry, shake: TUNES.carry.shake};
+  for (const t of [0.01, 0.1, 0.3, 0.45, 0.8, 1.5]) {
+    const a = hitEffectsAt(hits, t, 1, TUNES.carry), b = movementAt(hits, t, p);
+    expect(a.dx).toBeCloseTo(b.dx); expect(a.dy).toBeCloseTo(b.dy);
+  }
+  expect(Math.abs(hitEffectsAt(hits, 0.9, 1, TUNES.carry).dy)).toBeGreaterThan(1); // every other effect of these hits is over
+  expect(hitEffectsAt(hits, 0.9)).toEqual({dx: 0, dy: 0, split: 0, direction: {x: 0, y: 0}, boost: 0, lit: false});
 });

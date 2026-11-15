@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: one continuous arrival law (stated before running)
+
+The owner challenged the cliff between quiet and other beats (the level prior acts under 0.3, the steep one from 0.4,
+nothing between) and asked for something more general, measured with more seeds and on every statistic.
+- **Data** (`tools/research/arrival_law.ts`, `foundation-6`, V8 4 seeds, 17,392 catches): the arrival heading that goes
+  with well-landed catches (smallest relative miss, speed kept after) rises smoothly with the ask: 0–10° for asks under
+  0.2; anywhere 10–30° lands well for 0.2–0.45; 30–60° for 0.45–0.6; 45° and steeper for 0.6–1.0 (asks 0.8–1.0: 95%
+  within ×1.5 from 60°+, 53% from 0–10°). Today's median arrival is 17–36° whatever the ask: too steep for whispers,
+  too shallow for hard hits.
+- **Change** (`exp/arrival-law`, option `arrivalLaw`, off by default: parity identical): one arrival heading for every
+  ask, 5° + 80° × ask, at most 70°, pulled with the same weight at every ask; it replaces the steep and level
+  priors' headings (their speed and upright parts stay). Variant **prior** (`exp/arrival-law-prior`): the law only;
+  variant **aimed** (`exp/arrival-law-aimed`): plus launches aimed at it before every beat.
+- **Measured** at 8 seeds on V8 against `foundation-6`, then 16 for the better one: every ruler; quiet and strong asks;
+  stray hits; variety; arrivals by ask.
+- **Hypothesis:** strong asks closer (very strong bias above −0.176) and quiet asks closer; headline up; no cliff in
+  arrivals by ask; variety kept.
+
 ## November 15: aimed launches only before quiet beats (the cleanest form; exploratory, not adopted)
 
 V8, 8 seeds, against `foundation-6` (758.3): headline **+2.3 [−1.2, +5.9]**, support 0.92, 16 specs up, 16 down, **11

@@ -15,7 +15,7 @@
   @media (max-width:820px){.workspace{grid-template-columns:1fr}.viewer{position:static}.screen{height:min(62svh,640px)}}
 </style>
 <main>
-<header><a class="homelink" href="./hit-motion.html">← Hit effects</a><h1>Hit weight pairs</h1><p>One strong hit, looping, in two versions. Switch between A and B and say which hit has more weight.</p></header>
+<header><a class="homelink" href="./hit-motion.html">← Hit effects</a><h1>Hit weight pairs</h1><p>One strong hit, looping, in two versions. Switch between A and B and judge the hit only, not the rest of the picture.</p></header>
 <div class="workspace">
 <section class="viewer">
   <div class="pair single"><div class="screen"><div class="picture-label" id="side">A</div><canvas id="a" width="1080" height="1920"></canvas><canvas id="b" width="1080" height="1920" hidden></canvas></div></div>
@@ -26,8 +26,7 @@
   <div class="card"><h2 id="progress">Loading…</h2><p class="help" id="status"></p>
     <p class="help">Hit shown (the same in A and B):</p><div id="hits"></div></div>
   <div class="card" id="form" hidden>
-    <p class="q">Which hit has more weight?</p><div class="answers" data-q="weight"><button data-v="left">A</button><button data-v="same">Same</button><button data-v="right">B</button></div>
-    <p class="q">Which do you prefer to watch?</p><div class="answers" data-q="prefer"><button data-v="left">A</button><button data-v="same">Same</button><button data-v="right">B</button></div>
+    <div id="questions"></div>
     <textarea id="note" placeholder="Anything you notice (optional)"></textarea>
     <button id="next" disabled>Save and next</button><button id="skip">Skip this pair</button>
   </div>

@@ -427,3 +427,26 @@ strength 0.85, at most 16%, centred on the rider or read by the old follower), t
 (`hit-pairs-camera.mjs`): today's camera, where at each hit the rider moves on screen by its own change of velocity
 (0.033 s of it at the peak, out in about 0.1 s, back in about 0.5 s, from strength 0.3, full at 0.55). Carry is a first
 guess at getting the old follower's rebound from the measured hit alone; it is in three pairs.
+
+## Answers to the first pairs (19, 2026-11-15)
+
+One answer per pair, so each line is an indication, not a result. He judged the hit only; "prefer" equalled "weight" in
+18 of 19 and is dropped.
+
+- **The rider moving in the frame (old follower against today's): more weight, 3 of 3** (Tiki at both scene sizes,
+  Circus). On Circus he prefers today's placement: the old follower puts the rider and track too low.
+- **Scene size alone: no difference, 3 of 3** (6.2 against 3.7, both cameras, both songs).
+- **Today's shake: more weight, 2 of 2** (on today's camera and on the old combination).
+- **The punch: more weight in 3 of 5, same in 1, less in 1** (the less: today's camera at the large scene).
+- **Carry: mixed.** Better than today's camera at the small scene with a punch; worse at the large scene; against the
+  old follower, same on Circus ("a nice bounce") and worse on Tiki, an answer he doubted afterwards.
+- The old combination against today's camera without shake: same on Tiki, better on Circus.
+
+Measured afterwards: carry and the old follower move the rider almost alike after a strong hit (Tiki, large scene:
+39 px up at 0.1 s for the old follower, 44 px for carry). They differ in two things: carry moves more sideways (26 px
+against 16), and the old follower lets the rider drift 5–8 px down just before the hit.
+
+The second round (`hit-weight-2026-11-b`, 18 pairs, `?study=hit-weight-2026-11-b`) repeats three pairs to see how
+steady single answers are, builds on today's camera (carry on top of the shake, against the old follower with shake,
+7% and 13% punch), varies carry (less sideways, one and a half times, a drift into the hit) and the shake's direction.
+The second question is now whether the hit looks wrong in either version.

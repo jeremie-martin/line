@@ -3,7 +3,9 @@
 //   follow 'pinned': today's camera (the rider is the pivot and does not move on screen at a hit);
 //          'old':    the historical follower on the ten-point centre, its dead zone reading the zoom (punch included);
 //          'carry':  today's camera, and at each hit the camera carries on a little: the rider moves on screen by the
-//                    change of its own velocity, quickly out and slowly back.
+//                    change of its own velocity, quickly out and slowly back. `carry` may set {gain, side, dip}: a multiple
+//                    of the displacement, the share of its horizontal part kept, and a drift (px) along the rider's
+//                    motion in the 0.15 s before the hit, released at the hit.
 //   zoom: scene size (today 6.2); punch: peak zoom pulse at realized strength 0.85 (0 = none), centred on the rider.
 import step from '/generated/hit-effects/follower.js';
 import {W, H, createFraming, smoothstep} from '/scripts/video/camera.js';
@@ -20,14 +22,18 @@ const shape = (() => {
 export function hitKicks(motion, hits) {
   const mean = (a, b) => {let x = 0, y = 0, n = 0; for (let f = Math.max(0, a); f <= Math.min(motion.velocity.length - 1, b); f++) {x += motion.velocity[f].x; y += motion.velocity[f].y; n++;} return {x: x / n, y: y / n};};
   return hits.map(h => {const f = Math.round(h.time * 40), b = mean(f - 4, f - 1), a = mean(f + 1, f + 4);
-    return {time: h.time, x: (a.x - b.x) * smoothstep((h.strength - CARRY.from) / (CARRY.full - CARRY.from)), y: (a.y - b.y) * smoothstep((h.strength - CARRY.from) / (CARRY.full - CARRY.from))};});
+    const g = smoothstep((h.strength - CARRY.from) / (CARRY.full - CARRY.from)), s = Math.hypot(b.x, b.y) || 1;
+    return {time: h.time, x: (a.x - b.x) * g, y: (a.y - b.y) * g, ux: b.x / s * g, uy: b.y / s * g};});
 }
-export function carryAt(kicks, time, zoom) {
-  let x = 0, y = 0;
-  for (const k of kicks) {const s = shape(time - k.time); if (s) {x += k.x * s; y += k.y * s;}}
-  x *= CARRY.gain * zoom; y *= CARRY.gain * zoom;
+export function carryAt(kicks, time, zoom, {gain = 1, side = 1, dip = 0} = {}) {
+  let x = 0, y = 0, dx = 0, dy = 0;
+  for (const k of kicks) {
+    const age = time - k.time, s = shape(age); if (s) {x += k.x * s; y += k.y * s;}
+    if (dip && age > -0.15 && age < 0.2) {const d = age < 0 ? smoothstep((age + 0.15) / 0.15) : Math.exp(-age / 0.03); dx += k.ux * d; dy += k.uy * d;}
+  }
+  x *= CARRY.gain * zoom * gain * side; y *= CARRY.gain * zoom * gain;
   const d = Math.hypot(x, y), c = d > CARRY.cap ? CARRY.cap / d : 1;
-  return {x: x * c, y: y * c};
+  return {x: x * c + dx * dip * side, y: y * c + dy * dip};
 }
 export function versionFraming(v, scene) {
   const hits = realizedHits(scene), P = punchSettings({peak: v.punch || 0.13, cap: 0.16}); // the historical punch never passed 13%
@@ -47,7 +53,7 @@ export function versionFraming(v, scene) {
     }
     const frame = createFraming(motion, level, hitTimes, songEnd), kicks = v.follow === 'carry' ? hitKicks(motion, hits) : null;
     return (time, at, look) => {
-      const c = frame(time, at, look), o = kicks ? carryAt(kicks, at / 40, v.zoom) : {x: 0, y: 0};
+      const c = frame(time, at, look), o = kicks ? carryAt(kicks, at / 40, v.zoom, v.carry) : {x: 0, y: 0};
       return {...c, z: c.z * v.zoom / 6.2 * punchAt(at / 40), ax: c.ax + o.x, ay: c.ay + o.y};
     };
   };

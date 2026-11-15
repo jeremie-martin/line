@@ -1,0 +1,364 @@
+{
+ "study": "hit-weight-2026-11-b",
+ "questions": [
+  {
+   "id": "weight",
+   "text": "Which hit has more weight?",
+   "options": [
+    "left",
+    "same",
+    "right"
+   ]
+  },
+  {
+   "id": "wrong",
+   "text": "Does the hit look wrong in either?",
+   "options": [
+    "neither",
+    "left",
+    "right",
+    "both"
+   ],
+   "default": "neither"
+  }
+ ],
+ "note": "In each clip, `second` names the side showing the second version of `tests`.",
+ "clips": [
+  {
+   "id": "tiki-shake-vertical",
+   "song": "tiki",
+   "tests": "Shake more vertical, against today's direction",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": "vertical"
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-carry-on-shake",
+   "song": "tiki",
+   "tests": "Carry added to today's shake",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-carry-dip",
+   "song": "tiki",
+   "tests": "Carry with a small drift into the hit before it",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false,
+    "carry": {
+     "dip": 10
+    }
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-again-punch",
+   "song": "tiki",
+   "tests": "Repeat: punch on today's camera",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0.13,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-carry-or-shake",
+   "song": "tiki",
+   "tests": "Shake alone against carry alone (second: carry)",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-carry-on-shake",
+   "song": "circus",
+   "tests": "Carry added to today's shake",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-carry-upright",
+   "song": "tiki",
+   "tests": "Carry with a quarter of its sideways part, against all of it",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false,
+    "carry": {
+     "side": 0.25
+    }
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-built-old",
+   "song": "tiki",
+   "tests": "Today's camera with shake and carry, against the old follower with shake (second: today's with carry)",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-punch13",
+   "song": "tiki",
+   "tests": "A 13% punch against a 7% punch, with shake and carry",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0.13,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0.07,
+    "shake": true
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-carry-more",
+   "song": "tiki",
+   "tests": "Carry at one and a half times",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false,
+    "carry": {
+     "gain": 1.5
+    }
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-again-move",
+   "song": "tiki",
+   "tests": "Repeat: the rider moves in the frame (old follower), large scene",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "circus-carry-dip",
+   "song": "circus",
+   "tests": "Carry with a small drift into the hit before it",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false,
+    "carry": {
+     "dip": 10
+    }
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "circus-built-old",
+   "song": "circus",
+   "tests": "Today's camera with shake and carry, against the old follower with shake (second: today's with carry)",
+   "left": {
+    "follow": "old",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-again-carry",
+   "song": "circus",
+   "tests": "Repeat: carry on today's camera",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-shake-down",
+   "song": "tiki",
+   "tests": "Shake always starting downward, against today's direction",
+   "left": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": "falling"
+   },
+   "second": "right"
+  },
+  {
+   "id": "circus-punch7",
+   "song": "circus",
+   "tests": "A 7% punch added to shake and carry",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0.07,
+    "shake": true
+   },
+   "second": "right"
+  },
+  {
+   "id": "tiki-again-carry",
+   "song": "tiki",
+   "tests": "Repeat: carry on today's camera",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "right": {
+    "follow": "pinned",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": false
+   },
+   "second": "left"
+  },
+  {
+   "id": "tiki-punch7",
+   "song": "tiki",
+   "tests": "A 7% punch added to shake and carry",
+   "left": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0,
+    "shake": true
+   },
+   "right": {
+    "follow": "carry",
+    "zoom": 6.2,
+    "punch": 0.07,
+    "shake": true
+   },
+   "second": "right"
+  }
+ ]
+}

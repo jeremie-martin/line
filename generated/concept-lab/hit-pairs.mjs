@@ -7,11 +7,19 @@ import {effectsAt} from './hit-motion-model.mjs';
 import {realizedHits} from './hit-motion-realized.mjs';
 import {versionFraming} from './hit-pairs-camera.mjs';
 
-const STUDY = 'hit-weight-2026-11', BEFORE = 1.2, AFTER = 1.3;
-const $ = id => document.getElementById(id);
+const BEFORE = 1.2, AFTER = 1.3;
+const $ = id => document.getElementById(id), STUDY = new URLSearchParams(location.search).get('study') ?? 'hit-weight-2026-11';
 const manifest = await (await fetch(`/generated/label-studies/${STUDY}/manifest.json`, {cache: 'no-store'})).json();
 const only = new URLSearchParams(location.search).get('pair');
 const done = new Set((await (await fetch(`/api/labels/${STUDY}`)).json()).labeled);
+// the questions come from the study; an option named left or right reads A or B; a question with a `default` starts answered
+const NAMES = {left: 'A', right: 'B', same: 'Same', neither: 'Neither', both: 'Both'};
+$('questions').replaceChildren(...manifest.questions.flatMap(q => {
+  const group = Object.assign(document.createElement('div'), {className: 'answers'}); group.dataset.q = q.id;
+  group.append(...q.options.map(o => {const b = Object.assign(document.createElement('button'), {textContent: NAMES[o] ?? o}); b.dataset.v = o; return b;}));
+  return [Object.assign(document.createElement('p'), {className: 'q', textContent: q.text}), group];
+}));
+const ready = () => manifest.questions.every(q => answers[q.id]);
 const queue = manifest.clips.filter(c => only ? c.id === only : !done.has(c.id));
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {ends: 'none', hits: 'v1'});
@@ -46,10 +54,11 @@ async function open(index) {
   if (loadedSong !== clip.song) {await music.load('/' + ride.scene.audio); loadedSong = clip.song;}
   if (n !== ticket) return;
   pictures = [clip.left, clip.right].map((v, i) => createPicture($('ab'[i]), ride.scene, ride.replay, ride.sprites, N.riderPainter(), {
-    effectsAt: effectsAt(v.shake ? 'current' : 'still', 1, true, ride.scene.timing.offset, true), framing: versionFraming(v, ride.scene)}));
+    effectsAt: effectsAt(v.shake === true ? 'current' : v.shake || 'still', 1, true, ride.scene.timing.offset, true), framing: versionFraming(v, ride.scene)}));
   $('hits').replaceChildren(...ride.hits.map((h, i) => Object.assign(document.createElement('button'), {textContent: `${(h.time - ride.scene.timing.offset).toFixed(1)} s · strength ${h.strength.toFixed(2)}`, onclick: () => setHit(i)})));
   for (const k of Object.keys(answers)) delete answers[k];
-  document.querySelectorAll('.answers button').forEach(b => b.classList.remove('on')); $('note').value = ''; $('next').disabled = true;
+  for (const q of manifest.questions) if (q.default) answers[q.id] = q.default;
+  document.querySelectorAll('.answers button').forEach(b => b.classList.toggle('on', answers[b.parentNode.dataset.q] === b.dataset.v)); $('note').value = ''; $('next').disabled = !ready();
   $('status').textContent = clip.song === 'tiki' ? 'Tiki Tiki' : 'Circus Minimus'; $('form').hidden = false; started = performance.now();
   show(0); setHit(Math.floor(ride.hits.length / 2)); if (music.context) void play();
   window.__ready = true;
@@ -63,7 +72,7 @@ async function save(skipped) {
 document.querySelectorAll('.answers').forEach(group => group.onclick = e => {
   const v = e.target.dataset?.v; if (!v) return;
   answers[group.dataset.q] = v; [...group.children].forEach(b => b.classList.toggle('on', b === e.target));
-  $('next').disabled = !(answers.weight && answers.prefer);
+  $('next').disabled = !ready();
 });
 $('next').onclick = () => save(false); $('skip').onclick = () => save(true);
 $('showA').onclick = () => {show(0); if (!playing) void play();}; $('showB').onclick = () => {show(1); if (!playing) void play();};

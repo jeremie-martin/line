@@ -2,6 +2,13 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
+   misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
+   (the long spec −26) lose air and their neighbouring strong beats, because a level arrival is usually a short
+   flight. One possible answer, not yet tried: the missing shape, a release that launches steeply upward before a
+   quiet catch so the flight is long and is caught near its top (long air, soft landing, no excess speed). Others may
+   exist; treat this as one hypothesis.
+
 1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
    to −11% CPU, long case −27%, identical tracks).
 2. ~~**Owner review of the Trouble spec variants**~~ (rounds 1–4,

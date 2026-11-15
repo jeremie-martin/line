@@ -1,5 +1,25 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: level arrivals before quiet catches and quiet misses priced in proportion (adopted, the owner's choice; not finished)
+
+- **Adopted** (`exp/quiet-level-b`, cleaned): before a quiet beat the arrival is drawn toward level (the mirror of the
+  steep arrival before strong beats; full at ask 0, none from 0.3); the impact weight is multiplied by
+  ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07 counting as 0.07. It replaces the calm multiplier
+  (×1.5 under 0.2), now removed, with its `calmImpactMultiplier` option. The cleanup's tracks are byte-identical to
+  the tested candidate's (parity references taken from the candidate, then checked against the cleaned code).
+- **Measured against today's compiler** (`foundation-5`, 764.5), V8, 4 seeds: headline −5.7 [−10.5, −0.8]; explicit
+  −9.8; strong extra impacts 0.11 (0.10); speed and air rms flat; small quiet asks (0–0.1) within ×1.5 54% (38%),
+  over ×2 22% (42%); asks 0.1–0.2 within ×1.5 98% (94%). The owner's Tiki voice-drums: within ×1.5 83% and 95% (65%,
+  82%), mean score 762.9 (764.6).
+- **Not finished (the owner):** the loss gathers on specs asking much air before quiet beats (the long spec −26, all
+  four seeds): flights into quiet catches fly even less than before (air error −0.139 → −0.189 before asks under 0.1)
+  and the strong catches around them land weaker (impact rms 0.069 → 0.083). A level arrival is usually a short
+  flight. One possible answer, not tried: a release launching steeply upward before a quiet catch, so the flight is
+  long and caught near its top. Other answers may exist (TODO.md item 0).
+- Checks: tests 625 pass; typecheck 0; reach clean (the five research tools added these two days registered as
+  entries: rail_squeeze, ridable_work, quiet_asks, quiet_catches, quiet_work); parity references refreshed in their own
+  commit; parity and judge parity pass. Named reference `foundation-6`.
+
 ## November 15: Q13 result (level arrival before quiet catches)
 
 V8 against `foundation-5` (a first run of both failed: the impact-search option validator did not know the new key;

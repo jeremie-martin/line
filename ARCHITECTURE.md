@@ -466,6 +466,17 @@ log):
 - **Steep arrival before strong asks:** the catch before a strong beat gets a
   steep, ask-driven arrival heading and speed, phased in smoothly from ask 0.4
   (none) to 0.8 (all) rather than switched on at 0.6.
+- **Level arrival before quiet asks** (since 2026-11-15): the mirror of the
+  steep arrival. Before a quiet beat the arrival heading is drawn toward level,
+  near the top of the flight, phased in from ask 0.3 (none) to 0 (all): a level
+  arrival lands softly and brings no excess speed, where a steep falling one
+  must be braked by a hard touchdown.
+- **Quiet misses priced in proportion** (since 2026-11-15; `relativeImpact` in
+  `repertoire_search.ts`, applied in `openInterval`): the impact weight is
+  multiplied by ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07
+  counting as 0.07; it replaced the calm multiplier (×1.5 under 0.2). Not a
+  finished answer to quiet asks: specs asking much air before quiet beats lose
+  air, because a level arrival is usually a short flight (REWORK.md).
 - **Upright arrival:** steep and unguided passive catches share a soft
   preference against head-down or backward arrivals. This does not forbid
   inverted geometry or guided upper contacts.

@@ -15,7 +15,7 @@ export function rocking(p){const F=p.trace.frames,fps=p.trace.fps;let prev=0;con
     const sec=p.sections.find(s=>Math.abs(Math.round(s.start*fps)-f)<=3);
     rows.push({t:f/fps,ask:tg[k].impact,shape:sec?.shape??'?',rock,rev,dur:(nx-f)/fps,sw});}
   return rows;}
-if(process.argv[1].endsWith('rocking.mjs')){let args=process.argv.slice(2),v=null;if(args[0]==='-v'){v=[+args[1],+args[2]];args=args.slice(3);}
+if(process.argv[1]?.endsWith('rocking.mjs')){let args=process.argv.slice(2),v=null;if(args[0]==='-v'){v=[+args[1],+args[2]];args=args.slice(3);}
   const by={},band=a=>a<=.15?'ask ≤0.15':a<=.4?'ask 0.15–0.4':a<=.7?'ask 0.4–0.7':'ask >0.7';
   for(const dir of args){const p=load(dir);if(!p)continue;const rows=rocking(p);let rock=0,rev=0,n20=0;
     for(const r of rows){rock+=r.rock;rev+=r.rev;if(r.rock>=20)n20++;for(const k of [r.shape,band(r.ask)]){const o=by[k]??={n:0,rock:0,n20:0,dur:0};o.n++;o.rock+=r.rock;o.dur+=r.dur;if(r.rock>=20)o.n20++;}

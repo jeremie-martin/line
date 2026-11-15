@@ -1,5 +1,31 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: independent review of the unasked-motion work (Opus 5.5; findings, nothing changed)
+
+- **The shaped families are required to turn back and forth between beats** (verified in the code). One section is one
+  gap between two hits. A family's heading is a function of the position along the section only
+  (`geometry_families.ts`: fold corners at 1/3 and 2/3, scallops and serpentine sine reversals, terraces four steps
+  each about one frame long in a short section). The construction check rejects a shaped section that does not
+  reverse (`repertoire_layout.ts`: at least 2 turn reversals, 20° of turning in contact, 1 reversal of 8° or more in
+  contact; `repertoire_realization.ts`: the early, middle and late parts all ridden). A charge can only shrink these
+  toward the check's minimum; it cannot put them on the music. Under v5 they are already shrinking (degrees undone
+  per contact-second: terraces 14 → 9, scallops 12 → 7, serpentine 9 → 4), which is a risk to variety.
+- **v5's form is wrong in two ways.** The 0.06 floor applies per 2-frame window, so it is a threshold: a 0.2 push
+  spread over 6 frames is charged 0.012. And a steady push is charged with the root of its duration: an even curved
+  slide (Valhalla `still-drop`, 4.3–5.2 s) costs 0.23, more than the hit asked there; 46% of v5's motion cost is in
+  runs longer than 10 frames, 45% on arcs. The reviewer's proposal: charge the change of the push, no floor.
+- **Motion moved rather than vanished, in part:** second pushes inside event windows 8 → 22; unmatched touchdowns
+  327 → 489, most after 3 or fewer air frames (micro-hops); quiet hits louder (bias +0.034 → +0.069), which accounts
+  for part of "drowned 41% → 9%".
+- **Rocking:** a per-contact charge misses the owner's own example (11.25 s: up in one contact, back in the next, one
+  air frame between; verified). Proposal: the whole-ride angle path cut at sign changes of the rotation rate, each
+  swing after the first charged (|swing| / 180°)², only the swing starting at a matched hit exempt, the charge deferred
+  until the swing ends. Scale uncalibrated.
+- **A different structure for the objective** (proposal): one motion allowance over time, rising to the ask at each
+  beat and zero between; the charge is the sudden motion above it. No event identity, so no windows or hops.
+- Checked and sound: incremental and cold detection agree; the matching exclusion; event order.
+- Not met: the rule that a measure is validated on the owner's labels before it is optimized.
+
 ## November 15: the unasked-motion measure on 20 specs, and rocking (experiment, not adopted)
 
 Owner on the v5 videos: the hard turns at the end of long slides are largely gone; the rider still rotates back and

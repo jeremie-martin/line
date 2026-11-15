@@ -1,5 +1,61 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: gentle exits and parked families, integrated (awaiting the owner's look)
+
+**What changed in the compiler** (branch `exp/visible-motion`):
+- `arc_geometry.ts`: from 6 frames after a catch, a support turns no faster than a 95 px radius and no faster than
+  keeps the push on the rider under 0.6 px/frame² (radius ≥ speed² ÷ 0.6). Three constants and one line.
+- `repertoire_policy.ts` `PARKED`: terraces and folds are left out of the default repertoire; a request can still name them.
+- Removed: the v5 account, the rejection rule and every environment switch of the experiments. The ground readings
+  moved to `tools/measure/body/ground_readings.ts` (analysis only).
+
+**Hypothesis, stated before the run:** drawing exits gently removes the sharp turns after a hit and most of the hard
+pushes the account does not record, at no cost in score, air, speed or completion.
+
+**Result** (20 handcrafted specs × seeds 101, 202, 303; paired by spec, 95 % bootstrap over specs):
+
+| | complete | score | air rms | sections with a turn above 20° after the hit | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| default before (all six families) | 59/60 | 754.2 | 0.0412 | 10.5 % | 0.71 |
+| without terraces and folds | 60/60 | 754.6 | 0.0400 | 6.7 % | 0.57 |
+| adopted | 59/60 | 757.0 | 0.0393 | 0.4 % | 0.22 |
+
+- Adopted − default before: score +4.7 [+1.1, +8.0], air −0.0021 [−0.0042, +0.0001], hit error −0.0002, speed +0.0011
+  (neither separable from 0), pushes −0.49 [−0.93, −0.13].
+- Completion: the one incomplete ride of each arm stopped on the compiler's consistency check ("main construction
+  differs"), a fault that predates this work and moves between rides.
+- **Is a check needed on top of the drawing?** Refusing candidates whose rider touches a turn above 20° after the hit
+  gave 0 % instead of 0.4 % and nothing else separable (score −1.6 [−6.4, +2.8] without it). Not kept: one mechanism.
+- Three tests tied to exact small compiles were re-derived; `npm run parity` changes as expected (references to update
+  on acceptance), `parity:judge`, tests, typecheck and reach pass.
+
+**The benchmark** (`npm run compare`, panel v8, 196 matched pairs, no ride lost in any arm; reference = visual-lab at
+the fork, saved as `visual-lab-1115`; the saved reference `visual-lab` is a commit of November 10 and must not be used):
+
+| against the reference | headline | 95 % over seed blocks | specs up/down |
+|---|---|---|---|
+| terraces and folds parked, nothing else | +3.4 | [−6.6, +13.5] | 24/19 |
+| parked and gentle exits (adopted) | −5.1 | [−14.6, +4.3] | 23/20 |
+
+- Parking is free here too. The exits cost about 8 points, almost all in the specs that ask for long floats after
+  quiet hits: calm (P3) −30 and the long ride (P6) −38 against parking alone; airtime error rises on every seed there.
+  The other categories do not move.
+- On those specs (28 pairs; parking alone +8.6): radius floor alone −3.2; push cap 0.6 alone −14.0; floor and cap 1.0
+  −5.3; floor and cap 1.5 −4.1. No form of the rule is free there.
+- **Why** (the same specs compiled both ways, 4 seeds, `tools/measure/body/paired.ts` `measure`): the float rides were
+  full of hard pushes the account does not record. Per ride, without → with gentle exits: Tiki Tiki calm 4.25 → 0.50,
+  the 108 s long ride 7.75 → 1.00, Amor calm 1.00 → 0.00 (the 20 handcrafted specs: 0.57). Almost none of them is a
+  sharp turn of the ground (turns above 20° in 30 px: 0.2 % of sections): they are fast riders on moderate curves, which
+  is why only the speed-aware cap reaches them. A long float after a quiet hit needs a strong redirection upward; the
+  compiler was taking it after the hit's frames, where nothing charges it. Part of the old score on these specs was
+  earned that way.
+- So the cost is a real trade, and the owner's to judge on the rides: airtime closer to the ask with unasked hard
+  pushes, or fewer pushes with shorter floats. Not settled here.
+
+**What this does not claim.** The owner's second blind round did not separate compliant from non-compliant clips; the
+evidence that it reads better is his remark on full rides and the measured removal of the turns he pointed at. Quiet
+pushes below 0.4 and motion inside a hit's own frames are untouched.
+
 ## November 15: gentle exits by speed (experiment; the candidate to adopt)
 
 After the second review, lighter forms, all by construction in `arc_geometry.ts` (from 6 frames after the catch, a

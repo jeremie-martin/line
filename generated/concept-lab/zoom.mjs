@@ -73,7 +73,7 @@ $('line').addEventListener('dblclick', e => {
 function build() {
   const {scene, replay, sprites} = ride; scale = laneScale(keys, ride.frames, scene.timing.offset);
   const zoom = scale; // this picture keeps the zoom it was built with
-  mine = createPicture($('mine'), scene, replay, sprites, N.riderPainter(), {framing: (motion, level, hitTimes, songEnd) => createFraming(motion, level, hitTimes, songEnd, f => zoom[Math.max(0, Math.min(zoom.length - 1, f))])});
+  mine = createPicture($('mine'), {...scene, zoom: null}, replay, sprites, N.riderPainter(), {framing: (motion, level, hitTimes, songEnd) => createFraming(motion, level, hitTimes, songEnd, f => zoom[Math.max(0, Math.min(zoom.length - 1, f))])});
   if (!playing) draw();
 }
 const same = (a, b) => a.length === b.length && a.every((k, i) => Math.abs(k.t - b[i].t) < 0.005 && Math.abs(k.wide - b[i].wide) < 0.0005);
@@ -109,10 +109,10 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1];
-  lanes = lanesFor(song, ride.scene.authoredCamera?.zoom?.keyframes ?? null);
+  lanes = lanesFor(ride.scene.authoredCamera?.zoom?.keyframes ?? null, ride.scene.zooms);
   $('sources').replaceChildren(...lanes.map(l => {const b = Object.assign(document.createElement('button'), {textContent: l.name, onclick: () => choose(l.id)}); b.dataset.id = l.id; return b;}));
   if (!lanes.some(l => l.id === lane) || !keys.length || keys.at(-1).t > ride.scene.span[1]) {lane = lanes.some(l => l.id === lane) ? lane : 'steady'; keys = lanes.find(l => l.id === lane).keyframes.map(k => ({...k}));}
-  today = createPicture($('today'), ride.scene, ride.replay, ride.sprites, N.riderPainter());
+  today = createPicture($('today'), {...ride.scene, zoom: null}, ride.replay, ride.sprites, N.riderPainter()); // beside: the steady zoom
   build(); change(); $('play').disabled = false; $('status').textContent = ''; layout(); window.__ready = true;
 }
 $('song').onchange = () => {time = 0; keys = []; void load();};

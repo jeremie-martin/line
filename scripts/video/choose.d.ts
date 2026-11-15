@@ -7,3 +7,5 @@ export const DARK: readonly string[];
 export const GROUPS: {readonly light: readonly (readonly string[])[]; readonly dark: readonly (readonly string[])[]};
 /** The look of one video from its key; the drop partner only for a light theme on a song with a drop. */
 export function chooseLook(key: string, options: {hasDrop: boolean; shares?: {light: number; drop: number; variant: number}}): {theme: string; variant: Partial<Look> | null; partner: string | null; look: Look};
+
+export function chooseZoom<T>(key: string, zooms: T[] | undefined): T | null;

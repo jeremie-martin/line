@@ -1,5 +1,6 @@
 import {expect, it} from 'vitest';
-import {RANGE, zoomOfWide, wideAt, laneScale, legacyWide, bySection, pushIn} from '../generated/concept-lab/zoom-model.mjs';
+import {RANGE, zoomOfWide, wideAt, laneScale} from '../scripts/video/zoom.js';
+import {legacyWide} from '../generated/concept-lab/zoom-model.mjs';
 import {lanesFor} from '../generated/concept-lab/zoom-lanes.mjs';
 import {createFraming, rideSignals, BASE} from '../scripts/video/camera.js';
 
@@ -22,23 +23,24 @@ it('old spec zooms come onto the scale by one fixed conversion', () => {
   expect(legacyWide(2.9)).toBe(0); expect(legacyWide(1.55)).toBe(1); expect(legacyWide(9)).toBe(0);
   expect(legacyWide(2.05)).toBeGreaterThan(0.5);
 });
-it('drafted lanes hold through sections or close in through them, inside the scale', () => {
-  const sections = [{t0: 0, t1: 10}, {t0: 10, t1: 20}, {t0: 20, t1: 30}];
-  const held = bySection(sections, [0.2, 1, 0.4]);
-  expect(wideAt(held, 5)).toBe(0.2); expect(wideAt(held, 15)).toBe(1); expect(wideAt(held, 10)).toBeCloseTo(0.6); expect(wideAt(held, 29.9)).toBeCloseTo(0.4);
-  const push = pushIn(sections, [0.5, 1, 0.6]);
-  expect(wideAt(push, 12)).toBeGreaterThan(wideAt(push, 19)); expect(wideAt(push, 10.5)).toBeGreaterThan(wideAt(push, 9.5));
-  const ends = {petrunko: 60, trouble: 50.3, tiki: 48};
-  for (const [song, end] of Object.entries(ends)) {
-    const lanes = lanesFor(song, [{t: 0, zoom: 2.8}, {t: 10, zoom: 1.7}]);
-    expect(lanes.length).toBeGreaterThanOrEqual(4); expect(lanes.slice(0, 2).map(l => l.id)).toEqual(['steady', 'written']);
+it('every song\'s lanes are inside the scale and the song, in time order, with an intention; a ride always gets the same one', async () => {
+  const {ZOOMS} = await import('../scripts/video/zooms.ts'), {chooseZoom} = await import('../scripts/video/choose.js');
+  const ends: Record<string, number> = {petrunko_selection: 60, trouble_50s: 50.3, tiki_tiki_48s: 48};
+  expect(Object.keys(ZOOMS).sort()).toEqual(Object.keys(ends).sort());
+  for (const [song, lanes] of Object.entries(ZOOMS)) {
+    expect(lanes.length).toBeGreaterThanOrEqual(2); expect(new Set(lanes.map(l => l.id)).size).toBe(lanes.length);
     for (const lane of lanes) {
       expect(lane.about.length).toBeGreaterThan(20);
-      expect(lane.keyframes.every(k => k.wide >= 0 && k.wide <= 1 && k.t >= 0 && k.t <= end)).toBe(true);
+      expect(lane.keyframes.every(k => k.wide >= 0 && k.wide <= 1 && k.t >= 0 && k.t <= ends[song] - 2)).toBe(true);
       expect(lane.keyframes.every((k, i, a) => !i || k.t > a[i - 1].t)).toBe(true);
     }
+    const seen = new Set(Array.from({length: 60}, (_, i) => chooseZoom(`ride-${i}`, lanes)!.id));
+    expect(seen.size).toBe(lanes.length); // over many rides every lane is used
+    expect(chooseZoom('ride-7', lanes)).toBe(chooseZoom('ride-7', lanes));
   }
-  expect(lanesFor('other', null).map(l => l.id)).toEqual(['steady']);
+  expect(chooseZoom('ride-7', [])).toBeNull();
+  expect(lanesFor(null, ZOOMS.tiki_tiki_48s).map(l => l.id)).toEqual(['steady', 'drops', 'breath']);
+  expect(lanesFor([{t: 0, zoom: 2.9}, {t: 9, zoom: 1.55}]).map(l => l.id)).toEqual(['steady', 'written']);
 });
 it('the camera takes a study\'s zoom, sizes the hit movement by it, and is untouched without one', () => {
   const n = 800, level = new Float64Array(200).fill(0.5);

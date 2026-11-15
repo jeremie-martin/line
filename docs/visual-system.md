@@ -20,8 +20,13 @@ These are fixed for all themes (`look.js` `V1`):
 
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
-- **Camera.** Follows the rider's direction at a steady zoom, and shows the whole course at the start (moving in until
-  about the first hit) and at the end (moving out over the last 2.6 s). No
+- **Camera.** Follows the rider's direction, and shows the whole course at the start (moving in until about the first
+  hit) and at the end (moving out over the last 2.6 s).
+- **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
+  (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its
+  ride's id. A lane is a few points saying how wide the picture is, on one scale shared by every song (0 closest, 1
+  widest, the widest showing 1.4 times more than the closest; never stretched to a lane's own range). A song without
+  lanes keeps one steady zoom, the middle of the scale. The hit movement keeps its size against the scene. No
   camera motion except the movement at strong hits.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
   touch.
@@ -50,6 +55,7 @@ inked, and whether colour follows the ride.
 - A theme with approved variants (`VARIANTS`: stars around the moon, a crescent, dots, strands) shows one a quarter of
   the time. `generated/concept-lab/batch.html` shows forty videos drawn this way at three light shares.
 - For a light theme whose song has a drop, a drop half the time.
+- One of the song's zoom lanes, each equally often (`chooseZoom`).
 - On the dark themes picked for it (`collection.js` `LIT`), the whole band takes the hot colour on hits of 0.65 or more,
   while the band is bars. Themes whose hot colour is red or no lighter than their bars are left out: there the band seems to darken.
 
@@ -113,7 +119,8 @@ The collection's best themes were found by looking, not derived from rules.
 |---|---|
 | `scripts/video/look.js` | look options, `V1`, `THEMES` (built from the collection), `PLAIN` for review clips |
 | `scripts/video/collection.js` | the themes in production, `DROPS`, `DROP_ONLY` |
-| `scripts/video/choose.js` | a video's theme and drop |
+| `scripts/video/choose.js` | a video's theme, drop and zoom lane |
+| `scripts/video/zoom.js`, `zooms.ts` | the zoom scale and keyframes; the songs' lanes |
 | `scripts/video/palettes.js` | colour schemes; the collection's are named by theme id, pairings `<light id>+<dark id>` |
 | `scripts/video/theme.js`, `grade.js` | a frame's colours: drop switch, then the colour response to intensity |
 | `scripts/produce/render_repertoire.ts` | a batch: every valid ride of a study, each with its chosen look and a record |
@@ -130,4 +137,13 @@ curve. The earlier study pages (`hit-motion`, `hit-pairs`, `hit-dial`) show the 
 full shake without carry.
 
 The split is settled the same way on `/generated/concept-lab/hit-split.html` (red into the surface, a twentieth bigger).
-Next: a zoom that follows the song. When the zoom varies, carry and the shake should probably scale with it.
+
+## Writing a song's zoom lanes
+
+Write them like a reading of the song: from its `music.ts` (events, sections) and the idea of its preferred spec, a few
+moves that each have a reason, holding still otherwise. Two or three lanes per song, each following a different thing
+(Petrunko: the build, its tension, the bars the bass answers). The owner does not want the most intense passages to be
+the closest, and a formula over sections or a signal such as intensity carries no intention. Nothing goes in the last
+three seconds. Look at them on `/generated/concept-lab/zoom.html` (prepare a ride with `zoom-prepare.mjs`), where the
+points can be moved; `npm run video -- … --zoom=ID` renders one. The older specs' `camera.zoom` (first-renderer units)
+and `camera.beatPunch` are not read by the renderer. When the zoom varies, carry and the shake should probably scale with it.

@@ -17,6 +17,7 @@ import {existsSync, mkdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
 import {join, relative, resolve} from 'node:path';
 import {repertoireSongs} from '../gallery/repertoire_catalog.ts';
 import {DROP_TIMES} from './drops.ts';
+import {ZOOMS, type ZoomLane} from './zooms.ts';
 import {FPS, alignment, rideTime} from './timing.js';
 
 const ROOT = resolve(import.meta.dirname, '../..');
@@ -45,6 +46,9 @@ export type Scene = {
   phases: Phase[];
   /** The drop, placed by hand from the spec's sections, in song time, or null. */
   drop: [number, number] | null;
+  /** The zoom lanes written for the song (zooms.ts), and the one this video uses: chosen from the ride's id by whoever makes
+   * the video (choose.js `chooseZoom`); null keeps the steady zoom. */
+  zooms: ZoomLane[]; zoom: ZoomLane | null;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
 type SavedEvaluation = {targets: {frame: number; impact?: number}[];
@@ -113,5 +117,5 @@ export function buildScene(song: string, ride: Ride): Scene {
   if (rideTime(end, timing.offset) * FPS > ride.track.duration) throw new Error(`The ride ends before the song it is shown with (${end} s at offset ${timing.offset} s)`);
   const phases = ride.case?.phases.length ? ride.case.phases.map(({name, t0, t1}) => ({name, t0, t1})) : [{name: 'all', t0: 0, t1: end}];
   return {song, title: screenTitle(entry.title), audio, span: [0, end], timing, track: ride.track,
-    ...(ride.trace ? {trace: ride.trace} : {}), account, phases, drop: DROP_TIMES[song] ?? null, spectrum: spectrum(resolve(ROOT, audio))};
+    ...(ride.trace ? {trace: ride.trace} : {}), account, phases, drop: DROP_TIMES[song] ?? null, zooms: ZOOMS[song] ?? [], zoom: null, spectrum: spectrum(resolve(ROOT, audio))};
 }

@@ -556,3 +556,13 @@ it changes (at most 2.5 times between closest and widest), how slowly, and which
   through the build, opening in the silence so the return lands widest); leaning in for the bars the bass answers.
   Trouble: voice close and drums wide; a step wider at each climbing triple of kicks. Tiki: the two drops; one slow
   breath. Unjudged. `zoom-prepare.mjs` prepares the Petrunko and Trouble rides for the page.
+
+## Zoom lanes adopted (owner, 2026-11-15)
+
+He liked all three Petrunko lanes ("the lean in for the bass is so creative"), both Tiki lanes, Trouble's step at each
+triple, and found Trouble's old lane reasonable; "voice close, drums wide" was too close on the voice (eased). He wants
+several lanes per song, sampled per video, and lanes for the other production songs. Now in production: the scale and
+keyframes in `scripts/video/zoom.js`; lanes in `productions/<song>/zooms.ts` (Petrunko 3, Trouble 3, Tiki 2), beside
+the spec rather than inside it, because they follow the song's music and so that spec fingerprints (benchmarks, parity)
+do not change; the scene carries them and each video takes one from its ride's id (`chooseZoom`); `--zoom=ID|steady`
+names one. Checked by rendering Petrunko with each lane through `npm run video`. Songs without lanes are unchanged.

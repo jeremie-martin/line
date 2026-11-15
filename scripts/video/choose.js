@@ -48,3 +48,9 @@ export function chooseLook(key, {hasDrop, shares = SHARES} = {}) {
   const lit = LIT.has(theme) && !variant?.band ? {hits: 'lit65'} : null;
   return {theme, variant, partner, look: resolveLook(theme, {...variant, ...lit, ...(partner ? {scheme, drop: 'switch'} : {})})};
 }
+
+/** The zoom lane of a video: one of the song's lanes, from the ride's id (the same ride always gets the same lane), or null when
+ * the song has none. */
+export function chooseZoom(key, zooms) {
+  return zooms?.length ? pick(zooms, unit(key, 'zoom')) : null;
+}

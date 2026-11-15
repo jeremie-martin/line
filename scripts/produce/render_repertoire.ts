@@ -19,7 +19,7 @@ import {writeGalleryJson} from '../gallery/artifacts.ts';
 import {readVerifiedJson, verifiedVideoCell} from './video_input.ts';
 import {buildScene} from '../video/scene.ts';
 import {resolveLook} from '../video/look.js';
-import {chooseLook} from '../video/choose.js';
+import {chooseLook, chooseZoom} from '../video/choose.js';
 import {writeVideo} from '../video/write.ts';
 
 const arg = (key: string) => process.argv.find(a => a.startsWith(`--${key}=`))?.slice(key.length + 3);
@@ -40,6 +40,7 @@ for (const id of ids) {
   const scene = buildScene(c.id, record), name = `${id}-s${cell.seed}`, work = join(root, 'render-work', id);
   // the look: chosen from the ride's id (the same ride always gets the same look), or the one asked for
   const {theme, partner, look} = fixed ? {theme: fixed, partner: null, look: resolveLook(fixed)} : chooseLook(id, {hasDrop: !!scene.drop});
+  scene.zoom = chooseZoom(id, scene.zooms); // one of the song's zoom lanes, from the ride's id
   const lookName = partner ? `${theme} → ${partner}` : theme;
   const recordPath = join(root, id + '.video.json');
   if (existsSync(recordPath)) {

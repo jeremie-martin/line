@@ -15,6 +15,7 @@
 // the ending) at song time t. A hit happens at its strongest frame (round 23): its split, colour boost, accent heat and (on
 // strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
 // pushed along the line struck at its onset. Owner's decisions, round by round, are in generated/concept-lab/LEDGER.md.
+import {laneScale} from './zoom.js';
 import {W, H, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import {rideIntensity, intensityAt} from './intensity.js';
@@ -61,7 +62,10 @@ export function createPicture(canvas, scene, replay, sheet, paint, study = {}) {
   // Hit metadata and hand-authored cues share the song clock; ride signals stay on the ride clock.
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
-  const frameAt = study.framing?.(motion, level, hitTimes, songEnd) ?? createFraming(motion, level, hitTimes, songEnd);
+  // the zoom written for the song, when this video was given one of its lanes (scene.zoom): a multiple of the steady zoom per frame
+  const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : null;
+  const frameAt = study.framing?.(motion, level, hitTimes, songEnd)
+    ?? createFraming(motion, level, hitTimes, songEnd, lane ? f => lane[clamp(f, 0, lane.length - 1)] : undefined);
   const effectsAt = study.effectsAt ?? hitEffectsAt;
   let turnedRider = null;
 

@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the owner's motion review (41 answers) and what they say
+
+`/motion-review/` (blind page, plain renders, one hit-to-hit stretch per clip, the part judged = the rider on the
+track). Answers in `labels/studies/motion-2026-11.jsonl`, key beside it; `tools/measure/body/answers.mjs`,
+`answers_fit.mjs`, `wiggle.mjs`. Scale: 0 clean, 1 a little, 2 clearly, 3 badly (never used).
+
+- **The family decides.** Terraces mean 1.38 (7 of 8 not clean), fold 1.13 (6 of 8), scallops 0.67 (4 of 6 "a
+  little"), arcs 0.25 (7 of 8 clean), fragments 0 (7 of 7 clean), serpentine 0 (4 of 4 clean).
+- **My measures predict little.** Stretches where they saw much unasked motion: mean 0.79; where they saw almost
+  none: 0.50. Correlation with the answer: loudest unasked push 0.42, rocking degrees 0.14. Terraces and folds are
+  marked where the measures see nothing; fragments, serpentines and arcs are clean where they see a lot.
+- **Calm against intense:** 0.76 against 0.54. No sign that intense passages are worse (17 and 24 clips).
+- **What does predict them (found after the answers, so a hypothesis):** the sharpest reversal of the ground's
+  direction within 60 px under the rider, in degrees undone: correlation 0.67. At 12° or more, 14 of 18 stretches are
+  not clean, including all 8 "clearly" but one arc; under 12°, 19 of 23 are clean (the 4 misses are scallops marked
+  "a little"). In frames: a terrace is a row of small bumps, a fold a zigzag of straight pieces; an arc marked clean
+  has the rider upside down on a smooth curve. He reads the small-scale shape of the ground, not the momentum.
+- The serpentines he remembered as smooth are smooth: their reversals are 7–11° within 60 px.
+- Owner's note: he does not love the guide rail, not new, not marked each time.
+- Consequence: the unasked-motion account (v5) is not what answers this complaint. The late hard turn stays a
+  defect of the measure to fix on its own.
+
 ## November 15: independent review of the unasked-motion work (Opus 5.5; findings, nothing changed)
 
 - **The shaped families are required to turn back and forth between beats** (verified in the code). One section is one

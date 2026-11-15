@@ -17,7 +17,7 @@ import type { Spec } from "../../../scripts/v0/types.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import { curve } from "../../../scripts/v0/core/measured.ts";
 import * as m from "../music.ts";
-import old from "../spec.ts";
+import old from "./draft.ts";
 
 export const overlayMeta = m.overlayMeta;
 const near = (list: number[], t: number) => list.findIndex(x => Math.abs(x - t) < 0.03);

@@ -21,7 +21,7 @@ import type { Spec } from "../../../scripts/v0/types.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import { curve, measuredSong } from "../../../scripts/v0/core/measured.ts";
 import * as m from "../music.ts";
-import old from "../spec.ts";
+import old from "./v8.ts";
 
 export const overlayMeta = m.overlayMeta;
 const { table } = measuredSong(join(import.meta.dirname, ".."));

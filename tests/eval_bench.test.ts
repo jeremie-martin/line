@@ -30,7 +30,7 @@ it('discovers sealed variants and declares the held-out panel', async () => {
   expect((await panelCases('sealed', root)).map(c => c.id)).toEqual([101, 202, 303].map(s => `amor_na_praia_46s~sealed-pairs~${s}`));
   const heldout = await panelCases('heldout', root);
   expect(heldout).toHaveLength(16);  // 4 single-version library songs x 4 seeds (since V8)
-  expect(heldout.map(c => c.id)).toContain('petrunko_selection~spec~404');
+  expect(heldout.map(c => c.id)).toContain('petrunko_selection~draft~404');   // its listening draft, not the song's preferred spec
   expect(heldout.map(c => c.id)).not.toContain('trouble_50s~spec~101');
   for (const retired of ['dev', 'confirm', 'bench', 'bench-confirm', 'bench-pairs8'])
     await expect(panelCases(retired, root)).rejects.toThrow('unknown evaluation panel');

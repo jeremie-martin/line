@@ -24,8 +24,13 @@ export type ConstructionWindow = {from: number; to: number; family: string; rail
 /** Held-out songs: run only at decision points, never used for compiler decisions. Since V8 (2026-11-13) four
  * single-version music-library songs; Trouble, Valhalla, Circus Minimus and four library songs joined development
  * (tools/eval/harden.ts JOINING). A new set of production specifications will become the held-out set. */
+/** Reserved for the next held-out set (owner, 2026-11-15): Trouble `cycle` and Valhalla `phrases-climb`, readings he
+ * marked 10 and 9 that are not their song's production spec. Not in any panel yet. Do not compile them to decide
+ * anything about the compiler. (They were among the 20 specs gentle exits were measured on, on that day.) */
+export const RESERVED_HELDOUT = [{song: 'trouble_50s', variant: 'cycle'}, {song: 'valhalla_40s', variant: 'phrases-climb'}] as const;
 export const HELDOUT: Array<{song: string; variant: string | null}> =
-  ['bones', 'derniere_danse_coral', 'lua_na_praca', 'petrunko'].map(song => ({song: `${song}_selection`, variant: null}));
+  // Bones and Petrunko: their listening drafts (variants/draft.ts), the specs this panel always ran; their spec.ts became other readings on 2026-11-15.
+  ['bones', 'derniere_danse_coral', 'lua_na_praca', 'petrunko'].map(song => ({song: `${song}_selection`, variant: ['bones', 'petrunko'].includes(song) ? 'draft' : null}));
 export const PANEL_HELP: Record<string, string> = {
   v7: 'V7.0 (tools/eval/suites/v7.0.json): its 28 specs x the first N seeds of 101, 202, 303, ... (N = 4 unless --seeds=N)',
   'v7-confirm': 'V7.0 at seeds 505, 606, 707, 808 (seeds 5 to 8 of the sequence)',
@@ -85,6 +90,8 @@ export async function v7Cases(seeds: number[], root = '.', suitePath = V7_SUITE)
   const suite = JSON.parse(readFileSync(join(root, suitePath), 'utf8'));
   const specs = await Promise.all(suite.specs.map(async (s: {song: string; variant: string | null; stratum: string}) => {
     if (s.variant === null) {assert.equal(s.stratum, 'G', `${suitePath}: a song's spec.ts is stratum G`); return {...s, bench: GROOVE};}
+    // A whole-song spec kept under a variant name (a song's earlier spec.ts) is a groove entry like spec.ts itself.
+    if (s.stratum === 'G' && (await import(pathToFileURL(variantPath(root, s.song, s.variant)).href)).bench === undefined) return {...s, bench: GROOVE};
     const bench = await importBench(root, s.song, s.variant);
     assert.equal(bench.stratum, s.stratum, `${suitePath}: ${s.song}/${s.variant} is stratum ${bench.stratum} in its file`);
     return {...s, bench};

@@ -4,8 +4,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
 
 00. **Where things stand (2026-11-15).** One compiler on `visual-lab`: gentle exits, terraces and folds parked, the
    arrival law (reference `foundation-8`). Next, in order:
-   - the owner's review of the 20 handcrafted specs, recompiled with this compiler
-     (`/motion-gallery/video-compare.html?collection=/generated/watch/handcraft.json`);
+   - ~~the owner's review of the 20 handcrafted specs~~ (done 2026-11-15: production specs chosen, REWORK.md). Next: a
+     second round of readings for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones);
    - the compiler's consistency stop ("main construction differs at support N"): about one ride in sixty on the
      handcrafted specs, whatever the compiler version; not yet investigated;
    - the long-float trade (the 108 s long spec): air given for soft catches and for fewer unasked pushes; the owner

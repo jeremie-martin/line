@@ -13,7 +13,9 @@ it('keeps all 22 source recordings independently identifiable', () => {
 });
 for (const entry of library) it(`${entry.id}: explicit, sourced gestures and a valid excerpt`, async () => {
   const base = `productions/${entry.id}`;
-  const {default: spec, evidence} = await import(`../productions/${entry.id}/spec.ts`);
+  // The listening draft: the song's spec.ts, or variants/draft.ts once a later reading became the preferred spec.
+  const draft = existsSync(`${base}/variants/draft.ts`) ? `../productions/${entry.id}/variants/draft.ts` : `../productions/${entry.id}/spec.ts`;
+  const {default: spec, evidence} = await import(draft);
   const source = read(`${base}/source.json`), composition = read(`${base}/composition.json`);
   const events = read(`${base}/events.json`).events, sung = read(`${base}/sung.json`);
   expect(spec.duration).toBeGreaterThanOrEqual(40);

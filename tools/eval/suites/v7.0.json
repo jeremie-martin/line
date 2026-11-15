@@ -7,7 +7,7 @@
   "sequence": "101 x k for k = 1, 2, 3, ...",
   "default": 4
  },
- "note": "The suite is exactly this list. A spec file not listed here is not part of V7.0, whatever its name; changing the list makes a new version.",
+ "note": "The suite is exactly this list. A spec file not listed here is not part of V7.0, whatever its name; changing the list makes a new version. 2026-11-15: Amor na Praia's entry names variants/v8.ts, the same spec, since the song's spec.ts became another reading.",
  "specs": [
   {
    "song": "luna_bala_44s",
@@ -16,7 +16,7 @@
   },
   {
    "song": "amor_na_praia_46s",
-   "variant": null,
+   "variant": "v8",
    "stratum": "G"
   },
   {

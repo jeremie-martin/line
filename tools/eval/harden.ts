@@ -25,7 +25,9 @@ import {benchMeta, type BenchMeta} from './inputs.ts';
 
 export const TIME = 0.85, CONTRAST = 1.25, MIN_GAP = 6;
 const FPS = 40;
-/** Formerly held-out specs that join development in V8, with their category. The rest stay held out (inputs.ts HELDOUT). */
+/** Formerly held-out specs that join development in V8, with their category. The rest stay held out (inputs.ts HELDOUT).
+ * The V8 files were generated on 2026-11-13 and are frozen. Since 2026-11-15 the spec.ts of Trouble, Valhalla and Amor na Praia
+ * (46 s) are other readings (then: contrast-clusters, words3, v8), so running this again would not reproduce them. */
 export const JOINING: Array<{song: string; variant: string | null; stratum: string; pattern: string}> = [
   {song: 'trouble_50s', variant: null, stratum: 'P1', pattern: 'two-hit pairs at speed (Trouble, preferred spec)'},
   {song: 'circus_minimus_77s', variant: 'pairs4', stratum: 'P1', pattern: 'pairs and the sung hook (Circus Minimus pairs4)'},

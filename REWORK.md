@@ -1,5 +1,33 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: production specs chosen from the handcrafted readings
+
+The owner marked the 20 handcrafted readings on full rides (`labels/studies/handcraft-2026-11-15.json`): 11 at 9 or
+more, four at 7. Each song's `spec.ts` now names its best reading:
+
+| song | production spec | mark | reserved as held-out |
+|---|---|---|---|
+| Petrunko | `build` ("The long build") | 11 | |
+| Trouble | `contrast-clusters-revisited` | 10 | `cycle` (10) |
+| Amor na Praia (46 s) | `answer` ("Kick and answer") | 9.5 | |
+| Bones | `draft-revisited` | 9 | |
+| Valhalla | `words3-revisited` | 9 | `phrases-climb` (9) |
+
+- **Production against held-out** for Trouble and Valhalla: V8 already holds a spec derived from each song's earlier
+  production spec, so the reading of that lineage is production and an unrelated one is reserved
+  (`tools/eval/inputs.ts` `RESERVED_HELDOUT`; in no panel yet). Both were among the 20 specs gentle exits were measured
+  on, so they are not untouched; from now on they stay out of compiler decisions.
+- **The benchmarks measure what they measured.** The earlier specs of Amor na Praia, Bones and Petrunko moved to
+  `variants/v8.ts` and `variants/draft.ts` (each resolves to the identical spec: same landings, strengths and curves).
+  V7.0 and V7.1 name Amor's `v8`, the held-out panel names the two drafts, and the specs derived from Amor's
+  (`v7-explicit-handover`, `v7-explicit-sweep`, `v8-revisited`) import it. Saved cells of those entries carry the old
+  case ids and will be recompiled when next needed. The V8 files are frozen copies and did not move; `harden.ts` would no
+  longer reproduce three of them (noted there). Parity and judge parity pass.
+- What the marks suggest (one round, an interpretation): the readings marked highest give the rider a rhythmic shape to
+  follow, made with density and clearly different steps; the four 7s rest on holding back for a long stretch, on a
+  strength difference of 0.15–0.2 between otherwise equal landings, or on a selection whose rule cannot be seen. Marks
+  do not follow the score (`build` 683, Valhalla `still-drop` 835).
+
 ## November 15: closing the track-motion work (housekeeping)
 
 - **The benchmark now shows the problem.** `tools/eval/measure.ts` counts hard pushes the impact account does not

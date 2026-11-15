@@ -5,8 +5,8 @@
  * whether the construction can be realized; it is reported apart from the
  * V7 headline.
  */
-import spec from "../spec.ts";
+import spec from "./v8.ts";
 import { explicitRequest } from "../../explicit_requests.ts";
-export { overlayMeta } from "../spec.ts";
+export { overlayMeta } from "./v8.ts";
 export default spec;
 export const bench = explicitRequest(spec, "arcs", "handover", "rail hand-overs requested on three groove passages");

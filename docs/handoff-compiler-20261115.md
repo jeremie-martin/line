@@ -28,8 +28,9 @@ Your branch `compiler` (the arrival law, aimed launches, quiet misses priced in 
    later support (or removed by a cleanup) changes what the rider does before the checked frame. Last seen at commit
    `af9206ea`: `node scripts/produce/automatic.ts --song=bones_selection --variant=second-hit --seed=303 --out=DIR`
    stops at support 35 (compile inside a worktree of that commit). It does not occur on those rides today, so first find
-   one that fails now. A good pool is the 20 handcrafted variants at seeds 101, 202, 303
-   (`valhalla_40s`: still-drop, phrases-climb, two-voices, words3-revisited; `trouble_50s`: cycle, singer, stop-go, contrast-clusters-revisited; `amor_na_praia_46s`: chord-bars, answer, heavy-kicks, v8-revisited; `bones_selection`: turn, singer, second-hit, draft-revisited; `petrunko_selection`: figure, build, low-replies, draft-revisited). Wanted:
+   one that fails now. A good pool is the handcrafted variants at seeds 101, 202, 303
+   (`valhalla_40s`: still-drop, two-voices, words3-revisited; `trouble_50s`: singer, stop-go, contrast-clusters-revisited; `amor_na_praia_46s`: chord-bars, answer, heavy-kicks, v8-revisited; `bones_selection`: turn, singer, second-hit, draft-revisited; `petrunko_selection`: figure, build, low-replies, draft-revisited). Leave out Trouble `cycle` and Valhalla `phrases-climb`: the owner reserved them
+   as held-out specs (`tools/eval/inputs.ts` `RESERVED_HELDOUT`). Wanted:
    the cause, and a fix or a clear statement of what the check should accept.
 2. **Aimed launches under gentle exits.** They work by turning the exit, which is now limited. The merged compiler
    without them against with them, V8, 4 seeds: +2.8 [−8.3, +13.8], 22 specs up, 21 down, quiet and strong biases

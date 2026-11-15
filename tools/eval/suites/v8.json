@@ -2,7 +2,7 @@
  "name": "V8",
  "frozen": "2026-11-13",
  "design": "docs/benchmark.md (V8)",
- "generator": "tools/eval/harden.ts: time ×0.85 (no gap below 6 frames or its own length), impact asks ×1.25 around 0.5",
+ "generator": "tools/eval/harden.ts: time \u00d70.85 (no gap below 6 frames or its own length), impact asks \u00d71.25 around 0.5",
  "seeds": {
   "sequence": "101 x k for k = 1, 2, 3, ...",
   "default": 4
@@ -19,7 +19,7 @@
    "song": "amor_na_praia_46s",
    "variant": "v8-spec",
    "stratum": "G",
-   "source": "amor_na_praia_46s/spec.ts"
+   "source": "amor_na_praia_46s/variants/v8.ts"
   },
   {
    "song": "tiki_tiki_48s",

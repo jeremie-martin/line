@@ -3,7 +3,7 @@
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
 00. **Where things stand (2026-11-15).** One compiler on `visual-lab`: gentle exits, terraces and folds parked, the
-   arrival law (reference `foundation-8`). Next, in order:
+   arrival law, aimed launches removed, catches from above in shaped phrases (reference `foundation-10`). Next, in order:
    - ~~the owner's review of the 20 handcrafted specs~~ (done 2026-11-15: production specs chosen, REWORK.md). Next: a
      second round of readings for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones);
    - ~~the compiler's consistency stop ("main construction differs at support N")~~ (fixed 2026-11-15: the check did
@@ -13,11 +13,10 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      0.15 above it. A model, not a bound: a different construction may get past it. Open lever: launching floats from the
      strong hit that starts them.
 
-0b. **Fewer rails by geometry: catches from above in shaped phrases** (2026-11-15, branch
-   `exp/plain-catches-from-above`, waiting for the owner's eye): rails 39 → 34% of gaps on V8, clean upper hits up,
-   headline +0.6 on V8 (16 seeds), +7.0 on V7.1; the long spec −11. Rides:
-   `/motion-gallery/video-compare.html?collection=/generated/watch/plain-catches-from-above.json`. Open before adoption:
-   explicit shape requests (E) should keep their shape.
+0b. ~~**Fewer rails by geometry: catches from above in shaped phrases**~~ (adopted 2026-11-15, owner's choice;
+   `foundation-10`): rails 39 → 34% of gaps on V8, clean upper hits up, explicit requests keep their shape (REWORK.md).
+   Rails remain on 34% of gaps, mostly holding shaped supports at the release; further jobs a geometry could take over
+   are open.
 
 0a. ~~**Aimed launches under gentle exits**~~ (removed 2026-11-15: V8 16 seeds +0.4 [−3.5, +4.4] without them;
    nothing separates consistently; REWORK.md).

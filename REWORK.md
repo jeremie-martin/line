@@ -28,6 +28,31 @@ more, four at 7. Each song's `spec.ts` now names its best reading:
   strength difference of 0.15–0.2 between otherwise equal landings, or on a selection whose rule cannot be seen. Marks
   do not follow the score (`build` 683, Valhalla `still-drop` 835).
 
+## November 15: catches from above in shaped phrases, adopted (owner's choice; `foundation-10`)
+
+**Accepted by the owner** on the whole rides ("I do like the after"), with explicit requests keeping their shape.
+
+**Design.** A shaped request in an automatic plan may be caught from above instead of drawing its shape:
+- The plan carries it: the planner grants `catchFromAbove` to shaped requests whose rail is not required and that
+  are no transfer (`mayCatchFromAbove`, `repertoire_policy.ts`); validation refuses it anywhere else and in plans of
+  the first policy. An explicit request keeps its shape: a plan supplied whole has no permission, and a benchmark
+  construction window drops it (`explicitPlan`); a section simplified at a dead end loses it with its shape.
+- A receiver met from above is drawn as a plain line with no rail in every family (`arc_geometry.ts`).
+- Where granted, the search's shape check and the final realization accept the plain catch; the realization records
+  the section as `caughtFromAbove`. Reports count it as the arc it was drawn as (ride character, Section 4) and per
+  ride in "shapes caught from above"; the ride page shows it as arcs.
+- Tests: `tests/catch_from_above.test.ts` (the grant and its refusals, explicit windows, the drawing, the
+  realization), Section 4's count; one test that turns a planner plan into an explicit one drops the permission.
+
+**Checks.** Tests 660, typecheck, reach, parity (all 25 cells move: candidates met from above are drawn differently
+everywhere; references updated), judge parity. On V8 (4 seeds) the 181 non-explicit rides are byte-identical to the
+tested experiment (`exp/plain-catches-from-above`); in the 24 explicit rides no window section is caught from above
+(144 kept their shape; 59 catches from above outside the windows). Against `foundation-9`: headline −0.6, explicit
++2.6 (the experiment: −2.9), rails 35 → 30% of gaps, shapes 31 → 28% and open arcs 54 → 57% (now counted as
+realized), clean upper hits 14.4 → 15.7% of strong beats, hard unrecorded pushes 0.24 → 0.21, 2.4 shapes caught from
+above per ride, dead-end simplifications 0.19 → 0 per ride. The 16-seed and V7.1 results of the experiment hold for
+every non-explicit ride: V8 +0.6 [−4.5, +5.6], V7.1 +7.0 [+1.2, +12.7]; the long spec −11 on V8.
+
 ## November 15: rails today, and catches from above in shaped phrases (stated before running)
 
 **Where rails stand on `foundation-9`** (V8, 4 seeds, 17,392 gaps; `tools/research/rail_job.ts --census`, which now

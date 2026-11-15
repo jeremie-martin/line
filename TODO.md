@@ -8,11 +8,13 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      (`/motion-gallery/video-compare.html?collection=/generated/watch/handcraft.json`);
    - ~~the compiler's consistency stop ("main construction differs at support N")~~ (fixed 2026-11-15: the check did
      not know the gone-through cleanup shortens main lines; REWORK.md);
-   - the long-float trade (the 108 s long spec): air given for soft catches and for fewer unasked pushes; the owner
-     prefers the look, the spec's asks may need rethinking.
+   - the long-float trade (the 108 s long spec): measured as a ceiling (REWORK.md, November 15): under the 0.6 push
+     cap a float before a quiet catch gets at most about 0.74 air on these gaps; the rides are at it and the asks
+     0.15 above it. Moves only with the cap, harder quiet catches or the asks. Open lever: launching floats from the
+     strong hit that starts them.
 
-0a. **Aimed launches under gentle exits** (2026-11-15): no measurable effect at 4 seeds on V8 once exits are drawn
-   gently (REWORK.md). Measure at 16 seeds and by eye before keeping or removing them.
+0a. ~~**Aimed launches under gentle exits**~~ (removed 2026-11-15: V8 16 seeds +0.4 [−3.5, +4.4] without them;
+   nothing separates consistently; REWORK.md).
 
 0. **Quiet asks are better, not done** (owner, 2026-11-15). Adopted: level arrivals before quiet catches and quiet
    misses priced in proportion (V8 −5.7 against `foundation-5`). Still open: specs asking much air before quiet beats
@@ -22,8 +24,8 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
    adopted yet. The long spec's quiet beats follow 2–3 s floats asking 80–92% air: no apex arrival exists there and a
    soft catch cannot turn the rider up for the next float, so the loss is a trade in its asks, not a missing shape.
    Apex launches were then generalized into the arrival law (one speed-aware arrival heading for every ask, with
-   aimed launches): adopted and merged into `visual-lab` with gentle exits (2026-11-15; reference `foundation-8`). Aimed launches for
-   shaped families: parked (owner).
+   aimed launches): adopted and merged into `visual-lab` with gentle exits (2026-11-15; reference `foundation-8`). Aimed launches
+   removed the same day (no effect under gentle exits, item 0a).
 
 1. ~~**Cheaper candidate geometry**~~ (done and merged 2026-10-30: songs −8
    to −11% CPU, long case −27%, identical tracks).

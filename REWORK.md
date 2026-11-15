@@ -1,5 +1,56 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: aimed launches removed (no measurable effect under gentle exits)
+
+**Hypothesis** (handoff): with exits drawn gently, aimed launches (which work by turning a support's exit) no longer
+earn anything; if nothing separates at 16 seeds, they go. Compared: `foundation-8` against the same compiler without
+them (`exp/no-aimed-launches`; the removal `exp/remove-aimed-launches` gives byte-identical tracks).
+
+- **V8, 16 seeds, 784 pairs, every ride finished in both:** headline +0.4 [−3.5, +4.4] without them, 29 specs up and
+  14 down, seed blocks from −19.6 to +10.0. Categories: G +1.9, P1 +4.7, P2 −1.1, P3 −2.4, P4 +2.6, P5 +0.1, P6 −6.5
+  (one spec; 10 seeds up, 6 down; rides swing from −187 to +67), P7 +4.2; explicit +3.4. Air, speed, strong and very
+  strong biases, rails, families and clean upper hits within noise.
+- **Hard unrecorded pushes per ride:** 0.17 with, 0.22 without; by category the mean change is −0.01 (explicit +0.35,
+  calm −0.25, long −0.31): no direction.
+- **Quiet asks** (`tools/research/quiet_asks.ts`): asks under 0.3 together the same (within ×1.5 75%, over ×2 18%, both).
+  Asks 0–0.1 (768 beats): within ×1.5 69% with, 63% without, from a few specs whose signs disagree: Amor `bench-calm`
+  (V8) 98% against 31%, but on the authored calm specs (V7.1, 8 seeds) Tiki `bench-calm` 30% with against 55% without,
+  and the calm specs' scores flip sign between the authored and the hardened version (Amor −11 / +0.5, Tiki +6 / −15,
+  Amour +11 / +7). Nothing separates consistently, so no rides for the owner.
+- **Removed** (`proposeAimedLaunches`, its option and work counter: 52 lines). Parity references updated (tracks
+  move); judge parity, tests 652, typecheck, reach pass. The arrival law itself stays (ranking prefers its heading).
+
+## November 15: long floats before quiet catches — a ceiling, not a missing shape (rejected experiment)
+
+**Measured on saved V8 rides first** (`foundation-8`, the long spec and the three calm specs, gaps of 60 frames or
+more asking air ≥ 0.75; replayed). Over a gap the line must give back what gravity took during the flight: the
+rider's vertical speed changes by g × flight frames, and only the line can reverse it. After the hit's six frames a
+gentle support pushes up by at most g + 0.6 px/frame² (its own weight plus the push cap), so the support must last at
+least (g × gap − the hit frames' upward impulse) ÷ (g + 0.6) frames. For these gaps that puts the most air any
+support can give at **0.74 on average**. The rides get **0.715** (0.02 below it); the asks are **0.88**, 0.15 above it.
+The rides before gentle exits got 0.80, 0.08 above the ceiling, through pushes above the cap (their supports turned
+the rider at up to 1.6 px/frame²). Today's supports push at the cap through most of their length (0.55–0.64 px/frame²
+in the first four fifths after the hit, 0.34 in the last fifth, where the support eases into its exit).
+- So neither receivers that follow the falling path nor longer supports can change the budget: the upward
+  momentum a float needs is fixed by its flight time. Within the cap, air beyond the ceiling can only be paid for by a
+  harder catch (about g + 0.6 of hit impulse per frame of extra air), or by a higher cap.
+- **Hypothesis** (experiment `exp/full-limit-supports`): the strongest shape within the cap, a support that turns
+  toward its exit at the full gentle limit from the end of the hit's frames and then runs straight (instead of an eased
+  path that the limit clips), recovers at most the 0.02 left below the ceiling on the four float specs; the hard
+  unrecorded pushes stay where they are; elsewhere on V8 it changes the look of gentle supports (sharper, then
+  straight) and is not a candidate for adoption by itself.
+- **Result** (the four float specs, 16 seeds, 64 pairs, against `foundation-8`): headline −10.6 [−26.2, +5.0] (calm
+  −5.3, long −16.0). Air on long gaps before quiet beats: long spec −0.148 → −0.143, Tiki calm −0.155 → −0.132, Amor
+  calm −0.058 → −0.052, Amour calm −0.004 → −0.082. Both arms sit at the ceiling (0.01 below it on average) and the
+  asks 0.14–0.15 above it. Hard unrecorded pushes 0.59 → 0.36 per ride. **Rejected:** no shape within the cap recovers
+  the air; the ceiling holds.
+- **What would move it** (none taken): a higher cap (each 0.1 px/frame² buys about 0.02 of air on these gaps; the asks
+  need about 2.3, four times today's and above what the rides before gentle exits used); harder catches on quiet
+  beats; or asks within the ceiling. One lever is legitimate and unused: a float that starts on a strong beat can be
+  launched by that hit, in its own frames. Today such hits give no more upward impulse than quiet ones (3.8 against
+  4.5 px/frame over the hit's frames, V8 float specs, 16 seeds), and those gaps get 0.75 for asks of 0.94. Only 48 of
+  288 such gaps on the float specs start strong, so it would not rescue the long spec.
+
 ## November 15: the compile stop "main construction differs" explained and fixed (structural)
 
 - **Cause:** the gone-through cleanup (`arc_finalize.ts` `removeGoneThrough`, adopted November 14) shortens a support's

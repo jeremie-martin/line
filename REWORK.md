@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: where body drag comes from; the arrival law challenged (stated before running)
+
+- **Body drag** (`tools/research/body_drag.ts`, V8 4 seeds; `foundation-6` against the law ≤ 55° with aimed launches):
+  3.35 → 4.10 s/min. 94% of it starts within 10 frames of a catch (3.14 → 3.82): it is the catch folding the rider
+  onto the line. Half is on a rail in both (1.62 → 2.00 on a rail, 1.73 → 2.10 on main lines only): rails are where
+  the body often lands, and the law does not change that share. The rise comes from catches arriving at 30° or more
+  (30–45°: 0.45 → 1.04; 45°+: 0.47 → 0.78; under 30°: 2.43 → 2.28), most after strong beats (+0.41 s/min), then middle
+  (+0.25), quiet (+0.09). Catches from above carry a large share in both (1.45 → 1.75).
+- **The law challenged** (owner: keep the idea, make the implementation sounder): (a) the broad heading prior
+  (penalty beyond 45° for asks under 0.8) contradicts the law (up to 55°) and is superseded by it; (b) a catch's push
+  is about the speed carried into the line, speed × sin of the arrival against it, so the wanted angle should depend on
+  the next beat's speed too: base + atan(gain × push(ask) / speed), no cap needed (it saturates). Gain 1.5 matches the
+  linear law at a typical speed (5° at ask 0, 36° at 0.5, 55° at 1 for 9.4 px/frame), steeper when slow, shallower
+  when fast.
+- **Runs** (V8, 8 seeds, against `foundation-6`; beside the law ≤ 55° at the same seeds, +8.8): `exp/law-noheading`
+  (linear law ≤ 55°, heading prior dropped); `exp/law-impulse15` and `exp/law-impulse2` (speed-aware law, gain 1.5 and
+  2, heading prior dropped); all with aimed launches. **Hypothesis:** dropping the contradictory prior helps or is
+  neutral; the speed-aware law matches or beats the linear one with no cap.
+
 ## November 15: the arrival law ≤ 55° at 16 seeds (exploratory; for the owner)
 
 V8, 16 seeds (784 rides), against `foundation-6` (757.9 at 16 seeds): headline **+6.8 [+4.8, +8.7]**, every one of the

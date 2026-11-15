@@ -79,7 +79,8 @@ next strong hit.
   check (a scallop section must show its reversals) or come apart (binding: 140 of 171 in scallops against 62 of 150
   in arcs); none is viable. Only scattered sections moved (rails 72 → 62%).
 - **Second run, stated before running:** in an automatic plan, a shaped section may be caught from above instead of
-  drawing its shape (`fromAboveMayReplaceShape`: not arcs or scattered, not required rails, not transfers); the
+  drawing its shape (`fromAboveMayReplaceShape`, adopted as `mayCatchFromAbove`: not arcs or scattered, not required
+  rails, not transfers); the
   candidate check and the final realization both accept it and record it (`caughtFromAbove`). In the probe this gives
   3 of 10 scallop gaps and 1 of 10 serpentine gaps caught from above. Same hypothesis and rulers; also reported: how
   many shaped sections are caught from above (the plan's family is not drawn there), and explicit requests (E).
@@ -97,8 +98,8 @@ next strong hit.
   0.02 → 0.04 per 100 beats on V7.1.
 - **Explicit requests:** E −1.9 on V8, still 864/864 "realized", but that count now accepts a shaped window caught
   from above (the Tiki ripples ride below has six). Before adoption the rule should leave explicit requests their
-  shape, or the owner says it may apply there too.
-- **For the owner's eye** (not adopted; the look decides): five whole rides, plain look, before and after, with the
+  shape, or the owner says it may apply there too. (Settled at adoption: explicit requests keep their shape; entry above.)
+- **For the owner's eye** (adopted after it; entry above): five whole rides, plain look, before and after, with the
   times of the catches from above: `/motion-gallery/video-compare.html?collection=/generated/watch/plain-catches-from-above.json`.
 
 ## November 15: aimed launches removed (no measurable effect under gentle exits)

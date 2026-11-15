@@ -82,22 +82,26 @@ harder, cheaply, so there is something to aim at again
   keyframes. It no longer fits its song (scoring only) and does not change
   when its source spec is reworked. Changing it makes a new version.
 - **Held out** now: Bones, Dernière Danse (coral), Lua na Praça and Petrunko
-  (`--panel=heldout`). A new set of production specifications will become
-  the held-out set.
+  (`--panel=heldout`). Reserved since 2026-11-15 and in no panel yet: Trouble
+  `cycle` and Valhalla `phrases-climb` (`RESERVED_HELDOUT` in
+  `tools/eval/inputs.ts`); they stay out of every compiler decision.
 - Panels `v8` (4 seeds by default, `--seeds=N`) and `v8-confirm` (seeds
   505–808). The categories, headline and report are V7's.
 
 ## Comparing a change
 
 ```
-npm run compare -- run --reference=main --candidate=<branch>             # 4 seeds; no --candidate: this checkout as it is
-npm run compare -- run --reference=main --candidate=<branch> --seeds=8   # extend: compiles only the missing pairs
-npm run compare -- report --reference=main --candidate=<branch>          # saved rides only, compiles nothing
-npm run compare -- rides  --reference=main --candidate=<branch>          # most-moved rides, side by side on the dashboard
-npm run compare -- review --reference=main --candidate=<branch>          # whole rides before/after, and a geometry sheet
+npm run compare -- run --reference=NAME --candidate=<branch>             # 4 seeds; no --candidate: this checkout as it is
+npm run compare -- run --reference=NAME --candidate=<branch> --seeds=8   # extend: compiles only the missing pairs
+npm run compare -- report --reference=NAME --candidate=<branch>          # saved rides only, compiles nothing
+npm run compare -- rides  --reference=NAME --candidate=<branch>          # most-moved rides, side by side on the dashboard
+npm run compare -- review --reference=NAME --candidate=<branch>          # whole rides before/after, and a geometry sheet
 ```
 
-- The panel is V7.1 unless `--panel=…` says otherwise.
+- `NAME` is a named reference (`npm run compare -- reference list`; references are local to a machine). The
+  current compiler is the newest `foundation-N` in `REWORK.md`.
+- The panel is V7.1 unless `--panel=…` says otherwise; compiler decisions since 2026-11-13 read V8
+  (`--panel=v8`), with V7.1 beside it.
 - **A comparison has a name** (by default the candidate, the reference and its
   commit, and the panel) and keeps its configuration under it. Running it
   again with more seeds extends it; changing anything else needs `--name=…`.

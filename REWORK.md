@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the arrival law from level (adopted on the owner's go-ahead; `foundation-7`)
+
+- **Soft-end variants** (V8, 8 seeds, against `foundation-6`; the owner's Tiki voice-drums, 4 seeds): law from 5°,
+  gain 2: +7.4, Tiki asks 0–0.1 within ×1.5 63%, 0.1–0.2 86%, score 766.1; from level, gain 2: +3.4 [+1.3, +5.4],
+  Tiki 80% / 89%, 758.8; **from level, gain 2.4: +6.3 [+3.2, +9.4], Tiki 70% / 89%, 774.9** (`foundation-6`: 83% / 95%,
+  762.9; 40 Tiki beats under 0.1, about ±7 points of noise). Chosen: from level, gain 2.4, now one parameter:
+  the arrival heading is the angle whose tangent is 2.4 × the ask's push over the next beat's speed.
+- **The adopted law against `foundation-6`** (branch `adopt/arrival-law`; checks: tests 626, typecheck 0, reach
+  clean, parity references refreshed in their own commit, judge parity passes):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | other |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+6.2 [+4.3, +8.1]** | 35 / 8 | +12.0 | 3.40 → 4.13 (+22%) | 0.18 → 0.16 (−8%) | very strong bias −0.177 → −0.169; small quiet asks within ×1.5 58% → 64%, over ×2 21% → 16%; asks of 0 8% → 12% |
+| V7.1 | 8 | +3.4 [−1.7, +8.6], support 0.92 | 25 / 10 | +6.0 | 3.80 → 4.85 (+27%) | 0.08 → 0.12 | head-down strong arrivals −6% |
+| held out | 4 | +11.4 [−12.7, +35.5] | 4 / 0 | – | 3.31 → 4.04 (+22%) | 0.08 → 0.24 (a few events) | head-down −18% |
+
+  Every ride finished on every panel; air, speed, rails, families and clean upper hits unchanged. The owner's Tiki
+  voice-drums: score 762.9 → 774.9; quiet asks 0–0.1 within ×1.5 83% → 70% (the one measure that is worse; small
+  sample), 0.1–0.2 95% → 89%.
+- **Merged into `compiler` on the owner's go-ahead** before his look at the pages ("if there is anything to fix, we
+  can do it after the merge"). Named reference `foundation-7`. Open: his eye on the pages; the softest asks on slow
+  passages (his Tiki spec); aimed launches for shaped families (parked).
+
 ## November 15: the arrival law's soft end (stated before running)
 
 On the owner's Tiki voice-drums (4 seeds), the cleaned law lands quiet beats less well than `foundation-6`: asks
@@ -10,6 +33,33 @@ arrivals before its quiet beats: median 13°, p90 24° (`foundation-6` with the 
 - **Variants** (`exp/law-0g2`, `exp/law-0g24`): the law from level, base 0° (instead of 5°), gain 2 and 2.4 (the
   second keeps the strong end where it was). **Hypothesis:** quiet asks on the Tiki spec back to `foundation-6`'s level
   or better; V8 headline and strong asks about as before.
+## November 15: the arrival law, cleaned and measured on every panel (ready for the owner's eye; not adopted yet)
+
+- **Design.** One arrival law for every catch: the heading it wants is 5° + the angle whose tangent is 2 × the ask's
+  push over the next beat's speed (`arrivalLawHeading`, `arrivalTargets` in `arc_evaluate.ts`; `arrivalLaw` in
+  `repertoire_search.ts`). Ranking prefers it with one weight at every ask; aimed launches (`proposeAimedLaunches`,
+  arcs and scattered sections) offer the 6 best candidates again with their support's exit turned toward it, all and
+  half the way, aimed by gravity and corrected once by measurement. It replaces three rules: the steep heading before
+  strong asks, the level heading before quiet asks (removed with `levelArrivalBelow`) and the broad heading prior
+  (kept only for configurations without the law). The steep step still sets the kinetic arrival speed, the upright
+  preference and the search effort before strong asks. Quiet misses priced in proportion (`relativeImpact`) stay.
+- **Proof of the cleanup.** Parity references were taken from the tested candidate (`exp/law-impulse2`), then the
+  cleanup checked against them: identical. On V8 (784 rides) the cleaned branch reproduces the candidate's result to
+  the decimal. A unit test pins the law (`tests/arrival_law.test.ts`). Tests 625 (+1), typecheck 0, reach clean,
+  judge parity passes.
+- **Against `foundation-6`** (branch `adopt/arrival-law`):
+
+| panel | seeds | headline | specs up / down | explicit | body drag | strong extra impacts | very strong bias |
+|---|---|---|---|---|---|---|---|
+| V8 | 16 | **+5.3 [+3.6, +7.0]**, every seed block up | 38 / 5 | +12.5 | 3.40 → 4.13 (+22%) | 0.18 → 0.20 | −0.177 → −0.166 |
+| V7.1 | 8 | +2.5 [−0.3, +5.3], support 0.96 | 24 / 11 | +1.6 | 3.80 → 4.83 (+27%) | 0.08 → 0.13 | better by 0.014 |
+| held out | 4 | −0.4 [−34.0, +33.3] | 2 / 2 | – | 3.31 → 3.96 (+20%) | 7 against 1 in 1,460 beats | – |
+
+  Every ride finished on every panel. Air, speed, rails, families, clean upper hits and head-down arrivals unchanged.
+  The held-out extra impacts are 7 against 1 over 1,460 beats, 6 in one song (Petrunko), all just above the 0.25
+  threshold (0.25–0.31): small, real, and consistent with the other panels.
+- **Body drag** (an unvalidated proxy; the owner: "not a huge issue for me") rises with the steeper strong arrivals
+  that carry the gain: the catch folds the rider onto the line; rails' share of it is unchanged.
 
 ## November 15: the arrival law finalists at 16 seeds (exploratory; for the owner)
 

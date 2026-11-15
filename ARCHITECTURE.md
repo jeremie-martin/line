@@ -420,7 +420,9 @@ What the table deliberately does not hold:
 
 - The fold's own search controls (`foldBend`, `foldTiming`, `foldBias`), its
   compact proposals and its receiving-fold geometry (`arc_motion_control.ts`,
-  `arc_proposals.ts`, `observed_receiver.ts`).
+  `arc_proposals.ts`, `observed_receiver.ts`). Every fourth generic paired-fold
+  proposal offers two upward corners. Fixed-face lengths account for tangential
+  speed lost at supporting corners; native replay decides actual contact.
 - The realization checks, shared with the frozen judge: a fold needs its
   corners, and every other shaped family needs two turn reversals
   (`repertoire_realization.ts`, `repertoire_layout.ts`).

@@ -88,3 +88,17 @@ All on V8, 196 rides, unless stated.
   catches at the same asks), and head-down twice as often.
 - **Shapes built without a rail:** speed error about 5× that of any other gap; the rider is too slow.
 - **Distinct families per ride** did not move through any of this. It does not see rails or upper hits.
+
+## November 15: upward folds, judged from paired diagrams
+
+The owner strongly prefers the upward-fold candidate in the paired geometry
+sheet: cleaner and smoother, by a large margin. The four-seed score difference
+was inconclusive (−1.3 points, 95% interval −6.2 to +3.5). He explicitly values
+that aesthetic gain and asked for further construction work and more seeds to
+seek at least comparable quality. This supersedes rejecting that candidate on
+small aggregate metric changes alone.
+
+This is feedback on selected paired diagrams, not a blind judgment of the whole
+panel. It does not establish a general automatic aesthetic score.
+Keep the successful geometry visible while measuring completion, every score
+ruler, rails and upper hits. Study record: `docs/research/folds-carried-from-below-20261115.md`.

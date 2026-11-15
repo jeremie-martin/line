@@ -1,5 +1,36 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: adopt upward folds with lengths estimated at corners
+
+- After the owner's visual preference, test cosine projection of speed at supporting
+  fixed-face corners. Hypothesis recorded on `experiment/folds-corner-speed` before running;
+  same proposal count and physics allowance, no speed claim or score changes.
+- Complete V7.1, eight seeds: all 328 rides finish and all 432 explicit gaps fulfill.
+  Headline −0.16 [−3.1, +2.8] against original; +0.43 [−2.98, +3.83] against the
+  first upward candidate. No proven score gain. Explicit score −1.83 against original.
+- Upward folds increase 26 → 35, rail-free ones 20 → 30; all touch all three faces.
+  Strike, air and amplitude errors worsen; simultaneous main/guide contact also rises.
+  Adopt on `geometry-improvements` for the stated aesthetic preference and construction gain.
+  The initial rejection below is historical and superseded by this decision.
+- All 328 refined constructions verify (22,881 supports), as do the first candidate's.
+  Refresh parity references with the behavioral change: face lengths and search outputs differ.
+  Full `npm run check` passes (2.4 min): 628 tests, 32 Rust tests, exact engine/physics,
+  compile/judge parity and end-to-end smoke. All nine review rides load and seek in Chromium.
+  Full evidence and weighting caveats: `docs/research/fold-corner-speed-20261115.md`.
+
+## November 15: owner prefers the upward folds; extend the evidence (before running)
+
+- The owner reviewed the paired diagrams and strongly prefers the upward folds for their cleaner, smoother
+  appearance. This supersedes the previous rejection on aggregate metrics alone: the construction has a stated
+  aesthetic benefit. Keep investigating it on `geometry-improvements`; do not equate an inconclusive score
+  difference with proof of equivalence, or quietly accept lower completion.
+- Extend the unchanged first candidate and original `folds-start` reference to eight seeds on complete V7.1
+  (328 pairs). The first four seeds are reused under their exact compiler identities. Record all rulers and
+  whole-ride tradeoffs; inspect how often added rails immediately follow folds versus appearing farther away.
+- Investigate a focused construction improvement using actual arrivals/releases and face-contact evidence.
+  Declare its mechanism before compiling it. Same physics allowance; no speed claim. Compare at eight seeds
+  against the same reference and against the owner-preferred first candidate, retaining the paired diagrams.
+
 ## November 15: folds carried from below (experiment, not adopted)
 
 - On `geometry-improvements`, baseline `e06720f9`, inspect all 164 saved V7.1 rides after trimming unused ends.

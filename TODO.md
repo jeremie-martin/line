@@ -46,8 +46,9 @@ Short list of agreed next tasks. Details and results go to REWORK.md.
      - geometry hygiene: lead-ins that never rise into the arrival path adopted 2026-11-13 (−26% crossed,
        score neutral, strong extras −12 to −36%); unused curve ends trimmed on `geometry-improvements`
        (2026-11-15: 164 identical rides, −16.85% drawn length, production verification included); folds and
-       the remaining geometry work are still open. Upward-corner fold proposals tested November 15: local gain,
-       whole-ride rail increase; not adopted (docs/research/folds-carried-from-below-20261115.md);
+       the remaining geometry work are still open. Upward folds and corner-speed face lengths adopted
+       after owner feedback and eight-seed evaluation: more fully ridden, rail-free upward folds,
+       inconclusive score change (docs/research/fold-corner-speed-20261115.md);
      - unwanted impacts (U2, U3; guide touches on beats);
      - the measure (visibility study);
      - benchmark fitness.

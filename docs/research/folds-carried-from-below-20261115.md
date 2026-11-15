@@ -1,5 +1,8 @@
 # Folds carried from below
 
+**Follow-up:** the initial rejection recorded here was superseded after the owner
+strongly preferred these shapes. See [the eight-seed refinement and adoption](fold-corner-speed-20261115.md).
+
 The owner asked for folds that read as useful geometry and depend less on an
 upper rail. This study uses the compiler after unused-end trimming (`e06720f9`),
 on `geometry-improvements`. It leaves the quiet-impact work and physics alone.

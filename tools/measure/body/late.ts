@@ -53,6 +53,10 @@ if (process.argv[1].endsWith('late.ts')) {
   rule('turning after the hit > 8° within 30 px', r => r.lateTurn > 8);
   rule('reversal ≥ 12° within 60 px', r => r.rev >= 12);
   rule('either', r => r.lateTurn > 8 || r.rev >= 12);
+  rule('reversal after the hit ≥ 12°', r => r.lateRev >= 12);
+  rule('after the hit only: turning > 8° or reversal ≥ 12°', r => r.lateTurn > 8 || r.lateRev >= 12);
+  rule('after the hit only: turning > 10° or reversal > 10°', r => r.lateTurn > 10 || r.lateRev > 10);
+  rule('all touched: turning(late) > 10° or reversal > 10°', r => r.lateTurn > 10 || r.rev > 10);
   for (const W of [60]) {const t = (r: any) => {const name = r.video.split('/').pop().replace('.mp4', ''), pk = picks.find(p => `${p[0]}-${p[1]}` === name)!, rr = ride(`generated/handcraft/${pk[0]}/${pk[1]}/s${pk[2]}`),
       tg = rr.p.impactEvaluation.targets, hit = tg.reduce((best: any, t: any) => Math.abs(t.frame / 40 - r.focus[0]) < Math.abs(best.frame / 40 - r.focus[0]) ? t : best).frame; return sharpestTurn(rr.lines, touchedIn(rr, hit, hit - 2, Math.round(r.focus[1] * 40)).late, W);};
     for (const lim of [10, 14, 18]) rule(`turning after the hit > ${lim}° within ${W} px`, r => t(r) > lim);}

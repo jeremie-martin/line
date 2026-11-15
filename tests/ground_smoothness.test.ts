@@ -53,8 +53,9 @@ describe('groundIsSmooth', () => {
     expect(groundIsSmooth(lip, during, 0, 10)).toBe(true);
     expect(groundIsSmooth(lip, after, 0, 10)).toBe(false);
   });
-  it('refuses a bump anywhere', () => {
-    const bump = chain([0, 0, 12, 24, 12, 0, 0]);
-    expect(groundIsSmooth(bump, f => f < 3 ? [3, 4, 5] : [], 0, 10)).toBe(false);
+  it('refuses a bump touched after the hit\'s frames and allows one within them', () => {
+    const bump = chain([0, 0, 6, 12, 6, 0, 0, 0, 0, 0, 0, 0]);
+    expect(groundIsSmooth(bump, f => f >= 6 ? [3, 4, 5] : [], 0, 10)).toBe(false);
+    expect(groundIsSmooth(bump, f => f < 6 ? [3, 4, 5] : [11, 12], 0, 10)).toBe(true);
   });
 });

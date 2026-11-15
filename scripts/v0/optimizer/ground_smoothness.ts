@@ -58,20 +58,21 @@ export function sharpestTurn(lines: readonly GroundLine[], touched: ReadonlySet<
   return worst;
 }
 
-/** The rule (experiment, on with LINE_GROUND=on): the ground the rider touches is smooth.
- *  - Anywhere: no reversal of more than REVERSAL_LIMIT degrees within 60 px (bumps, zigzags).
- *  - After a hit's own frames (HIT_FRAMES, the account's event window): no turning of more than LATE_TURN_LIMIT
- *    degrees within 30 px (a lip at the end of a support, a corner). Sharp turning belongs to the hit.
- * Fitted to the owner's 41 answers of 2026-11-15 (15 of 18 not-clean stretches flagged, 18 of 23 clean ones passed). */
+/** The rule (experiment, on with LINE_GROUND=on or built): after a hit's own frames, the ground the rider touches is
+ * gentle. HIT_FRAMES is the account's event window; what the ground does within it belongs to the hit, on the beat.
+ * After it, on the lines touched until the next hit:
+ *  - no turning of more than LATE_TURN_LIMIT degrees within 30 px (a lip at the end of a support, a corner);
+ *  - no reversal of more than REVERSAL_LIMIT degrees within 60 px (bumps, zigzags).
+ * Fitted to the owner's 41 answers of 2026-11-15: it flags 15 stretches (2 of them clean) and passes 26 (21 clean;
+ * of the 5 others, 2 are folds and 3 are scallops marked "a little"). Judging the hit's frames too flagged 6 clean
+ * stretches and refused twice as many candidates. LINE_GROUND_PART=all restores that wider form for comparison. */
 export const GROUND_RULE = process.env.LINE_GROUND === 'on' || process.env.LINE_GROUND === 'built', REVERSAL_LIMIT = 10, LATE_TURN_LIMIT = 10, HIT_FRAMES = 6;
 /** LINE_GROUND=built: supports are also drawn to meet the second part. From HIT_FRAMES after the catch, a support's
  * heading changes no faster than this radius allows (30 px of ground turn 9°, inside the 10° limit), so the search
  * is offered gentle exits instead of lips it would have to refuse. The rule above stays the check. */
-export const LATE_RADIUS = process.env.LINE_GROUND === 'built' && process.env.LINE_GROUND_PART !== 'reversal' ? 30 / (9 * Math.PI / 180) : 0;
+export const LATE_RADIUS = process.env.LINE_GROUND === 'built' ? 30 / (9 * Math.PI / 180) : 0;
 export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (frame: number) => readonly number[], hit: number, to: number): boolean {
   const all = new Set<number>(), late = new Set<number>();
   for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}
-  // LINE_GROUND_PART=reversal|late keeps one part only (to measure what each costs)
-  const part = process.env.LINE_GROUND_PART;
-  return (part === 'late' || roughestReversal(lines, all) <= REVERSAL_LIMIT) && (part === 'reversal' || sharpestTurn(lines, late) <= LATE_TURN_LIMIT);
+  return roughestReversal(lines, process.env.LINE_GROUND_PART === 'all' ? all : late) <= REVERSAL_LIMIT && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
 }

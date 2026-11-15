@@ -10,6 +10,7 @@ import { arcControlProposals } from './arc_control_policy.ts';
 import { allocateArcProposalSlots } from './arc_memory.ts';
 import { arcControlValue, arcControlStep, arcResponseKeys } from './arc_motion_control.ts';
 import { evaluate } from './arc_evaluate.ts';
+import { searchRank } from './arc_candidates.ts';
 import { retainSearch, type IntervalSearch } from './arc_interval_state.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -178,6 +179,33 @@ export function proposeOpposingEntries(s: IntervalSearch) {
     for (const [key, count] of Object.entries(s.failures))
       work.failures[key] = (work.failures[key] ?? 0) + count - (beforeFailures[key] ?? 0);
   }
+}
+
+/** Apex launches (REWORK.md, November 15): the best-ranked candidates again with their support's exit turned so the
+ * flight it launches arrives at the next beat closer to the top of its arc, by each of `fractions` of the way to level
+ * (1: at the apex). Flight time is kept (same release frame), so the air is kept; horizontal speed is constant in
+ * flight, so the launch heading that gives an arrival heading follows from gravity alone: vy at release = vy at
+ * arrival − g × flight frames. A flight caught near its top lands softly and has climbed instead of gained speed. The
+ * exit is shifted by the change of launch heading, which absorbs the offset between the control and the real launch. */
+export function proposeApexLaunches(s: IntervalSearch) {
+  const {options, i, ctx} = s, cfg = options.apexLaunches;
+  if (!(cfg && cfg.count > 0 && i < ctx.contacts.length - 1 && !options.profile && options.railLayout !== 'transfer')) return;
+  const G = .175, deg = (r: number) => r * 180 / Math.PI;
+  const ranked = [...s.candidates].filter(x => x.c.contactSide !== -1 && x.release !== undefined)
+    .sort((a, b) => searchRank(a) - searchRank(b)).slice(0, cfg.count);
+  const work = ctx.work.apexLaunchWork;
+  for (const x of ranked) {
+    const frames = s.horizon - x.release!, vx = x.endSpeed * Math.cos(x.heading * Math.PI / 180), vy = x.endSpeed * Math.sin(x.heading * Math.PI / 180);
+    if (!(frames > 2 && vx > 1)) continue;
+    const launched = deg(Math.atan2(vy - G * frames, vx));
+    for (const f of cfg.fractions) {
+      const wanted = deg(Math.atan2(vy * (1 - f) - G * frames, vx)), exit = x.c.exit + (wanted - launched);
+      if (Math.abs(exit - x.c.exit) < 1) continue;
+      work.attempts++;
+      if (evaluate(s, tagOrigin({...x.c, exit}, 'apex'))) work.viable++;
+    }
+  }
+  retainSearch(s);
 }
 
 /** Short folded entries before a long runout, for folded transfer layouts. */

@@ -33,6 +33,7 @@ export function createSearchWork() {
     sectionFallbacks: [] as Array<[number, string, string]>,
     fragmentStats: {intervals: 0, probes: 0, replayFrames: 0},
     observedReceiverWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
+    apexLaunchWork: {attempts: 0, viable: 0},
     opposingEntryWork: {attempts: 0, viable: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     upperReceiverWork: {attempts: 0, viable: 0, bodyInTheWay: 0, physicsFrames: 0, failures: {} as Record<string, number>},
     initialProposalWork: Object.fromEntries(['center', 'learned', 'memory', 'response', 'generic', 'compactFold']

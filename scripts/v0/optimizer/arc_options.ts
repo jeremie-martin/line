@@ -66,6 +66,8 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   constructionRequests?: Record<number, ConstructionRequest>;
   /** Motion-quality residuals. */
   motionQuality?: MotionSearchOptions;
+  /** Twins of the best-ranked candidates launching their flight toward an apex arrival (arc_proposals.ts). */
+  apexLaunches?: {count: number; fractions: number[]};
   /** Quiet misses priced in proportion to the ask (arc_interval_state.ts openInterval). */
   relativeImpact?: {reference: number; softness: number; askFloor: number};
   /** Learned construction memory and policies, by construction memory key. */
@@ -116,7 +118,7 @@ export const EVALUATION_IDENTITY = {
   rippleCycles: 'key', foldAngle: 'key', guides: 'key', railLayout: 'key', independentGuide: 'key',
   amplitudeWeight: 'key', impactWeight: 'key', arrivalWeight: 'key', passiveArrival: 'key', headingWeight: 'key',
   completeBoundary: 'key',
-  constructionRequests: 'keySection', motionQuality: 'key', relativeImpact: 'key', impactSearch: 'key',
+  constructionRequests: 'keySection', motionQuality: 'key', apexLaunches: 'search', relativeImpact: 'key', impactSearch: 'key',
   futureValueModel: 'keyPresence',
 
   impactPreparationFrames: 'fixed', sectionStyles: 'fixed', railSupportMargin: 'fixed', goneThroughCleanup: 'fixed',

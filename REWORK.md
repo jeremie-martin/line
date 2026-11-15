@@ -1,5 +1,26 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: Q13 result (level arrival before quiet catches)
+
+V8 against `foundation-5` (a first run of both failed: the impact-search option validator did not know the new key;
+fixed, and a one-ride compile is now run before every comparison):
+
+| | headline | explicit | extra impacts | 0–0.1 within ×1.5 / over ×2 | exactly 0 within ×1.5 | speed rms |
+|---|---|---|---|---|---|---|
+| Q10 (pricing alone) | −5.4 | −14.4 | 0.28 | 58% / 25% | 12% | +0.003 |
+| Q13a (level prior alone) | −5.4 [−11.2, +0.3] | +6.2 | 0.07 | 34% / 38% | 2% | −0.002 |
+| Q13b (level prior + Q10 pricing) | −5.7 [−10.5, −0.8] | −9.8 | 0.11 | 54% / 22% | 8% | +0.001 |
+
+- The prior moves arrivals before quiet catches flatter: falling 30° or more 377 → 137 (Q13a) and 192 (Q13b) of 1,072;
+  5–15° 173 → 358 and 339; level (within 5°) only 24 → 37. The flight after a quiet catch is less fast (Q13a +0.023
+  against +0.045).
+- Q13b keeps Q10's quiet gain without Q10's stray hits (0.28 → 0.11, `foundation-5` 0.10), with speed and air flat.
+  The headline loss stays about 5.5, largest on the long spec (P6 −26 to −28 in both Q13 runs).
+- Small perturbations of the search have cost about 1–3 points throughout these weeks (R1–R4, Q2, Q6); part of any
+  loss here may be that, not the mechanism. Unproven.
+- **The owner's Tiki voice-drums under Q13b** (4 seeds): asks 0–0.1 within ×1.5 83% (today 65%), 0.1–0.2 95% (82%);
+  mean score 762.9 (764.6).
+
 ## November 15: `foundation-5` (fewer rails, 6 px margin) on V7.1 and held out (measured; owner's choice stands)
 
 Against `foundation-3` (before the two rail changes), 4 seeds:

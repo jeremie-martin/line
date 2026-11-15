@@ -11,7 +11,9 @@
   main{height:100%;display:grid;grid-template-columns:auto minmax(280px,420px);gap:28px;justify-content:center;align-items:center;padding:16px}
   .stage{display:flex;flex-direction:column;gap:8px;align-items:stretch;width:calc(min(78vh,860px)*9/16)}
   video{height:min(78vh,860px);width:calc(min(78vh,860px)*9/16);background:#000;border-radius:6px;display:block;cursor:pointer}
-  canvas{width:100%;height:44px;display:block;border-radius:4px;background:var(--panel);border:1px solid var(--line)}
+  video{outline:4px solid transparent;outline-offset:0;transition:outline-color .06s}
+  video.judge{outline-color:var(--focus)}
+  canvas{width:100%;height:44px;display:block;border-radius:4px;background:var(--panel);border:1px solid var(--line);cursor:pointer;touch-action:none}
   .side{display:flex;flex-direction:column;gap:14px}
   h1{font-size:20px;margin:0}
   .count{color:var(--ink2);font-size:14px}
@@ -41,8 +43,8 @@
 <section id="intro">
   <h1>Motion review</h1>
   <p>41 short stretches from the handcrafted videos, each about two to four seconds, played in a loop with the music.</p>
-  <p>One stretch between two asked hits is highlighted under the video. The question is the same every time: in that stretch, does the rider move in ways the music does not call for?</p>
-  <p class="sub">Answer with the keys 1 to 4. The tags and the note are optional. Your answers are saved as you go, and you can stop and come back. It takes about ten minutes.</p>
+  <p>The part to judge is where the rider is on the track between two asked hits, not the jump before or after. It is highlighted under the video, and the video gets a yellow frame while it plays. The question is the same every time: in that part, does the rider move in ways the music does not call for?</p>
+  <p class="sub">Answer with the keys 1 to 4. Click or drag on the bar to move in the clip; the arrow keys step back and forward. The tags and the note are optional. Your answers are saved as you go, and you can stop and come back. It takes about ten minutes.</p>
   <button class="primary" id="start">Start</button>
 </section>
 
@@ -50,11 +52,11 @@
   <div class="stage">
     <video id="v" playsinline preload="auto"></video>
     <canvas id="bar" width="1200" height="88"></canvas>
-    <div class="legend"><span><i style="background:var(--focus)"></i>the stretch to judge</span><span><i style="background:var(--ink)"></i>asked hits (taller = stronger)</span></div>
+    <div class="legend"><span><i style="background:var(--focus)"></i>the part to judge (rider on the track)</span><span><i style="background:var(--ink)"></i>asked hits (taller = stronger)</span></div>
   </div>
   <div class="side">
     <div class="count" id="count"></div>
-    <p class="q">In the highlighted stretch, does the rider move in ways the music does not call for?</p>
+    <p class="q">While the rider is on the track in the highlighted part, does it move in ways the music does not call for?</p>
     <div class="answers" id="answers"></div>
     <p class="sub">What it is, if anything (optional):</p>
     <div class="tags" id="tags"></div>
@@ -63,6 +65,7 @@
     <div class="row">
       <button id="pause"><kbd>Space</kbd> pause</button>
       <button id="slow"><kbd>S</kbd> half speed</button>
+      <button id="left"><kbd>←</kbd> <kbd>→</kbd> step</button>
       <button id="back"><kbd>B</kbd> previous</button>
       <button id="skip"><kbd>N</kbd> skip</button>
     </div>
@@ -83,7 +86,7 @@ const $ = id => document.getElementById(id), v = $('v'), bar = $('bar'), ctx = b
 const manifest = await (await fetch(`/generated/label-studies/${STUDY}/manifest.json`, {cache: 'no-store'})).json();
 const clips = manifest.clips;
 let labeled = new Set((await (await fetch(`/api/labels/${STUDY}`)).json()).labeled);
-let index = -1, answer = null, tags = new Set(), shownAt = 0, hold = 0, history = [];
+let index = -1, answer = null, tags = new Set(), shownAt = 0, history = [];
 
 $('answers').innerHTML = ANSWERS.map(([id, text], i) => `<button data-a="${id}"><kbd>${i + 1}</kbd>${text}</button>`).join('');
 $('tags').innerHTML = TAGS.map(([id, text, key]) => `<button data-t="${id}"><kbd>${key.toUpperCase()}</kbd>${text}</button>`).join('');
@@ -92,14 +95,15 @@ function paint() {
   const c = clips[index]; if (!c) return;
   const css = getComputedStyle(document.documentElement), W = bar.width, H = bar.height, x = t => (t - c.from) / (c.to - c.from) * W;
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = css.getPropertyValue('--focus'); ctx.globalAlpha = .45; ctx.fillRect(x(c.focus[0]), 0, x(c.focus[1]) - x(c.focus[0]), H); ctx.globalAlpha = 1;
+  ctx.fillStyle = css.getPropertyValue('--focus'); ctx.globalAlpha = .6; for (const [a, b] of c.contact) ctx.fillRect(x(a), 0, Math.max(3, x(b) - x(a)), H); ctx.globalAlpha = 1;
   ctx.fillStyle = css.getPropertyValue('--ink');
   for (const h of c.hits) {const hh = 20 + h.impact * (H - 24); ctx.fillRect(x(h.t) - 2, H - hh, 4, hh);}
   ctx.fillStyle = css.getPropertyValue('--accent'); ctx.fillRect(x(Math.min(c.to, Math.max(c.from, v.currentTime))) - 1.5, 0, 3, H);
 }
 function tick() {
   const c = clips[index];
-  if (c && !v.paused && v.currentTime >= c.to && !hold) {v.pause(); hold = setTimeout(() => {hold = 0; v.currentTime = c.from; v.play().catch(() => {});}, 450);}
+  if (c && (v.currentTime >= c.to || v.currentTime < c.from - .05)) v.currentTime = c.from;   // loops without stopping
+  v.classList.toggle('judge', !!c && c.contact.some(([a, b]) => v.currentTime >= a - .04 && v.currentTime <= b + .04));
   paint(); requestAnimationFrame(tick);
 }
 function refresh() {
@@ -109,7 +113,7 @@ function refresh() {
   $('count').textContent = `${labeled.size} of ${clips.length} answered`;
 }
 function show(i) {
-  index = i; answer = null; tags = new Set(); $('note').value = ''; clearTimeout(hold); hold = 0;
+  index = i; answer = null; tags = new Set(); $('note').value = '';
   const c = clips[i];
   if (!v.src.endsWith(c.video)) v.src = c.video;
   const go = () => {v.currentTime = c.from; v.play().catch(() => {});};
@@ -135,11 +139,17 @@ async function save() {
 }
 function skip() {skipped.add(clips[index].id); history.push(index); advance();}
 function back() {const i = history.pop(); if (i === undefined) return; labeled.delete(clips[i].id); skipped.delete(clips[i].id); show(i);}
-function pause() {clearTimeout(hold); hold = 0; if (v.paused) v.play().catch(() => {}); else v.pause();}
+function pause() {if (v.paused) v.play().catch(() => {}); else v.pause();}
+/** Move in the clip without changing whether it is playing. */
+function seek(t) {const c = clips[index]; if (c) v.currentTime = Math.min(c.to - .02, Math.max(c.from, t));}
+function seekAt(e) {const c = clips[index], box = bar.getBoundingClientRect(); if (c) seek(c.from + (e.clientX - box.left) / box.width * (c.to - c.from));}
+bar.addEventListener('pointerdown', e => {bar.setPointerCapture(e.pointerId); seekAt(e);});
+bar.addEventListener('pointermove', e => {if (bar.hasPointerCapture(e.pointerId)) seekAt(e);});
 function slow() {v.playbackRate = v.playbackRate === 1 ? .5 : 1; $('slow').classList.toggle('on', v.playbackRate !== 1);}
 
 $('answers').addEventListener('click', e => {const b = e.target.closest('button'); if (b) {answer = b.dataset.a; refresh();}});
 $('tags').addEventListener('click', e => {const b = e.target.closest('button'); if (b) {tags.has(b.dataset.t) ? tags.delete(b.dataset.t) : tags.add(b.dataset.t); refresh();}});
+$('left').onclick = () => seek(v.currentTime - .25);
 $('next').onclick = save; $('skip').onclick = skip; $('back').onclick = back; $('pause').onclick = pause; $('slow').onclick = slow; v.onclick = pause;
 $('again').onclick = () => {skipped.clear(); $('done').classList.add('hidden'); $('app').classList.remove('hidden'); advance();};
 document.addEventListener('keydown', e => {
@@ -149,6 +159,7 @@ document.addEventListener('keydown', e => {
   if (k >= '1' && k <= '4') {answer = ANSWERS[+k - 1][0]; refresh();}
   else if (k === 'enter') save();
   else if (k === ' ') {e.preventDefault(); pause();}
+  else if (k === 'arrowleft') {e.preventDefault(); seek(v.currentTime - .25);} else if (k === 'arrowright') {e.preventDefault(); seek(v.currentTime + .25);}
   else if (k === 's') slow(); else if (k === 'b') back(); else if (k === 'n') skip();
   else {const t = TAGS.find(t => t[2] === k); if (t) {tags.has(t[0]) ? tags.delete(t[0]) : tags.add(t[0]); refresh();}}
 });

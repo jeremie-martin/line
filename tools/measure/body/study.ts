@@ -9,7 +9,7 @@ import {rocking} from './rocking.mjs';
 const STUDY = 'motion-2026-11', PER_CELL = 2;
 const picks = fs.readFileSync('generated/visible/picks.txt', 'utf8').trim().split('\n').map(l => l.split(' '));
 let seed = 20261115; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
-type Cand = {id: string; video: string; song: string; from: number; to: number; focus: [number, number]; hits: Array<{t: number; impact: number}>;
+type Cand = {id: string; video: string; song: string; from: number; to: number; focus: [number, number]; contact: Array<[number, number]>; hits: Array<{t: number; impact: number}>;
   family: string; context: string; level: string; ask: number; seen: number; rest: number; rock: number};
 const cands: Cand[] = [];
 for (const [song, variant, s] of picks) {
@@ -28,8 +28,13 @@ for (const [song, variant, s] of picks) {
     const asks = hits.map(h => h.impact), mean = asks.reduce((x, y) => x + y, 0) / asks.length;
     const context = Math.max(...asks) <= .3 ? 'calm' : mean >= .5 ? 'intense' : 'mixed'; if (context === 'mixed') continue;
     const level = rock >= 20 || rest >= Math.max(.2, seen) ? 'high' : rock < 6 && rest < (context === 'calm' ? .1 : .15) ? 'low' : 'middle'; if (level === 'middle') continue;
+    // the stretch to judge is where the rider is on the geometry: the contact runs from this hit to the next (the flight is not judged)
+    const contact: Array<[number, number]> = [];
+    for (let i = Math.max(1, f - 2); i < nx - 2;) {if (!frames[i].contact) {i++; continue;} let j = i; while (j + 1 < nx - 2 && frames[j + 1].contact) j++;
+      const last = contact.at(-1); if (last && i / 40 - last[1] <= .1) last[1] = +((j + 1) / 40).toFixed(3); else contact.push([+(i / 40).toFixed(3), +((j + 1) / 40).toFixed(3)]); i = j + 1;}
+    if (!contact.length) continue;
     const sec = p.sections.find((x: any) => Math.abs(Math.round(x.start * 40) - f) <= 3); if (!sec) continue;
-    cands.push({id: '', video: `/generated/videos/handcraft/${song}-${variant}.mp4`, song, from: +from.toFixed(3), to: +to.toFixed(3), focus: [+t0.toFixed(3), +t1.toFixed(3)], hits,
+    cands.push({id: '', video: `/generated/videos/handcraft/${song}-${variant}.mp4`, song, from: +from.toFixed(3), to: +to.toFixed(3), focus: [contact[0][0], contact.at(-1)![1]], contact, hits,
       family: sec.shape, context, level, ask: tg[k].impact, seen: +seen.toFixed(3), rest: +rest.toFixed(3), rock: +rock.toFixed(1)});
   }
 }
@@ -50,7 +55,7 @@ const order = chosen.map(c => [rnd(), c] as const).sort((x, y) => x[0] - y[0]).m
 fs.mkdirSync(`generated/label-studies/${STUDY}`, {recursive: true});
 fs.writeFileSync(`generated/label-studies/${STUDY}/manifest.json`, JSON.stringify({study: STUDY,
   questions: [{id: 'unasked', options: ['clean', 'little', 'clearly', 'badly']}],
-  clips: order.map(({id, video, from, to, focus, hits}) => ({id, video, from, to, focus, hits}))}, null, 1));
+  clips: order.map(({id, video, from, to, focus, contact, hits}) => ({id, video, from, to, focus, contact, hits}))}, null, 1));
 fs.writeFileSync(`labels/studies/${STUDY}.key.json`, JSON.stringify({study: STUDY, builtFrom: 'generated/handcraft (line.strike.v3 rides), picks of generated/visible/picks.txt',
   clips: order.map(({id, video, focus, family, context, level, ask, seen, rest, rock}) => ({id, video, focus, family, context, level, ask, seen, rest, rock}))}, null, 1));
 console.log(order.length, 'clips,', order.reduce((s, c) => s + c.to - c.from, 0).toFixed(0), 's of video in one pass');

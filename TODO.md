@@ -2,6 +2,18 @@
 
 Short list of agreed next tasks. Details and results go to REWORK.md.
 
+0000. **Open from the night of 2026-11-15** (the compiler agent is paused).
+   - **Trimming unused track** (branch `exp/trim-support-ends`, local): the trim of `e06720f9` brought onto
+     `foundation-10`, and one commit further a version with no margin (a support ends at the rider's last touch). Rides
+     identical on four songs (score and recorded path); drawn length −13 to −22% with the two-piece margin, −25 to −30%
+     without. For the owner's eye: `/motion-gallery/video-compare.html?collection=/generated/watch/trim.json`. Not adopted:
+     needs his choice of margin, then parity references, `npm run parity`, `parity:judge`, and a REWORK entry.
+   - **Catches from above, reservations from an independent read** (not a reason to revert): the final code was measured
+     at 4 seeds only (16 seeds and V7.1 are the experiment's); explicit result given as −1.9 and −2.9 in two entries;
+     shapes 31 → 28% is a loss of variety not named as a cost; `plainFromAbove` draws every receiver met from above
+     plain whatever the request allows (then refuses it); a plan supplied whole can carry `catchFromAbove`.
+   - **Zoom lanes** to write for the remaining songs (31 have a spec; Petrunko, Trouble, Tiki done).
+
 000. **The look, one layer at a time** (owner, 2026-11-15). Carry is adopted (REWORK.md). Next: the split's direction
    (it points into the surface while the picture now moves out of it; the owner feels it goes the wrong way); then a
    zoom that follows the song or the spec, where carry and the shake should probably scale with the zoom.

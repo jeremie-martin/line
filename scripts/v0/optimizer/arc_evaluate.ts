@@ -310,7 +310,11 @@ export function arrivalTargets(s: IntervalSearch) {
   const impulse = impactToRawPx(nextImpact), arrivalSpeed = (1 - kinetic) * nextSpeed + kinetic * hypot2(nextSpeed, impulse);
   const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
   const angled = options.passiveArrival ? 1 : steep;
-  return {nextImpact, steep, level, kinetic, arrivalSpeed, desiredArrival, angled};
+  // One continuous arrival law (REWORK.md, November 15): the heading that goes with well-landed catches rises with the
+  // ask, level for a whisper, steep for the hardest hit (V8: asks under 0.2 land best from 0–10°, asks 0.6 and up from
+  // 45° and more). Replaces the steep and level priors' headings when set.
+  const law = options.arrivalLaw ? clamp(options.arrivalLaw.base + options.arrivalLaw.perAsk * nextImpact, 0, options.arrivalLaw.max) : undefined;
+  return {nextImpact, steep, level, kinetic, arrivalSpeed, desiredArrival, angled, law};
 }
 
 /** Arrival speed and heading priors toward the next catch. Appends residuals;
@@ -326,9 +330,11 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
   // for an unguided landing). These are proposal priors; native continuation decides merit.
   const aim = arrivalTargets(s), steep = aim?.steep ?? 0;
   if (aim && (options.arrivalWeight ?? 0) > 0) {
-    const {kinetic, arrivalSpeed, desiredArrival, angled, level} = aim;
+    const {kinetic, arrivalSpeed, desiredArrival, angled, level, law} = aim;
     const weight = Math.sqrt(options.arrivalWeight ?? 0);
-    const r1 = angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
+    // with the arrival law, one heading residual for every ask; otherwise the steep one (strong asks)
+    const r1 = law !== undefined ? weight * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - law) / 45
+      : angled > 0 ? weight * Math.sqrt(angled) * (deg(Math.atan2(finalVelocity.y, finalVelocity.x)) - desiredArrival) / 45 : 0;
     const r2 = weight * (hypot2(finalVelocity.x, finalVelocity.y) - arrivalSpeed) / 7.2;
     // A passive catch benefits from an upright arrival: the sled's nose-to-tail
     // axis past vertical, or pointing against the travel (uprightArrival).
@@ -340,7 +346,7 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
       r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
     }
     // before a quiet catch, the arrival is drawn toward level (the mirror of the steep prior above)
-    const r4 = level > 0 ? weight * Math.sqrt(level) * deg(Math.atan2(finalVelocity.y, finalVelocity.x)) / 45 : 0;
+    const r4 = level > 0 && law === undefined ? weight * Math.sqrt(level) * deg(Math.atan2(finalVelocity.y, finalVelocity.x)) / 45 : 0;
     residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []), ...(options.impactSearch?.levelArrivalBelow !== undefined ? [r4] : []));
     cost += r1 * r1 + r2 * r2 + r3 * r3 + r4 * r4;
   }

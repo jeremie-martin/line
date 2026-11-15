@@ -1,5 +1,27 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: apex launches aimed by measurement (result; exploratory, not adopted)
+
+Against `foundation-6` (V8 758.8, V7.1 798.8), 4 seeds:
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5 / over ×2, V8 | same, V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|---|
+| `foundation-6` | | | 54% / 22% | 69% / 7% | 0.11 |
+| apex launches, first version | +0.7 | −0.5 | 70% / 15% | 65% / 5% | 0.14 |
+| **aimed by measurement** | −0.1 [−9.1, +8.9] | −1.2 [−10.8, +8.4] | **71% / 11%** | **74% / 7%** | **0.11** |
+
+- V7.1 asks 0.1–0.2 within ×1.5 87% → 88%, over ×2 3% → 0%. The quiet gain now holds on both panels; stray hits back
+  to `foundation-6`'s level.
+- The long spec: seeds 739, 750, 728, 722 (mean 734.8; `foundation-6` 722.4, `foundation-5` 748.7): about half the
+  loss recovered; impact rms on asks under 0.1 0.053 (0.086; 0.146 before the quiet-hit adoption); air before them
+  still short (−0.183): the trade in its asks remains.
+- 440 of 4,397 committed arcs (seed 101) come from aimed apex launches. Gallery for the owner's eye:
+  `generated/quiet-study/apex-aimed.html`.
+- Not adopted (the owner: new geometry needs great care); kept on `exp/apex-aim` (which also carries the report-only
+  probe rows).
+- Process: a V7.1 run started 20 s after a V8 run of the same candidate failed on the arm's generation lock, the second
+  time today. Comparisons that compile the same candidate must run one after the other.
+
 ## November 15: apex launches aimed by measurement (exploratory; stated before running)
 
 The owner keeps apex launches out of the compiler ("new geometry has to be done very carefully") and asked to keep

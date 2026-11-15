@@ -56,7 +56,7 @@ import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BASS_BARS, BREAK_LAST, BREAK_START, DRUMS_IN, DRUMS_OUT, DURATION, EXPOSED_WORDS_B, FADE, FILL_END, FILL_START,
   GROOVE_B, KICKS_A, KICKS_B, LIFT, LIGHT_DRUMS, OUTRO, OUTRO_BASS, PAIRS_A, PAIRS_B, REENTRY, SNARES_A, SNARES_B,
-  SWELL, bass, camera, drum, landings, music, preroll, start, voiceStrength, word,
+  SWELL, bass, drum, landings, music, preroll, start, voiceStrength, word,
 } from "../music.ts";
 
 export { overlayMeta } from "../music.ts";
@@ -97,7 +97,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   start,
   preroll,

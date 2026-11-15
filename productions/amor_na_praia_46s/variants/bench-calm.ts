@@ -33,7 +33,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BOOM, BREATH_START, BURST, BURST_START, DROP, DURATION, FADE_START, GROOVE_KICKS, INTRO_PHRASE_STARTS, REDROP,
-  SOFT_RETURN, camera, kick, landings, music, voiceStrength,
+  SOFT_RETURN, kick, landings, music, voiceStrength,
 } from "../music.ts";
 
 export { overlayMeta } from "../music.ts";
@@ -63,7 +63,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes([

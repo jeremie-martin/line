@@ -47,7 +47,7 @@ import type { Spec } from "../../../scripts/v0/types.ts";
 import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
-  BREAK_LAST, DRUMS_IN, DURATION, ENTRY_CLUSTER, KICKS, REENTRY, SNARES, camera, drum, landings, music, preroll,
+  BREAK_LAST, DRUMS_IN, DURATION, ENTRY_CLUSTER, KICKS, REENTRY, SNARES, drum, landings, music, preroll,
   start, voiceStrength,
 } from "../music.ts";
 
@@ -73,7 +73,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   start,
   preroll,

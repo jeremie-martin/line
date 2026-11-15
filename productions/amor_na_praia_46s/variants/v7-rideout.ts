@@ -42,7 +42,7 @@ import type { Spec } from "../../../scripts/v0/types.ts";
 import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
-  BOOM, BURST, BURST_START, DROP, DURATION, FADE_START, GROOVE_KICKS, REDROP, SOFT_RETURN, camera, kick, landings,
+  BOOM, BURST, BURST_START, DROP, DURATION, FADE_START, GROOVE_KICKS, REDROP, SOFT_RETURN, kick, landings,
   music, voiceStrength,
 } from "../music.ts";
 
@@ -72,7 +72,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes([

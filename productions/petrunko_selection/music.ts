@@ -66,11 +66,6 @@ export const overlayMeta = {
     { name: "DECAY", t0: DECAY, t1: DURATION, color: "#3e8f6c" },
   ],
 };
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [{ t: 0, zoom: 2.5 }, { t: BUILD, zoom: 2.3 }, { t: ROLL, zoom: 2.0 }, { t: SUSPEND, zoom: 2.5 }, { t: RETURN, zoom: 1.85 }, { t: DECAY, zoom: 2.2 },
-    { t: DURATION, zoom: 2.6 }],
-};
 export const music: Spec["music"] = {
   audio: "productions/petrunko_selection/audio.mp3", title: "Petrunko", beats: "productions/petrunko_selection/audio.json",
   spectrogram: { image: "productions/petrunko_selection/spectrogram.png", metadata: "productions/petrunko_selection/spectrogram.json" },

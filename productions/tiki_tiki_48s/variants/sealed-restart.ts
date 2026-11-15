@@ -29,7 +29,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BOOM, BUILD, DRUM_CUT_T0, DROP, DURATION, KICKS, LAST_DRUM, REENTRY, RUN_END, SILENCE_T0,
-  kf, kickStrength, landings, music, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, wordStrength,
 } from "../music.ts";
 
 const VOICE = [
@@ -48,10 +48,6 @@ const strength = (t: number) => PINNED[t] ?? (VOICE.includes(t) ? wordStrength(t
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.75, amp: 0.15, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: { smoothingFrames: 8, keyframes: zoom },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

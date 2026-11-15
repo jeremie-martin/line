@@ -50,7 +50,6 @@ const SPEED = curve([[0, 0.30], [9.9, 0.32], [19.7, 0.40], [26.6, 0.42], [28.2, 
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: { zoom: m.zoom },
   contacts: beats(m.table(ROWS)),
   axes: { air: AIR, speed: SPEED },
 };

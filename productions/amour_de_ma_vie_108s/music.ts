@@ -52,7 +52,7 @@
  * for a long calm, return softly, and the song fades on the voice.
  */
 import { measuredSong, clamp } from "../../scripts/v0/core/measured.ts";
-import type { SpecCamera, SpecMusic, StartState } from "../../scripts/v0/types.ts";
+import type { SpecMusic, StartState } from "../../scripts/v0/types.ts";
 
 export const { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } =
   measuredSong(import.meta.dirname);
@@ -210,24 +210,6 @@ export const music: SpecMusic = {
   },
 };
 
-export const camera: SpecCamera = {
-  zoom: {
-    smoothingFrames: 10,
-    keyframes: [
-      { t: 0, zoom: 2.4 },
-      { t: DRUMS_IN, zoom: 2.1 },
-      { t: BREAK_START, zoom: 2.25 },
-      { t: REENTRY, zoom: 1.85 },
-      { t: GROOVE_B, zoom: 2.0 },
-      { t: LIFT, zoom: 1.9 },
-      { t: DRUMS_OUT, zoom: 2.0 },
-      { t: 68, zoom: 2.6 },
-      { t: LIGHT_DRUMS, zoom: 2.4 },
-      { t: FADE, zoom: 2.7 },
-      { t: DURATION, zoom: 2.8 },
-    ],
-  },
-};
 
 /** As the 44 s panel spec: start slightly elevated, with pre-roll freedom. */
 export const start: StartState = { vx: 5, vy: 0, y: -180 };

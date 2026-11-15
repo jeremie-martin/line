@@ -44,7 +44,7 @@
  * 4.458→4.725 (plus 7.349→7.755 at 0.406).
  */
 import { measuredSong, clamp } from "../../scripts/v0/core/measured.ts";
-import type { SpecCamera, SpecMusic } from "../../scripts/v0/types.ts";
+import type { SpecMusic } from "../../scripts/v0/types.ts";
 
 export const { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } =
   measuredSong(import.meta.dirname);
@@ -143,20 +143,3 @@ export const music: SpecMusic = {
   },
 };
 
-/** Wide in the quiet, in on the loud entries. */
-export const camera: SpecCamera = {
-  zoom: {
-    smoothingFrames: 8,
-    keyframes: [
-      { t: 0, zoom: 2.6 },
-      { t: BURST_START, zoom: 2.0 },
-      { t: BREATH_START, zoom: 2.35 },
-      { t: DROP, zoom: 1.85 },
-      { t: 23.0, zoom: 1.7 },
-      { t: HOLE_START, zoom: 2.0 },
-      { t: REDROP, zoom: 1.7 },
-      { t: FADE_START, zoom: 2.4 },
-      { t: DURATION, zoom: 2.55 },
-    ],
-  },
-};

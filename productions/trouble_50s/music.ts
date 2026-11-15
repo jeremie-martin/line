@@ -87,18 +87,6 @@ export const overlayMeta = {
   tempo: `${audio.tempo.librosa_bpm?.toFixed(1) ?? "129.2"} BPM (librosa); kick in 3-3-2`,
   phases,
 };
-/** Camera shared by the variants: wide in the intro, closer for the drop. */
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [
-    { t: 0.0, zoom: 2.60 },
-    { t: GROOVE_T, zoom: 2.10 },
-    { t: DROP_T, zoom: 1.80 },
-    { t: STOP_T, zoom: 2.30 },
-    { t: BUILD_END_T, zoom: 2.00 },
-    { t: DURATION, zoom: 2.30 },
-  ],
-};
 export const music: Spec["music"] = {
   audio: "productions/trouble_50s/audio.mp3",
   title: "Trouble",

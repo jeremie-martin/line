@@ -59,10 +59,6 @@ export const overlayMeta = {
     { name: "TAIL", t0: RELEASE, t1: DURATION, color: "#3e8f6c" },
   ],
 };
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [{ t: 0, zoom: 2.7 }, { t: 15.2, zoom: 2.4 }, { t: CHORUS, zoom: 1.85 }, { t: RELEASE, zoom: 2.0 }, { t: DURATION, zoom: 2.6 }],
-};
 export const music: Spec["music"] = {
   audio: "productions/bones_selection/audio.mp3", title: "Bones", beats: "productions/bones_selection/audio.json",
   spectrogram: { image: "productions/bones_selection/spectrogram.png", metadata: "productions/bones_selection/spectrogram.json" },

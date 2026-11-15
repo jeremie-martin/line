@@ -25,6 +25,5 @@ const spec: Spec = {
     spectrogram: {image: 'productions/montagem_tomada_super_slowed_selection/spectrogram.png', metadata: 'productions/montagem_tomada_super_slowed_selection/spectrogram.json'}},
   contacts: evidence.map(({t, impact}) => ({t, impact})),
   axes: {air: lane('air'), speed: lane('speed')},
-  camera: {beatPunch: {threshold: .7, amp: .11, floor: .5, decay: 4, attack: 1, dir: 'in'}},
 };
 export default spec;

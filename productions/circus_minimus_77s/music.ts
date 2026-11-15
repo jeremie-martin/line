@@ -203,19 +203,6 @@ export const overlayMeta = {
   tempo: `${audio.tempo.madmom_bpm?.toFixed(0) ?? "150"} BPM; 808 kick in 3-2-3, snare every 1.6 s`,
   phases,
 };
-/** Camera shared by the variants: wide in the intro and break, closest in the full groove. */
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [
-    { t: 0.0, zoom: 2.60 },
-    { t: VERSE_T, zoom: 2.20 },
-    { t: GROOVE_T, zoom: 1.95 },
-    { t: HOOK_T, zoom: 2.20 },
-    { t: BREAK_T, zoom: 2.50 },
-    { t: REENTRY_T, zoom: 1.85 },
-    { t: DURATION, zoom: 2.00 },
-  ],
-};
 export const music: Spec["music"] = {
   audio: "productions/circus_minimus_77s/audio.mp3",
   title: "Circus Minimus",

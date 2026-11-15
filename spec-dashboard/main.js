@@ -12,9 +12,6 @@ const AXIS_META = {
   amplitude: { label: "amplitude", color: "#b57d1d" },
   impact: { label: "impact", color: "#a8442f" },
 };
-const CAMERA_META = {
-  zoom: { label: "zoom", color: "#2d5d8f" },
-};
 const NOTE_TAGS = ["mark", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "elevation", "music", "flat", "too much"];
 
 const refs = {
@@ -515,10 +512,7 @@ function snapCandidates(mode = state.snapMode) {
     return beats.length ? beats : (state.data?.contacts || []).map((contact) => contact.t);
   }
   if (mode === "contact") return (state.data?.contacts || []).map((contact) => contact.t);
-  if (mode === "keyframe") return [
-    ...(state.data?.keyframes || []).map((point) => point.t),
-    ...cameraZoomKeyframes().map((point) => point.t),
-  ];
+  if (mode === "keyframe") return (state.data?.keyframes || []).map((point) => point.t);
   return [];
 }
 
@@ -700,18 +694,6 @@ function anchorForMarkElement(mark) {
       title: `keyframe ${point.axis} #${point.index} at ${formatTime(point.t)} - ${fmt(point.v)}${point.ease ? ` ${point.ease}` : ""}`,
     };
   }
-  if (mark.dataset.markKind === "zoomKeyframe") {
-    const point = cameraZoomKeyframes().find((item) => item.index === index);
-    if (!point) return null;
-    return {
-      id: `keyframe:zoom:${point.index}`,
-      t: point.t,
-      scope: "keyframe",
-      index: point.index,
-      axis: "zoom",
-      title: `keyframe zoom #${point.index} at ${formatTime(point.t)} - ${fmt(point.zoom)}`,
-    };
-  }
   if (mark.dataset.markKind === "contactImpact") {
     const contact = state.data?.contacts[index];
     if (!contact) return null;
@@ -739,12 +721,7 @@ function updateEditorFieldsFromMarkDrag(drag, event) {
     refs.editTime.value = String(round(t, 3));
     const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
     const u = clamp((drag.laneY + drag.laneH - 5 - y) / Math.max(1e-9, drag.laneH - 10), 0, 1);
-    if (drag.anchor.axis === "zoom") {
-      const range = cameraZoomRange();
-      refs.editValue.value = String(round(range.min + u * (range.max - range.min), 3));
-    } else {
-      refs.editValue.value = String(round(u, 3));
-    }
+    refs.editValue.value = String(round(u, 3));
   } else if (drag.anchor.scope === "contact") {
     const y = svgYAtClient(refs.timeline, event.clientY, state.timeline.height);
     const base = drag.laneY + drag.laneH - 8;
@@ -879,7 +856,6 @@ function renderHeader() {
     metric("duration", formatTime(data.spec.duration)),
     metric("contacts", s.contacts),
     metric("keyframes", s.keyframes || 0),
-    metric("zoom", s.zoomKeyframes ? `${fmt(s.zoomMin)}-${fmt(s.zoomMax)} (${s.zoomKeyframes})` : "none"),
     metric("impact", s.impactTargets ? `${fmt(s.minImpact)}-${fmt(s.maxImpact)}` : "none"),
     metric("gap", `${fmt(s.shortestGap)}-${fmt(s.longestGap)}s`),
     metric("axes", s.activeAxes.join(", ") || "none"),
@@ -906,9 +882,6 @@ function renderTimeline() {
   const impactH = 66;
   const axisH = 48;
   const axisGap = 10;
-  const hasZoomLane = Boolean(data.camera?.zoom?.points?.length);
-  const zoomH = hasZoomLane ? axisH : 0;
-  const zoomGap = hasZoomLane ? axisGap : 0;
   const notesH = refs.toggleNotes.checked ? 34 : 0;
   const top = 20;
   const spectroY = top + 26;
@@ -918,7 +891,7 @@ function renderTimeline() {
   const vocalY = eventsY + eventsH + 10;
   const impactY = vocalY + vocalH + 18;
   const axesY = impactY + impactH + 18;
-  const H = axesY + axisNames.length * (axisH + axisGap) + zoomH + zoomGap + notesH + 42;
+  const H = axesY + axisNames.length * (axisH + axisGap) + notesH + 42;
   const viewStart = clamp(state.viewStart, 0, data.spec.duration);
   const viewEnd = clamp(state.viewEnd || data.spec.duration, viewStart + 1e-6, data.spec.duration);
   const visibleSpan = Math.max(1e-6, viewEnd - viewStart);
@@ -961,10 +934,6 @@ function renderTimeline() {
   for (const axis of axisNames) {
     drawAxisLane(svg, axis, L, plotW, y, axisH);
     y += axisH + axisGap;
-  }
-  if (hasZoomLane) {
-    drawZoomLane(svg, L, plotW, y, zoomH);
-    y += zoomH + zoomGap;
   }
   if (refs.toggleNotes.checked) drawNoteLane(svg, L, plotW, y, notesH);
   drawSelection(svg, L, plotW, H);
@@ -1182,34 +1151,6 @@ function drawAxisLane(svg, axis, L, plotW, y, h) {
   drawAxisKeyframes(svg, axis, y, h, meta.color);
 }
 
-function drawZoomLane(svg, L, plotW, y, h) {
-  const zoom = cameraZoomData();
-  if (!zoom) return;
-  const meta = CAMERA_META.zoom;
-  const range = cameraZoomRange();
-  add(svg, "text", { x: 12, y: y + 18, class: "svg-label" }, meta.label);
-  add(svg, "rect", { x: L, y, width: plotW, height: h, fill: "#f0f6f8", opacity: 0.86 });
-  add(svg, "line", { x1: L, y1: y + h - 5, x2: L + plotW, y2: y + h - 5, class: "svg-rule" });
-  add(svg, "line", { x1: L, y1: y + 5, x2: L + plotW, y2: y + 5, stroke: "#d6e3e7", "stroke-width": 1 });
-  const points = visibleZoomPoints();
-  const path = pathFromPoints(points, (t) => state.timeline.xFor(t), (v) => zoomY(v, y, h, range));
-  add(svg, "path", {
-    d: path,
-    fill: "none",
-    stroke: meta.color,
-    "stroke-width": 2.2,
-    "stroke-linecap": "round",
-    "stroke-linejoin": "round",
-  });
-  drawZoomKeyframes(svg, y, h, meta.color, range);
-  if (plotW > 130) {
-    const smoothing = Number.isFinite(zoom.smoothingFrames) && zoom.smoothingFrames > 0
-      ? ` sm ${zoom.smoothingFrames}f`
-      : "";
-    add(svg, "text", { x: L + plotW - 6, y: y + 18, class: "svg-small", "text-anchor": "end" }, `${fmt(range.min)}-${fmt(range.max)}${smoothing}`);
-  }
-}
-
 function drawNoteLane(svg, L, plotW, y, h) {
   add(svg, "text", { x: 12, y: y + 18, class: "svg-label" }, "notes");
   add(svg, "line", { x1: L, y1: y + h / 2, x2: L + plotW, y2: y + h / 2, class: "svg-rule" });
@@ -1279,48 +1220,12 @@ function drawAxisKeyframes(svg, axis, y, h, color) {
   }
 }
 
-function drawZoomKeyframes(svg, y, h, color, range) {
-  for (const point of cameraZoomKeyframes()) {
-    if (!timeVisible(point.t)) continue;
-    const x = state.timeline.xFor(point.t);
-    const cy = zoomY(point.zoom, y, h, range);
-    const active = state.activeNoteId === `keyframe:zoom:${point.index}`;
-    add(svg, "circle", {
-      cx: x,
-      cy,
-      r: active ? 5.2 : 3.8,
-      fill: active ? "#a8442f" : color,
-      class: `svg-keyframe svg-camera-keyframe${point.edit?.editable ? "" : " svg-readonly"}`,
-      opacity: active ? 1 : 0.92,
-      "data-mark-kind": "zoomKeyframe",
-      "data-axis": "zoom",
-      "data-index": point.index,
-      "data-lane-y": y,
-      "data-lane-h": h,
-    });
-  }
-}
-
 function visibleAxisPoints(axis) {
   const points = state.data?.axes?.[axis]?.points || [];
   if (!state.timeline || points.length === 0) return [];
   const out = [];
   const startV = axisAt(axis, state.timeline.viewStart);
   const endV = axisAt(axis, state.timeline.viewEnd);
-  if (startV !== null) out.push([state.timeline.viewStart, startV]);
-  for (const point of points) {
-    if (point[0] > state.timeline.viewStart && point[0] < state.timeline.viewEnd) out.push(point);
-  }
-  if (endV !== null) out.push([state.timeline.viewEnd, endV]);
-  return out;
-}
-
-function visibleZoomPoints() {
-  const points = cameraZoomData()?.points || [];
-  if (!state.timeline || points.length === 0) return [];
-  const out = [];
-  const startV = cameraZoomAt(state.timeline.viewStart);
-  const endV = cameraZoomAt(state.timeline.viewEnd);
   if (startV !== null) out.push([state.timeline.viewStart, startV]);
   for (const point of points) {
     if (point[0] > state.timeline.viewStart && point[0] < state.timeline.viewEnd) out.push(point);
@@ -1370,8 +1275,6 @@ function renderInspector(t = specTime()) {
   const gap = currentGap(t);
   const phase = currentPhase(t);
   const keyframeHit = nearestKeyframe(t);
-  const zoomValue = cameraZoomAt(t);
-  const zoomKeyframeHit = nearestCameraZoomKeyframe(t);
   refs.cursorTime.textContent = formatTime(t);
   const vocal = vocalFrame(state.analysis?.vocal, t);
   // One assignment per call: this runs on every animation frame during playback.
@@ -1381,8 +1284,6 @@ function renderInspector(t = specTime()) {
     detail("gap", gap ? `#${gap.i} ${fmt(gap.duration)}s` : "none"),
     detail("phase", phase?.name || "none"),
     detail("keyframe", keyframeHit ? `${keyframeHit.point.axis} #${keyframeHit.point.index} ${signed(keyframeHit.point.t - t)}s` : "none"),
-    detail("zoom", zoomValue === null ? "none" : fmt(zoomValue)),
-    detail("zoom kf", zoomKeyframeHit ? `#${zoomKeyframeHit.point.index} ${signed(zoomKeyframeHit.point.t - t)}s` : "none"),
     ...(vocal ? [detail('vocal window', `${vocal.t.toFixed(3)}s (audio)`), detail('vocal RMS', vocal.rms.toFixed(4)),
       detail('spectral change', vocal.change === null ? 'unavailable' : vocal.change.toFixed(4))] : []),
     ...(vocal?.bandFlux ? [detail('band change · dB/frame', vocal.bandFlux.map(b => `${b.filterCenterHz[0]}–${b.filterCenterHz[1]} Hz: ${b.value === null ? 'unavailable' : b.value.toFixed(2)}`).join(' · '))] : []),
@@ -1398,18 +1299,6 @@ function renderInspector(t = specTime()) {
       <div class="label">${escapeHtml(meta.label)}</div>
       <div class="axis-track"><div class="axis-fill" style="background:${meta.color};width:${clamp(value ?? 0, 0, 1) * 100}%"></div></div>
       <div class="value">${value === null ? "-" : fmt(value)}</div>`;
-    refs.axisReadouts.appendChild(row);
-  }
-  if (zoomValue !== null) {
-    const range = cameraZoomRange();
-    const meta = CAMERA_META.zoom;
-    const row = document.createElement("div");
-    const pct = clamp((zoomValue - range.min) / Math.max(1e-9, range.max - range.min), 0, 1) * 100;
-    row.className = "axis-row";
-    row.innerHTML = `
-      <div class="label">${escapeHtml(meta.label)}</div>
-      <div class="axis-track"><div class="axis-fill" style="background:${meta.color};width:${pct}%"></div></div>
-      <div class="value">${fmt(zoomValue)}</div>`;
     refs.axisReadouts.appendChild(row);
   }
   renderAgentContext();
@@ -1441,7 +1330,6 @@ function renderEditor() {
   const editable = Boolean(edit?.editable);
   const isKeyframe = Boolean(keyframe);
   const isContact = Boolean(contact);
-  const isZoom = keyframe?.axis === "zoom";
 
   refs.editorAnchor.textContent = anchor.title;
   refs.editTime.value = String(round(anchor.t ?? specTime(), 3));
@@ -1449,12 +1337,10 @@ function renderEditor() {
   refs.editValue.value = keyframe ? String(round(keyframe.v, 3)) : "";
   refs.editEase.value = keyframe?.sourceEase || "";
   refs.editImpact.value = contact?.impact === null || contact?.impact === undefined ? "" : String(round(contact.impact, 3));
-  if (isZoom) refs.editValue.removeAttribute("max");
-  else refs.editValue.setAttribute("max", "1");
 
   refs.editAxis.disabled = true;
   refs.editValue.disabled = !(isKeyframe && editable);
-  refs.editEase.disabled = !(isKeyframe && editable && !isZoom);
+  refs.editEase.disabled = !(isKeyframe && editable);
   refs.editImpact.disabled = !(isContact && editable);
   refs.editTime.disabled = !(isKeyframe && editable);
   refs.stageEdit.disabled = !editable;
@@ -1762,7 +1648,7 @@ function buildApplyEdit() {
     toast(edit?.readOnlyReason || "Selection is not editable");
     return null;
   }
-  if (edit.editKind === "axisKeyframe" || edit.editKind === "zoomKeyframe") {
+  if (edit.editKind === "axisKeyframe") {
     const value = Number(refs.editValue.value);
     const t = snapTime(Number(refs.editTime.value));
     return {
@@ -2108,8 +1994,6 @@ function renderAgentContext() {
   }
   const t = specTime();
   const keyframeHit = nearestKeyframe(t);
-  const zoomValue = cameraZoomAt(t);
-  const zoomKeyframeHit = nearestCameraZoomKeyframe(t);
   const selection = normalizedRange(state.selection);
   const activeNote = state.notes.find((note) => note.id === state.activeNoteId) || (state.activeAnchor ? {
     ...state.activeAnchor,
@@ -2136,15 +2020,6 @@ function renderAgentContext() {
         ease: keyframeHit.point.ease,
         dt: round(keyframeHit.point.t - t, 3),
       } : null,
-      camera: zoomValue === null ? null : {
-        zoom: zoomValue,
-        nearestKeyframe: zoomKeyframeHit ? {
-          index: zoomKeyframeHit.point.index,
-          t: zoomKeyframeHit.point.t,
-          value: zoomKeyframeHit.point.zoom,
-          dt: round(zoomKeyframeHit.point.t - t, 3),
-        } : null,
-      },
       axes: Object.fromEntries(state.data.summary.activeAxes.map((axis) => [axis, axisAt(axis, t)])),
     },
     view: {
@@ -2346,16 +2221,6 @@ function nearestKeyframe(t) {
 }
 
 function keyframeByAnchor(anchor) {
-  if (anchor.axis === "zoom") {
-    const point = cameraZoomKeyframes().find((point) => point.index === anchor.index);
-    return point ? {
-      ...point,
-      axis: "zoom",
-      v: point.zoom,
-      ease: null,
-      sourceEase: null,
-    } : null;
-  }
   return (state.data?.keyframes || []).find((point) =>
     point.axis === anchor.axis && point.index === anchor.index
   ) || null;
@@ -2375,58 +2240,6 @@ function axisAt(axis, t) {
     prev = point;
   }
   return prev ? prev[1] : null;
-}
-
-function cameraZoomData() {
-  return state.data?.camera?.zoom || null;
-}
-
-function cameraZoomKeyframes() {
-  return cameraZoomData()?.keyframes || [];
-}
-
-function cameraZoomRange() {
-  const zoom = cameraZoomData();
-  const values = [
-    Number(zoom?.min),
-    Number(zoom?.max),
-    ...cameraZoomKeyframes().map((point) => Number(point.zoom)),
-  ].filter((value) => Number.isFinite(value) && value > 0);
-  if (values.length === 0) return { min: 0, max: 1 };
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  return { min, max: max > min ? max : min + Math.max(0.01, min * 0.02) };
-}
-
-function zoomY(value, y, h, range = cameraZoomRange()) {
-  const span = Math.max(1e-9, range.max - range.min);
-  const u = clamp((value - range.min) / span, 0, 1);
-  return y + h - 5 - u * (h - 10);
-}
-
-function cameraZoomAt(t) {
-  const points = cameraZoomData()?.points;
-  if (!points?.length) return null;
-  let prev = null;
-  for (const point of points) {
-    if (point[1] === null) continue;
-    if (point[0] >= t) {
-      if (!prev) return point[1];
-      const u = (t - prev[0]) / Math.max(1e-9, point[0] - prev[0]);
-      return round(prev[1] + (point[1] - prev[1]) * clamp(u, 0, 1), 4);
-    }
-    prev = point;
-  }
-  return prev ? prev[1] : null;
-}
-
-function nearestCameraZoomKeyframe(t) {
-  let best = null;
-  for (const point of cameraZoomKeyframes()) {
-    const distance = Math.abs(point.t - t);
-    if (!best || distance < best.distance) best = { point, distance };
-  }
-  return best;
 }
 
 function setHover(x) {

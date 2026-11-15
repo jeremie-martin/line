@@ -343,28 +343,6 @@ const spec: Spec = {
       metadata: "productions/tiki_tiki_48s/spectrogram.json",
     },
   },
-  camera: {
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: [
-        { t: 0.0, zoom: 2.80 },
-        { t: 6.90, zoom: 2.40 },
-        { t: 10.43, zoom: 1.70 },
-        { t: 12.18, zoom: 2.05 },
-        { t: 18.70, zoom: 2.18 },
-        { t: 24.35, zoom: 2.45 },
-        { t: 26.09, zoom: 2.28 },
-        { t: 27.83, zoom: 1.72 },
-        { t: 32.18, zoom: 1.88 },
-        { t: 34.78, zoom: 2.04 },
-        { t: 38.26, zoom: 2.18 },
-        { t: 41.74, zoom: 2.35 },
-        { t: 43.55, zoom: 2.56 },
-        { t: 46.99, zoom: 2.50 },
-        { t: 48.0, zoom: 2.60 },
-      ],
-    },
-  },
   contacts,
   axes: {
     air: keyframes([

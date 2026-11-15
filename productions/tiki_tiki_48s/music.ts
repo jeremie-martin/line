@@ -175,20 +175,6 @@ export const music = {
   },
 };
 
-/** Base zoom: wide in the quiet voice, in at the drop and the re-entry, out in the reset and outro. */
-export const zoom: Array<{ t: number; zoom: number }> = [
-  { t: 0.0, zoom: 2.8 },
-  { t: BUILD, zoom: 2.5 },
-  { t: DROP, zoom: 1.75 },
-  { t: 23.5, zoom: 2.0 },
-  { t: BOOM, zoom: 2.3 },
-  { t: 27.3, zoom: 2.5 },
-  { t: REENTRY, zoom: 1.75 },
-  { t: 38.3, zoom: 1.95 },
-  { t: LAST_DRUM, zoom: 2.35 },
-  { t: DURATION, zoom: 2.65 },
-];
-
 /** Helper for variants: a keyframe list from [t, v] pairs with one ease. */
 export const kf = (pairs: Array<[number, number]>, ease: Keyframe["ease"] = "smooth"): Keyframe[] =>
   pairs.map(([t, v]) => ({ t, v, ease }));

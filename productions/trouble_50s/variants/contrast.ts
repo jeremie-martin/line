@@ -73,7 +73,6 @@ export const overlayMeta = m.overlayMeta;
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: { beatPunch: { threshold: 0.80, amp: 0.13, floor: 0.5, decay: 4, attack: 1, dir: "in" }, zoom: m.zoom },
   contacts,
   axes: { air, speed },
 };

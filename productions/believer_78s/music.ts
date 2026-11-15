@@ -52,13 +52,6 @@ const phases = [
   {name: 'CHORUS', t0: CHORUS_T, t1: DURATION, color: '#c4483f'},
 ];
 export const overlayMeta = {title: 'BELIEVER', artist: 'Imagine Dragons', tempo: '125 BPM; a stomp in triplets, every fourth bar a stop', phases};
-/** Camera shared by the variants: wider in the break, closest in the chorus. */
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [
-    {t: 0, zoom: 2.3}, {t: VERSE_2_T, zoom: 2.15}, {t: PRECHORUS_T, zoom: 2.05}, {t: BREAK_T, zoom: 2.5}, {t: CHORUS_T, zoom: 1.85}, {t: DURATION, zoom: 2.0},
-  ],
-};
 export const music: Spec['music'] = {
   audio: 'productions/believer_78s/audio.mp3',
   title: 'Believer',

@@ -765,10 +765,6 @@ textarea {
   cursor: grab;
 }
 
-.svg-camera-keyframe {
-  stroke-width: 1.6;
-}
-
 .svg-readonly {
   stroke-dasharray: 3 2;
   cursor: pointer;

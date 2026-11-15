@@ -29,7 +29,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BREAK_IN, DROP, DURATION, KICKS, LAST_KICK, PHRASES, REENTRY, STOP_T0, VOICE_REENTRY,
-  kf, kickStrength, landings, music, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, wordStrength,
 } from "../music.ts";
 
 const LAST_WORD = 3.216;
@@ -46,10 +46,6 @@ const strength = (t: number) =>
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.78, amp: 0.14, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: { smoothingFrames: 8, keyframes: zoom },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

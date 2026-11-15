@@ -109,17 +109,6 @@ const spec: Spec = {
       { t: 44.5, v: 0.72 },
     ]),
   },
-  camera: {
-    zoom: {
-      smoothingFrames: 10,
-      keyframes: [
-        { t: 0.0, zoom: 2.3 },
-        { t: 17.5, zoom: 1.95 },
-        { t: 30.0, zoom: 1.95 },
-        { t: 44.5, zoom: 2.3 },
-      ],
-    },
-  },
   preroll: 5,
 };
 

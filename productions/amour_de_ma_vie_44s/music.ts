@@ -43,7 +43,7 @@
  * drum rests; elsewhere the drums are about twice as loud as the voice.
  */
 import { measuredSong, clamp } from "../../scripts/v0/core/measured.ts";
-import type { SpecCamera, SpecMusic, StartState } from "../../scripts/v0/types.ts";
+import type { SpecMusic, StartState } from "../../scripts/v0/types.ts";
 
 export const { events, audio, event, rise, drumPeak, drumStrength, voiceStrength, landings, sungNotes } =
   measuredSong(import.meta.dirname);
@@ -152,20 +152,6 @@ export const music: SpecMusic = {
   },
 };
 
-export const camera: SpecCamera = {
-  zoom: {
-    smoothingFrames: 10,
-    keyframes: [
-      { t: 0, zoom: 2.4 },
-      { t: DRUMS_IN, zoom: 2.1 },
-      { t: 17.0, zoom: 1.95 },
-      { t: BREAK_START, zoom: 2.25 },
-      { t: REENTRY, zoom: 1.85 },
-      { t: 36.6, zoom: 1.95 },
-      { t: DURATION, zoom: 2.3 },
-    ],
-  },
-};
 
 /** As in the panel spec: start slightly elevated, with pre-roll freedom. */
 export const start: StartState = { vx: 5, vy: 0, y: -180 };

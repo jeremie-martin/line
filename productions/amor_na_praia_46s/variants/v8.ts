@@ -229,27 +229,6 @@ const spec: Spec = {
       metadata: "productions/amor_na_praia_46s/spectrogram.json",
     },
   },
-  camera: {
-    // Punch in on the genuinely loud beats (impact ≥ 0.62): the burst core and
-    // the two drops — not the soft intro / steady body beats.
-    beatPunch: { threshold: 0.62, amp: 0.13, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: [
-        { t: 0.0, zoom: 2.60 }, // wide; gentle intro
-        { t: 4.46, zoom: 2.00 }, // punch in on the burst's first (loudest) hit
-        { t: 7.87, zoom: 2.30 }, // breathe
-        { t: DROP_T, zoom: 1.85 }, // punch in on the drop
-        { t: 16.0, zoom: 1.75 },
-        { t: 23.0, zoom: 1.60 }, // climax: tightest, in the action
-        { t: 26.29, zoom: 2.05 }, // the hole: open out
-        { t: REDROP_T, zoom: 1.70 }, // re-drop: punch back in hardest
-        { t: 34.0, zoom: 1.85 },
-        { t: LAST_BODY_T, zoom: 2.40 }, // open out as it fades
-        { t: DURATION, zoom: 2.55 },
-      ],
-    },
-  },
   contacts,
   axes: {
     air,

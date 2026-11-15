@@ -46,7 +46,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BOOM, DROP, DURATION, KICKS, LAST_DRUM, REENTRY,
-  kf, kickStrength, landings, music, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, wordStrength,
 } from "../music.ts";
 
 /** The three ride-outs, [start landing, end landing]. */
@@ -71,10 +71,6 @@ const rideAir = RIDES.flatMap(([a, b]): Array<[number, number]> => [[a + 0.03, L
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.78, amp: 0.13, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: { smoothingFrames: 8, keyframes: zoom },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf(([

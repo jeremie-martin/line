@@ -183,27 +183,6 @@ const spec: Spec = {
       metadata: "productions/luna_bala_44s/spectrogram.json",
     },
   },
-  camera: {
-    // Camera shake authored in the spec: every beat with impact ≥ 0.70 punches the
-    // zoom in, scaled proportionally up to the hardest hit (the drop). This is the
-    // drop, the climax, and the strong breakdown/groove accents — not the soft
-    // intro/held-kick beats.
-    beatPunch: { threshold: 0.70, amp: 0.13, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: [
-        { t: 0.0, zoom: 2.60 }, // wide; nothing is happening yet
-        { t: DROP_T, zoom: 1.95 }, // punch in on the drop
-        { t: 12.0, zoom: 1.90 },
-        { t: 24.4, zoom: 1.55 }, // climax: in the action
-        { t: 25.8, zoom: 1.65 },
-        { t: 30.0, zoom: 1.85 },
-        { t: 38.0, zoom: 2.05 },
-        { t: 42.4, zoom: 2.45 }, // open out as it collapses
-        { t: DURATION, zoom: 2.55 },
-      ],
-    },
-  },
   contacts,
   axes: {
     air,

@@ -34,7 +34,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BREAK_IN, DROP, DURATION, FILL_OFFBEATS, KICKS, LAST_KICK, OFFBEATS, PHRASES, REENTRY,
-  kf, kickStrength, landings, music, offbeatStrength, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, offbeatStrength, overlayMeta, wordStrength,
 } from "../music.ts";
 
 const WINDOWS: Array<[number, number]> = [[17.85, 23.95], [26.55, 32.62]];
@@ -53,14 +53,6 @@ const strength = (t: number) => {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.7, amp: 0.12, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: zoom.map((k) => (k.t >= 17.5 && k.t <= 33 ? { ...k, zoom: k.zoom - 0.25 } : k))
-        .concat([{ t: 17.85, zoom: 1.65 }, { t: 32.62, zoom: 1.7 }]).sort((a, b) => a.t - b.t),
-    },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

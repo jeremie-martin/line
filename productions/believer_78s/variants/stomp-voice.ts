@@ -378,7 +378,6 @@ export const air = keyframes([
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: {zoom: m.zoom},
   contacts: beats(landings.map(({t, impact}) => ({t, impact}))),
   axes: {air, speed},
 };

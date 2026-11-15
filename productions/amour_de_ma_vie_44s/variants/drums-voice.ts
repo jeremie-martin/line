@@ -69,7 +69,6 @@ const speed = keyframes([
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: m.camera,
   contacts: beats(authored.sort((a, b) => a.t - b.t)),
   axes: {air, speed},
 };

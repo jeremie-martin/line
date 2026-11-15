@@ -25,7 +25,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BREAK_IN, DROP, DURATION, KICKS, LAST_KICK, REENTRY, VOICE_REENTRY,
-  kf, kickStrength, landings, music, overlayMeta, voiceStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, voiceStrength,
 } from "../music.ts";
 
 const SOFT = [0.441, 1.579, 2.659, VOICE_REENTRY, 5.944, 6.989];
@@ -38,13 +38,6 @@ const strength = (t: number) =>
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.75, amp: 0.15, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: [{ t: 0.0, zoom: 2.8 }, { t: FLOAT_FROM, zoom: 2.7 }, ...zoom.filter((k) => k.t >= DROP)],
-    },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

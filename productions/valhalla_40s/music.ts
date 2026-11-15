@@ -91,16 +91,6 @@ export const overlayMeta = {
   tempo: `${song.audio.tempo.madmom_bpm?.toFixed(1) ?? "92.3"} BPM`,
   phases,
 };
-/** Camera shared by the variants: wide in the calm opening, closer for the drop. */
-export const zoom = {
-  smoothingFrames: 8,
-  keyframes: [
-    { t: 0.0, zoom: 2.70 },
-    { t: PHRASES_T, zoom: 2.30 },
-    { t: DROP_T, zoom: 1.80 },
-    { t: DURATION, zoom: 2.00 },
-  ],
-};
 export const music: Spec["music"] = {
   audio: "productions/valhalla_40s/audio.mp3",
   title: "Valhalla",

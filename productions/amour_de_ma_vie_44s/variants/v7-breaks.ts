@@ -48,7 +48,7 @@ import type { Spec } from "../../../scripts/v0/types.ts";
 import { keyframes, type Keyframe } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
-  BASS_PICKUP, BREAK_LAST, DRUMS_IN, DRUM_HITS, DURATION, ENTRY_CLUSTER, KICKS, REENTRY, SNARES, bass, camera, drum,
+  BASS_PICKUP, BREAK_LAST, DRUMS_IN, DRUM_HITS, DURATION, ENTRY_CLUSTER, KICKS, REENTRY, SNARES, bass, drum,
   landings, music, preroll, start, voiceStrength,
 } from "../music.ts";
 
@@ -89,7 +89,6 @@ const stopAir = [...STOPS, DROPOUT, BREAK].flatMap(([a, b]): Keyframe[] => [
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   start,
   preroll,

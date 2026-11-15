@@ -86,7 +86,7 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      the pickups, the voice syllables. It looks each one up in `events.json` and
      fails on a time that is not an event.
    - Each `variants/<name>.ts` is a whole spec chosen from those layers:
-     landings, strengths, air, speed and camera. Make as many as the song
+     landings, strengths, air and speed. Make as many as the song
      suggests distinct readings (Trouble: kick, voice, slam, pulse); there is
      no fixed set. `spec.ts` re-exports the one currently preferred.
    - Variants are drafts to compare and merge with the owner, not a version

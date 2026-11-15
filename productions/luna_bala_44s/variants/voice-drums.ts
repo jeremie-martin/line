@@ -60,7 +60,6 @@ for (const {t} of authored) m.event(t); // every landing is a measured event
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: {zoom: {smoothingFrames: 8, keyframes: m.zoom}},
   contacts: beats(authored.sort((a, b) => a.t - b.t)),
   axes: {
     air: keyframes(m.kf([

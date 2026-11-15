@@ -200,19 +200,6 @@ export const music = {
   },
 };
 
-/** Base zoom: wide on the voice, in at the drop, out in the break and the collapse. */
-export const zoom: Array<{ t: number; zoom: number }> = [
-  { t: 0.0, zoom: 2.6 },
-  { t: 7.5, zoom: 2.35 },
-  { t: DROP, zoom: 1.9 },
-  { t: 23.6, zoom: 1.9 },
-  { t: 24.4, zoom: 2.2 },
-  { t: REENTRY, zoom: 1.75 },
-  { t: 40.0, zoom: 1.9 },
-  { t: LAST_KICK, zoom: 2.3 },
-  { t: DURATION, zoom: 2.55 },
-];
-
 /** Helper for variants: a keyframe list from [t, v] pairs with one ease. */
 export const kf = (pairs: Array<[number, number]>, ease: Keyframe["ease"] = "smooth"): Keyframe[] =>
   pairs.map(([t, v]) => ({ t, v, ease }));

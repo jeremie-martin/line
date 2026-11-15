@@ -145,5 +145,5 @@ moves that each have a reason, holding still otherwise. Two or three lanes per s
 (Petrunko: the build, its tension, the bars the bass answers). The owner does not want the most intense passages to be
 the closest, and a formula over sections or a signal such as intensity carries no intention. Nothing goes in the last
 three seconds. Look at them on `/generated/concept-lab/zoom.html` (prepare a ride with `zoom-prepare.mjs`), where the
-points can be moved; `npm run video -- … --zoom=ID` renders one. The older specs' `camera.zoom` (first-renderer units)
-and `camera.beatPunch` are not read by the renderer. When the zoom varies, carry and the shake should probably scale with it.
+points can be moved; `npm run video -- … --zoom=ID` renders one. A spec holds no camera: the zoom is the song's lanes, and
+the hit movement keeps its size against the scene at any zoom.

@@ -27,7 +27,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BREAK_IN, DROP, DURATION, FILLS, FILL_OFFBEATS, KICKS, LAST_KICK, PHRASES, REENTRY,
-  kf, kickStrength, landings, music, offbeatStrength, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, offbeatStrength, overlayMeta, wordStrength,
 } from "../music.ts";
 
 const TA_BOOMS = [11.633, 13.804, 15.987, 20.341, 22.523, 26.889, 31.777, 35.608, 36.177, 39.962, 40.484];
@@ -62,10 +62,6 @@ const windows = clusters.map((c) => [Number((c[0] - 0.05).toFixed(3)), Number((c
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.75, amp: 0.12, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: { smoothingFrames: 8, keyframes: zoom },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

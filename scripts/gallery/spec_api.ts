@@ -1,7 +1,7 @@
 /** Read-only view of production specs for the spec dashboard (spec-dashboard/),
  * plus the owner's timeline notes, stored beside each spec (they are authoring input).
  *   GET  /api/specs                         → {specs: [{path, name, label, group}]}
- *   GET  /api/spec-view?spec=…&samples=…    → contacts, gaps, sampled axes, keyframes, zoom, music
+ *   GET  /api/spec-view?spec=…&samples=…    → contacts, gaps, sampled axes, keyframes, music
  *                                            (music.eventsUrl: the song's measured events.json, if any)
  *   GET  /api/spec-notes?spec=…             → {specPath, notesPath, notes}
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
@@ -12,7 +12,6 @@ import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
 import {createHash} from 'node:crypto';
-import {specZoomLaneToRenderPlan} from '../v0/core/camera.ts';
 import {AXES, FPS, type Spec, type SpecMusic} from '../v0/types.ts';
 
 type SpecEntry = {path: string; name: string; label: string; group: string};
@@ -86,20 +85,6 @@ export function createSpecApi(root = process.cwd()) {
         metadataUrl: meta?.url ?? null, meta: meta && existsSync(meta.abs) ? JSON.parse(readFileSync(meta.abs, 'utf8')) : null} : null};
   }
 
-  function zoom(spec: Spec, samples: number) {
-    const lane = spec.camera?.zoom, plan = lane && specZoomLaneToRenderPlan(lane, spec.duration);
-    if (!lane || !plan || plan.autoZoom.length === 0) return null;
-    const count = Math.max(2, Math.min(samples, plan.autoZoom.length)), points: [number, number][] = [];
-    for (let i = 0; i < count; i++) {
-      const t = spec.duration * i / (count - 1);
-      points.push([round(t), round(plan.autoZoom[Math.max(0, Math.min(plan.autoZoom.length - 1, Math.round(t * FPS)))])]);
-    }
-    const values = points.map(p => p[1]);
-    return {zoom: {points, smoothingFrames: plan.zoomSmoothing, min: Math.min(...values), max: Math.max(...values), count,
-      keyframes: lane.keyframes.map((p, index) => ({id: `camera.zoom:${index}`, index, t: round(p.t), zoom: round(p.zoom), edit: READ_ONLY})),
-      renderKeyframes: plan.zoomKeyframes.map(([frame, log2], i) => ({i, frame, t: round(frame / FPS), zoom: round(2 ** log2), log2Zoom: round(log2)}))}};
-  }
-
   async function computeView(entry: SpecEntry, requested: number) {
     const abs = join(root, entry.path);
     const mod = await import(pathToFileURL(abs).href);
@@ -133,16 +118,14 @@ export function createSpecApi(root = process.cwd()) {
       return {i, t0: round(t0), t1: c.t, duration: round(c.t - t0), contactIndex: c.i, contactT: c.t, impact: c.impact, targets};
     });
     const impacts = contacts.map(c => c.impact).filter((v): v is number => v !== null), durations = gaps.map(g => g.duration);
-    const camera = zoom(spec, samples);
     return {
       spec: {name: entry.name, label: entry.label, path: entry.path, group: entry.group, duration, frameRate: FPS,
         preroll: spec.preroll ?? null, start: spec.start ?? null},
       summary: {contacts: contacts.length, gaps: gaps.length, activeAxes: Object.keys(axes), keyframes: keyframes.length,
-        zoomKeyframes: camera?.zoom.keyframes.length ?? 0, zoomMin: camera?.zoom.min ?? null, zoomMax: camera?.zoom.max ?? null,
-        zoomSmoothingFrames: camera?.zoom.smoothingFrames ?? null, impactTargets: impacts.length,
+        impactTargets: impacts.length,
         minImpact: impacts.length ? Math.min(...impacts) : null, maxImpact: impacts.length ? Math.max(...impacts) : null,
         shortestGap: durations.length ? Math.min(...durations) : null, longestGap: durations.length ? Math.max(...durations) : null, axisRanges},
-      contacts, gaps, axes, keyframes, camera, calibration: null,
+      contacts, gaps, axes, keyframes, calibration: null,
       overlayMeta: mod.overlayMeta ?? null, benchmark: null, music: music(spec.music, songDir(entry.path)),
     };
   }

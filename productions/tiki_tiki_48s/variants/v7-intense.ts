@@ -44,7 +44,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BACKBEATS, BOOM, DROP, DURATION, HOOKS, KICKS, LAST_DRUM, PICKUPS, REENTRY, RUN_END,
-  kf, kickStrength, landings, music, overlayMeta, snareStrength, wordStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, snareStrength, wordStrength,
 } from "../music.ts";
 
 const RUN: [number, number] = [REENTRY - 0.05, 39.602 + 0.05];
@@ -73,13 +73,6 @@ const strength = (t: number) => {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.75, amp: 0.12, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: {
-      smoothingFrames: 8,
-      keyframes: zoom.map((k) => (k.t >= REENTRY && k.t <= 38.4 ? { ...k, zoom: k.zoom - 0.15 } : k)),
-    },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

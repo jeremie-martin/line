@@ -43,7 +43,7 @@ import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BASS_PICKUP, BREAK_START, BREAK_WORD, BREAKDOWN_WORDS, DRUMS_OUT, DURATION, ENTRY_CLUSTER, EXPOSED_WORDS_A,
   EXPOSED_WORDS_B, FADE, FILL_END, FILL_START, GROOVE_B, INTRO_WORDS, KICKS_A, LIFT, LIGHT_DRUMS, OUTRO,
-  OUTRO_WORDS, PAIRS_A, PAIRS_B, REENTRY, SNARES_A, SWELL, bass, camera, drum, landings, music, preroll, start,
+  OUTRO_WORDS, PAIRS_A, PAIRS_B, REENTRY, SNARES_A, SWELL, bass, drum, landings, music, preroll, start,
   voiceStrength, word,
 } from "../music.ts";
 
@@ -79,7 +79,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   start,
   preroll,

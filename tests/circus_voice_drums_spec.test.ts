@@ -22,5 +22,4 @@ it('preserves the previous draft outside the repeated hook and all other musical
   expect(draft.contacts.filter(outside)).toEqual(previous.contacts.filter(outside));
   expect(draft.axes).toEqual(previous.axes);
   expect(draft.music).toEqual(previous.music);
-  expect(draft.camera).toEqual(previous.camera);
 });

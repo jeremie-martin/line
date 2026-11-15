@@ -30,7 +30,7 @@ import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BOOM, BUILD_WORDS, CUT_WORDS, DROP, DURATION, HOOKS, INTRO_RUN, INTRO_WORDS, KICKS, LAST_DRUM,
   OUTRO_RUN, OUTRO_WORDS, REENTRY, RESET_WORDS, SILENCE_T0,
-  kf, kickStrength, landings, music, overlayMeta, wordStrength, zoom,
+  kf, kickStrength, landings, music, overlayMeta, wordStrength,
 } from "../music.ts";
 
 const WORDS = [...INTRO_WORDS, ...INTRO_RUN, ...BUILD_WORDS, ...CUT_WORDS, ...RESET_WORDS, ...OUTRO_WORDS, ...OUTRO_RUN];
@@ -43,10 +43,6 @@ const strength = (t: number) =>
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera: {
-    beatPunch: { threshold: 0.75, amp: 0.12, floor: 0.5, decay: 4, attack: 1, dir: "in" },
-    zoom: { smoothingFrames: 8, keyframes: zoom },
-  },
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   axes: {
     air: keyframes(kf([

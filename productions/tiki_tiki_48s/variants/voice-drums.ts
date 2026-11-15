@@ -126,7 +126,6 @@ for (const {t} of authored) if (t !== BREATH && t !== LAST_NOTE) m.event(t); // 
 const spec: Spec = {
   duration: m.DURATION,
   music: m.music,
-  camera: {zoom: {smoothingFrames: 8, keyframes: m.zoom}},
   contacts: beats(authored.sort((a, b) => a.t - b.t)),
   axes: {
     // Air is how far the rider leaves the line, and follows how much room the music leaves between its sounds:

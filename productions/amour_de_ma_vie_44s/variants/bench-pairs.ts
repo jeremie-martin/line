@@ -34,7 +34,7 @@ import { keyframes } from "../../../scripts/v0/core/curves.ts";
 import { beats } from "../../../scripts/v0/core/beats.ts";
 import {
   BASS_PICKUP, BREAK_LAST, BREAK_START, DRUMS_IN, DURATION, ENTRY_CLUSTER, EXPOSED_WORDS, FILL, PAIRS, REENTRY,
-  bass, camera, drum, landings, music, preroll, start, word,
+  bass, drum, landings, music, preroll, start, word,
 } from "../music.ts";
 
 export { overlayMeta } from "../music.ts";
@@ -57,7 +57,6 @@ export const bench = {
 const spec: Spec = {
   duration: DURATION,
   music,
-  camera,
   contacts: beats(times.map((t) => ({ t, impact: strength(t) }))),
   start,
   preroll,

@@ -4,12 +4,12 @@
  "note": "answers: the hit movement settings saved for a song (start, amount px at 0.85, out s, back s, shake multiple).",
  "clips": [
   {
-   "id": "tiki",
-   "song": "tiki"
+   "id": "tiki_tiki_48s",
+   "song": "tiki_tiki_48s"
   },
   {
-   "id": "circus",
-   "song": "circus"
+   "id": "circus_minimus_77s",
+   "song": "circus_minimus_77s"
   }
  ]
 }

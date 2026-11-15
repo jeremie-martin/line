@@ -18,7 +18,7 @@ const STUDY = 'hit-curve-2026-11', KEYS = ['start', 'amount', 'shake', 'out', 'b
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const q = new URLSearchParams(location.hash.slice(1)), p = {...MOVE_DEFAULT};
 for (const k of KEYS) if (q.has(k) && Number.isFinite(+q.get(k))) p[k] = +q.get(k);
-if (['tiki', 'circus'].includes(q.get('song'))) $('song').value = q.get('song');
+if ([...$('song').options].some(o => o.value === q.get('song'))) $('song').value = q.get('song');
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {hits: 'v1'});
 let ride, mine, today, time = 0, playing = false, rate = 1, loopFrom = null, holding = false, beside = false, ticket = 0, dots = [];
@@ -77,7 +77,7 @@ function light() {
 // ── the picture ──────────────────────────────────────────────────────────
 function loadRide(song) {
   if (!rides.has(song)) rides.set(song, (async () => {
-    const scene = await (await fetch(`/generated/hit-effects/data/${song}.json`)).json();
+    const scene = await (await fetch(`/generated/lab-rides/${song}.json`)).json();
     const [replay, sprites] = await Promise.all([N.replay(scene.track, scene.trace), sheet]);
     const centres = replay.frames.map(f => {const ps = f.points.filter(q => BODY_POINTS.includes(q.name)); return {x: ps.reduce((s, q) => s + q.pos.x, 0) / ps.length, y: ps.reduce((s, q) => s + q.pos.y, 0) / ps.length};});
     return {scene, replay, sprites, hits: prepareHits(scene.account, replay.contacts, centres, new Map(scene.track.lines.map(l => [l.id, l])))};

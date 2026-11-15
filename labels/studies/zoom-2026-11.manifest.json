@@ -4,20 +4,128 @@
  "note": "answers: the zoom saved for a song: the draft it started from and its keyframes ({t song seconds, wide 0 closest to 1 widest}).",
  "clips": [
   {
-   "id": "petrunko",
-   "song": "petrunko"
+   "id": "petrunko_selection",
+   "song": "petrunko_selection"
   },
   {
-   "id": "trouble",
-   "song": "trouble"
+   "id": "trouble_50s",
+   "song": "trouble_50s"
   },
   {
-   "id": "tiki",
-   "song": "tiki"
+   "id": "tiki_tiki_48s",
+   "song": "tiki_tiki_48s"
   },
   {
-   "id": "circus",
-   "song": "circus"
+   "id": "amor_na_praia_46s",
+   "song": "amor_na_praia_46s"
+  },
+  {
+   "id": "amor_na_praia_selection",
+   "song": "amor_na_praia_selection"
+  },
+  {
+   "id": "amour_de_ma_vie_108s",
+   "song": "amour_de_ma_vie_108s"
+  },
+  {
+   "id": "amour_de_ma_vie_44s",
+   "song": "amour_de_ma_vie_44s"
+  },
+  {
+   "id": "believer_78s",
+   "song": "believer_78s"
+  },
+  {
+   "id": "bones_selection",
+   "song": "bones_selection"
+  },
+  {
+   "id": "circus_minimus_77s",
+   "song": "circus_minimus_77s"
+  },
+  {
+   "id": "derniere_danse_coral_selection",
+   "song": "derniere_danse_coral_selection"
+  },
+  {
+   "id": "funk_do_bounce_super_slowed_selection",
+   "song": "funk_do_bounce_super_slowed_selection"
+  },
+  {
+   "id": "funk_estranho_super_slowed_selection",
+   "song": "funk_estranho_super_slowed_selection"
+  },
+  {
+   "id": "let_the_world_burn_selection",
+   "song": "let_the_world_burn_selection"
+  },
+  {
+   "id": "los_voltaje_selection",
+   "song": "los_voltaje_selection"
+  },
+  {
+   "id": "los_voltaje_slowed_selection",
+   "song": "los_voltaje_slowed_selection"
+  },
+  {
+   "id": "los_voltaje_ultra_slowed_selection",
+   "song": "los_voltaje_ultra_slowed_selection"
+  },
+  {
+   "id": "lua_na_praca_selection",
+   "song": "lua_na_praca_selection"
+  },
+  {
+   "id": "luna_bala_44s",
+   "song": "luna_bala_44s"
+  },
+  {
+   "id": "luna_bala_original_selection",
+   "song": "luna_bala_original_selection"
+  },
+  {
+   "id": "luna_bala_slowed_selection",
+   "song": "luna_bala_slowed_selection"
+  },
+  {
+   "id": "montagem_coma_selection",
+   "song": "montagem_coma_selection"
+  },
+  {
+   "id": "montagem_tomada_extended_selection",
+   "song": "montagem_tomada_extended_selection"
+  },
+  {
+   "id": "montagem_tomada_slowed_selection",
+   "song": "montagem_tomada_slowed_selection"
+  },
+  {
+   "id": "montagem_tomada_super_slowed_selection",
+   "song": "montagem_tomada_super_slowed_selection"
+  },
+  {
+   "id": "no_batidao_selection",
+   "song": "no_batidao_selection"
+  },
+  {
+   "id": "no_batidao_slowed_selection",
+   "song": "no_batidao_slowed_selection"
+  },
+  {
+   "id": "passo_bem_solto_selection",
+   "song": "passo_bem_solto_selection"
+  },
+  {
+   "id": "passo_bem_solto_slowed_selection",
+   "song": "passo_bem_solto_slowed_selection"
+  },
+  {
+   "id": "passo_bem_solto_super_slowed_selection",
+   "song": "passo_bem_solto_super_slowed_selection"
+  },
+  {
+   "id": "valhalla_40s",
+   "song": "valhalla_40s"
   }
  ]
 }

@@ -12,7 +12,8 @@ import {RANGE, wideAt, laneScale, zoomOfWide} from '/scripts/video/zoom.js';
 const STUDY = 'zoom-2026-11';
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const q = new URLSearchParams(location.hash.slice(1));
-if (['petrunko', 'trouble', 'tiki', 'circus'].includes(q.get('song'))) $('song').value = q.get('song');
+// the songs are the menu's options (zoom.html); each has a scene in generated/lab-rides/<song>.json (prepare-rides.mjs)
+if ([...$('song').options].some(o => o.value === q.get('song'))) $('song').value = q.get('song');
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {hits: 'v1'});
 // the zoom being looked at: a draft's id and its keyframes, which may have been moved
@@ -21,7 +22,7 @@ let ride, lanes = [], mine, today, scale, time = 0, playing = false, holding = f
 
 function loadRide(song) {
   if (!rides.has(song)) rides.set(song, (async () => {
-    const scene = await (await fetch(`/generated/hit-effects/data/${song}.json`)).json();
+    const scene = await (await fetch(`/generated/lab-rides/${song}.json`)).json();
     const [replay, sprites] = await Promise.all([N.replay(scene.track, scene.trace), sheet]);
     const centres = replay.frames.map(f => {const ps = f.points.filter(q => BODY_POINTS.includes(q.name)); return {x: ps.reduce((s, q) => s + q.pos.x, 0) / ps.length, y: ps.reduce((s, q) => s + q.pos.y, 0) / ps.length};});
     const hits = prepareHits(scene.account, replay.contacts, centres, new Map(scene.track.lines.map(l => [l.id, l]))), motion = rideSignals(centres);
@@ -70,6 +71,7 @@ $('line').addEventListener('dblclick', e => {
 
 // ── settings ─────────────────────────────────────────────────────────────
 function build() {
+  if (!ride) return; // a song is loading
   const {scene, replay, sprites} = ride; scale = laneScale(keys, ride.frames, scene.timing.offset);
   // the picture takes the zoom as a video does: the scene's lane. It keeps the keyframes it was built with.
   mine = createPicture($('mine'), {...scene, zoom: {keyframes: keys.map(k => ({...k}))}}, replay, sprites, N.riderPainter());

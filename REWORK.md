@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: gentle exits by speed (experiment; the candidate to adopt)
+
+After the second review, lighter forms, all by construction in `arc_geometry.ts` (from 6 frames after the catch, a
+support's turning radius is at least the largest of: the old 24 px; a degrees cap; speed² ÷ a push cap). No reversal
+part, nothing rejected for the push cap. 20 specs × 3 seeds against the baseline without terraces and folds:
+
+| variant | complete | score | air rms | turns above 20° after the hit, per ride | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|
+| baseline | 60/60 | 754.6 | 0.040 | 5.6 (above 30°: 2.1) | 0.57 |
+| degrees cap 20° | 60/60 | −1.4 [−5.9, +3.1] | −0.0009 | 0 | 0.42 |
+| 20° and push cap 0.6 px/frame² | 60/60 | +3.0 [−1.8, +7.5] | −0.0012 | 0 | 0.18 (−0.38 [−0.82, −0.02]) |
+| 20° and push cap 0.4 | 59/60 | −4.0 [−9.3, +1.5] | +0.0018 | 0 | 0.08 |
+| 20° and push cap 0.25 | 59/60 | −5.9 [−16.5, +3.0] | +0.0050 | 0 | 0.10 |
+| for reference: the 10° rule after the hit | 60/60 | −9.7 [−14.2, −5.3] | +0.0036 | 0 | 0.03 |
+
+- A degrees cap alone leaves the hard pushes: the push of a turn grows with speed. The push cap is the speed-aware
+  form; a slow rider keeps a tight exit (and its air), a fast one gets a gentle one.
+- 0.6 costs nothing measurable and removes two thirds of the unrecorded hard pushes; tighter caps start to cost air.
+- The two incomplete rides stopped on the compiler's consistency check ("main construction differs"), the fault seen
+  before in baseline rides.
+- **Candidate:** terraces and folds out; degrees cap 20°; push cap 0.6. Not yet done: proper options instead of
+  environment switches, the abandoned v5 account and the rejection rule removed, parity references, the benchmark
+  panel, the owner's look at full rides.
+
 ## November 15: the second review does not confirm the 10° rule
 
 38 answers (`labels/studies/motion-2026-11b.jsonl`): 35 clean, 3 "a little", none "clearly". By class: baseline with a

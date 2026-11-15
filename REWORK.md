@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: apex launches, final round (not adopted yet; for the owner)
+
+All against `foundation-6` (V8 758.8, V7.1 798.8):
+
+| | V8 headline | V7.1 headline | small quiet asks (0–0.1) within ×1.5, V8 / V7.1 | stray strong hits, V8 |
+|---|---|---|---|---|
+| `foundation-6` | | | 54% / 69% | 0.11 |
+| apex launches (6 candidates; all and half the way to an apex arrival) | +0.7 [−2.8, +4.2] | −0.5 [−9.7, +8.6] | 70% / 65% | 0.14 |
+| larger variant (12 candidates; a third, two thirds, all) | −1.7 [−9.6, +6.3] | | 62% / – | 0.17 |
+| air-length twin added | −1.5 [−4.1, +1.1] | | 70% / – | 0.15 |
+
+- V7.1, asks 0.1–0.2 within ×1.5: 87% → 92%; all asks under 0.3: 89% → 88%.
+- The owner's Tiki voice-drums (4 seeds): asks 0–0.1 within ×1.5 83% → 88%, 0.1–0.2 95% → 97%; mean score 762.9 →
+  768.5.
+- **Reading:** the shape is used (11% of committed arcs) and costs nothing on either panel, but its quiet gain holds on
+  V8 and the owner's spec, not on V7.1. Mixed evidence; more candidates did worse. The long spec's loss is a trade in
+  its asks (previous entry), which no launch shape removes.
+
 ## November 15: the air-length twin (result), and why the long spec cannot be fixed by a shape
 
 - **Air-length twin** (`exp/apex-launch-air`; V8 against `foundation-6`): −1.5 [−4.1, +1.1]; quiet asks as with the

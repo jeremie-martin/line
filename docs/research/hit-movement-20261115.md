@@ -260,7 +260,7 @@ centre displacement is an expected, useful result for a rider-centred zoom.
 Validation: absolute thresholds, monotonicity, caps, song independence, requested
 versus realized strength, timing/overlap, frame interpolation, size/translation
 separation, and speed/path metrics have unit coverage. Browser validation compares
-126 frames across both songs, seven cameras, and still/roll/lens effects against
+180 frames across both songs, all ten cameras, and still/roll/lens effects against
 the actual world matrix returned by `picture.draw`; maximum discrepancy is below
 0.000001 design pixel (test tolerance 0.00001 for DOMMatrix trig arithmetic).
 `tests/browser/hit-screen.mjs` also exercises both songs, the 26% setting, and the

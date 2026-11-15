@@ -5,7 +5,7 @@
 - The owner finds steady-rider punch weak, wants to try larger doses, and requires an absolute realized-strength response for future work. Keep historical percentile/request logic only for comparison. Rename slow zoom to song zoom keyframes.
 - Verify Tiki's missed hit near 13.95 s: request 0.71768 < old gate 0.73976, despite realized strength 0.71956 at 13.9336 s. The initial new curve gives it a 7.764% peak pulse.
 - Add threshold/reference-amplitude controls, 13%/26% comparisons, and three camera contexts sharing the same measured-peak pulse. No percentile, no production adoption.
-- Add screen-centre displacement, apparent size, travel and 60 fps speed diagnostics, with a same-passage camera table. Validate against the renderer's actual world transform on 126 frames across both songs; discrepancy below 0.000001 design pixel. Metrics are before colour split, not a learned quality score.
+- Add screen-centre displacement, apparent size, travel and 60 fps speed diagnostics, with a same-passage camera table. Validate against the renderer's actual world transform on 180 frames across both songs; discrepancy below 0.000001 design pixel. Metrics are before colour split, not a learned quality score.
 
 ## November 15: isolate the punch the owner feels
 

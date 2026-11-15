@@ -234,7 +234,7 @@ function screenCharts(duration) {
   if($('screenComparison').open)screenTable();
 }
 function screenTable() {
-  const cameras=[['current','Current direction follower'],...PUNCH_COMPARISONS,...REALIZED_COMPARISONS];
+  const cameras=[['current','Current direction follower'],['old-ten','Historical follower · ten points'],...PUNCH_COMPARISONS,...REALIZED_COMPARISONS];
   $('screenTable').innerHTML='<table><tr><th>Camera · same selected effect</th><th>Max added shift · px</th><th>Max added size · %</th><th>Centre travel · px</th><th>Peak speed · px/s</th></tr>'+cameras.map(([camera,label])=>{const m=screenMetrics(screenSamples(camera,mode,Math.min(6,end-home)));return `<tr><td>${label}</td><td>${m.maxShift.toFixed(1)}</td><td>${m.maxSize.toFixed(1)}</td><td>${m.travel.toFixed(1)}</td><td>${m.maxSpeed.toFixed(0)}</td></tr>`;}).join('')+'</table>';
 }
 function responsePlot() {

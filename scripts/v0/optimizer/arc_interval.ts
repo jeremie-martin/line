@@ -7,7 +7,7 @@ import { getPhysicsFrameCount, PhysicsFrameLimitExceeded } from '../../lib/detec
 import { fragmentInterval } from './contact_interval.ts';
 import { resolveIntervalOptions, openInterval, type IntervalSearch } from './arc_interval_state.ts';
 import { evaluate } from './arc_evaluate.ts';
-import { proposeInitialControls, proposeAimedLaunches, proposeOpposingEntries, proposeUpperReceivers, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
+import { proposeInitialControls, proposeOpposingEntries, proposeUpperReceivers, proposeCompactFolds, proposeObservedReceivers, recoverInitialization } from './arc_proposals.ts';
 import { coordinateSearch, guidanceSearch } from './arc_local_search.ts';
 import type { IntervalOverrides } from './arc_options.ts';
 import type { ArcCompileContext } from './arc_compile_context.ts';
@@ -34,7 +34,6 @@ export function searchInterval(ctx: ArcCompileContext, engine: Engine, i: number
       proposeCompactFolds(s);
       proposeObservedReceivers(s);
       recoverInitialization(s);
-      proposeAimedLaunches(s);
       coordinateSearch(s);
       guidanceSearch(s);
     }

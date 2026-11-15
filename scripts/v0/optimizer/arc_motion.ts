@@ -45,6 +45,9 @@ function compileArcMotionOnce(spec: Spec, seed: number, options: ArcMotionOption
       ctx.work.searchBudgetExhausted = true;
       seq.failure = {reason: 'budget'};
     }
+    // Search is over. Its memo owns discarded candidates, not the committed
+    // track; do not keep them alive through the independent verification replays.
+    ctx.lineage.memoContexts.clear();
     return finalizeArcTrack(ctx, seq);
   } finally {
     disposeJudge();

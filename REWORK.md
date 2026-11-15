@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: memory ownership audit (hypothesis before changes)
+
+- Audit simple ownership/data-flow opportunities, not low-level tuning. Diagnostic
+  standard Luna compile with forced collection at sampled search boundaries:
+  live heap 12 MiB before, 110.4 MiB near search end (32 memo contexts, 11,419
+  entries, 462,870 candidate line references), 13.3 MiB after completion while
+  retaining its result. Forced GC is diagnostic only; these are not speed samples.
+- Release search-only memo records after search ends, before final independent
+  verification. Finalization reads committed geometry and measurements, not memo
+  entries. Hypothesis: lower live retention during validation with identical
+  tracks, charged work and complete outputs; no promised whole-compile peak-RSS gain.
+- Bound automatic worker sizing by the OS memory constraint as well as host RAM.
+  Keep explicit `--jobs` overrides and the existing 2 GB/worker policy; the default
+  remains twenty on this host. Test the constrained/unconstrained paths.
+- Validate ownership boundaries, retained candidate facts, full parity and checks.
+  No impact ruler, physics, geometry or search-policy changes.
+- Measured finalization-entry live heap: 121.03 → 28.85 MiB (forced-GC diagnostic,
+  separate fresh processes), exact track/work. This is 92.18 MiB less retained
+  state at that boundary, not a whole-compile peak-RSS or speed claim. Six repeated
+  full compiles retain only 12.37–12.71 MiB after result release and collection.
+  Full `npm run check` passes in 2.4 minutes: 628 tests, 32 Rust tests, exact
+  physics/engine, unchanged compile/judge parity and smoke. Details:
+  `docs/research/compiler-memory-ownership-20261115.md`.
+
 ## November 15: throughput and memory measured; no compiler optimization retained
 
 - Restored foundation `704dd39c` passes full `npm run check` (626 tests, 32 Rust,

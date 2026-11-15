@@ -104,7 +104,8 @@ plan and its log.
 
 - Check the current machine before choosing concurrency or reading old timings.
 - Evaluation, comparison and parity share one worker pool: one worker per CPU and
-  per 2 GB of memory, whichever is fewer, at most 23. The default is detected
+  per 2 GB of memory (host RAM bounded by the OS process limit), whichever is fewer,
+  at most 23. The default is detected
   from the machine, not a fixed core count; `--jobs=N` overrides it.
 - The speed goal is in [docs/performance-goal.md](docs/performance-goal.md), and
   `npm run perf:score` is its number. Speed decisions use `npm run perf:engine --

@@ -8,7 +8,10 @@ import {availableParallelism, totalmem} from 'node:os';
 /** Real compiles peak under 1 GiB; the 108 s ride reaches about 1.5 GiB. */
 const WORKER_BYTES = 2_000_000_000;
 
-export function defaultWorkerJobs(cpus = availableParallelism(), memoryBytes = totalmem()): number {
+// In a container the host can have much more RAM than this process may use.
+// A zero constraint means unknown; an unlimited sentinel is bounded by totalmem.
+export function defaultWorkerJobs(cpus = availableParallelism(),
+  memoryBytes = Math.min(totalmem(), process.constrainedMemory() || Infinity)): number {
   return Math.max(1, Math.min(23, cpus, Math.floor(memoryBytes / WORKER_BYTES)));
 }
 

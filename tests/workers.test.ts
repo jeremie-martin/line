@@ -1,4 +1,5 @@
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
+import {availableParallelism, totalmem} from 'node:os';
 import {defaultWorkerJobs, workerJobs, WorkerPool} from '../scripts/lib/workers.ts';
 
 it('bounds compiler workers by both CPU availability and memory', () => {
@@ -7,6 +8,18 @@ it('bounds compiler workers by both CPU availability and memory', () => {
   expect(defaultWorkerJobs(64, 62_000_000_000)).toBe(23);
   expect(defaultWorkerJobs(128, 256_000_000_000)).toBe(23);
   expect(defaultWorkerJobs(1, 1_000_000_000)).toBe(1);
+});
+
+it('respects an OS memory limit without changing explicit job overrides', () => {
+  const constraint = vi.spyOn(process, 'constrainedMemory');
+  try {
+    for (const bytes of [1_000_000_000, 4_000_000_000, 0, Number.MAX_VALUE]) {
+      constraint.mockReturnValue(bytes);
+      const expected = defaultWorkerJobs(availableParallelism(), Math.min(totalmem(), bytes || Infinity));
+      expect(workerJobs()).toBe(expected);
+      expect(workerJobs('20')).toBe(20);
+    }
+  } finally {constraint.mockRestore();}
 });
 
 it('validates an explicit job count', () => {

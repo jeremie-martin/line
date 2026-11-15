@@ -1,5 +1,16 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: `foundation-5` (fewer rails, 6 px margin) on V7.1 and held out (measured; owner's choice stands)
+
+Against `foundation-3` (before the two rail changes), 4 seeds:
+- **V7.1:** headline −11.1 [−13.3, −8.9], 2 specs up, 33 down; explicit −6.1; every ride finished; rails 55% → 41% of
+  gaps, open arcs 36% → 47%, clean upper hits 8.1% → 10.3%; body drag −15%; strong extra impacts 0.07 → 0.10.
+- **Held out** (16 rides): −8.2 [−46.2, +29.8], 1 up, 3 down; rails 59% → 45%; clean upper hits 11.5% → 14.0%; body
+  drag −13%; head-down strong arrivals +11%.
+- Consistent with V8 (−9.0 then −0.5): the owner chose fewer rails knowing the score cost; nothing changes.
+- (A first held-out run failed on a generation lock: it shared the candidate's arm with the V7.1 run started 30 s
+  earlier. Runs that compile the same arm must not overlap.)
+
 ## November 15: what makes a quiet catch soft, and Q13: a level arrival before quiet catches (stated before running)
 
 - **Correction:** an engine probe suggested a soft touchdown needs the sled lying along its path (an apex landing read

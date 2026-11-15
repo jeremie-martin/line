@@ -7,7 +7,7 @@ for (const [s, v] of specs) for (const seed of [101, 202, 303]) {
   const r = ride(`generated/visible/${tag}/${s}/${v}/s${seed}`), p = r.p, tg = p.impactEvaluation.targets;
   for (let k = 0; k < tg.length; k++) {const hit = tg[k].frame, nx = k + 1 < tg.length ? tg[k + 1].frame : p.case.durationFrames, {early, late} = touchedIn(r, hit, hit, nx - 3);
     const sec = p.sections.find((x: any) => Math.abs(Math.round(x.start * 40) - hit) <= 3); if (!sec) continue;
-    const style = p.production.styles[sec.section] ?? {}, fam = sec.shape + (sec.guideContactFrames ? ' +rail touched' : '');
+    const fam = sec.shape + (sec.guideContactFrames ? ' +rail touched' : '');
     const o = by[fam] ??= {n: 0, bump: 0, early: 0, late: 0, sum: 0}; o.n++;
     const all = roughestReversal(r.lines, new Set([...early, ...late])); if (all <= REVERSAL_LIMIT) continue;
     o.bump++; o.sum += all; sizes.push(all); if (roughestReversal(r.lines, early) > REVERSAL_LIMIT) o.early++; if (roughestReversal(r.lines, late) > REVERSAL_LIMIT) o.late++;}

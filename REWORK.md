@@ -1,5 +1,34 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: the smooth-ground rule, what it costs and why (experiment, not adopted)
+
+All on 20 specs × seeds 101, 202, 303, v3 account, terraces and folds out; differences against that baseline
+(`notf3`, 754.6), paired by spec, 95% bootstrap over specs (`paired.ts`, `cost.ts`, `bumpsrc.ts`, `airloss.ts`).
+
+| variant | score | hit error | air rms | speed rms | viable candidates | unrecorded pushes ≥ 0.4 per ride |
+|---|---|---|---|---|---|---|
+| baseline | 754.6 | 0.0092 | 0.040 | 0.060 | 66% | 0.57 |
+| both parts on all touched ground, by rejection | −23.1 [−27.7, −18.7] | +0.0022 | +0.0034 | +0.0062 | 53% | 0.05 |
+| the same, supports drawn with gentle exits | −16.6 [−21.7, −11.7] | +0.0017 | +0.0038 | +0.0045 | 58% | 0.00 |
+| reversal part alone | −12.7 [−17.5, −8.2] | +0.0014 | +0.0002 | +0.0038 | | 0.58 |
+| late-turn part alone (gentle exits) | −5.9 [−11.0, −1.1] | +0.0006 | +0.0025 | +0.0024 | | 0.05 |
+| **both parts, only on ground touched after the hit's frames, gentle exits** | −9.7 [−14.2, −5.3] | +0.0007 | +0.0036 | +0.0027 | 61% | 0.03 |
+| the same at twice the budget, against the baseline at twice the budget | −6.5 [−11.6, −1.3] | +0.0006 | +0.0051 | +0.0009 | | 0.08 |
+
+- **Gentle exits by construction** (`LATE_RADIUS` in `arc_geometry.ts`: from 6 frames after the catch the heading
+  changes no faster than 9° per 30 px) recover a third of the rejection's cost: the search is offered compliant
+  supports instead of refusing lips.
+- **Two thirds of the refused reversals sat on ground touched within the hit's own frames** (in the baseline: 22%
+  of sections there, 10% after). On the owner's answers, judging only the ground after the hit is more precise (15
+  flagged, 2 clean, against 21 flagged, 6 clean) and misses, among his "clearly", only two folds. Hence the rule's
+  final form: what the ground does within the hit's frames belongs to the hit.
+- **What is left is air.** With the final form the loss is in gaps asking 0.6 air or more (rms 0.046 → 0.052, bias
+  −0.018 → −0.023): a gentle launch needs more ground than a lip. Twice the budget returns 5.6 points to the rule and
+  2.4 to the baseline; at twice the budget the difference is air alone.
+- In every variant with the rule, every ride completes and no section breaks the rule in the final track.
+- Open: the 10° limits (the owner's clean stretches stop at 8°, his named lips start at 21°; nothing judged between);
+  songs outside these 20 specs; the owner's eye on the result.
+
 ## November 15: the smooth-ground rule, three seeds (experiment, not adopted)
 
 **The rule** (`ground_smoothness.ts`, on with `LINE_GROUND=on`), on the lines the rider touches in a section:

@@ -66,11 +66,11 @@ export function sharpestTurn(lines: readonly GroundLine[], touched: ReadonlySet<
  * Fitted to the owner's 41 answers of 2026-11-15: it flags 15 stretches (2 of them clean) and passes 26 (21 clean;
  * of the 5 others, 2 are folds and 3 are scallops marked "a little"). Judging the hit's frames too flagged 6 clean
  * stretches and refused twice as many candidates. LINE_GROUND_PART=all restores that wider form for comparison. */
-export const GROUND_RULE = process.env.LINE_GROUND === 'on' || process.env.LINE_GROUND === 'built', REVERSAL_LIMIT = 10, LATE_TURN_LIMIT = 10, HIT_FRAMES = 6;
+export const GROUND_RULE = process.env.LINE_GROUND === 'on' || process.env.LINE_GROUND === 'built', REVERSAL_LIMIT = Number(process.env.LINE_GROUND_LIMIT ?? 10), LATE_TURN_LIMIT = Number(process.env.LINE_GROUND_LIMIT ?? 10), HIT_FRAMES = 6;
 /** LINE_GROUND=built: supports are also drawn to meet the second part. From HIT_FRAMES after the catch, a support's
  * heading changes no faster than this radius allows (30 px of ground turn 9°, inside the 10° limit), so the search
  * is offered gentle exits instead of lips it would have to refuse. The rule above stays the check. */
-export const LATE_RADIUS = process.env.LINE_GROUND === 'built' ? 30 / (9 * Math.PI / 180) : 0;
+export const LATE_RADIUS = process.env.LINE_GROUND === 'built' ? 30 / (.9 * LATE_TURN_LIMIT * Math.PI / 180) : 0;
 export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (frame: number) => readonly number[], hit: number, to: number): boolean {
   const all = new Set<number>(), late = new Set<number>();
   for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}

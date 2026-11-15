@@ -285,6 +285,17 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
+/** How much of the level arrival prior applies before a catch asked at `ask` (REWORK.md, November 15: Q13): the
+ * mirror of `steepArrival`. A quiet catch lands softly and keeps its asked speed when the rider arrives level, near the
+ * top of its flight (V8: arrivals within 5° of level leave the next flight's speed error at −0.02, arrivals falling 30°
+ * or more at +0.05, and at +0.14 when quiet catches are priced harder). A smooth step: all of it at
+ * `levelArrivalBelow` − 0.15 and under, none 0.15 above. */
+export function levelArrival(ask: number, search: {levelArrivalBelow?: number} | undefined) {
+  if (search?.levelArrivalBelow === undefined) return 0;
+  const t = Math.max(0, Math.min(1, (search.levelArrivalBelow + .15 - ask) / .3));
+  return t * t * (3 - 2 * t);
+}
+
 /** Arrival speed and heading priors toward the next catch. Appends residuals;
  * returns the cost with each term added in order, and the heading prior's part of it. */
 function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: number}, state: any, residuals: number[], cost: number) {
@@ -317,8 +328,11 @@ function addArrivalPriors(s: IntervalSearch, finalVelocity: {x: number; y: numbe
       const inverted = Math.max(0, -ax / len);   // past vertical: the nose points backward on screen
       r3 = weight * Math.sqrt(kinetic) * options.impactSearch.uprightArrival * (backward + inverted);
     }
-    residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []));
-    cost += r1 * r1 + r2 * r2 + r3 * r3;
+    // before a quiet catch, the arrival is drawn toward level (the mirror of the steep prior above)
+    const level = levelArrival(nextImpact, options.impactSearch);
+    const r4 = level > 0 ? weight * Math.sqrt(level) * deg(Math.atan2(finalVelocity.y, finalVelocity.x)) / 45 : 0;
+    residuals.push(r1, r2, ...(options.impactSearch?.uprightArrival ? [r3] : []), ...(options.impactSearch?.levelArrivalBelow !== undefined ? [r4] : []));
+    cost += r1 * r1 + r2 * r2 + r3 * r3 + r4 * r4;
   }
   if (i < contacts.length - 1 && (options.headingWeight ?? 0) > 0 && steep < 1) {
     const angle = deg(Math.atan2(finalVelocity.y, finalVelocity.x));

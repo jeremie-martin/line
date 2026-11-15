@@ -5,12 +5,12 @@ import {CONTACT_IMPACT_CONTRACT, contactSpeedGains, type ContactImpactFrame, typ
  * next catch takes on the steep, ask-driven heading and speed prior (as unguided
  * catches do): none 0.2 below it, all of it 0.2 above (arc_evaluate.ts steepArrival);
  * uprightArrival weighs a penalty on arriving head-down or backward at such a catch. */
-export type ImpactSearchOptions = {engagementGainWeight?: number; steepArrivalFrom?: number; uprightArrival?: number};
+export type ImpactSearchOptions = {engagementGainWeight?: number; steepArrivalFrom?: number; uprightArrival?: number; levelArrivalBelow?: number};
 export function validateImpactSearchOptions(options:ImpactSearchOptions|undefined){
   if(!options)return;
   for(const [key,value] of Object.entries(options)){
-    if(!['engagementGainWeight','steepArrivalFrom','uprightArrival'].includes(key)||!Number.isFinite(value)||value<0||
-      (key==='steepArrivalFrom'&&value>1))throw new Error('invalid impact search options');
+    if(!['engagementGainWeight','steepArrivalFrom','uprightArrival','levelArrivalBelow'].includes(key)||!Number.isFinite(value)||value<0||
+      ((key==='steepArrivalFrom'||key==='levelArrivalBelow')&&value>1))throw new Error('invalid impact search options');
   }
 }
 /** Additional local residuals supplement the first four musical coordinates;

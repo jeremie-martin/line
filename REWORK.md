@@ -21,6 +21,11 @@ over a ride's recorded trace):
   are steering in the account and cost nothing.
 - **What the account cannot see at all:** the body's shape. It reads the centre of mass and the spin; the owner reads
   compression of the body as impact.
+- **Inventory** (`tools/measure/body/inventory.mjs`, 6,316 recorded events): the body's shape change over 3 frames
+  correlates 0.60 with the account's motion change at the same events, so hits of equal strength compress the body
+  very differently. Asked hits are measured about right where they are recorded (asks 0.8–1: recorded 0.74, real
+  0.75); the quietest asks peak 2 frames after their recorded start. Which of the two the owner's eye follows is not
+  known; no labels of his exist on body compression.
 
 ## November 15: five songs, four handcrafted specifications each
 

@@ -145,7 +145,7 @@ export function accountContactImpacts(events: readonly ContactImpactEvent[], tar
     let matched = count[up], loss = cost[up] + eventCost[i - 1], how = 1;
     if (count[left] > matched || (count[left] === matched && cost[left] + 1 < loss)) {matched = count[left]; loss = cost[left] + 1; how = 2;}
     const p = pair(i - 1, j - 1);
-    if (Math.abs(p.offset) <= c.matchFrames && (count[diagonal] + 1 > matched || (count[diagonal] + 1 === matched && cost[diagonal] + p.loss <= loss))) {
+    if ((events[i - 1] as {kind?: string}).kind !== 'motion' && Math.abs(p.offset) <= c.matchFrames && (count[diagonal] + 1 > matched || (count[diagonal] + 1 === matched && cost[diagonal] + p.loss <= loss))) {
       matched = count[diagonal] + 1; loss = cost[diagonal] + p.loss; how = 3;
     }
     count[k] = matched; cost[k] = loss; choice[k] = how;

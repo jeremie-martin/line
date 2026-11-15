@@ -243,8 +243,11 @@ function measureObjective(s: IntervalSearch, traced: Trace) {
   let cost = residuals.reduce((sum, x) => sum + x * x, 0);
   // Every later interval has an account match: inspectTrajectory rejected the others.
   const actualImpact = impact === undefined ? undefined : impactEvents[impactMatch!.event].strength;
-  if (actualImpact !== undefined) cost += (options.impactWeight ?? 2) * (actualImpact - impact!) ** 2;
-  residuals.push(actualImpact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact - impact!));
+  // An ask below what a touchdown can give is an ask for the softest touchdown (REWORK.md, November 15: Q12): the
+  // search aims at the floor instead of bending the ride to undercut it. The ruler is unchanged.
+  const aim = impact === undefined ? undefined : Math.max(impact, options.relativeImpact?.touchdown ?? 0);
+  if (actualImpact !== undefined) cost += (options.impactWeight ?? 2) * (actualImpact - aim!) ** 2;
+  residuals.push(actualImpact === undefined ? 0 : Math.sqrt(options.impactWeight ?? 2) * (actualImpact - aim!));
   const extra = impactSearchResiduals(impactEvents, impactAccount, impactMatch,
     frame - impactRuler.matchFrames, i < contacts.length - 1 ? next - impactRuler.matchFrames : duration + 1);
   // A hit nobody asked for is an impact where 0 was asked: priced on the same relative scale (REWORK.md, November 14: Q1b).

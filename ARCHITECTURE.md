@@ -465,8 +465,8 @@ log):
 - **Preparation:** 2 frames.
 - **The arrival law** (since 2026-11-15; `arrivalLaw` in `repertoire_search.ts`,
   `arrivalTargets` and `arrivalLawHeading` in `arc_evaluate.ts`): every catch
-  wants one arrival heading, 5° + the angle whose tangent is 2 × the ask's push
-  over the next beat's speed: nearly level for a whisper, steep for a hard hit,
+  wants one arrival heading, the angle whose tangent is 2.4 × the ask's push
+  over the next beat's speed: level for a whisper, steep for a hard hit,
   shallower for a fast rider than a slow one for the same hit (a catch's push is
   the speed carried into the line). Ranking prefers it with one weight at every
   ask, and **aimed launches** (`proposeAimedLaunches`, arcs and scattered

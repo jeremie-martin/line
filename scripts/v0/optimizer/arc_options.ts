@@ -68,9 +68,9 @@ export type ArcMotionOptions = Omit<ArcGeometryStyle, 'alignedFoldEntry'> & {
   motionQuality?: MotionSearchOptions;
   /** Twins of the best-ranked candidates launching toward the arrival the next catch asks for (arc_proposals.ts). */
   aimedLaunches?: {count: number; fractions: number[]};
-  /** The arrival law: the heading each catch wants, base + atan(gain × the ask's push / the next speed), in degrees
+  /** The arrival law: the heading each catch wants, atan(gain × the ask's push / the next speed), in degrees
    * (arc_evaluate.ts arrivalTargets). Supersedes the steep prior's heading and the broad heading prior. */
-  arrivalLaw?: {base: number; gain: number};
+  arrivalLaw?: {gain: number};
   /** Quiet misses priced in proportion to the ask (arc_interval_state.ts openInterval). */
   relativeImpact?: {reference: number; softness: number; askFloor: number};
   /** Learned construction memory and policies, by construction memory key. */

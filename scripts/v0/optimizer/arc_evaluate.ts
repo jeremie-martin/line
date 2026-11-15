@@ -285,10 +285,10 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
-/** The arrival law's heading in degrees (+ falling, screen y down): base + the angle whose tangent is gain × the ask's
- * push (px/frame, `impactToRawPx`) over the next beat's speed (px/frame). */
-export function arrivalLawHeading(law: {base: number; gain: number}, push: number, speed: number) {
-  return law.base + deg(Math.atan2(law.gain * push, speed));
+/** The arrival law's heading in degrees (+ falling, screen y down): the angle whose tangent is gain × the ask's push
+ * (px/frame, `impactToRawPx`) over the next beat's speed (px/frame). Level for an ask of 0. */
+export function arrivalLawHeading(law: {gain: number}, push: number, speed: number) {
+  return deg(Math.atan2(law.gain * push, speed));
 }
 
 /** What the next catch asks of the arrival into it: its heading (the arrival law), the arrival speed, and how much of
@@ -307,10 +307,10 @@ export function arrivalTargets(s: IntervalSearch) {
   const desiredArrival = clamp(15 + deg((1 - kinetic) * (impulse / nextSpeed) + kinetic * Math.atan2(impulse, nextSpeed)), 20, 70);
   const angled = options.passiveArrival ? 1 : steep;
   // The arrival law (REWORK.md, November 15): one heading for every catch, rising with the ask and falling with the
-  // next beat's speed: base + the angle whose tangent is gain × the ask's push over that speed. A catch's push is about
-  // the speed the rider carries into the line, so a whisper wants a nearly level arrival, a hard hit a steep one, and a
-  // fast rider a shallower one than a slow rider for the same hit (V8: well-landed catches arrive at 0–10° for asks
-  // under 0.2, at 45° and more for asks of 0.6 and up). It replaces the steep prior's heading and the broad heading prior.
+  // next beat's speed: the angle whose tangent is gain × the ask's push over that speed. A catch's push is about the
+  // speed the rider carries into the line, so a whisper wants a level arrival, a hard hit a steep one, and a fast rider
+  // a shallower one than a slow rider for the same hit (V8: well-landed catches arrive at 0–10° for asks under 0.2, at
+  // 45° and more for asks of 0.6 and up). It replaces the steep prior's heading and the broad heading prior.
   const law = options.arrivalLaw ? arrivalLawHeading(options.arrivalLaw, impulse, nextSpeed) : undefined;
   return {nextImpact, steep, kinetic, arrivalSpeed, desiredArrival, angled, law};
 }

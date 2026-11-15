@@ -213,3 +213,57 @@ both saved rides. Unit tests cover decomposition, gating, decay, and interpolati
 `tests/browser/hit-punch.mjs` verifies the five controls on both songs and the exact
 same-zoom/fixed-position contracts at every half frame, without browser errors.
 No production effect or slow authored zoom has been adopted.
+
+## Realized-strength response and rider-screen diagnostics
+
+The owner feels little punch with the steady-rider version, suggests trying a
+larger dose, and requires any future response to depend on realized strength,
+not a top-percentile gate. Keep historical modes for comparison only. Rename
+“slow zoom” to “song zoom keyframes”: these are the original spec's explicit zoom
+values over song time, unrelated to fold geometry or the follower algorithm.
+
+Tiki near 13.95 s: authored beat 13.91, requested strength 0.71768; old 70th-percentile
+gate 0.73976, so no historical punch. The measured peak is frame 558, song time
+13.9336233766 after the recorded timing offset, realized strength 0.7195592952.
+Circus's nearby authored requests also fall below its explicit 0.8 gate.
+
+The new **study** response uses the same matched measured events as the current
+hit model. No punch up to 0.55; smoothstep to 13% at 0.85; linear growth beyond the
+reference; 35% safety cap. Threshold and reference amplitude are adjustable in the
+lab, including a 26% comparison. This gives Tiki's missed hit a 7.764% peak punch
+at the initial settings. The response is absolute across songs; unrelated events
+never change its amplitude. Max overlap prevents accumulation. It peaks at the
+measured force peak with a 25 ms rise before it and 100 ms exponential recovery,
+cut off after 500 ms, preserving the historical timing shape while replacing its
+strength source. This offline anticipation is explicit; it is not a claim of
+causal online feedback or a return to authored beat timing.
+
+Three contexts share this exact dose: old follower responding to zoom, old follower
+with the rider's no-punch screen path retained, and the current direction follower
+with a rider-centred pulse. No slow song zoom is needed in any of these. No response
+or threshold has been adopted in production.
+
+Screen diagnostics project the same ten physical body points through the selected
+camera, added translation, rotation and scale. Report the body centre, RMS radius
+(rotation-invariant apparent size), total centre travel and peak centre speed at
+60 fps. Added displacement/size are relative to that camera with its punch and
+added hit motion removed; the historical combined mode retains the song keyframes
+in its counterfactual. Actual screen speed includes normal following motion. The
+same-passage table compares all camera choices with the selected hit effect.
+
+These measurements are before colour split: a split creates multiple fringes and
+a partial clean-rider overlay, so it has no single unambiguous raster centre. They
+exclude artwork beyond the physical points (e.g. scarf). They describe geometry,
+not perceived impact or aesthetic quality. A large size pulse with zero added
+centre displacement is an expected, useful result for a rider-centred zoom.
+
+Validation: absolute thresholds, monotonicity, caps, song independence, requested
+versus realized strength, timing/overlap, frame interpolation, size/translation
+separation, and speed/path metrics have unit coverage. Browser validation compares
+126 frames across both songs, seven cameras, and still/roll/lens effects against
+the actual world matrix returned by `picture.draw`; maximum discrepancy is below
+0.000001 design pixel (test tolerance 0.00001 for DOMMatrix trig arithmetic).
+`tests/browser/hit-screen.mjs` also exercises both songs, the 26% setting, and the
+all-camera table. Prepared-picture/observer caches are cleared on response changes
+so interactive tuning does not retain unbounded camera paths. Production renderer,
+compiler, physics and rulers are unchanged.

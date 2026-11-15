@@ -1,3 +1,4 @@
+import {realizedHits, realizedPunchAt, PUNCH_DEFAULT} from './hit-motion-realized.mjs';
 // Recovered from pre-one-canvas scripts/lib/video_options.ts (281f6390^).
 // Original production: authored log2 zoom, cubic easing, ×1.8; top 30% authored
 // contacts punch 6.5–13%, one-frame anticipation, four-frame exponential recovery.
@@ -34,8 +35,9 @@ export function legacyPunchAt(camera, contacts = [], time) {
 
 /** Actual camera samples: the renderer interpolates 40 Hz frames, including the pulse.
  * Separating the lane and multiplier leaves the old combined path unchanged. */
-export function cameraZoomAt(mode, scene, frame) {
+export function cameraZoomAt(mode, scene, frame, settings = PUNCH_DEFAULT) {
   const sample = f => {
+    if (mode.startsWith('measured-')) return {base: 6.2, zoom: 6.2 * realizedPunchAt(realizedHits(scene), f / 40, settings)};
     const authored = mode === 'old-authored' || mode === 'old-zoom';
     const enabled = ['old-authored', 'old-punch', 'old-punch-locked'].includes(mode);
     const base = authored ? legacyZoomAt(scene.authoredCamera, scene.authoredContacts, f / 40, false) : 6.2;

@@ -3,8 +3,12 @@ import step from '/generated/hit-effects/follower.js';
 import {cameraZoomAt} from './hit-motion-zoom.mjs';
 import {W, H, createFraming} from '../../scripts/video/camera.js';
 const BODY = new Set(['BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT']);
-export function framingFor(mode, replay, scene) {
+export function framingFor(mode, replay, scene, settings) {
   if (mode === 'current') return createFraming;
+  if (mode === 'measured-current') return (...args) => {
+    const frame = createFraming(...args);
+    return (time, at, look) => {const v = frame(time, at, look); return {...v, z: v.z * cameraZoomAt(mode, scene, at, settings).zoom / 6.2};};
+  };
   return motion => {
     const centres = mode !== 'old-ten' ? replay.frames.map(f => {
       const p = f.points.filter(p => BODY.has(p.name));
@@ -12,8 +16,8 @@ export function framingFor(mode, replay, scene) {
     }) : motion.centres;
     let c = centres[0];
     const cams = centres.map((p, f) => {
-      const z = cameraZoomAt(mode, scene, f).zoom;
-      const followZoom = mode === 'old-punch-locked' ? 6.2 : z;
+      const z = cameraZoomAt(mode, scene, f, settings).zoom;
+      const followZoom = mode.endsWith('-locked') ? 6.2 : z;
       c = step(c, p, {zoom: followZoom, width: W, height: H});
       const r = motion.centres[f];
       return {x: r.x, y: r.y, z, ax: W / 2 + (r.x - c.x) * followZoom, ay: H * 0.36 + (r.y - c.y) * followZoom};

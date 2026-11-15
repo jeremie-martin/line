@@ -25,6 +25,7 @@ import { observedReceiver } from './observed_receiver.ts';
 import { impactSearchResiduals, engagementGainResiduals } from './impact_search.ts';
 import { impactRuler } from './impact_accounts.ts';
 import { objectiveAxes, uncappedObjectiveAxes, type IntervalSearch, type Near, type Fragments } from './arc_interval_state.ts';
+import {roughestReversal, GROUND_LIMIT} from './ground_smoothness.ts';
 import {searchRank, type CandidateGeometry, type CandidateMemo, type EvaluatedCandidate, type MeasuredCandidate} from './arc_candidates.ts';
 
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
@@ -222,6 +223,11 @@ function inspectTrajectory(s: IntervalSearch, c: ArcMotionControl, added: Candid
     if (!fulfillment.fulfilled) {
       return {reason: 'construction:' + fulfillment.reasons.join(','), near: {c, deficit: constructionDeficit(fulfillment)}} as Rejection;
     }
+  }
+  if (GROUND_LIMIT !== undefined) {
+    const touched = new Set<number>();
+    for (const f of raw.frames.slice(frame)) for (const id of f.contactLineIds) touched.add(id);
+    if (roughestReversal(added, touched) > GROUND_LIMIT) return {reason: 'rough_ground'} as Rejection;
   }
   return {state, raw, det, observedImpacts, allImpactEvents, impactEvents, impactAccount, impactMatch, request};
 }

@@ -12,7 +12,7 @@ export function wiggle(p,t0,t1,reach=60,nearPx=28){const F=p.trace.frames,a=Math
     while(l&&guard++<5000){let h=Math.atan2(l.y2-l.y1,l.x2-l.x1)*180/Math.PI;if(prev!==null){while(h-prev>180)h-=360;while(h-prev<-180)h+=360;}const seg=Math.hypot(l.x2-l.x1,l.y2-l.y1);hs.push(h);ds.push(d+seg/2);d+=seg;prev=h;l=byStart.get(key(l.x2,l.y2));}
     len+=d;
     // turning points of the heading
-    for(let i=1;i+1<hs.length;i++){const up=hs[i]-hs[i-1],dn=hs[i+1]-hs[i];if(up*dn>=0)continue;
+    let bend=0;for(let i=0;i+1<hs.length;i++){const next=Math.sign(hs[i+1]-hs[i]),turns=next!==0&&bend!==0&&next!==bend;if(next!==0)bend=next;if(!turns)continue;
       let before=0,after=0;for(let k=i-1;k>=0&&ds[i]-ds[k]<=reach;k--)before=Math.max(before,Math.abs(hs[i]-hs[k]));for(let k=i+1;k<hs.length&&ds[k]-ds[i]<=reach;k++)after=Math.max(after,Math.abs(hs[k]-hs[i]));
       const u=Math.min(before,after);total+=u;worst=Math.max(worst,u);}}
   return {total,worst,len};}

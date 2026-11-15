@@ -1,5 +1,21 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: step back; where Q10 loses; Q12 (stated before running)
+
+- **Honest account of the night:** comparison runs take 4–14 minutes (V8 alone at 40 jobs: 4.4), not the hour or two
+  reported; the quiet-ask work ran 22:45–00:19 and stopped, not eight hours. The rail adoptions (`foundation-4`, `-5`)
+  were judged on V8 only; V7.1 and held out are now running.
+- **Disk:** 86 GB of unreferenced folders from July–October deleted with the owner's agreement (`legacy`,
+  `benchmark-v4`, `reviews`, `analysis`, `studies`, `budget-telemetry`, three September workspaces, `archive`'s
+  untracked agent checkouts). Kept: anything a doc or tool points to.
+- **Where Q10 (reference 0.3) loses, by spec:** no quiet asks (9 specs) 0.0; quiet asks none exactly 0 (25) −1.0; some
+  asks exactly 0 (15) −15.7 (correlation with the share of zero asks −0.59). Proportional pricing is nearly free where
+  the ask is reachable; the cost is the search bending rides to undercut a touchdown's floor (about 0.07), which an ask
+  of 0 still demands as a target.
+- **Q12** (`exp/quiet-target-floor`): Q10 at 0.3 with the search's target for an ask below the floor set at the floor
+  (an ask of 0 asks for the softest touchdown). The ruler is unchanged. **Hypothesis:** specs with zero asks lose
+  little (about today's landings there); positive quiet asks keep Q10's gain; headline within about −1.
+
 ## November 15 (night): Q11 result, and where the quiet-ask work stands (nothing adopted)
 
 - **Q11** (Q10 at 0.4, hits nobody asked for priced ×1.5): headline −9.7 [−16.4, −2.9]; explicit −44.1; strong extra

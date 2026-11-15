@@ -1,5 +1,32 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: unasked motion charged (experiment on `exp/visible-motion`, not adopted)
+
+- **First attempt, rejected:** events redefined (floor 0.8 → 0.2, a renewed strike starts at most 3 frames before
+  its peak). The account's extras fell 36×on Valhalla `still-drop`, the independent readability measure barely moved
+  (quiet hits drowned 55% → 39%; Trouble `cycle` unchanged): within one compile the search put its pushes just past
+  the event window behind a shallow valley. Any rule about what counts as an event leaves such a place.
+- **Second attempt, `line.strike.v5`:** v3's events, plus one `motion` event for every run of contact frames that
+  belongs to no event: strength = root of Σ max(0, m − 0.06)² ÷ 1.5, m the 2-frame whole-body motion change that
+  measures a hit. It never matches a beat, so it is charged as an extra. Every contact frame is in a hit or charged.
+- **Existing 59 rides recounted:** hit error 0.0090, extras 0.0008 under v3, 0.0165 under v5.
+- **Compiled under v5, one seed each** (`tools/measure/body/clarity.ts`, replayed through the engine):
+
+| | quiet hits drowned | unasked ≥ the hit | mean loudest unasked | hit error | air / speed rms |
+|---|---|---|---|---|---|
+| Valhalla `still-drop` 303, before | 55% | 35% | 0.150 | 0.0013 | 0.047 / 0.041 |
+| after | 24% | 13% | 0.100 | 0.0039 | 0.067 / 0.058 |
+| Trouble `cycle` 202, before | 40% | 19% | 0.088 | 0.0085 | 0.039 / 0.076 |
+| after | 12% | 6% | 0.073 | 0.0139 | 0.043 / 0.065 |
+
+- The two hard turns at 5 s and 7 s are gone; between 10.5 and 16.5 s no unasked motion above 0.09.
+- **Costs:** hit error up (quiet touchdowns in the opening land at 0.22–0.33 for asks of 0.1); air and speed a
+  little worse. The search's learned proposals and ranking were built under v3 and are not adapted.
+- **Test of the form:** body shape moves with the push (r 0.57) about as much as with its change (0.60); a steady
+  push moves it 60% as much per unit. No case for charging only changes; the soft floor keeps resting on a line free.
+- Videos: `generated/videos/visible/`. Not yet done: more songs and seeds, loud songs, the paired panel, parity
+  references, an independent review.
+
 ## November 15: how far the unseen body motion goes (measured; corrects the entry below)
 
 Owner: treat the root cause, check its extent first, own the investigation. Measured on the 59 handcrafted rides with

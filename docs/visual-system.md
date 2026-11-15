@@ -113,3 +113,11 @@ The collection's best themes were found by looking, not derived from rules.
 | `scripts/video/theme.js`, `grade.js` | a frame's colours: drop switch, then the colour response to intensity |
 | `scripts/produce/render_repertoire.ts` | a batch: every valid ride of a study, each with its chosen look and a record |
 | `generated/concept-lab/` | the lab (`index.html`, `lab.js`), the collection page, the judging site (`rate/`) |
+
+## Hit movement study (not production defaults)
+
+`generated/concept-lab/hit-motion.html` compares current, recovered older, and new hit
+movement on original-spec Tiki and Circus Minimus. It uses the same canvas renderer
+and current themes. Camera following, hit movement and colour split can be isolated;
+curves use the same functions as playback. Reconstruction limits and verification:
+`docs/research/hit-movement-20261115.md`. No candidate is adopted automatically.

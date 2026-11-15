@@ -55,6 +55,7 @@ export function summarize(cell: any) {
     'strong arrivals inverted/backward': cell.guards?.strongInverted ?? NaN,
     'body drag s/min': cell.guards?.dragSecondsPerMinute ?? NaN,
     'off-beat kicks / ride': cell.guards?.offBeatKicks ?? NaN,
+    'hard unrecorded pushes / ride': cell.guards?.unrecordedPushes ?? NaN,
     'physics frames (M)': cell.physicalFrames / 1e6,
   };
 }

@@ -73,8 +73,18 @@ export function measureCell({c, track, spec, music, physicalFrames, compileMs, c
     const [px, py] = vel(f - 1), before = Math.hypot(px, py + .175), gain = Math.hypot(...vel(f)) - before;
     if (gain > Math.max(.75, .1 * before) && !targets.some((t: any) => Math.abs(t.frame - f) <= 4)) kicks++;
   }
+  // Hard pushes the impact account does not record (REWORK.md, November 15): a local peak of the whole-body motion
+  // change over 2 frames (gravity removed, in units of a very strong hit) of 0.4 or more, with no recorded event of
+  // at least half its size around it. The account reads a renewed strike in the 6 frames after its start, so a hard
+  // turn late in a long slide escapes it; the eye does not miss it.
+  const push = (f: number) => {const [ax, ay] = vel(f - 1), [bx, by] = vel(f + 1); return Math.hypot(bx - ax, by - ay - .35) / STRIKE_V3_CONTRACT.veryStrong;};
+  let unrecordedPushes = 0;
+  for (let f = 3; f + 2 <= last; f++) {
+    const m = push(f);
+    if (m >= .4 && push(f - 1) <= m && push(f + 1) < m && !impacts3.some(e => f >= e.onset - 2 && f <= e.end + 1 && e.strength >= m / 2)) unrecordedPushes++;
+  }
   const guards = {strongInverted: strongPose.length ? strongPose.filter(Boolean).length / strongPose.length : NaN,
-    dragSecondsPerMinute: dragFrames / 40 / (last / 40 / 60), offBeatKicks: kicks};
+    dragSecondsPerMinute: dragFrames / 40 / (last / 40 / 60), offBeatKicks: kicks, unrecordedPushes};
   const strongExtras = (account: any, events: any[]) => account.unmatchedEvents.filter((i: number) => events[i].strength >= .25).length;
   const beats = beatRows({id: c.id, song: c.song, seed: c.seed, durationFrames: music.durationFrames,
     targets: spec.contacts.map((x: any) => ({t: x.t, frame: Math.round(x.t * 40), impact: x.impact})), ...observation});

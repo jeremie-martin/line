@@ -1,5 +1,17 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: closing the track-motion work (housekeeping)
+
+- **The benchmark now shows the problem.** `tools/eval/measure.ts` counts hard pushes the impact account does not
+  record (a local peak of the 2-frame whole-body motion change of 0.4 or more with no recorded event of half its size
+  around it); every comparison prints it with the other guards. V8, 4 seeds, per ride: before this work 0.77, gentle
+  exits 0.25, with the compiler branch merged 0.15. Saved rides are remeasured automatically.
+- **Removed:** `tools/measure/body/` (33 one-off analysis scripts of this work) and the ground readings with their
+  test; the entries above name them as they were, in git history. Gentle exits hold by construction and the guard
+  above replaces the scripts.
+- **Named references** (`npm run compare -- reference list`): `foundation-8` = this compiler. The saved reference
+  `visual-lab` is a commit of November 10; do not compare against it.
+
 ## November 15: the compiler branch integrated with gentle exits (merged)
 
 `origin/compiler` (46 commits: the arrival law, aimed launches, quiet misses priced in proportion; its entries are

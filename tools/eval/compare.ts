@@ -263,6 +263,7 @@ const GUARDS: Array<[keyof ReturnType<typeof summarize>, string, number, string,
   ['body drag s/min', 'body drag', 2, ' s/min', 1],
   ['strong extra impacts / beat (v3)', 'strong extra impacts', 2, ' per 100 beats', 100],
   ['strong arrivals inverted/backward', 'strong arrivals head-down or backward', 1, '%', 100],
+  ['hard unrecorded pushes / ride', 'hard unrecorded pushes', 2, ' per ride', 1],
 ];
 /** Candidate against reference as a relative change, or "same". */
 const relative = (a: number, b: number) => !Number.isFinite(a) || !Number.isFinite(b) ? '—' : a === b ? 'same' : b === 0 ? 'from 0' : `${a > b ? '+' : ''}${(100 * (a - b) / Math.abs(b)).toFixed(0)}%`;

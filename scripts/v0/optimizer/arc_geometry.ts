@@ -175,6 +175,8 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     const u=clamp(time/first,0,1), w=clamp((time-first)/Math.max(.01,c.support-first),0,1);
     let a=rad(time<first?c.entry+c.turn*easing(u,c.bias):lerp(c.entry+c.turn,c.exit,easing(w,c.bias)));
     if(c.bend!==undefined&&time>=first)a+=rad(c.bend)*Math.sin(Math.PI*w);
+    // Experiment: after the hit's frames an unshaped support heads straight for its exit, as fast as the gentle limit allows.
+    if(!profile&&time>=HIT_FRAMES)a=rad(c.exit);
     if(profile&&time>=profileFirst)a=profileHeading(profile,a,
       profile==='fold'?clamp(((k+.5)*uniformDt-profileFirst)/Math.max(.01,c.support-profileFirst),0,1):
       style?.profileStart===undefined?w:clamp((time-profileFirst)/Math.max(.01,c.support-profileFirst),0,1),style?.profileStrength,style?.rippleCycles,

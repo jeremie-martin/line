@@ -285,6 +285,12 @@ export function steepArrival(ask: number, search: {steepArrivalFrom?: number} | 
   return t * t * (3 - 2 * t);
 }
 
+/** The arrival law's heading in degrees (+ falling, screen y down): base + the angle whose tangent is gain × the ask's
+ * push (px/frame, `impactToRawPx`) over the next beat's speed (px/frame). */
+export function arrivalLawHeading(law: {base: number; gain: number}, push: number, speed: number) {
+  return law.base + deg(Math.atan2(law.gain * push, speed));
+}
+
 /** What the next catch asks of the arrival into it: its heading (the arrival law), the arrival speed, and how much of
  * the steep prior applies (its kinetic speed, its upright preference, and its heading when no law is set). Shared by
  * the arrival priors (ranking) and by aimed launches (proposals), so both mean the same arrival. Undefined after the
@@ -305,7 +311,7 @@ export function arrivalTargets(s: IntervalSearch) {
   // the speed the rider carries into the line, so a whisper wants a nearly level arrival, a hard hit a steep one, and a
   // fast rider a shallower one than a slow rider for the same hit (V8: well-landed catches arrive at 0–10° for asks
   // under 0.2, at 45° and more for asks of 0.6 and up). It replaces the steep prior's heading and the broad heading prior.
-  const law = options.arrivalLaw ? options.arrivalLaw.base + deg(Math.atan2(options.arrivalLaw.gain * impulse, nextSpeed)) : undefined;
+  const law = options.arrivalLaw ? arrivalLawHeading(options.arrivalLaw, impulse, nextSpeed) : undefined;
   return {nextImpact, steep, kinetic, arrivalSpeed, desiredArrival, angled, law};
 }
 

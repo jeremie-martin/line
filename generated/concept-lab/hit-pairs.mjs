@@ -20,7 +20,8 @@ $('questions').replaceChildren(...manifest.questions.flatMap(q => {
   return [Object.assign(document.createElement('p'), {className: 'q', textContent: q.text}), group];
 }));
 const ready = () => manifest.questions.every(q => answers[q.id]);
-const queue = manifest.clips.filter(c => only ? c.id === only : !done.has(c.id));
+// every pair stays reachable: Back reopens the one before, and a new answer replaces the earlier one (the last row counts)
+const queue = manifest.clips.filter(c => !only || c.id === only), first = Math.max(0, queue.findIndex(c => !done.has(c.id)) < 0 ? queue.length : queue.findIndex(c => !done.has(c.id)));
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {ends: 'none', hits: 'v1'});
 let clip, ride, pictures = [], side = 0, from = 0, time = 0, playing = false, rate = 1, loadedSong, started = 0, ticket = 0;
@@ -48,8 +49,9 @@ function setHit(i) {
 }
 async function open(index) {
   const n = ++ticket; pause(); pictures = []; $('form').hidden = true;
-  if (index >= queue.length) {$('progress').textContent = 'Done'; $('status').textContent = ''; $('done').hidden = false; $('hits').replaceChildren(); return;}
-  clip = queue[index]; $('progress').textContent = `Pair ${manifest.clips.length - queue.length + index + 1} of ${manifest.clips.length}`; $('status').textContent = 'Loading…';
+  $('done').hidden = true;
+  if (index >= queue.length) {$('progress').textContent = 'Done'; $('back').hidden = queue.length === 0; clip = null; $('status').textContent = ''; $('done').hidden = false; $('hits').replaceChildren(); return;}
+  clip = queue[index]; $('progress').textContent = `Pair ${index + 1} of ${queue.length}${done.has(clip.id) ? ' · answered, a new answer replaces it' : ''}`; $('back').hidden = index === 0; $('status').textContent = 'Loading…';
   ride = await loadRide(clip.song); if (n !== ticket) return;
   if (loadedSong !== clip.song) {await music.load('/' + ride.scene.audio); loadedSong = clip.song;}
   if (n !== ticket) return;
@@ -67,8 +69,10 @@ async function save(skipped) {
   const r = await fetch(`/api/labels/${STUDY}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({clip: clip.id, skipped, answers, note: $('note').value, viewMs: Math.round(performance.now() - started)})});
   if (!r.ok) {$('status').textContent = `Not saved: ${(await r.json()).error}`; return;}
+  if (!skipped) done.add(clip.id);
   void open(queue.indexOf(clip) + 1);
 }
+$('back').onclick = () => void open((clip ? queue.indexOf(clip) : queue.length) - 1);
 document.querySelectorAll('.answers').forEach(group => group.onclick = e => {
   const v = e.target.dataset?.v; if (!v) return;
   answers[group.dataset.q] = v; [...group.children].forEach(b => b.classList.toggle('on', b === e.target));
@@ -95,4 +99,4 @@ function tick(ts) {
 }
 requestAnimationFrame(tick);
 window.hitPairs = {state: () => ({clip, side, time, from, playing}), show, version: i => pictures[i]};
-await open(0);
+await open(first);

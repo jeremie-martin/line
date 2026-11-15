@@ -10,6 +10,7 @@
   .answers{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 16px}#hits{display:flex;gap:8px;flex-wrap:wrap}#hits button{padding:6px 12px;font-size:13px;border-radius:999px}
   textarea{width:100%;box-sizing:border-box;min-height:64px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:8px}
   #next{width:100%;padding:12px;font:inherit;font-size:15px;font-weight:650;border-radius:10px;border:0;background:var(--on);color:var(--onText);cursor:pointer;margin-top:10px}#next:disabled{opacity:.35;cursor:default}
+  #back{background:none;border:0;color:var(--soft);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0}
   #skip{background:none;border:0;color:var(--soft);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:8px}
   .q{font-size:15px;font-weight:600;margin:0}kbd{font:12px ui-monospace,monospace;border:1px solid var(--line);border-radius:4px;padding:1px 5px;background:var(--bg)}
   @media (max-width:820px){.workspace{grid-template-columns:1fr}.viewer{position:static}.screen{height:min(62svh,640px)}}
@@ -23,7 +24,7 @@
   <p class="help hint"><kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> switch A and B · <kbd>P</kbd> pause · <kbd>H</kbd> half speed</p>
 </section>
 <aside>
-  <div class="card"><h2 id="progress">Loading…</h2><p class="help" id="status"></p>
+  <div class="card"><h2 id="progress">Loading…</h2><button id="back" class="linkish" hidden>← Previous pair</button><p class="help" id="status"></p>
     <p class="help">Hit shown (the same in A and B):</p><div id="hits"></div></div>
   <div class="card" id="form" hidden>
     <div id="questions"></div>

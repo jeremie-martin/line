@@ -3,8 +3,8 @@ import fs from 'node:fs'; import path from 'node:path';
 import {LineRiderEngine as Engine} from '../../../scripts/lib/native_motion/engine.ts';
 import {extractRawTrajectory} from '../../../scripts/lib/detector.ts';
 import {impactRuler} from '../../../scripts/v0/optimizer/impact_accounts.ts';
-import {STRIKE_V3_CONTRACT, STRIKE_V5_CONTRACT, evaluateStrikes, type StrikeContract} from '../../../scripts/lib/strike_impact.ts';
-export function accounts(dir: string, contracts: StrikeContract[] = [STRIKE_V3_CONTRACT, STRIKE_V5_CONTRACT]) {
+import {STRIKE_V3_CONTRACT, evaluateStrikes, type StrikeContract} from '../../../scripts/lib/strike_impact.ts';
+export function accounts(dir: string, contracts: StrikeContract[] = [STRIKE_V3_CONTRACT]) {
   const f = fs.readdirSync(dir).find(f => f.endsWith('-production.json')); if (!f) return null;
   const p = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')), track = p.track;
   const engine = new Engine().setStart(track.startPosition, track.riders[0].startVelocity).addLine(track.lines);

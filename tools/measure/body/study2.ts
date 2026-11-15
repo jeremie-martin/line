@@ -5,7 +5,7 @@
 // the key goes to labels/studies/<study>.key.json.   node tools/measure/body/study2.ts
 import fs from 'node:fs';
 import {ride, touchedIn} from './late.ts';
-import {roughestReversal, sharpestTurn} from '../../../scripts/v0/optimizer/ground_smoothness.ts';
+import {roughestReversal, sharpestTurn} from './ground_readings.ts';
 const STUDY = 'motion-2026-11b';
 const SPECS = [['valhalla_40s', 'still-drop'], ['valhalla_40s', 'phrases-climb'], ['trouble_50s', 'cycle'], ['trouble_50s', 'stop-go'], ['amor_na_praia_46s', 'chord-bars'],
   ['bones_selection', 'second-hit'], ['bones_selection', 'singer'], ['petrunko_selection', 'figure']];

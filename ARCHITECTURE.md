@@ -396,9 +396,18 @@ Every main curve starts with a straight lead-in laid back from its anchor (`arc_
 the entry and the arrival heading (the steeper for a surface met from above), so it never rises into the rider's path
 just before the catch (since 2026-11-13; REWORK.md).
 
+**Gentle exits** (`arc_geometry.ts`, since 2026-11-15; REWORK.md). The first 6 frames after a catch are the hit's
+own (the impact account's event window): there a support turns as sharply as the hit needs. After them it is drawn
+turning no faster than a 95 px radius (30 px of ground turn 18°) and no faster than keeps the push on the rider under
+0.6 px/frame² (radius ≥ speed² ÷ 0.6): a slow rider keeps a tight exit, a fast one gets a wide one. Nothing is
+refused for it: the rule is in how supports are drawn.
+
+**Parked families** (`repertoire_policy.ts` `PARKED`): terraces and folds stay defined and can be requested by name, but
+the default repertoire leaves them out. Their turns sit at fixed places of a section, where the music asks for nothing.
+
 Everything else is shared machinery. Plain `arcs` and `scattered` fragments
 are rows without a heading, and the planner, search and layout checks treat
-them by name. Row order is the default repertoire and the planner's draw
+them by name. Row order (without the parked families) is the default repertoire and the planner's draw
 order, so adding or reordering a row changes seeded plans. Adding a family is
 therefore a behavioural change, even though it touches only this module:
 

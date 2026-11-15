@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {roughestReversal, sharpestTurn, groundIsSmooth} from '../scripts/v0/optimizer/ground_smoothness.ts';
+import {roughestReversal, sharpestTurn} from '../tools/measure/body/ground_readings.ts';
 
 /** A chain of 10 px lines with the given headings in degrees. */
 function chain(headings: number[], id0 = 1) {
@@ -44,18 +44,5 @@ describe('sharpestTurn', () => {
   it('judges only the touched lines', () => {
     const lip = chain([0, 0, 0, 0, 0, 0, 0, 0, 15, 30, 45]);
     expect(sharpestTurn(lip, new Set([1, 2, 3]))).toBe(0);
-  });
-});
-describe('groundIsSmooth', () => {
-  const lip = chain([0, 0, 0, 0, 0, 0, 15, 30, 45]);
-  it('allows sharp turning within the hit\'s own frames and refuses it after', () => {
-    const during = (f: number) => f < 6 ? [7, 8, 9] : [], after = (f: number) => f >= 6 ? [7, 8, 9] : [1];
-    expect(groundIsSmooth(lip, during, 0, 10)).toBe(true);
-    expect(groundIsSmooth(lip, after, 0, 10)).toBe(false);
-  });
-  it('refuses a bump touched after the hit\'s frames and allows one within them', () => {
-    const bump = chain([0, 0, 6, 12, 6, 0, 0, 0, 0, 0, 0, 0]);
-    expect(groundIsSmooth(bump, f => f >= 6 ? [3, 4, 5] : [], 0, 10)).toBe(false);
-    expect(groundIsSmooth(bump, f => f < 6 ? [3, 4, 5] : [11, 12], 0, 10)).toBe(true);
   });
 });

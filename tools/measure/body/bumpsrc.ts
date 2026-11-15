@@ -1,6 +1,7 @@
 // Where do the reversals come from when nothing forbids them? usage: node tools/measure/body/bumpsrc.ts TAG
 import fs from 'node:fs'; import {ride, touchedIn} from './late.ts';
-import {roughestReversal, REVERSAL_LIMIT} from '../../../scripts/v0/optimizer/ground_smoothness.ts';
+import {roughestReversal} from './ground_readings.ts';
+const REVERSAL_LIMIT = Number(process.env.LIMIT ?? 10);
 const specs = fs.readFileSync('generated/visible/picks.txt', 'utf8').trim().split('\n').map(l => l.split(' ').slice(0, 2)), tag = process.argv[2];
 const by: Record<string, {n: number; bump: number; early: number; late: number; sum: number}> = {}; const sizes: number[] = [];
 for (const [s, v] of specs) for (const seed of [101, 202, 303]) {

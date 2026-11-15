@@ -10,6 +10,9 @@ import {repertoireMusicHash,repertoireContexts,type RepertoireContext,type Conte
 export const REPERTOIRE_POLICY='line.repertoire-policy.v1';
 /** Every geometry family, in table order: the default repertoire and the draw order. */
 export const constructions=Object.keys(GEOMETRY_FAMILIES) as Construction[];
+/** Families a plan does not use unless a request names them: their turns sit at fixed places of a section, so they
+ * move the rider where the music asks for nothing. */
+export const PARKED:readonly Construction[]=['terraces','fold'];
 export type {Construction};
 export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
@@ -27,7 +30,7 @@ export function supportTimeline(spec:Pick<Spec,'duration'|'contacts'>){
 }
 export function creativePreferences(input:CreativePreferences={}):Required<CreativePreferences>{
   if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).some(k=>!['repertoire','variation','guidedBalance'].includes(k)))throw new Error('invalid creative preferences');
-  const repertoire=input.repertoire??(process.env.LINE_REPERTOIRE?process.env.LINE_REPERTOIRE.split(',') as typeof constructions[number][]:[...constructions]),variation=input.variation??1,guidedBalance=input.guidedBalance??11/17;
+  const repertoire=input.repertoire??constructions.filter(c=>!PARKED.includes(c)),variation=input.variation??1,guidedBalance=input.guidedBalance??11/17;
   if(!Array.isArray(repertoire)||!repertoire.length||new Set(repertoire).size!==repertoire.length||repertoire.some(x=>!constructions.includes(x)))throw new Error('invalid repertoire');
   if(![variation,guidedBalance].every(x=>Number.isFinite(x)&&x>=0&&x<=1))throw new Error('creative amounts must be in [0, 1]');
   return {repertoire:[...repertoire],variation,guidedBalance};

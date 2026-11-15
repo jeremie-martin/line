@@ -52,31 +52,20 @@ import {accountContactImpacts, type ContactImpactEvent, type ImpactTarget} from 
 
 export type StrikeContract = Readonly<{id: string; gravity: number; floor: number; valley: number; spacing: number;
   halfRise: number; window: number; veryStrong: number; strength: 'redirection' | 'motion'; strengthWindow: number;
-  split: 'none' | 'reversal'; reversalCos: number;
-  /** v5: contact frames outside every event's own frames are charged as unasked motion above this strength; undefined = not charged. */
-  motionFloor?: number}>;
+  split: 'none' | 'reversal'; reversalCos: number}>;
 export const STRIKE_CONTRACT: StrikeContract = Object.freeze({
   id: 'line.strike.v1', gravity: 0.175, floor: 0.8, valley: 0.5, spacing: 4, halfRise: 0.5, window: 6, veryStrong: 7.55,
   strength: 'redirection', strengthWindow: 0, split: 'none', reversalCos: 0,
 });
 export const STRIKE_V2_CONTRACT: StrikeContract = Object.freeze({...STRIKE_CONTRACT, id: 'line.strike.v2', strength: 'motion', strengthWindow: 2});
 export const STRIKE_V3_CONTRACT: StrikeContract = Object.freeze({...STRIKE_V2_CONTRACT, id: 'line.strike.v3', split: 'reversal', reversalCos: -.5});
-/** v5: nothing the rider's body does goes unaccounted. v3 charges only events, and the search learned to keep
- * its other pushes just outside them: launches off a support, bumps while riding it, a hard turn late in a
- * slow rise (REWORK.md, November 15). v5 keeps v3's events and adds, for every run of contact frames that
- * belongs to no event, one `motion` event. Its strength is the root of Σ max(0, m − motionFloor)² ÷ 1.5 over
- * the run, m being the same whole-body motion change over 2 frames that measures a hit (÷ 1.5: a 2-frame
- * hit then costs its own strength²). A motion event never matches a beat, so it is charged like any
- * unrequested hit. `motionFloor` is the gentlest touchdown: smaller motion cannot be read as a hit. There
- * is no threshold to stay under: the charge grows from zero. */
-export const STRIKE_V5_CONTRACT: StrikeContract = Object.freeze({...STRIKE_V3_CONTRACT, id: 'line.strike.v5', motionFloor: .06});
 export type StrikeFrame = {frame: number; contact: boolean; J: number; bend: number;
   /** v2 only: the whole-body contact impulse (travel x, travel y, spin) in px/frame. */
   impulse?: readonly [number, number, number];
   /** Speed change not explained by gravity, the gravity-only change, and the speed before the solve
    * (same meaning as the contact-impact frames, so the speed-gain account is shared). */
   solverGain: number; gravityGain: number; speedBefore: number};
-export type StrikeEvent = ContactImpactEvent & {kind: 'touchdown' | 'strike' | 'motion'; peakJ: number};
+export type StrikeEvent = ContactImpactEvent & {kind: 'touchdown' | 'strike'; peakJ: number};
 type Vec = {x: number; y: number};
 type PointState = {x: number; y: number; prevX: number; prevY: number};
 
@@ -182,9 +171,7 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
         starts.push({at: start, kind: 'strike'}); peak = i;
       } else if (value > S(peak)) peak = i;
     }
-    let covered = first - 1;
     for (const [k, s] of starts.entries()) {
-      if (c.motionFloor !== undefined) unaskedMotion(frames, covered + 1, s.at - 1, c, events);
       const stop = Math.min(k + 1 < starts.length ? starts[k + 1].at - 1 : last, s.at + c.window - 1);
       let top = s.at, raw = 0;
       for (let i = s.at; i <= stop; i++) {raw += frames[i].bend; if (frames[i].J > frames[top].J) top = i;}
@@ -195,26 +182,10 @@ export function detectStrikes(frames: readonly StrikeFrame[], c: StrikeContract 
         peakFrame: frames[top].frame, peakJ: frames[top].J, responsePeak: frames[top].J, raw, strength: Math.min(1, raw / c.veryStrong),
         complete: stop - s.at + 1 === c.window || stop < last || last + 1 < frames.length});
       if (s.reversal) onReversal?.(events[events.length - 2], events[events.length - 1]);
-      covered = stop;
     }
-    if (c.motionFloor !== undefined) unaskedMotion(frames, covered + 1, last, c, events);
     first = last + 1;
   }
   return events;
-}
-
-/** v5: the contact frames [from, to] belong to no event; charge their motion as one `motion` event. */
-function unaskedMotion(frames: readonly StrikeFrame[], from: number, to: number, c: StrikeContract, events: StrikeEvent[]) {
-  if (to < from) return;
-  let sum = 0, top = from, best = -1;
-  for (let i = from; i <= to; i++) {
-    const m = motionChange(frames, i, Math.min(i + 1, to), 2) / c.veryStrong, excess = Math.max(0, m - c.motionFloor!);
-    sum += excess * excess; if (m > best) {best = m; top = i;}
-  }
-  if (!(sum > 0)) return;
-  const raw = Math.sqrt(sum / 1.5) * c.veryStrong;
-  events.push({kind: 'motion', contactStart: frames[from].frame, onset: frames[top].frame, end: frames[to].frame, peakFrame: frames[top].frame,
-    peakJ: frames[top].J, responsePeak: frames[top].J, raw, strength: Math.min(1, raw / c.veryStrong), complete: true});
 }
 
 /** Largest |impulse summed over `span` consecutive frames| within [from, to]; a

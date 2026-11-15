@@ -3,7 +3,7 @@
  * `impactRuler`. Observation reads only already simulated frames: it never steps
  * physics. Other rulers are report rows only (tools/measure/strike.ts). */
 import {CONTACT_IMPACT_CONTRACT, contactSpeedGains, type accountContactImpacts, type ImpactTarget, type ContactImpactEvent} from '../../lib/contact_impact.ts';
-import {STRIKE_V3_CONTRACT, STRIKE_V5_CONTRACT, observeMotion, observeMotionWindow, bodyMotion, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes, evaluateStrikeEvents} from '../../lib/strike_impact.ts';
+import {STRIKE_V3_CONTRACT, observeMotion, observeMotionWindow, bodyMotion, strikePrefix, continueStrikes, accountStrikes, evaluateStrikes, evaluateStrikeEvents} from '../../lib/strike_impact.ts';
 import type {RawFrame} from '../../lib/detector.ts';
 
 /** Per-frame observation: contact plus the speed-gain terms. */
@@ -14,7 +14,7 @@ export type ImpactAssessment = {contract: string; events: ContactImpactEvent[]; 
 /** Complete ride evaluation, including speed-gain diagnostics for review. */
 export type ImpactEvaluation = ImpactAssessment & {speedGains: ReturnType<typeof contactSpeedGains>};
 
-const c = process.env.LINE_STRIKE === 'v3' ? STRIKE_V3_CONTRACT : STRIKE_V5_CONTRACT;
+const c = STRIKE_V3_CONTRACT;
 export const impactRuler = {
   id: c.id, matchFrames: CONTACT_IMPACT_CONTRACT.matchFrames,
   /** Observe frames `raw` (contiguous, already simulated by `engine`). */

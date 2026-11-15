@@ -3,7 +3,8 @@
 // later tag against the first, paired by spec (seeds averaged), with a bootstrap interval over the 20 specs.
 import fs from 'node:fs';
 import {ride, touchedIn} from './late.ts';
-import {roughestReversal, sharpestTurn, REVERSAL_LIMIT, LATE_TURN_LIMIT} from '../../../scripts/v0/optimizer/ground_smoothness.ts';
+import {roughestReversal, sharpestTurn} from './ground_readings.ts';
+const REVERSAL_LIMIT = Number(process.env.LIMIT ?? 10), LATE_TURN_LIMIT = REVERSAL_LIMIT;
 const specs = fs.readFileSync('generated/visible/picks.txt', 'utf8').trim().split('\n').map(l => l.split(' ').slice(0, 2)), SEEDS = [101, 202, 303];
 const dirOf = (tag: string, s: string, v: string, seed: number) => tag === 'before' ? `generated/handcraft/${s}/${v}/s${seed}` : `generated/visible/${tag}/${s}/${v}/s${seed}`;
 const KEYS = ['score', 'hitError', 'air', 'speed', 'extras', 'bumps', 'lips', 'either', 'hitBumps', 'lateJolt', 'shaped'] as const;

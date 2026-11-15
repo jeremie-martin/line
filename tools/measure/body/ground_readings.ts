@@ -1,4 +1,4 @@
-/** Small-scale roughness of the ground the rider touches (experiment, REWORK.md November 15).
+/** Readings of the ground the rider touches, for analysis (REWORK.md, November 15). Not used by the compiler.
  * Along each connected chain of lines: the heading as a function of distance. At every point where the bend
  * changes direction, the degrees undone within `reach` px on each side (the smaller of the two). A smooth arc
  * gives 0, a long S a few degrees, bumps and corners many. Only turning points within `reach` / 2 of a touched
@@ -57,26 +57,3 @@ export function sharpestTurn(lines: readonly GroundLine[], touched: ReadonlySet<
   }
   return worst;
 }
-
-/** The rule (experiment, on with LINE_GROUND=on or built): after a hit's own frames, the ground the rider touches is
- * gentle. HIT_FRAMES is the account's event window; what the ground does within it belongs to the hit, on the beat.
- * After it, on the lines touched until the next hit:
- *  - no turning of more than LATE_TURN_LIMIT degrees within 30 px (a lip at the end of a support, a corner);
- *  - no reversal of more than REVERSAL_LIMIT degrees within 60 px (bumps, zigzags).
- * Fitted to the owner's 41 answers of 2026-11-15: it flags 15 stretches (2 of them clean) and passes 26 (21 clean;
- * of the 5 others, 2 are folds and 3 are scallops marked "a little"). Judging the hit's frames too flagged 6 clean
- * stretches and refused twice as many candidates. LINE_GROUND_PART=all restores that wider form for comparison. */
-export const GROUND_RULE = process.env.LINE_GROUND === 'on' || process.env.LINE_GROUND === 'built', REVERSAL_LIMIT = Number(process.env.LINE_GROUND_LIMIT ?? 10), LATE_TURN_LIMIT = Number(process.env.LINE_GROUND_LIMIT ?? 10), HIT_FRAMES = 6;
-/** LINE_GROUND=built: supports are also drawn to meet the second part. From HIT_FRAMES after the catch, a support's
- * heading changes no faster than this radius allows (30 px of ground turn 9°, inside the 10° limit), so the search
- * is offered gentle exits instead of lips it would have to refuse. The rule above stays the check. */
-export const LATE_RADIUS = process.env.LINE_GROUND === 'built' ? 30 / (.9 * LATE_TURN_LIMIT * Math.PI / 180) : 0;
-export function groundIsSmooth(lines: readonly GroundLine[], contactLineIds: (frame: number) => readonly number[], hit: number, to: number): boolean {
-  const all = new Set<number>(), late = new Set<number>();
-  for (let f = hit; f <= to; f++) for (const id of contactLineIds(f)) {all.add(id); if (f >= hit + HIT_FRAMES) late.add(id);}
-  return (process.env.LINE_GROUND_PART === 'late' || roughestReversal(lines, process.env.LINE_GROUND_PART === 'all' ? all : late) <= REVERSAL_LIMIT) && sharpestTurn(lines, late) <= LATE_TURN_LIMIT;
-}
-/** LINE_GROUND_PUSH (px/frame² of centripetal push): with LINE_GROUND=built, after the catch a support also turns no
- * faster than its rider's speed allows for this push (radius ≥ speed² / push). A turn of the same angle pushes a fast
- * rider harder than a slow one; the degrees limit alone is blind to that. 0 = off. */
-export const LATE_PUSH = process.env.LINE_GROUND === 'built' ? Number(process.env.LINE_GROUND_PUSH ?? 0) : 0;

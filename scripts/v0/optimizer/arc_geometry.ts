@@ -1,4 +1,3 @@
-import {HIT_FRAMES,LATE_RADIUS,LATE_PUSH} from './ground_smoothness.ts';
 import {hypot2} from '../../lib/hypot2.ts';
 /** Coherent normal-line geometry shared by construction and refinement studies.
  * This module only builds curves; it does not simulate or select candidates. */
@@ -132,6 +131,12 @@ export function motionArc(...args: Parameters<typeof motionArcPaths>): TrackLine
 }
 
 /** Native candidate evaluation can register these vertices directly. */
+/** Gentle exits. The first HIT_FRAMES frames after a catch are the hit's own (the impact account's event window):
+ * there a support turns as sharply as the hit needs. After them the rider is carried, and a sharp turn is a push the
+ * music did not ask for; the same turn pushes a fast rider harder than a slow one. So from then on a support turns no
+ * faster than EXIT_RADIUS (px; 30 px of ground turn 18°) and no faster than keeps the centripetal push under
+ * EXIT_PUSH (px/frame²): radius ≥ speed² ÷ EXIT_PUSH. */
+export const HIT_FRAMES=6,EXIT_RADIUS=95,EXIT_PUSH=.6;
 export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:ArcMotionControl, id:number, channel=0, radius=0, subdivisions=4,style?:ArcGeometryStyle):SolidPath[]{
   const {profile}=style??{};
   if(!validProfileControls(style??{}))throw new Error('invalid profile controls');
@@ -178,7 +183,7 @@ export function motionArcPaths(points:any[], velocity:{x:number;y:number}, c:Arc
     // per face would weaken their angle whenever search shortened that face.
     // Their full corner geometry must pass physical evaluation instead.
     const angularFold=profile==='fold'&&style?.faces!==undefined&&(style?.profileStrength??1)>0&&time>=profileFirst;
-    const turnRadius=time>=HIT_FRAMES?Math.max(radius,LATE_RADIUS,LATE_PUSH>0?v*v/LATE_PUSH:0):radius;
+    const turnRadius=time>=HIT_FRAMES?Math.max(radius,EXIT_RADIUS,v*v/EXIT_PUSH):radius;
     if(turnRadius>0&&!angularFold)a=clamp(a,previousAngle-v*dt/turnRadius,previousAngle+v*dt/turnRadius);
     previousAngle=a;
     const sine=Math.sin(a);

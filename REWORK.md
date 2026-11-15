@@ -1,5 +1,22 @@
 # Foundations rework (started 2026-10-03)
 
+## November 15: what makes a quiet catch soft, and Q13: a level arrival before quiet catches (stated before running)
+
+- **Correction:** an engine probe suggested a soft touchdown needs the sled lying along its path (an apex landing read
+  0.005–0.037). Ride data does not support the sled part: Q1's quiet catches (asks under 0.1) land at 0.026–0.045
+  whatever the arrival heading or sled angle, from real flights (11 frames median), with a nearly tangent receiver
+  (incidence 1–2°) and a small turn. Today's construction can already make ultra-soft touchdowns.
+- **What decides the energy is the arrival heading** (`tools/research/quiet_catches.ts`, asks under 0.2): the speed
+  error of the flight after the catch, `foundation-5` / Q1: arriving level (within 5°) −0.020 / −0.009; falling 5–15°
+  +0.025 / +0.022; 15–30° +0.050 / +0.063; 30° and more +0.045 / **+0.140** (half of Q1's quiet catches). Only 2% of
+  today's quiet catches arrive level. A level arrival is a flight caught near its top: it has climbed, so it brings
+  no excess speed, and it lands soft.
+- **Q13** (`exp/quiet-level-a`, `-b`): the mirror of the steep arrival prior before strong catches: before a quiet catch
+  the arrival heading is drawn toward level, √weight × √level × heading / 45 with the arrival weight, `level` a smooth
+  step from 1 at ask 0 to 0 at ask 0.3 (`levelArrivalBelow` 0.15). Q13a: today's pricing; Q13b: with Q10's pricing.
+  **Hypothesis:** more level arrivals before quiet catches; Q13b keeps Q10's quiet gain with the speed error and the
+  headline loss mostly gone; Q13a alone softens a little.
+
 ## November 15: Q12 result, and the softest touchdown (measured)
 
 - **Q12** (Q10 with asks under 0.07 aimed at 0.07): headline −5.8 [−12.5, +1.0]; strong extra impacts back to 0.10;

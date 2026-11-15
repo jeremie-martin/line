@@ -40,12 +40,16 @@ for (const f of readdirSync(dir).filter(f => /~v8-.*~\d+\.json$/.test(f) && seed
     const spin = Math.abs(((deg(axis(c0 - 1) - axis(c0 - 4)) + 540) % 360) - 180) / 3;
     let travel = 0;
     for (let t = c0; t < c0 + 6; t++) {const [x0, y0] = vel(t - 1), [x2, y2] = vel(t + 1); travel = Math.max(travel, Math.hypot(x2 - x0, y2 - y0 - 2 * .175));}
-    rows.push({pose, spin, travel: travel / 7.55, ride: id, ask: b.requested, got: b.hit.strength, over: b.hit.strength - b.requested, speed, incidence, flew, turn,
+    const heading = deg(Math.atan2(vy, vx));   // the arrival's direction, + falling (screen y down)
+    const sledToPath = Math.abs(((deg(sledAngle - moveAngle) + 540) % 360) - 180);
+    // the speed error of the flight the catching gap launches (cell.gaps rows: [gap, axis, asked, got]; gap k+1 catches beat k)
+    const sg = (cell.gaps ?? []).find((x: any) => x[0] === k + 1 && x[1] === 'speed');
+    rows.push({speedError: sg ? sg[3] - sg[2] : NaN, heading, sledToPath, pose, spin, travel: travel / 7.55, ride: id, ask: b.requested, got: b.hit.strength, over: b.hit.strength - b.requested, speed, incidence, flew, turn,
       family: sections[k + 1]?.family ?? '?', contact: b.hit.contact});
   }
 }
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / Math.max(1, xs.length), q = (xs: number[], p: number) => [...xs].sort((a, b) => a - b)[Math.floor(p * (xs.length - 1))];
-const line = (label: string, g: any[]) => g.length && console.log(`${label.padEnd(30)} ${String(g.length).padStart(5)} | overshoot mean ${mean(g.map(r => r.over)).toFixed(3).padStart(6)}, p90 ${q(g.map(r => r.over), .9).toFixed(3).padStart(6)} | over 0.1: ${(100 * g.filter(r => r.over > .1).length / g.length).toFixed(0).padStart(3)}% | speed ${mean(g.map(r => r.speed)).toFixed(1)}, incidence ${q(g.map(r => r.incidence), .5).toFixed(0)}°, flew ${q(g.map(r => r.flew), .5)} f, turn ${q(g.map(r => r.turn), .5).toFixed(0)}°, pose ${q(g.map(r => r.pose), .5).toFixed(0)}°, spin ${q(g.map(r => r.spin), .5).toFixed(1)}°/f, travel part ${mean(g.map(r => r.travel)).toFixed(3)} of strength ${mean(g.map(r => r.got)).toFixed(3)}`);
+const line = (label: string, g: any[]) => g.length && console.log(`${label.padEnd(30)} ${String(g.length).padStart(5)} | overshoot mean ${mean(g.map(r => r.over)).toFixed(3).padStart(6)}, p90 ${q(g.map(r => r.over), .9).toFixed(3).padStart(6)} | over 0.1: ${(100 * g.filter(r => r.over > .1).length / g.length).toFixed(0).padStart(3)}% | speed ${mean(g.map(r => r.speed)).toFixed(1)}, incidence ${q(g.map(r => r.incidence), .5).toFixed(0)}°, flew ${q(g.map(r => r.flew), .5)} f, turn ${q(g.map(r => r.turn), .5).toFixed(0)}°, speed error after ${mean(g.map(r => r.speedError).filter(Number.isFinite)).toFixed(3)}, pose ${q(g.map(r => r.pose), .5).toFixed(0)}°, spin ${q(g.map(r => r.spin), .5).toFixed(1)}°/f, travel part ${mean(g.map(r => r.travel)).toFixed(3)} of strength ${mean(g.map(r => r.got)).toFixed(3)}`);
 console.log(`${rows.length} caught beats asking under ${maxAsk} (${new Set(rows.map(r => r.ride)).size} rides)`);
 line('all', rows);
 for (const [a, b] of [[0, .1], [.1, .2], [.2, .3]]) line(`ask ${a}–${b}`, rows.filter(r => r.ask >= a && r.ask < b));
@@ -57,6 +61,10 @@ console.log('-- by arrival speed (px/frame)');
 for (const [a, b] of [[0, 5], [5, 8], [8, 11], [11, 99]]) line(`speed ${a}–${b}`, rows.filter(r => r.speed >= a && r.speed < b));
 console.log('-- by the sled\'s angle to the line at contact');
 for (const [a, b] of [[0, 5], [5, 10], [10, 20], [20, 40], [40, 181]]) line(`pose ${a}–${b}°`, rows.filter(r => r.pose >= a && r.pose < b));
+console.log('-- by the arrival heading (− rising, 0 the apex, + falling)');
+for (const [a, b] of [[-90, -5], [-5, 5], [5, 15], [15, 30], [30, 90]]) line(`heading ${a}–${b}°`, rows.filter(r => r.heading >= a && r.heading < b));
+console.log('-- by the sled\'s angle to its own path at contact');
+for (const [a, b] of [[0, 5], [5, 15], [15, 30], [30, 181]]) line(`sled to path ${a}–${b}°`, rows.filter(r => r.sledToPath >= a && r.sledToPath < b));
 console.log('-- by spin before contact');
 for (const [a, b] of [[0, .5], [.5, 1], [1, 2], [2, 4], [4, 99]]) line(`spin ${a}–${b}°/f`, rows.filter(r => r.spin >= a && r.spin < b));
 console.log('-- by family of the catching gap, and contact kind');

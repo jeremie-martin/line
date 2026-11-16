@@ -73,14 +73,13 @@ describe('camera and framing', () => {
   const motion = rideSignals(centres);
   it('shares finite differences, holds the steady zoom exactly and never lets a descending rider climb fast', () => {
     expect(motion.velocity[0]).toEqual({x: 320, y: 160, speed: Math.hypot(8, 4) * 40});
-    const frame = createFraming(motion, [], 20), look = {...resolveLook(), ends: 'none'}, steady = centres.map((_, f) => frame(f / 40, f, look));
+    const frame = createFraming(motion, 20), look = {...resolveLook(), ends: 'none'}, steady = centres.map((_, f) => frame(f / 40, f, look));
     expect(steady.every(c => c.z === 6.2)).toBe(true);
     // While descending, the rider never climbs faster than the approved 45 design px/s.
     for (let f = 1; f < 400; f++) expect(steady[f].ay - steady[f - 1].ay).toBeGreaterThanOrEqual(-45 / 40 - 1e-9);
   });
   it('uses the same rider/world transform through bookends and handles seek, zoom and layout changes independently', () => {
-    const times = [{t: 1.8, s: 0.8}];
-    const frame = createFraming(motion, times, 20), look = resolveLook();
+    const frame = createFraming(motion, 20), look = resolveLook();
     const overview = frame(0, 0, look), riding = frame(4, 160, look);
     expect(overview.over).toBe(1); expect(overview.z).toBeLessThan(riding.z);
     expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0});
@@ -91,7 +90,7 @@ describe('camera and framing', () => {
       const options = look, c = frame(t, t * 40, options);
       expect(c.ax).toBeGreaterThan(0); expect(c.ax).toBeLessThan(W);
       expect(c.ay).toBeGreaterThan(0); expect(c.ay).toBeLessThan(H);
-      expect(c).toEqual(createFraming(motion, times, 20)(t, t * 40, options));
+      expect(c).toEqual(createFraming(motion, 20)(t, t * 40, options));
     }
     expect(frame(0, 0, {...look, ends: 'none'})).toMatchObject({over: 0, z: 6.2});
   });
@@ -125,5 +124,15 @@ describe('drop and colour resolution', () => {
     const theme = createTheme(null), look = resolveLook(null, {scheme: hokusai, paper: 'plain'});
     expect(theme(0, 0.9, look).scheme).toBe(scheme);
     expect(theme(0, 0.9, {...look, paper: 'vibranceSoftHalfPaper'}).ink).not.toBe(scheme.ink);
+  });
+  it('eases the opening and ending from rest to rest, as softly as asked at each end', async () => {
+    const {ease, ENDS, createFraming, rideSignals} = await import('../scripts/video/camera.js');
+    expect(ease(0, 2, 2)).toBe(0); expect(ease(1, 2, 2)).toBe(1); expect(ease(0.5, 2, 2)).toBeCloseTo(0.5);
+    expect(ease(0.05, 3, 2)).toBeLessThan(ease(0.05, 1.5, 2)); // a softer leave has moved less early on
+    expect(1 - ease(0.95, 2, 3)).toBeLessThan(1 - ease(0.95, 2, 1.5)); // a softer landing has less left to do late
+    const motion = rideSignals(Array.from({length: 801}, (_, f) => ({x: f * 8, y: f * 4})));
+    const look = resolveLook(), frame = createFraming(motion, 20), end = frame(20, 800, look), start = frame(0, 0, look);
+    expect(end.z).toBeCloseTo(start.z); expect(end.over).toBe(1); // the last frame and the first show the same whole course
+    expect(frame(ENDS.open.hold + ENDS.open.length, 80, look).over).toBe(0);
   });
 });

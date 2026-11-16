@@ -113,7 +113,7 @@ server (`npm run serve`).
 | a blind question on short stretches, with saved answers | `/motion-review/?study=NAME`: clips from `generated/label-studies/NAME/manifest.json`, answers in `labels/studies/NAME.jsonl` |
 | a compiler change, ride by ride | `npm run compare -- rides` or `review` with the comparison's flags |
 | looks and themes | the concept lab, `/rate/`, `/collection` (docs/visual-system.md) |
-| a setting to tune on a playing ride (hit movement, a song's zoom lanes, how much unused track is trimmed) | the tuning pages in `/generated/concept-lab/`: `hit-move.html`, `zoom.html`, `trim-video.html`. One ride per song (`generated/lab-rides/`, made by `prepare-rides.mjs`), the setting on a control, today's value held or beside. |
+| a setting to tune on a playing ride (hit movement, a song's zoom lanes, the opening and ending, how much unused track is trimmed) | the tuning pages in `/generated/concept-lab/`: `hit-move.html`, `zoom.html`, `ends.html`, `trim-video.html`. One ride per song (`generated/lab-rides/`, made by `prepare-rides.mjs`), the setting on a control, today's value held or beside. |
 | a spec against its music | `/spec-dashboard/?spec=productions/SONG/variants/NAME.ts` |
 
 Rides for the owner's eye on motion are rendered in the plain look (`npm run video -- --look=plain`): no theme, no

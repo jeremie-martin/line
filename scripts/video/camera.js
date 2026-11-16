@@ -9,7 +9,7 @@
 // Pure: no DOM. Frames are 1080 × 1920 design pixels; the picture scales them to the canvas.
 
 import {FPS} from './timing.js';
-import {clamp, smoothstep} from './math.js';
+import {clamp} from './math.js';
 
 export const W = 1080, H = 1920;
 /** The base zoom: design pixels per world unit. Lanes are multiples of it (zoom.js), and the hit movement was set at it
@@ -65,11 +65,19 @@ function placed(motion, zs) {
   return out;
 }
 
+/** The opening and the ending: the whole course is held for `hold` seconds, and the picture moves between it and the ride over
+ * `length` seconds (the opening from the first frame, the ending up to the last). `leave` and `land` say how softly the move
+ * starts and stops: 1 is abrupt, 2 an ordinary ease, more is softer and gives the middle of the move more speed. */
+export const ENDS = {open: {hold: 0.2, length: 1.5, leave: 2.4, land: 2}, close: {hold: 0, length: 1.6, leave: 1.6, land: 2.6}, straight: true};
+/** From 0 to 1 over u from 0 to 1, leaving and landing as softly as asked. */
+export const ease = (u, leave, land) => {u = clamp(u, 0, 1); const a = Math.pow(u, leave); return a / (a + Math.pow(1 - u, land));};
+
 /** A frame has one camera representation: rider world position x/y, rider screen position ax/ay, and zoom z.
  * Opening/ending interpolate that same representation, not a second camera or rider transform.
  * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state.
- * `lane` is the zoom per physics frame as a multiple of BASE (zoom.js laneScale); without one the zoom is BASE throughout. */
-export function createFraming(motion, hitTimes, songEnd, lane = null) {
+ * `lane` is the zoom per physics frame as a multiple of BASE (zoom.js laneScale); without one the zoom is BASE throughout.
+ * `ends` is read at every frame (a tuning page moves it). */
+export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
   const centres = motion.centres, cam = placed(motion, Float64Array.from(centres, (_, f) => BASE * (lane ? lane[Math.min(f, lane.length - 1)] : 1)));
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of centres) {x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);}
@@ -77,11 +85,6 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
   x0 -= 80; y0 -= 80; x1 += 80; y1 += 80;
   const overviewZoom = Math.min(0.78 * W / (x1 - x0), 0.5 * H / (y1 - y0));
   const centre = {x: (x0 + x1) / 2, y: (y0 + y1) / 2};
-  // Opening: from the whole course in to the rider, starting at OPEN_FROM and arriving OPEN_SPEED times sooner than the first hit
-  // after 1.3 s (2.2 s at most). Ending: back out over ENDING seconds, then the whole course held for HOLD seconds.
-  const OPEN_FROM = 0.25, OPEN_SPEED = 1.35, ENDING = 1.6, HOLD = 0;
-  const openingEnd = OPEN_FROM + (Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6) - OPEN_FROM) / OPEN_SPEED, endingStart = songEnd - ENDING - HOLD;
-
   return function frameAt(time, at, look) {
     const i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
     const lerp = (p, q) => p + (q - p) * u;
@@ -89,12 +92,15 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0};
     if (look.ends === 'none') return c;
-    let follow = 1;
-    if (time < openingEnd) follow = smoothstep((time - OPEN_FROM) / (openingEnd - OPEN_FROM));
-    else if (time > endingStart) follow = 1 - smoothstep((time - endingStart) / ENDING);
+    // how much of the way from the whole course to the ride: 0 while the course is held, 1 during the ride
+    const {open, close} = ends, closeFrom = songEnd - close.hold - close.length;
+    const follow = time < open.hold + open.length ? ease((time - open.hold) / open.length, open.leave, open.land)
+      : time > closeFrom ? 1 - ease((time - closeFrom) / close.length, close.leave, close.land) : 1;
     if (follow >= 1) return c;
+    // The zoom moves evenly in ratio (follow of the way in its logarithm). The rider's place on screen follows the zoom itself, so
+    // every point of the course travels a straight line on screen: one zoom about one point, with no drift across it.
+    const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow), w = ends.straight && c.z !== overviewZoom ? (z - overviewZoom) / (c.z - overviewZoom) : follow;
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
-    const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);
-    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow};
+    return {...c, z, ax: q.x + (c.ax - q.x) * w, ay: q.y + (c.ay - q.y) * w, over: 1 - follow};
   };
 }

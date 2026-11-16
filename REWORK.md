@@ -8,9 +8,12 @@
 - **Zoom lanes: the set is accepted as written.** Any lane of a song may be drawn, never the steady zoom.
 - **Trim stays End only,** and the question stays open: "maybe after using this project for a while, I will decide on
   something else". The trim page and its stronger versions are kept.
-- **Opening and ending:** faster confirmed, and faster still asked for: the ending out over 1.6 s with no hold, the
-  opening between ("let's iterate a bit to get it right"). Production carries his ending and an opening 1.35 times
-  quicker than at first (it was 1.1) until he picks among three timings (`generated/watch/bookends-2.json`).
+- **Opening and ending:** faster confirmed, and faster still asked for (the ending out over 1.6 s with no hold), then
+  the real aim: a sleek loop from the last frame to the first that takes little of the video. The two moves are now
+  described by `ENDS` (`scripts/video/camera.js`): a hold and a length each, and how softly each leaves and lands. The
+  opening no longer waits for the first hit; it has one length for every song. The picture's place follows the zoom
+  itself, so the course travels straight lines toward one point (before, it also drifted across while zooming).
+  Unjudged: production carries my first proposal until he saves his own on `/generated/concept-lab/ends.html`.
 - **Showcase order A** ("a one-off really"). **`master`:** merge at the very end. **The lab's round pages** stay in the
   tree. **Branches:** the ten already merged are deleted, the others stay local.
 - **Unanswered studies,** "depends on whether they're still relevant" (my reading): `impact-visibility-2026-11` is

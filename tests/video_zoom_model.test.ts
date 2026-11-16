@@ -39,6 +39,6 @@ it('every song\'s lanes are inside the scale and the song, in time order, with a
 });
 it('the camera takes a lane as a multiple of the base zoom per frame, and is the base zoom without one', () => {
   const n = 800, centres = Array.from({length: n}, (_, f) => ({x: f * 8, y: f * 3})), motion = rideSignals(centres), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'none'};
-  expect(createFraming(motion, [], 20)(10, 400, look).z).toBe(BASE);
-  expect(createFraming(motion, [], 20, new Float64Array(n).fill(0.5))(10, 400, look).z).toBeCloseTo(BASE / 2);
+  expect(createFraming(motion, 20)(10, 400, look).z).toBe(BASE);
+  expect(createFraming(motion, 20, new Float64Array(n).fill(0.5))(10, 400, look).z).toBeCloseTo(BASE / 2);
 });

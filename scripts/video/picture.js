@@ -48,7 +48,8 @@ export function riderAt(frames, at) {
     framesSinceStringDetached: m(a.framesSinceStringDetached, b.framesSinceStringDetached)};
 }
 
-// `tune`: a tuning page's own settings of the hit movement (hits.js TUNES), read at every frame; production passes none.
+// `tune`: a tuning page's own settings, read at every frame: of the hit movement (shake and carry, hits.js TUNES) or of the
+// opening and ending (ends, camera.js ENDS); production passes none.
 export function createPicture(canvas, scene, replay, sheet, paint, tune = null) {
   const ctx = canvas.getContext('2d'), overlay = document.createElement('canvas'), octx = overlay.getContext('2d');
   const frames = replay.frames, {offset} = scene.timing, [, songEnd] = scene.span;
@@ -64,7 +65,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
   // the zoom: the lane this video was given (scene.zoom), or the steady zoom throughout; a multiple of the camera's base per frame
   const lane = laneScale(scene.zoom?.keyframes, frames.length, offset);
-  const frameAt = createFraming(motion, hitTimes, songEnd, lane);
+  const frameAt = createFraming(motion, songEnd, lane, tune?.ends);
 
   const applySplit = createSplit(canvas);
   // the colour boost: everything drawn on the paper (ink, line, rider, band, sun, title) gets more saturated and more contrasted for
@@ -117,7 +118,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   function draw(t, look, exaggerate = 1) {
     const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
-    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, tune ?? TUNES[look.hits]);
+    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, tune?.carry ? tune : TUNES[look.hits]);
     const colours = themeAt(t, intensity, look), v = frameAt(t, at, look);
     let titleBox = null; // only the title drawn in this frame gets its smaller split
     const boosting = fx.boost;

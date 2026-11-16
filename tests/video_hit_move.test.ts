@@ -52,7 +52,7 @@ it('production is the movement at these settings, lasts past the hit\'s other ef
 it('in the opening and ending the picture is smaller than the ride\'s own, which is what scales the hit movement', async () => {
   const {createFraming, rideSignals, BASE} = await import('../scripts/video/camera.js');
   const centres = Array.from({length: 40 * 20}, (_, f) => ({x: f * 8, y: f * 3}));
-  const frame = createFraming(rideSignals(centres), [{t: 1.5, s: 0.6}], 20), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'course'};
+  const frame = createFraming(rideSignals(centres), 20), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'course'};
   expect(frame(10, 400, look).z).toBe(BASE);
   const early = frame(0.3, 12, look), late = frame(19.5, 780, look);
   expect(early.z / BASE).toBeGreaterThan(0); expect(early.z / BASE).toBeLessThan(0.5); expect(late.z).toBeLessThan(BASE);

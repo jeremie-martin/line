@@ -6,10 +6,11 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **Opening and ending, how fast.** He asked for a quicker ending (out over 1.6 s, no hold) and an opening between
-   that and before, "let's iterate a bit": three timings on three songs at
-   `/motion-gallery/video-compare.html?collection=/generated/watch/bookends-2.json`. Production carries the middle
-   one until he picks (`scripts/video/camera.js`, one line of constants).
+1. **Opening and ending.** He wants the loop from the last frame to the first to be sleek and short, and asked for
+   proposals and his own hand on it: `/generated/concept-lab/ends.html` plays the last five seconds into the first
+   five, with sliders (length, hold, how softly each move leaves and lands, one straight zoom or the earlier path)
+   and five proposals. Production carries the first proposal (`ENDS` in `scripts/video/camera.js`) until he saves
+   his settings (`labels/studies/bookends-2026-11.jsonl`). When he has: set `ENDS`, and drop the `straight` switch.
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
    he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec
    he judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the original. To do properly, after

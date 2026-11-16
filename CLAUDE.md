@@ -4,7 +4,7 @@ Read `WORKING.md` (rules), `ARCHITECTURE.md` (how it works) and the newest entri
 
 ## Rules that matter most
 
-- **Structural changes must be byte-identical.** `npm run parity` and `npm run parity:judge` must pass; `npm test`, `npm run typecheck` (the count must not rise) and `npm run reach` must pass too.
+- **Structural changes must be byte-identical.** `npm run parity` and `npm run parity:judge` must pass; `npm test`, `npm run typecheck` (no errors) and `npm run reach` must pass too.
 - **Behavioural changes** need, stated in advance:
   - a hypothesis;
   - paired song-level comparisons;

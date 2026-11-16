@@ -17,12 +17,11 @@ specs (`tools/research/geometry_catalog.ts`, 41 rides). Updated 2026-11-01.
 | **plan** | Before the search, the compiler groups consecutive gaps into phrases of 2–3, splitting at musical boundaries and changes of mood. It draws one geometry per phrase at random, by weight (below). The seed fixes the draw. The plan is the only source of variety. |
 | **fallback** | If a shaped gap reaches a dead end (no candidate geometry lands the next impact), the search retries that gap with plain arcs before backtracking. |
 | **squeezed shape** | A shape kept in a very short gap (under 9 frames, about 0.2 s), where the old rule would have used arcs. It happens only on very fast specs. |
-| **rail hand-over** (transfer) | A layout where the rider leaves the main line and lands on the upper rail. It is no longer drawn by the plan; V6's fixed cases still ask for it. |
+| **rail hand-over** (transfer) | A layout where the rider leaves the main line and lands on the upper rail. The plan does not draw it. |
 | **ride-out** | Long riding on geometry, as opposed to bouncing off it. It goes with low air. |
 | **seed** | Fixes the plan's draws and the search's random choices. The same spec and seed give the same ride. |
 | **headline** | The production grade: 1000·exp(−rms/0.25) over the air, speed and impact errors, with an incomplete ride counting 0. 739 means an error of 0.076; 800 means 0.056. |
-| **V6** | The previous benchmark (frozen 2026-10-01), now only a regression check (`npm run sentinel`). |
-| **V7** | The benchmark being built now. |
+| **V8** | The benchmark compiler decisions read, with V7.1 beside it (`docs/benchmark.md`). |
 | **reference / candidate** | In `npm run compare`: the compiler we compare against (a named commit), and the one being tried. |
 | **arm** | One compiler (by content) under one setting (allowance, creative preferences). The saved rides of a candidate or reference. |
 | **round** | Every spec's k-th seed. A comparison runs round by round, so a stopped run covers the suite evenly. |

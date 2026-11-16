@@ -4,7 +4,7 @@
  * cell, reports the evidence after each round, and stops and resumes at any
  * point. It announces no winner; the decision is ours.
  *
- *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v7.1] [--jobs=N] [--rounds=N]
+ *   npm run compare -- run --reference=NAME [--candidate=.|REF|NAME] [--panel=v8] [--jobs=N] [--rounds=N] [--seeds=N]
  *                          [--budget=standard] [--creative=JSON] [--candidate-budget=..] [--candidate-creative=..]
  *   npm run compare -- report  (same selection flags; reports saved cells only, compiles nothing; --detail prints the detail too)
  *   any command: --only=REGEX restricts the panel to matching case ids
@@ -45,7 +45,7 @@ type Selection = {panel: string; reference: ReturnType<typeof getReference>; arm
 
 /** Everything a command needs: the two arms, the panel's resolved cases, and the measurement identity. */
 async function select(): Promise<Selection> {
-  const panel = arg('panel', 'v7.1')!, budget = arg('budget', 'standard')!;
+  const panel = arg('panel', 'v8')!, budget = arg('budget', 'standard')!;
   // --seeds=N: the first N seeds of the v7 sequence (default 4); more seeds reuse every saved ride.
   const seedCount = arg('seeds') ? Number(arg('seeds')) : undefined;
   const creative = arg('creative') ? JSON.parse(arg('creative')!) : undefined;
@@ -448,7 +448,7 @@ async function rides() {
   }
   writeGalleryJson(outRoot, 'collection.json', {schema: 'line.production-library.v1',
     description: `${s.name}: reference ${s.reference.name}, then the candidate, for each ride`, entries});
-  console.log(`rides: http://10.77.77.30:8767/motion-gallery/production.html?collection=/generated/compare/${s.name}/collection.json`);
+  console.log(`rides (on the review server): /motion-gallery/production.html?collection=/generated/compare/${s.name}/collection.json`);
 }
 
 /** Whole rides of both versions, for review by eye: each ride's video, the reference's and the candidate's (the player switches
@@ -493,8 +493,8 @@ async function review() {
     sheetIds.map(id => ({title: `${title(id)} · score ${score('reference', id).toFixed(0)} → ${score('candidate', id).toFixed(0)}`, durationFrames: frames(id), targets: cells.reference.get(id).case.targets,
       sides: BEFORE_AFTER.map(side => ({label: `${side === 'reference' ? 'before' : 'after'} ${short(side)}`, track: readArmTrack(s.arms[side], id), production: readArmGallery(s.arms[side], id)?.production})) as any}))));
   console.log(`${videoIds.length} rides and a sheet of ${sheetIds.length} in ${((performance.now() - began) / 1000).toFixed(0)} s`);
-  console.log(`rides: http://10.77.77.30:8767/motion-gallery/video-compare.html?collection=/generated/compare/${s.name}/review.json`);
-  console.log(`geometry: http://10.77.77.30:8767/generated/compare/${s.name}/geometry.html`);
+  console.log(`rides (on the review server): /motion-gallery/video-compare.html?collection=/generated/compare/${s.name}/review.json`);
+  console.log(`geometry (on the review server): /generated/compare/${s.name}/geometry.html`);
 }
 
 async function main() {

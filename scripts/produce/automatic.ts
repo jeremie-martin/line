@@ -1,5 +1,5 @@
 /** Automatic production enters through compileHandoff.
- * npm run produce:automatic -- --song=luna_bala_44s --seed=101 --out=DIR
+ * npm run produce -- --song=luna_bala_44s --seed=101 --out=DIR
  * --variant=NAME compiles productions/<song>/variants/NAME.ts instead of spec.ts.
  * --budget defaults to the length-scaled production allowance.
  * A gallery job instead supplies --request=FILE. No manual windows or seed selection. */

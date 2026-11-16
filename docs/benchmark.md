@@ -25,7 +25,7 @@ The suite's design and its baseline are in
 - **Explicit requests** (stratum E): 6 specs where a few gaps ask for one
   geometry. They are reported on their own line, never in the headline.
 - **Panels:**
-  - `v7.1` (the default of `compare` and `eval`): every spec × the first N
+  - `v7.1`: every spec × the first N
     seeds of 101, 202, 303, …; N = 4 unless `--seeds=N`;
   - `v7.1-confirm`: seeds 505–808, the sequence's seeds 5–8;
   - `v7` and `v7-confirm`: V7.0 itself, kept for history and for the parity
@@ -100,8 +100,8 @@ npm run compare -- review --reference=NAME --candidate=<branch>          # whole
 
 - `NAME` is a named reference (`npm run compare -- reference list`; references are local to a machine). The
   current compiler is the newest `foundation-N` in `REWORK.md`.
-- The panel is V7.1 unless `--panel=…` says otherwise; compiler decisions since 2026-11-13 read V8
-  (`--panel=v8`), with V7.1 beside it.
+- The panel is V8 unless `--panel=…` says otherwise; compiler decisions read V8, with V7.1 beside it
+  (`--panel=v7.1`).
 - **A comparison has a name** (by default the candidate, the reference and its
   commit, and the panel) and keeps its configuration under it. Running it
   again with more seeds extends it; changing anything else needs `--name=…`.

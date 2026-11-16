@@ -108,7 +108,7 @@ spectrum, Python with numpy (`LR_SPECTRUM_PYTHON` can select it).
 | `npm run check` | complete structural gate, including both parity suites and the smoke check |
 | `npm run parity:judge` | the independent judge reproduces every stored score |
 | `npm test` | unit and integration tests |
-| `npm run typecheck` | TypeScript; the error count may only go down |
+| `npm run typecheck` | TypeScript, no errors |
 | `npm run reach` | no tracked code is unreachable from `tools/deps/entries.json` |
 
 ## Layout

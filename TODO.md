@@ -4,7 +4,8 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 ## Toward closing (owner, 2026-11-16: close the project for a while and use it to make many videos)
 
-Decisions that are his:
+Decisions that are his (the boards: `/generated/concept-lab/closing/decisions.html` and `songs.html`; answers in
+`labels/studies/closing-2026-11.jsonl`):
 
 1. **The overall zoom.** A trial only (`--wider-near`, `--wider-far`, the zoom page's sliders); his proposal is 7.5%
    more at the closest zoom and 5% more at the widest. Production is unchanged until he says.
@@ -18,8 +19,6 @@ Decisions that are his:
 
 Work that is mine:
 
-- **One command for a batch of videos** (songs × seeds, look and lane chosen per ride, a report of what failed). Today
-  it is one `npm run video` per video.
 - **Videos made before 2026-11-16** fade the band at the end: re-render what is kept.
 - **Branches and worktrees.** Local experiment branches (`exp/trim-*`, `exp/believer-on-compiler`, the November 11
   experiments, old backups), agent worktrees, and `compare`'s worktrees under `generated/eval/worktrees/` (never

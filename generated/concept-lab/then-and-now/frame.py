@@ -11,7 +11,9 @@ import os
 from PIL import Image, ImageDraw
 
 TILE_W, TILE_H, MARGIN, RADIUS, SCALE = 1080, 1920, 32, 44, 4  # px; drawn SCALE times larger, then reduced, for smooth edges
-GROUND, HAIRLINE = (236, 231, 221), (203, 197, 186)  # warm paper, and a line a little darker around each window
+# The ground is a neutral charcoal: a light video stands out against it at full contrast, and a dark theme, which is never
+# neutral nor this dark, still reads as a coloured surface; the line around each window, a little lighter, keeps its edge.
+GROUND, HAIRLINE = (27, 27, 29), (62, 62, 66)
 
 
 def frame() -> Image.Image:

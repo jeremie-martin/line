@@ -153,6 +153,74 @@ Be candid about the evidence: in this pass the agent used analysis and visual
 checks; the owner supplied the listening judgment. Do not describe inferred
 musical details as independently heard or perceptually verified.
 
+## What handcrafting taught (November 2026)
+
+From the work of 14 and 15 November: the owner's listening marks on Circus Minimus, Believer and Tiki Tiki, twenty
+readings of five songs written by hand, and his marks out of ten on full rides of them
+(`labels/studies/handcraft-2026-11-15.json`; the readings are each song's `variants/`). Each point says what it rests
+on. They are questions to ask of a new song, not a recipe: feedback on one song applied as a blanket rule to another
+has already gone wrong once (Believer's "held chords count" became soft landings on Luna Bala that were not even on a
+half-beat).
+
+**How the work is done**
+
+- **The author writes alone; the owner marks a small sample.** His listening time is the scarce resource. When he
+  leaves marks (`notes.json`), write your own reading of that passage first without opening them, freeze it, then
+  compare and say what each miss teaches. On Circus (48–54.5 s) 24 of 25 marks were matched within 80 ms that way, and
+  the rest of the song was then written from what the marks showed (the header of `circus_minimus_77s/variants/voice-full.ts`).
+- **His marks sit about 25 ms before the detected onset.** Place a landing on the measured source nearest the mark
+  once that lead is counted.
+- **Step back and check the whole spec's harmony** after a round of remarks; do not patch single remarks one by one
+  (his request on Tiki).
+- **Old specs are evidence.** They carry earlier reviews: list every landing of the previous spec the new one lacks and
+  decide each one.
+
+**What to land on**
+
+- **A sound on the beat with a soft attack still counts.** Held chords, bass notes and decaying booms have a low
+  onset "rise" and often no drum class, and were left out three times in one day (Circus 51.6 s, Believer's beats 2
+  and 4, Tiki 25.25 and 26.12 s). For every beat of the pulse with no landing, list what any stem measures there and
+  decide explicitly. Never write a float over a passage where the beat continues.
+- **Read the raw events again,** not an earlier session's summary of the layers in `music.ts`.
+- **Where the voice is mixed into the backing, another stem may carry the line** (Circus's break: the synth's five
+  even notes are in the `other` stem).
+- **In a full groove every beat gets a landing,** on the clearest sound near it; a strong vocal attack between two
+  beats gets its own; weak vocal estimates between beats get none. A strong voice attack within 0.1 s of a drum shares
+  the drum's landing. (Circus; the owner kept the reading built on these four observations.)
+
+**Strength**
+
+- **Strength follows the kind of hit, not only its loudness or its place in the bar.** He hears "fat" hits, heavy
+  rather than sharp, and wants those at 0.9–1 with ordinary strong kicks a clear step below. On Tiki they fell every
+  four beats from the drop, plus pickups and the last four kicks; in the data: a full-level mix peak, a soft attack,
+  often no drum-stem onset. Look for a recurring heavy slot in the bar before giving strengths by "downbeat".
+- **Choose strength per event.** A constant per role repeats the same values for 15–35 s. The specs he rates highest
+  keep groove landings at or below about 0.78 and save 0.86 and above for few moments. (An independent reader's
+  comparison of three rewrites with the reference specs; measurements, not his words.)
+- **Contrast must be large enough to see.** Sections that differ by 0.04 do not read as different, and a difference
+  of 0.15–0.2 between otherwise equal landings was not enough to carry a reading (Amor na Praia `chord-bars`, 7: "a
+  bit boring").
+- **Do not spend the peak at the first drop.** Trouble and Valhalla keep their hardest hits for late.
+
+**What made a reading work**
+
+- **A rhythmic shape the rider can be seen to follow,** made with density and clearly different steps. Petrunko
+  `build`, one long acceleration by density, got 11 ("absolute perfection, perfect representation of the music");
+  Trouble `cycle` (long, long, short, with a percussion filling in) and `contrast-clusters` got 10; Amor na Praia
+  `answer` (an off-beat reply after the kick) 9.5. (The marks are his; "rhythmic shape" is the author's reading of
+  one round.)
+- **Holding back for a long stretch costs more than it gives.** Valhalla `still-drop`: "beginning a bit too calm for
+  too long for my liking" (7); Bones `turn`: "a bit boring" (7).
+- **The rule of a selection must be visible.** Bones `singer`: "I'm not fully seeing what it's following" (7).
+- **His mark does not follow the compiler's score.** `build` scored 683 and got 11; `still-drop` scored 835 and got 7.
+  Write the musical intent; compiler feasibility is not a filter.
+- **Improving a good spec is a safe bet:** the five revisited specs averaged 9.0, the fifteen new readings 8.4.
+
+**Checks before calling a draft done** (the author's, proposed to the owner): print strengths per 5 s window (distinct
+values, the longest identical run, mean and maximum per section) beside a reference spec; list every gap under 0.18 s
+and every landing `music.ts` calls "not used"; compare which slots of the bar are landed across repetitions; then
+clicks over the music, which remain the final check.
+
 ## What read well on Trouble (owner reviews, October 2026)
 
 Observations from one song, not rules. Variants live in

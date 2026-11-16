@@ -138,11 +138,49 @@ is production's. The split (red into the surface) is `split` in `hits.js` and `s
 
 ## Writing a song's zoom lanes
 
-Write them like a reading of the song: from its `music.ts` (events, sections) and the idea of its preferred spec, a few
-moves that each have a reason, holding still otherwise. Two or three lanes per song, each following a different thing
-(Petrunko: the build, its tension, the bars the bass answers). The owner does not want the most intense passages to be
-the closest, and a formula over sections or a signal such as intensity carries no intention. Nothing goes in the last
-three seconds. Judge them on `/generated/concept-lab/zoom.html` (scenes from `prepare-rides.mjs`): each
-zoom of a song takes a mark (love, keep, unsure, cut), a note and, if its points are moved, the owner's version, saved at
-once to `labels/studies/zoom-2026-11b.jsonl` (the first set's marks and notes: `zoom-2026-11.jsonl`); `npm run video -- … --zoom=ID` renders one. A spec holds no camera: the zoom is the song's lanes, and
-the hit movement keeps its size against the scene at any zoom.
+A lane is a reading of the song, like a spec: a few moves that each have a reason in the music, holding still otherwise.
+Two or three lanes per song, each following a different thing (Petrunko: the build, its tension, the bars the bass
+answers). A spec holds no camera: the zoom is the song's lanes (`productions/<song>/zooms.ts`), and the hit movement
+keeps its size against the scene at any zoom. Nothing goes in the last three seconds.
+
+**How to write one.**
+
+1. Read the song: its `music.ts` or `composition.json` (sections, what leads where), the idea of its production spec,
+   and `python3 tools/music/lead_ins.py SONG`, which prints the recording's level over the song and the three seconds
+   before every section change. A lead-in (a fill, a pause where the drums stop, a swell, a pickup) shows as the level
+   changing before the bar line. The tool measures; the author decides.
+2. Decide what each lane follows, in one sentence, before placing a point. That sentence is the lane's `about`.
+3. Place each move in the music's own lead-in, by hand, song by song. A shift applied to every lane alike is not a
+   reading; use one only for a small correction the owner asked for everywhere.
+4. Run `prepare-rides.mjs` and look at the lanes on `/generated/concept-lab/zoom.html`; the owner marks them there
+   (love, keep, unsure, cut, a note per lane and per song, his own version if he moves points). Marks are in
+   `labels/studies/zoom-2026-11b.jsonl`; those on the first set, with his first notes, in `zoom-2026-11.jsonl`.
+   `npm run video -- … --zoom=ID` renders one lane.
+
+**What the owner's marks and notes have taught so far** (two rounds on 2026-11-16, about a dozen songs heard). He
+asked that these stay a direction to weigh, not rules; each is given with what it rests on.
+
+- **The most intense passages are not the closest.** Wide where the song is full, near where it is exposed. (His
+  statement before any lane was written; every lane he has kept follows it.)
+- **A move belongs to the lead-in, not to the moment after.** A zoom-out centred on a drop reads as late: half of it
+  happens after the hit. He asked for Believer's opening "before the huge drop, not right after" and said the point
+  applies to other songs. The second set, written this way, he found "much better overall".
+- **A sharp zoom-out ends a touch inside the sound it arrives for,** about a tenth of a second after the sound starts,
+  not exactly on it ("let's not overdo it"). Smoother moves can sit a little later still. (His notes on Tiki and Amor
+  na Praia.)
+- **Smooth long shapes are the base; a sharp move is for a moment that earns it.** He prefers the smoother lanes "with
+  maybe a few relatively sharp stuff when it makes sense": a clear expression of the music.
+- **A gimmick works as one event inside a clean lane,** not as the lane. Petrunko's lean-in for the bass is kept;
+  Believer's breath at every stop was "more confusing than anything". There is little room for a zoom-in gimmick when
+  the picture is already at the steady zoom or nearer.
+- **The size of a move matches the size of the event.** No Batidão slowed has no big drop, so its dramatic pull-back
+  was wrong, while the same idea on the faster version, where the bass really arrives, is the one lane he has marked
+  love. Versions of one song need their own sizes.
+- **Be careful with sharp zoom-ins.** A zoom-out reads as the picture opening; a fast zoom-in reads oddly, "almost the
+  radar that becomes bigger". Not forbidden; today's lanes let a zoom-in take about a second per tenth of the scale.
+  A move must also sit on something: a zoom-out on no event (Trouble, 45.5 s) was "a bit weird".
+- **Not yet known:** what a good lane is for a song with a long quiet middle (both first lanes of Lua na Praça were
+  unsure, with no note), and how many of the unheard songs hold up.
+
+A formula over sections or over a signal such as intensity carries no intention, and the lanes that came closest to
+one (a step at every section, the same shape copied across versions of a song) are the ones he marked down.

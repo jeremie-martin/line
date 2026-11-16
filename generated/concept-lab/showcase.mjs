@@ -30,7 +30,7 @@ const part = (c, i) => new Promise((done, fail) => {
 const files = []; for (let i = 0; i < cuts.length; i += 6) files.push(...await Promise.all(cuts.slice(i, i + 6).map((c, k) => part(c, i + k))));
 writeFileSync(join(work, 'list.txt'), files.map(f => `file '${f}'`).join('\n') + '\n');
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt'), '-i', `productions/${song}/audio.mp3`,
-  '-map', '0:v', '-map', '1:a', '-c:v', 'copy', ...AUDIO, '-t', String(end), '-movflags', '+faststart', out]);
+  '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'asetpts=PTS-STARTPTS,apad', ...AUDIO, '-t', String(end), '-movflags', '+faststart', out]);
 const size = frameSize(width);
 verifyVideo(out, {width: size.width, height: size.height, frames: Math.round(end * FPS)});
 const lag = audioLag(out, `productions/${song}/audio.mp3`, 0);

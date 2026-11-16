@@ -20,8 +20,5 @@
     "productions/**/*.ts",
     "tools/**/*.ts",
     "tests/contracts/**/*.ts"
-  ],
-  "exclude": [
-    "scripts/v0/_probe*.ts"
   ]
 }

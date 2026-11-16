@@ -73,9 +73,10 @@ The goal is never the score alone: keep ride character in mind (`tools/research/
   study. **Trouble:** about half of `contrast-clusters`' seeds failed at the short two-hit pairs on 2026-10-31; check
   against today's compiler. **Circus `pairs4`** is the intended spec and a target.
 - **Housekeeping for that agent.**
-  - `tools/research/` holds about forty report-only scripts; five need an instrumented compiler branch to run
-    (`apex_work`, `quiet_work`, `ridable_work`, `upper_work`, `upper_candidates`). `WORKING.md` asks that one-off
-    study code stay on its branch.
+  - `tools/research/` holds about thirty-five report-only scripts, most cited only by one `REWORK.md` entry.
+    `WORKING.md` asks that one-off study code stay on its branch: keep those still in use (`ride_character`,
+    `rail_job`, `geometry_catalog`, `validate_uncertainty`, `family_fit`, `rail_squeeze`, `catch_price`) and the
+    chain that retrains the shipped models, as one unit.
   - `tests/fixtures/arc_control_policy_legacy.json` is 11 MB and feeds one test of the policy decoder.
   - Options that production always sets (`goneThroughCleanup`, `railSupportMargin`, `completeBoundary`) exist as
     options for tests and research tools only.

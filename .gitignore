@@ -26,7 +26,6 @@ __pycache__/
 /archives/
 
 # Local scratch and session metadata
-scripts/v0/_probe*.ts
 *.txtsession
 /overnight-session.txt
 /detection.json

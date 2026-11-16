@@ -4,14 +4,12 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 ## Waiting for the owner's eye
 
-1. **Trimming unused track.** `/generated/concept-lab/trim-video.html`: seven songs, seven versions from nothing
-   trimmed to touch-to-touch, on one slider. Every version leaves the ride identical (score and rider path, 49
-   compiles). His first look: two pieces kept is preferred, touch-to-touch is too aggressive (tiny pieces, e.g. Circus
-   at 37 s). The versions live on the local branch `exp/trim-dashboard` (rule: `retainedSpan` in
-   `scripts/v0/optimizer/arc_guidance.ts`, chosen by `TRIM_KEEP`). Adopting one means: the chosen rule without the
-   switch, parity references updated, `npm run parity`, `parity:judge`, a `REWORK.md` entry.
+1. **Trimming unused track, further or not.** End only is in the compiler (his choice for now, `REWORK.md`). On
+   `/generated/concept-lab/trim-video.html` the stronger versions remain to compare (seven songs, same ride in every
+   version); they live on the local branch `exp/trim-dashboard`.
 2. **Zoom lanes of the 28 songs written on 2026-11-15** (`/generated/concept-lab/zoom.html`, every song in the menu).
-   He has marked Petrunko, Trouble and Tiki only. Known from measuring them: no lane is among the closest during the
+   Each zoom takes a mark (love, keep, unsure, cut) and a note there; marks then decide which lanes stay or are
+   rewritten. Known from measuring them: no lane is among the closest during the
    most intense fifth of its song; several lanes hold one value for the last 30 to 45 s of their song (Amor na Praia
    selection, Funk Estranho, the three Los Voltaje "held", Luna Bala slowed); "Held breath" recurs in nine songs.
 3. **Opening and ending faster** (`/motion-gallery/video-compare.html?collection=/generated/watch/bookends.json`).
@@ -31,7 +29,7 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 ## Compiler (branch `compiler`, another agent; paused on the night of 2026-11-15)
 
-Benchmark: V8, with V7.1 beside it (`docs/benchmark.md`); reference `foundation-11` (same tracks as `foundation-10`).
+Benchmark: V8, with V7.1 beside it (`docs/benchmark.md`); reference `foundation-12`.
 The goal is never the score alone: keep ride character in mind (`tools/research/ride_character.ts`).
 
 - **Catches from above, reservations from an independent read** (not a reason to revert): the final code was measured

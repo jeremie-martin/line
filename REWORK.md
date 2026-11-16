@@ -1,5 +1,23 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16: supports end at the rider's last touch (the owner's "End only" trim; reference `foundation-12`)
+
+The owner compared seven trims on `/generated/concept-lab/trim-video.html` and chose **End only** as the default
+for now ("maybe we will make it more aggressive, but I'm not so sure"): where the rider comes onto a curve it stays
+whole; where the rider leaves, the curve stops at the last piece touched. "Last" follows the rider, so a curve ridden
+against the order of its pieces loses its first pieces.
+
+- **Where:** `trimUnusedArcSupports` (`scripts/v0/optimizer/arc_guidance.ts`), run at finalization after the guide
+  pruning. A cut that would break a fulfilled shape is undone for that support. Fragments and untouched supports are
+  left as drawn; guides keep their own rule (two pieces past the touches).
+- **The ride does not change.** The construction check replays the track with the removed ends restored and refuses
+  any difference in rider state or any contact on a removed piece. All 25 parity cells changed their track hash only
+  (same scores, same physics frames). V8 against `foundation-11`, two seeds: 98 of 98 rides score identically
+  (759.4), same completion, physics frames and ride character (shapes 22%).
+- **Size:** on the trim page's rides, drawn track is 10% (Circus) to 16% (Petrunko) shorter than untrimmed.
+- **Open:** whether to go further (two pieces kept, one before). The other versions stay on the local branch
+  `exp/trim-dashboard` and on the page.
+
 ## November 16: one source for each thing (structural consolidation; reference `foundation-11`)
 
 A step back over the compiler's contract, the renderer, the production record and the pages, asked by the owner:

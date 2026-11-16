@@ -1,5 +1,5 @@
 // Trimming unused track: the whole song plays with one version of the trim (generated/trim/data, from trim-video-prepare.mjs),
-// against today's drawing (held or beside). Every version keeps the same ride; a version is the scene with fewer lines.
+// against the untrimmed drawing (held or beside). Every version keeps the same ride; a version is the scene with fewer lines.
 // A timeline shows where the chosen version takes track off the screen. Settings live in the address and are saved per song.
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
@@ -9,8 +9,8 @@ import {resolveLook, THEMES} from '/scripts/video/look.js';
 const STUDY = 'trim-2026-11', SONGS = ['petrunko', 'trouble', 'tiki', 'circus', 'amor', 'bones', 'valhalla'];
 // gentlest to most aggressive (by the track each removes, over the seven songs)
 const VERSIONS = [
-  {id: 'base', name: 'Nothing', rule: 'Nothing is trimmed: the track as it is today.'},
-  {id: 'end', name: 'End only', rule: 'Where the rider comes onto a curve, it stays whole; where it leaves, the curve stops at the last touch.'},
+  {id: 'base', name: 'Nothing', rule: 'Nothing is trimmed: every curve as the compiler built it.'},
+  {id: 'end', name: 'End only', rule: 'Where the rider comes onto a curve, it stays whole; where it leaves, the curve stops at the last touch. This is what the compiler does today.'},
   {id: 'trim', name: 'Two kept', rule: 'Each curve keeps two pieces past the first and the last touch, and at least 24 px or a fifth of its length.'},
   {id: 'one', name: 'One kept', rule: 'Each curve keeps one piece past the first and the last touch.'},
   {id: 'startone', name: 'One before', rule: 'Each curve keeps one piece before the first touch, on the side the rider comes from, and stops at the last touch.'},

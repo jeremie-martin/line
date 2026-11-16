@@ -137,7 +137,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     const world = new DOMMatrix([cc.z * k, 0, 0, cc.z * k, (cc.ax - cc.x * cc.z) * k, (cc.ay - cc.y * cc.z) * k]);
     ctx.setTransform(world);
     const visible = track.visibleAt(cc), boosted = boosting > 0.01;
-    drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, boosted ? 'ink' : 'all');
+    drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, boosted ? 'ink' : 'all', v.unink);
     const rider = drawRider(riderCamera(v, mx, my, k), at);
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (boosted) layBoosted(boosting, colours.paper, () => {ctx.setTransform(world); drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, 'pencil');});

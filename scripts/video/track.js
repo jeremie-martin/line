@@ -66,13 +66,15 @@ export function prepareTrack(source, contacts, centres) {
   return {lines, byId, visibleAt};
 }
 
-// the course: the inked lines and (with pencil → ink or whole rail) the pencilled ones ahead; `part` draws one of the two
-export function drawTrack(ctx, visible, at, z, colours, mode, over, part = 'all') {
+// the course: the inked lines and (with pencil → ink or whole rail) the pencilled ones ahead; `part` draws one of the two.
+// `unink` (0 to 1) draws the inked lines back toward the pencil, for the last moment of a video that loops into its start.
+export function drawTrack(ctx, visible, at, z, colours, mode, over, part = 'all', unink = 0) {
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const path = filter => {ctx.beginPath(); for (const l of visible) if (filter(l)) {ctx.moveTo(l.x1, l.y1); ctx.lineTo(l.x2, l.y2);}};
   const ink = Math.max(2, 3.6 / z);
   if (mode === 'ink') {if (part !== 'pencil') {path(() => true); ctx.strokeStyle = colours.ink; ctx.lineWidth = ink; ctx.stroke();} return;}
   const done = mode === 'rail' ? l => l.railFrame <= at : l => l.inkFrame <= at;
-  if (part !== 'ink') {path(l => !done(l)); ctx.strokeStyle = over > 0.02 ? mixHex(colours.pencil, colours.ink, 0.25 * over) : colours.pencil; ctx.lineWidth = Math.max(1.3, (3 + 1.4 * over) / z); ctx.stroke();}
-  if (part !== 'pencil') {path(done); ctx.strokeStyle = colours.ink; ctx.lineWidth = ink; ctx.stroke();}
+  const pencil = over > 0.02 ? mixHex(colours.pencil, colours.ink, 0.25 * over) : colours.pencil, pencilWidth = Math.max(1.3, (3 + 1.4 * over) / z);
+  if (part !== 'ink') {path(l => !done(l)); ctx.strokeStyle = pencil; ctx.lineWidth = pencilWidth; ctx.stroke();}
+  if (part !== 'pencil') {path(done); ctx.strokeStyle = unink ? mixHex(colours.ink, pencil, unink) : colours.ink; ctx.lineWidth = ink + (pencilWidth - ink) * unink; ctx.stroke();}
 }

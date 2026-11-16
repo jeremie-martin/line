@@ -125,14 +125,17 @@ describe('drop and colour resolution', () => {
     expect(theme(0, 0.9, look).scheme).toBe(scheme);
     expect(theme(0, 0.9, {...look, paper: 'vibranceSoftHalfPaper'}).ink).not.toBe(scheme.ink);
   });
-  it('eases the opening and ending from rest to rest, as softly as asked at each end', async () => {
-    const {ease, ENDS, createFraming, rideSignals} = await import('../scripts/video/camera.js');
-    expect(ease(0, 2, 2)).toBe(0); expect(ease(1, 2, 2)).toBe(1); expect(ease(0.5, 2, 2)).toBeCloseTo(0.5);
-    expect(ease(0.05, 3, 2)).toBeLessThan(ease(0.05, 1.5, 2)); // a softer leave has moved less early on
-    expect(1 - ease(0.95, 2, 3)).toBeLessThan(1 - ease(0.95, 2, 1.5)); // a softer landing has less left to do late
+  it('the ending and the opening are one gesture: same whole course at the seam, and the two sides meet alike', async () => {
+    const {endsFollow, ENDS, createFraming, rideSignals} = await import('../scripts/video/camera.js');
+    expect(endsFollow(0)).toBe(0); expect(endsFollow(-ENDS.close.length)).toBe(1); expect(endsFollow(ENDS.open.length)).toBe(1);
+    // near the seam both sides are the same curve of the time away from it, whatever their lengths
+    for (const t of [0.02, 0.05, 0.1]) expect(endsFollow(-t) / endsFollow(t)).toBeCloseTo(1, 1);
+    const late = {...ENDS, close: {length: 2, drag: 4}};
+    expect(endsFollow(-1.6, late)).toBeGreaterThan(endsFollow(-1.6, {...ENDS, close: {length: 2, drag: 1.5}})); // dragging stays with the rider longer
+    expect(endsFollow(-0.2, {...ENDS, pause: 0.6})).toBe(0);
     const motion = rideSignals(Array.from({length: 801}, (_, f) => ({x: f * 8, y: f * 4})));
     const look = resolveLook(), frame = createFraming(motion, 20), end = frame(20, 800, look), start = frame(0, 0, look);
-    expect(end.z).toBeCloseTo(start.z); expect(end.over).toBe(1); // the last frame and the first show the same whole course
-    expect(frame(ENDS.open.hold + ENDS.open.length, 80, look).over).toBe(0);
+    expect(end.z).toBeCloseTo(start.z); expect(end.over).toBe(1); expect(start.over).toBe(1); expect(end.unink).toBe(0);
+    expect(createFraming(motion, 20, null, {...ENDS, pencil: true})(20, 800, look).unink).toBe(1);
   });
 });

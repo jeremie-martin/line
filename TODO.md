@@ -6,11 +6,13 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **Opening and ending.** He wants the loop from the last frame to the first to be sleek and short, and asked for
-   proposals and his own hand on it: `/generated/concept-lab/ends.html` plays the last five seconds into the first
-   five, with sliders (length, hold, how softly each move leaves and lands, one straight zoom or the earlier path)
-   and five proposals. Production carries the first proposal (`ENDS` in `scripts/video/camera.js`) until he saves
-   his settings (`labels/studies/bookends-2026-11.jsonl`). When he has: set `ENDS`, and drop the `straight` switch.
+1. **Opening and ending.** He wants the loop from the last frame to the first to flow as one movement and take
+   little of the video. `/generated/concept-lab/ends.html` plays the last five seconds into the first five, with
+   sliders and six proposals: the ending (length, how long it stays with the rider), the turn shared by both sides
+   (how sharp, a hold, a drift across the course), the opening (length, landing), and the ink returning to pencil
+   so the loop has no seam. His first liking: an ending of 2 s that leaves the rider very late. Production carries
+   my first proposal (`ENDS` in `scripts/video/camera.js`) until he saves his settings
+   (`labels/studies/bookends-2026-11.jsonl`).
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
    he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec
    he judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the original. To do properly, after

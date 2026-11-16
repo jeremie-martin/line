@@ -27,7 +27,8 @@
     "tools/music/*.ts",
     "tools/research/value_collect.ts", "tools/research/validate_uncertainty.ts", "tools/research/geometry_catalog.ts", "tools/research/catch_price.ts", "tools/research/old_construction_corpus.ts",
     "tools/research/loss_attribution.ts", "tools/research/rail_squeeze.ts", "tools/research/ridable_work.ts", "tools/research/candidate_origins.ts", "tools/research/catch_outcomes.ts", "tools/research/crash_edge.ts", "tools/research/crossings.ts", "tools/research/family_fit.ts", "tools/research/ride_character.ts", "tools/research/upper_hits.ts", "tools/research/upper_survival.ts", "tools/research/rotation.ts", "tools/research/upper_work.ts", "tools/research/upper_candidates.ts", "tools/research/gravity_neutral.ts", "tools/research/pass_through.ts", "tools/research/pass_through_removal.ts", "tools/research/going_through.ts", "tools/research/going_through_wide.ts", "tools/research/going_through_cleanup.ts", "tools/research/rider_height.ts", "tools/research/rail_audit.ts", "tools/research/rail_job.ts", "tools/research/rail_counterfactual.ts", "tools/research/catch_frontier.ts", "tools/research/alternation_probe.ts", "tools/research/roof_probe.ts", "tools/research/quiet_asks.ts", "tools/research/quiet_catches.ts", "tools/research/quiet_work.ts", "tools/research/apex_work.ts", "tools/research/flight_variety.ts", "tools/research/arrival_law.ts", "tools/research/body_drag.ts",
-    "generated/concept-lab/lab.js", "generated/concept-lab/*.mjs", "generated/concept-lab/intensity/*.mjs", "generated/concept-lab/rate/*.mjs"
+    "generated/concept-lab/lab.js", "generated/concept-lab/*.mjs", "generated/concept-lab/intensity/*.mjs", "generated/concept-lab/rate/*.mjs",
+    "generated/concept-lab/then-and-now/*.mjs", "generated/concept-lab/then-and-now/*.ts"
   ],
   "assets": [
     "unpacked/**",

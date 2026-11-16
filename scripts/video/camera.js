@@ -88,7 +88,7 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
     const lerp = (p, q) => p + (q - p) * u;
     const lower = +look.riderLower + (DISC_TOPS.has(look.top) ? +look.sunRider : 0);
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
-      x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, ending: false};
+      x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0};
     if (look.ends === 'none') return c;
     let follow = 1;
     if (time < openingEnd) follow = smoothstep((time - OPEN_FROM) / (openingEnd - OPEN_FROM));
@@ -96,6 +96,6 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
     if (follow >= 1) return c;
     const q = {x: W / 2 + (c.x - centre.x) * overviewZoom, y: 0.4 * H + (c.y - centre.y) * overviewZoom};
     const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow);
-    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow, ending: time > endingStart};
+    return {...c, z, ax: q.x + (c.ax - q.x) * follow, ay: q.y + (c.ay - q.y) * follow, over: 1 - follow};
   };
 }

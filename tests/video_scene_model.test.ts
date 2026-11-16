@@ -83,8 +83,8 @@ describe('camera and framing', () => {
     const frame = createFraming(motion, times, 20), look = resolveLook();
     const overview = frame(0, 0, look), riding = frame(4, 160, look);
     expect(overview.over).toBe(1); expect(overview.z).toBeLessThan(riding.z);
-    expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0, ending: false});
-    expect(frame(20, 800, look)).toMatchObject({over: 1, ending: true});
+    expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0});
+    expect(frame(20, 800, look)).toMatchObject({over: 1});
     const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));
     expect(lower.ay - riding.ay).toBe(32);
     for (const t of [0, 0.7, 1.8, 10, 18, 20]) {

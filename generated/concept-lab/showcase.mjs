@@ -1,7 +1,7 @@
 // A showcase film: one ride, the theme changing on the music. Each part is an ordinary video of that theme over its span
 // (scripts/video.ts), so the picture is production's; the parts are joined without re-encoding and the song laid under them.
 //   node generated/concept-lab/showcase.mjs study=DIR cuts=0:paperPrint,6.9:hokusai,… [zoom=ID] [wider-near=1.075 wider-far=1.05]
-//     [width=1080] [master=yes] out=FILE.mp4
+//     [width=1080] [master=yes] [caption=WORD] out=FILE.mp4
 // master=yes: the parts and the film are lossless, for a film that goes into a composition (then-and-now) and is encoded there.
 // cuts: song seconds and the theme from there on, in order; each is moved to the nearest video frame. Themes with a sun or a
 // moon keep the rider at one height across cuts.
@@ -23,7 +23,7 @@ rmSync(work, {recursive: true, force: true}); mkdirSync(work, {recursive: true})
 const trial = [a.zoom ? `--zoom=${a.zoom}` : null, a['wider-near'] ? `--wider-near=${a['wider-near']}` : null, a['wider-far'] ? `--wider-far=${a['wider-far']}` : null].filter(Boolean);
 const part = (c, i) => new Promise((done, fail) => {
   const file = join(work, `${String(i).padStart(2, '0')}.mp4`), to = cuts[i + 1]?.t ?? end, log = [];
-  const child = spawn(process.execPath, ['scripts/video.ts', `--study=${a.study}`, `--look=${c.theme}`, ...trial, `--from=${c.t}`, `--to=${to}`, `--width=${width}`, ...(a.master ? ['--master=yes'] : []), `--out=${file}`]);
+  const child = spawn(process.execPath, ['scripts/video.ts', `--study=${a.study}`, `--look=${c.theme}`, ...trial, `--from=${c.t}`, `--to=${to}`, `--width=${width}`, ...(a.master ? ['--master=yes'] : []), ...(a.caption ? [`--caption=${a.caption}`] : []), `--out=${file}`]);
   child.stdout.on('data', d => log.push(d)); child.stderr.on('data', d => log.push(d));
   child.on('exit', code => code ? fail(new Error(`${c.theme} ${c.t}–${to} s: ${Buffer.concat(log).toString().slice(-400)}`)) : done(file));
 });

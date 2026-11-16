@@ -27,6 +27,7 @@ Zoom:   one of the song's lanes (productions/<song>/zooms.ts), chosen for the ri
         --wider-near=1.075 --wider-far=1.05 is a trial of the overall zoom: the picture shows 7.5 % more at the closest
         zoom and 5 % more at the widest, in proportion between
 Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N pixels (1080; the video is 9:16)
+Caption: --caption=WORD draws a word near the lower edge in the theme's ink, for a film shown beside another
 Master: --master=yes writes the frames without loss, for a video that is composed with others and encoded once there
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
 } else {
@@ -78,9 +79,10 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
   const chosen = request.look ? null : chooseLook(key, {hasDrop: !!scene.drop});
   const look = request.look ?? resolveLook(null, {...chosen!.look, ...request.overrides}), theme = chosen?.theme ?? request.lookName, partner = chosen?.partner ?? null;
   for (const [key, flag] of [['widerNear', 'wider-near'], ['widerFar', 'wider-far']] as const) if (request[key] !== undefined) {if (!(request[key]! >= 0.5 && request[key]! <= 2)) throw new Error(`--${flag} takes a number from 0.5 to 2`); scene[key] = request[key];}
+  if (request.caption) scene.caption = request.caption;
   console.log(`Look · ${partner ? `${theme} → ${partner}` : theme} · zoom ${scene.zoom?.id ?? 'steady'}`);
   await writeVideo({scene, look, out: output, from, to, width: request.width, master: request.master});
-  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, ...(scene.widerNear ? {widerNear: scene.widerNear} : {}), ...(scene.widerFar ? {widerFar: scene.widerFar} : {}), timing: scene.timing, from, to, width: request.width,
+  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, ...(scene.widerNear ? {widerNear: scene.widerNear} : {}), ...(scene.caption ? {caption: scene.caption} : {}), ...(scene.widerFar ? {widerFar: scene.widerFar} : {}), timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

@@ -16,6 +16,7 @@
 // strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
 // pushed along the line struck at its onset.
 import {RANGE, laneScale} from './zoom.js';
+import {drawCaption} from './caption.js';
 import {W, H, BASE, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import {rideIntensity, intensityAt} from './intensity.js';
@@ -132,9 +133,9 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     if (boosting > 0.01) ctx.clearRect(0, 0, canvas.width, canvas.height); else {ctx.fillStyle = colours.paper; ctx.fillRect(0, 0, canvas.width, canvas.height);}
     ctx.setTransform(k, 0, 0, k, 0, 0);
     if (look.top !== 'none') {const a = (1 - v.over) ** 2; if (a > 0.003) titleBox = drawTop(intensity, a, colours, look);}
-    // the band is drawn before the ride, so the split catches it with the title and sun
-    const band = v.ending ? (1 - v.over) ** 2 : 1;
-    if (band > 0.003 && look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), band, colours, look, fx.lit);
+    // the band is drawn before the ride, so the split catches it with the title and sun; it stays through the opening and the
+    // ending, where the sun and the title give way to the whole course
+    if (look.band !== 'none') drawBand(ctx, scene.spectrum, t, hitHeatAt(hits, r), 1, colours, look, fx.lit);
     // the hit's movement (shake and carry) was set at the steady zoom and keeps its size against the scene: it grows and shrinks
     // with the picture, along a zoom lane and in the opening and ending
     const move = v.z / BASE, mx = fx.dx * move, my = fx.dy * move;
@@ -148,6 +149,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     if (boosted) layBoosted(boosting, colours.paper, () => {ctx.setTransform(world); drawTrack(ctx, visible, at, cc.z, colours, look.line, v.over, 'pencil');});
     applySplit(k, fx, rider, titleBox);
     ctx.setTransform(k, 0, 0, k, 0, 0);
+    if (scene.caption) drawCaption(ctx, scene.caption, colours.ink);
     return world;
   }
 

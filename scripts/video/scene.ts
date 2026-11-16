@@ -49,6 +49,8 @@ export type Scene = {
   /** The zoom lanes written for the song (zooms.ts), and the one this video uses: chosen from the ride's id by whoever makes
    * the video (choose.js `chooseZoom`); null keeps the steady zoom. */
   zooms: ZoomLane[]; zoom: ZoomLane | null;
+  /** A word or two drawn near the lower edge in the theme's ink (caption.js), for a film shown beside another. */
+  caption?: string;
   /** A trial of the overall zoom: how many times more the picture shows at the closest and at the widest zoom of the scale
    * (1.075: 7.5 % more), in proportion between. Absent in production. */
   widerNear?: number; widerFar?: number;

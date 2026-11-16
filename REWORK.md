@@ -1,5 +1,18 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16: the band stays through the ending (owner); films for showing the project
+
+- **The band no longer fades at the end.** It was drawn fainter as the picture moved out to the whole course, gone by
+  the last frame. The owner, on the Tiki showcase: "the music visualization should stay"; the sun may go. Now the band
+  is drawn in full from the first frame to the last (`scripts/video/picture.js`); the sun and the title still give way
+  to the course in the opening and the ending. Every video's last 2.6 s changes; nothing else does.
+- **Showcase and then-and-now** (docs/visual-system.md, "Films for showing the project"): the theme changing on the
+  music over one ride; an early video beside today's at full size. With them: an optional caption in the theme's ink, a
+  lossless master for videos that go into a composition, and a trial of the overall zoom (closest and widest moments
+  apart). The owner's proposal under trial is 7.5% more at the closest zoom and 5% more at the widest; undecided.
+- **Zoom lanes, second set:** 30 songs rewritten from his notes on the first set (docs/visual-system.md, "Writing a
+  song's zoom lanes"); marks in `labels/studies/zoom-2026-11b.jsonl`.
+
 ## November 16: supports end at the rider's last touch (the owner's "End only" trim; reference `foundation-12`)
 
 The owner compared seven trims on `/generated/concept-lab/trim-video.html` and chose **End only** as the default

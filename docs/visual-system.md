@@ -21,7 +21,8 @@ These are fixed for all themes (`look.js` `V1`):
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
 - **Camera.** Follows the rider's direction, and shows the whole course at the start (moving in until about the first
-  hit) and at the end (moving out over the last 2.6 s).
+  hit) and at the end (moving out over about the last 2.6 s). The sun and the title give way to the whole course there;
+  the band stays from the first frame to the last.
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its
   ride's id. A lane is a few points saying how wide the picture is, on one scale shared by every song (0 closest, 1
@@ -125,6 +126,30 @@ The collection's best themes were found by looking, not derived from rules.
 | `scripts/video/theme.js`, `grade.js` | a frame's colours: drop switch, then the colour response to intensity |
 | `scripts/produce/render_repertoire.ts` | a batch: every valid ride of a study, each with its chosen look and a record |
 | `generated/concept-lab/` | the lab (`index.html`, `lab.js`), the collection page, the judging site (`rate/`) |
+
+## Films for showing the project
+
+Two tools, both built on ordinary videos so the picture is production's:
+
+- **A showcase** (`generated/concept-lab/showcase.mjs`): one ride with the theme changing on the music. `cuts=T:THEME,…`
+  names each change in song seconds; each part is a video of that theme over its span, and the parts are joined without
+  re-encoding. What made the Tiki film work, by the owner's reaction: cuts on the spec's own phrase beats (every eight
+  beats, every four toward the end of a drop); light themes outside the drops and dark ones inside; only themes with a
+  sun or a moon, so the rider and the band hold their place across every cut; no near-duplicate themes; no names on
+  screen.
+- **Then and now** (`generated/concept-lab/then-and-now/`): two videos side by side at their full size under a frame
+  (`frame.py`: ground and rounded windows; `join.ts`). The word on the new video is a caption drawn by the renderer in
+  the theme's ink (`--caption`, `scripts/video/caption.js`), so it follows every change of theme; the word on a video
+  the renderer did not draw is the same caption as a picture (`caption.mjs`).
+
+A video that goes into a composition is written as a lossless master (`--master=yes`, `showcase.mjs master=yes`) and
+encoded once, in the composition. Never shrink or re-encode an encoded video: the first then-and-now did both and showed
+bands on flat colour. Before handing a composition over, compare a still with its master and look at a brightened flat
+area.
+
+Trials of the overall zoom: `--wider-near=1.075 --wider-far=1.05` (how much more the picture shows at the closest and
+at the widest zoom of the scale), and the two sliders on the zoom page. Production's zoom is unchanged until the owner
+decides.
 
 ## The hit movement: how it was found, and how to change it
 

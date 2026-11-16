@@ -3,7 +3,7 @@ import {resolveLook} from '../video/look.js';
 
 export function videoRequest(argv: string[]) {
   const args: Record<string, string> = {};
-  const allowed = new Set(['song', 'study', 'id', 'track', 'music', 'seed', 'budget', 'look', 'set', 'zoom', 'wider-near', 'wider-far', 'from', 'to', 'width', 'master', 'out']);
+  const allowed = new Set(['song', 'study', 'id', 'track', 'music', 'seed', 'budget', 'look', 'set', 'zoom', 'wider-near', 'wider-far', 'from', 'to', 'width', 'master', 'caption', 'out']);
   for (const token of argv) {
     const match = /^--([^=]+)=(.+)$/.exec(token);
     if (!match || !allowed.has(match[1]) || match[1] in args) throw new Error(`Unknown, repeated or incomplete option: ${token}. Use --help.`);
@@ -30,7 +30,7 @@ export function videoRequest(argv: string[]) {
     return [key, value];
   }));
   if (args.master !== undefined && args.master !== 'yes') throw new Error('--master=yes writes a lossless master; there is no other value');
-  return {master: args.master === 'yes', zoom: args.zoom, widerNear: args['wider-near'] === undefined ? undefined : Number(args['wider-near']), widerFar: args['wider-far'] === undefined ? undefined : Number(args['wider-far']), song: args.song, study: args.study, id: args.id, track: args.track, music: args.music, out: args.out,
+  return {master: args.master === 'yes', caption: args.caption, zoom: args.zoom, widerNear: args['wider-near'] === undefined ? undefined : Number(args['wider-near']), widerFar: args['wider-far'] === undefined ? undefined : Number(args['wider-far']), song: args.song, study: args.study, id: args.id, track: args.track, music: args.music, out: args.out,
     seed: integer('seed', 0), budget: integer('budget', 1), from: seconds('from'), to: seconds('to'), width: integer('width', 1) ?? 1080,
     // the options are checked now even when the look is chosen later: an unknown option or value fails before any work
     lookName, overrides, look: lookName ? resolveLook(lookName, overrides) : (resolveLook(null, overrides), null)};

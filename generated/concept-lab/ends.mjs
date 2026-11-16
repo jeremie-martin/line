@@ -152,7 +152,23 @@ function start() {
   from = at; started = audio.currentTime; node.start(0, at);
 }
 const pause = () => {if (playing) {at = position(); node?.stop(); node = null;} playing = false; $('play').textContent = 'Play';};
-const play = async () => {if (!ride || !loopSound) return; await audio.resume(); playing = true; $('play').textContent = 'Pause'; start();};
+// A phone in silent mode mutes this kind of sound unless the page says it is playing media: the audio session where the browser
+// has one, and a silent looping <audio> element everywhere else (it must start inside the tap).
+let unmuted = false;
+function unmute() {
+  if (unmuted) return; unmuted = true;
+  try {if (navigator.audioSession) navigator.audioSession.type = 'playback';} catch {}
+  const bytes = new Uint8Array(44 + 800), view = new DataView(bytes.buffer), text = (at, word) => [...word].forEach((ch, i) => view.setUint8(at + i, ch.charCodeAt(0)));
+  text(0, 'RIFF'); view.setUint32(4, 36 + 800, true); text(8, 'WAVEfmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, 8000, true); view.setUint32(28, 8000, true); view.setUint16(32, 1, true); view.setUint16(34, 8, true); text(36, 'data'); view.setUint32(40, 800, true); bytes.fill(128, 44);
+  const quiet = new Audio(URL.createObjectURL(new Blob([bytes], {type: 'audio/wav'}))); quiet.loop = true; quiet.setAttribute('playsinline', ''); void quiet.play().catch(() => {});
+}
+const play = async () => {
+  if (!ride) return;
+  unmute(); await audio.resume();
+  if (!loopSound) {$('status').textContent = 'The sound is still loading, or could not be decoded on this device.'; return;}
+  playing = true; $('play').textContent = 'Pause'; start();
+};
 function draw() {
   if (!mine) return;
   (holding ? today : mine).draw(songTime(at), look);
@@ -166,7 +182,7 @@ async function load() {
   const made = loops[song] ?? {}, options = [['/' + ride.scene.audio, 'Sound: looped (production)'], [`/productions/${song}/audio.mp3`, 'Sound: as cut'], ...Object.entries(made.lengths ?? {}).map(([seconds, path]) => ['/' + path, `Sound: ${made.loop === 'lead-in' ? 'blended' : 'faded'} over ${seconds} s`]),
     ...Object.entries(made.mirrored ?? {}).map(([seconds, path]) => ['/' + path, `Sound: the opening backwards over ${seconds} s (a trial)`])];
   $('sound').replaceChildren(...options.map(([value, text]) => Object.assign(document.createElement('option'), {value, textContent: text})));
-  loopSound = null; await useSound(); if (n !== ticket) return;
+  loopSound = null; await useSound().catch(error => {$('status').textContent = `Sound: ${error.message}`;}); if (n !== ticket) return;
   mine = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter(), {ends});
   today = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter());
   ride.points = mine.centres.filter((_, i) => i % 4 === 0);

@@ -532,7 +532,9 @@ log):
     songs; the owner accepted that for the size. The remaining loss is
     mostly strong beats too soft on everyday songs (REWORK.md, November 11
     and 13).
-  - Pinned by `tests/policy_archive_frozen.test.ts`.
+  - Pinned by `tests/policy_archive_frozen.test.ts`. The proposal decoder uses the 57-feature schema; retired
+    forest predictions, residual policies and the 67-feature proposal path are removed. Proximity retrieval remains
+    for `tools/research/train_construction_v3.py` output, although the shipped compact source does not use it.
 
 Measured limits (docs/research/producing-impact-brief-20261004.md):
 

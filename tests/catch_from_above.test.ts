@@ -31,6 +31,15 @@ describe('the plan grants it', () => {
     (legacy.requests[phrase.first] as any).catchFromAbove = true;
     expect(() => validateProductionPlan(spec, legacy)).toThrow('invalid construction request');
   });
+  it('honors a supplied permission without granting it to an explicit shaped request', () => {
+    const supplied = planIntentionalRepertoire(spec, 3);
+    expect(validateProductionPlan(spec, supplied)).toEqual(supplied);
+    const explicit = structuredClone(supplied);
+    for (const request of explicit.requests) delete request.catchFromAbove;
+    const checked = validateProductionPlan(spec, explicit);
+    expect(checked.requests.some(r => r.construction === 'scallops' || r.construction === 'serpentine')).toBe(true);
+    expect(checked.requests.every(r => r.catchFromAbove === undefined)).toBe(true);
+  });
   it('does not carry over to an explicit construction window', async () => {
     const boundaries = [0], windows = [{from: 2, to: 6, family: 'scallops', rail: 'offered'}] as any;
     const plan = await explicitPlan('.', spec, 3, {}, boundaries, windows);

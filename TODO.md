@@ -51,15 +51,16 @@ Work that is mine:
   the rounds stay as an archive or leave the tree (their answers are in `LEDGER.md`).
 - The spec dashboard does not show a song's zoom lanes; the zoom page does.
 
-## Compiler (branch `compiler`; production review in progress)
+## Compiler (branch `compiler`; production review complete)
 
-Benchmark: V8, with V7.1 beside it (`docs/benchmark.md`); reference `foundation-12`.
+Benchmark: V8, with V7.1 beside it (`docs/benchmark.md`); reference `foundation-13` (structural cleanup; same production behavior).
 The goal is never the score alone: keep ride character in mind (`tools/research/ride_character.ts`).
 
-- **Catches from above, reservations from an independent read** (not a reason to revert): the final code was measured
-  at 4 seeds only (16 seeds and V7.1 are the experiment's); the explicit result is given as −1.9 and −2.9 in two
-  entries; shapes 31 → 28% is a loss of variety not named as a cost; `plainFromAbove` draws every receiver met from
-  above plain whatever the request allows (then refuses it); a plan supplied whole can carry `catchFromAbove`.
+- **Catches from above audit:** complete: V8 16 seeds +0.6 [−4.5, +5.6], V7.1 four seeds +7.0 [1.2, 12.7],
+  no completion losses; all 864 + 216 explicit sections keep their construction. Historical explicit −2.9 versus
+  −1.9 reconciled: four versus sixteen seeds of the experiment. Reduced shaped share is explicitly a cost. Supplied
+  plans can deliberately carry permission; validation never adds it (comment corrected, test added). Plain upper
+  drawing followed by actual shape validation remains intentional; no speculative early rejection added.
 - **Rails left by geometry.** Rails are 34% of gaps on V8; those left mostly hold shaped supports at the release
   before a strong beat (`tools/research/rail_job.ts --census`). Which of those jobs another geometry could take over
   is open.
@@ -71,15 +72,19 @@ The goal is never the score alone: keep ride character in mind (`tools/research/
 - **The remaining strong-beat gap on everyday songs** (chain setup). Compact sources plateau and generating moves
   failed (`REWORK.md`, "November 11 (night)").
 - **Geometry hygiene:** G3 and G4 open. **Unwanted impacts:** U2, U3 (guide touches on beats), after the visibility
-  study. **Trouble:** about half of `contrast-clusters`' seeds failed at the short two-hit pairs on 2026-10-31; check
-  against today's compiler. **Circus `pairs4`** is the intended spec and a target.
+  study. **Trouble:** all eight default-production seeds now complete; all 32 tight second hits match on time.
+  Circus defaults also complete at eight seeds; `pairs4` completes at all 16 V8 seeds. Strength shortfalls remain.
 - **Production review:** 248/248 default-spec rides complete and qualified; diagnostics and plain review collection
-  in `docs/research/production-sweep-20261116.md`. Visual prioritization and final-code catches audit remain in progress.
+  in `docs/research/production-sweep-20261116.md`. Dense-chain hit strength and long-float quiet catches remain
+  the main research limits; the diagnostic watch collection supports the owner’s visual prioritization.
 - **Housekeeping for that agent.**
   - Five obsolete instrumented-study scripts removed; retained in Git at `2279c1f8`.
-  - Legacy policy decoder fixture compressed without changing its contents (11 MB → 4.3 MB).
-  - Options that production always sets (`goneThroughCleanup`, `railSupportMargin`, `completeBoundary`) exist as
-    options for tests and research tools only.
+  - Retired forest predictions, residual policies and the 67-feature proposal path removed with their 11 MB fixture.
+    Proximity retrieval stays: `train_construction_v3.py` still emits it, so remove it only with a coherent training-chain update.
+  - Option review: `completeBoundary` actually varies with guidance allowance (`connected_arcs.ts`), including
+    low-budget parity cells; retain it. `goneThroughCleanup` and `railSupportMargin` remain lower-level test/research
+    seams; removing them would change those configurations. No simplification of production behavior is justified
+    by deleting these three declarations alone.
 
 ## Open questions
 

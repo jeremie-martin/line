@@ -18,7 +18,8 @@ export type Guidance='required'|'forbidden'|'optional';
 export type CreativePreferences={repertoire?:Construction[];variation?:number;guidedBalance?:number};
 /** `catchFromAbove`: the beat may be caught from above (a plain line met from above, arc_geometry.ts) instead of the
  * section drawing its shape. The automatic planner grants it wherever `mayCatchFromAbove` holds; an explicit request
- * (a plan supplied whole, a benchmark's construction window) does not carry it and keeps its shape. */
+ * keeps its shape when this permission is absent. A supplied plan may explicitly carry the permission; validation
+ * checks its eligibility and does not add it. Benchmark construction windows remove it. */
 export type ConstructionRequest={section:number;frame:number;next:number;construction:Construction;guidance:Guidance;
   railLayout?:'paired'|'transfer';context?:RepertoireContext;catchFromAbove?:true};
 export type ProductionPlan={schema:'line.production-plan.v1';policy:string;seed:number;timelineSha256:string;

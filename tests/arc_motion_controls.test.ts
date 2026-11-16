@@ -55,13 +55,3 @@ it('preserves exact local-memory controls at the same physical boundary', () => 
   memory.rememberControl({...reference, features});
   expect(memory.proposeControls(features, reference.incoming, reference.span, 1)[0]).toEqual(reference.control);
 });
-
-it('accepts a one-tree policy without requiring an odd-tree ensemble', () => {
-  const target = [0, -.2, -.3, .5, 0, .1, 1, .4, 0, 0];
-  const tree = {left: [-1], right: [-1], feature: [-2], threshold: [-2], value: [target]};
-  const model = {featureSchema: ARC_POLICY_SCHEMA, featureCount: 57, trees: [tree]};
-  const proposals = arcControlProposals(Array(57).fill(0), 20, 30, model, 3);
-  expect(proposals).toHaveLength(3);
-  expect(proposals[0]).toEqual(proposals[1]); expect(proposals[1]).toEqual(proposals[2]);
-  expect(Object.values(proposals[0]).every(Number.isFinite)).toBe(true);
-});

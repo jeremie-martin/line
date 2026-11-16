@@ -92,7 +92,7 @@ export function proposeInitialControls(s: IntervalSearch) {
   const novelConstructor = !!options.profile || options.railLayout === 'transfer';
   const reservedGeneric = Math.ceil(initial * (novelConstructor ? .25 : 0));
   const counts = allocateArcProposalSlots(requested, Math.max(0, initial - 1 - reservedGeneric));
-  const policy = counts[0] ? arcControlProposals(s.policyInputFeatures, incoming, span, proposalModel, counts[0]) : [];
+  const policy = counts[0] ? arcControlProposals(s.inputFeatures, incoming, span, proposalModel, counts[0]) : [];
   const learnedEnd = policy.length, memoryEnd = learnedEnd + Math.min(remembered.length, counts[1]);
   policy.push(...remembered.slice(0, counts[1]), ...responses.slice(0, counts[2]));
   if (options.warmStart) evaluate(s, tagOrigin(options.warmStart, 'warm'));

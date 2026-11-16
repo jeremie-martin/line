@@ -12,6 +12,8 @@ This is an initial diagnostic review, not an aesthetic verdict. Speed-deficit ti
 4. Lua: low score without comparable speed failures. It remains held out from compiler tuning; include it only as production coverage, not as a basis for a change.
 5. Trouble: all eight default-spec seeds complete. This does not prove every historical short-pair variant is fixed.
 
+Petrunko is deliberately not promoted to a compiler problem just because its mean score is 673: the owner marked its chosen handcrafted reading 11 (`labels/studies/handcraft-2026-11-15.json`). That existing judgment weighs more than its place in a score-sorted list.
+
 Only five rides exceed the 100 ms burst band, each for one sampled window; maximum excess is 0.0562. Burst reduction is not the leading opportunity in this sweep.
 
 ## Per-song coverage
@@ -58,10 +60,55 @@ The speed deficits are not stalls: excluding the first two seconds, Believer, sh
 
 All eight ultra-slowed Los Voltaje push flags occur at 3.125 s, 100 ms after the requested beat at 3.025 s. The account records that catch at strength 0.290 against ask 0.37, ending at frame 124; the two-frame push diagnostic peaks at frame 125 at 0.95–1.01. These are different measures and windows, not eight independent off-beat incidents. Frame-sheet inspection shows a steep catch into a curved support; it does not establish an unwanted extra hit. Tiki’s flags occur at 43.675–47.15 s, also 100–125 ms after requested beats. Do not optimize these counts as if they were validated off-beat judgments.
 
+## Quiet asks, tight pairs, and guide contacts
+
+Tiki’s 112 quiet targets across seeds average ask 0.025 and delivered 0.046; 29.5% exceed twice the ask. These are near the documented touchdown floor, so the ratio alone exaggerates their practical severity. Long L’amour is the stronger quiet-miss case: its 24 quiet targets average 0.112 → 0.219, 45.8% above twice the ask. This is the previously studied long-float/quiet-catch conflict. Other quiet passages are closer: Bones 0.140 → 0.145, Circus 0.150 → 0.159, Petrunko 0.136 → 0.142, Trouble 0.110 → 0.125.
+
+For the second target of gaps at most nine frames, all matches exist: Trouble 32 targets, ask 0.551 → 0.474, zero mean onset error; Circus 568, 0.597 → 0.484, mean absolute onset error 0.12 frames; Believer 1,136, 0.612 → 0.469, 0.17 frames. Tight pairs are completing and timed well, while losing strength. This does not prove every historical variant is reliable, but the default productions no longer show the historical failure pattern.
+
+Across all 27,576 matched beats: 19,394 floor, 5,742 clean upper, 1,750 floor+rail, 664 rail, 26 other (contact classification in the first three contact frames). Thus 8.8% touch a rail at the catch. On strong beats that is 991/16,312 (6.1%); on quiet beats 45/792 (5.7%). These are contact roles, not labels of bad hits; banning guide touches would discard a working construction without evidence that the resulting motion is preferable.
+
+## Mechanism checks and decisions
+
+- Believer: all 238 speed-deficit gaps across eight seeds are 0.5 s or shorter; none of the 64 longer gaps crosses the screening threshold. Short L’amour has 83 flagged gaps of at most 0.5 s and 30 longer ones, including its startup. This is consistent with the previously measured dense-chain energy/strength tradeoff, rather than a newly discovered stall bug. It does not prove the search is optimal or establish a physical bound. Strong-hit shortfalls concentrate around Believer 20–24 s, 36–40 s and 48–52 s; short L’amour 0–4 s and 8–16 s. These windows are named on the watch page.
+- Strong-hit speed is not a new free lever. The November 7 energy analysis already identifies catch dissipation and arrival energy; doubling the arrival-speed price was already tried. The November 15 arrival-law trials already trade steepness against strength and body drag. Repeating those weight sweeps or adding search budget would not be a justified response to this production review.
+- The longest arc run in long L’amour seed 101 consists of planned arcs (69–97.25 s), with no shaped requests replaced by upper catches. Its long float requests and a momentum model of the current supports were studied on November 15; that model is not a universal bound. Do not blame the catch permission or impose a family quota to remove this run.
+- The historical explicit-score discrepancy is resolved from saved experiment cells: 24 explicit rides at four seeds give −2.8899; 96 at sixteen give −1.9048. These are different coverage, not conflicting figures. The adopted implementation’s four-seed result was +2.6 with permission stripped inside explicit windows. The new final-code audit must be read separately.
+- A caller-supplied construction plan can deliberately carry `catchFromAbove`; validation neither adds nor silently removes it. Without that permission the shape must pass the ordinary realization check; benchmark explicit windows strip the permission. The misleading type comment is corrected and a regression test covers both supplied-plan cases.
+- Plain upper receivers are drawn consistently, then checked against the request. Skipping every upper candidate for an unpermitted shaped request would be a new search restriction, not a proven structural cleanup: realization judges the actual curve and contacts. No such shortcut is adopted.
+- Reduced realized shaped share after upper catches is a real cost to report beside fewer rails and more clean upper hits. Neither distinct-family count nor the headline erases that tradeoff. The owner previously accepted the look; the final-code audit tests the remaining quantitative reservations.
+
+No new behavioral change is justified by the screening counts alone. In particular, do not optimize unrecorded-push flags that may be part of requested catches, or buy stronger hits through more rails. The watch collection is intended to turn the next step into a specific visual problem rather than another weight search.
+
+## Final-code catches-from-above audit
+
+V8, 16 seeds, 784 paired rides against `foundation-9`: 784/784 complete on both sides. Headline +0.6, 95% seed-block interval [−4.5, +5.6]; 30 specs up, 13 down. The long spec loses 11 points. Explicit requests (96 rides) change −0.9. Direct inspection of saved plans and realization verifies all 864 explicit sections, including 576 shaped sections: no permission or shape substitution inside the windows and no unfulfilled section. There are 183 permitted substitutions outside them.
+
+Ride character: rails 39 → 34% of gaps; open arcs 49 → 52%; shapes 33 → 30%; clean upper hits 13.9 → 15.3% of strong beats. Body drag 4.50 → 4.63 s/min (+3%); strong extra impacts +2%; inverted/backward strong arrivals 14.0 → 12.8%; unrecorded pushes 0.22 → 0.20 per ride. The apparent compute-time difference is under concurrent load and is not a speedup claim.
+
+Every impact ruler, equal-stratum mean excluding E (candidate minus reference; lower loss is better):
+
+| Ruler | Loss difference |
+|---|---:|
+| contact-impact | +0.001203 |
+| strike (v1) | +0.001439 |
+| impact v2 | −0.000136 |
+| impact v3 | −0.000171 |
+
+The older two rulers worsen while v2/v3 improve slightly. The full report also retains every axis, guard, stratum and seed sign: `generated/eval/compare/adopted-catches-audit-v8/report.txt`. This is not a free score improvement. Retaining the owner-adopted look is supported by fewer rails and more clean upper catches, with the loss of shaped content and extra body drag explicitly acknowledged. V7.1 is also complete: 164/164 paired rides finish on both sides, headline +7.0 [1.2, 12.7], all four seed blocks positive, 26 specs up and nine down. Explicit requests +2.0; all 216 explicit sections preserve their requested construction with no substitution. Rails 34 → 30%, shapes 32 → 30%, clean upper strong catches 11.9 → 13.1%. Body drag 4.87 → 4.95 s/min; strong extras 0.02 → 0.04 per 100 beats; unrecorded pushes 0.29 → 0.21 per ride. Equal-stratum losses excluding E: contact-impact +0.000372, strike v1 +0.001949, v2 −0.000276, v3 −0.000278. Full detail: `generated/eval/compare/adopted-catches-audit-v71/report.txt`.
+
+These audits measure the already-adopted behavior, not gains from this review’s cleanup. The cleanup removes unused proposal formats and is qualified separately by byte-identical compile/judge parity and the frozen shipped-model hash.
+
+## Reproducing the sweep
+
+`npm run library -- --seeds=8 --jobs=23 --publish=false --out=generated/production-sweep-NAME` declares all production songs and eight seeds through the normal checksummed, resumable library runner. Choose a fresh output directory when compiler or harness identity changes. The completed November 16 library used a local copy with the same eight-seed list before this option existed.
+
 ## Artifacts and remaining work
 
 Local evidence: `generated/compiler-sweep-20261116/`: checksummed production library, motion diagnostics, full per-ride measurements, render logs. The saved compiler, inputs, audio and track identities remain in the library manifests.
 
-Watch collection (once renders finish): `/motion-gallery/video-compare.html?collection=/generated/watch/compiler-sweep-20261116.json`. Eight plain-look whole rides: diagnostic outlier and median-burden seed for four songs. These selections are not yet claimed to be visually worst or most typical.
+Watch collection: `/motion-gallery/video-compare.html?collection=/generated/watch/compiler-sweep-20261116.json`. Eight plain-look, steady-zoom whole rides: diagnostic outlier and median-burden seed for four songs. These selections are not yet claimed to be visually worst or most typical.
 
-Still required: inspect the videos, localize unrecorded pushes, investigate the leading mechanism, run and review paired behavioral experiments, finish the adopted-catches audit, and close or explicitly defer the housekeeping items.
+Decision: retain the owner-adopted compiler behavior and ship the validated structural cleanup. The sweep exposes no new completion or stall failure to repair. Dense-chain strength shortfalls and long-float quiet misses remain open; the evidence does not prove they are optimal or physically unavoidable. A next behavioral experiment should address a visually confirmed passage with a new construction idea, rather than repeat the documented weight, rail, or budget trials. Sampled frame sequences were inspected; the collection leaves the final musical/aesthetic ranking to the owner.
+
+Housekeeping: five abandoned instrumented-study scripts removed; obsolete forest predictions, residual policies, the 67-feature proposal path and their 11 MB fixture removed. The shipped 210 KB source is untouched. Proximity retrieval is retained because the construction trainer still emits it. `completeBoundary` varies with allowance; the other two option seams are retained for lower-level tests/research rather than silently changing those configurations. The normal library command now supports a declared seed count. Checks: 660 tests, typecheck, reach, 25 compile parity cells and 10 judge parity tracks pass.

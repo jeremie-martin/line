@@ -67,7 +67,7 @@ Chromium installation instead of Playwright's default browser.
 | `npm run produce -- --song=luna_bala_44s --seed=101 --out=DIR` | compile one automatic arrangement of a production song (optimizing the strike impact account) |
 | `npm run serve` | review server on http://127.0.0.1:8767/ (native playback with music); `HOST=0.0.0.0` to reach it from other machines |
 | `/spec-dashboard/?spec=productions/<song>/spec.ts` | spec dashboard: spectrogram, measured events by instrument, requested impacts and axes, clicks at landings, owner notes |
-| `npm run library` | (re)generate the production review library |
+| `npm run library` | (re)generate the production review library (`-- --seeds=8` for an eight-seed sweep; default 3) |
 | `npm run render -- --study=DIR [--look=THEME]` | render a compiled study's videos, excerpts and upload bundles |
 | `npm run compare -- run --reference=NAME` | compare this checkout with a saved reference on a panel, V8 for decisions ([docs/benchmark.md](docs/benchmark.md)) |
 | `npm run eval -- --name=DIR [--panel=v8\|v8-confirm\|v7.1]` | compile one panel with this checkout |

@@ -1,6 +1,40 @@
 # Foundations rework (started 2026-10-03)
 
-## November 16: production sweep and compiler restart (in progress)
+## November 16: production review and lean policy decoder, ready (`foundation-13`)
+
+**Ready for integration from `compiler`; production behavior is unchanged.** The review supports retaining the
+owner-adopted catches from above, with their costs stated explicitly. No new score-oriented behavioral change is
+adopted. Full evidence and per-song table: `docs/research/production-sweep-20261116.md`.
+
+- **Production:** 31 default songs × eight seeds, 248/248 complete and qualified. Dense pairs are matched reliably;
+  the remaining shortfall is strength. Believer and short L’amour miss requested speed but do not stall. Quiet Tiki
+  asks sit near the known touchdown floor; long L’amour retains its long-float/quiet-catch conflict. These findings
+  are not a proof of optimality or physical bounds, and those research questions remain open.
+- **Watch:** eight full rides in one plain-look, steady-zoom collection, diagnostic outlier and middle seed for
+  four songs: `/motion-gallery/video-compare.html?collection=/generated/watch/compiler-sweep-20261116.json`.
+  Camera lanes are held constant for comparison; no changes to the renderer or authored specs/zoom lanes.
+- **Final-code catch audit against `foundation-9`:** V8, 16 seeds, 784 pairs, +0.6 [−4.5, +5.6]; V7.1, four seeds,
+  164 pairs, +7.0 [1.2, 12.7]. No completion lost on either. V8 explicit −0.9, V7.1 explicit +2.0; all 864 + 216
+  explicit sections preserve construction, with no permission or substitution inside their windows. The old
+  experiment’s −2.9 and −1.9 were four versus sixteen seeds, verified from the saved cells.
+- **Costs, not a free gain:** V8 rails 39 → 34%, shapes 33 → 30%, clean upper strong catches 13.9 → 15.3%; body drag
+  +3%. V7.1 rails 34 → 30%, shapes 32 → 30%, clean upper strong catches 11.9 → 13.1%; body drag +2%, rare strong
+  extras 0.02 → 0.04 per 100 beats. Both older impact rulers worsen slightly while v2/v3 improve (all values in
+  the note). The owner’s previous visual acceptance, not the neutral V8 headline, supports retaining the behavior.
+- **Contract:** a supplied plan may deliberately carry `catchFromAbove`; validation never adds it. Comment corrected
+  and both cases tested. Plain upper drawing still faces actual construction validation; no unproven early rejection.
+- **Housekeeping:** five obsolete instrumented study scripts removed. Following the newer audit on `visual-lab`,
+  the earlier fixture compression is superseded: unused forest predictions, residual policies and the 67-feature
+  proposal path are removed with the 11 MB fixture. Catalogue/network/exemplar logic and the shipped 210 KB artifact
+  are unchanged. Proximity retrieval stays because `train_construction_v3.py` still emits it: preserve that chain
+  as a unit. `completeBoundary` really varies with allowance; other test/research option seams are retained.
+- **Reusable sweep:** `npm run library -- --seeds=8 --publish=false --out=generated/NAME`; default remains three
+  seeds. The saved plan fixes the complete seed list and rejects incompatible resumes.
+- **Validation:** 660 tests, typecheck, reach (zero unreachable files), all 25 compile parity cells byte-identical
+  (scores and physical frames too), all 10 judge parity tracks identical. The audits used the pre-cleanup compiler;
+  parity and the unchanged shipped model qualify the structural cleanup separately. No speedup is claimed.
+
+## November 16: production sweep and compiler restart (initial record)
 
 Restarted `compiler` from `visual-lab` at `2279c1f8`, reference `foundation-12`. All 31 default production specs at
 seeds 101–808 (248 rides) complete and qualify. Full measurements, per-song score spreads and loaded compile times

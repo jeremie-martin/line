@@ -1,5 +1,6 @@
 /** Predeclared unfiltered music review collection. Compile and render are resumable
- * phases; every scheduled outcome remains in the index. Large outputs stay local. */
+ * phases; every scheduled outcome remains in the index. Large outputs stay local.
+ * --seeds=N declares the first N seeds (101, 202, ...; default 3, maximum 32). */
 import assert from 'node:assert/strict';
 import {existsSync,mkdirSync,readFileSync,writeFileSync,openSync,closeSync} from 'node:fs';
 import {join,resolve,relative} from 'node:path';
@@ -13,12 +14,14 @@ import {musicSource,assertLibraryEntry,assertLibrarySchema,LIBRARY_SCHEMA} from 
 const arg=(k:string,d:string)=>process.argv.find(a=>a.startsWith('--'+k+'='))?.slice(k.length+3)??d;
 const out=resolve(arg('out','generated/production-repertoire/library')),phase=arg('phase','compile'),pool=new WorkerPool(workerJobs(arg('jobs',phase==='render'?'1':'3')));
 if(!['compile','render','index'].includes(phase))throw new Error('invalid phase');
+const seedCount=Number(arg('seeds','3'));
+if(!Number.isSafeInteger(seedCount)||seedCount<1||seedCount>32)throw new Error('--seeds must be a whole number from 1 to 32');
 mkdirSync(out,{recursive:true});
 const release=lockArtifacts(out);
 try {
   const read=(p:string)=>JSON.parse(readFileSync(p,'utf8'));
   const readChecked=(p:string)=>{const bytes=readFileSync(p);assert.equal(createHash('sha256').update(bytes).digest('hex'),readFileSync(p+'.sha256','utf8').trim(),'artifact checksum mismatch');return JSON.parse(bytes.toString());};
-  const requests=repertoireSongs.flatMap(song=>[101,202,303].map(seed=>({id:song.id+'-'+seed,title:song.title,
+  const requests=repertoireSongs.flatMap(song=>Array.from({length:seedCount},(_,i)=>101*(i+1)).map(seed=>({id:song.id+'-'+seed,title:song.title,
    request:validateAutomaticProductionRequest({mode:'production',song:song.id,seed,creative:{}})})));
   const referenceRoot=resolve(arg('reference-root','generated/production-repertoire/library-qualified'));
   const planPath=join(out,'collection-plan.json');

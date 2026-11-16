@@ -9,23 +9,20 @@
 - **Trim stays End only,** and the question stays open: "maybe after using this project for a while, I will decide on
   something else". The trim page and its stronger versions are kept.
 - **Opening and ending:** faster confirmed, then the real aim: the loop from the last frame to the first should flow
-  as one movement and take little of the video. Measured on the camera itself (points of the course in the frame,
-  60 times a second, five songs), the eased zoom did three things he could feel: the course is 100 times smaller at
-  the whole-course view, so an eased zoom halved the picture every 95 ms in its middle; the picture's speed went
-  ride level, a dip, a rush half again faster than the ride, a standstill at the seam, and the same again; and the
-  camera's path had a corner at the seam (a zoom toward the ride's end, then a zoom from its start). The gesture is
-  now set by its flow (`ENDS`, `scripts/video/camera.js`): the picture's speed follows one valley from the ride's
-  own to a slow travel across the course at the seam and back, and the zoom is whatever keeps it there. Same songs:
-  fastest speed about the ride's (was 1.5 times), never under 300 px/s at the seam (was 0), the picture halves every
-  155 ms (was 95), each side 1.7 to 2.0 s. He still saw a stop at the restart: the camera travelled against the
-  ride over the course, so it reversed as it landed, when the zoom stops too. His idea, built: the zoom and the
-  sideways movement never rest together. The camera swings toward the ride's end as it rises, sweeps back across
-  the course at its widest, turns around on the start's side while already coming down, and the video is cut after
-  that turn (`lead`, `swing`): the first frame moves with the ride at 1,300 to 1,600 px/s instead of resting. What
-  remains is a slowing to about half the ride's speed as the camera lands: a zoom-in pushes the course ahead
-  outward, the ride pulls it in. The opening no longer waits for the first hit. To try on the page, off in
-  production: the ink returning to pencil at the end. The measure is not validated against his eye, and production
-  carries my first proposal until he saves his own on `/generated/concept-lab/ends.html`.
+  as one movement and take little of the video. What was wrong with an eased zoom out and an eased zoom in, measured
+  on the camera itself (points of the course in the frame, 60 times a second, five songs): the course is about 100
+  times smaller at the whole-course view, so an eased zoom halved the picture every 95 ms in its middle; the picture
+  went from the ride's speed to a rush half again faster, to a standstill at the cut, and the same again; and the
+  camera's path had a corner at the cut. Three models were tried in a day; the one kept is the plainest (`ENDS`,
+  `scripts/video/camera.js`): the zoom at an even pace with rounded ends; the camera swinging along the course so
+  that its sideways turn and the zoom's still moment never coincide (his idea: "to the right, then to the left, then
+  to the right again"), with an optional bow across it; and the video cut a little after the widest view, so it
+  starts already moving with the ride. Same songs, first proposal: the picture never moves under about 850 px/s
+  (the ride: 1,900 to 2,300), 1,300 to 1,500 at the cut (was 40), halves every 168 ms; the ending takes 2.2 to 2.3 s
+  and the opening 1.3 to 1.4 s. A model that set the picture's speed and derived the zoom from the ride's own speed
+  was dropped: its curves were ragged and it measured no better. The opening no longer waits for the first hit. The
+  measure is not validated against his eye, and production carries my first proposal until he saves his own on
+  `/generated/concept-lab/ends.html`.
 - **Showcase order A** ("a one-off really"). **`master`:** merge at the very end. **The lab's round pages** stay in the
   tree. **Branches:** the ten already merged are deleted, the others stay local.
 - **Unanswered studies,** "depends on whether they're still relevant" (my reading): `impact-visibility-2026-11` is

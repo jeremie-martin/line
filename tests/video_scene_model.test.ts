@@ -144,7 +144,12 @@ describe('drop and colour resolution', () => {
     // cut at the widest view with no swing, the last frame and the first are the whole course, at rest
     const still = createFraming(motion, 20, null, {...ENDS, lead: 0, swing: 0});
     expect(still(20, 800, look).over).toBe(1); expect(still(0, 0, look).over).toBe(1);
-    expect(createFraming(motion, 20, null, {...ENDS, pace: 2}).lengths()[0]).toBeLessThan(out); // a faster pace is a shorter ending
+    expect(createFraming(motion, 20, null, {...ENDS, halve: 0.1}).lengths()[0]).toBeLessThan(out); // a faster zoom is a shorter ending
+    // the zoom's curve itself: flat at the widest view, an even pace in between, and exactly on the ride after its reach
+    const {endsFollow, endsReach} = await import('../scripts/video/camera.js');
+    expect(endsFollow(0, 4)).toBe(0); expect(endsFollow(0.01, 4)).toBeLessThan(1e-3);
+    expect(endsFollow(0.9, 4) - endsFollow(0.8, 4)).toBeCloseTo(endsFollow(0.8, 4) - endsFollow(0.7, 4), 2);
+    for (const side of [-1, 1]) {const reach = endsReach(side, 4); expect(endsFollow(side * reach, 4)).toBeCloseTo(1, 9); expect(endsFollow(side * (reach - 0.05), 4)).toBeLessThan(1);}
     expect(createFraming(motion, 20, null, {...ENDS, pencil: true})(20, 800, look).unink).toBe(1);
   });
 });

@@ -7,16 +7,13 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
 1. **Opening and ending.** He wants the loop from the last frame to the first to flow as one movement, with no
-   stop and no rush, and to take little of the video. The gesture is set by how fast the picture moves on screen
-   (`ENDS` in `scripts/video/camera.js`); the zoom and each side's length follow. His idea, built: the camera swings
-   across the course and turns around while still high, and the video is cut after that turn, so it starts already
-   moving with the ride. `/generated/concept-lab/ends.html` plays the last five seconds into the first five, with
-   six sliders, six proposals, the camera's path from above, and what the page measures (the course's speed on
-   screen and how hard it changes). Open: the picture still slows to about half the ride's speed as the camera
-   lands, because a zoom-in pushes the course ahead outward and the ride pulls it in; flying in from beside the
-   course (a large swing, a later cut) is the way to remove it, at the price of a first frame that is not the whole
-   course. The measure is not checked against his eye. Production carries my first proposal until he saves his
-   settings (`labels/studies/bookends-2026-11.jsonl`).
+   stop and no rush, and to take little of the video. The gesture is three plain curves (`ENDS` in
+   `scripts/video/camera.js`): the zoom at an even pace with rounded ends, the camera's place along the course (a
+   swing) and across it (a bow), and where the video is cut. `/generated/concept-lab/ends.html` plays the last five
+   seconds into the first five, with seven sliders, six proposals, the camera's path from above, the zoom and the
+   course's speed on screen. That speed measure is not checked against his eye. Production carries my first proposal
+   until he saves his settings (`labels/studies/bookends-2026-11.jsonl`). More to try if he wants: other paths over
+   the course, a different cut, landing later.
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
    he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec
    he judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the original. To do properly, after

@@ -37,23 +37,21 @@
     <svg class="chart" id="zoomChart" viewBox="0 0 440 150"></svg>
     <h3>How fast the course moves on screen</h3>
     <svg class="chart" id="flowChart" viewBox="0 0 440 150"></svg>
-    <h3>How hard that movement changes</h3><p class="help">Peaks are where the eye is pushed around; a smooth loop has low, wide hills.</p>
-    <svg class="chart" id="changeChart" viewBox="0 0 440 150"></svg>
     <div id="numbers"></div>
   </div>
-  <div class="card"><h2>The movement</h2>
-    <p class="help">You set how fast the picture moves; the zoom follows, and so does how long each side takes.</p>
-    <div class="dial"><label>On the way up and down the picture moves at <output id="paceOut"></output></label><input id="pace" type="range" min="0.5" max="2.5" step="0.05"></div><div class="dial"><label>The turn above the course takes <output id="turnOut"></output></label><input id="turn" type="range" min="0.3" max="3" step="0.05"></div>
+  <div class="card"><h2>Zoom</h2>
+    <p class="help">An even pace up and down, rounded at the top and beside the rider. How long each side takes follows from it.</p>
+    <div class="dial"><label>The picture halves or doubles every <output id="halveOut"></output></label><input id="halve" type="range" min="0.08" max="0.4" step="0.01"></div><div class="dial"><label>Rounded at the top over <output id="turnOut"></output></label><input id="turn" type="range" min="0.05" max="1.5" step="0.05"></div><div class="dial"><label>Ending: eases away from the rider over <output id="leaveOut"></output></label><input id="leave" type="range" min="0.1" max="1.5" step="0.05"></div><div class="dial"><label>Opening: eases onto the rider over <output id="landOut"></output></label><input id="land" type="range" min="0.1" max="1.5" step="0.05"></div>
   </div>
-  <div class="card"><h2>The swing and the cut</h2>
-    <p class="help">The camera swings toward the ride's end as it rises, sweeps back across the course at its widest, and turns around on the way down. The video is cut after that turn, so it starts already moving with the ride.</p>
-    <div class="dial"><label>The camera swings <output id="swingOut"></output></label><input id="swing" type="range" min="0" max="400" step="10"></div><div class="dial"><label>The widest view comes <output id="leadOut"></output></label><input id="lead" type="range" min="0" max="1.5" step="0.05"></div>
+  <div class="card"><h2>Position</h2>
+    <p class="help">Along the course: the camera swings toward the ride's end as it rises, sweeps back across the course at its widest, and turns around on the way down. Across the course: a bow to one side at the top makes the path an oval.</p>
+    <div class="dial"><label>Along the course, it swings <output id="swingOut"></output></label><input id="swing" type="range" min="0" max="400" step="10"></div><div class="dial"><label>Across the course, it bows <output id="bowOut"></output></label><input id="bow" type="range" min="-250" max="250" step="10"></div>
   </div>
-  <div class="card"><h2>Next to the rider</h2>
-    <p class="help">How long the camera takes for the last stretch of zoom beside the rider: longer leaves later and lands more softly.</p>
-    <div class="dial"><label>Ending: leaving the rider <output id="leaveOut"></output></label><input id="leave" type="range" min="0.1" max="1.5" step="0.05"></div><div class="dial"><label>Opening: landing on the rider <output id="landOut"></output></label><input id="land" type="range" min="0.1" max="1.5" step="0.05"></div>
+  <div class="card"><h2>The cut</h2>
+    <p class="help">Where on this movement the video ends and starts again. After the camera's turn, the video starts already moving with the ride.</p>
+    <div class="dial"><label>The video is cut <output id="leadOut"></output></label><input id="lead" type="range" min="0" max="1.5" step="0.05"></div>
     <div class="opts" style="justify-content:flex-start"><button id="pencil">The ink returns to pencil</button></div>
-    <p class="help">With the ink returning to pencil in the last moment, the last frame is the first frame and the loop has no seam; the inked course is seen for less time.</p>
+    <p class="help">With the ink returning to pencil in the last moment, the cut shows nothing at all; the inked course is seen for less time.</p>
   </div>
   <div class="card"><textarea id="note" placeholder="Anything you notice (optional)"></textarea><button id="save">Save these settings</button><p class="help" id="status"></p></div>
 </aside>

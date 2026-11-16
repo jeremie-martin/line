@@ -7,14 +7,14 @@ import {resolveLook} from '/scripts/video/look.js';
 import {ENDS} from '/scripts/video/camera.js';
 
 const STUDY = 'bookends-2026-11', BEFORE = 5, AFTER = 5;
-const KEYS = ['pace', 'turn', 'lead', 'swing', 'leave', 'land'];
+const KEYS = ['halve', 'turn', 'leave', 'land', 'swing', 'bow', 'lead'];
 const PROPOSALS = [
-  {name: 'Already moving', about: 'Production now. The camera swings right as it rises, sweeps left across the whole course, turns around on the way down, and the video starts already moving with the ride.', ends: ENDS},
-  {name: 'Wider swing', about: 'The same with a bigger sweep across the course: more movement at the widest view.', ends: {...ENDS, swing: 200}},
-  {name: 'Later cut', about: 'The video is cut further down the descent: it starts closer in and moving faster, and the widest view sits earlier in the ending.', ends: {...ENDS, lead: 0.7}},
-  {name: 'Slow and wide', about: 'A longer, gentler turn above the course.', ends: {...ENDS, turn: 1.8, lead: 0.6, swing: 150}},
-  {name: 'Cut at the widest view', about: 'For comparison: no swing, cut on the whole course at rest. This is the standstill the others avoid.', ends: {...ENDS, lead: 0, swing: 0}},
-  {name: 'Seamless', about: 'Already moving, and the ink returns to pencil in the last moment: the last frame is the first.', ends: {...ENDS, pencil: true}},
+  {name: 'Plain', about: 'Production now. An even zoom up and down; the camera swings right, sweeps left across the whole course, turns around on the way down, and the video starts already moving with the ride.', ends: ENDS},
+  {name: 'Oval', about: 'Plain, flown as an oval: the camera also moves to one side at the top, so it never retraces its own path.', ends: {...ENDS, bow: 110}},
+  {name: 'Wide swing', about: 'A bigger sweep across the course: more movement at the widest view.', ends: {...ENDS, swing: 220}},
+  {name: 'From the side', about: 'A large swing and a later cut: the video starts beside the course and the start slides into the frame, so everything flows one way.', ends: {...ENDS, swing: 340, lead: 0.8}},
+  {name: 'Slow', about: 'A calmer zoom and a wider turn; each side takes about half a second more.', ends: {...ENDS, halve: 0.22, turn: 0.7}},
+  {name: 'At rest', about: 'For comparison: no swing, cut on the whole course standing still.', ends: {...ENDS, lead: 0, swing: 0}},
 ];
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const copy = e => ({...e}), read = (e, k) => e[k], get = k => ends[k], set = (k, v) => {ends[k] = v;};
@@ -29,7 +29,7 @@ let ride, mine, today, look, at = 0, playing = false, rate = 1, holding = false,
 // the loop: `at` runs from 0 to BEFORE + AFTER; first the last seconds of the song, then its first
 const songTime = a => a < BEFORE ? ride.scene.span[1] - BEFORE + a : a - BEFORE;
 // ── what the camera does over the loop: measured on the picture's own camera, 60 times a second ─────────────────────────
-// For points along the course that are inside the frame: how fast they move on screen (px/s) and how hard that changes (px/s²).
+// For points along the course that are inside the frame: how fast they move on screen (px/s).
 const RATE = 60, FW = 1080, FH = 1920;
 function measure(pic, e = null) {
   const end = ride.scene.span[1], n = (BEFORE + AFTER) * RATE, cams = [], keep = e ? copy(ends) : null;
@@ -37,21 +37,22 @@ function measure(pic, e = null) {
   for (let i = 0; i <= n; i++) {const tau = i / RATE - BEFORE; cams.push(pic.cameraAt(tau < 0 ? end + tau : tau, look));}
   const pts = ride.points, at = (c, q) => [FW / 2 + c.z * (q.x - c.x), FH / 2 + c.z * (q.y - c.y)], rows = [];
   for (let i = 1; i < n; i++) {
-    let v = 0, acc = 0, m = 0;
+    let v = 0, m = 0;
     for (const q of pts) {
       const s0 = at(cams[i - 1], q), s1 = at(cams[i], q), s2 = at(cams[i + 1], q);
       if (s1[0] < 0 || s1[0] > FW || s1[1] < 0 || s1[1] > FH) continue;
-      m++; v += Math.hypot(s2[0] - s0[0], s2[1] - s0[1]) * RATE / 2; acc += Math.hypot(s2[0] - 2 * s1[0] + s0[0], s2[1] - 2 * s1[1] + s0[1]) * RATE * RATE;
+      m++; v += Math.hypot(s2[0] - s0[0], s2[1] - s0[1]) * RATE / 2;
     }
-    rows.push({tau: i / RATE - BEFORE, seen: m, v: m ? v / m : 0, a: m ? acc / m : 0, zoom: cams[i].z, rate: Math.log(cams[i + 1].z / cams[i - 1].z) * RATE / 2, cam: cams[i]});
+    rows.push({tau: i / RATE - BEFORE, seen: m, v: m ? v / m : rows.at(-1)?.v ?? 0, // with no point of the course in the frame, as the moment before
+      zoom: cams[i].z, rate: Math.log(cams[i + 1].z / cams[i - 1].z) * RATE / 2, cam: cams[i]});
   }
   const [out, back] = pic.endsLengths(), moving = rows.filter(r => r.tau >= -out && r.tau <= back), calm = rows.filter(r => r.tau < -out - 0.2 || r.tau > back + 0.2);
   const median = a => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : 0, max = (a, k) => a.reduce((mx, r) => Math.max(mx, Math.abs(r[k])), 0);
-  const turn = moving.filter(r => Math.abs(r.tau) < 0.35), cut = rows.find(r => r.tau >= 0) ?? rows[0];
+  const cut = rows.find(r => r.tau >= 0) ?? rows[0];
   const lengths = [out, back];
   if (keep) Object.assign(ends, keep);
-  return {rows, lengths, rideSpeed: median(calm.map(r => r.v)), rideChange: median(calm.map(r => r.a)), fastest: max(moving, 'v'), hardest: max(moving, 'a'), rate: max(moving, 'rate'),
-    slowest: Math.min(...moving.filter(r => r.seen > 2 && r.tau < back - 0.15).map(r => r.v)), atCut: cut.v, turnChange: max(turn, 'a')};
+  return {rows, lengths, rideSpeed: median(calm.map(r => r.v)), fastest: max(moving, 'v'), rate: max(moving, 'rate'),
+    slowest: Math.min(...moving.filter(r => r.seen > 2 && r.tau < back - 0.15).map(r => r.v)), atCut: cut.v};
 }
 const C = {W: 440, H: 150, L: 10, R: 10, T: 12, B: 24};
 const cx = a => C.L + a / (BEFORE + AFTER) * (C.W - C.L - C.R);
@@ -73,8 +74,6 @@ function drawChart() {
   const top = Math.max(m.fastest, ref.fastest, m.rideSpeed) * 1.08, vy = r => y(r.v, top);
   frame($('flowChart')); $('flowChart').append(svg('line', {x1: C.L, x2: C.W - C.R, y1: y(m.rideSpeed, top), y2: y(m.rideSpeed, top), stroke: 'var(--soft)', 'stroke-dasharray': '2 5'}), svg('text', {x: C.W - C.R, y: y(m.rideSpeed, top) - 4, 'text-anchor': 'end'}, 'the ride itself'),
     line(ref.rows, vy, {stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), line(m.rows, vy, {stroke: 'var(--curve)', 'stroke-width': 2.5}));
-  const ay = r => y(r.a, Math.max(m.hardest, ref.hardest) * 1.08);
-  frame($('changeChart')); $('changeChart').append(line(ref.rows, ay, {stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), line(m.rows, ay, {stroke: 'var(--hot)', 'stroke-width': 2}));
   const n = v => Math.round(v).toLocaleString('en'), halves = m.rate ? Math.round(Math.LN2 / m.rate * 1000) : 0;
   $('numbers').innerHTML = '';
   for (const [label, value, was] of [
@@ -82,8 +81,6 @@ function drawChart() {
     ['Fastest the course moves on screen', `${n(m.fastest)} px/s`, `${n(ref.fastest)}; the ride itself ${n(m.rideSpeed)}`],
     ['Slowest it gets before the ride takes over (0 is a standstill)', `${n(m.slowest)} px/s`, n(ref.slowest)],
     ['At the cut, where the video starts again', `${n(m.atCut)} px/s`, n(ref.atCut)],
-    ['Hardest change of that movement', `${(m.hardest / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.hardest / (ref.rideChange || 1)).toFixed(1)} ×`],
-    ['Hardest change around the cut', `${(m.turnChange / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.turnChange / (ref.rideChange || 1)).toFixed(1)} ×`],
     ['Zoom at its fastest', `the picture halves or doubles every ${halves} ms`, `${Math.round(Math.LN2 / ref.rate * 1000)} ms`]]) {
     const row = document.createElement('div'); row.className = 'number'; row.append(Object.assign(document.createElement('span'), {textContent: label}), Object.assign(document.createElement('b'), {textContent: value}), Object.assign(document.createElement('i'), {textContent: `production: ${was}`})); $('numbers').append(row);}
   drawMap(); place();
@@ -106,10 +103,11 @@ const place = () => {
   const r = last.rows[Math.max(0, Math.min(last.rows.length - 1, Math.round(at * RATE) - 1))], {k, ox, oy} = ride.map, w = Math.max(3, k * FW / r.zoom), h = Math.max(3, k * FH / r.zoom);
   for (const [name, v] of [['x', ox + k * r.cam.x - w / 2], ['y', oy + k * r.cam.y - h / 2], ['width', w], ['height', h]]) ride.box.setAttribute(name, v.toFixed(1));
 };
+const sec = v => `${v.toFixed(2)} s`;
 const TEXT = {
-  pace: v => `${v.toFixed(2)} × the ride${v <= 1 ? '' : ', faster than it'}`,
-  turn: v => `${v.toFixed(2)} s`, lead: v => v ? `${v.toFixed(2)} s before the last frame` : 'on the last frame', swing: v => v ? `${v.toFixed(0)} px each way` : 'none',
-  leave: v => `${v.toFixed(2)} s`, land: v => `${v.toFixed(2)} s`,
+  halve: v => `${Math.round(v * 1000)} ms`, turn: sec, leave: sec, land: sec,
+  swing: v => v ? `${v.toFixed(0)} px each way` : 'none', bow: v => v ? `${Math.abs(v).toFixed(0)} px ${v > 0 ? 'to one side' : 'to the other'}` : 'none',
+  lead: v => v ? `${v.toFixed(2)} s after the widest view` : 'at the widest view',
 };
 function show() {
   for (const k of KEYS) {$(k).value = get(k); $(k + 'Out').textContent = TEXT[k](get(k));}
@@ -151,7 +149,7 @@ async function load() {
   ride = next; look = resolveLook($('theme').value);
   mine = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter(), {ends});
   today = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter());
-  ride.points = mine.centres.filter((_, i) => i % 20 === 0);
+  ride.points = mine.centres.filter((_, i) => i % 4 === 0);
   $('play').disabled = false; $('status').textContent = ''; show(); window.__ready = true;
 }
 $('song').onchange = () => {at = 0; void load();};

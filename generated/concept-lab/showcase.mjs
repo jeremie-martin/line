@@ -29,7 +29,11 @@ const part = (c, i) => new Promise((done, fail) => {
 // a few at a time: each part runs its own browser
 const files = []; for (let i = 0; i < cuts.length; i += 6) files.push(...await Promise.all(cuts.slice(i, i + 6).map((c, k) => part(c, i + k))));
 writeFileSync(join(work, 'list.txt'), files.map(f => `file '${f}'`).join('\n') + '\n');
-execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt'), '-i', `productions/${song}/audio.mp3`,
+// joined without re-encoding; the parts' own start offset (their audio's priming) is taken off, so the picture starts at zero
+const joined = join(work, 'joined.mp4');
+execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt'), '-map', '0:v', '-c', 'copy', joined]);
+const start = Number(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=start_time', '-of', 'csv=p=0', joined], {encoding: 'utf8'}));
+execFileSync('ffmpeg', ['-v', 'error', '-y', '-itsoffset', String(-start), '-i', joined, '-i', `productions/${song}/audio.mp3`,
   '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'asetpts=PTS-STARTPTS,apad', ...AUDIO, '-t', String(end), '-movflags', '+faststart', out]);
 const size = frameSize(width);
 verifyVideo(out, {width: size.width, height: size.height, frames: Math.round(end * FPS)});

@@ -39,7 +39,7 @@ function progress() {
   for (const o of options) o.textContent = (marked(o.value) ? '✓ ' : '') + (o.dataset.name ??= o.textContent);
   $('progress').textContent = `${done} of ${options.length} songs have a mark.`; $('next').disabled = done === options.length;
 }
-let ride, lanes = [], mine, today, scale, time = 0, playing = false, holding = false, beside = false, ticket = 0, cursor, pending = 0;
+let keeping = 0, ride, lanes = [], mine, today, scale, time = 0, playing = false, holding = false, beside = false, ticket = 0, cursor, pending = 0;
 
 function loadRide(song) {
   if (!rides.has(song)) rides.set(song, (async () => {
@@ -110,7 +110,11 @@ function change() {
   document.querySelector('#pair .picture-label').textContent = draft?.name ?? '';
   $('note-title').textContent = `Note on “${draft?.name ?? ''}”`; $('edit-title').textContent = `Change “${draft?.name ?? ''}” yourself`;
   if (document.activeElement !== $('note')) $('note').value = own.note;
-  $('reset').disabled = !edited; $('keep').disabled = !unsaved; $('keep').textContent = unsaved ? 'Save my version' : own.keyframes && edited ? 'Your version is saved' : 'Save my version';
+  $('reset').disabled = !edited;
+  // moved points save themselves, shortly after the last move, as his version of this zoom
+  clearTimeout(keeping);
+  if (unsaved) {const song = $('song').value, id = lane, version = keys.map(k => ({...k}));
+    keeping = setTimeout(() => {entry(song, id).keyframes = version; void save(id, `your version of ${draft.name}`); if (song === $('song').value && id === lane) change();}, 900);}
   const w = keys.map(k => k.wide), lo = Math.min(...w), hi = Math.max(...w);
   $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${zoomOfWide(lo).toFixed(2)} to ${zoomOfWide(hi).toFixed(2)} times the steady zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE}).` : `One zoom for the whole ride, ${zoomOfWide(lo).toFixed(2)} times today's.`;
   history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, lane, k: keys.map(k => `${k.t}:${k.wide}`).join(',')}));
@@ -121,7 +125,6 @@ function change() {
 const written = id => lanes.find(l => l.id === id).keyframes.map(k => ({...k}));
 function choose(id) {lane = id; keys = entry($('song').value, id).keyframes?.map(k => ({...k})) ?? written(id); change();}
 $('reset').onclick = () => {const e = entry($('song').value, lane); keys = written(lane); if (e.keyframes) {e.keyframes = null; void save(lane, `${lanes.find(l => l.id === lane).name} as it was written`);} change();};
-$('keep').onclick = () => {entry($('song').value, lane).keyframes = keys.map(k => ({...k})); void save(lane, `your version of ${lanes.find(l => l.id === lane).name}`); change();};
 $('note').onchange = () => {entry($('song').value, lane).note = $('note').value; void save(lane, `note on ${lanes.find(l => l.id === lane).name}`);};
 $('song-note').onchange = () => {entry($('song').value, '').note = $('song-note').value; void save('', 'note on the song');};
 $('next').onclick = () => {const o = [...$('song').options], i = $('song').selectedIndex, next = [...o.slice(i + 1), ...o.slice(0, i)].find(x => !marked(x.value)); if (next) {$('song').value = next.value; $('song').onchange();}};

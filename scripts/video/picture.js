@@ -15,7 +15,7 @@
 // the ending) at song time t. A hit happens at its strongest frame: its split, colour boost, accent heat and (on
 // strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
 // pushed along the line struck at its onset.
-import {RANGE, laneScale} from './zoom.js';
+import {laneScale} from './zoom.js';
 import {drawCaption} from './caption.js';
 import {W, H, BASE, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
@@ -62,15 +62,8 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   // Hit metadata and hand-authored cues share the song clock; ride signals stay on the ride clock.
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
-  // the zoom written for the song, when this video was given one of its lanes (scene.zoom): a multiple of the steady zoom per frame
-  // (a trial of the overall zoom, absent in production: scene.widerNear and scene.widerFar say how many times more the picture
-  // shows at the closest and at the widest zoom of the scale, 1.075 for 7.5 % more; in proportion between.)
-  const trial = scene.widerNear || scene.widerFar;
-  const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : trial ? new Float64Array(frames.length).fill(1) : null;
-  if (trial) for (let f = 0; f < lane.length; f++) {
-    const wide = Math.max(0, Math.min(1, 0.5 - Math.log(lane[f]) / Math.log(RANGE)));
-    lane[f] /= Math.pow(scene.widerNear ?? 1, 1 - wide) * Math.pow(scene.widerFar ?? 1, wide);
-  }
+  // the zoom: the lane this video was given (scene.zoom), or the steady zoom throughout; a multiple of the camera's base per frame
+  const lane = laneScale(scene.zoom?.keyframes, frames.length, offset);
   const frameAt = createFraming(motion, hitTimes, songEnd, lane);
 
   const applySplit = createSplit(canvas);

@@ -11,7 +11,7 @@ const HELP = `Usage: npm run videos -- --songs=all|SONG,SONG --seeds=N|SEED,SEED
 Makes DIR/SONG-SEED.mp4 for every song at every seed (a count N means seeds 1 to N), each with its sidecar and compile
 folder, DIR/SONG-SEED.log, and DIR/report.json. Run again with the same DIR to continue; a video whose earlier attempt
 failed is left as it is (remove its .assets folder to try it again).
-Passed on to every video: --width, --look, --zoom, --set, --budget, --wider-near, --wider-far (npm run video -- --help).
+Passed on to every video: --width, --look, --zoom, --set, --budget (npm run video -- --help).
 With DIR under generated/videos/, the batch can be watched at
 /motion-gallery/video-compare.html?collection=/generated/watch/NAME.json (NAME: the folder's name).`;
 
@@ -25,7 +25,7 @@ async function main() {
     const match = /^--([^=]+)=(.+)$/.exec(token);
     if (!match) throw new Error(`Incomplete option: ${token}. Use --help.`);
     if (['songs', 'seeds', 'out', 'jobs'].includes(match[1])) own[match[1]] = match[2];
-    else if (['width', 'look', 'zoom', 'set', 'budget', 'wider-near', 'wider-far'].includes(match[1])) passed.push(token);
+    else if (['width', 'look', 'zoom', 'set', 'budget'].includes(match[1])) passed.push(token);
     else throw new Error(`Unknown option for a batch: ${token}. Use --help.`);
   }
   if (!own.songs || !own.seeds || !own.out) throw new Error('A batch needs --songs, --seeds and --out. Use --help.');

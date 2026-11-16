@@ -325,7 +325,7 @@ and validation are in [music authoring](docs/music-authoring.md).
      these hits and samples the single winning hit's shake, split and colour
      boost; carry (the picture moving out of the surface after a hit and
      settling back) adds up over recent hits, as band heat does. The shake and
-     carry were set at the steady zoom and keep their size against the scene:
+     carry were set at the camera's base zoom and keep their size against the scene:
      the picture scales them by its zoom, along a lane and in the opening and
      ending. `split.js` owns channel separation,
      the clean rider overlay and the title's smaller split, with explicit inputs

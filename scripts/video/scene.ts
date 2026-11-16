@@ -51,9 +51,6 @@ export type Scene = {
   zooms: ZoomLane[]; zoom: ZoomLane | null;
   /** A word or two drawn near the lower edge in the theme's ink (caption.js), for a film shown beside another. */
   caption?: string;
-  /** A trial of the overall zoom: how many times more the picture shows at the closest and at the widest zoom of the scale
-   * (1.075: 7.5 % more), in proportion between. Absent in production. */
-  widerNear?: number; widerFar?: number;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
 type SavedEvaluation = {targets: {frame: number; impact?: number}[];

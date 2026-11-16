@@ -4,50 +4,45 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 ## Toward closing (owner, 2026-11-16: close the project for a while and use it to make many videos)
 
-Decisions that are his (the boards: `/generated/concept-lab/closing/decisions.html` and `songs.html`; answers in
-`labels/studies/closing-2026-11.jsonl`):
+His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **The overall zoom.** A trial only (`--wider-near`, `--wider-far`, the zoom page's sliders); his proposal is 7.5%
-   more at the closest zoom and 5% more at the widest. Production is unchanged until he says.
-2. **Zoom lanes.** 7 of 31 songs have marks on the second set. Until the rest are marked, a video may draw any of a
-   song's lanes, liked or not. Either he marks them, or production uses only marked lanes, or the set is accepted.
-3. **Specs.** Seven songs have a spec he has judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the
-   original. The other songs carry library specs nobody has marked; `/generated/watch/all-songs.json` shows one video of
-   each. Which songs are in the first batches?
-4. **`master`** is from May. When he calls it closed: merge `visual-lab` into it (ask before pushing).
-5. **The lab's round pages** (about fifty): archive in the tree, or leave it with a tag.
+1. **Opening and ending, how fast.** He asked for a quicker ending (out over 1.6 s, no hold) and an opening between
+   that and before, "let's iterate a bit": three timings on three songs at
+   `/motion-gallery/video-compare.html?collection=/generated/watch/bookends-2.json`. Production carries the middle
+   one until he picks (`scripts/video/camera.js`, one line of constants).
+2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
+   he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec
+   he judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the original. To do properly, after
+   everything else: which songs are in, then their specs. `/generated/concept-lab/closing/songs.html` shows one video
+   of each song and takes his marks (in, rework, out).
+3. **`master`** is from May. He merges at the very end: `visual-lab` into it (ask before pushing).
+4. **Trimming unused track** is End only. Not closed: the page (`/generated/concept-lab/trim-video.html`) and the
+   stronger versions (local branch `exp/trim-dashboard`) stay, for after he has used the project for a while.
+5. **Zoom lanes:** the set is accepted as written; a video draws any lane of its song, never the steady zoom. He may
+   still mark lanes on `/generated/concept-lab/zoom.html` (`zoom-2026-11b`); a lane marked Cut is to be deleted.
 
 Work that is mine:
 
-- **Videos made before 2026-11-16** fade the band at the end: re-render what is kept.
-- **Branches and worktrees.** Local experiment branches (`exp/trim-*`, `exp/believer-on-compiler`, the November 11
-  experiments, old backups), agent worktrees, and `compare`'s worktrees under `generated/eval/worktrees/` (never
-  pruned; `generated/` is 22 GB). Four loose notes at the root are untracked (the owner's).
+- **Videos made before the evening of 2026-11-16** have the earlier zoom (and, before that day, a band fading at the
+  end): re-render what is kept. The showcase and then-and-now films already have today's zoom.
+- **Branches.** The ten merged ones are deleted (his choice); fifteen with their own commits stay local. Worktrees
+  left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
+  tree. Four loose notes at the root are untracked (the owner's).
 - **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
 
 ## Waiting for the owner's eye
 
-1. **Trimming unused track, further or not.** End only is in the compiler (his choice for now, `REWORK.md`). On
-   `/generated/concept-lab/trim-video.html` the stronger versions remain to compare (seven songs, same ride in every
-   version); they live on the local branch `exp/trim-dashboard`.
-2. **The second set of zoom lanes** (`/generated/concept-lab/zoom.html`; marks in `zoom-2026-11b`). Written on
-   2026-11-16 for 30 songs from his notes on the first set (Petrunko's three lanes are unchanged): moves sit in the
-   music's own lead-in (the fill, break, swell or pickup read from the recording) and finish as the change lands;
-   mostly smooth shapes with a sharp move only at a real drop; sizes follow the size of the event. His notes are a
-   direction, not rules. His marks decide which stay.
-3. **Opening and ending faster** (`/motion-gallery/video-compare.html?collection=/generated/watch/bookends.json`).
-4. **Readings.** A second round for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones): same songs
+1. **Readings.** A second round for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones): same songs
    again, or new songs first? Next from scratch: Believer.
-5. **`impact-visibility-2026-11`**: 55 pairs, about 20 minutes (clips under `generated/`: rebuild them first on a
-   machine that lacks them). `night-pairs-2026-10-05-contact` (22 pairs) is also unanswered.
+2. **`impact-visibility-2026-11`**: 55 pairs, about 20 minutes (clips under `generated/`: rebuild them first on a
+   machine that lacks them). Parked until the compiler work reaches unwanted impacts (U2, U3), which it decides.
 
 ## The look (this branch)
 
 - One layer at a time (owner, 2026-11-15). Done: carry, the split's direction, the zoom written per song. Not started:
   the hit effects beyond movement (split size, boost), then new themes and better versions of themes not loved.
-- The lab holds about fifty round pages and their data (`generated/concept-lab/round*.html`, `candidates-*.json`,
-  `films*.json`, `agents/`). They still load. The owner wants to work toward closing the visual lab: decide whether
-  the rounds stay as an archive or leave the tree (their answers are in `LEDGER.md`).
+- The lab's round pages and their data (`generated/concept-lab/round*.html`, `candidates-*.json`, `films*.json`,
+  `agents/`) stay in the tree as an archive (owner); their answers are in `LEDGER.md`.
 - The spec dashboard does not show a song's zoom lanes; the zoom page does.
 
 ## Compiler (branch `compiler`, another agent; paused on the night of 2026-11-15)

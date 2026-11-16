@@ -2,9 +2,10 @@ import {expect, it} from 'vitest';
 import {RANGE, zoomOfWide, wideAt, laneScale} from '../scripts/video/zoom.js';
 import {createFraming, rideSignals, BASE} from '../scripts/video/camera.js';
 
-it('the scale is fixed: 0.5 is today, and the widest shows 1.4 times more than the closest, whatever the lane', () => {
-  expect(zoomOfWide(0.5)).toBe(1);
-  expect(zoomOfWide(0) / zoomOfWide(1)).toBeCloseTo(RANGE); expect(RANGE).toBe(1.4);
+it('the scale is fixed, whatever the lane: against the base zoom the closest shows 7.5 % more than 1/√1.4 and the widest 5 % more than √1.4', () => {
+  expect(zoomOfWide(0)).toBeCloseTo(Math.sqrt(1.4) / 1.075); expect(zoomOfWide(1)).toBeCloseTo(1 / (Math.sqrt(1.4) * 1.05));
+  expect(zoomOfWide(0.5)).toBeCloseTo(Math.sqrt(zoomOfWide(0) * zoomOfWide(1)));
+  expect(zoomOfWide(0) / zoomOfWide(1)).toBeCloseTo(RANGE);
   expect(zoomOfWide(-3)).toBe(zoomOfWide(0)); expect(zoomOfWide(7)).toBe(zoomOfWide(1));
   // a lane that only uses 0.4 to 0.6 is not stretched to the whole range
   const z = laneScale([{t: 0, wide: 0.4}, {t: 10, wide: 0.6}], 400);
@@ -36,7 +37,7 @@ it('every song\'s lanes are inside the scale and the song, in time order, with a
   }
   expect(chooseZoom('ride-7', [])).toBeNull();
 });
-it('the camera takes a lane as a multiple of the steady zoom per frame, and is the steady zoom without one', () => {
+it('the camera takes a lane as a multiple of the base zoom per frame, and is the base zoom without one', () => {
   const n = 800, centres = Array.from({length: n}, (_, f) => ({x: f * 8, y: f * 3})), motion = rideSignals(centres), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'none'};
   expect(createFraming(motion, [], 20)(10, 400, look).z).toBe(BASE);
   expect(createFraming(motion, [], 20, new Float64Array(n).fill(0.5))(10, 400, look).z).toBeCloseTo(BASE / 2);

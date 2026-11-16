@@ -21,12 +21,12 @@ These are fixed for all themes (`look.js` `V1`):
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
 - **Camera.** Follows the rider's direction, and shows the whole course at the start (moving in until about the first
-  hit) and at the end (moving out over about the last 2.6 s). The sun and the title give way to the whole course there;
+  hit) and at the end (moving out over the last 1.6 s). The sun and the title give way to the whole course there;
   the band stays from the first frame to the last.
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its
   ride's id. A lane is a few points saying how wide the picture is, on one scale shared by every song (0 closest, 1
-  widest, the widest showing 1.4 times more than the closest; never stretched to a lane's own range). A song without
+  widest, the widest showing about 1.37 times more than the closest; never stretched to a lane's own range). A song without
   lanes keeps one steady zoom, the middle of the scale. The hit movement keeps its size against the scene. No
   camera motion except the movement at strong hits.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
@@ -146,10 +146,6 @@ A video that goes into a composition is written as a lossless master (`--master=
 encoded once, in the composition. Never shrink or re-encode an encoded video: the first then-and-now did both and showed
 bands on flat colour. Before handing a composition over, compare a still with its master and look at a brightened flat
 area.
-
-Trials of the overall zoom: `--wider-near=1.075 --wider-far=1.05` (how much more the picture shows at the closest and
-at the widest zoom of the scale), and the two sliders on the zoom page. Production's zoom is unchanged until the owner
-decides.
 
 ## The hit movement: how it was found, and how to change it
 

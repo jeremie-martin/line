@@ -39,8 +39,6 @@ function progress() {
   for (const o of options) o.textContent = (marked(o.value) ? '✓ ' : '') + (o.dataset.name ??= o.textContent);
   $('progress').textContent = `${done} of ${options.length} songs have a mark.`; $('next').disabled = done === options.length;
 }
-// a trial of the overall zoom: how many percent more the picture shows at the closest and at the widest zoom (held T and "beside" stay as today)
-let near = Math.max(0, Math.min(30, Number(q.get('near')) || 0)), far = Math.max(0, Math.min(30, Number(q.get('far')) || 0));
 let ride, lanes = [], mine, today, scale, time = 0, playing = false, holding = false, beside = false, ticket = 0, cursor, pending = 0;
 
 function loadRide(song) {
@@ -94,7 +92,7 @@ function build() {
   if (!ride) return; // a song is loading
   const {scene, replay, sprites} = ride; scale = laneScale(keys, ride.frames, scene.timing.offset);
   // the picture takes the zoom as a video does: the scene's lane. It keeps the keyframes it was built with.
-  mine = createPicture($('mine'), {...scene, zoom: {keyframes: keys.map(k => ({...k}))}, ...(near ? {widerNear: 1 + near / 100} : {}), ...(far ? {widerFar: 1 + far / 100} : {})}, replay, sprites, N.riderPainter());
+  mine = createPicture($('mine'), {...scene, zoom: {keyframes: keys.map(k => ({...k}))}}, replay, sprites, N.riderPainter());
   if (!playing) draw();
 }
 const same = (a, b) => a.length === b.length && a.every((k, i) => Math.abs(k.t - b[i].t) < 0.005 && Math.abs(k.wide - b[i].wide) < 0.0005);
@@ -114,8 +112,8 @@ function change() {
   if (document.activeElement !== $('note')) $('note').value = own.note;
   $('reset').disabled = !edited; $('keep').disabled = !unsaved; $('keep').textContent = unsaved ? 'Save my version' : own.keyframes && edited ? 'Your version is saved' : 'Save my version';
   const w = keys.map(k => k.wide), lo = Math.min(...w), hi = Math.max(...w);
-  $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${zoomOfWide(lo).toFixed(2)} to ${zoomOfWide(hi).toFixed(2)} times the steady zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE}).` : `One zoom for the whole ride, ${zoomOfWide(lo).toFixed(2)} times today's.`;
-  history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, lane, k: keys.map(k => `${k.t}:${k.wide}`).join(','), ...(near ? {near} : {}), ...(far ? {far} : {})}));
+  $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${(zoomOfWide(lo) / zoomOfWide(0.5)).toFixed(2)} to ${(zoomOfWide(hi) / zoomOfWide(0.5)).toFixed(2)} times the steady zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE.toFixed(2)}).` : `One zoom for the whole ride, ${(zoomOfWide(lo) / zoomOfWide(0.5)).toFixed(2)} times the steady zoom.`;
+  history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, lane, k: keys.map(k => `${k.t}:${k.wide}`).join(',')}));
   drawLine();
   // a new zoom means a new camera path: rebuild the picture shortly after the last change
   clearTimeout(pending); pending = setTimeout(build, 120);
@@ -156,11 +154,6 @@ async function load() {
   build(); change(); $('play').disabled = false; $('status').textContent = ''; layout(); window.__ready = true;
 }
 $('song').onchange = () => {time = 0; keys = []; lane = ''; void load();};
-const shows = v => v ? `shows ${v}% more` : 'as today';
-for (const id of ['near', 'far']) {
-  $(id).value = id === 'near' ? near : far; $(id + 'Out').textContent = shows(+$(id).value);
-  $(id).oninput = () => {if (id === 'near') near = +$(id).value; else far = +$(id).value; $(id + 'Out').textContent = shows(+$(id).value); change();};
-}
 $('play').onclick = () => playing ? pause() : void play();
 $('seek').oninput = () => seek(+$('seek').value);
 $('beside').onclick = () => {beside = !beside; layout();};

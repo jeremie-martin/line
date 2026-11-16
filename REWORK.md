@@ -1,11 +1,30 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16: the closing decisions (owner, on the decisions board; `labels/studies/closing-2026-11.jsonl`)
+
+- **The overall zoom is his proposal:** the picture shows 7.5% more at the closest zoom and 5% more at the widest, in
+  proportion between (about 6% more at the steady zoom). It is the scale itself now (`scripts/video/zoom.js`); the
+  trial options are gone. The showcase and then-and-now films were made with it.
+- **Zoom lanes: the set is accepted as written.** Any lane of a song may be drawn, never the steady zoom.
+- **Trim stays End only,** and the question stays open: "maybe after using this project for a while, I will decide on
+  something else". The trim page and its stronger versions are kept.
+- **Opening and ending:** faster confirmed, and faster still asked for: the ending out over 1.6 s with no hold, the
+  opening between ("let's iterate a bit to get it right"). Production carries his ending and an opening 1.35 times
+  quicker than at first (it was 1.1) until he picks among three timings (`generated/watch/bookends-2.json`).
+- **Showcase order A** ("a one-off really"). **`master`:** merge at the very end. **The lab's round pages** stay in the
+  tree. **Branches:** the ten already merged are deleted, the others stay local.
+- **Unanswered studies,** "depends on whether they're still relevant" (my reading): `impact-visibility-2026-11` is
+  parked for the compiler's work on unwanted impacts; `night-pairs-2026-10-05-contact` asks about October's rides and
+  a measure validated since by the upper-hits studies, and leaves the list (the files stay).
+- **Specs are the work left.** He did not mark the songs board: most library specs were quick ones for the benchmark,
+  and some songs may not belong in production. To be done properly after everything else.
+
 ## November 16: the band stays through the ending (owner); films for showing the project
 
 - **The band no longer fades at the end.** It was drawn fainter as the picture moved out to the whole course, gone by
   the last frame. The owner, on the Tiki showcase: "the music visualization should stay"; the sun may go. Now the band
   is drawn in full from the first frame to the last (`scripts/video/picture.js`); the sun and the title still give way
-  to the course in the opening and the ending. Every video's last 2.6 s changes; nothing else does.
+  to the course in the opening and the ending. Only the end of a video changes.
 - **Showcase and then-and-now** (docs/visual-system.md, "Films for showing the project"): the theme changing on the
   music over one ride; an early video beside today's at full size. With them: an optional caption in the theme's ink, a
   lossless master for videos that go into a composition, and a trial of the overall zoom (closest and widest moments

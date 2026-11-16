@@ -12,7 +12,8 @@ import {FPS} from './timing.js';
 import {clamp, smoothstep} from './math.js';
 
 export const W = 1080, H = 1920;
-/** The steady zoom: design pixels per world unit. The hit movement was set at this zoom (picture.js scales it with the frame's). */
+/** The base zoom: design pixels per world unit. Lanes are multiples of it (zoom.js), and the hit movement was set at it
+ * (picture.js scales it with the frame's). */
 export const BASE = 6.2;
 const DT = 1 / FPS;
 /** Tops that put a disc where the sun is (sky.js): the rider sits lower under them, as under the sun. */
@@ -67,8 +68,7 @@ function placed(motion, zs) {
 /** A frame has one camera representation: rider world position x/y, rider screen position ax/ay, and zoom z.
  * Opening/ending interpolate that same representation, not a second camera or rider transform.
  * Song time controls bookends; fractional physics frame controls the ride. No canvas or mutable playback state.
- * `lane` is the song's zoom lane for this video (zoom.js laneScale: a multiple of BASE per physics frame); without one the
- * zoom is BASE throughout. */
+ * `lane` is the zoom per physics frame as a multiple of BASE (zoom.js laneScale); without one the zoom is BASE throughout. */
 export function createFraming(motion, hitTimes, songEnd, lane = null) {
   const centres = motion.centres, cam = placed(motion, Float64Array.from(centres, (_, f) => BASE * (lane ? lane[Math.min(f, lane.length - 1)] : 1)));
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -77,10 +77,10 @@ export function createFraming(motion, hitTimes, songEnd, lane = null) {
   x0 -= 80; y0 -= 80; x1 += 80; y1 += 80;
   const overviewZoom = Math.min(0.78 * W / (x1 - x0), 0.5 * H / (y1 - y0));
   const centre = {x: (x0 + x1) / 2, y: (y0 + y1) / 2};
-  // Opening: from the whole course to the rider, starting at 0.25 s and arriving a tenth sooner than the first hit after 1.3 s
-  // (2.2 s at most). Ending: back out over about 2.2 s, then the whole course held for the last 0.4 s.
-  const OPEN_FROM = 0.25, openingEnd = OPEN_FROM + (Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6) - OPEN_FROM) / 1.1;
-  const ENDING = 2.6 / 1.2, endingStart = songEnd - ENDING - 0.4;
+  // Opening: from the whole course in to the rider, starting at OPEN_FROM and arriving OPEN_SPEED times sooner than the first hit
+  // after 1.3 s (2.2 s at most). Ending: back out over ENDING seconds, then the whole course held for HOLD seconds.
+  const OPEN_FROM = 0.25, OPEN_SPEED = 1.35, ENDING = 1.6, HOLD = 0;
+  const openingEnd = OPEN_FROM + (Math.min(2.2, hitTimes.find(h => h.t >= 1.3)?.t ?? 1.6) - OPEN_FROM) / OPEN_SPEED, endingStart = songEnd - ENDING - HOLD;
 
   return function frameAt(time, at, look) {
     const i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];

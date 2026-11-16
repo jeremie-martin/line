@@ -1,5 +1,6 @@
 // Zoom: the whole song plays with a zoom written for it (keyframes on one fixed scale, scripts/video/zoom.js; the song's lanes come with the scene),
-// against the production picture (held or beside). The zoom is drawn over the whole song and its points can be moved. Settings live in the address and are saved per song.
+// against the steady zoom (held or beside). Each zoom of a song gets a mark, a note and, if its points were moved, the owner's version; a song gets a
+// note of its own. Every change is saved at once (labels/studies/zoom-2026-11.jsonl; the latest row per song and zoom counts).
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
@@ -14,7 +15,30 @@ if ([...$('song').options].some(o => o.value === q.get('song'))) $('song').value
 const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
 const look = resolveLook('hokusai', {hits: 'v1'});
 // the zoom being looked at: a draft's id and its keyframes, which may have been moved
-let lane = q.get('lane') ?? 'steady', keys = (q.get('k') ?? '').split(',').filter(Boolean).map(s => {const [t, wide] = s.split(':').map(Number); return {t, wide};}).filter(k => Number.isFinite(k.t) && Number.isFinite(k.wide));
+let lane = q.get('lane') ?? '', keys = (q.get('k') ?? '').split(',').filter(Boolean).map(s => {const [t, wide] = s.split(':').map(Number); return {t, wide};}).filter(k => Number.isFinite(k.t) && Number.isFinite(k.wide));
+// what the owner has saved: song → zoom id ('' for the song as a whole) → {mark, note, keyframes: his version, if he moved points}
+const MARKS = [['love', 'Love'], ['keep', 'Keep'], ['unsure', 'Unsure'], ['cut', 'Cut']], saved = new Map();
+const entry = (song, id) => {if (!saved.has(song)) saved.set(song, new Map()); const m = saved.get(song); if (!m.has(id)) m.set(id, {mark: null, note: '', keyframes: null}); return m.get(id);};
+const marked = song => [...(saved.get(song)?.values() ?? [])].some(e => e.mark);
+async function loadSaved() {
+  const r = await fetch(`/labels/studies/${STUDY}.jsonl`, {cache: 'no-store'}); if (!r.ok) return;
+  for (const line of (await r.text()).split('\n').filter(Boolean)) {
+    const row = JSON.parse(line), a = row.answers; if (!a || !('mark' in a)) continue; // rows from before marks existed say nothing
+    Object.assign(entry(row.clip, a.lane ?? ''), {mark: a.mark, note: row.note ?? '', keyframes: a.keyframes ?? null});
+  }
+}
+async function save(id, what) {
+  const song = $('song').value, e = entry(song, id);
+  const r = await fetch(`/api/labels/${STUDY}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({clip: song, skipped: false, answers: {lane: id || null, mark: e.mark, ...(e.keyframes ? {keyframes: e.keyframes} : {})}, note: e.note})});
+  $('status').textContent = r.ok ? `Saved: ${what} (${new Date().toLocaleTimeString()}).` : `Not saved: ${(await r.json()).error}`;
+  progress();
+}
+function progress() {
+  const options = [...$('song').options], done = options.filter(o => marked(o.value)).length;
+  for (const o of options) o.textContent = (marked(o.value) ? '✓ ' : '') + (o.dataset.name ??= o.textContent);
+  $('progress').textContent = `${done} of ${options.length} songs have a mark.`; $('next').disabled = done === options.length;
+}
 let ride, lanes = [], mine, today, scale, time = 0, playing = false, holding = false, beside = false, ticket = 0, cursor, pending = 0;
 
 function loadRide(song) {
@@ -74,8 +98,19 @@ function build() {
 const same = (a, b) => a.length === b.length && a.every((k, i) => Math.abs(k.t - b[i].t) < 0.005 && Math.abs(k.wide - b[i].wide) < 0.0005);
 function change() {
   const draft = lanes.find(l => l.id === lane), edited = draft && !same(keys, draft.keyframes);
-  for (const b of $('sources').children) b.classList.toggle('on', b.dataset.id === lane);
-  $('about').textContent = (draft?.about ?? '') + (edited ? ' You have moved its points.' : ''); $('reset').disabled = !edited;
+  const own = entry($('song').value, lane), unsaved = edited && !(own.keyframes && same(keys, own.keyframes));
+  $('sources').replaceChildren(...lanes.map(l => {
+    const e = entry($('song').value, l.id), row = document.createElement('div'); row.className = 'lane' + (l.id === lane ? ' on' : ''); row.onclick = () => {if (l.id !== lane) choose(l.id);};
+    const h = document.createElement('h3'); h.textContent = l.name; if (e.keyframes) h.append(Object.assign(document.createElement('small'), {textContent: 'your version'}));
+    const marks = document.createElement('div'); marks.className = 'marks';
+    for (const [id, label] of MARKS) marks.append(Object.assign(document.createElement('button'), {textContent: label, className: e.mark === id ? 'on' : '',
+      onclick: ev => {ev.stopPropagation(); e.mark = e.mark === id ? null : id; void save(l.id, `${l.name}: ${e.mark ? label : 'no mark'}`); change();}}));
+    row.append(h, Object.assign(document.createElement('p'), {textContent: l.about}), marks); return row;
+  }));
+  document.querySelector('#pair .picture-label').textContent = draft?.name ?? '';
+  $('note-title').textContent = `Note on “${draft?.name ?? ''}”`; $('edit-title').textContent = `Change “${draft?.name ?? ''}” yourself`;
+  if (document.activeElement !== $('note')) $('note').value = own.note;
+  $('reset').disabled = !edited; $('keep').disabled = !unsaved; $('keep').textContent = unsaved ? 'Save my version' : own.keyframes && edited ? 'Your version is saved' : 'Save my version';
   const w = keys.map(k => k.wide), lo = Math.min(...w), hi = Math.max(...w);
   $('readout').textContent = hi > lo ? `${keys.length} points. The picture goes from ${zoomOfWide(lo).toFixed(2)} to ${zoomOfWide(hi).toFixed(2)} times the steady zoom: its widest moment shows ${(zoomOfWide(lo) / zoomOfWide(hi)).toFixed(2)} times more than its closest (the scale allows ${RANGE}).` : `One zoom for the whole ride, ${zoomOfWide(lo).toFixed(2)} times today's.`;
   history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, lane, k: keys.map(k => `${k.t}:${k.wide}`).join(',')}));
@@ -83,8 +118,13 @@ function change() {
   // a new zoom means a new camera path: rebuild the picture shortly after the last change
   clearTimeout(pending); pending = setTimeout(build, 120);
 }
-function choose(id) {lane = id; keys = lanes.find(l => l.id === id).keyframes.map(k => ({...k})); change();}
-$('reset').onclick = () => choose(lane);
+const written = id => lanes.find(l => l.id === id).keyframes.map(k => ({...k}));
+function choose(id) {lane = id; keys = entry($('song').value, id).keyframes?.map(k => ({...k})) ?? written(id); change();}
+$('reset').onclick = () => {const e = entry($('song').value, lane); keys = written(lane); if (e.keyframes) {e.keyframes = null; void save(lane, `${lanes.find(l => l.id === lane).name} as it was written`);} change();};
+$('keep').onclick = () => {entry($('song').value, lane).keyframes = keys.map(k => ({...k})); void save(lane, `your version of ${lanes.find(l => l.id === lane).name}`); change();};
+$('note').onchange = () => {entry($('song').value, lane).note = $('note').value; void save(lane, `note on ${lanes.find(l => l.id === lane).name}`);};
+$('song-note').onchange = () => {entry($('song').value, '').note = $('song-note').value; void save('', 'note on the song');};
+$('next').onclick = () => {const o = [...$('song').options], i = $('song').selectedIndex, next = [...o.slice(i + 1), ...o.slice(0, i)].find(x => !marked(x.value)); if (next) {$('song').value = next.value; $('song').onchange();}};
 
 // ── the picture ──────────────────────────────────────────────────────────
 const pause = () => {if (playing) time = music.pause(); playing = false; $('play').textContent = 'Play';};
@@ -104,14 +144,16 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; time = Math.min(time, ride.scene.span[1]); $('seek').max = ride.scene.span[1];
-  lanes = [{id: 'steady', name: 'Steady', about: 'One zoom for the whole ride: what a song without lanes gets.', keyframes: [{t: 0, wide: 0.5}]}, ...ride.scene.zooms];
-  $('sources').replaceChildren(...lanes.map(l => {const b = Object.assign(document.createElement('button'), {textContent: l.name, onclick: () => choose(l.id)}); b.dataset.id = l.id; return b;}));
-  if (!lanes.some(l => l.id === lane) || !keys.length || keys.at(-1).t > ride.scene.span[1]) {lane = lanes.some(l => l.id === lane) ? lane : 'steady'; keys = lanes.find(l => l.id === lane).keyframes.map(k => ({...k}));}
+  lanes = [{id: 'steady', name: 'Steady', about: 'The picture never moves in or out. Mark it too: Love here means this song is better without zoom moves.', keyframes: [{t: 0, wide: 0.5}]}, ...ride.scene.zooms];
+  // a song opens on its first written zoom (or the one in the address)
+  if (!lanes.some(l => l.id === lane)) lane = (lanes[1] ?? lanes[0]).id;
+  if (!keys.length || keys.at(-1).t > ride.scene.span[1]) keys = entry(song, lane).keyframes?.map(k => ({...k})) ?? written(lane);
+  $('song-note').value = entry(song, '').note;
   today = createPicture($('today'), {...ride.scene, zoom: null}, ride.replay, ride.sprites, N.riderPainter()); // beside: the steady zoom
   ride.hits = today.hits; ride.level = today.level;
   build(); change(); $('play').disabled = false; $('status').textContent = ''; layout(); window.__ready = true;
 }
-$('song').onchange = () => {time = 0; keys = []; void load();};
+$('song').onchange = () => {time = 0; keys = []; lane = ''; void load();};
 $('play').onclick = () => playing ? pause() : void play();
 $('seek').oninput = () => seek(+$('seek').value);
 $('beside').onclick = () => {beside = !beside; layout();};
@@ -125,15 +167,11 @@ addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft' && e.target.type !== 'range') seek(time - 5); else if (e.key === 'ArrowRight' && e.target.type !== 'range') seek(time + 5);
 });
 addEventListener('keyup', e => {if (e.key === 't' || e.key === 'T') hold(false);});
-$('save').onclick = async () => {
-  const r = await fetch(`/api/labels/${STUDY}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({clip: $('song').value, skipped: false, answers: {lane, keyframes: keys}, note: $('note').value})});
-  $('status').textContent = r.ok ? `Saved for ${$('song').selectedOptions[0].textContent} at ${new Date().toLocaleTimeString()}.` : `Not saved: ${(await r.json()).error}`;
-};
 function tick(ts) {
   if (playing && mine) {time = music.position(shown(ts)); if (time >= ride.scene.span[1]) {pause(); time = ride.scene.span[1];} draw();}
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 window.zoomLab = {choose, state: () => ({time, lane, keys, range: scale ? [Math.min(...scale), Math.max(...scale)] : null}), drawAt: t => {time = t; draw(); return mine.draw(t, look);}};
+await loadSaved(); progress();
 await load();

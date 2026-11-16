@@ -142,6 +142,7 @@ Write them like a reading of the song: from its `music.ts` (events, sections) an
 moves that each have a reason, holding still otherwise. Two or three lanes per song, each following a different thing
 (Petrunko: the build, its tension, the bars the bass answers). The owner does not want the most intense passages to be
 the closest, and a formula over sections or a signal such as intensity carries no intention. Nothing goes in the last
-three seconds. Look at them on `/generated/concept-lab/zoom.html` (scenes from `prepare-rides.mjs`), where the
-points can be moved; `npm run video -- … --zoom=ID` renders one. A spec holds no camera: the zoom is the song's lanes, and
+three seconds. Judge them on `/generated/concept-lab/zoom.html` (scenes from `prepare-rides.mjs`): each
+zoom of a song takes a mark (love, keep, unsure, cut), a note and, if its points are moved, the owner's version, saved at
+once to `labels/studies/zoom-2026-11.jsonl`; `npm run video -- … --zoom=ID` renders one. A spec holds no camera: the zoom is the song's lanes, and
 the hit movement keeps its size against the scene at any zoom.

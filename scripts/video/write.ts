@@ -15,7 +15,7 @@ import {promisify} from 'node:util';
 import {chromium} from 'playwright';
 import type {Scene} from './scene.ts';
 import type {Look} from './look.js';
-import {AUDIO, CONVERT, VIDEO} from './encoding.ts';
+import {AUDIO, CONVERT, MASTER, VIDEO} from './encoding.ts';
 
 const ROOT = resolve(import.meta.dirname, '../..');
 export const FPS = 60;
@@ -40,6 +40,8 @@ export type WriteOptions = {
   from?: number; to?: number;
   /** Frame width in pixels (the picture is 9:16), 1080 by default. */
   width?: number;
+  /** A lossless master, for a video that is composed with others and encoded once there (encoding.ts). */
+  master?: boolean;
   log?: (message: string) => void;
 };
 
@@ -76,7 +78,7 @@ window.render = async ({look, from, count, width, height}) => {
 </script>`;
 
 /** Write the video; returns the number of frames. The output appears only when complete and verified. */
-export async function writeVideo({scene, look, out, from = scene.span[0], to = scene.span[1], width = 1080, log = console.log}: WriteOptions): Promise<number> {
+export async function writeVideo({scene, look, out, from = scene.span[0], to = scene.span[1], width = 1080, master = false, log = console.log}: WriteOptions): Promise<number> {
   if (from < scene.span[0] || to > scene.span[1]) throw new Error(`${from}–${to} s is outside the song span the ride covers, ${scene.span[0]}–${scene.span[1]} s`);
   const {height} = frameSize(width), count = frameCount(from, to), began = performance.now();
   const output = resolve(out);
@@ -112,7 +114,7 @@ export async function writeVideo({scene, look, out, from = scene.span[0], to = s
     const start = Math.max(0, from - PREROLL);
     encoder = spawn('ffmpeg', ['-v', 'error', '-xerror', '-y', '-f', 'image2pipe', '-c:v', 'png', '-framerate', String(FPS), '-i', 'pipe:0',
       '-ss', String(start), '-t', String(to - start), '-i', resolve(ROOT, scene.audio),
-      '-map', '0:v', '-map', '1:a', '-vf', CONVERT, ...VIDEO, '-af', `atrim=start=${from - start},asetpts=PTS-STARTPTS,apad`, ...AUDIO,
+      '-map', '0:v', '-map', '1:a', '-vf', CONVERT, ...(master ? MASTER : VIDEO), '-af', `atrim=start=${from - start},asetpts=PTS-STARTPTS,apad`, ...AUDIO,
       '-t', String(count / FPS), '-movflags', '+faststart', movie], {stdio: ['pipe', 'ignore', 'pipe']});
     let encoderErrors = '';
     encoder.stderr!.on('data', data => {encoderErrors = (encoderErrors + data).slice(-8192);});

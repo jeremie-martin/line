@@ -8,4 +8,6 @@ export const KEEP = 'format=yuv420p,setparams=colorspace=bt709:color_primaries=b
 /** The container and stream tags of the standard. */
 export const TAGS = ['-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv'];
 export const VIDEO = ['-c:v', 'libx264', '-crf', '16', '-preset', 'medium', '-pix_fmt', 'yuv420p', ...TAGS];
+/** A master: the same frames without loss, for a video that goes into a composition and is encoded once more there. */
+export const MASTER = ['-c:v', 'libx264', '-qp', '0', '-preset', 'veryfast', '-pix_fmt', 'yuv420p', ...TAGS];
 export const AUDIO = ['-c:a', 'aac', '-b:a', '192k'];

@@ -81,9 +81,9 @@ describe('camera and framing', () => {
   it('uses the same rider/world transform through bookends and handles seek, zoom and layout changes independently', () => {
     const frame = createFraming(motion, 20), look = resolveLook();
     const overview = frame(0, 0, look), riding = frame(4, 160, look);
-    expect(overview.over).toBe(1); expect(overview.z).toBeLessThan(riding.z);
+    expect(overview.over).toBeGreaterThan(0.5); expect(overview.z).toBeLessThan(riding.z / 4);
     expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0});
-    expect(frame(20, 800, look)).toMatchObject({over: 1});
+    expect(frame(20, 800, look).over).toBeCloseTo(overview.over, 6); // the last frame is the first
     const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));
     expect(lower.ay - riding.ay).toBe(32);
     for (const t of [0, 0.7, 1.8, 10, 18, 20]) {
@@ -125,19 +125,25 @@ describe('drop and colour resolution', () => {
     expect(theme(0, 0.9, look).scheme).toBe(scheme);
     expect(theme(0, 0.9, {...look, paper: 'vibranceSoftHalfPaper'}).ink).not.toBe(scheme.ink);
   });
-  it('the ending and the opening are one gesture: the same whole course at the seam, the ride at both ends, no jump between', async () => {
+  it('the ending and the opening are one gesture: the last frame is the first, the ride at both ends, no jump between', async () => {
     const {ENDS, createFraming, rideSignals, BASE} = await import('../scripts/video/camera.js');
     const motion = rideSignals(Array.from({length: 801}, (_, f) => ({x: f * 8, y: f * 4})));
     const look = resolveLook(), frame = createFraming(motion, 20), end = frame(20, 800, look), start = frame(0, 0, look);
-    expect(end.z).toBeCloseTo(start.z); expect(end.over).toBe(1); expect(start.over).toBe(1); expect(end.unink).toBe(0);
+    for (const k of ['z', 'ax', 'ay', 'x', 'y', 'over'] as const) expect(end[k]).toBeCloseTo(start[k], 6);
+    expect(end.unink).toBe(0);
     const [out, back] = frame.lengths();
-    expect(out).toBeGreaterThan(0.5); expect(out).toBeLessThan(5); expect(back).toBeGreaterThan(0.5); expect(back).toBeLessThan(5);
+    expect(out).toBeGreaterThan(0.5); expect(out).toBeLessThan(5); expect(back).toBeGreaterThan(0.3); expect(back).toBeLessThan(5);
     expect(frame(10, 400, look).z).toBe(BASE); expect(frame(back + 0.1, (back + 0.1) * 40, look).over).toBe(0); expect(frame(20 - out - 0.1, 790, look).over).toBe(0);
-    // the zoom never jumps: from one video frame to the next it changes by a small ratio, across the whole gesture
+    // the widest view comes `lead` seconds before the last frame, and shows the whole course
+    expect(frame(20 - ENDS.lead, 800 - ENDS.lead * 40, look).over).toBeCloseTo(1, 3);
+    // the camera never jumps: from one video frame to the next the zoom changes by a small ratio, across the whole gesture
     for (const from of [0, 20 - out - 0.2]) for (let t = from; t < from + (from ? out : back) + 0.2 && t < 20; t += 1 / 60) {
       const a = frame(t, t * 40, look).z, b = frame(Math.min(20, t + 1 / 60), Math.min(800, (t + 1 / 60) * 40), look).z;
       expect(Math.abs(Math.log(b / a))).toBeLessThan(0.25);
     }
+    // cut at the widest view with no swing, the last frame and the first are the whole course, at rest
+    const still = createFraming(motion, 20, null, {...ENDS, lead: 0, swing: 0});
+    expect(still(20, 800, look).over).toBe(1); expect(still(0, 0, look).over).toBe(1);
     expect(createFraming(motion, 20, null, {...ENDS, pace: 2}).lengths()[0]).toBeLessThan(out); // a faster pace is a shorter ending
     expect(createFraming(motion, 20, null, {...ENDS, pencil: true})(20, 800, look).unink).toBe(1);
   });

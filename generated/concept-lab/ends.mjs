@@ -1,20 +1,20 @@
 // Opening and ending: the last seconds of a ride run into its first seconds as a loop, while the owner shapes how the picture moves
 // out to the whole course and back in to the rider (camera.js ENDS). Settings live in the address and are saved for every song.
-import {createMusic, displayTime} from '/shared/playback.js';
+import {createMusic} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
 import {ENDS} from '/scripts/video/camera.js';
 
 const STUDY = 'bookends-2026-11', BEFORE = 5, AFTER = 5;
-const KEYS = ['pace', 'turn', 'float', 'leave', 'land'];
+const KEYS = ['pace', 'turn', 'lead', 'swing', 'leave', 'land'];
 const PROPOSALS = [
-  {name: 'Steady flow', about: 'Production now. The picture never moves faster than the ride does; the camera rises, flies over the course without stopping and comes down on the start.', ends: ENDS},
-  {name: 'Slow arch', about: 'A wider turn: more time above the course, flown more slowly.', ends: {...ENDS, turn: 1.4, float: 160}},
-  {name: 'Stops at the top', about: 'The same, with a standstill on the whole course. For comparison: this is the stop the others avoid.', ends: {...ENDS, float: 0}},
-  {name: 'Late and soft', about: 'Stays longer with the rider at the ending and lands more softly at the opening (your drag).', ends: {...ENDS, leave: 1, land: 0.6}},
-  {name: 'Brisk', about: 'Half again faster than the ride, a short turn: the least of the video.', ends: {...ENDS, pace: 1.5, turn: 0.5, float: 350}},
-  {name: 'Seamless', about: 'Steady flow, and the ink returns to pencil in the last moment: the last frame is the first.', ends: {...ENDS, pencil: true}},
+  {name: 'Already moving', about: 'Production now. The camera swings right as it rises, sweeps left across the whole course, turns around on the way down, and the video starts already moving with the ride.', ends: ENDS},
+  {name: 'Wider swing', about: 'The same with a bigger sweep across the course: more movement at the widest view.', ends: {...ENDS, swing: 200}},
+  {name: 'Later cut', about: 'The video is cut further down the descent: it starts closer in and moving faster, and the widest view sits earlier in the ending.', ends: {...ENDS, lead: 0.7}},
+  {name: 'Slow and wide', about: 'A longer, gentler turn above the course.', ends: {...ENDS, turn: 1.8, lead: 0.6, swing: 150}},
+  {name: 'Cut at the widest view', about: 'For comparison: no swing, cut on the whole course at rest. This is the standstill the others avoid.', ends: {...ENDS, lead: 0, swing: 0}},
+  {name: 'Seamless', about: 'Already moving, and the ink returns to pencil in the last moment: the last frame is the first.', ends: {...ENDS, pencil: true}},
 ];
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const copy = e => ({...e}), read = (e, k) => e[k], get = k => ends[k], set = (k, v) => {ends[k] = v;};
@@ -23,7 +23,7 @@ const ends = copy(ENDS), q = new URLSearchParams(location.hash.slice(1));
 for (const k of KEYS) if (q.has(k) && Number.isFinite(+q.get(k))) set(k, +q.get(k));
 if (q.has('pencil')) ends.pencil = q.get('pencil') === '1';
 for (const id of ['song', 'theme']) if ([...$(id).options].some(o => o.value === q.get(id))) $(id).value = q.get(id);
-const music = createMusic(), shown = displayTime(), sheet = N.loadSheet(), rides = new Map();
+const music = createMusic(), sheet = N.loadSheet(), rides = new Map();
 let ride, mine, today, look, at = 0, playing = false, rate = 1, holding = false, ticket = 0, cursor;
 
 // the loop: `at` runs from 0 to BEFORE + AFTER; first the last seconds of the song, then its first
@@ -43,15 +43,15 @@ function measure(pic, e = null) {
       if (s1[0] < 0 || s1[0] > FW || s1[1] < 0 || s1[1] > FH) continue;
       m++; v += Math.hypot(s2[0] - s0[0], s2[1] - s0[1]) * RATE / 2; acc += Math.hypot(s2[0] - 2 * s1[0] + s0[0], s2[1] - 2 * s1[1] + s0[1]) * RATE * RATE;
     }
-    rows.push({tau: i / RATE - BEFORE, v: m ? v / m : 0, a: m ? acc / m : 0, zoom: cams[i].z, rate: Math.log(cams[i + 1].z / cams[i - 1].z) * RATE / 2, cam: cams[i]});
+    rows.push({tau: i / RATE - BEFORE, seen: m, v: m ? v / m : 0, a: m ? acc / m : 0, zoom: cams[i].z, rate: Math.log(cams[i + 1].z / cams[i - 1].z) * RATE / 2, cam: cams[i]});
   }
   const [out, back] = pic.endsLengths(), moving = rows.filter(r => r.tau >= -out && r.tau <= back), calm = rows.filter(r => r.tau < -out - 0.2 || r.tau > back + 0.2);
   const median = a => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : 0, max = (a, k) => a.reduce((mx, r) => Math.max(mx, Math.abs(r[k])), 0);
-  const turn = moving.filter(r => Math.abs(r.tau) < 0.35);
+  const turn = moving.filter(r => Math.abs(r.tau) < 0.35), cut = rows.find(r => r.tau >= 0) ?? rows[0];
   const lengths = [out, back];
   if (keep) Object.assign(ends, keep);
   return {rows, lengths, rideSpeed: median(calm.map(r => r.v)), rideChange: median(calm.map(r => r.a)), fastest: max(moving, 'v'), hardest: max(moving, 'a'), rate: max(moving, 'rate'),
-    slowest: Math.min(...turn.map(r => r.v)), turnChange: max(turn, 'a')};
+    slowest: Math.min(...moving.filter(r => r.seen > 2 && r.tau < back - 0.15).map(r => r.v)), atCut: cut.v, turnChange: max(turn, 'a')};
 }
 const C = {W: 440, H: 150, L: 10, R: 10, T: 12, B: 24};
 const cx = a => C.L + a / (BEFORE + AFTER) * (C.W - C.L - C.R);
@@ -80,9 +80,10 @@ function drawChart() {
   for (const [label, value, was] of [
     ['On this song the ending takes', `${m.lengths[0].toFixed(1)} s, the opening ${m.lengths[1].toFixed(1)} s`, `${ref.lengths[0].toFixed(1)} s and ${ref.lengths[1].toFixed(1)} s`],
     ['Fastest the course moves on screen', `${n(m.fastest)} px/s`, `${n(ref.fastest)}; the ride itself ${n(m.rideSpeed)}`],
-    ['Slowest at the turn (0 is a standstill)', `${n(m.slowest)} px/s`, n(ref.slowest)],
+    ['Slowest it gets before the ride takes over (0 is a standstill)', `${n(m.slowest)} px/s`, n(ref.slowest)],
+    ['At the cut, where the video starts again', `${n(m.atCut)} px/s`, n(ref.atCut)],
     ['Hardest change of that movement', `${(m.hardest / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.hardest / (ref.rideChange || 1)).toFixed(1)} ×`],
-    ['Hardest change at the turn', `${(m.turnChange / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.turnChange / (ref.rideChange || 1)).toFixed(1)} ×`],
+    ['Hardest change around the cut', `${(m.turnChange / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.turnChange / (ref.rideChange || 1)).toFixed(1)} ×`],
     ['Zoom at its fastest', `the picture halves or doubles every ${halves} ms`, `${Math.round(Math.LN2 / ref.rate * 1000)} ms`]]) {
     const row = document.createElement('div'); row.className = 'number'; row.append(Object.assign(document.createElement('span'), {textContent: label}), Object.assign(document.createElement('b'), {textContent: value}), Object.assign(document.createElement('i'), {textContent: `production: ${was}`})); $('numbers').append(row);}
   drawMap(); place();
@@ -107,7 +108,7 @@ const place = () => {
 };
 const TEXT = {
   pace: v => `${v.toFixed(2)} × the ride${v <= 1 ? '' : ', faster than it'}`,
-  turn: v => `${v.toFixed(2)} s`, float: v => v ? `${v.toFixed(0)} px a second` : 'stops at the top',
+  turn: v => `${v.toFixed(2)} s`, lead: v => v ? `${v.toFixed(2)} s before the last frame` : 'on the last frame', swing: v => v ? `${v.toFixed(0)} px each way` : 'none',
   leave: v => `${v.toFixed(2)} s`, land: v => `${v.toFixed(2)} s`,
 };
 function show() {
@@ -132,8 +133,12 @@ function loadRide(song) {
   })());
   return rides.get(song);
 }
-const pause = () => {if (playing) music.pause(); playing = false; $('play').textContent = 'Play';};
-const play = async () => {if (!ride) return; playing = true; $('play').textContent = 'Pause'; await music.play(songTime(at), rate);};
+// the loop runs on the page's own clock, so the picture never waits for the music at the cut; the music is started again at
+// the cut and at the loop's return, and follows
+let from = 0, started = 0;
+const pause = () => {if (playing) {music.pause(); at = position(performance.now());} playing = false; $('play').textContent = 'Play';};
+const position = now => (from + (now - started) / 1000 * rate) % (BEFORE + AFTER);
+const play = async () => {if (!ride) return; playing = true; $('play').textContent = 'Pause'; from = at; started = performance.now(); await music.play(songTime(at), rate);};
 function draw() {
   if (!mine) return;
   (holding ? today : mine).draw(songTime(at), look);
@@ -168,12 +173,10 @@ $('save').onclick = async () => {
     body: JSON.stringify({clip: 'all', skipped: false, answers: {...Object.fromEntries(KEYS.map(k => [k, get(k)])), pencil: ends.pencil, song: $('song').value}, note: $('note').value})});
   $('status').textContent = r.ok ? `Saved at ${new Date().toLocaleTimeString()}.` : `Not saved: ${(await r.json()).error}`;
 };
-function tick(ts) {
+function tick() {
   if (playing && mine) {
-    const t = music.position(shown(ts)), end = ride.scene.span[1];
-    // in the last seconds until the song ends, then in the first seconds until they are over
-    if (at < BEFORE) {if (t >= end - 1e-3) {at = BEFORE; void play();} else at = Math.max(0, t - (end - BEFORE));}
-    else if (t >= AFTER && t < end - BEFORE) {at = 0; void play();} else if (t < AFTER) at = BEFORE + t;
+    const before = at; at = position(performance.now());
+    if ((before < BEFORE) !== (at < BEFORE)) void music.play(songTime(at), rate); // crossed the cut or the loop's return
     draw();
   }
   requestAnimationFrame(tick);

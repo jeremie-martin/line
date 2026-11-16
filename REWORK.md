@@ -17,7 +17,13 @@
   now set by its flow (`ENDS`, `scripts/video/camera.js`): the picture's speed follows one valley from the ride's
   own to a slow travel across the course at the seam and back, and the zoom is whatever keeps it there. Same songs:
   fastest speed about the ride's (was 1.5 times), never under 300 px/s at the seam (was 0), the picture halves every
-  155 ms (was 95), each side 1.7 to 2.0 s. The opening no longer waits for the first hit. To try on the page, off in
+  155 ms (was 95), each side 1.7 to 2.0 s. He still saw a stop at the restart: the camera travelled against the
+  ride over the course, so it reversed as it landed, when the zoom stops too. His idea, built: the zoom and the
+  sideways movement never rest together. The camera swings toward the ride's end as it rises, sweeps back across
+  the course at its widest, turns around on the start's side while already coming down, and the video is cut after
+  that turn (`lead`, `swing`): the first frame moves with the ride at 1,300 to 1,600 px/s instead of resting. What
+  remains is a slowing to about half the ride's speed as the camera lands: a zoom-in pushes the course ahead
+  outward, the ride pulls it in. The opening no longer waits for the first hit. To try on the page, off in
   production: the ink returning to pencil at the end. The measure is not validated against his eye, and production
   carries my first proposal until he saves his own on `/generated/concept-lab/ends.html`.
 - **Showcase order A** ("a one-off really"). **`master`:** merge at the very end. **The lab's round pages** stay in the

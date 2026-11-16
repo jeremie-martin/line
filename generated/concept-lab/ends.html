@@ -43,7 +43,11 @@
   </div>
   <div class="card"><h2>The movement</h2>
     <p class="help">You set how fast the picture moves; the zoom follows, and so does how long each side takes.</p>
-    <div class="dial"><label>On the way up and down the picture moves at <output id="paceOut"></output></label><input id="pace" type="range" min="0.5" max="2.5" step="0.05"></div><div class="dial"><label>The turn above the course takes <output id="turnOut"></output></label><input id="turn" type="range" min="0.2" max="2.5" step="0.05"></div><div class="dial"><label>Over the course the camera travels at <output id="floatOut"></output></label><input id="float" type="range" min="0" max="600" step="10"></div>
+    <div class="dial"><label>On the way up and down the picture moves at <output id="paceOut"></output></label><input id="pace" type="range" min="0.5" max="2.5" step="0.05"></div><div class="dial"><label>The turn above the course takes <output id="turnOut"></output></label><input id="turn" type="range" min="0.3" max="3" step="0.05"></div>
+  </div>
+  <div class="card"><h2>The swing and the cut</h2>
+    <p class="help">The camera swings toward the ride's end as it rises, sweeps back across the course at its widest, and turns around on the way down. The video is cut after that turn, so it starts already moving with the ride.</p>
+    <div class="dial"><label>The camera swings <output id="swingOut"></output></label><input id="swing" type="range" min="0" max="400" step="10"></div><div class="dial"><label>The widest view comes <output id="leadOut"></output></label><input id="lead" type="range" min="0" max="1.5" step="0.05"></div>
   </div>
   <div class="card"><h2>Next to the rider</h2>
     <p class="help">How long the camera takes for the last stretch of zoom beside the rider: longer leaves later and lands more softly.</p>

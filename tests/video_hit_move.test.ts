@@ -55,6 +55,6 @@ it('in the opening and ending the picture is smaller than the ride\'s own, which
   const frame = createFraming(rideSignals(centres), 20), look = {riderLower: '0', top: 'none', sunRider: '32', ends: 'course'};
   expect(frame(10, 400, look).z).toBe(BASE);
   const early = frame(0.3, 12, look), late = frame(19.5, 780, look);
-  expect(early.z / BASE).toBeGreaterThan(0); expect(early.z / BASE).toBeLessThan(0.5); expect(late.z).toBeLessThan(BASE);
+  expect(early.z / BASE).toBeGreaterThan(0); expect(early.z / BASE).toBeLessThan(0.7); expect(late.z).toBeLessThan(BASE);
   expect(frame(0.3, 12, {...look, ends: 'none'}).z).toBe(BASE);
 });

@@ -66,20 +66,28 @@ function placed(motion, zs) {
 }
 
 /** The ending and the opening are one gesture across the loop of a video: up from the ride to the whole course, over it, and
- * back down to the ride. The last frame and the first show the same whole course.
+ * back down to the ride. The camera's state is continuous from the last frame to the first.
  *
  * What is set is how fast the picture moves on screen (its flow), not a zoom curve; the zoom follows from it. During a ride
  * the course scrolls past at the ride's own flow. As the camera rises that scrolling fades (it shrinks with the zoom), so the
- * zoom is given exactly the pace that keeps the total flow on a smooth valley: the ride's flow at both ends, `float` at the
- * seam. Nothing rushes in the middle, nothing stops, and a larger course simply takes a little longer.
+ * zoom is given exactly the pace that keeps the total flow on a smooth valley. Nothing rushes in the middle, and a larger
+ * course simply takes a little longer.
+ *
+ * Nothing stops either, because the zoom and the sideways movement never rest together. The camera swings toward the ride's
+ * end as it rises, sweeps back across the course at its widest (the zoom's one still moment, the sideways movement at its
+ * fastest), turns around on the start's side while it is already coming down, and from there moves with the ride. The video
+ * is cut after that turn: its last frame and its first are a little past the widest view, already moving the way the rider
+ * will go.
  *   pace: the flow on the way up and down, as a multiple of the ride's typical flow (1: never faster than the ride).
- *   turn: seconds the flow takes to rise from the seam's to that pace; the valley's width.
- *   float: design px a second the camera travels across the course at the seam, from where the ride ends toward where it
- *     starts (0 is a standstill at the top). It travels FLOAT_REACH px at most each way.
+ *   turn: seconds the flow takes to rise from the widest moment's to that pace; the valley's width.
+ *   lead: seconds between the widest view and the last frame (0: the video is cut at the widest view).
+ *   swing: design px the camera swings to each side of the centred course (0 with lead 0: a standstill at the widest view).
  *   leave, land: seconds the last doubling-and-a-half of the zoom takes next to the rider, at the ending and at the opening.
  *   pencil: the ink returns to pencil over the last 0.7 s, and the loop has no seam. */
-export const ENDS = {pace: 1, turn: 0.8, float: 250, leave: 0.5, land: 0.35, pencil: false};
-const FLOAT_REACH = 260;
+export const ENDS = {pace: 1, turn: 1.2, lead: 0.45, swing: 120, leave: 0.5, land: 0.35, pencil: false};
+/** The camera's place across the course, in design px toward the ride's start, `g` seconds after the widest view, and how fast
+ * that changes. It is centred at the widest view, furthest toward the start 0.6 of the lead later, and coming back from there. */
+const swing = (g, ends) => {const span = ends.lead / 1.6; if (!(span > 0.02) || !ends.swing) return [0, 0]; const x = g / span, d = 1 + x * x; return [2 * ends.swing * x / d, 2 * ends.swing * (1 - x * x) / (d * d) / span];};
 /** Design px: how far a point of the course in the frame sits, on average, from the point a zoom holds still. It turns a zoom
  * rate into a flow: at one e-fold a second the picture moves about this many px a second. */
 const FLOW_REACH = 420;
@@ -100,18 +108,20 @@ export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
   const centre = {x: (x0 + x1) / 2, y: (y0 + y1) / 2};
   // the direction from where the ride ends to where it starts, on screen
   const first = centres[0], last = centres.at(-1), span = Math.hypot(first.x - last.x, first.y - last.y) || 1, back = {x: (first.x - last.x) / span, y: (first.y - last.y) / span};
-  // the gesture: for each side of the seam, how far the camera has come down from the whole course (0) to the ride (1), every
-  // STEP seconds away from the seam. Integrated from the seam outward, on what the ride does at that moment.
+  // the gesture: for the way up (-1) and the way down (+1), how far the camera is from the whole course (0) toward the ride (1),
+  // every STEP seconds away from the widest view. Integrated outward from it, on what the ride does at that moment. The way
+  // down starts `lead` seconds before the video's last frame, on the rider waiting at the start.
   const speeds = smoothSamples(motion.velocity.map(v => v.speed), 0.25 * FPS), flows = Array.from(speeds, (v, f) => v * cam[f].z).sort((p, q) => p - q), typical = flows[flows.length >> 1];
   function side(sign, settle) {
     const edge = cam[sign > 0 ? Math.min(cam.length - 1, 2 * FPS) : Math.max(0, cam.length - 1 - 2 * FPS)].z, depth = Math.log(edge / overviewZoom), out = [0];
     if (!(depth > 0)) return out;
+    const widest = Math.abs(swing(0, ends)[1]);
     for (let t = STEP, y = 0; t < 8; t += STEP) {
-      const f = clamp(Math.round(sign > 0 ? t * FPS : cam.length - 1 - t * FPS), 0, cam.length - 1), z = overviewZoom * Math.exp(y), w = (z - overviewZoom) / (edge - overviewZoom);
-      const x = ends.float * t / FLOAT_REACH, across = z / overviewZoom * (1 - w) * ends.float / Math.pow(1 + x * x, 1.5), scroll = z * w * speeds[f];
-      // the flow asked for: the seam's at the seam, then the pace; never under what the ride itself scrolls at this moment, so
-      // the camera always arrives
-      const far = Math.max(ends.pace * typical, edge * speeds[f]), flow2 = ends.float ** 2 + Math.max(0, far * far - ends.float ** 2) * smoothstep(t / ends.turn);
+      const video = sign > 0 ? t - ends.lead : -t - ends.lead, speed = sign > 0 && video < 0 ? 0 : speeds[clamp(Math.round(sign > 0 ? video * FPS : cam.length - 1 + video * FPS), 0, cam.length - 1)];
+      const z = overviewZoom * Math.exp(y), w = (z - overviewZoom) / (edge - overviewZoom), across = z / overviewZoom * (1 - w) * swing(sign * t, ends)[1], scroll = z * w * speed;
+      // the flow asked for: the sideways sweep's at the widest view, then the pace; never under what the ride itself scrolls at
+      // this moment, so the camera always arrives
+      const far = Math.max(ends.pace * typical, edge * speed), flow2 = widest ** 2 + Math.max(0, far * far - widest ** 2) * smoothstep(t / ends.turn);
       const free = Math.sqrt(Math.max(0, flow2 - scroll * scroll - across * across)) / FLOW_REACH, soft = 2 / settle * Math.sqrt(depth - y);
       y += free * soft / (Math.hypot(free, soft) || 1) * STEP; // the slower of the two, without a corner where they cross
       if (y >= depth - 1e-4) break;
@@ -119,12 +129,12 @@ export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
     }
     return out;
   }
-  let made = '', closeSide, openSide;
-  const sides = () => {const key = JSON.stringify(ends); if (key !== made) {made = key; closeSide = side(-1, ends.leave); openSide = side(1, ends.land);} return [closeSide, openSide];};
-  const followAt = tau => {const table = sides()[tau < 0 ? 0 : 1], i = Math.abs(tau) / STEP, k = Math.floor(i); return k + 1 >= table.length ? 1 : table[k] + (table[k + 1] - table[k]) * (i - k);};
+  let made = '', up, down;
+  const sides = () => {const key = JSON.stringify(ends); if (key !== made) {made = key; up = side(-1, ends.leave); down = side(1, ends.land);} return [up, down];};
+  const followAt = g => {const table = sides()[g < 0 ? 0 : 1], i = Math.abs(g) / STEP, k = Math.floor(i); return k + 1 >= table.length ? 1 : table[k] + (table[k + 1] - table[k]) * (i - k);};
 
   /** Seconds the ending and the opening take on this ride. */
-  frameAt.lengths = () => sides().map(table => table.length * STEP);
+  frameAt.lengths = () => {const [rise, fall] = sides(); return [rise.length * STEP + ends.lead, Math.max(0, fall.length * STEP - ends.lead)];};
   return frameAt;
   function frameAt(time, at, look) {
     const i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
@@ -133,13 +143,16 @@ export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, unink: 0};
     if (look.ends === 'none') return c;
-    const closing = time > songEnd / 2, tau = closing ? time - songEnd : time, follow = followAt(tau);
+    // g: seconds since the widest view. The video's last `lead` seconds are already on the way down, toward the rider waiting
+    // at the start, so nothing jumps at the cut.
+    const closing = time > songEnd / 2, g = (closing ? time - songEnd : time) + ends.lead, follow = followAt(g);
     if (follow >= 1) return c;
+    const to = closing && g > 0 ? {...c, z: cam[0].z, ax: cam[0].ax, ay: cam[0].ay + lower, x: cam[0].x, y: cam[0].y} : c;
     // The zoom moves evenly in ratio (follow of the way in its logarithm). The rider's place on screen follows the zoom itself, so
-    // every point of the course travels a straight line on screen: one zoom about one point, with no drift across it.
-    const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow), w = c.z !== overviewZoom ? (z - overviewZoom) / (c.z - overviewZoom) : follow;
-    const x = ends.float * tau / FLOAT_REACH, drift = FLOAT_REACH * x / Math.hypot(1, x); // px along `back`, zero at the seam
-    const q = {x: W / 2 + (c.x - centre.x) * overviewZoom - back.x * drift, y: 0.4 * H + (c.y - centre.y) * overviewZoom - back.y * drift};
-    return {...c, z, ax: q.x + (c.ax - q.x) * w, ay: q.y + (c.ay - q.y) * w, over: 1 - follow, unink: ends.pencil && closing ? smoothstep((tau + 0.7) / 0.6) : 0};
+    // without a swing every point of the course travels a straight line on screen: one zoom about one point.
+    const z = Math.exp(Math.log(overviewZoom) + (Math.log(to.z) - Math.log(overviewZoom)) * follow), w = to.z !== overviewZoom ? (z - overviewZoom) / (to.z - overviewZoom) : follow;
+    const [across] = swing(g, ends);
+    const q = {x: W / 2 + (to.x - centre.x) * overviewZoom - back.x * across, y: 0.4 * H + (to.y - centre.y) * overviewZoom - back.y * across};
+    return {...to, z, ax: q.x + (to.ax - q.x) * w, ay: q.y + (to.ay - q.y) * w, over: 1 - follow, unink: ends.pencil && closing ? smoothstep((time - songEnd + 0.7) / 0.6) : 0};
   }
 }

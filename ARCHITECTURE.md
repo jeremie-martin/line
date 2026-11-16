@@ -28,7 +28,7 @@ and validation are in [music authoring](docs/music-authoring.md).
    `repertoire_policy.ts`) chooses a construction for each support section
    from the geometry families (below): an open arc, a shape offered a guide
    rail, or scattered segments, grouped into short repeated phrases.
-   Since 2026-11-01 a guide is offered, never required: the search uses it
+   A guide is offered, never required: the search uses it
    where it helps the catch (78% of such sections on the bench) instead of
    buying a forced touch. Automatic plans use paired rails only; explicit
    plans may still require guides and later-receiver layouts. It is seeded and reproducible,
@@ -36,7 +36,7 @@ and validation are in [music authoring](docs/music-authoring.md).
    The families drawn are then placed where they fit: two phrases trade theirs
    when the fitted loss of a family in each context falls (`family_fit.ts`, a
    family × context table fitted on V7.1 rides by `tools/research/family_fit.ts`);
-   a ride's families keep their number (since 2026-11-14). This placement is
+   a ride's families keep their number. This placement is
    today's way of tying the plan to what works, one approach among many, not a
    settled design (`docs/taste-and-the-compiler.md`). Two rules that offered
    arcs a rail more often (in strong phrases; where the table said it clearly
@@ -56,7 +56,7 @@ and validation are in [music authoring](docs/music-authoring.md).
      generic sweep, observed receivers, and receivers met from above that keep
      the rider's body clear (12 per section, `upperReceiverProposals`, since
      2026-11-14). A receiver met from above is drawn as a plain line with no
-     rail in every family (`arc_geometry.ts`, since 2026-11-15);
+     rail in every family (`arc_geometry.ts`);
    - measures each proposal by native replay from the section's physical
      start (`arc_evaluate.ts`, state in `arc_interval_state.ts`); a proposal
      whose rail crosses or comes within 6 px of its own support is not built
@@ -76,7 +76,7 @@ and validation are in [music authoring](docs/music-authoring.md).
      independent engine (`arc_finalize.ts`). Before that check, rail pieces the
      rider never touches are trimmed, and the pieces of lines the whole rider
      goes through and never touches are removed, shortening a line from its
-     nearer end and never breaking it (`arc_gone_through.ts`, since 2026-11-14);
+     nearer end and never breaking it (`arc_gone_through.ts`);
      the independent replay proves the cleaned track rides identically. The ending refinement that used
      to follow terminal selection was deleted on 2026-11-13 (REWORK.md).
 
@@ -273,7 +273,7 @@ and validation are in [music authoring](docs/music-authoring.md).
      are compiled at exactly these times). A song is its directory
      `productions/<song>/`: `spec.ts` (or `variants/<name>.ts`), `audio.mp3` and
      its analysis `audio.json`, nothing else. A ride records them beside its impact account, outside
-     every identity. Rides saved before 8 November have none and stay as compiled.
+     every identity. Rides saved without one stay as compiled.
    - `scene.ts` builds what every consumer reads: the ride (its track, and for a
      compiled production its trace), its impact account projected as recorded, in
      physics frames (targets with their beats when recorded; events with onset,
@@ -320,7 +320,7 @@ and validation are in [music authoring](docs/music-authoring.md).
      and keeps `graphite`, the default look's. The saved `paper` option reads
      “Colour response” in the lab. `choose.js` picks each video's theme and drop
      partner from its ride's id.
-   - **A hit happens at its strongest frame** (round 23), sized by measured
+   - **A hit happens at its strongest frame** sized by measured
      strength and directed along the line struck at onset. `hits.js` prepares
      these hits and samples the single winning hit's shake, split and colour
      boost; carry (the picture moving out of the surface after a hit and
@@ -396,7 +396,7 @@ A geometry family is one row of `GEOMETRY_FAMILIES`
   The plan is then rewritten to what the ride realized (`splitPhrases`), so
   the fulfilment checks and reports see the realized requests. This replaced a
   9-frame threshold on 2026-11-01 (docs/research/overnight-20261101.md).
-- **A catch from above may stand for a shape** (since 2026-11-15; REWORK.md).
+- **A catch from above may stand for a shape** (REWORK.md).
   In a shaped phrase the rail before a strong beat mostly drives the rider down
   into the hit; a line above does that job at the hit itself. The automatic
   planner grants each shaped request whose rail is not required and that is no
@@ -410,7 +410,7 @@ A geometry family is one row of `GEOMETRY_FAMILIES`
 
 Every main curve starts with a straight lead-in laid back from its anchor (`arc_geometry.ts`), along the shallower of
 the entry and the arrival heading (the steeper for a surface met from above), so it never rises into the rider's path
-just before the catch (since 2026-11-13; REWORK.md).
+just before the catch (REWORK.md).
 
 **Gentle exits** (`arc_geometry.ts`, since 2026-11-15; REWORK.md). The first 6 frames after a catch are the hit's
 own (the impact account's event window): there a support turns as sharply as the hit needs. After them it is drawn
@@ -489,7 +489,7 @@ also compute speed-gain diagnostics. Its search profile is in
 log):
 
 - **Preparation:** 2 frames.
-- **The arrival law** (since 2026-11-15; `arrivalLaw` in `repertoire_search.ts`,
+- **The arrival law** (`arrivalLaw` in `repertoire_search.ts`,
   `arrivalTargets` and `arrivalLawHeading` in `arc_evaluate.ts`): every catch
   wants one arrival heading, the angle whose tangent is 2.4 × the ask's push
   over the next beat's speed: level for a whisper, steep for a hard hit,
@@ -499,7 +499,7 @@ log):
   before strong asks, the level heading before quiet asks and the broad heading
   prior. The steep step (ask 0.4 to 0.8) still sets the kinetic arrival speed,
   the upright preference and the search effort before strong asks.
-- **Quiet misses priced in proportion** (since 2026-11-15; `relativeImpact` in
+- **Quiet misses priced in proportion** (`relativeImpact` in
   `repertoire_search.ts`, applied in `openInterval`): the impact weight is
   multiplied by ((0.3 + 0.15) / (ask + 0.15))², never below 1, asks under 0.07
   counting as 0.07; it replaced the calm multiplier (×1.5 under 0.2). Specs
@@ -567,7 +567,7 @@ Known limits of the strike account:
     `[t0, t1]` windows (authored seconds) where its pattern happens.
     `inputs.ts` discovers them by globbing, so adding a spec needs no code.
     - `v7` and `v7-confirm`: the frozen V7.0 suite (`docs/benchmark.md`).
-    - `v8` and `v8-confirm`: the harder suite (2026-11-13), generated by
+    - `v8` and `v8-confirm`: the harder suite, generated by
       `tools/eval/harden.ts` as frozen data files `v8-<source>.ts`: V7.1 and
       eight formerly held-out specs, gaps ×0.85, impact asks ×1.25 around 0.5.
     - `sealed` (every `sealed-*` × 3 seeds) runs only with `--sealed`, to
@@ -609,7 +609,7 @@ Known limits of the strike account:
     from the report on 2026-11-14; cells still record them).
   - Guard rows from the blind-spot audit: head-down/backward strong
     arrivals, body drag, off-beat kicks.
-  - **Ride character** (report only, never in a headline; since 2026-11-14):
+  - **Ride character** (report only, never in a headline):
     - One definition of how the rider meets the track, `tools/measure/contact_role.ts`:
       a line is a *guide* (a rail; its ids come from the compile, kept in the geometry
       facts as ranges) or a *main* line, and pushes the rider *up*, *down* or as a

@@ -9,13 +9,17 @@
 - **Trim stays End only,** and the question stays open: "maybe after using this project for a while, I will decide on
   something else". The trim page and its stronger versions are kept.
 - **Opening and ending:** faster confirmed, then the real aim: the loop from the last frame to the first should flow
-  as one movement and take little of the video. The ending and the opening are now one gesture described by `ENDS`
-  (`scripts/video/camera.js`): out, a turn that both sides share (so they meet with the same speed and curvature),
-  and back in. The opening no longer waits for the first hit. The picture's place follows the zoom itself, so the
-  course travels straight lines toward one point (before, it also drifted across while zooming). Two things to try
-  on the page, off in production: a drift across the course through the turn, and the ink returning to pencil at
-  the end. His first liking was an ending of 2 s leaving the rider very late. Unjudged: production carries my first
-  proposal until he saves his own on `/generated/concept-lab/ends.html`.
+  as one movement and take little of the video. Measured on the camera itself (points of the course in the frame,
+  60 times a second, five songs), the eased zoom did three things he could feel: the course is 100 times smaller at
+  the whole-course view, so an eased zoom halved the picture every 95 ms in its middle; the picture's speed went
+  ride level, a dip, a rush half again faster than the ride, a standstill at the seam, and the same again; and the
+  camera's path had a corner at the seam (a zoom toward the ride's end, then a zoom from its start). The gesture is
+  now set by its flow (`ENDS`, `scripts/video/camera.js`): the picture's speed follows one valley from the ride's
+  own to a slow travel across the course at the seam and back, and the zoom is whatever keeps it there. Same songs:
+  fastest speed about the ride's (was 1.5 times), never under 300 px/s at the seam (was 0), the picture halves every
+  155 ms (was 95), each side 1.7 to 2.0 s. The opening no longer waits for the first hit. To try on the page, off in
+  production: the ink returning to pencil at the end. The measure is not validated against his eye, and production
+  carries my first proposal until he saves his own on `/generated/concept-lab/ends.html`.
 - **Showcase order A** ("a one-off really"). **`master`:** merge at the very end. **The lab's round pages** stay in the
   tree. **Branches:** the ten already merged are deleted, the others stay local.
 - **Unanswered studies,** "depends on whether they're still relevant" (my reading): `impact-visibility-2026-11` is

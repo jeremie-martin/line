@@ -151,5 +151,8 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const levelAt = t => intensityAt(level, rideTime(t, offset));
   const schemeAt = (t, look) => themeAt(t, levelAt(t), look).scheme;
   // hits and level: the ride's prepared hits (ride clock) and its intensity samples, for pages that chart them
-  return {draw, span: scene.span, timing: scene.timing, hits, level, hitTimes, schemeAt, levelAt};
+  /** The camera at song time t, without hit effects: the world point at the centre of the frame and the zoom (design px per world
+   * unit). For pages that chart the camera's path. */
+  const cameraAt = (t, look) => {const v = frameAt(t, clamp(rideTime(t, offset) * FPS, 0, frames.length - 1), look); return {x: v.x + (W / 2 - v.ax) / v.z, y: v.y + (H / 2 - v.ay) / v.z, z: v.z};};
+  return {draw, span: scene.span, timing: scene.timing, hits, level, hitTimes, schemeAt, levelAt, cameraAt, centres, endsLengths: frameAt.lengths};
 }

@@ -21,8 +21,8 @@ These are fixed for all themes (`look.js` `V1`):
 - **Timing.** Song time and ride time, one offset per ride, derived from the ride's own recorded beats. A hit happens at
   its strongest frame, and everything it triggers runs from there.
 - **Camera.** Follows the rider's direction, and shows the whole course at the start and at the end, so a video loops from
-  its last frame to its first: the ending and the opening are one gesture, out to the course, a turn, and back in (`ENDS` in
-  `camera.js`; tuned on `/generated/concept-lab/ends.html`). The sun and the title give way to the whole course there;
+  its last frame to its first: the ending and the opening are one gesture, up to the course, over it and back down, set by how
+  fast the picture moves on screen (`ENDS` in `camera.js`; tuned and measured on `/generated/concept-lab/ends.html`). The sun and the title give way to the whole course there;
   the band stays from the first frame to the last.
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its

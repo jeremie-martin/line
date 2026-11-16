@@ -6,12 +6,12 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **Opening and ending.** He wants the loop from the last frame to the first to flow as one movement and take
-   little of the video. `/generated/concept-lab/ends.html` plays the last five seconds into the first five, with
-   sliders and six proposals: the ending (length, how long it stays with the rider), the turn shared by both sides
-   (how sharp, a hold, a drift across the course), the opening (length, landing), and the ink returning to pencil
-   so the loop has no seam. His first liking: an ending of 2 s that leaves the rider very late. Production carries
-   my first proposal (`ENDS` in `scripts/video/camera.js`) until he saves his settings
+1. **Opening and ending.** He wants the loop from the last frame to the first to flow as one movement, with no
+   stop and no rush, and to take little of the video. The gesture is now set by how fast the picture moves on screen
+   (`ENDS` in `scripts/video/camera.js`); the zoom and each side's length follow. `/generated/concept-lab/ends.html`
+   plays the last five seconds into the first five, with five sliders, six proposals, the camera's path from above,
+   and what the page measures (speed of the course on screen, how hard it changes, the slowest moment at the turn).
+   That measure is not checked against his eye. Production carries my first proposal until he saves his settings
    (`labels/studies/bookends-2026-11.jsonl`).
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
    he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec

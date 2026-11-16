@@ -5,7 +5,8 @@
 <link rel="stylesheet" href="./lab.css">
 <link rel="stylesheet" href="./study.css">
 <style>
-  :root{--curve:#236cba}
+  :root{--curve:#236cba;--hot:#d9482b}
+  aside h3{font-size:13px;margin:14px 0 2px}.number{display:grid;grid-template-columns:1fr auto;gap:0 10px;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}.number b{font-variant-numeric:tabular-nums;text-align:right}.number i{grid-column:1/-1;font-style:normal;font-size:12px;color:var(--soft)}
   .opts{display:flex;flex-direction:row;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center}
   .opts button,.opts select{flex:0 0 auto;width:auto;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.opts button.on{background:var(--on);color:var(--onText);border-color:var(--on)}
   .transport{display:flex;gap:10px;align-items:center}.transport input{flex:1}
@@ -18,7 +19,7 @@
   @media (max-width:820px){.workspace{grid-template-columns:1fr}.viewer{position:static}.screen{height:min(54svh,580px)}}
 </style>
 <main>
-<header><a class="homelink" href="./index.html">← Visual lab</a><h1>Opening and ending</h1><p>The last seconds of a video run into its first seconds, as a loop: out to the whole course, a turn, and back in to the rider, as one movement. Start from a proposal, then move the sliders while it plays.</p></header>
+<header><a class="homelink" href="./index.html">← Visual lab</a><h1>Opening and ending</h1><p>The last seconds of a video run into its first seconds, as a loop: up to the whole course, over it, and back down to the rider, as one movement. Start from a proposal, then move the sliders while it plays.</p></header>
 <div class="workspace">
 <section class="viewer">
   <div class="pair single"><div class="screen"><canvas id="mine" width="1080" height="1920"></canvas></div></div>
@@ -28,21 +29,27 @@
 </section>
 <aside>
   <div class="card"><h2>Proposals</h2><div class="presets" id="presets"></div></div>
-  <div class="card"><h2>The move</h2>
-    <p class="help">Top: on the rider. Bottom: the whole course. The dashed line is where the video ends and starts again.</p>
-    <svg class="chart" id="chart" viewBox="0 0 440 170"></svg>
+  <div class="card"><h2>What the camera does</h2>
+    <p class="help">Across the loop; the dashed line is where the video ends and starts again. Grey is production.</p>
+    <h3>From above</h3><p class="help">The course, the path of the camera's centre (red out, blue in) and the frame it shows now.</p>
+    <svg class="chart" id="map" viewBox="0 0 440 240"></svg>
+    <h3>Zoom</h3><p class="help">Top: on the rider. Bottom: the whole course.</p>
+    <svg class="chart" id="zoomChart" viewBox="0 0 440 150"></svg>
+    <h3>How fast the course moves on screen</h3>
+    <svg class="chart" id="flowChart" viewBox="0 0 440 150"></svg>
+    <h3>How hard that movement changes</h3><p class="help">Peaks are where the eye is pushed around; a smooth loop has low, wide hills.</p>
+    <svg class="chart" id="changeChart" viewBox="0 0 440 150"></svg>
+    <div id="numbers"></div>
   </div>
-  <div class="card"><h2>Ending</h2>
-    <div class="dial"><label>Moves out over <output id="close.lengthOut"></output></label><input id="close.length" type="range" min="0.6" max="4" step="0.05"></div><div class="dial"><label>Stays with the rider, then <output id="close.dragOut"></output></label><input id="close.drag" type="range" min="1" max="5" step="0.1"></div>
+  <div class="card"><h2>The movement</h2>
+    <p class="help">You set how fast the picture moves; the zoom follows, and so does how long each side takes.</p>
+    <div class="dial"><label>On the way up and down the picture moves at <output id="paceOut"></output></label><input id="pace" type="range" min="0.5" max="2.5" step="0.05"></div><div class="dial"><label>The turn above the course takes <output id="turnOut"></output></label><input id="turn" type="range" min="0.2" max="2.5" step="0.05"></div><div class="dial"><label>Over the course the camera travels at <output id="floatOut"></output></label><input id="float" type="range" min="0" max="600" step="10"></div>
   </div>
-  <div class="card"><h2>The turn</h2>
-    <p class="help">Shared by the ending and the opening, so they meet at the same speed.</p>
-    <div class="dial"><label>On the whole course it <output id="turnOut"></output></label><input id="turn" type="range" min="1.2" max="4" step="0.1"></div><div class="dial"><label>Held there <output id="pauseOut"></output></label><input id="pause" type="range" min="0" max="1" step="0.05"></div><div class="dial"><label>Drifts across through the turn <output id="floatOut"></output></label><input id="float" type="range" min="0" max="120" step="5"></div>
+  <div class="card"><h2>Next to the rider</h2>
+    <p class="help">How long the camera takes for the last stretch of zoom beside the rider: longer leaves later and lands more softly.</p>
+    <div class="dial"><label>Ending: leaving the rider <output id="leaveOut"></output></label><input id="leave" type="range" min="0.1" max="1.5" step="0.05"></div><div class="dial"><label>Opening: landing on the rider <output id="landOut"></output></label><input id="land" type="range" min="0.1" max="1.5" step="0.05"></div>
     <div class="opts" style="justify-content:flex-start"><button id="pencil">The ink returns to pencil</button></div>
     <p class="help">With the ink returning to pencil in the last moment, the last frame is the first frame and the loop has no seam; the inked course is seen for less time.</p>
-  </div>
-  <div class="card"><h2>Opening</h2>
-    <div class="dial"><label>Moves in over <output id="open.lengthOut"></output></label><input id="open.length" type="range" min="0.6" max="4" step="0.05"></div><div class="dial"><label>Lands on the rider <output id="open.landOut"></output></label><input id="open.land" type="range" min="1" max="4" step="0.1"></div>
   </div>
   <div class="card"><textarea id="note" placeholder="Anything you notice (optional)"></textarea><button id="save">Save these settings</button><p class="help" id="status"></p></div>
 </aside>

@@ -4,22 +4,20 @@ import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
-import {ENDS, endsFollow} from '/scripts/video/camera.js';
+import {ENDS} from '/scripts/video/camera.js';
 
 const STUDY = 'bookends-2026-11', BEFORE = 5, AFTER = 5;
-const KEYS = ['close.length', 'close.drag', 'turn', 'open.length', 'open.land', 'pause', 'float'];
-const E = (closeLength, drag, turn, openLength, land, more = {}) => ({close: {length: closeLength, drag}, open: {length: openLength, land}, turn, pause: 0, float: 0, pencil: false, ...more});
+const KEYS = ['pace', 'turn', 'float', 'leave', 'land'];
 const PROPOSALS = [
-  {name: 'One breath', about: 'Production now. Stays with the rider, leaves late, floats over the top of the turn and comes back down onto the rider.', ends: ENDS},
-  {name: 'Yours, joined', about: 'Your ending (2 s, dragged to 4, a quick 1.4 arrival), with the opening taking off from the same quick turn: a bounce off the whole course.', ends: E(2, 4, 1.4, 1.5, 2)},
-  {name: 'Thrown ball', about: 'The plainest turn: slows into the whole course and speeds out of it at one steady rate.', ends: E(2, 3.5, 2, 1.4, 2)},
-  {name: 'Floating', about: 'One breath, and the picture keeps drifting across the course through the turn, so it never stands still.', ends: E(2, 3, 2.4, 1.5, 2, {float: 40})},
-  {name: 'Seamless', about: 'Floating, and the ink returns to pencil in the last moment: the last frame is the first.', ends: E(2, 3, 2.4, 1.5, 2, {float: 40, pencil: true})},
-  {name: 'Short', about: 'As little of the video as possible: 1.4 s out, 1.1 s in.', ends: E(1.4, 3, 2, 1.1, 2)},
+  {name: 'Steady flow', about: 'Production now. The picture never moves faster than the ride does; the camera rises, flies over the course without stopping and comes down on the start.', ends: ENDS},
+  {name: 'Slow arch', about: 'A wider turn: more time above the course, flown more slowly.', ends: {...ENDS, turn: 1.4, float: 160}},
+  {name: 'Stops at the top', about: 'The same, with a standstill on the whole course. For comparison: this is the stop the others avoid.', ends: {...ENDS, float: 0}},
+  {name: 'Late and soft', about: 'Stays longer with the rider at the ending and lands more softly at the opening (your drag).', ends: {...ENDS, leave: 1, land: 0.6}},
+  {name: 'Brisk', about: 'Half again faster than the ride, a short turn: the least of the video.', ends: {...ENDS, pace: 1.5, turn: 0.5, float: 350}},
+  {name: 'Seamless', about: 'Steady flow, and the ink returns to pencil in the last moment: the last frame is the first.', ends: {...ENDS, pencil: true}},
 ];
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
-const copy = e => ({...e, open: {...e.open}, close: {...e.close}});
-const read = (e, k) => {const [a, b] = k.split('.'); return b ? e[a][b] : e[a];}, get = k => read(ends, k), set = (k, v) => {const [a, b] = k.split('.'); if (b) ends[a][b] = v; else ends[a] = v;};
+const copy = e => ({...e}), read = (e, k) => e[k], get = k => ends[k], set = (k, v) => {ends[k] = v;};
 // the settings under the owner's hand; the picture reads them at every frame
 const ends = copy(ENDS), q = new URLSearchParams(location.hash.slice(1));
 for (const k of KEYS) if (q.has(k) && Number.isFinite(+q.get(k))) set(k, +q.get(k));
@@ -30,25 +28,90 @@ let ride, mine, today, look, at = 0, playing = false, rate = 1, holding = false,
 
 // the loop: `at` runs from 0 to BEFORE + AFTER; first the last seconds of the song, then its first
 const songTime = a => a < BEFORE ? ride.scene.span[1] - BEFORE + a : a - BEFORE;
-const C = {W: 440, H: 170, L: 10, R: 10, T: 12, B: 24};
-const cx = a => C.L + a / (BEFORE + AFTER) * (C.W - C.L - C.R), cy = f => C.T + (1 - f) * (C.H - C.T - C.B);
-function drawChart() {
-  const g = $('chart'); g.replaceChildren(); if (!ride) return;
-  g.append(svg('line', {x1: C.L, x2: C.W - C.R, y1: cy(0), y2: cy(0), stroke: 'var(--line)'}), svg('line', {x1: C.L, x2: C.W - C.R, y1: cy(1), y2: cy(1), stroke: 'var(--line)'}));
-  g.append(svg('line', {x1: cx(BEFORE), x2: cx(BEFORE), y1: C.T - 4, y2: C.H - C.B + 4, stroke: 'var(--soft)', 'stroke-dasharray': '4 4'}));
-  for (let s = -BEFORE + 1; s < AFTER; s++) if (s) g.append(svg('text', {x: cx(BEFORE + s), y: C.H - 7, 'text-anchor': 'middle'}, s < 0 ? `${-s} s left` : `${s} s`));
-  const path = e => {let d = ''; for (let a = 0; a <= BEFORE + AFTER; a += 1 / 60) d += `${d ? 'L' : 'M'}${cx(a).toFixed(1)},${cy(endsFollow(a - BEFORE, e)).toFixed(1)}`; return d;};
-  g.append(svg('path', {d: path(ENDS), fill: 'none', stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), svg('path', {d: path(ends), fill: 'none', stroke: 'var(--curve)', 'stroke-width': 2.5}));
-  cursor = svg('line', {y1: C.T - 4, y2: C.H - C.B + 4, stroke: 'var(--ink)', 'stroke-width': 1}); g.append(cursor); place();
+// ── what the camera does over the loop: measured on the picture's own camera, 60 times a second ─────────────────────────
+// For points along the course that are inside the frame: how fast they move on screen (px/s) and how hard that changes (px/s²).
+const RATE = 60, FW = 1080, FH = 1920;
+function measure(pic, e = null) {
+  const end = ride.scene.span[1], n = (BEFORE + AFTER) * RATE, cams = [], keep = e ? copy(ends) : null;
+  if (e) Object.assign(ends, copy(e));
+  for (let i = 0; i <= n; i++) {const tau = i / RATE - BEFORE; cams.push(pic.cameraAt(tau < 0 ? end + tau : tau, look));}
+  const pts = ride.points, at = (c, q) => [FW / 2 + c.z * (q.x - c.x), FH / 2 + c.z * (q.y - c.y)], rows = [];
+  for (let i = 1; i < n; i++) {
+    let v = 0, acc = 0, m = 0;
+    for (const q of pts) {
+      const s0 = at(cams[i - 1], q), s1 = at(cams[i], q), s2 = at(cams[i + 1], q);
+      if (s1[0] < 0 || s1[0] > FW || s1[1] < 0 || s1[1] > FH) continue;
+      m++; v += Math.hypot(s2[0] - s0[0], s2[1] - s0[1]) * RATE / 2; acc += Math.hypot(s2[0] - 2 * s1[0] + s0[0], s2[1] - 2 * s1[1] + s0[1]) * RATE * RATE;
+    }
+    rows.push({tau: i / RATE - BEFORE, v: m ? v / m : 0, a: m ? acc / m : 0, zoom: cams[i].z, rate: Math.log(cams[i + 1].z / cams[i - 1].z) * RATE / 2, cam: cams[i]});
+  }
+  const [out, back] = pic.endsLengths(), moving = rows.filter(r => r.tau >= -out && r.tau <= back), calm = rows.filter(r => r.tau < -out - 0.2 || r.tau > back + 0.2);
+  const median = a => a.length ? [...a].sort((x, y) => x - y)[a.length >> 1] : 0, max = (a, k) => a.reduce((mx, r) => Math.max(mx, Math.abs(r[k])), 0);
+  const turn = moving.filter(r => Math.abs(r.tau) < 0.35);
+  const lengths = [out, back];
+  if (keep) Object.assign(ends, keep);
+  return {rows, lengths, rideSpeed: median(calm.map(r => r.v)), rideChange: median(calm.map(r => r.a)), fastest: max(moving, 'v'), hardest: max(moving, 'a'), rate: max(moving, 'rate'),
+    slowest: Math.min(...turn.map(r => r.v)), turnChange: max(turn, 'a')};
 }
-const place = () => {if (cursor) {cursor.setAttribute('x1', cx(at)); cursor.setAttribute('x2', cx(at));}};
-const WORDS = {
-  'close.drag': v => v < 1.5 ? 'leaves at once' : v < 2.5 ? 'leaves early' : v < 3.5 ? 'leaves late' : 'leaves very late',
-  'open.land': v => v < 1.5 ? 'abruptly' : v < 2.4 ? 'with an ease' : v < 3.2 ? 'softly' : 'very softly',
-  turn: v => v < 1.7 ? 'a quick bounce' : v < 2.2 ? 'a thrown ball' : v < 3 ? 'floats' : 'lingers',
+const C = {W: 440, H: 150, L: 10, R: 10, T: 12, B: 24};
+const cx = a => C.L + a / (BEFORE + AFTER) * (C.W - C.L - C.R);
+let cursors = [], last = null;
+function frame(g, labels = true) {
+  g.replaceChildren();
+  g.append(svg('line', {x1: C.L, x2: C.W - C.R, y1: C.H - C.B, y2: C.H - C.B, stroke: 'var(--line)'}), svg('line', {x1: cx(BEFORE), x2: cx(BEFORE), y1: C.T - 4, y2: C.H - C.B + 4, stroke: 'var(--soft)', 'stroke-dasharray': '4 4'}));
+  if (labels) for (let s = -BEFORE + 1; s < AFTER; s++) if (s) g.append(svg('text', {x: cx(BEFORE + s), y: C.H - 7, 'text-anchor': 'middle'}, s < 0 ? `${-s} s left` : `${s} s`));
+  const c = svg('line', {y1: C.T - 4, y2: C.H - C.B + 4, stroke: 'var(--ink)', 'stroke-width': 1}); g.append(c); cursors.push(c);
+}
+const line = (rows, y, attrs) => svg('path', {d: rows.map((r, i) => `${i ? 'L' : 'M'}${cx(r.tau + BEFORE).toFixed(1)},${y(r).toFixed(1)}`).join(''), fill: 'none', ...attrs});
+function drawChart() {
+  if (!ride || !mine) return;
+  cursors = []; const m = last = measure(mine), ref = ride.production ??= measure(today), y = (v, top) => C.T + (1 - Math.min(1, v / top)) * (C.H - C.T - C.B);
+  // the zoom, on a scale of ratios: top on the rider, bottom the whole course
+  const zs = m.rows.map(r => Math.log(r.zoom)), z0 = Math.min(...zs), z1 = Math.max(...zs), zy = r => y(Math.log(r.zoom) - z0, z1 - z0 || 1);
+  frame($('zoomChart')); $('zoomChart').append(line(ref.rows, zy, {stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), line(m.rows, zy, {stroke: 'var(--curve)', 'stroke-width': 2.5}));
+  // how fast the course moves on screen
+  const top = Math.max(m.fastest, ref.fastest, m.rideSpeed) * 1.08, vy = r => y(r.v, top);
+  frame($('flowChart')); $('flowChart').append(svg('line', {x1: C.L, x2: C.W - C.R, y1: y(m.rideSpeed, top), y2: y(m.rideSpeed, top), stroke: 'var(--soft)', 'stroke-dasharray': '2 5'}), svg('text', {x: C.W - C.R, y: y(m.rideSpeed, top) - 4, 'text-anchor': 'end'}, 'the ride itself'),
+    line(ref.rows, vy, {stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), line(m.rows, vy, {stroke: 'var(--curve)', 'stroke-width': 2.5}));
+  const ay = r => y(r.a, Math.max(m.hardest, ref.hardest) * 1.08);
+  frame($('changeChart')); $('changeChart').append(line(ref.rows, ay, {stroke: 'var(--soft)', 'stroke-width': 1.2, opacity: 0.6}), line(m.rows, ay, {stroke: 'var(--hot)', 'stroke-width': 2}));
+  const n = v => Math.round(v).toLocaleString('en'), halves = m.rate ? Math.round(Math.LN2 / m.rate * 1000) : 0;
+  $('numbers').innerHTML = '';
+  for (const [label, value, was] of [
+    ['On this song the ending takes', `${m.lengths[0].toFixed(1)} s, the opening ${m.lengths[1].toFixed(1)} s`, `${ref.lengths[0].toFixed(1)} s and ${ref.lengths[1].toFixed(1)} s`],
+    ['Fastest the course moves on screen', `${n(m.fastest)} px/s`, `${n(ref.fastest)}; the ride itself ${n(m.rideSpeed)}`],
+    ['Slowest at the turn (0 is a standstill)', `${n(m.slowest)} px/s`, n(ref.slowest)],
+    ['Hardest change of that movement', `${(m.hardest / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.hardest / (ref.rideChange || 1)).toFixed(1)} ×`],
+    ['Hardest change at the turn', `${(m.turnChange / (m.rideChange || 1)).toFixed(1)} × the ride's own`, `${(ref.turnChange / (ref.rideChange || 1)).toFixed(1)} ×`],
+    ['Zoom at its fastest', `the picture halves or doubles every ${halves} ms`, `${Math.round(Math.LN2 / ref.rate * 1000)} ms`]]) {
+    const row = document.createElement('div'); row.className = 'number'; row.append(Object.assign(document.createElement('span'), {textContent: label}), Object.assign(document.createElement('b'), {textContent: value}), Object.assign(document.createElement('i'), {textContent: `production: ${was}`})); $('numbers').append(row);}
+  drawMap(); place();
+}
+// the course from above, with the path of the camera's centre over the loop and the frame it shows now
+const M = {W: 440, H: 240, P: 14};
+function drawMap() {
+  const g = $('map'); g.replaceChildren(); if (!last) return;
+  const pts = ride.points, xs = pts.map(p => p.x), ys = pts.map(p => p.y), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const k = Math.min((M.W - 2 * M.P) / (x1 - x0 || 1), (M.H - 2 * M.P) / (y1 - y0 || 1)) * 0.8, ox = M.W / 2 - k * (x0 + x1) / 2, oy = M.H / 2 - k * (y0 + y1) / 2;
+  ride.map = {k, ox, oy};
+  const d = (list, f) => list.map((p, i) => `${i ? 'L' : 'M'}${(ox + k * f(p).x).toFixed(1)},${(oy + k * f(p).y).toFixed(1)}`).join('');
+  g.append(svg('path', {d: d(pts, p => p), fill: 'none', stroke: 'var(--soft)', 'stroke-width': 1.5}));
+  g.append(svg('path', {d: d(last.rows.filter(r => r.tau < 0), r => r.cam), fill: 'none', stroke: 'var(--hot)', 'stroke-width': 2}), svg('path', {d: d(last.rows.filter(r => r.tau >= 0), r => r.cam), fill: 'none', stroke: 'var(--curve)', 'stroke-width': 2}));
+  ride.box = svg('rect', {fill: 'none', stroke: 'var(--ink)', 'stroke-width': 1.2}); g.append(ride.box);
+}
+const place = () => {
+  for (const c of cursors) {c.setAttribute('x1', cx(at)); c.setAttribute('x2', cx(at));}
+  if (!last || !ride?.box) return;
+  const r = last.rows[Math.max(0, Math.min(last.rows.length - 1, Math.round(at * RATE) - 1))], {k, ox, oy} = ride.map, w = Math.max(3, k * FW / r.zoom), h = Math.max(3, k * FH / r.zoom);
+  for (const [name, v] of [['x', ox + k * r.cam.x - w / 2], ['y', oy + k * r.cam.y - h / 2], ['width', w], ['height', h]]) ride.box.setAttribute(name, v.toFixed(1));
+};
+const TEXT = {
+  pace: v => `${v.toFixed(2)} × the ride${v <= 1 ? '' : ', faster than it'}`,
+  turn: v => `${v.toFixed(2)} s`, float: v => v ? `${v.toFixed(0)} px a second` : 'stops at the top',
+  leave: v => `${v.toFixed(2)} s`, land: v => `${v.toFixed(2)} s`,
 };
 function show() {
-  for (const k of KEYS) {const v = get(k); $(k).value = v; $(k + 'Out').textContent = WORDS[k] ? `${WORDS[k](v)} (${v.toFixed(1)})` : k === 'float' ? (v ? `${v.toFixed(0)} px a second` : 'none') : v === 0 ? 'none' : `${v.toFixed(2)} s`;}
+  for (const k of KEYS) {$(k).value = get(k); $(k + 'Out').textContent = TEXT[k](get(k));}
   $('pencil').classList.toggle('on', ends.pencil);
   const same = e => KEYS.every(k => Math.abs(read(e, k) - get(k)) < 1e-9) && e.pencil === ends.pencil;
   [...$('presets').children].forEach((b, i) => b.classList.toggle('on', same(PROPOSALS[i].ends)));
@@ -83,10 +146,11 @@ async function load() {
   ride = next; look = resolveLook($('theme').value);
   mine = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter(), {ends});
   today = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter());
+  ride.points = mine.centres.filter((_, i) => i % 20 === 0);
   $('play').disabled = false; $('status').textContent = ''; show(); window.__ready = true;
 }
 $('song').onchange = () => {at = 0; void load();};
-$('theme').onchange = () => {look = resolveLook($('theme').value); show();};
+$('theme').onchange = () => {look = resolveLook($('theme').value); ride.production = null; show();};
 $('play').onclick = () => playing ? pause() : void play();
 $('seek').oninput = () => {const on = playing; pause(); at = +$('seek').value; draw(); if (on) void play();};
 $('half').onclick = () => {rate = rate === 1 ? 0.5 : 1; $('half').classList.toggle('on', rate !== 1); if (playing) void play();};
@@ -115,5 +179,5 @@ function tick(ts) {
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-window.endsPage = {state: () => ({at, ends}), drawAt: a => {at = a; draw();}};
+window.endsPage = {state: () => ({at, ends}), drawAt: a => {at = a; draw();}, proposals: PROPOSALS, measure: e => {const m = measure(mine, e); delete m.rows; return m;}};
 await load();

@@ -8,7 +8,7 @@ frequency bands, apply a perceptual tilt + normalize + gamma, and smooth over ti
 No librosa — just numpy + ffmpeg.
 
   python3 scripts/make_spectrum.py --audio=productions/tiki_tiki_48s/audio.mp3 \
-      --out=spectrum.json [--fps=30] [--bands=56]
+      --out=spectrum.json [--fps=30] [--bands=56] [--loop]
 
 Output JSON: { "fps", "bands", "frames": [[b0..bN-1 in 0..1], ...] }.
 """
@@ -26,6 +26,7 @@ ap.add_argument("--bands", type=int, default=56)
 ap.add_argument("--sr", type=int, default=22050)
 ap.add_argument("--fmin", type=float, default=40.0)
 ap.add_argument("--fmax", type=float, default=10000.0)
+ap.add_argument("--loop", action="store_true", help="the recording loops: its end is analysed as running into its start")
 a = ap.parse_args()
 
 # decode to mono float32 PCM
@@ -59,10 +60,13 @@ spec = np.zeros((nframes, a.bands), dtype=np.float32)
 for f in range(nframes):
     c = int(f * hop)
     lo = c - N // 2
-    seg = np.zeros(N, dtype=np.float32)
-    s0, s1 = max(0, lo), min(x.size, lo + N)
-    if s1 > s0:
-        seg[s0 - lo:s1 - lo] = x[s0:s1]
+    if a.loop:                              # past either end, the other end
+        seg = x[np.arange(lo, lo + N) % x.size]
+    else:
+        seg = np.zeros(N, dtype=np.float32)
+        s0, s1 = max(0, lo), min(x.size, lo + N)
+        if s1 > s0:
+            seg[s0 - lo:s1 - lo] = x[s0:s1]
     mag = np.abs(np.fft.rfft(seg * win)) * tilt
     for b, idx in enumerate(bin_idx):
         spec[f, b] = mag[idx].mean() if idx.size else float(np.interp(centers[b], freqs, mag))
@@ -77,11 +81,12 @@ spec = np.clip(spec, 0.0, 1.0) ** 0.65
 # temporal smoothing (EMA, attack faster than release for snappy-but-smooth bars)
 sm = np.zeros_like(spec)
 prev = np.zeros(a.bands, dtype=np.float32)
-for f in range(nframes):
-    cur = spec[f]
-    rise = cur > prev
-    prev = np.where(rise, 0.55 * prev + 0.45 * cur, 0.78 * prev + 0.22 * cur)
-    sm[f] = prev
+for turn in range(2 if a.loop else 1):     # a loop's first frame follows its last: the second turn starts from there
+    for f in range(nframes):
+        cur = spec[f]
+        rise = cur > prev
+        prev = np.where(rise, 0.55 * prev + 0.45 * cur, 0.78 * prev + 0.22 * cur)
+        sm[f] = prev
 
 out = {"fps": a.fps, "bands": a.bands,
        "frames": [[round(float(v), 4) for v in row] for row in sm]}

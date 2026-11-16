@@ -24,6 +24,12 @@ These are fixed for all themes (`look.js` `V1`):
   its last frame to its first: the ending and the opening are one gesture, up to the course, over it and back down, cut a
   little after its widest view (`ENDS` in `camera.js`; tuned and measured on `/generated/concept-lab/ends.html`). The sun and the title give way to the whole course there;
   the band stays from the first frame to the last.
+- **The loop.** A video is made to be played in a loop. The camera's state is the same on the last frame and the
+  first (above). The sound loops too: a video plays its song's looping recording (`scripts/video/loop_audio.ts`),
+  whose last half second fades into the full recording's own lead-in to the excerpt, so the first sample continues
+  it. A song with no lead-in (it starts where its recording starts, or its full recording is not on this machine:
+  `LR_RECORDINGS`) fades out over that half second. The band is analysed on that recording as a loop
+  (`make_spectrum.py --loop`), so it is continuous across the cut. Nothing before the last half second changes.
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its
   ride's id. A lane is a few points saying how wide the picture is, on one scale shared by every song (0 closest, 1

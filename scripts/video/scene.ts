@@ -11,6 +11,7 @@
  * A saved ride brings its own song, recording, duration and sections (its compiled case); nothing here reads the spec or the
  * song's current authoring, so a saved ride renders the same whatever they say today. A bare track names its song and is shown
  * over the song's recording, as one section. */
+import {loopRecording} from './loop_audio.ts';
 import {createHash, randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, renameSync, rmSync} from 'node:fs';
@@ -87,16 +88,17 @@ export function screenTitle(catalogTitle: string): string {
 
 /** make_spectrum.py needs numpy: the beats venv when present, LR_SPECTRUM_PYTHON to choose another. */
 const spectrumPython = () => process.env.LR_SPECTRUM_PYTHON ?? (existsSync(join(ROOT, 'beats/.venv/bin/python')) ? join(ROOT, 'beats/.venv/bin/python') : 'python3');
-/** The song's spectrum (30 frames per second × 56 bands), computed once per recording. */
-export function spectrum(audioPath: string): Scene['spectrum'] {
+/** The song's spectrum (30 frames per second × 56 bands), computed once per recording. `loop`: the recording loops, so its end
+ * is analysed as running into its start and the band is continuous from the last frame to the first. */
+export function spectrum(audioPath: string, loop = false): Scene['spectrum'] {
   const bytes = readFileSync(audioPath), script = join(ROOT, 'scripts/make_spectrum.py');
-  const id = createHash('sha256').update(bytes).update(readFileSync(script)).update(JSON.stringify(SPECTRUM)).digest('hex');
+  const id = createHash('sha256').update(bytes).update(readFileSync(script)).update(JSON.stringify([SPECTRUM, loop])).digest('hex');
   const out = join(ROOT, 'generated/spectrum', `${id}.json`);
   if (!existsSync(out)) {
     mkdirSync(join(ROOT, 'generated/spectrum'), {recursive: true});
     const temporary = `${out}.${randomUUID()}.tmp`;
     try {
-      execFileSync(spectrumPython(), [script, `--audio=${audioPath}`, `--out=${temporary}`, `--fps=${SPECTRUM.fps}`, `--bands=${SPECTRUM.bands}`], {stdio: 'pipe'});
+      execFileSync(spectrumPython(), [script, `--audio=${audioPath}`, `--out=${temporary}`, `--fps=${SPECTRUM.fps}`, `--bands=${SPECTRUM.bands}`, ...(loop ? ['--loop'] : [])], {stdio: 'pipe'});
       JSON.parse(readFileSync(temporary, 'utf8')); // never publish a truncated analysis
       renameSync(temporary, out);
     } finally {rmSync(temporary, {force: true});}
@@ -104,7 +106,8 @@ export function spectrum(audioPath: string): Scene['spectrum'] {
   return JSON.parse(readFileSync(out, 'utf8'));
 }
 
-/** The song's recording, repository-relative, as a compile resolves it: productions/<song>/audio.mp3. */
+/** The song's recording, repository-relative, as a compile resolves it: productions/<song>/audio.mp3. A video plays its
+ * looping form (loop_audio.ts), which differs only in its last half second. */
 export const songRecording = (song: string) => join('productions', song, 'audio.mp3');
 
 /** The scene of one ride of `song` (a folder of productions/). A saved production is shown over the recording it was compiled
@@ -113,11 +116,12 @@ export function buildScene(song: string, ride: Ride): Scene {
   const entry = repertoireSongs.find(s => s.id === song);
   if (!entry) throw new Error(`Unknown song: ${song}`);
   if (ride.case && ride.case.id !== song) throw new Error(`The ride is of ${ride.case.id}, not ${song}`);
-  const audio = relative(ROOT, resolve(ROOT, ride.case?.audioPath ?? songRecording(song))), account = rideAccount(ride);
+  // the song's own recording is played in its looping form (loop_audio.ts); another recording a ride was compiled against, as is
+  const named = relative(ROOT, resolve(ROOT, ride.case?.audioPath ?? songRecording(song))), audio = named === songRecording(song) ? loopRecording(song).audio : named, account = rideAccount(ride);
   const end = (ride.case?.durationFrames ?? ride.track.duration) / FPS, timing = alignment(account);
   // the ride must cover what is shown of it: a compiled ride runs past its song (timing.js MAX_OFFSET)
   if (rideTime(end, timing.offset) * FPS > ride.track.duration) throw new Error(`The ride ends before the song it is shown with (${end} s at offset ${timing.offset} s)`);
   const phases = ride.case?.phases.length ? ride.case.phases.map(({name, t0, t1}) => ({name, t0, t1})) : [{name: 'all', t0: 0, t1: end}];
   return {song, title: screenTitle(entry.title), audio, span: [0, end], timing, track: ride.track,
-    ...(ride.trace ? {trace: ride.trace} : {}), account, phases, drop: DROP_TIMES[song] ?? null, zooms: ZOOMS[song] ?? [], zoom: null, spectrum: spectrum(resolve(ROOT, audio))};
+    ...(ride.trace ? {trace: ride.trace} : {}), account, phases, drop: DROP_TIMES[song] ?? null, zooms: ZOOMS[song] ?? [], zoom: null, spectrum: spectrum(resolve(ROOT, audio), audio !== named)};
 }

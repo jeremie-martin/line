@@ -280,7 +280,9 @@ and validation are in [music authoring](docs/music-authoring.md).
      strongest frame and strength; matches), the timing, the song span
      (`[0, spec duration]`, a bare track's own duration), and the song: a saved
      ride's own recording and sections (its compiled case), the spectrum
-     (`make_spectrum.py`, cached by the recording's bytes in `generated/spectrum/`)
+     (`make_spectrum.py`, cached by the recording's bytes in `generated/spectrum/`);
+     the recording is the song's looping form (`loop_audio.ts`: its last half
+     second runs into its own lead-in), and the spectrum is analysed as a loop
      and hand-placed drop (`drops.ts`). It reads no spec and no current authoring,
      so a saved ride renders the same whatever they say today. It refuses a record
      of another song, hits whose strongest frames are out of order, and a ride

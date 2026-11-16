@@ -1,6 +1,5 @@
 // Opening and ending: the last seconds of a ride run into its first seconds as a loop, while the owner shapes how the picture moves
 // out to the whole course and back in to the rider (camera.js ENDS). Settings live in the address and are saved for every song.
-import {createMusic} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
@@ -9,11 +8,11 @@ import {ENDS} from '/scripts/video/camera.js';
 const STUDY = 'bookends-2026-11', BEFORE = 5, AFTER = 5;
 const KEYS = ['halve', 'turn', 'leave', 'land', 'swing', 'bow', 'lead'];
 const PROPOSALS = [
-  {name: 'Plain', about: 'Production now. An even zoom up and down; the camera swings right, sweeps left across the whole course, turns around on the way down, and the video starts already moving with the ride.', ends: ENDS},
-  {name: 'Oval', about: 'Plain, flown as an oval: the camera also moves to one side at the top, so it never retraces its own path.', ends: {...ENDS, bow: 110}},
-  {name: 'Wide swing', about: 'A bigger sweep across the course: more movement at the widest view.', ends: {...ENDS, swing: 220}},
-  {name: 'From the side', about: 'A large swing and a later cut: the video starts beside the course and the start slides into the frame, so everything flows one way.', ends: {...ENDS, swing: 340, lead: 0.8}},
-  {name: 'Slow', about: 'A calmer zoom and a wider turn; each side takes about half a second more.', ends: {...ENDS, halve: 0.22, turn: 0.7}},
+  {name: 'From the side', about: 'Production now, your pick. A large swing and a late cut: the video starts beside the course and the start slides into the frame, so everything flows one way.', ends: ENDS},
+  {name: 'From the side, oval', about: 'The same, flown as an oval: the camera also moves to one side at the top, so it never retraces its own path.', ends: {...ENDS, bow: 120}},
+  {name: 'From the side, calmer', about: 'A slower zoom and a rounder top: about half a second more on each side.', ends: {...ENDS, halve: 0.2, turn: 0.6}},
+  {name: 'From further', about: 'A still larger swing and a later cut.', ends: {...ENDS, swing: 400, lead: 1}},
+  {name: 'Plain', about: 'A small swing and an early cut: the video starts on most of the course, already moving.', ends: {...ENDS, swing: 120, lead: 0.45}},
   {name: 'At rest', about: 'For comparison: no swing, cut on the whole course standing still.', ends: {...ENDS, lead: 0, swing: 0}},
 ];
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
@@ -23,7 +22,8 @@ const ends = copy(ENDS), q = new URLSearchParams(location.hash.slice(1));
 for (const k of KEYS) if (q.has(k) && Number.isFinite(+q.get(k))) set(k, +q.get(k));
 if (q.has('pencil')) ends.pencil = q.get('pencil') === '1';
 for (const id of ['song', 'theme']) if ([...$(id).options].some(o => o.value === q.get(id))) $(id).value = q.get(id);
-const music = createMusic(), sheet = N.loadSheet(), rides = new Map();
+const sheet = N.loadSheet(), rides = new Map();
+const loops = await fetch('/generated/lab-rides/loops.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
 let ride, mine, today, look, at = 0, playing = false, rate = 1, holding = false, ticket = 0, cursor;
 
 // the loop: `at` runs from 0 to BEFORE + AFTER; first the last seconds of the song, then its first
@@ -131,12 +131,28 @@ function loadRide(song) {
   })());
   return rides.get(song);
 }
-// the loop runs on the page's own clock, so the picture never waits for the music at the cut; the music is started again at
-// the cut and at the loop's return, and follows
-let from = 0, started = 0;
-const pause = () => {if (playing) {music.pause(); at = position(performance.now());} playing = false; $('play').textContent = 'Play';};
-const position = now => (from + (now - started) / 1000 * rate) % (BEFORE + AFTER);
-const play = async () => {if (!ride) return; playing = true; $('play').textContent = 'Pause'; from = at; started = performance.now(); await music.play(songTime(at), rate);};
+// The sound: the last BEFORE seconds and the first AFTER seconds of the recording joined in one buffer that the browser loops
+// without a gap, so the cut is heard exactly as a looping video plays it. The picture follows the sound's own clock.
+const audio = new AudioContext(), sounds = new Map();
+let node = null, loopSound = null, from = 0, started = 0;
+function sound(url) {
+  if (!sounds.has(url)) sounds.set(url, (async () => audio.decodeAudioData(await (await fetch(url)).arrayBuffer()))());
+  return sounds.get(url);
+}
+async function useSound() {
+  const n = ticket, recording = await sound($('sound').value), rate = recording.sampleRate, end = Math.min(recording.length, Math.round(ride.scene.span[1] * rate));
+  if (n !== ticket) return;
+  const joined = audio.createBuffer(recording.numberOfChannels, (BEFORE + AFTER) * rate, rate);
+  for (let c = 0; c < recording.numberOfChannels; c++) {const data = recording.getChannelData(c), out = joined.getChannelData(c); out.set(data.subarray(end - BEFORE * rate, end), 0); out.set(data.subarray(0, AFTER * rate), BEFORE * rate);}
+  loopSound = joined; if (playing) {at = position(); start();}
+}
+const position = () => (((from + (audio.currentTime - started - (audio.outputLatency || 0)) * rate) % (BEFORE + AFTER)) + BEFORE + AFTER) % (BEFORE + AFTER);
+function start() {
+  node?.stop(); node = audio.createBufferSource(); node.buffer = loopSound; node.loop = true; node.playbackRate.value = rate; node.connect(audio.destination);
+  from = at; started = audio.currentTime; node.start(0, at);
+}
+const pause = () => {if (playing) {at = position(); node?.stop(); node = null;} playing = false; $('play').textContent = 'Play';};
+const play = async () => {if (!ride || !loopSound) return; await audio.resume(); playing = true; $('play').textContent = 'Pause'; start();};
 function draw() {
   if (!mine) return;
   (holding ? today : mine).draw(songTime(at), look);
@@ -145,8 +161,12 @@ function draw() {
 async function load() {
   const n = ++ticket, song = $('song').value; pause(); mine = today = ride = null; $('play').disabled = true; $('status').textContent = 'Loading…'; window.__ready = false;
   const next = await loadRide(song); if (n !== ticket) return;
-  await music.load('/' + next.scene.audio); if (n !== ticket) return;
   ride = next; look = resolveLook($('theme').value);
+  // the sound at the cut: production's looping recording, the recording as cut, and other blend lengths where prepared
+  const made = loops[song] ?? {}, options = [['/' + ride.scene.audio, 'Sound: looped (production)'], [`/productions/${song}/audio.mp3`, 'Sound: as cut'], ...Object.entries(made.lengths ?? {}).map(([seconds, path]) => ['/' + path, `Sound: ${made.loop === 'lead-in' ? 'blended' : 'faded'} over ${seconds} s`]),
+    ...Object.entries(made.mirrored ?? {}).map(([seconds, path]) => ['/' + path, `Sound: the opening backwards over ${seconds} s (a trial)`])];
+  $('sound').replaceChildren(...options.map(([value, text]) => Object.assign(document.createElement('option'), {value, textContent: text})));
+  loopSound = null; await useSound(); if (n !== ticket) return;
   mine = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter(), {ends});
   today = createPicture($('mine'), ride.scene, ride.replay, ride.sprites, N.riderPainter());
   ride.points = mine.centres.filter((_, i) => i % 4 === 0);
@@ -155,8 +175,9 @@ async function load() {
 $('song').onchange = () => {at = 0; void load();};
 $('theme').onchange = () => {look = resolveLook($('theme').value); ride.production = null; show();};
 $('play').onclick = () => playing ? pause() : void play();
-$('seek').oninput = () => {const on = playing; pause(); at = +$('seek').value; draw(); if (on) void play();};
-$('half').onclick = () => {rate = rate === 1 ? 0.5 : 1; $('half').classList.toggle('on', rate !== 1); if (playing) void play();};
+$('seek').oninput = () => {at = +$('seek').value; if (playing) start(); draw();};
+$('half').onclick = () => {if (playing) at = position(); rate = rate === 1 ? 0.5 : 1; $('half').classList.toggle('on', rate !== 1); if (playing) start();};
+$('sound').onchange = () => void useSound();
 const hold = on => {if (holding !== on) {holding = on; $('hold').classList.toggle('on', on); draw();}};
 $('hold').onpointerdown = () => hold(true); $('hold').onpointerup = $('hold').onpointerleave = () => hold(false);
 $('mine').parentNode.onclick = () => playing ? pause() : void play();
@@ -173,8 +194,7 @@ $('save').onclick = async () => {
 };
 function tick() {
   if (playing && mine) {
-    const before = at; at = position(performance.now());
-    if ((before < BEFORE) !== (at < BEFORE)) void music.play(songTime(at), rate); // crossed the cut or the loop's return
+    at = position();
     draw();
   }
   requestAnimationFrame(tick);

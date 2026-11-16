@@ -79,7 +79,7 @@ function placed(motion, zs) {
  * The video is cut `lead` seconds after the widest view: its last frame and its first are the same picture, a little way down
  * and already moving the way the rider will go (lead 0 with no swing: the whole course at rest).
  * pencil: the ink returns to pencil over the last 0.7 s, so the cut shows nothing at all. */
-export const ENDS = {halve: 0.16, turn: 0.4, leave: 0.6, land: 0.5, lead: 0.45, swing: 120, bow: 0, pencil: false};
+export const ENDS = {halve: 0.16, turn: 0.4, leave: 0.6, land: 0.5, lead: 0.8, swing: 340, bow: 0, pencil: false};
 /** min(u, 1) with the corner rounded over u from 1 - k to 1 + k: it arrives at 1 exactly, with no jump in speed or in its change. */
 const capped = (u, k) => {if (u <= 1 - k) return u; if (u >= 1 + k) return 1; const t = (u - 1 + k) / (2 * k); return 1 - k + 2 * k * (t - t ** 3 + t ** 4 / 2);};
 const settling = (side, depth, ends) => Math.min(0.5, (side < 0 ? ends.leave : ends.land) * Math.LN2 / ends.halve / (2 * depth));

@@ -81,7 +81,7 @@ describe('camera and framing', () => {
   it('uses the same rider/world transform through bookends and handles seek, zoom and layout changes independently', () => {
     const frame = createFraming(motion, 20), look = resolveLook();
     const overview = frame(0, 0, look), riding = frame(4, 160, look);
-    expect(overview.over).toBeGreaterThan(0.5); expect(overview.z).toBeLessThan(riding.z / 4);
+    expect(overview.over).toBeGreaterThan(0.3); expect(overview.z).toBeLessThan(riding.z / 2);
     expect(riding).toMatchObject({x: centres[160].x, y: centres[160].y, z: 6.2, over: 0});
     expect(frame(20, 800, look).over).toBeCloseTo(overview.over, 6); // the last frame is the first
     const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));

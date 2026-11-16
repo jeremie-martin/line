@@ -79,7 +79,7 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
   if (request.caption) scene.caption = request.caption;
   console.log(`Look · ${partner ? `${theme} → ${partner}` : theme} · zoom ${scene.zoom?.id ?? 'steady'}`);
   await writeVideo({scene, look, out: output, from, to, width: request.width, master: request.master});
-  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, ...(scene.caption ? {caption: scene.caption} : {}), timing: scene.timing, from, to, width: request.width,
+  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, audio: scene.audio, ...(scene.caption ? {caption: scene.caption} : {}), timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

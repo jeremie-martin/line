@@ -1,5 +1,24 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16 (night): a video loops in its sound and its band too
+
+The owner, on the camera's loop: "I can really feel a huge transition from the end to the beginning", in the music
+and in the band; do it the way music production does, nothing cheap.
+
+- **The looping recording** (`scripts/video/loop_audio.ts`). A song is an excerpt of a longer recording. Its last
+  half second now fades out while the full recording's own lead-in to the excerpt fades in at equal power, so the
+  first sample of the video continues it. 23 songs have a lead-in; across their cut the sound matches the full
+  recording itself (correlation 0.99 and more on the two measured). The excerpts sit in their recordings to the
+  sample: 48 samples late on the webm files, exact on the others; measured each time, not assumed.
+- **No lead-in:** eight songs have no source record (Tiki, Circus, Believer, Trouble, Valhalla, L'amour de ma vie
+  twice, Amor na Praia 46 s, Luna Bala 44 s). They fade out over the half second. A trial for the ear only: the
+  song's own opening played backwards as the lead-in.
+- **Why half a second:** only a few excerpts end on their beat, so a longer blend would double the beats. Unjudged;
+  the page offers 0.25, 1 and 2 s beside it.
+- **The band** is analysed on that recording as a loop (windows wrap, the smoothing starts from the last frame): on
+  Petrunko it changes less from the last frame to the first (0.023) than between two ordinary frames (0.029).
+- **Production's camera is "From the side"** (his favourite of the proposals): `lead` 0.8 s, `swing` 340 px.
+
 ## November 16: the closing decisions (owner, on the decisions board; `labels/studies/closing-2026-11.jsonl`)
 
 - **The overall zoom is his proposal:** the picture shows 7.5% more at the closest zoom and 5% more at the widest, in

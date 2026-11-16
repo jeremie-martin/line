@@ -6,14 +6,19 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **Opening and ending.** He wants the loop from the last frame to the first to flow as one movement, with no
-   stop and no rush, and to take little of the video. The gesture is three plain curves (`ENDS` in
-   `scripts/video/camera.js`): the zoom at an even pace with rounded ends, the camera's place along the course (a
-   swing) and across it (a bow), and where the video is cut. `/generated/concept-lab/ends.html` plays the last five
-   seconds into the first five, with seven sliders, six proposals, the camera's path from above, the zoom and the
-   course's speed on screen. That speed measure is not checked against his eye. Production carries my first proposal
-   until he saves his settings (`labels/studies/bookends-2026-11.jsonl`). More to try if he wants: other paths over
-   the course, a different cut, landing later.
+1. **The loop: camera and sound.** He wants a video to loop as one movement. Camera: three plain curves and a cut
+   (`ENDS` in `scripts/video/camera.js`); production carries "From the side", his favourite so far ("so freaking
+   cool"), and he would like variations that are smoother still. Sound: the looping recording
+   (`scripts/video/loop_audio.ts`) and a band analysed as a loop. `/generated/concept-lab/ends.html` plays the last
+   five seconds into the first five without a gap, with the camera's sliders, proposals, charts, and a choice of
+   sound (looped, as cut, other blend lengths). Open:
+   - his ear on the blend (half a second) and on the eight songs with no lead-in (Tiki, Circus, Believer, Trouble,
+     Valhalla, both L'amour de ma vie, Amor na Praia 46 s, Luna Bala 44 s: no `source.json`, so they fade; the page
+     also offers their opening played backwards as a lead-in, a trial);
+   - an excerpt that ended on a bar line leading into its start would loop musically, not only cleanly: a choice at
+     selection time, for new songs;
+   - the speed measure on the page is not checked against his eye; settings he saves go to
+     `labels/studies/bookends-2026-11.jsonl`.
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;
    he has not judged them and some songs may not belong in production at all (rhythm, speed). Seven songs have a spec
    he judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the original. To do properly, after
@@ -33,6 +38,10 @@ Work that is mine:
   left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
   tree. Four loose notes at the root are untracked (the owner's).
 - **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
+- **A second set of specifications by Codex** (Astra), asked for by the owner on 2026-11-16: branch `specs/astra`,
+  worktree `~/prog/line-specs-astra`, one `variants/astra.ts` per song and a report in
+  `docs/research/astra-specs-20261116.md` there; brief and log in `generated/codex/astra-specs/`. Then a second Codex
+  run reviews it. Nothing of it replaces a spec without his marks.
 
 ## Waiting for the owner's eye
 

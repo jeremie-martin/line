@@ -2,6 +2,30 @@
 
 What is next and what is open. Results and decisions go to `REWORK.md`.
 
+## Toward closing (owner, 2026-11-16: close the project for a while and use it to make many videos)
+
+Decisions that are his:
+
+1. **The overall zoom.** A trial only (`--wider-near`, `--wider-far`, the zoom page's sliders); his proposal is 7.5%
+   more at the closest zoom and 5% more at the widest. Production is unchanged until he says.
+2. **Zoom lanes.** 7 of 31 songs have marks on the second set. Until the rest are marked, a video may draw any of a
+   song's lanes, liked or not. Either he marks them, or production uses only marked lanes, or the set is accepted.
+3. **Specs.** Seven songs have a spec he has judged (the five handcrafted, Circus `voice-full`, Believer); Tiki's is the
+   original. The other songs carry library specs nobody has marked; `/generated/watch/all-songs.json` shows one video of
+   each. Which songs are in the first batches?
+4. **`master`** is from May. When he calls it closed: merge `visual-lab` into it (ask before pushing).
+5. **The lab's round pages** (about fifty): archive in the tree, or leave it with a tag.
+
+Work that is mine:
+
+- **One command for a batch of videos** (songs × seeds, look and lane chosen per ride, a report of what failed). Today
+  it is one `npm run video` per video.
+- **Videos made before 2026-11-16** fade the band at the end: re-render what is kept.
+- **Branches and worktrees.** Local experiment branches (`exp/trim-*`, `exp/believer-on-compiler`, the November 11
+  experiments, old backups), agent worktrees, and `compare`'s worktrees under `generated/eval/worktrees/` (never
+  pruned; `generated/` is 22 GB). Four loose notes at the root are untracked (the owner's).
+- **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
+
 ## Waiting for the owner's eye
 
 1. **Trimming unused track, further or not.** End only is in the compiler (his choice for now, `REWORK.md`). On

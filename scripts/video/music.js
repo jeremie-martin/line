@@ -2,7 +2,7 @@
 // Shapes share spectrum interpolation and accent selection, with no hidden theme or frame state.
 import {W, H} from './camera.js';
 import {mixHex} from './colour.js';
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+import {clamp} from './math.js';
 // Leave room below the band for the Shorts comments (from roughly 0.85 H).
 const BAND_SHIFT = {lowmid: -0.015 * H};
 
@@ -53,9 +53,9 @@ export function drawBand(ctx, spectrum, t, heat, alpha, colours, look, allHot = 
     });
   } else if (look.band === 'iris' || look.band === 'strands') {
     // bold strands for a phone, where thin ones fade (phone review, 8 November): main line 3.8 → 7 px, echoes 2.6 → 4.5 px
-    // the theme's strands (lab) sit a little lower: there is no reflection under them
+    // the theme's strands sit a little lower: there is no reflection under them
     const base = (look.band === 'strands' ? 0.83 : 0.82) * H, hgt = 0.14 * H, weight = look.band === 'strands' ? 1.1 : look.irisWeight === 'bold' ? 1.8 : 1; // the theme's strands: between the thinnest and a fifth heavier (round 50)
-    const swing = look.band === 'strands' ? 1.0 : 0.72; // the theme's strands (lab) swing wider
+    const swing = look.band === 'strands' ? 1.0 : 0.72; // the theme's strands swing wider
     const contour = (vals, dy) => {const pts = vals.map((v, i) => ({x: -10 + (W + 20) * i / (n - 1), y: base - v * hgt * swing + dy})); ctx.beginPath(); smoothPath(ctx, pts);};
     [.06, .12, .18, .24, .3, .36, .42].map((age, i) => ({age, i})).reverse().forEach(({age, i}) => {
       if (t < age) return; contour(spectrumAt(spectrum, t - age), hgt * .04 * (i + 1));

@@ -4,8 +4,8 @@
 // eases in and out (a cubic), so two keyframes of the same value hold it. A song's lanes live in productions/<song>/zooms.ts;
 // a ride is given one of them from its id (choose.js). Pure: no DOM.
 import {FPS} from './timing.js';
+import {clamp} from './math.js';
 export const RANGE = 1.4;
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const cubic = x => (x = clamp(x, 0, 1), x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
 /** The zoom as a multiple of the steady zoom for a wideness: 1.18 at 0, 1 at 0.5, 0.85 at 1. */
 export const zoomOfWide = wide => Math.pow(RANGE, 0.5 - clamp(wide, 0, 1));

@@ -1,5 +1,5 @@
 // Colour arithmetic: sRGB mixing and gamut-mapped OKLCH. No theme or rendering state.
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+import {clamp} from './math.js';
 const lin = v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
 const enc = v => v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
 

@@ -2,7 +2,7 @@
 // Drawing never mutates the prepared track, so seeking and switching line modes need no replay.
 import {W, H} from './camera.js';
 import {mixHex} from './colour.js';
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+import {clamp} from './math.js';
 
 export function prepareTrack(source, contacts, centres) {
   const lines = source.map(l => ({id: l.id, x1: l.x1, y1: l.y1, x2: l.x2, y2: l.y2, touchFrame: Infinity}));

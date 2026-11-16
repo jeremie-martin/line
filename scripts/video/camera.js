@@ -9,15 +9,14 @@
 // Pure: no DOM. Frames are 1080 × 1920 design pixels; the picture scales them to the canvas.
 
 import {FPS} from './timing.js';
+import {clamp, smoothstep} from './math.js';
 
 export const W = 1080, H = 1920;
 /** The steady zoom: design pixels per world unit. The hit movement was set at this zoom (picture.js scales it with the frame's). */
 export const BASE = 6.2;
 const DT = 1 / FPS;
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** Tops that put a disc where the sun is (sky.js): the rider sits lower under them, as under the sun. */
 export const DISC_TOPS = new Set(['sun', 'crescent', 'stars', 'crescentStars']);
-export const smoothstep = x => {x = clamp(x, 0, 1); return x * x * (3 - 2 * x);};
 
 function smoothSamples(arr, sig) {
   const R = Math.ceil(2.5 * sig), ker = []; for (let k = -R; k <= R; k++) ker.push(Math.exp(-k * k / (2 * sig * sig)));

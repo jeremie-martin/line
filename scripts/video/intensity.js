@@ -3,8 +3,8 @@
 // per second (impact rate × strength as one sum, so a few big hits and many small ones are the same kind of thing).
 // Everything is offline: the whole ride is known, so lag is a design choice here, not a cost.
 import {FPS} from './timing.js';
+import {clamp} from './math.js';
 export const FS = 10; // Hz: nothing here needs more
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** The shared, absolute strength curve: the same for every song, no ranks. */
 export const strength = s => Math.pow(clamp((s - 0.2) / 0.65, 0, 1), 1.4);
 

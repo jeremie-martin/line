@@ -77,9 +77,16 @@ The goal is never the score alone: keep ride character in mind (`tools/research/
     `WORKING.md` asks that one-off study code stay on its branch: keep those still in use (`ride_character`,
     `rail_job`, `geometry_catalog`, `validate_uncertainty`, `family_fit`, `rail_squeeze`, `catch_price`) and the
     chain that retrains the shipped models, as one unit.
-  - `tests/fixtures/arc_control_policy_legacy.json` is 11 MB and feeds one test of the policy decoder.
-  - Options that production always sets (`goneThroughCleanup`, `railSupportMargin`, `completeBoundary`) exist as
-    options for tests and research tools only.
+  - **Policy formats production never loads** (`arc_control_policy.ts`, about 60 of 169 lines: forests, residual and
+    proximity models, the 67-feature schema; the matching branch of `arc_interval_state.ts`). The shipped model holds
+    only catalogue, network and exemplars. Removing them removes `tests/fixtures/arc_control_policy_legacy.json`
+    (11 MB) and about four tests. Parity must stay identical.
+  - Options that production always sets exist for tests and research tools only: `goneThroughCleanup` (true),
+    `railSupportMargin` (6); `completeBoundary` follows `guidanceSamples > 0`. Twelve test files copy the base options
+    by hand instead of spreading `connectedArcOptions`.
+  - `tools/eval/harden.ts` no longer reproduces V8; a test imports three of its exports. `v7-confirm` is history.
+  - Variants nothing names: Circus `pulse808`, Valhalla `words2`. Studies without answers or use:
+    `upper-hits-2026-11-redo`, `hit-curve-2026-11`.
 
 ## Open questions
 

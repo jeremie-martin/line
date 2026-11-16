@@ -1,7 +1,7 @@
 // Measured hits on the ride clock. No canvas, song offset or theme here. A hit happens at its force peak and keeps the direction
 // of the line struck at its onset.
 import {FPS} from './timing.js';
-import {smoothstep} from './camera.js';
+import {smoothstep} from './math.js';
 import {strength} from './intensity.js';
 
 /** Matched events in target order (validated by scene.ts), with a normal pointing toward the rider.
@@ -102,7 +102,7 @@ export function hitEffectsAt(hits, time, exaggerate = 1, tune = TUNES.v1) {
     split: amount <= 0.002 ? 0 : split(hit.strength) * exaggerate * amount,
     direction: {x, y},
     boost: amount < 0.003 ? 0 : boost(hit.strength) * exaggerate * amount,
-    // lab: the band lights on hits above a strength, for as long as the hit's own effects last
+    // the band lights on hits above a strength, for as long as the hit's own effects last
     lit: !!tune.lit && hit.strength >= tune.lit && amount > 0.1};
 }
 

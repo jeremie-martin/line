@@ -26,8 +26,8 @@ import {prepareTrack, drawTrack} from './track.js';
 import {drawBand} from './music.js';
 import {drawSky} from './sky.js';
 import {createTheme, dropSpan} from './theme.js';
+import {clamp} from './math.js';
 
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 /** The rider's ten body points, in the order compiled rides are traced in (scripts/gallery/artifacts.ts); the camera follows
  * their mean, which stays smooth through a spin where any single point circles. */
 export const BODY_POINTS = ['PEG', 'TAIL', 'NOSE', 'STRING', 'BUTT', 'SHOULDER', 'RHAND', 'LHAND', 'LFOOT', 'RFOOT'];

@@ -1,5 +1,28 @@
 # Foundations rework (started 2026-10-03)
 
+## November 16: production sweep and compiler restart (in progress)
+
+Restarted `compiler` from `visual-lab` at `2279c1f8`, reference `foundation-12`. All 31 default production specs at
+seeds 101–808 (248 rides) complete and qualify. Full measurements, per-song score spreads and loaded compile times
+are in `docs/research/production-sweep-20261116.md`; raw evidence stays in `generated/compiler-sweep-20261116/`.
+
+- Initial priorities were checked against physical traces: Believer and short L’amour miss requested speed in dense
+  passages, but do not stall (no speed below 2 px/frame after the opening). Low score alone is not a visual ranking.
+- Five rides cross the existing 100 ms burst band, each once, by at most 0.0562. Strong unwanted recorded hits are
+  uncommon. The recurring unrecorded-push flags in ultra-slowed Los Voltaje are the same catch 100 ms after a beat,
+  not eight independent off-beat incidents; do not turn this diagnostic into an objective.
+- Eight plain whole rides are rendered as diagnostic outlier/median pairs. Review:
+  `/motion-gallery/video-compare.html?collection=/generated/watch/compiler-sweep-20261116.json`.
+- Audit running: final adopted compiler versus `foundation-9`, V8 at 16 seeds, then V7.1 at four. This checks the
+  catches-from-above reservations on final code; it is not a new behavioral candidate or a claimed gain.
+- Housekeeping: the 11,005,070-byte legacy decoder fixture is gzip-compressed to 4,292,901 bytes, with identical
+  decompressed bytes and all seven decoder tests unchanged. Five report scripts that require abandoned instrumented
+  compiler branches (`apex_work`, `quiet_work`, `ridable_work`, `upper_work`, `upper_candidates`) leave the live tree;
+  their code remains in Git at `2279c1f8`. No production source or learned artifact changes.
+- Validation: 666 tests pass; typecheck and reach pass; all 25 compile parity cells and all 10 judge parity tracks
+  pass. The review page loads its first video without browser errors (78.5 s, ready state 4).
+  No new foundation is declared: no compiler behavior has been adopted in this review.
+
 ## November 16: the band stays through the ending (owner); films for showing the project
 
 - **The band no longer fades at the end.** It was drawn fainter as the picture moved out to the whole course, gone by

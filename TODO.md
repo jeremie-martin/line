@@ -51,7 +51,7 @@ Work that is mine:
   the rounds stay as an archive or leave the tree (their answers are in `LEDGER.md`).
 - The spec dashboard does not show a song's zoom lanes; the zoom page does.
 
-## Compiler (branch `compiler`, another agent; paused on the night of 2026-11-15)
+## Compiler (branch `compiler`; production review in progress)
 
 Benchmark: V8, with V7.1 beside it (`docs/benchmark.md`); reference `foundation-12`.
 The goal is never the score alone: keep ride character in mind (`tools/research/ride_character.ts`).
@@ -73,11 +73,11 @@ The goal is never the score alone: keep ride character in mind (`tools/research/
 - **Geometry hygiene:** G3 and G4 open. **Unwanted impacts:** U2, U3 (guide touches on beats), after the visibility
   study. **Trouble:** about half of `contrast-clusters`' seeds failed at the short two-hit pairs on 2026-10-31; check
   against today's compiler. **Circus `pairs4`** is the intended spec and a target.
+- **Production review:** 248/248 default-spec rides complete and qualified; diagnostics and plain review collection
+  in `docs/research/production-sweep-20261116.md`. Visual prioritization and final-code catches audit remain in progress.
 - **Housekeeping for that agent.**
-  - `tools/research/` holds about forty report-only scripts; five need an instrumented compiler branch to run
-    (`apex_work`, `quiet_work`, `ridable_work`, `upper_work`, `upper_candidates`). `WORKING.md` asks that one-off
-    study code stay on its branch.
-  - `tests/fixtures/arc_control_policy_legacy.json` is 11 MB and feeds one test of the policy decoder.
+  - Five obsolete instrumented-study scripts removed; retained in Git at `2279c1f8`.
+  - Legacy policy decoder fixture compressed without changing its contents (11 MB → 4.3 MB).
   - Options that production always sets (`goneThroughCleanup`, `railSupportMargin`, `completeBoundary`) exist as
     options for tests and research tools only.
 

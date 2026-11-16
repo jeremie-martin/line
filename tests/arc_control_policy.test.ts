@@ -1,9 +1,10 @@
 import {expect,it} from 'vitest';
 import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
 import {arcPolicyArrival,arcControlProposals} from '../scripts/v0/optimizer/arc_control_policy.ts';
 import {arcControlsSimilar} from '../scripts/v0/optimizer/arc_motion_control.ts';
 import fixtures from './fixtures/arc_control_policy_predictions.json' with {type:'json'};
-const model:any=JSON.parse(readFileSync(new URL('./fixtures/arc_control_policy_legacy.json',import.meta.url),'utf8'));
+const model:any=JSON.parse(gunzipSync(readFileSync(new URL('./fixtures/arc_control_policy_legacy.json.gz',import.meta.url))).toString('utf8'));
 
 it('matches independently exported Python ensemble predictions after control decoding',()=>{
   for(const row of fixtures){

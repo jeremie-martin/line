@@ -62,7 +62,10 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
   // the zoom written for the song, when this video was given one of its lanes (scene.zoom): a multiple of the steady zoom per frame
-  const frameAt = createFraming(motion, hitTimes, songEnd, scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : null);
+  // (scene.wider, a trial: the whole picture shows that many times more, 1.1 for a tenth more; absent in production)
+  const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : scene.wider ? new Float64Array(frames.length).fill(1) : null;
+  if (lane && scene.wider) for (let f = 0; f < lane.length; f++) lane[f] /= scene.wider;
+  const frameAt = createFraming(motion, hitTimes, songEnd, lane);
 
   const applySplit = createSplit(canvas);
   // the colour boost: everything drawn on the paper (ink, line, rider, band, sun, title) gets more saturated and more contrasted for

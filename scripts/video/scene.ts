@@ -49,6 +49,8 @@ export type Scene = {
   /** The zoom lanes written for the song (zooms.ts), and the one this video uses: chosen from the ride's id by whoever makes
    * the video (choose.js `chooseZoom`); null keeps the steady zoom. */
   zooms: ZoomLane[]; zoom: ZoomLane | null;
+  /** A trial of the overall zoom: the picture shows this many times more than today (1.1: a tenth more). Absent in production. */
+  wider?: number;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
 type SavedEvaluation = {targets: {frame: number; impact?: number}[];

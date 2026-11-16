@@ -3,7 +3,7 @@ import {resolveLook} from '../video/look.js';
 
 export function videoRequest(argv: string[]) {
   const args: Record<string, string> = {};
-  const allowed = new Set(['song', 'study', 'id', 'track', 'music', 'seed', 'budget', 'look', 'set', 'zoom', 'from', 'to', 'width', 'out']);
+  const allowed = new Set(['song', 'study', 'id', 'track', 'music', 'seed', 'budget', 'look', 'set', 'zoom', 'wider', 'from', 'to', 'width', 'out']);
   for (const token of argv) {
     const match = /^--([^=]+)=(.+)$/.exec(token);
     if (!match || !allowed.has(match[1]) || match[1] in args) throw new Error(`Unknown, repeated or incomplete option: ${token}. Use --help.`);
@@ -29,7 +29,7 @@ export function videoRequest(argv: string[]) {
     if (!value || extra !== undefined) throw new Error(`--set takes key:value pairs separated by commas (got ${kv})`);
     return [key, value];
   }));
-  return {zoom: args.zoom, song: args.song, study: args.study, id: args.id, track: args.track, music: args.music, out: args.out,
+  return {zoom: args.zoom, wider: args.wider === undefined ? undefined : Number(args.wider), song: args.song, study: args.study, id: args.id, track: args.track, music: args.music, out: args.out,
     seed: integer('seed', 0), budget: integer('budget', 1), from: seconds('from'), to: seconds('to'), width: integer('width', 1) ?? 1080,
     // the options are checked now even when the look is chosen later: an unknown option or value fails before any work
     lookName, overrides, look: lookName ? resolveLook(lookName, overrides) : (resolveLook(null, overrides), null)};

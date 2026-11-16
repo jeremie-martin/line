@@ -51,6 +51,8 @@ export type Scene = {
   zooms: ZoomLane[]; zoom: ZoomLane | null;
   /** A trial of the overall zoom: the picture shows this many times more than today (1.1: a tenth more). Absent in production. */
   wider?: number;
+  /** The same for the near end of the zoom scale only: the widest stays, the closest shows this many times more. */
+  widerNear?: number;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
 type SavedEvaluation = {targets: {frame: number; impact?: number}[];

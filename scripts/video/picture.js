@@ -15,7 +15,7 @@
 // the ending) at song time t. A hit happens at its strongest frame: its split, colour boost, accent heat and (on
 // strong hits) shake start there, on their own, sized by its measured strength (never a rank, never the spec's request), and
 // pushed along the line struck at its onset.
-import {laneScale} from './zoom.js';
+import {RANGE, laneScale} from './zoom.js';
 import {W, H, BASE, rideSignals, createFraming} from './camera.js';
 import {FPS, rideTime, songTime} from './timing.js';
 import {rideIntensity, intensityAt} from './intensity.js';
@@ -62,9 +62,15 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
   // the zoom written for the song, when this video was given one of its lanes (scene.zoom): a multiple of the steady zoom per frame
-  // (scene.wider, a trial: the whole picture shows that many times more, 1.1 for a tenth more; absent in production)
-  const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : scene.wider ? new Float64Array(frames.length).fill(1) : null;
-  if (lane && scene.wider) for (let f = 0; f < lane.length; f++) lane[f] /= scene.wider;
+  // (trials of the overall zoom, absent in production. scene.wider: the whole picture shows that many times more, 1.1 for a
+  // tenth more. scene.widerNear: only the near end of the scale does; the widest zoom stays what it is and the closest shows
+  // that many times more, in proportion between.)
+  const trial = scene.wider || scene.widerNear;
+  const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : trial ? new Float64Array(frames.length).fill(1) : null;
+  if (trial) for (let f = 0; f < lane.length; f++) {
+    const wide = Math.max(0, Math.min(1, 0.5 - Math.log(lane[f]) / Math.log(RANGE)));
+    lane[f] /= (scene.wider ?? 1) * Math.pow(scene.widerNear ?? 1, 1 - wide);
+  }
   const frameAt = createFraming(motion, hitTimes, songEnd, lane);
 
   const applySplit = createSplit(canvas);

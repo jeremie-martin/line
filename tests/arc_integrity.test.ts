@@ -6,6 +6,7 @@ import {catchReceivers, receiverPoints} from '../scripts/v0/optimizer/arc_geomet
 import {disposeEngines as dispose} from '../scripts/lib/native_motion/engine.ts';
 import {getRiderMetered,resetFrameCount,setPhysicsFrameLimit} from '../scripts/lib/detector.ts';
 import type {Spec} from '../scripts/v0/types.ts';
+import {verifyMainConstruction} from '../scripts/gallery/verify_construction.ts';
 const spec:Spec={duration:4,preroll:5,contacts:[.6,1.2,1.8,2.4,3,3.6].map(t=>({t,impact:.4})),axes:{air:()=>.5,speed:()=>.5}};
 const options={samples:32,channel:12,radius:24,impactWeight:1,amplitudeWeight:1/3,arrivalWeight:.3,headingWeight:.3};
 
@@ -20,6 +21,7 @@ it('keeps committed controls synchronized with the geometry that follows them',(
   const strong={...spec,contacts:spec.contacts.map(c=>({...c,impact:.9}))};
   const r=compileArcMotion(strong,17,{...options,budget:200000,samples:12,guidance:'clearance',guidanceSamples:24});
   expect(r.impactEvaluation.valid).toBe(true);
+  expect(verifyMainConstruction(r.track,r.rows,{channel:12,radius:24}).mainSupportsVerified).toBe(r.rows.length);
   resetFrameCount();setPhysicsFrameLimit(null);
   try{for(let i=0;i<r.rows.length;i++){
     const group=(l:any)=>Math.floor((l.id-1000)/10000);
@@ -29,7 +31,9 @@ it('keeps committed controls synchronized with the geometry that follows them',(
     const points=receiverPoints(catchReceivers(engine.readCollisionTrace()[0]),row.control);
     const rebuilt=arcRailGroups(motionArc(points,velocity,row.control,1000+i*10000,12,24)).get(i)!;
     const actual=arcRailGroups(r.track.lines.filter(l=>group(l)===i)).get(i)!;
-    expect(actual[0]).toEqual(rebuilt[0]);
+    const offset=rebuilt[0].findIndex(l=>l.id===actual[0][0].id);
+    expect(offset).toBeGreaterThanOrEqual(0);
+    expect(actual[0]).toEqual(rebuilt[0].slice(offset,offset+actual[0].length));
     // Guide pruning keeps only a contiguous, unchanged part of the rebuilt guide.
     const guide=new Map((rebuilt[1]??[]).map(l=>[l.id,l]));
     for(const line of actual[1]??[])expect(guide.get(line.id)).toEqual(line);

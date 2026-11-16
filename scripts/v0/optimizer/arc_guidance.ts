@@ -5,6 +5,23 @@ import type { TrackLine } from '../types.ts';
 import {arcRailGroups} from './arc_rail_groups.ts';
 export {arcRailGroups} from './arc_rail_groups.ts';
 
+/** Ends each touched main curve at the last piece the rider touches; where the rider comes on, the curve stays whole.
+ * "Last" follows the rider: a curve ridden against the order of its pieces loses its first pieces instead. Untouched
+ * supports stay drawn; fragments are separate constructions, and guides have their own pruning below.
+ * `contacts` is the complete replay's all-point contact IDs, indexed from frame zero. */
+export function trimUnusedArcSupports(lines: TrackLine[], contacts: readonly (readonly number[])[], fragmentSections: ReadonlySet<number> = new Set()) {
+  const groups = arcRailGroups(lines.filter(l => !fragmentSections.has(Math.floor((l.id - 1000) / 10000))));
+  const firstTouch = new Map<number, number>(), removed = new Set<number>();
+  contacts.forEach((ids, frame) => {if (frame) for (const id of ids) if (!firstTouch.has(id)) firstTouch.set(id, frame);});
+  for (const [main] of groups.values()) {
+    const used = main.map((l, i) => firstTouch.has(l.id) ? i : -1).filter(i => i >= 0);
+    if (!used.length) continue;
+    const lo = used[0], hi = used.at(-1)!, backward = firstTouch.get(main[hi].id)! < firstTouch.get(main[lo].id)!;
+    main.forEach((l, i) => {if (backward ? i < lo : i > hi) removed.add(l.id);});
+  }
+  return lines.filter(l => !removed.has(l.id));
+}
+
 /** `contacts` is the complete replay's all-point contact IDs, indexed from frame zero. */
 export function trimUnusedArcGuides(lines: TrackLine[], contacts: readonly (readonly number[])[], fragmentSections:ReadonlySet<number>=new Set()) {
   // Disconnected contact fragments have no guide rail to trim.

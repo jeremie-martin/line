@@ -30,7 +30,8 @@
     "check:physics": "node tools/parity/engine_quick.ts",
     "check:smoke": "node tools/measure/smoke.ts",
     "check": "node tools/check.ts",
-    "video": "node scripts/video.ts"
+    "video": "node scripts/video.ts",
+    "videos": "node scripts/videos.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

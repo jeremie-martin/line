@@ -1,0 +1,309 @@
+{
+ "decisions": [
+  {
+   "id": "overall-zoom",
+   "title": "The overall zoom",
+   "short": "Overall zoom",
+   "question": "Should every video show a little more around the rider than today? Your proposal: 7.5% more at the closest moments of a zoom lane, 5% more at the widest.",
+   "today": "production stays at today's zoom; the showcase and then-and-now films use the proposal.",
+   "mine": "adopt 7.5% / 5%. You proposed it after watching the Tiki films and loved the films made with it; it is one line in the renderer, and every later video follows.",
+   "look": [
+    {
+     "label": "Zoom page with the two sliders (set to 7.5 and 5)",
+     "href": "../zoom.html#song=tiki_tiki_48s&near=7.5&far=5"
+    },
+    {
+     "label": "Tiki, dark themes: today and 10% wider",
+     "href": "/motion-gallery/video-compare.html?collection=/generated/watch/tiki-wider.json"
+    }
+   ],
+   "options": [
+    {
+     "id": "today",
+     "label": "Keep today's zoom",
+     "about": "Nothing changes; the trial is removed."
+    },
+    {
+     "id": "7.5-5",
+     "label": "7.5% closest, 5% widest",
+     "about": "Your proposal becomes production."
+    },
+    {
+     "id": "other",
+     "label": "Other amounts",
+     "about": "Write the two amounts in the note."
+    },
+    {
+     "id": "later",
+     "label": "Not now",
+     "about": "The trial stays as an option."
+    }
+   ]
+  },
+  {
+   "id": "lanes",
+   "title": "Zoom lanes on songs you have not marked",
+   "short": "Unmarked zoom lanes",
+   "question": "A video draws one of its song's zoom lanes. You have marked the lanes of 7 songs out of 31 (second set). What should the other songs do?",
+   "today": "any lane of a song can be drawn, marked or not; lanes you cut are still in the files.",
+   "mine": "production draws only lanes you marked Love or Keep, a song without any plays steady, and lanes marked Cut are deleted. Nothing unjudged reaches a video, and each song you mark later gains its zoom at once.",
+   "look": [
+    {
+     "label": "Zoom page (marks)",
+     "href": "../zoom.html"
+    },
+    {
+     "label": "Songs board",
+     "href": "./songs.html"
+    }
+   ],
+   "options": [
+    {
+     "id": "marked-only",
+     "label": "Only lanes I marked",
+     "about": "Unmarked songs play steady until marked."
+    },
+    {
+     "id": "accept",
+     "label": "Accept the set as written",
+     "about": "Every lane may be drawn, except those marked Cut."
+    },
+    {
+     "id": "will-mark",
+     "label": "I will mark them all first",
+     "about": "Batches wait for the marks."
+    }
+   ]
+  },
+  {
+   "id": "trim",
+   "title": "Trimming unused track",
+   "short": "Trimming",
+   "question": "The compiler ends each curve at the rider's last touch (\"End only\"). Should it trim more: also before the first touch, or keep a piece or two past the touches?",
+   "today": "End only.",
+   "mine": "stay with End only. The start of a curve is what announces where the rider will land; you chose End only after comparing, and said you were not sure about more.",
+   "look": [
+    {
+     "label": "Trim page: seven songs, the same ride in every version",
+     "href": "../trim-video.html"
+    }
+   ],
+   "options": [
+    {
+     "id": "end",
+     "label": "End only",
+     "about": "As today. Closed."
+    },
+    {
+     "id": "one",
+     "label": "One kept",
+     "about": "One piece past the first and the last touch."
+    },
+    {
+     "id": "startone",
+     "label": "One before",
+     "about": "One piece before the first touch, stop at the last."
+    },
+    {
+     "id": "exact",
+     "label": "Touch to touch",
+     "about": "Nothing but what the rider touches."
+    },
+    {
+     "id": "other",
+     "label": "Another version",
+     "about": "Name it in the note."
+    }
+   ]
+  },
+  {
+   "id": "bookends",
+   "title": "Opening and ending, faster",
+   "short": "Opening and ending",
+   "question": "Should the zoom in at the start be a tenth faster and the zoom out at the end a fifth faster?",
+   "today": "today's timing.",
+   "look": [
+    {
+     "label": "Four rides, before and faster at the same moment",
+     "href": "/motion-gallery/video-compare.html?collection=/generated/watch/bookends.json"
+    }
+   ],
+   "options": [
+    {
+     "id": "before",
+     "label": "Keep today's timing"
+    },
+    {
+     "id": "faster",
+     "label": "Faster",
+     "about": "Both the opening and the ending."
+    },
+    {
+     "id": "split",
+     "label": "Only one of the two",
+     "about": "Say which in the note."
+    }
+   ]
+  },
+  {
+   "id": "showcase-order",
+   "title": "The Tiki showcase: which opening",
+   "short": "Showcase opening",
+   "question": "Both end with Paper Print. A opens on Hokusai and goes to Dune; B opens on Dune, then Hokusai with Rothko right after it, as you wondered.",
+   "today": "A is the one inside the then-and-now film.",
+   "versions": [
+    {
+     "label": "A · Hokusai, Dune, then the drop",
+     "src": "/generated/videos/showcase/tiki-a.mp4"
+    },
+    {
+     "label": "B · Dune, Hokusai, Rothko at the drop",
+     "src": "/generated/videos/showcase/tiki-b.mp4"
+    },
+    {
+     "label": "Then and now",
+     "src": "/generated/videos/then-and-now/tiki-then-now.mp4",
+     "wide": true
+    }
+   ],
+   "options": [
+    {
+     "id": "a",
+     "label": "A"
+    },
+    {
+     "id": "b",
+     "label": "B",
+     "about": "The then-and-now film is remade with it."
+    },
+    {
+     "id": "either",
+     "label": "Either is fine"
+    }
+   ]
+  },
+  {
+   "id": "master",
+   "title": "Merge into master",
+   "short": "Merge into master",
+   "question": "The branch master is from May; everything since lives on visual-lab. When you call the project closed, should visual-lab become master?",
+   "today": "nothing is pushed to master.",
+   "mine": "yes, once the decisions above are applied: one branch to come back to, and the compiler agent branches from it.",
+   "options": [
+    {
+     "id": "yes",
+     "label": "Yes, after these decisions",
+     "about": "I merge and push when the board is applied."
+    },
+    {
+     "id": "later",
+     "label": "Not yet"
+    },
+    {
+     "id": "no",
+     "label": "Keep working on visual-lab"
+    }
+   ]
+  },
+  {
+   "id": "lab-rounds",
+   "title": "The lab's old round pages",
+   "short": "Lab round pages",
+   "question": "The visual lab holds about fifty judging rounds (pages, candidates, films, agent notes): around 150 tracked files that still load. Your answers to them are in the ledger and in memory.",
+   "today": "they stay in the tree.",
+   "mine": "tag the commit and remove them from the tree, keeping the pages in use (the lab itself, hit movement, zoom, trim, rate, collection, showcase, these boards). The tree gets much lighter and nothing is lost: the tag brings any round back.",
+   "look": [
+    {
+     "label": "The lab",
+     "href": "../index.html"
+    }
+   ],
+   "options": [
+    {
+     "id": "tag-remove",
+     "label": "Tag, then remove",
+     "about": "Recoverable from the tag."
+    },
+    {
+     "id": "keep",
+     "label": "Keep them in the tree"
+    }
+   ]
+  },
+  {
+   "id": "branches",
+   "title": "Old branches and worktrees",
+   "short": "Branches and worktrees",
+   "question": "25 local branches besides visual-lab, most of them backups and experiments from before November 15, plus agent worktrees and 1.6 GB of comparison worktrees. May I delete them?",
+   "today": "nothing is deleted.",
+   "mine": "delete the 10 whose work is already in visual-lab and all worktrees; push the 15 others to the server under archive/ first, then delete them locally. Nothing is lost and the list becomes readable.",
+   "details": {
+    "title": "The branches",
+    "items": [
+     "Already in visual-lab: exp/compact-sources, codex/music-library-specs, codex/circus-voice-spec, codex/dashboard-cleanup, backup/circus-before-close-20261101, rework/foundations, four worktree-agent branches",
+     "Experiments with their own commits: exp/trim-dashboard (5, the trim page's other versions), exp/trim-support-ends (3), exp/believer-on-compiler (2), exp/imagined-proposals (1), exp/staged-probes (2), exp/network-57 (2, already on the server), one worktree-agent branch (1)",
+     "Backups with their own commits: backup/visual-lab-before-rebase-20261107b (22), backup/postprocessing-study-before-rebase-20261107 (32), backup/music-library-before-push-20261101 (14), backup/music-library-before-foundations-20261101 (12), backup/circus-original-15d54b9b (9)",
+     "Others with their own commits: specs/circus-voice-and-new-songs (7), codex/dashboard-before-rebase-3cc19cdb (7), codex/dashboard-before-v7-20261101 (7)"
+    ]
+   },
+   "options": [
+    {
+     "id": "archive-delete",
+     "label": "Archive on the server, delete locally",
+     "about": "As described above."
+    },
+    {
+     "id": "delete-merged",
+     "label": "Only delete what is already merged",
+     "about": "The 15 others stay local."
+    },
+    {
+     "id": "keep",
+     "label": "Leave everything"
+    }
+   ]
+  },
+  {
+   "id": "studies",
+   "title": "Unanswered studies",
+   "short": "Unanswered studies",
+   "question": "Two blind studies wait for you: impact visibility (55 pairs, about 20 minutes) and night pairs by contact (22 pairs). They would validate measures the compiler agent could then use.",
+   "today": "they stay open in the to-do list.",
+   "look": [
+    {
+     "label": "Impact visibility",
+     "href": "/motion-review/?study=impact-visibility-2026-11"
+    },
+    {
+     "label": "Night pairs",
+     "href": "/motion-review/?study=night-pairs-2026-10-05-contact"
+    }
+   ],
+   "options": [
+    {
+     "id": "will-do",
+     "label": "I will answer them"
+    },
+    {
+     "id": "drop",
+     "label": "Drop them",
+     "about": "Removed from the to-do list; the files stay."
+    },
+    {
+     "id": "park",
+     "label": "Park until the compiler needs them"
+    }
+   ]
+  }
+ ],
+ "judged": {
+  "petrunko_selection": "\"The long build\", your mark 11/10",
+  "trouble_50s": "\"contrast-clusters-revisited\", your mark 10/10",
+  "amor_na_praia_46s": "\"Kick and answer\", your mark 9.5/10",
+  "bones_selection": "\"draft-revisited\", your mark 9/10",
+  "valhalla_40s": "\"words3-revisited\", your mark 9/10",
+  "circus_minimus_77s": "\"voice-full\", the hook you approved, extended to the end",
+  "believer_78s": "\"stomp-voice\", written after your notes",
+  "tiki_tiki_48s": "the original spec, which you asked to keep"
+ }
+}

@@ -74,6 +74,7 @@ Chromium installation instead of Playwright's default browser.
 | `node tools/measure/motion_check.ts --library=DIR --previous=DIR` | motion check of a review library (bursts, reported windows, calm openings) |
 | `npm run video -- --song=petrunko_selection --seed=404 --look=hokusai` | compile a fresh ride and make its video |
 | `npm run video -- --study=DIR --look=plain --from=20 --to=35` | make a video of a saved production, whole or a span (`--id=CELL` for a study with several rides) |
+| `npm run videos -- --songs=all --seeds=4 --out=generated/videos/NAME` | a batch: every song at every seed, each a fresh compile with its look and zoom lane chosen; continues where it stopped, and reports what failed |
 | `npm run labels:analyze` | compare measures with the owner's blind labels |
 | `tools/music/*` | music → spec authoring: stems, drum transcription, events, sheets, coverage ([docs/music-authoring.md](docs/music-authoring.md)) |
 

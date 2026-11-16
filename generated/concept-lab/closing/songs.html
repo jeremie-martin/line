@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing: songs</title>
+<link rel="stylesheet" href="./closing.css">
+<main>
+<header><h1>Closing: songs</h1><nav><a href="./decisions.html">Decisions</a><a class="here" href="./songs.html">Songs</a></nav>
+<p>One fresh video of every song, as production makes it today. Say for each song whether it goes into the batches. Keys: <kbd>1</kbd> in, <kbd>2</kbd> in after its spec is reworked, <kbd>3</kbd> out for now, <kbd>↑</kbd> <kbd>↓</kbd> previous and next song, <kbd>N</kbd> next song without a mark, <kbd>Space</kbd> play. Marks and notes are saved at once.</p></header>
+<div class="bar"><progress id="progress" value="0" max="1"></progress><span id="count"></span><span class="gap"></span><button class="pill" id="next">Next song without a mark</button></div>
+<div class="layout songs"><div class="index" id="index"></div>
+<div class="stage"><video id="video" controls playsinline preload="metadata"></video>
+<div><h2 id="title"></h2><div class="facts" id="facts"></div><div class="marks" id="marks"></div>
+<textarea id="note" placeholder="A note on this song (saved when you leave the field)"></textarea><div class="saved" id="status"></div>
+<div class="look" id="links"></div></div></div></div>
+</main>
+<script type="module" src="./songs.mjs"></script>

@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'answers', name: 'A step at each answer',
-    about: 'Follows the drums arriving. Close on the gentle figure and the voice; each isolated drum answer opens the picture a step; it keeps opening through the run-up, and the return opens it fully for the groove.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 9.63, wide: 0.3}, {t: 10.13, wide: 0.45}, {t: 14.2, wide: 0.45}, {t: 14.7, wide: 0.6}, {t: 17.0, wide: 0.6},
-      {t: 19.4, wide: 0.8}, {t: 19.9, wide: 0.9}]},
-  {id: 'held', name: 'Held before the return',
-    about: 'Follows tension. From the first drum answer the picture slowly closes in under the voice, closest on the run-up; the return opens it at once, so the groove arrives in the widest picture.',
-    keyframes: [{t: 0, wide: 0.45}, {t: 9.88, wide: 0.45}, {t: 17.2, wide: 0.25}, {t: 19.4, wide: 0.25}, {t: 19.9, wide: 1}, {t: 24.0, wide: 0.9}]},
+  {id: 'runup', name: "Opens through the run up",
+    about: "Close while the figure and the voice are alone, a little wider for the isolated answers; the run up carries the picture out, so the return arrives wide, and the last phrases open it a touch more.",
+    keyframes: [{t: 0, wide: 0.25}, {t: 9.88, wide: 0.25}, {t: 17.21, wide: 0.35}, {t: 19.64, wide: 0.9}, {t: 38.4, wide: 0.9}, {t: 39.78, wide: 1}, {t: 56, wide: 1}]},
+  {id: 'long', name: "One long opening",
+    about: "No sudden change: the picture opens slowly from the first voice to the last phrases, following the song filling up.",
+    keyframes: [{t: 0, wide: 0.2}, {t: 4.99, wide: 0.2}, {t: 19.64, wide: 0.6}, {t: 39.78, wide: 0.85}, {t: 52, wide: 0.95}]},
 ];
 export default zooms;

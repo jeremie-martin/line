@@ -10,13 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'close', name: 'Comes in for the silence',
-    about: 'Follows the silence as a quiet moment. The percussion and the body are wide, with the vocal pickup between them a little closer; the near silence brings the picture close; the drums open it halfway, and the bass opens it fully.',
-    keyframes: [{t: 0, wide: 0.7}, {t: 5.4, wide: 0.7}, {t: 6.6, wide: 0.5}, {t: 7.52, wide: 0.5}, {t: 8.02, wide: 0.85}, {t: 20.3, wide: 0.85},
-      {t: 22.5, wide: 0.3}, {t: 29.4, wide: 0.3}, {t: 29.9, wide: 0.6}, {t: 36.67, wide: 0.6}, {t: 37.17, wide: 0.95}]},
-  {id: 'space', name: 'Wide in the silence',
-    about: 'Follows the silence as space: the long flight. The picture holds in the middle through the opening; it opens slowly into the silence and is widest there; the drums come back close, and the bass opens it again.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 20.3, wide: 0.6}, {t: 24.0, wide: 0.95}, {t: 29.4, wide: 0.95}, {t: 29.9, wide: 0.45}, {t: 36.67, wide: 0.45},
-      {t: 37.17, wide: 0.85}]},
+  {id: 'bass', name: "Wide where the bass is",
+    about: "The voice pickup carries the picture out to the bass body. In the quiet it settles at the steady distance, neither near nor far; the drum return opens it slowly, arriving wide when the bass comes back.",
+    keyframes: [{t: 0, wide: 0.5}, {t: 5.56, wide: 0.5}, {t: 7.77, wide: 0.85}, {t: 20.55, wide: 0.85}, {t: 24, wide: 0.5}, {t: 29.65, wide: 0.5}, {t: 36.92, wide: 0.9}, {t: 49, wide: 0.9}]},
+  {id: 'shape', name: "One slow shape",
+    about: "Opens slowly through the first half, eases back a little for the quiet, and takes one step over the last two seconds before the bass returns.",
+    keyframes: [{t: 0, wide: 0.35}, {t: 20, wide: 0.8}, {t: 20.5, wide: 0.8}, {t: 23, wide: 0.6}, {t: 35, wide: 0.6}, {t: 36.92, wide: 0.95}, {t: 49, wide: 0.95}]},
 ];
 export default zooms;

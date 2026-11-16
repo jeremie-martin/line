@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. The groove tail sits in the middle; the voice in space comes a little closer; as it builds the picture closes in, closest on the rapid pickup, and the full return opens it at once to the widest.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 6.9, wide: 0.6}, {t: 8.4, wide: 0.45}, {t: 15.6, wide: 0.45}, {t: 22.0, wide: 0.25}, {t: 23.67, wide: 0.25},
-      {t: 24.17, wide: 0.95}]},
-  {id: 'answers', name: 'A step at each answer',
-    about: 'Follows the drums\' short three-stroke answers. Close for the voice; the return opens the picture halfway, and each answer pushes it a step wider, widest at the last.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 6.9, wide: 0.6}, {t: 8.4, wide: 0.4}, {t: 23.67, wide: 0.4}, {t: 24.17, wide: 0.6}, {t: 27.45, wide: 0.6},
-      {t: 28.15, wide: 0.7}, {t: 35.72, wide: 0.7}, {t: 36.42, wide: 0.8}, {t: 43.99, wide: 0.8}, {t: 44.69, wide: 0.9}, {t: 52.27, wide: 0.9},
-      {t: 52.97, wide: 1}]},
+  {id: 'pickup', name: "Opens through the pickup",
+    about: "Wide on the groove tail, in when the voice is left in space; a little wider as the voice builds, and the rapid pickup carries the picture out to the full return.",
+    keyframes: [{t: 0, wide: 0.75}, {t: 5.5, wide: 0.75}, {t: 8.5, wide: 0.3}, {t: 15.6, wide: 0.3}, {t: 20, wide: 0.4}, {t: 23.92, wide: 0.95}, {t: 54, wide: 0.95}]},
+  {id: 'waves', name: "One long opening, two waves",
+    about: "Comes in for the voice, then opens slowly all the way to the return, with one more step over the bar before the second wave.",
+    keyframes: [{t: 0, wide: 0.6}, {t: 6, wide: 0.6}, {t: 9, wide: 0.35}, {t: 23.92, wide: 0.8}, {t: 39, wide: 0.8}, {t: 40.47, wide: 1}, {t: 54, wide: 1}]},
 ];
 export default zooms;

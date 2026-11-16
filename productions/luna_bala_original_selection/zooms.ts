@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'returns', name: 'Two returns',
-    about: 'Follows the form. Close on the vocal pickup; the drums open the picture at once; the voice break comes back in, and the final return opens it wider than the first.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 5.33, wide: 0.3}, {t: 5.83, wide: 0.8}, {t: 34.9, wide: 0.8}, {t: 36.4, wide: 0.35}, {t: 42.1, wide: 0.35},
-      {t: 42.6, wide: 1}]},
-  {id: 'calls', name: 'Closer at each call',
-    about: 'Follows the break\'s three calls. The drums open the picture halfway and the bass answers a step more; in the break each call brings it a step closer, so the final return opens from the closest picture to the widest.',
-    keyframes: [{t: 0, wide: 0.4}, {t: 5.33, wide: 0.4}, {t: 5.83, wide: 0.65}, {t: 19.2, wide: 0.65}, {t: 19.9, wide: 0.8}, {t: 34.9, wide: 0.8},
-      {t: 35.4, wide: 0.6}, {t: 36.77, wide: 0.6}, {t: 37.27, wide: 0.45}, {t: 38.61, wide: 0.45}, {t: 39.11, wide: 0.3}, {t: 42.1, wide: 0.3},
-      {t: 42.6, wide: 1}]},
+  {id: 'returns', name: "Two returns",
+    about: "Opens over the last bar of the voice pickup into the drums; comes in for the voice break, and the near-silence before the final return lets it out again.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 4, wide: 0.3}, {t: 5.58, wide: 0.8}, {t: 35.1, wide: 0.8}, {t: 38, wide: 0.4}, {t: 40.8, wide: 0.4}, {t: 42.35, wide: 0.95}, {t: 55, wide: 0.95}]},
+  {id: 'bass', name: "A step for each layer",
+    about: "A step into the drums, another over the bar before the syncopated bass; in for the voice break, out for the return and slowly wider to the end.",
+    keyframes: [{t: 0, wide: 0.35}, {t: 4.5, wide: 0.35}, {t: 5.58, wide: 0.6}, {t: 18, wide: 0.6}, {t: 19.42, wide: 0.8}, {t: 35.1, wide: 0.8}, {t: 39, wide: 0.5}, {t: 41, wide: 0.5}, {t: 42.35, wide: 0.9}, {t: 54, wide: 1}, {t: 55, wide: 1}]},
 ];
 export default zooms;

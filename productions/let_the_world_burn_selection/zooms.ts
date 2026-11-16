@@ -9,13 +9,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'drums', name: 'Drums wide, voice close',
-    about: 'Follows who is there. Close on the pickup; the chorus opens the picture at once and it holds wide while the drums play; when they fall away it comes back in to the voice alone, a little closer for the last words.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 4.23, wide: 0.3}, {t: 4.73, wide: 0.85}, {t: 44.3, wide: 0.85}, {t: 46.0, wide: 0.4}, {t: 53.99, wide: 0.4},
-      {t: 55.5, wide: 0.3}]},
-  {id: 'rise', name: 'Rises with the voice',
-    about: 'Follows the voice through the chorus. The chorus opens the picture halfway; it opens a step when the voice holds its long note, another when it climbs, and closes in slowly as the drums fall away.',
-    keyframes: [{t: 0, wide: 0.35}, {t: 4.23, wide: 0.35}, {t: 4.73, wide: 0.6}, {t: 24.2, wide: 0.6}, {t: 25.4, wide: 0.75}, {t: 33.9, wide: 0.75},
-      {t: 35.1, wide: 0.9}, {t: 44.3, wide: 0.9}, {t: 47.0, wide: 0.45}]},
+  {id: 'close', name: "Out for the chorus, then in with the voice",
+    about: "The vocal rise carries the picture out to the last chorus. From the held vocal it closes slowly, all the way, until the voice is alone.",
+    keyframes: [{t: 0, wide: 0.4}, {t: 3.2, wide: 0.4}, {t: 4.48, wide: 0.9}, {t: 24, wide: 0.9}, {t: 34.15, wide: 0.7}, {t: 44.94, wide: 0.45}, {t: 54, wide: 0.2}, {t: 56, wide: 0.2}]},
+  {id: 'voice', name: "Follows the voice",
+    about: "Out for the chorus; in for the held vocal, a little out again when the voice goes up, and in close when it is alone.",
+    keyframes: [{t: 0, wide: 0.5}, {t: 3.2, wide: 0.5}, {t: 4.48, wide: 0.8}, {t: 22, wide: 0.95}, {t: 22.5, wide: 0.95}, {t: 24.46, wide: 0.6}, {t: 33, wide: 0.6}, {t: 34.15, wide: 0.75}, {t: 43.5, wide: 0.75}, {t: 44.94, wide: 0.35}, {t: 54, wide: 0.35}]},
 ];
 export default zooms;

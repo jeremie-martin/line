@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'words', name: 'Leans in for her words',
-    about: 'Follows the voice between the drums. Close for the sung intro; the drums open the picture; in each rest where she sings alone it comes a little closer and steps back for the drums; it stays close for the held word of the break, and the re-entry opens it wide.',
-    keyframes: [{t: 0, wide: 0.35}, {t: 3.0, wide: 0.35}, {t: 3.5, wide: 0.75}, {t: 9.78, wide: 0.75}, {t: 10.28, wide: 0.55}, {t: 10.6, wide: 0.55},
-      {t: 11.6, wide: 0.75}, {t: 15.1, wide: 0.75}, {t: 15.6, wide: 0.55}, {t: 15.9, wide: 0.55}, {t: 16.9, wide: 0.75}, {t: 23.27, wide: 0.75},
-      {t: 23.77, wide: 0.5}, {t: 25.0, wide: 0.45}, {t: 25.5, wide: 0.85}]},
-  {id: 'break', name: 'Pushes in to the break',
-    about: 'Follows tension. The drums open the picture; through the first groove and the hook it slowly closes in, closest for the held word of the break; the re-entry opens it at once, so the loudest stretch plays in the widest picture.',
-    keyframes: [{t: 0, wide: 0.35}, {t: 3.0, wide: 0.35}, {t: 3.5, wide: 0.8}, {t: 8.0, wide: 0.8}, {t: 24.24, wide: 0.4}, {t: 25.0, wide: 0.35},
-      {t: 25.5, wide: 0.95}]},
+  {id: 'arc', name: "Opens with the groove",
+    about: "Close on her voice, opening as the drums come in, and from there one slow opening, with the one-second break carrying it a step further into the peak.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 2.2, wide: 0.3}, {t: 3.25, wide: 0.5}, {t: 24.3, wide: 0.7}, {t: 25.25, wide: 0.9}, {t: 41, wide: 1}]},
+  {id: 'peak', name: "The break before the peak",
+    about: "Steady through the first groove, leans in over its last bars, and opens across the one-second break so the peak arrives wide.",
+    keyframes: [{t: 0, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 24.3, wide: 0.3}, {t: 25.25, wide: 0.9}, {t: 41, wide: 0.85}]},
 ];
 export default zooms;

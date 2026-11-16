@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. The voice starts a little close; as the phrase quickens the picture closes in, closest just before the return, which opens it at once to the widest.',
-    keyframes: [{t: 0, wide: 0.45}, {t: 5.68, wide: 0.45}, {t: 14.0, wide: 0.25}, {t: 16.04, wide: 0.25}, {t: 16.54, wide: 0.95}]},
-  {id: 'answers', name: 'A step at each answer',
-    about: 'Follows the drums\' short three-stroke answers. Close for the voice; the return opens the picture halfway, and each answer pushes it a step wider, widest at the last.',
-    keyframes: [{t: 0, wide: 0.4}, {t: 16.04, wide: 0.4}, {t: 16.54, wide: 0.6}, {t: 20.83, wide: 0.6}, {t: 21.53, wide: 0.7}, {t: 31.44, wide: 0.7},
-      {t: 32.14, wide: 0.8}, {t: 42.06, wide: 0.8}, {t: 42.76, wide: 0.9}, {t: 52.67, wide: 0.9}, {t: 53.37, wide: 1}]},
+  {id: 'quickening', name: "Opens through the quickening",
+    about: "Close while the voice is in space; the quickening carries the picture out, and the broad return arrives wide.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 11.32, wide: 0.3}, {t: 16.29, wide: 0.85}, {t: 57, wide: 0.85}]},
+  {id: 'long', name: "One long opening",
+    about: "No sudden change: slowly wider from the first phrase to the broad return, and a step more over the bar before the last wave.",
+    keyframes: [{t: 0, wide: 0.25}, {t: 5.68, wide: 0.3}, {t: 16.29, wide: 0.7}, {t: 36, wide: 0.7}, {t: 37.51, wide: 0.9}, {t: 57, wide: 0.9}]},
 ];
 export default zooms;

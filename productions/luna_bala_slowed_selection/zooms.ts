@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'return', name: 'The return opens wider',
-    about: 'Follows the form. As the groove dissolves the picture comes in and stays close for the voice; the return opens it at once, wider than the opening.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 3.0, wide: 0.6}, {t: 5.5, wide: 0.35}, {t: 20.67, wide: 0.35}, {t: 21.17, wide: 0.95}]},
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. The empty space opens the picture; the voice brings it in, and through the pickup it keeps closing, closest just before the return, which opens it at once to the widest.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 3.0, wide: 0.6}, {t: 5.0, wide: 0.85}, {t: 7.1, wide: 0.85}, {t: 11.0, wide: 0.45}, {t: 20.67, wide: 0.25},
-      {t: 21.17, wide: 0.95}]},
+  {id: 'pickup', name: "Opens through the pickup",
+    about: "Wide as the groove dissolves, in for the empty space and the voice; the pickup carries the picture out to the drums.",
+    keyframes: [{t: 0, wide: 0.7}, {t: 2.5, wide: 0.7}, {t: 5, wide: 0.3}, {t: 16.8, wide: 0.3}, {t: 20.92, wide: 0.85}, {t: 53, wide: 0.85}]},
+  {id: 'long', name: "One long opening",
+    about: "In for the empty space, then slowly wider from the first word to the drums, and a small step over the bar before the later phrase.",
+    keyframes: [{t: 0, wide: 0.55}, {t: 3, wide: 0.55}, {t: 6, wide: 0.25}, {t: 7.3, wide: 0.25}, {t: 20.92, wide: 0.7}, {t: 36, wide: 0.7}, {t: 37.27, wide: 0.85}, {t: 53, wide: 0.85}]},
 ];
 export default zooms;

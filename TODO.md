@@ -7,11 +7,11 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 1. **Trimming unused track, further or not.** End only is in the compiler (his choice for now, `REWORK.md`). On
    `/generated/concept-lab/trim-video.html` the stronger versions remain to compare (seven songs, same ride in every
    version); they live on the local branch `exp/trim-dashboard`.
-2. **Zoom lanes of the 28 songs written on 2026-11-15** (`/generated/concept-lab/zoom.html`, every song in the menu).
-   Each zoom takes a mark (love, keep, unsure, cut) and a note there; marks then decide which lanes stay or are
-   rewritten. Known from measuring them: no lane is among the closest during the
-   most intense fifth of its song; several lanes hold one value for the last 30 to 45 s of their song (Amor na Praia
-   selection, Funk Estranho, the three Los Voltaje "held", Luna Bala slowed); "Held breath" recurs in nine songs.
+2. **The second set of zoom lanes** (`/generated/concept-lab/zoom.html`; marks in `zoom-2026-11b`). Written on
+   2026-11-16 for 30 songs from his notes on the first set (Petrunko's three lanes are unchanged): moves sit in the
+   music's own lead-in (the fill, break, swell or pickup read from the recording) and finish as the change lands;
+   mostly smooth shapes with a sharp move only at a real drop; sizes follow the size of the event. His notes are a
+   direction, not rules. His marks decide which stay.
 3. **Opening and ending faster** (`/motion-gallery/video-compare.html?collection=/generated/watch/bookends.json`).
 4. **Readings.** A second round for the songs where nothing reached 10 (Valhalla, Amor na Praia, Bones): same songs
    again, or new songs first? Next from scratch: Believer.

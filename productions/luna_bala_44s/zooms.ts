@@ -10,13 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'drop', name: 'The drop and the toms',
-    about: 'Follows the form. Close on the solo voice; the drop opens the picture at once; the tom break, where the bass and the voice stop, draws it in, and the re-entry opens it again to the widest.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 8.37, wide: 0.3}, {t: 8.86, wide: 0.9}, {t: 23.62, wide: 0.9}, {t: 24.1, wide: 0.55}, {t: 25.8, wide: 0.55},
-      {t: 26.3, wide: 0.95}]},
-  {id: 'fills', name: 'A step at each fill',
-    about: 'Follows the kick triplets. Close on the voice; the drop opens the picture halfway, and each triplet fill, every sixteen kicks, pushes it a step wider through the whole body.',
-    keyframes: [{t: 0, wide: 0.35}, {t: 8.37, wide: 0.35}, {t: 8.86, wide: 0.55}, {t: 12.33, wide: 0.55}, {t: 12.93, wide: 0.65}, {t: 21.05, wide: 0.65},
-      {t: 21.65, wide: 0.75}, {t: 29.77, wide: 0.75}, {t: 30.37, wide: 0.85}, {t: 38.49, wide: 0.85}, {t: 39.09, wide: 0.95}]},
+  {id: 'drop', name: "Opens into the drop",
+    about: "Close on the voice intro; the last two seconds before the drop open the picture, so the body arrives wide. A little nearer for the breakdown.",
+    keyframes: [{t: 0, wide: 0.25}, {t: 6.8, wide: 0.25}, {t: 8.58, wide: 0.9}, {t: 34, wide: 0.9}, {t: 35.5, wide: 0.75}, {t: 41, wide: 0.75}]},
+  {id: 'slow', name: "Slowly wider",
+    about: "A smaller step into the drop, then one slow opening through the body to the climax; it eases back through the breakdown.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 7.5, wide: 0.35}, {t: 8.58, wide: 0.6}, {t: 24.2, wide: 0.95}, {t: 35.5, wide: 0.95}, {t: 40, wide: 0.7}, {t: 41, wide: 0.7}]},
 ];
 export default zooms;

@@ -10,13 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'call', name: 'Voice close, drums wide',
-    about: 'Follows the call and response. Wide for the groove; close for the voice; the first drum strike in her passage opens the picture a little and the return opens it wide; the shouts bring it in for a moment, and the last return opens it to the widest.',
-    keyframes: [{t: 0, wide: 0.7}, {t: 6.3, wide: 0.7}, {t: 7.5, wide: 0.35}, {t: 14.77, wide: 0.35}, {t: 15.27, wide: 0.5}, {t: 23.06, wide: 0.5},
-      {t: 23.56, wide: 0.85}, {t: 37.78, wide: 0.85}, {t: 38.28, wide: 0.6}, {t: 39.64, wide: 0.6}, {t: 40.14, wide: 0.95}]},
-  {id: 'breath', name: 'One slow breath',
-    about: 'Follows the long shape, with no sudden change. The voice brings the picture in; as the drums come back into her passage it opens slowly to the return; it breathes in at the interruption and opens again for the last return.',
-    keyframes: [{t: 0, wide: 0.65}, {t: 6.3, wide: 0.65}, {t: 8.4, wide: 0.4}, {t: 23.31, wide: 0.85}, {t: 37.1, wide: 0.85}, {t: 38.6, wide: 0.6},
-      {t: 41.5, wide: 0.95}]},
+  {id: 'call', name: "Leans in for the call",
+    about: "Wide on the groove, nearer when the voice comes forward; out over the bar before the return; it leans in for the first half of the vocal call and lets go in the second, so the last return arrives wide.",
+    keyframes: [{t: 0, wide: 0.65}, {t: 6.5, wide: 0.65}, {t: 9.5, wide: 0.45}, {t: 21.71, wide: 0.45}, {t: 23.31, wide: 0.75}, {t: 37.6, wide: 0.75}, {t: 38.86, wide: 0.6}, {t: 39.89, wide: 0.85}, {t: 55, wide: 0.85}]},
+  {id: 'breath', name: "One slow breath",
+    about: "No sudden change: slowly in through the voice, slowly out through the drum answers to the return, and slowly wider to the end.",
+    keyframes: [{t: 0, wide: 0.6}, {t: 17.1, wide: 0.4}, {t: 23.31, wide: 0.7}, {t: 39.89, wide: 0.85}, {t: 55, wide: 0.9}]},
 ];
 export default zooms;

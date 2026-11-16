@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'entries', name: 'Each entry opens',
-    about: 'Follows the stops and the entries. Close for the whispered intro; the burst opens the picture at once; the breath with the voice alone comes back in; the drop opens it wide; the hole draws in a little and the re-drop opens it to the widest.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 4.2, wide: 0.3}, {t: 4.66, wide: 0.8}, {t: 7.76, wide: 0.8}, {t: 8.5, wide: 0.4}, {t: 8.9, wide: 0.4},
-      {t: 9.35, wide: 0.9}, {t: 26.18, wide: 0.9}, {t: 26.6, wide: 0.75}, {t: 26.73, wide: 0.75}, {t: 27.15, wide: 0.95}]},
-  {id: 'tides', name: 'Two long tides',
-    about: 'Follows the long shape, with no sudden change. The picture opens slowly from the intro through the burst; over the even groove it keeps opening; before the hole it breathes back in, and the second groove opens it again to the end.',
-    keyframes: [{t: 0, wide: 0.25}, {t: 3.9, wide: 0.25}, {t: 9.6, wide: 0.6}, {t: 24.0, wide: 0.95}, {t: 26.7, wide: 0.6}, {t: 41.5, wide: 1}]},
+  {id: 'swell', name: "Opens with the groove",
+    about: "Close for the soft intro; the picture opens a little into the burst, draws in for the breath with the voice alone, and opens through that breath so the groove arrives wide. From there it keeps opening slowly to the end.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 3, wide: 0.3}, {t: 4.46, wide: 0.5}, {t: 7.9, wide: 0.5}, {t: 8.4, wide: 0.42}, {t: 9.12, wide: 0.72}, {t: 25, wide: 0.85}, {t: 40, wide: 0.95}]},
+  {id: 'hole', name: "The hole before the second groove",
+    about: "Holds a middle distance through the first groove, leans in over the last bars before the hole, and opens across the hole so the second groove lands wide. One sharp move in the whole song.",
+    keyframes: [{t: 0, wide: 0.35}, {t: 4.46, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 26.29, wide: 0.3}, {t: 26.73, wide: 0.9}, {t: 42, wide: 0.95}]},
 ];
 export default zooms;

@@ -10,13 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'lead', name: 'Follows who leads',
-    about: 'Follows the lead as it passes from voice to bass to drums to the upper figure. Close on the voice; the bass opens the picture halfway; the suspension draws it in; the drums open it to the widest; the upper figure brings it back to the middle, and the decay closes it slowly.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 10.48, wide: 0.3}, {t: 10.98, wide: 0.55}, {t: 18.6, wide: 0.55}, {t: 19.6, wide: 0.4}, {t: 20.23, wide: 0.4},
-      {t: 20.73, wide: 0.95}, {t: 39.45, wide: 0.95}, {t: 41.0, wide: 0.65}, {t: 50.28, wide: 0.65}, {t: 55.0, wide: 0.45}]},
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. From the roll the picture closes in slowly through the bass restart, closest in the suspension; the drums open it at once; after them it closes slowly again as the instruments fall away.',
-    keyframes: [{t: 0, wide: 0.5}, {t: 8.45, wide: 0.5}, {t: 19.6, wide: 0.25}, {t: 20.23, wide: 0.25}, {t: 20.73, wide: 0.95}, {t: 39.7, wide: 0.9},
-      {t: 55.0, wide: 0.45}]},
+  {id: 'arrive', name: "Two arrivals",
+    about: "Close on the voice; the roll carries the picture out to the bass, and the suspension carries it out again to the drums. It comes back in as the song decays.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 8.45, wide: 0.3}, {t: 10.73, wide: 0.6}, {t: 18.8, wide: 0.6}, {t: 20.48, wide: 0.95}, {t: 50.28, wide: 0.95}, {t: 55, wide: 0.6}, {t: 57, wide: 0.6}]},
+  {id: 'suspension', name: "Held in the suspension",
+    about: "Opens gently to the bass, then draws in and holds through the suspension; its last half second lets go, so the drums arrive wide. Slowly wider to the upper figure.",
+    keyframes: [{t: 0, wide: 0.35}, {t: 9, wide: 0.35}, {t: 10.73, wide: 0.5}, {t: 17, wide: 0.5}, {t: 18.8, wide: 0.38}, {t: 19.9, wide: 0.35}, {t: 20.48, wide: 0.9}, {t: 39.7, wide: 1}, {t: 50.28, wide: 1}, {t: 56, wide: 0.7}]},
 ];
 export default zooms;

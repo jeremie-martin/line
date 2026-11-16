@@ -1,13 +1,13 @@
 // Zoom: the whole song plays with a zoom written for it (keyframes on one fixed scale, scripts/video/zoom.js; the song's lanes come with the scene),
 // against the steady zoom (held or beside). Each zoom of a song gets a mark, a note and, if its points were moved, the owner's version; a song gets a
-// note of its own. Every change is saved at once (labels/studies/zoom-2026-11.jsonl; the latest row per song and zoom counts).
+// note of its own. Every change is saved at once (labels/studies/zoom-2026-11b.jsonl; the latest row per song and zoom counts).
 import {createMusic, displayTime} from '/shared/playback.js';
 import * as N from '/generated/renderer/native.js';
 import {createPicture} from '/scripts/video/picture.js';
 import {resolveLook} from '/scripts/video/look.js';
 import {RANGE, wideAt, laneScale, zoomOfWide} from '/scripts/video/zoom.js';
 
-const STUDY = 'zoom-2026-11';
+const STUDY = 'zoom-2026-11b'; // the lanes written on 2026-11-16; zoom-2026-11 holds the marks on the first set
 const $ = id => document.getElementById(id), svg = (tag, attrs = {}, text) => {const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (text !== undefined) e.textContent = text; return e;};
 const q = new URLSearchParams(location.hash.slice(1));
 // the songs are the menu's options (zoom.html); each has a scene in generated/lab-rides/<song>.json (prepare-rides.mjs)

@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'stages', name: 'Two-stage return',
-    about: 'Follows the return in its two stages. Close on the voice; the drums open the picture halfway, the bass opens it fully; the vocal passage comes back in, and the last body opens it to the widest.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 7.38, wide: 0.3}, {t: 7.88, wide: 0.55}, {t: 14.99, wide: 0.55}, {t: 15.49, wide: 0.85}, {t: 29.3, wide: 0.85},
-      {t: 30.5, wide: 0.45}, {t: 36.68, wide: 0.45}, {t: 37.18, wide: 0.95}]},
-  {id: 'pull', name: 'One pull-back, one held breath',
-    about: 'Follows the two builds differently. Close on the voice; from the first drum the picture opens without a pause through the build and is widest as the bass arrives; through the vocal passage it closes in slowly, and the last body opens it at once.',
-    keyframes: [{t: 0, wide: 0.25}, {t: 7.4, wide: 0.25}, {t: 15.49, wide: 0.95}, {t: 29.3, wide: 0.95}, {t: 36.68, wide: 0.4}, {t: 37.18, wide: 0.95}]},
+  {id: 'pull', name: "One pull-back, one held breath",
+    about: "Close on the vocal phrases; the drum build pulls the picture back, arriving wide as the bass does. It comes in for the voice and its answers, and opens over the last bar before the last body.",
+    keyframes: [{t: 0, wide: 0.25}, {t: 7.4, wide: 0.25}, {t: 15.24, wide: 0.95}, {t: 29.55, wide: 0.95}, {t: 35.5, wide: 0.4}, {t: 36, wide: 0.4}, {t: 36.93, wide: 0.95}, {t: 56, wide: 0.95}]},
+  {id: 'build', name: "Follows the build",
+    about: "A smaller pull-back through the drum build, slowly wider through the body; eases in for the voice and steps out before the last body.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 7.63, wide: 0.3}, {t: 15.24, wide: 0.7}, {t: 29, wide: 0.85}, {t: 29.55, wide: 0.85}, {t: 33, wide: 0.6}, {t: 35.5, wide: 0.6}, {t: 36.93, wide: 0.95}, {t: 56, wide: 0.95}]},
 ];
 export default zooms;

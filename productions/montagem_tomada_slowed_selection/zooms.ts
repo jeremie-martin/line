@@ -10,12 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'handover', name: 'Drums wide, voice close',
-    about: 'Follows the handover. Wide for the drums, a step wider when the bass joins the groove; close for the voice alone; the bass swell starts to open the picture and the return completes it at once.',
-    keyframes: [{t: 0, wide: 0.7}, {t: 11.24, wide: 0.7}, {t: 11.74, wide: 0.85}, {t: 20.83, wide: 0.85}, {t: 22.3, wide: 0.35}, {t: 37.29, wide: 0.35},
-      {t: 39.24, wide: 0.6}, {t: 39.74, wide: 0.95}]},
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. The drums sit in the middle; from the voice\'s entry the picture closes in slowly through the whole drumless passage, closest as the bass swells; the swell starts to open it and the return opens it to the widest.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 20.83, wide: 0.6}, {t: 37.0, wide: 0.25}, {t: 37.29, wide: 0.25}, {t: 39.24, wide: 0.55}, {t: 39.74, wide: 0.95}]},
+  {id: 'swell', name: "The swell opens it",
+    about: "A step out into the groove, in for the voice; the build opens the picture a little and the bass swell carries it out to the return.",
+    keyframes: [{t: 0, wide: 0.5}, {t: 10, wide: 0.5}, {t: 11.49, wide: 0.75}, {t: 21, wide: 0.75}, {t: 24, wide: 0.4}, {t: 31.25, wide: 0.4}, {t: 37.29, wide: 0.5}, {t: 39.49, wide: 0.9}, {t: 55, wide: 0.9}]},
+  {id: 'long', name: "In with the voice, out with the build",
+    about: "Wide on the drums, a slow closing in for the voice, then one long opening through the build and the swell to the return.",
+    keyframes: [{t: 0, wide: 0.6}, {t: 21, wide: 0.6}, {t: 25, wide: 0.35}, {t: 31.25, wide: 0.35}, {t: 39.49, wide: 0.85}, {t: 55, wide: 0.85}]},
 ];
 export default zooms;

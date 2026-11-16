@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'bursts', name: 'Opens for the bursts',
-    about: 'Follows the drums against the voice. Close on the exposed voice; the first drum answer opens the picture a little, and each burst opens it at once; between them it comes back in for the voice, and the final burst is the widest.',
-    keyframes: [{t: 0, wide: 0.35}, {t: 12.0, wide: 0.35}, {t: 12.5, wide: 0.45}, {t: 18.76, wide: 0.45}, {t: 19.26, wide: 0.9}, {t: 24.9, wide: 0.9},
-      {t: 26.2, wide: 0.35}, {t: 40.87, wide: 0.35}, {t: 41.37, wide: 0.5}, {t: 47.63, wide: 0.5}, {t: 48.13, wide: 1}, {t: 53.8, wide: 1},
-      {t: 55.5, wide: 0.55}]},
-  {id: 'line', name: 'Closes on the held line',
-    about: 'Follows the voice\'s strongest moment. The first burst opens the picture; after it, the picture closes in slowly onto the held line, the loudest singing; then it opens slowly as the voice goes on, and the final burst opens it fully.',
-    keyframes: [{t: 0, wide: 0.45}, {t: 18.76, wide: 0.45}, {t: 19.26, wide: 0.7}, {t: 24.9, wide: 0.7}, {t: 28.28, wide: 0.28}, {t: 32.5, wide: 0.28},
-      {t: 47.63, wide: 0.6}, {t: 48.13, wide: 1}, {t: 53.8, wide: 1}, {t: 55.5, wide: 0.6}]},
+  {id: 'bursts', name: "Opens for the two bursts",
+    about: "Close on the exposed voice; opens over the bars leading to each burst and comes back to the voice between them.",
+    keyframes: [{t: 0, wide: 0.25}, {t: 11, wide: 0.25}, {t: 12.26, wide: 0.4}, {t: 17.5, wide: 0.4}, {t: 19.01, wide: 0.85}, {t: 25.3, wide: 0.85}, {t: 28.28, wide: 0.5}, {t: 40, wide: 0.45}, {t: 41.12, wide: 0.55}, {t: 46.4, wide: 0.55}, {t: 47.88, wide: 0.95}, {t: 54.8, wide: 0.95}, {t: 57, wide: 0.7}]},
+  {id: 'line', name: "Closes on the held line",
+    about: "Opens slowly with the drums, then comes in for the held line, the closest moment of the song, and opens slowly again as the answers return toward the final burst.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 19, wide: 0.6}, {t: 25.3, wide: 0.75}, {t: 30, wide: 0.35}, {t: 41.12, wide: 0.35}, {t: 47.88, wide: 0.9}, {t: 57, wide: 0.9}]},
 ];
 export default zooms;

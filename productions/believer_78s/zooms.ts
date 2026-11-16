@@ -10,18 +10,12 @@
  * (48.43), where a second percussion layer joins from 61.87.
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
-/** A stop bar starting at s: the picture leans in over the bar and steps back as the next downbeat (s + 1.92) lands. */
-const stop = (s: number, base: number, lean: number) =>
-  [[0, base], [1.0, lean], [1.7, lean], [2.15, base]].map(([dt, wide]) => ({t: +(s + dt).toFixed(2), wide}));
 const zooms: ZoomLane[] = [
-  {id: 'stops', name: 'A breath at every stop',
-    about: 'Follows the stomp\'s stop bars. In every fourth bar, when the toms and the pickup fall silent, the picture comes a little closer, and it steps back as the next downbeat lands alone. The last stop before the chorus runs into the break and stays close; "Pain!" opens the picture, and the chorus keeps the same breath one step wider.',
-    keyframes: [{t: 0, wide: 0.5}, ...stop(6.19, 0.5, 0.33), ...stop(13.87, 0.5, 0.33), ...stop(21.55, 0.5, 0.33), ...stop(29.23, 0.5, 0.33),
-      ...stop(36.91, 0.5, 0.33), {t: 44.59, wide: 0.5}, {t: 45.59, wide: 0.33}, {t: 48.2, wide: 0.33}, {t: 48.65, wide: 0.9},
-      ...stop(52.27, 0.9, 0.72), ...stop(59.95, 0.9, 0.72), ...stop(67.63, 0.9, 0.72)]},
-  {id: 'chorus', name: 'Opens for the chorus',
-    about: 'Follows the form. Close-ish for the verses and their fast words; through the pre-chorus the picture slowly closes in, closest when the drums stop; "Pain!" opens it at once, and it opens once more when the second percussion layer joins the chorus.',
-    keyframes: [{t: 0, wide: 0.4}, {t: 31.15, wide: 0.4}, {t: 46.51, wide: 0.25}, {t: 48.2, wide: 0.25}, {t: 48.65, wide: 0.85}, {t: 61.6, wide: 0.85},
-      {t: 62.4, wide: 1}]},
+  {id: 'chorus', name: "Opens for the chorus",
+    about: "Holds through the verses, leans in slowly through the pre-chorus, and opens across the break where the drums stop, so \"Pain!\" lands in a wide picture. The chorus keeps opening slowly.",
+    keyframes: [{t: 0, wide: 0.4}, {t: 31.15, wide: 0.4}, {t: 44.6, wide: 0.3}, {t: 46.3, wide: 0.3}, {t: 48.3, wide: 0.9}, {t: 70, wide: 1}, {t: 75, wide: 1}]},
+  {id: 'climb', name: "Climbs with the song",
+    about: "A step wider into each new part, each taken in the stop bar that leads to it: the denser verse, the pre-chorus, then the break into the chorus, and once more where the second percussion joins.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 13.9, wide: 0.3}, {t: 15.79, wide: 0.4}, {t: 29.2, wide: 0.4}, {t: 31.15, wide: 0.5}, {t: 46.3, wide: 0.5}, {t: 48.3, wide: 0.85}, {t: 60, wide: 0.85}, {t: 61.87, wide: 1}, {t: 75, wide: 1}]},
 ];
 export default zooms;

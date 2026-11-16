@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'held', name: 'Held breath',
-    about: 'Follows tension. The groove tail sits in the middle; the voice comes a little closer; as the phrase rises the picture closes in, closest on the fast pickup, and the return opens it at once to the widest.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 4.4, wide: 0.6}, {t: 5.9, wide: 0.45}, {t: 13.5, wide: 0.45}, {t: 20.0, wide: 0.25}, {t: 22.04, wide: 0.25},
-      {t: 22.54, wide: 0.95}]},
-  {id: 'answers', name: 'A step at each answer',
-    about: 'Follows the drums\' short three-stroke answers. Close for the voice; the return opens the picture halfway, and each answer pushes it a step wider, widest at the last.',
-    keyframes: [{t: 0, wide: 0.6}, {t: 4.4, wide: 0.6}, {t: 5.9, wide: 0.4}, {t: 22.04, wide: 0.4}, {t: 22.54, wide: 0.6}, {t: 26.03, wide: 0.6},
-      {t: 26.73, wide: 0.7}, {t: 34.79, wide: 0.7}, {t: 35.49, wide: 0.8}, {t: 43.54, wide: 0.8}, {t: 44.24, wide: 0.9}, {t: 52.3, wide: 0.9},
-      {t: 53.0, wide: 1}]},
+  {id: 'pickup', name: "Opens through the pickup",
+    about: "Wide on the groove tail, in when the voice is left alone; a little wider as the phrase rises, and the pickup carries the picture out to the return.",
+    keyframes: [{t: 0, wide: 0.75}, {t: 3.5, wide: 0.75}, {t: 6.5, wide: 0.3}, {t: 13.5, wide: 0.3}, {t: 18.19, wide: 0.4}, {t: 22.29, wide: 0.9}, {t: 55, wide: 0.9}]},
+  {id: 'waves', name: "One long opening",
+    about: "Comes in for the voice, then opens slowly all the way to the return, with one more step over the bar before the wider arcs.",
+    keyframes: [{t: 0, wide: 0.6}, {t: 4, wide: 0.6}, {t: 7, wide: 0.35}, {t: 22.29, wide: 0.75}, {t: 37.8, wide: 0.75}, {t: 39.27, wide: 0.95}, {t: 55, wide: 0.95}]},
 ];
 export default zooms;

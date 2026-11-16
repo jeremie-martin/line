@@ -10,14 +10,11 @@
  */
 import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
-  {id: 'kicks', name: 'A step at each triple',
-    about: 'Follows the heavy kicks. The picture drifts toward the voice through the intro, and after the drop it steps wider at each climbing triple of kicks, then widens as the last kicks begin (they run into the ending, where the picture pulls back anyway).',
-    keyframes: [{t: 0, wide: 0.45}, {t: 14.0, wide: 0.25}, {t: 14.31, wide: 0.25}, {t: 15.11, wide: 0.55}, {t: 28.6, wide: 0.55}, {t: 28.82, wide: 0.55}, {t: 29.22, wide: 0.7}, {t: 34.34, wide: 0.7}, {t: 35.14, wide: 0.85}, {t: 41.5, wide: 0.85}, {t: 42.3, wide: 1}, {t: 43.2, wide: 1}, {t: 44.4, wide: 0.5}, {t: 46.6, wide: 0.55}, {t: 47.6, wide: 0.85}]},
-  {id: 'who', name: 'Voice close, drums wide',
-    about: 'Follows who is playing. Closer for the voice, at the start and in the vocal break; wider for the groove; the break draws in, and the drop opens the picture at once.',
-    keyframes: [{t: 0, wide: 0.3}, {t: 14.11, wide: 0.3}, {t: 15.31, wide: 0.6}, {t: 27.6, wide: 0.6}, {t: 28.2, wide: 0.45}, {t: 28.82, wide: 0.45}, {t: 29.22, wide: 1}, {t: 43.0, wide: 1}, {t: 44.2, wide: 0.45}, {t: 46.55, wide: 0.45}, {t: 47.35, wide: 0.85}]},
-  {id: 'plain', name: 'Section by section',
-    about: 'The lane the spec has carried since the first videos: one gentle move per section, wider for the groove and the drop.',
-    keyframes: [{t: 0, wide: 0.17}, {t: 14.71, wide: 0.52}, {t: 29.02, wide: 0.76}, {t: 43.4, wide: 0.37}, {t: 46.95, wide: 0.59}]},
+  {id: 'drop', name: "Opens across the break",
+    about: "Close on the voice, a step out over the bar before the groove; the break carries the picture out to the drop. In for the vocal break, and out again through its build.",
+    keyframes: [{t: 0, wide: 0.3}, {t: 13.2, wide: 0.3}, {t: 14.71, wide: 0.5}, {t: 27.6, wide: 0.5}, {t: 29.02, wide: 0.95}, {t: 43.4, wide: 0.95}, {t: 45.3, wide: 0.55}, {t: 46.95, wide: 0.85}]},
+  {id: 'long', name: "Slowly wider, then the drop",
+    about: "Opens slowly through the voice and the groove, takes one clear step in the last second of the break, and eases back for the vocal break.",
+    keyframes: [{t: 0, wide: 0.2}, {t: 14.71, wide: 0.4}, {t: 27.6, wide: 0.6}, {t: 28.2, wide: 0.6}, {t: 29.02, wide: 0.9}, {t: 43.4, wide: 0.9}, {t: 47, wide: 0.6}]},
 ];
 export default zooms;

@@ -11,7 +11,7 @@
    "id": "canonical-music_luna_bala_44s-arcs-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "bc2a45665e2944f87df864d46b5603966adb6ab2654a3ee3dc78fe8b598bf2fa",
+   "trackHash": "1378011d6f29eb3b8d0940db5ba64f3c32ea1e659d1c90762c5884977e71e44c",
    "physicalFrames": 2985712,
    "quality": 846.4825,
    "loss": 0.0015767130525049878
@@ -20,7 +20,7 @@
    "id": "canonical-music_luna_bala_44s-fold-paired",
    "seed": 303,
    "panel": "fixed",
-   "trackHash": "7b07fd4a3a75963430ca61ddfdf4193e16f2d24b25da75923fdb0cc7a4d031e6",
+   "trackHash": "99b45c5ab0486cc8966bf130e7fbf25af430618ab57e6adec31ec0e9e89a9b59",
    "physicalFrames": 2994394,
    "quality": 847.2666,
    "loss": 0.0018867166141289088
@@ -29,7 +29,7 @@
    "id": "canonical-music_luna_bala_44s-scattered-paired",
    "seed": 404,
    "panel": "fixed",
-   "trackHash": "706f5891177ea1b27748494dfe4095abca711545482f8c07dcdeba0b79d978c2",
+   "trackHash": "6ceb19ff562f80ec0876fc3d707b124fccacd53189c111a39701dd6b82460399",
    "physicalFrames": 2993450,
    "quality": 849.3874,
    "loss": 0.0014034896885451854
@@ -38,7 +38,7 @@
    "id": "canonical-music_luna_bala_44s-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "6548c434beee2ca36f6d4cdcb990974d750120e0d0db030283b9987d6beffff0",
+   "trackHash": "d1c458dae3eda2f0b388005e6ae782a84892407eef8c1db562abaf1416b7b4c5",
    "physicalFrames": 2971656,
    "quality": 852.4874,
    "loss": 0.0020287073938157728
@@ -47,7 +47,7 @@
    "id": "canonical-music_tiki_tiki_48s-automatic",
    "seed": 202,
    "panel": "automatic",
-   "trackHash": "a9097f2d4bb28fbabc2570338c42876d5d8bad8e34848e8ad0b667e06fb1ee26",
+   "trackHash": "fa733f1f197003060f487bfda8f8814ad1810b5f255d2738da3912bceb6acae7",
    "physicalFrames": 2994705,
    "quality": 776.2576,
    "loss": 0.005092347708482514
@@ -57,7 +57,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "6953ebfd2266e7c6220a11ec0b59efc1fb9c85c7908f4e6c4436bca038bc433a",
+   "trackHash": "2bac12aa143c1003369615fd35c8cbb627a2e1f073ecd28ce7a78ff28c828793",
    "physicalFrames": 149997
   },
   {
@@ -65,7 +65,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "3a1e7c2a77693c8192a024aafcb1b7b2099a13290fff7a44385847d3261257be",
+   "trackHash": "1db90ff3e442d825955cc990826f5132e93e81bdee02b83b879ea15aad03a20b",
    "physicalFrames": 749997
   },
   {
@@ -73,7 +73,7 @@
    "seed": 101,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "f1b5d530a7a0091fd708fb6a43078b390c17e5691df5f010b0c86d37d3c6bdd6",
+   "trackHash": "983289cebe64d4a14c9069f063efbb527a05402bbd0d24a630c9397a157a0214",
    "physicalFrames": 149997
   },
   {
@@ -81,7 +81,7 @@
    "seed": 101,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "e20764649009dc7124432dbe548f4f83b86b8e5a09318d2fd9aba006c000e99d",
+   "trackHash": "e4cde2a20158dfc58efa734b53d9c59870935ea03ba727edb43ebd45105f4985",
    "physicalFrames": 749997
   },
   {
@@ -89,7 +89,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "7ccdbbba4b1f05b7758cc1195f6a601d9cbc1f0b5e58800172f4adb7c7766d83",
+   "trackHash": "a4b42f30bd6c2ea3af8f755cfa90dea8c92e134c646a64fd215dd2aa20598392",
    "physicalFrames": 148748
   },
   {
@@ -97,7 +97,7 @@
    "seed": 101,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "5d2fd7d376ccf70bff9fa8e93f014374e709130301e7efa861d5208c08c7d860",
+   "trackHash": "772ea4ee6018b52ba6c4f1fcd3d420346f10451aa98cf36b4d1302be22716f49",
    "physicalFrames": 748463
   },
   {
@@ -109,7 +109,7 @@
     "variant": "bench-long"
    },
    "budget": 150000,
-   "trackHash": "5838ed11b4a8186b2673621a23b248b8b8c173a9a6e629680692751bd4acabcc",
+   "trackHash": "feecfdc5ea23ca33c94cf0ccb51fed57b39c63e8ec2a95036084d7ee2baaf85c",
    "physicalFrames": 149544
   },
   {
@@ -121,7 +121,7 @@
     "variant": "bench-pairs"
    },
    "budget": 150000,
-   "trackHash": "9ce8e773ce31990927f3c893e89d58c15359965e523b2c166612cc49fa2b7023",
+   "trackHash": "8e4db1c33e20e078055726fe7ef63576596b5c15a753bfee672b672129b96094",
    "physicalFrames": 149311
   },
   {
@@ -132,7 +132,7 @@
     "song": "tiki_tiki_48s",
     "variant": "bench-pairs"
    },
-   "trackHash": "4bd2b7aa697f049f154ce4b90954d78c949dc2c337b9318965c1b9bcb7a5c9de",
+   "trackHash": "dbab98c27b734541afd2ad55fe787b17387f2abca0a161e1a452be8dcd1d35c7",
    "physicalFrames": 3296545,
    "quality": 848.4335,
    "loss": 0.0023405329394844917
@@ -145,7 +145,7 @@
     "song": "luna_bala_44s",
     "variant": "v7-rideout"
    },
-   "trackHash": "bfd9a2267522601dddc2d24a9ff7a5c78be83dfbebd248c267baa206401d2000",
+   "trackHash": "ecccfc898315d0b7477708f384b7eb6ade05d90bd883c1ed1768ffa078577e85",
    "physicalFrames": 3008273,
    "quality": 876.4841,
    "loss": 0.0014745658570351698
@@ -158,7 +158,7 @@
     "song": "amor_na_praia_46s",
     "variant": "v7-explicit-handover"
    },
-   "trackHash": "66e5707fe83ac1ad66c98d73bbbf0b0dc97c38df17186829b76d76a5087531e4",
+   "trackHash": "747c6f33ab5d6d318799d58ceb1697ebce8d0becd106e7d78ae8785f2a7b58e7",
    "physicalFrames": 3163697,
    "quality": 816.4008,
    "loss": 0.003876199229952269
@@ -167,7 +167,7 @@
    "id": "canonical-bridge_frontier_low_air_endurance-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "c75682444f52fc897705004f707864cd89b01c949f540f5d8566c99c6838b16f",
+   "trackHash": "953b8c687bfb0427067616d9ab9e8fd3afbc6374515a179df42af4d61627f3ed",
    "physicalFrames": 2930909,
    "quality": 795.1435,
    "loss": 0.0041463814745223235
@@ -176,7 +176,7 @@
    "id": "canonical-bridge_frontier_dense_recovery-automatic",
    "seed": 101,
    "panel": "automatic",
-   "trackHash": "3a0aa4de4918d42610a48bb7dae3d9073125fb88ea5b5ab96d0cc06e115c00b4",
+   "trackHash": "e74b56e921378e82c5e20594a01286678bf1d917ae87f8c8d9338b87e41a23b4",
    "physicalFrames": 2999997,
    "quality": 808.5878,
    "loss": 0.003056761857385929
@@ -186,7 +186,7 @@
    "seed": 202,
    "panel": "fixed",
    "budget": 750000,
-   "trackHash": "a0fa5612f1b01edd22676de32965c9e2b4b874161f17886ff66d9f89fde2dcd9",
+   "trackHash": "6440a256e1d38f4e8351a4979018d001f0bcc03b050df71db2c0370bb2f4094d",
    "physicalFrames": 749997
   },
   {
@@ -194,7 +194,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 150000,
-   "trackHash": "78a3c1d8acdd49ad9a77c6ad27b8bfdbea7629fe76d1c8a2ab1ffb386c8ed53a",
+   "trackHash": "cc48fe1a6613b22763e89804496b8a3f7606b92b64f97b43c5c896884a132b2a",
    "physicalFrames": 149997
   },
   {
@@ -202,7 +202,7 @@
    "seed": 202,
    "panel": "automatic",
    "budget": 750000,
-   "trackHash": "be5bbc41a4247a3264fe5948c69dcf73b1b0d37524d5f1c249a7d44721fa8732",
+   "trackHash": "bcec7d3651e099e6c664d77e6363699493f841d720f42ffb6977ca7094f4a890",
    "physicalFrames": 748756
   },
   {
@@ -210,7 +210,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "1f562503c8fb74a6600c66fba99249ec7c72cc819df7f430bbabb3a2609c4408",
+   "trackHash": "4f4320682469d9ae34ddee164de5743af3187a812eb26dbf4b4011e4a63831c0",
    "physicalFrames": 149997
   },
   {
@@ -218,7 +218,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "154b9fa12a037d01678fd8d1c99ea8a1d056119cdd7ecf7a0ed95636238daba2",
+   "trackHash": "2d7a3effbfae0d29a9d99e5dd261586cdf44340ee2a31bdb3dd7e5fb1d6f4e5f",
    "physicalFrames": 149997
   },
   {
@@ -226,7 +226,7 @@
    "seed": 404,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "f9222e8e32fa3f0ed73be6c414f88229f6bb99b0b86d7d4a8635f5c064fa7f61",
+   "trackHash": "fedb24bef005b21f41d020338f6aba1778bbfc244bfea2a21fb7f3db5f27047a",
    "physicalFrames": 149997
   },
   {
@@ -234,7 +234,7 @@
    "seed": 303,
    "panel": "fixed",
    "budget": 150000,
-   "trackHash": "af1b34f84e83930063fc5a19e79d56c68a5d56f02f257b5f5c867718ae2fe98e",
+   "trackHash": "8e7f67f9d7af5226b81c2e03b7e8a5d3365c4ada8ef58ac59a5e18245a594517",
    "physicalFrames": 149997
   }
  ]

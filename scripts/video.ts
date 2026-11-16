@@ -24,8 +24,8 @@ Input:  --song=ID [--seed=N --budget=N] (compiles first), --study=DIR [--id=CELL
 Look:   chosen for the ride (scripts/video/choose.js); --look=${Object.keys(THEMES).join('|')}|plain names one (plain for tracks)
         --set=key:value,… changes single options of the look (scripts/video/look.js)
 Zoom:   one of the song's lanes (productions/<song>/zooms.ts), chosen for the ride; --zoom=ID names one, --zoom=steady none;
-        --wider=1.1 is a trial of the overall zoom: the whole picture shows a tenth more;
-        --wider-near=1.1 the same for the closest zoom only, the widest unchanged
+        --wider-near=1.075 --wider-far=1.05 is a trial of the overall zoom: the picture shows 7.5 % more at the closest
+        zoom and 5 % more at the widest, in proportion between
 Extent: --from=S --to=S in song seconds (the whole ride by default); --width=N pixels (1080; the video is 9:16)
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
 } else {
@@ -76,10 +76,10 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
   // the look: as named, or chosen from what the video is of (the same ride always gets the same look)
   const chosen = request.look ? null : chooseLook(key, {hasDrop: !!scene.drop});
   const look = request.look ?? resolveLook(null, {...chosen!.look, ...request.overrides}), theme = chosen?.theme ?? request.lookName, partner = chosen?.partner ?? null;
-  for (const key of ['wider', 'widerNear'] as const) if (request[key] !== undefined) {if (!(request[key]! >= 0.5 && request[key]! <= 2)) throw new Error(`--${key === 'wider' ? 'wider' : 'wider-near'} takes a number from 0.5 to 2`); scene[key] = request[key];}
+  for (const [key, flag] of [['widerNear', 'wider-near'], ['widerFar', 'wider-far']] as const) if (request[key] !== undefined) {if (!(request[key]! >= 0.5 && request[key]! <= 2)) throw new Error(`--${flag} takes a number from 0.5 to 2`); scene[key] = request[key];}
   console.log(`Look · ${partner ? `${theme} → ${partner}` : theme} · zoom ${scene.zoom?.id ?? 'steady'}`);
   await writeVideo({scene, look, out: output, from, to, width: request.width});
-  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, ...(scene.wider ? {wider: scene.wider} : {}), ...(scene.widerNear ? {widerNear: scene.widerNear} : {}), timing: scene.timing, from, to, width: request.width,
+  writeFileSync(sidecar, JSON.stringify({of, theme, partner, look, zoom: scene.zoom?.id ?? null, ...(scene.widerNear ? {widerNear: scene.widerNear} : {}), ...(scene.widerFar ? {widerFar: scene.widerFar} : {}), timing: scene.timing, from, to, width: request.width,
     renderedAt: execFileSync('git', ['rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), sha256: sha(readFileSync(output)),
     seconds: (performance.now() - began) / 1000}, null, 2) + '\n');
   console.log(`Done · ${((performance.now() - began) / 1000).toFixed(1)}s total\n${output}`);

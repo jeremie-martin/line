@@ -49,10 +49,9 @@ export type Scene = {
   /** The zoom lanes written for the song (zooms.ts), and the one this video uses: chosen from the ride's id by whoever makes
    * the video (choose.js `chooseZoom`); null keeps the steady zoom. */
   zooms: ZoomLane[]; zoom: ZoomLane | null;
-  /** A trial of the overall zoom: the picture shows this many times more than today (1.1: a tenth more). Absent in production. */
-  wider?: number;
-  /** The same for the near end of the zoom scale only: the widest stays, the closest shows this many times more. */
-  widerNear?: number;
+  /** A trial of the overall zoom: how many times more the picture shows at the closest and at the widest zoom of the scale
+   * (1.075: 7.5 % more), in proportion between. Absent in production. */
+  widerNear?: number; widerFar?: number;
   spectrum: {fps: number; bands: number; frames: number[][]};
 };
 type SavedEvaluation = {targets: {frame: number; impact?: number}[];

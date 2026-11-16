@@ -62,14 +62,13 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
   // the zoom written for the song, when this video was given one of its lanes (scene.zoom): a multiple of the steady zoom per frame
-  // (trials of the overall zoom, absent in production. scene.wider: the whole picture shows that many times more, 1.1 for a
-  // tenth more. scene.widerNear: only the near end of the scale does; the widest zoom stays what it is and the closest shows
-  // that many times more, in proportion between.)
-  const trial = scene.wider || scene.widerNear;
+  // (a trial of the overall zoom, absent in production: scene.widerNear and scene.widerFar say how many times more the picture
+  // shows at the closest and at the widest zoom of the scale, 1.075 for 7.5 % more; in proportion between.)
+  const trial = scene.widerNear || scene.widerFar;
   const lane = scene.zoom ? laneScale(scene.zoom.keyframes, frames.length, offset) : trial ? new Float64Array(frames.length).fill(1) : null;
   if (trial) for (let f = 0; f < lane.length; f++) {
     const wide = Math.max(0, Math.min(1, 0.5 - Math.log(lane[f]) / Math.log(RANGE)));
-    lane[f] /= (scene.wider ?? 1) * Math.pow(scene.widerNear ?? 1, 1 - wide);
+    lane[f] /= Math.pow(scene.widerNear ?? 1, 1 - wide) * Math.pow(scene.widerFar ?? 1, wide);
   }
   const frameAt = createFraming(motion, hitTimes, songEnd, lane);
 

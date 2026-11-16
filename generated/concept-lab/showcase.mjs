@@ -1,6 +1,6 @@
 // A showcase film: one ride, the theme changing on the music. Each part is an ordinary video of that theme over its span
 // (scripts/video.ts), so the picture is production's; the parts are joined without re-encoding and the song laid under them.
-//   node generated/concept-lab/showcase.mjs study=DIR cuts=0:paperPrint,6.9:hokusai,… [zoom=ID] [wider=1.1 | wider-near=1.1]
+//   node generated/concept-lab/showcase.mjs study=DIR cuts=0:paperPrint,6.9:hokusai,… [zoom=ID] [wider-near=1.075 wider-far=1.05]
 //     [width=1080] out=FILE.mp4
 // cuts: song seconds and the theme from there on, in order; each is moved to the nearest video frame. Themes with a sun or a
 // moon keep the rider at one height across cuts.
@@ -19,7 +19,7 @@ const frame = t => Math.round(t * FPS) / FPS;
 const cuts = a.cuts.split(',').map(s => {const [t, theme] = s.split(':'); return {t: frame(+t), theme};});
 cuts.forEach((c, i) => {if (!(c.t >= 0 && c.t < end && (i === 0 ? c.t === 0 : c.t > cuts[i - 1].t))) throw new Error(`cut ${i} at ${c.t} s: cuts start at 0 and rise, inside ${end} s`);});
 rmSync(work, {recursive: true, force: true}); mkdirSync(work, {recursive: true});
-const trial = [a.zoom ? `--zoom=${a.zoom}` : null, a.wider ? `--wider=${a.wider}` : null, a['wider-near'] ? `--wider-near=${a['wider-near']}` : null].filter(Boolean);
+const trial = [a.zoom ? `--zoom=${a.zoom}` : null, a['wider-near'] ? `--wider-near=${a['wider-near']}` : null, a['wider-far'] ? `--wider-far=${a['wider-far']}` : null].filter(Boolean);
 const part = (c, i) => new Promise((done, fail) => {
   const file = join(work, `${String(i).padStart(2, '0')}.mp4`), to = cuts[i + 1]?.t ?? end, log = [];
   const child = spawn(process.execPath, ['scripts/video.ts', `--study=${a.study}`, `--look=${c.theme}`, ...trial, `--from=${c.t}`, `--to=${to}`, `--width=${width}`, `--out=${file}`]);
@@ -40,6 +40,6 @@ verifyVideo(out, {width: size.width, height: size.height, frames: Math.round(end
 const lag = audioLag(out, `productions/${song}/audio.mp3`, 0);
 if (lag === null || Math.abs(lag) > 0.001) throw new Error(`the audio is ${lag} s from the song`);
 writeFileSync(out.replace(/\.mp4$/, '.json'), JSON.stringify({of: {study: resolve(a.study), id: cell.id}, cuts, zoom: a.zoom ?? null,
-  ...(a.wider ? {wider: +a.wider} : {}), ...(a['wider-near'] ? {widerNear: +a['wider-near']} : {}), width}, null, 1) + '\n');
+  ...(a['wider-near'] ? {widerNear: +a['wider-near']} : {}), ...(a['wider-far'] ? {widerFar: +a['wider-far']} : {}), width}, null, 1) + '\n');
 rmSync(work, {recursive: true, force: true});
 console.log(`${out}: ${cuts.length} themes, ${end} s, audio ${(lag * 1000).toFixed(2)} ms from the song`);

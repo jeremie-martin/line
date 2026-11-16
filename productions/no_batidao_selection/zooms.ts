@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'pull', name: "One pull-back, one held breath",
     about: "Close on the vocal phrases; the drum build pulls the picture back, arriving wide as the bass does. It comes in for the voice and its answers, and opens over the last bar before the last body.",
-    keyframes: [{t: 0, wide: 0.25}, {t: 7.4, wide: 0.25}, {t: 15.24, wide: 0.95}, {t: 29.55, wide: 0.95}, {t: 35.5, wide: 0.4}, {t: 36, wide: 0.4}, {t: 36.93, wide: 0.95}, {t: 56, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.25}, {t: 7.4, wide: 0.25}, {t: 15.24, wide: 0.95}, {t: 29.55, wide: 0.95}, {t: 35.5, wide: 0.4}, {t: 36.1, wide: 0.4}, {t: 37.03, wide: 0.95}, {t: 56, wide: 0.95}]},
   {id: 'build', name: "Follows the build",
     about: "A smaller pull-back through the drum build, slowly wider through the body; eases in for the voice and steps out before the last body.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 7.63, wide: 0.3}, {t: 15.24, wide: 0.7}, {t: 29, wide: 0.85}, {t: 29.55, wide: 0.85}, {t: 33, wide: 0.6}, {t: 35.5, wide: 0.6}, {t: 36.93, wide: 0.95}, {t: 56, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 7.63, wide: 0.3}, {t: 15.24, wide: 0.7}, {t: 29, wide: 0.85}, {t: 29.55, wide: 0.85}, {t: 33, wide: 0.6}, {t: 35.65, wide: 0.6}, {t: 37.08, wide: 0.95}, {t: 56, wide: 0.95}]},
 ];
 export default zooms;

@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'pickup', name: "Opens through the pickup",
     about: "Wide as the groove dissolves, in for the empty space and the voice; the pickup carries the picture out to the drums.",
-    keyframes: [{t: 0, wide: 0.7}, {t: 2.5, wide: 0.7}, {t: 5, wide: 0.3}, {t: 16.8, wide: 0.3}, {t: 20.92, wide: 0.85}, {t: 53, wide: 0.85}]},
+    keyframes: [{t: 0, wide: 0.7}, {t: 1, wide: 0.7}, {t: 5, wide: 0.3}, {t: 16.95, wide: 0.3}, {t: 21.07, wide: 0.85}, {t: 53, wide: 0.85}]},
   {id: 'long', name: "One long opening",
     about: "In for the empty space, then slowly wider from the first word to the drums, and a small step over the bar before the later phrase.",
-    keyframes: [{t: 0, wide: 0.55}, {t: 3, wide: 0.55}, {t: 6, wide: 0.25}, {t: 7.3, wide: 0.25}, {t: 20.92, wide: 0.7}, {t: 36, wide: 0.7}, {t: 37.27, wide: 0.85}, {t: 53, wide: 0.85}]},
+    keyframes: [{t: 0, wide: 0.55}, {t: 3, wide: 0.55}, {t: 6, wide: 0.25}, {t: 7.3, wide: 0.25}, {t: 20.92, wide: 0.7}, {t: 36.1, wide: 0.7}, {t: 37.37, wide: 0.85}, {t: 53, wide: 0.85}]},
 ];
 export default zooms;

@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'arrive', name: "Two arrivals",
     about: "Close on the voice; the roll carries the picture out to the bass, and the suspension carries it out again to the drums. It comes back in as the song decays.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 8.45, wide: 0.3}, {t: 10.73, wide: 0.6}, {t: 18.8, wide: 0.6}, {t: 20.48, wide: 0.95}, {t: 50.28, wide: 0.95}, {t: 55, wide: 0.6}, {t: 57, wide: 0.6}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 8.6, wide: 0.3}, {t: 10.88, wide: 0.6}, {t: 18.95, wide: 0.6}, {t: 20.63, wide: 0.95}, {t: 50.28, wide: 0.95}, {t: 55, wide: 0.6}, {t: 57, wide: 0.6}]},
   {id: 'suspension', name: "Held in the suspension",
     about: "Opens gently to the bass, then draws in and holds through the suspension; its last half second lets go, so the drums arrive wide. Slowly wider to the upper figure.",
-    keyframes: [{t: 0, wide: 0.35}, {t: 9, wide: 0.35}, {t: 10.73, wide: 0.5}, {t: 17, wide: 0.5}, {t: 18.8, wide: 0.38}, {t: 19.9, wide: 0.35}, {t: 20.48, wide: 0.9}, {t: 39.7, wide: 1}, {t: 50.28, wide: 1}, {t: 56, wide: 0.7}]},
+    keyframes: [{t: 0, wide: 0.35}, {t: 9.15, wide: 0.35}, {t: 10.88, wide: 0.5}, {t: 17, wide: 0.5}, {t: 18.8, wide: 0.38}, {t: 20, wide: 0.35}, {t: 20.58, wide: 0.9}, {t: 39.7, wide: 1}, {t: 50.28, wide: 1}, {t: 56, wide: 0.7}]},
 ];
 export default zooms;

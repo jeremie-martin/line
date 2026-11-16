@@ -15,6 +15,6 @@ const zooms: ZoomLane[] = [
     keyframes: [{t: 0, wide: 0.7}, {t: 2.5, wide: 0.7}, {t: 6, wide: 0.3}, {t: 12.43, wide: 0.3}, {t: 21.49, wide: 0.9}, {t: 38.8, wide: 0.9}, {t: 40.17, wide: 1}, {t: 56, wide: 1}]},
   {id: 'return', name: "Waits for the bass",
     about: "Comes in as the opening dissolves and stays close through the figure and the voice; the last two seconds before the bass open the picture, and it stays wide.",
-    keyframes: [{t: 0, wide: 0.5}, {t: 3.4, wide: 0.5}, {t: 7.9, wide: 0.25}, {t: 19.5, wide: 0.25}, {t: 21.49, wide: 0.85}, {t: 50, wide: 0.95}, {t: 56, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.5}, {t: 3.4, wide: 0.5}, {t: 7.9, wide: 0.25}, {t: 19.65, wide: 0.25}, {t: 21.64, wide: 0.85}, {t: 50, wide: 0.95}, {t: 56, wide: 0.95}]},
 ];
 export default zooms;

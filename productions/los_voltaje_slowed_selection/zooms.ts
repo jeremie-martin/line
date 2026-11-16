@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'pickup', name: "Opens through the pickup",
     about: "Wide on the groove tail, in when the voice is left alone; a little wider as the phrase rises, and the pickup carries the picture out to the return.",
-    keyframes: [{t: 0, wide: 0.75}, {t: 3.5, wide: 0.75}, {t: 6.5, wide: 0.3}, {t: 13.5, wide: 0.3}, {t: 18.19, wide: 0.4}, {t: 22.29, wide: 0.9}, {t: 55, wide: 0.9}]},
+    keyframes: [{t: 0, wide: 0.75}, {t: 2, wide: 0.75}, {t: 6.5, wide: 0.3}, {t: 13.5, wide: 0.3}, {t: 18.34, wide: 0.4}, {t: 22.44, wide: 0.9}, {t: 55, wide: 0.9}]},
   {id: 'waves', name: "One long opening",
     about: "Comes in for the voice, then opens slowly all the way to the return, with one more step over the bar before the wider arcs.",
-    keyframes: [{t: 0, wide: 0.6}, {t: 4, wide: 0.6}, {t: 7, wide: 0.35}, {t: 22.29, wide: 0.75}, {t: 37.8, wide: 0.75}, {t: 39.27, wide: 0.95}, {t: 55, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.6}, {t: 4, wide: 0.6}, {t: 7, wide: 0.35}, {t: 22.29, wide: 0.75}, {t: 37.95, wide: 0.75}, {t: 39.42, wide: 0.95}, {t: 55, wide: 0.95}]},
 ];
 export default zooms;

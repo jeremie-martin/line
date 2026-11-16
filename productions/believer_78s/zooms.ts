@@ -13,9 +13,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'chorus', name: "Opens for the chorus",
     about: "Holds through the verses, leans in slowly through the pre-chorus, and opens across the break where the drums stop, so \"Pain!\" lands in a wide picture. The chorus keeps opening slowly.",
-    keyframes: [{t: 0, wide: 0.4}, {t: 31.15, wide: 0.4}, {t: 44.6, wide: 0.3}, {t: 46.3, wide: 0.3}, {t: 48.3, wide: 0.9}, {t: 70, wide: 1}, {t: 75, wide: 1}]},
+    keyframes: [{t: 0, wide: 0.4}, {t: 31.15, wide: 0.4}, {t: 44.6, wide: 0.3}, {t: 46.45, wide: 0.3}, {t: 48.45, wide: 0.9}, {t: 70, wide: 1}, {t: 75, wide: 1}]},
   {id: 'climb', name: "Climbs with the song",
     about: "A step wider into each new part, each taken in the stop bar that leads to it: the denser verse, the pre-chorus, then the break into the chorus, and once more where the second percussion joins.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 13.9, wide: 0.3}, {t: 15.79, wide: 0.4}, {t: 29.2, wide: 0.4}, {t: 31.15, wide: 0.5}, {t: 46.3, wide: 0.5}, {t: 48.3, wide: 0.85}, {t: 60, wide: 0.85}, {t: 61.87, wide: 1}, {t: 75, wide: 1}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 13.9, wide: 0.3}, {t: 15.79, wide: 0.4}, {t: 29.2, wide: 0.4}, {t: 31.15, wide: 0.5}, {t: 46.45, wide: 0.5}, {t: 48.45, wide: 0.85}, {t: 60.15, wide: 0.85}, {t: 62.02, wide: 1}, {t: 75, wide: 1}]},
 ];
 export default zooms;

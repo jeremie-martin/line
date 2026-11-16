@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'returns', name: "Out for the drums, in for the voice",
     about: "A middle distance on the drum bursts, nearer for the light figure and the voice; each return of the drums opens the picture over the bar before it, the last one furthest.",
-    keyframes: [{t: 0, wide: 0.6}, {t: 9.57, wide: 0.6}, {t: 12, wide: 0.4}, {t: 17.6, wide: 0.4}, {t: 19.07, wide: 0.7}, {t: 33.58, wide: 0.7}, {t: 36, wide: 0.45}, {t: 41.6, wide: 0.45}, {t: 43.07, wide: 0.8}, {t: 56, wide: 0.8}]},
+    keyframes: [{t: 0, wide: 0.6}, {t: 9.57, wide: 0.6}, {t: 12, wide: 0.4}, {t: 17.75, wide: 0.4}, {t: 19.22, wide: 0.7}, {t: 33.58, wide: 0.7}, {t: 36, wide: 0.45}, {t: 41.75, wide: 0.45}, {t: 43.22, wide: 0.8}, {t: 56, wide: 0.8}]},
   {id: 'gentle', name: "Gentle swell",
     about: "Small moves only, for a song whose level hardly changes: slightly nearer toward the voice answers, slowly out to the return, a little in for the voice in the foreground, and slowly out to the end.",
-    keyframes: [{t: 0, wide: 0.5}, {t: 15, wide: 0.4}, {t: 19.07, wide: 0.6}, {t: 33.6, wide: 0.6}, {t: 38, wide: 0.5}, {t: 43.07, wide: 0.7}, {t: 55, wide: 0.8}, {t: 56, wide: 0.8}]},
+    keyframes: [{t: 0, wide: 0.5}, {t: 15.15, wide: 0.4}, {t: 19.22, wide: 0.6}, {t: 33.6, wide: 0.6}, {t: 38, wide: 0.5}, {t: 43.07, wide: 0.7}, {t: 55, wide: 0.8}, {t: 56, wide: 0.8}]},
 ];
 export default zooms;

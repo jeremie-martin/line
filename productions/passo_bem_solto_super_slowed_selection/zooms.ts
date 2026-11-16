@@ -12,7 +12,7 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'call', name: "Leans in for the call",
     about: "Wide on the groove, nearer when the voice comes forward; out over the bar before the return; it leans in for the first half of the vocal call and lets go in the second, so the last return arrives wide.",
-    keyframes: [{t: 0, wide: 0.65}, {t: 5.46, wide: 0.65}, {t: 8.46, wide: 0.45}, {t: 21.65, wide: 0.45}, {t: 23.25, wide: 0.75}, {t: 38.4, wide: 0.75}, {t: 39.73, wide: 0.6}, {t: 40.82, wide: 0.85}, {t: 57, wide: 0.85}]},
+    keyframes: [{t: 0, wide: 0.65}, {t: 5.46, wide: 0.65}, {t: 8.46, wide: 0.45}, {t: 21.8, wide: 0.45}, {t: 23.4, wide: 0.75}, {t: 38.4, wide: 0.75}, {t: 39.83, wide: 0.6}, {t: 40.92, wide: 0.85}, {t: 57, wide: 0.85}]},
   {id: 'breath', name: "One slow breath",
     about: "No sudden change: slowly in through the voice, slowly out through the drum answers to the return, and slowly wider to the end.",
     keyframes: [{t: 0, wide: 0.6}, {t: 16.67, wide: 0.4}, {t: 23.25, wide: 0.7}, {t: 40.82, wide: 0.85}, {t: 57, wide: 0.9}]},

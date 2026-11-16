@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'swell', name: "Opens with the groove",
     about: "Close for the soft intro; the picture opens a little into the burst, draws in for the breath with the voice alone, and opens through that breath so the groove arrives wide. From there it keeps opening slowly to the end.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 3, wide: 0.3}, {t: 4.46, wide: 0.5}, {t: 7.9, wide: 0.5}, {t: 8.4, wide: 0.42}, {t: 9.12, wide: 0.72}, {t: 25, wide: 0.85}, {t: 40, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 3.15, wide: 0.3}, {t: 4.61, wide: 0.5}, {t: 7.9, wide: 0.5}, {t: 8.5, wide: 0.42}, {t: 9.22, wide: 0.72}, {t: 25, wide: 0.85}, {t: 40, wide: 0.95}]},
   {id: 'hole', name: "The hole before the second groove",
     about: "Holds a middle distance through the first groove, leans in over the last bars before the hole, and opens across the hole so the second groove lands wide. One sharp move in the whole song.",
-    keyframes: [{t: 0, wide: 0.35}, {t: 4.46, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 26.29, wide: 0.3}, {t: 26.73, wide: 0.9}, {t: 42, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.35}, {t: 4.46, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 26.39, wide: 0.3}, {t: 26.83, wide: 0.9}, {t: 42, wide: 0.95}]},
 ];
 export default zooms;

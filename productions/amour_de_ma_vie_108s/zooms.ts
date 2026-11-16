@@ -13,9 +13,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'arc', name: "Out with the drums, back with the voice",
     about: "Opens into the first groove and keeps opening through both grooves, each lead-in (the one-second break, the fill) carrying it a step further. When the drums leave it comes back in slowly and stays near for the breakdown.",
-    keyframes: [{t: 0, wide: 0.25}, {t: 2.2, wide: 0.25}, {t: 3.25, wide: 0.5}, {t: 24.3, wide: 0.7}, {t: 25.25, wide: 0.85}, {t: 44.26, wide: 0.9}, {t: 46.58, wide: 1}, {t: 63.9, wide: 1}, {t: 67, wide: 0.6}, {t: 89.23, wide: 0.3}, {t: 92, wide: 0.45}, {t: 100, wide: 0.4}, {t: 105, wide: 0.4}]},
+    keyframes: [{t: 0, wide: 0.25}, {t: 2.3, wide: 0.25}, {t: 3.35, wide: 0.5}, {t: 24.4, wide: 0.7}, {t: 25.35, wide: 0.85}, {t: 44.26, wide: 0.9}, {t: 46.58, wide: 1}, {t: 63.9, wide: 1}, {t: 67, wide: 0.6}, {t: 89.38, wide: 0.3}, {t: 92.15, wide: 0.45}, {t: 100, wide: 0.4}, {t: 105, wide: 0.4}]},
   {id: 'peak', name: "The break before the peak",
     about: "Steady through the first groove, leans in over its last bars, and opens across the one-second break so the peak arrives wide. After the last groove, one long closing in to the end.",
-    keyframes: [{t: 0, wide: 0.4}, {t: 22.5, wide: 0.4}, {t: 24.3, wide: 0.3}, {t: 25.25, wide: 0.85}, {t: 44.26, wide: 0.85}, {t: 46.58, wide: 0.95}, {t: 64.94, wide: 0.95}, {t: 97.3, wide: 0.2}, {t: 105, wide: 0.2}]},
+    keyframes: [{t: 0, wide: 0.4}, {t: 22.5, wide: 0.4}, {t: 24.4, wide: 0.3}, {t: 25.35, wide: 0.85}, {t: 44.26, wide: 0.85}, {t: 46.58, wide: 0.95}, {t: 64.94, wide: 0.95}, {t: 97.3, wide: 0.2}, {t: 105, wide: 0.2}]},
 ];
 export default zooms;

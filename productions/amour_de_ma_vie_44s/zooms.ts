@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'arc', name: "Opens with the groove",
     about: "Close on her voice, opening as the drums come in, and from there one slow opening, with the one-second break carrying it a step further into the peak.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 2.2, wide: 0.3}, {t: 3.25, wide: 0.5}, {t: 24.3, wide: 0.7}, {t: 25.25, wide: 0.9}, {t: 41, wide: 1}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 2.3, wide: 0.3}, {t: 3.35, wide: 0.5}, {t: 24.4, wide: 0.7}, {t: 25.35, wide: 0.9}, {t: 41, wide: 1}]},
   {id: 'peak', name: "The break before the peak",
     about: "Steady through the first groove, leans in over its last bars, and opens across the one-second break so the peak arrives wide.",
-    keyframes: [{t: 0, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 24.3, wide: 0.3}, {t: 25.25, wide: 0.9}, {t: 41, wide: 0.85}]},
+    keyframes: [{t: 0, wide: 0.45}, {t: 22.5, wide: 0.45}, {t: 24.4, wide: 0.3}, {t: 25.35, wide: 0.9}, {t: 41, wide: 0.85}]},
 ];
 export default zooms;

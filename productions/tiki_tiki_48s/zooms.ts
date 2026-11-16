@@ -11,7 +11,7 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'drops', name: "Two drops",
     about: "Close for the intro and the first beats; the last second before each drop opens the picture, so the drop lands wide; the reset between them comes back in.",
-    keyframes: [{t: 0, wide: 0.15}, {t: 5.9, wide: 0.15}, {t: 6.9, wide: 0.3}, {t: 9.5, wide: 0.3}, {t: 10.43, wide: 0.95}, {t: 23.9, wide: 0.95}, {t: 25.3, wide: 0.4}, {t: 26.9, wide: 0.4}, {t: 27.83, wide: 1}, {t: 41.2, wide: 1}, {t: 43.2, wide: 0.45}]},
+    keyframes: [{t: 0, wide: 0.15}, {t: 6, wide: 0.15}, {t: 7, wide: 0.3}, {t: 9.6, wide: 0.3}, {t: 10.53, wide: 0.95}, {t: 23.9, wide: 0.95}, {t: 25.3, wide: 0.4}, {t: 27, wide: 0.4}, {t: 27.93, wide: 1}, {t: 41.2, wide: 1}, {t: 43.2, wide: 0.45}]},
   {id: 'breath', name: "One slow breath",
     about: "Follows the long shape, with no sudden change: the picture opens slowly from the first second to the end of the hook, breathes in at the reset, opens again through the run, and settles.",
     keyframes: [{t: 0, wide: 0.2}, {t: 24, wide: 0.9}, {t: 26.5, wide: 0.6}, {t: 41, wide: 1}, {t: 45, wide: 0.55}]},

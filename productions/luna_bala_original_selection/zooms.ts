@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'returns', name: "Two returns",
     about: "Opens over the last bar of the voice pickup into the drums; comes in for the voice break, and the near-silence before the final return lets it out again.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 4, wide: 0.3}, {t: 5.58, wide: 0.8}, {t: 35.1, wide: 0.8}, {t: 38, wide: 0.4}, {t: 40.8, wide: 0.4}, {t: 42.35, wide: 0.95}, {t: 55, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 4.15, wide: 0.3}, {t: 5.73, wide: 0.8}, {t: 34, wide: 0.8}, {t: 38, wide: 0.4}, {t: 40.95, wide: 0.4}, {t: 42.5, wide: 0.95}, {t: 55, wide: 0.95}]},
   {id: 'bass', name: "A step for each layer",
     about: "A step into the drums, another over the bar before the syncopated bass; in for the voice break, out for the return and slowly wider to the end.",
-    keyframes: [{t: 0, wide: 0.35}, {t: 4.5, wide: 0.35}, {t: 5.58, wide: 0.6}, {t: 18, wide: 0.6}, {t: 19.42, wide: 0.8}, {t: 35.1, wide: 0.8}, {t: 39, wide: 0.5}, {t: 41, wide: 0.5}, {t: 42.35, wide: 0.9}, {t: 54, wide: 1}, {t: 55, wide: 1}]},
+    keyframes: [{t: 0, wide: 0.35}, {t: 4.6, wide: 0.35}, {t: 5.68, wide: 0.6}, {t: 18.15, wide: 0.6}, {t: 19.57, wide: 0.8}, {t: 35.1, wide: 0.8}, {t: 39, wide: 0.5}, {t: 41.15, wide: 0.5}, {t: 42.5, wide: 0.9}, {t: 54, wide: 1}, {t: 55, wide: 1}]},
 ];
 export default zooms;

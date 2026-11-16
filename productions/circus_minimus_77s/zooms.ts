@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'arc', name: "One long opening",
     about: "One slow opening from the verse to the hook; the picture comes back in before the break and opens across it, so the full groove arrives wide.",
-    keyframes: [{t: 0, wide: 0.25}, {t: 12, wide: 0.25}, {t: 38.48, wide: 0.8}, {t: 47.5, wide: 0.8}, {t: 49.73, wide: 0.55}, {t: 51.28, wide: 0.95}, {t: 74, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.25}, {t: 12, wide: 0.25}, {t: 38.48, wide: 0.8}, {t: 43.5, wide: 0.8}, {t: 49.88, wide: 0.55}, {t: 51.43, wide: 0.95}, {t: 74, wide: 0.95}]},
   {id: 'fills', name: "Opens as the band fills",
     about: "A step wider for each layer that joins, each taken over the bar that leads into it: the verse, the hats, the voice; in for the break, and out across it to the full groove.",
-    keyframes: [{t: 0, wide: 0.3}, {t: 11.4, wide: 0.3}, {t: 12.86, wide: 0.42}, {t: 24.2, wide: 0.42}, {t: 25.68, wide: 0.6}, {t: 37, wide: 0.6}, {t: 38.48, wide: 0.75}, {t: 48.6, wide: 0.75}, {t: 49.73, wide: 0.5}, {t: 49.9, wide: 0.5}, {t: 51.28, wide: 1}, {t: 74, wide: 1}]},
+    keyframes: [{t: 0, wide: 0.3}, {t: 11.4, wide: 0.3}, {t: 12.86, wide: 0.42}, {t: 24.35, wide: 0.42}, {t: 25.83, wide: 0.6}, {t: 37.15, wide: 0.6}, {t: 38.63, wide: 0.75}, {t: 44.5, wide: 0.75}, {t: 49.73, wide: 0.5}, {t: 50.05, wide: 0.5}, {t: 51.43, wide: 1}, {t: 74, wide: 1}]},
 ];
 export default zooms;

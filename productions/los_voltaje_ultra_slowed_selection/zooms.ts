@@ -15,6 +15,6 @@ const zooms: ZoomLane[] = [
     keyframes: [{t: 0, wide: 0.3}, {t: 11.32, wide: 0.3}, {t: 16.29, wide: 0.85}, {t: 57, wide: 0.85}]},
   {id: 'long', name: "One long opening",
     about: "No sudden change: slowly wider from the first phrase to the broad return, and a step more over the bar before the last wave.",
-    keyframes: [{t: 0, wide: 0.25}, {t: 5.68, wide: 0.3}, {t: 16.29, wide: 0.7}, {t: 36, wide: 0.7}, {t: 37.51, wide: 0.9}, {t: 57, wide: 0.9}]},
+    keyframes: [{t: 0, wide: 0.25}, {t: 5.68, wide: 0.3}, {t: 16.29, wide: 0.7}, {t: 36.15, wide: 0.7}, {t: 37.66, wide: 0.9}, {t: 57, wide: 0.9}]},
 ];
 export default zooms;

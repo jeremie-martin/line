@@ -12,9 +12,9 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'bass', name: "Wide where the bass is",
     about: "The voice pickup carries the picture out to the bass body. In the quiet it settles at the steady distance, neither near nor far; the drum return opens it slowly, arriving wide when the bass comes back.",
-    keyframes: [{t: 0, wide: 0.5}, {t: 5.56, wide: 0.5}, {t: 7.77, wide: 0.85}, {t: 20.55, wide: 0.85}, {t: 24, wide: 0.5}, {t: 29.65, wide: 0.5}, {t: 36.92, wide: 0.9}, {t: 49, wide: 0.9}]},
+    keyframes: [{t: 0, wide: 0.5}, {t: 5.71, wide: 0.5}, {t: 7.92, wide: 0.85}, {t: 20.55, wide: 0.85}, {t: 24, wide: 0.5}, {t: 29.65, wide: 0.5}, {t: 36.92, wide: 0.9}, {t: 49, wide: 0.9}]},
   {id: 'shape', name: "One slow shape",
     about: "Opens slowly through the first half, eases back a little for the quiet, and takes one step over the last two seconds before the bass returns.",
-    keyframes: [{t: 0, wide: 0.35}, {t: 20, wide: 0.8}, {t: 20.5, wide: 0.8}, {t: 23, wide: 0.6}, {t: 35, wide: 0.6}, {t: 36.92, wide: 0.95}, {t: 49, wide: 0.95}]},
+    keyframes: [{t: 0, wide: 0.35}, {t: 20, wide: 0.8}, {t: 20.5, wide: 0.8}, {t: 23, wide: 0.6}, {t: 35.15, wide: 0.6}, {t: 37.07, wide: 0.95}, {t: 49, wide: 0.95}]},
 ];
 export default zooms;

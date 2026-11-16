@@ -11,7 +11,7 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'gentle', name: "Small steps",
     about: "No big event in this version, so no big move: a small step out as the bass arrives, slowly a little wider, a little nearer for the voice, a small step out for the return.",
-    keyframes: [{t: 0, wide: 0.4}, {t: 4.5, wide: 0.4}, {t: 6.41, wide: 0.6}, {t: 23, wide: 0.7}, {t: 23.63, wide: 0.7}, {t: 27, wide: 0.5}, {t: 31, wide: 0.5}, {t: 32.5, wide: 0.75}, {t: 56, wide: 0.75}]},
+    keyframes: [{t: 0, wide: 0.4}, {t: 4.65, wide: 0.4}, {t: 6.56, wide: 0.6}, {t: 23, wide: 0.7}, {t: 23.63, wide: 0.7}, {t: 27, wide: 0.5}, {t: 31.15, wide: 0.5}, {t: 32.65, wide: 0.75}, {t: 56, wide: 0.75}]},
   {id: 'long', name: "One slow opening",
     about: "The picture only ever opens, slowly, from the drum build to the return.",
     keyframes: [{t: 0, wide: 0.35}, {t: 6.41, wide: 0.45}, {t: 23.63, wide: 0.6}, {t: 32.5, wide: 0.8}, {t: 56, wide: 0.85}]},

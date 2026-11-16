@@ -11,7 +11,7 @@ import type {ZoomLane} from '../../scripts/video/zooms.ts';
 const zooms: ZoomLane[] = [
   {id: 'swell', name: "The swell opens it",
     about: "A step out into the body, in for the voice; the last bars of the voice and the swell carry the picture out to the drum return.",
-    keyframes: [{t: 0, wide: 0.4}, {t: 3, wide: 0.4}, {t: 4.35, wide: 0.7}, {t: 17.33, wide: 0.7}, {t: 20.5, wide: 0.4}, {t: 34, wide: 0.4}, {t: 37.01, wide: 0.9}, {t: 55, wide: 0.9}]},
+    keyframes: [{t: 0, wide: 0.4}, {t: 3.15, wide: 0.4}, {t: 4.5, wide: 0.7}, {t: 17.33, wide: 0.7}, {t: 20.5, wide: 0.4}, {t: 34.15, wide: 0.4}, {t: 37.16, wide: 0.9}, {t: 55, wide: 0.9}]},
   {id: 'long', name: "One breath in, one breath out",
     about: "Slowly in through the whole first voice passage, slowly out through the second, arriving wide at the drum return.",
     keyframes: [{t: 0, wide: 0.5}, {t: 4.35, wide: 0.6}, {t: 17.33, wide: 0.6}, {t: 26.38, wide: 0.3}, {t: 37.01, wide: 0.85}, {t: 55, wide: 0.85}]},

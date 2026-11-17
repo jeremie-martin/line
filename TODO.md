@@ -46,14 +46,17 @@ Work that is mine:
   left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
   tree. Four loose notes at the root are untracked (the owner's).
 - **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
-- **A second set of specifications by Codex** (Astra; asked for by the owner on 2026-11-16) is written and reviewed:
-  branch `specs/astra`, worktree `~/prog/line-specs-astra`, not pushed. 28 songs have a `variants/astra.ts` (none for
-  Petrunko, Circus, Tiki); a second Codex run reviewed all, revised 13 and rewrote 3. Its reports there:
-  `docs/research/astra-specs-20261116.md`, `docs/research/astra-review-20261117.md` (a table of verdicts; by its own
-  judgement 22 better than the current spec, 5 unclear, 1 not). None of it is checked by me or seen by the owner.
-  Five it recommends, against the current specs:
-  `/motion-gallery/video-compare.html?collection=/generated/watch/astra.json`. Nothing replaces a spec without his
-  marks; briefs and logs in `generated/codex/astra-specs/`.
+- **A second set of specifications by Codex** (Astra; asked for by the owner on 2026-11-16): branch `specs/astra`,
+  worktree `~/prog/line-specs-astra`, not pushed. 28 songs have a `variants/astra.ts` (none for Petrunko, Circus,
+  Tiki), written by one run and reviewed by a second (`docs/research/astra-specs-20261116.md`,
+  `astra-review-20261117.md` there). The owner watched five on 2026-11-17 and tends to prefer the new set to the
+  current specs (his notes verbatim in the watch collection). A third run applied his notes
+  (`astra-owner-pass-20261117.md`): Montagem Coma and Passo Bem Solto slowed follow the voice where he asked, Bones
+  is rewritten more ambitious (the first kept as `astra-drums.ts`); it also lists, without changing them, where
+  other variants leave an exposed voice unfollowed. All 28 against the current specs, with the three revisions:
+  `/motion-gallery/video-compare.html?collection=/generated/watch/astra.json`. Next: his marks on the rest; then
+  the variants he takes become the songs' specs (a merge of `specs/astra`, and new production rides). Nothing
+  replaces a spec without his marks; briefs and logs in `generated/codex/astra-specs/`.
 
 ## Waiting for the owner's eye
 

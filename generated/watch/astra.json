@@ -1,11 +1,12 @@
 {
- "title": "The second set of specifications (Codex): five to watch first",
- "description": "Five songs from the set Codex wrote and then reviewed (branch specs/astra): the new specification against the song’s current one, whole videos. The choice of five and the notes are the reviewing agent’s, made from measured data and from watching rides, not from listening.",
+ "title": "The second set of specifications (Codex): all 28 songs",
+ "description": "Each song’s new specification against its current one, whole videos, same look and zoom lane within a song. The first five are the ones you reviewed on 17 November; three of them have a “Revised” version made from your notes. The other 23 are in alphabetical order with the reviewing agent’s verdict; its verdicts come from measured data and from watching rides, not from listening.",
  "groups": [
   {
    "id": "all",
    "label": "All",
    "variants": [
+    "revised",
     "astra",
     "current"
    ]
@@ -15,8 +16,13 @@
   {
    "id": "bones_selection",
    "label": "Bones",
-   "description": "Bones. Codex’s reviewer says to watch: the complete fill triples and the four sung phrase endings: the foreground should be obvious without following every word. Both videos have the same look and zoom lane.",
+   "description": "You: “a good specification that follows part of the bgm well, but i feel like a much more ambitious spec would be more suitable”. “Revised” is the more ambitious one written after your note: 24 more chorus words, larger contrasts between sections, stronger closing peaks.",
    "videos": [
+    {
+     "id": "revised",
+     "label": "Revised",
+     "src": "/generated/videos/astra/bones_selection-astra2.mp4"
+    },
     {
      "id": "astra",
      "label": "New (Codex)",
@@ -31,9 +37,14 @@
   },
   {
    "id": "montagem_coma_selection",
-   "label": "Montagem Coma",
-   "description": "Montagem Coma. Codex’s reviewer says to watch: the short raps in the gaps and the sustained middle melody, then whether the final burst has force without an invented crescendo. Both videos have the same look and zoom lane.",
+   "label": "Montagem coma",
+   "description": "You: “a pure banger… only drawback would the passage at around 35-43s that would be better if it was following the voice”. “Revised” follows the voice from 35.3 to 43.1 s; nothing else was changed. Codex notes the drop at the end of that passage measures a little softer than before.",
    "videos": [
+    {
+     "id": "revised",
+     "label": "Revised",
+     "src": "/generated/videos/astra/montagem_coma_selection-astra2.mp4"
+    },
     {
      "id": "astra",
      "label": "New (Codex)",
@@ -48,9 +59,14 @@
   },
   {
    "id": "passo_bem_solto_slowed_selection",
-   "label": "Passo Bem Solto slowed",
-   "description": "Passo Bem Solto slowed. Codex’s reviewer says to watch: the long held note, the naked call, and the return near 39.9 s, now carried by drums with a few low replies. Both videos have the same look and zoom lane.",
+   "label": "Passo bem solto slowed",
+   "description": "You: “from 6 to 15s it would be great to follow the voice (with relatively low impact, like from 20s to 23s)… 38s to 40s where it should follow the voice”. “Revised” does both; nothing else was changed.",
    "videos": [
+    {
+     "id": "revised",
+     "label": "Revised",
+     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra2.mp4"
+    },
     {
      "id": "astra",
      "label": "New (Codex)",
@@ -65,8 +81,8 @@
   },
   {
    "id": "let_the_world_burn_selection",
-   "label": "Let the World Burn",
-   "description": "Let the World Burn. Codex’s reviewer says to watch: the long flight on the held high note while drums stay audible underneath, and the quiet grounded ending. Both videos have the same look and zoom lane.",
+   "label": "Let the world burn",
+   "description": "You: “awesome overall, it’s crazy how dreamy the second part is”. Unchanged.",
    "videos": [
     {
      "id": "astra",
@@ -82,8 +98,8 @@
   },
   {
    "id": "no_batidao_slowed_selection",
-   "label": "No Batidão slowed",
-   "description": "No Batidão slowed. Codex’s reviewer says to watch: the sparse middle changing to the low singer, then the handoff to the final upper and drum instrumental. Both videos have the same look and zoom lane.",
+   "label": "No batidao slowed",
+   "description": "You: “just a very good specification overall, so rythmic, so good”. Unchanged. Codex flags a voice it does not follow at 8.4–8.6 s; 17.2–17.5 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
      "id": "astra",
@@ -94,6 +110,397 @@
      "id": "current",
      "label": "Current spec",
      "src": "/generated/videos/astra/no_batidao_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "amor_na_praia_46s",
+   "label": "Amor na praia 46s",
+   "description": "Codex’s reviewer: “Good exposed chops and low replies” (kept); better than the current spec in its judgement: unclear.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/amor_na_praia_46s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/amor_na_praia_46s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "amor_na_praia_selection",
+   "label": "Amor na praia",
+   "description": "Codex’s reviewer: “Good instrumental return” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/amor_na_praia_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/amor_na_praia_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "amour_de_ma_vie_108s",
+   "label": "Amour de ma vie 108s",
+   "description": "Codex’s reviewer: “Good dance-to-quiet-voice reading” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 14.1–14.6 s; 19.4–22.3 s; 25.6–28.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/amour_de_ma_vie_108s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/amour_de_ma_vie_108s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "amour_de_ma_vie_44s",
+   "label": "Amour de ma vie 44s",
+   "description": "Codex’s reviewer: “Good complete syncopated drums” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 14.1–14.6 s; 19.4–22.3 s; 25.6–28.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/amour_de_ma_vie_44s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/amour_de_ma_vie_44s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "believer_78s",
+   "label": "Believer 78s",
+   "description": "Codex’s reviewer: “Coherent, but incomplete tom replies” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 0–35.7 s; 38.8–45.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/believer_78s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/believer_78s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "derniere_danse_coral_selection",
+   "label": "Derniere danse coral",
+   "description": "Codex’s reviewer: “Worthwhile upper reading; unfinished” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 34.5–47.9 s; 53.9–54.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/derniere_danse_coral_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/derniere_danse_coral_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "funk_do_bounce_super_slowed_selection",
+   "label": "Funk do bounce super slowed",
+   "description": "Codex’s reviewer: “Good changing instrumental leads” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 22.5–22.9 s; 27.7–28.4 s; 29.5–29.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "funk_estranho_super_slowed_selection",
+   "label": "Funk estranho super slowed",
+   "description": "Codex’s reviewer: “Good low motor, no false climax” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/funk_estranho_super_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/funk_estranho_super_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los_voltaje_selection",
+   "label": "Los voltaje",
+   "description": "Codex’s reviewer: “Specific reading; impossible entrance” (revised); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/los_voltaje_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/los_voltaje_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los_voltaje_slowed_selection",
+   "label": "Los voltaje slowed",
+   "description": "Codex’s reviewer: “Specific sung hook; impossible entrance” (revised); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/los_voltaje_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/los_voltaje_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "los_voltaje_ultra_slowed_selection",
+   "label": "Los voltaje ultra slowed",
+   "description": "Codex’s reviewer: “Invented late foreground switch” (rewrote); better than the current spec in its judgement: unclear.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua_na_praca_selection",
+   "label": "Lua na praca",
+   "description": "Codex’s reviewer: “Interrupts the owner's praised stillness” (revised); better than the current spec in its judgement: no. Codex flags a voice it does not follow at 32.6–35.8 s; 42.2–43.1 s; 50.1–50.6 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/lua_na_praca_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/lua_na_praca_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "luna_bala_44s",
+   "label": "Luna bala 44s",
+   "description": "Codex’s reviewer: “Good real rhythm, not the old grid” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/luna_bala_44s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/luna_bala_44s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "luna_bala_original_selection",
+   "label": "Luna bala original",
+   "description": "Codex’s reviewer: “Good bass takeover and full quiet melody” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/luna_bala_original_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/luna_bala_original_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "luna_bala_slowed_selection",
+   "label": "Luna bala slowed",
+   "description": "Codex’s reviewer: “Good voice, upper, then low handoffs” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/luna_bala_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/luna_bala_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "montagem_tomada_extended_selection",
+   "label": "Montagem tomada extended",
+   "description": "Codex’s reviewer: “Specific upper line; generic escalation” (revised); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 25.8–30.2 s; 32.3–33.2 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/montagem_tomada_extended_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/montagem_tomada_extended_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "montagem_tomada_slowed_selection",
+   "label": "Montagem tomada slowed",
+   "description": "Codex’s reviewer: “Good vocal holes; inflated last return” (revised); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/montagem_tomada_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/montagem_tomada_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "montagem_tomada_super_slowed_selection",
+   "label": "Montagem tomada super slowed",
+   "description": "Codex’s reviewer: “Good continuing singer; overlarge drums” (revised); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 0.2–4.7 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "no_batidao_selection",
+   "label": "No batidao",
+   "description": "Codex’s reviewer: “Good middle; formulaic bass doubling” (rewrote); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 16.9–17.1 s; 24.3–24.5 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/no_batidao_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/no_batidao_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "passo_bem_solto_selection",
+   "label": "Passo bem solto",
+   "description": "Codex’s reviewer: “Good reading; flattened accent hierarchy” (revised); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/passo_bem_solto_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/passo_bem_solto_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "passo_bem_solto_super_slowed_selection",
+   "label": "Passo bem solto super slowed",
+   "description": "Codex’s reviewer: “Good sustained singer; inflated drum body” (revised); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "trouble_50s",
+   "label": "Trouble 50s",
+   "description": "Codex’s reviewer: “Good complete groove and anticipation” (kept); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 15.7–17.7 s; 33.8–34.2 s; 40.9–41.4 s; 47.2–49.4 s (from the data, not from listening; nothing changed).",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/trouble_50s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/trouble_50s-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "valhalla_40s",
+   "label": "Valhalla 40s",
+   "description": "Codex’s reviewer: “Good voice surviving the drop” (kept); better than the current spec in its judgement: yes.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/valhalla_40s-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/valhalla_40s-current.mp4"
     }
    ]
   }

@@ -1,0 +1,736 @@
+# Observations from authoring single songs (October and November 2026)
+
+Moved out of `docs/music-authoring.md` on 18 November 2026. These are observations made on one song each, and several
+were contradicted by the owner on other songs (for example "follow a voice by its phrases, not its syllables",
+"follow the loudest layer", "choose one coherent foreground", voice words at 0.2–0.35). They are a record, not rules:
+do not hand them to an author as guidance.
+
+## What to carry forward from the library (owner review, November 2026)
+
+The [second listening pass](#second-listening-pass-quieter-articulation-and-clearer-leads)
+offers examples of musical judgment, not a checklist or a formula for future songs.
+
+- **Choose a coherent foreground.** Capturing more events is not automatically
+  better. [Petrunko](../productions/petrunko_selection/spec.ts) reads clearly
+  without constant changes of lead; the owner praised it and it was preserved.
+- **Density and strength are separate choices.** The feedback on
+  [Amor Na Praia](../productions/amor_na_praia_selection/spec.ts) called for more
+  distinct opening beats, expressed gently rather than as heavier impacts.
+- **Space can carry the music.** The owner particularly valued the long central
+  ride in [LUA NA PRAÇA](../productions/lua_na_praca_selection/spec.ts).
+  More activity would not necessarily improve it.
+- **Changes of lead can be expressive.** The voice-to-instrument alternation in
+  [LOS VOLTAJE](../productions/los_voltaje_selection/spec.ts) was praised.
+  Switching leads is an artistic option, not a requirement to demonstrate variety.
+
+Feedback on one passage can suggest questions to ask elsewhere, but does not
+justify blanket edits. Keep successful choices as readily as revising weak ones.
+The owner's broad praise of the second batch supports this approach; it does not
+settle every passage or establish a single correct interpretation.
+
+Be candid about the evidence: in this pass the agent used analysis and visual
+checks; the owner supplied the listening judgment. Do not describe inferred
+musical details as independently heard or perceptually verified.
+
+## What handcrafting taught (November 2026)
+
+From the work of 14 and 15 November: the owner's listening marks on Circus Minimus, Believer and Tiki Tiki, twenty
+readings of five songs written by hand, and his marks out of ten on full rides of them
+(`labels/studies/handcraft-2026-11-15.json`; the readings are each song's `variants/`). Each point says what it rests
+on. They are questions to ask of a new song, not a recipe: feedback on one song applied as a blanket rule to another
+has already gone wrong once (Believer's "held chords count" became soft landings on Luna Bala that were not even on a
+half-beat).
+
+**How the work is done**
+
+- **The author writes alone; the owner marks a small sample.** His listening time is the scarce resource. When he
+  leaves marks (`notes.json`), write your own reading of that passage first without opening them, freeze it, then
+  compare and say what each miss teaches. On Circus (48–54.5 s) 24 of 25 marks were matched within 80 ms that way, and
+  the rest of the song was then written from what the marks showed (the header of `circus_minimus_77s/variants/voice-full.ts`).
+- **His marks sit about 25 ms before the detected onset.** Place a landing on the measured source nearest the mark
+  once that lead is counted.
+- **Step back and check the whole spec's harmony** after a round of remarks; do not patch single remarks one by one
+  (his request on Tiki).
+- **Old specs are evidence.** They carry earlier reviews: list every landing of the previous spec the new one lacks and
+  decide each one.
+
+**What to land on**
+
+- **A sound on the beat with a soft attack still counts.** Held chords, bass notes and decaying booms have a low
+  onset "rise" and often no drum class, and were left out three times in one day (Circus 51.6 s, Believer's beats 2
+  and 4, Tiki 25.25 and 26.12 s). For every beat of the pulse with no landing, list what any stem measures there and
+  decide explicitly. Never write a float over a passage where the beat continues.
+- **Read the raw events again,** not an earlier session's summary of the layers in `music.ts`.
+- **Where the voice is mixed into the backing, another stem may carry the line** (Circus's break: the synth's five
+  even notes are in the `other` stem).
+- **In a full groove every beat gets a landing,** on the clearest sound near it; a strong vocal attack between two
+  beats gets its own; weak vocal estimates between beats get none. A strong voice attack within 0.1 s of a drum shares
+  the drum's landing. (Circus; the owner kept the reading built on these four observations.)
+
+**Strength**
+
+- **Strength follows the kind of hit, not only its loudness or its place in the bar.** He hears "fat" hits, heavy
+  rather than sharp, and wants those at 0.9–1 with ordinary strong kicks a clear step below. On Tiki they fell every
+  four beats from the drop, plus pickups and the last four kicks; in the data: a full-level mix peak, a soft attack,
+  often no drum-stem onset. Look for a recurring heavy slot in the bar before giving strengths by "downbeat".
+- **Choose strength per event.** A constant per role repeats the same values for 15–35 s. The specs he rates highest
+  keep groove landings at or below about 0.78 and save 0.86 and above for few moments. (An independent reader's
+  comparison of three rewrites with the reference specs; measurements, not his words.)
+- **Contrast must be large enough to see.** Sections that differ by 0.04 do not read as different, and a difference
+  of 0.15–0.2 between otherwise equal landings was not enough to carry a reading (Amor na Praia `chord-bars`, 7: "a
+  bit boring").
+- **Do not spend the peak at the first drop.** Trouble and Valhalla keep their hardest hits for late.
+
+**What made a reading work**
+
+- **A rhythmic shape the rider can be seen to follow,** made with density and clearly different steps. Petrunko
+  `build`, one long acceleration by density, got 11 ("absolute perfection, perfect representation of the music");
+  Trouble `cycle` (long, long, short, with a percussion filling in) and `contrast-clusters` got 10; Amor na Praia
+  `answer` (an off-beat reply after the kick) 9.5. (The marks are his; "rhythmic shape" is the author's reading of
+  one round.)
+- **Holding back for a long stretch costs more than it gives.** Valhalla `still-drop`: "beginning a bit too calm for
+  too long for my liking" (7); Bones `turn`: "a bit boring" (7).
+- **The rule of a selection must be visible.** Bones `singer`: "I'm not fully seeing what it's following" (7).
+- **His mark does not follow the compiler's score.** `build` scored 683 and got 11; `still-drop` scored 835 and got 7.
+  Write the musical intent; compiler feasibility is not a filter.
+- **Improving a good spec is a safe bet:** the five revisited specs averaged 9.0, the fifteen new readings 8.4.
+
+**Checks before calling a draft done** (the author's, proposed to the owner): print strengths per 5 s window (distinct
+values, the longest identical run, mean and maximum per section) beside a reference spec; list every gap under 0.18 s
+and every landing `music.ts` calls "not used"; compare which slots of the bar are landed across repetitions; then
+clicks over the music, which remain the final check.
+
+## What read well on Trouble (owner reviews, October 2026)
+
+Observations from one song, not rules. Variants live in
+`productions/trouble_50s/variants/`; the preferred one is `contrast-clusters`.
+
+- **Follow the loudest layer at each moment.** The voice where it is alone,
+  the drums once they play. Syllables landed under the drums looked off the
+  music (the `voice` variant).
+- **Follow a voice by its phrases, not its syllables.** Close hits where words
+  come fast, long low rides on held notes. A landing on every syllable became a
+  grid.
+- **Land only on sounds you can hear.** A landing is a visual statement:
+  - A soft landing on a faint sound (Trouble's groove pickups, about a seventh
+    of a kick) still reads as noise.
+  - Density also caps the air, so a dense spec becomes long rails (`pulse`).
+- **Short audible pairs are the strongest moments:**
+  - The three-kick clusters, plus the snare right after them.
+  - "boom-TAK": a heavy kick, then a snare 0.22 s later.
+  - "ta-BOOM": a bass entry just before a heavy kick.
+  - Seen as an upper hit then a bottom hit, they read as two beats. They are
+    also the hardest thing for the compiler: most failed compiles stop at one
+    (about half of the seeds finish).
+- **Big floats belong in calm moments.** A long air into the drop felt wrong
+  because the music before it is busy; three small hits gaining speed worked.
+  A float over a quiet drum swell worked.
+- **Speed up where the music is intense** (the drop).
+- **Score does not predict taste.** The variant with the best impact score was
+  the least liked. Clean and on the beat is not enough either: `slam` was both,
+  and too empty.
+- **There is no single right spec.** Several readings of one song can be very
+  good.
+
+## What read well on Valhalla and Circus Minimus (October 2026)
+
+- **Valhalla (40 s): `words3` was "basically production ready".**
+  - It follows the voice by its heard words: close hits on fast words and
+    "oh-oh-oh"s, with long rides on held notes.
+  - Its words come from `sung.py`, with the owner's corrections.
+  - Where two voices sing, following the more interesting one, even switching
+    between them, read well.
+- **When the voice is most of the song, commit to it.** Words should be clear
+  hits (0.2–0.35), not touches.
+- **After a soft opening, make everything a little bigger,** so the contrast
+  shows.
+- **"Calm" means quiet, not few instruments.** Circus Minimus' intro is an 808
+  alone, and strong: soft floats there missed the music.
+- **Don't let a layer's name decide its role.** Circus' voice-led 38–49 s is
+  the song's most intense part. Read what the music does there.
+- **Short audible pairs are what the compiler cannot yet do reliably.**
+  - Circus `pairs3` finished 1 seed in 24.
+  - `pairs4`, the intended spec (voice-only 38–49 s, bigger hits), finished 0
+    in 24, failing at its 0.2 s pickups and 0.2 s word gaps.
+  - Keep such specs as targets rather than simplifying them silently.
+
+## Descriptive vocal evidence (November 2026)
+
+Use the existing spec dashboard, not a separate authoring workflow. Its source
+lanes retain every measured instrument at its own timestamp. A coincident drum
+no longer conceals the vocal observation. Event snapping remains optional;
+unsnapped listener marks are approximate observations, not exact ground truth.
+
+To add continuous evidence after stem separation and optional `sung.py` analysis:
+
+```sh
+python tools/music/vocal_evidence.py --song circus_minimus_77s
+```
+
+Requires NumPy, librosa (tested with 0.11.0), ffmpeg, the production audio, and
+`generated/stems/<song>/{vocals.wav,stems.json}`. Produces
+`productions/<song>/vocal-evidence.json`, readable by an agent and the dashboard.
+The dashboard checks recorded source/code hashes and refuses stale evidence.
+These checks detect changed files; they cannot prove that stem separation was
+correct or that a supplied stem originally came from the supplied recording.
+
+The measurements use identical settings for every song: 22,050 Hz mono,
+1,024-sample centered windows, 256-sample steps (46.4 ms windows, 11.6 ms steps).
+RMS is linear amplitude, without song normalization. Spectral change is cosine
+distance between successive Hann-window magnitude spectra at 200–6,000 Hz;
+missing/silent comparisons are null. Plot scales are fixed across zoom levels
+and shown beside each trace. Window centers are not vocal onset boundaries.
+Zero padding affects the first/last half-window. Gain invariance only applies
+above the numerical silence floor. A nearly silent spectrum can have a large
+shape change, so read it alongside RMS and listen.
+
+All raw vocal onset estimates and both existing sung classifier outputs remain
+available. The UI labels them onset, tonal and noisy estimates. These are not
+words, speaker identities, confidence probabilities or impact suggestions.
+The separated stem may mix several voices and retain instrumental leakage.
+No measurement or candidate selects the artistic focus or changes a spec.
+Copied agent context includes the current measurement window, nearby source
+observations and the evidence file URL; the file contains all candidates and
+measurement definitions for further inspection.
+
+Validation used one fixed implementation on Circus, Trouble, Valhalla, Luna
+Bala and Tiki Tiki, without per-song parameter changes. Browser checks verified
+that every source observation and candidate within the spec duration survived
+into the display. Vocal source observations previously visible versus retained:
+
+| Song | Previously visible | Retained |
+| --- | ---: | ---: |
+| Circus | 223 | 310 |
+| Trouble | 123 | 160 |
+| Valhalla | 75 | 87 |
+| Luna Bala | 60 | 118 |
+| Tiki Tiki | 96 | 122 |
+
+These counts measure information preservation, **not word-detection accuracy**.
+Of the owner's 39 approximate Circus marks, 16 have an existing candidate
+within 30 ms, 27 within 50 ms and 32 within 80 ms. Seven still lack a candidate
+within 80 ms. This is a diagnostic proximity check: marks are uncertain,
+unmarked times are not negative labels, and neither precision nor recall can
+be inferred from it. Continuous evidence exposes additional changes for
+inspection; it does not establish that those seven articulations are resolved.
+Circus and previously inspected Trouble/Valhalla passages are development
+material. Luna Bala and Tiki Tiki check cross-song operation, not held-out
+perceptual accuracy. Broader listening with independently annotated passages
+is needed before making a vocal-alignment accuracy claim.
+
+Reproducible checks:
+
+```sh
+python -m unittest discover -s tests -p test_vocal_evidence.py
+npx vitest run tests/music_evidence.test.ts tests/vocal_evidence_provenance.test.ts
+node tests/browser/vocal-evidence.mjs http://127.0.0.1:8771
+node tests/browser/spec-listening.mjs http://127.0.0.1:8771
+```
+
+Synthetic checks cover silence, uniform gain, constant-amplitude timbre changes,
+centered impulse support and invalid inputs. Browser checks are read-only or
+intercept note writes in memory; they never edit the owner's annotations.
+
+### Acoustic landmarks and band measurements
+
+The evidence builder now adds two descriptive fields while preserving all
+existing candidates, times, RMS values and spectral-shape values:
+
+- Each candidate has `landmarks`: the preceding local RMS minimum (librosa
+  backtracking), and the steepest positive linear RMS rise between that minimum
+  and the candidate's nearest measurement frame. A flat/falling interval has no
+  rise landmark. A clip-start fallback is explicit. These are frame-centered
+  measurements, not onset boundaries, a confidence interval or a corrected time.
+- `bandFlux` contains three continuous mean-positive log-mel changes, in
+  dB/frame. One 64-filter Hann-window mel spectrogram supplies all three groups,
+  using filter centers at 80–1000, 1000–3000 and 3000–8000 Hz. Filter supports
+  overlap the boundaries. There are no consonant/vowel labels or event picks.
+
+The existing 1024-sample window and 256-sample step remain fixed across songs.
+Log power uses reference 1, floor 1e-10 and no relative dB clipping. Differences
+are placed at the later of the adjacent centered STFT frames, without an extra
+onset-detector compensation shift. The first difference is unavailable. Values
+are not normalized per song; gain invariance only holds above the power floor.
+Quiet spectral components can still show large relative changes.
+
+The existing dashboard shows band values in the cursor inspector and acoustic
+landmarks in candidate tooltips. Copied agent context includes nearby candidates
+and their landmarks. No extra permanent timeline lanes or automatic impacts were
+added; the original candidates still determine what their existing dots mean.
+
+Checks used fixed settings on all five songs above: all 1,413 candidates and
+all existing continuous values were preserved exactly. Of those candidates,
+79 have no positive RMS rise in the inspected interval; this is reported as
+unavailable rather than filled with a guessed time. These counts are diagnostics,
+not detection accuracy. The builder took roughly 0.1–0.3 seconds per song in the
+warm local experiment, including decoding; first imports/JIT can take longer.
+
+Synthetic tests cover silence, gain, an impulse, a constant-power harmonic
+change, a sustained tone and vibrato. Windows of 512/1024/2048 samples were
+examined without selecting a winner on listener annotations. The impulse check
+confirmed librosa's additional onset compensation shifts a peak by respectively
+11.6/23.2/46.4 ms relative to the centered-frame measurements. This is a timing
+convention, not proof of an error in the existing detector: centered windows can
+respond before the true attack. No global correction was applied.
+
+Vibrato produces substantial band flux despite having no new syllable. Shorter
+windows also trade frequency resolution for timing localization. These findings
+are why the new outputs remain measurements rather than new vocal detections.
+Fewer missed syllables or better perceptual alignment have **not** been established.
+That needs a small reviewed set of real passages including non-attacks, not just
+proximity to the owner's approximate, non-exhaustive positive marks.
+
+The bounded study, its frozen settings, before/after preservation checks and
+results are in `generated/circus-voice-review/acoustic-experiment/` (`run.py`,
+`plan.json`, `results.json`, `before/`). The Python tests above now also exercise
+landmarks, band silence/gain behavior and timing at all three window sizes.
+
+Exploratory ASR, alignment and external-reference findings are recorded in
+[the sung-notes research log](research/sung-notes-20261031.md#november-1-external-reference-experiments).
+
+## Circus voice + drums specification
+
+`productions/circus_minimus_77s/variants/voice-drums.ts` is the owner-approved voice-and-drums variant,
+leaving the preferred spec and previous voice-led draft intact. It changes only
+38.4–47.5 s: vocal articulations provide the phrase, percussion-only events fill
+rhythmic positions, and close voice/drum pairs share a firmer drum contact. Bass
+is not a selector. Each of the 39 contacts records its measured source and role;
+one sung-only event at 42.632 s supplements the source-event data. A drum label
+does not prove a sung word. No synthetic grid or minimum compiler spacing is used.
+
+The author had already seen the owner's notes: this is **not a blind test**.
+The draft was hashed before the note comparison and was not retuned afterward.
+Ordered one-to-one matching against 39 approximate marks gave:
+
+| Tolerance | Previous voice-led | New voice + drums |
+| --- | ---: | ---: |
+| 30 ms | 10 | 28 |
+| 50 ms | 16 | 36 |
+| 80 ms | 24 | 39 |
+
+The previous draft had 24 contacts in this interval; the new one has 39. At
+80 ms every new contact and mark participates in exactly one match. The marks
+are non-exhaustive: unmatched contacts at narrower tolerances are not necessarily
+false positives. This correspondence does not establish perceptual quality,
+statistical significance, generalization, or compiler feasibility. Strengths are
+authored (vocal-only roughly 0.48–0.62, drum/shared 0.62–0.78) and were subsequently reviewed through the generated video below. This
+annotation comparison alone does not establish compiler feasibility.
+
+The existing spec dashboard loads this variant for click audition at reduced
+speed. The frozen hash, source contacts, comparison script and complete pairings
+are local under `generated/circus-voice-review/voice-drums/`.
+
+Generation follow-up: four standard-budget seeds (101/202/303/404), then 101 and
+404 at twice the allowance, all completed the full 77.09-second song under the
+current strike-v3 account and fulfilled their construction plans. All six matched
+39/39 hook targets; this is evaluator matching, not proof of perceptually strong
+hits. The larger allowance did not improve hook strength error. All outcomes
+remain in `generated/circus-voice-review/voice-drums/collection.json` with saved
+compiler/input identities; the specification and original playback speed were
+unchanged.
+
+The initial six-run review suggested seed 404 at standard budget: hook
+mean absolute timing offset 21.2 ms relative to quantized, then 15 ms shifted, compiler
+targets (maximum 50 ms), two extra detected hook impacts, mean achieved strength
+0.381 versus 0.615 requested. Eleven of 39 hook hits measure below 0.25. Shared
+voice/drum contacts average 0.592 achieved versus 0.715 requested; vocal-only
+contacts 0.284 versus 0.544. This is a useful compiler test case, not a claim of
+finished musical quality. The older landing ruler does not validate these rides;
+its results are preserved alongside the current account in the generation summary.
+`generation-summary.json` now retains all twelve outcomes and the exploratory selection
+policy; `seed-404-hook.json` records each authored target and realized event.
+
+Vertical-video follow-up: six fresh seeds (505/606/707/808/909/1001) at 7,917,750
+frames completed, bringing the exploratory set to 12 runs across allowances of
+5,278,500 / 7,917,750 / 10,557,000 frames. Actual work remained 4.79–5.00 million
+frames. None of the fresh runs improved hook strength RMS; seed 101 at standard
+budget was selected for the video on that criterion (404 retains the better
+overall score). Selection and all outcomes are preserved in `video-selection.json`.
+
+The existing production pipeline rendered 1080×1920 at 60 fps with its established
+camera, spectrum and effects. The master and 11-second hook excerpt are available
+as `vertical.mp4` and `hook.mp4` in the collection folder. Sample frames were
+inspected, full decoding checked, and direct VPN playback/seeking exercised.
+
+Audio QA found a constant ~42.6 ms lag in the initial rendered master relative to
+the original recording. A final mux of the original audio repaired the delivered
+master without changing its encoded video packets. Three independent 5-second
+windows at 5/39/68 seconds then showed zero best lag at 8 kHz and correlations
+above 0.99. Original render metadata/full video are retained; the current video
+sidecar records the explicit audio repair and points to `video-aligned.mp4`.
+The bundle and dashboard use that aligned master, and excerpts were regenerated.
+This is an artifact repair, not a general pipeline fix: the precise stage causing
+the original delay has not been isolated. See `audio-lag-check.json`,
+`audio-aligned-check.json`, and the video sidecar's `audioRemux` field.
+
+The owner accepted the voice-and-drums specification after watching the final
+video. It remains a separately named variant: the default and benchmark specs
+are unchanged. `notes.json` preserves the original approximate listening marks.
+Generated media and run artifacts remain local, outside Git; the committed
+specification, source evidence and tests preserve the authoring work.
+
+Integration check after rebasing onto `44c00256` (`rework/foundations`):
+335 TypeScript tests and 11 Python tests passed, as did type checking,
+reachability, the five-song browser checks, listening controls and judge parity
+(33 tracks). Compile parity still differs from 44 committed references. A fresh
+63-cell compile on the untouched upstream checkout produced exactly the same
+track hashes and physical-frame counts as this branch in every cell, using the
+rebuilt WASM engine. These are pre-existing reference mismatches; no reference
+fixtures were changed. The accepted spec still matches its pre-generation hash.
+
+## Music-library listening drafts (November 2026)
+
+The 22 recordings supplied in `~/prog/double-pendulum/music/tracks/` now have
+separate `_selection` productions, including the alternate-speed recordings.
+These are **first listening drafts**, not owner-approved successors to the Circus
+specification. No benchmark or held-out panel was changed. Original files remain
+untouched; excerpts retain their original speed and are single contiguous cuts.
+
+For each recording, the author inspected the full separated-stem envelopes,
+chose a passage with an arrangement change, then read the source onsets and
+vocal-attack estimates. `composition.json` records explicit selected times,
+source, impact and the reason for each group, plus air/speed phases. The small
+`spec.ts` adapter only reads these decisions; it does not select events.
+`source.json` records the source hash, original-recording excerpt boundaries,
+excerpt/stem hashes and separation settings. The tempo grid is only a librosa
+hypothesis; it does not generate contacts. Drum classes were not measured.
+
+Musical intentions and limitations:
+
+- Passo Bem Solto and Los Voltaje alternate exposed vocal articulation with
+  stronger percussion. Slower versions were read independently, not made by
+  scaling another spec's timestamps.
+- Funk Estranho follows the measured bass pulse; Funk do Bounce changes lead
+  from voice to bass, then to drums and an upper instrumental figure.
+- Dernière danse, Bones and Let the World Burn use amplitude-attack evidence
+  alongside raw vocal events. A sustained note's many spectral changes are not
+  treated as verified syllables. The exact vocal choices need listening review.
+- Petrunko's selected passage is treated as instrumental; stem labels are not
+  used to invent lyrics or singer identities.
+- Raw coverage reports flag unselected material in every song. The review checked selected strong percussion
+  omissions and documented the clipped Montagem Coma entrance. Lua na Praça
+  now uses the first attack at 7.767 s, correcting the earlier choice of its
+  later re-detection. Coverage remains incomplete: competing layers,
+  subdivisions and sustained texture need listening decisions; the reports
+  are not a requirement to maximize coverage.
+
+All drafts are available in the existing spec dashboard's selector. Keep Clicks
+enabled to audition the authored rhythm; slow playback or add unsnapped marks
+where a phrase needs correction. Start with the three contrasting readings
+`let_the_world_burn_selection`, `funk_do_bounce_super_slowed_selection` and
+`derniere_danse_coral_selection`. Browser playback checks establish that audio
+and controls work, not that the interpretation is perceptually correct.
+
+| Recording | Original recording excerpt (s) | Length (s) |
+| --- | ---: | ---: |
+| LOS VOLTAJE | 34–91.4 | 57.4 |
+| LUNA BALA (Slowed) | 40–96 | 56 |
+| MONTAGEM TOMADA (Slowed) | 22–80 | 58 |
+| Amor Na Praia | 49–109 | 60 |
+| LOS VOLTAJE (Slowed) | 39–97 | 58 |
+| FUNK ESTRANHO (Super Slowed) | 33–92 | 59 |
+| PASSO BEM SOLTO (Slowed) | 43–101 | 58 |
+| MXZI — MONTAGEM TOMADA (Extended) | 181–240 | 59 |
+| LUNA BALA | 46–104 | 58 |
+| MONTAGEM TOMADA (Super Slowed) | 32–92 | 60 |
+| PASSO BEM SOLTO | 35–91 | 56 |
+| LOS VOLTAJE (Ultra Slowed) | 58–118 | 60 |
+| PASSO BEM SOLTO (Super Slowed) | 47–107 | 60 |
+| FUNK DO BOUNCE (Super Slowed) | 60–120 | 60 |
+| Dernière danse × Montagem Coral | 78–138 | 60 |
+| ANDROMEDA — MONTAGEM COMA | 14–73 | 59 |
+| NO BATIDÃO | 30–89.5 | 59.5 |
+| NO BATIDÃO (Slowed) | 48–107.5 | 59.5 |
+| LUA NA PRAÇA | 29–81 | 52 |
+| Chris Grey — LET THE WORLD BURN | 104–163 | 59 |
+| Bones | 105–159 | 54 |
+| Petrunko | 76–136 | 60 |
+
+The checked-in manifest is `productions/music-library.json`. Local study material
+(full-recording overview plots, extraction/analysis scripts, coverage reports and
+browser screenshots) lives in `generated/music-library-authoring/`. Audio and
+full stem WAVs remain untracked. To reconstruct an excerpt, decode the exact
+source file identified by its hash, trim at the recorded start for the recorded
+length, and encode with `libmp3lame -q:a 2`; never rescale the timing. The stems
+were separated from the full recording before cropping, avoiding crop-edge
+separation differences. Regenerate descriptive evidence if any input changes.
+
+The dedicated spec tests check all recordings, membership in the recorded source candidates, distinct
+physics frames, excerpt bounds, phase/axis validity and audio identity when the
+local file is present. They do not certify musical quality.
+
+Integration validation on `a9b4178a`: the full suite passed 358 tests; all 22
+dashboard pages loaded their verified evidence and exercised playback. Type
+checking, reachability and judge parity (33 tracks) passed. Compile parity has
+47 saved-reference differences, but a fresh run on the untouched upstream
+checkout produced exactly the same track hashes and physical-frame counts as
+this branch for all 63 cells. References were not overwritten.
+
+The first two preview-generation attempts exposed a separate upstream integration
+issue: the compiler uses `catchReceivers` to place catches mid-frame, while
+`verifyMainConstruction` still reconstructed the old position. Saving rejected
+both rides at support 0. The verifier now uses that same placement helper; a
+regression test fails before the fix, passes afterward, and still rejects altered
+geometry. This changes validation only, not construction or the authored specs.
+The 23 library tests and the new verifier regression pass together.
+
+After the verifier fix (`b60fa025`), one standard-budget seed 101 run each
+completed Let the World Burn (59 s) and Funk do Bounce (60 s), with valid and
+qualified current impact accounts and independent geometry validation. Actual
+compilation work was 3,750,995 / 4,047,700 allowed frames and
+3,769,651 / 4,115,700 respectively. These are first previews, not best-of-many
+selections or evidence of perceptual superiority. Plans, input/compiler
+identities, measurements and tracks remain in
+`generated/music-library-authoring/rides/*-verified/`; the existing production
+dashboard opens `generated/music-library-authoring/collection.json`.
+
+
+### Independent review and production pass
+
+Two independent Opus 5.5 reviews examined all 22 compositions, source records,
+curve semantics and selected evidence. These were structural/evidence reviews,
+not auditory listening or owner approval. Full reports and the one-off study
+scripts are retained locally in `generated/music-library-review/`.
+
+Accepted revisions:
+
+- Section curves now hold their targets, except for explicitly authored builds.
+  Previously every section smoothly approached the next section for its entire
+  length, slowing loud bodies early and accelerating quiet breaks early. Tests
+  now check the held value near each section's end.
+- Return entrances have distinct authored accents; body strengths remain coarse
+  artistic weights, not claims about measured loudness. No automatic detector
+  threshold selects contacts or sets their strength.
+- Passo's three versions now acknowledge the foreground vocal calls inside the
+  percussion interruption. Lua gains the upper-instrument closing stab and
+  final bass attack. Luna's original return loses a duplicate drum detection.
+- Funk Estranho's two opening bass attacks and Lua's first body attack use the
+  earlier measured onset rather than a later re-detection. Petrunko's bass
+  omissions are correctly described as a percussion-led choice, not coincident
+  bass/drum onsets. Several misleading phase labels were corrected.
+- Bones ends at original 159 s (54 s excerpt), removing six seconds of mostly
+  silent tail; its audio, stems and evidence were regenerated. Passo's final
+  contact only 63 ms before the cut and Burn's near-silent last estimate were
+  removed. All other excerpt boundaries remain unchanged.
+
+Not adopted automatically: deleting fast vocal pairs to satisfy historical
+compiler limits; treating every low-rise spectral event as inaudible; replacing
+vocal timestamps with their linked merged-event timestamp; filling every
+coverage flag; or imposing per-song loudness normalization as an artistic law.
+The onset and sung detectors measure different acoustic features; their native
+estimated times are retained, with no claim of word-boundary accuracy. Dense
+voice requests remain intentional and can expose compiler limitations.
+
+Alignment was checked independently at 8 kHz by cross-correlating each decoded
+excerpt with its original-source cut and with the sum of its four cropped stems,
+searching ±100 ms. All 22 peak at zero lag (0.125 ms sample resolution).
+This tests the audio/stem timebase, not the accuracy of detected articulations.
+
+Remaining musical uncertainty is explicit: vocal syllable identity, low-rise
+spectral changes, some competing bass/upper-instrument gestures, the balance of
+constant body weights, and crop entrances need owner listening. A per-flag
+coverage adjudication and inspection of every detailed detector sheet have not
+been completed. Raw evidence and independent review notes are retained rather
+than presenting these drafts as perceptually certified.
+
+Production plan: three seeds (101, 202, 303), each with the standard
+length-scaled physics allowance. Preserve all outcomes and both current and
+historical grades. Select complete, currently qualified candidates using impact
+and axis fidelity as diagnostics, then exercise native playback. This is a
+candidate production pass, not a paired compiler experiment or proof of musical
+superiority. No compiler, judge or benchmark changes belong to this pass.
+
+
+The initial 66-run pass at `a9830c77` saved 60 complete, currently qualified
+tracks. Amor's 0.139 s and Passo Super Slowed's 0.209 s first contacts failed
+with `no_arc` on all three seeds. These entrance sounds are now explicitly
+recorded as audible pickups, with the requested ride starting on the next
+gesture. Their original failed runs remain untouched. The dense in-song voice
+pairs were retained and compiled successfully in the other songs. Fresh runs
+for the two entrance revisions use new directories and their own identities.
+
+
+Final production result: 72 preserved attempts, including the six original
+entrance failures. The revised specifications each have three complete,
+currently qualified candidates (66 total). One per recording is selected in
+`generated/music-library-review/collection.json`; `all-candidates.json` exposes
+all complete alternatives in the existing player. `results.json` preserves
+both rulers, failures, compute and per-phase diagnostics; `selection.json`
+records the chosen candidates and tradeoffs, and `reproduction.json` records
+the compiler/input/track identities.
+
+All 22 selected tracks have zero missing targets under `line.strike.v3` and
+passed independent construction validation. Mean absolute timing offsets range
+from 2.45 to 7.39 ms **against quantized compiler targets**, not verified musical
+or word boundaries. Strength RMS error ranges from 0.090 to 0.162. These are
+fidelity diagnostics, not perceptual quality scores. Every historical grade is
+invalid (zero score); its contact/extra-landing failures remain in the report.
+The historical and current contracts must not be presented as agreeing.
+
+All runs used the standard allowance (3,571,700–4,115,700 physics frames).
+Twenty recordings use the reviewed spec revision `a9830c77`; the two entrance
+revisions use `f04ae7fb`. Older artifacts retain their original identities.
+
+Selected seeds (the reasons for non-headline choices are in `selection.json`):
+
+| Recording | Seed |
+|---|---:|
+| LOS VOLTAJE | 202 |
+| LUNA BALA (Slowed) | 303 |
+| MONTAGEM TOMADA (Slowed) | 101 |
+| Amor Na Praia | 202 |
+| LOS VOLTAJE (Slowed) | 101 |
+| FUNK ESTRANHO (Super Slowed) | 303 |
+| PASSO BEM SOLTO (Slowed) | 202 |
+| MXZI — MONTAGEM TOMADA (Extended) | 202 |
+| LUNA BALA | 202 |
+| MONTAGEM TOMADA (Super Slowed) | 202 |
+| PASSO BEM SOLTO | 202 |
+| LOS VOLTAJE (Ultra Slowed) | 303 |
+| PASSO BEM SOLTO (Super Slowed) | 202 |
+| FUNK DO BOUNCE (Super Slowed) | 202 |
+| Dernière danse × Montagem Coral | 202 |
+| ANDROMEDA — MONTAGEM COMA | 101 |
+| NO BATIDÃO | 202 |
+| NO BATIDÃO (Slowed) | 202 |
+| LUA NA PRAÇA | 101 |
+| Chris Grey — LET THE WORLD BURN | 101 |
+| Bones | 202 |
+| Petrunko | 202 |
+
+
+Final validation: 359 tests across 82 files passed; type checking passed and
+reachability reports zero unreachable files. All 22 specification dashboards
+loaded verified evidence and exercised playback. All 22 selected native-player
+pages loaded, played, paused and sought without JavaScript errors. The actual
+collection's next/previous navigation and 390 px phone layout passed, with no
+horizontal document overflow. Screenshots are retained for visual inspection;
+these checks do not substitute for auditory listening.
+
+VPN collection:
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-review/collection.json`
+
+Alternate seeds:
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-review/all-candidates.json`
+
+
+### Second listening pass: quieter articulation and clearer leads
+
+The owner's listening feedback changes the authoring emphasis: quiet does not
+mean featureless. Follow distinct secondary percussion and upper-instrument
+figures with gentle impacts; retain deliberate space and a clear foreground.
+The original collection remains intact for comparison. No compiler, detector,
+benchmark, audio timing or scoring-contract change is part of this revision.
+
+The author revisited all 22 compositions. One read-only reviewer checked
+analogous opportunities in other songs; its suggestions were checked against
+source-specific peak/rise evidence. Neither review claims auditory access.
+In particular, a previously suggested Dernière closing "drum roll" is actually
+represented in the other-instrument stem: it is authored as such. Low rise alone
+is not a reason to reject a vocal gesture, and high peak alone does not identify
+a new attack. A one-off inspection table now displays both, plus the nearest
+existing contact, avoiding the earlier peak/rise ambiguity.
+
+| Recording | Decision |
+|---|---|
+| LOS VOLTAJE | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| LUNA BALA (Slowed) | Extend the ambition of the Luna reading into the instrumental body, without filling the genuinely empty early break. |
+| MONTAGEM TOMADA (Slowed) | Apply the owner’s quiet-articulation feedback to the early drum/upper call-and-response; retain the later vocal breath. |
+| Amor Na Praia | Owner requests more gentle distinct opening beats. Preserve the later full return; give the quiet instrumental figure its own lighter movement. |
+| LOS VOLTAJE (Slowed) | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| FUNK ESTRANHO (Super Slowed) | Owner wants more ambition from 10.8 s: foreground the increasingly articulated upper figure, then voice and the strong bass return. |
+| PASSO BEM SOLTO (Slowed) | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| MXZI — MONTAGEM TOMADA (Extended) | Retain: successful two-return story and upper-figure breath. The shorter variants gain early replies, not a blanket change across every version. |
+| LUNA BALA | Owner requests more ambition overall: distinct upper and bass counter-rhythms across the bodies, clearer opening melodic turn, and an intact vocal break before the last return. |
+| MONTAGEM TOMADA (Super Slowed) | Revisit the opening counterpart of the Slowed call-and-response. Keep the later vocal breath and strong return. |
+| PASSO BEM SOLTO | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| LOS VOLTAJE (Ultra Slowed) | Retain: preserve the praised voice-to-instrument alternation. Similar percussion under the voice is deliberately background, not missing coverage. |
+| PASSO BEM SOLTO (Super Slowed) | Retain: voice-led phrases, instrumental replies and the revised vocal call into the last return remain coherent with the owner’s feedback. |
+| FUNK DO BOUNCE (Super Slowed) | Retain the changing voice/bass/drum/upper leads; acknowledge one quiet pickup while preserving the suspension. |
+| Dernière danse × Montagem Coral | Preserve the sustained vocal ride; give the closing instrumental phrase its two clear accents and a softer final reply. |
+| ANDROMEDA — MONTAGEM COMA | Owner identifies a light but distinctive 9.5–19 s passage. Rebalance its upper figure and quiet details, preserving the clear vocal calls and eventual drum return. |
+| NO BATIDÃO | Owner hears unclear voice following in the opening. Recompose from the vocal attack estimates with phrase accents and lighter turns; preserve the later staged instrumental return. Add the distinct pre-bass instrumental stab. |
+| NO BATIDÃO (Slowed) | Preserve the drum-led opening of this different excerpt. Add the distinct pre-bass instrumental stab. |
+| LUA NA PRAÇA | Retain exactly: owner praises the long central ride and overall interpretation. No new contacts in the quiet middle. |
+| Chris Grey — LET THE WORLD BURN | Retain the dramatic chorus and voice-alone ending, completing two supported articulations in the final exposed phrases. |
+| Bones | Owner hears missing instrumental gestures. Add the bridge bass and secondary drum pattern while retaining the vocal story and natural ending. |
+| Petrunko | Retain exactly: owner describes it as perfect; instrumental reading and suspension are coherent. |
+
+
+Second-pass generation used three standard-budget seeds (101, 202, 303) per
+recording, plus two double-budget attempts for the denser original Luna. All 68
+attempts completed and qualified with no missing requested contacts. Larger
+budget did not improve Luna: standard seed 202 remains the closest of the five,
+with normalized strength RMS 0.215. This is a remaining realization limitation,
+not grounds to weaken the musical request or claim perfect synchronization.
+
+All nine unchanged interpretations reproduce the previous selected track hashes
+exactly. The old collection is preserved. Selection considers timing, requested
+strength, extra knocks and the authored motion; it is not automatic headline
+maximization. The full candidate records and reasons remain under
+`generated/music-library-round2/{results,choices,selection}.json`.
+
+| Recording | Selected seed |
+|---|---|
+| LOS VOLTAJE | 202 |
+| LUNA BALA (Slowed) | 202 |
+| MONTAGEM TOMADA (Slowed) | 101 |
+| Amor Na Praia | 202 |
+| LOS VOLTAJE (Slowed) | 101 |
+| FUNK ESTRANHO (Super Slowed) | 101 |
+| PASSO BEM SOLTO (Slowed) | 202 |
+| MXZI — MONTAGEM TOMADA (Extended) | 202 |
+| LUNA BALA | 202 |
+| MONTAGEM TOMADA (Super Slowed) | 101 |
+| PASSO BEM SOLTO | 202 |
+| LOS VOLTAJE (Ultra Slowed) | 303 |
+| PASSO BEM SOLTO (Super Slowed) | 202 |
+| FUNK DO BOUNCE (Super Slowed) | 202 |
+| Dernière danse × Montagem Coral | 202 |
+| ANDROMEDA — MONTAGEM COMA | 101 |
+| NO BATIDÃO | 101 |
+| NO BATIDÃO (Slowed) | 101 |
+| LUA NA PRAÇA | 101 |
+| Chris Grey — LET THE WORLD BURN | 101 |
+| Bones | 202 |
+| Petrunko | 202 |
+
+The export review exposed a real reporting mismatch: the production video
+overlay still replayed the retired impact ruler. It now reads the verified saved
+current impact account, preserves its one-to-one matches and missing contacts,
+and times effects from measured onsets. No new detection or matching occurs
+during rendering. Current normalized strength is never presented as legacy raw
+px/frame. Standalone historical rendering retains its explicitly labeled ruler.
+Three focused tests cover matches, invalid references and effect onset.
+
+Validation: 362 tests across 83 files pass; type checking passes; reachability
+reports 314 live files and zero unreachable files. Judge parity passes all 33
+tracks. Compile parity retains the existing 47 saved-reference mismatches, but
+all 63 actual track hashes and physical-frame counts exactly match the retained
+pre-change compiler baseline. No parity references were updated.
+
+All 22 native players and specification dashboards exercised playback without
+JavaScript errors. The served specifications match the edited contact times and
+strengths exactly. Browser checks and source evidence support the review; they
+do not replace the owner's listening judgment.
+
+All 22 selected rides now have full 1080 × 1920, 60 fps vertical videos through
+the established camera, spectrum and effects recipe. Each full video and excerpt
+passed stream checks and complete decoding; saved track/input identities and
+video checksums were verified. All 22 finished videos play in the phone-sized
+dashboard without JavaScript errors or horizontal overflow. Early and late
+sample frames were inspected for every video; these are visual spot checks, not
+a claim of full auditory review.
+
+Second-pass collection (native tracks and finished-video downloads):
+`http://10.77.77.1:8770/motion-gallery/production.html?collection=/generated/music-library-round2/collection.json`
+
+The specification dashboard serves the revised compositions at their existing
+paths, for example `/spec-dashboard/?spec=productions/bones_selection/spec.ts`.
+The original collection remains at `/generated/music-library-review/collection.json`.
+
+Render timing evidence is retained in `generated/music-library-round2/render-timings.json`.
+Under the concurrent batch load (up to six render jobs, three Remotion workers
+each), median native ride rendering was 239.5 s and compositing was 710.5 s.
+Muxing and overlay-data preparation each took under a second at the median.
+These are not isolated single-video latency measurements.

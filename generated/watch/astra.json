@@ -1,0 +1,101 @@
+{
+ "title": "The second set of specifications (Codex): five to watch first",
+ "description": "Five songs from the set Codex wrote and then reviewed (branch specs/astra): the new specification against the song’s current one, whole videos. The choice of five and the notes are the reviewing agent’s, made from measured data and from watching rides, not from listening.",
+ "groups": [
+  {
+   "id": "all",
+   "label": "All",
+   "variants": [
+    "astra",
+    "current"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "bones_selection",
+   "label": "Bones",
+   "description": "Bones. Codex’s reviewer says to watch: the complete fill triples and the four sung phrase endings: the foreground should be obvious without following every word. Both videos have the same look and zoom lane.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/bones_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/bones_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "montagem_coma_selection",
+   "label": "Montagem Coma",
+   "description": "Montagem Coma. Codex’s reviewer says to watch: the short raps in the gaps and the sustained middle melody, then whether the final burst has force without an invented crescendo. Both videos have the same look and zoom lane.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/montagem_coma_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/montagem_coma_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "passo_bem_solto_slowed_selection",
+   "label": "Passo Bem Solto slowed",
+   "description": "Passo Bem Solto slowed. Codex’s reviewer says to watch: the long held note, the naked call, and the return near 39.9 s, now carried by drums with a few low replies. Both videos have the same look and zoom lane.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "let_the_world_burn_selection",
+   "label": "Let the World Burn",
+   "description": "Let the World Burn. Codex’s reviewer says to watch: the long flight on the held high note while drums stay audible underneath, and the quiet grounded ending. Both videos have the same look and zoom lane.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/let_the_world_burn_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/let_the_world_burn_selection-current.mp4"
+    }
+   ]
+  },
+  {
+   "id": "no_batidao_slowed_selection",
+   "label": "No Batidão slowed",
+   "description": "No Batidão slowed. Codex’s reviewer says to watch: the sparse middle changing to the low singer, then the handoff to the final upper and drum instrumental. Both videos have the same look and zoom lane.",
+   "videos": [
+    {
+     "id": "astra",
+     "label": "New (Codex)",
+     "src": "/generated/videos/astra/no_batidao_slowed_selection-astra.mp4"
+    },
+    {
+     "id": "current",
+     "label": "Current spec",
+     "src": "/generated/videos/astra/no_batidao_slowed_selection-current.mp4"
+    }
+   ]
+  }
+ ]
+}

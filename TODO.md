@@ -43,10 +43,14 @@ Work that is mine:
   left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
   tree. Four loose notes at the root are untracked (the owner's).
 - **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
-- **A second set of specifications by Codex** (Astra), asked for by the owner on 2026-11-16: branch `specs/astra`,
-  worktree `~/prog/line-specs-astra`, one `variants/astra.ts` per song and a report in
-  `docs/research/astra-specs-20261116.md` there; brief and log in `generated/codex/astra-specs/`. Then a second Codex
-  run reviews it. Nothing of it replaces a spec without his marks.
+- **A second set of specifications by Codex** (Astra; asked for by the owner on 2026-11-16) is written and reviewed:
+  branch `specs/astra`, worktree `~/prog/line-specs-astra`, not pushed. 28 songs have a `variants/astra.ts` (none for
+  Petrunko, Circus, Tiki); a second Codex run reviewed all, revised 13 and rewrote 3. Its reports there:
+  `docs/research/astra-specs-20261116.md`, `docs/research/astra-review-20261117.md` (a table of verdicts; by its own
+  judgement 22 better than the current spec, 5 unclear, 1 not). None of it is checked by me or seen by the owner.
+  Five it recommends, against the current specs:
+  `/motion-gallery/video-compare.html?collection=/generated/watch/astra.json`. Nothing replaces a spec without his
+  marks; briefs and logs in `generated/codex/astra-specs/`.
 
 ## Waiting for the owner's eye
 

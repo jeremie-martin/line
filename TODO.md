@@ -59,8 +59,13 @@ Work that is mine:
   choices in `labels/studies/cuts-2026-11.jsonl`; `tools/music/passage.ts` lists passages that loop. Next, once he
   has chosen: a pilot on three songs (the cut as its own song folder with `tools/music/source.ts`, its spec, a
   video), judged before the rest.
-- **What his notes teach** goes into `docs/music-authoring.md` only after the rounds, as his words on named songs
-  and my reading marked as such: he asked for care here, a preference on some songs is not a rule.
+- **How a spec gets written** (`docs/music-authoring.md`, `REWORK.md` "what the owner's marks showed"): he says
+  what each passage follows on `/generated/concept-lab/closing/ear.html` (stems, sharpness, a few taps, the biggest
+  hits); `guides.mjs` writes the guide; the author makes the ride and its strengths; he hears the landings as clicks
+  on the same page, then the video. Not yet used by him. Open: a chopped voice (Amor na Praia 46 s) is not
+  separated well by anything measured; a fast voice (4 to 6 syllables a second) and big hits compete for the
+  rider; the bar estimate is unverified on new songs; everything rests on five similar marked songs. No rule about
+  his taste goes into the docs from single songs or remarks.
 
 ## Waiting for the owner's eye
 

@@ -121,8 +121,9 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     const shown = frameAt.turned(t, look) ? 0 : t;
     const r = rideTime(shown, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
-    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, tune?.carry ? tune : TUNES[look.hits]);
     const v = frameAt(t, at, look);
+    // a hit's split, boost and movement belong to the ride's view: they fade as the camera leaves it for the whole course
+    const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate * (1 - v.over), tune?.carry ? tune : TUNES[look.hits]);
     // rising to that view, the colours go to the opening's (a ride that ends intense, or in its drop, has others)
     const colours = v.unink > 0 ? coloursBetween(themeAt(shown, intensity, look), themeAt(0, levelAt(0), look), v.unink) : themeAt(shown, intensity, look);
     let titleBox = null; // only the title drawn in this frame gets its smaller split

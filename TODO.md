@@ -24,7 +24,6 @@ His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What rem
      the two Trouble files found are other versions). Looking for a loop point from the song's own opening instead
      of a lead-in finds nothing on these seven: their endings do not resemble their openings;
    - a new song's excerpt should be chosen on a bar line that leads into its start;
-   - a hit in the ending still splits the colours of the whole-course view;
    - the speed measure on the page is not checked against his eye; settings he saves go to
      `labels/studies/bookends-2026-11.jsonl`.
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;

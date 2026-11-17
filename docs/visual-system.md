@@ -29,6 +29,7 @@ These are fixed for all themes (`look.js` `V1`):
   - *Picture.* Rising to that view, the ink returns to pencil and the colours go to the opening's; past it,
     everything drawn is the ride's first moment under the camera's way down (`frameAt.turned`, `picture.js`). So the
     last frame is the first frame: camera, course, rider, colours, sun or title. Only the band stays on the clock.
+    A hit's split, boost and movement fade as the camera rises: they belong to the ride's view.
   - *Sound.* A video plays its song's looping recording (`scripts/video/loop_audio.ts`). It ends where the music is
     in step with what leads into its start: up to 3 s before the excerpt's end, where the rhythm of its last six
     seconds matches the rhythm of the full recording's lead-in to the excerpt (the excerpts were cut at round

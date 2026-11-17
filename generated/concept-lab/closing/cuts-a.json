@@ -1,0 +1,122 @@
+{
+  "amor_na_praia_46s": {
+    "comment": "Only three loopable passages exist (0.52-0.56, decent at best). The 4.46 burst, the hardest 808, is before the 6 s limit, so every cut loses it, along with the weak voice intro he criticised (0-5 s). Must keep: the groove entry at 9.12 and the short sung 'hey' hole at 26.3-26.7, the middle's only real change.",
+    "cuts": [
+      {"start": 6.73, "end": 41.93, "match": 0.56, "why": "Opens inside the exposed breath phrase (voice and dry 808 in the spaces), and the full groove lands 2.4 s in at 9.12: the only calm-then-intense shape this song offers. Contains both grooves and the 26.3 hey/return. It ends inside groove 2 before the fade, so its three last vocal articulations are lost. The first two seconds are sparse; the data can't tell me whether the 6.73 onset is a strong 808 or a soft one."},
+      {"start": 9.06, "end": 44.26, "match": 0.52, "why": "Starts right on the groove entry (9.125), so the first beat is a firm hit. It contains the whole first groove, the hey hole and groove 2, and ends in the fade on the 43.4-44.3 vocal articulations just before the soft 44.34 kick. The loop runs from that thinning end back into the full groove, which gives some contrast. Otherwise it is mostly one even groove (loudness stays 5-6 from 9 to 43 s)."},
+      {"start": 14.69, "end": 45.49, "match": 0.56, "why": "Shortest (30.8 s): mid-groove to the fade's last bass swell and upper reply. The loop drops from the dwindling fade into the groove, a clear contrast. But the opening is an ordinary groove bar with nothing marking the start, and it loses the groove entry."}
+    ]
+  },
+  "amor_na_praia_selection": {
+    "comment": "From 19.64 to 58 s the music is one unchanging groove (he found the spec 'a bit boring' through it), so a short should spend as little time there as possible. Must keep the run-up (17.2-19.6: three bare drum strokes with voice) and the 19.64 return. The quiet opening figure can go.",
+    "cuts": [
+      {"start": 15.77, "end": 48.41, "match": 0.54, "why": "Opens on the last isolated answers (heavy percussion with voice), goes through the bare run-up at 17.2 and the return at 19.64 within 4 s, then 29 s of groove. It ends after the 39.78 LAST PHRASES change, so the more continuous voice is in. It includes 15.77-16 of the 10-16 passage he called weak, and loses the last 10 s of the same groove, which is no loss."},
+      {"start": 9.82, "end": 53.73, "match": 0.24, "why": "Starts on the 9.88 heavy percussion hit, the loudest single attack in the file (loud 9). That is the strongest opening available. Then the isolated answers, run-up and return. The loop is weak (0.24) and the cut is long (43.9 s), and it contains the whole 10-16 passage he called weak. Offer it only if he wants the hit as the hook and the spec's 10-16 is improved."},
+      {"start": 25.21, "end": 59.38, "match": 0.63, "why": "Best loop, but all groove: it starts mid-return and runs to the 58.07 release and the last voice attacks. It has no run-up and no calm, so it is 34 s of the same texture, the 'boring' stretch. Included as the loop-safe fallback only."}
+    ]
+  },
+  "amour_de_ma_vie_108s": {
+    "comment": "Two different shorts are possible: the dance half (peak 25.25, fill 44.26, groove B 46.58, the busiest mid levels of the file at 40-49 s) or the chill vocal half (65-105 s). He calls it a chill song, so the second is a real alternative. The weak voice intro (0-4 s) is excluded by every cut.",
+    "cuts": [
+      {"start": 23.68, "end": 54.34, "match": 0.66, "why": "Opens on the 23.59 bass pickup and the word over the 24.24 kick (the one-bar break). The peak returns with more force 1.6 s in, which makes a strong, clear opening. Contains the eased groove after 36.6, the whole snare/tom fill at 44.26 (which the 44 s cut ends on) and 8 s of groove B. Loses groove A's exposed answers and the quiet half. Mostly intense: its only calm is the break itself."},
+      {"start": 14.17, "end": 54.17, "match": 0.64, "why": "Longer (40 s): adds the double-snare hook entry at 17.87 and the held G4 phrase before the break, so the break→peak contrast happens inside the cut, not at its start. Same fill and groove B ending. It opens mid groove A, which is less striking than the first cut's opening."},
+      {"start": 74.36, "end": 107.63, "match": 0.71, "why": "The chill alternative and the best loop: sung breakdown phrases over bass, the rising 87.6-88.7 line, light drums from 89.23, the closing phrases and the fade. The shape runs calm→gentle lift→fade. The opening is quiet voice, with no attention grab in the first two seconds, and it drops the dance groove entirely. Loudness 2-3 throughout; I can't judge from the data whether it holds attention."}
+    ]
+  },
+  "amour_de_ma_vie_44s": {
+    "comment": "At 44.5 s the whole song fits. Kept whole, it is the strongest version: the voice intro gives the only calm, the drums enter at 3.25 and it ends on the fill's first snare. Its loop point (fill into the voice intro, from silence at 0) cannot be measured by the tool, and the spec's first 4 s were what he called weak. The cuts below trade the intro for a measured loop.",
+    "cuts": [
+      {"start": 7.04, "end": 44.37, "match": 0.49, "why": "Nearly the whole song (37.3 s): loses the voice intro he called weak and the first bars of the drum figure. It keeps the exposed vocal answers, the 17.87 double-snare hook, the held G4, the 23.6-25.25 break and peak, the late words at 35.4/39.7, and ends on the fill's first snare as the song does. It opens mid groove A without a marked event."},
+      {"start": 11.06, "end": 43.06, "match": 0.62, "why": "Best loop, 32 s. The hook entry at 17.87 comes 6.8 s in, and it contains the break, the peak and both late words. It stops just before the fill, so the busiest moment (mid 8-9 around 40-45 s) is only partly in. The opening is an ordinary groove bar."},
+      {"start": 9.75, "end": 41.75, "match": 0.61, "why": "Same material shifted 1.3 s earlier, with a little more of groove A's exposed answers and less of the run into the fill. Use it if the start of 11.06 feels arbitrary."}
+    ]
+  },
+  "believer_78s": {
+    "comment": "The short must contain the break (46.51, the drums stop) and the 'Pain!' chorus at 48.43; the pre-chorus is the build. Loops are excellent around the build (0.88-0.97). The one that also holds most of the chorus is weaker (0.58-0.64). 15.98-60.14 (0.97, 44.2 s) is the near-perfect loop if he wants all of verse 2 as well.",
+    "cuts": [
+      {"start": 24.83, "end": 59.39, "match": 0.88, "why": "Held notes of verse 2, the whole pre-chorus ('I was broken from a young age'), the break and 11 s of chorus, so the shape is build→stop→explosion. The loop is near-perfect. It opens mid-bar on the stomp, so the hook is the stomp rhythm itself, not an event. It loses most of the chorus, including the second percussion layer that enters from bar 32 (~61.9 s)."},
+      {"start": 30.59, "end": 74.75, "match": 0.64, "why": "Opens half a second before the pre-chorus downbeat (31.15) and takes the whole pre-chorus, the break and 26 s of chorus, including the bar-32 extra percussion. This gives the most chorus, and the pre-chorus→break→chorus arc is intact. It is long (44.2 s) and the loop is decent rather than seamless."},
+      {"start": 40.15, "end": 74.7, "match": 0.58, "why": "Chorus-heavy and in his preferred length (34.6 s): the last 6 s of pre-chorus, the break at 6.4 s, then 26 s of chorus. It reaches the payoff fastest. The build is mostly gone, so the calm/intense contrast rests on the 2 s break alone."}
+    ]
+  },
+  "bones_selection": {
+    "comment": "No good loop exists: the best match is 0.40 and every cut containing both the 15.2 pickup and the 49.9 close is 0.36 or worse. The short should keep the pickup→chorus opening (17.36, 'opens hard') and ideally the final fill with its strongest stroke near 49.5. The quiet spoken opening (0-8.6) can go. He found the spec off-beat at 17-20 s.",
+    "cuts": [
+      {"start": 10.68, "end": 53.95, "match": 0.36, "why": "The whole arc: voice over the sustained bass, the four sharpening pickups and three drums at 15.3-17.4, then the entire chorus with its lower held-voice middle (34-42.6), last fill, strongest stroke and closing word. It ends in the real decay, so the loop goes from near-silence back to voice and bass, which restarts the song rather than continuing a beat. The match is weak and it is long (43.3 s). The first 2 s are quiet."},
+      {"start": 21.25, "end": 51.25, "match": 0.4, "why": "The best loop available (still weak), 30 s, chorus only. It skips the 17-20 passage he found off-beat and runs to the final fill, last heavy stroke and 50.3/50.5 release. Its only contrast is the lower held voice at 34-42.6, so it loses the speech→chorus change of scale that is the song's point."},
+      {"start": 6.42, "end": 40.23, "match": 0.38, "why": "Calm-first shape: 2 s of close speech, then the bass entries, the pickup and the chorus opening 11 s in. It ends inside the chorus's lower held section, so the last phrase, final fill and strongest stroke are lost. The opening is quiet speech, the weakest possible hook."}
+    ]
+  },
+  "circus_minimus_77s": {
+    "comment": "Must contain the hook (38.48, the loudest voice; the voice-drums reading he approved) and the 49.73 break into the 51.28 re-entry. These loop very well (0.77-0.86). The 808 intro and most of the verse can go.",
+    "cuts": [
+      {"start": 36.2, "end": 74.6, "match": 0.86, "why": "Opens on the busy hats groove with the 37.88/38.28 snare pickups, and the hook arrives 2.3 s in. Then the three legato hook phrases, the break (bass gone, voice and synth: the calm), the 51.28 re-entry and the full groove including the rising vocal run 68.1-68.9, its high point. Shape: busy→smooth hook→calm→everything. 38.4 s. It loses only the last bar."},
+      {"start": 31.69, "end": 63.69, "match": 0.77, "why": "Shorter (32 s): it opens on the 31.49/31.88 snare pickup inside the only vocal hole of the drummed sections, a clear event to start on. Then groove, hook, break and 12 s of full groove. It loses the 68 s vocal run."},
+      {"start": 20.31, "end": 52.31, "match": 0.7, "why": "Takes the verse's short sung phrases and the hats entry at 25.68 as the build, then the hook and the break. It ends 1 s after the re-entry, so the loop jumps from the bass slam back to the verse. That may feel abrupt, though the match says the rhythm lines up. It has very little full groove."}
+    ]
+  },
+  "funk_do_bounce_super_slowed_selection": {
+    "comment": "The spec he praised most strongly ('SUCH a good spec'). The song's events are the roll (8.3), the suspension with its three exposed calls (18.8) and the drum arrival (20.48), then the upper-line takeover (29.2). The weak voice opening (0-4 s) is excluded anyway. Loops are decent at best (0.64).",
+    "cuts": [
+      {"start": 14.94, "end": 53.96, "match": 0.64, "why": "Opens in the bass-led restart. The suspension and the drum arrival come within 6 s, then the upper takeover with its high replies after each drum, the broad upper phrase answered by bass (with the 44.3/44.4 double low answer), and the first part of the small decaying figure. Shape: bass→hush→drums→melody→thinning. 39 s. Loses the voice opening and the roll."},
+      {"start": 20.43, "end": 57.03, "match": 0.49, "why": "Starts exactly on the drums arriving (20.48): the strongest possible first second. It runs to the end of the small upper figure in the decay, so the loop goes from that thin tail straight into the drum arrival, which gives a big contrast each cycle. 36.6 s. Loses the suspension's calls and the roll."},
+      {"start": 7.27, "end": 52.12, "match": 0.37, "why": "Everything that matters in 44.9 s: the last voice turns, the full roll at 8.3, bass restart, suspension, drums, takeover and upper figure. The loop is weak and the cut is at the length limit. Choose it if he wants the roll."}
+    ]
+  },
+  "funk_estranho_super_slowed_selection": {
+    "comment": "The bass return at 21.49 is the drop, and he praised the spec's change of reading after it. But from there to 57.1 it is one unbroken low motor, so a cut that is mostly motor will be samey. The best cuts take some voice or upper-figure build before the drop. The early dissolve (3.4-7.9, near silence) can go.",
+    "cuts": [
+      {"start": 17.17, "end": 48.85, "match": 0.88, "why": "Opens on the voice with drum replies and the closing percussion fill. The bass drops 4.3 s in, followed by 27 s of the motor with its light 30.5 dip. Shape: voice→drop→motor. Very good loop, 31.7 s. Loses the upper-figure build and the last 8 s of the same motor (no loss). For a bit more build at a 0.77 match, 14.62-46.30 adds the 12.4-17 upper figure."},
+      {"start": 20.28, "end": 51.96, "match": 0.88, "why": "The drop lands 1.2 s in, which makes the hardest-hitting opening. Each loop replays the pre-drop fill into the drop. After that it is 30 s of the motor: the most intense option and the least shaped."},
+      {"start": 6.14, "end": 37.82, "match": 0.68, "why": "The full build: faint ticks, upper calls, the main upper figure, voice, then the drop 15 s in and 16 s of motor. Half calm, half intense. The opening is near-silent upper ticks (loudness 1-2), which risks losing viewers in the first seconds."}
+    ]
+  },
+  "let_the_world_burn_selection": {
+    "comment": "He loved how dreamy the second part is (held vocal 24.46-44.9, then voice alone). The short should pair the drum chorus with that dreamy held line. Loops that keep the chorus are decent (0.6). Loops that reach the bare-voice section (45-57) are poor (under 0.2), because the ending has no rhythm to match.",
+    "cuts": [
+      {"start": 11.4, "end": 44.94, "match": 0.64, "why": "13 s of the drum chorus, then the whole dreamy part: the long held G4 arc, the high C5 line from 34.15 rearticulating at 39.1, and the three last drum answers at 43.5-44.7 that bring the ride down. Those answers lead the loop back into the chorus drums. Shape: intense→dreamy→return. 33.5 s. Loses the bare-voice tail and the vocal pickup intro."},
+      {"start": 10.25, "end": 46.37, "match": 0.58, "why": "Same arc with 1 s more chorus and the first 1.4 s of the voice alone, so the ending breathes before the loop. 36.1 s, in his preferred range."},
+      {"start": 19.91, "end": 54.29, "match": 0.16, "why": "The dreamiest version: 4.5 s of chorus, then the held line, the high line and most of the bare-voice section (47.0, 50.4 breaths). The loop is poor: it goes from quiet voice into chorus drums with no rhythmic match, so treat it as a hard cut, not a seamless loop."}
+    ]
+  },
+  "los_voltaje_selection": {
+    "comment": "The shape is built in: quiet voice in space (7-15.6), build, a rapid vocal pickup, then full drums at 23.92, with the brighter upper phrase from 32.6 and the second wave at 40.47. Loops are excellent. The opening groove tail (0-7) can go.",
+    "cuts": [
+      {"start": 7.17, "end": 48.54, "match": 0.93, "why": "Starts as the voice enters the space and contains the calls, the build, the rapid pickup, the 23.92 return and 8 s of the second wave. The loop goes from full drums back to the bare voice. Has the most contrast. 41.4 s, the longest; the first 2 s are quiet voice over bass and pad, a weaker hook."},
+      {"start": 6.55, "end": 39.64, "match": 0.96, "why": "Near-perfect loop, 33.1 s: the last half-second of groove tail dropping into the voice, then the same calm→build→drop. It ends before the second wave, so it loses the 40.47 accent, but the brighter upper phrase from 32.6 is in."},
+      {"start": 18.7, "end": 51.8, "match": 0.57, "why": "Intense version: opens on the broadening calls, the rapid pickup at 20.05, full drums 5 s in, then both waves. Little calm. Use it if the quiet voice opening proves too slow for a short."}
+    ]
+  },
+  "los_voltaje_slowed_selection": {
+    "comment": "The same structure, slowed: voice alone (4.6-13.5), phrase rise, fast pickup (18.2), return at 22.29, wider arcs from 39.27. Keep the pickup and the return. The groove tail at the start can go.",
+    "cuts": [
+      {"start": 9.48, "end": 44.5, "match": 0.6, "why": "Opens on the singer's calls with their rests, then the phrase rise with its two percussion answers, the exposed fast pickup, the drum return 13 s in and 5 s of the wider arcs. Calm→build→full. 35 s, his preferred length. The first seconds are bare voice."},
+      {"start": 6.09, "end": 49.87, "match": 0.88, "why": "Best loop, but long (43.8 s), with 16 s of voice and build before the return. It contains more of the wider-arcs section. The slow first third may be too much calm for a short."},
+      {"start": 17.03, "end": 52.05, "match": 0.53, "why": "Opens in the rising phrase. The fast pickup comes 1.2 s in and the return 5.3 s in, then the main drums and 13 s of wider arcs. This version is the fastest to the action, with little calm."}
+    ]
+  },
+  "los_voltaje_ultra_slowed_selection": {
+    "comment": "The calm-to-intense turn is the broad return at 16.29, after the quickening. Everything from about 22 s on loops near-perfectly (0.98-1.04) but is drums throughout. He said the spec from about 27 s to the end follows a mid instrument rather than the drums or voice, so every cut carries that weakness until the spec is revised.",
+    "cuts": [
+      {"start": 12.26, "end": 49.4, "match": 0.51, "why": "Opens in the quickening exposed call. The broad return lands 4 s in, then the low sentence and the last wave from 37.5. Build→drop→drums. 37.1 s. About 22 s of it falls in the passage he found mis-mapped."},
+      {"start": 9.61, "end": 52.05, "match": 0.52, "why": "More of the voice phrase and the whole quickening before the return (6.7 s in), and more of the last wave. 42.4 s. It has more calm, but is long."},
+      {"start": 22.29, "end": 54.13, "match": 0.98, "why": "Seamless loop, 31.8 s, all drums: the F4 refrain answering the low drum at 27, the low sentence, every main drum of the last wave. It has no build and no calm, and it lies almost entirely in the passage whose spec he found weak."}
+    ]
+  },
+  "lua_na_praca_selection": {
+    "comment": "A song with real shape: bodies of bass and drums, short upper-line gaps, a long quiet middle (22-29.65, the uninterrupted slow ride praised before), drums returning bare at 29.65 and the full return at 36.92, the main accent. The best cut keeps all of that. The bare opening percussion (0-5.6, the largest drum peaks) is before the 6 s limit.",
+    "cuts": [
+      {"start": 13.73, "end": 50.1, "match": 0.88, "why": "Opens on the exposed upper line answering in the phrase gap, with the body back at 15.09. Contains the second answer, the vocal release, the whole quiet ride, the bare drum return, the two words ushering in the bass, the 36.92 full return and the 42.4 bare drums. It ends after the last body beat and closing notes. Every contrast of the song is in it; very good loop; 36.4 s."},
+      {"start": 9.91, "end": 49.91, "match": 0.57, "why": "40 s: adds the first bass-and-drum body before the gap, so there is more intensity before the quiet. The opening is mid-body, which keeps it busy from the first second. The loop is weaker."},
+      {"start": 6.06, "end": 40.61, "match": 0.49, "why": "Opens on the voice pickup with the bass body landing 1.7 s in, the best attention grab. It keeps the quiet ride and the 36.92 return, but stops 3.7 s into the final body, losing the 42.4 bare drums and the close."}
+    ]
+  },
+  "luna_bala_44s": {
+    "comment": "He called it 'extremely good', and at 44 s it fits whole. Keeping it whole is better than any cut: the voice intro's calm then the drop at 8.58 is the song's main contrast. Cuts that keep the drop loop poorly (0.22), and cuts that loop well (0.65-0.67) start after it, leaving a flat 30 s groove with only the 24.2 tom break as change.",
+    "cuts": [
+      {"start": 6.87, "end": 39.27, "match": 0.22, "why": "Keeps the drop: the end of the second vocal sentence, the drop 1.7 s in, the bass/drum dialogue, the four exposed toms at 23.9-26 and the conversational late snares. Weak loop, and it loses the collapse at 43.2 and the full legato intro."},
+      {"start": 13.31, "end": 43.83, "match": 0.67, "why": "Best loop, ending through the collapse at 43.2 back into the groove. It has the tom break (the only calm) but no drop and no voice intro, so it opens mid-groove and is nearly flat for 30 s."},
+      {"start": 7.66, "end": 40.78, "match": 0.22, "why": "The drop 0.9 s in, the fastest hook. Otherwise like the first cut; it ends 1.5 s later, nearer the last bass answers."}
+    ]
+  }
+}

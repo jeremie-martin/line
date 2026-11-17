@@ -59,6 +59,17 @@ taps, the rest as the check): the page's selection holds 4 of 4, 12 of 12 and 24
 and 73 of 91, 36 of 53, 18 of 22 and 8 of 9 of his other syllables, with 64 to 100% of its notes on a mark (Amor
 48%). Not yet judged by him, and all on five similar songs.
 
+**The guided round** (Codex, the same five songs, written from those simulated guides; `variants/guided.ts` on
+`specs/astra`, report `docs/research/guided-readings-20261118.md` there): 375 of 387 guide notes landed; asked
+strengths spread again (0.17 to 0.20) and delivered (correlation 0.93 to 0.97). Against his marks, landings found /
+of the ride's landings there on a mark: rhythm 92 / 97% (Luna), 96 / 39% (Tomada, where the voice is landed in the
+same stretches), 96 / 92% (Passo), 100 / 97% (Lua); voice 84 / 75% (Luna), 74 / 63% (Tomada), 73 / 80% (Passo),
+79 / 47% (Amor). Round 2 was 46 to 74% on rhythm and 48 to 71% on voice. This is partly circular: the guides were
+made from a tenth to a third of the same marks, so it shows the method carries a few gestures over a passage, not
+that he will like the rides. Codex asked for one thing more per passage, the note that must hit hardest: the
+board's `B`. The five `fresh.ts` no longer load (they name note times from before the 23 ms correction); their
+rides and videos stand as the record of the blind round.
+
 ## November 17: the loop reviewed as one thing (the turn, and the loop point)
 
 The owner asked for a step back on the loop as a whole: camera, sound, band. One test was applied to all three: is

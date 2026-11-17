@@ -3,7 +3,8 @@
 // bar, sections, his earlier marks, the landings of the specs that have a ride, and an author's proposed reading when there is
 // one. A passage is a time range, the stems followed in it with a least attack each, and optionally the slots of the bar that
 // count; the notes it selects are heard as clicks over the music. Taps (T) are examples: the page finds the stem and the
-// attack that explain them, or keeps only the bar slots he tapped. Saved to the study ear-2026-11, one row per save;
+// attack that explain them, or keeps only the bar slots he tapped. B marks the note at the playhead as a big hit: the few
+// moments that must hit hardest, which is all he says about strength. Saved to the study ear-2026-11, one row per save;
 // guides.mjs turns the latest rows into productions/<song>/guide.json for an author.
 import {el, loadAnswers, report, saveAnswer} from './store.mjs';
 
@@ -13,7 +14,7 @@ const $ = id => document.getElementById(id), saved = await loadAnswers(STUDY);
 const response = await fetch('/generated/lab-rides/ear.json', {cache: 'no-store'});
 if (!response.ok) {$('title').textContent = 'No data yet: run node generated/concept-lab/closing/prepare-ear.mjs'; throw new Error('ear.json is missing');}
 const {songs} = await response.json(), state = s => saved.get(s.song) ?? {answers: {}, note: ''};
-let at = Math.max(0, songs.findIndex(s => s.song === location.hash.slice(1))), passages = [], taps = [], chosen = -1, view = {t0: 0, span: 30}, clicksOn = 'followed', hear = 'mix', looping = false, pending = null, fits = null, proposed = false;
+let at = Math.max(0, songs.findIndex(s => s.song === location.hash.slice(1))), passages = [], taps = [], chosen = -1, view = {t0: 0, span: 30}, clicksOn = 'followed', hear = 'mix', looping = false, pending = null, fits = null, proposed = false, big = [];
 const canvas = $('timeline'), ctx = canvas.getContext('2d');
 const clock = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, '0')}`, clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -21,10 +22,10 @@ const clock = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(2).padStart(5, '0')
 const slotOf = (s, t) => ((Math.round(((t - s.bar.first) % s.bar.seconds + s.bar.seconds) % s.bar.seconds / s.bar.seconds * SLOTS)) % SLOTS);
 function selected(s, p, only = null) {
   const out = [];
-  for (const stem of only ?? Object.keys(p.follow)) for (const [t, attack] of s.stems[stem])
-    if (t >= p.from && t < p.to && attack >= p.follow[stem] && (!p.slots || p.slots.includes(slotOf(s, t)))) out.push({t, strength: Math.min(1, attack), stem});
+  for (const stem of only ?? Object.keys(p.follow)) for (const [t, attack, heard] of s.stems[stem])
+    if (t >= p.from && t < p.to && attack >= p.follow[stem] && (!p.slots || p.slots.includes(slotOf(s, t)))) out.push({t, strength: Math.min(1, heard / 2), stem});
   out.sort((a, b) => a.t - b.t);
-  // one sound in two stems is one note: the sharper of two within 60 ms stays
+  // one sound in two stems is one note: of two within 60 ms, the one where the mix rises more stays (strength: the mix's rise)
   const kept = []; for (const n of out) {const last = kept.at(-1); if (last && n.t - last.t < 0.06) {if (n.strength > last.strength) kept[kept.length - 1] = n;} else kept.push(n);}
   return kept;
 }
@@ -85,7 +86,7 @@ async function play(from = position()) {
 }
 const replay = () => {if (playing) void play();};
 function clickTimes(s) {
-  if (clicksOn === 'followed') return followed(s).map(n => [n.t, n.strength]);
+  if (clicksOn === 'followed') return followed(s).map(n => [n.t, big.some(v => Math.abs(v - n.t) < 0.05) ? 1.6 : 0.2 + 0.5 * n.strength]);
   if (clicksOn === 'my marks') return Object.values(s.marks).flat().sort((a, b) => a - b).map(t => [t, 0.8]);
   if (clicksOn === 'my taps') return taps.map(t => [t, 0.8]);
   return s.specs[clicksOn] ?? [];
@@ -101,7 +102,7 @@ function sounding(s, now) {
 
 // ── drawing ──
 const LEFT = 88, RULER = 26, BAND = 16, TALL = 46, THIN = 20;
-const rowsOf = s => [...STEMS.map(stem => ({kind: 'stem', stem, h: TALL})), {kind: 'followed', label: 'followed', h: 30}, {kind: 'taps', label: 'my taps', h: THIN},
+const rowsOf = s => [...STEMS.map(stem => ({kind: 'stem', stem, h: TALL})), {kind: 'followed', label: 'followed', h: 30}, {kind: 'taps', label: 'my taps', h: THIN}, {kind: 'big', label: 'big hits', h: THIN},
   ...Object.keys(s.specs).map(name => ({kind: 'spec', name, label: name, h: THIN})), ...Object.keys(s.marks).map(tag => ({kind: 'marks', tag, label: `my ${tag === 'mark' ? 'rhythm' : tag} marks`, h: THIN}))];
 const x = t => LEFT + (t - view.t0) / view.span * (canvas.clientWidth - LEFT - 8), timeAt = px => clamp(view.t0 + (px - LEFT) / (canvas.clientWidth - LEFT - 8) * view.span, 0, songs[at].seconds);
 function paint() {
@@ -135,6 +136,7 @@ function paint() {
       stroke(t, Math.min(1, attack / 1.3), COLOUR[r.stem], on === null ? 0.5 : on ? 1 : 0.16);
     } else if (r.kind === 'followed') for (const n of followed(s)) stroke(n.t, 0.35 + 0.65 * n.strength, COLOUR[n.stem]);
     else if (r.kind === 'taps') for (const t of taps) stroke(t, 1, '#1f8a4c');
+    else if (r.kind === 'big') for (const t of big) stroke(t, 1, '#c0392b');
     else if (r.kind === 'spec') for (const [t, v] of s.specs[r.name]) stroke(t, 0.3 + 0.7 * v, '#5b3fa8');
     else for (const t of s.marks[r.tag]) stroke(t, 1, '#1f8a4c');
     ctx.globalAlpha = 1; y = base + 4;
@@ -158,7 +160,7 @@ function panel() {
   if (!p) {box.replaceChildren(el('h3', {textContent: passages.length ? 'No passage chosen' : 'No passage yet'}), el('p', {className: 'hint', textContent: 'Drag across the rows to make one (or press [ where it starts and ] where it ends, while listening). Click a passage to choose it.'})); return;}
   const notes = selected(s, p), bars = (p.to - p.from) / s.bar.seconds;
   const stems = STEMS.map((stem, i) => {
-    const on = stem in p.follow, least = on ? p.follow[stem] : fits?.[stem]?.least ?? 0.8, f = fits?.[stem];
+    const on = stem in p.follow, least = on ? p.follow[stem] : fits?.[stem]?.least ?? 1, f = fits?.[stem];
     const box = el('input', {type: 'checkbox', checked: on, onchange: () => {if (box.checked) p.follow[stem] = least; else delete p.follow[stem]; changed();}});
     const slider = el('input', {type: 'range', min: 0, max: 1.5, step: 0.05, value: least, disabled: !on, oninput: () => {p.follow[stem] = +slider.value; changed(false); count.textContent = `${selected(s, p, [stem]).length} notes, attack ≥ ${(+slider.value).toFixed(2)}`;}, onchange: () => changed()});
     const count = el('small', {textContent: on ? `${selected(s, p, [stem]).length} notes, attack ≥ ${least.toFixed(2)}` : f ? `explains ${f.found} of ${f.taps} taps (${f.notes} notes at ≥ ${f.least.toFixed(2)})` : ''});
@@ -186,8 +188,8 @@ function panel() {
 function changed(redraw = true) {proposed = false; if (redraw) panel(); facts();}
 function facts() {
   const s = songs[at], n = followed(s).length, covered = passages.reduce((a, p) => a + p.to - p.from, 0);
-  $('facts').replaceChildren(...[el('div', {textContent: `${passages.length} passages over ${covered.toFixed(0)} of ${s.seconds.toFixed(0)} s, ${n} notes followed, ${taps.length} taps.`}),
-    s.reading ? el('div', {}, el('b', {textContent: 'The author’s reading: '}), s.reading.summary ?? '') : null, ...(s.reading?.questions ?? []).map(q => el('div', {}, el('b', {textContent: 'Question: '}), q))].filter(Boolean));
+  $('facts').replaceChildren(...[el('div', {textContent: `${passages.length} passages over ${covered.toFixed(0)} of ${s.seconds.toFixed(0)} s, ${n} notes followed, ${big.length} big hits, ${taps.length} taps.`}),
+    s.reading ? el('div', {}, el('b', {textContent: `${s.reading.by ?? 'Proposed'}: `}), s.reading.summary ?? '') : null, ...(s.reading?.questions ?? []).map(q => el('div', {}, el('b', {textContent: 'Question: '}), q))].filter(Boolean));
 }
 function addPassage(from, to) {
   [from, to] = [Math.min(from, to), Math.max(from, to)]; if (to - from < 0.3) return;
@@ -209,13 +211,13 @@ function show(i) {
   stop(); at = i; const s = songs[i], a = state(s).answers;
   history.replaceState(null, '', `#${s.song}`); startedFrom = 0; pending = null; fits = null;
   proposed = !a.passages && !!s.reading?.passages?.length;
-  passages = structuredClone(a.passages ?? s.reading?.passages ?? []); taps = [...(a.taps ?? [])]; chosen = passages.length ? 0 : -1;
+  passages = structuredClone(a.passages ?? s.reading?.passages ?? []); taps = [...(a.taps ?? [])]; big = [...(a.big ?? s.reading?.big ?? [])]; chosen = passages.length ? 0 : -1;
   view = {t0: 0, span: Math.min(s.seconds, 30)}; if (!(clicksOn in s.specs) && !['followed', 'none', 'my taps'].includes(clicksOn)) clicksOn = 'followed';
   $('title').textContent = s.title; $('note').value = state(s).note; $('status').textContent = '';
   menus(); panel(); facts(); progress(); rows[i].scrollIntoView({block: 'nearest'}); void buffer(file(s));
 }
 async function save() {
-  const s = songs[at], answers = {passages: passages.map(p => ({...p, notes: selected(s, p).length})), taps: taps.map(t => +t.toFixed(3)), bar: s.bar};
+  const s = songs[at], answers = {passages: passages.map(p => ({...p, notes: selected(s, p).length})), taps: taps.map(t => +t.toFixed(3)), big, bar: s.bar};
   saved.set(s.song, {answers, note: $('note').value}); report($('status'), await saveAnswer(s.song, answers, $('note').value, STUDY), `${passages.length} passages of ${s.title}`); progress();
 }
 $('save').onclick = save; $('note').onchange = save;
@@ -245,9 +247,10 @@ addEventListener('keydown', e => {
   const k = e.key.toLowerCase(), s = songs[at], p = passages[chosen];
   if (k === ' ') playing ? stop() : void play();
   else if (k === 't') {taps.push(position()); taps.sort((a, b) => a - b); facts();}
+  else if (k === 'b') {const here = position(), times = followed(s).map(n => n.t), t = times.length && Math.abs(nearest(times, here) - here) < 0.25 ? nearest(times, here) : here, i = big.findIndex(v => Math.abs(v - t) < 0.05); if (i >= 0) big.splice(i, 1); else big.push(+t.toFixed(3)); big.sort((a, b) => a - b); facts();}
   else if (k === '[') pending = position();
   else if (k === ']') {if (pending !== null) {addPassage(pending, position()); pending = null;}}
-  else if (k >= '1' && k <= '4' && p) {const stem = STEMS[+k - 1]; if (stem in p.follow) delete p.follow[stem]; else p.follow[stem] = fits?.[stem]?.least ?? 0.8; changed();}
+  else if (k >= '1' && k <= '4' && p) {const stem = STEMS[+k - 1]; if (stem in p.follow) delete p.follow[stem]; else p.follow[stem] = fits?.[stem]?.least ?? 1; changed();}
   else if (k === 'l') toggleLoop();
   else if (k === 'c') {const names = ['followed', ...Object.keys(s.specs), 'my taps', 'none']; clicksOn = names[(names.indexOf(clicksOn) + 1) % names.length]; clickedTo = position(); menus();}
   else if (k === 'arrowleft') seek(position() - 2);

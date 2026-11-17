@@ -5,7 +5,7 @@
  "bar": {
   "seconds": 4.4,
   "repeats": 0.58,
-  "first": 0.292
+  "first": 0.2
  },
  "passages": [
   {
@@ -13,203 +13,203 @@
    "to": 6.18,
    "follow": {
     "vocals": 0,
-    "other": 0.55
+    "other": 0
    },
    "notes": [
     {
-     "t": 0.348,
-     "stem": "other",
-     "attack": 1.37,
-     "heard": 0.67
+     "t": 0.418,
+     "stem": "vocals",
+     "attack": 0.88,
+     "heard": 0.73
     },
     {
-     "t": 0.842,
+     "t": 0.865,
      "stem": "vocals",
      "attack": 1.19,
      "heard": 1.12
     },
     {
-     "t": 0.969,
+     "t": 0.993,
      "stem": "vocals",
      "attack": 0.89,
      "heard": 0.83
     },
     {
-     "t": 1.103,
+     "t": 1.126,
      "stem": "vocals",
      "attack": 1.53,
      "heard": 1.3
     },
     {
-     "t": 1.312,
+     "t": 1.335,
      "stem": "vocals",
      "attack": 1.05,
      "heard": 1.04
     },
     {
-     "t": 1.416,
+     "t": 1.44,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.94
     },
     {
-     "t": 1.649,
+     "t": 1.672,
      "stem": "vocals",
      "attack": 1.16,
      "heard": 1.1
     },
     {
-     "t": 1.858,
+     "t": 1.881,
      "stem": "vocals",
      "attack": 1.03,
      "heard": 0.95
     },
     {
-     "t": 2.014,
+     "t": 2.038,
      "stem": "vocals",
      "attack": 0.78,
      "heard": 0.8
     },
     {
-     "t": 2.154,
+     "t": 2.177,
      "stem": "vocals",
      "attack": 0.89,
      "heard": 0.86
     },
     {
-     "t": 2.276,
+     "t": 2.299,
      "stem": "vocals",
      "attack": 0.77,
      "heard": 0.77
     },
     {
-     "t": 2.525,
+     "t": 2.548,
      "stem": "vocals",
      "attack": 1.78,
      "heard": 1.24
     },
     {
-     "t": 2.618,
+     "t": 2.641,
      "stem": "vocals",
      "attack": 0.78,
      "heard": 0.72
     },
     {
-     "t": 2.757,
+     "t": 2.781,
      "stem": "vocals",
      "attack": 0.99,
      "heard": 0.94
     },
     {
-     "t": 2.908,
+     "t": 2.932,
      "stem": "vocals",
      "attack": 0.91,
      "heard": 0.93
     },
     {
-     "t": 3.059,
+     "t": 3.082,
      "stem": "vocals",
      "attack": 1.91,
      "heard": 1.61
     },
     {
-     "t": 3.21,
+     "t": 3.233,
      "stem": "vocals",
      "attack": 0.84,
      "heard": 0.76
     },
     {
-     "t": 3.332,
+     "t": 3.355,
      "stem": "vocals",
      "attack": 2.56,
      "heard": 2.43
     },
     {
-     "t": 3.587,
+     "t": 3.611,
      "stem": "vocals",
      "attack": 0.9,
      "heard": 0.88
     },
     {
-     "t": 3.744,
+     "t": 3.767,
      "stem": "vocals",
      "attack": 1.06,
      "heard": 1
     },
     {
-     "t": 3.872,
+     "t": 3.895,
      "stem": "vocals",
      "attack": 0.98,
      "heard": 0.85
     },
     {
-     "t": 4.151,
+     "t": 4.174,
      "stem": "vocals",
      "attack": 1.7,
      "heard": 1.05
     },
     {
-     "t": 4.296,
+     "t": 4.319,
      "stem": "vocals",
      "attack": 0.81,
      "heard": 0.76
     },
     {
-     "t": 4.435,
-     "stem": "other",
-     "attack": 0.89,
+     "t": 4.429,
+     "stem": "vocals",
+     "attack": 0.85,
      "heard": 1.55
     },
     {
-     "t": 4.58,
+     "t": 4.603,
      "stem": "vocals",
      "attack": 1.56,
      "heard": 1.4
     },
     {
-     "t": 4.766,
+     "t": 4.789,
      "stem": "vocals",
      "attack": 1.01,
      "heard": 0.93
     },
     {
-     "t": 4.87,
+     "t": 4.894,
      "stem": "vocals",
      "attack": 0.95,
      "heard": 0.95
     },
     {
-     "t": 5.114,
+     "t": 5.137,
      "stem": "vocals",
      "attack": 0.82,
      "heard": 0.72
     },
     {
-     "t": 5.259,
+     "t": 5.283,
      "stem": "vocals",
      "attack": 1.6,
      "heard": 1.53
     },
     {
-     "t": 5.532,
+     "t": 5.555,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.82
     },
     {
-     "t": 5.671,
+     "t": 5.695,
      "stem": "vocals",
      "attack": 0.84,
      "heard": 0.89
     },
     {
      "t": 5.811,
-     "stem": "other",
-     "attack": 0.91,
-     "heard": 0.72
+     "stem": "vocals",
+     "attack": 0.86,
+     "heard": 1.13
     },
     {
-     "t": 6.084,
+     "t": 6.107,
      "stem": "vocals",
      "attack": 0.96,
      "heard": 0.92

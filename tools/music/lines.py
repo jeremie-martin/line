@@ -17,14 +17,15 @@ detector and thresholds serve every stem; nothing is tuned per song. Each note r
   attack  how sharp, as a fraction of that stem's own 95th percentile (1 = one of this stem's sharpest)
   heard   how much the whole mix rises there, on the mix's own scale: what a listener gets, whatever the stem
   loud    the stem's loudness just after, as a fraction of its own 95th percentile
-  share   the stem's part of the mix's power there (0 to 1)
+  share   the stem's part of the mix's power there (0 to 1); under 0.02 the note is dropped as leakage
 A stem is a separation, not a role: a sampled or processed voice often lands in `other`, and one audible sound can leave a
 note in two stems. Nothing here selects landings.
 
 The digest folds each block of four bars onto one bar of sixteen slots: per stem, the slots where a note returns in at least
 three of the four bars, written as its mean attack (1-9); `·` where a note falls in one or two bars. A row like
 `9...4..4..4.9...` is a figure; `9...9...9...9...` a pulse. The bar is a hypothesis: the lag (1.2 to 4.6 s) at which the
-mix's rises repeat best, with that repetition's strength printed beside it; under about 0.4, do not trust the fold.
+mix's rises repeat best (the shortest such lag), with that repetition's strength printed beside it; under about 0.4, do not
+trust the fold. Slot 0 is a beat, not necessarily the first of the bar.
 `--marks` adds the owner's marks (productions/<song>/notes.json, tags voice and mark) as rows, to check the view against
 his ear; an author reading a song for the first time leaves it off.
 """
@@ -40,6 +41,7 @@ import numpy as np
 RATE, WINDOW, HOP = 22050, 1024, 128  # Hz, samples, samples (5.8 ms)
 STEMS = ("drums", "bass", "other", "vocals")
 ABOVE, APART, SLOTS, BLOCK = 0.15, 0.09, 16, 4  # a note stands this far above its surroundings; seconds between notes
+LEAK = 0.02  # a stem holding less than this part of the mix's power on a note is another stem's leakage there
 
 
 def measure(path: str) -> tuple[np.ndarray, np.ndarray]:
@@ -53,7 +55,7 @@ def measure(path: str) -> tuple[np.ndarray, np.ndarray]:
 
 def notes(rise: np.ndarray, level: np.ndarray, mix_rise: np.ndarray, mix_level: np.ndarray) -> list[dict]:
     """The attacks of one stem (see the module text)."""
-    time = lambda i: (i * HOP + WINDOW / 2) / RATE
+    time = lambda i: (i * HOP + WINDOW) / RATE  # a rise shows when the sound enters the window's end; checked against events.json
     around, after, top, mix_top = int(0.4 * RATE / HOP), int(0.12 * RATE / HOP), np.percentile(rise, 95) or 1, np.percentile(mix_rise, 95) or 1
     found: list[dict] = []
     for i in range(3, len(rise) - 3):
@@ -62,6 +64,8 @@ def notes(rise: np.ndarray, level: np.ndarray, mix_rise: np.ndarray, mix_level: 
         loud = float(level[i:i + after].max())
         note = {"t": round(time(i), 3), "attack": float(rise[i] / top), "heard": float(mix_rise[max(0, i - 3):i + 4].max() / mix_top),
                 "loud": loud, "share": float(min(1, loud ** 2 / max(1e-12, (mix_level[i:i + after] ** 2).max())))}
+        if note["share"] < LEAK:
+            continue
         if found and note["t"] - found[-1]["t"] < APART:
             if note["attack"] > found[-1]["attack"]:
                 found[-1] = note
@@ -78,7 +82,18 @@ def bar_of(mix_rise: np.ndarray) -> tuple[float, float]:
     repeat = np.fft.irfft(spectrum * np.conj(spectrum))[:len(f)]
     lo, hi = int(1.2 * RATE / HOP), min(len(f) - 1, int(4.6 * RATE / HOP))
     k = lo + int(np.argmax(repeat[lo:hi]))
-    return k * HOP / RATE, float(repeat[k] / repeat[0])
+    # the shortest lag that repeats nearly as well: twice the bar always repeats as well as the bar
+    for part in (4, 3, 2):
+        j = int(round(k / part))
+        if j >= lo:
+            j = j - 2 + int(np.argmax(repeat[j - 2:j + 3]))
+            if repeat[j] >= 0.85 * repeat[k]:
+                k = j
+                break
+    # between hops: the top of the parabola through the peak and its neighbours, so the fold does not drift over a song
+    a, b, c = repeat[k - 1], repeat[k], repeat[k + 1]
+    fine = k + (0.5 * (a - c) / (a - 2 * b + c) if a - 2 * b + c < 0 else 0)
+    return fine * HOP / RATE, float(repeat[k] / repeat[0])
 
 
 def read(song: str) -> dict:

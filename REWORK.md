@@ -15,9 +15,9 @@ against them (within 70 ms), with two independent readings by agents
   dip before it, which a fast, chopped or legato voice does not have. Three songs (Amor na Praia 46 s, both L'amour
   de ma vie) had no separated stems at all. A quarter of his voice marks on three songs are only in the `other`
   stem, which the specs read as backing.
-- **His main rhythm is a figure that returns every bar,** chosen by its place in the bar, not by loudness: on Luna
-  Bala slowed he marks beat 1, three weaker hits and beat 4 and skips beats 2 and 3, which are as loud. Nothing in
-  the evidence showed what repeats in a bar. His marks are almost all present among the onset events (91 to 100%),
+- **His main rhythm is a figure inside one stem,** mostly its sharpest notes. On Luna Bala slowed alone it is also
+  chosen by its place in the bar (he skips beats 2 and 3, which are as loud). Nothing in the evidence showed a
+  stem's notes by sharpness, or what repeats in a bar. His marks are almost all present among the onset events (91 to 100%),
   mostly in one stem, among two to five times as many other events of that stem.
 - **Timing:** one audible note leaves two or three events up to 190 ms apart (several stems, a slow attack); a
   landing on the earliest comes about 120 ms before the beat he hears.
@@ -31,11 +31,33 @@ against them (within 70 ms), with two independent readings by agents
 - Round 2 asks a landing on 46 to 74% of his marks; the current specs on 17 to 76% (`tools/music/marks.py`).
 
 Made, as evidence and as a check, nothing fitted to the marks: `tools/music/lines.py` (the notes of every stem by
-one detector, and a fold of each four bars onto one bar; it holds 81 to 90% of his voice marks, 89% on a song it was
-not looked at on, with about 60% of its vocal notes on a mark) and `tools/music/marks.py` (a ride's landings against
-his marks: a check for after, never a target). Not solved by any measure tried: which notes of a stem are the ones
-he follows (loudness, attack and share do not separate them). Under way: a blind reading of the five songs by Codex
-with the new evidence and without his marks, to be scored against them.
+one detector, with how much the mix rises on each, and a fold of each four bars onto one bar) and
+`tools/music/marks.py` (a ride's landings against the stretches he marked, with a chance level: a check for after,
+never a target).
+
+**The blind round** (Codex, the five songs, the new evidence, no marks; `variants/fresh.ts` on `specs/astra`), read
+by a third agent (`generated/codex/astra-specs/stepback-20261118.md`):
+
+- Rhythm marks found: 87 to 97% on three songs (round 2: 58 to 74%), 66% on Lua (46%). Voice marks: 41 to 77%,
+  no better than round 2 once density is discounted. A picker with no author (the strongest mix rises, as many as
+  the ride landed) does as well: the gain came from the note list, not from the reading.
+- **Which line is in front cannot be read from the evidence.** In Tomada 0 to 22 s the blind reading rode the upper
+  hook where he follows the voice, rated itself confident, and its question for him offered two other answers.
+  Questions from the author do not find its errors; he has to hear the whole cut.
+- **What separates his notes inside the right stems:** how much the mix rises (`heard`) and the stem's own attack,
+  on every song but Amor's chopped voice. Share and level do not; bar slots only on Luna.
+- The blind rides were dense and flat: asked strengths nearly equal, and above about three landings a second the
+  ride delivers little of a hierarchy.
+- Corrected in `lines.py` after that reading: note times (23 ms early), leakage notes of a silent stem, a doubled
+  or drifting bar.
+
+**The method that follows: he says what to follow, in a few gestures.** `generated/concept-lab/closing/ear.html`:
+the stems' notes as rows; a passage, the stems ticked, a least attack, optionally bar slots, or a few taps the page
+fits; `B` for the few biggest hits; any row heard as clicks. `guides.mjs` writes `productions/<song>/guide.json`;
+`tools/music/guide.py` checks a ride against it. Simulated on his marks (two bars of a rhythm or ten syllables as
+taps, the rest as the check): the page's selection holds 4 of 4, 12 of 12 and 24 of 27 of his other rhythm marks,
+and 73 of 91, 36 of 53, 18 of 22 and 8 of 9 of his other syllables, with 64 to 100% of its notes on a mark (Amor
+48%). Not yet judged by him, and all on five similar songs.
 
 ## November 17: the loop reviewed as one thing (the turn, and the loop point)
 

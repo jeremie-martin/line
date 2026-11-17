@@ -3,9 +3,9 @@
  "saved": null,
  "note": "From a proposed reading the owner has not confirmed.",
  "bar": {
-  "seconds": 2.194,
+  "seconds": 2.195,
   "repeats": 0.68,
-  "first": 0.503
+  "first": 0.516
  },
  "passages": [
   {
@@ -13,809 +13,761 @@
    "to": 22.65,
    "follow": {
     "vocals": 0,
-    "other": 1.45
+    "other": 1.1
    },
    "notes": [
     {
-     "t": 0.07,
+     "t": 0.093,
      "stem": "vocals",
      "attack": 1.13,
      "heard": 0.84
     },
     {
-     "t": 0.261,
+     "t": 0.284,
      "stem": "vocals",
      "attack": 1.31,
      "heard": 1.06
     },
     {
-     "t": 0.354,
+     "t": 0.377,
      "stem": "other",
      "attack": 2.04,
      "heard": 1.51
     },
     {
-     "t": 0.522,
+     "t": 0.546,
      "stem": "vocals",
      "attack": 1.11,
      "heard": 0.82
     },
     {
-     "t": 0.766,
+     "t": 0.789,
      "stem": "other",
      "attack": 2.04,
      "heard": 1.47
     },
     {
-     "t": 1.074,
-     "stem": "vocals",
-     "attack": 0.86,
-     "heard": 0.89
+     "t": 1.144,
+     "stem": "other",
+     "attack": 1.4,
+     "heard": 0.96
     },
     {
-     "t": 1.173,
-     "stem": "vocals",
-     "attack": 0.89,
-     "heard": 0.6
-    },
-    {
-     "t": 1.318,
+     "t": 1.341,
      "stem": "other",
      "attack": 2.07,
      "heard": 1.54
     },
     {
-     "t": 1.457,
+     "t": 1.48,
      "stem": "vocals",
      "attack": 1.22,
      "heard": 1.07
     },
     {
-     "t": 1.596,
-     "stem": "vocals",
-     "attack": 1.18,
+     "t": 1.62,
+     "stem": "other",
+     "attack": 1.29,
      "heard": 2.19
     },
     {
-     "t": 1.73,
-     "stem": "vocals",
-     "attack": 1.21,
-     "heard": 1.14
-    },
-    {
-     "t": 1.863,
+     "t": 1.887,
      "stem": "other",
      "attack": 2.01,
      "heard": 2.1
     },
     {
-     "t": 2.003,
+     "t": 2.026,
      "stem": "vocals",
      "attack": 1.98,
      "heard": 1.03
     },
     {
-     "t": 2.223,
+     "t": 2.247,
      "stem": "vocals",
      "attack": 1.2,
      "heard": 0.67
     },
     {
-     "t": 2.316,
+     "t": 2.339,
      "stem": "vocals",
      "attack": 0.91,
      "heard": 0.6
     },
     {
-     "t": 2.456,
+     "t": 2.479,
      "stem": "vocals",
      "attack": 1.27,
      "heard": 1.09
     },
     {
-     "t": 2.554,
+     "t": 2.577,
      "stem": "other",
      "attack": 1.76,
      "heard": 1.38
     },
     {
-     "t": 2.763,
+     "t": 2.786,
      "stem": "vocals",
      "attack": 1.13,
      "heard": 0.98
     },
     {
-     "t": 2.885,
+     "t": 2.908,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.75
     },
     {
-     "t": 3.007,
-     "stem": "vocals",
-     "attack": 1.1,
-     "heard": 0.61
+     "t": 2.984,
+     "stem": "other",
+     "attack": 1.35,
+     "heard": 1.06
     },
     {
-     "t": 3.268,
+     "t": 3.349,
      "stem": "vocals",
-     "attack": 0.88,
-     "heard": 0.73
+     "attack": 0.87,
+     "heard": 0.72
     },
     {
-     "t": 3.512,
+     "t": 3.535,
      "stem": "other",
      "attack": 1.86,
      "heard": 1.25
     },
     {
-     "t": 3.651,
+     "t": 3.675,
      "stem": "vocals",
      "attack": 0.88,
      "heard": 0.6
     },
     {
-     "t": 3.785,
+     "t": 3.808,
      "stem": "other",
      "attack": 2.57,
      "heard": 2.22
     },
     {
-     "t": 3.965,
+     "t": 3.988,
      "stem": "vocals",
      "attack": 1.51,
      "heard": 1.18
     },
     {
-     "t": 4.058,
+     "t": 4.081,
      "stem": "other",
      "attack": 2.11,
      "heard": 1.74
     },
     {
-     "t": 4.342,
-     "stem": "vocals",
-     "attack": 0.93,
-     "heard": 2.86
-    },
-    {
-     "t": 4.522,
+     "t": 4.545,
      "stem": "vocals",
      "attack": 0.95,
      "heard": 0.65
     },
     {
-     "t": 4.65,
+     "t": 4.673,
      "stem": "vocals",
      "attack": 1.53,
      "heard": 1.12
     },
     {
-     "t": 4.743,
+     "t": 4.766,
      "stem": "other",
      "attack": 1.84,
      "heard": 1.62
     },
     {
-     "t": 4.888,
+     "t": 4.911,
      "stem": "vocals",
      "attack": 1.53,
      "heard": 0.84
     },
     {
-     "t": 5.155,
+     "t": 5.178,
      "stem": "other",
      "attack": 2.43,
      "heard": 1.7
     },
     {
-     "t": 5.294,
+     "t": 5.317,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.64
     },
     {
-     "t": 5.433,
+     "t": 5.457,
      "stem": "vocals",
      "attack": 1.92,
      "heard": 2.31
     },
     {
-     "t": 5.573,
+     "t": 5.596,
      "stem": "vocals",
      "attack": 0.86,
      "heard": 0.59
     },
     {
-     "t": 5.706,
+     "t": 5.73,
      "stem": "other",
      "attack": 1.74,
      "heard": 1.51
     },
     {
-     "t": 6.031,
+     "t": 6.055,
      "stem": "vocals",
      "attack": 1.06,
      "heard": 1.05
     },
     {
-     "t": 6.258,
+     "t": 6.281,
      "stem": "other",
      "attack": 1.76,
      "heard": 1.35
     },
     {
-     "t": 6.635,
+     "t": 6.658,
      "stem": "vocals",
      "attack": 1.35,
      "heard": 0.72
     },
     {
-     "t": 6.74,
+     "t": 6.763,
      "stem": "vocals",
      "attack": 0.97,
      "heard": 0.72
     },
     {
-     "t": 6.844,
+     "t": 6.867,
      "stem": "vocals",
      "attack": 1.22,
      "heard": 1.03
     },
     {
-     "t": 6.943,
+     "t": 6.966,
      "stem": "other",
      "attack": 1.98,
      "heard": 1.57
     },
     {
-     "t": 7.082,
+     "t": 7.105,
      "stem": "vocals",
      "attack": 1.74,
      "heard": 0.77
     },
     {
-     "t": 7.355,
+     "t": 7.378,
      "stem": "other",
      "attack": 2.08,
      "heard": 1.43
     },
     {
-     "t": 7.628,
+     "t": 7.651,
      "stem": "other",
      "attack": 1.97,
      "heard": 2.19
     },
     {
-     "t": 7.761,
+     "t": 7.784,
      "stem": "vocals",
      "attack": 0.89,
      "heard": 0.61
     },
     {
-     "t": 7.901,
+     "t": 7.924,
      "stem": "other",
      "attack": 1.75,
      "heard": 1.44
     },
     {
-     "t": 8.313,
+     "t": 8.336,
      "stem": "vocals",
      "attack": 0.95,
      "heard": 0.62
     },
     {
-     "t": 8.452,
-     "stem": "other",
-     "attack": 2.17,
+     "t": 8.458,
+     "stem": "vocals",
+     "attack": 0.95,
      "heard": 1.44
     },
     {
-     "t": 8.806,
+     "t": 8.829,
      "stem": "vocals",
      "attack": 1.05,
      "heard": 0.71
     },
     {
-     "t": 9.038,
+     "t": 9.062,
      "stem": "vocals",
      "attack": 1.6,
      "heard": 1.19
     },
     {
-     "t": 9.137,
+     "t": 9.16,
      "stem": "other",
      "attack": 1.94,
      "heard": 1.63
     },
     {
-     "t": 9.276,
+     "t": 9.3,
      "stem": "vocals",
      "attack": 1.57,
      "heard": 0.9
     },
     {
-     "t": 9.549,
+     "t": 9.572,
      "stem": "other",
      "attack": 2.44,
      "heard": 1.68
     },
     {
-     "t": 9.683,
+     "t": 9.706,
      "stem": "vocals",
      "attack": 0.94,
      "heard": 0.61
     },
     {
-     "t": 9.822,
+     "t": 9.845,
      "stem": "other",
      "attack": 2.1,
      "heard": 2.17
     },
     {
-     "t": 9.967,
+     "t": 9.99,
      "stem": "vocals",
      "attack": 0.91,
      "heard": 0.61
     },
     {
-     "t": 10.101,
+     "t": 10.124,
      "stem": "other",
      "attack": 1.85,
      "heard": 1.38
     },
     {
-     "t": 10.42,
+     "t": 10.443,
      "stem": "vocals",
      "attack": 1.12,
      "heard": 0.99
     },
     {
-     "t": 10.646,
+     "t": 10.67,
      "stem": "other",
      "attack": 1.67,
      "heard": 1.43
     },
     {
-     "t": 10.971,
+     "t": 10.995,
      "stem": "vocals",
      "attack": 1.22,
      "heard": 1.1
     },
     {
-     "t": 11.238,
+     "t": 11.262,
      "stem": "vocals",
      "attack": 1.54,
      "heard": 1.19
     },
     {
-     "t": 11.331,
+     "t": 11.355,
      "stem": "other",
      "attack": 2.12,
      "heard": 1.58
     },
     {
-     "t": 11.517,
+     "t": 11.54,
      "stem": "vocals",
      "attack": 1.55,
      "heard": 1.03
     },
     {
-     "t": 11.639,
+     "t": 11.662,
      "stem": "vocals",
      "attack": 0.88,
      "heard": 0.7
     },
     {
-     "t": 11.743,
+     "t": 11.767,
      "stem": "other",
      "attack": 2.04,
      "heard": 1.53
     },
     {
-     "t": 11.929,
+     "t": 11.952,
      "stem": "vocals",
      "attack": 0.85,
      "heard": 0.71
     },
     {
-     "t": 12.063,
+     "t": 12.086,
      "stem": "vocals",
      "attack": 1.13,
      "heard": 0.65
     },
     {
-     "t": 12.185,
+     "t": 12.208,
      "stem": "vocals",
      "attack": 1.14,
      "heard": 0.77
     },
     {
-     "t": 12.295,
+     "t": 12.318,
      "stem": "other",
      "attack": 1.98,
      "heard": 1.62
     },
     {
-     "t": 12.568,
+     "t": 12.591,
      "stem": "other",
      "attack": 2.21,
      "heard": 2.07
     },
     {
-     "t": 12.736,
+     "t": 12.759,
      "stem": "vocals",
      "attack": 1.32,
      "heard": 0.97
     },
     {
-     "t": 12.841,
+     "t": 12.864,
      "stem": "other",
      "attack": 2.29,
      "heard": 1.52
     },
     {
-     "t": 12.974,
+     "t": 12.997,
      "stem": "vocals",
      "attack": 0.87,
      "heard": 0.63
     },
     {
-     "t": 13.16,
-     "stem": "vocals",
-     "attack": 1.27,
-     "heard": 0.89
+     "t": 13.142,
+     "stem": "other",
+     "attack": 1.43,
+     "heard": 2.56
     },
     {
-     "t": 13.293,
+     "t": 13.317,
      "stem": "vocals",
      "attack": 1.02,
      "heard": 0.68
     },
     {
-     "t": 13.433,
+     "t": 13.456,
      "stem": "vocals",
      "attack": 1.2,
      "heard": 0.88
     },
     {
-     "t": 13.526,
+     "t": 13.549,
      "stem": "other",
      "attack": 1.8,
      "heard": 1.53
     },
     {
-     "t": 13.7,
+     "t": 13.723,
      "stem": "vocals",
      "attack": 1.07,
      "heard": 0.73
     },
     {
-     "t": 13.868,
+     "t": 13.891,
      "stem": "vocals",
      "attack": 0.93,
      "heard": 0.78
     },
     {
-     "t": 13.938,
+     "t": 13.961,
      "stem": "other",
      "attack": 1.89,
      "heard": 1.55
     },
     {
-     "t": 14.187,
+     "t": 14.211,
      "stem": "vocals",
      "attack": 0.85,
      "heard": 0.69
     },
     {
-     "t": 14.298,
-     "stem": "vocals",
-     "attack": 0.91,
+     "t": 14.315,
+     "stem": "other",
+     "attack": 1.14,
      "heard": 0.97
     },
     {
-     "t": 14.489,
+     "t": 14.512,
      "stem": "other",
      "attack": 2.25,
      "heard": 1.52
     },
     {
-     "t": 14.634,
+     "t": 14.658,
      "stem": "vocals",
      "attack": 1,
      "heard": 0.94
     },
     {
-     "t": 14.768,
-     "stem": "vocals",
-     "attack": 0.85,
-     "heard": 1.83
-    },
-    {
-     "t": 14.959,
-     "stem": "vocals",
-     "attack": 0.84,
-     "heard": 0.56
-    },
-    {
-     "t": 15.041,
+     "t": 15.064,
      "stem": "other",
      "attack": 2.06,
      "heard": 2.29
     },
     {
-     "t": 15.18,
-     "stem": "vocals",
-     "attack": 0.97,
-     "heard": 0.94
-    },
-    {
-     "t": 15.395,
+     "t": 15.418,
      "stem": "vocals",
      "attack": 1.3,
      "heard": 0.7
     },
     {
-     "t": 15.488,
+     "t": 15.511,
      "stem": "vocals",
      "attack": 0.97,
      "heard": 0.71
     },
     {
-     "t": 15.633,
+     "t": 15.656,
      "stem": "vocals",
      "attack": 1.08,
      "heard": 0.91
     },
     {
-     "t": 15.726,
+     "t": 15.749,
      "stem": "other",
      "attack": 1.81,
      "heard": 1.46
     },
     {
-     "t": 15.894,
+     "t": 15.917,
      "stem": "vocals",
      "attack": 1.08,
      "heard": 0.65
     },
     {
-     "t": 15.993,
+     "t": 16.016,
      "stem": "vocals",
      "attack": 0.89,
      "heard": 0.74
     },
     {
-     "t": 16.138,
+     "t": 16.161,
      "stem": "other",
      "attack": 1.59,
      "heard": 1.07
     },
     {
-     "t": 16.457,
+     "t": 16.44,
      "stem": "vocals",
-     "attack": 0.91,
-     "heard": 0.73
+     "attack": 0.86,
+     "heard": 0.98
     },
     {
-     "t": 16.689,
+     "t": 16.713,
      "stem": "other",
      "attack": 1.91,
      "heard": 1.48
     },
     {
-     "t": 16.829,
-     "stem": "vocals",
-     "attack": 1.25,
-     "heard": 0.93
-    },
-    {
-     "t": 16.968,
-     "stem": "vocals",
-     "attack": 1.09,
-     "heard": 1.9
-    },
-    {
-     "t": 17.101,
-     "stem": "vocals",
-     "attack": 1.13,
-     "heard": 1.05
-    },
-    {
-     "t": 17.235,
+     "t": 17.258,
      "stem": "other",
      "attack": 2.37,
      "heard": 2.7
     },
     {
-     "t": 17.589,
+     "t": 17.612,
      "stem": "vocals",
      "attack": 1.29,
      "heard": 0.73
     },
     {
-     "t": 17.688,
+     "t": 17.711,
      "stem": "vocals",
      "attack": 0.94,
      "heard": 0.63
     },
     {
-     "t": 17.827,
+     "t": 17.85,
      "stem": "vocals",
      "attack": 1.28,
      "heard": 0.92
     },
     {
-     "t": 17.92,
+     "t": 17.943,
      "stem": "other",
      "attack": 1.95,
      "heard": 1.52
     },
     {
-     "t": 18.088,
+     "t": 18.112,
      "stem": "vocals",
      "attack": 1.1,
      "heard": 0.82
     },
     {
-     "t": 18.332,
+     "t": 18.355,
      "stem": "other",
      "attack": 1.95,
      "heard": 1.49
     },
     {
-     "t": 18.512,
+     "t": 18.535,
      "stem": "vocals",
      "attack": 0.88,
      "heard": 0.64
     },
     {
-     "t": 18.75,
+     "t": 18.704,
+     "stem": "other",
+     "attack": 1.26,
+     "heard": 1.1
+    },
+    {
+     "t": 18.773,
      "stem": "vocals",
      "attack": 1.83,
      "heard": 0.96
     },
     {
-     "t": 18.884,
-     "stem": "other",
-     "attack": 1.58,
+     "t": 18.889,
+     "stem": "vocals",
+     "attack": 0.83,
      "heard": 1.01
     },
     {
-     "t": 19.023,
+     "t": 19.046,
      "stem": "vocals",
      "attack": 1.15,
      "heard": 0.97
     },
     {
-     "t": 19.244,
-     "stem": "vocals",
-     "attack": 1.05,
-     "heard": 0.74
+     "t": 19.319,
+     "stem": "other",
+     "attack": 1.2,
+     "heard": 0.96
     },
     {
-     "t": 19.429,
+     "t": 19.453,
      "stem": "other",
      "attack": 2.15,
      "heard": 1.8
     },
     {
-     "t": 19.569,
+     "t": 19.592,
      "stem": "vocals",
      "attack": 1.55,
      "heard": 0.86
     },
     {
-     "t": 19.754,
+     "t": 19.778,
      "stem": "vocals",
      "attack": 1.28,
      "heard": 1.07
     },
     {
-     "t": 19.94,
+     "t": 19.963,
      "stem": "vocals",
      "attack": 1.01,
      "heard": 0.77
     },
     {
-     "t": 20.114,
+     "t": 20.138,
      "stem": "other",
      "attack": 1.64,
      "heard": 1.27
     },
     {
-     "t": 20.283,
+     "t": 20.306,
      "stem": "vocals",
      "attack": 1.13,
      "heard": 0.68
     },
     {
-     "t": 20.451,
+     "t": 20.474,
      "stem": "vocals",
      "attack": 0.9,
      "heard": 0.71
     },
     {
-     "t": 20.573,
-     "stem": "vocals",
-     "attack": 1.04,
-     "heard": 0.63
+     "t": 20.55,
+     "stem": "other",
+     "attack": 1.42,
+     "heard": 1.13
     },
     {
-     "t": 20.805,
+     "t": 20.828,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.92
     },
     {
-     "t": 20.904,
+     "t": 20.927,
      "stem": "vocals",
      "attack": 0.92,
      "heard": 0.76
     },
     {
-     "t": 21.031,
-     "stem": "vocals",
-     "attack": 1.03,
-     "heard": 0.72
+     "t": 21.101,
+     "stem": "other",
+     "attack": 1.66,
+     "heard": 1.11
     },
     {
-     "t": 21.177,
+     "t": 21.2,
      "stem": "vocals",
      "attack": 1.2,
      "heard": 0.68
     },
     {
-     "t": 21.351,
+     "t": 21.374,
      "stem": "other",
      "attack": 2.35,
      "heard": 2.67
     },
     {
-     "t": 21.438,
+     "t": 21.461,
      "stem": "vocals",
      "attack": 0.87,
      "heard": 0.63
     },
     {
-     "t": 21.624,
+     "t": 21.647,
      "stem": "other",
      "attack": 3.05,
      "heard": 3.59
     },
     {
-     "t": 21.751,
+     "t": 21.775,
      "stem": "vocals",
      "attack": 0.95,
      "heard": 0.71
     },
     {
-     "t": 21.896,
+     "t": 21.92,
      "stem": "other",
      "attack": 2.36,
      "heard": 2.05
     },
     {
-     "t": 22.036,
+     "t": 22.059,
      "stem": "vocals",
      "attack": 0.9,
      "heard": 0.69
     },
     {
-     "t": 22.309,
+     "t": 22.332,
      "stem": "other",
      "attack": 1.58,
      "heard": 1.11
     },
     {
-     "t": 22.442,
+     "t": 22.465,
      "stem": "vocals",
      "attack": 1.26,
      "heard": 0.93
     },
     {
-     "t": 22.61,
+     "t": 22.634,
      "stem": "vocals",
      "attack": 1.3,
      "heard": 1.07
@@ -839,163 +791,163 @@
    ],
    "notes": [
     {
-     "t": 22.721,
+     "t": 22.744,
      "stem": "other",
      "attack": 2.44,
      "heard": 2.12
     },
     {
-     "t": 22.999,
+     "t": 23.023,
      "stem": "other",
      "attack": 1.73,
      "heard": 1.94
     },
     {
-     "t": 23.272,
+     "t": 23.295,
      "stem": "other",
      "attack": 1.83,
      "heard": 1.45
     },
     {
-     "t": 23.545,
+     "t": 23.568,
      "stem": "other",
      "attack": 1.72,
      "heard": 1.62
     },
     {
-     "t": 23.818,
+     "t": 23.841,
      "stem": "other",
      "attack": 1.76,
      "heard": 1.33
     },
     {
-     "t": 24.091,
+     "t": 24.114,
      "stem": "other",
      "attack": 1.82,
      "heard": 1.53
     },
     {
-     "t": 24.503,
+     "t": 24.526,
      "stem": "other",
      "attack": 2.39,
      "heard": 2.07
     },
     {
-     "t": 24.915,
+     "t": 24.938,
      "stem": "other",
      "attack": 2.85,
      "heard": 3.29
     },
     {
-     "t": 25.194,
+     "t": 25.217,
      "stem": "other",
      "attack": 1.81,
      "heard": 1.83
     },
     {
-     "t": 25.466,
+     "t": 25.49,
      "stem": "other",
      "attack": 2.18,
      "heard": 1.7
     },
     {
-     "t": 25.739,
+     "t": 25.763,
      "stem": "other",
      "attack": 1.6,
      "heard": 1.45
     },
     {
-     "t": 26.012,
+     "t": 26.035,
      "stem": "other",
      "attack": 2.45,
      "heard": 2.61
     },
     {
-     "t": 26.291,
+     "t": 26.314,
      "stem": "other",
      "attack": 2.33,
      "heard": 2.31
     },
     {
-     "t": 26.697,
+     "t": 26.72,
      "stem": "other",
      "attack": 2.3,
      "heard": 2.08
     },
     {
-     "t": 27.109,
+     "t": 27.133,
      "stem": "other",
      "attack": 2.61,
      "heard": 2.13
     },
     {
-     "t": 27.388,
+     "t": 27.411,
      "stem": "other",
      "attack": 2.08,
      "heard": 2.36
     },
     {
-     "t": 27.661,
+     "t": 27.684,
      "stem": "other",
      "attack": 2.46,
      "heard": 2.93
     },
     {
-     "t": 27.939,
+     "t": 27.963,
      "stem": "other",
      "attack": 1.89,
      "heard": 2.27
     },
     {
-     "t": 28.212,
+     "t": 28.235,
      "stem": "other",
      "attack": 1.91,
      "heard": 2.29
     },
     {
-     "t": 28.485,
+     "t": 28.508,
      "stem": "other",
      "attack": 2.57,
      "heard": 3.1
     },
     {
-     "t": 28.897,
+     "t": 28.92,
      "stem": "other",
      "attack": 2.51,
      "heard": 3.03
     },
     {
-     "t": 29.309,
+     "t": 29.333,
      "stem": "other",
      "attack": 2.54,
      "heard": 3.08
     },
     {
-     "t": 29.582,
+     "t": 29.605,
      "stem": "other",
      "attack": 1.6,
      "heard": 1.66
     },
     {
-     "t": 29.855,
+     "t": 29.878,
      "stem": "other",
      "attack": 1.98,
      "heard": 1.82
     },
     {
-     "t": 30.134,
+     "t": 30.157,
      "stem": "other",
      "attack": 1.87,
      "heard": 1.63
     },
     {
-     "t": 30.407,
+     "t": 30.43,
      "stem": "other",
      "attack": 2.41,
      "heard": 2.85
     },
     {
-     "t": 30.679,
+     "t": 30.703,
      "stem": "other",
      "attack": 2.66,
      "heard": 2.42

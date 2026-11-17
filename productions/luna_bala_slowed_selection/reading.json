@@ -1,4 +1,5 @@
 {
+ "by": "From your marks of 17 November",
  "summary": "Made by the page itself from the first notes of each stretch you marked on 17 November (two bars of a rhythm; for a voice, the voice and other stems ticked and ten syllables), as if you had tapped them.",
  "passages": [
   {
@@ -6,7 +7,7 @@
    "to": 20.89,
    "follow": {
     "vocals": 1.15,
-    "other": 0.7
+    "other": 0.0
    },
    "slots": null,
    "note": ""

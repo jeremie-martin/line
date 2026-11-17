@@ -3,9 +3,9 @@
  "saved": null,
  "note": "From a proposed reading the owner has not confirmed.",
  "bar": {
-  "seconds": 1.817,
+  "seconds": 1.818,
   "repeats": 0.5,
-  "first": 0.098
+  "first": 0.104
  },
  "passages": [
   {
@@ -16,43 +16,43 @@
    },
    "notes": [
     {
-     "t": 6.914,
+     "t": 6.937,
      "stem": "vocals",
      "attack": 1.07,
      "heard": 1.82
     },
     {
-     "t": 7.14,
+     "t": 7.163,
      "stem": "vocals",
      "attack": 1.04,
      "heard": 1.49
     },
     {
-     "t": 7.25,
+     "t": 7.274,
      "stem": "vocals",
      "attack": 1.34,
      "heard": 1.83
     },
     {
-     "t": 7.367,
+     "t": 7.39,
      "stem": "vocals",
      "attack": 1.99,
      "heard": 1.84
     },
     {
-     "t": 7.477,
+     "t": 7.5,
      "stem": "vocals",
      "attack": 3,
      "heard": 2.11
     },
     {
-     "t": 7.593,
+     "t": 7.616,
      "stem": "vocals",
      "attack": 1.1,
      "heard": 1.41
     },
     {
-     "t": 7.692,
+     "t": 7.715,
      "stem": "vocals",
      "attack": 1.68,
      "heard": 1.04
@@ -67,43 +67,43 @@
    },
    "notes": [
     {
-     "t": 13.264,
+     "t": 13.288,
      "stem": "other",
      "attack": 2.55,
      "heard": 2.64
     },
     {
-     "t": 13.491,
+     "t": 13.514,
      "stem": "other",
      "attack": 1.95,
      "heard": 1.81
     },
     {
-     "t": 13.607,
+     "t": 13.63,
      "stem": "other",
      "attack": 1.89,
      "heard": 1.67
     },
     {
-     "t": 13.944,
+     "t": 13.967,
      "stem": "other",
      "attack": 2.91,
      "heard": 2.26
     },
     {
-     "t": 14.396,
+     "t": 14.42,
      "stem": "other",
      "attack": 4.15,
      "heard": 3.62
     },
     {
-     "t": 14.629,
+     "t": 14.652,
      "stem": "other",
      "attack": 1.54,
      "heard": 1.75
     },
     {
-     "t": 14.855,
+     "t": 14.878,
      "stem": "other",
      "attack": 1.45,
      "heard": 1.55
@@ -118,43 +118,43 @@
    },
    "notes": [
     {
-     "t": 20.532,
+     "t": 20.555,
      "stem": "other",
      "attack": 2.32,
      "heard": 1.78
     },
     {
-     "t": 20.764,
+     "t": 20.788,
      "stem": "other",
      "attack": 2.04,
      "heard": 1.78
     },
     {
-     "t": 20.875,
+     "t": 20.898,
      "stem": "other",
      "attack": 1.79,
      "heard": 1.57
     },
     {
-     "t": 21.217,
+     "t": 21.24,
      "stem": "other",
      "attack": 3.15,
      "heard": 2.43
     },
     {
-     "t": 21.67,
+     "t": 21.693,
      "stem": "other",
      "attack": 3.48,
      "heard": 3.11
     },
     {
-     "t": 21.896,
+     "t": 21.92,
      "stem": "other",
      "attack": 1.37,
      "heard": 1.34
     },
     {
-     "t": 22.129,
+     "t": 22.152,
      "stem": "other",
      "attack": 1.5,
      "heard": 1.41
@@ -169,19 +169,19 @@
    },
    "notes": [
     {
-     "t": 36.101,
+     "t": 36.124,
      "stem": "other",
      "attack": 1.63,
      "heard": 1.34
     },
     {
-     "t": 36.45,
+     "t": 36.473,
      "stem": "other",
      "attack": 1.27,
      "heard": 0.83
     },
     {
-     "t": 36.67,
+     "t": 36.693,
      "stem": "other",
      "attack": 1.21,
      "heard": 0.99
@@ -196,31 +196,31 @@
    },
    "notes": [
     {
-     "t": 43.265,
+     "t": 43.288,
      "stem": "other",
      "attack": 1.44,
      "heard": 1.25
     },
     {
-     "t": 43.381,
+     "t": 43.404,
      "stem": "other",
      "attack": 1.49,
      "heard": 1.43
     },
     {
-     "t": 43.491,
+     "t": 43.514,
      "stem": "other",
      "attack": 1.57,
      "heard": 1.49
     },
     {
-     "t": 43.717,
+     "t": 43.741,
      "stem": "other",
      "attack": 1.52,
      "heard": 2.12
     },
     {
-     "t": 43.95,
+     "t": 43.973,
      "stem": "other",
      "attack": 1.44,
      "heard": 1.42
@@ -235,37 +235,37 @@
    },
    "notes": [
     {
-     "t": 49.853,
+     "t": 49.876,
      "stem": "other",
      "attack": 1.21,
      "heard": 0.88
     },
     {
-     "t": 49.969,
+     "t": 49.993,
      "stem": "other",
      "attack": 1.27,
      "heard": 1
     },
     {
-     "t": 50.312,
+     "t": 50.335,
      "stem": "other",
      "attack": 1.53,
      "heard": 1.4
     },
     {
-     "t": 50.765,
+     "t": 50.788,
      "stem": "other",
      "attack": 1.63,
      "heard": 1.54
     },
     {
-     "t": 50.991,
+     "t": 51.014,
      "stem": "other",
      "attack": 1.13,
      "heard": 1.14
     },
     {
-     "t": 51.217,
+     "t": 51.241,
      "stem": "other",
      "attack": 0.98,
      "heard": 0.94

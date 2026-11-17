@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing: short cuts</title>
+<link rel="stylesheet" href="./closing.css">
+<style>
+.cutstage{display:grid;gap:14px}.line{position:relative}#timeline{width:100%;height:210px;display:block;border-radius:10px;background:var(--card);border:1px solid var(--line);touch-action:none;cursor:pointer}
+.under{display:grid;grid-template-columns:auto minmax(280px,1fr);gap:20px;align-items:start}.under video{height:min(56svh,560px);aspect-ratio:9/16;border-radius:12px;background:#000;display:block}
+.read{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;margin:4px 0 10px}.read b{font-variant-numeric:tabular-nums}.read .weak{color:#c0392b}.read .fine{color:var(--done)}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.proposal{font:inherit;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:8px 12px;cursor:pointer;display:block;width:100%;margin:6px 0}
+.proposal b{font-size:14px}.proposal span{display:block;font-size:13px;color:var(--soft)}.proposal:hover{border-color:var(--ink)}.proposal.on{border-color:var(--mine);box-shadow:0 0 0 1px var(--mine)}
+.facts q{quotes:none;font-style:italic}
+@media(max-width:900px){.under{grid-template-columns:1fr}.under video{height:auto;width:100%}}
+</style>
+<main>
+<header><h1>Closing: short cuts</h1><nav><a href="./decisions.html">Decisions</a><a href="./songs.html">Songs</a><a href="./specs.html">New specs</a><a class="here" href="./cuts.html">Short cuts</a></nav>
+<p>Choose the 30 to 45 seconds of each song that become its short video. The band is the song: its loudness, its sections, the proposed cuts above it, and the cut being chosen between two handles you can drag. It plays as the short would loop, end straight into start. “Match” says how well the end is in step with the music that leads into the start (1 is the same rhythm). Keys: <kbd>Space</kbd> play, <kbd>E</kbd> hear the cut (the last three seconds into the start), <kbd>S</kbd> snap the end to the best loop nearby, <kbd>1</kbd>–<kbd>3</kbd> a proposal, <kbd>Enter</kbd> save this cut, <kbd>↑</kbd> <kbd>↓</kbd> songs, <kbd>N</kbd> next song without a cut.</p></header>
+<div class="bar"><progress id="progress" value="0" max="1"></progress><span id="count"></span><span class="gap"></span><button class="pill" id="next">Next song without a cut</button></div>
+<div class="layout songs"><div class="index" id="index"></div>
+<div class="cutstage">
+<div class="line"><canvas id="timeline"></canvas></div>
+<div class="under"><video id="video" muted playsinline preload="auto"></video>
+<div><h2 id="title" style="margin:0;font-size:20px"></h2>
+<div class="read" id="read"></div>
+<div class="row"><button class="pill" id="play">Play</button><button class="pill" id="seam">Hear the cut</button><button class="pill" id="snap">Snap the end to the best loop nearby</button><button class="pill" id="onset">Snap the start to the nearest onset</button></div>
+<div class="facts" id="facts"></div>
+<div id="proposals"></div>
+<div class="row"><button class="pill" id="save">Save this cut</button><button class="pill" id="whole">Keep the song whole</button><button class="pill" id="none">No short of this song</button></div>
+<textarea id="note" placeholder="A note on this song's cut (saved when you leave the field)"></textarea><div class="saved" id="status"></div>
+</div></div></div></div>
+</main>
+<script type="module" src="./cuts.mjs"></script>

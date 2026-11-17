@@ -1,0 +1,97 @@
+{
+ "study": "cuts-2026-11",
+ "questions": [],
+ "note": "The cuts board (generated/concept-lab/closing/cuts.html): the 30 to 45 seconds of each song that become its short video. One row per save; the latest row per clip counts. A clip is a song; answers.cut: cut (with start and end in song seconds, the loop match at saving, and proposal: the number of the proposal it is, 0 when moved by hand), whole (the song stays as it is) or none (no short of this song); note: the owner's words.",
+ "clips": [
+  {
+   "id": "amor_na_praia_46s"
+  },
+  {
+   "id": "amor_na_praia_selection"
+  },
+  {
+   "id": "amour_de_ma_vie_108s"
+  },
+  {
+   "id": "amour_de_ma_vie_44s"
+  },
+  {
+   "id": "believer_78s"
+  },
+  {
+   "id": "bones_selection"
+  },
+  {
+   "id": "circus_minimus_77s"
+  },
+  {
+   "id": "funk_do_bounce_super_slowed_selection"
+  },
+  {
+   "id": "funk_estranho_super_slowed_selection"
+  },
+  {
+   "id": "let_the_world_burn_selection"
+  },
+  {
+   "id": "los_voltaje_selection"
+  },
+  {
+   "id": "los_voltaje_slowed_selection"
+  },
+  {
+   "id": "los_voltaje_ultra_slowed_selection"
+  },
+  {
+   "id": "lua_na_praca_selection"
+  },
+  {
+   "id": "luna_bala_44s"
+  },
+  {
+   "id": "luna_bala_original_selection"
+  },
+  {
+   "id": "luna_bala_slowed_selection"
+  },
+  {
+   "id": "montagem_coma_selection"
+  },
+  {
+   "id": "montagem_tomada_extended_selection"
+  },
+  {
+   "id": "montagem_tomada_slowed_selection"
+  },
+  {
+   "id": "montagem_tomada_super_slowed_selection"
+  },
+  {
+   "id": "no_batidao_selection"
+  },
+  {
+   "id": "no_batidao_slowed_selection"
+  },
+  {
+   "id": "passo_bem_solto_selection"
+  },
+  {
+   "id": "passo_bem_solto_slowed_selection"
+  },
+  {
+   "id": "passo_bem_solto_super_slowed_selection"
+  },
+  {
+   "id": "petrunko_selection"
+  },
+  {
+   "id": "tiki_tiki_48s"
+  },
+  {
+   "id": "trouble_50s"
+  },
+  {
+   "id": "valhalla_40s"
+  }
+ ]
+}

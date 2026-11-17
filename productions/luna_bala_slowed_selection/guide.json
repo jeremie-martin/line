@@ -1,0 +1,506 @@
+{
+ "song": "luna_bala_slowed_selection",
+ "saved": null,
+ "note": "From a proposed reading the owner has not confirmed.",
+ "bar": {
+  "seconds": 2.183,
+  "repeats": 0.71,
+  "first": 0.108
+ },
+ "passages": [
+  {
+   "from": 12.37,
+   "to": 20.89,
+   "follow": {
+    "vocals": 1.15,
+    "other": 0.7
+   },
+   "notes": [
+    {
+     "t": 12.458,
+     "stem": "vocals",
+     "attack": 1.53,
+     "heard": 0.87
+    },
+    {
+     "t": 12.713,
+     "stem": "vocals",
+     "attack": 1.56,
+     "heard": 0.93
+    },
+    {
+     "t": 12.91,
+     "stem": "other",
+     "attack": 0.77,
+     "heard": 0.6
+    },
+    {
+     "t": 13.148,
+     "stem": "other",
+     "attack": 0.79,
+     "heard": 0.63
+    },
+    {
+     "t": 13.305,
+     "stem": "vocals",
+     "attack": 1.8,
+     "heard": 0.97
+    },
+    {
+     "t": 13.369,
+     "stem": "other",
+     "attack": 0.79,
+     "heard": 0.58
+    },
+    {
+     "t": 13.671,
+     "stem": "vocals",
+     "attack": 1.8,
+     "heard": 1.01
+    },
+    {
+     "t": 13.851,
+     "stem": "vocals",
+     "attack": 1.57,
+     "heard": 0.93
+    },
+    {
+     "t": 13.938,
+     "stem": "other",
+     "attack": 0.83,
+     "heard": 0.71
+    },
+    {
+     "t": 14.112,
+     "stem": "vocals",
+     "attack": 1.25,
+     "heard": 0.79
+    },
+    {
+     "t": 14.286,
+     "stem": "other",
+     "attack": 0.74,
+     "heard": 0.64
+    },
+    {
+     "t": 14.35,
+     "stem": "vocals",
+     "attack": 1.35,
+     "heard": 0.83
+    },
+    {
+     "t": 14.489,
+     "stem": "other",
+     "attack": 0.73,
+     "heard": 0.8
+    },
+    {
+     "t": 14.582,
+     "stem": "vocals",
+     "attack": 1.21,
+     "heard": 0.76
+    },
+    {
+     "t": 14.681,
+     "stem": "vocals",
+     "attack": 1.49,
+     "heard": 0.94
+    },
+    {
+     "t": 14.93,
+     "stem": "vocals",
+     "attack": 1.25,
+     "heard": 0.78
+    },
+    {
+     "t": 15.128,
+     "stem": "vocals",
+     "attack": 1.21,
+     "heard": 0.81
+    },
+    {
+     "t": 15.488,
+     "stem": "vocals",
+     "attack": 1.31,
+     "heard": 0.83
+    },
+    {
+     "t": 16.776,
+     "stem": "vocals",
+     "attack": 1.65,
+     "heard": 0.95
+    },
+    {
+     "t": 16.939,
+     "stem": "vocals",
+     "attack": 2.02,
+     "heard": 1.27
+    },
+    {
+     "t": 17.032,
+     "stem": "vocals",
+     "attack": 1.54,
+     "heard": 0.91
+    },
+    {
+     "t": 17.171,
+     "stem": "other",
+     "attack": 0.75,
+     "heard": 0.72
+    },
+    {
+     "t": 17.409,
+     "stem": "vocals",
+     "attack": 1.17,
+     "heard": 0.76
+    },
+    {
+     "t": 17.653,
+     "stem": "vocals",
+     "attack": 1.24,
+     "heard": 0.83
+    },
+    {
+     "t": 18.03,
+     "stem": "vocals",
+     "attack": 1.3,
+     "heard": 0.8
+    },
+    {
+     "t": 18.21,
+     "stem": "vocals",
+     "attack": 2.04,
+     "heard": 1.32
+    },
+    {
+     "t": 18.57,
+     "stem": "vocals",
+     "attack": 1.2,
+     "heard": 0.86
+    },
+    {
+     "t": 18.715,
+     "stem": "vocals",
+     "attack": 1.32,
+     "heard": 0.92
+    },
+    {
+     "t": 18.93,
+     "stem": "vocals",
+     "attack": 1.44,
+     "heard": 0.98
+    },
+    {
+     "t": 19.052,
+     "stem": "vocals",
+     "attack": 1.35,
+     "heard": 0.88
+    },
+    {
+     "t": 19.29,
+     "stem": "vocals",
+     "attack": 1.25,
+     "heard": 0.82
+    },
+    {
+     "t": 19.394,
+     "stem": "vocals",
+     "attack": 1.46,
+     "heard": 0.94
+    },
+    {
+     "t": 19.598,
+     "stem": "vocals",
+     "attack": 1.34,
+     "heard": 0.88
+    },
+    {
+     "t": 19.673,
+     "stem": "other",
+     "attack": 0.72,
+     "heard": 0.67
+    },
+    {
+     "t": 19.801,
+     "stem": "vocals",
+     "attack": 1.62,
+     "heard": 1.07
+    },
+    {
+     "t": 19.882,
+     "stem": "other",
+     "attack": 1.09,
+     "heard": 0.67
+    },
+    {
+     "t": 20.033,
+     "stem": "vocals",
+     "attack": 1.25,
+     "heard": 0.84
+    },
+    {
+     "t": 20.143,
+     "stem": "vocals",
+     "attack": 1.27,
+     "heard": 0.67
+    },
+    {
+     "t": 20.207,
+     "stem": "other",
+     "attack": 1,
+     "heard": 0.74
+    },
+    {
+     "t": 20.352,
+     "stem": "vocals",
+     "attack": 1.5,
+     "heard": 0.91
+    },
+    {
+     "t": 20.451,
+     "stem": "other",
+     "attack": 1.16,
+     "heard": 0.75
+    },
+    {
+     "t": 20.654,
+     "stem": "other",
+     "attack": 1.18,
+     "heard": 0.59
+    }
+   ]
+  },
+  {
+   "from": 20.89,
+   "to": 36.7,
+   "follow": {
+    "other": 1.2
+   },
+   "slots": [
+    2,
+    4,
+    8,
+    11,
+    14
+   ],
+   "notes": [
+    {
+     "t": 20.898,
+     "stem": "other",
+     "attack": 1.41,
+     "heard": 2.25
+    },
+    {
+     "t": 21.31,
+     "stem": "other",
+     "attack": 1.3,
+     "heard": 2.42
+    },
+    {
+     "t": 21.716,
+     "stem": "other",
+     "attack": 1.71,
+     "heard": 2.48
+    },
+    {
+     "t": 22.256,
+     "stem": "other",
+     "attack": 1.6,
+     "heard": 2.95
+    },
+    {
+     "t": 22.535,
+     "stem": "other",
+     "attack": 1.67,
+     "heard": 1.34
+    },
+    {
+     "t": 23.081,
+     "stem": "other",
+     "attack": 2.64,
+     "heard": 3.9
+    },
+    {
+     "t": 23.487,
+     "stem": "other",
+     "attack": 2.13,
+     "heard": 2.9
+    },
+    {
+     "t": 23.893,
+     "stem": "other",
+     "attack": 1.43,
+     "heard": 2.73
+    },
+    {
+     "t": 24.439,
+     "stem": "other",
+     "attack": 1.71,
+     "heard": 2.92
+    },
+    {
+     "t": 24.718,
+     "stem": "other",
+     "attack": 1.74,
+     "heard": 1.65
+    },
+    {
+     "t": 25.258,
+     "stem": "other",
+     "attack": 2.49,
+     "heard": 4.28
+    },
+    {
+     "t": 25.67,
+     "stem": "other",
+     "attack": 1.55,
+     "heard": 2.72
+    },
+    {
+     "t": 26.076,
+     "stem": "other",
+     "attack": 1.72,
+     "heard": 2.64
+    },
+    {
+     "t": 26.622,
+     "stem": "other",
+     "attack": 1.52,
+     "heard": 2.93
+    },
+    {
+     "t": 26.9,
+     "stem": "other",
+     "attack": 1.45,
+     "heard": 1.29
+    },
+    {
+     "t": 27.44,
+     "stem": "other",
+     "attack": 2.41,
+     "heard": 4.13
+    },
+    {
+     "t": 27.847,
+     "stem": "other",
+     "attack": 1.89,
+     "heard": 2.95
+    },
+    {
+     "t": 28.253,
+     "stem": "other",
+     "attack": 1.88,
+     "heard": 2.89
+    },
+    {
+     "t": 28.799,
+     "stem": "other",
+     "attack": 1.38,
+     "heard": 2.67
+    },
+    {
+     "t": 29.617,
+     "stem": "other",
+     "attack": 1.52,
+     "heard": 2.91
+    },
+    {
+     "t": 30.023,
+     "stem": "other",
+     "attack": 1.52,
+     "heard": 2.66
+    },
+    {
+     "t": 30.436,
+     "stem": "other",
+     "attack": 2.22,
+     "heard": 2.38
+    },
+    {
+     "t": 30.975,
+     "stem": "other",
+     "attack": 1.95,
+     "heard": 2.51
+    },
+    {
+     "t": 31.26,
+     "stem": "other",
+     "attack": 1.47,
+     "heard": 1.26
+    },
+    {
+     "t": 31.8,
+     "stem": "other",
+     "attack": 2.24,
+     "heard": 4.4
+    },
+    {
+     "t": 32.212,
+     "stem": "other",
+     "attack": 1.76,
+     "heard": 2.89
+    },
+    {
+     "t": 32.612,
+     "stem": "other",
+     "attack": 1.64,
+     "heard": 2.33
+    },
+    {
+     "t": 33.158,
+     "stem": "other",
+     "attack": 1.76,
+     "heard": 2.91
+    },
+    {
+     "t": 33.437,
+     "stem": "other",
+     "attack": 1.85,
+     "heard": 1.5
+    },
+    {
+     "t": 33.982,
+     "stem": "other",
+     "attack": 2.21,
+     "heard": 3.49
+    },
+    {
+     "t": 34.389,
+     "stem": "other",
+     "attack": 2.1,
+     "heard": 2.78
+    },
+    {
+     "t": 34.795,
+     "stem": "other",
+     "attack": 2.25,
+     "heard": 2.36
+    },
+    {
+     "t": 35.341,
+     "stem": "other",
+     "attack": 1.96,
+     "heard": 2.69
+    },
+    {
+     "t": 35.619,
+     "stem": "other",
+     "attack": 1.61,
+     "heard": 1.29
+    },
+    {
+     "t": 36.159,
+     "stem": "other",
+     "attack": 2.15,
+     "heard": 2.59
+    },
+    {
+     "t": 36.571,
+     "stem": "other",
+     "attack": 1.42,
+     "heard": 3.92
+    }
+   ]
+  }
+ ]
+}

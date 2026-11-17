@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing: what to follow</title>
+<link rel="stylesheet" href="./closing.css">
+<style>
+.earstage{display:grid;gap:12px}#timeline{width:100%;display:block;border-radius:10px;background:var(--card);border:1px solid var(--line);touch-action:none;cursor:crosshair}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0;align-items:center}.row>b{font-size:13px;color:var(--soft);font-weight:600;margin-right:4px}
+.pill.on{background:var(--on);color:var(--onText);border-color:var(--on)}
+.under{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:22px;align-items:start}
+.stem{display:grid;grid-template-columns:92px 1fr 150px;gap:10px;align-items:center;font-size:14px;margin:3px 0}.stem input[type=range]{width:100%}.stem small{color:var(--soft);font-variant-numeric:tabular-nums}
+.slots{display:grid;grid-template-columns:repeat(16,1fr);gap:2px;margin:6px 0;max-width:420px}.slots button{font:11px system-ui;border:1px solid var(--line);background:var(--card);border-radius:4px;padding:5px 0;cursor:pointer;color:var(--soft)}.slots button.on{background:var(--mine);color:#fff;border-color:var(--mine)}.slots button:nth-child(4n+1){font-weight:700}
+#passage h3,#song h3{margin:0 0 4px;font-size:16px}#passage .hint{font-size:13px;color:var(--soft);margin:4px 0}
+input.note{font:inherit;width:100%;padding:6px 9px;border:1px solid var(--line);border-radius:8px}
+@media(max-width:900px){.under{grid-template-columns:1fr}}
+</style>
+<main>
+<header><h1>Closing: what to follow</h1><nav><a href="./decisions.html">Decisions</a><a href="./songs.html">Songs</a><a href="./specs.html">New specs</a><a href="./cuts.html">Short cuts</a><a class="here" href="./ear.html">What to follow</a></nav>
+<p>Say what a ride should follow in each passage of a song, without marking every note. The rows are the notes found in each separated stem (taller is sharper). Drag across the rows to make a passage, tick the stems to follow in it and move their sliders until the clicks you hear are the notes you want. Or tap along for a bar or two: “Fit to my taps” sets the sliders of the stems you ticked from them (with none ticked, it picks the stem your taps agree with best), and “Keep only the slots I tapped” repeats your bar over the whole passage. A spec's landings can be heard as clicks the same way, before any video exists. Keys: <kbd>Space</kbd> play, <kbd>T</kbd> tap, <kbd>[</kbd> <kbd>]</kbd> a passage from here to there, <kbd>1</kbd>–<kbd>4</kbd> follow voice, other, drums, bass, <kbd>L</kbd> loop the passage, <kbd>C</kbd> next click row, <kbd>←</kbd> <kbd>→</kbd> two seconds, <kbd>Enter</kbd> save, <kbd>↑</kbd> <kbd>↓</kbd> songs. Scroll to zoom, shift-scroll to move.</p></header>
+<div class="layout songs"><div class="index" id="index"></div>
+<div class="earstage">
+<div class="row"><h2 id="title" style="margin:0 12px 0 0;font-size:20px"></h2><button class="pill" id="play">Play</button><button class="pill" id="loop">Loop the passage</button><span id="clock" style="font-variant-numeric:tabular-nums;color:var(--soft)"></span></div>
+<div class="row"><b>Hear</b><span id="hear"></span><b style="margin-left:14px">Clicks on</b><span id="clicks"></span></div>
+<canvas id="timeline"></canvas>
+<div class="under">
+<div id="passage"></div>
+<div id="song"><h3>The song</h3><div class="facts" id="facts"></div>
+<textarea id="note" placeholder="Anything about this song that the passages do not say"></textarea>
+<div class="row"><button class="pill" id="save">Save</button><button class="pill" id="untap">Clear my taps</button></div><div class="saved" id="status"></div></div>
+</div></div></div>
+</main>
+<script type="module" src="./ear.mjs"></script>

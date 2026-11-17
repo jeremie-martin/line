@@ -6,17 +6,19 @@
 The owner sometimes marks by hand what he hears (the spec dashboard; productions/<song>/notes.json, moments tagged `voice`:
 a syllable the ride should follow, or `mark`: an event of the main rhythm that should get an impact). His marks are quick
 and approximate, and cover only the passages he chose, so this is a check, never a target: an author must not read the marks
-of a song before writing its spec, and nothing is to be tuned until it scores well here. For each tag, inside the span his
-marks cover and within 70 ms: how many of his marks the ride asks a landing on (found), how many of the ride's landings there
-fall on a mark (on a mark), and the median requested strength on and off his marks. RIDE_FOLDER holds a compile's
+of a song before writing its spec, and nothing is to be tuned until it scores well here. For each tag, inside the stretches he
+marked (his marks, split where he left more than 2.5 s) and within 70 ms: how many of his marks the ride asks a landing on (found), how many of the ride's landings there
+fall on a mark (on a mark), and the median requested strength on and off his marks. `chance` is the share of his marks
+that as many landings scattered at random over the span would find: a denser ride finds more marks without following anything. RIDE_FOLDER holds a compile's
 manifest.json. Reads only; needs nothing but Python.
 """
 import bisect
 import json
+import math
 import statistics
 import sys
 
-TOLERANCE = 0.07
+TOLERANCE, GAP = 0.07, 2.5  # seconds
 
 
 def nearest(times, t):
@@ -35,11 +37,20 @@ if __name__ == "__main__":
             marks = sorted(n["t"] for n in notes if tag in (n.get("tags") or []))
             if not marks:
                 continue
-            inside = [(t, s) for t, s in asked if marks[0] - 0.1 <= t <= marks[-1] + 0.1]
+            # the stretches he marked: his marks, split where he left more than GAP seconds
+            stretches = [[marks[0], marks[0]]]
+            for t in marks[1:]:
+                if t - stretches[-1][1] > GAP:
+                    stretches.append([t, t])
+                else:
+                    stretches[-1][1] = t
+            inside = [(t, s) for t, s in asked if any(a - 0.1 <= t <= b + 0.1 for a, b in stretches)]
+            covered = sum(b - a + 0.2 for a, b in stretches)
             times = [t for t, _ in inside]
             found = sum(abs(nearest(times, t) - t) <= TOLERANCE for t in marks)
             on = [s for t, s in inside if abs(nearest(marks, t) - t) <= TOLERANCE]
             off = [s for t, s in inside if abs(nearest(marks, t) - t) > TOLERANCE]
             median = lambda v: f"{statistics.median(v):.2f}" if v else "  - "
-            print(f"   {tag:5s} {len(marks):3d} marks {marks[0]:5.1f}-{marks[-1]:5.1f} s: found {found:3d} ({100 * found / len(marks):3.0f}%)   "
+            chance = 1 - math.exp(-len(inside) * 2 * TOLERANCE / covered)
+            print(f"   {tag:5s} {len(marks):3d} marks in {len(stretches)} stretches ({covered:4.1f} s): found {found:3d} ({100 * found / len(marks):3.0f}%, chance {100 * chance:2.0f}%)   "
                   f"{len(inside):3d} landings there, {len(on):3d} on a mark ({100 * len(on) / max(1, len(inside)):3.0f}%)   strength on {median(on)} off {median(off)}")

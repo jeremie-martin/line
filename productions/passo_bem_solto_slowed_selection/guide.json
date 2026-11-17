@@ -1,0 +1,625 @@
+{
+ "song": "passo_bem_solto_slowed_selection",
+ "saved": null,
+ "note": "From a proposed reading the owner has not confirmed.",
+ "bar": {
+  "seconds": 2.072,
+  "repeats": 0.73,
+  "first": 0.488
+ },
+ "passages": [
+  {
+   "from": 0.43,
+   "to": 6.07,
+   "follow": {
+    "drums": 0.7
+   },
+   "slots": [
+    0,
+    3,
+    4,
+    6,
+    8,
+    10,
+    12,
+    14
+   ],
+   "notes": [
+    {
+     "t": 0.499,
+     "stem": "drums",
+     "attack": 2.85,
+     "heard": 2.34
+    },
+    {
+     "t": 0.894,
+     "stem": "drums",
+     "attack": 2.25,
+     "heard": 1.45
+    },
+    {
+     "t": 1.016,
+     "stem": "drums",
+     "attack": 2,
+     "heard": 1.34
+    },
+    {
+     "t": 1.283,
+     "stem": "drums",
+     "attack": 1.81,
+     "heard": 1.46
+    },
+    {
+     "t": 1.533,
+     "stem": "drums",
+     "attack": 2.67,
+     "heard": 1.84
+    },
+    {
+     "t": 1.8,
+     "stem": "drums",
+     "attack": 1.77,
+     "heard": 1.65
+    },
+    {
+     "t": 2.055,
+     "stem": "drums",
+     "attack": 2.34,
+     "heard": 2.09
+    },
+    {
+     "t": 2.31,
+     "stem": "drums",
+     "attack": 2.06,
+     "heard": 1.81
+    },
+    {
+     "t": 2.572,
+     "stem": "drums",
+     "attack": 2.52,
+     "heard": 2.31
+    },
+    {
+     "t": 2.966,
+     "stem": "drums",
+     "attack": 2.1,
+     "heard": 1.4
+    },
+    {
+     "t": 3.088,
+     "stem": "drums",
+     "attack": 1.94,
+     "heard": 1.38
+    },
+    {
+     "t": 3.355,
+     "stem": "drums",
+     "attack": 1.73,
+     "heard": 1.48
+    },
+    {
+     "t": 3.605,
+     "stem": "drums",
+     "attack": 2.93,
+     "heard": 1.82
+    },
+    {
+     "t": 3.872,
+     "stem": "drums",
+     "attack": 1.81,
+     "heard": 1.65
+    },
+    {
+     "t": 4.122,
+     "stem": "drums",
+     "attack": 2.79,
+     "heard": 2.11
+    },
+    {
+     "t": 4.644,
+     "stem": "drums",
+     "attack": 2.74,
+     "heard": 2.27
+    },
+    {
+     "t": 5.039,
+     "stem": "drums",
+     "attack": 2.1,
+     "heard": 1.36
+    },
+    {
+     "t": 5.161,
+     "stem": "drums",
+     "attack": 2.44,
+     "heard": 1.32
+    },
+    {
+     "t": 5.428,
+     "stem": "drums",
+     "attack": 1.81,
+     "heard": 1.5
+    },
+    {
+     "t": 5.677,
+     "stem": "drums",
+     "attack": 2.8,
+     "heard": 1.78
+    },
+    {
+     "t": 5.944,
+     "stem": "drums",
+     "attack": 1.9,
+     "heard": 1.65
+    }
+   ]
+  },
+  {
+   "from": 6.14,
+   "to": 23.15,
+   "follow": {
+    "vocals": 1.4,
+    "other": 0.95
+   },
+   "notes": [
+    {
+     "t": 6.2,
+     "stem": "other",
+     "attack": 1.06,
+     "heard": 2.23
+    },
+    {
+     "t": 6.531,
+     "stem": "other",
+     "attack": 0.95,
+     "heard": 0.53
+    },
+    {
+     "t": 6.972,
+     "stem": "vocals",
+     "attack": 1.48,
+     "heard": 0.92
+    },
+    {
+     "t": 7.094,
+     "stem": "other",
+     "attack": 1.42,
+     "heard": 1.51
+    },
+    {
+     "t": 7.256,
+     "stem": "vocals",
+     "attack": 1.44,
+     "heard": 0.89
+    },
+    {
+     "t": 7.5,
+     "stem": "other",
+     "attack": 1.55,
+     "heard": 1.88
+    },
+    {
+     "t": 7.773,
+     "stem": "vocals",
+     "attack": 1.84,
+     "heard": 1.15
+    },
+    {
+     "t": 8.022,
+     "stem": "other",
+     "attack": 1.43,
+     "heard": 1.87
+    },
+    {
+     "t": 8.26,
+     "stem": "other",
+     "attack": 1.73,
+     "heard": 1.08
+    },
+    {
+     "t": 8.545,
+     "stem": "vocals",
+     "attack": 1.78,
+     "heard": 0.99
+    },
+    {
+     "t": 8.8,
+     "stem": "other",
+     "attack": 1.45,
+     "heard": 1.81
+    },
+    {
+     "t": 9.166,
+     "stem": "other",
+     "attack": 1.24,
+     "heard": 1.65
+    },
+    {
+     "t": 9.474,
+     "stem": "vocals",
+     "attack": 1.76,
+     "heard": 1.17
+    },
+    {
+     "t": 9.572,
+     "stem": "other",
+     "attack": 1.83,
+     "heard": 1.68
+    },
+    {
+     "t": 10.077,
+     "stem": "other",
+     "attack": 1.14,
+     "heard": 1.88
+    },
+    {
+     "t": 10.356,
+     "stem": "other",
+     "attack": 1.49,
+     "heard": 3.11
+    },
+    {
+     "t": 11.07,
+     "stem": "vocals",
+     "attack": 3.25,
+     "heard": 2
+    },
+    {
+     "t": 11.256,
+     "stem": "other",
+     "attack": 1.51,
+     "heard": 1.63
+    },
+    {
+     "t": 11.511,
+     "stem": "other",
+     "attack": 1.48,
+     "heard": 0.92
+    },
+    {
+     "t": 11.627,
+     "stem": "other",
+     "attack": 1.2,
+     "heard": 1.48
+    },
+    {
+     "t": 11.877,
+     "stem": "vocals",
+     "attack": 2.84,
+     "heard": 1.77
+    },
+    {
+     "t": 12.161,
+     "stem": "other",
+     "attack": 1.28,
+     "heard": 1.68
+    },
+    {
+     "t": 12.388,
+     "stem": "vocals",
+     "attack": 1.55,
+     "heard": 1
+    },
+    {
+     "t": 12.672,
+     "stem": "vocals",
+     "attack": 1.61,
+     "heard": 0.94
+    },
+    {
+     "t": 12.893,
+     "stem": "vocals",
+     "attack": 1.91,
+     "heard": 1.19
+    },
+    {
+     "t": 13.334,
+     "stem": "other",
+     "attack": 1.4,
+     "heard": 1.97
+    },
+    {
+     "t": 13.404,
+     "stem": "vocals",
+     "attack": 1.4,
+     "heard": 0.61
+    },
+    {
+     "t": 13.706,
+     "stem": "vocals",
+     "attack": 1.91,
+     "heard": 1.8
+    },
+    {
+     "t": 13.874,
+     "stem": "vocals",
+     "attack": 1.42,
+     "heard": 0.96
+    },
+    {
+     "t": 14.205,
+     "stem": "vocals",
+     "attack": 1.62,
+     "heard": 1.01
+    },
+    {
+     "t": 14.478,
+     "stem": "other",
+     "attack": 1.48,
+     "heard": 1.66
+    },
+    {
+     "t": 15.012,
+     "stem": "other",
+     "attack": 1.46,
+     "heard": 2.95
+    },
+    {
+     "t": 15.383,
+     "stem": "other",
+     "attack": 1.42,
+     "heard": 1.47
+    },
+    {
+     "t": 15.772,
+     "stem": "vocals",
+     "attack": 1.73,
+     "heard": 1.52
+    },
+    {
+     "t": 15.946,
+     "stem": "vocals",
+     "attack": 1.4,
+     "heard": 1
+    },
+    {
+     "t": 16.068,
+     "stem": "vocals",
+     "attack": 1.49,
+     "heard": 0.85
+    },
+    {
+     "t": 16.289,
+     "stem": "other",
+     "attack": 1.3,
+     "heard": 2.44
+    },
+    {
+     "t": 16.573,
+     "stem": "other",
+     "attack": 1.55,
+     "heard": 2.94
+    },
+    {
+     "t": 17.078,
+     "stem": "other",
+     "attack": 1.65,
+     "heard": 3.35
+    },
+    {
+     "t": 17.479,
+     "stem": "other",
+     "attack": 1.7,
+     "heard": 3.01
+    },
+    {
+     "t": 17.862,
+     "stem": "other",
+     "attack": 1.37,
+     "heard": 3.37
+    },
+    {
+     "t": 18.384,
+     "stem": "other",
+     "attack": 1.65,
+     "heard": 3.13
+    },
+    {
+     "t": 18.64,
+     "stem": "other",
+     "attack": 2.04,
+     "heard": 3.32
+    },
+    {
+     "t": 18.895,
+     "stem": "other",
+     "attack": 1.86,
+     "heard": 3.58
+    },
+    {
+     "t": 18.994,
+     "stem": "other",
+     "attack": 1.08,
+     "heard": 0.62
+    },
+    {
+     "t": 19.151,
+     "stem": "other",
+     "attack": 2.05,
+     "heard": 3.25
+    },
+    {
+     "t": 19.545,
+     "stem": "other",
+     "attack": 1.72,
+     "heard": 2.88
+    },
+    {
+     "t": 19.917,
+     "stem": "vocals",
+     "attack": 1.54,
+     "heard": 1.99
+    },
+    {
+     "t": 20.091,
+     "stem": "vocals",
+     "attack": 1.49,
+     "heard": 1.01
+    },
+    {
+     "t": 20.201,
+     "stem": "vocals",
+     "attack": 1.87,
+     "heard": 1.04
+    },
+    {
+     "t": 20.451,
+     "stem": "other",
+     "attack": 1.65,
+     "heard": 2.02
+    },
+    {
+     "t": 20.712,
+     "stem": "other",
+     "attack": 1.73,
+     "heard": 2.44
+    },
+    {
+     "t": 20.991,
+     "stem": "vocals",
+     "attack": 1.63,
+     "heard": 0.88
+    },
+    {
+     "t": 21.223,
+     "stem": "other",
+     "attack": 1.66,
+     "heard": 1.44
+    },
+    {
+     "t": 21.368,
+     "stem": "other",
+     "attack": 1.01,
+     "heard": 0.72
+    },
+    {
+     "t": 21.49,
+     "stem": "vocals",
+     "attack": 1.53,
+     "heard": 0.88
+    },
+    {
+     "t": 21.6,
+     "stem": "other",
+     "attack": 1.61,
+     "heard": 1.24
+    },
+    {
+     "t": 22.013,
+     "stem": "other",
+     "attack": 1.19,
+     "heard": 1.42
+    },
+    {
+     "t": 22.523,
+     "stem": "vocals",
+     "attack": 2.98,
+     "heard": 3.48
+    },
+    {
+     "t": 22.773,
+     "stem": "other",
+     "attack": 1.42,
+     "heard": 1.84
+    }
+   ]
+  },
+  {
+   "from": 37.94,
+   "to": 40.23,
+   "follow": {
+    "vocals": 1.45,
+    "other": 1.3
+   },
+   "notes": [
+    {
+     "t": 38.058,
+     "stem": "vocals",
+     "attack": 2.05,
+     "heard": 1.21
+    },
+    {
+     "t": 38.342,
+     "stem": "vocals",
+     "attack": 1.74,
+     "heard": 1.05
+    },
+    {
+     "t": 38.626,
+     "stem": "vocals",
+     "attack": 1.59,
+     "heard": 1.01
+    },
+    {
+     "t": 38.859,
+     "stem": "vocals",
+     "attack": 1.83,
+     "heard": 1.23
+    },
+    {
+     "t": 39.131,
+     "stem": "vocals",
+     "attack": 1.46,
+     "heard": 0.96
+    },
+    {
+     "t": 39.346,
+     "stem": "vocals",
+     "attack": 1.7,
+     "heard": 1.15
+    },
+    {
+     "t": 39.631,
+     "stem": "vocals",
+     "attack": 1.91,
+     "heard": 1.25
+    },
+    {
+     "t": 39.851,
+     "stem": "other",
+     "attack": 1.4,
+     "heard": 2.15
+    }
+   ]
+  },
+  {
+   "from": 55.85,
+   "to": 56.97,
+   "follow": {
+    "vocals": 1.1,
+    "other": 0
+   },
+   "notes": [
+    {
+     "t": 55.966,
+     "stem": "vocals",
+     "attack": 1.42,
+     "heard": 0.95
+    },
+    {
+     "t": 56.314,
+     "stem": "other",
+     "attack": 1.13,
+     "heard": 0.66
+    },
+    {
+     "t": 56.483,
+     "stem": "vocals",
+     "attack": 1.16,
+     "heard": 0.81
+    },
+    {
+     "t": 56.715,
+     "stem": "vocals",
+     "attack": 1.11,
+     "heard": 0.84
+    },
+    {
+     "t": 56.842,
+     "stem": "other",
+     "attack": 1.26,
+     "heard": 1.6
+    }
+   ]
+  }
+ ]
+}

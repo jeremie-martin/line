@@ -1,595 +1,621 @@
 {
- "title": "The second set of specifications (Codex): all 28 songs",
- "description": "Each song’s new specification against its current one, whole videos, same look and zoom lane within a song. First the 17 songs changed from your notes of 17 November (“Round 2” is the newest; your note and what was changed are under each), then the eleven left as they were.",
- "groups": [
-  {
-   "id": "all",
-   "label": "All",
-   "variants": [
-    "pass2",
-    "ambitious",
-    "revised",
-    "astra",
-    "current"
-   ]
-  }
- ],
- "passages": [
-  {
-   "id": "bones_selection",
-   "label": "Bones",
-   "description": "Your note: “from 0:17 to 0:20 i feel like we're not properly following the beat like after (after is very good, and just before is also very good)” Round 2 (Codex, Astra 6.2): The bass answers at 18.437 and 19.760. Both seeds deliver those answers at .34 and .46, with the opening crash at .80.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/bones_selection-pass2.mp4"
-    },
-    {
-     "id": "revised",
-     "label": "Revised",
-     "src": "/generated/videos/astra/bones_selection-astra2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/bones_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/bones_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "passo_bem_solto_slowed_selection",
-   "label": "Passo Bem Solto Slowed",
-   "description": "Your note: “still weak from 0:08 to 0:12 (not really following voice), banger otherwise” Round 2 (Codex, Astra 6.2): Four lighter catches articulate the 8–12 s vocal line. The 9.613 F-sharp holds until its vowel renews at 10.588.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "revised",
-     "label": "Revised",
-     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/passo_bem_solto_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "amor_na_praia_46s",
-   "label": "Amor na Praia 46s",
-   "description": "Your note: “very good spec overall, beginning is weak until 0:05 (not really following the voice, i think the older spec does a decent job at it (we could do better))” Round 2 (Codex, Astra 6.2): Restored the older reading’s quiet 1.463 chop and distinguished the three phrase openings. The two vocal replies around the 4.725 kick both land.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/amor_na_praia_46s-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/amor_na_praia_46s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/amor_na_praia_46s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "amor_na_praia_selection",
-   "label": "Amor na Praia",
-   "description": "Your note: “good spec, maybe a bit weak from 0:10 to 0:16, a bit borring after until the end” Round 2 (Codex, Astra 6.2): Four pickups clarify 10–16 s. After 16 s, the voice, upper figure and bass take successive phrases, with broader, faster movement at 39.776 and a lighter closing run.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/amor_na_praia_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/amor_na_praia_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/amor_na_praia_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "amour_de_ma_vie_108s",
-   "label": "Amour de ma Vie 108s",
-   "description": "Your note: “this song is pretty chill, perhaps the impacts requested are a bit too strong, very solid otherwise, beginning a bit weak and should follow voice instead until 0:04” Round 2 (Codex, Astra 6.2): The voice leads through 4 s. Louder requests ease across the full cut while the backbeat and returns retain their accents.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/amour_de_ma_vie_108s-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/amour_de_ma_vie_108s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/amour_de_ma_vie_108s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "amour_de_ma_vie_44s",
-   "label": "Amour de ma Vie 44s",
-   "description": "Your note: “beginning a bit weak and should follow voice instead until 0:04, solid overall” Round 2 (Codex, Astra 6.2): The opening follows the .232 pickup, the held A-sharp, the repeated D4s and the descent at 3.378–3.971.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/amour_de_ma_vie_44s-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/amour_de_ma_vie_44s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/amour_de_ma_vie_44s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "funk_do_bounce_super_slowed_selection",
-   "label": "Funk do Bounce Super Slowed",
-   "description": "Your note: “fucking hell this music is horrendous, and this is SUCH a good spec, we could just follow more closely the voice until 4s” Round 2 (Codex, Astra 6.2): The .197 G4 opens the ride. The short 2.194 pickup leads into the sustained vowel, leaving the breath before 4 s open.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "los_voltaje_ultra_slowed_selection",
-   "label": "Los Voltaje Ultra Slowed",
-   "description": "Your note: “good spec, except for around 0:27 to the end well the spec maps a weird part of the music (not the big huge bass/drum, not the voice, an instrument in the middle)” Round 2 (Codex, Astra 6.2): From about 27 s, the heavy drums carry the pulse and the singer answers between them. Four exposed vocal notes close the ride.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "lua_na_praca_selection",
-   "label": "Lua na Praça",
-   "description": "Your note: “just a very good spec, perhaps we could try a different kind of spec, more ambitious, but it's perfectly perfect at what it does” Second reading (Codex, Astra 6.2): Added `astra-ambitious.ts`. Bass replies, three quiet central phrase starts and a sung drum return give it a distinct reading. The praised `astra.ts` is byte-identical.",
-   "videos": [
-    {
-     "id": "ambitious",
-     "label": "More ambitious",
-     "src": "/generated/videos/astra/lua_na_praca_selection-ambitious.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/lua_na_praca_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/lua_na_praca_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "luna_bala_slowed_selection",
-   "label": "Luna Bala Slowed",
-   "description": "Your note: “from 0:12 to 0:20 i'd follow the voice instead (with relatively gentle impacts), otherwise great” Round 2 (Codex, Astra 6.2): The singer leads 12–20 s with gentle catches at the 15.186, 18.971 and 19.296 vowel renewals.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/luna_bala_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/luna_bala_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/luna_bala_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "montagem_tomada_extended_selection",
-   "label": "Montagem Tomada Extended",
-   "description": "Your note: “there's very good elements but until 0:11 we could follow the voice (more ambitiously) and same from 0:33 to 0:40 (and also from 0:47 to 0:48)” Round 2 (Codex, Astra 6.2): The voice takes the opening and the 33–40 s build. The G-sharp at 47.113 rings before its quieter 47.647 renewal.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/montagem_tomada_extended_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/montagem_tomada_extended_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/montagem_tomada_extended_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "montagem_tomada_slowed_selection",
-   "label": "Montagem Tomada Slowed",
-   "description": "Your note: “good, could be more ambitious at many points (bgm, voice)” Round 2 (Codex, Astra 6.2): Bass and upper stabs answer the early words. The vocal hook returns between full-band strokes, with room for the central F4 and the long 37.860 word.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/montagem_tomada_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/montagem_tomada_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/montagem_tomada_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "montagem_tomada_super_slowed_selection",
-   "label": "Montagem Tomada Super Slowed",
-   "description": "Your note: “good, could be more ambitious at many points (bgm, voice)” Round 2 (Codex, Astra 6.2): The opening singer trades phrases with the upper figure. Pad and bass replies develop the later passages while the held words and percussion hole retain their space.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "no_batidao_selection",
-   "label": "No Batidão",
-   "description": "Your note: “until ~0:08 we could follow the voice, great otherwise” Round 2 (Codex, Astra 6.2): Four softer vocal replies fill out the opening. The first three build strokes follow the singer through 7.872.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/no_batidao_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/no_batidao_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/no_batidao_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "passo_bem_solto_selection",
-   "label": "Passo Bem Solto",
-   "description": "Your note: “great, could follow voice from 0:09 to 0:24 (and i feel like we're kinda following it from 0:37 to 0:39 but i feel like we could do even better)” Round 2 (Codex, Astra 6.2): The high A at 18.611 and low A at 20.445 set the timing. Two lighter catches at 37.965 and 38.406 articulate the exposed call.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/passo_bem_solto_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/passo_bem_solto_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/passo_bem_solto_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "passo_bem_solto_super_slowed_selection",
-   "label": "Passo Bem Solto Super Slowed",
-   "description": "Your note: “pretty much same remark as Passo Bem Solto” Round 2 (Codex, Astra 6.2): The corresponding high and low vocal replies lead the first sentence. This crop’s exposed call gains articulations at 39.764 and 40.275.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "trouble_50s",
-   "label": "Trouble 50s",
-   "description": "Your note: “maybe impacts could be slightly bigger from 0:14 to 0:29, could follow voice more ambitiously from 0:27 to 0:29, very good otherwise” Round 2 (Codex, Astra 6.2): The 14–29 s groove carries slightly more weight. Vocal catches at 27.934 and 28.746 complete the phrase into the drop.",
-   "videos": [
-    {
-     "id": "pass2",
-     "label": "Round 2",
-     "src": "/generated/videos/astra/trouble_50s-pass2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/trouble_50s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/trouble_50s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "montagem_coma_selection",
-   "label": "Montagem Coma",
-   "description": "You: “a pure banger… only drawback would the passage at around 35-43s that would be better if it was following the voice”. “Revised” follows the voice from 35.3 to 43.1 s; nothing else was changed. Codex notes the drop at the end of that passage measures a little softer than before.",
-   "videos": [
-    {
-     "id": "revised",
-     "label": "Revised",
-     "src": "/generated/videos/astra/montagem_coma_selection-astra2.mp4"
-    },
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/montagem_coma_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/montagem_coma_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "let_the_world_burn_selection",
-   "label": "Let the World Burn",
-   "description": "You: “awesome overall, it’s crazy how dreamy the second part is”. Unchanged.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/let_the_world_burn_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/let_the_world_burn_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "no_batidao_slowed_selection",
-   "label": "No Batidão Slowed",
-   "description": "You: “just a very good specification overall, so rythmic, so good”. Unchanged. Codex flags a voice it does not follow at 8.4–8.6 s; 17.2–17.5 s (from the data, not from listening; nothing changed).",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/no_batidao_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/no_batidao_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "believer_78s",
-   "label": "Believer 78s",
-   "description": "Codex’s reviewer: “Coherent, but incomplete tom replies” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 0–35.7 s; 38.8–45.6 s (from the data, not from listening; nothing changed).",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/believer_78s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/believer_78s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "derniere_danse_coral_selection",
-   "label": "Dernière Danse Coral",
-   "description": "Codex’s reviewer: “Worthwhile upper reading; unfinished” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 34.5–47.9 s; 53.9–54.6 s (from the data, not from listening; nothing changed).",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/derniere_danse_coral_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/derniere_danse_coral_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "funk_estranho_super_slowed_selection",
-   "label": "Funk Estranho Super Slowed",
-   "description": "Codex’s reviewer: “Good low motor, no false climax” (kept); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/funk_estranho_super_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/funk_estranho_super_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "los_voltaje_selection",
-   "label": "Los Voltaje",
-   "description": "Codex’s reviewer: “Specific reading; impossible entrance” (revised); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/los_voltaje_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/los_voltaje_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "los_voltaje_slowed_selection",
-   "label": "Los Voltaje Slowed",
-   "description": "Codex’s reviewer: “Specific sung hook; impossible entrance” (revised); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/los_voltaje_slowed_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/los_voltaje_slowed_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "luna_bala_44s",
-   "label": "Luna Bala 44s",
-   "description": "Codex’s reviewer: “Good real rhythm, not the old grid” (kept); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/luna_bala_44s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/luna_bala_44s-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "luna_bala_original_selection",
-   "label": "Luna Bala Original",
-   "description": "Codex’s reviewer: “Good bass takeover and full quiet melody” (kept); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/luna_bala_original_selection-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/luna_bala_original_selection-current.mp4"
-    }
-   ]
-  },
-  {
-   "id": "valhalla_40s",
-   "label": "Valhalla 40s",
-   "description": "Codex’s reviewer: “Good voice surviving the drop” (kept); better than the current spec in its judgement: yes.",
-   "videos": [
-    {
-     "id": "astra",
-     "label": "New (Codex)",
-     "src": "/generated/videos/astra/valhalla_40s-astra.mp4"
-    },
-    {
-     "id": "current",
-     "label": "Current spec",
-     "src": "/generated/videos/astra/valhalla_40s-current.mp4"
-    }
-   ]
-  }
- ]
+"title": "The second set of specifications (Codex): all 28 songs",
+"description": "Each song’s new specification against its current one, whole videos, same look and zoom lane within a song. First the five songs you marked by hand, each with a “Blind reading”: a specification written afresh on 17 November from the new analysis, without your marks or the earlier specs. Then the other songs changed from your notes (“Round 2”), then those left as they were.",
+"groups": [
+{
+"id": "all",
+"label": "All",
+"variants": [
+"fresh",
+"pass2",
+"ambitious",
+"revised",
+"astra",
+"current"
+]
+}
+],
+"passages": [
+{
+"id": "passo_bem_solto_slowed_selection",
+"label": "Passo Bem Solto Slowed",
+"description": "Your note: “still weak from 0:08 to 0:12 (not really following voice), banger otherwise” Round 2 (Codex, Astra 6.2): Four lighter catches articulate the 8–12 s vocal line. The 9.613 F-sharp holds until its vowel renews at 10.588.",
+"videos": [
+{
+"id": "fresh",
+"label": "Blind reading",
+"src": "/generated/videos/astra/passo_bem_solto_slowed_selection-fresh.mp4"
+},
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/passo_bem_solto_slowed_selection-pass2.mp4"
+},
+{
+"id": "revised",
+"label": "Revised",
+"src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/passo_bem_solto_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/passo_bem_solto_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "amor_na_praia_46s",
+"label": "Amor na Praia 46s",
+"description": "Your note: “very good spec overall, beginning is weak until 0:05 (not really following the voice, i think the older spec does a decent job at it (we could do better))” Round 2 (Codex, Astra 6.2): Restored the older reading’s quiet 1.463 chop and distinguished the three phrase openings. The two vocal replies around the 4.725 kick both land.",
+"videos": [
+{
+"id": "fresh",
+"label": "Blind reading",
+"src": "/generated/videos/astra/amor_na_praia_46s-fresh.mp4"
+},
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/amor_na_praia_46s-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/amor_na_praia_46s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/amor_na_praia_46s-current.mp4"
+}
+]
+},
+{
+"id": "lua_na_praca_selection",
+"label": "Lua na Praça",
+"description": "Your note: “just a very good spec, perhaps we could try a different kind of spec, more ambitious, but it's perfectly perfect at what it does” Second reading (Codex, Astra 6.2): Added `astra-ambitious.ts`. Bass replies, three quiet central phrase starts and a sung drum return give it a distinct reading. The praised `astra.ts` is byte-identical.",
+"videos": [
+{
+"id": "fresh",
+"label": "Blind reading",
+"src": "/generated/videos/astra/lua_na_praca_selection-fresh.mp4"
+},
+{
+"id": "ambitious",
+"label": "More ambitious",
+"src": "/generated/videos/astra/lua_na_praca_selection-ambitious.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/lua_na_praca_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/lua_na_praca_selection-current.mp4"
+}
+]
+},
+{
+"id": "luna_bala_slowed_selection",
+"label": "Luna Bala Slowed",
+"description": "Your note: “from 0:12 to 0:20 i'd follow the voice instead (with relatively gentle impacts), otherwise great” Round 2 (Codex, Astra 6.2): The singer leads 12–20 s with gentle catches at the 15.186, 18.971 and 19.296 vowel renewals.",
+"videos": [
+{
+"id": "fresh",
+"label": "Blind reading",
+"src": "/generated/videos/astra/luna_bala_slowed_selection-fresh.mp4"
+},
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/luna_bala_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/luna_bala_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/luna_bala_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "montagem_tomada_slowed_selection",
+"label": "Montagem Tomada Slowed",
+"description": "Your note: “good, could be more ambitious at many points (bgm, voice)” Round 2 (Codex, Astra 6.2): Bass and upper stabs answer the early words. The vocal hook returns between full-band strokes, with room for the central F4 and the long 37.860 word.",
+"videos": [
+{
+"id": "fresh",
+"label": "Blind reading",
+"src": "/generated/videos/astra/montagem_tomada_slowed_selection-fresh.mp4"
+},
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/montagem_tomada_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/montagem_tomada_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/montagem_tomada_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "bones_selection",
+"label": "Bones",
+"description": "Your note: “from 0:17 to 0:20 i feel like we're not properly following the beat like after (after is very good, and just before is also very good)” Round 2 (Codex, Astra 6.2): The bass answers at 18.437 and 19.760. Both seeds deliver those answers at .34 and .46, with the opening crash at .80.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/bones_selection-pass2.mp4"
+},
+{
+"id": "revised",
+"label": "Revised",
+"src": "/generated/videos/astra/bones_selection-astra2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/bones_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/bones_selection-current.mp4"
+}
+]
+},
+{
+"id": "amor_na_praia_selection",
+"label": "Amor na Praia",
+"description": "Your note: “good spec, maybe a bit weak from 0:10 to 0:16, a bit borring after until the end” Round 2 (Codex, Astra 6.2): Four pickups clarify 10–16 s. After 16 s, the voice, upper figure and bass take successive phrases, with broader, faster movement at 39.776 and a lighter closing run.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/amor_na_praia_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/amor_na_praia_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/amor_na_praia_selection-current.mp4"
+}
+]
+},
+{
+"id": "amour_de_ma_vie_108s",
+"label": "Amour de ma Vie 108s",
+"description": "Your note: “this song is pretty chill, perhaps the impacts requested are a bit too strong, very solid otherwise, beginning a bit weak and should follow voice instead until 0:04” Round 2 (Codex, Astra 6.2): The voice leads through 4 s. Louder requests ease across the full cut while the backbeat and returns retain their accents.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/amour_de_ma_vie_108s-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/amour_de_ma_vie_108s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/amour_de_ma_vie_108s-current.mp4"
+}
+]
+},
+{
+"id": "amour_de_ma_vie_44s",
+"label": "Amour de ma Vie 44s",
+"description": "Your note: “beginning a bit weak and should follow voice instead until 0:04, solid overall” Round 2 (Codex, Astra 6.2): The opening follows the .232 pickup, the held A-sharp, the repeated D4s and the descent at 3.378–3.971.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/amour_de_ma_vie_44s-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/amour_de_ma_vie_44s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/amour_de_ma_vie_44s-current.mp4"
+}
+]
+},
+{
+"id": "funk_do_bounce_super_slowed_selection",
+"label": "Funk do Bounce Super Slowed",
+"description": "Your note: “fucking hell this music is horrendous, and this is SUCH a good spec, we could just follow more closely the voice until 4s” Round 2 (Codex, Astra 6.2): The .197 G4 opens the ride. The short 2.194 pickup leads into the sustained vowel, leaving the breath before 4 s open.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/funk_do_bounce_super_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "los_voltaje_ultra_slowed_selection",
+"label": "Los Voltaje Ultra Slowed",
+"description": "Your note: “good spec, except for around 0:27 to the end well the spec maps a weird part of the music (not the big huge bass/drum, not the voice, an instrument in the middle)” Round 2 (Codex, Astra 6.2): From about 27 s, the heavy drums carry the pulse and the singer answers between them. Four exposed vocal notes close the ride.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/los_voltaje_ultra_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "montagem_tomada_extended_selection",
+"label": "Montagem Tomada Extended",
+"description": "Your note: “there's very good elements but until 0:11 we could follow the voice (more ambitiously) and same from 0:33 to 0:40 (and also from 0:47 to 0:48)” Round 2 (Codex, Astra 6.2): The voice takes the opening and the 33–40 s build. The G-sharp at 47.113 rings before its quieter 47.647 renewal.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/montagem_tomada_extended_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/montagem_tomada_extended_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/montagem_tomada_extended_selection-current.mp4"
+}
+]
+},
+{
+"id": "montagem_tomada_super_slowed_selection",
+"label": "Montagem Tomada Super Slowed",
+"description": "Your note: “good, could be more ambitious at many points (bgm, voice)” Round 2 (Codex, Astra 6.2): The opening singer trades phrases with the upper figure. Pad and bass replies develop the later passages while the held words and percussion hole retain their space.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/montagem_tomada_super_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "no_batidao_selection",
+"label": "No Batidão",
+"description": "Your note: “until ~0:08 we could follow the voice, great otherwise” Round 2 (Codex, Astra 6.2): Four softer vocal replies fill out the opening. The first three build strokes follow the singer through 7.872.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/no_batidao_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/no_batidao_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/no_batidao_selection-current.mp4"
+}
+]
+},
+{
+"id": "passo_bem_solto_selection",
+"label": "Passo Bem Solto",
+"description": "Your note: “great, could follow voice from 0:09 to 0:24 (and i feel like we're kinda following it from 0:37 to 0:39 but i feel like we could do even better)” Round 2 (Codex, Astra 6.2): The high A at 18.611 and low A at 20.445 set the timing. Two lighter catches at 37.965 and 38.406 articulate the exposed call.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/passo_bem_solto_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/passo_bem_solto_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/passo_bem_solto_selection-current.mp4"
+}
+]
+},
+{
+"id": "passo_bem_solto_super_slowed_selection",
+"label": "Passo Bem Solto Super Slowed",
+"description": "Your note: “pretty much same remark as Passo Bem Solto” Round 2 (Codex, Astra 6.2): The corresponding high and low vocal replies lead the first sentence. This crop’s exposed call gains articulations at 39.764 and 40.275.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/passo_bem_solto_super_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "trouble_50s",
+"label": "Trouble 50s",
+"description": "Your note: “maybe impacts could be slightly bigger from 0:14 to 0:29, could follow voice more ambitiously from 0:27 to 0:29, very good otherwise” Round 2 (Codex, Astra 6.2): The 14–29 s groove carries slightly more weight. Vocal catches at 27.934 and 28.746 complete the phrase into the drop.",
+"videos": [
+{
+"id": "pass2",
+"label": "Round 2",
+"src": "/generated/videos/astra/trouble_50s-pass2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/trouble_50s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/trouble_50s-current.mp4"
+}
+]
+},
+{
+"id": "montagem_coma_selection",
+"label": "Montagem Coma",
+"description": "You: “a pure banger… only drawback would the passage at around 35-43s that would be better if it was following the voice”. “Revised” follows the voice from 35.3 to 43.1 s; nothing else was changed. Codex notes the drop at the end of that passage measures a little softer than before.",
+"videos": [
+{
+"id": "revised",
+"label": "Revised",
+"src": "/generated/videos/astra/montagem_coma_selection-astra2.mp4"
+},
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/montagem_coma_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/montagem_coma_selection-current.mp4"
+}
+]
+},
+{
+"id": "let_the_world_burn_selection",
+"label": "Let the World Burn",
+"description": "You: “awesome overall, it’s crazy how dreamy the second part is”. Unchanged.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/let_the_world_burn_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/let_the_world_burn_selection-current.mp4"
+}
+]
+},
+{
+"id": "no_batidao_slowed_selection",
+"label": "No Batidão Slowed",
+"description": "You: “just a very good specification overall, so rythmic, so good”. Unchanged. Codex flags a voice it does not follow at 8.4–8.6 s; 17.2–17.5 s (from the data, not from listening; nothing changed).",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/no_batidao_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/no_batidao_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "believer_78s",
+"label": "Believer 78s",
+"description": "Codex’s reviewer: “Coherent, but incomplete tom replies” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 0–35.7 s; 38.8–45.6 s (from the data, not from listening; nothing changed).",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/believer_78s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/believer_78s-current.mp4"
+}
+]
+},
+{
+"id": "derniere_danse_coral_selection",
+"label": "Dernière Danse Coral",
+"description": "Codex’s reviewer: “Worthwhile upper reading; unfinished” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 34.5–47.9 s; 53.9–54.6 s (from the data, not from listening; nothing changed).",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/derniere_danse_coral_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/derniere_danse_coral_selection-current.mp4"
+}
+]
+},
+{
+"id": "funk_estranho_super_slowed_selection",
+"label": "Funk Estranho Super Slowed",
+"description": "Codex’s reviewer: “Good low motor, no false climax” (kept); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/funk_estranho_super_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/funk_estranho_super_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "los_voltaje_selection",
+"label": "Los Voltaje",
+"description": "Codex’s reviewer: “Specific reading; impossible entrance” (revised); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/los_voltaje_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/los_voltaje_selection-current.mp4"
+}
+]
+},
+{
+"id": "los_voltaje_slowed_selection",
+"label": "Los Voltaje Slowed",
+"description": "Codex’s reviewer: “Specific sung hook; impossible entrance” (revised); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/los_voltaje_slowed_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/los_voltaje_slowed_selection-current.mp4"
+}
+]
+},
+{
+"id": "luna_bala_44s",
+"label": "Luna Bala 44s",
+"description": "Codex’s reviewer: “Good real rhythm, not the old grid” (kept); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/luna_bala_44s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/luna_bala_44s-current.mp4"
+}
+]
+},
+{
+"id": "luna_bala_original_selection",
+"label": "Luna Bala Original",
+"description": "Codex’s reviewer: “Good bass takeover and full quiet melody” (kept); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/luna_bala_original_selection-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/luna_bala_original_selection-current.mp4"
+}
+]
+},
+{
+"id": "valhalla_40s",
+"label": "Valhalla 40s",
+"description": "Codex’s reviewer: “Good voice surviving the drop” (kept); better than the current spec in its judgement: yes.",
+"videos": [
+{
+"id": "astra",
+"label": "New (Codex)",
+"src": "/generated/videos/astra/valhalla_40s-astra.mp4"
+},
+{
+"id": "current",
+"label": "Current spec",
+"src": "/generated/videos/astra/valhalla_40s-current.mp4"
+}
+]
+}
+]
 }

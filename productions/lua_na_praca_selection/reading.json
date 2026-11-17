@@ -1,0 +1,60 @@
+{
+ "summary": "Made by the page itself from the first notes of each stretch you marked on 17 November (two bars of a rhythm; for a voice, the voice and other stems ticked and ten syllables), as if you had tapped them.",
+ "passages": [
+  {
+   "from": 6.83,
+   "to": 7.81,
+   "follow": {
+    "vocals": 1.0
+   },
+   "slots": null,
+   "note": ""
+  },
+  {
+   "from": 13.19,
+   "to": 14.97,
+   "follow": {
+    "other": 0.9
+   },
+   "slots": null,
+   "note": ""
+  },
+  {
+   "from": 20.45,
+   "to": 22.26,
+   "follow": {
+    "other": 0.85
+   },
+   "slots": null,
+   "note": ""
+  },
+  {
+   "from": 36.03,
+   "to": 36.8,
+   "follow": {
+    "other": 1.0
+   },
+   "slots": null,
+   "note": ""
+  },
+  {
+   "from": 43.17,
+   "to": 44.05,
+   "follow": {
+    "other": 0.0
+   },
+   "slots": null,
+   "note": ""
+  },
+  {
+   "from": 49.76,
+   "to": 51.33,
+   "follow": {
+    "other": 0.9
+   },
+   "slots": null,
+   "note": ""
+  }
+ ],
+ "questions": []
+}

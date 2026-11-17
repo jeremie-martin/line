@@ -1,0 +1,10 @@
+{
+  "file": "valhalla.aac",
+  "sha256": "c44ae19153d5f1596d6f47d074ca2075fb26dffa1ea1d9bec40ee85a288dda42",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 40.031,
+  "match": {
+    "start": 1,
+    "end": 1
+  }
+}

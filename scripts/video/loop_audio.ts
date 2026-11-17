@@ -29,8 +29,11 @@ export const LOOP_SECONDS = 0.5;
 /** The most a recording is shortened to end in step, and the seconds of rhythm compared. */
 export const MAX_TRIM = 3, COMPARED = 6;
 const RATE = 48000, CHANNELS = 2, FRAME = RATE / 60; // FRAME: the samples of one video frame (write.ts)
-/** The full recordings the excerpts were cut from (productions/<song>/source.json names the file and the excerpt's start). */
-const recordings = () => process.env.LR_RECORDINGS ?? join(homedir(), 'prog/double-pendulum/music/tracks');
+/** A full recording an excerpt was cut from, or null when it is not on this machine. productions/<song>/source.json names the
+ * file and the excerpt's start (tools/music/source.ts writes it); the file is looked for in LR_RECORDINGS, or in recordings/
+ * here and then in the music library. */
+const recording = (file: string) => (process.env.LR_RECORDINGS ? [process.env.LR_RECORDINGS] : [join(ROOT, 'recordings'), join(homedir(), 'prog/double-pendulum/music/tracks')])
+  .map(folder => join(folder, file)).find(path => existsSync(path)) ?? null;
 
 /** Interleaved stereo samples of `seconds` of a file from `start`. */
 function decode(path: string, start = 0, seconds?: number): Float32Array {
@@ -55,9 +58,9 @@ export function blendTail(song: Float32Array, lead: Float32Array | null, frames:
 function leadIn(song: string, excerpt: Float32Array, seconds: number): Float32Array | null {
   const record = join(ROOT, 'productions', song, 'source.json');
   if (!existsSync(record)) return null;
-  const {file, sourceStartSeconds: start} = JSON.parse(readFileSync(record, 'utf8')), path = join(recordings(), file), MARGIN = 0.05;
+  const {file, sourceStartSeconds: start} = JSON.parse(readFileSync(record, 'utf8')), path = recording(file), MARGIN = 0.05;
   const frames = Math.round(Math.min(seconds, start - 2 * MARGIN) * RATE);
-  if (!(frames >= LOOP_SECONDS * RATE) || !existsSync(path)) return null;
+  if (!(frames >= LOOP_SECONDS * RATE) || !path) return null;
   const from = start - frames / RATE - MARGIN, chunk = decode(path, from, frames / RATE + 2 * MARGIN + 0.25), probe = Math.round(0.2 * RATE), expected = frames + Math.round(MARGIN * RATE);
   const mono = (a: Float32Array, i: number) => a[i * CHANNELS] + a[i * CHANNELS + 1];
   let best = -Infinity, at = expected;
@@ -90,7 +93,7 @@ function rhythm(samples: Float32Array): Float64Array {
   return out.map(v => v - mean);
 }
 /** In-place radix-2 transform. */
-function fft(re: Float64Array, im: Float64Array) {
+export function fft(re: Float64Array, im: Float64Array) {
   const n = re.length;
   for (let i = 1, j = 0; i < n; i++) {let bit = n >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) {[re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]];}}
   for (let size = 2; size <= n; size <<= 1) {
@@ -122,13 +125,13 @@ export function loopPoint(song: Float32Array, lead: Float32Array, most = MAX_TRI
  * setting): how its end was made ('lead-in', 'fade' or 'mirror'), its length in seconds, how much shorter than the excerpt
  * that is, and how well its end matches its lead-in. */
 export function loopRecording(song: string, seconds = LOOP_SECONDS, mirror = false, trimmed = true): {audio: string; loop: 'lead-in' | 'fade' | 'mirror'; length: number; trim: number; match: number | null} {
-  const recording = join(ROOT, 'productions', song, 'audio.mp3'), record = join(ROOT, 'productions', song, 'source.json');
-  const source = existsSync(record) ? JSON.parse(readFileSync(record, 'utf8')) : null, here = source && existsSync(join(recordings(), source.file));
-  const id = createHash('sha256').update(readFileSync(recording)).update(JSON.stringify([seconds, RATE, here ? [source.sha256, source.sourceStartSeconds] : null, mirror, trimmed, MAX_TRIM, COMPARED, 3])).digest('hex').slice(0, 24);
+  const excerptPath = join(ROOT, 'productions', song, 'audio.mp3'), record = join(ROOT, 'productions', song, 'source.json');
+  const source = existsSync(record) ? JSON.parse(readFileSync(record, 'utf8')) : null, here = source && recording(source.file);
+  const id = createHash('sha256').update(readFileSync(excerptPath)).update(JSON.stringify([seconds, RATE, here ? [source.sha256, source.sourceStartSeconds] : null, mirror, trimmed, MAX_TRIM, COMPARED, 3])).digest('hex').slice(0, 24);
   const audio = join('generated/loop-audio', `${song}-${id}.wav`), marker = join(ROOT, `${audio}.json`);
   if (!existsSync(marker)) {
     mkdirSync(join(ROOT, 'generated/loop-audio'), {recursive: true});
-    const whole = decode(recording), frames = Math.round(seconds * RATE), before = leadIn(song, whole, COMPARED);
+    const whole = decode(excerptPath), frames = Math.round(seconds * RATE), before = leadIn(song, whole, COMPARED);
     const point = before && trimmed ? loopPoint(whole, before) : {trim: 0, match: null}, 
     // a whole number of video frames, so the video and its sound end together
     excerpt = whole.subarray(0, Math.floor((whole.length / CHANNELS - point.trim) / FRAME) * FRAME * CHANNELS);

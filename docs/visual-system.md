@@ -34,8 +34,9 @@ These are fixed for all themes (`look.js` `V1`):
     seconds matches the rhythm of the full recording's lead-in to the excerpt (the excerpts were cut at round
     seconds, not on a bar line); where nothing matches clearly it ends as cut. Its last half second then fades into
     that lead-in, so the first sample continues it. The video is as long as this recording. A song with no lead-in
-    (it starts where its recording starts, or its full recording is not on this machine: `LR_RECORDINGS`) ends as
-    cut and fades out over the half second.
+    (it starts where its recording starts, or it has no `source.json`, or its full recording is not on this
+    machine) ends as cut and fades out over the half second. `tools/music/source.ts` finds an excerpt in its full
+    recording and writes that record; recordings are looked for in `recordings/` and in the music library.
   - *Band.* Analysed on that recording as a loop (`make_spectrum.py --loop`), so it is continuous across the cut.
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its

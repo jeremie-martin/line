@@ -21,6 +21,13 @@ the end of the video the same as its start?
   slowed; Petrunko matches as cut, 0.59) and end as cut. The nine without a lead-in are as before. The measure is
   not checked against his ear; the rule (least trim within 0.1 of the best match, none under 0.5) is mine.
 - **Band:** unchanged; it follows the recording, so it is in step too.
+- **Where an excerpt sits in its recording is found from the sound** (`tools/music/source.ts`): it matches the
+  excerpt inside a full recording, refuses another recording or another speed, and writes `source.json`. Run on
+  what this machine holds for the nine songs that only faded: Believer starts 7.3 s into its recording and now has
+  a lead-in (ends 0.26 s early, match 0.52); Tiki, Circus, Valhalla and Luna Bala 44 s start at second 0 of
+  theirs, so they have none; no recording matches Trouble, Amor na Praia 46 s or L'amour de ma vie. Tried for
+  those: a loop point where what follows the cut resembles the song's own opening. It agrees with the lead-in
+  method on the repetitive songs and finds nothing on the seven that fade, so it is not kept.
 - A video is now a whole number of frames of its recording, so sound and picture end together.
 - Videos of the 14 songs are 0.13 to 2.05 s shorter; the ride's last moment under the rising camera is cut.
 

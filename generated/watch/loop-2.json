@@ -98,6 +98,23 @@
    ]
   },
   {
+   "id": "believer_78s",
+   "label": "Believer",
+   "description": "Believer: until today it only faded out. Its full recording is now found on this machine: the video ends 0.26 s early (a weaker match, 0.52) and its last half second runs into the 7 seconds of music that precede the excerpt. “Ending as cut” has the same lead-in without the earlier end. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/believer_78s-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/believer_78s-cut.mp4"
+    }
+   ]
+  },
+  {
    "id": "petrunko_selection",
    "label": "Petrunko",
    "description": "Petrunko: its sound is as yesterday (no place where the end is more in step with the start); the picture is today’s. The cut is at 8 s.",

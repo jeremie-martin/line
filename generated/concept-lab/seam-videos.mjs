@@ -1,4 +1,4 @@
-// node generated/concept-lab/seam-videos.ts SONG…  : for each song, the last 8 s and the first 8 s of its video, as parts to join
+// node generated/concept-lab/seam-videos.mjs SONG…  : for each song, the last 8 s and the first 8 s of its video, as parts to join
 // (generated/videos/loop-2/<song>-<version>-{end,start}.mp4 and the sound across the cut as <song>-<version>.wav).
 // Versions: 'step' is production; 'cut' ends the song as cut (no loop point), for songs that have one.
 import {execFileSync} from 'node:child_process';

@@ -1,0 +1,10 @@
+{
+  "file": "believer.mp3",
+  "sha256": "5b13a93b685b594c8ea729f3e10484db70f7af09e9887226bc2f638de38f302a",
+  "sourceStartSeconds": 7.3,
+  "sourceEndSeconds": 85.8,
+  "match": {
+    "start": 1,
+    "end": 1
+  }
+}

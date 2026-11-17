@@ -56,7 +56,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - `~/.venvs/line-audio/bin/python scripts/analyze_audio.py --audio productions/<song>/audio.mp3 --out productions/<song>/audio.json`
      gives a tempo hypothesis and energy layers;
    - `~/.venvs/line-stems/bin/python tools/music/spectrogram.py --song=<song>`
-     gives the dashboard spectrogram.
+     gives the dashboard spectrogram;
+   - `node tools/music/source.ts --song=<song> PATH/TO/FULL-RECORDING` finds where the excerpt sits in its full
+     recording and writes `source.json`. A video loops into the music that leads into the excerpt
+     (`docs/visual-system.md`, "The loop"); without this record it only fades at its end. Best for the loop: an
+     excerpt that starts at least six seconds into the recording and ends on a bar line that leads into its start.
 2. **Separate the instruments.**
    - `~/.venvs/line-stems/bin/python tools/music/stems.py --song=<song>` gives
      drums, bass, vocals and other, each with a loudness envelope and onsets.

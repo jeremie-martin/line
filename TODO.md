@@ -14,12 +14,14 @@ His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What rem
    Open:
    - his ear on the loop point (14 songs end up to 2 s early, in step with their start; before and after in
      `/motion-gallery/video-compare.html?collection=/generated/watch/loop-2.json`, made by
-     `generated/concept-lab/seam-videos.ts`), on the half-second blend, and on the eight
+     `generated/concept-lab/seam-videos.mjs`), on the half-second blend, and on the eight
      songs that match nowhere;
    - his eye on the ink returning to pencil on the way up;
-   - the nine songs with no lead-in (Tiki, Circus, Believer, Trouble, Valhalla, both L'amour de ma vie, Amor na
-     Praia 46 s, Luna Bala 44 s: no `source.json`) end as cut and fade; with their full recordings they would get a
-     lead-in and a loop point;
+   - songs that only fade at the end: Tiki, Circus, Valhalla and Luna Bala 44 s start at the first second of their
+     recordings, so nothing leads into them (a fact, not a gap); Trouble, Amor na Praia 46 s and both L'amour de ma
+     vie have no full recording on this machine (`node tools/music/source.ts --song=… RECORDING` once one is here;
+     the two Trouble files found are other versions). Looking for a loop point from the song's own opening instead
+     of a lead-in finds nothing on these seven: their endings do not resemble their openings;
    - a new song's excerpt should be chosen on a bar line that leads into its start;
    - a hit in the ending still splits the colours of the whole-course view;
    - the speed measure on the page is not checked against his eye; settings he saves go to

@@ -39,3 +39,4 @@ __pycache__/
 # Per-host resume state
 productions/*/.produce-cursor-*.json
 motion-gallery/production-library.json
+/recordings/

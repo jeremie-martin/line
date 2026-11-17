@@ -10,12 +10,14 @@ import {mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {AUDIO} from '../../scripts/video/encoding.ts';
 import {FPS, audioLag, verifyVideo, frameSize} from '../../scripts/video/write.ts';
+import {buildScene} from '../../scripts/video/scene.ts';
 
 const a = Object.fromEntries(process.argv.slice(2).map(s => {const i = s.indexOf('='); return [s.slice(0, i), s.slice(i + 1)];}));
 if (!a.study || !a.cuts || !a.out) throw new Error('study=DIR cuts=T:THEME,… out=FILE.mp4');
 const out = resolve(a.out), work = out.replace(/\.mp4$/, '.parts'), width = +(a.width ?? 1080);
 const manifest = JSON.parse(readFileSync(join(a.study, 'manifest.json'), 'utf8')), cell = manifest.cells[0];
-const record = JSON.parse(readFileSync(join(a.study, cell.path), 'utf8')), song = record.case.id, end = record.case.durationFrames / 40;
+// the film ends where a video of the ride does and plays the same looping recording (scripts/video/loop_audio.ts)
+const record = JSON.parse(readFileSync(join(a.study, cell.path), 'utf8')), song = record.case.id, scene = buildScene(song, record), end = scene.span[1], sound = scene.audio;
 const frame = t => Math.round(t * FPS) / FPS;
 const cuts = a.cuts.split(',').map(s => {const [t, theme] = s.split(':'); return {t: frame(+t), theme};});
 cuts.forEach((c, i) => {if (!(c.t >= 0 && c.t < end && (i === 0 ? c.t === 0 : c.t > cuts[i - 1].t))) throw new Error(`cut ${i} at ${c.t} s: cuts start at 0 and rise, inside ${end} s`);});
@@ -34,11 +36,11 @@ writeFileSync(join(work, 'list.txt'), files.map(f => `file '${f}'`).join('\n') +
 const joined = join(work, 'joined.mp4');
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(work, 'list.txt'), '-map', '0:v', '-c', 'copy', joined]);
 const start = Number(execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v', '-show_entries', 'stream=start_time', '-of', 'csv=p=0', joined], {encoding: 'utf8'}));
-execFileSync('ffmpeg', ['-v', 'error', '-y', '-itsoffset', String(-start), '-i', joined, '-i', `productions/${song}/audio.mp3`,
+execFileSync('ffmpeg', ['-v', 'error', '-y', '-itsoffset', String(-start), '-i', joined, '-i', sound,
   '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'asetpts=PTS-STARTPTS,apad', ...AUDIO, '-t', String(end), '-movflags', '+faststart', out]);
 const size = frameSize(width);
 verifyVideo(out, {width: size.width, height: size.height, frames: Math.round(end * FPS)});
-const lag = audioLag(out, `productions/${song}/audio.mp3`, 0);
+const lag = audioLag(out, sound, 0);
 if (lag === null || Math.abs(lag) > 0.001) throw new Error(`the audio is ${lag} s from the song`);
 writeFileSync(out.replace(/\.mp4$/, '.json'), JSON.stringify({of: {study: resolve(a.study), id: cell.id}, cuts, zoom: a.zoom ?? null,
   width}, null, 1) + '\n');

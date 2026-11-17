@@ -1,0 +1,101 @@
+{
+ "title": "The showcase films with the new loop",
+ "description": "The showcase films and the Tiki then-and-now made again with today’s ending: past the widest view the picture is the opening’s, hit effects fade as the camera rises, and the sound is the looping recording. The versions of 16 November are beside them, untouched.",
+ "groups": [
+  {
+   "id": "all",
+   "label": "All",
+   "variants": [
+    "today",
+    "before"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "tiki-a",
+   "label": "Tiki Tiki, A",
+   "description": "Tiki starts at the first second of its recording, so its sound still fades at the end; the picture’s ending is today’s. The film opens in one theme and ends in another, so its last frame has the camera and course of the first but not its colours.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today",
+     "src": "/generated/videos/showcase-2/tiki-a.mp4"
+    },
+    {
+     "id": "before",
+     "label": "16 November",
+     "src": "/generated/videos/showcase/tiki-a.mp4"
+    }
+   ]
+  },
+  {
+   "id": "tiki-b",
+   "label": "Tiki Tiki, B",
+   "description": "As A, with the other order of themes.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today",
+     "src": "/generated/videos/showcase-2/tiki-b.mp4"
+    },
+    {
+     "id": "before",
+     "label": "16 November",
+     "src": "/generated/videos/showcase/tiki-b.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko",
+   "label": "Petrunko",
+   "description": "Its last half second runs into the music that leads into its start. It opens and ends in two papers, close but not the same.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today",
+     "src": "/generated/videos/showcase-2/petrunko.mp4"
+    },
+    {
+     "id": "before",
+     "label": "16 November",
+     "src": "/generated/videos/showcase/petrunko.mp4"
+    }
+   ]
+  },
+  {
+   "id": "circus",
+   "label": "Circus Minimus",
+   "description": "Opens and ends in the same theme, so its last frame is its first. Its sound fades (it starts at the first second of its recording).",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today",
+     "src": "/generated/videos/showcase-2/circus.mp4"
+    },
+    {
+     "id": "before",
+     "label": "16 November",
+     "src": "/generated/videos/showcase/circus.mp4"
+    }
+   ]
+  },
+  {
+   "id": "then-now",
+   "label": "Tiki, then and now",
+   "description": "The side-by-side film with today’s showcase on the right.",
+   "videos": [
+    {
+     "id": "today",
+     "label": "Today",
+     "src": "/generated/videos/showcase-2/tiki-then-now.mp4"
+    },
+    {
+     "id": "before",
+     "label": "16 November",
+     "src": "/generated/videos/then-and-now/tiki-then-now.mp4"
+    }
+   ]
+  }
+ ]
+}

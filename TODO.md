@@ -39,8 +39,10 @@ His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What rem
 
 Work that is mine:
 
-- **Videos made before the evening of 2026-11-16** have the earlier zoom (and, before that day, a band fading at the
-  end): re-render what is kept. The showcase and then-and-now films already have today's zoom.
+- **Videos made before 2026-11-17** have the earlier ending and sound (and, before the evening of the 16th, the
+  earlier zoom): re-render what is kept. The showcase films and the then-and-now are made again in
+  `generated/videos/showcase-2/` (`generated/watch/showcase-2.json`), beside the versions he loved. A showcase film
+  ends in another theme than it opens in (Circus excepted), so its loop matches in camera and course, not in colour.
 - **Branches.** The ten merged ones are deleted (his choice); fifteen with their own commits stay local. Worktrees
   left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
   tree. Four loose notes at the root are untracked (the owner's).

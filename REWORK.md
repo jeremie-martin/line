@@ -1,5 +1,42 @@
 # Foundations rework (started 2026-10-03)
 
+## November 17 (night): what the owner's marks showed about authoring from analysis
+
+After two rounds of notes on the reference specifications the owner judged that the method, not the fixes, was
+failing: "sometimes we are just mapping the wrong thing", "still not following the voice". He marked by hand what he
+hears on five songs (`productions/<song>/notes.json`, tags `voice` and `mark`: Luna Bala slowed, Montagem Tomada
+slowed, Passo Bem Solto slowed, Amor na Praia 46 s, Lua na Praça; about 470 marks, quick and approximate). Measured
+against them (within 70 ms), with two independent readings by agents
+(`generated/codex/astra-specs/diagnosis-workflow.md`, `diagnosis-audit.md`):
+
+- **The compiler is not the cause:** delivered strength is within about 0.03 of asked. The specs asked for the wrong
+  things.
+- **Voice evidence was incomplete.** `sung.json` holds 0 to 44% of his voice marks: it finds a note by the loudness
+  dip before it, which a fast, chopped or legato voice does not have. Three songs (Amor na Praia 46 s, both L'amour
+  de ma vie) had no separated stems at all. A quarter of his voice marks on three songs are only in the `other`
+  stem, which the specs read as backing.
+- **His main rhythm is a figure that returns every bar,** chosen by its place in the bar, not by loudness: on Luna
+  Bala slowed he marks beat 1, three weaker hits and beat 4 and skips beats 2 and 3, which are as loud. Nothing in
+  the evidence showed what repeats in a bar. His marks are almost all present among the onset events (91 to 100%),
+  mostly in one stem, among two to five times as many other events of that stem.
+- **Timing:** one audible note leaves two or three events up to 190 ms apart (several stems, a slow attack); a
+  landing on the earliest comes about 120 ms before the beat he hears.
+- **Strength came from a sound's level, not its attack or what the mix does;** voice landings were asked at about
+  0.26 against a song mean of 0.55.
+- **Figures landed in part,** and the same recording read in opposite ways in two songs (Luna Bala 44 s, which he
+  calls extremely good, and Luna Bala slowed are the same audio).
+- **`docs/music-authoring.md` carries advice drawn from single songs that pushed the wrong way here** ("phrases, not
+  syllables", "follow the loudest layer", "one coherent foreground", words at 0.2 to 0.35); the revision briefs asked
+  for local patches and checked them against the compiler, not the ear.
+- Round 2 asks a landing on 46 to 74% of his marks; the current specs on 17 to 76% (`tools/music/marks.py`).
+
+Made, as evidence and as a check, nothing fitted to the marks: `tools/music/lines.py` (the notes of every stem by
+one detector, and a fold of each four bars onto one bar; it holds 81 to 90% of his voice marks, 89% on a song it was
+not looked at on, with about 60% of its vocal notes on a mark) and `tools/music/marks.py` (a ride's landings against
+his marks: a check for after, never a target). Not solved by any measure tried: which notes of a stem are the ones
+he follows (loudness, attack and share do not separate them). Under way: a blind reading of the five songs by Codex
+with the new evidence and without his marks, to be scored against them.
+
 ## November 17: the loop reviewed as one thing (the turn, and the loop point)
 
 The owner asked for a step back on the loop as a whole: camera, sound, band. One test was applied to all three: is

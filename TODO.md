@@ -45,18 +45,22 @@ Work that is mine:
   left: two agent worktrees, `compare`'s under `generated/eval/worktrees/` (never pruned), and others outside the
   tree. Four loose notes at the root are untracked (the owner's).
 - **The compiler agent** restarts from `docs/compiler-brief.md` (a production sweep first).
-- **A second set of specifications by Codex** (Astra; asked for by the owner on 2026-11-16): branch `specs/astra`,
-  worktree `~/prog/line-specs-astra`, not pushed. 28 songs have a `variants/astra.ts` (none for Petrunko, Circus,
-  Tiki), written by one run and reviewed by a second (`docs/research/astra-specs-20261116.md`,
-  `astra-review-20261117.md` there). The owner watched five on 2026-11-17 and tends to prefer the new set to the
-  current specs (his notes verbatim in the watch collection). A third run applied his notes
-  (`astra-owner-pass-20261117.md`): Montagem Coma and Passo Bem Solto slowed follow the voice where he asked, Bones
-  is rewritten more ambitious (the first kept as `astra-drums.ts`); it also lists, without changing them, where
-  other variants leave an exposed voice unfollowed. All 28 against the current specs, with the three revisions:
-  `/generated/concept-lab/closing/specs.html`, which takes his mark and note per song
-  (`labels/studies/astra-2026-11.jsonl`). Next: his marks on the rest; then
-  the variants he takes become the songs' specs (a merge of `specs/astra`, and new production rides). Nothing
-  replaces a spec without his marks; briefs and logs in `generated/codex/astra-specs/`.
+- **The reference set of specifications** (Codex, Astra; branch `specs/astra`, worktree `~/prog/line-specs-astra`,
+  not pushed): 28 songs have a `variants/astra.ts` (none for Petrunko, Circus, Tiki). The owner reviewed all of them
+  on 2026-11-17 (`labels/studies/astra-2026-11.jsonl`): "amazed at how good this is"; Believer and Valhalla stay
+  with their current specs, Dernière Danse can go. A round on his notes (17 songs, Astra 6.2,
+  `docs/research/astra-owner-pass-2-20261118.md` there) is on the board for him:
+  `/generated/concept-lab/closing/specs.html`. He expects one or two more small rounds. The set is a collection
+  of examples, not what mass production uses. Nothing replaces a spec without his word; briefs and logs in
+  `generated/codex/astra-specs/`.
+- **The short set for mass production** (30 to 45 s, for Shorts and Reels): a cut of each song chosen inside its
+  excerpt, then a spec written for the cut with the reference spec as its model. Cuts: proposals by two agents
+  (`generated/concept-lab/closing/cuts-a.json`, `cuts-b.json`) on `/generated/concept-lab/closing/cuts.html`, his
+  choices in `labels/studies/cuts-2026-11.jsonl`; `tools/music/passage.ts` lists passages that loop. Next, once he
+  has chosen: a pilot on three songs (the cut as its own song folder with `tools/music/source.ts`, its spec, a
+  video), judged before the rest.
+- **What his notes teach** goes into `docs/music-authoring.md` only after the rounds, as his words on named songs
+  and my reading marked as such: he asked for care here, a preference on some songs is not a rule.
 
 ## Waiting for the owner's eye
 

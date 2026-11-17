@@ -23,7 +23,7 @@ function progress() {
   songs.forEach((s, i) => {
     const [dot, , small] = rows[i].childNodes, m = mark(s);
     dot.className = `dot${m === 'take' ? ' done' : m === 'changes' ? ' rework' : m ? ' out' : ''}`;
-    small.textContent = [s.videos.some(v => v.id === 'revised') ? 'revised' : '', state(s).note ? 'note' : ''].filter(Boolean).join(' \u00b7 ');
+    small.textContent = [s.videos[0].id === 'pass2' ? 'round 2' : s.videos[0].id === 'ambitious' ? 'second reading' : s.videos[0].id === 'revised' ? 'revised' : '', state(s).note ? 'note' : ''].filter(Boolean).join(' \u00b7 ');
     rows[i].classList.toggle('on', i === at);
   });
   buttons.forEach((b, i) => b.classList.toggle('on', MARKS[i][0] === mark(songs[at])));

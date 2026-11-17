@@ -16,7 +16,7 @@ for (const song of readdirSync('productions').sort()) {
   const samples = decode(audio), frames = samples.length / 2, level = [];
   for (let at = 0; at < frames; at += DRAW * RATE) {let sum = 0, n = 0; for (let i = at; i < Math.min(frames, at + DRAW * RATE); i += 4) {sum += samples[2 * i] ** 2 + samples[2 * i + 1] ** 2; n++;} level.push(Math.sqrt(sum / (2 * n || 1)));}
   const top = Math.max(...level) || 1, scene = existsSync(`generated/lab-rides/${song}.json`) ? JSON.parse(readFileSync(`generated/lab-rides/${song}.json`, 'utf8')) : null;
-  const video = ['astra3', 'astra2', 'astra', 'current'].map(v => `generated/videos/astra/${song}-${v}.mp4`).find(existsSync);
+  const video = ['pass2', 'astra2', 'astra', 'current'].map(v => `generated/videos/astra/${song}-${v}.mp4`).find(existsSync);
   songs.push({song, title: titles.get(song) ?? (scene?.title ?? song).toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()), seconds: frames / RATE, level: level.map(v => Math.round(Math.sqrt(v / top) * 100)), rhythm: Array.from(rhythm(samples), v => Math.round(v * 4)),
     sections: (scene?.phases ?? []).map(p => ({name: p.name, t: p.t0})), note: notes.get(song) ?? '', video: video ? '/' + video : null, audio: '/' + audio,
     comment: proposed[song]?.comment ?? '', cuts: proposed[song]?.cuts ?? []});

@@ -12,7 +12,7 @@ One server serves everything: `HOST=0.0.0.0 PORT=8770 npm run serve`.
 |---|---|---|
 | `closing/decisions.html`, `closing/songs.html` | every open decision on one board, every song on another (`closing/decisions.json` holds the decisions; `closing/prepare.mjs` refreshes both) | `labels/studies/closing-2026-11.jsonl` |
 | `zoom.html` | a song's zoom lanes on its ride: marks, notes, the owner's own version | `labels/studies/zoom-2026-11b.jsonl` |
-| `ends.html` | the loop of a video, camera and sound: the last seconds into the first without a gap, on sliders, with proposals, charts and a choice of sound (`prepare-loops.mjs` makes its recordings) | `labels/studies/bookends-2026-11.jsonl` |
+| `ends.html` | the loop of a video, camera and sound: the last seconds into the first without a gap, on sliders, with proposals, charts and a choice of sound (`prepare-loops.mjs` makes its recordings; `seam-videos.mjs` renders the last seconds into the first as videos) | `labels/studies/bookends-2026-11.jsonl` |
 | `hit-move.html`, `hits.html` | the movement at a hit, on dials; every hit of the rides against the curves | `labels/studies/hit-curve-2026-11.jsonl` |
 | `trim-video.html` | how much unused track is trimmed, the same ride in every version | `labels/studies/trim-2026-11.jsonl` |
 | `/rate/` (`rate/`) | judging themes: sort and duel, frozen sets | `rate/` data |

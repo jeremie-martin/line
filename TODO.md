@@ -8,10 +8,11 @@ His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What rem
 
 1. **The loop: camera, sound and band.** He wants a video to loop as one movement. The widest view of the ending
    is where the video turns to its start, in picture and in sound (`docs/visual-system.md`, "The loop"): camera
-   `ENDS` in `scripts/video/camera.js` ("From the side", his favourite; he would like variations smoother still),
+   `ENDS` in `scripts/video/camera.js` ("From the side"),
    the looping recording in `scripts/video/loop_audio.ts`. `/generated/concept-lab/ends.html` plays the last five
    seconds into the first five without a gap, with the camera's sliders, proposals, charts and a choice of sound.
-   Open:
+   He judged the loop on 2026-11-17 on the comparison page: "probably as good as they can be", some "literally
+   perfect"; the camera is closed. Left:
    - his ear on the loop point (14 songs end up to 2 s early, in step with their start; before and after in
      `/motion-gallery/video-compare.html?collection=/generated/watch/loop-2.json`, made by
      `generated/concept-lab/seam-videos.mjs`), on the half-second blend, and on the eight

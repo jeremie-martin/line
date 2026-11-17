@@ -32,11 +32,11 @@ const RATE = 48000, CHANNELS = 2, FRAME = RATE / 60; // FRAME: the samples of on
 /** A full recording an excerpt was cut from, or null when it is not on this machine. productions/<song>/source.json names the
  * file and the excerpt's start (tools/music/source.ts writes it); the file is looked for in LR_RECORDINGS, or in recordings/
  * here and then in the music library. */
-const recording = (file: string) => (process.env.LR_RECORDINGS ? [process.env.LR_RECORDINGS] : [join(ROOT, 'recordings'), join(homedir(), 'prog/double-pendulum/music/tracks')])
+export const recording = (file: string) => (process.env.LR_RECORDINGS ? [process.env.LR_RECORDINGS] : [join(ROOT, 'recordings'), join(homedir(), 'prog/double-pendulum/music/tracks')])
   .map(folder => join(folder, file)).find(path => existsSync(path)) ?? null;
 
 /** Interleaved stereo samples of `seconds` of a file from `start`. */
-function decode(path: string, start = 0, seconds?: number): Float32Array {
+export function decode(path: string, start = 0, seconds?: number): Float32Array {
   const bytes = execFileSync('ffmpeg', ['-v', 'error', '-ss', String(start), ...(seconds === undefined ? [] : ['-t', String(seconds)]), '-i', path,
     '-ac', String(CHANNELS), '-ar', String(RATE), '-f', 'f32le', '-'], {maxBuffer: 1 << 30});
   return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 2);
@@ -71,10 +71,10 @@ function leadIn(song: string, excerpt: Float32Array, seconds: number): Float32Ar
   return chunk.slice((at - frames) * CHANNELS, at * CHANNELS);
 }
 
-const HOP = 256, WINDOW = 2048; // frames at 48 kHz: 5.3 ms apart, 43 ms long
+export const HOP = 256, WINDOW = 2048; // frames at 48 kHz: 5.3 ms apart, 43 ms long
 /** The rhythm of interleaved samples: how much the spectrum rises from one moment to the next (onsets), every HOP frames,
  * around its mean. */
-function rhythm(samples: Float32Array): Float64Array {
+export function rhythm(samples: Float32Array): Float64Array {
   const n = WINDOW / 2, hann = Float64Array.from({length: n}, (_, i) => 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n));
   // the last window ends on the last sample, so two rhythms compare from their ends
   const room = samples.length / CHANNELS - WINDOW, count = room < 0 ? 0 : Math.floor(room / HOP) + 1, skip = room < 0 ? 0 : room % HOP, out = new Float64Array(Math.max(0, count - 1));

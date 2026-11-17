@@ -61,6 +61,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      recording and writes `source.json`. A video loops into the music that leads into the excerpt
      (`docs/visual-system.md`, "The loop"); without this record it only fades at its end. Best for the loop: an
      excerpt that starts at least six seconds into the recording and ends on a bar line that leads into its start.
+   - To choose an excerpt that loops, before cutting it: `node tools/music/passage.ts --recording=FILE` (or
+     `--song=<song>` for the recording of an existing song, with `--around=27,38` to keep moments of that song)
+     lists passages of 30 to 45 s that start on a strong onset and whose end is in step with what leads into their
+     start. It measures; which passage carries the music is the author's choice.
 2. **Separate the instruments.**
    - `~/.venvs/line-stems/bin/python tools/music/stems.py --song=<song>` gives
      drums, bass, vocals and other, each with a loudness envelope and onsets.

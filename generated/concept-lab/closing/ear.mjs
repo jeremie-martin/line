@@ -148,6 +148,8 @@ function frame() {
   const s = songs[at], now = position();
   if (playing) {
     if (now >= s.seconds) stop(); else sounding(s, now);
+    // the passage being heard is the chosen one, so 1–4 say what it follows while it plays
+    if (!looping && !document.activeElement?.classList?.contains('note')) {const i = passages.findIndex(p => now >= p.from && now < p.to); if (i >= 0 && i !== chosen) {chosen = i; fits = null; panel();}}
     if (now < view.t0 || now > view.t0 + view.span * 0.92) view.t0 = clamp(now - view.span * 0.1, 0, Math.max(0, s.seconds - view.span));
   }
   $('clock').textContent = `${clock(Math.min(now, s.seconds))} / ${clock(s.seconds)}`; paint(); requestAnimationFrame(frame);
@@ -203,6 +205,12 @@ function menus() {
   pills($('clicks'), ['followed', ...Object.keys(s.specs), ...(Object.keys(s.marks).length ? ['my marks'] : []), 'my taps', 'none'], () => clicksOn, n => {clicksOn = n; clickedTo = position();});
 }
 
+/** A song nobody has read yet starts with its sections as passages, nothing ticked: he only says what each follows. */
+function sectioned(s) {
+  const cuts = [0, ...s.sections.map(p => p.t).filter(t => t > 1.5 && t < s.seconds - 1.5)].filter((t, i, all) => i === 0 || t - all[i - 1] >= 2);
+  return cuts.map((t, i) => ({from: +t.toFixed(2), to: +(cuts[i + 1] ?? s.seconds).toFixed(2), follow: {}, slots: null, note: ''}));
+}
+
 // ── songs, saving ──
 function progress() {songs.forEach((s, i) => {const [dot, , small] = rows[i].childNodes, a = state(s).answers; dot.className = `dot${a.passages?.length ? ' done' : ''}`; small.textContent = a.passages?.length ? `${a.passages.length} passages` : s.reading ? 'proposed' : `${s.seconds.toFixed(0)} s`; rows[i].classList.toggle('on', i === at);});}
 const rows = songs.map((s, i) => el('button', {onclick: () => show(i)}, el('span'), s.title, el('small')));
@@ -211,13 +219,13 @@ function show(i) {
   stop(); at = i; const s = songs[i], a = state(s).answers;
   history.replaceState(null, '', `#${s.song}`); startedFrom = 0; pending = null; fits = null;
   proposed = !a.passages && !!s.reading?.passages?.length;
-  passages = structuredClone(a.passages ?? s.reading?.passages ?? []); taps = [...(a.taps ?? [])]; big = [...(a.big ?? s.reading?.big ?? [])]; chosen = passages.length ? 0 : -1;
+  passages = structuredClone(a.passages ?? s.reading?.passages ?? sectioned(s)); taps = [...(a.taps ?? [])]; big = [...(a.big ?? s.reading?.big ?? [])]; chosen = passages.length ? 0 : -1;
   view = {t0: 0, span: Math.min(s.seconds, 30)}; if (!(clicksOn in s.specs) && !['followed', 'none', 'my taps'].includes(clicksOn)) clicksOn = 'followed';
   $('title').textContent = s.title; $('note').value = state(s).note; $('status').textContent = '';
   menus(); panel(); facts(); progress(); rows[i].scrollIntoView({block: 'nearest'}); void buffer(file(s));
 }
 async function save() {
-  const s = songs[at], answers = {passages: passages.map(p => ({...p, notes: selected(s, p).length})), taps: taps.map(t => +t.toFixed(3)), big, bar: s.bar};
+  const s = songs[at], answers = {passages: passages.filter(p => Object.keys(p.follow).length || p.note).map(p => ({...p, notes: selected(s, p).length})), taps: taps.map(t => +t.toFixed(3)), big, bar: s.bar};
   saved.set(s.song, {answers, note: $('note').value}); report($('status'), await saveAnswer(s.song, answers, $('note').value, STUDY), `${passages.length} passages of ${s.title}`); progress();
 }
 $('save').onclick = save; $('note').onchange = save;

@@ -37,7 +37,7 @@
   },
   {
    "id": "montagem_coma_selection",
-   "label": "Montagem coma",
+   "label": "Montagem Coma",
    "description": "You: “a pure banger… only drawback would the passage at around 35-43s that would be better if it was following the voice”. “Revised” follows the voice from 35.3 to 43.1 s; nothing else was changed. Codex notes the drop at the end of that passage measures a little softer than before.",
    "videos": [
     {
@@ -59,7 +59,7 @@
   },
   {
    "id": "passo_bem_solto_slowed_selection",
-   "label": "Passo bem solto slowed",
+   "label": "Passo Bem Solto Slowed",
    "description": "You: “from 6 to 15s it would be great to follow the voice (with relatively low impact, like from 20s to 23s)… 38s to 40s where it should follow the voice”. “Revised” does both; nothing else was changed.",
    "videos": [
     {
@@ -81,7 +81,7 @@
   },
   {
    "id": "let_the_world_burn_selection",
-   "label": "Let the world burn",
+   "label": "Let the World Burn",
    "description": "You: “awesome overall, it’s crazy how dreamy the second part is”. Unchanged.",
    "videos": [
     {
@@ -98,7 +98,7 @@
   },
   {
    "id": "no_batidao_slowed_selection",
-   "label": "No batidao slowed",
+   "label": "No Batidão Slowed",
    "description": "You: “just a very good specification overall, so rythmic, so good”. Unchanged. Codex flags a voice it does not follow at 8.4–8.6 s; 17.2–17.5 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -115,7 +115,7 @@
   },
   {
    "id": "amor_na_praia_46s",
-   "label": "Amor na praia 46s",
+   "label": "Amor na Praia 46s",
    "description": "Codex’s reviewer: “Good exposed chops and low replies” (kept); better than the current spec in its judgement: unclear.",
    "videos": [
     {
@@ -132,7 +132,7 @@
   },
   {
    "id": "amor_na_praia_selection",
-   "label": "Amor na praia",
+   "label": "Amor na Praia",
    "description": "Codex’s reviewer: “Good instrumental return” (kept); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -149,7 +149,7 @@
   },
   {
    "id": "amour_de_ma_vie_108s",
-   "label": "Amour de ma vie 108s",
+   "label": "Amour de ma Vie 108s",
    "description": "Codex’s reviewer: “Good dance-to-quiet-voice reading” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 14.1–14.6 s; 19.4–22.3 s; 25.6–28.6 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -166,7 +166,7 @@
   },
   {
    "id": "amour_de_ma_vie_44s",
-   "label": "Amour de ma vie 44s",
+   "label": "Amour de ma Vie 44s",
    "description": "Codex’s reviewer: “Good complete syncopated drums” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 14.1–14.6 s; 19.4–22.3 s; 25.6–28.6 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -200,7 +200,7 @@
   },
   {
    "id": "derniere_danse_coral_selection",
-   "label": "Derniere danse coral",
+   "label": "Dernière Danse Coral",
    "description": "Codex’s reviewer: “Worthwhile upper reading; unfinished” (revised); better than the current spec in its judgement: unclear. Codex flags a voice it does not follow at 34.5–47.9 s; 53.9–54.6 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -217,7 +217,7 @@
   },
   {
    "id": "funk_do_bounce_super_slowed_selection",
-   "label": "Funk do bounce super slowed",
+   "label": "Funk do Bounce Super Slowed",
    "description": "Codex’s reviewer: “Good changing instrumental leads” (kept); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 22.5–22.9 s; 27.7–28.4 s; 29.5–29.6 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -234,7 +234,7 @@
   },
   {
    "id": "funk_estranho_super_slowed_selection",
-   "label": "Funk estranho super slowed",
+   "label": "Funk Estranho Super Slowed",
    "description": "Codex’s reviewer: “Good low motor, no false climax” (kept); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -251,7 +251,7 @@
   },
   {
    "id": "los_voltaje_selection",
-   "label": "Los voltaje",
+   "label": "Los Voltaje",
    "description": "Codex’s reviewer: “Specific reading; impossible entrance” (revised); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -268,7 +268,7 @@
   },
   {
    "id": "los_voltaje_slowed_selection",
-   "label": "Los voltaje slowed",
+   "label": "Los Voltaje Slowed",
    "description": "Codex’s reviewer: “Specific sung hook; impossible entrance” (revised); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -285,7 +285,7 @@
   },
   {
    "id": "los_voltaje_ultra_slowed_selection",
-   "label": "Los voltaje ultra slowed",
+   "label": "Los Voltaje Ultra Slowed",
    "description": "Codex’s reviewer: “Invented late foreground switch” (rewrote); better than the current spec in its judgement: unclear.",
    "videos": [
     {
@@ -302,7 +302,7 @@
   },
   {
    "id": "lua_na_praca_selection",
-   "label": "Lua na praca",
+   "label": "Lua na Praça",
    "description": "Codex’s reviewer: “Interrupts the owner's praised stillness” (revised); better than the current spec in its judgement: no. Codex flags a voice it does not follow at 32.6–35.8 s; 42.2–43.1 s; 50.1–50.6 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -319,7 +319,7 @@
   },
   {
    "id": "luna_bala_44s",
-   "label": "Luna bala 44s",
+   "label": "Luna Bala 44s",
    "description": "Codex’s reviewer: “Good real rhythm, not the old grid” (kept); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -336,7 +336,7 @@
   },
   {
    "id": "luna_bala_original_selection",
-   "label": "Luna bala original",
+   "label": "Luna Bala Original",
    "description": "Codex’s reviewer: “Good bass takeover and full quiet melody” (kept); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -353,7 +353,7 @@
   },
   {
    "id": "luna_bala_slowed_selection",
-   "label": "Luna bala slowed",
+   "label": "Luna Bala Slowed",
    "description": "Codex’s reviewer: “Good voice, upper, then low handoffs” (kept); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -370,7 +370,7 @@
   },
   {
    "id": "montagem_tomada_extended_selection",
-   "label": "Montagem tomada extended",
+   "label": "Montagem Tomada Extended",
    "description": "Codex’s reviewer: “Specific upper line; generic escalation” (revised); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 25.8–30.2 s; 32.3–33.2 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -387,7 +387,7 @@
   },
   {
    "id": "montagem_tomada_slowed_selection",
-   "label": "Montagem tomada slowed",
+   "label": "Montagem Tomada Slowed",
    "description": "Codex’s reviewer: “Good vocal holes; inflated last return” (revised); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -404,7 +404,7 @@
   },
   {
    "id": "montagem_tomada_super_slowed_selection",
-   "label": "Montagem tomada super slowed",
+   "label": "Montagem Tomada Super Slowed",
    "description": "Codex’s reviewer: “Good continuing singer; overlarge drums” (revised); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 0.2–4.7 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -421,7 +421,7 @@
   },
   {
    "id": "no_batidao_selection",
-   "label": "No batidao",
+   "label": "No Batidão",
    "description": "Codex’s reviewer: “Good middle; formulaic bass doubling” (rewrote); better than the current spec in its judgement: yes. Codex flags a voice it does not follow at 16.9–17.1 s; 24.3–24.5 s (from the data, not from listening; nothing changed).",
    "videos": [
     {
@@ -438,7 +438,7 @@
   },
   {
    "id": "passo_bem_solto_selection",
-   "label": "Passo bem solto",
+   "label": "Passo Bem Solto",
    "description": "Codex’s reviewer: “Good reading; flattened accent hierarchy” (revised); better than the current spec in its judgement: yes.",
    "videos": [
     {
@@ -455,7 +455,7 @@
   },
   {
    "id": "passo_bem_solto_super_slowed_selection",
-   "label": "Passo bem solto super slowed",
+   "label": "Passo Bem Solto Super Slowed",
    "description": "Codex’s reviewer: “Good sustained singer; inflated drum body” (revised); better than the current spec in its judgement: yes.",
    "videos": [
     {

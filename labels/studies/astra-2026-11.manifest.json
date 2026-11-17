@@ -1,0 +1,91 @@
+{
+ "study": "astra-2026-11",
+ "questions": [],
+ "note": "The specs board (generated/concept-lab/closing/specs.html): the second set of specifications (Codex, branch specs/astra) against each song's current spec. One row per save; the latest row per clip counts. A clip is a song; answers.mark: take (the new spec becomes the song's), changes (take it after the changes in the note), current (keep the current spec); note: the owner's words, with video times and the version watched.",
+ "clips": [
+  {
+   "id": "bones_selection"
+  },
+  {
+   "id": "montagem_coma_selection"
+  },
+  {
+   "id": "passo_bem_solto_slowed_selection"
+  },
+  {
+   "id": "let_the_world_burn_selection"
+  },
+  {
+   "id": "no_batidao_slowed_selection"
+  },
+  {
+   "id": "amor_na_praia_46s"
+  },
+  {
+   "id": "amor_na_praia_selection"
+  },
+  {
+   "id": "amour_de_ma_vie_108s"
+  },
+  {
+   "id": "amour_de_ma_vie_44s"
+  },
+  {
+   "id": "believer_78s"
+  },
+  {
+   "id": "derniere_danse_coral_selection"
+  },
+  {
+   "id": "funk_do_bounce_super_slowed_selection"
+  },
+  {
+   "id": "funk_estranho_super_slowed_selection"
+  },
+  {
+   "id": "los_voltaje_selection"
+  },
+  {
+   "id": "los_voltaje_slowed_selection"
+  },
+  {
+   "id": "los_voltaje_ultra_slowed_selection"
+  },
+  {
+   "id": "lua_na_praca_selection"
+  },
+  {
+   "id": "luna_bala_44s"
+  },
+  {
+   "id": "luna_bala_original_selection"
+  },
+  {
+   "id": "luna_bala_slowed_selection"
+  },
+  {
+   "id": "montagem_tomada_extended_selection"
+  },
+  {
+   "id": "montagem_tomada_slowed_selection"
+  },
+  {
+   "id": "montagem_tomada_super_slowed_selection"
+  },
+  {
+   "id": "no_batidao_selection"
+  },
+  {
+   "id": "passo_bem_solto_selection"
+  },
+  {
+   "id": "passo_bem_solto_super_slowed_selection"
+  },
+  {
+   "id": "trouble_50s"
+  },
+  {
+   "id": "valhalla_40s"
+  }
+ ]
+}

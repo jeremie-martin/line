@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing: new specs</title>
+<link rel="stylesheet" href="./closing.css">
+<main>
+<header><h1>Closing: new specs</h1><nav><a href="./decisions.html">Decisions</a><a href="./songs.html">Songs</a><a class="here" href="./specs.html">New specs</a></nav>
+<p>The second set of specifications (Codex), song by song, against each song's current spec: whole videos with the same look and zoom lane. Switch version at the same moment, mark the song, and write what you see; a note can hold several times. Keys: <kbd>V</kbd> next version, <kbd>1</kbd> take the new spec, <kbd>2</kbd> take it after changes, <kbd>3</kbd> keep the current spec, <kbd>T</kbd> write the video's time into the note, <kbd>↑</kbd> <kbd>↓</kbd> previous and next song, <kbd>N</kbd> next song without a mark, <kbd>Space</kbd> play. In the note, <kbd>Ctrl</kbd>+<kbd>Enter</kbd> saves and <kbd>Alt</kbd>+<kbd>T</kbd> writes the time. Marks and notes are saved at once.</p></header>
+<div class="bar"><progress id="progress" value="0" max="1"></progress><span id="count"></span><span class="gap"></span><button class="pill" id="next">Next song without a mark</button></div>
+<div class="layout songs"><div class="index" id="index"></div>
+<div class="stage"><video id="video" controls playsinline preload="metadata"></video>
+<div><h2 id="title"></h2><div class="tabs" id="versions" style="flex-direction:row;flex-wrap:wrap;margin:10px 0"></div><div class="facts" id="facts"></div><div class="marks" id="marks"></div>
+<div class="look" style="margin:0 0 6px"><button class="pill" id="stamp">Write the time into the note</button></div>
+<textarea id="note" style="min-height:150px" placeholder="What you see, with times (saved when you leave the field)"></textarea><div class="saved" id="status"></div>
+<div class="look" id="links"></div></div></div></div>
+</main>
+<script type="module" src="./specs.mjs"></script>

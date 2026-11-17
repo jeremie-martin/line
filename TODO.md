@@ -6,17 +6,22 @@ What is next and what is open. Results and decisions go to `REWORK.md`.
 
 His answers of 2026-11-16 are in `REWORK.md` ("the closing decisions"). What remains:
 
-1. **The loop: camera and sound.** He wants a video to loop as one movement. Camera: three plain curves and a cut
-   (`ENDS` in `scripts/video/camera.js`); production carries "From the side", his favourite so far ("so freaking
-   cool"), and he would like variations that are smoother still. Sound: the looping recording
-   (`scripts/video/loop_audio.ts`) and a band analysed as a loop. `/generated/concept-lab/ends.html` plays the last
-   five seconds into the first five without a gap, with the camera's sliders, proposals, charts, and a choice of
-   sound (looped, as cut, other blend lengths). Open:
-   - his ear on the blend (half a second) and on the eight songs with no lead-in (Tiki, Circus, Believer, Trouble,
-     Valhalla, both L'amour de ma vie, Amor na Praia 46 s, Luna Bala 44 s: no `source.json`, so they fade; the page
-     also offers their opening played backwards as a lead-in, a trial);
-   - an excerpt that ended on a bar line leading into its start would loop musically, not only cleanly: a choice at
-     selection time, for new songs;
+1. **The loop: camera, sound and band.** He wants a video to loop as one movement. The widest view of the ending
+   is where the video turns to its start, in picture and in sound (`docs/visual-system.md`, "The loop"): camera
+   `ENDS` in `scripts/video/camera.js` ("From the side", his favourite; he would like variations smoother still),
+   the looping recording in `scripts/video/loop_audio.ts`. `/generated/concept-lab/ends.html` plays the last five
+   seconds into the first five without a gap, with the camera's sliders, proposals, charts and a choice of sound.
+   Open:
+   - his ear on the loop point (14 songs end up to 2 s early, in step with their start; before and after in
+     `/motion-gallery/video-compare.html?collection=/generated/watch/loop-2.json`, made by
+     `generated/concept-lab/seam-videos.ts`), on the half-second blend, and on the eight
+     songs that match nowhere;
+   - his eye on the ink returning to pencil on the way up;
+   - the nine songs with no lead-in (Tiki, Circus, Believer, Trouble, Valhalla, both L'amour de ma vie, Amor na
+     Praia 46 s, Luna Bala 44 s: no `source.json`) end as cut and fade; with their full recordings they would get a
+     lead-in and a loop point;
+   - a new song's excerpt should be chosen on a bar line that leads into its start;
+   - a hit in the ending still splits the colours of the whole-course view;
    - the speed measure on the page is not checked against his eye; settings he saves go to
      `labels/studies/bookends-2026-11.jsonl`.
 2. **Specs: the real work left.** Most library specs were put together quickly for the benchmark and the workflows;

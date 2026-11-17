@@ -1,0 +1,137 @@
+{
+ "title": "The loop, reviewed: the turn and the loop point",
+ "description": "The last 8 seconds of each video running into its first 8, so the loop’s cut is at the middle (8 s), with the sound exact to the sample. Picture: past the widest view everything drawn is the opening’s, so the last frame is the first. Sound: on five songs, today’s loop point against the song ending as cut.",
+ "groups": [
+  {
+   "id": "all",
+   "label": "All",
+   "variants": [
+    "step",
+    "cut"
+   ]
+  }
+ ],
+ "passages": [
+  {
+   "id": "passo_bem_solto_selection",
+   "label": "Passo Bem Solto",
+   "description": "Passo Bem Solto: today the video ends 0.61 s early, where the music is in step with what leads into its start (match 0.90); “Ending as cut” is the same with the song ending where the excerpt was cut, as yesterday. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/passo_bem_solto_selection-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/passo_bem_solto_selection-cut.mp4"
+    }
+   ]
+  },
+  {
+   "id": "amor_na_praia_selection",
+   "label": "Amor na Praia",
+   "description": "Amor na Praia: today the video ends 1.43 s early, where the music is in step with what leads into its start (match 0.93); “Ending as cut” is the same with the song ending where the excerpt was cut, as yesterday. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/amor_na_praia_selection-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/amor_na_praia_selection-cut.mp4"
+    }
+   ]
+  },
+  {
+   "id": "montagem_tomada_slowed_selection",
+   "label": "Montagem Tomada slowed",
+   "description": "Montagem Tomada slowed: today the video ends 0.92 s early, where the music is in step with what leads into its start (match 0.86); “Ending as cut” is the same with the song ending where the excerpt was cut, as yesterday. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/montagem_tomada_slowed_selection-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/montagem_tomada_slowed_selection-cut.mp4"
+    }
+   ]
+  },
+  {
+   "id": "lua_na_praca_selection",
+   "label": "Lua na Praça",
+   "description": "Lua na Praça: today the video ends 1.09 s early, where the music is in step with what leads into its start (match 0.81); “Ending as cut” is the same with the song ending where the excerpt was cut, as yesterday. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/lua_na_praca_selection-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/lua_na_praca_selection-cut.mp4"
+    }
+   ]
+  },
+  {
+   "id": "no_batidao_selection",
+   "label": "No Batidão",
+   "description": "No Batidão: today the video ends 0.43 s early, where the music is in step with what leads into its start (match 0.80); “Ending as cut” is the same with the song ending where the excerpt was cut, as yesterday. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/no_batidao_selection-step.mp4"
+    },
+    {
+     "id": "cut",
+     "label": "Ending as cut",
+     "src": "/generated/videos/loop-2/no_batidao_selection-cut.mp4"
+    }
+   ]
+  },
+  {
+   "id": "petrunko_selection",
+   "label": "Petrunko",
+   "description": "Petrunko: its sound is as yesterday (no place where the end is more in step with the start); the picture is today’s. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/petrunko_selection-step.mp4"
+    }
+   ]
+  },
+  {
+   "id": "tiki_tiki_48s",
+   "label": "Tiki Tiki",
+   "description": "Tiki Tiki: its sound is as yesterday (no lead-in on this machine, so it fades); the picture is today’s. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/tiki_tiki_48s-step.mp4"
+    }
+   ]
+  },
+  {
+   "id": "circus_minimus_77s",
+   "label": "Circus Minimus",
+   "description": "Circus Minimus: its sound is as yesterday (no lead-in on this machine, so it fades); the picture is today’s. The cut is at 8 s.",
+   "videos": [
+    {
+     "id": "step",
+     "label": "Today",
+     "src": "/generated/videos/loop-2/circus_minimus_77s-step.mp4"
+    }
+   ]
+  }
+ ]
+}

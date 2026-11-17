@@ -1,5 +1,29 @@
 # Foundations rework (started 2026-10-03)
 
+## November 17: the loop reviewed as one thing (the turn, and the loop point)
+
+The owner asked for a step back on the loop as a whole: camera, sound, band. One test was applied to all three: is
+the end of the video the same as its start?
+
+- **Picture: it was not.** The camera was the same on the last frame and the first, but what it showed was not:
+  the course was inked at the end and pencil at the start, the sun had the end's size, the colours the end's
+  intensity (and a drop running to the end would have switched the paper). Now the widest view of the ending is
+  where the video turns: rising to it the ink returns to pencil and the colours go to the opening's; past it the
+  picture draws the ride's first moment (`frameAt.turned`). The camera lost its special case for the last moment
+  and the pencil option; the last frame equals the first (Petrunko, Circus: the same picture but for one frame of
+  movement). Cost: the whole course is seen inked only on the way up, not at the top.
+- **Sound: the excerpts do not end in step.** They were cut at round seconds. Measured on the 22 songs with a
+  lead-in (rhythm = rise of the spectrum every 5 ms; last 6 s against the 6 s that lead into the start): as cut the
+  two rhythms are unrelated on 18 (correlation about 0), so the beat stumbles at the loop whatever the blend. Ending
+  up to 3 s earlier puts 14 of them in step (correlation 0.47 to 0.93, nine at 0.75 or more; trims 0.13 to 2.05 s):
+  the looping recording now ends there (`loopPoint`), and the video with it. Eight match nowhere clearly (Bones,
+  Dernière Danse, Funk do Bounce, Let the World Burn, Los Voltaje ultra slowed, Luna Bala original, No Batidão
+  slowed; Petrunko matches as cut, 0.59) and end as cut. The nine without a lead-in are as before. The measure is
+  not checked against his ear; the rule (least trim within 0.1 of the best match, none under 0.5) is mine.
+- **Band:** unchanged; it follows the recording, so it is in step too.
+- A video is now a whole number of frames of its recording, so sound and picture end together.
+- Videos of the 14 songs are 0.13 to 2.05 s shorter; the ride's last moment under the rising camera is cut.
+
 ## November 16 (night): a video loops in its sound and its band too
 
 The owner, on the camera's loop: "I can really feel a huge transition from the end to the beginning", in the music

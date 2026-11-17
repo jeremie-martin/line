@@ -9,7 +9,7 @@
 // Pure: no DOM. Frames are 1080 × 1920 design pixels; the picture scales them to the canvas.
 
 import {FPS} from './timing.js';
-import {clamp, smoothstep} from './math.js';
+import {clamp} from './math.js';
 
 export const W = 1080, H = 1920;
 /** The base zoom: design pixels per world unit. Lanes are multiples of it (zoom.js), and the hit movement was set at it
@@ -76,10 +76,11 @@ function placed(motion, zs) {
  *     sideways movement's fastest, and the sideways turn happens while the zoom is moving, so the picture never rests.
  *   across the course: `bow` design px to one side at the widest view, so the camera flies an oval instead of retracing a line.
  *
- * The video is cut `lead` seconds after the widest view: its last frame and its first are the same picture, a little way down
- * and already moving the way the rider will go (lead 0 with no swing: the whole course at rest).
- * pencil: the ink returns to pencil over the last 0.7 s, so the cut shows nothing at all. */
-export const ENDS = {halve: 0.16, turn: 0.4, leave: 0.6, land: 0.5, lead: 0.8, swing: 340, bow: 0, pencil: false};
+ * The widest view is where the video turns from its end to its start. Rising to it, the ink returns to pencil and the colours
+ * go to the opening's (`unink`, `over`); past it the picture is the opening's in everything (picture.js draws the ride's first
+ * moment), so the cut, `lead` seconds later, falls inside one movement: the last frame and the first are the same picture, a
+ * little way down and already moving the way the rider will go (lead 0 with no swing: the whole course at rest). */
+export const ENDS = {halve: 0.16, turn: 0.4, leave: 0.6, land: 0.5, lead: 0.8, swing: 340, bow: 0};
 /** min(u, 1) with the corner rounded over u from 1 - k to 1 + k: it arrives at 1 exactly, with no jump in speed or in its change. */
 const capped = (u, k) => {if (u <= 1 - k) return u; if (u >= 1 + k) return 1; const t = (u - 1 + k) / (2 * k); return 1 - k + 2 * k * (t - t ** 3 + t ** 4 / 2);};
 const settling = (side, depth, ends) => Math.min(0.5, (side < 0 ? ends.leave : ends.land) * Math.LN2 / ends.halve / (2 * depth));
@@ -115,6 +116,8 @@ export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
   const depths = [cam.at(-1).z, cam[0].z].map(z => Math.max(0.1, Math.log(z / overviewZoom)));
   /** Seconds the ending and the opening take on this ride. */
   frameAt.lengths = () => [endsReach(-1, depths[0], ends) + ends.lead, Math.max(0, endsReach(1, depths[1], ends) - ends.lead)];
+  /** Whether the ending has passed its widest view at song time `time`: from there the picture is the opening's. */
+  frameAt.turned = (time, look) => look.ends !== 'none' && time > songEnd / 2 && time - songEnd + ends.lead >= 0;
   return frameAt;
   function frameAt(time, at, look) {
     const i = clamp(Math.floor(at), 0, cam.length - 1), j = Math.min(i + 1, cam.length - 1), u = clamp(at - i, 0, 1), a = cam[i], b = cam[j];
@@ -123,16 +126,14 @@ export function createFraming(motion, songEnd, lane = null, ends = ENDS) {
     const c = {z: lerp(a.z, b.z), ax: lerp(a.ax, b.ax), ay: lerp(a.ay, b.ay) + lower,
       x: lerp(a.x, b.x), y: lerp(a.y, b.y), over: 0, unink: 0};
     if (look.ends === 'none') return c;
-    // g: seconds since the widest view. The video's last `lead` seconds are already on the way down, toward the rider waiting
-    // at the start, so nothing jumps at the cut.
+    // g: seconds since the widest view. In the video's last `lead` seconds `at` is the ride's first frame (frameAt.turned)
     const closing = time > songEnd / 2, g = (closing ? time - songEnd : time) + ends.lead, follow = endsFollow(g, depths[g < 0 ? 0 : 1], ends);
     if (follow >= 1) return c;
-    const to = closing && g > 0 ? {...c, z: cam[0].z, ax: cam[0].ax, ay: cam[0].ay + lower, x: cam[0].x, y: cam[0].y} : c;
     // The zoom moves in ratio (follow of the way in its logarithm). The rider's place on screen follows the zoom itself: without
     // a swing every point of the course travels a straight line on screen, one zoom about one point.
-    const z = Math.exp(Math.log(overviewZoom) + (Math.log(to.z) - Math.log(overviewZoom)) * follow), w = to.z !== overviewZoom ? (z - overviewZoom) / (to.z - overviewZoom) : follow;
+    const z = Math.exp(Math.log(overviewZoom) + (Math.log(c.z) - Math.log(overviewZoom)) * follow), w = c.z !== overviewZoom ? (z - overviewZoom) / (c.z - overviewZoom) : follow;
     const [along, aside] = over(g, ends), dx = back.x * along - back.y * aside, dy = back.y * along + back.x * aside;
-    const q = {x: W / 2 + (to.x - centre.x) * overviewZoom - dx, y: 0.4 * H + (to.y - centre.y) * overviewZoom - dy};
-    return {...to, z, ax: q.x + (to.ax - q.x) * w, ay: q.y + (to.ay - q.y) * w, over: 1 - follow, unink: ends.pencil && closing ? smoothstep((time - songEnd + 0.7) / 0.6) : 0};
+    const q = {x: W / 2 + (c.x - centre.x) * overviewZoom - dx, y: 0.4 * H + (c.y - centre.y) * overviewZoom - dy};
+    return {...c, z, ax: q.x + (c.ax - q.x) * w, ay: q.y + (c.ay - q.y) * w, over: 1 - follow, unink: closing && g < 0 ? 1 - follow : 0};
   }
 }

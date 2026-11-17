@@ -107,7 +107,7 @@ export function spectrum(audioPath: string, loop = false): Scene['spectrum'] {
 }
 
 /** The song's recording, repository-relative, as a compile resolves it: productions/<song>/audio.mp3. A video plays its
- * looping form (loop_audio.ts), which differs only in its last half second. */
+ * looping form (loop_audio.ts), which differs only at its end. */
 export const songRecording = (song: string) => join('productions', song, 'audio.mp3');
 
 /** The scene of one ride of `song` (a folder of productions/). A saved production is shown over the recording it was compiled
@@ -117,8 +117,9 @@ export function buildScene(song: string, ride: Ride): Scene {
   if (!entry) throw new Error(`Unknown song: ${song}`);
   if (ride.case && ride.case.id !== song) throw new Error(`The ride is of ${ride.case.id}, not ${song}`);
   // the song's own recording is played in its looping form (loop_audio.ts); another recording a ride was compiled against, as is
-  const named = relative(ROOT, resolve(ROOT, ride.case?.audioPath ?? songRecording(song))), audio = named === songRecording(song) ? loopRecording(song).audio : named, account = rideAccount(ride);
-  const end = (ride.case?.durationFrames ?? ride.track.duration) / FPS, timing = alignment(account);
+  const named = relative(ROOT, resolve(ROOT, ride.case?.audioPath ?? songRecording(song))), looping = named === songRecording(song) ? loopRecording(song) : null, audio = looping?.audio ?? named, account = rideAccount(ride);
+  // the video ends where the looping recording does: up to a few seconds before the song, where the music is in step with its start
+  const end = Math.min((ride.case?.durationFrames ?? ride.track.duration) / FPS, looping?.length ?? Infinity), timing = alignment(account);
   // the ride must cover what is shown of it: a compiled ride runs past its song (timing.js MAX_OFFSET)
   if (rideTime(end, timing.offset) * FPS > ride.track.duration) throw new Error(`The ride ends before the song it is shown with (${end} s at offset ${timing.offset} s)`);
   const phases = ride.case?.phases.length ? ride.case.phases.map(({name, t0, t1}) => ({name, t0, t1})) : [{name: 'all', t0: 0, t1: end}];

@@ -87,10 +87,10 @@ describe('camera and framing', () => {
     const lower = frame(4, 160, resolveLook(null, {top: 'sun'}));
     expect(lower.ay - riding.ay).toBe(32);
     for (const t of [0, 0.7, 1.8, 10, 18, 20]) {
-      const options = look, c = frame(t, t * 40, options);
+      const options = look, at = frame.turned(t, options) ? 0 : t * 40, c = frame(t, at, options);
       expect(c.ax).toBeGreaterThan(0); expect(c.ax).toBeLessThan(W);
       expect(c.ay).toBeGreaterThan(0); expect(c.ay).toBeLessThan(H);
-      expect(c).toEqual(createFraming(motion, 20)(t, t * 40, options));
+      expect(c).toEqual(createFraming(motion, 20)(t, at, options));
     }
     expect(frame(0, 0, {...look, ends: 'none'})).toMatchObject({over: 0, z: 6.2});
   });
@@ -128,10 +128,12 @@ describe('drop and colour resolution', () => {
   it('the ending and the opening are one gesture: the last frame is the first, the ride at both ends, no jump between', async () => {
     const {ENDS, createFraming, rideSignals, BASE} = await import('../scripts/video/camera.js');
     const motion = rideSignals(Array.from({length: 801}, (_, f) => ({x: f * 8, y: f * 4})));
-    const look = resolveLook(), frame = createFraming(motion, 20), end = frame(20, 800, look), start = frame(0, 0, look);
+    const look = resolveLook(), frame = createFraming(motion, 20), end = frame(20, 0, look), start = frame(0, 0, look);
     for (const k of ['z', 'ax', 'ay', 'x', 'y', 'over'] as const) expect(end[k]).toBeCloseTo(start[k], 6);
-    expect(end.unink).toBe(0);
     const [out, back] = frame.lengths();
+    // past the widest view the picture is the opening's (the picture draws the ride's first moment); rising to it, the ink returns to pencil
+    expect(frame.turned(20, look)).toBe(true); expect(frame.turned(20 - ENDS.lead - 0.01, look)).toBe(false); expect(frame.turned(0, look)).toBe(false);
+    expect(end.unink).toBe(0); expect(frame(20 - ENDS.lead - 0.01, 790, look).unink).toBeGreaterThan(0.99); expect(frame(20 - out - 0.1, 790, look).unink).toBe(0);
     expect(out).toBeGreaterThan(0.5); expect(out).toBeLessThan(5); expect(back).toBeGreaterThan(0.3); expect(back).toBeLessThan(5);
     expect(frame(10, 400, look).z).toBe(BASE); expect(frame(back + 0.1, (back + 0.1) * 40, look).over).toBe(0); expect(frame(20 - out - 0.1, 790, look).over).toBe(0);
     // the widest view comes `lead` seconds before the last frame, and shows the whole course
@@ -143,13 +145,12 @@ describe('drop and colour resolution', () => {
     }
     // cut at the widest view with no swing, the last frame and the first are the whole course, at rest
     const still = createFraming(motion, 20, null, {...ENDS, lead: 0, swing: 0});
-    expect(still(20, 800, look).over).toBe(1); expect(still(0, 0, look).over).toBe(1);
+    expect(still(20, 0, look).over).toBe(1); expect(still(0, 0, look).over).toBe(1);
     expect(createFraming(motion, 20, null, {...ENDS, halve: 0.1}).lengths()[0]).toBeLessThan(out); // a faster zoom is a shorter ending
     // the zoom's curve itself: flat at the widest view, an even pace in between, and exactly on the ride after its reach
     const {endsFollow, endsReach} = await import('../scripts/video/camera.js');
     expect(endsFollow(0, 4)).toBe(0); expect(endsFollow(0.01, 4)).toBeLessThan(1e-3);
     expect(endsFollow(0.9, 4) - endsFollow(0.8, 4)).toBeCloseTo(endsFollow(0.8, 4) - endsFollow(0.7, 4), 2);
     for (const side of [-1, 1]) {const reach = endsReach(side, 4); expect(endsFollow(side * reach, 4)).toBeCloseTo(1, 9); expect(endsFollow(side * (reach - 0.05), 4)).toBeLessThan(1);}
-    expect(createFraming(motion, 20, null, {...ENDS, pencil: true})(20, 800, look).unink).toBe(1);
   });
 });

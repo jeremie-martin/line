@@ -25,7 +25,7 @@ import {createSplit} from './split.js';
 import {prepareTrack, drawTrack} from './track.js';
 import {drawBand} from './music.js';
 import {drawSky} from './sky.js';
-import {createTheme, dropSpan} from './theme.js';
+import {coloursBetween, createTheme, dropSpan} from './theme.js';
 import {clamp} from './math.js';
 
 /** The rider's ten body points, in the order compiled rides are traced in (scripts/gallery/artifacts.ts); the camera follows
@@ -116,10 +116,15 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   /** Draw the frame at song time t (s). `exaggerate` is the lab's viewing aid: it multiplies every hit effect alike and is never
    * part of a look, a film or a video. Returns the world-to-canvas transform the ride was drawn with (before the split). */
   function draw(t, look, exaggerate = 1) {
-    const r = rideTime(t, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
+    // past the ending's widest view the video has turned to its start: the ride's first moment is drawn, under the camera's
+    // way down, so the last frame is the first. Only the band stays on the clock: the sound runs on.
+    const shown = frameAt.turned(t, look) ? 0 : t;
+    const r = rideTime(shown, offset), at = clamp(r * FPS, 0, frames.length - 1), k = canvas.width / W;
     const intensity = intensityAt(level, r);
     const fx = hitEffectsAt(look.hits === 'none' ? [] : hits, r, exaggerate, tune?.carry ? tune : TUNES[look.hits]);
-    const colours = themeAt(t, intensity, look), v = frameAt(t, at, look);
+    const v = frameAt(t, at, look);
+    // rising to that view, the colours go to the opening's (a ride that ends intense, or in its drop, has others)
+    const colours = v.unink > 0 ? coloursBetween(themeAt(shown, intensity, look), themeAt(0, levelAt(0), look), v.unink) : themeAt(shown, intensity, look);
     let titleBox = null; // only the title drawn in this frame gets its smaller split
     const boosting = fx.boost;
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1;
@@ -153,6 +158,6 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   // hits and level: the ride's prepared hits (ride clock) and its intensity samples, for pages that chart them
   /** The camera at song time t, without hit effects: the world point at the centre of the frame and the zoom (design px per world
    * unit). For pages that chart the camera's path. */
-  const cameraAt = (t, look) => {const v = frameAt(t, clamp(rideTime(t, offset) * FPS, 0, frames.length - 1), look); return {x: v.x + (W / 2 - v.ax) / v.z, y: v.y + (H / 2 - v.ay) / v.z, z: v.z};};
+  const cameraAt = (t, look) => {const v = frameAt(t, clamp(rideTime(frameAt.turned(t, look) ? 0 : t, offset) * FPS, 0, frames.length - 1), look); return {x: v.x + (W / 2 - v.ax) / v.z, y: v.y + (H / 2 - v.ay) / v.z, z: v.z};};
   return {draw, span: scene.span, timing: scene.timing, hits, level, hitTimes, schemeAt, levelAt, cameraAt, centres, endsLengths: frameAt.lengths};
 }

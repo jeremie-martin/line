@@ -14,7 +14,8 @@ for (const name of readdirSync(out).filter(n => n.endsWith('.json') && !['loops.
   for (const seconds of [0.25, 1, 2]) {const made = loopRecording(old.song, seconds); lengths[seconds] = made.audio; loop = made.loop;}
   const mirrored = {};
   if (loop === 'fade') for (const seconds of [0.25, 0.5, 1]) mirrored[seconds] = loopRecording(old.song, seconds, true).audio;
-  loops[old.song] = {loop, lengths, mirrored};
+  const {trim, match} = loopRecording(old.song);
+  loops[old.song] = {loop, lengths, mirrored, trim, match};
   console.log(old.song, loop);
 }
 writeFileSync(join(out, 'loops.json'), JSON.stringify(loops));

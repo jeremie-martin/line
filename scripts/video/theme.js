@@ -2,7 +2,7 @@
 // No canvas or previous-frame state. The caches memoize only scheme, response and quantized intensity.
 import {SCHEMES, DROP_SCHEMES} from './palettes.js';
 import {GRADES, gradeScheme} from './grade.js';
-import {rgb} from './colour.js';
+import {mixHex, rgb} from './colour.js';
 
 /** Hand-placed song cues snap to the strongest nearby matched hit; ties keep the first hit.
  * The entry and exit windows differ deliberately. With no hit nearby, the authored cue stays. */
@@ -37,4 +37,11 @@ export function createTheme(drop) {
       irisLight: rgb(paper).reduce((sum, v) => sum + v, 0) < 0.9 * 255,
     };
   };
+}
+
+/** The colours `u` of the way from one frame's to another's (themeAt results). */
+export function coloursBetween(a, b, u) {
+  const out = {...(u < 0.5 ? a : b)};
+  for (const k of ['paper', 'ink', 'pencil', 'band', 'sun', 'accent']) out[k] = mixHex(a[k], b[k], u);
+  return out;
 }

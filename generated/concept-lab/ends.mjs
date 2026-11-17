@@ -20,7 +20,6 @@ const copy = e => ({...e}), read = (e, k) => e[k], get = k => ends[k], set = (k,
 // the settings under the owner's hand; the picture reads them at every frame
 const ends = copy(ENDS), q = new URLSearchParams(location.hash.slice(1));
 for (const k of KEYS) if (q.has(k) && Number.isFinite(+q.get(k))) set(k, +q.get(k));
-if (q.has('pencil')) ends.pencil = q.get('pencil') === '1';
 for (const id of ['song', 'theme']) if ([...$(id).options].some(o => o.value === q.get(id))) $(id).value = q.get(id);
 const sheet = N.loadSheet(), rides = new Map();
 const loops = await fetch('/generated/lab-rides/loops.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
@@ -111,15 +110,13 @@ const TEXT = {
 };
 function show() {
   for (const k of KEYS) {$(k).value = get(k); $(k + 'Out').textContent = TEXT[k](get(k));}
-  $('pencil').classList.toggle('on', ends.pencil);
-  const same = e => KEYS.every(k => Math.abs(read(e, k) - get(k)) < 1e-9) && e.pencil === ends.pencil;
+  const same = e => KEYS.every(k => Math.abs(read(e, k) - get(k)) < 1e-9);
   [...$('presets').children].forEach((b, i) => b.classList.toggle('on', same(PROPOSALS[i].ends)));
   drawChart();
-  history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, theme: $('theme').value, ...Object.fromEntries(KEYS.map(k => [k, get(k)])), pencil: ends.pencil ? 1 : 0}));
+  history.replaceState(null, '', '#' + new URLSearchParams({song: $('song').value, theme: $('theme').value, ...Object.fromEntries(KEYS.map(k => [k, get(k)]))}));
   if (!playing) draw();
 }
 for (const k of KEYS) $(k).oninput = () => {set(k, +$(k).value); show();};
-$('pencil').onclick = () => {ends.pencil = !ends.pencil; show();};
 PROPOSALS.forEach(pr => {const b = document.createElement('button'); b.innerHTML = `<b></b><span></span>`; b.firstChild.textContent = pr.name; b.lastChild.textContent = pr.about;
   b.onclick = () => {Object.assign(ends, copy(pr.ends)); show();}; $('presets').append(b);});
 
@@ -179,7 +176,7 @@ async function load() {
   const next = await loadRide(song); if (n !== ticket) return;
   ride = next; look = resolveLook($('theme').value);
   // the sound at the cut: production's looping recording, the recording as cut, and other blend lengths where prepared
-  const made = loops[song] ?? {}, options = [['/' + ride.scene.audio, 'Sound: looped (production)'], [`/productions/${song}/audio.mp3`, 'Sound: as cut'], ...Object.entries(made.lengths ?? {}).map(([seconds, path]) => ['/' + path, `Sound: ${made.loop === 'lead-in' ? 'blended' : 'faded'} over ${seconds} s`]),
+  const made = loops[song] ?? {}, options = [['/' + ride.scene.audio, `Sound: looped (production${made.trim ? `; ends ${made.trim.toFixed(2)} s early, in step with its start` : ''})`], [`/productions/${song}/audio.mp3`, 'Sound: no blend'], ...Object.entries(made.lengths ?? {}).map(([seconds, path]) => ['/' + path, `Sound: ${made.loop === 'lead-in' ? 'blended' : 'faded'} over ${seconds} s`]),
     ...Object.entries(made.mirrored ?? {}).map(([seconds, path]) => ['/' + path, `Sound: the opening backwards over ${seconds} s (a trial)`])];
   $('sound').replaceChildren(...options.map(([value, text]) => Object.assign(document.createElement('option'), {value, textContent: text})));
   loopSound = null; await useSound().catch(error => {$('status').textContent = `Sound: ${error.message}`;}); if (n !== ticket) return;
@@ -205,7 +202,7 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => {if (e.key === 't' || e.key === 'T') hold(false);});
 $('save').onclick = async () => {
   const r = await fetch(`/api/labels/${STUDY}`, {method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({clip: 'all', skipped: false, answers: {...Object.fromEntries(KEYS.map(k => [k, get(k)])), pencil: ends.pencil, song: $('song').value}, note: $('note').value})});
+    body: JSON.stringify({clip: 'all', skipped: false, answers: {...Object.fromEntries(KEYS.map(k => [k, get(k)])), song: $('song').value}, note: $('note').value})});
   $('status').textContent = r.ok ? `Saved at ${new Date().toLocaleTimeString()}.` : `Not saved: ${(await r.json()).error}`;
 };
 function tick() {

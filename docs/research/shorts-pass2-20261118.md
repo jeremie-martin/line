@@ -369,8 +369,29 @@ The repeated note on 0.294–13.413 asks the first sung groups to start lower an
 
 ## Second dashboard review · Los Voltaje ultra slowed
 
-The longer fourth syllable and five-stroke drum answer make this crescendo different. The first two calls average 0.15, with the heads and little replies still distinct. The five drums from 9.671 deliver 0.27/0.35/0.29/0.18/0.41. The highlighted range ends inside the quick voice at 13.328. I placed the rise beneath its approach and kept the full 11.331–15.929 figure at all 17 reviewed times and requested strengths. A trial calibrated directly to the old physical strikes lost weight in the opening words of the fast passage. Restoring the reviewed requests and lifting the five preceding drums slightly gave a mean delivered strength of 0.375 against 0.364 previously, mean absolute difference 0.039. One onset moves a frame. The largest strength change is 0.125 at 15.035. The later 16.289 downbeat lands at 0.88. Exact physical preservation remains open. Seed 101 matched 133/133 with 19 additional strikes. [Ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts5/short_los_voltaje_ultra_slowed-101/manifest.json)
+The longer fourth syllable and five-stroke drum answer make this crescendo different. The first two calls average 0.15, with the heads and little replies still distinct. The five drums from 9.671 deliver 0.27/0.35/0.29/0.18/0.41. The highlighted range ends inside the quick voice at 13.328. I placed the rise beneath its approach and kept the full 11.331–15.929 figure at all 17 reviewed times and requested strengths. A trial calibrated directly to the old physical strikes lost weight in the opening words of the fast passage. Restoring the reviewed requests and lifting the five preceding drums slightly gave a mean delivered strength of 0.375 against 0.364 previously, mean absolute difference 0.039. One onset moves a frame. The largest strength change is 0.125 at 12.330. The later 16.289 downbeat lands at 0.88. Exact physical preservation remains open. Seed 101 matched 133/133 with 19 additional strikes. [Ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts5/short_los_voltaje_ultra_slowed-101/manifest.json)
 
 ## Second dashboard review · Montagem Tomada extended
 
 The word “slight” matters here. I kept every articulation in the 0.08–8.33 pickup and eased the first group by an average of 0.052 in the ride. Its seven notes now average 0.27. The following groups average 0.32, 0.36 and 0.42. Each still has its own accent, including 0.51 at 2.161, 0.45 at 4.007, 0.57 at 5.853 and 0.55 at 7.234. The two lighter notes leading out of the figure deliver 0.37/0.41 before the 8.616 drum at 0.85. I ended the swell there so the later hook and vocal return keep their own dynamics. Seed 101 matched 153/153 with 17 additional strikes. [Ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts5/short_montagem_tomada_extended-101/manifest.json)
+
+## Second dashboard review · Lua na Praça, main and upper
+
+On main the request was for markedly higher speed throughout. The duration-weighted achieved speed rises from 0.611 to 0.911 on the compiler's normalized scale. In the suspension it rises from 0.327 to 0.722, and during the late bass return from 0.795 to 0.998. The calmer main reading still gives the drummer and held phrases room. Seed 101 matched 86/86, with 21 additional strikes.
+
+On upper the pickup now lands all seven earlier taps, at 4.628/4.854/4.965/5.081/5.191/5.307/5.406. They deliver 0.38/0.22/0.32/0.17/0.49/0.36/0.21. The last three articulate the answering bass and final small vocal edge before the 5.522 drum at 0.72. The other marked phrase ends already have their distinct contours. In the 20.96–26.57 suspension, all 14 touches land at 0.056–0.139, mean 0.100 (previously 0.319). The only additional physical strike there measures 0.006. Less air makes these quiet catches possible at a higher pace. Measured speed rises from 0.749 to 0.931 overall and from 0.705 to 0.822 in the suspension. Seed 101 matched 126/126 with 13 additional strikes. [Main ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts5/short_lua_na_praca-101/manifest.json) · [Upper ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts5/short_lua_na_praca-upper-101/manifest.json)
+
+### Review films
+
+The 360-pixel-wide vertical films use the plain look and the cut audio, with the local fade ending. The compiled specifications cover the full cuts. Each film's encoded audio and video durations, file digest and source ride digest were checked against its render record. All twelve ride manifests match the final specification, audio and analysis digests.
+
+| Music | Seed 101 films |
+|---|---|
+| Luna Bala | [Slowed](http://127.0.0.1:8767/generated/shorts5/films/luna_bala_slowed.mp4) · [44 seconds](http://127.0.0.1:8767/generated/shorts5/films/luna_bala_44s.mp4) · [Original](http://127.0.0.1:8767/generated/shorts5/films/luna_bala_original.mp4) |
+| Amor Na Praia | [46 seconds](http://127.0.0.1:8767/generated/shorts5/films/amor_na_praia_46s.mp4) · [Longer cut](http://127.0.0.1:8767/generated/shorts5/films/amor_na_praia.mp4) |
+| L’Amour de ma vie | [Review film](http://127.0.0.1:8767/generated/shorts5/films/amour_de_ma_vie.mp4) |
+| Los Voltaje | [Original](http://127.0.0.1:8767/generated/shorts5/films/los_voltaje.mp4) · [Slowed](http://127.0.0.1:8767/generated/shorts5/films/los_voltaje_slowed.mp4) · [Ultra slowed](http://127.0.0.1:8767/generated/shorts5/films/los_voltaje_ultra_slowed.mp4) |
+| Montagem Tomada extended | [Review film](http://127.0.0.1:8767/generated/shorts5/films/montagem_tomada_extended.mp4) |
+| Lua na Praça | [Main](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca.mp4) · [Upper](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca-upper.mp4) |
+
+All 1,526 requested landings matched on seed 101. Type checking passed, reach reported zero unreachable files, and all 722 tests in 127 files passed before the final commit.

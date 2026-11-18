@@ -455,3 +455,7 @@ The broad beat has a little more weight where it answers the singer most clearly
 ## Third review · Believer
 
 The kick under the marked syllable now leads into the next downbeat. The same pickup also sounds before the first “Pain!” entrance. 22.483 s — The short kick leads into the first shout. 24.387 s — The word starts just ahead of the kick. They share one landing. 26.338 s — The next statement already had both members of the pair.  Seed 101 reached the end.
+
+## Third review · Los Voltaje · drums
+
+I hear three smaller drum replies between the low beats. The middle reply often speaks loudest. Later the bright hook already lands the same three strokes. 0.234 s — Light drum strokes answer the opening calls. 15.275 s — The three replies start two seconds before the marked examples. 17.341 s — Follow the middle reply through the marked bars and into the hook. Construction stopped at frame 87. Seed 101 stopped during construction (no_arc).

@@ -33,4 +33,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   short_amour_de_ma_vie: [25.25, 36.58],
   short_funk_estranho_super_slowed: [17.77, 45.434],
   short_funk_do_bounce_super_slowed: [13.47, 32.69],
+  short_let_the_world_burn: [4.481, 24.462],
 };

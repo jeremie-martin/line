@@ -142,6 +142,66 @@
       }
     },
     {
+      "id": "moment:5140",
+      "t": 5.14,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.14",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:44:29.361Z",
+      "updatedAt": "2026-11-18T20:44:29.361Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
+      }
+    },
+    {
+      "id": "moment:5590",
+      "t": 5.59,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.59",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:44:36.485Z",
+      "updatedAt": "2026-11-18T20:44:36.485Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
+      }
+    },
+    {
+      "id": "moment:6510",
+      "t": 6.51,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.51",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:44:39.835Z",
+      "updatedAt": "2026-11-18T20:44:39.835Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
+      }
+    },
+    {
       "id": "range:10:14360",
       "t": 7.185,
       "scope": "range",
@@ -177,6 +237,26 @@
       "on": {
         "spec": "productions/short_passo_bem_solto/spec.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
+      }
+    },
+    {
+      "id": "moment:7700",
+      "t": 7.7,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.70",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:44:46.452Z",
+      "updatedAt": "2026-11-18T20:44:46.452Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
     {
@@ -257,6 +337,24 @@
       "on": {
         "spec": "productions/short_passo_bem_solto/spec.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
+      }
+    },
+    {
+      "id": "range:4549:14580",
+      "t": 9.5645,
+      "scope": "range",
+      "index": null,
+      "t0": 4.549,
+      "t1": 14.58,
+      "axis": null,
+      "title": "range 0:04.55 to 0:14.58",
+      "text": "missing a few, very good otherwise",
+      "tags": [],
+      "createdAt": "2026-11-18T20:45:27.337Z",
+      "updatedAt": "2026-11-18T20:45:34.452Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
     {
@@ -377,6 +475,66 @@
       "on": {
         "spec": "productions/short_passo_bem_solto/spec.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
+      }
+    },
+    {
+      "id": "moment:11840",
+      "t": 11.84,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:11.84",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:44:58.939Z",
+      "updatedAt": "2026-11-18T20:44:58.939Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
+      }
+    },
+    {
+      "id": "moment:12990",
+      "t": 12.99,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:12.99",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:45:02.795Z",
+      "updatedAt": "2026-11-18T20:45:02.795Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
+      }
+    },
+    {
+      "id": "moment:13900",
+      "t": 13.9,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:13.90",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-18T20:45:07.460Z",
+      "updatedAt": "2026-11-18T20:45:07.460Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     }
   ]

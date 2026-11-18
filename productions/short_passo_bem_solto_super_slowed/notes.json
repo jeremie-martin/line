@@ -1,0 +1,123 @@
+{
+  "specPath": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+  "notes": [
+    {
+      "id": "moment:14140",
+      "t": 14.14,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:14.14",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T20:46:07.878Z",
+      "updatedAt": "2026-11-18T20:46:07.878Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    },
+    {
+      "id": "moment:18510",
+      "t": 18.51,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:18.51",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T20:46:13.111Z",
+      "updatedAt": "2026-11-18T20:46:13.111Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    },
+    {
+      "id": "moment:20720",
+      "t": 20.72,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:20.72",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T20:46:15.804Z",
+      "updatedAt": "2026-11-18T20:46:15.804Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    },
+    {
+      "id": "moment:22910",
+      "t": 22.91,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:22.91",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T20:46:18.013Z",
+      "updatedAt": "2026-11-18T20:46:18.013Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    },
+    {
+      "id": "range:17851:28184",
+      "t": 23.0175,
+      "scope": "range",
+      "index": null,
+      "t0": 17.851,
+      "t1": 28.184,
+      "axis": null,
+      "title": "range 0:17.85 to 0:28.18",
+      "text": "missing a few drums",
+      "tags": [],
+      "createdAt": "2026-11-18T20:46:31.200Z",
+      "updatedAt": "2026-11-18T20:46:32.362Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    },
+    {
+      "id": "moment:27270",
+      "t": 27.27,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:27.27",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T20:46:21.450Z",
+      "updatedAt": "2026-11-18T20:46:21.450Z",
+      "on": {
+        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
+      }
+    }
+  ]
+}

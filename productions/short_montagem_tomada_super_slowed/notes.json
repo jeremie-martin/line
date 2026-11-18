@@ -1018,6 +1018,24 @@
         "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
+    },
+    {
+      "id": "range:28823:29984",
+      "t": 29.4035,
+      "scope": "range",
+      "index": null,
+      "t0": 28.823,
+      "t1": 29.984,
+      "axis": null,
+      "title": "range 0:28.82 to 0:29.98",
+      "text": "this should be mapped similarly to \"range 0:18.62 to 0:20.09\"",
+      "tags": [],
+      "createdAt": "2026-11-18T20:49:15.243Z",
+      "updatedAt": "2026-11-18T20:49:42.905Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b"
+      }
     }
   ]
 }

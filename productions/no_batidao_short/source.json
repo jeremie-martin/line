@@ -1,0 +1,38 @@
+{
+  "file": "20251222-124532-17-NO BATIDÃO.webm",
+  "sha256": "1f8a6e5bdcc607ceb45c431dfc219b3e3a8afc4f495fa2cc7e85e3de49c061b7",
+  "sourceStartSeconds": 32.616,
+  "sourceEndSeconds": 77.104,
+  "decodedExcerptSeconds": 44.488,
+  "audioSha256": "71e19a4f24f83d52cd9e74bc2e29644fc08123248aa1e9ffe693a9e08b50be90",
+  "title": "NO BATIDÃO",
+  "intent": "Voice pickup, percussion-only build, bass arrival, then the later vocal-led sparse-hit passage and instrumental finish. Distinguish the two stages of the return.",
+  "reviewStatus": "draft; owner listening review pending",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "b058b445ab4d0668dfdf04088bd4069061a3d57d16cdd0f19c154622fd7ee7ca",
+      "bass": "ec051755ecc954c6ee39113fd46c15e72ad74224c720689d81852a7e8a57e133",
+      "vocals": "cee270d35dd1dc5ccb8b8ffd4c4d1fd31d7a64836e713833941a2b370c297158",
+      "other": "87117e66b12897dfbf8c79b3b15c8da4fcbc7f1b527bbde1236e6a1d6254b26e"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "no_batidao_selection",
+    "from": 2.616,
+    "to": 47.104
+  }
+}

@@ -1,0 +1,549 @@
+{
+  "specPath": "productions/montagem_tomada_slowed_short/spec.ts",
+  "notes": [
+    {
+      "id": "moment:21640",
+      "t": 0.017,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.02",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:08:35.358Z",
+      "updatedAt": "2026-11-17T22:08:35.358Z"
+    },
+    {
+      "id": "moment:21780",
+      "t": 0.157,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.16",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:08:40.111Z",
+      "updatedAt": "2026-11-17T22:08:40.111Z"
+    },
+    {
+      "id": "moment:21930",
+      "t": 0.307,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.31",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:08:41.157Z",
+      "updatedAt": "2026-11-17T22:08:41.157Z"
+    },
+    {
+      "id": "moment:22070",
+      "t": 0.447,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.45",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:09:06.073Z",
+      "updatedAt": "2026-11-17T22:09:06.073Z"
+    },
+    {
+      "id": "moment:22220",
+      "t": 0.597,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.60",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:09:00.391Z",
+      "updatedAt": "2026-11-17T22:09:00.391Z"
+    },
+    {
+      "id": "moment:22360",
+      "t": 0.737,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.74",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:10:27.293Z",
+      "updatedAt": "2026-11-17T22:10:27.293Z"
+    },
+    {
+      "id": "moment:22550",
+      "t": 0.927,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.93",
+      "text": "",
+      "tags": [
+        "voice"
+      ],
+      "createdAt": "2026-11-17T22:10:32.283Z",
+      "updatedAt": "2026-11-17T22:10:32.283Z"
+    },
+    {
+      "id": "moment:22770",
+      "t": 1.147,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.15",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:19.678Z",
+      "updatedAt": "2026-11-17T22:09:19.678Z"
+    },
+    {
+      "id": "moment:23020",
+      "t": 1.397,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.40",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:20.857Z",
+      "updatedAt": "2026-11-17T22:09:20.857Z"
+    },
+    {
+      "id": "moment:23310",
+      "t": 1.687,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.69",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:21.883Z",
+      "updatedAt": "2026-11-17T22:09:21.883Z"
+    },
+    {
+      "id": "moment:23570",
+      "t": 1.947,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.95",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:22.783Z",
+      "updatedAt": "2026-11-17T22:09:22.783Z"
+    },
+    {
+      "id": "moment:23870",
+      "t": 2.247,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.25",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:23.608Z",
+      "updatedAt": "2026-11-17T22:09:23.608Z"
+    },
+    {
+      "id": "moment:24110",
+      "t": 2.487,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.49",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:24.425Z",
+      "updatedAt": "2026-11-17T22:09:24.425Z"
+    },
+    {
+      "id": "moment:24550",
+      "t": 2.927,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.93",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:25.446Z",
+      "updatedAt": "2026-11-17T22:09:25.446Z"
+    },
+    {
+      "id": "moment:24960",
+      "t": 3.337,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.34",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:33.096Z",
+      "updatedAt": "2026-11-17T22:09:33.096Z"
+    },
+    {
+      "id": "moment:25220",
+      "t": 3.597,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.60",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:34.138Z",
+      "updatedAt": "2026-11-17T22:09:34.138Z"
+    },
+    {
+      "id": "moment:25510",
+      "t": 3.887,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.89",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:35.641Z",
+      "updatedAt": "2026-11-17T22:09:35.641Z"
+    },
+    {
+      "id": "moment:25770",
+      "t": 4.147,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.15",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:36.480Z",
+      "updatedAt": "2026-11-17T22:09:36.480Z"
+    },
+    {
+      "id": "moment:26060",
+      "t": 4.437,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.44",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:37.416Z",
+      "updatedAt": "2026-11-17T22:09:37.416Z"
+    },
+    {
+      "id": "moment:26330",
+      "t": 4.707,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.71",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:38.600Z",
+      "updatedAt": "2026-11-17T22:09:38.600Z"
+    },
+    {
+      "id": "moment:26730",
+      "t": 5.107,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.11",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:39.402Z",
+      "updatedAt": "2026-11-17T22:09:39.402Z"
+    },
+    {
+      "id": "moment:27160",
+      "t": 5.537,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.54",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:46.062Z",
+      "updatedAt": "2026-11-17T22:09:46.062Z"
+    },
+    {
+      "id": "moment:27410",
+      "t": 5.787,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.79",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:47.163Z",
+      "updatedAt": "2026-11-17T22:09:47.163Z"
+    },
+    {
+      "id": "moment:27690",
+      "t": 6.067,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.07",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:48.049Z",
+      "updatedAt": "2026-11-17T22:09:48.049Z"
+    },
+    {
+      "id": "moment:27950",
+      "t": 6.327,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.33",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:49.010Z",
+      "updatedAt": "2026-11-17T22:09:49.010Z"
+    },
+    {
+      "id": "moment:28260",
+      "t": 6.637,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.64",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:49.781Z",
+      "updatedAt": "2026-11-17T22:09:49.781Z"
+    },
+    {
+      "id": "moment:28510",
+      "t": 6.887,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.89",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:50.729Z",
+      "updatedAt": "2026-11-17T22:09:50.729Z"
+    },
+    {
+      "id": "moment:28950",
+      "t": 7.327,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.33",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:51.665Z",
+      "updatedAt": "2026-11-17T22:09:51.665Z"
+    },
+    {
+      "id": "moment:29340",
+      "t": 7.717,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.72",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:53.507Z",
+      "updatedAt": "2026-11-17T22:09:53.507Z"
+    },
+    {
+      "id": "moment:29610",
+      "t": 7.987,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.99",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:09:55.602Z",
+      "updatedAt": "2026-11-17T22:09:55.602Z"
+    },
+    {
+      "id": "moment:29880",
+      "t": 8.257,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:08.26",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:10:03.962Z",
+      "updatedAt": "2026-11-17T22:10:03.962Z"
+    },
+    {
+      "id": "moment:30180",
+      "t": 8.557,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:08.56",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:10:04.840Z",
+      "updatedAt": "2026-11-17T22:10:04.840Z"
+    },
+    {
+      "id": "moment:30440",
+      "t": 8.817,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:08.82",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:10:06.011Z",
+      "updatedAt": "2026-11-17T22:10:06.011Z"
+    },
+    {
+      "id": "moment:30700",
+      "t": 9.077,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:09.08",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-17T22:10:06.907Z",
+      "updatedAt": "2026-11-17T22:10:06.907Z"
+    }
+  ]
+}

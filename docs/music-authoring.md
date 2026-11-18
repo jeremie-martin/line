@@ -61,6 +61,9 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      `--song=<song>` for the recording of an existing song, with `--around=27,38` to keep moments of that song)
      lists passages of 30 to 45 s that start on a strong onset and whose end is in step with what leads into their
      start. It measures; which passage carries the music is the author's choice.
+   - A short made from part of a song: `node tools/music/cut.ts --song=<parent> --name=<new> [--from=S --to=S]` (without
+     them, the owner's saved cut) makes `productions/<new>/` with the parent's audio, source record, stems and evidence cut
+     and shifted, nothing measured again; then write its spec from the parent's and register it. Steps 2 to 4 are done.
 2. **Separate the instruments.**
    - `~/.venvs/line-stems/bin/python tools/music/stems.py --song=<song>` gives
      drums, bass, vocals and other, each with a loudness envelope and onsets.

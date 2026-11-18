@@ -31,8 +31,8 @@ export const MAX_TRIM = 3, COMPARED = 6;
 const RATE = 48000, CHANNELS = 2, FRAME = RATE / 60; // FRAME: the samples of one video frame (write.ts)
 /** A full recording an excerpt was cut from, or null when it is not on this machine. productions/<song>/source.json names the
  * file and the excerpt's start (tools/music/source.ts writes it); the file is looked for in LR_RECORDINGS, or in recordings/
- * here and then in the music library. */
-export const recording = (file: string) => (process.env.LR_RECORDINGS ? [process.env.LR_RECORDINGS] : [join(ROOT, 'recordings'), join(homedir(), 'prog/double-pendulum/music/tracks')])
+ * here and then in the music library. A record without a file (a cut of a song that has none, tools/music/cut.ts) has none. */
+export const recording = (file: string | undefined) => !file ? null : (process.env.LR_RECORDINGS ? [process.env.LR_RECORDINGS] : [join(ROOT, 'recordings'), join(homedir(), 'prog/double-pendulum/music/tracks')])
   .map(folder => join(folder, file)).find(path => existsSync(path)) ?? null;
 
 /** Interleaved stereo samples of `seconds` of a file from `start`. */

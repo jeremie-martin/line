@@ -77,6 +77,16 @@ const refs = {
   video: document.getElementById("video-player"),
   videoState: document.getElementById("video-state"),
   makeVideo: document.getElementById("make-video"),
+  watchLoop: document.getElementById("watch-loop"),
+  loopFromStart: document.getElementById("loop-from-start"),
+  notesMarks: document.getElementById("notes-marks"),
+  earlierToggle: document.getElementById("earlier-toggle"),
+  toggleEarlier: document.getElementById("toggle-earlier"),
+  earlierLabel: document.getElementById("earlier-label"),
+  earlierRef: document.getElementById("earlier-ref"),
+  earlierHead: document.getElementById("earlier-head"),
+  earlierText: document.getElementById("earlier-text"),
+  noteAgain: document.getElementById("note-again"),
 };
 
 const state = {
@@ -104,6 +114,8 @@ const state = {
   selectedScope: "moment",
   activeAnchor: null,
   activeNoteId: null,
+  /** A note on an earlier version, selected to read: quoted, never edited (the server keeps it as it is). */
+  earlierNote: null,
   activeTags: [],
   saveTimer: null,
   pendingNoteSave: null,
@@ -114,6 +126,8 @@ const state = {
   /** The spec's video and the video job, as /api/spec-video reports them. */
   video: null,
   videoJob: null,
+  /** "Watch the loop": the video plays by itself, with its own sound, looping; the dashboard's clock follows it. */
+  loopMode: false,
 };
 
 // A newer spec's music supersedes an older one still downloading, and a play
@@ -123,10 +137,10 @@ const music = createMusic(), onScreen = displayTime();
 /** Landing clicks: scheduled oscillators, how far ahead they are scheduled, and their gain. */
 const clicks = { until: -Infinity, pending: new Set(), out: null };
 
-// Listening preferences (clicks on/off, click and music volume, music muted) and whether the
-// video is shown survive reloads in this browser; storage may be unavailable, and then the defaults apply.
+// Listening preferences (clicks on/off, click and music volume, music muted), whether the video is shown and whether
+// notes on earlier versions are shown survive reloads in this browser; storage may be unavailable, and then the defaults apply.
 const LISTENING_KEY = "spec-dashboard.listening";
-const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false, videoOpen: true };
+const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false, videoOpen: true, earlierNotes: false };
 try {
   Object.assign(listening, JSON.parse(localStorage.getItem(LISTENING_KEY) || "{}"));
 } catch { /* defaults */ }
@@ -147,13 +161,17 @@ function renderListening() {
   refs.toggleMusic.textContent = listening.musicMuted ? "Music muted" : "Music on";
   refs.musicVolume.value = listening.musicVolume;
   music.volume = listening.musicMuted ? 0 : listening.musicVolume;
+  refs.video.volume = music.volume;
+  refs.toggleEarlier.checked = listening.earlierNotes;
   if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
   if (!listening.clicks) clearClicks();
   refs.video.hidden = !state.video || !listening.videoOpen;
   refs.toggleVideo.textContent = listening.videoOpen ? "Hide" : "Show";
   refs.toggleVideo.setAttribute("aria-expanded", String(listening.videoOpen));
-  if (!listening.videoOpen) refs.video.pause();
-  else syncVideo();
+  if (!listening.videoOpen) {
+    if (state.loopMode) leaveLoop();
+    refs.video.pause();
+  } else syncVideo();
 }
 // The menu's group (production set or library) is remembered in this browser.
 const SET_KEY = "spec-dashboard.set";
@@ -201,6 +219,14 @@ function wireEvents() {
   });
   refs.toggleVideo.addEventListener("click", () => setListening({ videoOpen: !listening.videoOpen }));
   refs.makeVideo.addEventListener("click", () => makeVideo());
+  refs.watchLoop.addEventListener("click", () => state.loopMode ? leaveLoop() : watchLoop());
+  refs.loopFromStart.addEventListener("click", () => watchLoop(true));
+  refs.toggleEarlier.addEventListener("change", () => {
+    setListening({ earlierNotes: refs.toggleEarlier.checked });
+    renderNotesList();
+    renderTimeline();
+  });
+  refs.noteAgain.addEventListener("click", () => noteAgain());
   for (const type of ["loadedmetadata", "seeked"]) refs.video.addEventListener(type, () => syncVideo());
   refs.picker.addEventListener("click", () => openPicker(refs.pickerPanel.hidden));
   refs.pickerList.addEventListener("click", (event) => {
@@ -265,6 +291,7 @@ function wireEvents() {
   refs.timeline.addEventListener("dragstart", (event) => event.preventDefault());
   refs.timeline.addEventListener("mouseleave", () => {
     if (!state.pointerDrag) setHover(null);
+    showNoteCard(null);
   });
   // The timeline is drawn at the size it is shown: redrawn when its space changes.
   new ResizeObserver(() => {
@@ -299,10 +326,11 @@ function wireEvents() {
   refs.deleteNote.addEventListener("click", () => deleteActiveNote());
   refs.clearNotes.addEventListener("click", () => clearAllNotes());
   refs.notesList.addEventListener("click", (event) => {
-    const button = event.target.closest("button[data-note-id]");
+    const button = event.target.closest("button[data-note-index]");
     if (!button) return;
-    const note = state.notes.find((item) => item.id === button.dataset.noteId);
+    const note = state.notes[Number(button.dataset.noteIndex)];
     if (!note) return;
+    if (!note.current) return selectEarlierNote(note);
     state.selectedScope = note.scope;
     renderScopeTabs();
     state.selection = note.scope === "range" && typeof note.t0 === "number" && typeof note.t1 === "number"
@@ -545,6 +573,7 @@ function goToReading(step) {
 
 async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
+  if (state.loopMode) leaveLoop();
   pausePlayback();
   state.loadingPath = specPath;
   const reading = state.readings.find((item) => item.path === specPath);
@@ -557,6 +586,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.analysis = null;
   state.activeAnchor = null;
   state.activeNoteId = null;
+  state.earlierNote = null;
   state.activeTags = [];
   state.viewStart = 0;
   state.viewEnd = 0;
@@ -847,6 +877,7 @@ function onTimelinePointerDown(event) {
 function onTimelinePointerMove(event) {
   if (!state.timeline) return;
   setHover(state.timeline.xAtClient(event.clientX));
+  showNoteCard(state.pointerDrag ? null : event.target.closest?.("[data-note-index]"), event);
   const drag = state.pointerDrag;
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
@@ -894,8 +925,10 @@ function clickTimeline(rawT, free) {
   seekTo(free ? rawT : snapTime(rawT));
 }
 
-/** A click on a contact's impact or an axis keyframe: the cursor goes to it and the note editor takes it. */
+/** A click on a contact's impact or an axis keyframe: the cursor goes to it and the note editor takes it; on an earlier
+ * note: the Notes panel quotes it. */
 function pickMark(mark) {
+  if (mark.dataset.markKind === "earlierNote") return selectEarlierNote(state.notes[Number(mark.dataset.noteIndex)]);
   const anchor = anchorForMarkElement(mark);
   if (!anchor) return drawSelection();
   state.selectedScope = anchor.scope;
@@ -1097,7 +1130,9 @@ function renderTimeline() {
   const R = 14;
   const plotW = W - L - R;
   const top = 20;
-  const spectroY = top + 26;
+  // the song's drop, when it has one: a row of its own under the times
+  const dropH = data.drop ? 14 : 0;
+  const spectroY = top + 26 + dropH;
   const bottom = 40; // the range's bar sits here
   const hasEvents = Boolean(state.analysis?.onsets.length), hasVocal = Boolean(state.analysis?.vocal);
   const notesH = refs.toggleNotes.checked ? 34 : 0;
@@ -1149,6 +1184,7 @@ function renderTimeline() {
   add(svg, "rect", { x: 0, y: 0, width: W, height: H, fill: "#fffdfa" });
   drawPhases(svg, L, plotW, H);
   drawTimeRuler(svg, L, plotW, top, H);
+  if (dropH) drawDrop(svg, top + 3, dropH - 3);
   drawSpectrogram(svg, L, plotW, spectroY, spectroH);
   drawBeatLayer(svg, L, plotW, spectroY, spectroH, H);
   if (eventsH) drawEventLane(svg, L, plotW, eventsY, eventsH);
@@ -1203,6 +1239,19 @@ function drawTimeRuler(svg, L, plotW, y, H) {
     add(svg, "line", { x1: x, y1: y - 5, x2: x, y2: H - 12, stroke: "#efe5d2", "stroke-width": 1 });
     if (x + 44 <= state.timeline.right + 14) add(svg, "text", { x: x + 3, y: y - 8, class: "svg-small" }, formatTime(t));
   }
+}
+
+/** The song's drop (scripts/video/drops.ts, placed by hand): a light band, labelled, its times on hover. */
+function drawDrop(svg, y, h) {
+  const [t0, t1] = state.data.drop;
+  add(svg, "text", { x: 12, y: y + h - 2, class: "svg-small" }, "drop");
+  if (!timeIntersects(t0, t1)) return;
+  const x0 = state.timeline.xFor(t0), x1 = state.timeline.xFor(t1);
+  const band = add(svg, "g", { "data-drop": `${t0}-${t1}` });
+  add(band, "rect", { x: x0, y, width: Math.max(2, x1 - x0), height: h, rx: 2, class: "svg-drop" });
+  if (x1 - x0 > 120) add(band, "text", { x: x0 + 5, y: y + h - 2.5, class: "svg-drop-label" }, `drop ${t0.toFixed(2)}–${t1.toFixed(2)} s`);
+  else if (x1 - x0 > 34) add(band, "text", { x: x0 + 4, y: y + h - 2.5, class: "svg-drop-label" }, "drop");
+  add(band, "title", {}, `drop ${t0.toFixed(2)}–${t1.toFixed(2)} s (placed by hand; the film snaps each end to the strongest hit near it)`);
 }
 
 function drawSpectrogram(svg, L, plotW, y, h) {
@@ -1377,10 +1426,24 @@ function drawAxisLane(svg, axis, L, plotW, y, h) {
   drawAxisKeyframes(svg, axis, y, h, meta.color);
 }
 
+/** Whether `note` is the one selected: a current note by the editor's anchor, an earlier one when quoted. */
+const isActiveNote = (note) => note.current ? !state.earlierNote && note.id === state.activeNoteId : note === state.earlierNote;
+
+// The notes lane: notes on this version filled; notes on earlier versions under them, pale, or outlined (dashed) when
+// "Earlier notes" is on. Hovering any note shows its words; a click on an earlier one quotes it in the Notes panel.
 function drawNoteLane(svg, L, plotW, y, h) {
   add(svg, "text", { x: 12, y: y + 18, class: "svg-label" }, "notes");
   add(svg, "line", { x1: L, y1: y + h / 2, x2: L + plotW, y2: y + h / 2, class: "svg-rule" });
-  for (const note of state.notes) {
+  // an earlier note: pale; outlined when shown; rust when quoted
+  const earlier = (active) => active ? { fill: "#a8442f", opacity: 0.9 }
+    : listening.earlierNotes ? { fill: "#fffdfa", "fill-opacity": 0.7, stroke: "#2d5d8f", "stroke-width": 1.2, "stroke-dasharray": "3 2", opacity: 1 }
+    : null;
+  // earlier notes first: the current ones are drawn over them
+  const order = [...state.notes.keys()].sort((a, b) => Number(state.notes[a].current) - Number(state.notes[b].current));
+  for (const index of order) {
+    const note = state.notes[index], active = isActiveNote(note);
+    const marked = note.current ? { "data-note-index": index }
+      : { "data-note-index": index, "data-mark-kind": "earlierNote", class: "svg-note-earlier", ...earlier(active) };
     if (note.scope === "range" && typeof note.t0 === "number" && typeof note.t1 === "number") {
       if (!timeIntersects(note.t0, note.t1)) continue;
       const x0 = state.timeline.xFor(Math.max(note.t0, state.timeline.viewStart));
@@ -1391,8 +1454,9 @@ function drawNoteLane(svg, L, plotW, y, h) {
         width: Math.max(3, x1 - x0),
         height: h - 16,
         rx: 2,
-        fill: note.id === state.activeNoteId ? "#a8442f" : "#2d5d8f",
+        fill: note.current && active ? "#a8442f" : "#2d5d8f",
         opacity: note.current ? 0.78 : 0.22,
+        ...marked,
       });
       continue;
     }
@@ -1406,9 +1470,10 @@ function drawNoteLane(svg, L, plotW, y, h) {
       width: strong ? 10 : 6,
       height: h - (strong ? 4 : 12),
       rx: 2,
-      fill: note.id === state.activeNoteId ? "#a8442f" : strong ? "#173a5e" : "#2d5d8f",
+      fill: note.current && active ? "#a8442f" : strong ? "#173a5e" : "#2d5d8f",
       opacity: note.current ? (strong ? 1 : 0.88) : 0.28,
       "data-note-tag": strong ? "strong" : "note",
+      ...marked,
     });
   }
 }
@@ -1505,8 +1570,9 @@ function updatePlaybackUi(t = specTime()) {
   state.cursorT = t;
   refs.timeNow.textContent = formatTime(t);
   refs.scrub.value = String(clamp(t / state.data.spec.duration, 0, 1));
-  refs.play.textContent = isPlaying() ? "Pause" : "Play";
-  refs.play.classList.toggle("playing", isPlaying());
+  const playing = state.loopMode ? !refs.video.paused : isPlaying();
+  refs.play.textContent = playing ? "Pause" : "Play";
+  refs.play.classList.toggle("playing", playing);
   const x = state.timeline?.xFor(t);
   if (x !== undefined) {
     const ph = document.getElementById("playhead");
@@ -1573,7 +1639,10 @@ function selectAnchorAtCursor() {
 function setActiveAnchor(anchor) {
   state.activeAnchor = anchor;
   state.activeNoteId = anchor.id;
-  const note = state.notes.find((item) => item.id === anchor.id);
+  state.earlierNote = null;
+  renderEarlier();
+  // the editor holds a note on this version only: a note on an earlier one is never written over
+  const note = state.notes.find((item) => item.id === anchor.id && item.current);
   state.activeTags = note?.tags ? [...note.tags] : [];
   refs.noteAnchor.textContent = anchor.title;
   refs.noteText.value = note?.text || "";
@@ -1745,7 +1814,7 @@ async function saveNoteSnapshot(note) {
 }
 
 async function deleteActiveNote() {
-  if (!state.data || !state.activeNoteId) return;
+  if (!state.data || !state.activeNoteId || state.earlierNote) return;
   const id = state.activeNoteId;
   if (state.pendingNoteSave?.id === id) {
     clearTimeout(state.saveTimer);
@@ -1823,53 +1892,145 @@ function upsertLocalNote(note) {
   state.notes.sort((a, b) => a.t - b.t || a.id.localeCompare(b.id));
 }
 
+/** Where a note is: its time (a range's two), and its kind. */
+function noteWhere(note) {
+  const time = note.scope === "range" && typeof note.t0 === "number" && typeof note.t1 === "number"
+    ? `${formatTime(note.t0)}-${formatTime(note.t1)}`
+    : formatTime(note.t);
+  return { time, scope: note.scope === "keyframe" && note.axis ? `${note.axis} keyframe` : note.scope };
+}
+/** When a note was last written, as a short date (`long`: with the year and hour). */
+function noteDate(note, long = false) {
+  const date = new Date(note.updatedAt || note.createdAt);
+  if (Number.isNaN(date.getTime())) return "undated";
+  return date.toLocaleString(undefined, long ? { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" } : { day: "numeric", month: "short" });
+}
+
 function renderNotesList() {
   refs.notesTitle.title = state.notesPath ? `Kept in ${state.notesPath}` : "";
   refs.notesList.innerHTML = "";
-  // the list is for what he wrote: a mark without words is on the timeline's notes lane, and only counted here
-  // and for this version of the reading: notes on earlier versions are kept, pale on the timeline, listed on demand
+  // the list is for what he wrote on this version: a mark without words is on the timeline's notes lane, and only counted
+  // here; notes on earlier versions are kept, pale on the timeline, and all listed (marks included) with "Earlier notes"
   const words = (note) => (note.text || "").trim();
   const now = state.notes.filter((note) => note.current), earlier = state.notes.length - now.length;
-  const worded = state.notes.filter((note) => note.id === state.activeNoteId || (words(note) && (note.current || state.showEarlierNotes)));
   const marks = now.filter((note) => !words(note)).length;
-  const summary = document.getElementById("notes-marks");
-  summary.textContent = [`${now.length} on this version` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : ""),
-    earlier ? `${earlier} on earlier versions, pale on the timeline` : ""].filter(Boolean).join(" · ");
-  if (earlier) {
-    const toggle = document.createElement("button");
-    toggle.type = "button"; toggle.className = "notes-earlier"; toggle.textContent = state.showEarlierNotes ? "hide them" : "list them";
-    toggle.addEventListener("click", () => { state.showEarlierNotes = !state.showEarlierNotes; renderNotesList(); });
-    summary.append(" ", toggle);
-  }
-  for (const note of worded) {
+  refs.notesMarks.textContent = `${now.length} on this version` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : "");
+  refs.earlierToggle.hidden = !earlier;
+  refs.earlierLabel.textContent = `Earlier notes (${earlier})`;
+  refs.notesList.parentElement.classList.toggle("earlier-on", listening.earlierNotes && earlier > 0);
+  const listed = state.notes.map((note, index) => ({ note, index }))
+    .filter(({ note }) => isActiveNote(note) || (note.current ? words(note) : listening.earlierNotes));
+  for (const { note, index } of listed) {
     const li = document.createElement("li");
-    li.classList.toggle("active", note.id === state.activeNoteId);
+    li.classList.toggle("active", isActiveNote(note));
     li.classList.toggle("earlier", !note.current);
     const button = document.createElement("button");
     button.type = "button";
-    button.dataset.noteId = note.id;
-    const timeLabel = note.scope === "range" && typeof note.t0 === "number" && typeof note.t1 === "number"
-      ? `${formatTime(note.t0)}-${formatTime(note.t1)}`
-      : formatTime(note.t);
-    const scopeLabel = (note.scope === "keyframe" && note.axis ? `${note.axis} keyframe` : note.scope) + (note.current ? "" : " · earlier version");
-    button.title = `${timeLabel} · ${scopeLabel}\n${note.text || ""}${note.tags.length ? `\n${note.tags.join(", ")}` : ""}`;
-    button.innerHTML = `<span class="note-time">${escapeHtml(timeLabel)}</span>`
-      + `<span class="note-text">${escapeHtml(note.text || note.tags.join(", "))}</span>`
-      + `<span class="note-scope">${escapeHtml(scopeLabel)}</span>`;
+    button.dataset.noteIndex = index;
+    const where = noteWhere(note), label = note.current ? where.scope : `${where.scope} · ${noteDate(note)}`;
+    button.title = `${where.time} · ${where.scope}${note.current ? "" : ` · earlier version, ${noteDate(note, true)}`}`
+      + `\n${note.text || ""}${note.tags.length ? `\n${note.tags.join(", ")}` : ""}`;
+    button.innerHTML = `<span class="note-time">${escapeHtml(where.time)}</span>`
+      + `<span class="note-text">${escapeHtml(words(note) || note.tags.join(", ") || "mark")}</span>`
+      + `<span class="note-scope">${escapeHtml(label)}</span>`;
     li.appendChild(button);
     refs.notesList.appendChild(li);
   }
+  if (state.earlierNote) refs.notesList.querySelector("li.active")?.scrollIntoView({ block: "nearest" });
+}
+
+// A note on an earlier version is read, not edited: the panel quotes it with its date, and "Note this again on this
+// version" starts a current note at the same place with its words (the server keeps the earlier one as it is).
+function selectEarlierNote(note) {
+  if (!note || note.current) return;
+  flushPendingNoteSave();
+  state.earlierNote = note;
+  state.activeAnchor = null;
+  state.activeNoteId = null;
+  state.activeTags = [];
+  seekTo(note.t, { select: false, reveal: true });
+  renderEarlier();
+  renderNotesList();
+  renderTimeline();
+}
+
+function renderEarlier() {
+  const note = state.earlierNote;
+  refs.earlierRef.hidden = !note;
+  // read, not edited: no editor, tags, Delete or Clear while it is quoted
+  refs.noteText.hidden = refs.tagRow.hidden = refs.saveState.parentElement.hidden = Boolean(note);
+  if (!note) return;
+  const where = noteWhere(note);
+  refs.noteAnchor.textContent = `${where.scope} ${where.time} · a note on an earlier version`;
+  refs.earlierHead.textContent = [`Written ${noteDate(note, true)}`, note.tags.join(", ")].filter(Boolean).join(" · ");
+  refs.earlierText.textContent = (note.text || "").trim() || "(a mark without words)";
+}
+
+async function noteAgain() {
+  const old = state.earlierNote;
+  if (!old || !state.data) return;
+  if (old.scope === "range" && typeof old.t0 === "number" && typeof old.t1 === "number") state.selection = { t0: old.t0, t1: old.t1 };
+  state.selectedScope = old.scope;
+  renderScopeTabs();
+  // the same place in this version: the moment, the range, or the contact, gap or keyframe nearest its time
+  setActiveAnchor(anchorFor(old.scope, old.t));
+  const words = (old.text || "").trim(), mine = refs.noteText.value.trim();
+  refs.noteText.value = mine && words ? `${mine}\n${words}` : mine || words;
+  state.activeTags = [...new Set([...state.activeTags, ...(old.tags || [])])];
+  renderTags();
+  await saveActiveNote();
+  await reloadNotes();
+  refs.noteText.focus();
+  toast(`Noted again on this version, at ${formatTime(state.activeAnchor?.t ?? old.t)}`);
+}
+
+/** The notes as the server keeps them (after a note again, the earlier one under the id the server gave it). */
+async function reloadNotes() {
+  const spec = state.data?.spec.path;
+  try {
+    const body = await fetch(`/api/spec-notes?spec=${encodeURIComponent(spec)}`, { cache: "no-cache" }).then(readJsonOk);
+    if (spec !== state.data?.spec.path) return;
+    state.notes = body.notes || [];
+    renderNotesList();
+    renderTimeline();
+  } catch { /* the local notes stay */ }
+}
+
+/** The words of the note under the pointer on the timeline, in a card above it (`mark` null hides it). */
+function showNoteCard(mark, event) {
+  const card = document.getElementById("note-card"), note = mark && state.notes[Number(mark.dataset.noteIndex)];
+  if (!note) {
+    card.hidden = true;
+    return;
+  }
+  const where = noteWhere(note);
+  card.innerHTML = `<div class="note-card-head">${escapeHtml(`${where.time} · ${where.scope}`)}`
+    + `${note.current ? "" : ` · <b>earlier version, ${escapeHtml(noteDate(note, true))}</b>`}</div>`
+    + (note.tags.length ? `<div class="note-card-tags">${escapeHtml(note.tags.join(", "))}</div>` : "")
+    + `<div class="note-card-text">${escapeHtml((note.text || "").trim() || "(no words)")}</div>`
+    + (note.current ? "" : `<div class="note-card-hint">click to quote it in the Notes panel</div>`);
+  card.hidden = false;
+  const wrap = refs.timelineWrap.getBoundingClientRect();
+  const x = event.clientX - wrap.left, y = event.clientY - wrap.top + refs.timelineWrap.scrollTop;
+  card.style.left = `${clamp(x - card.offsetWidth / 2, 4, wrap.width - card.offsetWidth - 4)}px`;
+  card.style.top = `${Math.max(4, y - card.offsetHeight - 14)}px`;
 }
 
 // The music and the cursor share one clock, the audio hardware's (shared/playback.js):
 // the cursor sits at the position heard, also where the spec runs past the music.
 function togglePlayback() {
   if (!state.data) return;
+  if (state.loopMode) {
+    if (refs.video.paused) refs.video.play().catch(() => {});
+    else refs.video.pause();
+    return updatePlaybackUi();
+  }
   if (music.requested) pausePlayback();
   else startPlayback(state.cursorT);
 }
 
 function startPlayback(t) {
+  if (state.loopMode) leaveLoop();
   clearClicks();
   music.play(t, state.playbackRate)
     .then(() => updatePlaybackUi(), (error) => toast(String(error)));
@@ -1905,6 +2066,7 @@ function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
+  if (state.loopMode && refs.video.readyState >= 1) refs.video.currentTime = clamp(next - state.video.from, 0, refs.video.duration);
   if (music.requested) startPlayback(next);
   if (opts.resumeFollow !== false) resumeFollow();
   if (opts.reveal !== false) revealTime(next, { manual: false });
@@ -1945,6 +2107,7 @@ function renderVideo() {
   refs.video.hidden = !video || !listening.videoOpen;
   refs.toggleVideo.hidden = !video;
   refs.makeVideo.disabled = isMaking(job);
+  refs.makeVideo.hidden = state.loopMode;
   refs.makeVideo.textContent = isMaking(mine) ? "Making the video" : video ? "Make it again" : "Make the video";
   refs.makeVideo.title = isMaking(job) && !mine ? `A video is being made for ${job.spec}` : "Compile this spec and render its ride (a few minutes)";
   const lines = [];
@@ -1955,6 +2118,15 @@ function renderVideo() {
   } else {
     lines.push("No video of this spec yet.");
   }
+  if (state.loopMode) {
+    lines.length = 0;
+    lines.push("The finished film, looping with its own sound.", "Space plays or pauses.");
+  }
+  refs.watchLoop.hidden = !video;
+  refs.watchLoop.textContent = state.loopMode ? "Back to the spec" : "Watch the loop";
+  refs.watchLoop.classList.toggle("on", state.loopMode);
+  refs.watchLoop.setAttribute("aria-pressed", String(state.loopMode));
+  refs.loopFromStart.hidden = !state.loopMode;
   if (isMaking(mine)) {
     const seconds = Math.round((Date.now() - Date.parse(mine.startedAt)) / 1000);
     lines.push(`${mine.phase === "compiling" ? "Compiling" : "Rendering"}, ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} so far. Look: ${mine.look}.`);
@@ -1984,10 +2156,44 @@ async function makeVideo() {
   loadVideoStatus();
 }
 
+// "Watch the loop": the finished film plays by itself, at its own speed, with its own sound (the looping recording, the
+// camera's end, the blend into its start), looping. It starts LOOP_LEAD seconds before its end, so the join comes at once
+// (`fromStart`: the whole film). The dashboard's own playback and clicks stop; its cursor follows the film. "Back to the
+// spec" mutes it and slaves it to the dashboard's clock again.
+const LOOP_LEAD = 5;
+function watchLoop(fromStart = false) {
+  const v = refs.video;
+  if (!state.video || v.readyState < 1) return toast("The video is not loaded yet");
+  pausePlayback();
+  state.looping = false;
+  drawSelection();
+  if (!listening.videoOpen) setListening({ videoOpen: true });
+  state.loopMode = true;
+  v.loop = true;
+  v.muted = false;
+  v.volume = listening.musicMuted ? 0 : listening.musicVolume;
+  v.playbackRate = 1;
+  v.currentTime = fromStart ? 0 : Math.max(0, v.duration - LOOP_LEAD);
+  v.play().catch((error) => toast(String(error.message ?? error)));
+  renderVideo();
+  updatePlaybackUi();
+}
+
+function leaveLoop() {
+  const v = refs.video;
+  state.loopMode = false;
+  v.loop = false;
+  v.muted = true;
+  v.pause();
+  if (state.data && state.video) state.cursorT = clamp(state.video.from + v.currentTime, 0, state.data.spec.duration);
+  renderVideo();
+  updatePlaybackUi(state.cursorT);
+}
+
 /** Puts the video at spec time `t`: playing with the music at its speed, or paused on the frame. */
 function syncVideo(t = specTime()) {
   const v = refs.video;
-  if (!state.video || !listening.videoOpen || v.readyState < 1) return;
+  if (state.loopMode || !state.video || !listening.videoOpen || v.readyState < 1) return;
   const at = clamp(t - state.video.from, 0, v.duration || 0), running = isPlaying() && at < v.duration;
   if (v.playbackRate !== state.playbackRate) v.playbackRate = state.playbackRate;
   if (running) {
@@ -2002,8 +2208,13 @@ function syncVideo(t = specTime()) {
 // Each frame shows the cursor at the spec time heard when the frame is on screen.
 function tick(ts) {
   const loop = state.data && isPlaying() && state.looping && normalizedRange(state.selection);
+  // Watching the loop: the cursor follows the film where it is inside the spec's time
+  if (state.loopMode && state.data) {
+    const t = clamp(state.video.from + refs.video.currentTime, 0, state.data.spec.duration);
+    if (!refs.video.paused) followTime(t);
+    updatePlaybackUi(t);
   // Looping: back to the range's start as soon as its end is rendered (or when playback is well before it).
-  if (loop && (music.rendered() >= loop.t1 || music.rendered() < loop.t0 - 0.5)) {
+  } else if (loop && (music.rendered() >= loop.t1 || music.rendered() < loop.t0 - 0.5)) {
     state.cursorT = loop.t0;
     startPlayback(loop.t0);
     updatePlaybackUi(loop.t0);

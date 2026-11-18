@@ -40,3 +40,19 @@ it('keeps a note with the version of the reading it was written on, and never wr
     server.close(); rmSync(root, {recursive: true, force: true});
   }
 });
+
+it("shows the song's drop (scripts/video/drops.ts) in the spec view, and none for a song without one", async () => {
+  const root = mkdtempSync(join(tmpdir(), 'spec-view-'));
+  for (const song of ['short_amour_de_ma_vie', 'short_no_drop_here']) {
+    mkdirSync(join(root, 'productions', song), {recursive: true});
+    writeFileSync(join(root, 'productions', song, 'spec.ts'), 'export default {duration: 40, contacts: [{t: 1, impact: 0.5}], axes: {}};\n');
+  }
+  const api = createSpecApi(root);
+  const view = (song: string) => api.computeView({path: `productions/${song}/spec.ts`, name: song, label: song, group: 'production'}, 80) as Promise<any>;
+  try {
+    expect((await view('short_amour_de_ma_vie')).drop).toEqual([25.25, 36.58]);
+    expect((await view('short_no_drop_here')).drop).toBeNull();
+  } finally {
+    rmSync(root, {recursive: true, force: true});
+  }
+});

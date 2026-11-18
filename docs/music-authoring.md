@@ -103,7 +103,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    For a song he has said nothing about, write a first reading and show its video.
    On the dashboard he slows a passage and loops it (a drag across the timeline selects a range, L loops it),
    hears the mix or one stem alone (Hear: mix, voice, other, drums, bass), and places notes that snap to measured events: M a mark, S the strong one (a mark one level up, relative
-   to the passage; a moment holds one of the two), V a voice, I an impact.
+   to the passage; a moment holds one of the two), V a voice, I an impact. Notes on earlier versions stay readable:
+   hovered or clicked on the timeline they show their words and date, quoted, never edited ("Note this again on this
+   version" starts a current note there with the words); "Earlier notes" in the Notes panel draws and lists them all.
+   The band under the timeline's times is the song's drop (`scripts/video/drops.ts`).
 6. **Write the spec.** In `productions/<song>/music.ts`, list the song's layers as measured times; each
    `variants/<name>.ts` is a whole spec chosen from them; `spec.ts` re-exports the preferred one.
    - Say in the header what each passage follows and what is deliberately left out. More than one variant is
@@ -120,7 +123,9 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    speed, seeks). "Make the video" compiles that spec file at seed 101 into `generated/dashboard-rides/` and renders it
    to `generated/videos/dashboard/<song>--<variant>.mp4` (`spec` for `spec.ts`), one job at a time, in the look and
    zoom lane of the song's Astra video when it has one, else those the renderer chooses for the ride. The panel says
-   whether the video was made from the spec file as it is now. His notes there start the next revision.
+   whether the video was made from the spec file as it is now. "Watch the loop" plays the finished film by itself,
+   with its own sound, looping from a few seconds before its end, so he sees the ending run into the start ("Back to
+   the spec" slaves it again). His notes there start the next revision.
    Beside the spec's title he gives each reading a verdict (Love, Good, Needs work; keys 1 2 3), kept in
    `labels/spec-verdicts.jsonl` with the song's hash at the time: when the song's files change after it, the dashboard
    says "changed since your verdict". Its menu lists the production set (`productions/short_*`, by title; a switch

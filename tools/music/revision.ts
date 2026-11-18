@@ -6,7 +6,8 @@
  * `summary`: one to four plain sentences (what of his feedback was applied, what was extended beyond the places he named,
  * what was left and why); `points`: a few places worth looking at, [{from, to, text}] in seconds, `to` null for a moment.
  * Appended to productions/<song>/revisions.json ({revisions: [...]}, oldest first); run again for the same reading and
- * version, it replaces that entry. */
+ * version, it replaces that entry. Recording it is what answers his input: his notes and words on that reading written
+ * before it become earlier ones (--at=<ISO time> records a revision made earlier). */
 import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -39,7 +40,9 @@ const points = (body.points ?? []).map((p: any, i: number) => {
 const file = join(root, 'productions', song!, 'revisions.json');
 const revisions: Revision[] = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).revisions ?? [] : [];
 const sha256 = specSha256(join(root, spec));
-const entry: Revision = {spec, sha256, at: new Date().toISOString(), by: by!, summary, ...(points.length ? {points} : {})};
+// --at: when the revision was made, for one recorded after the fact (his notes written since then stay open)
+const when = arg('at') ? new Date(arg('at')!).toISOString() : new Date().toISOString();
+const entry: Revision = {spec, sha256, at: when, by: by!, summary, ...(points.length ? {points} : {})};
 const at = revisions.findIndex(r => r.spec === spec && r.sha256 === sha256);
 if (at >= 0) revisions[at] = entry; else revisions.push(entry);
 writeFileSync(file, JSON.stringify({revisions}, null, 2) + '\n');

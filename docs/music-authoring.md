@@ -96,9 +96,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    `sung.json` misses most syllables of a fast or chopped voice; use it for pitch, not for where the syllables are.
 5. **Read what the owner said.** `node tools/music/notes.ts --song=<song> [--variant=<name>]` prints his verdict, his
    words on the reading and his notes (`productions/<song>/notes.json`, from the spec dashboard), each in two groups.
-   Words and notes **on this version** were written on the reading as it stands: act on them. Those **on earlier
-   versions** were written before the reading last changed: they are kept, may already be answered, and a landing
-   number in them belongs to a ride that no longer exists; their times still say where he heard something. A note is a
+   `--all` gives one line per reading of the production set (verdict, open input, last revision); `--json` the same
+   as data. **Open** words and notes were written since the last recorded revision of that reading: act on them.
+   The others were answered by a recorded revision, or predate this record: they are kept, and a landing number in
+   them belongs to a ride that no longer exists; their times still say where he heard something. Every change to a
+   note (written, deleted, cleared) is also appended to `labels/spec-notes.jsonl`, so nothing he wrote is lost. A note is a
    direction with a few examples: carry it through the piece wherever the same music returns, and adapt what
    surrounds it (a stroke made strong makes its neighbours lighter). Never delete or rewrite his notes.
    For a song he has said nothing about, write a first reading and show its video. A revision made from his review
@@ -125,8 +127,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      `node tools/music/revision.ts --song=<song> [--variant=<name>] --by=<name> --file=<json {summary, points?}>`. The
      summary says in plain words what was understood and done: what of his feedback was applied, what was extended
      beyond the places he named, what was left and why. A few points (`{from, to, text}`, `to` null for a moment) mark
-     the places worth looking at; not every change. It is stamped with the reading's version and kept in
-     `productions/<song>/revisions.json`; run again on the same version, it replaces the note.
+     the places worth looking at; not every change. Write about the music and the spec, in his words where he gave
+     some; no file names, no delivered values. It is stamped with the reading's version and kept in
+     `productions/<song>/revisions.json`; run again on the same version, it replaces the note. **Recording it is
+     what answers his input**: his notes and words written before it leave the open group. So record one only when
+     his open input on that reading has been dealt with, and say in the summary what was left.
 8. **He watches.** The video, beside the spec on the dashboard: muted, it follows the dashboard's clock (position,
    speed, seeks). "Make the video" compiles that spec file at seed 101 into `generated/dashboard-rides/` and renders it
    to `generated/videos/dashboard/<song>--<variant>.mp4` (`spec` for `spec.ts`), one job at a time, in the look and

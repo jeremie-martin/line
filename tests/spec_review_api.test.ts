@@ -104,15 +104,27 @@ it('keeps his words on a reading with the version they were written on, and serv
   const reading = async (path: string) => (await (await fetch(base)).json()).readings.find((r: any) => r.path === path);
   const post = async (body: unknown) => (await (await fetch(base, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})).json()).reading;
   const rows = () => readFileSync(join(root, 'labels/spec-verdicts.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
+  // the author records a revision of the main reading (tools/music/revision.ts): what answers his words
+  const revised: object[] = [];
+  const revise = async (at?: string) => {
+    await new Promise(r => setTimeout(r, 5));
+    revised.push({spec: main, sha256: 'x' + revised.length, at: at ?? new Date().toISOString(), by: 'test', summary: 'done'});
+    writeFileSync(join(root, 'productions/short_song/revisions.json'), JSON.stringify({revisions: revised}));
+    await new Promise(r => setTimeout(r, 5));
+  };
   try {
     // each reading its own words, on the version as it stands
     expect(await reading(main)).toMatchObject({note: 'faster', earlierNotes: [], revisions: []});
+    // the files change without a recorded revision: his words stay open
+    writeFileSync(join(root, 'productions/short_song/spec.ts'), 'export default {changed: true};\n');
+    expect(await reading(main)).toMatchObject({note: 'faster', earlierNotes: []});
     expect(await reading(upper)).toMatchObject({note: 'more fun', earlierNotes: []});
 
-    // the song changes: the words are of an earlier version, quoted apart; the field starts empty
-    writeFileSync(join(root, 'productions/short_song/spec.ts'), 'export default {changed: true};\n');
+    // the revision is recorded: the words are earlier ones, quoted apart; the field starts empty; the other reading keeps its own
+    await revise('2026-11-18T12:00:00.000Z');
     const second = specSha256(join(root, main));
-    expect(await reading(main)).toMatchObject({note: '', earlierNotes: [{note: 'faster', at: '2026-11-18T10:00:00.000Z', sha256: first}]});
+    expect(await reading(main)).toMatchObject({note: '', earlierNotes: [{note: 'faster', at: '2026-11-18T10:00:00.000Z'}]});
+    expect(await reading(upper)).toMatchObject({note: 'more fun', earlierNotes: []});
     // a verdict on the new version carries the words with their own version: still earlier
     await post({spec: main, verdict: 'love'});
     expect(rows().at(-1)).toMatchObject({verdict: 'love', specSha256: second, note: 'faster', noteSha256: first});
@@ -123,13 +135,13 @@ it('keeps his words on a reading with the version they were written on, and serv
     expect(await post({spec: main, verdict: 'good'})).toMatchObject({verdict: 'good', note: 'now slower'});
     expect(rows().at(-1)).toMatchObject({note: 'now slower', noteSha256: second});
     // a third version: both earlier words, newest first; the same words twice are quoted once
-    writeFileSync(join(root, 'productions/short_song/music.ts'), 'export {};\n');
+    await revise();
     expect((await reading(main)).earlierNotes.map((w: any) => w.note)).toEqual(['now slower', 'faster']);
     await post({spec: main, note: 'faster'});
     expect(await reading(main)).toMatchObject({note: 'faster'});
     expect((await reading(main)).earlierNotes.map((w: any) => w.note)).toEqual(['now slower']);
-    // the other reading's words were never touched
-    expect((await reading(upper)).earlierNotes.map((w: any) => w.note)).toEqual(['more fun']);
+    // the other reading had no revision: its words are still open
+    expect(await reading(upper)).toMatchObject({note: 'more fun', earlierNotes: []});
 
     // the author's notes on what changed: the reading's own, each current while its version stands
     const now = specSha256(join(root, main));
@@ -139,6 +151,7 @@ it('keeps his words on a reading with the version they were written on, and serv
       {spec: main, sha256: now, at: '2026-11-18T12:00:00.000Z', by: 'Claude', summary: 'second', points: [{from: 1, to: null, text: 'here'}]},
     ]}));
     expect((await reading(main)).revisions.map((r: any) => [r.summary, r.current])).toEqual([['first', false], ['second', true]]);
+    expect((await reading(main)).revisions.at(-1).stale).toBe(false);
     expect((await reading(upper)).revisions.map((r: any) => [r.summary, r.current])).toEqual([['upper', true]]);
     // they are not part of what a version is
     expect(specSha256(join(root, main))).toBe(now);

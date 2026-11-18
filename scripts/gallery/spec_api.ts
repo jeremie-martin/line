@@ -7,13 +7,13 @@
  *                                            drop: the song's drop [start, end] s, scripts/video/drops.ts, or null)
  *   GET  /api/spec-notes?spec=…             → {specPath, notesPath, notes}
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
- * A note records what it was written on: `on` = {spec, sha256} (the reading and specSha256 at the time). While the reading
- * has not changed since, the note is `current` (reported, not stored); after a revision it is a note on an earlier version:
- * kept, shown apart, its landing number no longer valid. Notes without `on` predate this and are earlier. Writing over an
+ * A note records what it was written on: `on` = {spec, sha256} (the reading and specSha256 at the time). It is `current`
+ * (open; reported, not stored) until its author records a revision of that reading (revisionTimes); then it is a note on
+ * an earlier version: kept, shown apart, its landing number no longer valid. Notes without `on` predate this and are earlier. Writing over an
  * earlier note keeps it (under a new id) and makes a current one; `clear` removes only the current notes of the reading.
  * Specs are edited in their source files; the dashboard does not write them. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
-import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {existsSync, readdirSync, readFileSync, writeFileSync, appendFileSync, mkdirSync} from 'node:fs';
 import {join, relative, resolve, sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
@@ -59,6 +59,17 @@ export const listSpecs = (root: string): SpecEntry[] => readdirSync(join(root, '
 /** What a spec is made from: every .ts of its song's folder (the spec, the variant it may re-export, music.ts) and the
  * measured files they load. A video or a verdict is current while none of them changed. `path` is the spec file's
  * absolute path. */
+/** When the author's notes on what changed in a reading were recorded (productions/<song>/revisions.json, written by
+ * tools/music/revision.ts), oldest first. Recording one is what answers the owner's input: a timeline note, or his words
+ * on the reading, is open (current) while no revision of that reading was recorded after it was written; a change of the
+ * files alone does not close it. */
+export const revisionTimes = (root: string, specPath: string): string[] => {
+  try {
+    const all = JSON.parse(readFileSync(join(root, specPath.split('/').slice(0, 2).join('/'), 'revisions.json'), 'utf8')).revisions;
+    return (Array.isArray(all) ? all : []).filter(r => r?.spec === specPath && typeof r.at === 'string').map(r => r.at as string).sort();
+  } catch {return [];}
+};
+
 export const specSha256 = (path: string) => {
   const song = path.slice(0, path.indexOf('/', path.indexOf('productions/') + 12)), hash = createHash('sha256');
   const files = (readdirSync(song, {recursive: true}) as string[]).filter(f => /\.ts$|^(events|sung|lines|vocal-evidence|audio)\.json$/.test(f)).sort();
@@ -83,7 +94,15 @@ export function createSpecApi(root = process.cwd()) {
     return Array.isArray(notes) ? notes : [];
   };
   const onNow = (specPath: string) => ({spec: specPath, sha256: specSha256(join(root, specPath))});
-  const isCurrent = (n: Note, on: {spec: string; sha256: string}) => n.on?.spec === on.spec && n.on.sha256 === on.sha256;
+  /** Open: written on this reading, and no revision of it recorded since. */
+  const isCurrent = (n: Note, on: {spec: string; sha256: string}) => n.on?.spec === on.spec && !(n.createdAt <= (revisionTimes(root, on.spec).at(-1) ?? ''));
+  /** Every change to his notes, appended (labels/spec-notes.jsonl): nothing he wrote is lost to a delete, a clear or a
+   * later edit. */
+  const journal = (spec: string, event: 'write' | 'delete' | 'clear', notes: Note[]) => {
+    if (!notes.length) return;
+    mkdirSync(join(root, 'labels'), {recursive: true});
+    appendFileSync(join(root, 'labels/spec-notes.jsonl'), JSON.stringify({at: new Date().toISOString(), spec, event, notes}) + '\n');
+  };
   const writeNotes = (specPath: string, notes: Note[]) => writeFileSync(notesFile(specPath),
     JSON.stringify({specPath, notes: [...notes].sort((a, b) => a.t - b.t || a.id.localeCompare(b.id))}, null, 2) + '\n');
   const asset = (ref: string | undefined) => {
@@ -196,18 +215,19 @@ export function createSpecApi(root = process.cwd()) {
     const notes = readNotes(entry.path), base = {ok: true, specPath: entry.path, notesPath: relative(root, notesFile(entry.path))};
     const on = onNow(entry.path);
     if (body.clear === true) {
-      const kept = notes.filter(n => !isCurrent(n, on)); writeNotes(entry.path, kept);
+      const kept = notes.filter(n => !isCurrent(n, on)); journal(entry.path, 'clear', notes.filter(n => isCurrent(n, on))); writeNotes(entry.path, kept);
       reply(res, {...base, count: kept.length, notes: kept.map(n => ({...n, current: false}))}); return true;
     }
     if (body.note == null) {
       if (typeof body.id !== 'string') {reply(res, {error: 'missing note or id'}, 400); return true;}
-      const next = notes.filter(n => n.id !== body.id); writeNotes(entry.path, next); reply(res, {...base, count: next.length}); return true;
+      const next = notes.filter(n => n.id !== body.id); journal(entry.path, 'delete', notes.filter(n => n.id === body.id)); writeNotes(entry.path, next); reply(res, {...base, count: next.length}); return true;
     }
     // a note on an earlier version is not written over: it stays, under an id of its own, and the new one is current
     const before = notes.find(x => x.id === body.note.id), earlier = before && !isCurrent(before, on) ? before : undefined;
     const n = note(body.note, earlier ? {...earlier, createdAt: new Date().toISOString()} : before, on), empty = !n.text.trim() && n.tags.length === 0;
     const archived = earlier ? [{...earlier, id: `${earlier.id}~${earlier.createdAt.slice(0, 19).replace(/[^0-9]/g, '')}`}] : [];
     const next = [...notes.filter(x => x.id !== n.id), ...archived, ...(empty ? [] : [n])];
+    if (empty) journal(entry.path, 'delete', before && !earlier ? [before] : []); else journal(entry.path, 'write', [n]);
     writeNotes(entry.path, next); reply(res, {...base, count: next.length, note: empty ? null : {...n, current: true}}); return true;
   };
   return Object.assign(handle, {computeView});

@@ -16,7 +16,7 @@
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
-import {listSpecs, specSha256} from './spec_api.ts';
+import {listSpecs, revisionTimes, specSha256} from './spec_api.ts';
 import {savedVideo} from './spec_video_api.ts';
 
 export const VERDICTS = ['love', 'good', 'needs-work'] as const;
@@ -36,20 +36,18 @@ export const verdictRows = (root: string): Row[] => {
   return existsSync(file) ? readFileSync(file, 'utf8').split('\n').filter(line => line.trim()).map(line => JSON.parse(line)) : [];
 };
 
-/** His words on one reading (`rows`: its rows, in order) as it stands at `sha`: `current`, the words written on this version
- * (with when they first read so), and `earlier`, the distinct last words he left on each earlier version, newest first. A
- * row without words (a verdict before any) changes nothing: a verdict row carries the words, and their version, as they were. */
-export function readingWords(rows: Row[], sha: string) {
-  const last = new Map<string, {note: string; at: string}>();  // version → its last words; most recently changed last
-  for (const row of rows) {
-    if (typeof row.note !== 'string') continue;
-    const version = row.noteSha256 ?? row.specSha256;
-    if (last.get(version)?.note === row.note) continue;
-    last.delete(version); last.set(version, {note: row.note, at: row.at});
-  }
-  const current = last.get(sha) ?? null, seen = new Set([current?.note.trim()]);
-  const earlier = [...last].reverse().filter(([version, w]) => version !== sha && w.note.trim() && !seen.has(w.note.trim()) && seen.add(w.note.trim()))
-    .map(([sha256, w]) => ({note: w.note, at: w.at, sha256}));
+/** His words on one reading (`rows`: its rows, in order), given when its revisions were recorded (`revised`, oldest
+ * first; spec_api.ts revisionTimes): `current`, the words written since the last recorded revision (with when), and
+ * `earlier`, the last words he left before each earlier revision, distinct, newest first. Words count from when they
+ * were written: a verdict row carries them along unchanged. */
+export function readingWords(rows: Row[], revised: string[]) {
+  const stretches: {note: string; at: string}[] = [];  // each change of the words, with when
+  for (const row of rows) if (typeof row.note === 'string' && stretches.at(-1)?.note !== row.note) stretches.push({note: row.note, at: row.at});
+  const epoch = (at: string) => revised.filter(t => t < at).length, last = new Map<number, {note: string; at: string}>();
+  for (const w of stretches) last.set(epoch(w.at), w);
+  const current = last.get(revised.length) ?? null, seen = new Set([current?.note.trim()]);
+  const earlier = [...last].filter(([e]) => e !== revised.length).sort((x, y) => y[0] - x[0]).map(([, w]) => w)
+    .filter(w => w.note.trim() && !seen.has(w.note.trim()) && seen.add(w.note.trim()));
   return {current: current?.note ?? '', currentAt: current?.at ?? null, earlier};
 }
 
@@ -82,12 +80,13 @@ export function createSpecReviewApi(root = process.cwd()) {
     const list = listSpecs(root).map(entry => {
       const name = entry.path.split('/')[1], s = song(name), variant = entry.path.split('/')[2] === 'variants';
       const set = name.startsWith('short_') ? 'production' : 'library', own = rows.get(entry.path) ?? [];
-      const row = own.at(-1)?.verdict ? own.at(-1)! : null, words = readingWords(own, s.sha);
+      const row = own.at(-1)?.verdict ? own.at(-1)! : null, words = readingWords(own, revisionTimes(root, entry.path));
       const video = savedVideo(root, entry.path, s.sha);
       return {path: entry.path, song: name, set, reading: variant ? entry.path.split('/')[3].slice(0, -3) : 'main',
         title: set === 'production' && s.title ? s.title : name, artist: set === 'production' ? s.artist : null, notes: s.notes,
         video: video ? (video.current ? 'current' : 'old') : null, note: words.current, noteAt: words.currentAt, earlierNotes: words.earlier,
-        revisions: s.revisions.filter(r => r.spec === entry.path).map(r => ({...r, current: r.sha256 === s.sha})),
+        // the latest note on what changed is the reading's present one; `stale` when its files changed after it was recorded
+        revisions: s.revisions.filter(r => r.spec === entry.path).map((r, i, own) => ({...r, current: i === own.length - 1, stale: r.sha256 !== s.sha})),
         verdict: row?.verdict ?? null, verdictAt: row?.at ?? null, changed: !!row && row.specSha256 !== s.sha};
     });
     // two cuts of one piece (same title and artist) are told apart by their length

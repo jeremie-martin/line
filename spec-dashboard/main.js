@@ -590,7 +590,7 @@ function revisionHtml(revision) {
     + ` title="${point.to == null ? "Go to this moment" : "Select this range"}"><span class="change-time">${escapeHtml(pointTime(point))}</span>`
     + `${escapeHtml(point.text)}</button></li>`).join("");
   return `<section class="change"><p class="change-head"><b>${escapeHtml(revision.by)}</b> · ${escapeHtml(noteDate({ updatedAt: revision.at }, true))}`
-    + `${revision.current ? " · this version" : ""}</p><p class="change-summary">${escapeHtml(revision.summary)}</p>`
+    + `${revision.current ? (revision.stale ? " · the latest note; the files changed again since" : " · this version") : ""}</p><p class="change-summary">${escapeHtml(revision.summary)}</p>`
     + `${points ? `<ol class="change-points">${points}</ol>` : ""}</section>`;
 }
 
@@ -2014,7 +2014,7 @@ function renderNotesList() {
   const words = (note) => (note.text || "").trim();
   const now = state.notes.filter((note) => note.current), earlier = state.notes.length - now.length;
   const marks = now.filter((note) => !words(note)).length;
-  refs.notesMarks.textContent = `${now.length} on this version` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : "");
+  refs.notesMarks.textContent = `${now.length} open` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : "");
   refs.earlierToggle.hidden = !earlier;
   refs.earlierLabel.textContent = `Earlier notes (${earlier})`;
   refs.notesList.parentElement.classList.toggle("earlier-on", listening.earlierNotes && earlier > 0);

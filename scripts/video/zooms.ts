@@ -30,6 +30,7 @@ import passoBemSoltoSuperSlowed from '../../productions/passo_bem_solto_super_sl
 import petrunko from '../../productions/petrunko_selection/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
+import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
 import tikiTiki from '../../productions/tiki_tiki_48s/zooms.ts';
 import trouble from '../../productions/trouble_50s/zooms.ts';
 import valhalla from '../../productions/valhalla_40s/zooms.ts';
@@ -66,6 +67,7 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   petrunko_selection: petrunko,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
+  short_no_batidao: shortNoBatidao,
   tiki_tiki_48s: tikiTiki,
   trouble_50s: trouble,
   valhalla_40s: valhalla,

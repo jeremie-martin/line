@@ -12,4 +12,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   montagem_tomada_super_slowed_selection: [37.0, 50.0],
   short_montagem_tomada_slowed: [17.857, 35.15],
   short_believer: [22.646, 51.084],
+  short_no_batidao: [12.622, 26.937],
 };

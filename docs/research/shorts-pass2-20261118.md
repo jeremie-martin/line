@@ -413,3 +413,7 @@ Times below are seconds in each short. The values are requests in the specificat
 **Los Voltaje ultra slowed.** The five drums at 9.671/9.985/10.321/10.658/10.995 return from .22/.34/.30/.17/.42 to .21/.32/.28/.16/.40. These were the five weights written for the crescendo before the group was lifted to influence the following voice. The fourth is the small reply, the fifth the accent.
 
 **L’Amour de ma vie.** The last vocal tail at 3.065 returns (absent → .035). At 3.251/3.587/3.918 the three strengths move from 1/1/1 to .97/.97/.97. I used the initial request for the first drum as the common weight for the three very strong strokes the owner marked. Air at 2.868 returns from .82 to .27 for the whispered words. The .88/.64/.72/.52 air points at 3.251/3.587/3.918/4.586 give way to the earlier .52 plateau starting at 3.750. Speed resumes its approach from .82 at 2.868 to .90 at 3.750, replacing the .97/.98/.90 points at 3.065/3.918/4.586. The three drum attacks interrupt a chill backbeat.
+
+**Lua na Praça, upper.** Air at 19.85 returns from .47 to .76. The points at 21.21 (.25), 25.87 (.29) and 26.205 (.36) give way to the reviewed smooth arc from .76 to .58 at 27.34. The bare upper notes hang in the space left by the drums. Their very light strengths and the owner's higher speed run through the suspension.
+
+**Lua na Praça, main.** Nothing was tuned for delivery. The higher speed throughout the cut was the owner's request.

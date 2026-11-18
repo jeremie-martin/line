@@ -36,4 +36,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   short_let_the_world_burn: [4.481, 24.462],
   short_los_voltaje: [14.88, 31.42],
   short_los_voltaje_slowed: [15.78, 50.25],
+  short_los_voltaje_ultra_slowed: [16.29, 58.07],
 };

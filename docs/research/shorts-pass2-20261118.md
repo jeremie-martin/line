@@ -315,3 +315,18 @@ All six removed catches were between the main drums. Four were bare words in the
 I deleted the calls variant. Its defining choice was to fly over kicks during the upper calls. The revised main already carries the distinct answering notes over the full drum figure. The zoom lanes follow the audible dry stroke, vocal break and full-band returns, which still occur at the same times.
 
 Seed 101 matched 112/112 against 120/120. Off-beat contacts changed from 19 to 20, weighted axis RMS from 0.048 to 0.061. The formerly dominant 5.277 drum is softer than the previous 0.91. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_amor_na_praia_46s-101/manifest.json)
+
+## Dashboard review · Amor Na Praia, 52.351 s selection
+
+The owner asked to learn from the revised shorter reading. This recording has a roughly 0.61 s kick interval against the shorter recording’s 0.55 s. It opens inside the upper pickup, reaches the isolated drum at 2.231, and has a staggered drum line under the singer. I placed each catch on this cut’s measured attacks. There are no older timestamped notes in the entry. The earlier Astra review liked this selection and singled out the singer; I kept the exposed vocal turns and the closing pair.
+
+| Passage | What the ride delivers on seed 101 |
+|---|---|
+| Upper pickup and dry drums | The four opening notes deliver 0.12–0.20 and the isolated 2.231 drum reaches 0.91. Dry strokes at 2.643, 3.108, 4.675, 5.546, 6.492 and 7.978 deliver 0.51, 0.75, 0.79, 0.70, 0.78 and 0.69. Previously several were missing or carried by a nearby sung note. The separate words at 2.823, 3.723, 5.285 and 7.728 deliver 0.05, 0.11, 0.09 and 0.09. I dropped the run of little words after 8 s, keeping 8.646 and 9.255 at 0.11 and 0.12. |
+| Run-up and full kick figure | The three drum pickups at 9.557, 10.016 and 10.468 deliver 0.67, 0.52 and 0.75. The full-band entrance at 11.995 reaches 0.85. I restored intervening kicks previously displaced by words, including 16.268 (0.66), 21.144 (0.68), 23.588 (0.65), 27.860 (0.62) and 30.908 (0.74). In the first bar the bass/upper answers at 12.918 and 13.528 land at 0.36 and 0.41. The quieter second replies in alternating bars can be carried. |
+| Broader bass phrase | The old reading caught small tails just after the kicks. The bass stem has distinct earlier attacks at 32.440, 34.878, 37.322 and 39.760, half a beat from the pulse. They deliver 0.36, 0.52, 0.40 and 0.50. A first trial made the entrance at 32.127 only 0.45. Carrying speed and air through 31.517 raised the two successive catches to 0.97 and 0.89. This broad phrase and its upper reprise at 41.885 are specific to this cut. |
+| Last voice | The reprise still has its drum underneath. At 48.578 the shared stroke delivers 0.86, then the separate word at 48.892 delivers 0.21. The drum at 50.430 takes 0.77, followed by exposed syllables at 50.546 and 51.045 (0.16 and 0.36). The vowel sustains to the 52.351 s cut. The shorter recording’s two trailing echoes have no equivalent here. |
+
+Seed 101 matched 119/119 against 135/135 previously. Off-beat contacts rose from 12 to 21 and weighted axis RMS from 0.056 to 0.060. The revised hierarchies in all four entries are measured on the compiled rides; video preference awaits the owner. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_amor_na_praia-101/manifest.json)
+
+All four final manifests match their spec, audio and analysis digests. Type checking passed, reach found zero unreachable files, and the full test suite passed (721 tests in 126 files).

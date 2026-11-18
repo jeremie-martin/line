@@ -234,3 +234,34 @@ Seed 101 matched 104/104. Asked .153–.996, SD .253, r .978. First pass 93/93, 
 Watch 18.29–19.87 for the little steps against the kicks, 27.72–29.03 for the sung answer and drop, and 34.18–35.30 beside 41.34–42.47 for whether the triples feel equally heavy. The figures describe the compiled ride. The owner's video verdict on these three cuts is pending. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_trouble-101/manifest.json)
 
 The final production plans for all three cuts match their spec, audio and analysis hashes. Typecheck passed, reach found zero unreachable files, and all 721 tests passed before the Trouble commit.
+
+## Dashboard review · Circus Minimus
+
+The low figure has three strokes in a 3.2 s phrase. The gaps cycle through about 1.2, 1.2 and 0.8 s. The bass attacks often coincide with a drum, but the drum alone can be just as sharp. At 9.092 the event has drums and bass; at 9.487 the bright drum rises more in the mix but has no new bass note. I made the former a full accent and the latter a small tap. The same reading begins in the opening verse.
+
+| Reviewed landing (s) | Owner’s note | Previous delivered | Revised delivered |
+|---:|---|---:|---:|
+| 7.089 | for reference: strong | 0.58 | 0.85 |
+| 7.890 | for reference: strong | 0.48 | 0.91 |
+| 9.092 | should be way stronger | 0.31 | 0.93 |
+| 9.487 | should be way smaller | 0.78 | 0.14 |
+| 10.288 | for reference: strong | 0.64 | 0.85 |
+| 11.089 | for reference: strong | 0.59 | 0.87 |
+| 12.291 | for reference: strong | 0.48 | 0.89 |
+| 13.492 | for reference: strong | 0.78 | 0.87 |
+| 14.287 | for reference: strong | 0.65 | 0.91 |
+| 15.489 | for reference: strong | 0.56 | 0.84 |
+| 16.691 | for reference: strong   | 0.64 | 0.84 |
+| 17.492 | for reference: strong | 0.57 | 0.95 |
+| 18.693 | for reference: strong | 0.74 | 0.89 |
+| 19.889 | for reference: strong | 0.48 | 0.82 |
+| 20.679 | for reference: strong | 0.75 | 0.79 |
+| 21.886 | for reference: strong | 0.66 | 0.95 |
+| 23.094 | for reference: strong | 0.62 | 0.73 |
+| 23.883 | for reference: strong | 0.57 | 0.89 |
+| 25.091 | for reference: strong | 0.74 | 0.91 |
+| 26.298 | for reference: strong | 0.56 | 0.83 |
+
+Between the marked accents the matched replies deliver 0.14–0.41. The older 18.658–27.498 marks give the hook its quick answers. I kept the early reply and the answering word of each group and carried several interior syllables across a single arc. This gives the low line room even where the older marks suggest a landing on every subdivision. Beyond the review the same strokes at 27.087, 28.283 and 29.491 deliver 0.82, 0.94 and 0.85. The old voice marks from 28.258 lead into the break, where the low figure falls away. Following the loved voice-full reading, the four upper notes from 30.687 land at 0.44, 0.36, 0.41 and 0.30, leading to the fifth stroke shared with the returning bass at 31.499 (0.82). The old 31.858–34.678 marks distinguish voice between those strokes. I carried the low reading through the full groove, left space over the held voice after 50.702, and kept the low accents through 57.099 (0.94).
+
+Seed 101 matched 151/151, versus 182/182 previously. Off-beat contacts fell from 11 to 5 and weighted axis RMS from 0.074 to 0.047. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_circus_minimus-101/manifest.json)

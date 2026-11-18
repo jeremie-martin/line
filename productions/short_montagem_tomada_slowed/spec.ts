@@ -1,9 +1,10 @@
 /** Catch the clipped words first. From 1.12 s the upper figure counts six close strokes and a delayed seventh.
  * Keep all seven even when their spacing makes the middle strokes feel like a run. Its second half
  * loses weight before the bass swell. The voice briefly has the bar to itself at 15.67.
- * At the return, land the low entrance, the skipping upper replies and their emphatic last stroke.
- * Leave the little rebounds under those replies on the track. The hole around 26 s and the change
- * of cadence at 34.88 are real breaks in the upper pattern. The size of that last double is uncertain.
+ * The syllables get lighter and quicker into the returning drum. Its delayed upper reply
+ * carries across the bar line. The opening rhythm returns with drums filling the spaces
+ * between upper strokes. It breaks after 25.54 and gathers again on the drum at 26.64.
+ * After 28.94 the ride follows the skipping replies through the double at 34.88–35.15.
  */
 import type {Spec} from '../../scripts/v0/types.ts';
 import {curve} from '../../scripts/v0/core/measured.ts';

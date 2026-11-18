@@ -6,7 +6,7 @@
 import {chromium} from 'playwright';
 const base = process.argv[2] ?? 'http://127.0.0.1:8767';
 const changed = process.argv[3] ?? 'productions/short_luna_bala_slowed/spec.ts';
-const [main, other] = [process.argv[4] ?? 'productions/short_lua_na_praca/spec.ts', process.argv[5] ?? 'productions/short_lua_na_praca/variants/upper.ts'];
+const [main, other] = [process.argv[4] ?? 'productions/short_valhalla/spec.ts', process.argv[5] ?? 'productions/short_valhalla/variants/march.ts'];
 const shots = process.argv[6];
 const browser = await chromium.launch({executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE});
 const context = await browser.newContext();

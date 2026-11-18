@@ -792,7 +792,7 @@ h2 {
 /* the ride, 9:16, about half the column's height */
 .ride-video video {
   display: block;
-  height: clamp(200px, calc((100vh - var(--header-h)) * 0.62 - 190px), 760px);
+  height: clamp(200px, calc((100vh - var(--header-h)) * 0.62 - 215px), 760px);
   max-width: 100%;
   aspect-ratio: 9 / 16;
   object-fit: contain;
@@ -1406,6 +1406,8 @@ textarea {
 .reading-note .earlier-words:not([hidden]) + textarea { height: clamp(40px, 6vh, 96px); }
 
 @media (max-height: 1000px) {
+  /* a short screen: the notes give up some room so that the column still fits with the ride's line and earlier words */
+  .inspector > .notes { min-height: 170px; }
   .earlier-words { max-height: calc(2.8em + 2px); }
   .earlier-words li { -webkit-line-clamp: 1; }
 }

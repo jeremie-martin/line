@@ -104,3 +104,9 @@ All five default rides and Lua's upper variant reached the end of their audio. T
 | [Lua upper](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_lua_na_praca-upper-101/manifest.json) | 0.0476 → 0.0554 | 12 → 14 |
 
 Before the Lua commit, typecheck passed, reach reported zero unreachable files, and all 721 tests passed.
+
+## Amor Na Praia · 52.351 s selection
+
+Subtract 7.649 s from the older selection. The owner's last mark on revised Astra was “changes”, with “pretty damn good, could take it” and a suggestion about the singer. The first pass found the isolated drum, run-up, two full-band entrances and closing pair. It gave the quiet opening almost the weight of the main pulse, missed the repeated low answers just behind the kicks, and kept subdividing the broad bass passage. I restored Astra's kick and sung B exchange from 12–21.76, displaced upper replies until the quick words at 30–32, and the four late bass answers at 34.077, 36.585, 38.942 and 41.45. The singer takes the last pickup and exposed pair. The two zoom lanes already anticipate the run and the low entrance, and the drop covers that same full-band passage.
+
+Seed 101 completed with 135/135 matches, asked 0.177–0.979, SD 0.194, r 0.966. The first pass had 134/134, SD 0.139 and r 0.959. The first trial's isolated drum at 2.231 only reached 0.69. Carrying the last upper note into it gave it 0.95. Watch 0–4.7 for that change of scale, 30–36.6 for words giving way to the bass, and 48.6–51.1 for the handoff to the closing pair. First-pass to final, unmatched strikes went from 13 to 12 and mean absolute matched strength error from 0.030 to 0.038. The wider hierarchy costs some accuracy. This ride awaits video review. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_amor_na_praia-101/manifest.json)

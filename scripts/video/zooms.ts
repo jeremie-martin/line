@@ -46,6 +46,7 @@ import shortPetrunko from '../../productions/short_petrunko/zooms.ts';
 import shortTikiTiki from '../../productions/short_tiki_tiki/zooms.ts';
 import shortCircusMinimus from '../../productions/short_circus_minimus/zooms.ts';
 import shortAmourDeMaVie from '../../productions/short_amour_de_ma_vie/zooms.ts';
+import shortFunkEstranhoSuperSlowed from '../../productions/short_funk_estranho_super_slowed/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
 import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
@@ -102,6 +103,7 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   short_tiki_tiki: shortTikiTiki,
   short_circus_minimus: shortCircusMinimus,
   short_amour_de_ma_vie: shortAmourDeMaVie,
+  short_funk_estranho_super_slowed: shortFunkEstranhoSuperSlowed,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
   short_no_batidao: shortNoBatidao,

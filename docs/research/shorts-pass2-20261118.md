@@ -1,4 +1,4 @@
-# Five production shorts, second reading · 18 November
+# Production shorts, second reading · 18 November
 
 Times below are seconds from the start of the short. Spread is the population standard deviation of all requested impacts. Pearson r pairs the manifest's target with its matched strike. Completion and the sound of the ride are separate judgements. These are seed-101 measurements. The owner has yet to judge the revised videos.
 
@@ -42,6 +42,79 @@ I kept all 133 times from the praised reading. The opening vowel turns, hangs th
 
 Seed 101 completed, 133/133 matched, asked 0.197–1.000, SD 0.182, r 0.951 (first pass 108/108, SD 0.165, r 0.964). In the trial the 26.053 re-entry delivered 0.60. A lighter last chord, a firmer return, and gathering speed through that chord give 0.19 then 0.69. Watch 11.35–12.98 for the bass ahead of the fill; the 12.434 kick still lands at only 0.42. At 23.87–26.05 listen for the four toms against the small treble answers. At 31.777 and 31.869 the late snare and bass are only 92 ms apart and deliver 0.22 and 0.44. That pair is the closest test of whether both lines read on screen.
 
-## Verification
+## Verification of the first five entries
 
 The five final seed-101 manifests match the current spec, audio and analysis hashes. The replays are [Tiki](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_tiki_tiki-101/manifest.json), [Tomada Extended](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_montagem_tomada_extended-101/manifest.json), [Tomada Super Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_montagem_tomada_super_slowed-101/manifest.json), [Luna Bala Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_slowed-101/manifest.json) and [Luna Bala 44 s](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_44s-101/manifest.json). Typecheck passed, reach found zero unreachable files, and all 721 tests passed.
+
+## LUNA BALA · Original · Ariis & Yb Wasg'ood
+
+Subtract 1.899 s. The owner found the Astra ride and even the audio odd, but liked old 0:41. That falls just after the last little C here. Astra has the best reading of this particular ending. It gives twelve notes to the three calls and their answers, where the longer production composition takes only the calls. There is no preference mark for the whole ride. The November 15 ratings cover other music.
+
+The first pass already heard the broken drum figure through 18.45. I kept its choice of the sharp replies over the pumping quarters, completed the missing reply at 15.452, and sized the downbeats against them. At 5.88 the mix rises 2.45 on a drum attack of 2.30, yet the first pass gave it 0.32. The opening now carries the last swell into the first drum. The middle follows the bass envelopes and both three-stroke drum fills. Their last strokes at 20.311 and 27.695 had disappeared. The four uncovered drums begin at 31.375. The final twelve notes use Astra's pitched timings including the quiet C at 38.666. Its attack is uncertain. The existing two zoom lanes and drop span the same changes.
+
+Seed 101 completed with 97/97 matches, asked 0.121–0.968, SD 0.206, r 0.972 (first pass 91/91, SD 0.156, r 0.945). In the trial the last reply and following downbeat at 14.529 and 14.761 landed at 0.64 and 0.68. Giving the stronger mix rise more weight separated them to 0.55 and 0.70. Watch 3.0–3.7 for the carried swell into the 0.88 drum, 19.6–20.6 for the first fill, and 33.2–39.37 for the little turns around the two exposed calls delivering 0.51 and 0.59.
+
+## PASSO BEM SOLTO · ATLXS
+
+Subtract 9.499 s. On Astra the owner liked the groove and wanted more singer at old 9–24 and 37–39. He called its revision “significantly better, could still be a bit better” and marked changes. I used that revision. It hears a held G-sharp and its renewal, a high A answered an octave lower, an instrumental reply, and a last word which crosses the drum return. The longer production composition stays closer to the drum pulse under that reply.
+
+The first pass found the exposed call and both entrances. It caught the drum before the high A, gave the mix rises around 9.4–9.8 more room than the pitches, and left out parts of the call to make space for the return. The opening now holds from 2.39 to the small renewal at 3.249, then strikes the clear vocal attacks at 3.701 and 4.433. The pitches at 9.112 and 10.946 carry the high and low A. The upper answer has a light fourth note and drum punctuation, including both three-stroke fills. In the last drum passage three small words interrupt the repeated rhythm. The weakening strokes go through 46.438, 63 ms from the cut. The existing treble and call lanes still describe those two changes and the drop begins with the last return.
+
+Seed 101 completed with 131/131 matches, asked 0.208–0.985, SD 0.155, r 0.957 (first pass 118/118, SD 0.152, r 0.956). In the trial the weak renewal, accented syllable and return delivered 0.36, 0.35 and 0.82. I eased the renewal and took the measured vocal attack at 29.139. They now deliver 0.24, 0.38 and 0.88, although whole-ride r fell from the trial's 0.969. Watch 2.39–4.43 for the hold, 9.11–10.95 for the change of register, and 27.70–29.60 for whether the call reads across the downbeat.
+
+## PASSO BEM SOLTO (Slowed) · ATLXS
+
+Subtract 10.971 s. The owner liked Astra's voice and low answers at old 20–23, but after revision still said it missed the voice and marked the syllables. Guided is the best evidence for how to correct it. It follows attacks in both vocals and other, then a repeated burst of syllables. I found no later verdict on that video. The first pass kept two important things guided loses among its upper answers, the marked low pair at 7.942 and 8.197 and the marked entry at 12.342.
+
+The short now keeps the opening conversation light. At 2.386 the upper attack has a 1.97 mix rise and sits on a voice mark between the two words the first pass landed. At 6–12 the upper replies grow and the two low strokes interrupt them. In the middle, alternate burst heads have mix rises near 1.2 and 2.0. They now have different weight, the softer inner syllables mostly carry, and a measured drum punctuates each second burst. Two bursts change their inner spacing, at 15.98 and 24.27. The exposed link follows the stressed vowels. In the final broken bars the pickup precedes two close drum notes, and the last words yield to an upper reply at 46.852.
+
+Seed 101 completed with 149/149 matches, asked 0.155–0.965, SD 0.166, r 0.962 (first pass 116/116, SD 0.163, r 0.966). In the trial the marked low pair delivered 0.71/0.66. Carrying the upper sound at 7.692 into the pair changed that to 0.87/0.52. The second stroke is lighter than the first pass's 0.64. The trial also spent its big return at 29.316, where drum attack is 1.95. The first returning drum actually has attack 3.59 at 28.921, under a marked syllable. It now delivers 0.81, followed by 0.47 on the broken figure. The doublet camera opens with that shared onset. The drop window brackets the sustained broken drums from 29.32. Watch 7.4–8.6 for the two low strokes, 13.9–16.5 for how the answering drum interrupts the bursts, and 27.06–29.32 for the word over the return.
+
+## PASSO BEM SOLTO (Super Slowed) · ATLXS
+
+Subtract 10.222 s. The owner marked Astra “changes” with the same remark as Passo. I read that as a request to hear the voice more clearly in the verse and naked call. He gave no separate passage times for this speed. Revised Astra is the best precedent because the sung C stays in front when the backing changes. The production composition instead gives that stretch to the drums.
+
+The first pass had the correct lead and the right stress on the first two C/echo pairs. It repeated almost the same pair for the entire passage. The short now carries the opening note into its first renewal, takes the high F-sharp at 6.531 beyond the big drum, and answers low at 8.714. The C starts at 13.602. Its alternating mix rises vary from about 1.2 to 2.4. Two actual A-sharp turns at 19.383 and 23.760 interrupt that pattern. Upper answers and the two short drum pairs fill different gaps in successive bars. The naked call keeps its quieter restatements and its word across the downbeat. The last body includes the short drum pickups and the five independent vocal turns. I kept the final offbeat at 49.546 from the short, after Astra's last primary drum, because it still has a drum attack of 1.88 and a mix rise of 1.68. Both camera lanes and the 30.60 drop still follow the register change and percussion return.
+
+Seed 101 completed with 120/120 matches, asked 0.181–0.984, SD 0.171, r 0.958 (first pass 115/115, SD 0.165, r 0.966). The trial's exceptional drum at 45.425 delivered 0.62 after a 0.59 predecessor. Easing that predecessor and opening the air and speed into the accent gives 0.45 then 0.86. Watch 6.53–8.72 for the 0.50 high answer and the 0.47 low one, 19.08–19.72 and 23.47–24.10 for the two changes of pitch, and 44.87–49.55 for the late accent and the last 0.45 offbeat.
+
+## LUA NA PRAÇA · dj Samir, DJ Zarek, DJ DUDA & LUNxdiE
+
+Subtract 2.309 s. The owner said the current calmer production composition “maps pretty well” and heard “some very good ideas” in guided. That later judgement decides the default. The earlier study's changes and the timeline marks explain the alternative. The calm composition has a short empty phrase gap as well as the famous long one. After the second body it follows four vocal pickups into a single upper stab. Its axes hold the section's character until the next entrance.
+
+The first pass kept the long gap and the two-stage return. In the short gap, the vocal release and the ending it largely took the upper variant's line. I restored the calm composition's body timings, its shortened opening strokes, both exposed vocal groups and the held section settings. The cut is already sounding on its first old drum at 0.071. The first rideable stroke is 0.524. At 5.458 the ride takes the first drum attack instead of its later rise. At 34.611 the bass completes the return, with mix rise 5.47 and drum attack 5.20. Both camera lanes anticipate the two entrances. The drop window begins on the naked drummer and includes the bass re-entry.
+
+In the upper variant, the marked seven-note statements remain complete. The hardest attacks of each are at 12.111 and 19.384. The first pass asked 0.22 at 23.709 despite a stronger rise there than anywhere earlier in the quiet. Now each of the exposed notes has its own weight, with the last three rising together. The short pickups at 33.8 and 41 seconds and the little upper release at 49.506 have their place in this version.
+
+The default keeps all 85 rideable times of the calm composition exactly. I added the upper attack at 48.479 before its final bass at 48.717. Seed 101 completed with 86/86 matches, asked 0.239–0.989, SD 0.133, r 0.912 (first pass 102/102, SD 0.154, r 0.933). In the trial the 7.72-second suspension delivered 35% air against 85% asked. It spent a full 1.00 strike on the bare drum return and 0.89 on the much larger bass arrival. Lowering the requested air in the quiet to 0.28 gives 23% air, no extra strike inside the gap, and entrances of 0.79 and 0.84. The last upper note and bass deliver 0.33 and 0.51.
+
+Upper seed 101 completed with 123/123 matches, asked 0.184–0.989, SD 0.174, r 0.941 (first pass 118/118, SD 0.163, r 0.959). Giving the last pickup less weight weakened the bass entrance from 0.83 to 0.75 in a second trial. Carrying more speed on a lower approach recovered it to 0.79. The bare drum gives 0.72. Watch 10.52–12.79 for the held gap versus the seven-note answer, 18.24–27.34 for the vocal release and long coast versus the upper line, and 33.47–34.62 for how much bigger the returning bass feels. The separation between the two entrances still needs the owner's eye.
+
+## Seed-101 replays for this batch
+
+All five default rides and Lua's upper variant reached the end of their audio. Their final manifests match the spec, audio and analysis file digests. These local replays show the compiled motion. The owner has yet to judge the finished videos. The values below compare the compiler's weighted axis RMS and count of off-beat contacts with the saved first pass. They describe fidelity to each ride's own requests.
+
+| Replay | Weighted axis RMS, first → final | Off-beat contacts, first → final |
+|---|---:|---:|
+| [Luna Bala Original](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_original-101/manifest.json) | 0.0477 → 0.0530 | 9 → 11 |
+| [Passo Bem Solto](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto-101/manifest.json) | 0.0459 → 0.0428 | 14 → 8 |
+| [Passo Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto_slowed-101/manifest.json) | 0.0424 → 0.0433 | 11 → 9 |
+| [Passo Super Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto_super_slowed-101/manifest.json) | 0.0447 → 0.0468 | 13 → 18 |
+| [Lua calm](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_lua_na_praca-101/manifest.json) | 0.0990 → 0.0530 | 6 → 19 |
+| [Lua upper](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_lua_na_praca-upper-101/manifest.json) | 0.0476 → 0.0554 | 12 → 14 |
+
+Before the Lua commit, typecheck passed, reach reported zero unreachable files, and all 721 tests passed.
+
+## Amor Na Praia · 52.351 s selection
+
+Subtract 7.649 s from the older selection. The owner's last mark on revised Astra was “changes”, with “pretty damn good, could take it” and a suggestion about the singer. The first pass found the isolated drum, run-up, two full-band entrances and closing pair. It gave the quiet opening almost the weight of the main pulse, missed the repeated low answers just behind the kicks, and kept subdividing the broad bass passage. I restored Astra's kick and sung B exchange from 12–21.76, displaced upper replies until the quick words at 30–32, and the four late bass answers at 34.077, 36.585, 38.942 and 41.45. The singer takes the last pickup and exposed pair. The two zoom lanes already anticipate the run and the low entrance, and the drop covers that same full-band passage.
+
+Seed 101 completed with 135/135 matches, asked 0.177–0.979, SD 0.194, r 0.966. The first pass had 134/134, SD 0.139 and r 0.959. The first trial's isolated drum at 2.231 only reached 0.69. Carrying the last upper note into it gave it 0.95. Watch 0–4.7 for that change of scale, 30–36.6 for words giving way to the bass, and 48.6–51.1 for the handoff to the closing pair. First-pass to final, unmatched strikes went from 13 to 12 and mean absolute matched strength error from 0.030 to 0.038. The wider hierarchy costs some accuracy. This ride awaits video review. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_amor_na_praia-101/manifest.json)
+
+## Amor Na Praia · 46 s
+
+This is the whole earlier excerpt. The owner gave *Kick and answer* 9.5/10. His Astra mark was “changes” for the opening voice. After seeing the guided video he wanted fewer syllables and the large drums and bass back under them. Guided 2 found an opening that serves that direction. Its upper-call body has no recorded preference over the 9.5/10 low duet. The first pass already had the boom, the eight dry strokes, the two words in their gaps, and the correct four-kick bars. It made many quiet answers nearly as heavy as the kicks and missed the sharpest opening syllable (3.355, mix rise 2.4, vocal attack 2.6).
+
+The opening now leans on that stress and the boom's decay. The two answers after kicks two and three change weight with the notes. Hear the bright second answer at 14.907 against the much smaller one at 17.113. The lone hey breaks the pattern at 26.285. The last low catch shares the word at 44.339 and the two following echoes carry to 45.72. The boom lane opens on the dry double stroke and the hey lane on the return. The main drop still spans the full-band phrase.
+
+Seed 101 completed, 120/120 matched, asked 0.128–0.981, SD 0.195, r 0.971. First pass was 121/121, SD 0.152, r 0.921. The trial's double stroke delivered 0.84 and 0.49. Reshaping the air across the pair gives 0.76 and 0.62. The hardest measured stroke of the burst at 5.277 now lands at 0.91. Watch 0–9.2 for whether the voice can still be followed between those drums, and 12–17.4 for the answering pair. Matched mean absolute error fell from 0.069 to 0.044, with 19 extra strikes in both rides. The owner has yet to judge this balance. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_amor_na_praia_46s-101/manifest.json)

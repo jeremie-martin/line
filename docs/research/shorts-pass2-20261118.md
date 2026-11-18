@@ -463,3 +463,7 @@ I hear three smaller drum replies between the low beats. The middle reply often 
 ## Third review · Los Voltaje slowed · drums
 
 The short drum answers now follow the calls and run between the kicks through the hook. The second answer takes more weight when the bass and upper note strike with it. 1.269 s — The drums fill the space between the early calls. 18.382 s — A light pickup starts the three replies. 35.902 s — The second stroke has the clearest accent. 49.033 s — The last group leads back to the exposed words. Construction stopped at frame 505. Seed 101 stopped during construction (no_arc).
+
+## Third review · Los Voltaje ultra slowed · drums
+
+There is time to hear the short drum before the first word and the space between each of the three later answers. The middle stroke grows where the bass and drum speak together. 0.157 s — The little drum opens the dialogue. 19.447 s — Three strokes answer the broad low beat. 45.976 s — The middle stroke stands out and the third meets the sung reply. 56.587 s — The final group hands the phrase back to the singer. Construction stopped at the opening, frame 1. Seed 101 stopped during construction (no_arc).

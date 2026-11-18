@@ -30,8 +30,10 @@ entry's spec. `npm run videos -- --songs=production …` makes a batch of the se
   note in two stems. Say "the notes of `other`", not "the pads".
 - **What is heard is the mix.** Among the notes of the line being followed, the ones a listener gets are those where
   the mix rises (`heard`) and the stem's attack is sharp. A sound's level or its share of the mix does not tell.
-- **A hierarchy must survive the ride.** Strength is a few big hits, a body and light notes, and it only exists if
-  the compiled ride delivers it: check asked against delivered (the manifest), not the spec.
+- **A spec describes the music, not the compiler.** Strength is a hierarchy: a few big hits, a body, light notes,
+  written as the music has them. What a ride delivers of it is the compiler's business and improves with the
+  compiler: never thin, re-weight, re-time or re-shape a spec (strength, air, speed) to make today's ride deliver
+  it. How well a spec is delivered is information for the owner, shown on the dashboard; it is not a goal.
 - **No rules from one song or one remark.** What read well on a song is in `docs/research/`, as observations.
 
 ## Setup (once per machine)
@@ -112,11 +114,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - Say in the header what each passage follows and what is deliberately left out. More than one variant is
      welcome where two readings are both good (a calm one, an ambitious one).
    - Land a figure whole, the same in every bar, unless the music changes.
-   - Size hits from `heard` and the attack. Where landings come faster than about three a second the rider delivers
-     little difference between them: thin around a big hit, or accept an even run and say so.
+   - Size hits from `heard` and the attack, as the music has them, however fast the landings come.
 7. **Compile and check.** `npm run produce -- --song=<song> [--variant=<name>] --seed=<n> --out=DIR` (add the song to
    `scripts/gallery/repertoire_catalog.ts`; do not edit tracked files while it runs). Then:
-   - asked against delivered strengths in the manifest: the spread asked, and whether the ride delivers it;
+   - the ride reaches the end (a spec that does not compile cannot be watched); what it delivers of the asked
+     strengths is not a reason to change the spec;
    - `node tools/music/coverage.ts --song=<song> [--variant=<name>]` lists strong events not landed. It is a list to
      read, not a form to fill: a written reason does not make a miss right.
 8. **He watches.** The video, beside the spec on the dashboard: muted, it follows the dashboard's clock (position,
